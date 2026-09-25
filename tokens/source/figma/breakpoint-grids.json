@@ -1,0 +1,92 @@
+{
+  "Breakpoint & Grids": {
+    "modes": [
+      "Desktop",
+      "Tablet",
+      "Mobile"
+    ],
+    "tokens": [
+      {
+        "name": "Margin-Comfortable",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Desktop": "{Spacing/Padding/XLarge}",
+          "Tablet": "{Spacing/Padding/XLarge}",
+          "Mobile": "{Spacing/Padding/Large}"
+        }
+      },
+      {
+        "name": "Gutter",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Desktop": "{Spacing/Gap/Medium}",
+          "Tablet": "{Spacing/Gap/Medium}",
+          "Mobile": "{Spacing/Gap/Small}"
+        }
+      },
+      {
+        "name": "Viewport-Width",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Desktop": 1512,
+          "Tablet": 744,
+          "Mobile": 390
+        }
+      },
+      {
+        "name": "Viewport-Height",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Desktop": 982,
+          "Tablet": 1133,
+          "Mobile": 844
+        }
+      },
+      {
+        "name": "Modal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Desktop": "{Spacing/Padding/XLarge}",
+          "Tablet": "{Spacing/Padding/Large}",
+          "Mobile": "{Spacing/Padding/Large}"
+        }
+      },
+      {
+        "name": "Card-padding-medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Desktop": "{Spacing/Padding/XLarge}",
+          "Tablet": "{Spacing/Padding/Large}",
+          "Mobile": "{Spacing/Padding/Large}"
+        }
+      },
+      {
+        "name": "Margin-Compact",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Desktop": "{Spacing/Padding/Large}",
+          "Tablet": "{Spacing/Padding/Large}",
+          "Mobile": "{Spacing/Padding/Medium}"
+        }
+      },
+      {
+        "name": "Card-padding-small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Desktop": "{Spacing/Padding/Medium}",
+          "Tablet": "{Spacing/Padding/Medium}",
+          "Mobile": "{Spacing/Padding/Medium}"
+        }
+      },
+      {
+        "name": "Modal-Radius",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Desktop": "{Corner-Radius/XGiant}",
+          "Tablet": "{Corner-Radius/Giant}",
+          "Mobile": "{Corner-Radius/Giant}"
+        }
+      }
+    ]
+  }
+}

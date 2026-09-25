@@ -1,0 +1,1562 @@
+{
+  "Component Size": {
+    "modes": [
+      "Compact",
+      "Comfortable"
+    ],
+    "tokens": [
+      {
+        "name": "Element-Size/Popular/Base",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-20}",
+          "Comfortable": "{dm-24}"
+        }
+      },
+      {
+        "name": "Element-Size/Popular/Large",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-28}",
+          "Comfortable": "{dm-32}"
+        }
+      },
+      {
+        "name": "Element-Size/Popular/3XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-52}",
+          "Comfortable": "{dm-56}"
+        }
+      },
+      {
+        "name": "Element-Size/Popular/XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-36}",
+          "Comfortable": "{dm-40}"
+        }
+      },
+      {
+        "name": "Element-Size/Popular/XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-12}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Input/Spacing/Large/Inside-Field-Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Input/Size/Large",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-48}",
+          "Comfortable": "{dm-56}"
+        }
+      },
+      {
+        "name": "Input/Size/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-40}",
+          "Comfortable": "{dm-48}"
+        }
+      },
+      {
+        "name": "Input/Size/Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-32}",
+          "Comfortable": "{dm-40}"
+        }
+      },
+      {
+        "name": "Chip/Spacing/Medium/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Chip/Size/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-40}",
+          "Comfortable": "{dm-48}"
+        }
+      },
+      {
+        "name": "Chip/Size/Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-32}",
+          "Comfortable": "{dm-40}"
+        }
+      },
+      {
+        "name": "Input/Spacing/Medium/Inside-Field-Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Input/Spacing/Small/Inside-Field-Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Chip/Spacing/Small/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Badge/Spacing/Medium/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Badge/Spacing/Small/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 0,
+          "Comfortable": 0
+        }
+      },
+      {
+        "name": "Image-Size/Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-32}",
+          "Comfortable": "{dm-40}"
+        }
+      },
+      {
+        "name": "Image-Size/XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-56}",
+          "Comfortable": "{dm-64}"
+        }
+      },
+      {
+        "name": "Image-Size/2XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-80}",
+          "Comfortable": "{dm-88}"
+        }
+      },
+      {
+        "name": "Image-Size/3XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-112}",
+          "Comfortable": "{dm-128}"
+        }
+      },
+      {
+        "name": "Element-Size/File-Icon/Width",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-28}",
+          "Comfortable": "{dm-32}"
+        }
+      },
+      {
+        "name": "Element-Size/File-Icon/Height",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 35,
+          "Comfortable": "{dm-40}"
+        }
+      },
+      {
+        "name": "Element-Size/Popular/Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-20}"
+        }
+      },
+      {
+        "name": "Element-Size/Popular/2XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-44}",
+          "Comfortable": "{dm-48}"
+        }
+      },
+      {
+        "name": "Element-Size/Popular/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-24}",
+          "Comfortable": "{dm-28}"
+        }
+      },
+      {
+        "name": "Input/Size/XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-56}",
+          "Comfortable": "{dm-64}"
+        }
+      },
+      {
+        "name": "Input/Spacing/Large/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-12}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Input/Spacing/Large/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Input/Spacing/Medium/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 10,
+          "Comfortable": "{dm-12}"
+        }
+      },
+      {
+        "name": "Input/Spacing/Medium/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-12}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Input/Spacing/Small/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 6,
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Input/Spacing/Small/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-12}"
+        }
+      },
+      {
+        "name": "Chip/Spacing/Medium/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-12}",
+          "Comfortable": "{dm-12}"
+        }
+      },
+      {
+        "name": "Chip/Spacing/Medium/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-20}"
+        }
+      },
+      {
+        "name": "Chip/Spacing/Small/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Chip/Spacing/Small/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-12}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Badge/Spacing/Medium/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Badge/Spacing/Medium/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Badge/Spacing/Small/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-2}",
+          "Comfortable": "{dm-2}"
+        }
+      },
+      {
+        "name": "Badge/Spacing/Small/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": 5
+        }
+      },
+      {
+        "name": "Chip/Spacing/Medium/Customized-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 10,
+          "Comfortable": "{dm-12}"
+        }
+      },
+      {
+        "name": "Chip/Spacing/Small/Customized-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": 10
+        }
+      },
+      {
+        "name": "Element-Size/Popular/2XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-12}",
+          "Comfortable": "{dm-12}"
+        }
+      },
+      {
+        "name": "Tag/Spacing/Medium/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 6,
+          "Comfortable": 6
+        }
+      },
+      {
+        "name": "Tag/Spacing/Medium/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Tag/Spacing/Medium/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-2}",
+          "Comfortable": "{dm-2}"
+        }
+      },
+      {
+        "name": "Tag/Size/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-28}",
+          "Comfortable": "{dm-32}"
+        }
+      },
+      {
+        "name": "Tag/Size/Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-20}",
+          "Comfortable": "{dm-24}"
+        }
+      },
+      {
+        "name": "Badge/Size/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-28}",
+          "Comfortable": "{dm-32}"
+        }
+      },
+      {
+        "name": "Badge/Size/Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-20}",
+          "Comfortable": "{dm-24}"
+        }
+      },
+      {
+        "name": "Checkbox/Size/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-20}"
+        }
+      },
+      {
+        "name": "Checkbox/Spacing/Medium/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Chip/Spacing/Medium/Minimum-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Chip/Spacing/Small/Minimum-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Radio-Button/Size/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-20}"
+        }
+      },
+      {
+        "name": "Radio-Button/Spacing/Medium/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Input/Spacing/XLarge/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Input/Spacing/XLarge/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Input/Spacing/XLarge/Inside-Field-Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Text-Area/Spacing/Large/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Text-Area/Spacing/Large/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-12}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Text-Area/Spacing/Large/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Text-Area/Spacing/Medium/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-12}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Text-Area/Spacing/Medium/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-12}",
+          "Comfortable": "{dm-12}"
+        }
+      },
+      {
+        "name": "Text-Area/Spacing/Medium/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Text-Area/Spacing/Small/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-12}"
+        }
+      },
+      {
+        "name": "Text-Area/Spacing/Small/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 6,
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Text-Area/Spacing/Small/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Text-Area/Size/Large",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-144}",
+          "Comfortable": "{dm-160}"
+        }
+      },
+      {
+        "name": "Text-Area/Size/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-112}",
+          "Comfortable": "{dm-128}"
+        }
+      },
+      {
+        "name": "Text-Area/Size/Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-96}",
+          "Comfortable": "{dm-112}"
+        }
+      },
+      {
+        "name": "Input/Spacing/Large/Outside-Field-Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Input/Spacing/XLarge/Outside-Field-Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Input/Spacing/Medium/Outside-Field-Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Input/Spacing/Small/Outside-Field-Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Select-Item/Size/Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-24}",
+          "Comfortable": "{dm-32}"
+        }
+      },
+      {
+        "name": "Select-Item/Size/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-32}",
+          "Comfortable": "{dm-40}"
+        }
+      },
+      {
+        "name": "Input/Size/Heading-H1",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-40}",
+          "Comfortable": "{dm-44}"
+        }
+      },
+      {
+        "name": "Input/Size/Heading-H2",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-36}",
+          "Comfortable": "{dm-40}"
+        }
+      },
+      {
+        "name": "Button/Size/XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-56}",
+          "Comfortable": "{dm-64}"
+        }
+      },
+      {
+        "name": "Button/Spacing/XLarge/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Button/Spacing/XLarge/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Button/Spacing/XLarge/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Button/Spacing/XLarge/Text-Wrapper-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Button/Spacing/Large/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Button/Spacing/Large/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Button/Spacing/Large/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-2}",
+          "Comfortable": 0
+        }
+      },
+      {
+        "name": "Button/Spacing/Large/Text-Wrapper-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Button/Spacing/Medium/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-12}",
+          "Comfortable": "{dm-12}"
+        }
+      },
+      {
+        "name": "Button/Spacing/Medium/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 10,
+          "Comfortable": "{dm-12}"
+        }
+      },
+      {
+        "name": "Button/Spacing/Medium/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-2}",
+          "Comfortable": 0
+        }
+      },
+      {
+        "name": "Button/Spacing/Medium/Text-Wrapper-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Button/Spacing/Small/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": 10
+        }
+      },
+      {
+        "name": "Button/Spacing/Small/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Button/Spacing/Small/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-2}",
+          "Comfortable": "{dm-2}"
+        }
+      },
+      {
+        "name": "Button/Spacing/Small/Text-Wrapper-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Button/Spacing/XSmall/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 6,
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Button/Spacing/XSmall/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Button/Spacing/XSmall/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 0,
+          "Comfortable": "{dm-2}"
+        }
+      },
+      {
+        "name": "Button/Spacing/XSmall/Text-Wrapper-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Button/Size/Large",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-48}",
+          "Comfortable": "{dm-56}"
+        }
+      },
+      {
+        "name": "Button/Size/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-40}",
+          "Comfortable": "{dm-48}"
+        }
+      },
+      {
+        "name": "Button/Size/Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-32}",
+          "Comfortable": "{dm-40}"
+        }
+      },
+      {
+        "name": "Button/Size/XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-24}",
+          "Comfortable": "{dm-32}"
+        }
+      },
+      {
+        "name": "Button/Size/2XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-24}",
+          "Comfortable": "{dm-24}"
+        }
+      },
+      {
+        "name": "Button/Icon-Size/2XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-12}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Button/Icon-Size/XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-12}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Button/Icon-Size/Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-20}"
+        }
+      },
+      {
+        "name": "Button/Icon-Size/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-20}",
+          "Comfortable": "{dm-24}"
+        }
+      },
+      {
+        "name": "Button/Icon-Size/Large",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-20}",
+          "Comfortable": "{dm-24}"
+        }
+      },
+      {
+        "name": "Button/Icon-Size/XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-28}",
+          "Comfortable": "{dm-32}"
+        }
+      },
+      {
+        "name": "Badge/Spacing/Small/Text-Wrapper-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Badge/Spacing/Medium/Text-Wrapper-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-2}",
+          "Comfortable": "{dm-2}"
+        }
+      },
+      {
+        "name": "Tag/Spacing/Medium/Text-Wrapper-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Tag/Spacing/Small/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Tag/Spacing/Small/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Tag/Spacing/Small/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-2}",
+          "Comfortable": "{dm-2}"
+        }
+      },
+      {
+        "name": "Tag/Spacing/Small/Text-Wrapper-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Segmented/Spacing/Medium/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 6,
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Segmented/Spacing/Medium/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 6,
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Segmented/Spacing/Medium/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Segmented/Spacing/Medium/Text-Wrapper-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Segmented/Spacing/Small/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": 6
+        }
+      },
+      {
+        "name": "Segmented/Spacing/Small/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Segmented/Spacing/Small/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-2}",
+          "Comfortable": "{dm-2}"
+        }
+      },
+      {
+        "name": "Segmented/Size/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-32}",
+          "Comfortable": "{dm-40}"
+        }
+      },
+      {
+        "name": "Segmented/Size/Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-24}",
+          "Comfortable": "{dm-32}"
+        }
+      },
+      {
+        "name": "Segmented/Spacing/Small/Text-Wrapper-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Segmented/Spacing/XSmall/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Segmented/Spacing/XSmall/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-2}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Segmented/Spacing/XSmall/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 0,
+          "Comfortable": 0
+        }
+      },
+      {
+        "name": "Segmented/Spacing/XSmall/Text-Wrapper-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Segmented/Size/XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-24}"
+        }
+      },
+      {
+        "name": "Segmented/Item-Corner-Radius-Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{Corner-Radius/Rounded}",
+          "Comfortable": "{Corner-Radius/Rounded}"
+        }
+      },
+      {
+        "name": "Segmented/Item-Corner-Radius-Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{Corner-Radius/Rounded}",
+          "Comfortable": "{Corner-Radius/Rounded}"
+        }
+      },
+      {
+        "name": "Segmented/Container-Corner-Radius-Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{Corner-Radius/Rounded}",
+          "Comfortable": "{Corner-Radius/Rounded}"
+        }
+      },
+      {
+        "name": "Segmented/Container-Corner-Radius-Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{Corner-Radius/Rounded}",
+          "Comfortable": "{Corner-Radius/Rounded}"
+        }
+      },
+      {
+        "name": "Toggle/Item/Size/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-20}"
+        }
+      },
+      {
+        "name": "Toggle/Item/Size/Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-12}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Toggle/Item/Size/Large",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-20}",
+          "Comfortable": "{dm-24}"
+        }
+      },
+      {
+        "name": "Sidebar/Default-Width",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 260,
+          "Comfortable": 280
+        }
+      },
+      {
+        "name": "Global-Control-Bar/Size",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-68}",
+          "Comfortable": "{dm-80}"
+        }
+      },
+      {
+        "name": "Tab-Item/Size/Medium/Min-Width",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-40}",
+          "Comfortable": "{dm-48}"
+        }
+      },
+      {
+        "name": "Tab-Item/Spacing/Medium/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 0,
+          "Comfortable": 0
+        }
+      },
+      {
+        "name": "Tab-Item/Spacing/Medium/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Tab-Item/Spacing/Medium/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Tab-Item/Size/Small/Min-Width",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-32}",
+          "Comfortable": "{dm-40}"
+        }
+      },
+      {
+        "name": "Tab-Item/Spacing/Small/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 0,
+          "Comfortable": 0
+        }
+      },
+      {
+        "name": "Tab-Item/Spacing/Small/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Tab-Item/Spacing/Small/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Table/Cell/Size",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-52}",
+          "Comfortable": "{dm-56}"
+        }
+      },
+      {
+        "name": "Table/Header/Size",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-36}",
+          "Comfortable": "{dm-40}"
+        }
+      },
+      {
+        "name": "Image-Size/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-40}",
+          "Comfortable": "{dm-48}"
+        }
+      },
+      {
+        "name": "Dashboard-Header/Size/Desktop",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-80}",
+          "Comfortable": "{dm-88}"
+        }
+      },
+      {
+        "name": "Badge/Size/XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-20}"
+        }
+      },
+      {
+        "name": "Sidebar/Small-Width",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 220,
+          "Comfortable": 240
+        }
+      },
+      {
+        "name": "Navigation-Mobile/Top/Icon-Size",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-24}",
+          "Comfortable": "{dm-24}"
+        }
+      },
+      {
+        "name": "Navigation-Mobile/Bottom/Icon-Size",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-24}",
+          "Comfortable": "{dm-24}"
+        }
+      },
+      {
+        "name": "Navigation-Action/Icon/Spacing/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 10,
+          "Comfortable": 10
+        }
+      },
+      {
+        "name": "Navigation-Action/Icon/Spacing/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 10,
+          "Comfortable": 10
+        }
+      },
+      {
+        "name": "Navigation-Action/Icon/Spacing/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-24}",
+          "Comfortable": "{dm-24}"
+        }
+      },
+      {
+        "name": "Navigation-Action/Size",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-44}",
+          "Comfortable": "{dm-44}"
+        }
+      },
+      {
+        "name": "Image-Size/Large",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-48}",
+          "Comfortable": "{dm-56}"
+        }
+      },
+      {
+        "name": "Image-Size/XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-24}",
+          "Comfortable": "{dm-32}"
+        }
+      },
+      {
+        "name": "Badge/Spacing/XSmall/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-2}",
+          "Comfortable": "{dm-2}"
+        }
+      },
+      {
+        "name": "Badge/Spacing/XSmall/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-2}",
+          "Comfortable": "{dm-2}"
+        }
+      },
+      {
+        "name": "Badge/Spacing/XSmall/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-2}",
+          "Comfortable": "{dm-2}"
+        }
+      },
+      {
+        "name": "Badge/Spacing/XSmall/Text-Wrapper-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Image-Size/2XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-20}",
+          "Comfortable": "{dm-24}"
+        }
+      },
+      {
+        "name": "Image-Size/3XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-20}"
+        }
+      },
+      {
+        "name": "Navigation-Action/Text/Spacing/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 10,
+          "Comfortable": 10
+        }
+      },
+      {
+        "name": "Navigation-Action/Text/Spacing/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 10,
+          "Comfortable": 10
+        }
+      },
+      {
+        "name": "Navigation-Action/Text/Spacing/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 0,
+          "Comfortable": 0
+        }
+      },
+      {
+        "name": "Tab-Item/Size/Small/Height",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-32}",
+          "Comfortable": "{dm-40}"
+        }
+      },
+      {
+        "name": "Tab-Item/Size/Medium/Height",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-40}",
+          "Comfortable": "{dm-48}"
+        }
+      },
+      {
+        "name": "Tag/Spacing/Medium/Minimum-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Tag/Spacing/Small/Minimum-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Badge/Spacing/Medium/Customize",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-2}",
+          "Comfortable": "{dm-2}"
+        }
+      },
+      {
+        "name": "Chip/Size/XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-28}",
+          "Comfortable": "{dm-32}"
+        }
+      },
+      {
+        "name": "Chip/Spacing/XSmall/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-12}"
+        }
+      },
+      {
+        "name": "Chip/Spacing/XSmall/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Chip/Spacing/XSmall/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Chip/Spacing/XSmall/Customized-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 6,
+          "Comfortable": 6
+        }
+      },
+      {
+        "name": "Chip/Spacing/XSmall/Minimum-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-4}",
+          "Comfortable": "{dm-4}"
+        }
+      },
+      {
+        "name": "Navigation-Mobile/Top/Action-Icon-Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-20}",
+          "Comfortable": "{dm-20}"
+        }
+      },
+      {
+        "name": "Navigation-Mobile/Top/Action-Button-Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}"
+        }
+      },
+      {
+        "name": "Navigation-Mobile/Top/Bar-Padding-H1",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-12}",
+          "Comfortable": "{dm-12}"
+        }
+      },
+      {
+        "name": "Navigation-Mobile/Top/Bar-Padding-H2",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-12}",
+          "Comfortable": "{dm-12}"
+        }
+      },
+      {
+        "name": "Navigation-Mobile/Top/Bar-Padding-H3",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-16}",
+          "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "Navigation-Mobile/Top/Bar-Size",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-64}",
+          "Comfortable": "{dm-64}"
+        }
+      },
+      {
+        "name": "Input/Size/Heading-H3",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-32}",
+          "Comfortable": "{dm-36}"
+        }
+      },
+      {
+        "name": "Navigation-Action/Margin",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{Margin-Compact}",
+          "Comfortable": "{Margin-Comfortable}"
+        }
+      },
+      {
+        "name": "Badge/Size/2XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-12}",
+          "Comfortable": "{dm-16}"
+        }
+      }
+    ]
+  }
+}

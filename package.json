@@ -1,0 +1,35 @@
+{
+  "name": "@zen/design-system",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run tokens:build && npm run styles:build && npm run icons:build && tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "storybook": "npm run tokens:build && npm run styles:build && npm run icons:build && storybook dev -p 6006",
+    "build-storybook": "npm run tokens:build && npm run styles:build && npm run icons:build && storybook build",
+    "tokens:build": "node scripts/build-tokens.mjs",
+    "tokens:check": "node scripts/check-token-coverage.mjs",
+    "styles:build": "node scripts/build-text-styles.mjs && node scripts/build-style-manifest.mjs",
+    "styles:check": "node scripts/check-text-styles.mjs && node scripts/check-style-manifest.mjs",
+    "icons:build": "node scripts/build-icons.mjs",
+    "icons:check": "node scripts/check-icons.mjs"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "vite": "8.3.0"
+  },
+  "devDependencies": {
+    "@storybook/addon-a11y": "10.6.0",
+    "@storybook/addon-docs": "^10.6.0",
+    "@storybook/react-vite": "10.6.0",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "storybook": "10.6.0",
+    "typescript": "7.0.2"
+  }
+}

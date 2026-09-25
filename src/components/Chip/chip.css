@@ -1,0 +1,171 @@
+.zen-chip {
+  --zen-chip-background: var(--zen-chip-secondary-background-unselected-default, #fff);
+  --zen-chip-background-hover: var(--zen-chip-secondary-background-unselected-hover, #05050508);
+  --zen-chip-border: var(--zen-chip-secondary-border-default, #0101011c);
+  --zen-chip-content: var(--zen-color-content-neutral-strongest, #111);
+  --zen-chip-stroke-width: 1px;
+  position: relative;
+  display: inline-flex;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: 100%;
+  justify-self: start;
+  height: var(--zen-chip-size-small, 32px);
+  min-width: max-content;
+  align-items: center;
+  gap: var(--zen-chip-spacing-small-gap, 4px);
+  padding: var(--zen-chip-spacing-small-vertical-padding, 4px) var(--zen-chip-spacing-small-horizontal-padding, 12px);
+  border: 0;
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  appearance: none;
+  background: var(--zen-chip-background);
+  /* Figma Shadow/Action/Tertiary effect style (shadow + background blur 40 → CSS 20px). */
+  box-shadow: var(--zen-style-shadow-action-tertiary-shadow);
+  color: var(--zen-chip-content);
+  cursor: pointer;
+  backdrop-filter: var(--zen-style-shadow-action-tertiary-backdrop-filter);
+  white-space: nowrap;
+  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+/* A dropdown owns the Popover positioning context without changing the
+   chip's intrinsic width. This keeps Advanced chips in a filter row hugging
+   their label instead of stretching to the row/grid width. */
+.zen-chip__dropdown {
+  position: relative;
+  display: inline-flex;
+  width: max-content;
+  max-width: 100%;
+  vertical-align: top;
+}
+
+.zen-chip__dropdown > .zen-chip { max-width: 100%; }
+
+/* Figma INSIDE stroke is excluded from Auto Layout, so it must not add padding. */
+.zen-chip::after {
+  position: absolute;
+  inset: 0;
+  border: var(--zen-chip-stroke-width) solid var(--zen-chip-border);
+  border-radius: inherit;
+  content: "";
+  pointer-events: none;
+}
+
+.zen-chip[data-size="xsmall"] {
+  height: var(--zen-chip-size-xsmall, 28px);
+  gap: var(--zen-chip-spacing-xsmall-gap, 4px);
+  padding: var(--zen-chip-spacing-xsmall-vertical-padding, 4px) var(--zen-chip-spacing-xsmall-horizontal-padding, 8px);
+}
+
+.zen-chip[data-size="medium"] {
+  height: var(--zen-chip-size-medium, 40px);
+  gap: var(--zen-chip-spacing-medium-gap, 8px);
+  padding: var(--zen-chip-spacing-medium-vertical-padding, 12px) var(--zen-chip-spacing-medium-horizontal-padding, 16px);
+}
+
+/* Figma side-padding bindings differ by set/theme. Advanced reserves the
+   trailing primitive with Customized padding; Normal keeps a full Horizontal
+   end cap; Leading-Photo uses the Minimum padding token on its leading edge. */
+.zen-chip[data-variant="advanced"] { padding-right: var(--zen-chip-spacing-small-customized-padding, 8px); }
+.zen-chip[data-variant="advanced"][data-size="xsmall"] { padding-right: var(--zen-chip-spacing-xsmall-customized-padding, 6px); }
+.zen-chip[data-variant="advanced"][data-size="medium"] { padding-right: var(--zen-chip-spacing-medium-customized-padding, 10px); }
+.zen-chip[data-variant="advanced"][data-theme="leading-icon"] { padding-left: var(--zen-chip-spacing-small-customized-padding, 8px); }
+.zen-chip[data-variant="advanced"][data-theme="leading-icon"][data-size="xsmall"] { padding-left: var(--zen-chip-spacing-xsmall-customized-padding, 6px); }
+.zen-chip[data-variant="advanced"][data-theme="leading-icon"][data-size="medium"] { padding-left: var(--zen-chip-spacing-medium-customized-padding, 10px); }
+.zen-chip[data-variant="advanced"][data-theme="leading-photo"] { padding-left: var(--zen-chip-spacing-small-minimum-padding, 4px); }
+.zen-chip[data-variant="advanced"][data-theme="leading-photo"][data-size="xsmall"] { padding-left: var(--zen-chip-spacing-xsmall-minimum-padding, 4px); }
+.zen-chip[data-variant="advanced"][data-theme="leading-photo"][data-size="medium"] { padding-left: var(--zen-chip-spacing-medium-minimum-padding, 4px); }
+.zen-chip[data-variant="normal"][data-theme="leading-icon"] { padding-left: var(--zen-chip-spacing-small-customized-padding, 8px); }
+.zen-chip[data-variant="normal"][data-theme="leading-icon"][data-size="xsmall"] { padding-left: var(--zen-chip-spacing-xsmall-customized-padding, 6px); }
+.zen-chip[data-variant="normal"][data-theme="leading-icon"][data-size="medium"] { padding-left: var(--zen-chip-spacing-medium-customized-padding, 10px); }
+.zen-chip[data-variant="normal"][data-theme="leading-photo"] { padding-left: var(--zen-chip-spacing-small-minimum-padding, 4px); }
+.zen-chip[data-variant="normal"][data-theme="leading-photo"][data-size="xsmall"] { padding-left: var(--zen-chip-spacing-xsmall-minimum-padding, 4px); }
+.zen-chip[data-variant="normal"][data-theme="leading-photo"][data-size="medium"] { padding-left: var(--zen-chip-spacing-medium-minimum-padding, 4px); }
+
+.zen-chip[data-size="medium"] .zen-chip__slot {
+  width: var(--zen-element-size-popular-base, 20px);
+  height: var(--zen-element-size-popular-base, 20px);
+}
+
+.zen-chip[data-variant="number-only"] { width: var(--zen-chip-size-small, 32px); min-width: var(--zen-chip-size-small, 32px); max-width: var(--zen-chip-size-small, 32px); justify-content: center; padding-inline: 0; }
+.zen-chip[data-variant="number-only"][data-size="xsmall"] { width: var(--zen-chip-size-xsmall, 28px); min-width: var(--zen-chip-size-xsmall, 28px); max-width: var(--zen-chip-size-xsmall, 28px); }
+.zen-chip[data-variant="number-only"][data-size="medium"] { width: var(--zen-chip-size-medium, 40px); min-width: var(--zen-chip-size-medium, 40px); max-width: var(--zen-chip-size-medium, 40px); }
+
+.zen-chip[data-level="primary"] {
+  --zen-chip-background: var(--zen-chip-primary-background-unselected-default, #fff);
+  --zen-chip-background-hover: var(--zen-chip-primary-background-unselected-hover, #05050508);
+  --zen-chip-border: var(--zen-chip-primary-border-default, #0101011c);
+}
+
+.zen-chip[data-select="true"] {
+  --zen-chip-background: var(--zen-chip-secondary-background-seclected-default, #fff);
+  --zen-chip-background-hover: var(--zen-chip-secondary-background-seclected-hover, #05050508);
+  --zen-chip-border: var(--zen-chip-secondary-border-selected, #111);
+  --zen-chip-content: var(--zen-chip-secondary-content-selected, #111);
+  --zen-chip-icon: var(--zen-chip-secondary-content-selected, #111);
+  --zen-chip-stroke-width: var(--zen-chip-secondary-border-weigth-active, 2px);
+}
+
+.zen-chip[data-level="primary"][data-select="true"] {
+  --zen-chip-background: var(--zen-chip-primary-background-seclected-default, #111);
+  --zen-chip-background-hover: var(--zen-chip-primary-background-seclected-hover, #111);
+  --zen-chip-border: transparent;
+  --zen-chip-content: var(--zen-chip-primary-content-selected, #fff);
+  --zen-chip-icon: var(--zen-chip-primary-content-selected, #fff);
+}
+
+.zen-chip[data-state="hover"],
+.zen-chip:hover:not(:disabled) {
+  background: var(--zen-chip-background-hover);
+}
+
+.zen-chip[data-state="press"],
+.zen-chip:active:not(:disabled) {
+  background: var(--zen-chip-background-hover);
+}
+
+.zen-chip[data-select="false"]:is([data-state="hover"], [data-state="press"], :hover, :active):not(:disabled) {
+  --zen-chip-icon: var(--zen-color-content-neutral-strongest, #111);
+}
+
+/* Figma Focus-Ring: absolute rectangle 5px outside the chip with a 3px INSIDE
+   Focus/Accent/Solid stroke, leaving a transparent 2px gap. */
+.zen-chip:focus-visible { outline: 0; }
+.zen-chip[data-state="focused"]::before,
+.zen-chip:focus-visible::before {
+  position: absolute;
+  inset: -5px;
+  box-sizing: border-box;
+  border: 3px solid var(--zen-color-focus-accent-solid);
+  border-radius: var(--zen-corner-radius-rounded);
+  content: "";
+  pointer-events: none;
+}
+
+.zen-chip[data-state="placeholder"] .zen-chip__label { color: var(--zen-color-content-placeholder); }
+.zen-chip:disabled,
+.zen-chip[data-state="disabled"] { cursor: not-allowed; opacity: .55; }
+.zen-chip__label { overflow: hidden; text-overflow: ellipsis; }
+/* Number-Only Label: Body/Base/Bold, fills the fixed-size chip and centres the digits. */
+.zen-chip__value { flex: 1 1 auto; min-width: 0; text-align: center; }
+.zen-chip__slot { display: inline-flex; width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); align-items: center; justify-content: center; }
+.zen-chip__slot > .zen-icon { width: 100% !important; height: 100% !important; color: var(--zen-chip-icon, var(--zen-color-content-neutral-light, #0000007d)); }
+.zen-chip[data-variant="normal"][data-theme="leading-icon"][data-size="small"] > .zen-chip__slot:not(.zen-chip__trailing) { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
+.zen-chip[data-theme="leading-photo"][data-size="xsmall"] > .zen-chip__slot:not(.zen-chip__trailing) { width: var(--zen-image-size-2-xsmall, 20px); height: var(--zen-image-size-2-xsmall, 20px); }
+.zen-chip[data-theme="leading-photo"][data-size="small"] > .zen-chip__slot:not(.zen-chip__trailing) { width: var(--zen-image-size-xsmall, 24px); height: var(--zen-image-size-xsmall, 24px); }
+.zen-chip[data-theme="leading-photo"][data-size="medium"] > .zen-chip__slot:not(.zen-chip__trailing) { width: var(--zen-image-size-small, 32px); height: var(--zen-image-size-small, 32px); }
+.zen-chip__photo:not(:has(> .zen-avatar)) { overflow: hidden; border-radius: 50%; }
+.zen-chip__photo > :not(.zen-avatar) { width: 100%; height: 100%; object-fit: cover; }
+/* .Chip/Trailing Single: icon-x-circle-solid, Content/Neutral/Strongest in every state. */
+.zen-chip__remove { display: inline-flex; width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); align-items: center; justify-content: center; color: var(--zen-color-content-neutral-strongest); }
+.zen-chip__remove[data-clickable="true"] { cursor: pointer; }
+.zen-chip__multi-trailing { position: relative; display: inline-flex; width: 100%; height: 100%; align-items: center; justify-content: center; }
+.zen-chip__multi-trailing[data-clickable="true"] { cursor: pointer; }
+.zen-chip__multi-count { min-width: var(--zen-badge-size-xsmall, 16px); height: var(--zen-badge-size-xsmall, 16px); padding: 0; }
+.zen-chip[data-size="medium"] .zen-chip__multi-count { min-width: var(--zen-badge-size-small, 20px); height: var(--zen-badge-size-small, 20px); }
+.zen-chip__multi-remove { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; color: var(--zen-color-content-neutral-strongest); }
+/* Hovering the counter reveals the clear affordance (only when clearing is wired). */
+.zen-chip__multi-trailing[data-clickable="true"]:hover .zen-chip__multi-count { opacity: 0; }
+.zen-chip__multi-trailing[data-clickable="true"]:hover .zen-chip__multi-remove { display: inline-flex; }
+.zen-chip[data-size="medium"] .zen-chip__remove { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
+.zen-chip__remove > .zen-icon, .zen-chip__multi-remove > .zen-icon { width: 100% !important; height: 100% !important; }

@@ -1,0 +1,1245 @@
+{
+  "Component Theme": {
+    "modes": [
+      "Neutral - S1",
+      "Brand - S1",
+      "Neutral - S2",
+      "Brand - S2",
+      "Neutral - S3"
+    ],
+    "tokens": [
+      {
+        "name": "Button-Primary/Background/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Solid/Default}",
+          "Brand - S1": "{Color/Background/Accent/Solid/Default}",
+          "Neutral - S2": "{Color/Background/Neutral/Solid/Default}",
+          "Brand - S2": "{Color/Background/Accent/Solid/Default}",
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Default}"
+        }
+      },
+      {
+        "name": "Button-Primary/Content/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/Inverse/Strongest}",
+          "Brand - S1": "{Color/Content/On-Accent/Default}",
+          "Neutral - S2": "{Color/Content/Inverse/Strongest}",
+          "Brand - S2": "{Color/Content/On-Accent/Default}",
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        }
+      },
+      {
+        "name": "Button-Primary/Background/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Solid/Hover}",
+          "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
+          "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+        }
+      },
+      {
+        "name": "Button-Primary/Background/Pressed",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Solid/Pressed}",
+          "Brand - S1": "{Color/Background/Accent/Solid/Pressed}",
+          "Neutral - S2": "{Color/Background/Neutral/Solid/Pressed}",
+          "Brand - S2": "{Color/Background/Accent/Solid/Pressed}",
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Pressed}"
+        }
+      },
+      {
+        "name": "Button-Accent/Content/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/On-Accent/Default}",
+          "Brand - S1": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S2": "{Color/Content/On-Accent/Default}",
+          "Brand - S2": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S3": "{Color/Content/On-Accent/Default}"
+        }
+      },
+      {
+        "name": "Button-Accent/Background/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Accent/Solid/Default}",
+          "Brand - S1": "{Color/Background/Neutral/Solid/Default}",
+          "Neutral - S2": "{Color/Background/Accent/Solid/Default}",
+          "Brand - S2": "{Color/Background/Neutral/Solid/Default}",
+          "Neutral - S3": "{Color/Background/Accent/Solid/Default}"
+        }
+      },
+      {
+        "name": "Button-Accent/Background/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Accent/Solid/Hover}",
+          "Brand - S1": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S2": "{Color/Background/Accent/Solid/Hover}",
+          "Brand - S2": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S3": "{Color/Background/Accent/Solid/Hover}"
+        }
+      },
+      {
+        "name": "Button-Accent/Background/Pressed",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Accent/Solid/Pressed}",
+          "Brand - S1": "{Color/Background/Neutral/Solid/Pressed}",
+          "Neutral - S2": "{Color/Background/Accent/Solid/Pressed}",
+          "Brand - S2": "{Color/Background/Neutral/Solid/Pressed}",
+          "Neutral - S3": "{Color/Background/Accent/Solid/Pressed}"
+        }
+      },
+      {
+        "name": "Checkbox/Icon-Check/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/Inverse/Strongest}",
+          "Brand - S1": "{Color/Content/On-Accent/Default}",
+          "Neutral - S2": "{Color/Content/Inverse/Strongest}",
+          "Brand - S2": "{Color/Content/On-Accent/Default}",
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        }
+      },
+      {
+        "name": "Checkbox/Background/Unselected/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Pale/Default}",
+          "Brand - S1": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S2": "{Color/Background/Neutral/Pale/Default}",
+          "Brand - S2": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S3": "{Color/Background/Neutral/Pale/Default}"
+        }
+      },
+      {
+        "name": "Checkbox/Background/Unselected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Pale/Hover}",
+          "Brand - S1": "{Color/Background/Neutral/Pale/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Pale/Hover}",
+          "Brand - S2": "{Color/Background/Neutral/Pale/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Pale/Hover}"
+        }
+      },
+      {
+        "name": "Checkbox/Background/Seclected/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Active/Neutral/Solid}",
+          "Brand - S1": "{Color/Background/Active/Accent/Solid}",
+          "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
+          "Brand - S2": "{Color/Background/Active/Accent/Solid}",
+          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
+        }
+      },
+      {
+        "name": "Chip-Primary/Background/Unselected/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Ghost/Default}",
+          "Brand - S1": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S2": "{Color/Background/Neutral/Subtle/Default}",
+          "Brand - S2": "{Color/Background/Neutral/Subtle/Default}",
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}"
+        }
+      },
+      {
+        "name": "Chip-Primary/Background/Unselected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Ghost/Hover}",
+          "Brand - S1": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Subtle/Hover}",
+          "Brand - S2": "{Color/Background/Neutral/Subtle/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}"
+        }
+      },
+      {
+        "name": "Chip-Primary/Background/Seclected/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Active/Neutral/Solid}",
+          "Brand - S1": "{Color/Background/Active/Accent/Solid}",
+          "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
+          "Brand - S2": "{Color/Background/Active/Accent/Solid}",
+          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
+        }
+      },
+      {
+        "name": "Chip-Primary/Background/Seclected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Solid/Hover}",
+          "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
+          "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+        }
+      },
+      {
+        "name": "Chip-Primary/Border/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Neutral/Subtle/Default}",
+          "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S2": "#FFFFFF00",
+          "Brand - S2": "#FFFFFF00",
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+        }
+      },
+      {
+        "name": "Checkbox/Border/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Neutral/Subtle/Default}",
+          "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S2": "{Color/Border/Neutral/Subtle/Default}",
+          "Brand - S2": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+        }
+      },
+      {
+        "name": "Checkbox/Border/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Neutral/Subtle/Hover}",
+          "Brand - S1": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S2": "{Color/Border/Neutral/Subtle/Hover}",
+          "Brand - S2": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}"
+        }
+      },
+      {
+        "name": "Radio-Button/Icon-Radio/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/Inverse/Strongest}",
+          "Brand - S1": "{Color/Content/On-Accent/Default}",
+          "Neutral - S2": "{Color/Content/Inverse/Strongest}",
+          "Brand - S2": "{Color/Content/On-Accent/Default}",
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        }
+      },
+      {
+        "name": "Radio-Button/Background/Unselected/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Pale/Default}",
+          "Brand - S1": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S2": "{Color/Background/Neutral/Pale/Default}",
+          "Brand - S2": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S3": "{Color/Background/Neutral/Pale/Default}"
+        }
+      },
+      {
+        "name": "Radio-Button/Border/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Neutral/Subtle/Default}",
+          "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S2": "{Color/Border/Neutral/Subtle/Default}",
+          "Brand - S2": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+        }
+      },
+      {
+        "name": "Radio-Button/Border/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Neutral/Subtle/Hover}",
+          "Brand - S1": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S2": "{Color/Border/Neutral/Subtle/Hover}",
+          "Brand - S2": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}"
+        }
+      },
+      {
+        "name": "Radio-Button/Border/Pressed",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Neutral/Subtle/Pressed}",
+          "Brand - S1": "{Color/Border/Neutral/Subtle/Pressed}",
+          "Neutral - S2": "{Color/Border/Neutral/Subtle/Pressed}",
+          "Brand - S2": "{Color/Border/Neutral/Subtle/Pressed}",
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Pressed}"
+        }
+      },
+      {
+        "name": "Radio-Button/Background/Unselected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Pale/Hover}",
+          "Brand - S1": "{Color/Background/Neutral/Pale/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Pale/Hover}",
+          "Brand - S2": "{Color/Background/Neutral/Pale/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Pale/Hover}"
+        }
+      },
+      {
+        "name": "Radio-Button/Background/Seclected/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Active/Neutral/Solid}",
+          "Brand - S1": "{Color/Background/Active/Accent/Solid}",
+          "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
+          "Brand - S2": "{Color/Background/Active/Accent/Solid}",
+          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
+        }
+      },
+      {
+        "name": "Chip-Primary/Content/Selected",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/Inverse/Strongest}",
+          "Brand - S1": "{Color/Content/On-Accent/Default}",
+          "Neutral - S2": "{Color/Content/Inverse/Strongest}",
+          "Brand - S2": "{Color/Content/On-Accent/Default}",
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        }
+      },
+      {
+        "name": "Chip-Secondary/Background/Unselected/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Ghost/Default}",
+          "Brand - S1": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S2": "{Color/Background/Neutral/Subtle/Default}",
+          "Brand - S2": "{Color/Background/Neutral/Subtle/Default}",
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}"
+        }
+      },
+      {
+        "name": "Chip-Secondary/Background/Unselected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Ghost/Hover}",
+          "Brand - S1": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Subtle/Hover}",
+          "Brand - S2": "{Color/Background/Neutral/Subtle/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}"
+        }
+      },
+      {
+        "name": "Chip-Secondary/Border/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Neutral/Subtle/Default}",
+          "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S2": "#FFFFFF00",
+          "Brand - S2": "#FFFFFF00",
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+        }
+      },
+      {
+        "name": "Chip-Secondary/Content/Selected",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/Neutral/Strongest}",
+          "Brand - S1": "{Color/Content/Accent/Strongest}",
+          "Neutral - S2": "{Color/Content/Neutral/Strongest}",
+          "Brand - S2": "{Color/Content/Accent/Strongest}",
+          "Neutral - S3": "{Color/Content/Neutral/Strongest}"
+        }
+      },
+      {
+        "name": "Chip-Secondary/Background/Seclected/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Surface/Default}",
+          "Brand - S1": "{Color/Background/Surface/Default}",
+          "Neutral - S2": "{Color/Background/Surface/Default}",
+          "Brand - S2": "{Color/Background/Surface/Default}",
+          "Neutral - S3": "{Color/Background/Active/Neutral/Subtle}"
+        }
+      },
+      {
+        "name": "Chip-Secondary/Background/Seclected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Ghost/Hover}",
+          "Brand - S1": "{Color/Background/Accent/Ghost/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Ghost/Hover}",
+          "Brand - S2": "{Color/Background/Accent/Ghost/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}"
+        }
+      },
+      {
+        "name": "Segmented-Item-Primary/Background/Unselected/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Flat/Default}",
+          "Brand - S1": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S2": "{Color/Background/Neutral/Flat/Default}",
+          "Brand - S2": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Default}"
+        }
+      },
+      {
+        "name": "Segmented-Item-Primary/Background/Unselected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Flat/Hover}",
+          "Brand - S1": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Flat/Hover}",
+          "Brand - S2": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}"
+        }
+      },
+      {
+        "name": "Segmented-Item-Primary/Background/Seclected/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Active/Neutral/Solid}",
+          "Brand - S1": "{Color/Background/Active/Accent/Solid}",
+          "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
+          "Brand - S2": "{Color/Background/Active/Accent/Solid}",
+          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
+        }
+      },
+      {
+        "name": "Segmented-Item-Primary/Background/Seclected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Solid/Hover}",
+          "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
+          "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+        }
+      },
+      {
+        "name": "Segmented-Item-Secondary/Background/Unselected/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Flat/Default}",
+          "Brand - S1": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S2": "{Color/Background/Neutral/Flat/Default}",
+          "Brand - S2": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Default}"
+        }
+      },
+      {
+        "name": "Segmented-Item-Secondary/Background/Unselected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Flat/Hover}",
+          "Brand - S1": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Flat/Hover}",
+          "Brand - S2": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}"
+        }
+      },
+      {
+        "name": "Segmented-Item-Secondary/Background/Seclected/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Inverse/Solid/Default}",
+          "Brand - S1": "{Color/Background/Inverse/Solid/Default}",
+          "Neutral - S2": "{Color/Background/Inverse/Solid/Default}",
+          "Brand - S2": "{Color/Background/Inverse/Solid/Default}",
+          "Neutral - S3": "{Color/Background/Inverse/Solid/Default}"
+        }
+      },
+      {
+        "name": "Segmented-Item-Secondary/Background/Seclected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Flat/Hover}",
+          "Brand - S1": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Flat/Hover}",
+          "Brand - S2": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}"
+        }
+      },
+      {
+        "name": "Tab/Border/Selected",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Active/Neutral/Solid}",
+          "Brand - S1": "{Color/Border/Active/Accent/Solid}",
+          "Neutral - S2": "{Color/Border/Active/Neutral/Solid}",
+          "Brand - S2": "{Color/Border/Active/Accent/Solid}",
+          "Neutral - S3": "{Color/Border/Active/Neutral/Solid}"
+        }
+      },
+      {
+        "name": "Date-Picker-Item/Background/Unselected/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Flat/Default}",
+          "Brand - S1": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S2": "{Color/Background/Neutral/Flat/Default}",
+          "Brand - S2": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Default}"
+        }
+      },
+      {
+        "name": "Date-Picker-Item/Background/Unselected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Flat/Hover}",
+          "Brand - S1": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Flat/Hover}",
+          "Brand - S2": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}"
+        }
+      },
+      {
+        "name": "Date-Picker-Item/Background/Seclected/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Active/Neutral/Solid}",
+          "Brand - S1": "{Color/Background/Active/Accent/Solid}",
+          "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
+          "Brand - S2": "{Color/Background/Active/Accent/Solid}",
+          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
+        }
+      },
+      {
+        "name": "Date-Picker-Item/Background/Seclected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Solid/Hover}",
+          "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
+          "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+        }
+      },
+      {
+        "name": "Date-Picker-Item/Border/Today",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Active/Neutral/Subtle}",
+          "Brand - S1": "{Color/Border/Active/Accent/Subtle}",
+          "Neutral - S2": "{Color/Border/Active/Neutral/Subtle}",
+          "Brand - S2": "{Color/Border/Active/Accent/Subtle}",
+          "Neutral - S3": "{Color/Border/Active/Neutral/Subtle}"
+        }
+      },
+      {
+        "name": "Date-Picker-Item/Content/Selected",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/Inverse/Strongest}",
+          "Brand - S1": "{Color/Content/On-Accent/Default}",
+          "Neutral - S2": "{Color/Content/Inverse/Strongest}",
+          "Brand - S2": "{Color/Content/On-Accent/Default}",
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        }
+      },
+      {
+        "name": "Radio-Button/Background/Seclected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Solid/Hover}",
+          "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
+          "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+        }
+      },
+      {
+        "name": "Checkbox/Background/Seclected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Solid/Hover}",
+          "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
+          "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+        }
+      },
+      {
+        "name": "Tag/Background/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Ghost/Default}",
+          "Brand - S1": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S2": "{Color/Background/Neutral/Ghost/Default}",
+          "Brand - S2": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}"
+        }
+      },
+      {
+        "name": "Tag/Background/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Ghost/Hover}",
+          "Brand - S1": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Ghost/Hover}",
+          "Brand - S2": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}"
+        }
+      },
+      {
+        "name": "Tag/Border/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Neutral/Subtle/Default}",
+          "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S2": "{Color/Border/Neutral/Subtle/Default}",
+          "Brand - S2": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+        }
+      },
+      {
+        "name": "Tag/Border/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Neutral/Subtle/Hover}",
+          "Brand - S1": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S2": "{Color/Border/Neutral/Subtle/Hover}",
+          "Brand - S2": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}"
+        }
+      },
+      {
+        "name": "Tag/Content/Selected",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/Inverse/Strongest}",
+          "Brand - S1": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S2": "{Color/Content/Inverse/Strongest}",
+          "Brand - S2": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        }
+      },
+      {
+        "name": "Date-Picker-Item/Background/Seclected-In-Range/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Active/Neutral/Subtle}",
+          "Brand - S1": "{Color/Background/Active/Accent/Subtle}",
+          "Neutral - S2": "{Color/Background/Active/Neutral/Subtle}",
+          "Brand - S2": "{Color/Background/Active/Accent/Subtle}",
+          "Neutral - S3": "{Color/Background/Active/Neutral/Subtle}"
+        }
+      },
+      {
+        "name": "Date-Picker-Item/Background/Seclected-In-Range/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Subtle/Hover}",
+          "Brand - S1": "{Color/Background/Accent/Subtle/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Subtle/Hover}",
+          "Brand - S2": "{Color/Background/Accent/Subtle/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Subtle/Hover}"
+        }
+      },
+      {
+        "name": "Segmented-Item-Primary/Content/Selected",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/Inverse/Strongest}",
+          "Brand - S1": "{Color/Content/On-Accent/Default}",
+          "Neutral - S2": "{Color/Content/Inverse/Strongest}",
+          "Brand - S2": "{Color/Content/On-Accent/Default}",
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        }
+      },
+      {
+        "name": "Segmented-Item-Secondary/Content/Selected",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/Neutral/Strongest}",
+          "Brand - S1": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S2": "{Color/Content/Neutral/Strongest}",
+          "Brand - S2": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S3": "{Color/Content/Neutral/Strongest}"
+        }
+      },
+      {
+        "name": "Segmented-Item-Secondary/Border/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Neutral/Subtle/Default}",
+          "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S2": "{Color/Border/Neutral/Subtle/Default}",
+          "Brand - S2": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+        }
+      },
+      {
+        "name": "Segmented-Item-Secondary/Border/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Neutral/Subtle/Hover}",
+          "Brand - S1": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S2": "{Color/Border/Neutral/Subtle/Hover}",
+          "Brand - S2": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}"
+        }
+      },
+      {
+        "name": "Segmented-Item-Secondary/Border/Selected",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Active/Neutral/Solid}",
+          "Brand - S1": "{Color/Border/Active/Accent/Solid}",
+          "Neutral - S2": "{Color/Border/Active/Neutral/Solid}",
+          "Brand - S2": "{Color/Border/Active/Accent/Solid}",
+          "Neutral - S3": "{Color/Border/Active/Neutral/Solid}"
+        }
+      },
+      {
+        "name": "Toggle/Bar/Background/Unselected/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Subtle/Default}",
+          "Brand - S1": "{Color/Background/Neutral/Subtle/Default}",
+          "Neutral - S2": "{Color/Background/Neutral/Subtle/Default}",
+          "Brand - S2": "{Color/Background/Neutral/Subtle/Default}",
+          "Neutral - S3": "{Color/Background/Neutral/Subtle/Default}"
+        }
+      },
+      {
+        "name": "Toggle/Bar/Background/Unselected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Subtle/Hover}",
+          "Brand - S1": "{Color/Background/Neutral/Subtle/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Subtle/Hover}",
+          "Brand - S2": "{Color/Background/Neutral/Subtle/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Subtle/Hover}"
+        }
+      },
+      {
+        "name": "Toggle/Bar/Background/Seclected/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Active/Neutral/Solid}",
+          "Brand - S1": "{Color/Background/Active/Accent/Solid}",
+          "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
+          "Brand - S2": "{Color/Background/Active/Accent/Solid}",
+          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
+        }
+      },
+      {
+        "name": "Toggle/Dot/Background/Unselected-Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/White-Solid/Default}",
+          "Brand - S1": "{Color/Background/White-Solid/Default}",
+          "Neutral - S2": "{Color/Background/White-Solid/Default}",
+          "Brand - S2": "{Color/Background/White-Solid/Default}",
+          "Neutral - S3": "{Color/Background/White-Solid/Default}"
+        }
+      },
+      {
+        "name": "Toggle/Dot/Background/Seclected-Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Inverse/Solid/Default}",
+          "Brand - S1": "{Color/Background/White-Solid/Default}",
+          "Neutral - S2": "{Color/Background/Inverse/Solid/Default}",
+          "Brand - S2": "{Color/Background/White-Solid/Default}",
+          "Neutral - S3": "{Color/Background/Inverse/Solid/Default}"
+        }
+      },
+      {
+        "name": "Toggle/Bar/Background/Unselected/Disabled",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Subtle-Disabled}",
+          "Brand - S1": "{Color/Background/Subtle-Disabled}",
+          "Neutral - S2": "{Color/Background/Subtle-Disabled}",
+          "Brand - S2": "{Color/Background/Subtle-Disabled}",
+          "Neutral - S3": "{Color/Background/Subtle-Disabled}"
+        }
+      },
+      {
+        "name": "Toggle/Dot/Background/Seclected-Disabled",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Surface/Default}",
+          "Brand - S1": "{Color/Background/Surface/Default}",
+          "Neutral - S2": "{Color/Background/Surface/Default}",
+          "Brand - S2": "{Color/Background/Surface/Default}",
+          "Neutral - S3": "{Color/Background/Surface/Default}"
+        }
+      },
+      {
+        "name": "Toggle/Bar/Background/Seclected/Disabled",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Solid-Disabled}",
+          "Brand - S1": "{Color/Background/Solid-Disabled}",
+          "Neutral - S2": "{Color/Background/Solid-Disabled}",
+          "Brand - S2": "{Color/Background/Solid-Disabled}",
+          "Neutral - S3": "{Color/Background/Solid-Disabled}"
+        }
+      },
+      {
+        "name": "Toggle/Dot/Background/Unselected-Disabled",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Subtle-Disabled}",
+          "Brand - S1": "{Color/Background/Subtle-Disabled}",
+          "Neutral - S2": "{Color/Background/Subtle-Disabled}",
+          "Brand - S2": "{Color/Background/Subtle-Disabled}",
+          "Neutral - S3": "{Color/Background/Subtle-Disabled}"
+        }
+      },
+      {
+        "name": "Tab/Background/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Flat/Default}",
+          "Brand - S1": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S2": "{Color/Background/Neutral/Flat/Default}",
+          "Brand - S2": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Default}"
+        }
+      },
+      {
+        "name": "Tab/Background/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Flat/Hover}",
+          "Brand - S1": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Flat/Hover}",
+          "Brand - S2": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}"
+        }
+      },
+      {
+        "name": "Tab/Background/Selected",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Active/Neutral/Subtle}",
+          "Brand - S1": "{Color/Background/Active/Accent/Subtle}",
+          "Neutral - S2": "{Color/Background/Active/Neutral/Subtle}",
+          "Brand - S2": "{Color/Background/Active/Accent/Subtle}",
+          "Neutral - S3": "{Color/Background/Active/Neutral/Subtle}"
+        }
+      },
+      {
+        "name": "Tab/Content/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/Neutral/Light}",
+          "Brand - S1": "{Color/Content/Neutral/Light}",
+          "Neutral - S2": "{Color/Content/Neutral/Light}",
+          "Brand - S2": "{Color/Content/Neutral/Light}",
+          "Neutral - S3": "{Color/Content/Neutral/Light}"
+        }
+      },
+      {
+        "name": "Tab/Content/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/Neutral/Base}",
+          "Brand - S1": "{Color/Content/Neutral/Base}",
+          "Neutral - S2": "{Color/Content/Neutral/Base}",
+          "Brand - S2": "{Color/Content/Neutral/Base}",
+          "Neutral - S3": "{Color/Content/Neutral/Base}"
+        }
+      },
+      {
+        "name": "Tab/Content/Selected",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/Neutral/Strongest}",
+          "Brand - S1": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S2": "{Color/Content/Neutral/Strongest}",
+          "Brand - S2": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S3": "{Color/Content/Neutral/Strongest}"
+        }
+      },
+      {
+        "name": "Table-Cell/Background/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Flat/Default}",
+          "Brand - S1": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S2": "{Color/Background/Neutral/Flat/Default}",
+          "Brand - S2": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Default}"
+        }
+      },
+      {
+        "name": "Table-Cell/Background/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Support/Neutral/Pale}",
+          "Brand - S1": "{Color/Background/Support/Neutral/Pale}",
+          "Neutral - S2": "{Color/Background/Support/Neutral/Pale}",
+          "Brand - S2": "{Color/Background/Support/Neutral/Pale}",
+          "Neutral - S3": "{Color/Background/Support/Neutral/Pale}"
+        }
+      },
+      {
+        "name": "Table-Cell/Background/Selected",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Support/Neutral/Pale}",
+          "Brand - S1": "{Color/Background/Support/Brand/Pale}",
+          "Neutral - S2": "{Color/Background/Support/Neutral/Pale}",
+          "Brand - S2": "{Color/Background/Support/Brand/Pale}",
+          "Neutral - S3": "{Color/Background/Support/Neutral/Pale}"
+        }
+      },
+      {
+        "name": "Button-Tertiary/Content/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/Neutral/Strongest}",
+          "Brand - S1": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S2": "{Color/Content/Neutral/Strongest}",
+          "Brand - S2": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S3": "{Color/Content/Neutral/Strongest}"
+        }
+      },
+      {
+        "name": "Button-Tertiary/Background/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Ghost/Default}",
+          "Brand - S1": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S2": "{Color/Background/Neutral/Subtle/Default}",
+          "Brand - S2": "{Color/Background/Neutral/Subtle/Default}",
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}"
+        }
+      },
+      {
+        "name": "Button-Tertiary/Background/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Ghost/Hover}",
+          "Brand - S1": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Subtle/Hover}",
+          "Brand - S2": "{Color/Background/Neutral/Subtle/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}"
+        }
+      },
+      {
+        "name": "Button-Tertiary/Background/Pressed",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Ghost/Pressed}",
+          "Brand - S1": "{Color/Background/Neutral/Ghost/Pressed}",
+          "Neutral - S2": "{Color/Background/Neutral/Subtle/Pressed}",
+          "Brand - S2": "{Color/Background/Neutral/Subtle/Pressed}",
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Pressed}"
+        }
+      },
+      {
+        "name": "Button-Tertiary/Border/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Neutral/Subtle/Default}",
+          "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S2": "#FFFFFF00",
+          "Brand - S2": "#FFFFFF00",
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+        }
+      },
+      {
+        "name": "Button-Tertiary/Shadow/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Shadow/Neutral/Light}",
+          "Brand - S1": "{Color/Shadow/Neutral/Light}",
+          "Neutral - S2": "#FFFFFF00",
+          "Brand - S2": "#FFFFFF00",
+          "Neutral - S3": "{Color/Shadow/Neutral/Light}"
+        }
+      },
+      {
+        "name": "Button-Tertiary/Background/Disabled",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Ghost-Disabled}",
+          "Brand - S1": "{Color/Background/Ghost-Disabled}",
+          "Neutral - S2": "{Color/Background/Subtle-Disabled}",
+          "Brand - S2": "{Color/Background/Subtle-Disabled}",
+          "Neutral - S3": "{Color/Background/Ghost-Disabled}"
+        }
+      },
+      {
+        "name": "Button-Tertiary/Border/Disabled",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Disabled}",
+          "Brand - S1": "{Color/Border/Disabled}",
+          "Neutral - S2": "#FFFFFF00",
+          "Brand - S2": "#FFFFFF00",
+          "Neutral - S3": "{Color/Border/Disabled}"
+        }
+      },
+      {
+        "name": "Bubble-Chat-You/Content/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/Inverse/Strongest}",
+          "Brand - S1": "{Color/Content/On-Accent/Default}",
+          "Neutral - S2": "{Color/Content/Inverse/Strongest}",
+          "Brand - S2": "{Color/Content/On-Accent/Default}",
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        }
+      },
+      {
+        "name": "Bubble-Chat-You/Background/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Solid/Default}",
+          "Brand - S1": "{Color/Background/Accent/Solid/Default}",
+          "Neutral - S2": "{Color/Background/Neutral/Solid/Default}",
+          "Brand - S2": "{Color/Background/Accent/Solid/Default}",
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Default}"
+        }
+      },
+      {
+        "name": "Bubble-Chat-Others-Business/Background/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Popover/Default}",
+          "Brand - S1": "{Color/Background/Popover/Default}",
+          "Neutral - S2": "{Color/Background/Popover/Default}",
+          "Brand - S2": "{Color/Background/Popover/Default}",
+          "Neutral - S3": "{Color/Background/Popover/Default}"
+        }
+      },
+      {
+        "name": "Button-Accent/Content/Pressed",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/On-Accent/Pressed}",
+          "Brand - S1": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S2": "{Color/Content/On-Accent/Pressed}",
+          "Brand - S2": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S3": "{Color/Content/On-Accent/Pressed}"
+        }
+      },
+      {
+        "name": "Button-Primary/Content/Pressed",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/Inverse/Strongest}",
+          "Brand - S1": "{Color/Content/On-Accent/Pressed}",
+          "Neutral - S2": "{Color/Content/Inverse/Strongest}",
+          "Brand - S2": "{Color/Content/On-Accent/Pressed}",
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        }
+      },
+      {
+        "name": "Button-Accent/Content/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/On-Accent/Hover}",
+          "Brand - S1": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S2": "{Color/Content/On-Accent/Hover}",
+          "Brand - S2": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S3": "{Color/Content/On-Accent/Hover}"
+        }
+      },
+      {
+        "name": "Button-Primary/Content/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Content/Inverse/Strongest}",
+          "Brand - S1": "{Color/Content/On-Accent/Hover}",
+          "Neutral - S2": "{Color/Content/Inverse/Strongest}",
+          "Brand - S2": "{Color/Content/On-Accent/Hover}",
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        }
+      },
+      {
+        "name": "Input/Background/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Pale/Default}",
+          "Brand - S1": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S2": "{Color/Background/Neutral/Pale/Default}",
+          "Brand - S2": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S3": "{Color/Background/Neutral/Pale/Default}"
+        }
+      },
+      {
+        "name": "Input/Background/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Pale/Hover}",
+          "Brand - S1": "{Color/Background/Neutral/Pale/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Pale/Hover}",
+          "Brand - S2": "{Color/Background/Neutral/Pale/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Pale/Hover}"
+        }
+      },
+      {
+        "name": "Input/Border/Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "#FFFFFF00",
+          "Brand - S1": "#FFFFFF00",
+          "Neutral - S2": "#FFFFFF00",
+          "Brand - S2": "#FFFFFF00",
+          "Neutral - S3": "#FFFFFF00"
+        }
+      },
+      {
+        "name": "Input/Border/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "#FFFFFF00",
+          "Brand - S1": "#FFFFFF00",
+          "Neutral - S2": "#FFFFFF00",
+          "Brand - S2": "#FFFFFF00",
+          "Neutral - S3": "#FFFFFF00"
+        }
+      },
+      {
+        "name": "Input/Shadow/Base",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Shadow/Inverse/Base}",
+          "Brand - S1": "{Color/Shadow/Inverse/Base}",
+          "Neutral - S2": "{Color/Shadow/Inverse/Base}",
+          "Brand - S2": "{Color/Shadow/Inverse/Base}",
+          "Neutral - S3": "{Color/Shadow/Inverse/Base}"
+        }
+      },
+      {
+        "name": "Input/Shadow/Strong",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Shadow/Inverse/Strong}",
+          "Brand - S1": "{Color/Shadow/Inverse/Strong}",
+          "Neutral - S2": "{Color/Shadow/Inverse/Strong}",
+          "Brand - S2": "{Color/Shadow/Inverse/Strong}",
+          "Neutral - S3": "{Color/Shadow/Inverse/Strong}"
+        }
+      },
+      {
+        "name": "Container/Border",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Container/Subtle}",
+          "Brand - S1": "{Color/Border/Container/Subtle}",
+          "Neutral - S2": "{Color/Border/Container/Subtle}",
+          "Brand - S2": "{Color/Border/Container/Subtle}",
+          "Neutral - S3": "{Color/Border/Container/Subtle}"
+        }
+      },
+      {
+        "name": "Popover/Border",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Popover/Subtle}",
+          "Brand - S1": "{Color/Border/Popover/Subtle}",
+          "Neutral - S2": "{Color/Border/Popover/Subtle}",
+          "Brand - S2": "{Color/Border/Popover/Subtle}",
+          "Neutral - S3": "{Color/Border/Popover/Subtle}"
+        }
+      },
+      {
+        "name": "Popover/Background",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Popover/Default}",
+          "Brand - S1": "{Color/Background/Popover/Default}",
+          "Neutral - S2": "{Color/Background/Popover/Default}",
+          "Brand - S2": "{Color/Background/Popover/Default}",
+          "Neutral - S3": "{Color/Background/Popover/Default}"
+        }
+      },
+      {
+        "name": "Input/Background/Focused",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Pale/Default}",
+          "Brand - S1": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S2": "{Color/Background/Neutral/Pale/Default}",
+          "Brand - S2": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S3": "{Color/Background/Neutral/Pale/Default}"
+        }
+      },
+      {
+        "name": "Table-Cell/Background/Color",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "#FFFFFF",
+          "Brand - S1": "#FFFFFF",
+          "Neutral - S2": "#FFFFFF",
+          "Brand - S2": "#FFFFFF",
+          "Neutral - S3": "#FFFFFF"
+        }
+      },
+      {
+        "name": "Chart/Sector/Primary",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Support/Neutral/Deep}",
+          "Brand - S1": "{Color/Background/Support/Brand/Solid}",
+          "Neutral - S2": "{Color/Background/Support/Neutral/Deep}",
+          "Brand - S2": "{Color/Background/Support/Brand/Solid}",
+          "Neutral - S3": "{Color/Background/Support/Neutral/Deep}"
+        }
+      },
+      {
+        "name": "Chart/Sector/Secondary",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Support/Brand/Solid}",
+          "Brand - S1": "{Color/Background/Support/Neutral/Deep}",
+          "Neutral - S2": "{Color/Background/Support/Brand/Solid}",
+          "Brand - S2": "{Color/Background/Support/Neutral/Deep}",
+          "Neutral - S3": "{Color/Background/Support/Brand/Solid}"
+        }
+      },
+      {
+        "name": "Card/Border/Active",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Active/Neutral/Solid}",
+          "Brand - S1": "{Color/Border/Active/Accent/Solid}",
+          "Neutral - S2": "{Color/Border/Active/Neutral/Solid}",
+          "Brand - S2": "{Color/Border/Active/Accent/Solid}",
+          "Neutral - S3": "{Color/Border/Active/Neutral/Solid}"
+        }
+      },
+      {
+        "name": "Chip-Secondary/Border/Selected",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Border/Active/Neutral/Solid}",
+          "Brand - S1": "{Color/Border/Active/Accent/Solid}",
+          "Neutral - S2": "{Color/Border/Active/Neutral/Solid}",
+          "Brand - S2": "{Color/Border/Active/Accent/Solid}",
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+        }
+      },
+      {
+        "name": "Chip-Secondary/Border/Weigth-Active",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Neutral - S1": "{Emphasis/Border-Weight/Active/Primary}",
+          "Brand - S1": "{Emphasis/Border-Weight/Active/Primary}",
+          "Neutral - S2": "{Emphasis/Border-Weight/Active/Primary}",
+          "Brand - S2": "{Emphasis/Border-Weight/Active/Primary}",
+          "Neutral - S3": "{Emphasis/Border-Weight/Active/Secondary}"
+        }
+      },
+      {
+        "name": "Toggle/Bar/Background/Seclected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Solid/Hover}",
+          "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
+          "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+        }
+      }
+    ]
+  }
+}

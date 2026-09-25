@@ -1,0 +1,262 @@
+{
+  "Corner Radius": {
+    "modes": [
+      "Rounded",
+      "Smooth",
+      "Standard",
+      "Luxury"
+    ],
+    "tokens": [
+      {
+        "name": "Corner-Radius/Base",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": "{dm-12}",
+          "Smooth": "{dm-12}",
+          "Standard": "{dm-8}",
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/Large",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": "{dm-16}",
+          "Smooth": "{dm-16}",
+          "Standard": "{dm-12}",
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/XGiant",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": "{dm-36}",
+          "Smooth": "{dm-36}",
+          "Standard": "{dm-32}",
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": "{dm-20}",
+          "Smooth": "{dm-20}",
+          "Standard": "{dm-16}",
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": "{dm-8}",
+          "Smooth": "{dm-8}",
+          "Standard": "{dm-4}",
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/Action/Large",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": 1000,
+          "Smooth": "{dm-16}",
+          "Standard": "{dm-12}",
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/Rounded",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": 1000,
+          "Smooth": 1000,
+          "Standard": 1000,
+          "Luxury": 1000
+        }
+      },
+      {
+        "name": "Corner-Radius/XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": "{dm-4}",
+          "Smooth": "{dm-4}",
+          "Standard": "{dm-2}",
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/Action/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": 1000,
+          "Smooth": "{dm-12}",
+          "Standard": "{dm-8}",
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/Action/Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": 1000,
+          "Smooth": "{dm-12}",
+          "Standard": "{dm-8}",
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/Action/XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": 1000,
+          "Smooth": 1000,
+          "Standard": 1000,
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/Action/XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": 1000,
+          "Smooth": "{dm-16}",
+          "Standard": "{dm-12}",
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/3XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": "{dm-28}",
+          "Smooth": "{dm-28}",
+          "Standard": "{dm-24}",
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/2XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": "{dm-24}",
+          "Smooth": "{dm-24}",
+          "Standard": "{dm-20}",
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/Action/Focus-XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": 1000,
+          "Smooth": 22,
+          "Standard": 18,
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/Action/Focus-Large",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": 1000,
+          "Smooth": 22,
+          "Standard": 18,
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/Action/Focus-Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": 1000,
+          "Smooth": 18,
+          "Standard": 14,
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/Action/Focus-Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": 1000,
+          "Smooth": 18,
+          "Standard": 14,
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/Action/Focus-XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": 1000,
+          "Smooth": 1000,
+          "Standard": 1000,
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/2XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": "{dm-2}",
+          "Smooth": "{dm-2}",
+          "Standard": 1,
+          "Luxury": 1
+        }
+      },
+      {
+        "name": "Corner-Radius/Input/XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": "{dm-16}",
+          "Smooth": "{dm-16}",
+          "Standard": "{dm-12}",
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/Input/Large",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": "{dm-16}",
+          "Smooth": "{dm-16}",
+          "Standard": "{dm-12}",
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/Input/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": "{dm-12}",
+          "Smooth": "{dm-12}",
+          "Standard": "{dm-8}",
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/Input/Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": "{dm-8}",
+          "Smooth": "{dm-8}",
+          "Standard": "{dm-4}",
+          "Luxury": "{dm-2}"
+        }
+      },
+      {
+        "name": "Corner-Radius/Giant",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Rounded": "{dm-32}",
+          "Smooth": "{dm-32}",
+          "Standard": "{dm-28}",
+          "Luxury": "{dm-2}"
+        }
+      }
+    ]
+  }
+}

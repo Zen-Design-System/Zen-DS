@@ -1,0 +1,163 @@
+{
+  "Spacing": {
+    "modes": [
+      "Standard"
+    ],
+    "tokens": [
+      {
+        "name": "Spacing/Gap/Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-12}"
+        }
+      },
+      {
+        "name": "Spacing/Gap/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-16}"
+        }
+      },
+      {
+        "name": "Spacing/Gap/XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-8}"
+        }
+      },
+      {
+        "name": "Spacing/Gap/2XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-4}"
+        }
+      },
+      {
+        "name": "Spacing/Gap/Large",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-24}"
+        }
+      },
+      {
+        "name": "Spacing/Gap/XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-32}"
+        }
+      },
+      {
+        "name": "Spacing/Gap/2XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-40}"
+        }
+      },
+      {
+        "name": "Spacing/Gap/3XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-48}"
+        }
+      },
+      {
+        "name": "Spacing/Gap/Giant",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-64}"
+        }
+      },
+      {
+        "name": "Spacing/Gap/XGiant",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-88}"
+        }
+      },
+      {
+        "name": "Spacing/Padding/3XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-2}"
+        }
+      },
+      {
+        "name": "Spacing/Padding/2XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-4}"
+        }
+      },
+      {
+        "name": "Spacing/Padding/XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-8}"
+        }
+      },
+      {
+        "name": "Spacing/Padding/Small",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-12}"
+        }
+      },
+      {
+        "name": "Spacing/Padding/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-16}"
+        }
+      },
+      {
+        "name": "Spacing/Padding/Large",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-20}"
+        }
+      },
+      {
+        "name": "Spacing/Padding/2XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-32}"
+        }
+      },
+      {
+        "name": "Spacing/Padding/4XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-48}"
+        }
+      },
+      {
+        "name": "Spacing/Gap/2XGiant",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-144}"
+        }
+      },
+      {
+        "name": "Spacing/Gap/3XSmall",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-2}"
+        }
+      },
+      {
+        "name": "Spacing/Padding/3XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-40}"
+        }
+      },
+      {
+        "name": "Spacing/Padding/XLarge",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Standard": "{dm-24}"
+        }
+      }
+    ]
+  }
+}

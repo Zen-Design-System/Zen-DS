@@ -1,0 +1,85 @@
+.zen-popover {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + var(--zen-spacing-gap-2-xsmall, 4px));
+  left: 0;
+  display: grid;
+  width: min(240px, calc(100vw - 32px));
+  min-width: min(240px, calc(100vw - 32px));
+  box-sizing: border-box;
+  gap: var(--zen-spacing-gap-2-xsmall, 4px);
+  padding: var(--zen-spacing-padding-2-xsmall, 4px);
+  overflow: hidden;
+  /* Figma Popover/Default Container: Popover/Border is a 1px OUTSIDE stroke, so it is
+     drawn with an outline (no layout impact) instead of a border. */
+  border: 0;
+  outline: 1px solid var(--zen-popover-border);
+  outline-offset: 0;
+  border-radius: var(--zen-corner-radius-large);
+  background: var(--zen-popover-background);
+  /* Effect/Popover style (shadows + background blur 40 → CSS blur(20px)). */
+  box-shadow: var(--zen-style-effect-popover-shadow);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+}
+
+.zen-popover__label {
+  display: flex;
+  min-height: 32px;
+  box-sizing: border-box;
+  align-items: center;
+  padding: var(--zen-spacing-padding-xsmall, 8px);
+  color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%));
+}
+
+.zen-popover__search { display: flex; min-width: 0; }
+
+.zen-popover__items { display: grid; max-height: 240px; gap: var(--zen-spacing-gap-2-xsmall); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--zen-color-background-neutral-subtle-default) transparent; }
+/* Figma Scroll-Bar: 4px rounded thumb, Background/Neutral/Subtle/Default, no track. */
+.zen-popover__items::-webkit-scrollbar { width: 4px; }
+.zen-popover__items::-webkit-scrollbar-track { background: transparent; }
+.zen-popover__items::-webkit-scrollbar-thumb { border-radius: var(--zen-corner-radius-rounded); background: var(--zen-color-background-neutral-subtle-default); }
+.zen-popover[data-scroll-bar="false"] .zen-popover__items { max-height: none; overflow: visible; }
+.zen-popover__item { display: flex; width: 100%; min-height: 36px; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px); border: 0; border-radius: var(--zen-corner-radius-base); background: var(--zen-color-background-neutral-flat-default); color: var(--zen-color-content-neutral-strongest); cursor: pointer; text-align: left; }
+.zen-popover__item[data-has-leading="true"] .zen-popover__item-leading { margin-right: var(--zen-spacing-gap-2-xsmall, 4px); }
+/* Text-only and Manual-Add-New Content variants have their own 4px inline
+   padding inside the 8px Item container. */
+.zen-popover__item[data-has-leading="false"] .zen-popover__item-content { padding-inline: var(--zen-spacing-padding-2-xsmall, 4px); }
+/* Manual-Add-New content: 4px inline inset, "Create" hugs, then the Accent Badge (gap 8). */
+.zen-popover__item[data-function="manual-add-new"] { gap: var(--zen-spacing-gap-xsmall); }
+.zen-popover__item[data-function="manual-add-new"] .zen-popover__item-content { flex: 0 1 auto; padding-inline: var(--zen-spacing-padding-2-xsmall) 0; }
+.zen-popover__item[data-function="manual-add-new"] .zen-popover__item-trailing { width: auto; height: auto; min-width: 0; flex: 0 1 auto; margin-right: var(--zen-spacing-padding-2-xsmall); }
+.zen-popover__item[data-function="manual-add-new"] .zen-popover__item-trailing > .zen-badge { max-width: 100%; }
+.zen-popover__item:hover:not(:disabled), .zen-popover__item[data-state="hover"], .zen-popover__item:focus-visible { outline: 0; background: var(--zen-color-background-neutral-flat-hover); }
+.zen-popover__item.is-selected { padding-right: var(--zen-spacing-padding-small); background: var(--zen-color-background-active-accent-subtle); }
+.zen-popover__item:disabled { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); cursor: not-allowed; }
+.zen-popover__item-leading, .zen-popover__item-trailing { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; }
+.zen-popover__item-check { display: inline-flex; width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); flex: 0 0 var(--zen-element-size-popular-xsmall, 12px); align-items: center; justify-content: center; color: var(--zen-color-content-accent-base); }
+.zen-popover__item[data-theme="badge"] .zen-popover__item-trailing { width: auto; min-width: 20px; flex-basis: auto; }
+/* .Primitives/Popover/Item/Content themes: leading sizes and the icon→content gap
+   (Spacing/Gap/Small = 8 + 4 margin; Avatar Big uses Spacing/Gap/Medium). */
+.zen-popover__item:is([data-theme="photo-small"], [data-theme="avatar-small"]) .zen-popover__item-leading { width: var(--zen-image-size-2-xsmall); height: var(--zen-image-size-2-xsmall); flex-basis: var(--zen-image-size-2-xsmall); }
+/* Theme=Dock Icon: Dock-Icon XSmall / Neutral / Subtle — 24px rounded tile, 12px icon in Content/Neutral/Base. */
+.zen-popover__item[data-theme="dock-icon"] .zen-popover__item-leading { width: var(--zen-image-size-xsmall); height: var(--zen-image-size-xsmall); flex-basis: var(--zen-image-size-xsmall); border-radius: var(--zen-corner-radius-rounded); background: var(--zen-color-background-neutral-subtle-default); color: var(--zen-color-content-neutral-base); }
+.zen-popover__item[data-theme="dock-icon"] .zen-popover__item-leading > .zen-icon { width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); }
+/* Theme=Badge: a Medium Badge is the whole content (no label); the slot hugs it. */
+.zen-popover__item[data-theme="badge"] .zen-popover__item-leading { width: auto; height: auto; flex-basis: auto; }
+.zen-popover__item[data-theme="photo-big"] .zen-popover__item-leading { width: var(--zen-image-size-small); height: var(--zen-image-size-small); flex-basis: var(--zen-image-size-small); }
+.zen-popover__item[data-theme="avatar-big"] .zen-popover__item-leading { width: var(--zen-image-size-medium); height: var(--zen-image-size-medium); flex-basis: var(--zen-image-size-medium); margin-right: var(--zen-spacing-gap-xsmall); }
+.zen-popover__item:is([data-theme="photo-small"], [data-theme="photo-big"]) .zen-popover__item-leading > img { width: 100%; height: 100%; border-radius: var(--zen-corner-radius-xsmall); object-fit: cover; }
+.zen-popover__item-leading > .zen-icon, .zen-popover__item-trailing > .zen-icon { width: 100%; height: 100%; }
+.zen-popover__item-content { display: grid; min-width: 0; flex: 1; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-popover__item-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zen-popover__item-caption { overflow: hidden; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-overflow: ellipsis; white-space: nowrap; }
+.zen-popover__empty { padding: var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+/* Popover/Bunk-Action: Color/Background/Popover/Default + 1px OUTSIDE Color/Border/Popover/Subtle,
+   padding 4, radius Large, Effect/Popover; Item-List gap 4; groups gap 2; 40px vertical dividers. */
+.zen-popover--bunk-action { position: relative; top: auto; left: auto; display: inline-flex; width: max-content; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall); padding: var(--zen-spacing-padding-2-xsmall); background: var(--zen-color-background-popover-default); outline-color: var(--zen-color-border-popover-subtle); }
+.zen-popover__bunk-list { display: flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall); }
+.zen-popover__bunk-group { display: flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall); }
+.zen-popover__bunk-divider { display: block; width: 1px; height: var(--zen-button-size-medium); flex: 0 0 1px; background: var(--zen-color-border-neutral-pale-default); }
+
+/* Figma .Primitives/Popover/Search instance overrides on Input Field-Only (Small):
+   radius Corner-Radius/Input/Medium, and the Focused state keeps no focus stroke. */
+.zen-popover__search > .zen-input-field { width: 100%; }
+.zen-popover .zen-popover__search .zen-input-field .zen-input__control { border-radius: var(--zen-corner-radius-input-medium); }
+.zen-popover .zen-popover__search .zen-input-field .zen-input__control:focus-within { --zen-input-field-border: transparent; }

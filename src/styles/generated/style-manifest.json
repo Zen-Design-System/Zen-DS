@@ -1,0 +1,3434 @@
+{
+  "fileName": "ZEN Kaiz (Official-Sep2026)",
+  "extractedAt": "2026-09-24T12:36:57.826Z",
+  "counts": {
+    "colors": 35,
+    "textStyles": 36,
+    "effectStyles": 18,
+    "gridStyles": 0
+  },
+  "colors": [
+    {
+      "name": "Semi-Pale",
+      "token": "semi-pale",
+      "type": "gradient_linear",
+      "paints": [
+        {
+          "type": "GRADIENT_LINEAR",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "gradientStops": [
+            {
+              "position": 0,
+              "color": {
+                "r": 0.0196,
+                "g": 0.0196,
+                "b": 0.0196,
+                "a": 0.0314
+              },
+              "bound": {
+                "color": "Color/Background/Support/Neutral/Pale"
+              }
+            },
+            {
+              "position": 1,
+              "color": {
+                "r": 0.0039,
+                "g": 0.0039,
+                "b": 0.0039,
+                "a": 0.0627
+              },
+              "bound": {
+                "color": "Color/Background/Support/Neutral/Subtle"
+              }
+            }
+          ],
+          "gradientTransform": [
+            [
+              0.37861496210098267,
+              0.5007815957069397,
+              -0.14214131236076355
+            ],
+            [
+              -0.5007815957069397,
+              0.3909904360771179,
+              0.5765672922134399
+            ]
+          ]
+        }
+      ],
+      "cssVariable": "--zen-style-semi-pale-fill",
+      "color": null,
+      "background": "linear-gradient(142.02deg, var(--zen-color-background-support-neutral-pale, rgba(5, 5, 5, 0.0314)) 0%, var(--zen-color-background-support-neutral-subtle, rgba(1, 1, 1, 0.0627)) 100%)",
+      "unsupportedLayers": []
+    },
+    {
+      "name": ".VT-Canvas",
+      "token": "vt-canvas",
+      "type": "solid",
+      "paints": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9686,
+            "g": 0.9686,
+            "b": 0.9686
+          },
+          "bound": {
+            "color": "Color/Background/Canvas/Default"
+          }
+        },
+        {
+          "type": "GRADIENT_LINEAR",
+          "visible": true,
+          "opacity": 0.5,
+          "blendMode": "NORMAL",
+          "gradientStops": [
+            {
+              "position": 0,
+              "color": {
+                "r": 1,
+                "g": 0.6118,
+                "b": 0.0078,
+                "a": 0.0902
+              },
+              "bound": {
+                "color": "Color/Background/Support/Yellow/Pale"
+              }
+            },
+            {
+              "position": 1,
+              "color": {
+                "r": 1,
+                "g": 0.6118,
+                "b": 0.0078,
+                "a": 0.0902
+              },
+              "bound": {
+                "color": "Color/Background/Support/Yellow/Pale"
+              }
+            }
+          ],
+          "gradientTransform": [
+            [
+              6.123234262925839e-17,
+              1,
+              0
+            ],
+            [
+              -1,
+              6.123234262925839e-17,
+              1
+            ]
+          ]
+        }
+      ],
+      "cssVariable": "--zen-style-vt-canvas-fill",
+      "color": null,
+      "background": "linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-support-yellow-pale, rgba(255, 156, 2, 0.0902)) 50%, transparent) 0%, color-mix(in srgb, var(--zen-color-background-support-yellow-pale, rgba(255, 156, 2, 0.0902)) 50%, transparent) 100%), linear-gradient(var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)), var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)))",
+      "unsupportedLayers": []
+    },
+    {
+      "name": ".Chat-Canvas",
+      "token": "chat-canvas",
+      "type": "solid",
+      "paints": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9686,
+            "g": 0.9686,
+            "b": 0.9686
+          },
+          "bound": {
+            "color": "Color/Background/Canvas/Default"
+          }
+        },
+        {
+          "type": "GRADIENT_LINEAR",
+          "visible": true,
+          "opacity": 0.4000000059604645,
+          "blendMode": "NORMAL",
+          "gradientStops": [
+            {
+              "position": 0,
+              "color": {
+                "r": 1,
+                "g": 0.6118,
+                "b": 0.0078,
+                "a": 0.0902
+              },
+              "bound": {
+                "color": "Color/Background/Support/Yellow/Pale"
+              }
+            },
+            {
+              "position": 1,
+              "color": {
+                "r": 1,
+                "g": 0.6118,
+                "b": 0.0078,
+                "a": 0.0902
+              },
+              "bound": {
+                "color": "Color/Background/Support/Yellow/Pale"
+              }
+            }
+          ],
+          "gradientTransform": [
+            [
+              6.123234262925839e-17,
+              1,
+              0
+            ],
+            [
+              -1,
+              6.123234262925839e-17,
+              1
+            ]
+          ]
+        },
+        {
+          "type": "PATTERN",
+          "visible": true,
+          "opacity": 0.10000000149011612,
+          "blendMode": "NORMAL"
+        }
+      ],
+      "cssVariable": "--zen-style-chat-canvas-fill",
+      "color": null,
+      "background": "linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-support-yellow-pale, rgba(255, 156, 2, 0.0902)) 40%, transparent) 0%, color-mix(in srgb, var(--zen-color-background-support-yellow-pale, rgba(255, 156, 2, 0.0902)) 40%, transparent) 100%), linear-gradient(var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)), var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)))",
+      "unsupportedLayers": [
+        "PATTERN"
+      ]
+    },
+    {
+      "name": "Color Chart Sector/Primary",
+      "token": "color-chart-sector-primary",
+      "type": "solid",
+      "paints": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.0667,
+            "g": 0.0667,
+            "b": 0.0667
+          },
+          "bound": {
+            "color": "Chart/Sector/Primary"
+          }
+        }
+      ],
+      "cssVariable": "--zen-style-color-chart-sector-primary-fill",
+      "color": "var(--zen-chart-sector-primary, rgba(17, 17, 17, 1))",
+      "background": "linear-gradient(var(--zen-chart-sector-primary, rgba(17, 17, 17, 1)), var(--zen-chart-sector-primary, rgba(17, 17, 17, 1)))",
+      "unsupportedLayers": []
+    },
+    {
+      "name": "Color Chart Sector/Secondary",
+      "token": "color-chart-sector-secondary",
+      "type": "solid",
+      "paints": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 0.4,
+            "b": 0.8314
+          },
+          "bound": {
+            "color": "Chart/Sector/Secondary"
+          }
+        }
+      ],
+      "cssVariable": "--zen-style-color-chart-sector-secondary-fill",
+      "color": "var(--zen-chart-sector-secondary, rgba(255, 102, 212, 1))",
+      "background": "linear-gradient(var(--zen-chart-sector-secondary, rgba(255, 102, 212, 1)), var(--zen-chart-sector-secondary, rgba(255, 102, 212, 1)))",
+      "unsupportedLayers": []
+    },
+    {
+      "name": "Color Chart Sector/Tertiary",
+      "token": "color-chart-sector-tertiary",
+      "type": "solid",
+      "paints": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.0627,
+            "g": 0.6824,
+            "b": 0.8549
+          },
+          "bound": {
+            "color": "Color/Background/Support/Cyan/Solid"
+          }
+        }
+      ],
+      "cssVariable": "--zen-style-color-chart-sector-tertiary-fill",
+      "color": "var(--zen-color-background-support-cyan-solid, rgba(16, 174, 218, 1))",
+      "background": "linear-gradient(var(--zen-color-background-support-cyan-solid, rgba(16, 174, 218, 1)), var(--zen-color-background-support-cyan-solid, rgba(16, 174, 218, 1)))",
+      "unsupportedLayers": []
+    },
+    {
+      "name": "Color Chart Sector/Quaternary",
+      "token": "color-chart-sector-quaternary",
+      "type": "solid",
+      "paints": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.4667,
+            "g": 0.3333,
+            "b": 0.9059
+          },
+          "bound": {
+            "color": "Color/Background/Support/Violet/Solid"
+          }
+        }
+      ],
+      "cssVariable": "--zen-style-color-chart-sector-quaternary-fill",
+      "color": "var(--zen-color-background-support-violet-solid, rgba(119, 85, 231, 1))",
+      "background": "linear-gradient(var(--zen-color-background-support-violet-solid, rgba(119, 85, 231, 1)), var(--zen-color-background-support-violet-solid, rgba(119, 85, 231, 1)))",
+      "unsupportedLayers": []
+    },
+    {
+      "name": "Color Chart Sector/Quinary",
+      "token": "color-chart-sector-quinary",
+      "type": "solid",
+      "paints": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 0.7294,
+            "b": 0.102
+          },
+          "bound": {
+            "color": "Color/Background/Support/Yellow/Solid"
+          }
+        }
+      ],
+      "cssVariable": "--zen-style-color-chart-sector-quinary-fill",
+      "color": "var(--zen-color-background-support-yellow-solid, rgba(255, 186, 26, 1))",
+      "background": "linear-gradient(var(--zen-color-background-support-yellow-solid, rgba(255, 186, 26, 1)), var(--zen-color-background-support-yellow-solid, rgba(255, 186, 26, 1)))",
+      "unsupportedLayers": []
+    },
+    {
+      "name": "Color Chart Sector/Senary",
+      "token": "color-chart-sector-senary",
+      "type": "solid",
+      "paints": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9294,
+            "g": 0.502,
+            "b": 0.0078
+          },
+          "bound": {
+            "color": "Color/Background/Support/Orange/Solid"
+          }
+        }
+      ],
+      "cssVariable": "--zen-style-color-chart-sector-senary-fill",
+      "color": "var(--zen-color-background-support-orange-solid, rgba(237, 128, 2, 1))",
+      "background": "linear-gradient(var(--zen-color-background-support-orange-solid, rgba(237, 128, 2, 1)), var(--zen-color-background-support-orange-solid, rgba(237, 128, 2, 1)))",
+      "unsupportedLayers": []
+    },
+    {
+      "name": "Color Chart Sector/Septenary",
+      "token": "color-chart-sector-septenary",
+      "type": "solid",
+      "paints": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 0.7529,
+            "b": 0.6863
+          },
+          "bound": {
+            "color": "Color/Background/Support/Red/Soft"
+          }
+        }
+      ],
+      "cssVariable": "--zen-style-color-chart-sector-septenary-fill",
+      "color": "var(--zen-color-background-support-red-soft, rgba(255, 192, 175, 1))",
+      "background": "linear-gradient(var(--zen-color-background-support-red-soft, rgba(255, 192, 175, 1)), var(--zen-color-background-support-red-soft, rgba(255, 192, 175, 1)))",
+      "unsupportedLayers": []
+    },
+    {
+      "name": "Gradients/Border/Glass White Overlay",
+      "token": "gradients-border-glass-white-overlay",
+      "type": "gradient_linear",
+      "paints": [
+        {
+          "type": "GRADIENT_LINEAR",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "gradientStops": [
+            {
+              "position": 0,
+              "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 0.16
+              }
+            },
+            {
+              "position": 0.4951923191547394,
+              "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 0.04
+              }
+            },
+            {
+              "position": 1,
+              "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 0.16
+              }
+            }
+          ],
+          "gradientTransform": [
+            [
+              6.123234262925839e-17,
+              1,
+              0
+            ],
+            [
+              -1,
+              6.123234262925839e-17,
+              1
+            ]
+          ]
+        }
+      ],
+      "cssVariable": "--zen-style-gradients-border-glass-white-overlay-fill",
+      "color": null,
+      "background": "linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.04) 49.52%, rgba(255, 255, 255, 0.16) 100%)",
+      "unsupportedLayers": []
+    },
+    {
+      "name": "Gradients/Border/Glass Black Overlay",
+      "token": "gradients-border-glass-black-overlay",
+      "type": "gradient_linear",
+      "paints": [
+        {
+          "type": "GRADIENT_LINEAR",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "gradientStops": [
+            {
+              "position": 0,
+              "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 0.04
+              }
+            },
+            {
+              "position": 0.5,
+              "color": {
+                "r": 0,
+                "g": 0,
+                "b": 0,
+                "a": 0.07
+              }
+            },
+            {
+              "position": 1,
+              "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 0.04
+              }
+            }
+          ],
+          "gradientTransform": [
+            [
+              6.123234262925839e-17,
+              1,
+              0
+            ],
+            [
+              -1,
+              6.123234262925839e-17,
+              1
+            ]
+          ]
+        }
+      ],
+      "cssVariable": "--zen-style-gradients-border-glass-black-overlay-fill",
+      "color": null,
+      "background": "linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(0, 0, 0, 0.07) 50%, rgba(255, 255, 255, 0.04) 100%)",
+      "unsupportedLayers": []
+    },
+    {
+      "name": "Avatars/1",
+      "token": "avatars-1",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "5aab5459786b226d5d70e39a1dfa0e817fee1e4d"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-1-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/2",
+      "token": "avatars-2",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "6547ffa197f3b4a9c42e0467177533ee2a03fa3c"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-2-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/3",
+      "token": "avatars-3",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "7ec8b5000660a30f8f1d9e16efa8e3da70322dcd"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-3-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/4",
+      "token": "avatars-4",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "01376a01f8898b4d066033af55f17b0f52d39b46"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-4-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/5",
+      "token": "avatars-5",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "ded2ac55bde9b0da69211bc2d4fa10fd3e058284"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-5-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/6",
+      "token": "avatars-6",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "ad5a8d5cfe4f63f37596dcc43194f79baacfc599"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-6-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/7",
+      "token": "avatars-7",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "cf8d1a2d0c65fa073bedcd5d6ff844e37ae13b20"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-7-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/8",
+      "token": "avatars-8",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "5e338a9cb634a7defe12c6d83cfc0c899d09fd8f"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-8-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/9",
+      "token": "avatars-9",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "7937d8a743504a587c83685a0c6f1bd74a8f46c6"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-9-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/10",
+      "token": "avatars-10",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "2345a18ba07db0096cf3d7200f970e0449cddccc"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-10-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/11",
+      "token": "avatars-11",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "07f0eda9c20bcc257c70b703919e2b7809d59842"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-11-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/12",
+      "token": "avatars-12",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "4f59c8f8145c96b5ad308ff9ae45be4b173e4951"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-12-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/13",
+      "token": "avatars-13",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "245d80e97c8150312036da43b1bbda67b9eca2a2"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-13-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/14",
+      "token": "avatars-14",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "63bd7c76a4fb290d022f1d07dfda2b143b589b51"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-14-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/15",
+      "token": "avatars-15",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "af98cd7549dc104c86e6c212ce5327038a0817cc"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-15-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/16",
+      "token": "avatars-16",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "a91e8208316b16081b1ff9c8fd736f4edcb107ba"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-16-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/17",
+      "token": "avatars-17",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "492c4efff7538bfd3e524ed41a7003a878d922ea"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-17-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/18",
+      "token": "avatars-18",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "92a4f7fb9598977db01123d2fbd97655145987e5"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-18-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/19",
+      "token": "avatars-19",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "51f98955f5e582124b9d189bf0e21f48ffd0bb88"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-19-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/20",
+      "token": "avatars-20",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "d5dcaac6f7fb80a3f408331b927d652375237016"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-20-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Avatars/21",
+      "token": "avatars-21",
+      "type": "image",
+      "paints": [
+        {
+          "type": "IMAGE",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "scaleMode": "FILL",
+          "imageHash": "6b2b66d8c7b01a20237ccf0ba5d3c277a177470e"
+        }
+      ],
+      "cssVariable": "--zen-style-avatars-21-fill",
+      "color": null,
+      "background": null,
+      "unsupportedLayers": [
+        "IMAGE"
+      ]
+    },
+    {
+      "name": "Tool/Canvas",
+      "token": "tool-canvas",
+      "type": "solid",
+      "paints": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9686,
+            "g": 0.9686,
+            "b": 0.9686
+          },
+          "bound": {
+            "color": "Color/Background/Canvas/Default"
+          }
+        },
+        {
+          "type": "PATTERN",
+          "visible": true,
+          "opacity": 0.6000000238418579,
+          "blendMode": "NORMAL"
+        }
+      ],
+      "cssVariable": "--zen-style-tool-canvas-fill",
+      "color": null,
+      "background": "linear-gradient(var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)), var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)))",
+      "unsupportedLayers": [
+        "PATTERN"
+      ]
+    },
+    {
+      "name": "Background/Canvas-Liquid-Glass",
+      "token": "background-canvas-liquid-glass",
+      "type": "solid",
+      "paints": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9686,
+            "g": 0.9686,
+            "b": 0.9686
+          },
+          "bound": {
+            "color": "Color/Background/Canvas/Default"
+          }
+        },
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 0.029999999329447746,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0
+          }
+        }
+      ],
+      "cssVariable": "--zen-style-background-canvas-liquid-glass-fill",
+      "color": null,
+      "background": "linear-gradient(rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.03)), linear-gradient(var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)), var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)))",
+      "unsupportedLayers": []
+    }
+  ],
+  "textStyles": [
+    {
+      "id": "S:7ddf0246c1ac7d2d003fd5f85b1beb26b7a0cc5b,",
+      "key": "7ddf0246c1ac7d2d003fd5f85b1beb26b7a0cc5b",
+      "name": "Display-Extra/1",
+      "description": "Display style. Used outside the standard typographic hierarchy. Ideal for highlighting metrics, key insights, or strongly emphasized content on widgets and dashboards. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 78,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 88
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -3.119999885559082
+      },
+      "paragraphSpacing": 0,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Display-Extra-1",
+        "fontSize": "Typography/Font-Size/Display-Extra-1",
+        "fontFamily": "Typography/Font-Family/Display",
+        "lineHeight": "Typography/Line-Height/Display-Extra-1",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:cdaac3762b6f941ed405cbe5878249bfbf426e6d,",
+      "key": "cdaac3762b6f941ed405cbe5878249bfbf426e6d",
+      "name": "Display-Extra/2",
+      "description": "Display style. Used outside the standard typographic hierarchy. Ideal for highlighting metrics, key insights, or strongly emphasized content on widgets and dashboards. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 68,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 72
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -2.7200000286102295
+      },
+      "paragraphSpacing": 0,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Display-Extra-2",
+        "fontSize": "Typography/Font-Size/Display-Extra-2",
+        "fontFamily": "Typography/Font-Family/Display",
+        "lineHeight": "Typography/Line-Height/Display-Extra-2",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:3572060cdb6f95eafe6314736135d9bc876fcd55,",
+      "key": "3572060cdb6f95eafe6314736135d9bc876fcd55",
+      "name": "Display-Extra/3",
+      "description": "Display style. Used outside the standard typographic hierarchy. Ideal for highlighting metrics, key insights, or strongly emphasized content on widgets and dashboards. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 60,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 68
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -2.4000000953674316
+      },
+      "paragraphSpacing": 0,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Display-Extra-3",
+        "fontSize": "Typography/Font-Size/Display-Extra-3",
+        "fontFamily": "Typography/Font-Family/Display",
+        "lineHeight": "Typography/Line-Height/Display-Extra-3",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:18fe86dfb2078b918f63bcca514a7ae857ba9de8,",
+      "key": "18fe86dfb2078b918f63bcca514a7ae857ba9de8",
+      "name": "Display/1",
+      "description": "Display style. Used outside the standard typographic hierarchy. Ideal for highlighting metrics, key insights, or strongly emphasized content on widgets and dashboards. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 52,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 60
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -1.559999942779541
+      },
+      "paragraphSpacing": 0,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Display-1",
+        "fontSize": "Typography/Font-Size/Display-1",
+        "fontFamily": "Typography/Font-Family/Display",
+        "lineHeight": "Typography/Line-Height/Display-1",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:4e6f5f90e6f7f921b44fe35bfbec58f79adc89fb,",
+      "key": "4e6f5f90e6f7f921b44fe35bfbec58f79adc89fb",
+      "name": "Display/2",
+      "description": "Display style. Used outside the standard typographic hierarchy. Ideal for highlighting metrics, key insights, or strongly emphasized content on widgets and dashboards. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 46,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 52
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -1.3799999952316284
+      },
+      "paragraphSpacing": 0,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Display-2",
+        "fontSize": "Typography/Font-Size/Display-2",
+        "fontFamily": "Typography/Font-Family/Display",
+        "lineHeight": "Typography/Line-Height/Display-2",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:190ac501164b6d8f44a6412ac1b647a9d250e6c4,",
+      "key": "190ac501164b6d8f44a6412ac1b647a9d250e6c4",
+      "name": "Display/3",
+      "description": "Display style. Used outside the standard typographic hierarchy. Ideal for highlighting metrics, key insights, or strongly emphasized content on widgets and dashboards. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 40,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 48
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -1.2000000476837158
+      },
+      "paragraphSpacing": 0,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Display-3",
+        "fontSize": "Typography/Font-Size/Display-3",
+        "fontFamily": "Typography/Font-Family/Display",
+        "lineHeight": "Typography/Line-Height/Display-3",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:a0bdc2ba7b9e9233a909c3e2266b10a5782426ea,",
+      "key": "a0bdc2ba7b9e9233a909c3e2266b10a5782426ea",
+      "name": "Display/4",
+      "description": "Display style. Used outside the standard typographic hierarchy. Ideal for highlighting metrics, key insights, or strongly emphasized content on widgets and dashboards. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 36,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 44
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -1.0800000429153442
+      },
+      "paragraphSpacing": 0,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Display-4",
+        "fontSize": "Typography/Font-Size/Display-4",
+        "fontFamily": "Typography/Font-Family/Display",
+        "lineHeight": "Typography/Line-Height/Display-4",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:6007282dfa846a9e8231db516eefd28c7ceafc53,",
+      "key": "6007282dfa846a9e8231db516eefd28c7ceafc53",
+      "name": "Heading/1",
+      "description": "Heading style. Used for structural hierarchy, page titles, and section headers to guide the user's eye. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 32,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 40
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -0.9599999785423279
+      },
+      "paragraphSpacing": 32,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Heading-1",
+        "fontSize": "Typography/Font-Size/Heading-1",
+        "fontFamily": "Typography/Font-Family/Heading",
+        "paragraphSpacing": "Typography/Font-Size/Heading-1",
+        "lineHeight": "Typography/Line-Height/Heading-1",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:45653f37368cc9b153533b4c0510c39a6a7b7f36,",
+      "key": "45653f37368cc9b153533b4c0510c39a6a7b7f36",
+      "name": "Heading/2",
+      "description": "Heading style. Used for structural hierarchy, page titles, and section headers to guide the user's eye. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 28,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 36
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -0.8399999737739563
+      },
+      "paragraphSpacing": 28,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Heading-2",
+        "fontSize": "Typography/Font-Size/Heading-2",
+        "fontFamily": "Typography/Font-Family/Heading",
+        "paragraphSpacing": "Typography/Font-Size/Heading-2",
+        "lineHeight": "Typography/Line-Height/Heading-2",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:9ee25abcc744196f553e7cb7d2bfed6e81dc3e34,",
+      "key": "9ee25abcc744196f553e7cb7d2bfed6e81dc3e34",
+      "name": "Heading/3",
+      "description": "Heading style. Used for structural hierarchy, page titles, and section headers to guide the user's eye. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 24,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 32
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -0.7200000286102295
+      },
+      "paragraphSpacing": 24,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Heading-3",
+        "fontSize": "Typography/Font-Size/Heading-3",
+        "fontFamily": "Typography/Font-Family/Heading",
+        "paragraphSpacing": "Typography/Font-Size/Heading-3",
+        "lineHeight": "Typography/Line-Height/Heading-3",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:a005a0be0b99f60b052d41608e02bd663a261dbe,",
+      "key": "a005a0be0b99f60b052d41608e02bd663a261dbe",
+      "name": "Heading/4",
+      "description": "Heading style. Used for structural hierarchy, page titles, and section headers to guide the user's eye. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 20,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 28
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -0.6000000238418579
+      },
+      "paragraphSpacing": 20,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Heading-4",
+        "fontSize": "Typography/Font-Size/Heading-4",
+        "fontFamily": "Typography/Font-Family/Heading",
+        "paragraphSpacing": "Typography/Font-Size/Heading-4",
+        "lineHeight": "Typography/Line-Height/Heading-4",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:9230326dbb0e34f27485a3f230b5720a19d1b788,",
+      "key": "9230326dbb0e34f27485a3f230b5720a19d1b788",
+      "name": "Heading/Subheading",
+      "description": "Heading style. Used for structural hierarchy, page titles, and section headers to guide the user's eye. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 18,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 24
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -0.5400000214576721
+      },
+      "paragraphSpacing": 20,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Subheading",
+        "fontSize": "Typography/Font-Size/Subheading",
+        "fontFamily": "Typography/Font-Family/Heading",
+        "lineHeight": "Typography/Line-Height/Subheading",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:91116663bae2c5a9af23983ec083ff51bfe91254,",
+      "key": "91116663bae2c5a9af23983ec083ff51bfe91254",
+      "name": "Body/Extra/Regular",
+      "description": "Body style. Used for primary reading content, descriptions, and long-form paragraphs.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 400
+        }
+      },
+      "fontSize": 16,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 24
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -0.1599999964237213
+      },
+      "paragraphSpacing": 16,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Body-Extra",
+        "fontSize": "Typography/Font-Size/Body-Extra",
+        "fontFamily": "Typography/Font-Family/Sans",
+        "paragraphSpacing": "Typography/Font-Size/Body-Extra",
+        "lineHeight": "Typography/Line-Height/Body-Extra",
+        "fontWeight": "Emphasis/Font-Weight/Regular"
+      }
+    },
+    {
+      "id": "S:d4038f34b6d129eb95d8d939057a6b6a190983c5,",
+      "key": "d4038f34b6d129eb95d8d939057a6b6a190983c5",
+      "name": "Body/Extra/Medium",
+      "description": "Body style. Used for primary reading content, descriptions, and long-form paragraphs. Applied with a medium weight for balanced emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Medium",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 500
+        }
+      },
+      "fontSize": 16,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 24
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -0.1599999964237213
+      },
+      "paragraphSpacing": 16,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Body-Extra",
+        "fontSize": "Typography/Font-Size/Body-Extra",
+        "fontFamily": "Typography/Font-Family/Sans",
+        "paragraphSpacing": "Typography/Font-Size/Body-Extra",
+        "lineHeight": "Typography/Line-Height/Body-Extra",
+        "fontWeight": "Emphasis/Font-Weight/Medium"
+      }
+    },
+    {
+      "id": "S:70194c9ca17ed3ac93067f0afee44bb44c1d24dc,",
+      "key": "70194c9ca17ed3ac93067f0afee44bb44c1d24dc",
+      "name": "Body/Extra/Bold",
+      "description": "Body style. Used for primary reading content, descriptions, and long-form paragraphs. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 16,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 24
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -0.1599999964237213
+      },
+      "paragraphSpacing": 16,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Body-Extra",
+        "fontSize": "Typography/Font-Size/Body-Extra",
+        "fontFamily": "Typography/Font-Family/Sans",
+        "paragraphSpacing": "Typography/Font-Size/Body-Extra",
+        "lineHeight": "Typography/Line-Height/Body-Extra",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:603c9d559f09aaa004d2774a1a1f080eb390e66f,",
+      "key": "603c9d559f09aaa004d2774a1a1f080eb390e66f",
+      "name": "Body/Base/Regular",
+      "description": "Body style. Used for primary reading content, descriptions, and long-form paragraphs.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 400
+        }
+      },
+      "fontSize": 14,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 20
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -0.14000000059604645
+      },
+      "paragraphSpacing": 14,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Body-Base",
+        "fontSize": "Typography/Font-Size/Body-Base",
+        "fontFamily": "Typography/Font-Family/Sans",
+        "paragraphSpacing": "Typography/Font-Size/Body-Base",
+        "lineHeight": "Typography/Line-Height/Body-Base",
+        "fontWeight": "Emphasis/Font-Weight/Regular"
+      }
+    },
+    {
+      "id": "S:0652e8e1826fe1a603cc281e376f3b2d175f2221,",
+      "key": "0652e8e1826fe1a603cc281e376f3b2d175f2221",
+      "name": "Body/Base/Medium",
+      "description": "Body style. Used for primary reading content, descriptions, and long-form paragraphs. Applied with a medium weight for balanced emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Medium",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 500
+        }
+      },
+      "fontSize": 14,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 20
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -0.14000000059604645
+      },
+      "paragraphSpacing": 14,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Body-Base",
+        "fontSize": "Typography/Font-Size/Body-Base",
+        "fontFamily": "Typography/Font-Family/Sans",
+        "paragraphSpacing": "Typography/Font-Size/Body-Base",
+        "lineHeight": "Typography/Line-Height/Body-Base",
+        "fontWeight": "Emphasis/Font-Weight/Medium"
+      }
+    },
+    {
+      "id": "S:fab644475416078d33c4f2d7725e25c184dba4b4,",
+      "key": "fab644475416078d33c4f2d7725e25c184dba4b4",
+      "name": "Body/Base/Bold",
+      "description": "Body style. Used for primary reading content, descriptions, and long-form paragraphs. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 14,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 20
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -0.14000000059604645
+      },
+      "paragraphSpacing": 14,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Body-Base",
+        "fontSize": "Typography/Font-Size/Body-Base",
+        "fontFamily": "Typography/Font-Family/Sans",
+        "paragraphSpacing": "Typography/Font-Size/Body-Base",
+        "lineHeight": "Typography/Line-Height/Body-Base",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:0436c5d69ce2a53727f4d2ac3efbabc5bfa268fe,",
+      "key": "0436c5d69ce2a53727f4d2ac3efbabc5bfa268fe",
+      "name": "Body/Small/Regular",
+      "description": "Body style. Used for primary reading content, descriptions, and long-form paragraphs.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 400
+        }
+      },
+      "fontSize": 12,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 16
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": 0
+      },
+      "paragraphSpacing": 12,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Body-Small",
+        "fontSize": "Typography/Font-Size/Body-Small",
+        "fontFamily": "Typography/Font-Family/Sans",
+        "paragraphSpacing": "Typography/Font-Size/Body-Small",
+        "lineHeight": "Typography/Line-Height/Body-Small",
+        "fontWeight": "Emphasis/Font-Weight/Regular"
+      }
+    },
+    {
+      "id": "S:b68293f0ca0ec617c19eb0e95a9da8f63fb4cc2c,",
+      "key": "b68293f0ca0ec617c19eb0e95a9da8f63fb4cc2c",
+      "name": "Body/Small/Medium",
+      "description": "Body style. Used for primary reading content, descriptions, and long-form paragraphs. Applied with a medium weight for balanced emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Medium",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 500
+        }
+      },
+      "fontSize": 12,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 16
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": 0
+      },
+      "paragraphSpacing": 12,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Body-Small",
+        "fontSize": "Typography/Font-Size/Body-Small",
+        "fontFamily": "Typography/Font-Family/Sans",
+        "paragraphSpacing": "Typography/Font-Size/Body-Small",
+        "lineHeight": "Typography/Line-Height/Body-Small",
+        "fontWeight": "Emphasis/Font-Weight/Medium"
+      }
+    },
+    {
+      "id": "S:5cd1b24584bcf419a4ff7c24da39d1a89f5b46a9,",
+      "key": "5cd1b24584bcf419a4ff7c24da39d1a89f5b46a9",
+      "name": "Body/Small/Bold",
+      "description": "Body style. Used for primary reading content, descriptions, and long-form paragraphs. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 12,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 16
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": 0
+      },
+      "paragraphSpacing": 12,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Body-Small",
+        "fontSize": "Typography/Font-Size/Body-Small",
+        "fontFamily": "Typography/Font-Family/Sans",
+        "paragraphSpacing": "Typography/Font-Size/Body-Small",
+        "lineHeight": "Typography/Line-Height/Body-Small",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:d261e4aff54b8867c0dc870bf89f001dc9326632,",
+      "key": "d261e4aff54b8867c0dc870bf89f001dc9326632",
+      "name": "Body/Code/Regular",
+      "description": "Body style. Used for primary reading content, descriptions, and long-form paragraphs.",
+      "fontName": {
+        "family": "JetBrains Mono",
+        "style": "Regular",
+        "variationSettings": {
+          "wght": 400
+        }
+      },
+      "fontSize": 12,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 16
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": 0
+      },
+      "paragraphSpacing": 14,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Body-Code",
+        "fontSize": "Typography/Font-Size/Body-Small",
+        "fontFamily": "Typography/Font-Family/Dev",
+        "lineHeight": "Typography/Line-Height/Body-Small",
+        "fontWeight": "Emphasis/Font-Weight/Regular"
+      }
+    },
+    {
+      "id": "S:17dfd361f69605a124eb7a4665812657c5ddd9e1,",
+      "key": "17dfd361f69605a124eb7a4665812657c5ddd9e1",
+      "name": "Body/Code/Bold",
+      "description": "Body style. Used for primary reading content, descriptions, and long-form paragraphs.",
+      "fontName": {
+        "family": "JetBrains Mono",
+        "style": "Regular",
+        "variationSettings": {
+          "wght": 600
+        }
+      },
+      "fontSize": 12,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 16
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": 0
+      },
+      "paragraphSpacing": 14,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Body-Code",
+        "fontSize": "Typography/Font-Size/Body-Small",
+        "fontFamily": "Typography/Font-Family/Dev",
+        "lineHeight": "Typography/Line-Height/Body-Small",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:e9ac0dcc25200d7dc579fc754cea83624bd4ce0d,",
+      "key": "e9ac0dcc25200d7dc579fc754cea83624bd4ce0d",
+      "name": "Caption/Regular",
+      "description": "Caption style. Used for auxiliary text, helper texts, footnotes, or secondary metadata.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 400
+        }
+      },
+      "fontSize": 10,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 12
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": 0
+      },
+      "paragraphSpacing": 10,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Caption",
+        "fontSize": "Typography/Font-Size/Caption",
+        "fontFamily": "Typography/Font-Family/Sans",
+        "paragraphSpacing": "Typography/Font-Size/Caption",
+        "lineHeight": "Typography/Line-Height/Caption",
+        "fontWeight": "Emphasis/Font-Weight/Regular"
+      }
+    },
+    {
+      "id": "S:fbdf7612ea99bd3cd76da8d3bf3f97465138899d,",
+      "key": "fbdf7612ea99bd3cd76da8d3bf3f97465138899d",
+      "name": "Caption/Medium",
+      "description": "Caption style. Used for auxiliary text, helper texts, footnotes, or secondary metadata. Applied with a medium weight for balanced emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Medium",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 500
+        }
+      },
+      "fontSize": 10,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 12
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": 0
+      },
+      "paragraphSpacing": 10,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Caption",
+        "fontSize": "Typography/Font-Size/Caption",
+        "fontFamily": "Typography/Font-Family/Sans",
+        "paragraphSpacing": "Typography/Font-Size/Caption",
+        "lineHeight": "Typography/Line-Height/Caption",
+        "fontWeight": "Emphasis/Font-Weight/Medium"
+      }
+    },
+    {
+      "id": "S:c94fc078fe0b675d462689fbfc7e0f6fa33ca7cb,",
+      "key": "c94fc078fe0b675d462689fbfc7e0f6fa33ca7cb",
+      "name": "Caption/Bold",
+      "description": "Caption style. Used for auxiliary text, helper texts, footnotes, or secondary metadata. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 10,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 12
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": 0
+      },
+      "paragraphSpacing": 10,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Caption",
+        "fontSize": "Typography/Font-Size/Caption",
+        "fontFamily": "Typography/Font-Family/Sans",
+        "paragraphSpacing": "Typography/Font-Size/Caption",
+        "lineHeight": "Typography/Line-Height/Caption",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:4538d9d408e64daabcd8f2aec8966e49c2e83db1,",
+      "key": "4538d9d408e64daabcd8f2aec8966e49c2e83db1",
+      "name": "Label/Small/Medium",
+      "description": "Small label style. Specifically used for auxiliary labels beneath icons in navigation bars, toolbars, or functional actions. Applied with a medium weight for balanced emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Medium",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 500
+        }
+      },
+      "fontSize": 8,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 12
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": 0
+      },
+      "paragraphSpacing": 0,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Label-Small",
+        "fontSize": "Typography/Font-Size/Label-Small",
+        "fontFamily": "Typography/Font-Family/Sans",
+        "lineHeight": "Typography/Line-Height/Label-Small",
+        "fontWeight": "Emphasis/Font-Weight/Medium"
+      }
+    },
+    {
+      "id": "S:de6b653b514110bc1494b68ea9e1d71592e55fee,",
+      "key": "de6b653b514110bc1494b68ea9e1d71592e55fee",
+      "name": "Label/Small/Bold",
+      "description": "Small label style. Specifically used for auxiliary labels beneath icons in navigation bars, toolbars, or functional actions. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 8,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 12
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": 0
+      },
+      "paragraphSpacing": 0,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Label-Small",
+        "fontSize": "Typography/Font-Size/Label-Small",
+        "fontFamily": "Typography/Font-Family/Sans",
+        "lineHeight": "Typography/Line-Height/Label-Small",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:ec3af1512d0558316fb207c6df9d5d2f858c80c8,",
+      "key": "ec3af1512d0558316fb207c6df9d5d2f858c80c8",
+      "name": "Button-Label/XL",
+      "description": "Button label style. Strictly reserved for text labels within button components. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 16,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 24
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -0.3199999928474426
+      },
+      "paragraphSpacing": 0,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Button-Label-XL",
+        "fontSize": "Typography/Font-Size/Button-Label-XL",
+        "fontFamily": "Typography/Font-Family/Button",
+        "lineHeight": "Typography/Line-Height/Button-Label-XL",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:ef4842ed23e20028cb2c3a2c030adcc1c770ee48,",
+      "key": "ef4842ed23e20028cb2c3a2c030adcc1c770ee48",
+      "name": "Button-Label/L",
+      "description": "Button label style. Strictly reserved for text labels within button components. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 14,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 20
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -0.2800000011920929
+      },
+      "paragraphSpacing": 0,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Button-Label-L",
+        "fontSize": "Typography/Font-Size/Button-Label-L",
+        "fontFamily": "Typography/Font-Family/Button",
+        "lineHeight": "Typography/Line-Height/Button-Label-L",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:a3872fb595c3b11f57427ceaaaad198d1b6d3d4e,",
+      "key": "a3872fb595c3b11f57427ceaaaad198d1b6d3d4e",
+      "name": "Button-Label/M",
+      "description": "Button label style. Strictly reserved for text labels within button components. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 14,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 20
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -0.2800000011920929
+      },
+      "paragraphSpacing": 0,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Button-Label-M",
+        "fontSize": "Typography/Font-Size/Button-Label-M",
+        "fontFamily": "Typography/Font-Family/Button",
+        "lineHeight": "Typography/Line-Height/Button-Label-M",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:c28b36f31f647dd98550b03e1c39f59d0e0cde85,",
+      "key": "c28b36f31f647dd98550b03e1c39f59d0e0cde85",
+      "name": "Button-Label/S",
+      "description": "Button label style. Strictly reserved for text labels within button components. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 14,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 20
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": -0.14000000059604645
+      },
+      "paragraphSpacing": 0,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Button-Label-S",
+        "fontSize": "Typography/Font-Size/Button-Label-S",
+        "fontFamily": "Typography/Font-Family/Button",
+        "lineHeight": "Typography/Line-Height/Button-Label-S",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:3bf17c5a31a2d83b3692b73f6f76b0302a41f499,",
+      "key": "3bf17c5a31a2d83b3692b73f6f76b0302a41f499",
+      "name": "Button-Label/XS",
+      "description": "Button label style. Strictly reserved for text labels within button components. Applied with a heavy weight for maximum emphasis.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 12,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 12
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": 0
+      },
+      "paragraphSpacing": 0,
+      "paragraphIndent": 0,
+      "textCase": "ORIGINAL",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/Button-Label-XS",
+        "fontSize": "Typography/Font-Size/Button-Label-XS",
+        "fontFamily": "Typography/Font-Family/Button",
+        "lineHeight": "Typography/Line-Height/Button-Label-XS",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:78f0dddf149d49d5a9858fc48eac120dd4083284,",
+      "key": "78f0dddf149d49d5a9858fc48eac120dd4083284",
+      "name": "All-Caps/M",
+      "description": "Standard typography style. Ensure proper usage based on its visual weight and size context.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 400
+        }
+      },
+      "fontSize": 14,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 16
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": 0
+      },
+      "paragraphSpacing": 0,
+      "paragraphIndent": 0,
+      "textCase": "UPPER",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/ALL-CAPS-M",
+        "fontSize": "Typography/Font-Size/ALL-CAPS-M",
+        "fontFamily": "Typography/Font-Family/Sans",
+        "lineHeight": "Typography/Line-Height/ALL-CAPS-M",
+        "fontWeight": "Emphasis/Font-Weight/Regular"
+      }
+    },
+    {
+      "id": "S:d87f0aca8f6a74c152379040e03c4bed36658e23,",
+      "key": "d87f0aca8f6a74c152379040e03c4bed36658e23",
+      "name": "All-Caps/M-BOLD",
+      "description": "Standard typography style. Ensure proper usage based on its visual weight and size context.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 600
+        }
+      },
+      "fontSize": 14,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 16
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": 0
+      },
+      "paragraphSpacing": 0,
+      "paragraphIndent": 0,
+      "textCase": "UPPER",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/ALL-CAPS-M",
+        "fontSize": "Typography/Font-Size/ALL-CAPS-M",
+        "fontFamily": "Typography/Font-Family/Sans",
+        "lineHeight": "Typography/Line-Height/ALL-CAPS-M",
+        "fontWeight": "Emphasis/Font-Weight/Bold"
+      }
+    },
+    {
+      "id": "S:6900c7ecce59bb89a7e6ebb9004835cb817e6ffd,",
+      "key": "6900c7ecce59bb89a7e6ebb9004835cb817e6ffd",
+      "name": "All-Caps/S",
+      "description": "Standard typography style. Ensure proper usage based on its visual weight and size context.",
+      "fontName": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "slnt": 0,
+          "wght": 400
+        }
+      },
+      "fontSize": 12,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 16
+      },
+      "letterSpacing": {
+        "unit": "PIXELS",
+        "value": 0
+      },
+      "paragraphSpacing": 0,
+      "paragraphIndent": 0,
+      "textCase": "UPPER",
+      "textDecoration": "NONE",
+      "leadingTrim": "NONE",
+      "bound": {
+        "letterSpacing": "Typography/Letter-Spacing/ALL-CAPS-S",
+        "fontSize": "Typography/Font-Size/ALL-CAPS-S",
+        "fontFamily": "Typography/Font-Family/Sans",
+        "lineHeight": "Typography/Line-Height/ALL-CAPS-S",
+        "fontWeight": "Emphasis/Font-Weight/Regular"
+      }
+    }
+  ],
+  "effectStyles": [
+    {
+      "name": "Glass-Floating",
+      "token": "glass-floating",
+      "description": "",
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 32,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Light"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.04
+          },
+          "offset": {
+            "x": 0,
+            "y": 12
+          },
+          "spread": -16,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": true
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 24,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Base"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.08
+          },
+          "offset": {
+            "x": 0,
+            "y": 8
+          },
+          "spread": -12,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": true
+        },
+        {
+          "type": "GLASS",
+          "visible": true,
+          "radius": 8,
+          "refraction": 0.800000011920929,
+          "depth": 28,
+          "lightAngle": -45,
+          "lightIntensity": 0.800000011920929,
+          "dispersion": 0.5,
+          "splay": 0
+        }
+      ],
+      "cssVariable": "--zen-style-glass-floating-shadow",
+      "boxShadow": "0 8px 24px -12px var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 12px 32px -16px var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04))",
+      "backdropFilter": null,
+      "filter": null,
+      "glass": [
+        {
+          "radius": 8,
+          "refraction": 0.800000011920929,
+          "depth": 28,
+          "lightAngle": -45,
+          "lightIntensity": 0.800000011920929,
+          "dispersion": 0.5,
+          "splay": 0
+        }
+      ]
+    },
+    {
+      "name": "Effect/Container",
+      "token": "effect-container",
+      "description": "",
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 24,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Light"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.04
+          },
+          "offset": {
+            "x": 0,
+            "y": 8
+          },
+          "spread": -16,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": true
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 32,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Strong"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.12
+          },
+          "offset": {
+            "x": 0,
+            "y": 12
+          },
+          "spread": -16,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": true
+        }
+      ],
+      "cssVariable": "--zen-style-effect-container-shadow",
+      "boxShadow": "0 12px 32px -16px var(--zen-color-shadow-neutral-strong, rgba(0, 0, 0, 0.12)), 0 8px 24px -16px var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04))",
+      "backdropFilter": null,
+      "filter": null,
+      "glass": []
+    },
+    {
+      "name": "Effect/Popover",
+      "token": "effect-popover",
+      "description": "",
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 32,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Light"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.04
+          },
+          "offset": {
+            "x": 0,
+            "y": 12
+          },
+          "spread": -16,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": true
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 24,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Base"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.08
+          },
+          "offset": {
+            "x": 0,
+            "y": 8
+          },
+          "spread": -12,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": true
+        },
+        {
+          "type": "BACKGROUND_BLUR",
+          "visible": true,
+          "radius": 40,
+          "blurType": "NORMAL"
+        }
+      ],
+      "cssVariable": "--zen-style-effect-popover-shadow",
+      "boxShadow": "0 8px 24px -12px var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 12px 32px -16px var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04))",
+      "backdropFilter": "blur(20px)",
+      "filter": null,
+      "glass": []
+    },
+    {
+      "name": "Effect/Overlay",
+      "token": "effect-overlay",
+      "description": "",
+      "effects": [
+        {
+          "type": "BACKGROUND_BLUR",
+          "visible": true,
+          "radius": 100,
+          "blurType": "NORMAL"
+        }
+      ],
+      "cssVariable": "--zen-style-effect-overlay-shadow",
+      "boxShadow": "none",
+      "backdropFilter": "blur(50px)",
+      "filter": null,
+      "glass": []
+    },
+    {
+      "name": "Effect/Input",
+      "token": "effect-input",
+      "description": "",
+      "effects": [
+        {
+          "type": "BACKGROUND_BLUR",
+          "visible": true,
+          "radius": 40,
+          "blurType": "NORMAL"
+        },
+        {
+          "type": "INNER_SHADOW",
+          "visible": true,
+          "radius": 3,
+          "bound": {
+            "color": "Input/Shadow/Strong"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.12
+          },
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "spread": 0,
+          "blendMode": "NORMAL"
+        },
+        {
+          "type": "INNER_SHADOW",
+          "visible": true,
+          "radius": 1,
+          "bound": {
+            "color": "Input/Shadow/Base"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.08
+          },
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "spread": 0,
+          "blendMode": "NORMAL"
+        }
+      ],
+      "cssVariable": "--zen-style-effect-input-shadow",
+      "boxShadow": "inset 0 0 1px 0 var(--zen-input-shadow-base, rgba(0, 0, 0, 0.08)), inset 0 0 3px 0 var(--zen-input-shadow-strong, rgba(0, 0, 0, 0.12))",
+      "backdropFilter": "blur(20px)",
+      "filter": null,
+      "glass": []
+    },
+    {
+      "name": "Shadow/Neo-Brutalism",
+      "token": "shadow-neo-brutalism",
+      "description": "",
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 0,
+          "bound": {
+            "color": "Color/Shadow/Inverse/Strongest"
+          },
+          "color": {
+            "r": 0.0667,
+            "g": 0.0667,
+            "b": 0.0667,
+            "a": 1
+          },
+          "offset": {
+            "x": 4,
+            "y": 4
+          },
+          "spread": 0,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        }
+      ],
+      "cssVariable": "--zen-style-shadow-neo-brutalism-shadow",
+      "boxShadow": "4px 4px 0 0 var(--zen-color-shadow-inverse-strongest, rgba(17, 17, 17, 1))",
+      "backdropFilter": null,
+      "filter": null,
+      "glass": []
+    },
+    {
+      "name": "Shadow/Action/Basic",
+      "token": "shadow-action-basic",
+      "description": "",
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 1,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Light"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.04
+          },
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "spread": 0,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        }
+      ],
+      "cssVariable": "--zen-style-shadow-action-basic-shadow",
+      "boxShadow": "0 1px 1px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04))",
+      "backdropFilter": null,
+      "filter": null,
+      "glass": []
+    },
+    {
+      "name": "Shadow/Action/Tertiary",
+      "token": "shadow-action-tertiary",
+      "description": "",
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 1,
+          "bound": {
+            "color": "Button-Tertiary/Shadow/Default"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.04
+          },
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "spread": 0,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        },
+        {
+          "type": "BACKGROUND_BLUR",
+          "visible": true,
+          "radius": 40,
+          "blurType": "NORMAL"
+        }
+      ],
+      "cssVariable": "--zen-style-shadow-action-tertiary-shadow",
+      "boxShadow": "0 1px 1px 0 var(--zen-button-tertiary-shadow-default, rgba(0, 0, 0, 0.04))",
+      "backdropFilter": "blur(20px)",
+      "filter": null,
+      "glass": []
+    },
+    {
+      "name": "Shadow/Bottom/Level-1",
+      "token": "shadow-bottom-level-1",
+      "description": "",
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 8,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Base"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.08
+          },
+          "offset": {
+            "x": 0,
+            "y": 4
+          },
+          "spread": -4,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": true
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 4,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Strong"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.12
+          },
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "spread": -2,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 2,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Light"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.04
+          },
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "spread": 0,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        }
+      ],
+      "cssVariable": "--zen-style-shadow-bottom-level-1-shadow",
+      "boxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 1px 4px -2px var(--zen-color-shadow-neutral-strong, rgba(0, 0, 0, 0.12)), 0 4px 8px -4px var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08))",
+      "backdropFilter": null,
+      "filter": null,
+      "glass": []
+    },
+    {
+      "name": "Shadow/Bottom/Level-2",
+      "token": "shadow-bottom-level-2",
+      "description": "",
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 40,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Strong"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.12
+          },
+          "offset": {
+            "x": 0,
+            "y": 12
+          },
+          "spread": -16,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": true
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 16,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Strongest"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.16
+          },
+          "offset": {
+            "x": 0,
+            "y": 4
+          },
+          "spread": -8,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 2,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Light"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.04
+          },
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "spread": 0,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        }
+      ],
+      "cssVariable": "--zen-style-shadow-bottom-level-2-shadow",
+      "boxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 4px 16px -8px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 12px 40px -16px var(--zen-color-shadow-neutral-strong, rgba(0, 0, 0, 0.12))",
+      "backdropFilter": null,
+      "filter": null,
+      "glass": []
+    },
+    {
+      "name": "Shadow/Bottom/Level-3",
+      "token": "shadow-bottom-level-3",
+      "description": "",
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 64,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Strongest"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.16
+          },
+          "offset": {
+            "x": 0,
+            "y": 16
+          },
+          "spread": -20,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": true
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 28,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Strongest"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.16
+          },
+          "offset": {
+            "x": 0,
+            "y": 12
+          },
+          "spread": -12,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 16,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Base"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.08
+          },
+          "offset": {
+            "x": 0,
+            "y": 4
+          },
+          "spread": -8,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 2,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Light"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.04
+          },
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "spread": 0,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        }
+      ],
+      "cssVariable": "--zen-style-shadow-bottom-level-3-shadow",
+      "boxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 4px 16px -8px var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 12px 28px -12px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 16px 64px -20px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16))",
+      "backdropFilter": null,
+      "filter": null,
+      "glass": []
+    },
+    {
+      "name": "Shadow/Bottom/Level-4",
+      "token": "shadow-bottom-level-4",
+      "description": "",
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 80,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Strongest"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.16
+          },
+          "offset": {
+            "x": 0,
+            "y": 28
+          },
+          "spread": -32,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": true
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 44,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Strongest"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.16
+          },
+          "offset": {
+            "x": 0,
+            "y": 24
+          },
+          "spread": -12,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 28,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Base"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.08
+          },
+          "offset": {
+            "x": 0,
+            "y": 8
+          },
+          "spread": -8,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 2,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Light"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.04
+          },
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "spread": 0,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        }
+      ],
+      "cssVariable": "--zen-style-shadow-bottom-level-4-shadow",
+      "boxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 8px 28px -8px var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 24px 44px -12px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 28px 80px -32px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16))",
+      "backdropFilter": null,
+      "filter": null,
+      "glass": []
+    },
+    {
+      "name": "Shadow/Top/Level-1",
+      "token": "shadow-top-level-1",
+      "description": "",
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 8,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Base"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.08
+          },
+          "offset": {
+            "x": 0,
+            "y": -4
+          },
+          "spread": -4,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": true
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 4,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Strong"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.12
+          },
+          "offset": {
+            "x": 0,
+            "y": -1
+          },
+          "spread": -2,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 2,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Light"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.04
+          },
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "spread": 0,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        }
+      ],
+      "cssVariable": "--zen-style-shadow-top-level-1-shadow",
+      "boxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 -1px 4px -2px var(--zen-color-shadow-neutral-strong, rgba(0, 0, 0, 0.12)), 0 -4px 8px -4px var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08))",
+      "backdropFilter": null,
+      "filter": null,
+      "glass": []
+    },
+    {
+      "name": "Shadow/Top/Level-2",
+      "token": "shadow-top-level-2",
+      "description": "",
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 40,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Strong"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.12
+          },
+          "offset": {
+            "x": 0,
+            "y": -12
+          },
+          "spread": -16,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": true
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 16,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Strongest"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.16
+          },
+          "offset": {
+            "x": 0,
+            "y": -4
+          },
+          "spread": -8,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 2,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Light"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.04
+          },
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "spread": 0,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        }
+      ],
+      "cssVariable": "--zen-style-shadow-top-level-2-shadow",
+      "boxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 -4px 16px -8px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 -12px 40px -16px var(--zen-color-shadow-neutral-strong, rgba(0, 0, 0, 0.12))",
+      "backdropFilter": null,
+      "filter": null,
+      "glass": []
+    },
+    {
+      "name": "Shadow/Top/Level-3",
+      "token": "shadow-top-level-3",
+      "description": "",
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 64,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Strongest"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.16
+          },
+          "offset": {
+            "x": 0,
+            "y": -16
+          },
+          "spread": -20,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": true
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 28,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Strongest"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.16
+          },
+          "offset": {
+            "x": 0,
+            "y": -12
+          },
+          "spread": -12,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 16,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Base"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.08
+          },
+          "offset": {
+            "x": 0,
+            "y": -4
+          },
+          "spread": -8,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 2,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Light"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.04
+          },
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "spread": 0,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        }
+      ],
+      "cssVariable": "--zen-style-shadow-top-level-3-shadow",
+      "boxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 -4px 16px -8px var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 -12px 28px -12px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 -16px 64px -20px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16))",
+      "backdropFilter": null,
+      "filter": null,
+      "glass": []
+    },
+    {
+      "name": "Shadow/Top/Level-4",
+      "token": "shadow-top-level-4",
+      "description": "",
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 80,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Strongest"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.16
+          },
+          "offset": {
+            "x": 0,
+            "y": -28
+          },
+          "spread": -32,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": true
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 44,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Strongest"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.16
+          },
+          "offset": {
+            "x": 0,
+            "y": -24
+          },
+          "spread": -12,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 28,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Base"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.08
+          },
+          "offset": {
+            "x": 0,
+            "y": -8
+          },
+          "spread": -8,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 2,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Light"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.04
+          },
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "spread": 0,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        }
+      ],
+      "cssVariable": "--zen-style-shadow-top-level-4-shadow",
+      "boxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 -8px 28px -8px var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 -24px 44px -12px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 -28px 80px -32px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16))",
+      "backdropFilter": null,
+      "filter": null,
+      "glass": []
+    },
+    {
+      "name": "Liquid-Glass/Normal",
+      "token": "liquid-glass-normal",
+      "description": "",
+      "effects": [
+        {
+          "type": "GLASS",
+          "visible": true,
+          "radius": 4,
+          "refraction": 0.800000011920929,
+          "depth": 20,
+          "lightAngle": -45,
+          "lightIntensity": 0.800000011920929,
+          "dispersion": 0.5,
+          "splay": 0
+        },
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 24,
+          "bound": {
+            "color": "Color/Shadow/Neutral/Strongest"
+          },
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.16
+          },
+          "offset": {
+            "x": 0,
+            "y": 4
+          },
+          "spread": -8,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        }
+      ],
+      "cssVariable": "--zen-style-liquid-glass-normal-shadow",
+      "boxShadow": "0 4px 24px -8px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16))",
+      "backdropFilter": null,
+      "filter": null,
+      "glass": [
+        {
+          "radius": 4,
+          "refraction": 0.800000011920929,
+          "depth": 20,
+          "lightAngle": -45,
+          "lightIntensity": 0.800000011920929,
+          "dispersion": 0.5,
+          "splay": 0
+        }
+      ]
+    },
+    {
+      "name": "Liquid-Glass/Large",
+      "token": "liquid-glass-large",
+      "description": "",
+      "effects": [
+        {
+          "type": "GLASS",
+          "visible": true,
+          "radius": 8,
+          "refraction": 0.800000011920929,
+          "depth": 30,
+          "lightAngle": -45,
+          "lightIntensity": 0.800000011920929,
+          "dispersion": 0.6000000238418579,
+          "splay": 0
+        }
+      ],
+      "cssVariable": "--zen-style-liquid-glass-large-shadow",
+      "boxShadow": "none",
+      "backdropFilter": null,
+      "filter": null,
+      "glass": [
+        {
+          "radius": 8,
+          "refraction": 0.800000011920929,
+          "depth": 30,
+          "lightAngle": -45,
+          "lightIntensity": 0.800000011920929,
+          "dispersion": 0.6000000238418579,
+          "splay": 0
+        }
+      ]
+    }
+  ],
+  "gridStyles": []
+}

@@ -1,0 +1,30 @@
+.zen-toggle { display: inline-flex; width: 232px; max-width: 100%; align-items: center; gap: var(--zen-spacing-gap-medium, 16px); cursor: pointer; }
+.zen-toggle[data-size="small"] { gap: var(--zen-spacing-gap-small, 12px); }
+.zen-toggle[data-state="disabled"] { cursor: not-allowed; }
+.zen-toggle__content { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; justify-content: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-toggle__label { color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-toggle__caption { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-toggle[data-state="disabled"] :is(.zen-toggle__label, .zen-toggle__caption) { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); }
+
+.zen-toggle-button { --zen-toggle-dot-size: var(--zen-toggle-item-size-medium, 16px); position: relative; display: inline-flex; flex: 0 0 auto; cursor: pointer; }
+.zen-toggle-button[data-size="small"] { --zen-toggle-dot-size: var(--zen-toggle-item-size-small, 12px); }
+.zen-toggle-button[data-size="large"] { --zen-toggle-dot-size: var(--zen-toggle-item-size-large, 20px); }
+.zen-toggle-button__track { position: relative; display: flex; width: calc(var(--zen-toggle-dot-size) * 2 + 4px); height: calc(var(--zen-toggle-dot-size) + 4px); box-sizing: border-box; align-items: center; padding: var(--zen-spacing-padding-3-xsmall, 2px); overflow: hidden; border-radius: var(--zen-segmented-container-corner-radius-small, 1000px); background-color: var(--zen-toggle-bar-background-unselected-default, rgb(1 1 1 / 6%)); background-image: linear-gradient(var(--zen-color-background-neutral-pale-default, rgb(1 1 1 / 3%)), var(--zen-color-background-neutral-pale-default, rgb(1 1 1 / 3%))); transition: background-color 120ms ease;
+}
+.zen-toggle-button__dot { display: block; width: var(--zen-toggle-dot-size); height: var(--zen-toggle-dot-size); --zen-toggle-dot-stroke: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); border-radius: var(--zen-segmented-item-corner-radius-small, 1000px); box-sizing: border-box; background: var(--zen-toggle-dot-background-unselected-default, #fff); box-shadow: 0 0 0 .5px var(--zen-toggle-dot-stroke), var(--zen-style-shadow-action-basic-shadow, 0 1px 1px var(--zen-color-shadow-neutral-light, rgb(0 0 0 / 4%))); transform: translateX(0); transition: transform 140ms ease, background-color 140ms ease;
+}
+.zen-toggle-button[data-selected="true"] .zen-toggle-button__track { background: var(--zen-toggle-bar-background-seclected-default, #111); }
+.zen-toggle-button[data-selected="true"] .zen-toggle-button__dot { --zen-toggle-dot-stroke: transparent; background: var(--zen-toggle-dot-background-seclected-default, #fff); transform: translateX(var(--zen-toggle-dot-size)); }
+.zen-toggle-button:is(:hover:not([data-state="disabled"]), [data-state="hover"]):not([data-selected="true"]) .zen-toggle-button__track { background-color: var(--zen-toggle-bar-background-unselected-hover, rgb(1 1 1 / 11%)); }
+.zen-toggle-button:is(:hover:not([data-state="disabled"]), [data-state="hover"])[data-selected="true"] .zen-toggle-button__track { background: var(--zen-toggle-bar-background-seclected-hover, #606060); }
+.zen-toggle-button[data-state="disabled"] { cursor: not-allowed; }
+.zen-toggle-button[data-state="disabled"] .zen-toggle-button__track { background: var(--zen-toggle-bar-background-unselected-disabled, rgb(1 1 1 / 6%)); }
+.zen-toggle-button[data-state="disabled"] .zen-toggle-button__dot { --zen-toggle-dot-stroke: transparent; background: var(--zen-toggle-dot-background-unselected-disabled, rgb(1 1 1 / 6%)); box-shadow: none; }
+.zen-toggle-button[data-state="disabled"][data-selected="true"] .zen-toggle-button__track { background: var(--zen-toggle-bar-background-seclected-disabled, #dbdbdb); }
+.zen-toggle-button[data-state="disabled"][data-selected="true"] .zen-toggle-button__dot { background: var(--zen-toggle-dot-background-seclected-disabled, #fff); }
+.zen-toggle-button:has(input:focus-visible) .zen-toggle-button__track { outline: 2px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
+.zen-toggle-button input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .zen-toggle-button__track, .zen-toggle-button__dot { transition: none; }
+}

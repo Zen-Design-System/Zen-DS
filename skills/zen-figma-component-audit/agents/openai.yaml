@@ -1,0 +1,4 @@
+interface:
+  display_name: "Zen Figma component audit"
+  short_description: "Trace Zen Figma layers to tokens and React code"
+  default_prompt: "Use $zen-figma-component-audit to trace the requested Zen Figma node to tokens and React, then audit or implement only the requested slice with focused verification."

@@ -1,0 +1,58 @@
+{
+  "Emphasis Level": {
+    "modes": [
+      "Medium",
+      "Strong"
+    ],
+    "tokens": [
+      {
+        "name": "Emphasis/Font-Weight/Bold",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Medium": 600,
+          "Strong": 700
+        }
+      },
+      {
+        "name": "Emphasis/Font-Weight/Medium",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Medium": 500,
+          "Strong": 550
+        }
+      },
+      {
+        "name": "Emphasis/Font-Weight/Regular",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Medium": 400,
+          "Strong": 450
+        }
+      },
+      {
+        "name": "Emphasis/Border-Weight/Active/Primary",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Medium": 2,
+          "Strong": 3
+        }
+      },
+      {
+        "name": "Emphasis/Font-Weight/Semi-Bold",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Medium": 550,
+          "Strong": 650
+        }
+      },
+      {
+        "name": "Emphasis/Border-Weight/Active/Secondary",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Medium": 1,
+          "Strong": 2
+        }
+      }
+    ]
+  }
+}

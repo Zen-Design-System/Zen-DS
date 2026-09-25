@@ -1,0 +1,357 @@
+.zen-input-field {
+  display: grid;
+  align-self: start;
+  gap: var(--zen-input-spacing-medium-outside-field-gap, 8px);
+  min-width: 0;
+}
+
+.zen-date-field { position: relative; }
+.zen-date-field > .zen-date-picker { top: calc(100% + var(--zen-spacing-gap-xsmall, 8px)); left: 0; }
+
+.zen-input__label,
+.zen-input-label {
+  color: var(--zen-color-content-neutral-strongest, #111);
+}
+
+.zen-input-label { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-input-label__content { display: inline-flex; min-width: 0; flex: 1 1 auto; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-input-label__content > .zen-icon { width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-input-label__optional { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-input-label__action { flex: 0 0 auto; color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-input-label[data-state="disabled"] { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); }
+
+.zen-input__control {
+  --zen-input-field-background: var(--zen-input-background-default, #05050508);
+  --zen-input-field-border: var(--zen-input-border-default, #ffffff00);
+  --zen-input-field-stroke: 1px;
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  min-width: 0;
+  height: var(--zen-input-size-medium, 40px);
+  align-items: center;
+  gap: var(--zen-input-spacing-medium-inside-field-gap, 8px);
+  padding: var(--zen-input-spacing-medium-vertical-padding, 10px) var(--zen-input-spacing-medium-horizontal-padding, 12px);
+  border: 0;
+  border-radius: var(--zen-corner-radius-input-medium, 12px);
+  background: transparent;
+  color: var(--zen-color-content-neutral-strongest, #111);
+  overflow: hidden;
+  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.zen-input-field--popover-open .zen-input__control { overflow: visible; z-index: 4; }
+.zen-select__trigger { display: flex; align-items: center; border: 0; cursor: pointer; text-align: left; }
+.zen-select__trigger:disabled { cursor: not-allowed; }
+.zen-select__native { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; opacity: 0; pointer-events: none; }
+
+/* Keep fill and Effect/Input on ONE painted layer. A child backdrop-filter
+   above a parent's inset shadow blurs/obscures that shadow. */
+.zen-input__control::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--zen-input-field-background);
+  box-shadow: var(--zen-style-effect-input-shadow, inset 0 0 1px 0 var(--zen-input-shadow-base, #00000014), inset 0 0 3px 0 var(--zen-input-shadow-strong, #0000001f));
+  content: "";
+  pointer-events: none;
+  /* Figma's Effect/Input export reports radius 40; CSS rendering uses the
+     equivalent 20px blur used by the live component instances. */
+  backdrop-filter: var(--zen-style-effect-input-backdrop-filter);
+}
+
+/* INSIDE stroke does not consume the exported Container padding. */
+.zen-input__control::after {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  border: var(--zen-input-field-stroke) solid var(--zen-input-field-border);
+  border-radius: inherit;
+  content: "";
+  pointer-events: none;
+}
+
+.zen-input__native,
+.zen-input__affordance {
+  position: relative;
+  z-index: 1;
+}
+
+.zen-input__native {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 20px;
+  margin-inline-start: var(--zen-spacing-padding-3-xsmall, 2px);
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.zen-input__native::placeholder {
+  color: var(--zen-color-content-placeholder, #00000045);
+  opacity: 1;
+}
+
+/* Search uses the shared Search clear affordance. Do not let the browser paint
+   its native gradient X on top of the tokenised input surface. */
+.zen-input__native[type="search"] { appearance: none; -webkit-appearance: none !important; background-image: none; }
+.zen-input__native[type="search"]::-webkit-search-cancel-button,
+.zen-input__native[type="search"]::-webkit-search-decoration { display: none !important; -webkit-appearance: none !important; }
+
+.zen-input__native--textarea {
+  min-height: 0;
+  flex: 1 1 auto;
+  resize: vertical;
+}
+
+.zen-input__affordance {
+  display: inline-flex;
+  flex: 0 0 var(--zen-element-size-popular-base, 20px);
+  width: var(--zen-element-size-popular-base, 20px);
+  height: var(--zen-element-size-popular-base, 20px);
+  align-items: center;
+  justify-content: center;
+  color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%));
+}
+
+.zen-input-field[data-size="small"] .zen-input__affordance {
+  flex-basis: var(--zen-element-size-popular-small, 16px);
+  width: var(--zen-element-size-popular-small, 16px);
+  height: var(--zen-element-size-popular-small, 16px);
+}
+
+.zen-input-field[data-size="large"] .zen-input__affordance {
+  flex-basis: var(--zen-element-size-popular-medium, 24px);
+  width: var(--zen-element-size-popular-medium, 24px);
+  height: var(--zen-element-size-popular-medium, 24px);
+}
+
+.zen-input-field[data-size="xlarge"] .zen-input__affordance {
+  flex-basis: var(--zen-element-size-popular-large, 28px);
+  width: var(--zen-element-size-popular-large, 28px);
+  height: var(--zen-element-size-popular-large, 28px);
+}
+
+.zen-input__affordance > .zen-icon {
+  width: 100%;
+  height: 100%;
+}
+
+.zen-input__message,
+.zen-input-help {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--zen-spacing-gap-2-xsmall, 4px);
+  margin: 0;
+  color: var(--zen-color-content-neutral-light, #0000007d);
+}
+
+.zen-input-help__content { display: inline-flex; min-width: 0; align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-input-help__limit { flex: 0 0 auto; }
+
+.zen-input__message-icon,
+.zen-input-help__icon {
+  display: inline-flex;
+  flex: 0 0 var(--zen-element-size-popular-xsmall, 12px);
+  width: var(--zen-element-size-popular-xsmall, 12px);
+  height: var(--zen-element-size-popular-xsmall, 12px);
+  align-items: center;
+  justify-content: center;
+}
+
+.zen-input__message-icon > .zen-icon,
+.zen-input-help__icon > .zen-icon {
+  width: 100%;
+  height: 100%;
+}
+
+.zen-input__message.is-error {
+  color: var(--zen-color-content-negative-light, #d03e19);
+}
+.zen-input-help[data-theme="negative"] { color: var(--zen-color-content-negative-light, #d03e19); }
+.zen-input-help[data-theme="warning"] { color: var(--zen-color-content-warning-base, #ad5700); }
+.zen-input-help[data-theme="positive"] { color: var(--zen-color-content-positive-light, #16845b); }
+
+/* .Primitives/Input/Leading-Trailing — HUG height. Small: 16px flag/icon, 4px gap, 2px element gap.
+   Medium: 20px, 8px, 4px. Large (XLarge field): 24px flag/icon, Heading/4 label, 20px dropdown.
+   Every size keeps a Body/Base (or Heading/4) label; Active=No uses Content/Disabled. */
+.zen-input-leading-trailing { --zen-input-lt-media: var(--zen-image-size-2-xsmall, 20px); display: inline-flex; width: max-content; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-input-leading-trailing[data-size="small"] { --zen-input-lt-media: var(--zen-image-size-3-xsmall, 16px); gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-input-leading-trailing[data-size="large"] { --zen-input-lt-media: var(--zen-image-size-xsmall, 24px); }
+.zen-input-leading-trailing > :is(img, svg):not(.zen-icon) { width: var(--zen-input-lt-media); height: var(--zen-input-lt-media); flex: 0 0 var(--zen-input-lt-media); }
+/* Icon=Yes uses Element-Size/Popular (Small 16, Medium 20 = Base, Large 24 = Medium); Flag uses Image-Size. */
+.zen-input-leading-trailing { --zen-input-lt-icon: var(--zen-element-size-popular-base, 20px); }
+.zen-input-leading-trailing[data-size="small"] { --zen-input-lt-icon: var(--zen-element-size-popular-small, 16px); }
+.zen-input-leading-trailing[data-size="large"] { --zen-input-lt-icon: var(--zen-element-size-popular-medium, 24px); }
+.zen-input-leading-trailing > .zen-icon { width: var(--zen-input-lt-icon); height: var(--zen-input-lt-icon); flex: 0 0 var(--zen-input-lt-icon); }
+.zen-input-leading-trailing__elements { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-input-leading-trailing[data-size="small"] .zen-input-leading-trailing__elements { gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-input-leading-trailing__label { color: var(--zen-color-content-neutral-strongest, #111); white-space: nowrap; }
+.zen-input-leading-trailing__dropdown { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-input-leading-trailing[data-size="small"] .zen-input-leading-trailing__dropdown { width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex-basis: var(--zen-element-size-popular-small, 16px); }
+.zen-input-leading-trailing__dropdown > .zen-icon { width: 100%; height: 100%; }
+.zen-input-leading-trailing[data-active="false"],
+.zen-input-leading-trailing[data-active="false"] :is(.zen-input-leading-trailing__label, .zen-input-leading-trailing__dropdown),
+.zen-input-field:is([data-state="disabled"], [data-state="read-only"]) .zen-input-leading-trailing,
+.zen-input-field:is([data-state="disabled"], [data-state="read-only"]) .zen-input-leading-trailing :is(.zen-input-leading-trailing__label, .zen-input-leading-trailing__dropdown) { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); }
+/* A composite Leading-Trailing hugs its content; it must beat the per-size icon slot rules above. */
+.zen-input-field .zen-input__control > .zen-input__affordance:has(.zen-input-leading-trailing) { width: auto; height: auto; flex-basis: auto; }
+.zen-input-content { display: inline-flex; min-width: 0; align-items: center; padding-inline-start: var(--zen-spacing-padding-3-xsmall, 2px); color: var(--zen-color-content-placeholder, rgb(0 0 0 / 27%)); }
+.zen-input-content:is([data-state="typing"], [data-state="inputted"]) { color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-input-content[data-state="disabled"] { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); }
+/* .Primitives/Input/Cursor: 1.5 × 20, Color/Background/Active/Neutral/Solid. */
+.zen-input-content__cursor { flex: 0 0 1.5px; width: 1.5px; height: var(--zen-element-size-popular-base, 20px); background: var(--zen-color-background-active-neutral-solid, #111); }
+
+.zen-input-field[data-size="small"] {
+  gap: var(--zen-input-spacing-small-outside-field-gap, 4px);
+}
+
+.zen-input-field[data-size="small"] .zen-input__control {
+  height: var(--zen-input-size-small, 32px);
+  gap: var(--zen-input-spacing-small-inside-field-gap, 8px);
+  padding: var(--zen-input-spacing-small-vertical-padding, 6px) var(--zen-input-spacing-small-horizontal-padding, 8px);
+  border-radius: var(--zen-corner-radius-input-small, 8px);
+}
+
+.zen-input-field[data-size="large"] {
+  gap: var(--zen-input-spacing-large-outside-field-gap, 8px);
+}
+
+.zen-input-field[data-size="large"] .zen-input__control {
+  height: var(--zen-input-size-large, 48px);
+  gap: var(--zen-input-spacing-large-inside-field-gap, 8px);
+  padding: var(--zen-input-spacing-large-vertical-padding, 12px) var(--zen-input-spacing-large-horizontal-padding, 16px);
+  border-radius: var(--zen-corner-radius-input-large, 16px);
+}
+
+.zen-input-field[data-size="xlarge"] {
+  gap: var(--zen-input-spacing-xlarge-outside-field-gap, 8px);
+}
+
+.zen-input-field[data-size="xlarge"] .zen-input__control {
+  height: var(--zen-input-size-xlarge, 56px);
+  gap: var(--zen-input-spacing-xlarge-inside-field-gap, 8px);
+  padding: var(--zen-input-spacing-xlarge-vertical-padding, 16px);
+  border-radius: var(--zen-corner-radius-input-xlarge, 16px);
+}
+
+.zen-input__control:has(.zen-input__native--textarea) {
+  height: var(--zen-text-area-size-medium, 112px);
+  align-items: stretch;
+  gap: var(--zen-text-area-spacing-medium-gap, 8px);
+  padding: var(--zen-text-area-spacing-medium-vertical-padding, 12px) var(--zen-text-area-spacing-medium-horizontal-padding, 12px);
+}
+
+.zen-input-field[data-size="small"] .zen-input__control:has(.zen-input__native--textarea) {
+  height: var(--zen-text-area-size-small, 96px);
+  gap: var(--zen-text-area-spacing-small-gap, 8px);
+  padding: var(--zen-text-area-spacing-small-vertical-padding, 6px) var(--zen-text-area-spacing-small-horizontal-padding, 8px);
+}
+
+.zen-input-field[data-size="large"] .zen-input__control:has(.zen-input__native--textarea) {
+  height: var(--zen-text-area-size-large, 144px);
+  gap: var(--zen-text-area-spacing-large-gap, 8px);
+  padding: var(--zen-text-area-spacing-large-vertical-padding, 12px) var(--zen-text-area-spacing-large-horizontal-padding, 16px);
+}
+
+/* Hover in Figma uses a 2px active border, even when the border token is transparent. */
+.zen-input-field[data-state="hover"] .zen-input__control,
+.zen-input-field:is([data-state="default"], [data-state="inputted"]) .zen-input__control:hover {
+  --zen-input-field-stroke: var(--zen-emphasis-border-weight-active-primary, 2px);
+  --zen-input-field-border: var(--zen-input-border-hover, #ffffff00);
+  --zen-input-field-background: var(--zen-input-background-hover, #01010110);
+}
+
+.zen-input-field[data-state="focused"] .zen-input__control,
+.zen-input-field[data-state="typing"] .zen-input__control,
+.zen-input-field:is([data-state="default"], [data-state="inputted"], [data-state="hover"]) .zen-input__control:focus-within {
+  --zen-input-field-stroke: 1px;
+  --zen-input-field-border: var(--zen-color-focus-neutral-solid, #111);
+  --zen-input-field-background: var(--zen-input-background-focused, #05050508);
+  /* Field-Only's 3px OUTSIDE stroke surrounds the field, not label/help text. */
+  box-shadow: 0 0 0 3px var(--zen-color-border-active-neutral-subtle, #00000024);
+}
+
+.zen-input-field[data-state="inputted-error"] .zen-input__control,
+.zen-input-field[data-state="blank-error"] .zen-input__control,
+.zen-input-field[data-state="error"] .zen-input__control,
+.zen-input-field:is([data-state="inputted-error"], [data-state="blank-error"], [data-state="error"]) .zen-input__control:focus-within {
+  --zen-input-field-stroke: 1px;
+  --zen-input-field-border: var(--zen-color-border-negative-solid-default, #e5532e);
+  --zen-input-field-background: var(--zen-input-background-focused, #05050508);
+  box-shadow: none;
+}
+
+.zen-input-field[data-state="read-only"] .zen-input__control {
+  --zen-input-field-border: var(--zen-color-border-neutral-subtle-default, #0000001c);
+  /* The export retains a bound fill but marks that paint visible:false. */
+  --zen-input-field-background: transparent;
+}
+
+.zen-input-field[data-state="read-only"] .zen-input__control::before {
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.zen-input-field[data-state="disabled"] .zen-input__control {
+  cursor: not-allowed;
+}
+
+.zen-input-field[data-state="disabled"] .zen-input__label,
+.zen-input-field[data-state="disabled"] .zen-input__native,
+.zen-input-field[data-state="disabled"] .zen-input__native::placeholder {
+  color: var(--zen-color-content-disabled, #00000045);
+}
+
+.zen-input__control > select {
+  appearance: none;
+}
+
+.zen-input__control:has(select) {
+  padding-right: var(--zen-input-spacing-medium-horizontal-padding, 12px);
+}
+
+.zen-input-field--number-center .zen-input__native {
+  text-align: center;
+}
+
+/* Input/Heading (694:13062) */
+.zen-heading-field { position: relative; display: block; min-width: 0; }
+.zen-heading-field__native { display: block; box-sizing: border-box; width: calc(100% + 2 * var(--zen-spacing-padding-xsmall, 8px)); margin: calc(-1 * var(--zen-spacing-padding-xsmall, 8px)); padding: var(--zen-spacing-padding-xsmall, 8px); border: 0; border-radius: var(--zen-corner-radius-base, 12px); outline: 0; background: transparent; color: var(--zen-color-content-neutral-strongest, #111); caret-color: var(--zen-color-background-active-neutral-solid, #111); }
+.zen-heading-field__native::placeholder { color: var(--zen-color-content-placeholder, rgb(0 0 0 / 27%)); opacity: 1; }
+.zen-heading-field__native:is(:hover, :focus),
+.zen-heading-field:is([data-status="hover"], [data-status="focus"], [data-status="typing"], [data-status="inputted-hover"]) .zen-heading-field__native { background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); }
+.zen-heading-field[data-status="inputted-multi-line"] .zen-heading-field__native { width: 100%; margin: 0; padding: 0; background: transparent; }
+
+.zen-rich-text-field { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-rich-text-editor-bar { display: flex; width: 100%; min-height: 40px; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); overflow-x: auto; }
+.zen-rich-text-editor-bar__group { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-rich-text-editor-bar__divider { width: 1px; height: 40px; flex: 0 0 1px; background: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.zen-control-bar-item { display: inline-flex; width: 40px; height: 40px; flex: 0 0 40px; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-small, 12px); border: 0; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-flat-default, transparent); color: var(--zen-color-content-neutral-strongest, #111); cursor: pointer; }
+.zen-control-bar-item:hover, .zen-control-bar-item[data-state="hover"] { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+.zen-control-bar-item[data-state="selected"][data-theme="subtle"] { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 6%)); }
+.zen-control-bar-item[data-state="selected"][data-theme="solid"] { background: var(--zen-color-background-active-neutral-solid, #111); color: var(--zen-color-content-inverse-strongest, #fff); }
+.zen-control-bar-item[data-state="selected"][data-theme="inverse"] { background: var(--zen-color-background-inverse-solid-default, #fff); color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-control-bar-item > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
+.zen-rich-text-editor-bar__select { width: 132px; flex: 0 0 132px; }
+.zen-rich-text-editor-bar__select .zen-input__control { width: 132px; }
+
+.zen-input-conditions { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); margin: 0; padding: 0; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); list-style: none; }
+.zen-input-condition { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-input-condition[data-state="success"] { color: var(--zen-color-content-positive-light, #16845b); }
+.zen-input-condition[data-state="wrong"] { color: var(--zen-color-content-negative-light, #d03e19); }
+
+/* Input/Autocomplete-Field: root gap 4; Tag list wraps with 4px gaps and 4px block padding; the Add slot has 4px block
+   padding and anchors the Popover over itself (Figma Focused / Inputted-Focused). */
+.zen-autocomplete { display: grid; min-width: 0; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-autocomplete__tags { display: flex; min-width: 0; flex-wrap: wrap; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding-block: var(--zen-spacing-padding-2-xsmall, 4px); }
+.zen-autocomplete__tags > [role="listitem"] { display: inline-flex; max-width: 100%; }
+.zen-autocomplete__add { position: relative; display: flex; padding-block: var(--zen-spacing-padding-2-xsmall, 4px); }
+.zen-autocomplete__add > .zen-popover { position: absolute; z-index: 20; top: 0; left: 0; }

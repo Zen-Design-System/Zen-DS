@@ -1,0 +1,340 @@
+/* Generated from styles/source/figma/text-styles.json + figma-styles.full.json bindings. Do not edit directly. */
+.zen-type-display-extra-1 {
+  font-family: var(--zen-typography-font-family-display);
+  font-size: var(--zen-typography-font-size-display-extra-1);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-display-extra-1);
+  letter-spacing: var(--zen-typography-letter-spacing-display-extra-1);
+  text-transform: none;
+}
+
+.zen-type-display-extra-2 {
+  font-family: var(--zen-typography-font-family-display);
+  font-size: var(--zen-typography-font-size-display-extra-2);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-display-extra-2);
+  letter-spacing: var(--zen-typography-letter-spacing-display-extra-2);
+  text-transform: none;
+}
+
+.zen-type-display-extra-3 {
+  font-family: var(--zen-typography-font-family-display);
+  font-size: var(--zen-typography-font-size-display-extra-3);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-display-extra-3);
+  letter-spacing: var(--zen-typography-letter-spacing-display-extra-3);
+  text-transform: none;
+}
+
+.zen-type-display-1 {
+  font-family: var(--zen-typography-font-family-display);
+  font-size: var(--zen-typography-font-size-display-1);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-display-1);
+  letter-spacing: var(--zen-typography-letter-spacing-display-1);
+  text-transform: none;
+}
+
+.zen-type-display-2 {
+  font-family: var(--zen-typography-font-family-display);
+  font-size: var(--zen-typography-font-size-display-2);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-display-2);
+  letter-spacing: var(--zen-typography-letter-spacing-display-2);
+  text-transform: none;
+}
+
+.zen-type-display-3 {
+  font-family: var(--zen-typography-font-family-display);
+  font-size: var(--zen-typography-font-size-display-3);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-display-3);
+  letter-spacing: var(--zen-typography-letter-spacing-display-3);
+  text-transform: none;
+}
+
+.zen-type-display-4 {
+  font-family: var(--zen-typography-font-family-display);
+  font-size: var(--zen-typography-font-size-display-4);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-display-4);
+  letter-spacing: var(--zen-typography-letter-spacing-display-4);
+  text-transform: none;
+}
+
+.zen-type-heading-1 {
+  font-family: var(--zen-typography-font-family-heading);
+  font-size: var(--zen-typography-font-size-heading-1);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-heading-1);
+  letter-spacing: var(--zen-typography-letter-spacing-heading-1);
+  text-transform: none;
+  --zen-type-paragraph-spacing: var(--zen-typography-font-size-heading-1);
+}
+
+.zen-type-heading-2 {
+  font-family: var(--zen-typography-font-family-heading);
+  font-size: var(--zen-typography-font-size-heading-2);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-heading-2);
+  letter-spacing: var(--zen-typography-letter-spacing-heading-2);
+  text-transform: none;
+  --zen-type-paragraph-spacing: var(--zen-typography-font-size-heading-2);
+}
+
+.zen-type-heading-3 {
+  font-family: var(--zen-typography-font-family-heading);
+  font-size: var(--zen-typography-font-size-heading-3);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-heading-3);
+  letter-spacing: var(--zen-typography-letter-spacing-heading-3);
+  text-transform: none;
+  --zen-type-paragraph-spacing: var(--zen-typography-font-size-heading-3);
+}
+
+.zen-type-heading-4 {
+  font-family: var(--zen-typography-font-family-heading);
+  font-size: var(--zen-typography-font-size-heading-4);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-heading-4);
+  letter-spacing: var(--zen-typography-letter-spacing-heading-4);
+  text-transform: none;
+  --zen-type-paragraph-spacing: var(--zen-typography-font-size-heading-4);
+}
+
+.zen-type-heading-subheading {
+  font-family: var(--zen-typography-font-family-heading);
+  font-size: var(--zen-typography-font-size-subheading);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-subheading);
+  letter-spacing: var(--zen-typography-letter-spacing-subheading);
+  text-transform: none;
+}
+
+.zen-type-body-extra-regular {
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-body-extra);
+  font-weight: var(--zen-emphasis-font-weight-regular);
+  line-height: var(--zen-typography-line-height-body-extra);
+  letter-spacing: var(--zen-typography-letter-spacing-body-extra);
+  text-transform: none;
+  --zen-type-paragraph-spacing: var(--zen-typography-font-size-body-extra);
+}
+
+.zen-type-body-extra-medium {
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-body-extra);
+  font-weight: var(--zen-emphasis-font-weight-medium);
+  line-height: var(--zen-typography-line-height-body-extra);
+  letter-spacing: var(--zen-typography-letter-spacing-body-extra);
+  text-transform: none;
+  --zen-type-paragraph-spacing: var(--zen-typography-font-size-body-extra);
+}
+
+.zen-type-body-extra-bold {
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-body-extra);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-body-extra);
+  letter-spacing: var(--zen-typography-letter-spacing-body-extra);
+  text-transform: none;
+  --zen-type-paragraph-spacing: var(--zen-typography-font-size-body-extra);
+}
+
+.zen-type-body-base-regular {
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-body-base);
+  font-weight: var(--zen-emphasis-font-weight-regular);
+  line-height: var(--zen-typography-line-height-body-base);
+  letter-spacing: var(--zen-typography-letter-spacing-body-base);
+  text-transform: none;
+  --zen-type-paragraph-spacing: var(--zen-typography-font-size-body-base);
+}
+
+.zen-type-body-base-medium {
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-body-base);
+  font-weight: var(--zen-emphasis-font-weight-medium);
+  line-height: var(--zen-typography-line-height-body-base);
+  letter-spacing: var(--zen-typography-letter-spacing-body-base);
+  text-transform: none;
+  --zen-type-paragraph-spacing: var(--zen-typography-font-size-body-base);
+}
+
+.zen-type-body-base-bold {
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-body-base);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-body-base);
+  letter-spacing: var(--zen-typography-letter-spacing-body-base);
+  text-transform: none;
+  --zen-type-paragraph-spacing: var(--zen-typography-font-size-body-base);
+}
+
+.zen-type-body-small-regular {
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-body-small);
+  font-weight: var(--zen-emphasis-font-weight-regular);
+  line-height: var(--zen-typography-line-height-body-small);
+  letter-spacing: var(--zen-typography-letter-spacing-body-small);
+  text-transform: none;
+  --zen-type-paragraph-spacing: var(--zen-typography-font-size-body-small);
+}
+
+.zen-type-body-small-medium {
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-body-small);
+  font-weight: var(--zen-emphasis-font-weight-medium);
+  line-height: var(--zen-typography-line-height-body-small);
+  letter-spacing: var(--zen-typography-letter-spacing-body-small);
+  text-transform: none;
+  --zen-type-paragraph-spacing: var(--zen-typography-font-size-body-small);
+}
+
+.zen-type-body-small-bold {
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-body-small);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-body-small);
+  letter-spacing: var(--zen-typography-letter-spacing-body-small);
+  text-transform: none;
+  --zen-type-paragraph-spacing: var(--zen-typography-font-size-body-small);
+}
+
+.zen-type-body-code-regular {
+  font-family: var(--zen-typography-font-family-dev);
+  font-size: var(--zen-typography-font-size-body-small);
+  font-weight: var(--zen-emphasis-font-weight-regular);
+  line-height: var(--zen-typography-line-height-body-small);
+  letter-spacing: var(--zen-typography-letter-spacing-body-code);
+  text-transform: none;
+}
+
+.zen-type-body-code-bold {
+  font-family: var(--zen-typography-font-family-dev);
+  font-size: var(--zen-typography-font-size-body-small);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-body-small);
+  letter-spacing: var(--zen-typography-letter-spacing-body-code);
+  text-transform: none;
+}
+
+.zen-type-caption-regular {
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-caption);
+  font-weight: var(--zen-emphasis-font-weight-regular);
+  line-height: var(--zen-typography-line-height-caption);
+  letter-spacing: var(--zen-typography-letter-spacing-caption);
+  text-transform: none;
+  --zen-type-paragraph-spacing: var(--zen-typography-font-size-caption);
+}
+
+.zen-type-caption-medium {
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-caption);
+  font-weight: var(--zen-emphasis-font-weight-medium);
+  line-height: var(--zen-typography-line-height-caption);
+  letter-spacing: var(--zen-typography-letter-spacing-caption);
+  text-transform: none;
+  --zen-type-paragraph-spacing: var(--zen-typography-font-size-caption);
+}
+
+.zen-type-caption-bold {
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-caption);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-caption);
+  letter-spacing: var(--zen-typography-letter-spacing-caption);
+  text-transform: none;
+  --zen-type-paragraph-spacing: var(--zen-typography-font-size-caption);
+}
+
+.zen-type-label-small-medium {
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-label-small);
+  font-weight: var(--zen-emphasis-font-weight-medium);
+  line-height: var(--zen-typography-line-height-label-small);
+  letter-spacing: var(--zen-typography-letter-spacing-label-small);
+  text-transform: none;
+}
+
+.zen-type-label-small-bold {
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-label-small);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-label-small);
+  letter-spacing: var(--zen-typography-letter-spacing-label-small);
+  text-transform: none;
+}
+
+.zen-type-button-label-xl {
+  font-family: var(--zen-typography-font-family-button);
+  font-size: var(--zen-typography-font-size-button-label-xl);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-button-label-xl);
+  letter-spacing: var(--zen-typography-letter-spacing-button-label-xl);
+  text-transform: none;
+}
+
+.zen-type-button-label-l {
+  font-family: var(--zen-typography-font-family-button);
+  font-size: var(--zen-typography-font-size-button-label-l);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-button-label-l);
+  letter-spacing: var(--zen-typography-letter-spacing-button-label-l);
+  text-transform: none;
+}
+
+.zen-type-button-label-m {
+  font-family: var(--zen-typography-font-family-button);
+  font-size: var(--zen-typography-font-size-button-label-m);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-button-label-m);
+  letter-spacing: var(--zen-typography-letter-spacing-button-label-m);
+  text-transform: none;
+}
+
+.zen-type-button-label-s {
+  font-family: var(--zen-typography-font-family-button);
+  font-size: var(--zen-typography-font-size-button-label-s);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-button-label-s);
+  letter-spacing: var(--zen-typography-letter-spacing-button-label-s);
+  text-transform: none;
+}
+
+.zen-type-button-label-xs {
+  font-family: var(--zen-typography-font-family-button);
+  font-size: var(--zen-typography-font-size-button-label-xs);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-button-label-xs);
+  letter-spacing: var(--zen-typography-letter-spacing-button-label-xs);
+  text-transform: none;
+}
+
+.zen-type-all-caps-m {
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-all-caps-m);
+  font-weight: var(--zen-emphasis-font-weight-regular);
+  line-height: var(--zen-typography-line-height-all-caps-m);
+  letter-spacing: var(--zen-typography-letter-spacing-all-caps-m);
+  text-transform: uppercase;
+}
+
+.zen-type-all-caps-m-bold {
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-all-caps-m);
+  font-weight: var(--zen-emphasis-font-weight-bold);
+  line-height: var(--zen-typography-line-height-all-caps-m);
+  letter-spacing: var(--zen-typography-letter-spacing-all-caps-m);
+  text-transform: uppercase;
+}
+
+.zen-type-all-caps-s {
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-all-caps-s);
+  font-weight: var(--zen-emphasis-font-weight-regular);
+  line-height: var(--zen-typography-line-height-all-caps-s);
+  letter-spacing: var(--zen-typography-letter-spacing-all-caps-s);
+  text-transform: uppercase;
+}

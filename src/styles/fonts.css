@@ -1,0 +1,17 @@
+/* Zen DS core font: Typography/Font-Family/Sans (and Display/Heading/Button) = Inter.
+   Bundled so rendering matches the Figma library on every machine. */
+@font-face {
+  font-family: "Inter";
+  src: url("../assets/fonts/Inter/InterVariable.woff") format("woff");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("../assets/fonts/Inter/InterVariable-Italic.woff") format("woff");
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+}

@@ -1,0 +1,60 @@
+.button-story-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 20px;
+  width: min(920px, calc(100vw - 48px));
+  padding: 32px;
+  border-radius: var(--zen-corner-radius-base);
+  background: var(--zen-color-background-surface-default);
+}
+
+.button-story-grid--levels {
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+}
+
+.button-story-cell,
+.button-story-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.button-story-cell {
+  align-items: start;
+  flex-direction: column;
+}
+
+.button-story-cell > span,
+.button-story-row > span {
+  color: var(--zen-color-content-neutral-base);
+  font: 500 11px/16px "JetBrains Mono", ui-monospace, monospace;
+  text-transform: uppercase;
+}
+
+.button-story-stack {
+  display: grid;
+  gap: 20px;
+  width: min(680px, calc(100vw - 48px));
+  padding: 32px;
+  border-radius: var(--zen-corner-radius-base);
+  background: var(--zen-color-background-surface-default);
+}
+
+.button-story-row > span {
+  width: 32px;
+  flex: 0 0 32px;
+}
+
+@media (max-width: 760px) {
+  .button-story-grid,
+  .button-story-grid--levels {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .button-story-grid,
+  .button-story-grid--levels {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,36 @@
+/* Figma Tag (288:32046). Medium: 28px, padding 4/6 (Leading-Photo: 4 on the left), gap 2, rounded,
+   1px INSIDE stroke, Shadow/Action/Tertiary. Focused = 2px INSIDE Focus/Accent/Solid; Error = Negative subtle/solid;
+   Disabled = Border/Disabled + Content/Disabled, no shadow. */
+.zen-tag {
+  --zen-tag-fill: var(--zen-tag-background-default);
+  --zen-tag-stroke: var(--zen-tag-border-default);
+  --zen-tag-stroke-width: 1px;
+  --zen-tag-shadow: var(--zen-style-shadow-action-tertiary-shadow, 0 1px 1px 0 rgba(0, 0, 0, 0.04));
+  display: inline-flex;
+  max-width: 100%;
+  height: var(--zen-tag-size-medium, 28px);
+  box-sizing: border-box;
+  align-items: center;
+  gap: var(--zen-tag-spacing-medium-gap, 2px);
+  padding: var(--zen-tag-spacing-medium-vertical-padding, 4px) var(--zen-tag-spacing-medium-horizontal-padding, 6px);
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  background: var(--zen-tag-fill);
+  box-shadow: inset 0 0 0 var(--zen-tag-stroke-width) var(--zen-tag-stroke), var(--zen-tag-shadow);
+  backdrop-filter: var(--zen-style-shadow-action-tertiary-backdrop-filter);
+  color: var(--zen-color-content-neutral-strongest, #111);
+  white-space: nowrap;
+}
+.zen-tag[data-theme="leading-photo"] { padding-left: var(--zen-tag-spacing-medium-minimum-padding, 4px); }
+.zen-tag:is(:hover, [data-state="hover"]):not([data-state="disabled"], [data-state="error"]) { --zen-tag-fill: var(--zen-tag-background-hover); --zen-tag-stroke: var(--zen-tag-border-hover); }
+.zen-tag:is([data-state="focused"], :has(.zen-tag__remove:focus-visible)):not([data-state="disabled"]) { --zen-tag-stroke: var(--zen-color-focus-accent-solid, #ff66d4); --zen-tag-stroke-width: 2px; }
+.zen-tag[data-state="error"] { --zen-tag-fill: var(--zen-color-background-negative-subtle-default); --zen-tag-stroke: var(--zen-color-border-negative-solid-default); }
+.zen-tag[data-state="disabled"] { --zen-tag-stroke: var(--zen-color-border-disabled); --zen-tag-shadow: 0 0 #0000; backdrop-filter: none; color: var(--zen-color-content-disabled); }
+.zen-tag__label { min-width: 0; overflow: hidden; padding-inline: var(--zen-tag-spacing-medium-text-wrapper-padding, 4px); text-overflow: ellipsis; }
+.zen-tag__leading, .zen-tag__remove { display: inline-flex; width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex: 0 0 var(--zen-element-size-popular-small, 16px); align-items: center; justify-content: center; }
+.zen-tag__leading { color: var(--zen-color-content-neutral-base); }
+.zen-tag[data-state="disabled"] .zen-tag__leading { color: var(--zen-color-content-disabled); }
+.zen-tag__leading > .zen-icon, .zen-tag__remove > .zen-icon { width: 100%; height: 100%; }
+.zen-tag__photo { display: inline-flex; flex: 0 0 auto; }
+.zen-tag__remove { padding: 0; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); outline: 0; background: transparent; color: var(--zen-color-content-placeholder); cursor: pointer; }
+.zen-tag[data-state="error"] .zen-tag__remove { color: var(--zen-color-content-negative-light); }
+.zen-tag__remove:disabled { cursor: not-allowed; }

@@ -1,0 +1,136 @@
+{
+  "$schemaVersion": "1.0.0",
+  "source": {
+    "fileKey": "yhWJCuQd9IqusQkUip7lYh",
+    "fileName": "ZEN Kaiz - Improving",
+    "capturedFrom": "Figma Variables JSON export",
+    "capturedAt": "2026-09-21",
+    "previousAuditVariableCount": 2356,
+    "exportVariableCount": 2367,
+    "lastSynchronizedAt": "2026-09-24",
+    "synchronizationNote": "Component Theme was re-synced from the user-provided JSON export; the two selected-hover aliases for Segmented were added."
+  },
+  "collections": [
+    {
+      "slug": "global-colors",
+      "name": "Global Colors",
+      "layer": "primitive",
+      "variableCount": 1152,
+      "modes": ["Zen"],
+      "types": { "COLOR": 1152 },
+      "hiddenVariableCount": 1056,
+      "purpose": "Raw color ramps and primitive palette values.",
+      "codeAxis": null
+    },
+    {
+      "slug": "global-dimensions",
+      "name": "Global Dimensions",
+      "layer": "primitive",
+      "variableCount": 33,
+      "modes": ["Mode 1"],
+      "types": { "FLOAT": 33 },
+      "hiddenVariableCount": 0,
+      "purpose": "Raw numeric dimensions reused by spacing and component sizing.",
+      "codeAxis": null
+    },
+    {
+      "slug": "base-colors-project",
+      "name": "Base Colors (Project)",
+      "layer": "primitive",
+      "variableCount": 329,
+      "modes": ["Zen"],
+      "types": { "COLOR": 329 },
+      "hiddenVariableCount": 320,
+      "purpose": "Project and brand palettes aliased from global color ramps.",
+      "codeAxis": "data-brand"
+    },
+    {
+      "slug": "mode-colors-semantic",
+      "name": "Mode Colors (Semantic)",
+      "layer": "semantic",
+      "variableCount": 407,
+      "modes": ["Light", "Dark"],
+      "types": { "COLOR": 406, "BOOLEAN": 1 },
+      "hiddenVariableCount": 0,
+      "purpose": "Intent-based colors consumed by UI and switched by color mode.",
+      "codeAxis": "data-theme"
+    },
+    {
+      "slug": "component-colors-theme",
+      "name": "Component Theme",
+      "layer": "component",
+      "variableCount": 112,
+      "modes": ["Neutral - S1", "Brand - S1", "Neutral - S2", "Brand - S2", "Neutral - S3"],
+      "types": { "COLOR": 111, "FLOAT": 1 },
+      "hiddenVariableCount": 96,
+      "purpose": "Theme-level aliases for component colors.",
+      "codeAxis": "data-component-theme"
+    },
+    {
+      "slug": "component-size",
+      "name": "Component Size",
+      "layer": "component",
+      "variableCount": 194,
+      "modes": ["Compact", "Comfortable"],
+      "types": { "FLOAT": 194 },
+      "hiddenVariableCount": 171,
+      "purpose": "Control heights, paddings, gaps and icon sizes by density.",
+      "codeAxis": "data-density"
+    },
+    {
+      "slug": "spacing",
+      "name": "Spacing",
+      "layer": "semantic",
+      "variableCount": 22,
+      "modes": ["Standard"],
+      "types": { "FLOAT": 22 },
+      "hiddenVariableCount": 0,
+      "purpose": "Named padding and gap values for layout and component composition.",
+      "codeAxis": null
+    },
+    {
+      "slug": "corner-radius",
+      "name": "Corner Radius",
+      "layer": "semantic",
+      "variableCount": 25,
+      "modes": ["Rounded", "Smooth", "Standard", "Luxury"],
+      "types": { "FLOAT": 25 },
+      "hiddenVariableCount": 14,
+      "purpose": "Radius scale and product-level shape personality.",
+      "codeAxis": "data-radius"
+    },
+    {
+      "slug": "emphasis-level",
+      "name": "Emphasis Level",
+      "layer": "semantic",
+      "variableCount": 6,
+      "modes": ["Medium", "Strong"],
+      "types": { "FLOAT": 6 },
+      "hiddenVariableCount": 4,
+      "purpose": "Font-weight and stroke emphasis decisions.",
+      "codeAxis": "data-emphasis"
+    },
+    {
+      "slug": "breakpoint-grids",
+      "name": "Breakpoint & Grids",
+      "layer": "layout",
+      "variableCount": 9,
+      "modes": ["Desktop", "Tablet", "Mobile"],
+      "types": { "FLOAT": 9 },
+      "hiddenVariableCount": 0,
+      "purpose": "Viewport, margin, gutter, modal and card layout decisions.",
+      "codeAxis": "media-query"
+    },
+    {
+      "slug": "typography-configuration",
+      "name": "Typography Configuration",
+      "layer": "semantic",
+      "variableCount": 78,
+      "modes": ["Dashboard", "Popular", "Mobile"],
+      "types": { "STRING": 5, "FLOAT": 73 },
+      "hiddenVariableCount": 0,
+      "purpose": "Font families, sizes, weights, line heights and letter spacing.",
+      "codeAxis": "data-typography"
+    }
+  ]
+}

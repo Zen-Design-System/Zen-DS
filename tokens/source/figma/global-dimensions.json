@@ -1,0 +1,240 @@
+{
+  "Global Dimensions": {
+    "modes": [
+      "Mode 1"
+    ],
+    "tokens": [
+      {
+        "name": "dm-2",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 2
+        }
+      },
+      {
+        "name": "dm-4",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 4
+        }
+      },
+      {
+        "name": "dm-8",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 8
+        }
+      },
+      {
+        "name": "dm-12",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 12
+        }
+      },
+      {
+        "name": "dm-16",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 16
+        }
+      },
+      {
+        "name": "dm-20",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 20
+        }
+      },
+      {
+        "name": "dm-24",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 24
+        }
+      },
+      {
+        "name": "dm-28",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 28
+        }
+      },
+      {
+        "name": "dm-32",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 32
+        }
+      },
+      {
+        "name": "dm-36",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 36
+        }
+      },
+      {
+        "name": "dm-40",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 40
+        }
+      },
+      {
+        "name": "dm-44",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 44
+        }
+      },
+      {
+        "name": "dm-48",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 48
+        }
+      },
+      {
+        "name": "dm-52",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 52
+        }
+      },
+      {
+        "name": "dm-56",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 56
+        }
+      },
+      {
+        "name": "dm-64",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 64
+        }
+      },
+      {
+        "name": "dm-72",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 72
+        }
+      },
+      {
+        "name": "dm-80",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 80
+        }
+      },
+      {
+        "name": "dm-88",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 88
+        }
+      },
+      {
+        "name": "dm-96",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 96
+        }
+      },
+      {
+        "name": "dm-112",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 112
+        }
+      },
+      {
+        "name": "dm-128",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 128
+        }
+      },
+      {
+        "name": "dm-144",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 144
+        }
+      },
+      {
+        "name": "dm-160",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 160
+        }
+      },
+      {
+        "name": "dm-184",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 184
+        }
+      },
+      {
+        "name": "dm-200",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 200
+        }
+      },
+      {
+        "name": "dm-240",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 240
+        }
+      },
+      {
+        "name": "dm-60",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 60
+        }
+      },
+      {
+        "name": "dm-68",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 68
+        }
+      },
+      {
+        "name": "dm-84",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 84
+        }
+      },
+      {
+        "name": "dm-76",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 76
+        }
+      },
+      {
+        "name": "dm-92",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 92
+        }
+      },
+      {
+        "name": "dm-100",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Mode 1": 100
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+/* Figma Radio-Button/Radio-Mark (373:96225) binds the Checkbox/* component tokens (fill, border,
+   icon, width) plus Radio-Button/Size/Medium for height — mirrored exactly here. */
+.zen-radio-button { position: relative; display: inline-flex; max-width: 100%; align-items: flex-start; gap: var(--zen-radio-button-spacing-medium-gap, 8px); cursor: pointer; color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-radio-button__mark { position: relative; display: inline-flex; flex: 0 0 16px; width: 16px; height: 16px; box-sizing: border-box; align-items: center; justify-content: center; margin-block: var(--zen-spacing-padding-3-xsmall, 2px); }
+.zen-radio-button__ring { position: relative; z-index: 1; display: inline-flex; width: var(--zen-checkbox-size-medium); height: var(--zen-radio-button-size-medium); box-sizing: border-box; align-items: center; justify-content: center; border: 1px solid var(--zen-checkbox-border-default); border-radius: var(--zen-corner-radius-rounded); background: var(--zen-checkbox-background-unselected-default); box-shadow: var(--zen-style-shadow-action-basic-shadow); color: var(--zen-checkbox-icon-check-default); }
+.zen-radio-button:has(input:checked) .zen-radio-button__ring { border-color: transparent; background: var(--zen-checkbox-background-seclected-default); }
+.zen-radio-button:hover:not(:has(input:disabled)) .zen-radio-button__mark::before, .zen-radio-button[data-state="hover"] .zen-radio-button__mark::before { position: absolute; inset: -8px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); content: ""; pointer-events: none; }
+.zen-radio-button:hover:not(:has(input:disabled)) .zen-radio-button__ring, .zen-radio-button[data-state="hover"] .zen-radio-button__ring { border-color: var(--zen-checkbox-border-hover); background: var(--zen-checkbox-background-unselected-hover); }
+.zen-radio-button:hover:has(input:checked) .zen-radio-button__ring, .zen-radio-button[data-state="hover"]:has(input:checked) .zen-radio-button__ring { border-color: transparent; background: var(--zen-checkbox-background-seclected-hover); }
+.zen-radio-button[data-state="focus"] .zen-radio-button__mark::before, .zen-radio-button:has(input:focus-visible) .zen-radio-button__mark::before { position: absolute; inset: -4px; border: 2px solid var(--zen-color-focus-accent-solid, #ff66d4); border-radius: var(--zen-corner-radius-rounded, 1000px); background: transparent; content: ""; pointer-events: none; }
+.zen-radio-button[data-state="focus"] .zen-radio-button__ring, .zen-radio-button:has(input:focus-visible) .zen-radio-button__ring { border-color: var(--zen-checkbox-border-hover); background: var(--zen-checkbox-background-unselected-default); }
+.zen-radio-button[data-state="focus"]:has(input:checked) .zen-radio-button__ring, .zen-radio-button:has(input:focus-visible):has(input:checked) .zen-radio-button__ring { border-color: transparent; background: var(--zen-checkbox-background-seclected-default); }
+/* Keyboard focus must win when the pointer is still over the control. */
+.zen-radio-button:hover:has(input:focus-visible) .zen-radio-button__mark::before { inset: -4px; border: 2px solid var(--zen-color-focus-accent-solid, #ff66d4); border-radius: var(--zen-corner-radius-rounded, 1000px); background: transparent; }
+.zen-radio-button__content { display: grid; min-width: 0; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-radio-button__label { word-break: break-word; }
+.zen-radio-button__caption { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-radio-button input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); opacity: 0; }
+.zen-radio-button:has(input:disabled) { cursor: not-allowed; color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); }
+.zen-radio-button:has(input:disabled) .zen-radio-button__caption { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); }
+.zen-radio-button:has(input:disabled) .zen-radio-button__ring { border-color: var(--zen-color-border-disabled); background: var(--zen-checkbox-background-unselected-default); box-shadow: none; }
+.zen-radio-button:has(input:disabled):has(input:checked) .zen-radio-button__ring { border-color: transparent; background: var(--zen-color-background-solid-disabled, #dbdbdb); color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); }
+
+/* The dot is always rendered; it shows only while the native radio is checked. */
+.zen-radio-button:not(:has(input:checked)) .zen-radio-button__ring > .zen-icon { display: none; }
+/* Radio-Side=Right: fixed-width row with a FILL label — the ring sits at the end. */
+.zen-radio-button[data-side="right"] { display: flex; }
+.zen-radio-button[data-side="right"] .zen-radio-button__content { flex: 1 1 auto; }

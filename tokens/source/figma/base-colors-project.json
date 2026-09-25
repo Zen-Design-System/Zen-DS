@@ -1,0 +1,2312 @@
+{
+  "Base Colors (Project)": {
+    "modes": [
+      "Zen"
+    ],
+    "tokens": [
+      {
+        "name": "Light/Brand/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen/1}"
+        }
+      },
+      {
+        "name": "Light/Brand-Alpha/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen-Alpha/1}"
+        }
+      },
+      {
+        "name": "Light/Brand/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen/2}"
+        }
+      },
+      {
+        "name": "Light/Brand/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen/3}"
+        }
+      },
+      {
+        "name": "Light/Brand/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen/4}"
+        }
+      },
+      {
+        "name": "Light/Brand/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen/5}"
+        }
+      },
+      {
+        "name": "Light/Brand/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen/6}"
+        }
+      },
+      {
+        "name": "Light/Brand/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen/7}"
+        }
+      },
+      {
+        "name": "Light/Brand/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen/8}"
+        }
+      },
+      {
+        "name": "Light/Brand/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen/9}"
+        }
+      },
+      {
+        "name": "Light/Brand/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen/10}"
+        }
+      },
+      {
+        "name": "Light/Brand/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen/11}"
+        }
+      },
+      {
+        "name": "Light/Brand/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen/12}"
+        }
+      },
+      {
+        "name": "Light/Brand-Alpha/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen-Alpha/8}"
+        }
+      },
+      {
+        "name": "Light/Brand-Alpha/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen-Alpha/7}"
+        }
+      },
+      {
+        "name": "Light/Brand-Alpha/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen-Alpha/9}"
+        }
+      },
+      {
+        "name": "Light/Brand-Alpha/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen-Alpha/5}"
+        }
+      },
+      {
+        "name": "Light/Brand-Alpha/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen-Alpha/11}"
+        }
+      },
+      {
+        "name": "Light/Brand-Alpha/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen-Alpha/10}"
+        }
+      },
+      {
+        "name": "Light/Brand-Alpha/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen-Alpha/6}"
+        }
+      },
+      {
+        "name": "Light/Brand-Alpha/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen-Alpha/2}"
+        }
+      },
+      {
+        "name": "Light/Brand-Alpha/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen-Alpha/4}"
+        }
+      },
+      {
+        "name": "Light/Brand-Alpha/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen-Alpha/3}"
+        }
+      },
+      {
+        "name": "Light/Brand-Alpha/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Zen-Alpha/12}"
+        }
+      },
+      {
+        "name": "Dark/Brand/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen/1}"
+        }
+      },
+      {
+        "name": "Dark/Brand/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen/2}"
+        }
+      },
+      {
+        "name": "Dark/Brand/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen/3}"
+        }
+      },
+      {
+        "name": "Dark/Brand/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen/4}"
+        }
+      },
+      {
+        "name": "Dark/Brand/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen/5}"
+        }
+      },
+      {
+        "name": "Dark/Brand/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen/6}"
+        }
+      },
+      {
+        "name": "Dark/Brand/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen/7}"
+        }
+      },
+      {
+        "name": "Dark/Brand/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen/8}"
+        }
+      },
+      {
+        "name": "Dark/Brand/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen/9}"
+        }
+      },
+      {
+        "name": "Dark/Brand/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen/10}"
+        }
+      },
+      {
+        "name": "Dark/Brand/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen/11}"
+        }
+      },
+      {
+        "name": "Dark/Brand/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen/12}"
+        }
+      },
+      {
+        "name": "Dark/Brand-Alpha/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen-Alpha/1}"
+        }
+      },
+      {
+        "name": "Dark/Brand-Alpha/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen-Alpha/2}"
+        }
+      },
+      {
+        "name": "Dark/Brand-Alpha/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen-Alpha/3}"
+        }
+      },
+      {
+        "name": "Dark/Brand-Alpha/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen-Alpha/4}"
+        }
+      },
+      {
+        "name": "Dark/Brand-Alpha/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen-Alpha/5}"
+        }
+      },
+      {
+        "name": "Dark/Brand-Alpha/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen-Alpha/6}"
+        }
+      },
+      {
+        "name": "Dark/Brand-Alpha/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen-Alpha/7}"
+        }
+      },
+      {
+        "name": "Dark/Brand-Alpha/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen-Alpha/8}"
+        }
+      },
+      {
+        "name": "Dark/Brand-Alpha/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen-Alpha/9}"
+        }
+      },
+      {
+        "name": "Dark/Brand-Alpha/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen-Alpha/10}"
+        }
+      },
+      {
+        "name": "Dark/Brand-Alpha/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen-Alpha/11}"
+        }
+      },
+      {
+        "name": "Dark/Brand-Alpha/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Zen-Alpha/12}"
+        }
+      },
+      {
+        "name": "Light/Neutral/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray/1}"
+        }
+      },
+      {
+        "name": "Light/Neutral/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray/2}"
+        }
+      },
+      {
+        "name": "Light/Neutral/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray/3}"
+        }
+      },
+      {
+        "name": "Light/Neutral/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray/4}"
+        }
+      },
+      {
+        "name": "Light/Neutral/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray/5}"
+        }
+      },
+      {
+        "name": "Light/Neutral/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray/6}"
+        }
+      },
+      {
+        "name": "Light/Neutral/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray/7}"
+        }
+      },
+      {
+        "name": "Light/Neutral/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray/8}"
+        }
+      },
+      {
+        "name": "Light/Neutral/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray/9}"
+        }
+      },
+      {
+        "name": "Light/Neutral/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray/10}"
+        }
+      },
+      {
+        "name": "Light/Neutral/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray/11}"
+        }
+      },
+      {
+        "name": "Light/Neutral/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray/12}"
+        }
+      },
+      {
+        "name": "Light/Neutral-Alpha/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray-Alpha/1}"
+        }
+      },
+      {
+        "name": "Light/Neutral-Alpha/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray-Alpha/2}"
+        }
+      },
+      {
+        "name": "Light/Neutral-Alpha/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray-Alpha/3}"
+        }
+      },
+      {
+        "name": "Light/Neutral-Alpha/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray-Alpha/4}"
+        }
+      },
+      {
+        "name": "Light/Neutral-Alpha/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray-Alpha/5}"
+        }
+      },
+      {
+        "name": "Light/Neutral-Alpha/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray-Alpha/6}"
+        }
+      },
+      {
+        "name": "Light/Neutral-Alpha/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray-Alpha/7}"
+        }
+      },
+      {
+        "name": "Light/Neutral-Alpha/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray-Alpha/8}"
+        }
+      },
+      {
+        "name": "Light/Neutral-Alpha/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray-Alpha/9}"
+        }
+      },
+      {
+        "name": "Light/Neutral-Alpha/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray-Alpha/10}"
+        }
+      },
+      {
+        "name": "Light/Neutral-Alpha/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray-Alpha/11}"
+        }
+      },
+      {
+        "name": "Light/Neutral-Alpha/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Gray-Alpha/12}"
+        }
+      },
+      {
+        "name": "Dark/Neutral/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray/1}"
+        }
+      },
+      {
+        "name": "Dark/Neutral/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray/2}"
+        }
+      },
+      {
+        "name": "Dark/Neutral/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray/3}"
+        }
+      },
+      {
+        "name": "Dark/Neutral/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray/4}"
+        }
+      },
+      {
+        "name": "Dark/Neutral/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray/5}"
+        }
+      },
+      {
+        "name": "Dark/Neutral/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray/6}"
+        }
+      },
+      {
+        "name": "Dark/Neutral/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray/7}"
+        }
+      },
+      {
+        "name": "Dark/Neutral/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray/8}"
+        }
+      },
+      {
+        "name": "Dark/Neutral/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray/9}"
+        }
+      },
+      {
+        "name": "Dark/Neutral/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray/10}"
+        }
+      },
+      {
+        "name": "Dark/Neutral/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray/11}"
+        }
+      },
+      {
+        "name": "Dark/Neutral/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray/12}"
+        }
+      },
+      {
+        "name": "Dark/Neutral-Alpha/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray-Alpha/1}"
+        }
+      },
+      {
+        "name": "Dark/Neutral-Alpha/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray-Alpha/2}"
+        }
+      },
+      {
+        "name": "Dark/Neutral-Alpha/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray-Alpha/3}"
+        }
+      },
+      {
+        "name": "Dark/Neutral-Alpha/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray-Alpha/4}"
+        }
+      },
+      {
+        "name": "Dark/Neutral-Alpha/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray-Alpha/5}"
+        }
+      },
+      {
+        "name": "Dark/Neutral-Alpha/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray-Alpha/6}"
+        }
+      },
+      {
+        "name": "Dark/Neutral-Alpha/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray-Alpha/7}"
+        }
+      },
+      {
+        "name": "Dark/Neutral-Alpha/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray-Alpha/8}"
+        }
+      },
+      {
+        "name": "Dark/Neutral-Alpha/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray-Alpha/9}"
+        }
+      },
+      {
+        "name": "Dark/Neutral-Alpha/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray-Alpha/10}"
+        }
+      },
+      {
+        "name": "Dark/Neutral-Alpha/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray-Alpha/11}"
+        }
+      },
+      {
+        "name": "Dark/Neutral-Alpha/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Gray-Alpha/12}"
+        }
+      },
+      {
+        "name": "Light/Positive/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass/1}"
+        }
+      },
+      {
+        "name": "Light/Positive/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass/2}"
+        }
+      },
+      {
+        "name": "Light/Positive/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass/3}"
+        }
+      },
+      {
+        "name": "Light/Positive/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass/4}"
+        }
+      },
+      {
+        "name": "Light/Positive/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass/5}"
+        }
+      },
+      {
+        "name": "Light/Positive/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass/6}"
+        }
+      },
+      {
+        "name": "Light/Positive/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass/7}"
+        }
+      },
+      {
+        "name": "Light/Positive/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass/8}"
+        }
+      },
+      {
+        "name": "Light/Positive/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass/9}"
+        }
+      },
+      {
+        "name": "Light/Positive/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass/10}"
+        }
+      },
+      {
+        "name": "Light/Positive/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass/11}"
+        }
+      },
+      {
+        "name": "Light/Positive/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass/12}"
+        }
+      },
+      {
+        "name": "Light/Positive-Alpha/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass-Alpha/1}"
+        }
+      },
+      {
+        "name": "Light/Positive-Alpha/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass-Alpha/2}"
+        }
+      },
+      {
+        "name": "Light/Positive-Alpha/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass-Alpha/3}"
+        }
+      },
+      {
+        "name": "Light/Positive-Alpha/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass-Alpha/4}"
+        }
+      },
+      {
+        "name": "Light/Positive-Alpha/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass-Alpha/5}"
+        }
+      },
+      {
+        "name": "Light/Positive-Alpha/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass-Alpha/6}"
+        }
+      },
+      {
+        "name": "Light/Positive-Alpha/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass-Alpha/7}"
+        }
+      },
+      {
+        "name": "Light/Positive-Alpha/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass-Alpha/8}"
+        }
+      },
+      {
+        "name": "Light/Positive-Alpha/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass-Alpha/9}"
+        }
+      },
+      {
+        "name": "Light/Positive-Alpha/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass-Alpha/10}"
+        }
+      },
+      {
+        "name": "Light/Positive-Alpha/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass-Alpha/11}"
+        }
+      },
+      {
+        "name": "Light/Positive-Alpha/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Grass-Alpha/12}"
+        }
+      },
+      {
+        "name": "Dark/Positive/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass/1}"
+        }
+      },
+      {
+        "name": "Dark/Positive/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass/2}"
+        }
+      },
+      {
+        "name": "Dark/Positive/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass/3}"
+        }
+      },
+      {
+        "name": "Dark/Positive/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass/4}"
+        }
+      },
+      {
+        "name": "Dark/Positive/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass/5}"
+        }
+      },
+      {
+        "name": "Dark/Positive/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass/6}"
+        }
+      },
+      {
+        "name": "Dark/Positive/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass/7}"
+        }
+      },
+      {
+        "name": "Dark/Positive/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass/8}"
+        }
+      },
+      {
+        "name": "Dark/Positive/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass/9}"
+        }
+      },
+      {
+        "name": "Dark/Positive/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass/10}"
+        }
+      },
+      {
+        "name": "Dark/Positive/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass/11}"
+        }
+      },
+      {
+        "name": "Dark/Positive/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass/12}"
+        }
+      },
+      {
+        "name": "Dark/Positive-Alpha/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass-Alpha/1}"
+        }
+      },
+      {
+        "name": "Dark/Positive-Alpha/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass-Alpha/2}"
+        }
+      },
+      {
+        "name": "Dark/Positive-Alpha/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass-Alpha/3}"
+        }
+      },
+      {
+        "name": "Dark/Positive-Alpha/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass-Alpha/4}"
+        }
+      },
+      {
+        "name": "Dark/Positive-Alpha/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass-Alpha/5}"
+        }
+      },
+      {
+        "name": "Dark/Positive-Alpha/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass-Alpha/6}"
+        }
+      },
+      {
+        "name": "Dark/Positive-Alpha/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass-Alpha/7}"
+        }
+      },
+      {
+        "name": "Dark/Positive-Alpha/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass-Alpha/8}"
+        }
+      },
+      {
+        "name": "Dark/Positive-Alpha/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass-Alpha/9}"
+        }
+      },
+      {
+        "name": "Dark/Positive-Alpha/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass-Alpha/10}"
+        }
+      },
+      {
+        "name": "Dark/Positive-Alpha/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass-Alpha/11}"
+        }
+      },
+      {
+        "name": "Dark/Positive-Alpha/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Grass-Alpha/12}"
+        }
+      },
+      {
+        "name": "Light/Negative/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato/1}"
+        }
+      },
+      {
+        "name": "Light/Negative/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato/2}"
+        }
+      },
+      {
+        "name": "Light/Negative/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato/3}"
+        }
+      },
+      {
+        "name": "Light/Negative/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato/4}"
+        }
+      },
+      {
+        "name": "Light/Negative/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato/5}"
+        }
+      },
+      {
+        "name": "Light/Negative/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato/6}"
+        }
+      },
+      {
+        "name": "Light/Negative/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato/7}"
+        }
+      },
+      {
+        "name": "Light/Negative/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato/8}"
+        }
+      },
+      {
+        "name": "Light/Negative/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato/9}"
+        }
+      },
+      {
+        "name": "Light/Negative/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato/10}"
+        }
+      },
+      {
+        "name": "Light/Negative/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato/11}"
+        }
+      },
+      {
+        "name": "Light/Negative/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato/12}"
+        }
+      },
+      {
+        "name": "Light/Negative-Alpha/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato-Alpha/1}"
+        }
+      },
+      {
+        "name": "Light/Negative-Alpha/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato-Alpha/2}"
+        }
+      },
+      {
+        "name": "Light/Negative-Alpha/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato-Alpha/3}"
+        }
+      },
+      {
+        "name": "Light/Negative-Alpha/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato-Alpha/4}"
+        }
+      },
+      {
+        "name": "Light/Negative-Alpha/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato-Alpha/5}"
+        }
+      },
+      {
+        "name": "Light/Negative-Alpha/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato-Alpha/6}"
+        }
+      },
+      {
+        "name": "Light/Negative-Alpha/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato-Alpha/7}"
+        }
+      },
+      {
+        "name": "Light/Negative-Alpha/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato-Alpha/8}"
+        }
+      },
+      {
+        "name": "Light/Negative-Alpha/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato-Alpha/9}"
+        }
+      },
+      {
+        "name": "Light/Negative-Alpha/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato-Alpha/10}"
+        }
+      },
+      {
+        "name": "Light/Negative-Alpha/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato-Alpha/11}"
+        }
+      },
+      {
+        "name": "Light/Negative-Alpha/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Tomato-Alpha/12}"
+        }
+      },
+      {
+        "name": "Dark/Negative/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato/1}"
+        }
+      },
+      {
+        "name": "Dark/Negative/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato/2}"
+        }
+      },
+      {
+        "name": "Dark/Negative/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato/3}"
+        }
+      },
+      {
+        "name": "Dark/Negative/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato/4}"
+        }
+      },
+      {
+        "name": "Dark/Negative/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato/5}"
+        }
+      },
+      {
+        "name": "Dark/Negative/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato/6}"
+        }
+      },
+      {
+        "name": "Dark/Negative/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato/7}"
+        }
+      },
+      {
+        "name": "Dark/Negative/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato/8}"
+        }
+      },
+      {
+        "name": "Dark/Negative/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato/9}"
+        }
+      },
+      {
+        "name": "Dark/Negative/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato/10}"
+        }
+      },
+      {
+        "name": "Dark/Negative/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato/11}"
+        }
+      },
+      {
+        "name": "Dark/Negative/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato/12}"
+        }
+      },
+      {
+        "name": "Dark/Negative-Alpha/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato-Alpha/1}"
+        }
+      },
+      {
+        "name": "Dark/Negative-Alpha/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato-Alpha/2}"
+        }
+      },
+      {
+        "name": "Dark/Negative-Alpha/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato-Alpha/3}"
+        }
+      },
+      {
+        "name": "Dark/Negative-Alpha/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato-Alpha/4}"
+        }
+      },
+      {
+        "name": "Dark/Negative-Alpha/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato-Alpha/5}"
+        }
+      },
+      {
+        "name": "Dark/Negative-Alpha/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato-Alpha/6}"
+        }
+      },
+      {
+        "name": "Dark/Negative-Alpha/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato-Alpha/7}"
+        }
+      },
+      {
+        "name": "Dark/Negative-Alpha/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato-Alpha/8}"
+        }
+      },
+      {
+        "name": "Dark/Negative-Alpha/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato-Alpha/9}"
+        }
+      },
+      {
+        "name": "Dark/Negative-Alpha/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato-Alpha/10}"
+        }
+      },
+      {
+        "name": "Dark/Negative-Alpha/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato-Alpha/11}"
+        }
+      },
+      {
+        "name": "Dark/Negative-Alpha/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Tomato-Alpha/12}"
+        }
+      },
+      {
+        "name": "Light/Warning/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow/1}"
+        }
+      },
+      {
+        "name": "Light/Warning/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow/2}"
+        }
+      },
+      {
+        "name": "Light/Warning/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow/3}"
+        }
+      },
+      {
+        "name": "Light/Warning/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow/4}"
+        }
+      },
+      {
+        "name": "Light/Warning/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow/5}"
+        }
+      },
+      {
+        "name": "Light/Warning/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow/6}"
+        }
+      },
+      {
+        "name": "Light/Warning/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow/7}"
+        }
+      },
+      {
+        "name": "Light/Warning/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow/8}"
+        }
+      },
+      {
+        "name": "Light/Warning/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow/9}"
+        }
+      },
+      {
+        "name": "Light/Warning/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow/10}"
+        }
+      },
+      {
+        "name": "Light/Warning/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow/11}"
+        }
+      },
+      {
+        "name": "Light/Warning/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow/12}"
+        }
+      },
+      {
+        "name": "Light/Warning-Alpha/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow-Alpha/1}"
+        }
+      },
+      {
+        "name": "Light/Warning-Alpha/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow-Alpha/2}"
+        }
+      },
+      {
+        "name": "Light/Warning-Alpha/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow-Alpha/3}"
+        }
+      },
+      {
+        "name": "Light/Warning-Alpha/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow-Alpha/4}"
+        }
+      },
+      {
+        "name": "Light/Warning-Alpha/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow-Alpha/5}"
+        }
+      },
+      {
+        "name": "Light/Warning-Alpha/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow-Alpha/6}"
+        }
+      },
+      {
+        "name": "Light/Warning-Alpha/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow-Alpha/7}"
+        }
+      },
+      {
+        "name": "Light/Warning-Alpha/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow-Alpha/8}"
+        }
+      },
+      {
+        "name": "Light/Warning-Alpha/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow-Alpha/9}"
+        }
+      },
+      {
+        "name": "Light/Warning-Alpha/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow-Alpha/10}"
+        }
+      },
+      {
+        "name": "Light/Warning-Alpha/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow-Alpha/11}"
+        }
+      },
+      {
+        "name": "Light/Warning-Alpha/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Yellow-Alpha/12}"
+        }
+      },
+      {
+        "name": "Dark/Warning/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow/1}"
+        }
+      },
+      {
+        "name": "Dark/Warning/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow/2}"
+        }
+      },
+      {
+        "name": "Dark/Warning/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow/3}"
+        }
+      },
+      {
+        "name": "Dark/Warning/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow/4}"
+        }
+      },
+      {
+        "name": "Dark/Warning/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow/5}"
+        }
+      },
+      {
+        "name": "Dark/Warning/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow/6}"
+        }
+      },
+      {
+        "name": "Dark/Warning/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow/7}"
+        }
+      },
+      {
+        "name": "Dark/Warning/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow/8}"
+        }
+      },
+      {
+        "name": "Dark/Warning/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow/9}"
+        }
+      },
+      {
+        "name": "Dark/Warning/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow/10}"
+        }
+      },
+      {
+        "name": "Dark/Warning/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow/11}"
+        }
+      },
+      {
+        "name": "Dark/Warning/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow/12}"
+        }
+      },
+      {
+        "name": "Dark/Warning-Alpha/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow-Alpha/1}"
+        }
+      },
+      {
+        "name": "Dark/Warning-Alpha/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow-Alpha/2}"
+        }
+      },
+      {
+        "name": "Dark/Warning-Alpha/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow-Alpha/3}"
+        }
+      },
+      {
+        "name": "Dark/Warning-Alpha/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow-Alpha/4}"
+        }
+      },
+      {
+        "name": "Dark/Warning-Alpha/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow-Alpha/5}"
+        }
+      },
+      {
+        "name": "Dark/Warning-Alpha/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow-Alpha/6}"
+        }
+      },
+      {
+        "name": "Dark/Warning-Alpha/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow-Alpha/7}"
+        }
+      },
+      {
+        "name": "Dark/Warning-Alpha/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow-Alpha/8}"
+        }
+      },
+      {
+        "name": "Dark/Warning-Alpha/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow-Alpha/9}"
+        }
+      },
+      {
+        "name": "Dark/Warning-Alpha/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow-Alpha/10}"
+        }
+      },
+      {
+        "name": "Dark/Warning-Alpha/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow-Alpha/11}"
+        }
+      },
+      {
+        "name": "Dark/Warning-Alpha/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Yellow-Alpha/12}"
+        }
+      },
+      {
+        "name": "Light/Info/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue/1}"
+        }
+      },
+      {
+        "name": "Light/Info/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue/2}"
+        }
+      },
+      {
+        "name": "Light/Info/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue/3}"
+        }
+      },
+      {
+        "name": "Light/Info/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue/4}"
+        }
+      },
+      {
+        "name": "Light/Info/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue/5}"
+        }
+      },
+      {
+        "name": "Light/Info/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue/6}"
+        }
+      },
+      {
+        "name": "Light/Info/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue/7}"
+        }
+      },
+      {
+        "name": "Light/Info/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue/8}"
+        }
+      },
+      {
+        "name": "Light/Info/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue/9}"
+        }
+      },
+      {
+        "name": "Light/Info/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue/10}"
+        }
+      },
+      {
+        "name": "Light/Info/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue/11}"
+        }
+      },
+      {
+        "name": "Light/Info/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue/12}"
+        }
+      },
+      {
+        "name": "Light/Info-Alpha/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue-Alpha/1}"
+        }
+      },
+      {
+        "name": "Light/Info-Alpha/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue-Alpha/2}"
+        }
+      },
+      {
+        "name": "Light/Info-Alpha/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue-Alpha/3}"
+        }
+      },
+      {
+        "name": "Light/Info-Alpha/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue-Alpha/4}"
+        }
+      },
+      {
+        "name": "Light/Info-Alpha/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue-Alpha/5}"
+        }
+      },
+      {
+        "name": "Light/Info-Alpha/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue-Alpha/6}"
+        }
+      },
+      {
+        "name": "Light/Info-Alpha/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue-Alpha/7}"
+        }
+      },
+      {
+        "name": "Light/Info-Alpha/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue-Alpha/8}"
+        }
+      },
+      {
+        "name": "Light/Info-Alpha/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue-Alpha/9}"
+        }
+      },
+      {
+        "name": "Light/Info-Alpha/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue-Alpha/10}"
+        }
+      },
+      {
+        "name": "Light/Info-Alpha/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue-Alpha/11}"
+        }
+      },
+      {
+        "name": "Light/Info-Alpha/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Light/Blue-Alpha/12}"
+        }
+      },
+      {
+        "name": "Dark/Info/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue/1}"
+        }
+      },
+      {
+        "name": "Dark/Info/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue/2}"
+        }
+      },
+      {
+        "name": "Dark/Info/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue/3}"
+        }
+      },
+      {
+        "name": "Dark/Info/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue/4}"
+        }
+      },
+      {
+        "name": "Dark/Info/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue/5}"
+        }
+      },
+      {
+        "name": "Dark/Info/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue/6}"
+        }
+      },
+      {
+        "name": "Dark/Info/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue/7}"
+        }
+      },
+      {
+        "name": "Dark/Info/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue/8}"
+        }
+      },
+      {
+        "name": "Dark/Info/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue/9}"
+        }
+      },
+      {
+        "name": "Dark/Info/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue/10}"
+        }
+      },
+      {
+        "name": "Dark/Info/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue/11}"
+        }
+      },
+      {
+        "name": "Dark/Info/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue/12}"
+        }
+      },
+      {
+        "name": "Dark/Info-Alpha/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue-Alpha/1}"
+        }
+      },
+      {
+        "name": "Dark/Info-Alpha/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue-Alpha/2}"
+        }
+      },
+      {
+        "name": "Dark/Info-Alpha/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue-Alpha/3}"
+        }
+      },
+      {
+        "name": "Dark/Info-Alpha/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue-Alpha/4}"
+        }
+      },
+      {
+        "name": "Dark/Info-Alpha/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue-Alpha/5}"
+        }
+      },
+      {
+        "name": "Dark/Info-Alpha/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue-Alpha/6}"
+        }
+      },
+      {
+        "name": "Dark/Info-Alpha/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue-Alpha/7}"
+        }
+      },
+      {
+        "name": "Dark/Info-Alpha/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue-Alpha/8}"
+        }
+      },
+      {
+        "name": "Dark/Info-Alpha/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue-Alpha/9}"
+        }
+      },
+      {
+        "name": "Dark/Info-Alpha/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue-Alpha/10}"
+        }
+      },
+      {
+        "name": "Dark/Info-Alpha/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue-Alpha/11}"
+        }
+      },
+      {
+        "name": "Dark/Info-Alpha/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "{Dark/Blue-Alpha/12}"
+        }
+      },
+      {
+        "name": "Overlay/White/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFF03"
+        }
+      },
+      {
+        "name": "Overlay/White/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFF05"
+        }
+      },
+      {
+        "name": "Overlay/White/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFF08"
+        }
+      },
+      {
+        "name": "Overlay/White/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFF12"
+        }
+      },
+      {
+        "name": "Overlay/White/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFF17"
+        }
+      },
+      {
+        "name": "Overlay/White/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFF1C"
+        }
+      },
+      {
+        "name": "Overlay/White/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFF24"
+        }
+      },
+      {
+        "name": "Overlay/White/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFF38"
+        }
+      },
+      {
+        "name": "Overlay/White/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFF6E"
+        }
+      },
+      {
+        "name": "Overlay/White/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFF78"
+        }
+      },
+      {
+        "name": "Overlay/White/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFF8F"
+        }
+      },
+      {
+        "name": "Overlay/White/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFFE8"
+        }
+      },
+      {
+        "name": "Overlay/Black/1",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#00000003"
+        }
+      },
+      {
+        "name": "Overlay/Black/2",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#00000005"
+        }
+      },
+      {
+        "name": "Overlay/Black/3",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#0000000A"
+        }
+      },
+      {
+        "name": "Overlay/Black/4",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#00000012"
+        }
+      },
+      {
+        "name": "Overlay/Black/5",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#00000017"
+        }
+      },
+      {
+        "name": "Overlay/Black/6",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#0000001C"
+        }
+      },
+      {
+        "name": "Overlay/Black/7",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#00000024"
+        }
+      },
+      {
+        "name": "Overlay/Black/8",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#00000038"
+        }
+      },
+      {
+        "name": "Overlay/Black/9",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#0000006E"
+        }
+      },
+      {
+        "name": "Overlay/Black/10",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#00000078"
+        }
+      },
+      {
+        "name": "Overlay/Black/11",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#0000008F"
+        }
+      },
+      {
+        "name": "Overlay/Black/12",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#000000E8"
+        }
+      },
+      {
+        "name": "Light/On-Brand-Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFF"
+        }
+      },
+      {
+        "name": "Dark/On-Brand-Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFF"
+        }
+      },
+      {
+        "name": "White",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFF"
+        }
+      },
+      {
+        "name": "Black",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#000000"
+        }
+      },
+      {
+        "name": "Light/Popover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFFE5"
+        }
+      },
+      {
+        "name": "Dark/Popover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#050505E6"
+        }
+      },
+      {
+        "name": "Light/On-Brand-Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFF"
+        }
+      },
+      {
+        "name": "Dark/On-Brand-Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#000000DB"
+        }
+      },
+      {
+        "name": "Light/On-Brand-Pressed",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFF"
+        }
+      },
+      {
+        "name": "Dark/On-Brand-Pressed",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#000000DB"
+        }
+      },
+      {
+        "name": "Dark/Carved",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#0505058C"
+        }
+      },
+      {
+        "name": "Light/Glass-Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFFB2"
+        }
+      },
+      {
+        "name": "Dark/Glass-Default",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#262626B2"
+        }
+      },
+      {
+        "name": "Light/Glass-Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFFE0"
+        }
+      },
+      {
+        "name": "Dark/Glass-Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#262626E0"
+        }
+      },
+      {
+        "name": "Light/Glass-Pressed",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#FFFFFFF2"
+        }
+      },
+      {
+        "name": "Dark/Glass-Pressed",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Zen": "#262626F2"
+        }
+      }
+    ]
+  }
+}
