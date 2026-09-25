@@ -116,3 +116,9 @@ File `9nZv4uW2LT21yuHabMTCh1` was read directly (read-only). Every variant's vis
 - Container padding is 16−1 so the 1px border stays inside (total 256 wide, like Figma's INSIDE stroke).
 - Measured on the Platform (Input → date): width 256, header gap 12, row gap 2, nav 32/icon 20, month 144×32 Body/Extra/Bold, today 2px. Build OK; run-all 17 ✓.
 - Figma inconsistency: Date-Container radius is 8 on Default/Static/Display but 12 on Hover/Focused (code keeps 8).
+
+## Checkbox hover (real-pointer check)
+- Figma Checkbox/Mark Hover: a 32px Focus-Ring rectangle (-8 inset, radius 1000, Neutral/Flat/Hover). Unselected uses Background/Unselected/Hover plus Border/Hover. Selected/Indeterminate uses Background/Seclected/Hover with no stroke. Label stays Neutral/Strongest.
+- Bug fixed in checkbox.css: the unselected hover rule `:hover:not(:has(input:disabled))` (0,4,1) outranked the selected hover rule (0,4,0). Hovering a checked/indeterminate box showed the near-transparent unselected-hover fill and border instead of #606060. Disabled+checked also turned #606060 on hover. The selected hover selector now carries the same `:not(:has(input:disabled))` guard.
+- Verified with Playwright real hover (scratchpad hover-check.mjs), light and dark: unchecked, checked, indeterminate, disabled, disabled+checked and right-side all match Figma. RadioButton checked the same way: already correct.
+- The figma-contract suite forces `data-state="hover"`, so it cannot catch `:hover` specificity bugs; a real-pointer check is needed for these.
