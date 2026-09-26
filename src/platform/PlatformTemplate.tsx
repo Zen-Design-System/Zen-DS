@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { createContext, type ReactNode } from "react";
 import { Chip } from "../components/Chip";
 import { Icon, type IconName } from "../components/Icon";
 import { Segmented } from "../components/Segmented";
@@ -19,6 +19,10 @@ export type PlatformShellSettings = {
   radius: "rounded" | "smooth" | "standard" | "luxury";
   emphasis: "medium" | "strong";
 };
+
+/** System Typography Configuration mode (topbar chip) for component previews. The platform
+ * chrome itself renders in the platform-only Zen-Platform typography (see platform.css). */
+export const PlatformTypographyContext = createContext<PlatformShellSettings["typography"]>("dashboard");
 
 type PlatformTopbarProps = {
   breadcrumbs: PlatformBreadcrumb[];

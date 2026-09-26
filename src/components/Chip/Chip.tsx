@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useRef, useState, type ButtonHTMLAttributes, type MouseEvent, type ReactNode } from "react";
 import { Icon } from "../Icon";
-import { Popover, type PopoverItemData } from "../Popover";
+import { Popover, PopoverManualAddNew, type PopoverItemData } from "../Popover";
 import { Badge, BadgeCounter } from "../Badge";
 import { Avatar, type AvatarSize } from "../Avatar";
 import { typographyStyles } from "../../tokens/typography.generated";
@@ -62,6 +62,10 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
   onPopoverSearchChange?: (value: string) => void;
   popoverSearchPlaceholder?: string;
   popoverScrollBar?: boolean;
+  /** Figma Popover/Manual-Add-New: lets users create a value that isn't listed (labels, tags).
+   * The popover gets a Search row; a "Create" + Accent Badge row appears only for a new value, Enter creates it. */
+  onPopoverCreate?: (value: string) => void;
+  popoverCreateLabel?: ReactNode;
 }
 
 export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
@@ -94,6 +98,8 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
     onPopoverSearchChange,
     popoverSearchPlaceholder,
     popoverScrollBar = true,
+    onPopoverCreate,
+    popoverCreateLabel,
     className,
     type = "button",
     disabled,
@@ -229,7 +235,28 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
   return (
     <span ref={dropdownRef} className="zen-chip__dropdown">
       {button}
-      <Popover
+      {onPopoverCreate ? (
+        <PopoverManualAddNew
+          open={isPopoverOpen}
+          label={popoverLabel}
+          createLabel={popoverCreateLabel}
+          onCreate={(created) => { onPopoverCreate(created); if (!popoverMultiple) setPopoverOpen(false, { restoreFocus: true }); }}
+          searchValue={popoverSearchValue}
+          searchPlaceholder={popoverSearchPlaceholder}
+          onSearchChange={onPopoverSearchChange}
+          scrollBar={popoverScrollBar}
+          items={popoverItems}
+          multiple={popoverMultiple}
+          onSelect={handlePopoverSelect}
+          autoFocus
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault();
+              setPopoverOpen(false, { restoreFocus: true });
+            }
+          }}
+        />
+      ) : <Popover
         open={isPopoverOpen}
         label={popoverLabel}
         search={popoverSearch}
@@ -238,6 +265,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
         onSearchChange={onPopoverSearchChange}
         scrollBar={popoverScrollBar}
         items={popoverItems}
+        multiple={popoverMultiple}
         onSelect={handlePopoverSelect}
         autoFocus={openedFromKeyboard}
         onKeyDown={(event) => {
@@ -246,7 +274,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
             setPopoverOpen(false, { restoreFocus: true });
           }
         }}
-      />
+      />}
     </span>
   );
 });

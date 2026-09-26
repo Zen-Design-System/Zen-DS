@@ -180,3 +180,7 @@
 
 /* Figma Side-Bar/Master/Workspace: Master rail and Main panel carry Background-Blur (blur 80 → 40px) and no drop shadow. */
 .zen-sidebar[data-variant="workspace"] .zen-sidebar__workspace-main { box-shadow: none; backdrop-filter: blur(40px); }
+
+/* Collapsed rail: item label shown as a Tooltip (Default/Medium) to the right of the item. */
+.zen-sidebar__rail-tooltip { position: fixed; z-index: 1000; translate: 0 -50%; animation: zen-tooltip-in .12s ease-out; }
+@media (prefers-reduced-motion: reduce) { .zen-sidebar__rail-tooltip { animation: none; } }

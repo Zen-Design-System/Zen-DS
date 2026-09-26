@@ -6,13 +6,21 @@ import "./search.css";
 export const searchSizes = ["small", "medium"] as const;
 export const searchThemes = ["default", "filter-icon", "filter-dropdown"] as const;
 export const searchStates = ["default", "hover", "focused", "typing", "inputted"] as const;
+/** Figma component sets: Search/Default and Search/Popover. */
+export const searchVariants = ["default", "popover"] as const;
 
 export type SearchSize = (typeof searchSizes)[number];
 export type SearchTheme = (typeof searchThemes)[number];
 export type SearchState = (typeof searchStates)[number] | "disabled";
+export type SearchVariant = (typeof searchVariants)[number];
 
 export interface SearchProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "size"> {
+  /** `popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, and no
+   * focus stroke or ring (it sits inside the Popover surface). `size` is ignored. */
+  variant?: SearchVariant;
   size?: SearchSize;
+  /** Optional Input label above the field; when set it also names the input. */
+  label?: ReactNode;
   theme?: SearchTheme;
   state?: SearchState;
   /** Figma's `Icon-Search` property. */
@@ -28,7 +36,9 @@ export interface SearchProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
 
 export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
   {
-    size = "medium",
+    variant = "default",
+    size: requestedSize = "medium",
+    label,
     theme = "default",
     state,
     iconSearch = true,
@@ -47,6 +57,7 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
   },
   ref,
 ) {
+  const size: SearchSize = variant === "popover" ? "small" : requestedSize;
   const controlled = value !== undefined;
   const [internalValue, setInternalValue] = useState(() => String(defaultValue ?? ""));
   const resolvedState = state ?? (disabled ? "disabled" : undefined);
@@ -85,14 +96,15 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
       onChange={handleChange}
       ref={ref}
       type="search"
-      className={["zen-search", className].filter(Boolean).join(" ")}
+      className={["zen-search", variant === "popover" ? "zen-search--popover" : "", className].filter(Boolean).join(" ")}
       size={size}
       state={resolvedState}
       leading={leadingContent}
       trailing={trailingContent}
       placeholder={placeholder}
       disabled={disabled || resolvedState === "disabled"}
-      aria-label={inputProps["aria-label"] ?? placeholder}
+      label={label}
+      aria-label={inputProps["aria-label"] ?? (label ? undefined : placeholder)}
       data-theme={theme}
     />
   );

@@ -1,5 +1,13 @@
 /* Generated from styles/source/figma/figma-styles.full.json. Do not edit directly. */
-:root {
+:root,
+[data-brand],
+[data-theme],
+[data-component-theme],
+[data-density],
+[data-radius],
+[data-emphasis],
+[data-breakpoint],
+[data-typography] {
   --zen-style-glass-floating-shadow: 0 8px 24px -12px var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 12px 32px -16px var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04));
   --zen-style-effect-container-shadow: 0 12px 32px -16px var(--zen-color-shadow-neutral-strong, rgba(0, 0, 0, 0.12)), 0 8px 24px -16px var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04));
   --zen-style-effect-popover-shadow: 0 8px 24px -12px var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 12px 32px -16px var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04));

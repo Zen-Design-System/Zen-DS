@@ -14,7 +14,12 @@
     "styles:build": "node scripts/build-text-styles.mjs && node scripts/build-style-manifest.mjs",
     "styles:check": "node scripts/check-text-styles.mjs && node scripts/check-style-manifest.mjs",
     "icons:build": "node scripts/build-icons.mjs",
-    "icons:check": "node scripts/check-icons.mjs"
+    "icons:check": "node scripts/check-icons.mjs",
+    "usage:check": "node tools/usage-guard/check-usage.mjs",
+    "usage:selftest": "node tools/usage-guard/selftest.mjs",
+    "usage:rules": "node tools/usage-guard/check-usage.mjs --list",
+    "guidelines:build": "node tools/usage-guard/build-guidelines.mjs",
+    "guidelines:check": "node tools/usage-guard/build-guidelines.mjs --check"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

@@ -1,4 +1,5 @@
 import { collections, totals } from "./collections";
+import { typographyStyles } from "../tokens/typography.generated";
 
 const layerLabels = {
   primitive: "Primitive",
@@ -48,7 +49,7 @@ export function FoundationOverview({ embedded = false }: { embedded?: boolean })
             <p className="foundation-eyebrow">Source inventory</p>
             <h2 id="collections-heading">Variable collections</h2>
           </div>
-          <p>Modes stay as independent axes; they are never flattened into one mega-theme.</p>
+          <p className={typographyStyles["Heading/3"]}>Modes stay as independent axes; they are never flattened into one mega-theme.</p>
         </div>
 
         <div className="collection-grid">
@@ -77,9 +78,8 @@ export function FoundationOverview({ embedded = false }: { embedded?: boolean })
                   <span key={mode}>{mode}</span>
                 ))}
               </div>
-              {collection.codeAxis ? (
-                <code className="code-axis">{collection.codeAxis}</code>
-              ) : null}
+              {/* Always rendered so every card has the same rows; hidden when there is no mode axis. */}
+              <code className="code-axis" data-empty={collection.codeAxis ? undefined : "true"} aria-hidden={collection.codeAxis ? undefined : true}>{collection.codeAxis ?? "—"}</code>
             </article>
           ))}
         </div>

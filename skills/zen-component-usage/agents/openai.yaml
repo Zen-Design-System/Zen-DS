@@ -1,0 +1,4 @@
+interface:
+  display_name: "Zen component usage"
+  short_description: "Use Zen components by their Do/Don't rules and pass the usage harness"
+  default_prompt: "Use $zen-component-usage: read docs/guidelines/index.json, compose with the right Zen components, then run npm run usage:check and fix every finding."

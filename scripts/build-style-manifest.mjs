@@ -151,9 +151,15 @@ if (missingVariables.size) {
   throw new Error(`Figma styles reference variables missing from tokens.css:\n${[...missingVariables].join("\n")}`);
 }
 
+// Style values reference mode-dependent tokens through var(). A custom property resolves its var()
+// where it is declared, so declaring them only on :root would freeze them to the default modes. Re-declare
+// them on every element that sets a token mode axis (same attributes as scripts/build-tokens.mjs), so a
+// subtree in dark mode or another component theme gets its own shadow/fill colours.
+const modeScopes = ["data-brand", "data-theme", "data-component-theme", "data-density", "data-radius", "data-emphasis", "data-breakpoint", "data-typography"];
+
 const css = [
   "/* Generated from styles/source/figma/figma-styles.full.json. Do not edit directly. */",
-  ":root {",
+  `:root,\n${modeScopes.map((attribute) => `[${attribute}]`).join(",\n")} {`,
   ...effectStyles.flatMap((effect) => [
     `  ${effect.cssVariable}: ${effect.boxShadow};`,
     ...(effect.backdropFilter ? [`  --zen-style-${effect.token}-backdrop-filter: ${effect.backdropFilter};`] : []),

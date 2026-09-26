@@ -1,0 +1,33 @@
+/* Figma Tooltip (1595:2220). Container: padding 8/12 (Medium) or 4/8 (Small), radius Corner-Radius/Base,
+   Effect/Popover. Label: .Primitives/Tooltip/Content/Simple-Label, Caption/Medium, colour per Theme. */
+.zen-tooltip {
+  --zen-tooltip-fill: var(--zen-color-background-neutral-solid-default);
+  --zen-tooltip-content: var(--zen-color-content-inverse-strongest);
+  display: inline-flex;
+  width: max-content;
+  max-width: 240px;
+  box-sizing: border-box;
+  flex-direction: column;
+  gap: var(--zen-spacing-gap-3-xsmall, 2px);
+  padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px);
+  border-radius: var(--zen-corner-radius-base, 12px);
+  background: var(--zen-tooltip-fill);
+  box-shadow: var(--zen-style-effect-popover-shadow);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+  color: var(--zen-tooltip-content);
+  pointer-events: none;
+}
+.zen-tooltip[data-size="small"] { padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); }
+.zen-tooltip[data-color="accent"] { --zen-tooltip-fill: var(--zen-color-background-accent-solid-default); --zen-tooltip-content: var(--zen-color-content-on-accent-default); }
+.zen-tooltip[data-color="white-overlay"] { --zen-tooltip-fill: var(--zen-color-background-white-solid-default); --zen-tooltip-content: var(--zen-color-content-neutral-strongest); }
+.zen-tooltip[data-color="black-overlay"] { --zen-tooltip-fill: var(--zen-color-background-black-overlay-default); --zen-tooltip-content: var(--zen-color-content-on-black-overlay-strongest); }
+.zen-tooltip__label { overflow-wrap: anywhere; }
+
+.zen-tooltip-anchor { position: relative; display: inline-flex; }
+.zen-tooltip--floating { position: absolute; z-index: 50; animation: zen-tooltip-in .12s ease-out; }
+.zen-tooltip--floating[data-placement="top"] { bottom: calc(100% + 8px); left: 50%; translate: -50% 0; }
+.zen-tooltip--floating[data-placement="bottom"] { top: calc(100% + 8px); left: 50%; translate: -50% 0; }
+.zen-tooltip--floating[data-placement="left"] { right: calc(100% + 8px); top: 50%; translate: 0 -50%; }
+.zen-tooltip--floating[data-placement="right"] { left: calc(100% + 8px); top: 50%; translate: 0 -50%; }
+@keyframes zen-tooltip-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .zen-tooltip--floating { animation: none; } }

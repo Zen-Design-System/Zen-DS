@@ -1,0 +1,1008 @@
+{
+  "button": {
+    "title": "Button & IconButton",
+    "purpose": "Triggers an action on the current surface (save, submit, open, delete). Navigation between pages is a link, not a Button.",
+    "use": [
+      "Committing or cancelling a task (forms, dialogs, toolbars).",
+      "Icon-only actions in dense toolbars (IconButton + aria-label + Tooltip)."
+    ],
+    "avoid": [
+      "Choosing a filter, sort or scope → Chip (variant=\"advanced\").",
+      "Switching views or sections → Segmented or Tabs.",
+      "Navigating to another page → a link or Sidebar item."
+    ],
+    "do": [
+      "Give each surface exactly one Primary button, the main CTA.",
+      "Use Tertiary for every other action; it is the most common level.",
+      "Pair actions as Tertiary (dismiss) + Primary (commit), with Primary last, on the right.",
+      "Use Danger or Danger-Subtle for irreversible actions (Delete, Discard).",
+      "Start labels with a verb and keep them to 1–3 words (\"Save changes\", \"Invite\").",
+      "Disable a button only while its precondition is unmet, and explain why nearby (help text, validation).",
+      "Show progress on the button itself (\"Deleting…\") and disable siblings while it runs."
+    ],
+    "dont": [
+      "Don't use Secondary as the default second button. It is a rare highlight (e.g. a pressed toolbar toggle); justify it with zen-allow-secondary.",
+      "Don't use Accent for ordinary primaries; reserve it for promoted CTAs (upsell, onboarding, the floating feedback action).",
+      "Don't put two Primary buttons side by side.",
+      "Don't use a Button to open a filter/sort list.",
+      "Don't ship an IconButton without aria-label.",
+      "Don't use vague labels (\"OK\", \"Click here\") for consequential actions."
+    ],
+    "a11y": [
+      "Native <button>; Enter/Space activate. Focus ring is Focus/Accent (3px).",
+      "IconButton requires aria-label; add a Tooltip with the same text for sighted users.",
+      "Toggle buttons expose aria-pressed.",
+      "Minimum hit target 24px (2xs); prefer ≥ 32px (sm) for pointer, 40px (md) for touch."
+    ],
+    "content": [
+      "Sentence case, verb first.",
+      "Match the dialog title's verb in its primary action (\"Delete project?\" → \"Delete project\")."
+    ],
+    "refs": [
+      [
+        "Material 3 — Buttons",
+        "https://m3.material.io/components/buttons/guidelines"
+      ],
+      [
+        "Carbon — Button usage",
+        "https://carbondesignsystem.com/components/button/usage/"
+      ],
+      [
+        "WAI-ARIA APG — Button",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/button/"
+      ]
+    ],
+    "file": "docs/guidelines/button.md",
+    "rules": [
+      {
+        "id": "button/secondary-justified",
+        "severity": "error",
+        "summary": "Secondary is a rare highlight; default to Primary (main CTA) or Tertiary.",
+        "allow": "secondary"
+      },
+      {
+        "id": "button/filter-is-chip",
+        "severity": "error",
+        "summary": "Filter, sort and scope pickers are Chip (variant=advanced), never buttons.",
+        "allow": "filter-button"
+      },
+      {
+        "id": "button/accent-is-promoted",
+        "severity": "warn",
+        "summary": "Accent is for promoted CTAs (upsell, onboarding) only.",
+        "allow": "accent"
+      },
+      {
+        "id": "button/destructive-is-danger",
+        "severity": "warn",
+        "summary": "Irreversible actions (Delete, Remove, Discard) use Danger or Danger-Subtle.",
+        "allow": "destructive"
+      },
+      {
+        "id": "icon-button/needs-name",
+        "severity": "error",
+        "summary": "Icon-only buttons need an aria-label.",
+        "allow": "unnamed"
+      }
+    ]
+  },
+  "chip": {
+    "title": "Chip / Pill",
+    "purpose": "Compact, selectable tokens. Advanced chips are the Zen filter control: each owns a Popover of options.",
+    "use": [
+      "Filter/sort/scope/status/owner pickers (variant=\"advanced\" + popoverItems).",
+      "Toggleable topic pills (variant=\"normal\", aria-pressed).",
+      "Counts in dense layouts (variant=\"number-only\")."
+    ],
+    "avoid": [
+      "Primary actions → Button.",
+      "Read-only labels or statuses → Badge.",
+      "Values inside an input → Tag."
+    ],
+    "do": [
+      "Use one Advanced chip per filter dimension (Status, Owner, Date).",
+      "Show the chosen value as the chip label for single selection; show the counter for multiple.",
+      "Wire onClearSelection so Delete/Backspace and the × clear the filter.",
+      "Offer \"Clear all\" (Tertiary button) when two or more filters are active.",
+      "Keep Advanced chips' Popover open while toggling multiple options (popoverMultiple)."
+    ],
+    "dont": [
+      "Don't use Secondary or any Button to open a filter list.",
+      "Don't use Segmented to filter data (Segmented switches views).",
+      "Don't give a Normal or Number-only chip popoverItems.",
+      "Don't wrap chips inside another button."
+    ],
+    "a11y": [
+      "Chip is a <button>; the Popover is a listbox with role=option items.",
+      "↓ opens, Escape closes and returns focus, Delete/Backspace clears (aria-keyshortcuts).",
+      "Topic pills expose aria-pressed."
+    ],
+    "content": [
+      "Label the chip with the dimension (\"Status\") until a value is picked, then the value (\"Done\")."
+    ],
+    "refs": [
+      [
+        "Material 3 — Chips",
+        "https://m3.material.io/components/chips/guidelines"
+      ],
+      [
+        "Carbon — Tag (filter)",
+        "https://carbondesignsystem.com/components/tag/usage/"
+      ],
+      [
+        "WAI-ARIA APG — Listbox",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/listbox/"
+      ]
+    ],
+    "file": "docs/guidelines/chip.md",
+    "rules": [
+      {
+        "id": "button/filter-is-chip",
+        "severity": "error",
+        "summary": "Filter, sort and scope pickers are Chip (variant=advanced), never buttons.",
+        "allow": "filter-button"
+      },
+      {
+        "id": "chip/popover-needs-advanced",
+        "severity": "error",
+        "summary": "Only Chip variant=advanced opens a Popover.",
+        "allow": "chip-variant"
+      }
+    ]
+  },
+  "input": {
+    "title": "Input fields",
+    "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+    "use": [
+      "Free text → InputField; long text → TextAreaField.",
+      "One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField.",
+      "Dates → DateField; quantities → NumberField (steppers).",
+      "Inline editable titles → HeadingField."
+    ],
+    "avoid": [
+      "Searching/filtering content → Search.",
+      "Binary settings → Toggle or Checkbox.",
+      "2–5 mutually exclusive visible options → RadioButton group or Segmented."
+    ],
+    "do": [
+      "Always render a visible label; use aria-label only when the context already labels the field (e.g. a Share link row).",
+      "Validate on blur or submit, then show error text that says how to fix it.",
+      "Use Read-only for values the user may see but not change.",
+      "Make a labelled Leading/Trailing slot a picker (options) for units, country codes or account types.",
+      "Clamp NumberField with min/max; steppers disable at the bounds.",
+      "Keep help text to one line; move long guidance to InputConditions or docs."
+    ],
+    "dont": [
+      "Don't use Disabled on inputs; Zen inputs have Read-only only (Search is the exception).",
+      "Don't use placeholder text as the label.",
+      "Don't show an error before the user has interacted with the field.",
+      "Don't give an icon-only Leading/Trailing slot click behaviour; clicks focus the field.",
+      "Don't open a Date/Select popover on a read-only field."
+    ],
+    "a11y": [
+      "The whole field is the click target (padding/icons focus the native field; Select opens).",
+      "Errors set aria-invalid and link the message via aria-describedby.",
+      "NumberField is role=spinbutton: ↑/↓ step, Enter/blur clamp.",
+      "Select and Date pickers: ↓ opens, Escape closes, focus returns to the trigger."
+    ],
+    "content": [
+      "Labels are nouns (\"Work email\"); errors are sentences with the fix (\"Enter a valid email address, like name@company.com\")."
+    ],
+    "refs": [
+      [
+        "Material 3 — Text fields",
+        "https://m3.material.io/components/text-fields/guidelines"
+      ],
+      [
+        "Carbon — Text input",
+        "https://carbondesignsystem.com/components/text-input/usage/"
+      ],
+      [
+        "NN/g — Form design",
+        "https://www.nngroup.com/articles/web-form-design/"
+      ],
+      [
+        "WAI-ARIA APG — Spinbutton",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/spinbutton/"
+      ]
+    ],
+    "file": "docs/guidelines/input.md",
+    "rules": [
+      {
+        "id": "input/no-disabled",
+        "severity": "error",
+        "summary": "Inputs use Read-only, never Disabled (Search is the only exception).",
+        "allow": "disabled-input"
+      },
+      {
+        "id": "input/needs-label",
+        "severity": "error",
+        "summary": "Every field has a visible label (or an aria-label when the context labels it).",
+        "allow": "unlabelled-input"
+      }
+    ]
+  },
+  "search": {
+    "title": "Search",
+    "purpose": "Find or filter content by typing. The only input with a Disabled state.",
+    "use": [
+      "Filtering a visible list or table as the user types.",
+      "Global/entity search with results below."
+    ],
+    "avoid": [
+      "Collecting a form value → InputField.",
+      "Picking from a known short list → SelectField or a Chip filter."
+    ],
+    "do": [
+      "Describe the scope in the placeholder (\"Search components\").",
+      "Filter live and show an empty state that echoes the query.",
+      "Let Enter open the first result; the clear button resets to recent items.",
+      "Pair Search with Chip filters in table toolbars."
+    ],
+    "dont": [
+      "Don't hide search behind an icon on desktop when search is a primary task.",
+      "Don't clear the query when results update."
+    ],
+    "a11y": [
+      "type=search; aria-label defaults to the placeholder.",
+      "Announce result counts with aria-live."
+    ],
+    "content": [
+      "Placeholder: \"Search <things>\"; empty state: \"No <things> match “query”.\""
+    ],
+    "refs": [
+      [
+        "Material 3 — Search",
+        "https://m3.material.io/components/search/guidelines"
+      ],
+      [
+        "Carbon — Search",
+        "https://carbondesignsystem.com/components/search/usage/"
+      ]
+    ],
+    "file": "docs/guidelines/search.md",
+    "rules": [
+      {
+        "id": "search/needs-name",
+        "severity": "warn",
+        "summary": "Search needs a placeholder that says what is searched, or an aria-label.",
+        "allow": "unnamed"
+      }
+    ]
+  },
+  "segmented": {
+    "title": "Segmented",
+    "purpose": "Switch between 2–5 mutually exclusive views or sections of the same content.",
+    "use": [
+      "View switchers (grid ↔ list).",
+      "Section switchers with counters (Inbox · Mentions)."
+    ],
+    "avoid": [
+      "Filtering data → Chip (variant=\"advanced\").",
+      "More than 5 options or long labels → Tabs or SelectField.",
+      "Form answers → RadioButton group."
+    ],
+    "do": [
+      "Name the control with aria-label.",
+      "Keep labels to one or two words; icon-only items still need a label for assistive tech.",
+      "Use badges for counts and hide them at zero.",
+      "Keep the selected segment static: no hover and a default cursor, because one option is always selected and re-clicking it does nothing."
+    ],
+    "dont": [
+      "Don't use Segmented as a filter.",
+      "Don't mix icon-only and labelled items in one control.",
+      "Don't add a hover or pressed state to the selected segment; it suggests the choice can be undone by clicking it again."
+    ],
+    "a11y": [
+      "Radiogroup semantics; arrow keys move the selection."
+    ],
+    "content": [
+      "Nouns for sections, no verbs."
+    ],
+    "refs": [
+      [
+        "Material 3 — Segmented buttons",
+        "https://m3.material.io/components/segmented-buttons/guidelines"
+      ],
+      [
+        "Carbon — Content switcher",
+        "https://carbondesignsystem.com/components/content-switcher/usage/"
+      ]
+    ],
+    "file": "docs/guidelines/segmented.md",
+    "rules": [
+      {
+        "id": "segmented/needs-label",
+        "severity": "warn",
+        "summary": "Segmented needs an aria-label naming what it switches.",
+        "allow": "segmented-label"
+      }
+    ]
+  },
+  "toggle": {
+    "title": "Toggle",
+    "purpose": "Turn a setting on or off with immediate effect.",
+    "use": [
+      "Settings that apply instantly (notifications, dark preview)."
+    ],
+    "avoid": [
+      "Choices that need a Save/Submit → Checkbox.",
+      "Mutually exclusive options → RadioButton or Segmented."
+    ],
+    "do": [
+      "Apply the change immediately; no confirm button.",
+      "Use a master toggle to disable dependent toggles, and explain in its caption.",
+      "Label the setting, not the state (\"Email notifications\", not \"On\")."
+    ],
+    "dont": [
+      "Don't use a Toggle inside a form that is submitted later.",
+      "Don't add a forced hover state; real hover is built in."
+    ],
+    "a11y": [
+      "role=switch semantics via the native checkbox; Space toggles.",
+      "The label and caption are part of the clickable area."
+    ],
+    "content": [
+      "Positive phrasing; avoid double negatives (\"Hide inactive\" → \"Show inactive\")."
+    ],
+    "refs": [
+      [
+        "Material 3 — Switch",
+        "https://m3.material.io/components/switch/guidelines"
+      ],
+      [
+        "WAI-ARIA APG — Switch",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/switch/"
+      ]
+    ],
+    "file": "docs/guidelines/toggle.md",
+    "rules": [
+      {
+        "id": "choice/needs-label",
+        "severity": "error",
+        "summary": "Checkbox, Radio and Toggle always carry a label.",
+        "allow": "unlabelled-choice"
+      }
+    ]
+  },
+  "checkbox": {
+    "title": "Checkbox",
+    "purpose": "Select zero, one or many independent options, or confirm a single statement.",
+    "use": [
+      "Multi-select lists, select-all with indeterminate parent.",
+      "Consent that gates a primary action."
+    ],
+    "avoid": [
+      "Instant settings → Toggle.",
+      "One-of-many → RadioButton."
+    ],
+    "do": [
+      "Always give a label; clicking the label toggles.",
+      "Use indeterminate only for a parent whose children are partially selected; clicking resolves it.",
+      "Explain disabled options in the caption (\"Unavailable on the Free plan\")."
+    ],
+    "dont": [
+      "Don't use a checkbox for an action that happens immediately.",
+      "Don't pre-check consent boxes for marketing."
+    ],
+    "a11y": [
+      "Native checkbox; Space toggles; aria-checked=mixed for indeterminate."
+    ],
+    "content": [
+      "Affirmative statements (\"Send me product news\")."
+    ],
+    "refs": [
+      [
+        "Material 3 — Checkbox",
+        "https://m3.material.io/components/checkbox/guidelines"
+      ],
+      [
+        "WAI-ARIA APG — Checkbox",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/checkbox/"
+      ]
+    ],
+    "file": "docs/guidelines/checkbox.md",
+    "rules": [
+      {
+        "id": "choice/needs-label",
+        "severity": "error",
+        "summary": "Checkbox, Radio and Toggle always carry a label.",
+        "allow": "unlabelled-choice"
+      }
+    ]
+  },
+  "radio-button": {
+    "title": "Radio Button",
+    "purpose": "Pick exactly one option from a small visible set.",
+    "use": [
+      "2–6 options that benefit from being compared side by side (plans, density)."
+    ],
+    "avoid": [
+      "Long lists → SelectField.",
+      "View switching → Segmented."
+    ],
+    "do": [
+      "Wrap radios in role=radiogroup with an aria-label, and share one name.",
+      "Pre-select the recommended option when there is a safe default.",
+      "Use captions for price or consequence."
+    ],
+    "dont": [
+      "Don't render a lone radio; it cannot be unselected.",
+      "Don't use radios for independent choices."
+    ],
+    "a11y": [
+      "Arrow keys move and select within the group; Tab enters/leaves the group."
+    ],
+    "content": [
+      "Parallel phrasing across options."
+    ],
+    "refs": [
+      [
+        "Material 3 — Radio button",
+        "https://m3.material.io/components/radio-button/guidelines"
+      ],
+      [
+        "WAI-ARIA APG — Radio group",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/radio/"
+      ]
+    ],
+    "file": "docs/guidelines/radio-button.md",
+    "rules": [
+      {
+        "id": "choice/needs-label",
+        "severity": "error",
+        "summary": "Checkbox, Radio and Toggle always carry a label.",
+        "allow": "unlabelled-choice"
+      },
+      {
+        "id": "radio/needs-name",
+        "severity": "error",
+        "summary": "Radios share a name so arrow keys move within one group.",
+        "allow": "radio-name"
+      }
+    ]
+  },
+  "badge": {
+    "title": "Badge & Badge-Counter",
+    "purpose": "Non-interactive status, category or count labels.",
+    "use": [
+      "Status in lists (Live, Failed).",
+      "Unread/notification counts (BadgeCounter).",
+      "Removable labels on an item (remove + onRemove)."
+    ],
+    "avoid": [
+      "Selectable filters → Chip.",
+      "Values inside an input → Tag."
+    ],
+    "do": [
+      "Map status to semantic themes consistently (green = success, red = failure, yellow = attention).",
+      "Use Subtle backgrounds in dense tables and Solid for emphasis.",
+      "Cap counters at \"99+\" and hide them at zero."
+    ],
+    "dont": [
+      "Don't make a badge clickable (use Chip).",
+      "Don't rely on colour alone; keep the text."
+    ],
+    "a11y": [
+      "The remove button is labelled (\"Remove <label>\")."
+    ],
+    "content": [
+      "One or two words; no punctuation."
+    ],
+    "refs": [
+      [
+        "Material 3 — Badges",
+        "https://m3.material.io/components/badges/guidelines"
+      ],
+      [
+        "Carbon — Tag",
+        "https://carbondesignsystem.com/components/tag/usage/"
+      ]
+    ],
+    "file": "docs/guidelines/badge.md",
+    "rules": [
+      {
+        "id": "removable/needs-handler",
+        "severity": "error",
+        "summary": "A remove affordance must be wired to onRemove.",
+        "allow": "remove-handler"
+      },
+      {
+        "id": "badge-counter/cap",
+        "severity": "warn",
+        "summary": "Counters cap at 99+.",
+        "allow": "counter-cap"
+      }
+    ]
+  },
+  "tag": {
+    "title": "Tag",
+    "purpose": "A chosen value inside a field (keywords, recipients), usually removable.",
+    "use": [
+      "Autocomplete selections, keyword inputs."
+    ],
+    "avoid": [
+      "Statuses → Badge.",
+      "Filters → Chip."
+    ],
+    "do": [
+      "Let Backspace in an empty field remove the last tag.",
+      "Flag invalid values with error and explain in the field's error text."
+    ],
+    "dont": [
+      "Don't use tags as buttons."
+    ],
+    "a11y": [
+      "The remove button is named \"Remove <value>\"."
+    ],
+    "content": [
+      "Show the value exactly as entered."
+    ],
+    "refs": [
+      [
+        "Carbon — Tag",
+        "https://carbondesignsystem.com/components/tag/usage/"
+      ]
+    ],
+    "file": "docs/guidelines/tag.md",
+    "rules": [
+      {
+        "id": "removable/needs-handler",
+        "severity": "error",
+        "summary": "A remove affordance must be wired to onRemove.",
+        "allow": "remove-handler"
+      }
+    ]
+  },
+  "avatar": {
+    "title": "Avatar & Avatar Stack",
+    "purpose": "Represent a person or workspace with a photo or initials.",
+    "use": [
+      "People lists, assignees, account switchers, shared-with stacks (max 5)."
+    ],
+    "avoid": [
+      "Decorative illustrations.",
+      "Brand logos → Icon/Dock Icon."
+    ],
+    "do": [
+      "Set alt to the person's name; use alt=\"\" only when the name is shown next to the avatar.",
+      "Use 2 initials (1 on xsmall/2xsmall).",
+      "Use square avatars for workspaces and organisations.",
+      "In captioned Popover items use Avatar Small (32px) or larger (enforced by PopoverItem)."
+    ],
+    "dont": [
+      "Don't show more than 5 avatars in a stack; summarise the rest in text.",
+      "Don't use status without a text equivalent nearby (\"Online\")."
+    ],
+    "a11y": [
+      "Status dot has aria-label \"Online\"."
+    ],
+    "content": [
+      "Initials from given + family name."
+    ],
+    "refs": [
+      [
+        "Carbon — Avatar (pattern)",
+        "https://carbondesignsystem.com/patterns/global-header/"
+      ],
+      [
+        "Polaris — Avatar",
+        "https://polaris.shopify.com/components/images-and-icons/avatar"
+      ]
+    ],
+    "file": "docs/guidelines/avatar.md",
+    "rules": [
+      {
+        "id": "avatar/needs-alt",
+        "severity": "error",
+        "summary": "Avatars need alt (the person's name; alt=\"\" only when the name is shown next to it).",
+        "allow": "avatar-alt"
+      }
+    ]
+  },
+  "popover": {
+    "title": "Popover",
+    "purpose": "The shared floating list used by Chip, Select, Autocomplete and Leading/Trailing pickers.",
+    "use": [
+      "Option lists (single or multiple), sort menus, assignee pickers with search."
+    ],
+    "avoid": [
+      "Rich interactive content or forms → Dialog.",
+      "Short hints → Tooltip."
+    ],
+    "do": [
+      "Pass images via photoSrc; the item renders the Figma size for its theme.",
+      "Use Avatar Small (32px) or larger when an item has a caption.",
+      "Give it anchorRef + onOpenChange so outside-click and Escape close it and focus returns.",
+      "Keep single-select popovers closing on select; keep multi-select open.",
+      "Offer Manual-Add-New (onPopoverCreate / onCreate) when users may need a value that isn't listed, e.g. labels, tags or keywords. The Create row appears only for a new value, and Enter creates it."
+    ],
+    "dont": [
+      "Don't pass your own sized <Avatar>/<img> as leading for avatar/photo themes.",
+      "Don't put buttons or inputs (other than the Search row) inside items.",
+      "Don't dead-end a searchable list with \"No results\" when creating the value is allowed; use Manual-Add-New.",
+      "Don't offer Create for closed sets (statuses, roles, countries)."
+    ],
+    "a11y": [
+      "role=listbox / option with aria-selected; ↑/↓/Home/End move; Escape closes and restores focus."
+    ],
+    "content": [
+      "Label = category; item label = value; caption = secondary fact."
+    ],
+    "refs": [
+      [
+        "WAI-ARIA APG — Listbox",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/listbox/"
+      ],
+      [
+        "WAI-ARIA APG — Menu button",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/"
+      ],
+      [
+        "Material 3 — Menus",
+        "https://m3.material.io/components/menus/guidelines"
+      ]
+    ],
+    "file": "docs/guidelines/popover.md",
+    "rules": [
+      {
+        "id": "popover/controlled-close",
+        "severity": "warn",
+        "summary": "A controlled Popover needs onOpenChange so outside-click and Escape can close it.",
+        "allow": "popover-close"
+      }
+    ]
+  },
+  "sidebar": {
+    "title": "Sidebar",
+    "purpose": "Primary app navigation with sections, nested items and a collapsible rail.",
+    "use": [
+      "App shells with 5+ destinations."
+    ],
+    "avoid": [
+      "In-page section switching → Tabs.",
+      "Actions → Buttons in the page header."
+    ],
+    "do": [
+      "Move selection with onItemClick; exactly one selected item.",
+      "Group items under short section titles.",
+      "Use counters for actionable counts; notification dots for \"something new\"."
+    ],
+    "dont": [
+      "Don't force hover/focus states in examples; use real interaction.",
+      "Don't nest more than one level."
+    ],
+    "a11y": [
+      "aria-current=page on the selected item; collapsed items keep aria-label/title."
+    ],
+    "content": [
+      "Nouns, one or two words."
+    ],
+    "refs": [
+      [
+        "Material 3 — Navigation drawer",
+        "https://m3.material.io/components/navigation-drawer/guidelines"
+      ],
+      [
+        "Carbon — UI shell left panel",
+        "https://carbondesignsystem.com/components/UI-shell-left-panel/usage/"
+      ]
+    ],
+    "file": "docs/guidelines/sidebar.md",
+    "rules": []
+  },
+  "date-picker": {
+    "title": "Date Picker",
+    "purpose": "Pick a date or a date range.",
+    "use": [
+      "DateField in forms; inline DatePicker for booking-style range selection."
+    ],
+    "avoid": [
+      "Known far-past dates (birthdays) → typed DateField without calendar-first UX."
+    ],
+    "do": [
+      "Disable impossible dates (past check-in) with minDate.",
+      "Show the chosen range and its consequence (nights, price) next to the calendar."
+    ],
+    "dont": [
+      "Don't open the calendar for read-only DateFields."
+    ],
+    "a11y": [
+      "Nav buttons are labelled; days are buttons with the date in the label."
+    ],
+    "content": [
+      "Use the locale's date format in the field placeholder."
+    ],
+    "refs": [
+      [
+        "Material 3 — Date pickers",
+        "https://m3.material.io/components/date-pickers/guidelines"
+      ],
+      [
+        "WAI-ARIA APG — Date picker dialog",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/examples/datepicker-dialog/"
+      ]
+    ],
+    "file": "docs/guidelines/date-picker.md",
+    "rules": [
+      {
+        "id": "input/no-disabled",
+        "severity": "error",
+        "summary": "Inputs use Read-only, never Disabled (Search is the only exception).",
+        "allow": "disabled-input"
+      },
+      {
+        "id": "input/needs-label",
+        "severity": "error",
+        "summary": "Every field has a visible label (or an aria-label when the context labels it).",
+        "allow": "unlabelled-input"
+      }
+    ]
+  },
+  "tooltip": {
+    "title": "Tooltip",
+    "purpose": "Name or briefly describe a control on hover and keyboard focus.",
+    "use": [
+      "Icon-only buttons, truncated text, keyboard shortcuts."
+    ],
+    "avoid": [
+      "Essential information or anything interactive → Popover or inline help.",
+      "Touch-only surfaces (no hover)."
+    ],
+    "do": [
+      "Wrap a focusable trigger (Button, IconButton, link).",
+      "Keep text under ~80 characters, no punctuation for single phrases.",
+      "Use Accent briefly for confirmations (\"Copied!\")."
+    ],
+    "dont": [
+      "Don't put links or buttons inside a tooltip.",
+      "Don't repeat the visible label word for word."
+    ],
+    "a11y": [
+      "role=tooltip linked with aria-describedby; Escape dismisses; appears on focus."
+    ],
+    "content": [
+      "Name + shortcut (\"Bold · ⌘B\")."
+    ],
+    "refs": [
+      [
+        "WAI-ARIA APG — Tooltip",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/tooltip/"
+      ],
+      [
+        "Material 3 — Tooltips",
+        "https://m3.material.io/components/tooltips/guidelines"
+      ]
+    ],
+    "file": "docs/guidelines/tooltip.md",
+    "rules": [
+      {
+        "id": "tooltip/focusable-trigger",
+        "severity": "error",
+        "summary": "Tooltips wrap a focusable element so keyboard users can reach them.",
+        "allow": "tooltip-trigger"
+      },
+      {
+        "id": "tooltip/short",
+        "severity": "warn",
+        "summary": "Tooltip text stays under ~80 characters and holds no interactive content.",
+        "allow": "tooltip-length"
+      }
+    ]
+  },
+  "tabs": {
+    "title": "Tabs",
+    "purpose": "Switch between related panels of content at the same level.",
+    "use": [
+      "Settings pages, detail views with sections (Indicator).",
+      "Compact switches inside cards (Subtle, small)."
+    ],
+    "avoid": [
+      "Filtering → Chip.",
+      "Sequential steps → Stepper.",
+      "App navigation → Sidebar."
+    ],
+    "do": [
+      "Give the tablist an aria-label and pair each tab with a TabPanel.",
+      "Keep 2–7 tabs with short labels.",
+      "Show counts with badges; hide at zero."
+    ],
+    "dont": [
+      "Don't use tabs to submit or navigate away.",
+      "Don't mix icon-only and labelled tabs."
+    ],
+    "a11y": [
+      "Roving tabindex; ←/→ select, Home/End jump, disabled tabs are skipped."
+    ],
+    "content": [
+      "Nouns; no \"Tab\" in labels."
+    ],
+    "refs": [
+      [
+        "WAI-ARIA APG — Tabs",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/tabs/"
+      ],
+      [
+        "Material 3 — Tabs",
+        "https://m3.material.io/components/tabs/guidelines"
+      ]
+    ],
+    "file": "docs/guidelines/tabs.md",
+    "rules": [
+      {
+        "id": "tabs/needs-label",
+        "severity": "error",
+        "summary": "A tablist needs an aria-label.",
+        "allow": "tabs-label"
+      }
+    ]
+  },
+  "breadcrumbs": {
+    "title": "Breadcrumbs",
+    "purpose": "Show where the current page sits in a hierarchy and let users go up.",
+    "use": [
+      "Pages 3+ levels deep; file browsers."
+    ],
+    "avoid": [
+      "Flat apps or step flows."
+    ],
+    "do": [
+      "Make the last item the current page (not a link).",
+      "Collapse long paths with maxItems.",
+      "Use the same labels as page titles."
+    ],
+    "dont": [
+      "Don't use breadcrumbs as the only navigation.",
+      "Don't change the icon colour on hover (the wrapper turns Inverse/Solid, the icon stays Neutral/Strongest)."
+    ],
+    "a11y": [
+      "nav aria-label=\"Breadcrumb\" + ordered list; aria-current=page."
+    ],
+    "content": [
+      "Short page names."
+    ],
+    "refs": [
+      [
+        "WAI-ARIA APG — Breadcrumb",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/breadcrumb/"
+      ],
+      [
+        "NN/g — Breadcrumbs",
+        "https://www.nngroup.com/articles/breadcrumbs/"
+      ]
+    ],
+    "file": "docs/guidelines/breadcrumbs.md",
+    "rules": []
+  },
+  "progress": {
+    "title": "Progress",
+    "purpose": "Show determinate progress of a task or a step.",
+    "use": [
+      "Uploads, setup checklists, quotas (Status theme)."
+    ],
+    "avoid": [
+      "Unknown duration → Skeleton or a spinner.",
+      "Ratings or scores → Rating/Metric."
+    ],
+    "do": [
+      "Label every progress (visible label or aria-label).",
+      "Use Status only when low values are a problem (quotas, health).",
+      "Switch to Status/green or Done when complete."
+    ],
+    "dont": [
+      "Don't animate backwards.",
+      "Don't use colour alone to convey state."
+    ],
+    "a11y": [
+      "role=progressbar with aria-valuenow/min/max and valuetext."
+    ],
+    "content": [
+      "\"46% set up\", \"12 / 48 MB\"."
+    ],
+    "refs": [
+      [
+        "Material 3 — Progress indicators",
+        "https://m3.material.io/components/progress-indicators/guidelines"
+      ],
+      [
+        "Carbon — Progress bar",
+        "https://carbondesignsystem.com/components/progress-bar/usage/"
+      ]
+    ],
+    "file": "docs/guidelines/progress.md",
+    "rules": [
+      {
+        "id": "progress/needs-label",
+        "severity": "error",
+        "summary": "Progress needs a visible label or an aria-label.",
+        "allow": "progress-label"
+      }
+    ]
+  },
+  "dialog": {
+    "title": "Modal & Dialog",
+    "purpose": "Interrupt to confirm a decision or deliver critical information.",
+    "use": [
+      "Destructive confirmations, unsaved-changes guards, blocking success/failure."
+    ],
+    "avoid": [
+      "Non-blocking feedback → Toast.",
+      "Long forms → a page or Side Panel.",
+      "Hints → Tooltip/Popover."
+    ],
+    "do": [
+      "Phrase the title as the question (\"Delete “Marketing site”?\") and repeat the verb in the primary action.",
+      "Use theme negative + level danger for irreversible actions; give Cancel initial focus.",
+      "Require typing the name for high-impact deletes."
+    ],
+    "dont": [
+      "Don't stack dialogs.",
+      "Don't use a dialog for information the user can ignore.",
+      "Don't hide the only way out (always Escape or a cancel action)."
+    ],
+    "a11y": [
+      "role=dialog/alertdialog, aria-modal, labelled by the title; focus is trapped and restored to the opener."
+    ],
+    "content": [
+      "Title ≤ 1 line; description states the consequence."
+    ],
+    "refs": [
+      [
+        "WAI-ARIA APG — Dialog (modal)",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/"
+      ],
+      [
+        "WAI-ARIA APG — Alert dialog",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/alertdialog/"
+      ],
+      [
+        "Material 3 — Dialogs",
+        "https://m3.material.io/components/dialogs/guidelines"
+      ]
+    ],
+    "file": "docs/guidelines/dialog.md",
+    "rules": [
+      {
+        "id": "dialog/needs-title",
+        "severity": "error",
+        "summary": "Dialogs always have a title.",
+        "allow": "dialog-title"
+      },
+      {
+        "id": "dialog/negative-uses-danger",
+        "severity": "error",
+        "summary": "A negative (destructive) dialog's primary action uses level danger.",
+        "allow": "dialog-danger"
+      }
+    ]
+  },
+  "icon": {
+    "title": "Icon",
+    "purpose": "Render a system icon from the generated set at a token size.",
+    "use": [
+      "Inside components' icon slots and next to text."
+    ],
+    "avoid": [
+      "Illustrations or brand logos at large sizes."
+    ],
+    "do": [
+      "Use line icons by default and solid for selected/filled states and remove affordances (icon-x-circle-solid).",
+      "Mark icons decorative when a text label is present."
+    ],
+    "dont": [
+      "Don't use an icon alone as the only label of an action without aria-label."
+    ],
+    "a11y": [
+      "Decorative icons are aria-hidden; meaningful icons need a text alternative."
+    ],
+    "content": [],
+    "refs": [
+      [
+        "Material — Icons guidance",
+        "https://m3.material.io/styles/icons/overview"
+      ]
+    ],
+    "file": "docs/guidelines/icon.md",
+    "rules": []
+  }
+}

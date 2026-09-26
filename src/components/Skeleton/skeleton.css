@@ -1,0 +1,39 @@
+/* Figma Skeleton (page 1556:17503): every placeholder is Color/Background/Neutral/Subtle/Default. */
+.zen-skeleton__bar,
+.zen-skeleton-heading,
+.zen-skeleton-shape {
+  display: block;
+  flex: 0 0 auto;
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%));
+}
+
+/* Body-Text: 8px bars, gap 8, fills its container; the last line (of several) stops 40px short. */
+.zen-skeleton-text { display: flex; width: 100%; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-skeleton-text .zen-skeleton__bar { width: 100%; height: 8px; }
+.zen-skeleton-text .zen-skeleton__bar:last-child:not(:first-child) { width: calc(100% - 40px); }
+
+/* Heading-Text: Large 99×32 · Medium 70×24 · Small 70×16. */
+.zen-skeleton-heading { width: 70px; height: 24px; }
+.zen-skeleton-heading[data-size="large"] { width: 99px; height: 32px; }
+.zen-skeleton-heading[data-size="small"] { height: 16px; }
+
+/* Shapes: heights 48/40/32/24/20; Rectangle and Pill are wider (92/76/60/46/38). */
+.zen-skeleton-shape { --zen-skeleton-size: 40px; --zen-skeleton-width: 76px; width: var(--zen-skeleton-width); height: var(--zen-skeleton-size); }
+.zen-skeleton-shape[data-size="large"] { --zen-skeleton-size: 48px; --zen-skeleton-width: 92px; }
+.zen-skeleton-shape[data-size="small"] { --zen-skeleton-size: 32px; --zen-skeleton-width: 60px; }
+.zen-skeleton-shape[data-size="xsmall"] { --zen-skeleton-size: 24px; --zen-skeleton-width: 46px; }
+.zen-skeleton-shape[data-size="2xsmall"] { --zen-skeleton-size: 20px; --zen-skeleton-width: 38px; }
+.zen-skeleton-shape:is([data-shape="round"], [data-shape="square"]) { width: var(--zen-skeleton-size); }
+.zen-skeleton-shape:is([data-shape="rectangle"], [data-shape="square"]) { border-radius: var(--zen-corner-radius-base, 12px); }
+
+/* Loading pulse (not in Figma, which is static); disabled for reduced motion. */
+.zen-skeleton--animated.zen-skeleton-text .zen-skeleton__bar,
+.zen-skeleton--animated.zen-skeleton-heading,
+.zen-skeleton--animated.zen-skeleton-shape { animation: zen-skeleton-pulse 1.6s ease-in-out infinite; }
+@keyframes zen-skeleton-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) {
+  .zen-skeleton--animated.zen-skeleton-text .zen-skeleton__bar,
+  .zen-skeleton--animated.zen-skeleton-heading,
+  .zen-skeleton--animated.zen-skeleton-shape { animation: none; }
+}

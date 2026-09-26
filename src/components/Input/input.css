@@ -6,7 +6,8 @@
 }
 
 .zen-date-field { position: relative; }
-.zen-date-field > .zen-date-picker { top: calc(100% + var(--zen-spacing-gap-xsmall, 8px)); left: 0; }
+/* Fallback before measuring; useAnchoredPosition then places it 4px from the input box (or above it). */
+.zen-date-field > .zen-date-picker { top: calc(100% + var(--zen-spacing-gap-2-xsmall, 4px)); left: 0; }
 
 .zen-input__label,
 .zen-input-label {
@@ -271,7 +272,7 @@
 
 .zen-input-field[data-state="focused"] .zen-input__control,
 .zen-input-field[data-state="typing"] .zen-input__control,
-.zen-input-field:is([data-state="default"], [data-state="inputted"], [data-state="hover"]) .zen-input__control:focus-within {
+.zen-input-field:is([data-state="default"], [data-state="inputted"], [data-state="hover"]) .zen-input__control:focus-within:not(:has(.zen-input-leading-trailing__picker :focus)) {
   --zen-input-field-stroke: 1px;
   --zen-input-field-border: var(--zen-color-focus-neutral-solid, #111);
   --zen-input-field-background: var(--zen-input-background-focused, #05050508);
@@ -282,7 +283,7 @@
 .zen-input-field[data-state="inputted-error"] .zen-input__control,
 .zen-input-field[data-state="blank-error"] .zen-input__control,
 .zen-input-field[data-state="error"] .zen-input__control,
-.zen-input-field:is([data-state="inputted-error"], [data-state="blank-error"], [data-state="error"]) .zen-input__control:focus-within {
+.zen-input-field:is([data-state="inputted-error"], [data-state="blank-error"], [data-state="error"]) .zen-input__control:focus-within:not(:has(.zen-input-leading-trailing__picker :focus)) {
   --zen-input-field-stroke: 1px;
   --zen-input-field-border: var(--zen-color-border-negative-solid-default, #e5532e);
   --zen-input-field-background: var(--zen-input-background-focused, #05050508);
@@ -318,9 +319,11 @@
   padding-right: var(--zen-input-spacing-medium-horizontal-padding, 12px);
 }
 
-.zen-input-field--number-center .zen-input__native {
-  text-align: center;
-}
+/* Input/Number (421:10057 / 450:7900): 24px Button/Icon-Main 2XSmall Tertiary steppers; the affordance slots hug them. */
+.zen-input-field.zen-number .zen-input__control > .zen-input__affordance:has(.zen-number__stepper, .zen-number__steppers) { width: auto; height: auto; flex-basis: auto; }
+.zen-number__steppers { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-input-field.zen-number[data-align="center"] .zen-input__native,
+.zen-input-field.zen-number .zen-input__native[data-align="center"] { text-align: center; }
 
 /* Input/Heading (694:13062) */
 .zen-heading-field { position: relative; display: block; min-width: 0; }
@@ -355,3 +358,20 @@
 .zen-autocomplete__tags > [role="listitem"] { display: inline-flex; max-width: 100%; }
 .zen-autocomplete__add { position: relative; display: flex; padding-block: var(--zen-spacing-padding-2-xsmall, 4px); }
 .zen-autocomplete__add > .zen-popover { position: absolute; z-index: 20; top: 0; left: 0; }
+
+/* Whole field is the click target (FieldShell forwards clicks to the native field / Select trigger). */
+.zen-input__control { cursor: text; }
+.zen-input__control:has(.zen-select__trigger) { cursor: pointer; }
+.zen-input-field:is([data-state="disabled"], [data-state="read-only"]) .zen-input__control { cursor: default; }
+
+/* Interactive Leading/Trailing picker: a labelled slot with options opens the shared Popover.
+   Focus inside the picker is not field focus, so the Focused ring rules above exclude it. */
+.zen-input-leading-trailing__picker { position: relative; display: inline-flex; }
+.zen-input-leading-trailing--interactive { margin: -4px -6px; padding: 4px 6px; border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.zen-input-leading-trailing--interactive:hover:not(:disabled) { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+.zen-input-leading-trailing--interactive:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 0; }
+.zen-input-leading-trailing--interactive:disabled { cursor: default; }
+/* Position comes from Popover's anchored placement (4px from the field box, flips above near the viewport edge). */
+/* The field clips its content; let an open picker escape it. */
+.zen-input__control:has(.zen-input-leading-trailing__picker[data-open="true"]) { overflow: visible; z-index: 4; }
+.zen-input-field:is([data-state="read-only"]) .zen-input-leading-trailing--interactive { pointer-events: none; }

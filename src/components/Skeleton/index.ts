@@ -1,0 +1,1 @@
+export { SkeletonHeading, SkeletonShape, SkeletonText, skeletonHeadingSizes, skeletonShapeSizes, skeletonShapes, skeletonTextLines, type SkeletonHeadingProps, type SkeletonHeadingSize, type SkeletonShape as SkeletonShapeKind, type SkeletonShapeProps, type SkeletonShapeSize, type SkeletonTextProps } from "./Skeleton";

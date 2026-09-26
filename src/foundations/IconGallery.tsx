@@ -1,7 +1,7 @@
 import { useDeferredValue, useEffect, useState } from "react";
 import { Icon, iconSizes, type IconSize } from "../components/Icon";
 import { Search } from "../components/Search";
-import { Chip } from "../components/Chip";
+import { SelectField } from "../components/Input";
 import { getIconData, iconNames } from "../icons/generated/iconData";
 
 export function IconGallery({ embedded = false }: { embedded?: boolean }) {
@@ -44,23 +44,22 @@ export function IconGallery({ embedded = false }: { embedded?: boolean }) {
       {iconNames.length ? (
         <>
           <section className="icon-gallery__toolbar" aria-label="Icon filters">
-            <div className="icon-gallery__search-control">
-              <span>Search icons</span>
-              <Search value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search icon name…" aria-label="Search icons" />
-            </div>
-            <div className="icon-gallery__size-control">
-              <span>Preview size</span>
-              <Chip
-                variant="advanced"
-                size="small"
-                dropdown
-                popoverLabel="Icon Size"
-                popoverItems={iconSizes.map((option) => ({ id: option, label: option.toUpperCase(), selected: option === size }))}
-                onPopoverSelect={(option) => setSize(option.id as IconSize)}
-              >
-                {size.toUpperCase()}
-              </Chip>
-            </div>
+            <Search
+              className="icon-gallery__search-control"
+              label="Search icons"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search icon name…"
+            />
+            {/* Single-value choice: Input/Select-Field opening the shared Popover (Label + options). */}
+            <SelectField
+              className="icon-gallery__size-control"
+              label="Preview size"
+              value={size}
+              onChange={(event) => setSize(event.target.value as IconSize)}
+              options={iconSizes.map((option) => ({ value: option, label: option.toUpperCase() }))}
+              popoverLabel="Icon Size"
+            />
             <p aria-live="polite">{matches.length.toLocaleString("en-US")} matches</p>
           </section>
 

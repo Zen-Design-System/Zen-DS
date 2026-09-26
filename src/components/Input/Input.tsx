@@ -1,8 +1,8 @@
-import { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState, type ButtonHTMLAttributes, type ChangeEvent, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState, type ButtonHTMLAttributes, type ChangeEvent, type MouseEvent, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 import { Icon } from "../Icon";
-import { Popover } from "../Popover";
+import { Popover, PopoverManualAddNew } from "../Popover";
 import { DatePicker } from "../DatePicker";
-import { Button } from "../Button";
+import { Button, IconButton } from "../Button";
 import { Tag } from "../Tag";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./input.css";
@@ -91,19 +91,75 @@ export interface InputLeadingTrailingProps {
   /** Explicit Figma Dropdown axis. */
   showDropdown?: boolean;
   children?: ReactNode;
+  /** Makes a labelled slot a picker: clicking it opens a Popover with these options (e.g. country code, unit, currency). */
+  options?: InputLeadingTrailingOption[];
+  value?: string;
+  onValueChange?: (value: string, option: InputLeadingTrailingOption) => void;
+  /** Popover/Label heading, e.g. "Country code". Also the button's accessible name prefix. */
+  popoverLabel?: string;
+  /** Open the picker towards the start (leading) or end (trailing) of the field. */
+  align?: "start" | "end";
+  disabled?: boolean;
 }
 
-/** Slot-compatible implementation of `.Primitives/Input/Leading-Trailing`. */
-export function InputLeadingTrailing({ size = "medium", active = true, icon, flag, label, showLabel = true, dropdown = false, showDropdown, children }: InputLeadingTrailingProps) {
-  const resolvedDropdown = showDropdown ?? dropdown;
-  return <span className="zen-input-leading-trailing" data-size={size} data-active={active ? "true" : "false"} data-label={showLabel ? "true" : "false"} data-dropdown={resolvedDropdown ? "true" : "false"}>
-    {flag}{icon}
-    <span className="zen-input-leading-trailing__elements">
-      {showLabel && label !== undefined ? <span className={`zen-input-leading-trailing__label ${typographyStyles[size === "large" ? "Heading/4" : "Body/Base/Medium"]}`}>{label}</span> : null}
-      {children}
-      {resolvedDropdown ? <span className="zen-input-leading-trailing__dropdown"><Icon name="icon-chevron-down-line" size={size === "small" ? "sm" : "base"} decorative /></span> : null}
+export type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: ReactNode; icon?: ReactNode; flag?: ReactNode };
+
+/** Slot-compatible implementation of `.Primitives/Input/Leading-Trailing`. A labelled slot with `options` becomes a
+ * picker button (label + chevron) that opens the shared Popover; slots without a label stay decorative, so a click
+ * on them focuses the field instead. */
+export function InputLeadingTrailing({ size = "medium", active = true, icon, flag, label, showLabel = true, dropdown = false, showDropdown, children, options, value, onValueChange, popoverLabel, align = "end", disabled = false }: InputLeadingTrailingProps) {
+  const [open, setOpen] = useState(false);
+  const anchorRef = useRef<HTMLButtonElement>(null);
+  const hasLabel = showLabel && label !== undefined && label !== null && label !== "";
+  const interactive = hasLabel && Boolean(options?.length);
+  const resolvedDropdown = interactive || (showDropdown ?? dropdown);
+  const current = options?.find((option) => option.value === value);
+  const content = (
+    <>
+      {current?.flag ?? flag}{current?.icon ?? icon}
+      <span className="zen-input-leading-trailing__elements">
+        {hasLabel ? <span className={`zen-input-leading-trailing__label ${typographyStyles[size === "large" ? "Heading/4" : "Body/Base/Medium"]}`}>{current ? current.label : label}</span> : null}
+        {children}
+        {resolvedDropdown ? <span className="zen-input-leading-trailing__dropdown"><Icon name={open ? "icon-chevron-up-line" : "icon-chevron-down-line"} size={size === "small" ? "sm" : "base"} decorative /></span> : null}
+      </span>
+    </>
+  );
+  const common = { "data-size": size, "data-active": active ? "true" : "false", "data-label": showLabel ? "true" : "false", "data-dropdown": resolvedDropdown ? "true" : "false" };
+  if (!interactive) return <span className="zen-input-leading-trailing" {...common}>{content}</span>;
+  return (
+    <span className="zen-input-leading-trailing__picker" data-open={open ? "true" : "false"} data-align={align}>
+      <button
+        ref={anchorRef}
+        type="button"
+        className="zen-input-leading-trailing zen-input-leading-trailing--interactive"
+        {...common}
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={popoverLabel ? `${popoverLabel}: ${typeof (current?.label ?? label) === "string" ? current?.label ?? label : value ?? ""}` : undefined}
+        onClick={() => setOpen((next) => !next)}
+        onKeyDown={(event) => { if ((event.key === "ArrowDown" || event.key === "ArrowUp") && !open) { event.preventDefault(); setOpen(true); } }}
+      >
+        {content}
+      </button>
+      <Popover
+        className="zen-input-leading-trailing__popover"
+        align={align === "end" ? "end" : "start"}
+        open={open}
+        onOpenChange={setOpen}
+        anchorRef={anchorRef}
+        autoFocus
+        label={popoverLabel}
+        items={options!.map((option) => ({ id: option.value, label: option.label, caption: option.caption, leading: option.flag ?? option.icon, selected: option.value === value }))}
+        onSelect={(item) => {
+          const option = options!.find((entry) => entry.value === item.id)!;
+          onValueChange?.(option.value, option);
+          setOpen(false);
+          anchorRef.current?.focus();
+        }}
+      />
     </span>
-  </span>;
+  );
 }
 
 export type InputContentState = "default" | "focused" | "typing" | "inputted" | "disabled";
@@ -139,7 +195,28 @@ function FieldMessage({ id, error, helpText }: { id: string; error?: ReactNode; 
 
 function normalizeInputState(state: InputState | undefined, error?: ReactNode): InputState {
   if (state === "error") return "blank-error";
-  return state ?? (error ? "blank-error" : "default");
+  // An error message always wins over the interaction states (Figma Blank-Error / Inputted-Error);
+  // only Read-only and Disabled keep their own look.
+  if (error && (state === undefined || state === "default" || state === "hover" || state === "focused" || state === "typing")) return "blank-error";
+  if (error && state === "inputted") return "inputted-error";
+  return state ?? "default";
+}
+
+// Clicks on padding, icons or empty space inside the field act on the field itself; interactive children
+// (steppers, clear buttons, Leading/Trailing pickers) keep their own behaviour.
+const fieldInteractiveSelector = "button, a[href], input, textarea, select, [contenteditable='true'], [role='button'], [role='listbox'], [role='option'], .zen-popover";
+const primaryFieldSelector = ".zen-input__native, .zen-select__trigger, [contenteditable='true']";
+function focusFieldFromControl(event: MouseEvent<HTMLDivElement>) {
+  if ((event.target as Element).closest(fieldInteractiveSelector)) return;
+  const field = event.currentTarget.querySelector<HTMLElement>(primaryFieldSelector);
+  if (!field || (field as HTMLInputElement).disabled) return;
+  event.preventDefault(); // keep focus where it will land instead of flashing to <body>
+  field.focus();
+}
+function openFieldFromControl(event: MouseEvent<HTMLDivElement>) {
+  if ((event.target as Element).closest(fieldInteractiveSelector)) return;
+  const trigger = event.currentTarget.querySelector<HTMLButtonElement>(".zen-select__trigger");
+  if (trigger && !trigger.disabled) trigger.click(); // a Select opens from anywhere in its field
 }
 
 function FieldShell({ children, id, label, required, messageId, error, helpText, size, state, leading, trailing, className }: CommonFieldProps & { children: ReactNode; id: string; required?: boolean; messageId: string }) {
@@ -147,7 +224,7 @@ function FieldShell({ children, id, label, required, messageId, error, helpText,
   return (
     <div className={["zen-input-field", className].filter(Boolean).join(" ")} data-size={size ?? "medium"} data-state={resolvedState}>
       <FieldLabel id={id} label={label} required={required} />
-      <div className="zen-input__control">
+      <div className="zen-input__control" onMouseDown={focusFieldFromControl} onClick={openFieldFromControl}>
         {leading ? <span className="zen-input__affordance zen-input__affordance--leading">{leading}</span> : null}
         {children}
         {trailing ? <span className="zen-input__affordance zen-input__affordance--trailing">{trailing}</span> : null}
@@ -166,7 +243,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
   const messageId = `${id}-message`;
   const message = error ?? helpText;
   return (
-    <FieldShell id={id} label={label} required={required} messageId={messageId} error={error} helpText={helpText} size={size} state={state} leading={leading} trailing={trailing} className={className}>
+    <FieldShell id={id} label={label} required={required} messageId={messageId} error={error} helpText={helpText} size={size} state={state ?? (inputProps.readOnly ? "read-only" : undefined)} leading={leading} trailing={trailing} className={className}>
       <input
         {...inputProps}
         ref={ref}
@@ -191,7 +268,7 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
   const messageId = `${id}-message`;
   const message = error ?? helpText;
   return (
-    <FieldShell id={id} label={label} required={required} messageId={messageId} error={error} helpText={helpText} size={size} state={state} leading={leading} trailing={trailing} className={className}>
+    <FieldShell id={id} label={label} required={required} messageId={messageId} error={error} helpText={helpText} size={size} state={state ?? (textareaProps.readOnly ? "read-only" : undefined)} leading={leading} trailing={trailing} className={className}>
       <textarea
         {...textareaProps}
         ref={ref}
@@ -209,10 +286,19 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
 });
 
 export type SelectFieldOption = { label: string; value: string; disabled?: boolean };
-export type SelectFieldProps = CommonFieldProps & Omit<SelectHTMLAttributes<HTMLSelectElement>, "size"> & { options?: SelectFieldOption[] };
+export type SelectFieldProps = CommonFieldProps & Omit<SelectHTMLAttributes<HTMLSelectElement>, "size"> & {
+  options?: SelectFieldOption[];
+  /** Popover/Label heading above the options (names the group, not the value). */
+  popoverLabel?: ReactNode;
+  /** Adds the Popover Search row; options are filtered by the query. */
+  popoverSearch?: boolean;
+  popoverSearchPlaceholder?: string;
+  /** Figma State=Read-Only: shows the value, keeps the chevron, never opens. */
+  readOnly?: boolean;
+};
 
 export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(function SelectField(
-  { id: providedId, label, helpText, error, size = "medium", state, leading, trailing, className, required, disabled, options = [], children, ...selectProps },
+  { id: providedId, label, helpText, error, size = "medium", state, leading, trailing, className, required, disabled, readOnly = false, options = [], popoverLabel, popoverSearch = false, popoverSearchPlaceholder, children, ...selectProps },
   ref,
 ) {
   const generatedId = useId();
@@ -243,21 +329,23 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
   const selectedOption = options.find((option) => option.value === (controlledValue ?? selectedValue));
   const resolvedState = normalizeInputState(state, error);
   const isDisabled = disabled || resolvedState === "disabled";
+  const isReadOnly = readOnly || resolvedState === "read-only";
   useImperativeHandle(ref, () => nativeRef.current as HTMLSelectElement);
   return (
-    <FieldShell id={id} label={label} required={required} messageId={messageId} error={error} helpText={helpText} size={size} state={state} leading={leading} trailing={trailing ?? <Icon name="icon-chevron-down-line" size="2xs" />} className={[className, open ? "zen-input-field--popover-open" : ""].filter(Boolean).join(" ")}>
+    <FieldShell id={id} label={label} required={required} messageId={messageId} error={error} helpText={helpText} size={size} state={isReadOnly ? "read-only" : state} leading={leading} trailing={trailing ?? <Icon name="icon-chevron-down-line" size="2xs" />} className={[className, open ? "zen-input-field--popover-open" : ""].filter(Boolean).join(" ")}>
       <button
         id={`${id}-trigger`}
         className={`zen-input__native zen-select__trigger ${fieldTextStyle(size)}`}
         type="button"
         disabled={isDisabled}
         aria-haspopup="listbox"
+        aria-readonly={isReadOnly || undefined}
         aria-expanded={open}
         aria-controls={`${id}-popover`}
         aria-invalid={error ? true : undefined}
         aria-describedby={message ? messageId : undefined}
         ref={triggerRef}
-        onClick={(event) => { setOpenedFromKeyboard(event.detail === 0); setOpen((current) => !current); }}
+        onClick={(event) => { if (isReadOnly) return; setOpenedFromKeyboard(event.detail === 0); setOpen((current) => !current); }}
         onBlur={(event) => {
           // Close when focus leaves both the trigger and its popover.
           const next = event.relatedTarget as Node | null;
@@ -265,7 +353,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
           if (next) setOpen(false);
         }}
         onKeyDown={(event) => {
-          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          if (!isReadOnly && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
             event.preventDefault();
             setOpenedFromKeyboard(true);
             setOpen(true);
@@ -292,7 +380,11 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
       <Popover
         id={`${id}-popover`}
         open={open && !isDisabled}
-        autoFocus={openedFromKeyboard}
+        label={popoverLabel}
+        search={popoverSearch}
+        searchPlaceholder={popoverSearchPlaceholder}
+        // The search field takes focus on open, so a mouse-opened list is still typeable.
+        autoFocus={openedFromKeyboard || popoverSearch}
         onKeyDown={(event) => {
           if (event.key === "Escape") { event.preventDefault(); closeAndRestore(); }
           if (event.key === "Tab") setOpen(false);
@@ -323,8 +415,13 @@ function parseDateFieldValue(value: unknown): Date | null {
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
-export function DateField({ trailing, datePicker = true, datePickerActions = false, onDateChange, onFocus, onChange, value, defaultValue, ...props }: DateFieldProps) {
+export function DateField({ trailing, datePicker = true, datePickerActions = false, onDateChange, onFocus, onClick, onChange, value, defaultValue, ...props }: DateFieldProps) {
   const [open, setOpen] = useState(false);
+  const fieldRef = useRef<HTMLDivElement>(null);
+  // Closing returns focus to the input; that focus must not re-open the picker.
+  const closing = useRef(false);
+  const close = () => { closing.current = true; setOpen(false); requestAnimationFrame(() => { closing.current = false; }); };
+  const canOpen = !props.readOnly && props.state !== "read-only" && !props.disabled && props.state !== "disabled";
   const controlledValue = value !== undefined;
   const [internalValue, setInternalValue] = useState(() => String(defaultValue ?? ""));
   const currentValue = controlledValue ? value : internalValue;
@@ -332,24 +429,26 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
   const handleDateChange = (date: Date | null) => {
     if (!controlledValue && date) setInternalValue(`${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}/${date.getFullYear()}`);
     onDateChange?.(date);
-    setOpen(false);
+    close();
   };
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (!controlledValue) setInternalValue(event.target.value);
     onChange?.(event);
   };
   return (
-    <div className="zen-date-field">
+    <div className="zen-date-field" ref={fieldRef}>
       <InputField
         {...props}
         value={controlledValue ? value : internalValue}
         type="text"
         placeholder={props.placeholder ?? "MM/DD/YYYY"}
         trailing={trailing ?? <Icon name="icon-calendar-line" size="sm" />}
-        onFocus={(event) => { setOpen(true); onFocus?.(event); }}
+        onFocus={(event) => { if (canOpen && !closing.current) setOpen(true); onFocus?.(event); }}
+        // Re-open with a click after the picker was dismissed while the input kept focus.
+        onClick={(event) => { if (canOpen) setOpen(true); onClick?.(event); }}
         onChange={handleChange}
       />
-      {datePicker ? <DatePicker open={open} value={parsedValue} onChange={handleDateChange} onClose={() => setOpen(false)} showActions={datePickerActions} /> : null}
+      {datePicker ? <DatePicker open={open} value={parsedValue} onChange={handleDateChange} onClose={close} anchorRef={fieldRef} showActions={datePickerActions} /> : null}
     </div>
   );
 }
@@ -373,6 +472,10 @@ export interface AutocompleteFieldProps {
   addLabel?: ReactNode;
   popoverLabel?: ReactNode;
   searchPlaceholder?: string;
+  /** Figma Popover/Manual-Add-New: create a value that isn't in `options`. Add the new option to `options`
+   * and return its id; the field then selects it as a Tag. */
+  onCreate?: (label: string) => string | void;
+  createLabel?: ReactNode;
   className?: string;
 }
 
@@ -381,7 +484,7 @@ export interface AutocompleteFieldProps {
  * "Add Item" Button/Main XSmall Secondary that opens Popover/Default (Search + "Search and select" label + items)
  * over the Add slot. Selected options become tags; the popover closes on outside pointer-down or Escape.
  */
-export function AutocompleteField({ id: providedId, label, helpText, error, options, value, defaultValue = [], onChange, invalidValues = [], readOnly = false, disabled = false, addLabel = "Add Item", popoverLabel = "Search and select", searchPlaceholder = "Search", className }: AutocompleteFieldProps) {
+export function AutocompleteField({ id: providedId, label, helpText, error, options, value, defaultValue = [], onChange, invalidValues = [], readOnly = false, disabled = false, addLabel = "Add Item", popoverLabel = "Search and select", searchPlaceholder = "Search", onCreate, createLabel, className }: AutocompleteFieldProps) {
   const generatedId = useId();
   const id = providedId ?? `zen-autocomplete-${generatedId.replace(/:/g, "")}`;
   const [internal, setInternal] = useState<string[]>(defaultValue);
@@ -408,19 +511,42 @@ export function AutocompleteField({ id: providedId, label, helpText, error, opti
       {!readOnly ? (
         <div className="zen-autocomplete__add" ref={addRef}>
           <Button appearance="main" level="secondary" size="xs" disabled={disabled} startIcon={<Icon name="icon-plus-line" decorative />} aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((current) => !current)}>{addLabel}</Button>
-          <Popover
-            open={open}
-            onOpenChange={(next) => { setOpen(next); if (!next) setQuery(""); }}
-            anchorRef={addRef}
-            autoFocus
-            search
-            searchPlaceholder={searchPlaceholder}
-            searchValue={query}
-            onSearchChange={setQuery}
-            label={popoverLabel}
-            items={available.map((option) => ({ id: option.id, label: option.label, leading: option.leading }))}
-            onSelect={(item) => { commit([...selected, item.id]); setQuery(""); }}
-          />
+          {onCreate ? (
+            <PopoverManualAddNew
+              open={open}
+              onOpenChange={(next) => { setOpen(next); if (!next) setQuery(""); }}
+              anchorRef={addRef}
+              autoFocus
+              searchPlaceholder={searchPlaceholder}
+              searchValue={query}
+              onSearchChange={setQuery}
+              label={popoverLabel}
+              createLabel={createLabel}
+              // Existing options (even already-selected ones) count as "exists", so Create only offers genuinely new values.
+              items={available.map((option) => ({ id: option.id, label: option.label, leading: option.leading }))}
+              onSelect={(item) => { commit([...selected, item.id]); setQuery(""); }}
+              onCreate={(label) => {
+                if (options.some((option) => typeof option.label === "string" && option.label.trim().toLowerCase() === label.toLowerCase())) return;
+                const createdId = onCreate(label);
+                if (createdId) commit([...selected, createdId]);
+                setQuery("");
+              }}
+            />
+          ) : (
+            <Popover
+              open={open}
+              onOpenChange={(next) => { setOpen(next); if (!next) setQuery(""); }}
+              anchorRef={addRef}
+              autoFocus
+              search
+              searchPlaceholder={searchPlaceholder}
+              searchValue={query}
+              onSearchChange={setQuery}
+              label={popoverLabel}
+              items={available.map((option) => ({ id: option.id, label: option.label, leading: option.leading }))}
+              onSelect={(item) => { commit([...selected, item.id]); setQuery(""); }}
+            />
+          )}
         </div>
       ) : null}
       {error || helpText ? <InputHelpText id={messageId} theme={error ? "negative" : "neutral"}>{error ?? helpText}</InputHelpText> : null}
@@ -428,10 +554,96 @@ export function AutocompleteField({ id: providedId, label, helpText, error, opti
   );
 }
 
-export type NumberFieldProps = InputFieldProps & { align?: "left" | "center" };
-export function NumberField({ align = "left", className, ...props }: NumberFieldProps) {
-  return <InputField {...props} type="number" className={[className, align === "center" ? "zen-input-field--number-center" : ""].filter(Boolean).join(" ")} />;
-}
+export type NumberFieldProps = Omit<InputFieldProps, "value" | "defaultValue" | "type" | "min" | "max" | "step"> & {
+  /** Figma Input/Number-Align-Left (steppers trailing) or Number-Align-Center (− value +). */
+  align?: "left" | "center";
+  value?: number | null;
+  defaultValue?: number | null;
+  onValueChange?: (value: number | null) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  decrementLabel?: string;
+  incrementLabel?: string;
+};
+
+const decimalPlaces = (n: number) => (String(n).split(".")[1] ?? "").length;
+
+/** Figma Input/Number-Align-Left (421:10057) and Number-Align-Center (450:7900): Button/Icon-Main 2XSmall Tertiary
+ * steppers (24px) after or around the value. Read-Only hides the steppers. Keyboard: ↑/↓ step; Enter/blur clamps. */
+export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(function NumberField(
+  { align = "left", value, defaultValue = null, onValueChange, onChange, onKeyDown, onBlur, min, max, step = 1, readOnly, state, disabled, className, decrementLabel = "Decrease", incrementLabel = "Increase", leading, trailing, ...props },
+  ref,
+) {
+  const controlled = value !== undefined;
+  const [internal, setInternal] = useState<number | null>(defaultValue);
+  const [draft, setDraft] = useState<string | null>(null);
+  const current = controlled ? value : internal;
+  const isReadOnly = Boolean(readOnly) || state === "read-only";
+  const isDisabled = Boolean(disabled) || state === "disabled";
+  const precision = Math.max(decimalPlaces(step), decimalPlaces(min ?? 0));
+  const clamp = (n: number) => Number(Math.min(max ?? Infinity, Math.max(min ?? -Infinity, n)).toFixed(precision));
+  const parse = (text: string) => (text.trim() === "" || text.trim() === "-" ? null : Number(text.replace(",", ".")));
+  const commit = (next: number | null) => {
+    const resolved = next === null || Number.isNaN(next) ? null : clamp(next);
+    if (!controlled) setInternal(resolved);
+    setDraft(null);
+    if (resolved !== current) onValueChange?.(resolved);
+  };
+  const bump = (direction: 1 | -1) => {
+    const base = current ?? (min !== undefined && direction > 0 ? min - step : 0);
+    commit(base + direction * step);
+  };
+  const atMin = min !== undefined && current !== null && current <= min;
+  const atMax = max !== undefined && current !== null && current >= max;
+  // Steppers are pointer affordances; keyboard users step with ↑/↓ on the spinbutton itself.
+  const stepper = (direction: 1 | -1) => (
+    <IconButton
+      appearance="main" level="tertiary" size="2xs" tabIndex={-1} className="zen-number__stepper"
+      aria-label={direction > 0 ? incrementLabel : decrementLabel}
+      disabled={isDisabled || (direction > 0 ? atMax : atMin)}
+      icon={<Icon name={direction > 0 ? "icon-plus-line" : "icon-minus-line"} />}
+      onMouseDown={(event) => event.preventDefault()}
+      onClick={() => bump(direction)}
+    />
+  );
+  return (
+    <InputField
+      {...props}
+      ref={ref}
+      type="text"
+      inputMode={precision > 0 ? "decimal" : "numeric"}
+      role="spinbutton"
+      aria-valuenow={current ?? undefined}
+      aria-valuemin={min}
+      aria-valuemax={max}
+      state={isReadOnly ? "read-only" : state}
+      readOnly={isReadOnly}
+      disabled={disabled}
+      className={["zen-number", className].filter(Boolean).join(" ")}
+      data-align={align}
+      value={draft ?? (current === null ? "" : String(current))}
+      leading={!isReadOnly && align === "center" ? stepper(-1) : leading}
+      trailing={isReadOnly ? trailing : align === "center" ? stepper(1) : <span className="zen-number__steppers">{stepper(-1)}{stepper(1)}</span>}
+      onChange={(event) => {
+        setDraft(event.target.value);
+        const parsed = parse(event.target.value);
+        if (parsed !== null && !Number.isNaN(parsed)) {
+          if (!controlled) setInternal(parsed);
+          if (parsed !== current) onValueChange?.(parsed);
+        }
+        onChange?.(event);
+      }}
+      onKeyDown={(event) => {
+        onKeyDown?.(event);
+        if (event.defaultPrevented || isReadOnly || isDisabled) return;
+        if (event.key === "ArrowUp" || event.key === "ArrowDown") { event.preventDefault(); bump(event.key === "ArrowUp" ? 1 : -1); }
+        if (event.key === "Enter" && draft !== null) commit(parse(draft));
+      }}
+      onBlur={(event) => { if (draft !== null) commit(parse(draft)); onBlur?.(event); }}
+    />
+  );
+});
 
 export type ControlBarSelectItemTheme = "subtle" | "solid" | "inverse";
 export type ControlBarSelectItemState = "default" | "hover" | "selected";

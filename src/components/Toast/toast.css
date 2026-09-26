@@ -1,0 +1,49 @@
+/* Figma Toast-Message (1579:13276). */
+.zen-toast {
+  --zen-toast-background: var(--zen-color-background-neutral-solid-default, #111);
+  --zen-toast-content: var(--zen-color-content-inverse-strongest, #fff);
+  --zen-toast-close: var(--zen-toast-content);
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 648px;
+  align-items: center;
+  gap: var(--zen-spacing-gap-medium, 16px);
+  padding: var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-large, 20px);
+  border-radius: var(--zen-corner-radius-2-xlarge, 24px);
+  background: var(--zen-toast-background);
+  box-shadow: var(--zen-style-effect-popover-shadow);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+  color: var(--zen-toast-content);
+}
+.zen-toast[data-type="subtle"] {
+  --zen-toast-background: var(--zen-color-background-popover-default);
+  --zen-toast-content: var(--zen-color-content-neutral-strongest);
+  --zen-toast-close: var(--zen-color-content-neutral-light);
+  /* 1px OUTSIDE Border/Popover/Subtle: an outline keeps it out of the layout. */
+  outline: 1px solid var(--zen-color-border-popover-subtle);
+}
+.zen-toast[data-type="info"] { --zen-toast-background: var(--zen-color-background-info-solid-default); --zen-toast-content: var(--zen-color-content-on-colors); }
+.zen-toast[data-type="positive"] { --zen-toast-background: var(--zen-color-background-positive-solid-default); --zen-toast-content: var(--zen-color-content-on-colors); }
+.zen-toast[data-type="warning"] { --zen-toast-background: var(--zen-color-background-warning-solid-default); --zen-toast-content: var(--zen-color-content-on-brights); }
+.zen-toast[data-type="negative"] { --zen-toast-background: var(--zen-color-background-negative-solid-default); --zen-toast-content: var(--zen-color-content-on-colors); }
+
+.zen-toast__icon { display: inline-flex; flex: 0 0 auto; }
+.zen-toast__icon > .zen-icon, .zen-toast__close > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
+.zen-toast__body { display: flex; min-width: 0; flex: 1 1 auto; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-toast__content { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-toast__action { flex: 0 0 auto; }
+.zen-toast__close {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  background: transparent;
+  color: var(--zen-toast-close);
+  cursor: pointer;
+}
+.zen-toast__close:hover { opacity: 0.72; }
+.zen-toast__close:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }

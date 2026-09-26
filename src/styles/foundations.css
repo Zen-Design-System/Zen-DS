@@ -82,10 +82,11 @@
   font-weight: 650;
 }
 
+/* Title takes 1/3, the Heading/3 statement the remaining 2/3. */
 .section-heading {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   align-items: end;
-  justify-content: space-between;
   gap: 32px;
   margin: 88px 0 28px;
 }
@@ -100,10 +101,8 @@
 }
 
 .section-heading > p {
-  max-width: 440px;
   margin: 0;
   color: var(--zen-color-content-neutral-base, #000000a8);
-  line-height: 1.5;
 }
 
 .collection-grid {
@@ -232,7 +231,7 @@
 
   .section-heading {
     align-items: start;
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -313,160 +312,6 @@
   font-weight: 650;
 }
 
-.token-mode-strip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 64px;
-  border-bottom: 1px solid var(--zen-color-border-neutral-pale-default, #01010110);
-}
-
-.token-mode-strip span {
-  margin-right: 8px;
-  color: var(--zen-color-content-neutral-base, #000000a8);
-  font: 500 11px/16px "JetBrains Mono", ui-monospace, monospace;
-  text-transform: uppercase;
-}
-
-.token-mode-strip strong {
-  padding: 5px 10px;
-  border-radius: 1000px;
-  background: #01010108;
-  font: 500 12px/16px "JetBrains Mono", ui-monospace, monospace;
-}
-
-.token-table {
-  margin-top: 28px;
-  border: 1px solid var(--zen-color-border-neutral-pale-default, #01010110);
-  border-radius: var(--zen-corner-radius-base, 12px);
-  overflow: hidden;
-}
-
-.token-toolbar {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 24px;
-  margin-top: 28px;
-}
-
-.token-toolbar__search {
-  display: grid;
-  width: min(480px, 100%);
-  gap: 8px;
-}
-
-.token-toolbar__search > span {
-  color: var(--zen-color-content-neutral-base, #000000a8);
-  font: 500 11px/16px "JetBrains Mono", ui-monospace, monospace;
-  text-transform: uppercase;
-}
-
-.token-toolbar .zen-search,
-.token-toolbar .zen-search .zen-input__control { width: 100%; }
-
-.token-toolbar p,
-.token-result-note {
-  margin: 0;
-  color: var(--zen-color-content-neutral-base, #000000a8);
-  font-size: 12px;
-}
-
-.token-table__head,
-.token-row {
-  display: grid;
-  grid-template-columns: 96px minmax(240px, 1.2fr) minmax(160px, 0.5fr) minmax(260px, 1fr);
-  gap: 16px;
-  align-items: center;
-}
-
-.token-table__head {
-  padding: 12px 18px;
-  color: var(--zen-color-content-neutral-base, #000000a8);
-  background: #01010105;
-  font: 500 10px/16px "JetBrains Mono", ui-monospace, monospace;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.token-row {
-  min-height: 76px;
-  padding: 14px 18px;
-  border-top: 1px solid var(--zen-color-border-neutral-pale-default, #01010110);
-}
-
-.token-row strong {
-  font-size: 13px;
-  overflow-wrap: anywhere;
-}
-
-.token-row code {
-  color: var(--zen-color-content-neutral-base, #000000a8);
-  font: 500 11px/16px "JetBrains Mono", ui-monospace, monospace;
-  overflow-wrap: anywhere;
-}
-
-.token-mode-values {
-  display: grid;
-  gap: 7px;
-}
-
-.token-mode-values div {
-  display: grid;
-  grid-template-columns: minmax(72px, auto) minmax(0, 1fr);
-  gap: 8px;
-  align-items: baseline;
-}
-
-.token-mode-values span {
-  color: var(--zen-color-content-neutral-light, #00000086);
-  font: 500 10px/14px "JetBrains Mono", ui-monospace, monospace;
-}
-
-.token-mode-values code {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.token-preview {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.token-preview--color {
-  width: 52px;
-  height: 38px;
-  border: 1px solid #00000012;
-  border-radius: 6px;
-  box-shadow: inset 0 0 0 1px #ffffff4d;
-}
-
-.token-preview--dimension {
-  justify-content: flex-start;
-  width: 96px;
-  height: 38px;
-}
-
-.token-preview--dimension span {
-  display: block;
-  height: 8px;
-  border-radius: 1000px;
-  background: #ff6bd5;
-}
-
-.token-preview--type {
-  justify-content: flex-start;
-  font-size: 28px;
-  line-height: 1;
-}
-
-.token-preview--value {
-  justify-content: flex-start;
-  font: 500 12px/16px "JetBrains Mono", ui-monospace, monospace;
-}
-
 .token-empty-state {
   display: grid;
   grid-template-columns: auto minmax(0, 560px);
@@ -500,25 +345,6 @@
   margin: 0;
   color: var(--zen-color-content-neutral-base, #000000a8);
   line-height: 1.6;
-}
-
-.token-page__footer {
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  margin-top: 28px;
-  padding-top: 20px;
-  border-top: 1px solid var(--zen-color-border-neutral-pale-default, #01010110);
-  color: var(--zen-color-content-neutral-base, #000000a8);
-  font-size: 12px;
-}
-
-.token-result-note {
-  padding: 14px 4px 0;
-}
-
-.token-page__footer p {
-  margin: 0;
 }
 
 .icon-gallery {
@@ -588,7 +414,8 @@
 .icon-gallery__toolbar {
   position: sticky;
   z-index: 2;
-  top: 0;
+  /* Hosts with their own sticky header (the Platform topbar) set --zen-sticky-offset. */
+  top: var(--zen-sticky-offset, 0px);
   display: flex;
   align-items: end;
   gap: 16px;
@@ -596,53 +423,33 @@
   padding: 16px;
   border: 1px solid var(--zen-color-border-neutral-pale-default, #01010110);
   border-radius: var(--zen-corner-radius-small, 8px);
+}
+
+/* The frosted surface lives on a pseudo-element: a backdrop-filter on the toolbar itself would make it the
+   Backdrop Root of the Size Select's Popover, so the Popover's own blur could only sample the toolbar. */
+.icon-gallery__toolbar::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
   background: color-mix(
     in srgb,
     var(--zen-color-background-surface-default, #fff) 94%,
     transparent
   );
   backdrop-filter: blur(14px);
+  content: "";
+  pointer-events: none;
 }
 
-.icon-gallery__toolbar .icon-gallery__search-control,
-.icon-gallery__toolbar .icon-gallery__size-control {
-  display: grid;
-  gap: 6px;
-}
-
+/* Search and Select Input bring their own Input label, field and Popover styling;
+   the toolbar only sizes them. */
 .icon-gallery__toolbar .icon-gallery__search-control {
   flex: 1 1 320px;
 }
 
-.icon-gallery__size-control {
-  display: grid;
-  min-width: 112px;
-  gap: 6px;
-}
-
-.icon-gallery__size-control > span {
-  color: var(--zen-color-content-neutral-base, #000000a8);
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.icon-gallery__size-control .zen-chip__dropdown { width: max-content; }
-
-.icon-gallery__toolbar .icon-gallery__search-control > span {
-  color: var(--zen-color-content-neutral-base, #000000a8);
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.icon-gallery__toolbar input,
-.icon-gallery__toolbar select {
-  height: 40px;
-  border: 1px solid var(--zen-color-border-neutral-pale-default, #0101011f);
-  border-radius: var(--zen-corner-radius-xsmall, 4px);
-  padding: 0 12px;
-  background: var(--zen-color-background-surface-default, #fff);
-  color: inherit;
-  font: inherit;
+.icon-gallery__toolbar .icon-gallery__size-control {
+  flex: 0 0 160px;
 }
 
 .icon-gallery__toolbar p {
@@ -777,14 +584,6 @@
     grid-template-columns: 1fr;
   }
 
-  .token-table {
-    overflow-x: auto;
-  }
-
-  .token-table__head,
-  .token-row {
-    min-width: 860px;
-  }
 }
 
 @media (max-width: 620px) {
@@ -825,12 +624,45 @@
     min-height: auto;
   }
 
-  .token-page__footer {
-    flex-direction: column;
-  }
+}
 
-  .token-toolbar {
-    align-items: start;
-    flex-direction: column;
-  }
+/* Codebase Platform token table template (Figma 14257:56624 / 14257:58579 / 14257:60681):
+   Frame 1 toolbar on a 12-column grid, then one ".Ops/Header" + Table per ramp, 64px apart. */
+.token-table-view { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-giant, 64px); min-width: 0; }
+.token-table-view__toolbar { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--zen-spacing-gap-medium, 16px); padding-block: var(--zen-spacing-padding-xsmall, 8px); }
+/* Segmented hugs its items (max-content) and may use every column left of the Search. */
+.token-table-view__schemes { grid-row: 1; grid-column: 1 / 10; justify-self: start; }
+.token-table-view__search { grid-row: 1; grid-column: 5 / span 4; min-width: 0; }
+.token-table-view__toolbar[data-layout="end"] .token-table-view__search { grid-column: 10 / span 3; }
+.token-table-view__search .zen-search,
+.token-table-view__search .zen-search .zen-input__control { width: 100%; }
+.token-table-view__section { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-large, 24px); min-width: 0; }
+.token-table-view__title { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
+.token-table-view__table { display: flex; flex-direction: column; min-width: 0; }
+.token-table-view__head { display: flex; overflow: hidden; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-support-neutral-pale, rgb(5 5 5 / 3%)); color: var(--zen-color-content-neutral-strongest, #111); }
+.token-table-view__head-cell { min-width: 0; flex: 1 1 0; padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px); }
+.token-table-view__row { display: flex; }
+.token-table-view__cell { display: flex; min-width: 0; height: 72px; flex: 1 1 0; box-sizing: border-box; align-items: center; padding-inline: var(--zen-spacing-padding-medium, 16px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); }
+.token-table-view__cell--name { gap: var(--zen-spacing-gap-medium, 16px); }
+.token-table-view__cell--name > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.token-table-view__cell--values { flex-wrap: wrap; align-content: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.token-table-view__swatch { display: flex; width: 40px; height: 40px; flex: 0 0 40px; box-sizing: border-box; overflow: hidden; border: 1px solid var(--zen-color-focus-neutral-subtle, rgb(2 2 2 / 8%)); border-radius: var(--zen-corner-radius-base, 12px); }
+/* Figma ".Ops/Header/Cell/Display/Color Preview": Color layer (radius 8) = checker image at 30% + Value fill (radius Corner-Radius/XSmall). */
+.token-table-view__swatch > span { position: relative; flex: 1 1 auto; border-radius: 8px; }
+.token-table-view__swatch > span::before { position: absolute; inset: 0; border-radius: inherit; background: url("../assets/figma/platform/color-preview-checker.png") center / cover no-repeat; content: ""; opacity: .3; }
+.token-table-view__swatch > span > span { position: absolute; inset: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); }
+.token-table-view__pill { display: inline-flex; max-width: 100%; box-sizing: border-box; padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); overflow: hidden; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
+.token-table-view__value { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); white-space: nowrap; }
+/* Preview / Dimension column is a regular cell (72px, inline padding, row divider); the preview is centred inside it. */
+.token-table-view__cell--dimension { gap: var(--zen-spacing-gap-xsmall, 8px); }
+.token-table-view__dimension { max-width: 100%; height: 40px; box-sizing: border-box; flex: 0 0 auto; border-inline: 2px solid var(--zen-color-border-accent-solid-default, #ff66d4); background: var(--zen-color-background-accent-subtle-default, rgb(255 2 152 / 9%)); }
+.token-table-view__sample { overflow: hidden; color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
+.token-table-view__radius { width: 40px; height: 40px; flex: 0 0 40px; box-sizing: border-box; border-top: 2px solid var(--zen-color-border-accent-solid-default, #ff66d4); border-left: 2px solid var(--zen-color-border-accent-solid-default, #ff66d4); background: var(--zen-color-background-accent-subtle-default, rgb(255 2 152 / 9%)); }
+.token-table-view__empty { margin: 0; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); text-align: center; }
+@media (max-width: 760px) {
+  .token-table-view__schemes,
+  .token-table-view__search,
+  .token-table-view__toolbar[data-layout="end"] .token-table-view__search { grid-column: 1 / -1; grid-row: auto; }
+  .token-table-view__table { overflow-x: auto; }
+  .token-table-view__head, .token-table-view__row { min-width: 640px; }
 }

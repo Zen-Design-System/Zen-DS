@@ -54,3 +54,20 @@ export function Checkbox({ checked, defaultChecked = false, indeterminate = fals
 function CheckboxMark({ checked, indeterminate }: { checked: boolean; indeterminate: boolean }) {
   return <span className="zen-checkbox__mark" aria-hidden="true"><span className="zen-checkbox__box">{checked ? <Icon name={indeterminate ? "icon-minus-line" : "icon-check-line"} size="xs" decorative /> : null}</span></span>;
 }
+
+export interface CheckboxMarkProps {
+  checked?: boolean;
+  indeterminate?: boolean;
+  disabled?: boolean;
+  className?: string;
+}
+
+/** Figma Checkbox/Mark on its own (16px, State=Default): the visual control for rows that own the
+ * interaction themselves, e.g. multi-select Popover items. Decorative — the row carries the state. */
+export function CheckboxMarkIndicator({ checked = false, indeterminate = false, disabled = false, className }: CheckboxMarkProps) {
+  return (
+    <span className={["zen-checkbox-mark", className].filter(Boolean).join(" ")} data-checked={checked || indeterminate ? "true" : "false"} data-disabled={disabled ? "true" : undefined} aria-hidden="true">
+      <span className="zen-checkbox__box">{checked || indeterminate ? <Icon name={indeterminate ? "icon-minus-line" : "icon-check-line"} size="xs" decorative /> : null}</span>
+    </span>
+  );
+}

@@ -27,7 +27,7 @@ export function Badge({ children, size = "medium", theme = "neutral", background
   return <span className={["zen-badge", className].filter(Boolean).join(" ")} data-size={size} data-theme={theme} data-background={background}>
     {leadingContent ? <span className="zen-badge__leading">{leadingContent}</span> : null}
     <span className={`zen-badge__text ${textStyle}`}>{children}</span>
-    {remove ? <button className="zen-badge__remove" type="button" aria-label="Remove" onClick={onRemove}><Icon name="icon-x-circle-line" decorative /></button> : null}
+    {remove ? <button className="zen-badge__remove" type="button" aria-label="Remove" onClick={onRemove}><Icon name="icon-x-circle-solid" decorative /></button> : null}
   </span>;
 }
 

@@ -4,6 +4,15 @@
   background: var(--zen-color-background-surface-default, #ffffff);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  /* Match Figma's text rendering (measured against Figma exports, same text and size):
+     - Grayscale antialiasing: macOS subpixel/"stem darkening" smoothing drew glyphs 10–18% heavier
+       than Figma.
+     - No automatic optical sizing: Figma's "Inter" is always the text cut (opsz 14, the axis default)
+       at every size, while CSS `auto` switched large Display/Heading text to the lighter display cut.
+     Together the ink difference drops from +4…+18% to about ±2% (body text +5%). */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: none;
 }
 
 * {

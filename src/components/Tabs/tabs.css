@@ -1,0 +1,66 @@
+/* Figma Primitives/Tab-Item (1576:2090) + Tab-Bar (1577:5477).
+   Indicator: item height Tab-Item/Size (40/32) with 4/2 block padding; the hover Fill bleeds 8px past the
+   label (radius Base); Select=Yes draws a 2px Tab/Border/Selected line on the bar's 1px Border/Neutral/Pale.
+   Subtle: filled 40/32 container, padding 12/8 inline, radius Base, Tab/Background Default|Hover|Selected.
+   Label Body/Base/Medium → Body/Base/Bold when selected; icon Element-Size/Popular/Base (20). */
+.zen-tabs { position: relative; display: flex; max-width: 100%; align-items: center; gap: var(--zen-spacing-gap-large, 24px); overflow-x: auto; scrollbar-width: none; }
+.zen-tabs::-webkit-scrollbar { display: none; }
+.zen-tabs[data-variant="indicator"] { box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-pale-default); padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
+.zen-tabs[data-variant="subtle"] { gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-tabs[data-full-width="true"] { width: 100%; }
+
+.zen-tab {
+  --zen-tab-height: var(--zen-tab-item-size-medium-height, 40px);
+  --zen-tab-block: var(--zen-spacing-padding-2-xsmall, 4px);
+  --zen-tab-gap: var(--zen-tab-item-spacing-medium-gap, 8px);
+  --zen-tab-fill: var(--zen-tab-background-default);
+  --zen-tab-content: var(--zen-tab-content-default);
+  position: relative;
+  display: inline-flex;
+  height: var(--zen-tab-height);
+  min-width: var(--zen-tab-item-size-medium-min-width, 40px);
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  padding: var(--zen-tab-block) var(--zen-tab-item-spacing-medium-horizontal-padding, 0px);
+  border: 0;
+  background: transparent;
+  color: var(--zen-tab-content);
+  cursor: pointer;
+  outline: none;
+}
+.zen-tab[data-size="small"] {
+  --zen-tab-height: var(--zen-tab-item-size-small-height, 32px);
+  --zen-tab-block: var(--zen-spacing-padding-3-xsmall, 2px);
+  --zen-tab-gap: var(--zen-tab-item-spacing-small-gap, 8px);
+  min-width: var(--zen-tab-item-size-small-min-width, 32px);
+}
+.zen-tab__container { position: relative; display: inline-flex; width: 100%; height: 100%; box-sizing: border-box; align-items: center; justify-content: center; gap: var(--zen-tab-gap); border-radius: var(--zen-corner-radius-base, 12px); }
+/* Indicator Fill: background layer wider than the content (Figma ABS x=-8). */
+.zen-tab[data-variant="indicator"] .zen-tab__container::before { position: absolute; inset: 0 calc(-1 * var(--zen-spacing-padding-xsmall, 8px)); z-index: 0; border-radius: inherit; background: var(--zen-tab-fill); content: ""; }
+/* Icon-only items keep the Fill flush with the 40/32 square (Figma x=0). */
+.zen-tab[data-variant="indicator"][data-icon-only="true"] .zen-tab__container::before { inset: 0; }
+.zen-tab__container > * { position: relative; z-index: 1; }
+.zen-tab__icon { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; align-items: center; justify-content: center; }
+.zen-tab__icon > .zen-icon { width: 100%; height: 100%; }
+.zen-tab__label { white-space: nowrap; }
+/* Reserve the Bold width so selecting a tab doesn't shift its neighbours. */
+.zen-tab__label[data-text]::after { display: block; height: 0; overflow: hidden; visibility: hidden; font-weight: var(--zen-emphasis-font-weight-bold, 600); content: attr(data-text); }
+.zen-tab__label[data-text] { display: inline-flex; flex-direction: column; align-items: center; }
+
+.zen-tab:hover:not(:disabled), .zen-tab[data-state="hover"] { --zen-tab-fill: var(--zen-tab-background-hover); --zen-tab-content: var(--zen-tab-content-hover); }
+.zen-tab[data-selected="true"] { --zen-tab-content: var(--zen-tab-content-selected); }
+.zen-tab[data-variant="indicator"][data-selected="true"]::after { position: absolute; right: 0; bottom: 0; left: 0; height: 2px; border-radius: 1px; background: var(--zen-tab-border-selected); content: ""; }
+.zen-tab[data-variant="indicator"][data-selected="true"]:hover { --zen-tab-fill: var(--zen-tab-background-default); }
+.zen-tab:disabled, .zen-tab[data-state="disabled"] { --zen-tab-fill: var(--zen-tab-background-default); --zen-tab-content: var(--zen-color-content-disabled); cursor: not-allowed; }
+
+.zen-tab[data-variant="subtle"] { padding: 0; }
+.zen-tab[data-variant="subtle"] .zen-tab__container { padding-inline: var(--zen-spacing-padding-small, 12px); background: var(--zen-tab-fill); }
+.zen-tab[data-variant="subtle"][data-size="small"] .zen-tab__container { padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
+.zen-tab[data-variant="subtle"][data-selected="true"] { --zen-tab-fill: var(--zen-tab-background-selected); }
+.zen-tab[data-icon-only="true"] { width: var(--zen-tab-height); }
+.zen-tab[data-variant="subtle"][data-icon-only="true"] .zen-tab__container { padding-inline: 0; }
+
+.zen-tab:focus-visible .zen-tab__container { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid); }
+.zen-tab[data-variant="indicator"]:focus-visible .zen-tab__container::before { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid); }
+.zen-tab[data-variant="indicator"]:focus-visible .zen-tab__container { box-shadow: none; }
+.zen-tab-panel:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid); outline-offset: 2px; border-radius: var(--zen-corner-radius-small, 8px); }

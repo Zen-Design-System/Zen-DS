@@ -1,8 +1,11 @@
 import { forwardRef, useEffect, useRef, useState, type ComponentProps, type HTMLAttributes, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import { Icon } from "../Icon";
 import { Search } from "../Search";
-import { Badge } from "../Badge";
+import { Badge, type BadgeTheme } from "../Badge";
+import { Avatar } from "../Avatar";
+import { CheckboxMarkIndicator } from "../Checkbox";
 import { typographyStyles } from "../../tokens/typography.generated";
+import { useAnchoredPosition } from "./useAnchoredPosition";
 import "./popover.css";
 
 /** Data shape exported by the Popover/Default and Popover/Item component sets. */
@@ -15,6 +18,12 @@ export type PopoverItemData = {
   trailing?: ReactNode;
   disabled?: boolean;
   selected?: boolean;
+  /** Image for the Avatar/Photo themes. The item renders the Figma-sized primitive itself
+   * (Avatar Small 20 · Avatar Big 40 · Photo Small 20 · Photo Big 32), so callers don't size it. */
+  photoSrc?: string;
+  photoAlt?: string;
+  /** Theme=Badge: colour of the Medium Solid Badge that carries the label. */
+  badgeTheme?: BadgeTheme;
   /** Figma Content variant; React nodes remain fully composable. */
   theme?: "icon" | "text-only" | "photo-small" | "photo-big" | "avatar-small" | "avatar-big" | "dock-icon" | "badge";
   /** Figma Function variant used by the Manual-Add-New composition. */
@@ -33,22 +42,36 @@ export interface PopoverItemProps extends Omit<HTMLAttributes<HTMLButtonElement>
   function?: PopoverItemData["function"];
   /** Static preview of Figma's Hover state (real hover/focus work without it). */
   state?: "default" | "hover";
+  /** `checkbox`: multi-select row — a trailing Checkbox/Mark shows the selection instead of the
+   * Single-Selected fill + check icon. */
+  control?: "check" | "checkbox";
   onSelect?: () => void;
 }
 
 /** The 240px Popover/Item primitive. */
 export const PopoverItem = forwardRef<HTMLButtonElement, PopoverItemProps>(function PopoverItem(
-  { item, label, caption, leading, trailing, selected, disabled, theme, function: itemFunction, state, onSelect, className, ...buttonProps },
+  { item, label, caption, leading, trailing, selected, disabled, theme, function: itemFunction, state, control = "check", onSelect, className, ...buttonProps },
   ref,
 ) {
   const resolvedLabel = item?.label ?? label;
+  const photoSrc = item?.photoSrc;
   const resolvedCaption = item?.caption ?? caption;
-  const resolvedLeading = item?.leading ?? leading;
+  const explicitTheme = item?.theme ?? theme;
   const resolvedTrailing = item?.trailing ?? trailing;
   const isSelected = item?.selected ?? selected;
   const isDisabled = item?.disabled ?? disabled;
-  const resolvedTheme = item?.theme ?? theme ?? (resolvedLeading ? "icon" : "text-only");
   const resolvedFunction = item?.function ?? itemFunction ?? "default";
+  const customLeading = item?.leading ?? leading;
+  const resolvedTheme = explicitTheme ?? (photoSrc ? "avatar-small" : customLeading ? "icon" : "text-only");
+  // Theme=Badge (Function=Default): the Medium Solid Badge *is* the content, carrying the label.
+  const badgeContent = resolvedTheme === "badge" && resolvedFunction === "default";
+  const resolvedLeading = badgeContent ? null
+    : photoSrc && (resolvedTheme === "avatar-small" || resolvedTheme === "avatar-big")
+      // Zen rule: a captioned item never uses the 20px avatar — Avatar Small shows at Small (32px) or larger.
+      ? <Avatar size={resolvedTheme === "avatar-big" ? "medium" : resolvedCaption ? "small" : "2xsmall"} theme="photo" background="subtle" src={photoSrc} alt={item?.photoAlt ?? ""} />
+      : photoSrc && (resolvedTheme === "photo-small" || resolvedTheme === "photo-big")
+        ? <img src={photoSrc} alt={item?.photoAlt ?? ""} />
+        : customLeading;
   const hasLeading = Boolean(resolvedLeading);
   const hasTrailing = Boolean(resolvedTrailing);
   const hasCaption = Boolean(resolvedCaption);
@@ -60,7 +83,8 @@ export const PopoverItem = forwardRef<HTMLButtonElement, PopoverItemProps>(funct
       role="option"
       aria-selected={isSelected || undefined}
       disabled={isDisabled}
-      className={["zen-popover__item", isSelected ? "is-selected" : "", className].filter(Boolean).join(" ")}
+      className={["zen-popover__item", isSelected && control === "check" ? "is-selected" : "", className].filter(Boolean).join(" ")}
+      data-control={control}
       data-has-leading={hasLeading ? "true" : "false"}
       data-has-trailing={hasTrailing ? "true" : "false"}
       data-has-caption={hasCaption ? "true" : "false"}
@@ -73,12 +97,14 @@ export const PopoverItem = forwardRef<HTMLButtonElement, PopoverItemProps>(funct
       }}
     >
       {resolvedLeading ? <span className="zen-popover__item-leading">{resolvedLeading}</span> : null}
-      {resolvedLabel || resolvedCaption ? <span className="zen-popover__item-content">
+      {badgeContent ? <span className="zen-popover__item-content zen-popover__item-content--badge"><Badge size="medium" theme={item?.badgeTheme ?? "neutral"} background="solid" leadingIcon={false}>{resolvedLabel}</Badge></span> : null}
+      {!badgeContent && (resolvedLabel || resolvedCaption) ? <span className="zen-popover__item-content">
         <span className={`zen-popover__item-label ${typographyStyles["Body/Base/Medium"]}`}>{resolvedLabel}</span>
         {resolvedCaption ? <span className={`zen-popover__item-caption ${typographyStyles["Caption/Regular"]}`}>{resolvedCaption}</span> : null}
       </span> : null}
-      {isSelected ? <span className="zen-popover__item-check" aria-hidden="true"><Icon name="icon-check-line" size="xs" /></span> : null}
+      {isSelected && control === "check" ? <span className="zen-popover__item-check" aria-hidden="true"><Icon name="icon-check-line" size="xs" /></span> : null}
       {resolvedTrailing ? <span className="zen-popover__item-trailing">{resolvedTrailing}</span> : null}
+      {control === "checkbox" ? <CheckboxMarkIndicator checked={Boolean(isSelected)} disabled={Boolean(isDisabled)} /> : null}
     </button>
   );
 });
@@ -104,6 +130,10 @@ export interface PopoverProps extends Omit<HTMLAttributes<HTMLDivElement>, "chil
   anchorRef?: RefObject<HTMLElement | null>;
   /** Show the Search clear button while it has a value (Figma Search/Popover Typing/Inputted). */
   searchClearable?: boolean;
+  /** Preferred horizontal edge against the anchor box; flips when it would overflow the viewport. */
+  align?: "start" | "end";
+  /** Multi-select list: every item gets a trailing Checkbox/Mark (Figma multi-select Popover). */
+  multiple?: boolean;
 }
 
 /**
@@ -127,6 +157,8 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
     onOpenChange,
     anchorRef,
     searchClearable = true,
+    align = "start",
+    multiple = false,
     className,
     onKeyDown,
     ...divProps
@@ -135,7 +167,15 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
 ) {
   const [internalSearchValue, setInternalSearchValue] = useState(searchValue);
   const rootRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => setInternalSearchValue(searchValue), [searchValue]);
+  // Attach 4px below the trigger / input box, flipping above it near the bottom of the viewport.
+  // Inside an Input the box is the enclosing control (SelectField, field pickers); otherwise the trigger.
+  const placement = useAnchoredPosition(rootRef, open, {
+    align,
+    anchor: () => rootRef.current?.parentElement?.closest<HTMLElement>(".zen-input__control") ?? anchorRef?.current,
+  });
+  // Re-sync on open/close too: the component stays mounted while closed, so an
+  // uncontrolled query would otherwise survive into the next opening.
+  useEffect(() => setInternalSearchValue(searchValue), [searchValue, open]);
   // Keyboard-opened popovers move focus inside: search field first, else the selected or first option.
   useEffect(() => {
     if (!open || !autoFocus) return;
@@ -154,8 +194,19 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
       if (!target || rootRef.current?.contains(target) || anchorRef?.current?.contains(target)) return;
       onOpenChange(false);
     };
+    // Escape while focus is still on the trigger (the usual case after a mouse click) also closes it;
+    // Escape inside the surface is handled by handleKeyDown, which also restores focus.
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      const active = document.activeElement;
+      if (active && anchorRef?.current?.contains(active)) onOpenChange(false);
+    };
     document.addEventListener("pointerdown", handlePointerDown);
-    return () => document.removeEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, [open, onOpenChange, anchorRef]);
   if (!open) return null;
   const resolvedSearchValue = onSearchChange ? searchValue : internalSearchValue;
@@ -203,15 +254,17 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
         else if (ref) ref.current = node;
       }}
       className={["zen-popover", className].filter(Boolean).join(" ")}
+      style={{ ...placement.style, ...divProps.style }}
+      data-side={placement.side}
       data-search={search ? "true" : "false"}
       data-scroll-bar={scrollBar ? "true" : "false"}
       onKeyDown={handleKeyDown}
     >
       {search ? (
-        // Figma .Primitives/Popover/Search = Search/Popover (Icon-Search=No) → Input Field-Only Small.
+        // Figma .Primitives/Popover/Search = Search/Popover (Theme=Default, Icon-Search=No).
         <div className="zen-popover__search">
           <Search
-            size="small"
+            variant="popover"
             iconSearch={false}
             clearable={searchClearable}
             onClear={() => {
@@ -226,9 +279,9 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
         </div>
       ) : null}
       {label ? <div id={labelId} className={`zen-popover__label ${typographyStyles["Body/Small/Medium"]}`}>{label}</div> : null}
-      <div className="zen-popover__items" role="listbox" aria-labelledby={label ? labelId : undefined}>
+      <div className="zen-popover__items" role="listbox" aria-multiselectable={multiple || undefined} aria-labelledby={label ? labelId : undefined}>
         {visibleItems?.map((item) => (
-          <PopoverItem key={item.id} item={item} onSelect={() => onSelect?.(item)} />
+          <PopoverItem key={item.id} item={item} control={multiple ? "checkbox" : "check"} onSelect={() => onSelect?.(item)} />
         ))}
         {children}
         {visibleItems && visibleItems.length === 0 && !children && emptyState ? <div className="zen-popover__empty">{emptyState}</div> : null}
@@ -298,7 +351,7 @@ export function PopoverManualAddNew({ createLabel = "Create", onCreate, label = 
         }
       }}
     >
-      {visible.map((item) => <PopoverItem key={item.id} item={item} onSelect={() => props.onSelect?.(item)} />)}
+      {visible.map((item) => <PopoverItem key={item.id} item={item} control={props.multiple ? "checkbox" : "check"} onSelect={() => props.onSelect?.(item)} />)}
       {normalized && !exists ? (
         <PopoverItem
           label={createLabel}

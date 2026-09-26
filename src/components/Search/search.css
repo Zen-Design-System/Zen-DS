@@ -20,3 +20,9 @@
 /* Must beat the per-size icon slot rules in input.css (clear + filter need their natural width). */
 .zen-search .zen-input__control > .zen-input__affordance--trailing:has(.zen-search__trailing-group) { width: auto; height: auto; flex-basis: auto; }
 .zen-search .zen-search__trailing-group > .zen-search__theme-trailing:has(.zen-search__filter-dropdown) { width: auto; height: auto; }
+/* Figma Search/Popover (1604:27401): Field-Only Small with Corner-Radius/Input/Medium.
+   Focused/Typing keep only Input/Background/Focused — no focus stroke and no 3px OUTSIDE
+   ring, because the field sits inside the Popover surface. Hover keeps the 2px stroke. */
+.zen-search.zen-search--popover[data-size] > .zen-input__control { border-radius: var(--zen-corner-radius-input-medium, 12px); }
+.zen-search.zen-search--popover:is([data-state="focused"], [data-state="typing"]) > .zen-input__control,
+.zen-search.zen-search--popover:not([data-state="disabled"]) > .zen-input__control:focus-within { --zen-input-field-stroke: 1px; --zen-input-field-border: transparent; box-shadow: none; }

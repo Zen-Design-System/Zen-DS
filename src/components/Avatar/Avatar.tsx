@@ -14,7 +14,7 @@ const initialsStyle: Record<AvatarSize, TypographyStyleName> = {
   "2xsmall": "Caption/Medium",
   xsmall: "Caption/Medium",
   small: "Body/Base/Medium",
-  medium: "Heading/Subheading",
+  medium: "Body/Extra/Medium",
   large: "Heading/4",
   xlarge: "Heading/4",
   "2xlarge": "Heading/3",

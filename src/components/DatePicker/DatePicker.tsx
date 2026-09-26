@@ -1,6 +1,7 @@
-import { useMemo, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from "react";
 import { Icon } from "../Icon";
 import { Button, IconButton } from "../Button";
+import { useAnchoredPosition } from "../Popover/useAnchoredPosition";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./date-picker.css";
 
@@ -39,18 +40,32 @@ export interface DatePickerHeaderProps {
   onPrevious?: () => void;
   onNext?: () => void;
   onMonthYearClick?: () => void;
+  /** Figma Header Type: Interactive (month/year opens Select-Month-Year), Static (label only,
+   * used by the Dual calendar) or Display (label only, no navigation slots). */
   type?: "interactive" | "static" | "display";
+  /** Figma `Back` / `Next`. A hidden button keeps its 32px slot so the label stays centred. */
+  back?: boolean;
+  next?: boolean;
 }
 
-export function DatePickerHeader({ month, onPrevious, onNext, onMonthYearClick, type = "interactive" }: DatePickerHeaderProps) {
-  const label = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(month).split(" ");
+const monthLabel = (month: Date) => new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(month).split(" ");
+
+export function DatePickerHeader({ month, onPrevious, onNext, onMonthYearClick, type = "interactive", back = true, next = true }: DatePickerHeaderProps) {
+  const label = monthLabel(month);
+  const slot = (show: boolean, direction: "previous" | "next") => show
+    ? <IconButton className="zen-date-picker__nav" appearance="main" level="tertiary" size="sm" aria-label={direction === "previous" ? "Previous month" : "Next month"} onClick={direction === "previous" ? onPrevious : onNext} icon={<Icon name={direction === "previous" ? "icon-chevron-left-line-small" : "icon-chevron-right-line-small"} />} />
+    : <span className="zen-date-picker__nav-slot" aria-hidden="true" />;
   return (
     <header className="zen-date-picker__header" data-type={type}>
-      {type === "interactive" ? <IconButton className="zen-date-picker__nav" appearance="main" level="tertiary" size="sm" aria-label="Previous month" onClick={onPrevious} icon={<Icon name="icon-chevron-left-line-small" />} /> : null}
-      <button className={`zen-date-picker__month ${typographyStyles["Body/Extra/Bold"]}`} type="button" onClick={onMonthYearClick} disabled={type !== "interactive"}>
-        <span>{label[0]}</span><span>{label[1]}</span>
-      </button>
-      {type === "interactive" ? <IconButton className="zen-date-picker__nav" appearance="main" level="tertiary" size="sm" aria-label="Next month" onClick={onNext} icon={<Icon name="icon-chevron-right-line-small" />} /> : null}
+      {type !== "display" ? slot(back, "previous") : null}
+      {type === "interactive" ? (
+        <button className={`zen-date-picker__month ${typographyStyles["Body/Extra/Bold"]}`} type="button" onClick={onMonthYearClick} aria-label={`${label.join(" ")}, choose month and year`}>
+          <span>{label[0]}</span><span>{label[1]}</span>
+        </button>
+      ) : (
+        <span className={`zen-date-picker__month ${typographyStyles["Body/Extra/Bold"]}`} aria-live="polite"><span>{label[0]}</span><span>{label[1]}</span></span>
+      )}
+      {type !== "display" ? slot(next, "next") : null}
     </header>
   );
 }
@@ -63,12 +78,219 @@ export interface DatePickerActionProps {
   applyLabel?: ReactNode;
 }
 
-export function DatePickerAction({ action = "dual", onCancel, onApply, cancelLabel = "Cancel", applyLabel = "Apply" }: DatePickerActionProps) {
+/** `.Primitives/Date-Picker/Action`: Button/Main Small Tertiary "Cancel" + Primary "Submit". */
+export function DatePickerAction({ action = "dual", onCancel, onApply, cancelLabel = "Cancel", applyLabel = "Submit" }: DatePickerActionProps) {
   return (
     <footer className="zen-date-picker__actions">
       {action === "dual" ? <Button level="tertiary" size="sm" onClick={onCancel}>{cancelLabel}</Button> : null}
       <Button level="primary" size="sm" onClick={onApply}>{applyLabel}</Button>
     </footer>
+  );
+}
+
+const monthNames = Array.from({ length: 12 }, (_, index) => new Intl.DateTimeFormat("en-US", { month: "long" }).format(new Date(2026, index, 1)));
+/** Row pitch of the wheel: 28px Heading/4 row + Spacing/Gap/2XSmall. */
+const WHEEL_PITCH = 32;
+/** Figma fades rows 1 / 0.4 / 0.2 by distance from the selection; interpolated for motion, 0 at 3. */
+function wheelOpacity(distance: number) {
+  const d = Math.abs(distance);
+  if (d <= 1) return 1 - 0.6 * d;
+  if (d <= 2) return 0.4 - 0.2 * (d - 1);
+  return Math.max(0, 0.2 - 0.2 * (d - 2));
+}
+const prefersReducedMotion = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+/**
+ * Carousel-style wheel. `position` is a continuous index (a float): drag moves it 1:1 with the
+ * pointer, release adds momentum and glides to the nearest row, wheel/trackpad input and keys move a
+ * target the position eases towards. Rows are laid out absolutely from the position, so everything
+ * slides instead of stepping.
+ */
+function WheelColumn({ label, value, count, format, onChange, align = "start" }: {
+  label: string;
+  value: number;
+  /** Wrap modulo `count` (months); omit for an open-ended sequence (years). */
+  count?: number;
+  format: (value: number) => string;
+  onChange: (value: number) => void;
+  align?: "start" | "end";
+}) {
+  const listRef = useRef<HTMLDivElement>(null);
+  const resolve = (index: number) => (count ? ((index % count) + count) % count : index);
+  const [position, setPosition] = useState(value);
+  const motion = useRef({ position: value, target: value, frame: 0, last: 0, emitted: value });
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const resolveRef = useRef(resolve);
+  resolveRef.current = resolve;
+
+  const apply = (next: number) => {
+    const state = motion.current;
+    state.position = next;
+    setPosition(next);
+    const selected = resolveRef.current(Math.round(next));
+    if (selected !== state.emitted) {
+      state.emitted = selected;
+      onChangeRef.current(selected);
+    }
+  };
+  // Frame-rate independent ease towards the target (critically damped feel, ~70ms time constant).
+  const tick = (time: number) => {
+    const state = motion.current;
+    const dt = state.last ? Math.min(64, time - state.last) : 16;
+    state.last = time;
+    const gap = state.target - state.position;
+    if (Math.abs(gap) < 0.002) { state.frame = 0; state.last = 0; apply(state.target); return; }
+    apply(state.position + gap * (1 - Math.exp(-dt / 70)));
+    state.frame = requestAnimationFrame(tick);
+  };
+  const glideTo = (target: number) => {
+    const state = motion.current;
+    state.target = target;
+    if (prefersReducedMotion()) { cancelAnimationFrame(state.frame); state.frame = 0; apply(target); return; }
+    if (!state.frame) { state.last = 0; state.frame = requestAnimationFrame(tick); }
+  };
+  const stop = () => { cancelAnimationFrame(motion.current.frame); motion.current.frame = 0; motion.current.last = 0; };
+  useEffect(() => stop, []);
+
+  // Wheel / trackpad: move the target continuously (one mouse notch ≈ one row), snap once input rests.
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return undefined;
+    let settle = 0;
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const rows = Math.max(-1, Math.min(1, event.deltaY / WHEEL_PITCH));
+      glideTo(motion.current.target + rows);
+      window.clearTimeout(settle);
+      settle = window.setTimeout(() => glideTo(Math.round(motion.current.target)), 120);
+    };
+    list.addEventListener("wheel", handleWheel, { passive: false });
+    return () => { list.removeEventListener("wheel", handleWheel); window.clearTimeout(settle); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Press-and-hold drag with momentum. Capture starts after 4px so a plain press still clicks a row.
+  const drag = useRef<{ pointerId: number; startY: number; startPosition: number; moved: boolean; samples: Array<{ y: number; t: number }> } | null>(null);
+  const suppressClick = useRef(false);
+  const [dragging, setDragging] = useState(false);
+  const release = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const current = drag.current;
+    drag.current = null;
+    setDragging(false);
+    if (!current?.moved) return;
+    suppressClick.current = true;
+    const samples = current.samples;
+    const first = samples[0];
+    const last = samples[samples.length - 1];
+    // Held still before letting go → no momentum. Otherwise flick velocity (rows/ms) projected
+    // ~220ms ahead, capped at ±6 rows so a very fast flick stays controllable.
+    const resting = event.timeStamp - last.t > 80;
+    const velocity = resting ? 0 : -((last.y - first.y) / WHEEL_PITCH) / Math.max(16, last.t - first.t);
+    const momentum = Math.max(-6, Math.min(6, velocity * 220));
+    glideTo(Math.round(motion.current.position + momentum));
+  };
+
+  const selectedIndex = Math.round(position);
+  const base = Math.floor(position);
+  const centreTop = 4 + 2 * WHEEL_PITCH; // 4px block padding + two rows above the selection
+  return (
+    <div
+      ref={listRef}
+      className="zen-date-picker__wheel"
+      role="listbox"
+      tabIndex={0}
+      aria-label={label}
+      aria-activedescendant={`${label}-${selectedIndex}`}
+      data-align={align}
+      data-dragging={dragging ? "true" : undefined}
+      onKeyDown={(event) => {
+        if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+        event.preventDefault();
+        glideTo(Math.round(motion.current.target) + (event.key === "ArrowDown" ? 1 : -1));
+      }}
+      onPointerDown={(event) => {
+        if (event.button !== 0) return;
+        drag.current = { pointerId: event.pointerId, startY: event.clientY, startPosition: motion.current.position, moved: false, samples: [{ y: event.clientY, t: event.timeStamp }] };
+      }}
+      onPointerMove={(event) => {
+        const current = drag.current;
+        if (!current || current.pointerId !== event.pointerId) return;
+        const distance = event.clientY - current.startY;
+        if (!current.moved) {
+          if (Math.abs(distance) < 4) return;
+          current.moved = true;
+          setDragging(true);
+          stop();
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }
+        current.samples.push({ y: event.clientY, t: event.timeStamp });
+        // Velocity from the last ~80ms of movement.
+        while (current.samples.length > 2 && event.timeStamp - current.samples[0].t > 80) current.samples.shift();
+        const next = current.startPosition - distance / WHEEL_PITCH;
+        motion.current.target = next;
+        apply(next);
+      }}
+      onPointerUp={release}
+      onPointerCancel={release}
+      onClickCapture={(event) => {
+        if (!suppressClick.current) return;
+        suppressClick.current = false;
+        event.preventDefault();
+        event.stopPropagation();
+      }}
+    >
+      {Array.from({ length: 7 }, (_, slot) => base - 3 + slot).map((index) => {
+        const distance = index - position;
+        if (Math.abs(distance) >= 3) return null;
+        return (
+          <button
+            key={index}
+            id={`${label}-${index}`}
+            type="button"
+            role="option"
+            aria-selected={index === selectedIndex}
+            tabIndex={-1}
+            className={`zen-date-picker__wheel-item ${typographyStyles["Heading/4"]}`}
+            style={{ transform: `translateY(${centreTop + distance * WHEEL_PITCH}px)`, opacity: wheelOpacity(distance) }}
+            onClick={() => { glideTo(index); listRef.current?.focus(); }}
+          >
+            {format(resolve(index))}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export interface DatePickerMonthYearProps {
+  month: Date;
+  onSubmit?: (month: Date) => void;
+  onCancel?: () => void;
+}
+
+/** `.Primitives/Date-Picker/Calendar` Type=Select-Month-Year: the focused month/year header, a
+ * month wheel and a year wheel (Heading/4, 5 visible rows), then Cancel / Submit. */
+export function DatePickerMonthYear({ month, onSubmit, onCancel }: DatePickerMonthYearProps) {
+  const [draftMonth, setDraftMonth] = useState(month.getMonth());
+  const [draftYear, setDraftYear] = useState(month.getFullYear());
+  const rootRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { rootRef.current?.querySelector<HTMLElement>(".zen-date-picker__wheel")?.focus({ preventScroll: true }); }, []);
+  return (
+    <>
+      <div ref={rootRef} className="zen-date-picker__month-year">
+        <header className="zen-date-picker__header" data-type="interactive" data-state="focused">
+          <button className={`zen-date-picker__month ${typographyStyles["Body/Extra/Bold"]}`} type="button" onClick={onCancel} aria-label="Back to calendar">
+            <span>{monthNames[draftMonth]}</span><span>{draftYear}</span>
+          </button>
+        </header>
+        <div className="zen-date-picker__wheels">
+          <WheelColumn label="Month" value={draftMonth} count={12} format={(value) => monthNames[value]} onChange={setDraftMonth} />
+          <WheelColumn label="Year" value={draftYear} format={String} onChange={setDraftYear} align="end" />
+        </div>
+      </div>
+      <DatePickerAction action="dual" onCancel={onCancel} onApply={() => onSubmit?.(new Date(draftYear, draftMonth, 1))} />
+    </>
   );
 }
 
@@ -78,55 +300,131 @@ function startOfDay(date: Date) {
 function dateKey(date: Date) { return startOfDay(date).getTime(); }
 function monthStart(date: Date) { return new Date(date.getFullYear(), date.getMonth(), 1); }
 function addMonths(date: Date, amount: number) { return new Date(date.getFullYear(), date.getMonth() + amount, 1); }
+/** Monday-first weeks; `null` is a Blank item. */
+function monthDays(month: Date) {
+  const first = monthStart(month);
+  const offset = first.getDay() === 0 ? 6 : first.getDay() - 1;
+  const count = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+  return Array.from({ length: Math.ceil((offset + count) / 7) * 7 }, (_, index) => {
+    const day = index - offset + 1;
+    return day < 1 || day > count ? null : new Date(first.getFullYear(), first.getMonth(), day);
+  });
+}
 
 export interface DatePickerProps {
   open?: boolean;
   value?: Date | null;
   defaultValue?: Date | null;
+  /** First (left) visible month. */
   month?: Date;
   onChange?: (date: Date | null) => void;
+  /** Range mode: called with the new start (end = null) and again once the end date is picked. */
+  onRangeChange?: (range: { start: Date; end: Date | null }) => void;
   onMonthChange?: (month: Date) => void;
+  /** Popover behaviour: called on a pointer-down outside the picker (and outside `anchorRef`), on
+   * Escape, after a single date / a complete range is picked (without actions), and by the actions. */
   onClose?: () => void;
+  /** The trigger. Pointer-downs on it are left to its own toggle; Escape returns focus to it. */
+  anchorRef?: RefObject<HTMLElement | null>;
   showActions?: boolean;
   action?: "single" | "dual";
   selectionMode?: "single" | "range";
+  /** Figma Date-Picker/Single-Calendar or Date-Picker/Dual-Calendar (two consecutive months side by
+   * side; Static headers with Back on the first and Next on the second). */
+  calendar?: "single" | "dual";
   minDate?: Date;
   maxDate?: Date;
   className?: string;
 }
 
-/** Figma `Date-Picker/Single-Calendar` adapted to the shared token and Button
- * primitives. It is also the calendar surface used by Input/Date-Field. */
+/** Figma `Date-Picker/Single-Calendar` and `Date-Picker/Dual-Calendar` on the shared token and
+ * Button primitives. The single calendar's month/year opens the Select-Month-Year state. It is
+ * also the calendar surface used by Input/Date-Field. */
 export function DatePicker({
   open = true,
   value,
   defaultValue = null,
   month: controlledMonth,
   onChange,
+  onRangeChange,
   onMonthChange,
   onClose,
+  anchorRef,
   showActions = false,
   action = "dual",
   selectionMode = "single",
+  calendar = "single",
   minDate,
   maxDate,
   className,
 }: DatePickerProps) {
   const [internalValue, setInternalValue] = useState<Date | null>(defaultValue);
   const [internalMonth, setInternalMonth] = useState<Date>(() => monthStart(value ?? defaultValue ?? new Date()));
+  const [view, setView] = useState<"days" | "month-year">("days");
   const selected = value === undefined ? internalValue : value;
   const currentMonth = controlledMonth ? monthStart(controlledMonth) : internalMonth;
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
-  const days = useMemo(() => {
-    const first = monthStart(currentMonth);
-    const offset = first.getDay() === 0 ? 6 : first.getDay() - 1;
-    const count = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
-    return Array.from({ length: Math.ceil((offset + count) / 7) * 7 }, (_, index) => {
-      const day = index - offset + 1;
-      return day < 1 || day > count ? null : new Date(first.getFullYear(), first.getMonth(), day);
-    });
-  }, [currentMonth]);
+  const months = useMemo(() => (calendar === "dual" ? [currentMonth, addMonths(currentMonth, 1)] : [currentMonth]), [calendar, currentMonth]);
+  // Smooth view switch: the viewport height follows the measured content (CSS transitions it) and
+  // the incoming view plays its enter animation — only after a switch, not on first open.
+  const viewRef = useRef<HTMLDivElement>(null);
+  const [viewHeight, setViewHeight] = useState<number>();
+  const [switched, setSwitched] = useState(false);
+  useLayoutEffect(() => {
+    const node = viewRef.current;
+    if (!node) return undefined;
+    setViewHeight(node.offsetHeight);
+    const observer = new ResizeObserver(() => setViewHeight(node.offsetHeight));
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [view, open]);
+  const switchView = (next: "days" | "month-year") => {
+    setSwitched(true);
+    setView(next);
+    // The focused control unmounts with the old view; land on the month/year header of the day view.
+    if (next === "days") requestAnimationFrame(() => rootRef.current?.querySelector<HTMLElement>("button.zen-date-picker__month")?.focus({ preventScroll: true }));
+  };
+  // Light dismiss, as a popover: pointer-down outside the surface and its trigger closes it.
+  const rootRef = useRef<HTMLDivElement>(null);
+  // As a popover (absolutely positioned), sit 4px from the trigger's input box — or above it when
+  // the trigger is near the bottom of the viewport. Inline (static) pickers are not moved.
+  const placement = useAnchoredPosition(rootRef, open, {
+    anchor: () => {
+      const anchor = anchorRef?.current;
+      return anchor?.querySelector<HTMLElement>(".zen-input__control") ?? anchor;
+    },
+  });
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const hasClose = Boolean(onClose);
+  useEffect(() => {
+    if (!open || !hasClose) return undefined;
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target || rootRef.current?.contains(target) || anchorRef?.current?.contains(target)) return;
+      onCloseRef.current?.();
+    };
+    // Escape while focus is still on the trigger (e.g. an input that opened it on focus).
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      const active = document.activeElement;
+      if (active && anchorRef?.current?.contains(active)) onCloseRef.current?.();
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, hasClose, anchorRef]);
+  // Every opening starts on the day view.
+  useEffect(() => { if (!open) { setView("days"); setSwitched(false); } }, [open]);
+  const close = () => {
+    onClose?.();
+    const anchor = anchorRef?.current;
+    (anchor?.matches("button, input, [tabindex]") ? anchor : anchor?.querySelector<HTMLElement>("button, input, [tabindex]"))?.focus({ preventScroll: true });
+  };
   if (!open) return null;
   const setMonth = (next: Date) => {
     const resolved = monthStart(next);
@@ -137,14 +435,16 @@ export function DatePicker({
     if (minDate && dateKey(date) < dateKey(minDate)) return;
     if (maxDate && dateKey(date) > dateKey(maxDate)) return;
     if (selectionMode === "range") {
-      if (!rangeStart || rangeEnd) { setRangeStart(date); setRangeEnd(null); onChange?.(date); return; }
+      if (!rangeStart || rangeEnd) { setRangeStart(date); setRangeEnd(null); onChange?.(date); onRangeChange?.({ start: date, end: null }); return; }
       const start = dateKey(date) < dateKey(rangeStart) ? date : rangeStart;
       const end = dateKey(date) < dateKey(rangeStart) ? rangeStart : date;
-      setRangeStart(start); setRangeEnd(end); onChange?.(end); return;
+      setRangeStart(start); setRangeEnd(end); onChange?.(end); onRangeChange?.({ start, end });
+      if (!showActions) close();
+      return;
     }
     if (value === undefined) setInternalValue(date);
     onChange?.(date);
-    if (!showActions) onClose?.();
+    if (!showActions) close();
   };
   const isDisabled = (date: Date) => Boolean((minDate && dateKey(date) < dateKey(minDate)) || (maxDate && dateKey(date) > dateKey(maxDate)));
   const stateFor = (date: Date): DatePickerItemState => {
@@ -158,14 +458,59 @@ export function DatePicker({
     if (date.getDay() === 0 || date.getDay() === 6) return "weekend";
     return "default";
   };
+  const dual = calendar === "dual";
   return (
-    <div className={["zen-date-picker", className].filter(Boolean).join(" ")} role="dialog" aria-label="Choose date">
-      <DatePickerHeader month={currentMonth} onPrevious={() => setMonth(addMonths(currentMonth, -1))} onNext={() => setMonth(addMonths(currentMonth, 1))} />
-      <div className={`zen-date-picker__calendar ${typographyStyles["Body/Small/Medium"]}`}>
-        <div className="zen-date-picker__weekdays">{["M", "T", "W", "T", "F", "S", "S"].map((day, index) => <span key={`${day}-${index}`}>{day}</span>)}</div>
-        <div className="zen-date-picker__grid">{days.map((date, index) => date ? <DatePickerItem key={date.toISOString()} day={date.getDate()} state={stateFor(date)} disabled={isDisabled(date)} onClick={() => selectDate(date)} /> : <DatePickerItem key={`blank-${index}`} state="blank" />)}</div>
+    <div
+      ref={rootRef}
+      className={["zen-date-picker", className].filter(Boolean).join(" ")}
+      role="dialog"
+      aria-label={dual ? "Choose dates" : "Choose date"}
+      data-calendar={calendar}
+      data-view={view}
+      data-side={placement.side}
+      style={placement.style}
+      onKeyDown={(event) => {
+        if (event.key !== "Escape") return;
+        event.preventDefault();
+        // Escape steps back out of Select-Month-Year first, then closes the popover.
+        if (view === "month-year") switchView("days");
+        else if (onClose) close();
+      }}
+    >
+      <div className="zen-date-picker__viewport" style={viewHeight === undefined ? undefined : { height: viewHeight + 8 }}>
+        <div ref={viewRef} key={view} className={["zen-date-picker__view", switched ? "is-entering" : ""].filter(Boolean).join(" ")}>
+          {view === "month-year" ? (
+            <DatePickerMonthYear
+              month={currentMonth}
+              onCancel={() => switchView("days")}
+              onSubmit={(next) => { setMonth(next); switchView("days"); }}
+            />
+          ) : (
+            <>
+              <div className="zen-date-picker__panels">
+                {months.map((month, index) => (
+                  <div className="zen-date-picker__panel" key={month.toISOString()}>
+                    <DatePickerHeader
+                      month={month}
+                      type={dual ? "static" : "interactive"}
+                      back={!dual || index === 0}
+                      next={!dual || index === months.length - 1}
+                      onPrevious={() => setMonth(addMonths(currentMonth, -1))}
+                      onNext={() => setMonth(addMonths(currentMonth, 1))}
+                      onMonthYearClick={() => switchView("month-year")}
+                    />
+                    <div className={`zen-date-picker__calendar ${typographyStyles["Body/Small/Medium"]}`}>
+                      <div className="zen-date-picker__weekdays">{["M", "T", "W", "T", "F", "S", "S"].map((day, dayIndex) => <span key={`${day}-${dayIndex}`}>{day}</span>)}</div>
+                      <div className="zen-date-picker__grid">{monthDays(month).map((date, dayIndex) => date ? <DatePickerItem key={date.toISOString()} day={date.getDate()} state={stateFor(date)} disabled={isDisabled(date)} onClick={() => selectDate(date)} /> : <DatePickerItem key={`blank-${dayIndex}`} state="blank" />)}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {showActions ? <DatePickerAction action={action} onCancel={close} onApply={close} /> : null}
+            </>
+          )}
+        </div>
       </div>
-      {showActions ? <DatePickerAction action={action} onCancel={onClose} onApply={onClose} /> : null}
     </div>
   );
 }

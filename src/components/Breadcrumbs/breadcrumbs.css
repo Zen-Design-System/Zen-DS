@@ -1,0 +1,35 @@
+/* Figma Breadcrumbs (4031:20161) / .Primitives/Breadcrumbs/Item (292:43787).
+   Sub: 28px, padding 4/8, radius Small, Neutral/Flat Default|Hover, label Body/Base Regular|Medium, Neutral/Strongest.
+   Master: padding-right 8, gap 8, 28px Icon-Wrapper (padding 4, radius Small) that turns Inverse/Solid on hover.
+   Separator: icon-chevron-right-line-small at Popular/Base (20), Neutral/Light; list gap 3XSmall (2). */
+.zen-breadcrumbs { min-width: 0; max-width: 100%; }
+.zen-breadcrumbs__list { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); margin: 0; padding: 0; list-style: none; }
+.zen-breadcrumbs__item { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-breadcrumbs__separator { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; color: var(--zen-color-content-neutral-light); }
+.zen-breadcrumbs__separator > .zen-icon { width: 100%; height: 100%; }
+
+.zen-breadcrumb {
+  display: inline-flex;
+  height: 28px;
+  min-width: 0;
+  box-sizing: border-box;
+  align-items: center;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px);
+  border: 0;
+  border-radius: var(--zen-corner-radius-small, 8px);
+  background: var(--zen-color-background-neutral-flat-default);
+  color: var(--zen-color-content-neutral-strongest);
+  text-decoration: none;
+  cursor: pointer;
+  outline: none;
+}
+.zen-breadcrumb[data-level="master"] { padding: 0 var(--zen-spacing-padding-xsmall, 8px) 0 0; }
+.zen-breadcrumb__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zen-breadcrumb__icon { display: inline-flex; color: var(--zen-color-content-neutral-strongest); width: 28px; height: 28px; box-sizing: border-box; flex: 0 0 auto; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-small, 8px); }
+.zen-breadcrumb__icon .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
+.zen-breadcrumb:is(a, button):hover, .zen-breadcrumb[data-state="hover"] { background: var(--zen-color-background-neutral-flat-hover); }
+/* Figma Master Hover: only the Icon-Wrapper fill changes (Inverse/Solid = white in light mode); the icon stays Neutral/Strongest. */
+.zen-breadcrumb:is(a, button):hover .zen-breadcrumb__icon, .zen-breadcrumb[data-state="hover"] .zen-breadcrumb__icon { background: var(--zen-color-background-inverse-solid-default); }
+.zen-breadcrumb[data-current="true"] { cursor: default; }
+.zen-breadcrumb:focus-visible { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid); }

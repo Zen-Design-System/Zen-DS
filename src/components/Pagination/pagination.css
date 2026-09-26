@@ -1,0 +1,40 @@
+/* Figma Pagination (774:29083) + .Primitives/Pagination/Item (774:15999). */
+.zen-pagination { display: inline-flex; max-width: 100%; align-items: center; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-pagination__pages { display: flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-pagination__navigator { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-pagination__range { color: var(--zen-color-content-neutral-strongest, #111); white-space: nowrap; }
+
+/* Item: round, Select-Item/Size/Small 24 (XSmall) or Medium 32 (Small); Flat fill, Flat/Hover on hover. */
+.zen-pagination__item {
+  display: inline-flex;
+  height: var(--zen-select-item-size-small, 24px);
+  min-width: var(--zen-select-item-size-small, 24px);
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--zen-corner-radius-action-xsmall, 1000px);
+  background: var(--zen-color-background-neutral-flat-default, transparent);
+  color: var(--zen-color-content-neutral-strongest, #111);
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.zen-pagination__item[data-size="small"] {
+  height: var(--zen-select-item-size-medium, 32px);
+  min-width: var(--zen-select-item-size-medium, 32px);
+  border-radius: var(--zen-corner-radius-action-small, 1000px);
+}
+/* Width is the min-width (a circle); longer page numbers grow the item into a pill. */
+.zen-pagination__item { padding-inline: var(--zen-spacing-padding-2-xsmall, 4px); }
+button.zen-pagination__item:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+button.zen-pagination__item:focus-visible { outline: 0; box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #ff66d4); }
+.zen-pagination__item[data-level="primary"][data-selected="true"] { background: var(--zen-color-background-active-neutral-solid, #111); color: var(--zen-color-content-inverse-strongest, #fff); }
+.zen-pagination__item[data-level="secondary"][data-selected="true"] { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 11%)); }
+span.zen-pagination__item { cursor: default; }
+
+/* Manually: Input/Text-Field Small at 133px; the "results" unit sits in the trailing slot. */
+.zen-pagination__page-size { width: 133px; flex: 0 0 auto; }
+.zen-pagination__page-size .zen-input__affordance--trailing { width: auto; height: auto; flex-basis: auto; }
+.zen-pagination__page-size-unit { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); white-space: nowrap; }

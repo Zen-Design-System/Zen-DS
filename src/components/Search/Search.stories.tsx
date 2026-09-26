@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Icon } from "../Icon";
-import { Search, searchSizes, searchStates, searchThemes } from "./Search";
+import { Search, searchSizes, searchStates, searchThemes, searchVariants } from "./Search";
 
 const meta = {
   title: "Components/Search",
@@ -14,8 +14,9 @@ const meta = {
       },
     },
   },
-  args: { placeholder: "Search components", size: "medium", theme: "default", state: "default", iconSearch: true },
+  args: { placeholder: "Search components", variant: "default", size: "medium", theme: "default", state: "default", iconSearch: true },
   argTypes: {
+    variant: { control: "inline-radio", options: searchVariants },
     size: { control: "inline-radio", options: searchSizes },
     theme: { control: "inline-radio", options: searchThemes },
     state: { control: "select", options: searchStates },
@@ -66,4 +67,19 @@ export const IconLayouts: Story = {
       <Search theme="filter-dropdown" placeholder="Trailing dropdown" />
     </div>
   ),
+};
+
+export const PopoverVariant: Story = {
+  name: "Search/Popover",
+  render: () => (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 232px)", gap: 16 }}>
+      {searchStates.map((state) => <Search key={state} variant="popover" state={state} iconSearch={false} placeholder="Search" defaultValue={state === "typing" || state === "inputted" ? "Search" : undefined} />)}
+      {searchThemes.map((theme) => <Search key={theme} variant="popover" theme={theme} placeholder="Search" />)}
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: { story: "Figma Search/Popover: always Small with Corner-Radius/Input/Medium; Focused/Typing show only the focused fill (no stroke, no ring). Popover uses it with Icon-Search=No." },
+    },
+  },
 };

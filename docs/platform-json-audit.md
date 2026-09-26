@@ -371,3 +371,27 @@ Components (checks matching / total)
 Known Figma inconsistencies (not copied): Chip/Normal Medium·Primary·Leading-Icon·Focused·No leading icon binds Neutral/Strongest (all other Focused = Neutral/Light); Checkbox/Text Container aligns the mark CENTER vs Radio TOP (identical for one-line labels; code keeps top alignment for wrapped labels). Figma has no Disabled chip state (code keeps opacity .55 — design needed).
 
 Interaction pass (25/25, `tools/figma-contract/interactions.mjs`): label click, Space, focus-visible ring only on keyboard, radio arrow keys, chip aria-pressed, Advanced chip open/arrow/Home/End/Enter/Escape/outside-click/Delete-to-clear with focus restore, disabled options skipped, uncontrolled Popover search filters, Manual-Add-New Enter-to-create and no duplicate create row, SelectField keyboard open/select/focus restore/outside click.
+
+## Token table template — Global Colors / Global Dimensions / Base Colors (2026-09-26)
+
+Figma `9nZv4uW2LT21yuHabMTCh1`: `14257:56639` (Global Colors section), `14257:60372` (Dimensions table), `14257:76246` + `14257:60690` (Base Colors table + toolbar). Owner: `src/foundations/TokenTableView.tsx` + `.token-table-view*` in `src/styles/foundations.css`. Measured at 1512×982, Zen-Platform typography.
+
+| Layer | Figma | Code | Browser | Status |
+|---|---|---|---|---|
+| Toolbar | 12-col grid, gap 16, py 8; Search col 5/4 (GC, Dim) or 10/3 (Base); Segmented secondary col 1 | `.token-table-view__toolbar`, `Search` medium, `Segmented level="secondary"` | Search x=406.66 w=390.66 (GC/Dim), x=915 w=289 (Base) | Khớp |
+| Section | `.Ops/Header` Heading/1 + Table, gap 24; sections 64 apart | `zen-type-heading-1`, gap-large / gap-giant | 32/40, −0.96px, TASA Explorer; 64px | Khớp |
+| Table header | Support/Neutral/Pale, radius 12, 12/16 padding, Body/Code/Bold | `.token-table-view__head` | rgba(5,5,5,.03), 12px, 12px 16px, JetBrains Mono 600 | Khớp |
+| Cell | h72, px16, border-b Border/Neutral/Pale/Default | `.token-table-view__cell` | 72px, 1px rgba(1,1,1,.063) | Khớp |
+| Color preview | 40px, 1px Focus/Neutral/Subtle, radius 12; checker 30% + fill radius XSmall | `.token-table-view__swatch` + `color-preview-checker.png` | 40px, 12px, checker opacity .3 | Khớp |
+| Highlight pill | Neutral/Subtle/Default, 2/8 padding, rounded, Body/Code/Regular | `.token-table-view__pill` | 2px 8px, rgba(1,1,1,.063), 12px | Khớp |
+| Dimension bar | p16, 2px Border/Accent/Solid inline borders, Background/Accent/Subtle | `.token-table-view__dimension` | width = token, h40, 2px #FF66D4 | Khớp |
+
+Deliberate data differences (repo data kept): Token pill shows the real CSS variable (`--zen-light-tomato-1`) instead of Figma's placeholder `$light-brand-1`; Global Colors Value shows real hex instead of the `#000000` placeholder; aliased Value cells show only the referenced token as a CSS variable (`--zen-light-zen-1`), resolved value on hover; Global Colors also gets the Light/Dark Segmented (Figma frame only has Search) because the collection contains both schemes. Gap: Dark mode rendering of the table not measured.
+
+### Template extended to every token collection (2026-09-26)
+
+`TokenCollectionPage` now always renders `TokenTableView`; the old Preview/Figma name/Values by mode/CSS variable table and its CSS were removed. Rules for collections that have no dedicated Figma frame (derived from the three template frames, not measured against Figma):
+- Multi-mode collections use the same Segmented (secondary, medium) to pick a mode; Search moves to col 10/3 (Base Colors layout). Single-mode, unschemed collections (Global Dimensions, Spacing) keep the centred Search. Global Colors now also uses the Base Colors toolbar layout because it has the Light/Dark Segmented.
+- Color collections (Mode Colors, Component Theme) use Name | Token | Value; swatches and resolved hex follow the selected mode (alias chain resolved per hop; targets without that mode fall back to their first mode, e.g. Component Theme → Mode Colors Light).
+- Numeric collections use Token | Value | Dimension; typography/emphasis collections label the third column Preview (Aa sample with the font family/size/weight, letter-spacing sample, text-style class). Corner radius previews as a 40px square with that radius; other dimensions keep the accent bar capped at the cell width.
+- Verified in browser at 1512×982: all 11 collections render, mode switching changes values (Corner Radius Base 12px → Luxury 2px), no console errors. Dark theme still not measured.

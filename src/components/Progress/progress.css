@@ -1,0 +1,52 @@
+/* Figma Progress-Bar (1536:260) and Progress-Circle (1531:13954 / 6915:62964). */
+.zen-progress-bar {
+  --zen-progress-fill: var(--zen-color-background-active-neutral-solid);
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+}
+.zen-progress-bar[data-theme="accent"] { --zen-progress-fill: var(--zen-color-background-active-accent-solid); }
+.zen-progress-bar[data-status="positive"] { --zen-progress-fill: var(--zen-color-background-positive-solid-default); }
+.zen-progress-bar[data-status="warning"] { --zen-progress-fill: var(--zen-color-background-warning-solid-default); }
+.zen-progress-bar[data-status="negative"] { --zen-progress-fill: var(--zen-color-background-negative-solid-default); }
+.zen-progress-bar__track { position: relative; height: 8px; min-width: 0; flex: 1 1 auto; overflow: hidden; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-subtle-default); }
+.zen-progress-bar__fill { position: absolute; inset: 0 auto 0 0; background: var(--zen-progress-fill); transition: width .3s ease; }
+.zen-progress-bar__label { flex: 0 0 auto; color: var(--zen-color-content-neutral-strongest); font-variant-numeric: tabular-nums; }
+
+.zen-progress-circle {
+  --zen-progress-ring: var(--zen-color-border-support-brand-subtle);
+  --zen-progress-solid: var(--zen-color-background-support-brand-solid);
+  --zen-progress-check: var(--zen-color-content-on-colors);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+}
+.zen-progress-circle[data-theme="neutral"] { --zen-progress-ring: var(--zen-color-border-support-neutral-subtle); --zen-progress-solid: var(--zen-color-background-support-neutral-deep); --zen-progress-check: var(--zen-color-content-inverse-strongest); }
+.zen-progress-circle[data-theme="red"] { --zen-progress-ring: var(--zen-color-border-support-red-subtle); --zen-progress-solid: var(--zen-color-background-support-red-solid); }
+.zen-progress-circle[data-theme="orange"] { --zen-progress-ring: var(--zen-color-border-support-orange-subtle); --zen-progress-solid: var(--zen-color-background-support-orange-solid); }
+.zen-progress-circle[data-theme="yellow"] { --zen-progress-ring: var(--zen-color-border-support-yellow-subtle); --zen-progress-solid: var(--zen-color-background-support-yellow-solid); }
+.zen-progress-circle[data-theme="green"] { --zen-progress-ring: var(--zen-color-border-support-green-subtle); --zen-progress-solid: var(--zen-color-background-support-green-solid); }
+.zen-progress-circle[data-theme="blue"] { --zen-progress-ring: var(--zen-color-border-support-blue-subtle); --zen-progress-solid: var(--zen-color-background-support-blue-solid); }
+.zen-progress-circle__icon {
+  position: relative;
+  display: inline-flex;
+  width: var(--zen-element-size-popular-base, 20px);
+  height: var(--zen-element-size-popular-base, 20px);
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--zen-color-background-neutral-subtle-default);
+  box-shadow: inset 0 0 0 2px var(--zen-progress-ring);
+  color: var(--zen-progress-check);
+}
+/* 12px pie centred in the ring, starting at 12 o'clock, clockwise. */
+.zen-progress-circle__icon::before { position: absolute; inset: 4px; border-radius: 50%; background: conic-gradient(var(--zen-progress-solid) calc(var(--zen-progress-value, 0) * 1%), transparent 0); content: ""; }
+.zen-progress-circle__icon[data-done="true"] { background: var(--zen-progress-solid); }
+.zen-progress-circle[data-theme="neutral"] .zen-progress-circle__icon[data-done="true"] { box-shadow: inset 0 0 0 2px var(--zen-color-border-support-neutral-solid); }
+.zen-progress-circle__icon[data-done="true"]::before { display: none; }
+.zen-progress-circle__icon > .zen-icon { position: relative; width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); }
+.zen-progress-circle__label { color: var(--zen-color-content-neutral-strongest); font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) { .zen-progress-bar__fill { transition: none; } }

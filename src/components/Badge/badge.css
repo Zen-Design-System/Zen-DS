@@ -51,7 +51,12 @@
 .zen-badge__text { min-width: 0; overflow: hidden; padding-inline: var(--zen-badge-spacing-medium-text-wrapper-padding, 2px); text-overflow: ellipsis; }
 .zen-badge[data-size="small"] .zen-badge__text, .zen-badge[data-size="xsmall"] .zen-badge__text { padding-inline: var(--zen-badge-spacing-small-text-wrapper-padding, 4px); }
 
-/* Badge-Counter (9535:33812) differs from Badge in padding only: XSmall and Medium use Spacing/Padding/2XSmall on the
-   container, and the XSmall/Small Text-Wrapper has no horizontal padding (Medium keeps 2px). */
-.zen-badge--counter:is([data-size="xsmall"], [data-size="medium"]) { padding-inline: var(--zen-spacing-padding-2-xsmall, 4px); }
-.zen-badge--counter:is([data-size="xsmall"], [data-size="small"]) .zen-badge__text { padding-inline: 0; }
+/* Badge-Counter (9535:33812), bound variables per live Figma (2026-09-26):
+   XSmall — container Badge/Spacing/XSmall/Vertical-Padding · Spacing/Padding/2XSmall; Text-Wrapper 0.
+   Small  — container Badge/Spacing/Small/Vertical-Padding · Badge/Spacing/Small/Horizontal-Padding; Text-Wrapper Spacing/Padding/3XSmall.
+   Medium — container Badge/Spacing/Medium/Vertical-Padding · Spacing/Padding/2XSmall; Text-Wrapper Spacing/Padding/3XSmall. */
+.zen-badge--counter[data-size="xsmall"] { padding: var(--zen-badge-spacing-xsmall-vertical-padding, 2px) var(--zen-spacing-padding-2-xsmall, 4px); }
+.zen-badge--counter[data-size="small"] { padding: var(--zen-badge-spacing-small-vertical-padding, 2px) var(--zen-badge-spacing-small-horizontal-padding, 4px); }
+.zen-badge--counter[data-size="medium"] { padding: var(--zen-badge-spacing-medium-vertical-padding, 4px) var(--zen-spacing-padding-2-xsmall, 4px); }
+.zen-badge--counter[data-size="xsmall"] .zen-badge__text { padding-inline: 0; }
+.zen-badge--counter:is([data-size="small"], [data-size="medium"]) .zen-badge__text { padding-inline: var(--zen-spacing-padding-3-xsmall, 2px); }

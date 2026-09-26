@@ -23,3 +23,8 @@
 /* Check-Side=Right: Figma Container is a fixed-width row with the label FILLing it, so the mark sits at the end. */
 .zen-checkbox[data-side="right"] { display: flex; }
 .zen-checkbox[data-side="right"] .zen-checkbox__content { flex: 1 1 auto; }
+/* Standalone Checkbox/Mark (CheckboxMarkIndicator): same box tokens, state driven by data attributes. */
+.zen-checkbox-mark { display: inline-flex; flex: 0 0 var(--zen-checkbox-size-medium, 16px); width: var(--zen-checkbox-size-medium, 16px); height: var(--zen-checkbox-size-medium, 16px); align-items: center; justify-content: center; }
+.zen-checkbox-mark[data-checked="true"] > .zen-checkbox__box { border-color: transparent; background: var(--zen-checkbox-background-seclected-default, #111); }
+.zen-checkbox-mark[data-disabled="true"] > .zen-checkbox__box { border-color: var(--zen-color-border-disabled, #efefef); background: var(--zen-color-background-solid-disabled, #dbdbdb); box-shadow: none; }
+.zen-checkbox-mark[data-disabled="true"][data-checked="true"] > .zen-checkbox__box { border-color: transparent; color: var(--zen-color-content-disabled, #888); }

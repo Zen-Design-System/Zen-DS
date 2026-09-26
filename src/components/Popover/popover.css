@@ -50,10 +50,14 @@
 .zen-popover__item[data-function="manual-add-new"] .zen-popover__item-trailing { width: auto; height: auto; min-width: 0; flex: 0 1 auto; margin-right: var(--zen-spacing-padding-2-xsmall); }
 .zen-popover__item[data-function="manual-add-new"] .zen-popover__item-trailing > .zen-badge { max-width: 100%; }
 .zen-popover__item:hover:not(:disabled), .zen-popover__item[data-state="hover"], .zen-popover__item:focus-visible { outline: 0; background: var(--zen-color-background-neutral-flat-hover); }
-.zen-popover__item.is-selected { padding-right: var(--zen-spacing-padding-small); background: var(--zen-color-background-active-accent-subtle); }
+/* Figma State=Single-Selected (updated 2026-09-26): Active/Neutral/Subtle fill + Neutral/Strongest check, 12px right padding. */
+.zen-popover__item.is-selected { padding-right: var(--zen-spacing-padding-small); background: var(--zen-color-background-active-neutral-subtle); }
 .zen-popover__item:disabled { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); cursor: not-allowed; }
 .zen-popover__item-leading, .zen-popover__item-trailing { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; }
-.zen-popover__item-check { display: inline-flex; width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); flex: 0 0 var(--zen-element-size-popular-xsmall, 12px); align-items: center; justify-content: center; color: var(--zen-color-content-accent-base); }
+.zen-popover__item-check { display: inline-flex; width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); flex: 0 0 var(--zen-element-size-popular-xsmall, 12px); align-items: center; justify-content: center; color: var(--zen-color-content-neutral-strongest); }
+/* Figma Trailing: Element-Size/Popular/Small (16) for an icon; it hugs a Button/Icon-Flat XSmall (24) or a Badge. */
+.zen-popover__item-trailing { width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex-basis: var(--zen-element-size-popular-small, 16px); }
+.zen-popover__item-trailing:has(> .zen-button, > .zen-badge) { width: auto; height: auto; flex-basis: auto; }
 .zen-popover__item[data-theme="badge"] .zen-popover__item-trailing { width: auto; min-width: 20px; flex-basis: auto; }
 /* .Primitives/Popover/Item/Content themes: leading sizes and the icon→content gap
    (Spacing/Gap/Small = 8 + 4 margin; Avatar Big uses Spacing/Gap/Medium). */
@@ -67,6 +71,14 @@
 .zen-popover__item[data-theme="avatar-big"] .zen-popover__item-leading { width: var(--zen-image-size-medium); height: var(--zen-image-size-medium); flex-basis: var(--zen-image-size-medium); margin-right: var(--zen-spacing-gap-xsmall); }
 .zen-popover__item:is([data-theme="photo-small"], [data-theme="photo-big"]) .zen-popover__item-leading > img { width: 100%; height: 100%; border-radius: var(--zen-corner-radius-xsmall); object-fit: cover; }
 .zen-popover__item-leading > .zen-icon, .zen-popover__item-trailing > .zen-icon { width: 100%; height: 100%; }
+/* Any Avatar placed in an Avatar theme fills the Figma slot (20 / 40) instead of overflowing it. */
+.zen-popover__item:is([data-theme="avatar-small"], [data-theme="avatar-big"]) .zen-popover__item-leading > .zen-avatar { --zen-avatar-size: 100%; }
+.zen-popover__item-leading > img { display: block; }
+/* Content primitive aligns MIN for the 20px themes: with a caption the leading sits on the first line. */
+.zen-popover__item:is([data-theme="icon"], [data-theme="photo-small"])[data-has-caption="true"] .zen-popover__item-leading { align-self: flex-start; }
+/* Zen rule: with a caption, Avatar Small grows to Avatar Small (32px, Image-Size/Small) and centres on both lines. */
+.zen-popover__item[data-theme="avatar-small"][data-has-caption="true"] .zen-popover__item-leading { width: var(--zen-image-size-small, 32px); height: var(--zen-image-size-small, 32px); flex-basis: var(--zen-image-size-small, 32px); }
+.zen-popover__item-content--badge { display: flex; flex: 1 1 auto; }
 .zen-popover__item-content { display: grid; min-width: 0; flex: 1; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .zen-popover__item-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .zen-popover__item-caption { overflow: hidden; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-overflow: ellipsis; white-space: nowrap; }
@@ -78,8 +90,5 @@
 .zen-popover__bunk-group { display: flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall); }
 .zen-popover__bunk-divider { display: block; width: 1px; height: var(--zen-button-size-medium); flex: 0 0 1px; background: var(--zen-color-border-neutral-pale-default); }
 
-/* Figma .Primitives/Popover/Search instance overrides on Input Field-Only (Small):
-   radius Corner-Radius/Input/Medium, and the Focused state keeps no focus stroke. */
+/* .Primitives/Popover/Search: a 232px Search/Popover instance (styles live in search.css). */
 .zen-popover__search > .zen-input-field { width: 100%; }
-.zen-popover .zen-popover__search .zen-input-field .zen-input__control { border-radius: var(--zen-corner-radius-input-medium); }
-.zen-popover .zen-popover__search .zen-input-field .zen-input__control:focus-within { --zen-input-field-border: transparent; }

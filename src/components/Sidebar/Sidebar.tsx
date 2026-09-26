@@ -1,6 +1,8 @@
-import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useEffect, useRef, useState, type Dispatch, type FocusEvent, type PointerEvent, type ReactNode, type SetStateAction } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from "../Icon";
 import { IconButton } from "../Button";
+import { TooltipSurface } from "../Tooltip";
 import unionLogo from "../../assets/figma/sidebar/union.svg";
 import "./sidebar.css";
 
@@ -60,10 +62,42 @@ function DefaultSidebarBrand({ collapsed, onCollapsedChange }: { collapsed: bool
       <span className="zen-sidebar__default-brand-collapsed" aria-hidden="true"><Icon name="icon-zen" size={28} /></span>
       <span className="zen-sidebar__default-brand-kaiz">Kaiz</span>
       <button className="zen-sidebar__collapse" type="button" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} onClick={() => onCollapsedChange?.(!collapsed)} disabled={!onCollapsedChange}>
-        <Icon name={collapsed ? "icon-layout-right-line" : "icon-layout-left-line"} size="sm" decorative />
+        <Icon name={collapsed ? "icon-layout-right-line" : "icon-layout-left-line"} size="base" decorative />
       </button>
     </div>
   );
+}
+
+/** Collapsed rail label: TooltipSurface portalled to <body> with fixed positioning so the
+ * sidebar surface's overflow clipping cannot cut it off. Hover shows after a short delay,
+ * keyboard focus (focus-visible) shows immediately, Escape/press dismisses. */
+function useRailTooltip(enabled: boolean, delay = 300) {
+  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
+  const timer = useRef<number | undefined>(undefined);
+  const clear = () => window.clearTimeout(timer.current);
+  const hide = () => { clear(); setPosition(null); };
+  const show = (target: HTMLElement, wait: number) => {
+    clear();
+    const place = () => { const rect = target.getBoundingClientRect(); setPosition({ top: rect.top + rect.height / 2, left: rect.right + 8 }); };
+    if (wait <= 0) place(); else timer.current = window.setTimeout(place, wait);
+  };
+  useEffect(() => clear, []);
+  useEffect(() => { if (!enabled) hide(); }, [enabled]);
+  useEffect(() => {
+    if (!position) return undefined;
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") hide(); };
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", hide, true);
+    return () => { document.removeEventListener("keydown", onKey); window.removeEventListener("scroll", hide, true); };
+  }, [position]);
+  const triggerProps = enabled ? {
+    onPointerEnter: (event: PointerEvent<HTMLElement>) => { if (event.pointerType !== "touch") show(event.currentTarget, delay); },
+    onPointerLeave: hide,
+    onPointerDown: hide,
+    onFocus: (event: FocusEvent<HTMLElement>) => { if (event.currentTarget.matches(":focus-visible")) show(event.currentTarget, 0); },
+    onBlur: hide,
+  } : {};
+  return { position: enabled ? position : null, triggerProps };
 }
 
 function defaultExpanded(item: SidebarItem) {
@@ -90,6 +124,7 @@ function SidebarItemView({
   const selected = item.selected ?? item.active ?? false;
   const theme = item.theme ?? (depth > 0 ? "accent" : "neutral");
   const state = item.disabled ? "disabled" : (item.state ?? "default");
+  const tooltip = useRailTooltip(collapsed && !item.disabled);
 
   return (
     <div className="zen-sidebar__item-group" data-level={depth === 0 ? "master" : "child"}>
@@ -108,7 +143,7 @@ function SidebarItemView({
         aria-current={selected ? "page" : undefined}
         aria-expanded={hasChildren || item.dropdown ? isOpen : undefined}
         aria-label={collapsed ? item.label : undefined}
-        title={collapsed ? item.label : undefined}
+        {...tooltip.triggerProps}
       >
         {item.icon ? <span className="zen-sidebar__item-icon">{item.icon}</span> : null}
         <span className="zen-sidebar__item-label">{item.label}</span>
@@ -121,6 +156,10 @@ function SidebarItemView({
         ) : null}
         {item.trailingAction ? <span className="zen-sidebar__trailing-action">{item.trailingAction}</span> : null}
       </button>
+      {tooltip.position ? createPortal(
+        <TooltipSurface aria-hidden="true" className="zen-sidebar__rail-tooltip" style={{ top: tooltip.position.top, left: tooltip.position.left }}>{item.label}</TooltipSurface>,
+        document.body,
+      ) : null}
       {hasChildren && isOpen && !collapsed ? (
         <div className="zen-sidebar__sub-menu">{item.children!.map((child) => (
           <SidebarItemView key={child.id} item={child} depth={depth + 1} collapsed={collapsed} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick} />

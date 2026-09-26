@@ -1,0 +1,77 @@
+/* Figma Accordion/Text (239:16847). Root padding (Divider: block only; Box: all sides), a header row of
+   Title + chevron Wrapper (gap Spacing/Gap/Medium), then the content with a size-dependent gap:
+   Medium Gap/XSmall 8 · Large Gap/Small 12 · XLarge Gap/Medium 16. */
+.zen-accordion {
+  --zen-accordion-padding: var(--zen-spacing-padding-medium, 16px);
+  --zen-accordion-gap: var(--zen-spacing-gap-xsmall, 8px);
+  --zen-accordion-icon: var(--zen-element-size-popular-base, 20px);
+  --zen-accordion-icon-inset: var(--zen-spacing-padding-3-xsmall, 2px);
+  --zen-accordion-radius: var(--zen-corner-radius-large, 16px);
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  flex-direction: column;
+  padding: var(--zen-accordion-padding) 0;
+  color: var(--zen-color-content-neutral-strongest, #111);
+}
+.zen-accordion[data-size="large"] {
+  --zen-accordion-gap: var(--zen-spacing-gap-small, 12px);
+  --zen-accordion-icon: var(--zen-element-size-popular-medium, 24px);
+}
+.zen-accordion[data-size="xlarge"] {
+  --zen-accordion-padding: var(--zen-spacing-padding-xlarge, 24px);
+  --zen-accordion-gap: var(--zen-spacing-gap-medium, 16px);
+  --zen-accordion-icon: var(--zen-element-size-popular-large, 28px);
+  --zen-accordion-icon-inset: var(--zen-spacing-padding-2-xsmall, 4px);
+  --zen-accordion-radius: var(--zen-corner-radius-2-xlarge, 24px);
+}
+/* Theme=Divider: 1px Border/Neutral/Subtle rule under the item. Figma centres the stroke on the edge
+   without growing the 56/88/116px box, so it is drawn as an inset shadow instead of a border. */
+.zen-accordion[data-theme="divider"] { box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
+/* Theme=Box: Support/Neutral/Pale surface, padding on every side, Corner-Radius Large (XLarge: 2XLarge). */
+.zen-accordion[data-theme="box"] { padding: var(--zen-accordion-padding); border-radius: var(--zen-accordion-radius); background: var(--zen-color-background-support-neutral-pale, rgb(5 5 5 / 3%)); }
+
+.zen-accordion__trigger {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  gap: var(--zen-spacing-gap-medium, 16px);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: start;
+}
+.zen-accordion__trigger:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 4px; }
+.zen-accordion__title { min-width: 0; flex: 1 1 auto; color: var(--zen-color-content-neutral-strongest, #111); }
+/* XLarge Content has Padding/3XSmall above the title. */
+.zen-accordion[data-size="xlarge"] .zen-accordion__title { padding-top: var(--zen-spacing-padding-3-xsmall, 2px); }
+.zen-accordion__icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding-block: var(--zen-accordion-icon-inset);
+  color: var(--zen-color-content-neutral-strongest, #111);
+  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.zen-accordion__icon > .zen-icon { width: var(--zen-accordion-icon); height: var(--zen-accordion-icon); }
+.zen-accordion[data-expanded="true"] .zen-accordion__icon { transform: rotate(180deg); }
+
+/* Height animates between 0fr and 1fr; the content column stops before the chevron column. */
+.zen-accordion__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.zen-accordion[data-expanded="true"] .zen-accordion__panel { grid-template-rows: 1fr; }
+.zen-accordion__panel-inner { min-height: 0; overflow: hidden; }
+.zen-accordion__content {
+  padding-top: var(--zen-accordion-gap);
+  padding-inline-end: calc(var(--zen-accordion-icon) + var(--zen-spacing-gap-medium, 16px));
+  color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%));
+}
+@media (prefers-reduced-motion: reduce) {
+  .zen-accordion__panel, .zen-accordion__icon { transition: none; }
+}
