@@ -18,6 +18,8 @@ import { ChartCard, LineChart, StackBarChart } from "../components/Chart";
 import { MetricCard } from "../components/MetricWidget";
 import { EmptyState } from "../components/EmptyState";
 import { InlineMessage } from "../components/InlineMessage";
+import { SidePanel } from "../components/SidePanel";
+import { Table, TableText } from "../components/Table";
 import type { PlatformPage } from "./PlatformExamples";
 import { ChatDemoNote, useChatDemo } from "./chatDemo";
 import { PlatformPhone } from "./PlatformPhone";
@@ -42,9 +44,11 @@ function ConversationList({ label = "Conversations", count = mobileConversations
 }
 
 function ProjectList() {
+  // Opening a project selects it, like a conversation in ConversationList.
+  const [open, setOpen] = useState<string | null>(null);
   return (
     <List aria-label="Projects">
-      {mobileProjects.map((p) => <ListItem key={p.title} title={p.title} caption={p.caption} leading={<Avatar size="medium" shape="square" theme={p.theme} alt="" />} onClick={() => undefined} />)}
+      {mobileProjects.map((p) => <ListItem key={p.title} title={p.title} caption={p.caption} leading={<Avatar size="medium" shape="square" theme={p.theme} alt={p.title} />} selected={open === p.title} onClick={() => setOpen(p.title)} />)}
     </List>
   );
 }
@@ -120,11 +124,12 @@ function TopNavMediaExample() {
 
 function TopNavSegmentedExample() {
   const [tab, setTab] = useState("all");
+  const [open, setOpen] = useState<string | null>(null);
   const files = mobileFiles.filter((f) => tab === "all" || (tab === "shared" ? f.shared : f.starred));
   return (
     <PlatformPhone label="Files with a control bar" header={<TopNavigation type="compact" title="Files" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} trailing={[{ icon: "icon-plus-line", label: "Upload" }]} controlBar={<Segmented fullWidth options={[{ id: "all", label: "All" }, { id: "shared", label: "Shared" }, { id: "starred", label: "Starred" }]} value={tab} onChange={setTab} aria-label="Filter files" />} />}>
       <List aria-label="Files">
-        {files.map((f) => <ListItem key={f.name} title={f.name} caption={f.caption} onClick={() => undefined} />)}
+        {files.map((f) => <ListItem key={f.name} title={f.name} caption={f.caption} selected={open === f.name} onClick={() => setOpen(f.name)} />)}
       </List>
     </PlatformPhone>
   );
@@ -134,6 +139,7 @@ function TopNavSegmentedExample() {
 function BottomNavAppExample() {
   const [tab, setTab] = useState("home");
   const [unread, setUnread] = useState(true);
+  const [setting, setSetting] = useState<string | null>(null);
   const items = bottomNavItems.map((i) => (i.id === "inbox" ? { ...i, dot: unread } : i));
   return (
     <PlatformPhone canvas="canvas" label="App with tabs" header={<TopNavigation type="compact" title={items.find((i) => i.id === tab)?.label} />}
@@ -141,7 +147,7 @@ function BottomNavAppExample() {
       {tab === "home" ? <div style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px) var(--zen-spacing-padding-xlarge, 24px)" }}><PhotoFeed /></div> : null}
       {tab === "search" ? <><div style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px)" }}><Search placeholder="Search projects" /></div><ProjectList /></> : null}
       {tab === "inbox" ? <ConversationList label="Inbox" /> : null}
-      {tab === "profile" ? <List aria-label="Profile settings">{mobileSettings.map((s) => <ListItem key={s.title} title={s.title} caption={s.caption} onClick={() => undefined} />)}</List> : null}
+      {tab === "profile" ? <List aria-label="Profile settings">{mobileSettings.map((s) => <ListItem key={s.title} title={s.title} caption={s.caption} selected={setting === s.title} onClick={() => setSetting(s.title)} />)}</List> : null}
     </PlatformPhone>
   );
 }
@@ -181,12 +187,13 @@ function BottomNavLabelsExample() {
 function SheetShareExample() {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [file, setFile] = useState<string | null>(null);
   return (
     <PlatformPhone canvas="canvas" label="Share sheet" header={<TopNavigation type="compact" title="Brand refresh" trailing={[{ icon: "icon-share-01-line", label: "Share", onClick: () => { setCopied(false); setOpen(true); } }]} />}>
       <div className="pe-stack" style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px) var(--zen-spacing-padding-xlarge, 24px)", gap: "var(--zen-spacing-gap-large, 24px)" }}>
         <img className="pe-phone-feed__img" src={platformMedia.site[0].src} alt={platformMedia.site[0].alt} />
         <div className="pe-row pe-row--between"><strong className={`pe-text pe-text--strongest ${typographyStyles["Body/Base/Bold"]}`}>Brand refresh</strong><Button level="tertiary" size="sm" onClick={() => setOpen(true)}>Share project</Button></div>
-        <Card spacing="small" className="pe-list-card"><List aria-label="Project files">{mobileFiles.slice(0, 10).map((f) => <ListItem key={f.name} title={f.name} caption={f.caption} onClick={() => undefined} />)}</List></Card>
+        <Card spacing="small" className="pe-list-card"><List aria-label="Project files">{mobileFiles.slice(0, 10).map((f) => <ListItem key={f.name} title={f.name} caption={f.caption} selected={file === f.name} onClick={() => setFile(f.name)} />)}</List></Card>
       </div>
       <BottomSheet inline open={open} onOpenChange={setOpen} type="action" title={copied ? "Link copied" : "Share"} keepOpen onSelect={(item) => { if (item.id === "copy") setCopied(true); else setOpen(false); }}
         items={[{ id: "copy", label: copied ? "Copied" : "Copy link", icon: copied ? "icon-check-line" : "icon-link-01-line" }, { id: "mail", label: "Email", icon: "icon-mail-01-line" }, { id: "message", label: "Message", icon: "icon-message-chat-circle-line" }, { id: "remove", label: "Remove access", icon: "icon-trash-line", destructive: true }]} />
@@ -198,12 +205,13 @@ function SheetFilterExample() {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState({ unread: true, mentions: false });
   const [applied, setApplied] = useState(draft);
+  const [openId, setOpenId] = useState<string | null>(null);
   const count = Object.values(applied).filter(Boolean).length;
   return (
     <PlatformPhone label="Filters in a sheet" header={<TopNavigation type="compact" title="Inbox" trailing={[{ icon: "icon-filter-lines-line", label: `Filters, ${count} applied`, dot: count > 0, onClick: () => { setDraft(applied); setOpen(true); } }]} />}>
       <List aria-label={`Messages, showing ${count ? Object.entries(applied).filter(([, v]) => v).map(([k]) => k).join(" + ") : "everything"}`}>
         {mobileInbox.filter((m) => (!applied.unread || m.unread) && (!applied.mentions || m.mention)).map((m) => (
-          <ListItem key={m.id} title={m.subject} caption={`${m.person.name} · ${m.time}`} leading={<Avatar size="medium" background="subtle" alt="" {...avatarOf(m.person)} />} onClick={() => undefined} />
+          <ListItem key={m.id} title={m.subject} caption={`${m.person.name} · ${m.time}`} leading={<Avatar size="medium" background="subtle" alt="" {...avatarOf(m.person)} />} selected={openId === m.id} onClick={() => setOpenId(m.id)} />
         ))}
       </List>
       <BottomSheet inline open={open} onOpenChange={setOpen} title="Filters" primaryAction={{ label: "Apply", onClick: () => { setApplied(draft); setOpen(false); } }} secondaryAction={{ label: "Reset", onClick: () => setDraft({ unread: false, mentions: false }) }}>
@@ -218,8 +226,9 @@ function SheetFormExample() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [created, setCreated] = useState<string[]>([]);
+  const [tab, setTab] = useState("home");
   return (
-    <PlatformPhone label="Quick create" header={<TopNavigation type="compact" title="My tasks" />} footer={<BottomNavigation type="floating" items={bottomNavItems} value="home" onValueChange={() => undefined} action={{ icon: "icon-plus-line", label: "New task", onClick: () => setOpen(true) }} />}>
+    <PlatformPhone label="Quick create" header={<TopNavigation type="compact" title="My tasks" />} footer={<BottomNavigation type="floating" items={bottomNavItems} value={tab} onValueChange={setTab} action={{ icon: "icon-plus-line", label: "New task", onClick: () => setOpen(true) }} />}>
       <div className="pe-floating-room"><TaskList extra={created} /></div>
       <BottomSheet inline open={open} onOpenChange={setOpen} title="New task" actionsDirection="vertical"
         primaryAction={{ label: "Create task", disabled: !title.trim(), onClick: () => { setCreated((c) => [title.trim(), ...c]); setTitle(""); setOpen(false); } }} secondaryAction={{ label: "Cancel" }}>
@@ -233,6 +242,7 @@ function SheetFormExample() {
 function SheetSettingsExample() {
   const [open, setOpen] = useState(false);
   const [wifi, setWifi] = useState(true);
+  const [setting, setSetting] = useState<string | null>(null);
   return (
     <PlatformPhone canvas="canvas" label="Full-height settings sheet" header={<TopNavigation type="compact" title="Device" trailing={[{ icon: "icon-settings-01-line", label: "Settings", onClick: () => setOpen(true) }]} />}>
       <div className="pe-stack" style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px) var(--zen-spacing-padding-xlarge, 24px)", gap: "var(--zen-spacing-gap-large, 24px)" }}>
@@ -243,7 +253,7 @@ function SheetSettingsExample() {
       <BottomSheet inline open={open} onOpenChange={setOpen} size="max" title="Settings" search={<Search placeholder="Search settings" />}>
         <List aria-label="Settings">
           <ListItem title="Sync over Wi-Fi only" caption={wifi ? "On" : "Off"} trailing={<ToggleButton aria-label="Sync over Wi-Fi only" selected={wifi} onSelectedChange={setWifi} />} />
-          {mobileSettings.map((s) => <ListItem key={s.title} title={s.title} caption={s.caption} onClick={() => undefined} />)}
+          {mobileSettings.map((s) => <ListItem key={s.title} title={s.title} caption={s.caption} selected={setting === s.title} onClick={() => setSetting(s.title)} />)}
         </List>
       </BottomSheet>
     </PlatformPhone>
@@ -414,20 +424,79 @@ function AiEmptyExample() {
   );
 }
 
+const longPrompt = "Write a detailed summary of the key findings from the quarterly performance report, grouped by team, with one risk per team.";
+
 function AiLongPromptExample() {
-  return <AiChatField fieldStyle="surface" model="AI Model V 1.0" defaultValue="Write a detailed summary of the key findings from the quarterly performance report, grouped by team, with one risk per team." onSubmit={() => undefined} />;
+  // Sending moves the prompt into the thread and the assistant answers; Stop ends the answer early. The field stays
+  // mounted in the thread, so it keeps focus and empties for the next prompt.
+  type Turn = { id: number; prompt: string; answer: string };
+  const [turns, setTurns] = useState<Turn[]>([]);
+  const [busy, setBusy] = useState(false);
+  const timer = useRef<number | undefined>(undefined);
+  const ask = (prompt: string) => {
+    const answer = prompt === longPrompt
+      ? "Q3 by team:\n• Product: 4 of 5 roadmap items shipped. Risk: the chat kit slips to November.\n• Design: token rename done. Risk: 38 near-duplicate icons.\n• Engineering: build time down 30%. Risk: two flaky test suites.\n• Support: first reply in 1h 12m. Risk: billing tickets up 18%."
+      : "Here is a first draft. Tell me what to change.";
+    setTurns((all) => [...all, { id: Date.now(), prompt, answer }]);
+    setBusy(true);
+    timer.current = window.setTimeout(() => setBusy(false), 900);
+  };
+  const stop = () => {
+    window.clearTimeout(timer.current);
+    setTurns((all) => all.map((turn, i) => (i === all.length - 1 ? { ...turn, answer: "Stopped before the answer was ready." } : turn)));
+    setBusy(false);
+  };
+  return (
+    <AiChatThread>
+      {turns.map((turn, i) => [
+        <AiChatBubble key={`${turn.id}-you`} side="you">{turn.prompt}</AiChatBubble>,
+        busy && i === turns.length - 1 ? <AiChatBubble key={`${turn.id}-ai`} side="ai" thinking /> : <AiChatBubble key={`${turn.id}-ai`} side="ai">{turn.answer}</AiChatBubble>,
+      ])}
+      <AiChatField fieldStyle="surface" model="AI Model V 1.0" defaultValue={longPrompt} busy={busy} onStop={stop} onSubmit={ask} />
+    </AiChatThread>
+  );
 }
 
 /* ── Chart ──────────────────────────────────────────────────────── */
 const money = (v: number) => (v === 0 ? "0" : `$${Math.round(v / 100) / 10}K`);
+const usd = (v: number) => `$${v.toLocaleString("en-US")}`;
+
+/** Chart Card "Open report" (the header chevron): a modal Side Panel with the numbers behind the chart. */
+export function ChartReportPanel({ open, onOpenChange, title, description, head, rows, total }: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description?: string;
+  /** Headers of the label column and the value column. */
+  head: [string, string];
+  rows: Array<[string, string]>;
+  /** A last row in bold, e.g. ["Total", "$78,000"]. */
+  total?: [string, string];
+}) {
+  const lines = [...rows.map(([label, value]) => ({ id: label, label, value, bold: false })), ...(total ? [{ id: "total", label: total[0], value: total[1], bold: true }] : [])];
+  return (
+    <SidePanel open={open} onOpenChange={onOpenChange} type="modal" title={title} description={description}>
+      <Table aria-label={title} rows={lines}
+        columns={[
+          { id: "label", header: head[0], cell: (row) => <TableText bold={row.bold}>{row.label}</TableText> },
+          { id: "value", header: head[1], align: "right", cell: (row) => <TableText bold={row.bold}>{row.value}</TableText> },
+        ]} />
+    </SidePanel>
+  );
+}
+
+const revenueByMonth = [["Jan", 3200], ["Feb", 4100], ["Mar", 3900], ["Apr", 5600], ["May", 6100], ["Jun", 7300]].map(([label, value]) => ({ label: String(label), value: Number(value) }));
 
 function ChartDashboardExample() {
+  const [report, setReport] = useState(false);
   return (
     <div className="pe-chart-dash">
       <MetricCard label="Revenue" value="$48.2K" icon="icon-credit-card-line" size="large" trend={{ direction: "positive", label: "+12% vs. last month" }} />
-      <ChartCard title="Revenue" onOpen={() => undefined}>
-        <LineChart aria-label="Revenue by month" data={[["Jan", 3200], ["Feb", 4100], ["Mar", 3900], ["Apr", 5600], ["May", 6100], ["Jun", 7300]].map(([label, value]) => ({ label: String(label), value: Number(value) }))} format={money} height={200} />
+      <ChartCard title="Revenue" onOpen={() => setReport(true)}>
+        <LineChart aria-label="Revenue by month" data={revenueByMonth} format={money} height={200} />
       </ChartCard>
+      <ChartReportPanel open={report} onOpenChange={setReport} title="Revenue report" description="Monthly revenue, January to June."
+        head={["Month", "Revenue"]} rows={revenueByMonth.map((point) => [point.label, usd(point.value)])} total={["Total", usd(revenueByMonth.reduce((sum, point) => sum + point.value, 0))]} />
     </div>
   );
 }
@@ -442,12 +511,31 @@ function ChartRangeExample() {
   );
 }
 
+/* Budget Allocation: one $78K budget grouped three ways; the range switch picks the grouping. Values in $K per quarter. */
+type BudgetView = { label: string; series: Array<{ id: string; label: string }>; quarters: Array<[string, ...number[]]> };
+const budgetViews: Record<"dept" | "cat" | "proj", BudgetView> = {
+  dept: { label: "Department", series: budgetSeries, quarters: [["Q1", 8, 3, 4, 2, 1], ["Q2", 9, 4, 5, 2, 1], ["Q3", 7, 3, 4, 3, 1], ["Q4", 10, 3, 3, 3, 2]] },
+  cat: { label: "Category", series: [{ id: "salaries", label: "Salaries" }, { id: "software", label: "Software" }, { id: "hardware", label: "Hardware" }, { id: "travel", label: "Travel" }, { id: "events", label: "Events" }],
+    quarters: [["Q1", 10, 3, 2, 2, 1], ["Q2", 11, 4, 2, 2, 2], ["Q3", 10, 3, 1, 2, 2], ["Q4", 12, 3, 2, 1, 3]] },
+  proj: { label: "Project", series: [{ id: "web", label: "Web app" }, { id: "mobile", label: "Mobile app" }, { id: "ds", label: "Design system" }, { id: "brand", label: "Brand refresh" }],
+    quarters: [["Q1", 7, 5, 4, 2], ["Q2", 8, 6, 4, 3], ["Q3", 6, 6, 4, 2], ["Q4", 7, 7, 5, 2]] },
+};
+
 function ChartBudgetExample() {
+  const [view, setView] = useState<keyof typeof budgetViews>("dept");
+  const [report, setReport] = useState(false);
+  const { label, series, quarters } = budgetViews[view];
+  const yearTotal = (index: number) => quarters.reduce((sum, [, ...values]) => sum + values[index], 0) * 1000;
   return (
-    <ChartCard title="Budget Allocation" onOpen={() => undefined} ranges={[{ id: "dept", label: "Department" }, { id: "cat", label: "Category" }, { id: "proj", label: "Project" }]} range="dept">
-      <StackBarChart aria-label="Budget by department and quarter" series={budgetSeries} format={money}
-        data={[["Q1", 8, 3, 4, 2, 1], ["Q2", 9, 4, 5, 2, 1], ["Q3", 7, 3, 4, 3, 1], ["Q4", 10, 3, 3, 3, 2]].map(([label, ...v]) => ({ label: String(label), values: Object.fromEntries(budgetSeries.map((s, i) => [s.id, Number(v[i]) * 1000])) }))} />
-    </ChartCard>
+    <>
+      <ChartCard title="Budget Allocation" onOpen={() => setReport(true)} ranges={Object.entries(budgetViews).map(([id, v]) => ({ id, label: v.label }))}
+        range={view} onRangeChange={(id) => setView(id as keyof typeof budgetViews)}>
+        <StackBarChart key={view} aria-label={`Budget by ${label.toLowerCase()} and quarter`} series={series} format={money}
+          data={quarters.map(([quarter, ...values]) => ({ label: quarter, values: Object.fromEntries(series.map((s, i) => [s.id, values[i] * 1000])) }))} />
+      </ChartCard>
+      <ChartReportPanel open={report} onOpenChange={setReport} title="Budget allocation report" description={`This year's budget by ${label.toLowerCase()}.`}
+        head={[label, "Year total"]} rows={series.map((s, i) => [s.label, usd(yearTotal(i))])} total={["Total", usd(series.reduce((sum, _s, i) => sum + yearTotal(i), 0))]} />
+    </>
   );
 }
 
@@ -643,22 +731,32 @@ export const mobileExamples: Partial<Record<PlatformPage, ExampleDef[]>> = {
     { title: "Empty state", description: "The Block greets and offers suggestions that start a conversation.", render: () => <AiEmptyExample />, code: `<AiChatBlock suggestions={[{ label: "Help me write", icon: "icon-pencil-line", onClick: () => ask("…") }]}>
   <AiChatField model="AI Model V 1.0" onSubmit={ask} />
 </AiChatBlock>` },
-    { title: "Long prompt", description: "Surface style; a long prompt moves above the controls (State=Long-Typing).", wide: true, render: () => <AiLongPromptExample />, code: `<AiChatField fieldStyle="surface" model="AI Model V 1.0" onSubmit={ask} />` },
+    { title: "Long prompt", description: "Surface style; a long prompt moves above the controls (State=Long-Typing). Sending moves it into the thread and the assistant answers; Stop ends the answer early.", wide: true, render: () => <AiLongPromptExample />, code: `<AiChatThread>
+  {turns}
+  <AiChatField fieldStyle="surface" model="AI Model V 1.0" busy={busy} onStop={stop} onSubmit={ask} />
+</AiChatThread>` },
     { title: "Error and retry", description: "A failed answer becomes a Negative Inline Message that keeps the question and offers Try again; the retry streams.", render: () => <AiErrorExample />, code: `<AiChatBubble side="you">{question}</AiChatBubble>
 {error ? <InlineMessage theme="negative" title="The assistant couldn't finish this answer" action={{ label: "Try again", onClick: retry }}>
   The connection dropped after 12 seconds. Your question is kept.
 </InlineMessage> : <AiChatBubble side="ai" streaming={busy}>{answer}</AiChatBubble>}` },
   ],
   chart: [
-    { title: "Dashboard tile", description: "A Chart Card next to a Metric Card; the chevron opens the full report.", wide: true, render: () => <ChartDashboardExample />, code: `<MetricCard label="Revenue" value="$48.2K" icon="icon-credit-card-line" trend={{ direction: "positive", label: "+12% vs. last month" }} />
-<ChartCard title="Revenue" onOpen={openReport}>
+    { title: "Dashboard tile", description: "A Chart Card next to a Metric Card; the chevron opens the report in a modal Side Panel.", wide: true, render: () => <ChartDashboardExample />, code: `<MetricCard label="Revenue" value="$48.2K" icon="icon-credit-card-line" trend={{ direction: "positive", label: "+12% vs. last month" }} />
+<ChartCard title="Revenue" onOpen={() => setReport(true)}>
   <LineChart aria-label="Revenue by month" data={months} format={money} height={200} />
-</ChartCard>` },
+</ChartCard>
+<SidePanel open={report} onOpenChange={setReport} type="modal" title="Revenue report" description="Monthly revenue, January to June.">
+  <Table aria-label="Revenue report" rows={months} columns={columns} />
+</SidePanel>` },
     { title: "Range switch", description: "The Segmented range swaps the dataset; ←/→ move between points.", render: () => <ChartRangeExample />, code: `<ChartCard title="Sign-ups" ranges={ranges} range={range} onRangeChange={setRange}>
   <LineChart aria-label={\`Sign-ups, \${range}\`} data={data[range]} />
 </ChartCard>` },
-    { title: "Budget allocation", description: "Stack-bar with the Figma palette and legend; the tooltip shows the column total.", render: () => <ChartBudgetExample />, code: `<ChartCard title="Budget Allocation" onOpen={openReport} ranges={views} range="dept">
-  <StackBarChart aria-label="Budget by department and quarter" series={departments} data={quarters} format={money} />
+    { title: "Budget allocation", description: "Stack-bar with the Figma palette and legend; the tooltip shows the column total. The range regroups the same budget by department, category or project; the chevron opens the report.", render: () => <ChartBudgetExample />, code: `const [view, setView] = useState("dept"); // budgetViews: { dept: { label: "Department", series, data }, cat: …, proj: … }
+const { label, series, data } = budgetViews[view];
+
+<ChartCard title="Budget Allocation" onOpen={() => setReport(true)}
+  ranges={Object.entries(budgetViews).map(([id, v]) => ({ id, label: v.label }))} range={view} onRangeChange={setView}>
+  <StackBarChart key={view} aria-label={\`Budget by \${label.toLowerCase()} and quarter\`} series={series} data={data} format={money} />
 </ChartCard>` },
     { title: "Inline trend", description: "A bare LineChart inside a page section with a status Badge.", render: () => <ChartInlineExample />, code: `<LineChart aria-label="Storage used over six months, in GB" data={storage} format={(v) => \`\${v} GB\`} height={180} />` },
     { title: "No data yet", description: "Before there is data the card keeps its title and shows an Empty State with the action that produces data — never an empty grid.", render: () => <ChartEmptyExample />, code: `<ChartCard title="Weekly sign-ups">

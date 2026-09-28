@@ -423,12 +423,13 @@ textarea.zen-heading-field__native { resize: none; overflow: hidden; }
 /* Interactive Leading/Trailing picker: a labelled slot with options opens the shared Popover.
    Focus inside the picker is not field focus, so the Focused ring rules above exclude it. */
 .zen-input-leading-trailing__picker { position: relative; display: inline-flex; }
-.zen-input-leading-trailing--interactive { margin: -4px -6px; padding: 4px 6px; border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: transparent; color: inherit; font: inherit; cursor: pointer; }
+/* The hover plate bleeds past the slot without moving it, like the Breadcrumbs plate: Padding/2XSmall × Padding/XSmall. */
+.zen-input-leading-trailing--interactive { margin: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)) calc(-1 * var(--zen-spacing-padding-xsmall, 8px)); padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: transparent; color: inherit; font: inherit; cursor: pointer; }
 .zen-input-leading-trailing--interactive:hover:not(:disabled) { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
 .zen-input-leading-trailing--interactive:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 0; }
 .zen-input-leading-trailing--interactive:disabled { cursor: default; }
 /* Icon-only action slot: square 4px hit padding so the hover fill stays centred on the icon. */
-.zen-input-leading-trailing--interactive[data-icon-only="true"] { margin: -4px; padding: 4px; }
+.zen-input-leading-trailing--interactive[data-icon-only="true"] { margin: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)); padding: var(--zen-spacing-padding-2-xsmall, 4px); }
 .zen-input-leading-trailing--interactive[data-icon-only="true"] > .zen-input-leading-trailing__elements:empty { display: none; }
 /* Position comes from Popover's anchored placement (4px from the field box, flips above near the viewport edge). */
 /* The field clips its content; let an open picker escape it. */

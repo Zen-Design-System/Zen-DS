@@ -65,7 +65,7 @@
 /* Figma Trailing: Element-Size/Popular/Small (16) for an icon; it hugs a Button/Icon-Flat XSmall (24) or a Badge. */
 .zen-popover__item-trailing { width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex-basis: var(--zen-element-size-popular-small, 16px); }
 .zen-popover__item-trailing:has(> .zen-button, > .zen-badge) { width: auto; height: auto; flex-basis: auto; }
-.zen-popover__item[data-tone="badge"] .zen-popover__item-trailing { width: auto; min-width: 20px; flex-basis: auto; }
+.zen-popover__item[data-tone="badge"] .zen-popover__item-trailing { width: auto; min-width: var(--zen-element-size-popular-base, 20px); flex-basis: auto; }
 /* .Primitives/Popover/Item/Content themes: leading sizes and the icon→content gap
    (Spacing/Gap/Small = 8 + 4 margin; Avatar Big uses Spacing/Gap/Medium). */
 .zen-popover__item[data-tone="photo-small"] .zen-popover__item-leading { width: var(--zen-image-size-2-xsmall); height: var(--zen-image-size-2-xsmall); flex-basis: var(--zen-image-size-2-xsmall); }

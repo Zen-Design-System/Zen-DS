@@ -3,7 +3,7 @@
 .zen-chat-reactors .zen-list { --zen-list-inset: 0px; }
 /* With emoji tabs the list sits in their tab panel; like the list itself, the panel may shrink so long names truncate. */
 .zen-chat-reactors__panel { min-width: 0; }
-.zen-chat-reactors__emoji { display: inline-flex; width: 24px; height: 24px; align-items: center; justify-content: center; color: var(--zen-color-content-neutral-strongest, #111); font-size: 20px; line-height: 1; }
+.zen-chat-reactors__emoji { display: inline-flex; width: var(--zen-element-size-popular-medium, 24px); height: var(--zen-element-size-popular-medium, 24px); align-items: center; justify-content: center; color: var(--zen-color-content-neutral-strongest, #111); font-size: var(--zen-typography-font-size-heading-4, 20px); line-height: 1; }
 /* Colour emoji inherit the alpha of `color`; an opaque colour keeps them at full strength in every tab state. */
 .zen-chat-reactors__tab-emoji { color: var(--zen-color-content-neutral-strongest, #111); }
 /* Desktop: a Popover under the pill, portalled to the body so the thread never clips it; above page chrome. */

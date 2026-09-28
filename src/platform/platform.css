@@ -225,6 +225,7 @@
 .official-sidebar__search > .zen-search { width: 100%; }
 .official-sidebar__search-status:empty { display: none; }
 .official-sidebar__search-status { padding-inline: var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); font: var(--zen-emphasis-font-weight-regular, 400) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter, sans-serif); }
+/* zen-allow-slot-size: holds the Zen logo artwork at its Figma 28px (platform sidebar header), not a token-sized icon. */
 .official-sidebar__brand-mark { display: inline-flex; width: 28px; height: 28px; flex: 0 0 28px; align-items: center; justify-content: center; color: var(--zen-color-content-neutral-strongest, #111); }
 .official-sidebar__brand-name { min-width: 0; flex: 1 1 auto; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-semi-bold, 600) var(--zen-typography-font-size-body-extra, 16px)/var(--zen-typography-line-height-body-extra, 24px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-extra, -0.16px); }
 
@@ -242,9 +243,10 @@
 .official-topbar__breadcrumb[aria-current="page"] { background: var(--zen-color-background-neutral-flat-default, transparent); }
 .official-topbar__trailing { display: inline-flex; min-width: 0; flex: 0 1 auto; align-items: center; justify-content: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .official-topbar__controls { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.official-topbar__controls .zen-chip { --zen-chip-icon: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); flex: 0 0 auto; box-shadow: 0 1px .5px var(--zen-button-tertiary-shadow-default, rgb(0 0 0 / 4%)); backdrop-filter: blur(20px); }
+.official-topbar__controls .zen-chip { --zen-chip-icon: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); flex: 0 0 auto; box-shadow: var(--zen-style-shadow-action-tertiary-shadow); backdrop-filter: var(--zen-style-shadow-action-tertiary-backdrop-filter, blur(20px)); }
 .official-topbar__controls .zen-chip__dropdown { flex: 0 0 auto; }
 .official-topbar__segmented { flex: 0 0 auto; }
+/* zen-allow-raw-spacing: the page's end space under the last section (platform layout; beyond the 48px padding scale). */
 .official-page { display: flex; width: calc(100% - 48px); margin: 0 auto; flex-direction: column; gap: var(--zen-spacing-gap-giant, 64px); padding-bottom: 120px; }
 
 .official-overview { display: flex; width: 100%; flex-direction: column; padding-top: var(--zen-spacing-padding-small, 12px); }
@@ -252,14 +254,21 @@
    Body Content is the full 1204 column (x=24 already comes from .official-page) and centres its children. */
 .official-overview__content { display: flex; width: 100%; max-width: 1600px; box-sizing: border-box; margin: 0 auto; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-giant, 64px); padding: calc(var(--zen-spacing-padding-small, 12px) + var(--zen-margin-comfortable, 24px)) 0 var(--zen-margin-comfortable, 24px); }
 .official-cover { position: relative; display: flex; width: min(1204px, 100%); height: 492px; box-sizing: border-box; overflow: hidden; padding: var(--zen-spacing-padding-2-xlarge, 32px); border-radius: var(--zen-corner-radius-2-xlarge, 24px); background: var(--official-accent); }
+/* Cover art (Codebase Platform 14240:26923, _Cover): Figma draws it with raw values — the 37×34 .logo-Zen, the rotated
+   202×233 vectors, the 30px Frame gap, TASA Explorer Black 120px (78% line, −4% tracking) and a black 20% divider.
+   zen-allow-slot-size zen-allow-raw-spacing zen-allow-raw-type zen-allow-raw-colour: the cover rules below copy them. */
 .official-cover__logo { position: absolute; top: 32px; left: 32px; width: 37px; height: 34px; background: var(--zen-color-content-on-brights, #000000db); mask: url("../assets/figma/official/logo-zen.svg") center / contain no-repeat; }
 .official-cover__kaiz { position: absolute; top: 32px; right: 32px; color: var(--zen-color-content-on-brights, #000000db); font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-all-caps-m, 14px)/var(--zen-typography-line-height-all-caps-m, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-all-caps-m, 0); text-transform: uppercase; }
 .official-cover__vector { position: absolute; top: calc(50% + .6px); display: flex; width: 291.707px; height: 302.986px; align-items: center; justify-content: center; transform: translateY(-50%); }
 .official-cover__vector--left { left: 30.46px; }
 .official-cover__vector--right { right: 19.83px; }
+/* zen-allow-slot-size: Figma vector artwork size (see the cover note above). */
 .official-cover__vector img { display: block; width: 202.266px; height: 233.08px; transform: rotate(30deg); }
+/* zen-allow-raw-spacing: Figma cover Frame gap 30 (raw). */
 .official-cover__body { display: flex; width: 100%; height: 428px; box-sizing: border-box; flex-direction: column; align-items: center; gap: 30px; padding: 0; }
+/* zen-allow-raw-type: Figma cover title, TASA Explorer Black 120px / 78% / −4% (raw, not a text style). */
 .official-cover h1 { width: 396px; max-width: 100%; margin: 0; color: var(--zen-color-content-on-brights, #000000db); font-family: var(--zen-typography-font-family-display), sans-serif; font-size: 120px; font-weight: 900; letter-spacing: -4.8px; line-height: .78; text-align: center; text-transform: uppercase; white-space: nowrap; }
+/* zen-allow-raw-colour: Figma cover divider fill is black at 20% (raw, 14263:98631). */
 .official-cover__divider { width: 2px; min-height: 0; flex: 1 1 auto; background: rgb(0 0 0 / 20%); }
 .official-cover__meta { display: grid; width: 100%; flex: 0 0 auto; grid-template-columns: repeat(3, minmax(0, 1fr)); color: var(--zen-color-content-on-brights, #000000db); font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-all-caps-m, 14px)/var(--zen-typography-line-height-all-caps-m, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-all-caps-m, 0px); text-transform: uppercase; }
 .official-cover__meta span:nth-child(2) { text-align: center; }
@@ -271,7 +280,7 @@
 
 .official-card-grid { display: grid; width: 100%; max-width: 1600px; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: var(--zen-spacing-gap-medium, 16px); margin: 0 auto; }
 .official-card { min-height: 232px; padding: var(--zen-card-padding-medium, 24px); border: 0; border-radius: var(--zen-corner-radius-2-xlarge, 24px); background: var(--official-surface); box-shadow: var(--platform-surface-shadow); text-align: left; }
-.official-card:hover { box-shadow: 0 4px 12px rgb(0 0 0 / 9%); transform: translateY(-1px); }
+.official-card:hover { box-shadow: var(--zen-style-shadow-bottom-level-2-shadow); transform: translateY(-1px); }
 .official-card--foundation,
 .official-card--components,
 .official-card--patterns,
@@ -291,14 +300,20 @@
 
 .platform-page-template { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding-top: var(--zen-spacing-padding-small, 12px); }
 .platform-page-hero { position: relative; display: flex; box-sizing: border-box; height: 400px; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); align-items: flex-start; overflow: hidden; padding: var(--zen-spacing-padding-3-xlarge, 40px); border-radius: var(--zen-corner-radius-2-xlarge, 24px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); }
+/* Page hero (Codebase Platform template covers, e.g. 14257:57020 "Global Colors"): raw Figma values like the Overview cover —
+   the 28px logo art, Frame 78 gap 30, TASA Explorer Black 120px (86% line, −2% tracking).
+   zen-allow-slot-size zen-allow-raw-spacing zen-allow-raw-type: the hero rules below copy them. */
 .platform-page-hero__logo { position: absolute; top: var(--zen-spacing-padding-3-xlarge, 40px); left: var(--zen-spacing-padding-3-xlarge, 40px); width: 28px; height: 28px; background: var(--zen-color-content-neutral-strongest, #111); mask: url("../assets/figma/official/logo-zen.svg") center / contain no-repeat; }
 .platform-page-hero__kaiz { position: absolute; top: var(--zen-spacing-padding-3-xlarge, 40px); right: var(--zen-spacing-padding-3-xlarge, 40px); color: var(--zen-color-content-neutral-strongest, #111); font-family: var(--zen-typography-font-family-sans, Inter), sans-serif; font-size: var(--zen-typography-font-size-all-caps-m, 14px); font-weight: var(--zen-emphasis-font-weight-bold, 600); letter-spacing: var(--zen-typography-letter-spacing-all-caps-m, 0); line-height: var(--zen-typography-line-height-all-caps-m, 16px); text-transform: uppercase; }
+/* zen-allow-raw-spacing: Figma hero Frame 78 gap 30 (raw). */
 .platform-page-hero__main { display: flex; width: 100%; min-height: 0; flex: 1 1 auto; flex-direction: column; gap: 30px; align-items: center; }
+/* zen-allow-raw-type: Figma hero title, TASA Explorer Black 120px / 86% / −2% (raw). */
 .platform-page-hero h1 { width: 100%; max-width: 900px; margin: 0; color: var(--zen-color-content-neutral-strongest, #111); font-family: var(--zen-typography-font-family-display), sans-serif; font-size: 120px; font-weight: 900; letter-spacing: -2.4px; line-height: .86; text-align: center; text-transform: uppercase; }
 .platform-page-hero h1 span { display: block; }
 .platform-page-hero__divider { width: 2px; min-height: 0; flex: 1 1 auto; background: var(--zen-color-content-neutral-strongest, #111); opacity: .2; }
 .platform-page-hero__meta { display: flex; width: 100%; flex: 0 0 auto; justify-content: space-between; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-all-caps-m, 14px)/var(--zen-typography-line-height-all-caps-m, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-all-caps-m, 0); text-transform: uppercase; }
-.platform-page-template__body { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-3-xlarge, 48px); padding: var(--zen-spacing-gap-3-xlarge, 48px) 0 96px; }
+/* zen-allow-raw-spacing: 96px end space under the page body (platform layout; beyond the 48px padding scale). */
+.platform-page-template__body { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-3-xlarge, 48px); padding: var(--zen-spacing-padding-4-xlarge, 48px) 0 96px; }
 .platform-page-intro { width: min(800px, 100%); margin: 0 auto; text-align: center; }
 .platform-page-intro p { margin: 0; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
 .platform-page-template__body > .foundation-shell,
@@ -310,10 +325,13 @@
 .platform-code__language-group { display: flex; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
 .platform-code__language { width: 196px; }
 .platform-code__language .zen-input__control { width: 196px; }
-.platform-code pre { min-height: 228px; box-sizing: border-box; margin: 0; padding: var(--zen-spacing-padding-medium, 16px); overflow: auto; border-radius: var(--zen-corner-radius-small, 8px); background: var(--platform-code-background); color: var(--platform-code-foreground); color-scheme: dark; font-family: var(--platform-code-font, monospace); font-size: 13px; line-height: 1.6; }
+.platform-code pre { min-height: 228px; box-sizing: border-box; margin: 0; padding: var(--zen-spacing-padding-medium, 16px); overflow: auto; border-radius: var(--zen-corner-radius-small, 8px); background: var(--platform-code-background); color: var(--platform-code-foreground); color-scheme: dark; font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); }
+/* zen-allow-raw-colour: syntax hues of the always-dark code view (a code theme, not UI colour roles; the surface itself uses
+   fixed Global primitives, see --platform-code-background). */
 .platform-code__token--keyword { color: #c792ea; }
 .platform-code__token--string { color: #c3e88d; }
 .platform-code__token--tag { color: #82aaff; }
+/* zen-allow-raw-colour: code theme hues, continued. */
 .platform-code__token--comment { color: #697386; font-style: italic; }
 .platform-code__token--number { color: #f78c6c; }
 .platform-code code { white-space: pre; }
@@ -324,16 +342,13 @@
 .platform-component-section__heading { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .platform-component-section__heading h2 { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-heading-4, 20px)/var(--zen-typography-line-height-heading-4, 28px) var(--zen-typography-font-family-heading, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-heading-4, -.6px); }
 .platform-component-section__heading p:last-child { max-width: 720px; margin: 0; color: var(--official-muted); font: var(--zen-emphasis-font-weight-regular, 400) var(--zen-typography-font-size-body-base, 14px)/var(--zen-typography-line-height-body-base, 20px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-base, -.14px); }
-.platform-example-page__header { max-width: 720px; padding: 24px 0 32px; }
-.platform-example-page__header h1 { margin: 10px 0 14px; }
-.platform-example-page__header > p:last-child { max-width: 560px; margin: 0; color: var(--official-muted); }
 .platform-example-panel { padding: var(--platform-surface-padding); border: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
 /* Installation page: one panel per step; commands use the always-dark code surface. */
 .platform-install { display: grid; gap: var(--zen-spacing-gap-medium, 16px); }
 .platform-install__step { display: grid; gap: var(--zen-spacing-gap-small, 12px); }
 .platform-install__step h2, .platform-install__step p { margin: 0; }
 .platform-install__step p { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
-.platform-install__command { margin: 0; overflow-x: auto; padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--platform-code-background); color: var(--platform-code-foreground); font: 13px/20px var(--platform-code-font, ui-monospace), ui-monospace, monospace; white-space: pre-wrap; }
+.platform-install__command { margin: 0; overflow-x: auto; padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--platform-code-background); color: var(--platform-code-foreground); font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); white-space: pre-wrap; }
 .platform-component-preview { box-sizing: border-box; }
 .platform-example-panel--stack { display: grid; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); grid-template-rows: 88px auto auto; grid-template-areas: "title controls" "preview controls" "code controls"; gap: 0; padding: 0; overflow: visible; border: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
 .platform-main-component__title { grid-area: title; box-sizing: border-box; width: 100%; margin: 0; padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-heading-3, 24px)/var(--zen-typography-line-height-heading-3, 32px) var(--zen-typography-font-family-heading, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-heading-3, -.72px); }
@@ -351,45 +366,27 @@
 .platform-example-panel--stack > .platform-example-row,
 .platform-example-panel--stack > .platform-input-preview { grid-area: preview; min-width: 0; min-height: 152px; box-sizing: border-box; justify-content: center; margin: 0 var(--zen-spacing-padding-xlarge, 24px); padding: var(--zen-spacing-padding-4-xlarge, 48px) var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); }
 .platform-example-panel--stack > .platform-code { grid-area: code; min-width: 0; margin: var(--zen-spacing-gap-xlarge, 32px) var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px); }
-.platform-code { display: grid; gap: 8px; }
+.platform-code { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .platform-code > summary { width: max-content; cursor: pointer; color: var(--official-muted); font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; }
 .platform-code pre { margin-top: 0; }
-.platform-example-panel--sidebar { width: min(420px, 100%); min-height: 560px; padding: 0; overflow: hidden; }
-.platform-sidebar-matrix { display: grid; grid-template-columns: repeat(2, minmax(260px, 1fr)); gap: 24px; align-items: start; }
-.platform-sidebar-matrix .platform-example-panel--sidebar { width: auto; min-height: 620px; }
-.platform-sidebar-matrix .platform-example-panel--sidebar-collapsed { min-width: 260px; }
-.platform-sidebar-matrix .platform-example-panel--workspace { grid-column: 1 / -1; overflow-x: auto; }
-.platform-sidebar-demo__brand { display: flex; width: 100%; align-items: center; gap: 8px; }
-.platform-sidebar-demo__brand-mark { display: inline-flex; width: 28px; height: 28px; flex: 0 0 28px; align-items: center; justify-content: center; color: var(--zen-color-content-neutral-strongest, #111); }
-.platform-sidebar-demo__brand-name { min-width: 0; flex: 1 1 auto; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-semi-bold, 600) var(--zen-typography-font-size-body-extra, 16px)/var(--zen-typography-line-height-body-extra, 24px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-extra, -0.16px); }
-.zen-sidebar[data-collapsed="true"] .platform-sidebar-demo__brand { flex-direction: column; gap: var(--zen-spacing-gap-large, 24px); }
-.zen-sidebar[data-collapsed="true"] .platform-sidebar-demo__brand-name { display: none; }
-.platform-sidebar-demo__brand > button { display: inline-flex; width: 32px; height: 32px; align-items: center; justify-content: center; margin-left: auto; border-radius: 999px; background: transparent; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
-.platform-sidebar-demo__brand > button:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
-.platform-sidebar-demo__workspace-mark { display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; }
-.platform-sidebar-demo__workspace-mark img { width: 28px; height: 28px; object-fit: contain; }
-.platform-sidebar-demo__workspace-tile { display: inline-flex; width: 38px; height: 38px; align-items: center; justify-content: center; border-radius: 12px; background: var(--zen-color-background-support-brown-solid, #9f6838); color: #fff; font-weight: 600; }
-.platform-sidebar-demo__workspace-tile--indigo { background: var(--zen-color-background-support-indigo-solid, #4752f0); }
-.platform-input-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
-.platform-input-grid > :nth-child(5) { grid-column: 1 / -1; }
 /* The preview well fills the column like every other playground; the field inside keeps a readable width. */
 .platform-input-preview > * { width: min(520px, 100%); margin-inline: auto; }
 /* Rich text is a full-width composition (Figma 920px Editor-Bar). */
 .platform-input-preview > .zen-rich-text-field { width: 100%; }
 .platform-input-conditions-demo { display: grid; width: 100%; gap: var(--zen-spacing-gap-small, 12px); }
-.platform-example-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.platform-example-row { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-small, 12px); align-items: center; }
 /* Room for the open Popover (Search + Label + 4 items) below the Chip / Select trigger. */
 .platform-example-panel--stack > .platform-popover-preview { min-height: 340px; align-items: flex-start; }
 .platform-popover-select { width: min(240px, 100%); }
-.platform-example-row--overlay { min-height: 96px; padding: 24px; border-radius: var(--zen-corner-radius-base, 12px); background: linear-gradient(135deg, #202020, #747474); }
+/* A dark stand-in photo for overlay components, the same in both themes: fixed Global grey primitives. */
+.platform-example-row--overlay { min-height: 96px; padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-base, 12px); background: linear-gradient(135deg, var(--zen-dark-gray-3, #202020), var(--zen-dark-gray-8, #636363)); }
 .platform-search-row > .zen-search { width: min(250px, 100%); }
-.platform-example-panel pre { overflow: auto; margin: 0; padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--platform-code-background); color: var(--platform-code-foreground); color-scheme: dark; font: 13px/1.6 var(--platform-code-font), "JetBrains Mono", monospace; }
-.platform-placeholder { color: var(--official-muted); font-size: 15px; }
-.platform-token-links { margin: 24px 0 0; padding: var(--platform-surface-padding); border: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
-.platform-token-links > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
-.platform-token-links button { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: var(--platform-inset-radius); background: var(--platform-inset-background); font-size: 13px; text-align: left; }
+.platform-example-panel pre { overflow: auto; margin: 0; padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--platform-code-background); color: var(--platform-code-foreground); color-scheme: dark; font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); }
+.platform-token-links { margin: var(--zen-spacing-gap-large, 24px) 0 0; padding: var(--platform-surface-padding); border: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
+.platform-token-links > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px); margin-top: var(--zen-spacing-gap-small, 12px); }
+.platform-token-links button { display: flex; align-items: center; justify-content: space-between; padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px); border-radius: var(--platform-inset-radius); background: var(--platform-inset-background); font-size: var(--zen-typography-font-size-body-base, 14px); line-height: var(--zen-typography-line-height-body-base, 20px); letter-spacing: var(--zen-typography-letter-spacing-body-base, -0.14px); text-align: left; }
 .platform-token-links button:hover { background: color-mix(in srgb, var(--official-accent) 18%, transparent); }
-.platform-token-links span { color: var(--official-muted); font-size: 11px; }
+.platform-token-links span { color: var(--official-muted); font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-small, 0px); }
 
 @media (max-width: 1100px) {
   .official-cover__vector { transform: translateY(-50%) scale(.86); transform-origin: center; }
@@ -439,18 +436,19 @@
   .platform-page-hero__logo { top: var(--zen-spacing-padding-xlarge, 24px); left: var(--zen-spacing-padding-xlarge, 24px); }
   .platform-page-hero__kaiz { top: var(--zen-spacing-padding-xlarge, 24px); right: var(--zen-spacing-padding-xlarge, 24px); }
   .platform-page-hero__main { padding-top: var(--zen-spacing-padding-3-xlarge, 40px); gap: var(--zen-spacing-gap-medium, 16px); }
+  /* zen-allow-raw-type: the raw Figma hero/cover titles scale with the viewport (see the cover and hero notes above). */
   .platform-page-hero h1 { font-size: clamp(36px, 10vw, 120px); letter-spacing: -0.02em; }
   .official-cover { height: auto; min-height: 360px; }
   .official-cover h1 { width: auto; font-size: clamp(56px, 19vw, 120px); letter-spacing: -0.04em; }
-  .official-intro h2 { line-height: 36px; }
+  .official-intro h2 { line-height: var(--zen-typography-line-height-heading-2, 36px); }
 }
 
 @media (max-width: 620px) {
   .official-content { min-height: 100vh; }
   .official-topbar__breadcrumbs { overflow: hidden; }
   .official-topbar__breadcrumb { max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
-  .official-intro { padding-inline: 10px; }
-  .official-intro h2 { font-size: 28px; }
+  .official-intro { padding-inline: var(--zen-spacing-padding-small, 12px); }
+  .official-intro h2 { font-size: var(--zen-typography-font-size-heading-2, 28px); letter-spacing: var(--zen-typography-letter-spacing-heading-2, -0.56px); }
   .official-card-grid { grid-template-columns: 1fr; }
   .official-card--foundation,
   .official-card--components,
@@ -459,10 +457,6 @@
   .official-card--development { grid-column: auto; grid-row: auto; }
   .official-card--center { grid-column: auto; width: auto; }
   .platform-token-links > div { grid-template-columns: 1fr; }
-  .platform-input-grid { grid-template-columns: 1fr; }
-  .platform-input-grid > :nth-child(5) { grid-column: auto; }
-  .platform-sidebar-matrix { grid-template-columns: 1fr; }
-  .platform-sidebar-matrix .platform-example-panel--workspace { grid-column: auto; }
 }
 
 /* ── Playground additions ── */
@@ -535,7 +529,7 @@
 .pe-nav-row { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); min-height: 36px; padding: 0 var(--zen-spacing-padding-xsmall, 8px); border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: transparent; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); text-align: left; cursor: pointer; }
 .pe-nav-row:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
 .pe-nav-row:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 0; }
-.pe-mark { border-radius: 2px; background: var(--zen-color-background-accent-subtle-default, rgb(255 102 212 / 16%)); color: inherit; }
+.pe-mark { border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-background-accent-subtle-default, rgb(255 102 212 / 16%)); color: inherit; }
 .pe-search-sm { width: min(220px, 100%); }
 .pe-search-sm .zen-search { width: 100%; }
 .pe-settings { display: grid; width: min(420px, 100%); gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-spacing-padding-large, 20px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); }
@@ -567,29 +561,29 @@
 .platform-progress-preview > .zen-progress-bar { width: min(360px, 100%); }
 .platform-breadcrumbs-preview, .platform-dialog-preview { flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); }
 .pe-truncate { display: block; min-width: 0; max-width: 220px; overflow: hidden; padding: 0; border: 0; background: none; color: var(--zen-color-content-neutral-strongest, #111); font: inherit; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: default; }
-.pe-truncate:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); border-radius: 4px; }
+.pe-truncate:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); border-radius: var(--zen-corner-radius-xsmall, 4px); }
 
 /* ── Usage guidelines ─────────────────────────────────────────────────
    Visual Do/Don't pairs (real components on a pale stage, verdict bar underneath), then a two-column
    checklist and a quiet meta row (accessibility, harness, references). */
-.pg { display: grid; gap: var(--zen-spacing-gap-2-xlarge, 40px); margin-top: var(--zen-spacing-gap-3-xlarge, 48px); padding-top: var(--zen-spacing-gap-3-xlarge, 48px); border-top: 1px solid var(--zen-color-border-neutral-pale-default, #01010110); color: var(--zen-color-content-neutral-strongest, #111); }
+.pg { display: grid; gap: var(--zen-spacing-gap-2-xlarge, 40px); margin-top: var(--zen-spacing-gap-3-xlarge, 48px); padding-top: var(--zen-spacing-padding-4-xlarge, 48px); border-top: 1px solid var(--zen-color-border-neutral-pale-default, #01010110); color: var(--zen-color-content-neutral-strongest, #111); }
 .pg h2, .pg h3, .pg p, .pg ul, .pg figure { margin: 0; }
 .pg-head { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); max-width: 760px; }
 .pg-muted { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
-.pg code { padding: 1px 5px; border-radius: 6px; background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); font-family: var(--zen-typography-font-family-dev, ui-monospace, monospace); font-size: .9em; }
+.pg code { padding: 1px var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); }
 
 /* When to use */
 .pg-when { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-large, 24px); }
 .pg-when__col { display: grid; align-content: start; gap: var(--zen-spacing-gap-small, 12px); }
-.pg-when__col h3, .pg-meta h3 { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); letter-spacing: .02em; text-transform: uppercase; }
+.pg-when__col h3, .pg-meta h3 { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); letter-spacing: var(--zen-typography-letter-spacing-all-caps-s, 0px); text-transform: uppercase; }
 .pg-when__col ul { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0; list-style: none; }
-.pg-when__col li { position: relative; padding-left: 16px; }
+.pg-when__col li { position: relative; padding-left: var(--zen-spacing-padding-medium, 16px); }
 .pg-when__col li::before { position: absolute; top: .6em; left: 2px; width: 5px; height: 5px; border-radius: 50%; background: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); content: ""; }
-.pg-arrow { margin: 0 6px; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.pg-arrow { margin: 0 var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .pg-target { font-weight: var(--zen-emphasis-font-weight-semi-bold, 600); }
 
 /* Verdict label */
-.pg-verdict { display: inline-flex; align-items: center; gap: 6px; }
+.pg-verdict { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .pg-verdict[data-kind="do"] { color: var(--zen-color-content-positive-base); }
 .pg-verdict[data-kind="dont"] { color: var(--zen-color-content-negative-base); }
 
@@ -613,10 +607,11 @@
 .pgv-grow { flex: 1 1 auto; min-width: 0; }
 .pgv-skeleton-card { display: flex; width: min(320px, 100%); align-items: center; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); }
 .pgv-skeleton-card .zen-skeleton-text { width: 100%; }
-.pgv-note { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); font-size: 13px; }
+.pgv-note { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-small, 0px); }
 .pgv-popover .zen-popover { position: relative; top: auto; left: auto; }
 .pgv-popover-form { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px); }
 .pgv-popover-form .zen-button { justify-self: end; }
+/* zen-allow-raw-spacing: room under the anchor for the open Tooltip inside the Do/Don't stage. */
 .pg-example__stage .zen-tooltip-anchor { margin-bottom: 56px; }
 
 /* Checklist */
@@ -624,7 +619,7 @@
 .pg-checklist__col { display: grid; align-content: start; gap: var(--zen-spacing-gap-small, 12px); }
 .pg-checklist__col ul { padding: 0; list-style: none; }
 .pg-checklist__col li { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-small, 12px) 0; border-top: 1px solid var(--zen-color-border-neutral-pale-default, #01010110); }
-.pg-checklist__col li > .zen-icon { margin-top: 2px; }
+.pg-checklist__col li > .zen-icon { margin-top: var(--zen-spacing-gap-3-xsmall, 2px); }
 .pg-checklist__col[data-kind="do"] li > .zen-icon { color: var(--zen-color-content-positive-base); }
 .pg-checklist__col[data-kind="dont"] li > .zen-icon { color: var(--zen-color-content-negative-base); }
 
@@ -634,12 +629,13 @@
 .pg-meta ul { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0; list-style: none; }
 .pg-meta h3 code { text-transform: none; letter-spacing: 0; }
 .pg-rules li { display: grid; grid-template-columns: 8px minmax(0, 1fr); gap: var(--zen-spacing-gap-xsmall, 8px); align-items: start; }
+/* zen-allow-raw-spacing: centres the 8px dot on the first 20px Body/Base line. */
 .pg-rules__dot { width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; }
 .pg-rules__dot[data-severity="error"] { background: var(--zen-color-background-negative-solid-default); }
 .pg-rules__dot[data-severity="warn"] { background: var(--zen-color-background-warning-solid-default); }
-.pg-refs a { display: inline-flex; align-items: center; gap: 2px; color: var(--zen-color-content-neutral-strongest, #111); text-decoration: underline; text-decoration-color: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); text-underline-offset: 3px; }
+.pg-refs a { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); color: var(--zen-color-content-neutral-strongest, #111); text-decoration: underline; text-decoration-color: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); text-underline-offset: 3px; }
 .pg-refs a:hover { text-decoration-color: currentColor; }
-.pg-refs a:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid); border-radius: 4px; }
+.pg-refs a:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid); border-radius: var(--zen-corner-radius-xsmall, 4px); }
 
 @media (max-width: 1100px) {
   .pg-meta { grid-template-columns: 1fr 1fr; }
@@ -657,10 +653,10 @@
 .official-platform .text-style-row { background: transparent; }
 .official-platform .text-style-row + .text-style-row { border-top-color: var(--platform-surface-divider); }
 .official-platform .icon-gallery__toolbar { z-index: 3; padding: var(--platform-surface-padding); border: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); backdrop-filter: none; }
-.official-platform .icon-card { padding: 12px; border: 0; border-radius: var(--platform-surface-radius-compact); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
+.official-platform .icon-card { padding: var(--zen-spacing-padding-small, 12px); border: 0; border-radius: var(--platform-surface-radius-compact); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
 .official-platform .icon-card > div { border-radius: var(--platform-inset-radius); background: var(--platform-inset-background); }
 .official-platform .icon-card code { border-top-color: var(--platform-surface-divider); }
-.official-platform .collection-card__meta { margin: 16px 0; }
+.official-platform .collection-card__meta { margin: var(--zen-spacing-gap-medium, 16px) 0; }
 
 /* New component previews */
 .platform-accordion-stack { display: flex; width: min(643px, 100%); flex-direction: column; }
@@ -733,6 +729,7 @@
 /* White theme on the Canvas surface (not a dark fill) so its white track reads as in Figma. */
 .platform-slider-preview[data-tone="white"] { background: var(--zen-color-background-canvas-default, #f4f4f4); }
 .platform-slider-readout { min-width: 40px; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); font-variant-numeric: tabular-nums; text-align: end; }
+/* zen-allow-slot-size: a picture area for the media slider, not a token-sized child. */
 .pe-media-slider { display: flex; box-sizing: border-box; width: 100%; min-height: 140px; align-items: flex-end; padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-base, 12px); background: linear-gradient(135deg, var(--zen-color-background-support-indigo-solid, #3e63dd), var(--zen-color-background-support-pink-solid, #d6409f)); }
 .pe-stepper-rail { width: 220px; flex: 0 0 auto; }
 
@@ -779,9 +776,9 @@
 /* Modal/Forms playground side content. */
 .platform-modal-side { display: flex; height: 100%; box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); color: var(--zen-color-content-neutral-strongest, #111); }
 .platform-modal-side p { margin: 0; }
-.platform-modal-side ul { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding-left: 18px; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
-.platform-modal-side__icon { display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default, #fff); }
-.platform-modal-side__icon > .zen-icon { width: 20px; height: 20px; }
+.platform-modal-side ul { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding-left: var(--zen-spacing-padding-large, 20px); color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
+.platform-modal-side__icon { display: inline-flex; width: var(--zen-image-size-medium, 40px); height: var(--zen-image-size-medium, 40px); align-items: center; justify-content: center; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default, #fff); }
+.platform-modal-side__icon > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
 .pe-anchor > .zen-card { justify-self: stretch; }
 .pe-card-grid { display: grid; width: 100%; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
 .pe-card-grid--surfaces { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
@@ -789,7 +786,7 @@
 .pe-app-tile { display: grid; justify-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-xsmall, 8px) 0; border-radius: var(--zen-corner-radius-base, 12px); background: transparent; }
 .pe-app-tile:hover { background: var(--zen-color-background-neutral-flat-hover); }
 .pe-app-tile:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); }
-.pe-emoji-choice { padding: 2px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: transparent; }
+.pe-emoji-choice { padding: var(--zen-spacing-padding-3-xsmall, 2px); border-radius: var(--zen-corner-radius-rounded, 1000px); background: transparent; }
 .pe-emoji-choice[aria-checked="true"] { background: var(--zen-color-background-active-neutral-subtle); }
 .pe-emoji-choice:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); }
 .pe-on-color { display: flex; width: 100%; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-accent-solid-default); color: var(--zen-color-content-on-accent-default); }
@@ -845,7 +842,7 @@
 .platform-toc ul { display: grid; margin: 0; padding: 0; list-style: none; }
 .platform-toc li { display: flex; height: 24px; }
 .platform-toc__link { position: relative; display: block; width: 28px; height: 24px; border-radius: var(--zen-corner-radius-2-xsmall, 4px); }
-.platform-toc__link::before { position: absolute; top: 2px; left: 12px; width: 4px; height: 20px; border-radius: 1000px; background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); content: ""; }
+.platform-toc__link::before { position: absolute; top: 2px; left: 12px; width: 4px; height: 20px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); content: ""; }
 .platform-toc__link:hover::before { background: var(--zen-color-background-neutral-subtle-hover, rgb(1 1 1 / 11%)); }
 .platform-toc__link[aria-current="location"]::before { background: var(--zen-color-background-active-neutral-solid, #111); }
 .platform-toc__link:focus-visible { outline: 2px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: -2px; }
@@ -857,10 +854,10 @@
 }
 
 /* Keyboard / API reference sections. */
-.platform-ref__keys { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; }
-.platform-ref__keys kbd { display: inline-flex; min-width: 20px; height: 22px; box-sizing: border-box; align-items: center; justify-content: center; padding: 0 6px; border-radius: var(--zen-corner-radius-2-xsmall, 4px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)), inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-medium, 500) 12px/16px var(--zen-typography-font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
-.platform-ref__sep { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); font-size: 12px; }
-.platform-ref__code { color: var(--zen-color-content-neutral-strongest, #111); font: 12px/16px var(--zen-typography-font-family-dev, ui-monospace), ui-monospace, monospace; }
+.platform-ref__keys { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.platform-ref__keys kbd { display: inline-flex; min-width: 20px; height: 22px; box-sizing: border-box; align-items: center; justify-content: center; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-2-xsmall, 4px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)), inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); font-weight: var(--zen-emphasis-font-weight-medium, 500); font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); }
+.platform-ref__sep { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-small, 0px); }
+.platform-ref__code { color: var(--zen-color-content-neutral-strongest, #111); font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); }
 /* Props reference: one titled table per component; long unions and signatures wrap inside their cell. */
 .platform-ref__component { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); margin-top: var(--zen-spacing-gap-large, 24px); }
 .platform-ref__component h3, .platform-ref__component p { margin: 0; }
@@ -893,9 +890,9 @@
 .platform-chart-preview__bare .zen-segmented { width: 100%; }
 .pe-phone-scroll { height: 100%; overflow: auto; }
 .pgv-mobile { width: min(360px, 100%); overflow: hidden; border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
-.pgv-mobile .zen-chat-thread { padding: 12px; }
-.pgv-sheet { --zen-list-inset: 0px; display: flex; width: min(320px, 100%); box-sizing: border-box; flex-direction: column; gap: 8px; padding: 8px 16px 16px; border-radius: 24px 24px 0 0; background: var(--zen-color-background-container, #f7f7f7); box-shadow: var(--zen-style-shadow-top-level-2-shadow, 0 -8px 24px rgb(0 0 0 / 10%)); }
-.pgv-sheet__grab { width: 40px; height: 5px; align-self: center; border-radius: 1000px; background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); }
+.pgv-mobile .zen-chat-thread { padding: var(--zen-spacing-padding-small, 12px); }
+.pgv-sheet { --zen-list-inset: 0px; display: flex; width: min(320px, 100%); box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-2-xlarge, 24px) var(--zen-corner-radius-2-xlarge, 24px) 0 0; background: var(--zen-color-background-container, #f7f7f7); box-shadow: var(--zen-style-shadow-top-level-2-shadow, 0 -8px 24px rgb(0 0 0 / 10%)); }
+.pgv-sheet__grab { width: 40px; height: 5px; align-self: center; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); }
 .pe-chart-dash { display: grid; width: 100%; grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr); align-items: start; gap: var(--zen-spacing-gap-medium, 16px); }
 @media (max-width: 760px) { .pe-chart-dash { grid-template-columns: minmax(0, 1fr); } }
 .pe-metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--zen-spacing-gap-large, 24px); }
@@ -910,7 +907,8 @@
   .platform-sidebar-stage, .platform-avatar-preview { overflow-x: auto; overscroll-behavior-x: contain; padding-block: var(--zen-spacing-padding-xsmall, 8px); }
 }
 /* The Sidebar Sub Menu flyout is absolutely positioned: reserve its 260px (+8 gap) so the centred preview holds both. */
-.platform-sidebar-stage > .zen-sidebar:has(.zen-sidebar__submenu) { margin-inline-end: calc(260px + var(--zen-spacing-gap-xsmall, 8px)); }
+/* Room for the flyout: it is the default sidebar width, Padding/XSmall off the rail (.zen-sidebar__submenu). */
+.platform-sidebar-stage > .zen-sidebar:has(.zen-sidebar__submenu) { margin-inline-end: calc(var(--zen-sidebar-default-width, 260px) + var(--zen-spacing-padding-xsmall, 8px)); }
 @media (max-width: 620px) { .platform-sidebar-stage > .zen-sidebar:has(.zen-sidebar__submenu) { margin-inline-end: 0; } }
 /* Truncated-text tooltip triggers are buttons: keep a 24px pointer target. */
 .pe-truncate { min-height: 24px; }
@@ -921,11 +919,11 @@
    clears the home indicator (safe area + Padding/XSmall) so the last button is never cut or covered. */
 .pe-phone-cta { display: grid; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-compact, 20px) calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)); border-top: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); background: var(--zen-color-background-surface-default, #fff); }
 .pe-order-summary { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0 var(--zen-margin-compact, 20px); }
-.pe-order-summary > div { display: flex; justify-content: space-between; gap: 12px; }
+.pe-order-summary > div { display: flex; justify-content: space-between; gap: var(--zen-spacing-gap-small, 12px); }
 .pe-order-summary dt, .pe-order-summary dd { flex: 0 0 auto; }
 .pe-order-summary dt { color: var(--zen-color-content-neutral-light, #6b6b6b); font: inherit; }
 .pe-order-summary dd { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; }
-.pe-order-summary > div:last-child dt, .pe-order-summary > div:last-child dd { color: var(--zen-color-content-neutral-strongest, #111); font-weight: 600; }
+.pe-order-summary > div:last-child dt, .pe-order-summary > div:last-child dd { color: var(--zen-color-content-neutral-strongest, #111); font-weight: var(--zen-emphasis-font-weight-bold, 600); }
 /* Pricing plans: equal-height cards, the CTA pinned to the bottom of each. */
 .pe-plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
 .pe-plan-grid > .zen-card > .zen-card__content { flex: 1 1 auto; }
@@ -940,7 +938,7 @@
 .pe-list-group { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .pe-list-group__title { margin: 0; padding-inline: var(--zen-spacing-padding-medium, 16px); color: var(--zen-color-content-neutral-strongest, #111); }
 /* Mobile filter row: one line that scrolls sideways, edge to edge, no visible scrollbar. */
-.pe-chip-scroll { display: flex; flex-wrap: nowrap; gap: var(--zen-spacing-gap-xsmall, 8px); overflow-x: auto; padding: 8px var(--zen-margin-compact, 20px); scroll-padding-inline: var(--zen-margin-compact, 20px); scrollbar-width: none; }
+.pe-chip-scroll { display: flex; flex-wrap: nowrap; gap: var(--zen-spacing-gap-xsmall, 8px); overflow-x: auto; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-margin-compact, 20px); scroll-padding-inline: var(--zen-margin-compact, 20px); scrollbar-width: none; }
 .pe-chip-scroll::-webkit-scrollbar { display: none; }
 .pe-chip-scroll > * { flex: 0 0 auto; }
 
@@ -960,7 +958,7 @@
 .platform-phone { position: absolute; top: 0; left: 0; display: flex; box-sizing: border-box; flex-direction: column; overflow: hidden; background: var(--zen-color-background-surface-default, #fff); box-shadow: 0 0 0 12px var(--platform-phone-bezel), 0 0 0 13.5px var(--platform-phone-frame), 0 0 0 14.5px var(--platform-phone-frame-edge); transform-origin: top left; isolation: isolate; }
 /* Device hardware (not a theme surface): a black glass bezel and a thin titanium frame, identical in every
    token mode, like the real phone. zen-allow-raw-colour: physical device colours are not part of the colour system. */
-.platform-phone-fit { --platform-phone-bezel: #050505; --platform-phone-frame: #2c2c2e; --platform-phone-frame-edge: #8e8e93; margin: 16px; }
+.platform-phone-fit { --platform-phone-bezel: #050505; --platform-phone-frame: #2c2c2e; --platform-phone-frame-edge: #8e8e93; margin: var(--zen-spacing-gap-medium, 16px); }
 .platform-phone[data-canvas="canvas"] { background: var(--zen-color-background-canvas-default, #f7f7f7); }
 .platform-phone[data-canvas="alt"] { background: var(--zen-color-background-surface-alt, #f7f7f7); }
 .platform-phone[data-canvas="flat"] { background: var(--zen-color-background-canvas-flat, #fff); }
@@ -978,26 +976,36 @@
 .platform-phone[data-header-overlay="true"]:not([data-canvas="media"]) .platform-phone__screen { padding-top: var(--platform-phone-header-height, 0px); }
 .platform-phone[data-canvas="media"] .platform-phone__screen { padding-top: 0; }
 .platform-phone__footer:has(> .zen-bottom-nav:not([data-type="default"])) { position: absolute; right: 0; bottom: 0; left: 0; }
+/* zen-allow-raw-spacing: room for the floating Bottom Navigation row, 64px in Figma (9017:26128). */
 .platform-phone:has(> .platform-phone__footer > .zen-bottom-nav:not([data-type="default"])) .platform-phone__screen { padding-bottom: calc(64px + var(--zen-safe-area-bottom)); }
 .platform-phone[data-canvas="canvas"] .platform-phone__header > .zen-top-nav { background: var(--zen-color-background-canvas-default, #f7f7f7); }
 /* Status bar: Figma Status-bar/IOS/Mobile 390×50 — 21px top padding, 22px row, time (17/22 semibold) centred in the left
    133px, a 124px Dynamic Island gap, levels (gap 7) in the right 133px. The island itself is 125×37 at 11px. */
+/* Device chrome, not Zen UI: the iOS status bar, Dynamic Island and home indicator keep Apple's metrics (SF Pro 17/22,
+   21px top inset, 7px level gap, 125×37 island at radius 20, iPad 24px bar).
+   zen-allow-raw-spacing zen-allow-raw-type zen-allow-raw-radius zen-allow-raw-colour: the rules below copy them. */
 .platform-phone__status { position: absolute; z-index: 20; top: 0; right: 0; left: 0; display: flex; height: var(--zen-safe-area-top); box-sizing: border-box; align-items: flex-start; justify-content: space-between; padding-top: 21px; color: var(--zen-color-content-neutral-strongest, #111); pointer-events: none; }
 .platform-phone__status[data-tone="light"] { color: var(--zen-color-content-on-black-overlay-strongest, #fff); }
 .platform-phone__time { display: flex; width: 133px; height: 22px; box-sizing: border-box; align-items: center; justify-content: center; padding: 0 6px 0 16px; font: 600 17px/22px -apple-system, "SF Pro Text", "SF Pro", system-ui, sans-serif; letter-spacing: -0.4px; }
+/* zen-allow-raw-spacing: iOS status bar metrics (device chrome). */
 .platform-phone__levels { display: flex; width: 133px; height: 22px; box-sizing: border-box; align-items: center; justify-content: center; gap: 7px; padding: 0 16px 0 6px; }
 .platform-phone__levels svg { flex: 0 0 auto; }
+/* zen-allow-raw-radius zen-allow-raw-colour: the Dynamic Island is hardware black (device chrome). */
 .platform-phone__island { position: absolute; top: 11px; left: 50%; width: 125px; height: 37px; border-radius: 20px; background: #000; transform: translateX(-50%); }
 /* iPad: 24px status bar, time on the left, levels on the right, no island. */
+/* zen-allow-raw-spacing zen-allow-raw-type: iPad status bar metrics (device chrome). */
 .platform-phone__status[data-device="ipad"] { padding: 4px 20px 0; }
 .platform-phone__status[data-device="ipad"] .platform-phone__time { width: auto; height: 16px; justify-content: flex-start; padding: 0; font-size: 14px; line-height: 16px; }
 .platform-phone__status[data-device="ipad"] .platform-phone__levels { width: auto; height: 16px; padding: 0; }
 /* Home indicator: 134×5, 8px from the bottom, drawn over the app (dark on light screens, light on media). */
-.platform-phone__home { position: absolute; z-index: 20; bottom: 8px; left: 50%; width: 134px; height: 5px; border-radius: 1000px; background: var(--zen-color-content-neutral-strongest, #111); pointer-events: none; transform: translateX(-50%); }
+/* zen-allow-colour-role: the home indicator is a solid OS glyph in the content colour (device chrome; Figma's
+   System/Bottom-Indicator 308:46297 is a 6% Background/Neutral/Subtle bar). */
+.platform-phone__home { position: absolute; z-index: 20; bottom: 8px; left: 50%; width: 134px; height: 5px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-content-neutral-strongest, #111); pointer-events: none; transform: translateX(-50%); }
 .platform-phone__home[data-tone="light"] { background: var(--zen-color-content-on-black-overlay-strongest, #fff); }
 .platform-phone[data-device="ipad"] .platform-phone__home { width: 320px; }
 /* Helpers used inside the screen. */
 .platform-phone__center { display: flex; height: 100%; box-sizing: border-box; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px); }
+/* zen-allow-slot-size: the phone's photo/video area, not a token-sized child. */
 .platform-phone__media { position: relative; height: 100%; min-height: 520px; overflow: hidden; background: var(--platform-phone-bezel, #050505); }
 /* Real photos / video fill the screen edge to edge (src/assets/media); the video's Pause control clears the status bar. */
 .platform-phone__media > img, .platform-phone__media > video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -1013,6 +1021,7 @@
 /* Room under the last item for a floating Bottom Navigation: a spacer, not padding (it is not spacing on the scale). */
 .pe-phone-feed[data-bottom-room="true"]::after, .pe-floating-room::after { content: ""; display: block; flex: 0 0 auto; height: 96px; }
 /* Media card (Button example): a 160px video tile; the overlay buttons sit on it. */
+/* zen-allow-slot-size: a picture area for the media card, not a token-sized child. */
 .pe-media-card { position: relative; height: 160px; overflow: hidden; border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-inverse-solid-default, #111); }
 .pe-media-card > video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 /* A light scrim at the top and bottom edges keeps the overlay buttons readable on bright footage. */
@@ -1029,7 +1038,7 @@
 .platform-phone[data-canvas="media"] .platform-phone__media { height: 100%; min-height: 0; }
 
 /* Popover / Bulk-Action examples: the bar floats over the content it acts on. */
-.pe-bulk-stage { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; gap: var(--zen-spacing-gap-medium, 16px); width: min(460px, 100%); padding-top: 4px; }
+.pe-bulk-stage { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; gap: var(--zen-spacing-gap-medium, 16px); width: min(460px, 100%); padding-top: var(--zen-spacing-padding-2-xsmall, 4px); }
 .pe-bulk-stage__text { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
 .pe-bulk-stage__selection { border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-accent-subtle-default, rgb(255 102 212 / 16%)); color: inherit; }
 .pe-bulk-list { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-small, 12px); width: 100%; }
@@ -1037,7 +1046,7 @@
 .pe-bulk-list__area { position: relative; padding-bottom: var(--zen-spacing-padding-large, 24px); }
 .pe-bulk-list__bar { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); }
 /* Room under the last row so the floating bar (56px) never covers it: the bar overlaps the area's bottom padding. */
-.pe-bulk-list__area { min-width: 0; padding-bottom: 40px; }
+.pe-bulk-list__area { min-width: 0; padding-bottom: var(--zen-spacing-padding-3-xlarge, 40px); }
 
 /* ── Desktop chat examples (Figma Chat Device=Desktop): list pane + thread pane in one Surface window. ── */
 .pe-chat-desktop { display: grid; width: 100%; max-width: 960px; height: 600px; grid-template-columns: 320px auto minmax(0, 1fr); overflow: hidden; border-radius: var(--zen-corner-radius-xlarge, 20px); background: var(--zen-color-background-surface-default, #fff); }
@@ -1136,6 +1145,7 @@
 /* Device corners clip the bars' blur. With GPU compositing, masked backdrop-filter layers (the Bottom/Top Navigation
    progressive blur) ignore the phone's rounded overflow clip and paint as rectangles over the bezel corners. Clip the
    footer / header to the device radius and round the blur layers themselves (backdrop-filter respects its own radius). */
+/* zen-allow-raw-radius: device corner radii (iPhone 55, iPad 18) — hardware, not the Corner Radius scale. */
 .platform-phone { --platform-phone-radius: 55px; }
 .platform-phone[data-device="ipad"] { --platform-phone-radius: 18px; }
 .platform-phone > .platform-phone__footer { clip-path: inset(-100vh 0 0 0 round 0 0 var(--platform-phone-radius) var(--platform-phone-radius)); }

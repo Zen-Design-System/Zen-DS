@@ -1596,7 +1596,7 @@ ${[
         </div>
         <div data-typography={previewTypography} className="platform-example-row">
           {/* Pagination always pages real content: the orders on the current page (48 per page for the numbered themes). */}
-          <div className="pe-stack" style={{ width: "100%", gap: 12 }}>
+          <div className="pe-stack" style={{ width: "100%", gap: "var(--zen-spacing-gap-small, 12px)" }}>
             <ScrollBox label={`Orders, page ${paginationPage}`} resetKey={`${theme}-${paginationPage}-${paginationPageSize}`}>
               <Table aria-label="Orders" rows={pageOf(orders, paginationPage, compact ? paginationPageSize : 48)} getRowId={(row) => String(row.id)}
                 columns={[

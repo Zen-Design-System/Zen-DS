@@ -892,13 +892,15 @@ function ShellInbox({ items = shellInbox }: { items?: typeof shellInbox }) {
 }
 
 function ShellAgenda() {
+  // Opening a meeting selects it, like a message in ShellInbox.
+  const [open, setOpen] = useState<string | null>(null);
   return (
     <Stack gap="sm" align="stretch">
       <Heading level={5} textStyle="Heading/4">Today</Heading>
       <Card theme="border" spacing="small" className="pe-list-card">
         <List aria-label="Today's meetings">
           {shellAgenda.map((event) => (
-            <ListItem key={event.id} onClick={() => undefined} leading={<DockIcon icon="icon-calendar-line" theme="pale" size="small" />}
+            <ListItem key={event.id} selected={open === event.id} onClick={() => setOpen(event.id)} leading={<DockIcon icon="icon-calendar-line" theme="pale" size="small" />}
               title={event.title} caption={`${event.time} · ${event.where}`} trailing={teamStack(event.team)} />
           ))}
         </List>
@@ -1134,6 +1136,7 @@ function SidebarCollapsedExample() {
   const [page, setPage] = useState("inbox");
   const [collapsed, setCollapsed] = useState(true);
   const [flyout, setFlyout] = useState(false);
+  const [starred, setStarred] = useState<string | null>(null);
   const reports = [{ id: "r-velocity", label: "Sprint velocity", value: "42 pts", hint: "+8%", last: "39 pts", target: "40 pts" }, { id: "r-quality", label: "Bug trend", value: "7 open", hint: "−3", last: "10 open", target: "< 5" }, { id: "r-adoption", label: "Component adoption", value: "86%", hint: "+5%", last: "81%", target: "90%" }, { id: "r-a11y", label: "Accessibility score", value: "94", hint: "+2", last: "92", target: "95" }];
   const report = reports.find((item) => item.id === page);
   const sections: SidebarSection[] = [{ items: [
@@ -1160,7 +1163,7 @@ function SidebarCollapsedExample() {
           <Card theme="border" spacing="small" className="pe-list-card">
             <List aria-label="Starred">
               {[...Object.values(shellDocs).map((d) => ({ id: d.title, title: d.title, caption: `Docs · edited ${d.updated}`, icon: "icon-file-doc-line" as ShellIconName })), ...shellProjects.filter((p) => p.pinned).map((p) => ({ id: p.id, title: p.name, caption: `Project · updated ${p.updated}`, icon: p.icon }))].map((item) => (
-                <ListItem key={item.id} onClick={() => undefined} title={item.title} caption={item.caption} leading={<DockIcon icon={item.icon} theme="pale" size="small" />} trailing={<Icon name="icon-star-01-line" size="base" decorative />} />
+                <ListItem key={item.id} selected={starred === item.id} onClick={() => setStarred(item.id)} title={item.title} caption={item.caption} leading={<DockIcon icon={item.icon} theme="pale" size="small" />} trailing={<Icon name="icon-star-01-line" size="base" decorative />} />
               ))}
             </List>
           </Card>
@@ -1657,6 +1660,7 @@ function ModalFormWorkspaceExample() {
       <Text as="span" tone="base">{created ? `Created ${created}.` : "Create a workspace for another team."}</Text>
       <Button appearance="main" level="primary" size="sm" onClick={() => { setName(""); setOpen(true); }}>New workspace</Button>
       <ModalForm open={open} onOpenChange={setOpen} layout="half-half" title="Create a workspace" description="Workspaces keep projects, members and billing separate."
+        // zen-allow-visual-heading: the preview echoes the name field (a value), not a section title.
         side={<div className="pe-modal-preview pe-modal-preview--card"><Avatar size="xlarge" shape="square" theme={color as AvatarTheme} background="solid" alt="">{(name.trim()[0] ?? "W").toUpperCase()}</Avatar><Text as="span" textStyle="Heading/4">{name || "Workspace name"}</Text><Text as="span" textStyle="Body/Small/Regular" tone="base">zen.app/{slug}</Text></div>}
         onSubmit={() => { setCreated(name || "Untitled workspace"); setOpen(false); }}
         primaryAction={{ label: "Create workspace", disabled: !name.trim() }} secondaryAction={{ label: "Cancel" }}>
@@ -1837,6 +1841,8 @@ const scopeOptions = [
 function SearchScopeExample() {
   const [query, setQuery] = useState("");
   const [scope, setScope] = useState("all");
+  // Opening a result selects it.
+  const [picked, setPicked] = useState<string | null>(null);
   const results = catalog.filter((item) => (scope === "all" || item.type === scope) && item.name.toLowerCase().includes(query.trim().toLowerCase()));
   return (
     <div className="pe-stack pe-narrow">
@@ -1845,7 +1851,7 @@ function SearchScopeExample() {
       {results.length ? (
         <List aria-label="Results">
           {results.slice(0, 5).map((item) => (
-            <ListItem key={item.name} title={item.name} onClick={() => undefined}
+            <ListItem key={item.name} title={item.name} selected={picked === item.name} onClick={() => setPicked(item.name)}
               trailing={<Badge size="small" theme="neutral" background="subtle" leadingIcon={false}>{item.type[0].toUpperCase() + item.type.slice(1)}</Badge>} />
           ))}
         </List>
@@ -1883,7 +1889,7 @@ function SearchAdvancedFilterExample() {
         <Text as="span" tone="base">{plural(rows.length, "task")}</Text>
         {statuses.length && statuses.length < statusFilters.length ? <Badge size="small" theme="accent" background="subtle" leadingIcon={false}>{plural(statuses.length, "filter")}</Badge> : null}
       </Stack>
-      <Stack gap="sm" align="stretch" style={{ gap: 6 }}>
+      <Stack gap="sm" align="stretch">
         <List aria-label="Tasks">{rows.slice(0, 4).map((task) => <ListItem key={task.id} title={task.title} trailing={<Badge size="small" theme={statusTheme[task.status]} background="subtle" leadingIcon={false}>{statusLabels[task.status]}</Badge>} />)}</List>
       </Stack>
     </Stack>
@@ -1897,9 +1903,9 @@ function SearchIconPickerExample() {
   const [picked, setPicked] = useState<string>("icon-bell-01-line");
   const matches = pickerIcons.filter((name) => name.includes(query.trim().toLowerCase()));
   return (
-    <div className="pe-stack pe-icon-picker" style={{ width: 260, gap: 4, padding: 4, borderRadius: 16, background: "var(--zen-color-background-popover-default)", boxShadow: "var(--zen-style-effect-popover-shadow-unclipped)", outline: "1px solid var(--zen-color-border-popover-subtle)" }}>
+    <div className="pe-stack pe-icon-picker" style={{ width: 260, gap: "var(--zen-spacing-gap-2-xsmall, 4px)", padding: "var(--zen-spacing-padding-2-xsmall, 4px)", borderRadius: "var(--zen-corner-radius-large, 16px)", background: "var(--zen-color-background-popover-default)", boxShadow: "var(--zen-style-effect-popover-shadow-unclipped)", outline: "1px solid var(--zen-color-border-popover-subtle)" }}>
       <Search variant="popover" iconSearch={false} placeholder="Search icons" value={query} onChange={(event) => setQuery(event.target.value)} />
-      <div role="listbox" aria-label="Icons" style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 4 }}>
+      <div role="listbox" aria-label="Icons" style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "var(--zen-spacing-gap-2-xsmall, 4px)" }}>
         {matches.map((name) => (
           <Fragment key={name}>
             {/* zen-allow-secondary: marks the selected icon in a picker grid (a pressed state, not a CTA) */}
@@ -1938,7 +1944,7 @@ function ChipPeopleFilterExample() {
 function ChipCountersExample() {
   const groups = [["Open", 12], ["In review", 4], ["Blocked", 1]] as const;
   return (
-    <Stack gap="sm" align="stretch" style={{ gap: 10 }}>
+    <Stack gap="sm" align="stretch">
       {groups.map(([label, count]) => <Stack direction="row" gap="xs" align="center" wrap justify="between" key={label}><Text as="span">{label}</Text><Chip variant="number-only" size="small" value={count} /></Stack>)}
     </Stack>
   );
@@ -1955,7 +1961,7 @@ function CheckboxBulkTableExample() {
   return (
     <Stack gap="sm" align="stretch" style={{ width: "100%" }}>
       <Stack direction="row" gap="xs" align="center" wrap justify="between" style={{ minHeight: 32 }}>
-        <Text as="span" textStyle="Heading/4">{picked.length ? `${picked.length} selected` : "Files"}</Text>
+        <Heading level={4} textStyle="Heading/4">{picked.length ? `${picked.length} selected` : "Files"}</Heading>
         {picked.length ? <Button appearance="main" level="danger-subtle" size="sm" onClick={() => setPicked([])}>Delete {picked.length}</Button> : null}
       </Stack>
       <Table aria-label="Files" rows={files} getRowId={(file) => file.id} selectable selectedIds={picked} onSelectionChange={setPicked}
@@ -2024,7 +2030,7 @@ function TabsIconBadgeExample() {
 function TabsMobileExample() {
   const [tab, setTab] = useState("overview");
   return (
-    <Stack gap="sm" align="stretch" padding="sm" style={{ width: 320, maxWidth: "100%", borderRadius: 20, boxShadow: "inset 0 0 0 1px var(--zen-color-border-neutral-pale-default)" }}>
+    <Stack gap="sm" align="stretch" padding="sm" style={{ width: 320, maxWidth: "100%", borderRadius: "var(--zen-corner-radius-xlarge, 20px)", boxShadow: "inset 0 0 0 1px var(--zen-color-border-neutral-pale-default)" }}>
       <Tabs aria-label="Order" size="small" fullWidth value={tab} onChange={setTab} items={[{ id: "overview", label: "Overview" }, { id: "items", label: "Items" }, { id: "refunds", label: "Refunds", disabled: true }]} />
       <Text as="span" tone="base">{tab === "overview" ? "Order #2409 · Paid · Shipping today" : "3 items · $184.00"}</Text>
     </Stack>
@@ -2195,7 +2201,7 @@ function InputCheckoutExample() {
   const couponError = coupon && coupon !== "ZEN10" ? "This code is not valid." : undefined;
   return (
     <Stack gap="md" align="stretch" style={{ width: "100%" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--zen-spacing-gap-medium, 16px)" }}>
         <SelectField label="Country" options={[{ value: "vn", label: "Vietnam" }, { value: "sg", label: "Singapore" }, { value: "jp", label: "Japan" }]} defaultValue="vn" />
         <NumberField label="Seats" value={qty} onValueChange={setQty} min={1} max={50} />
       </div>
@@ -2370,7 +2376,7 @@ function AccordionFiltersExample() {
   return (
     <Card theme="border" spacing="small" className="pe-filter-panel" as="section" aria-label="Filters">
       <header className="pe-filter-panel__head">
-        <span className="pe-row" style={{ gap: 8 }}><Text as="span" textStyle="Heading/4">Filters</Text>{applied ? <BadgeCounter size="small" theme="neutral" background="subtle" value={applied} /> : null}</span>
+        <div className="pe-row"><Heading level={4} textStyle="Heading/4">Filters</Heading>{applied ? <BadgeCounter size="small" theme="neutral" background="subtle" value={applied} /> : null}</div>
         <Button appearance="main" level="tertiary" size="sm" disabled={!applied} onClick={() => setSelected({ team: [], status: [], owner: [] })}>Clear all</Button>
       </header>
       <div className="pe-filter-panel__facets">
@@ -2466,7 +2472,7 @@ function DividerSettingsExample() {
       {rows.map(([label, value], index) => (
         <Fragment key={label}>
           {index > 0 ? <Divider /> : null}
-          <Stack direction="row" gap="xs" align="center" wrap justify="between" style={{ padding: "12px 0" }}>
+          <Stack direction="row" gap="xs" align="center" wrap justify="between" paddingY="sm">
             <Text as="span" tone="base">{label}</Text>
             <Text as="span" textStyle="Body/Base/Medium">{value}</Text>
           </Stack>
@@ -2643,7 +2649,7 @@ function StepperVerticalExample() {
       <Stepper aria-label="Onboarding" orientation="vertical" steps={steps} current={current} onStepClick={(_, index) => setCurrent(index)} className="pe-stepper-rail" />
       <section className="pe-stepper-panel" aria-live="polite">
         <Text as="span" textStyle="Body/Small/Medium" tone="light">Step {current + 1} of {steps.length}</Text>
-        <Text as="span" textStyle="Heading/4">{String(steps[current].title)}</Text>
+        <Heading level={4} textStyle="Heading/4">{String(steps[current].title)}</Heading>
         <Text as="span" tone="base">{details[current]}</Text>
         <div className="pe-row pe-stepper-panel__actions">
           <Button appearance="main" level="tertiary" size="sm" disabled={current === 0} onClick={() => setCurrent(Math.max(current - 1, 0))}>Back</Button>
@@ -2662,7 +2668,7 @@ function StepperErrorExample() {
     { id: "publish", title: "Publish" },
   ];
   return (
-    <Stack gap="sm" align="stretch" style={{ width: "100%", gap: 20 }}>
+    <Stack gap="md" align="stretch" style={{ width: "100%" }}>
       <Stepper aria-label="Token import" steps={steps} current={fixed ? 2 : 1} />
       {fixed
         ? <InlineMessage theme="positive" title="Ready to publish">All 1,240 tokens are valid.</InlineMessage>
@@ -2719,7 +2725,7 @@ function SliderFontSizeExample() {
   return (
     <Stack gap="sm" align="stretch" style={{ width: "100%" }}>
       <Slider aria-label="Reading size" size="large" min={12} max={24} value={size} onChange={setSize} icon="icon-type-02-solid" valueText={(value) => `${value} pixels`} />
-      {/* data-audit-skip-type: the slider sets this size on purpose (a reading-size preview), so it is off the type scale. */}
+      {/* data-audit-skip-type, zen-allow-raw-type: the slider sets this size on purpose (a reading-size preview), so it is off the type scale and its line height stays relative (1.5×). */}
       <p data-audit-skip-type="" style={{ margin: 0, fontSize: size, lineHeight: 1.5, color: "var(--zen-color-content-neutral-strongest)" }}>The quick brown fox jumps over the lazy dog.</p>
     </Stack>
   );
@@ -2886,7 +2892,7 @@ function ListItemCustomContentExample() {
     <List aria-label="Uploads">
       {[["brand-kit.zip", 72], ["hero-video.mp4", 34]].map(([name, value]) => (
         <ListItem key={String(name)} title={String(name)} leading={<FileIcon format={fileIconFormatOf(String(name))} size="xl" />}>
-          <span className="pe-stack" style={{ gap: 4 }}>
+          <span className="pe-stack" style={{ gap: "var(--zen-spacing-gap-2-xsmall, 4px)" }}>
             <Text as="span" textStyle="Body/Base/Bold">{name}</Text>
             <ProgressBar value={Number(value)} theme="accent" label={`${value}%`} />
           </span>
@@ -2922,7 +2928,7 @@ function TableMembersExample() {
 function TableInvoicesExample() {
   const all = Array.from({ length: 42 }, (_, i) => ({ id: `INV-${2400 + i}`, customer: ["Acme", "Globex", "Initech", "Umbrella"][i % 4], amount: 49 + (i * 37) % 900, paid: i % 5 !== 0 }));
   const [page, setPage] = useState(1);
-  const pageSize = 5;
+  const [pageSize, setPageSize] = useState(5);
   const rows = all.slice((page - 1) * pageSize, page * pageSize);
   return (
     <Stack gap="sm" align="stretch" style={{ width: "100%" }}>
@@ -2933,7 +2939,8 @@ function TableInvoicesExample() {
           { id: "status", header: "Status", cell: (row) => <Badge size="medium" background="subtle" theme={row.paid ? "green" : "yellow"}>{row.paid ? "Paid" : "Due"}</Badge> },
           { id: "amount", header: "Amount", align: "right", cell: (row) => <TableText>${row.amount.toFixed(2)}</TableText> },
         ]} />
-      <Pagination theme="inline" page={page} onPageChange={setPage} total={all.length} pageSize={pageSize} aria-label="Invoice pages" />
+      <Pagination theme="inline" page={page} onPageChange={setPage} total={all.length} pageSize={pageSize} pageSizeOptions={[5, 10, 20]}
+        onPageSizeChange={(size) => { setPageSize(size); setPage(1); }} aria-label="Invoice pages" />
     </Stack>
   );
 }
@@ -2965,7 +2972,7 @@ function RatingSummaryExample() {
         <RatingDisplay value={4.6} size="medium" />
         <Text as="span" textStyle="Caption/Regular" tone="light">1,284 reviews</Text>
       </Stack>
-      <Stack gap="sm" align="stretch" style={{ gap: 6, flex: "1 1 200px" }}>
+      <Stack gap="xs" align="stretch" style={{ flex: "1 1 200px" }}>
         {bars.map(([stars, pct]) => <Stack direction="row" gap="xs" align="center" key={stars}><Text as="span" textStyle="Caption/Regular" tone="base">{stars}★</Text><div style={{ flex: 1 }}><ProgressBar value={pct} theme="neutral" aria-label={`${stars} stars: ${pct}%`} /></div><Text as="span" textStyle="Caption/Regular" tone="light">{pct}%</Text></Stack>)}
       </Stack>
     </Stack>
@@ -3030,7 +3037,7 @@ function ColorEventExample() {
   return (
     <Card theme="shadow" spacing="small">
       <Stack gap="sm" align="stretch">
-        <Stack direction="row" gap="sm" align="center"><span style={{ width: 4, alignSelf: "stretch", borderRadius: 4, background: color }} aria-hidden="true" /><Stack gap="3xs" align="stretch"><Text as="span" textStyle="Body/Base/Bold">Sprint planning</Text><Text as="span" textStyle="Caption/Regular" tone="light">Mon 10:00 – 11:00</Text></Stack></Stack>
+        <Stack direction="row" gap="sm" align="center"><span style={{ width: 4, alignSelf: "stretch", borderRadius: "var(--zen-corner-radius-xsmall, 4px)", background: color }} aria-hidden="true" /><Stack gap="3xs" align="stretch"><Text as="span" textStyle="Body/Base/Bold">Sprint planning</Text><Text as="span" textStyle="Caption/Regular" tone="light">Mon 10:00 – 11:00</Text></Stack></Stack>
         <ColorSelector aria-label="Event colour" colors={colors} value={color} onChange={setColor} />
       </Stack>
     </Card>
@@ -3191,7 +3198,7 @@ function MetricAlertExample() {
 function MetricSizesExample() {
   const themes = ["accent", "blue", "green", "orange"] as const;
   return (
-    <Stack gap="sm" align="stretch" style={{ gap: 20 }}>
+    <Stack gap="md" align="stretch">
       {(["large", "medium", "small", "xsmall"] as const).map((size, i) => <Metric key={size} size={size} label={`Size=${size}`} value="$1,680.68" iconTheme={themes[i]} trend={{ direction: "positive", label: "+24%" }} />)}
     </Stack>
   );
@@ -3347,6 +3354,7 @@ function SegmentedBillingExample() {
     <Stack gap="md" align="center" style={{ width: "100%" }}>
       <Segmented aria-label="Billing period" level="primary" size="medium" value={period} onChange={setPeriod}
         options={[{ id: "monthly", label: "Monthly" }, { id: "yearly", label: "Yearly", badge: "−20%" }]} />
+      {/* zen-allow-visual-heading: the price is a value (a Heading/3 figure), not a title. */}
       <Text as="span" textStyle="Heading/3">${price}<Text as="span" tone="base"> / {period === "yearly" ? "year" : "month"} per seat</Text></Text>
     </Stack>
   );
@@ -3358,7 +3366,7 @@ function ToggleFlagsExample() {
   return (
     <Stack gap="none" align="stretch" style={{ width: "100%" }}>
       {Object.keys(flags).map((key) => (
-        <Stack direction="row" gap="xs" align="center" wrap justify="between" key={key} style={{ padding: "10px 0", boxShadow: "inset 0 -1px 0 var(--zen-color-border-neutral-pale-default)" }}>
+        <Stack direction="row" gap="xs" align="center" wrap justify="between" key={key} paddingY="sm" style={{ boxShadow: "inset 0 -1px 0 var(--zen-color-border-neutral-pale-default)" }}>
           <Stack gap="3xs" align="stretch"><Text as="span">{labels[key]}</Text><Text as="span" tone="light">{flags[key] ? "Enabled for 100% of workspaces" : "Off"}</Text></Stack>
           <ToggleButton size="small" aria-label={labels[key]} selected={flags[key]} onSelectedChange={(next) => setFlags({ ...flags, [key]: next })} />
         </Stack>
@@ -3374,7 +3382,7 @@ function AvatarWorkspaceExample() {
     <Stack gap="2xs" align="stretch" style={{ width: "100%" }} role="listbox" aria-label="Workspaces">
       {workspaces.map((ws) => (
         <button key={ws.id} type="button" role="option" aria-selected={current === ws.id} className="pe-row" onClick={() => setCurrent(ws.id)}
-          style={{ gap: 12, padding: 8, border: 0, borderRadius: 12, background: current === ws.id ? "var(--zen-color-background-active-accent-subtle)" : "transparent", cursor: "pointer", textAlign: "left" }}>
+          style={{ gap: "var(--zen-spacing-gap-small, 12px)", padding: "var(--zen-spacing-padding-xsmall, 8px)", border: 0, borderRadius: "var(--zen-corner-radius-base, 12px)", background: current === ws.id ? "var(--zen-color-background-active-accent-subtle)" : "transparent", cursor: "pointer", textAlign: "left" }}>
           <Avatar shape="square" size="small" theme={ws.theme} alt={ws.name}>{ws.initials}</Avatar>
           <Text as="span" textStyle="Body/Base/Medium">{ws.name}</Text>
         </button>
@@ -3467,8 +3475,8 @@ function SkeletonDashboardExample() {
   return (
     <Stack gap="md" align="stretch" style={{ width: "100%" }} aria-busy="true" aria-label="Loading dashboard">
       <Stack direction="row" gap="xs" align="center" wrap justify="between"><SkeletonHeading size="large" /><SkeletonShape shape="rectangle" size="small" /></Stack>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-        {[0, 1, 2].map((key) => <Stack gap="sm" align="stretch" padding="sm" key={key} style={{ gap: 10, borderRadius: 16, boxShadow: "inset 0 0 0 1px var(--zen-color-border-neutral-pale-default)" }}><SkeletonShape shape="square" size="small" /><SkeletonHeading size="small" /><SkeletonText lines={1} /></Stack>)}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--zen-spacing-gap-small, 12px)" }}>
+        {[0, 1, 2].map((key) => <Stack gap="sm" align="stretch" padding="sm" key={key} style={{ borderRadius: "var(--zen-corner-radius-large, 16px)", boxShadow: "inset 0 0 0 1px var(--zen-color-border-neutral-pale-default)" }}><SkeletonShape shape="square" size="small" /><SkeletonHeading size="small" /><SkeletonText lines={1} /></Stack>)}
       </div>
     </Stack>
   );
@@ -3489,8 +3497,9 @@ function InputComposeExample() {
 
 function TooltipAnnotationsExample() {
   const pins = [{ id: "a", x: "22%", y: "38%", text: "Header uses Heading/1", placement: "right" as const, color: "black-overlay" as const }, { id: "b", x: "72%", y: "64%", text: "Primary CTA", placement: "left" as const, color: "white-overlay" as const }];
+  // zen-allow-raw-colour: the gradient stands in for a screenshot of the annotated design (a picture, not UI colour).
   return (
-    <div style={{ position: "relative", width: "100%", height: 180, borderRadius: 16, background: "linear-gradient(135deg, #e8d7c9, #7b8fb8)" }}>
+    <div style={{ position: "relative", width: "100%", height: 180, borderRadius: "var(--zen-corner-radius-large, 16px)", background: "linear-gradient(135deg, #e8d7c9, #7b8fb8)" }}>
       {pins.map((pin) => (
         <div key={pin.id} style={{ position: "absolute", left: pin.x, top: pin.y }}>
           <Tooltip content={pin.text} placement={pin.placement} color={pin.color} size="small">
@@ -3531,7 +3540,7 @@ function AccordionSettingsExample() {
     { id: "security", title: "Security", count: 3, body: "Password, two-factor authentication and active sessions." },
   ];
   return <Stack gap="none" align="stretch" style={{ width: "100%" }}>{sections.map((section) => (
-    <Accordion key={section.id} size="large" title={<span className="pe-row" style={{ gap: 8 }}>{section.title}<BadgeCounter size="small" theme="neutral" background="subtle" value={section.count} /></span>} expanded={open === section.id} onExpandedChange={(next) => setOpen(next ? section.id : "")}>{section.body}</Accordion>
+    <Accordion key={section.id} size="large" title={<span className="pe-row">{section.title}<BadgeCounter size="small" theme="neutral" background="subtle" value={section.count} /></span>} expanded={open === section.id} onExpandedChange={(next) => setOpen(next ? section.id : "")}>{section.body}</Accordion>
   ))}</Stack>;
 }
 
@@ -3540,7 +3549,7 @@ function AccordionSettingsExample() {
 function AlertPageExample() {
   const [visible, setVisible] = useState(true);
   return (
-    <Stack gap="none" align="stretch" style={{ width: "100%", overflow: "hidden", borderRadius: 12, background: "var(--zen-color-background-surface-default)" }}>
+    <Stack gap="none" align="stretch" style={{ width: "100%", overflow: "hidden", borderRadius: "var(--zen-corner-radius-base, 12px)", background: "var(--zen-color-background-surface-default)" }}>
       {visible ? <AlertBanner theme="warning" action={{ label: "Upgrade", onClick: () => setVisible(false) }} onClose={() => setVisible(false)}>Your trial ends in 3 days. Upgrade to keep your projects.</AlertBanner> : null}
       <Stack gap="xs" align="stretch" padding="lg">
         <Text as="span" textStyle="Body/Base/Bold">Projects</Text>
@@ -3642,7 +3651,7 @@ function SkeletonCardExample() {
   const [loading, setLoading] = useState(true);
   return (
     <Stack gap="sm" align="stretch" style={{ width: "100%" }}>
-      <Stack direction="row" gap="md" align="center" wrap padding="md" style={{ alignItems: "flex-start", borderRadius: 16, background: "var(--zen-color-background-support-neutral-pale)" }} aria-busy={loading}>
+      <Stack direction="row" gap="md" align="center" wrap padding="md" style={{ alignItems: "flex-start", borderRadius: "var(--zen-corner-radius-large, 16px)", background: "var(--zen-color-background-support-neutral-pale)" }} aria-busy={loading}>
         {loading ? <SkeletonShape shape="round" size="medium" /> : <Avatar size="medium" theme="photo" src={people[0].photo} alt={people[0].name} />}
         <Stack gap="xs" align="stretch" style={{ flex: 1 }}>
           {loading ? <><SkeletonHeading size="small" /><SkeletonText lines={2} /></> : <><Text as="span" textStyle="Body/Base/Bold">{people[0].name}</Text><Text as="span" tone="base">Shipped the new token table and fixed the Date Picker popover placement.</Text></>}
@@ -3668,6 +3677,25 @@ type ExampleDef = { title: string; description: string; code: string; wide?: boo
 /** Button · mobile footer CTA: Large (lg) buttons fill the footer, Primary on top; small sizes never stretch. */
 function ButtonMobileFooterExample() {
   const [placed, setPlaced] = useState(false);
+  const [saved, setSaved] = useState(false);
+  // Each delivery / payment row opens an Action sheet that picks the value the row shows.
+  const [sheet, setSheet] = useState<"address" | "delivery" | "payment" | null>(null);
+  const [address, setAddress] = useState("home");
+  const [delivery, setDelivery] = useState("standard");
+  const [payment, setPayment] = useState("visa");
+  const addresses = [
+    { id: "home", label: "Home · 12 Nguyen Hue, District 1", caption: "12 Nguyen Hue, District 1, Ho Chi Minh City" },
+    { id: "office", label: "Office · 88 Dong Khoi, District 1", caption: "88 Dong Khoi, District 1, Ho Chi Minh City" },
+  ];
+  const deliveries = [
+    { id: "standard", name: "Standard", day: "Thursday, 2 Oct", fee: 10 },
+    { id: "express", name: "Express", day: "Tuesday, 30 Sep", fee: 18 },
+  ];
+  const payments = [{ id: "visa", label: "Visa ending 4242" }, { id: "mastercard", label: "Mastercard ending 8210" }, { id: "cash", label: "Cash on delivery" }];
+  const ship = deliveries.find((option) => option.id === delivery) ?? deliveries[0];
+  const total = `$${(311.9 + ship.fee).toFixed(2)}`;
+  const closeSheet = (open: boolean) => { if (!open) setSheet(null); };
+  const chevron = <Icon name="icon-chevron-right-line-small" size="base" decorative />;
   const items = [
     { name: "Pour-over kettle", meta: "Matte black · 1", price: "$64.00", icon: "icon-coffee-cup-line", theme: "orange" },
     { name: "Filter papers", meta: "100 pack · 2", price: "$12.40", icon: "icon-package-check-line", theme: "green" },
@@ -3681,25 +3709,31 @@ function ButtonMobileFooterExample() {
   return (
     <PlatformPhone height={560} label="Checkout footer" header={<TopNavigation type="compact" title="Review order" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} />}
       footer={<div className="pe-phone-cta">
-        <Button level="primary" size="lg" onClick={() => setPlaced(true)}>{placed ? "Track order" : "Place order · $321.90"}</Button>
-        <Button level="tertiary" size="lg">Save for later</Button>
+        <Button level="primary" size="lg" onClick={() => setPlaced(true)}>{placed ? "Track order" : `Place order · ${total}`}</Button>
+        {/* The confirmation sits on the button itself: the list may be scrolled away from the top of the screen. */}
+        <Button level="tertiary" size="lg" startIcon={saved ? <Icon name="icon-check-line" decorative /> : undefined} onClick={() => setSaved(true)}>{saved ? "Saved for later" : "Save for later"}</Button>
       </div>}>
-      <Stack gap="sm" align="stretch" style={{ padding: "8px 0 20px" }}>
-        {placed ? <div style={{ padding: "0 20px" }}><InlineMessage theme="positive" title="Order placed">Arrives Thursday, 2 Oct.</InlineMessage></div> : null}
+      <Stack gap="sm" align="stretch" style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) 0 var(--zen-spacing-padding-large, 20px)" }}>
+        {placed ? <div style={{ padding: "0 var(--zen-spacing-padding-large, 20px)" }}><InlineMessage theme="positive" title="Order placed">{`Arrives ${ship.day}.`}</InlineMessage></div> : null}
         <List aria-label="Order items">
           {items.map((item) => <ListItem key={item.name} title={item.name} caption={item.meta} leading={<DockIcon icon={item.icon} theme={item.theme} background="subtle" />} trailing={<Text as="span" textStyle="Body/Base/Medium">{item.price}</Text>} />)}
         </List>
         <Divider />
         <dl className={`pe-order-summary ${typographyStyles["Body/Base/Regular"]}`}>
-          {[["Subtotal", "$311.90"], ["Shipping", "$10.00"], ["Total", "$321.90"]].map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
+          {[["Subtotal", "$311.90"], ["Shipping", `$${ship.fee.toFixed(2)}`], ["Total", total]].map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
         </dl>
         <Divider />
         <List aria-label="Delivery and payment">
-          <ListItem title="Deliver to" caption="12 Nguyen Hue, District 1, Ho Chi Minh City" leading={<DockIcon icon="icon-package-check-line" theme="neutral" background="subtle" />} onClick={() => undefined} />
-          <ListItem title="Arrives" caption="Thursday, 2 Oct · Standard" leading={<DockIcon icon="icon-shopping-bag-01-line" theme="neutral" background="subtle" />} onClick={() => undefined} />
-          <ListItem title="Pay with" caption="Visa ending 4242" leading={<DockIcon icon="icon-credit-card-line" theme="neutral" background="subtle" />} onClick={() => undefined} />
+          <ListItem title="Deliver to" caption={addresses.find((option) => option.id === address)?.caption} leading={<DockIcon icon="icon-package-check-line" theme="neutral" background="subtle" />} trailing={chevron} onClick={() => setSheet("address")} />
+          <ListItem title="Arrives" caption={`${ship.day} · ${ship.name}`} leading={<DockIcon icon="icon-shopping-bag-01-line" theme="neutral" background="subtle" />} trailing={chevron} onClick={() => setSheet("delivery")} />
+          <ListItem title="Pay with" caption={payments.find((option) => option.id === payment)?.label} leading={<DockIcon icon="icon-credit-card-line" theme="neutral" background="subtle" />} trailing={chevron} onClick={() => setSheet("payment")} />
         </List>
       </Stack>
+      <BottomSheet inline open={sheet === "address"} onOpenChange={closeSheet} type="action" title="Deliver to"
+        items={addresses.map(({ id, label }) => ({ id, label }))} selectedId={address} onSelect={(item) => setAddress(item.id)} />
+      <BottomSheet inline open={sheet === "delivery"} onOpenChange={closeSheet} type="action" title="Delivery speed"
+        items={deliveries.map((option) => ({ id: option.id, label: `${option.name} · ${option.day}`, trailing: `$${option.fee.toFixed(2)}` }))} selectedId={delivery} onSelect={(item) => setDelivery(item.id)} />
+      <BottomSheet inline open={sheet === "payment"} onOpenChange={closeSheet} type="action" title="Pay with" items={payments} selectedId={payment} onSelect={(item) => setPayment(item.id)} />
     </PlatformPhone>
   );
 }
@@ -3729,6 +3763,7 @@ function CardPricingExample() {
                   {isCurrent ? <Badge theme="neutral" background="subtle" size="small">Current</Badge> : plan.recommended ? <Badge theme="accent" background="subtle" size="small">Recommended</Badge> : null}
                 </Stack>
                 <Text as="span" tone="light">{plan.blurb}</Text>
+                {/* zen-allow-visual-heading: the price is a value (a Heading/2 figure), not a title. */}
                 <div className="pe-plan__price"><Text as="span" textStyle="Heading/2">{price ? `$${price}` : "Free"}</Text>{price ? <Text as="span" tone="light">per seat / month</Text> : null}</div>
                 <ul className="pe-checklist">{plan.features.map((feature) => <li key={feature}><Icon name="icon-check-line" size="sm" decorative /><Text as="span">{feature}</Text></li>)}</ul>
                 {isCurrent
@@ -3793,7 +3828,7 @@ function ChipMobileFilterExample() {
           return <Chip key={f} variant="normal" size="small" level={pressed ? "primary" : "secondary"} select={pressed} aria-pressed={pressed} onClick={() => setOn(pressed ? on.filter((x) => x !== f) : [...on, f])}>{f}</Chip>;
         })}
       </div>
-      <div style={{ padding: "4px 20px 8px" }}><Text as="span" textStyle="Caption/Regular" tone="light">{plural(shown.length, "place")}</Text></div>
+      <div style={{ padding: "var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-large, 20px) var(--zen-spacing-padding-xsmall, 8px)" }}><Text as="span" textStyle="Caption/Regular" tone="light">{plural(shown.length, "place")}</Text></div>
       {shown.length ? (
         <List aria-label="Places">
           {shown.map((place) => <ListItem key={place.name} title={place.name} caption={`${place.km} km · ${place.rating} ★`} href="#place" leading={<DockIcon icon="icon-coffee-cup-line" theme="brown" background="subtle" />} />)}
@@ -3825,8 +3860,12 @@ const examples: Partial<Record<PlatformPage, ExampleDef[]>> = {
     disabled={!canRedo} onClick={redo} icon={<Icon name="icon-reverse-right-line" />} />
   <Button level="primary" size="sm" disabled={published} onClick={publish}>Publish</Button>
 </div>` },
-    { title: "Mobile footer CTA", description: "On a phone the main action sits in the footer: Large buttons fill the width, Primary on top, one Tertiary alternative below. Small sizes never stretch.", render: () => <ButtonMobileFooterExample />, code: `<footer className="checkout-footer"> {/* display: grid; gap: 12px; padding: 12px 20px */}
-  <Button level="primary" size="lg" onClick={placeOrder}>Place order · $86.40</Button>
+    { title: "Mobile footer CTA", description: "On a phone the main action sits in the footer: Large buttons fill the width, Primary on top, one Tertiary alternative below. Small sizes never stretch. Each delivery and payment row opens an Action sheet that changes it.", render: () => <ButtonMobileFooterExample />, code: `<ListItem title="Deliver to" caption={address.caption} trailing={chevron} onClick={() => setSheet("address")} />
+<BottomSheet open={sheet === "address"} onOpenChange={(open) => !open && setSheet(null)} type="action"
+  title="Deliver to" items={addresses} selectedId={address.id} onSelect={(item) => setAddress(item.id)} />
+
+<footer className="checkout-footer"> {/* display: grid; gap: 12px; padding: 12px 20px */}
+  <Button level="primary" size="lg" onClick={placeOrder}>Place order · {total}</Button>
   <Button level="tertiary" size="lg" onClick={saveForLater}>Save for later</Button>
 </footer>` },
   ],
@@ -4155,7 +4194,7 @@ const some = picked.length > 0 && !all;
   ],
   breadcrumbs: [
     { title: "Page header", description: "Breadcrumbs above the page title with Tertiary + Primary actions; clicking a crumb navigates up.", render: () => <BreadcrumbsHeaderExample />, code: `<Breadcrumbs items={path} onNavigate={(item) => go(item.id)} />
-<h1>Website redesign</h1>` },
+<Heading level={1}>Website redesign</Heading>` },
     { title: "In-page sections", description: "master={false} drops the home icon for in-page navigation such as Settings.", render: () => <BreadcrumbsSettingsExample />, code: `<Breadcrumbs master={false} items={[{ id: "settings", label: "Settings" }, { id: "billing", label: "Billing" }, …]} />` },
     { title: "File browser", description: "Open folders to go deeper; click a breadcrumb to go back up.", render: () => <BreadcrumbsDriveExample />, code: `<Breadcrumbs
   items={trail.map((f) => ({ id: f.id, label: f.name }))}
@@ -4175,7 +4214,7 @@ const some = picked.length > 0 && !all;
   accordion: [
     { title: "Filter panel", description: "A side panel of Medium Divider accordions, one per facet: the title shows a Badge-Counter of its picks, Clear all resets, and the primary action shows the live result count.", render: () => <AccordionFiltersExample />, code: `<Card theme="border" spacing="small" as="section" aria-label="Filters">
   <header>
-    <Text as="span" textStyle="Heading/4">Filters</Text> <BadgeCounter size="small" value={applied} />
+    <Heading level={4} textStyle="Heading/4">Filters</Heading> <BadgeCounter size="small" value={applied} />
     <Button level="tertiary" size="sm" disabled={!applied} onClick={clearAll}>Clear all</Button>
   </header>
   {facets.map((facet) => (
@@ -4369,7 +4408,7 @@ const dismiss = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id
   <Stepper aria-label="Onboarding" orientation="vertical" steps={steps} current={current}
     onStepClick={(_, index) => setCurrent(index)} />
   <section aria-live="polite">
-    <h3>{steps[current].title}</h3>
+    <Heading level={4} textStyle="Heading/4">{steps[current].title}</Heading>
     <p>{details[current]}</p>
     <Button level="tertiary" size="sm" disabled={current === 0} onClick={back}>Back</Button>
     <Button level="primary" size="sm" onClick={next}>{last ? "Finish" : "Next step"}</Button>
@@ -4425,7 +4464,7 @@ const dismiss = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id
 <Card theme="semi-pale" spacing="small">…</Card>` },
     { title: "Pricing plans", description: "Border cards in a grid: Active marks the current plan, an Accent Badge marks the recommended one, and each card ends with one md CTA whose label says what happens (Upgrade / Switch / Manage). A Secondary Segmented switches the billing period.", wide: true, render: () => <CardPricingExample />, code: `<Segmented level="secondary" aria-label="Billing period" options={periods} value={period} onChange={setPeriod} />
 <Card as="section" theme="border" spacing="medium" active={isCurrent} aria-label="Pro plan">
-  <Text as="span" textStyle="Heading/Subheading">Pro</Text>
+  <Heading level={3} textStyle="Heading/Subheading">Pro</Heading>
   {recommended ? <Badge theme="accent" background="subtle" size="small">Recommended</Badge> : null}
   <Text as="span" textStyle="Heading/2">$12</Text> <Text as="span" tone="light">per seat / month</Text>
   <ul>{features.map((f) => <li key={f}><Icon name="icon-check-line" decorative />{f}</li>)}</ul>
@@ -4466,7 +4505,7 @@ const dismiss = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id
   <ProgressBar value={72} theme="accent" label="72%" />
 </ListItem>` },
     { title: "Grouped sections", description: "Long settings split into groups: each group has a visible heading and its own List named after it, so screen readers announce “Account, list, 2 items”.", render: () => <ListItemGroupedExample />, code: `<section aria-labelledby="account">
-  <h3 id="account">Account</h3>
+  <Heading level={3} id="account" textStyle="Body/Small/Bold">Account</Heading>
   <Card theme="border" spacing="small">
     <List aria-label="Account">
       <ListItem title="Profile" caption="Name, photo, bio" href="/settings/profile"
@@ -4498,11 +4537,12 @@ const dismiss = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id
     { id: "status", header: "Status", cell: (row) => <Badge size="medium" background="subtle" theme="green">{row.status}</Badge> },
     { id: "seats", header: "Seats", sortable: true, align: "right", cell: (row) => <TableText>{row.seats}</TableText> },
   ]} />` },
-    { title: "Invoices with pagination", description: "Header icon, Text cells with captions and Pagination (Inline) under the table.", wide: true, render: () => <TableInvoicesExample />, code: `<Table aria-label="Invoices" rows={pageRows} getRowId={(row) => row.id} columns={[
+    { title: "Invoices with pagination", description: "Header icon, Text cells with captions and Pagination (Inline) under the table; its Chip changes the page size.", wide: true, render: () => <TableInvoicesExample />, code: `<Table aria-label="Invoices" rows={pageRows} getRowId={(row) => row.id} columns={[
   { id: "id", header: "Invoice", icon: "icon-file-doc-line", cell: (row) => <TableText bold>{row.id}</TableText> },
   { id: "amount", header: "Amount", align: "right", cell: (row) => <TableText>{row.amount}</TableText> },
 ]} />
-<Pagination theme="inline" page={page} onPageChange={setPage} total={total} pageSize={5} />` },
+<Pagination theme="inline" page={page} onPageChange={setPage} total={total} pageSize={pageSize} pageSizeOptions={[5, 10, 20]}
+  onPageSizeChange={(size) => { setPageSize(size); setPage(1); }} />` },
     { title: "Empty result", description: "The empty prop renders an Empty State across all columns.", render: () => <TableEmptyExample />, code: `<Table aria-label="Members" rows={[]} getRowId={(row) => row.id} columns={columns}
   empty={<EmptyState title="No members match “zzz”" illustration={false}
     secondaryAction={{ label: "Clear filter", onClick: clear }} />} />` },

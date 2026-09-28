@@ -43,7 +43,8 @@ Last updated: 2026-09-28.
   Figma data is already in `docs/figma-contracts/` (`docs/context/handoff-claude-code-2026-09-27.md`).
 - **Harness:** 144 usage rules. The newest four come from the behaviour probes: `interaction/no-noop-handler`,
   `interaction/controlled-needs-handler`, `focus/state-parity` and `focus/selected-fill-only`. The two interaction rules
-  list 22 existing warnings (no-op `ListItem` rows, ChartCard `range`, Pagination `pageSize`); see Open items.
+  report 0 warnings: their 22 pre-existing ones were wired on 2026-09-28 (session log "Wire the 22 interaction-rule
+  warnings").
 - **Figma:** the source of truth is the live file `9nZv4uW2LT21yuHabMTCh1`, read-only through `use_figma`. The older key
   `yhWJ…` in some docs has no MCP access.
 - **Dev server:** `npm run dev`, then open http://localhost:5173. It binds IPv6 only: `http://127.0.0.1:5173` does not
@@ -62,9 +63,10 @@ It runs tsc, style-guard, usage-guard, both selftests, guidelines, figma-contrac
 changed), the platform audit with `--quality --density --smoke` at 1512 + 390 and in dark mode, the behaviour probes,
 the example coverage matrix, and shoots 1512/390 contact sheets — then LOOK at them. The hooks in
 `Zen-CodeBase/.claude/settings.json` lint every edit at once and hold a turn until the gate passed and its sheets were
-opened. Pre-existing findings are in `tools/style-guard/baseline.json` and `tools/platform-audit/*-baseline.json`;
-only new ones fail, and the debt only shrinks. Owner of tools/qa, tools/style-guard, quality-checks/behaviour and the
-hooks: the session "Quy trình kiểm tra Component build".
+opened. The style-guard baseline is empty since 2026-09-28 (376 → 0), so every style finding is new. Fix it with the
+token Figma binds, or add `zen-allow-<rule>: reason` (citing the node) within the 4 lines above. Other pre-existing
+findings are in `tools/platform-audit/*-baseline.json`; only new ones fail, and the debt only shrinks. Owner of
+tools/qa, tools/style-guard, quality-checks/behaviour and the hooks: the session "Quy trình kiểm tra Component build".
 
 Basic UI slips are not acceptable: text flush to an edge, a stretched small button, a wrong-size avatar or icon, a
 white box on white. `platform:audit` catches them through its `edges`, `sizes` and `surfaces` checks. Also flip
@@ -132,14 +134,26 @@ The full list is in `docs/component-usage-rules.md`. The ones most often forgott
   - Progress and Slider icons
   - hit-area slots
 - Known Figma issue: FileIcon Format=Photo was a copy of PDF. Check whether the designer's re-sync fixed it.
+- Figma vs code differences seen during the style-guard burn-down, not fixed (ask the designer or decide):
+  - Slider: in Figma the Medium thumb keeps its drop shadow on hover (code swaps it for the ring), and the Small thumb
+    has no shadow when disabled (code keeps it).
+  - Chart: stack-bar columns are Corner-Radius/Small on all corners in Figma (code: XSmall, top corners only).
+  - Bottom Navigation: Figma binds the action and FAB icons to Button/Icon-Size/Medium; code keeps the fixed
+    Bottom/Icon-Size, because the mobile nav does not follow density.
+  - appLayer phone home indicator: Figma's System/Bottom-Indicator (308:46297) is a 6% Background/Neutral/Subtle bar,
+    while code draws a solid OS glyph (`zen-allow-colour-role`).
+  - Raw values in Figma kept as `zen-allow`: the Chat Reaction-Bar's 15px emoji gap (6182:55704), and Business bubble
+    and card shadows that are local effects rather than an Effect style.
 - Figma has no Focus state for Popover/Item and no Error+Focused state for the Input family. Code draws the 3px
   Focus/Accent ring inside the option, and keeps the error border plus the Focused ring on an invalid field. Confirm
   both with the designer.
 - Read-only fields show no focus indicator (behaviour warn "while read-only": dialog, inline-message, side-panel,
   tooltip, visually-hidden). Waiting on the user: give them the error state's fix, or keep them as they are.
-- Locked interactions the new harness rules list (warnings, pre-existing): 13 `ListItem onClick={() => undefined}`
-  rows, ChartCard `onOpen` no-ops, BottomNavigation `onValueChange` and AiChatField `onSubmit` no-ops (mobile
-  showcases), ChartCard `range` without `onRangeChange`, Pagination inline `pageSize` without `onPageSizeChange`.
+- Dead clicks the no-op rule cannot see: actions passed with no handler at all. They are in
+  `tools/platform-audit/behaviour-baseline.json`, 22 keys on button, sidebar, search, table, top-/bottom-navigation and
+  bottom-sheet alone. Examples: TopNavigation Back / Upload / Like / Share, the BottomNavigation "Create" action,
+  Sidebar footer items, Media card Edit / Duplicate. A harness rule for handler-less actions would list them; the
+  debt only shrinks.
 - Scratch tests written before the vibe-ready landing may still select component variants by `[data-theme=…]`.
   Those now use `data-tone`, so re-check such selectors before trusting a failing scratch test.
 - Nothing is committed since `eafb0de`. Cut a release (0.3.0 + 0.4.0) when the user asks, using CHANGELOG.md.

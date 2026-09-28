@@ -46,7 +46,7 @@ const bad = await text("check_usage", { code: 'import { IconButton } from "@zen/
 expect(/icon-button\/needs-name/.test(bad.body), `check_usage flags a nameless IconButton: ${bad.body.slice(0, 200)}`);
 const misspelt = await text("check_usage", { source: 'import { IconButton } from "@zen/design-system";' });
 expect(misspelt.isError && /unknown argument "source"/.test(misspelt.body), `check_usage rejects a misspelt argument instead of a clean answer: ${misspelt.body.slice(0, 200)}`);
-const good = await text("check_usage", { code: 'import { IconButton } from "@zen/design-system";\nexport const A = () => <IconButton icon="icon-plus-line" aria-label="Add member" onClick={() => {}} />;', filename: "A.tsx" });
+const good = await text("check_usage", { code: 'import { IconButton } from "@zen/design-system";\nexport const A = () => <IconButton icon="icon-plus-line" aria-label="Add member" onClick={addMember} />;', filename: "A.tsx" });
 expect(/No findings/.test(good.body), `check_usage passes a named IconButton: ${good.body.slice(0, 200)}`);
 
 const mapped = await text("map_figma_component", { component: "Button/Main", properties: { Level: "Primary", Size: "Medium", State: "Default", Label: "Save changes" } });

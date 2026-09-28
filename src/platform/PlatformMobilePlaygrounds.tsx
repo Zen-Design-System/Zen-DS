@@ -21,6 +21,7 @@ import { PlatformTypographyContext } from "./PlatformTemplate";
 import { bottomNavItems, budgetSeries, mobilePeople } from "./PlatformMobileData";
 import { PlatformPhoneMedia, platformMedia } from "./PlatformMedia";
 import { ComponentPreview, PlaygroundFilterChip, PlaygroundToggle } from "./PlatformExamples";
+import { ChartReportPanel } from "./PlatformMobileShowcases";
 
 /* Playgrounds for the mobile / conversation / data-viz batch (Top & Bottom Navigation, Bottom Sheet, Chat, AI Chat, Chart). */
 
@@ -28,7 +29,6 @@ function Panel({ title, controls, children, code }: { title: string; controls: R
   const previewTypography = useContext(PlatformTypographyContext);
   return (
     <ComponentPreview className="platform-example-panel platform-example-panel--stack">
-      {/* zen-allow-raw-heading: platform chrome — the playground panel title takes the platform typography, like PlatformExamples. */}
       <h2 className="platform-main-component__title">{title}</h2>
       <div className="platform-playground-controls" aria-label={`${title} playground controls`}>{controls}</div>
       <div data-typography={previewTypography} className="platform-example-row platform-mobile-preview">{children}</div>
@@ -40,11 +40,13 @@ function Panel({ title, controls, children, code }: { title: string; controls: R
 const option = (id: string, label = id) => ({ id, label });
 
 function ScreenList() {
+  // Opening a project selects it (the rows are never locked, even in a playground).
+  const [open, setOpen] = useState<string | null>(null);
   return (
     <List aria-label="Recent projects">
       {/* Long enough to scroll under a floating (blurring / glass / overlay) header. */}
       {["Zen website", "Brand refresh", "Mobile app", "Docs platform", "Design tokens", "Icon library", "Marketing site", "Onboarding flow", "Help center", "Release notes", "Pricing page", "Analytics", "Email templates", "Partner portal"].map((title, index) => (
-        <ListItem key={title} title={title} caption={`${(index * 7) % 23 + 3} pages · updated ${index + 1}d ago`} leading={<Avatar size="medium" shape="square" theme={(["brown", "indigo", "green", "orange", "teal", "purple"] as const)[index % 6]} alt={title} />} onClick={() => undefined} />
+        <ListItem key={title} title={title} caption={`${(index * 7) % 23 + 3} pages · updated ${index + 1}d ago`} leading={<Avatar size="medium" shape="square" theme={(["brown", "indigo", "green", "orange", "teal", "purple"] as const)[index % 6]} alt={title} />} selected={open === title} onClick={() => setOpen(title)} />
       ))}
     </List>
   );
@@ -317,7 +319,16 @@ export function ChartPlayground() {
   const [kind, setKind] = useState<string | undefined>("line");
   const [inCard, setInCard] = useState(true);
   const [range, setRange] = useState<keyof typeof quarters>("Quarterly");
+  const [report, setReport] = useState(false);
   const money = (v: number) => (v === 0 ? "0" : `$${Math.round(v / 100) / 10}K`);
+  const usd = (v: number) => `$${v.toLocaleString("en-US")}`;
+  // The chevron opens the numbers behind the chart: yearly totals per department (stack) or the points of the range (line).
+  const reportRows: Array<[string, string]> = kind === "stack"
+    ? budgetSeries.map((s) => [s.label, usd(budget.reduce((sum, b) => sum + b.values[s.id as keyof typeof b.values], 0) * 1000)])
+    : quarters[range].map(([label, value]) => [label, usd(value)]);
+  const reportTotal = kind === "stack"
+    ? budget.reduce((sum, b) => sum + Object.values(b.values).reduce((all, v) => all + v, 0), 0) * 1000
+    : quarters[range].reduce((sum, [, value]) => sum + value, 0);
   const chart = kind === "stack"
     ? <StackBarChart aria-label="Budget allocation by quarter" data={budget.map((b) => ({ ...b, values: Object.fromEntries(Object.entries(b.values).map(([k, v]) => [k, v * 1000])) }))} series={budgetSeries} format={money} />
     : <LineChart aria-label={`Expense trends, ${range.toLowerCase()}`} data={quarters[range].map(([label, value]) => ({ label, value }))} format={money} />;
@@ -339,12 +350,14 @@ ${inCard ? `<ChartCard
   ` : ""}${kind === "stack" ? `<StackBarChart aria-label="Budget allocation by quarter" data={quarters} series={departments} format={money} />` : `<LineChart aria-label="Expense trends" data={points} format={money} />`}${inCard ? "\n</ChartCard>" : ""}`}>
       <div className="platform-chart-preview">
         {inCard ? (
-          <ChartCard title={kind === "stack" ? "Budget Allocation" : "Expense Trends"} onOpen={() => undefined} ranges={Object.keys(quarters).map((id) => ({ id, label: id }))} range={range} onRangeChange={(id) => setRange(id as keyof typeof quarters)}>
+          <ChartCard title={kind === "stack" ? "Budget Allocation" : "Expense Trends"} onOpen={() => setReport(true)} ranges={Object.keys(quarters).map((id) => ({ id, label: id }))} range={range} onRangeChange={(id) => setRange(id as keyof typeof quarters)}>
             {chart}
           </ChartCard>
         ) : (
           <div className="platform-chart-preview__bare"><span className={typographyStyles["Heading/Subheading"]}>{kind === "stack" ? "Budget Allocation" : "Expense Trends"}</span><Segmented options={Object.keys(quarters).map((id) => ({ id, label: id }))} value={range} onChange={(id) => setRange(id as keyof typeof quarters)} aria-label="Range" />{chart}</div>
         )}
+        <ChartReportPanel open={report} onOpenChange={setReport} title={kind === "stack" ? "Budget allocation report" : "Expense trends report"}
+          description={kind === "stack" ? "This year's budget by department." : `${range} expenses.`} head={kind === "stack" ? ["Department", "Year total"] : ["Period", "Expenses"]} rows={reportRows} total={["Total", usd(reportTotal)]} />
       </div>
     </Panel>
   );

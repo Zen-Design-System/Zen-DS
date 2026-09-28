@@ -11,7 +11,6 @@ export function Panel({ title, controls, children, code, previewClassName }: { t
   const previewTypography = useContext(PlatformTypographyContext);
   return (
     <ComponentPreview className="platform-example-panel platform-example-panel--stack">
-      {/* zen-allow-raw-heading: platform chrome — the playground panel title takes the platform typography, like PlatformExamples. */}
       <h2 className="platform-main-component__title">{title}</h2>
       <div className="platform-playground-controls" aria-label={`${title} playground controls`}>{controls}</div>
       <div data-typography={previewTypography} className={["platform-example-row", previewClassName].filter(Boolean).join(" ")}>{children}</div>

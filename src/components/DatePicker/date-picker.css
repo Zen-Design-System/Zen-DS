@@ -24,13 +24,14 @@ span.zen-date-picker__month { cursor: default; }
 /* Range ends: selected circle over a half-rounded In-Range strip that joins the neighbouring days. */
 .zen-date-picker__day:is([data-state="range-selected-start"], [data-state="range-selected-end"]) { background: radial-gradient(circle closest-side, var(--zen-date-picker-item-background-seclected-default) 99%, transparent 100%), var(--zen-date-picker-item-background-seclected-in-range-default); }
 .zen-date-picker__day:is([data-state="range-selected-start"], [data-state="range-selected-end"]):hover:not(:disabled) { background: radial-gradient(circle closest-side, var(--zen-date-picker-item-background-seclected-hover) 99%, transparent 100%), var(--zen-date-picker-item-background-seclected-in-range-default); }
-.zen-date-picker__day[data-state="range-selected-start"] { border-radius: 1000px 0 0 1000px; }
-.zen-date-picker__day[data-state="range-selected-end"] { border-radius: 0 1000px 1000px 0; }
+/* The strip keeps the day's own Corner-Radius/Action/Small on its outer side (.Primitives/Date-Picker/Item 455:33517). */
+.zen-date-picker__day[data-state="range-selected-start"] { border-radius: var(--zen-corner-radius-action-small, 1000px) 0 0 var(--zen-corner-radius-action-small, 1000px); }
+.zen-date-picker__day[data-state="range-selected-end"] { border-radius: 0 var(--zen-corner-radius-action-small, 1000px) var(--zen-corner-radius-action-small, 1000px) 0; }
 .zen-date-picker__day[data-state="in-range"] { border-radius: 0; background: var(--zen-date-picker-item-background-seclected-in-range-default); }
 .zen-date-picker__day[data-state="in-range"]:hover:not(:disabled) { background: var(--zen-date-picker-item-background-seclected-in-range-hover); }
 .zen-date-picker__day[data-state="today"] { box-shadow: inset 0 0 0 2px var(--zen-date-picker-item-border-today); }
 .zen-date-picker__day[data-state="disabled"], .zen-date-picker__day.is-blank { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); cursor: default; }
-.zen-date-picker__day i { position: absolute; bottom: 4px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--zen-color-content-accent-light); }
+.zen-date-picker__day i { position: absolute; right: 0; bottom: 4px; left: 0; width: 4px; height: 4px; margin-inline: auto; border-radius: 50%; background: var(--zen-color-content-accent-light); }
 .zen-date-picker__day[data-state="weekend"] { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-date-picker__actions { display: flex; justify-content: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); }
 /* Select-Month-Year (Calendar Type=Select-Month-Year, 224 × 228): the Header in its Focused state —
@@ -39,7 +40,7 @@ span.zen-date-picker__month { cursor: default; }
    between 16px blank rows. Rows fade 1 / 0.4 / 0.2 away from the selection. */
 .zen-date-picker__month-year { display: flex; width: 224px; flex-direction: column; }
 .zen-date-picker__header[data-state="focused"] .zen-date-picker__month { justify-content: space-between; padding: 0 var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-flat-hover); }
-.zen-date-picker__wheels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-block: 16px; }
+.zen-date-picker__wheels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-block: var(--zen-spacing-padding-medium, 16px); }
 .zen-date-picker[data-view="month-year"] .zen-date-picker__actions { width: 224px; }
 /* Carousel wheel: rows are absolutely placed from the continuous position (translateY set inline),
    so drag, momentum and wheel input slide instead of stepping. 164 = 4 + 5 × 28 + 4 × 4 + 4. */
@@ -51,7 +52,7 @@ span.zen-date-picker__month { cursor: default; }
 
 /* View switch (days ⇄ Select-Month-Year): the viewport glides to the new content height while the
    incoming view fades and settles in. The 4px inset keeps focus rings outside the clip. */
-.zen-date-picker__viewport { box-sizing: border-box; margin: -4px; padding: 4px; overflow: hidden; transition: height 280ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.zen-date-picker__viewport { box-sizing: border-box; margin: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)); padding: var(--zen-spacing-padding-2-xsmall, 4px); overflow: hidden; transition: height 280ms cubic-bezier(0.2, 0.8, 0.2, 1); }
 .zen-date-picker__view { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-date-picker__view.is-entering { animation: zen-date-picker-view-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 @keyframes zen-date-picker-view-in {

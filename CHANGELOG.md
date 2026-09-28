@@ -95,6 +95,26 @@ removed.
   DatePicker "Birthday" pages through months; Button "Confirm a destructive action" Cancel closes the dialog (focus
   goes to "Delete project…"); Toast "Inline confirmations" Dismiss hides the toast ("Show message again") and Upgrade
   confirms.
+- Docs platform: the 22 locked interactions that `interaction/no-noop-handler` and
+  `interaction/controlled-needs-handler` listed now work (`usage:check`: 0 warnings). The code samples show the same
+  handlers.
+  - Button "Mobile footer CTA": the Deliver to, Arrives and Pay with rows open Action sheets that change the address,
+    speed (and the total) or the card. "Save for later" confirms on its button.
+  - Table "Invoices with pagination": the page-size Chip picks 5, 10 or 20 rows.
+  - Chart "Budget allocation": the range regroups the budget by department, category or project.
+  - Chart Card chevrons open a report Side Panel.
+  - AI Chat "Long prompt" sends and answers (Stop works).
+  - "Quick create": the bottom bar switches tabs.
+  - List rows in the Sidebar, Search, mobile and playground examples select.
+- Figma details found while moving component CSS to tokens:
+  - Rating emoji: Heading/4 in its 32px slot (was 24px).
+  - Slider: the Medium thumb shadow is Shadow/Neutral/Strong (was Base).
+  - Chat: the status line (time · Seen) is Gap/2XSmall (was 6px).
+  - Avatar: focus rings take each size's radius, so they are right in the Luxury mode.
+  - Color Selector swatches and the Dialog and SidePanel header icons grow in Comfortable, as in Figma.
+  - DatePicker: range ends follow the radius mode.
+  - Docs platform: the topbar chips use the Shadow/Action/Tertiary effect with its backdrop blur, and example gaps and
+    paddings that were off the scale (6, 10 and 20px) snap to the nearest Gap or Padding token.
 
 ### Changed
 - Component variant attributes are `data-tone` (was `data-theme`), and Sidebar density is `data-sidebar-density`
@@ -124,6 +144,11 @@ removed.
   e.g. `month` without `onMonthChange`), and for CSS `focus/state-parity` (a focus selector in the same rule as its
   resting state) and `focus/selected-fill-only` (focus drawn only as a fill on an item whose selected state is a
   fill). Interaction tests for the focus fixes: `tests/interaction/focus.test.tsx`.
+- Style-guard debt is paid off: `tools/style-guard/baseline.json` went from 376 findings in 32 files to 0.
+  - Component CSS binds the token that the live Figma node binds.
+  - Platform CSS and example inline styles use the Spacing, Corner-Radius, typography and shadow tokens.
+  - Deliberate exceptions carry a `zen-allow-<rule>` reason that cites the Figma node.
+  - With an empty baseline, every finding is new, so the gate reports it.
 
 ## [0.3.0] — Unreleased
 
