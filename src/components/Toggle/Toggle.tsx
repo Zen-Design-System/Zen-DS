@@ -100,6 +100,7 @@ export function ToggleButton({ checked, defaultChecked, onCheckedChange, selecte
 
 export interface ToggleProps extends ToggleButtonProps {
   label: ReactNode;
+  /** Toggle (1526:5703) Content Subtext: short help under the label (Caption/Regular 11/16, Content/Neutral/Light). */
   caption?: ReactNode;
   bold?: boolean;
   theme?: ToggleTheme;
@@ -112,7 +113,7 @@ export function Toggle({ label, caption, bold = false, theme = "text-first", siz
   const content = (
     <span className="zen-toggle__content">
       <span className={`${bold ? typographyStyles["Body/Base/Bold"] : typographyStyles["Body/Base/Regular"]} zen-toggle__label`}>{label}</span>
-      {caption ? <span className={`${typographyStyles["Body/Small/Regular"]} zen-toggle__caption`}>{caption}</span> : null}
+      {caption ? <span className={`${typographyStyles["Caption/Regular"]} zen-toggle__caption`}>{caption}</span> : null}
     </span>
   );
   return (

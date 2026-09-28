@@ -4337,7 +4337,7 @@ const examples: Partial<Record<PlatformPage, ExampleDef[]>> = {
   <Popover open={open} onOpenChange={setOpen} anchorRef={anchorRef} align="end" multiple label="Status"
     items={statuses} onSelect={toggleStatus} />
 </div>` },
-    { title: "Icon picker", description: "Variant Popover (Search/Popover): Small, no search icon, no focus ring — for search inside a custom popover surface.", render: () => <SearchIconPickerExample />, code: `<Search variant="popover" iconSearch={false} placeholder="Search icons"
+    { title: "Icon picker", description: "Variant Popover (Search/Popover): Small, no search icon, and a focus ring only where inputs have a border (Neutral - S4) — for search inside a custom popover surface.", render: () => <SearchIconPickerExample />, code: `<Search variant="popover" iconSearch={false} placeholder="Search icons"
   value={query} onChange={(e) => setQuery(e.target.value)} />` },
     { title: "Search with live results", description: "Results filter while typing, matches are highlighted, Enter opens the first hit and the clear button resets to recent items.", render: () => <SearchResultsExample />, code: `<Search placeholder="Search components" value={query}
   onChange={(e) => setQuery(e.target.value)}

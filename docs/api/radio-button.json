@@ -63,7 +63,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "",
+          "description": ".Primitives/Radio-Button/Content Subtext: short help under the label (Caption/Regular 11/16, Content/Neutral/Light).",
           "deprecated": null
         },
         {

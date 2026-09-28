@@ -4,13 +4,14 @@
    Hover: an absolute Hover-Base plate (Neutral/Flat/Hover, Corner-Radius/Small) that bleeds past the item without
    moving the layout — Sub −8 / −4 (52×28 around a 36×20 label), Master −4 left, −8 right, −4 top/bottom (76×28).
    The plate is a ::before, so it is also the pointer target (28px tall) and carries the focus ring.
-   Primitives/Breadcrumbs/Item/Slot: the item and its Dash (icon-chevron-right-line-small, Popular/Base 20, Neutral/Light)
-   touch (gap 0); the Item-List spaces slots by Spacing/Gap/3XSmall (2). */
+   Primitives/Breadcrumbs/Item/Slot (4031:20158): the item and its Dash (icon-chevron-right-line-small, Popular/Base 20,
+   Neutral/Light) sit Spacing/Gap/2XSmall (4) apart; the Item-List slot spaces slots by Spacing/Gap/XSmall (8).
+   (Breadcrumbs' own Spacing/Gap/3XSmall (2) only spaces the single Item-List child, so it never renders.) */
 .zen-breadcrumbs { min-width: 0; max-width: 100%; }
 /* Room for the plate's 4px bleed above/below so a wrapping trail or a clipping parent never cuts the hover. Figma's
    Item-List does not wrap; wrapped rows sit Spacing/Gap/2XSmall apart (the same 4px as the plate's bleed). */
-.zen-breadcrumbs__list { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px) var(--zen-spacing-gap-3-xsmall, 2px); margin: 0; padding: var(--zen-spacing-padding-2-xsmall, 4px) 0; list-style: none; }
-.zen-breadcrumbs__item { display: inline-flex; min-width: 0; align-items: center; gap: 0; }
+.zen-breadcrumbs__list { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px) var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: var(--zen-spacing-padding-2-xsmall, 4px) 0; list-style: none; }
+.zen-breadcrumbs__item { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-breadcrumbs__separator { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; color: var(--zen-color-content-neutral-light); }
 .zen-breadcrumbs__separator > .zen-icon { width: 100%; height: 100%; }
 

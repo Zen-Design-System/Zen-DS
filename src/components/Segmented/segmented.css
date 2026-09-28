@@ -24,6 +24,8 @@
 .zen-segmented__leading > .zen-icon { width: 100%; height: 100%; }
 .zen-segmented[data-size="medium"] .zen-segmented__leading { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
 .zen-segmented__badge { display: inline-flex; align-items: center; justify-content: center; }
+/* Figma Badge slot = a Wrapper frame around Badge-Counter XSmall: Medium pads it by Spacing/Padding/3XSmall on both sides, Small by 0. */
+.zen-segmented[data-size="medium"] .zen-segmented__badge { padding-inline: var(--zen-spacing-padding-3-xsmall, 2px); }
 
 /* fullWidth: the control fills its container and every item takes an equal share (labels ellipsize if they must). */
 .zen-segmented[data-full-width="true"] { display: flex; width: 100%; }

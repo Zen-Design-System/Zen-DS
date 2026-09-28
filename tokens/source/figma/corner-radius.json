@@ -241,9 +241,9 @@
         "name": "Corner-Radius/Input/Small",
         "type": "FLOAT",
         "valuesByMode": {
-          "Rounded": "{dm-8}",
-          "Smooth": "{dm-8}",
-          "Standard": "{dm-4}",
+          "Rounded": "{dm-12}",
+          "Smooth": "{dm-12}",
+          "Standard": "{dm-8}",
           "Luxury": "{dm-2}"
         }
       },

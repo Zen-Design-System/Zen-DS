@@ -7,8 +7,8 @@
     "capturedAt": "2026-09-21",
     "previousAuditVariableCount": 2356,
     "exportVariableCount": 2368,
-    "lastSynchronizedAt": "2026-09-28",
-    "synchronizationNote": "Zen-Variables.zip (2026-09-28): Global Colors, Component Theme, Emphasis Level and Typography Configuration re-synced. Component Theme adds mode Neutral - S4 and Input/Border/Disabled; Emphasis Level adds mode Light; Typography Dashboard/Mobile values and four Light/*/11 greys changed. Text-style snapshots re-derived from the bound variables."
+    "lastSynchronizedAt": "2026-09-29",
+    "synchronizationNote": "Zen-Variables.zip (2026-09-28): Global Colors, Component Theme, Emphasis Level and Typography Configuration re-synced. Component Theme adds mode Neutral - S4 and Input/Border/Disabled; Emphasis Level adds mode Light; Typography Dashboard/Mobile values and four Light/*/11 greys changed. Text-style snapshots re-derived from the bound variables. Zen-Variables.zip (2026-09-29): Component Theme (export holds mode Neutral - S4 only) Chip-Secondary selected background, selected border and active border weight; Corner Radius Input/Small 12 / 12 / 8 / 2. Component Theme.json (2026-09-29, mode Neutral - S3 only) sets Chip-Secondary selected background to Neutral/Pale/Default; by the user's decision the repo keeps S3 at Active/Neutral/Subtle, and the live file was set to the same value (read 2026-09-29 02:55)."
   },
   "collections": [
     {

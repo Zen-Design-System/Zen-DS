@@ -427,3 +427,91 @@ Segmented phone example on the Segmented page scrolls sideways, and its items ke
     a sibling. Examples: a Segmented with `flex-shrink: 0` in a clipping container hides its last items; at 390 the
     Side Panel › "Docked inspector" card sits under the panel. `overflow` skips these as clipped, and `fit` does not
     see them, because the text fits its box.
+
+## Token update from the user's exports (session "Đánh giá Zen DS hiện tại (fork)")
+
+The user supplied `Zen-Variables.zip` (Component Theme with mode Neutral - S4 only, and Corner Radius), then a
+Component Theme export with mode Neutral - S3 only. That replaced a first S3 file sent by mistake. These resolve the
+Backlog item "Live Figma is ahead of `Zen-Variables.zip`" from the connector check above. The files were diffed with a
+script: all 113 Component Theme names and 25 Corner Radius names exist in the repo, and nothing was added, removed or
+renamed.
+
+| Token | Mode | Before | After |
+| --- | --- | --- | --- |
+| `Chip-Secondary/Background/Seclected/Default` | Neutral - S4 | Active/Neutral/Subtle | Surface/Default |
+| `Chip-Secondary/Border/Selected` | Neutral - S4 | Border/Neutral/Subtle/Default | Border/Active/Neutral/Solid |
+| `Chip-Secondary/Border/Weigth-Active` | Neutral - S4 | Active/Secondary | Active/Primary |
+| `Corner-Radius/Input/Small` | Rounded / Smooth / Standard / Luxury | 8 / 8 / 4 / 2 | 12 / 12 / 8 / 2 |
+
+- **S3, the user's decision:** the correct S3 export sets `Chip-Secondary/Background/Seclected/Default` to
+  Neutral/Pale/Default (the mistaken file and the morning's live check said Surface/Default). The user then decided on
+  Active/Neutral/Subtle, which is the value the repo already had. S3 is therefore unchanged. The manifest note records
+  the decision, and HANDOFF Open items asks the designer to set the Figma variable, or the next sync overwrites it.
+- **Writing:** a format-preserving merge (parse, check the round-trip, set `valuesByMode`, write with the same indent),
+  so each source file shows only the changed lines. The manifest `synchronizationNote` and `lastSynchronizedAt` were
+  edited by hand. `tokens:build` + `tokens:check`: 2,368 tokens, 0 missing aliases, 0 cycles.
+- **Consumers:** no CSS change was needed.
+  - `chip.css` reads the selected background, border and weight through `--zen-chip-*`. S4 no longer emits
+    `--zen-chip-secondary-background-seclected-default-shadow-off`, so the Tertiary action shadow comes back by fallback.
+  - `input.css` (small `.zen-input__control` and the dashed `rect` of small fields) reads
+    `--zen-corner-radius-input-small`.
+- **Computed style** (Playwright on :5173, light):
+  - The S4 selected Secondary chip is `#fff`, has a `#111` 2px border and the shadow, exactly like Neutral - S1.
+  - S3 is unchanged: Subtle fill, 1px Subtle border, no shadow.
+  - Small input controls are 12 / 12 / 8 / 2 px, the same as Medium in every radius mode.
+- **Gates:** `node tools/figma-contract/run-all.mjs`: 23 suites + 25 interactions green (no suite covers small inputs or
+  S4 yet).
+
+## Figma parity update: 9 components (session "Đánh giá Zen DS hiện tại (fork)")
+
+The user asked to check and update Checkbox, Radio Button, Toggle, Chat/Bubble/Text-You, Chat/Bubble/Text-Others,
+Search Popover, the Table cell primitives, Segmented and Breadcrumbs against the live Figma file, "only update", with
+everything else going to the Backlog.
+
+- **Method:** one workflow agent per group (7) read the live file `9nZv4uW2LT21yuHabMTCh1` read-only through
+  `use_figma`. Each ran the repo's extractor, diffed the capture against the stored contract (where there was one) and
+  against the code and computed styles, fixed only existing-variant mismatches in its own component folder, and
+  re-measured. One reviewer then checked every hunk against the captures and the house rules. It found nothing wrong
+  against Figma; it flagged stale generated docs and the core icon set, both fixed below.
+- **Figma nodes:** Checkbox/Mark 311:47222, Checkbox/Text 309:46871, .Primitives/Checkbox/Content 309:46789,
+  Radio-Mark 373:96225, Radio-Button 373:96272, .Primitives/Radio-Button/Content 373:96322, Toggle 1526:5703,
+  Toggle-Button 1523:104, .Primitives/Toggle/Content 1526:5945, Chat/Bubble/Text-You 6349:59476, Text-Others 6323:1394,
+  Search/Popover 1604:27401, .Primitives/Popover/Search 846:38183, Primitives/Table/Cell/* (13 sets, 1603:2869 …
+  1603:23274), Segmented 1238:892, Primitives/Segmented/Item 1204:11690, Breadcrumbs 4031:20161,
+  .Primitives/Breadcrumbs/Item 292:43787, Item/Slot 4031:20158.
+
+| Component | Figma now | Code before → after | File |
+| --- | --- | --- | --- |
+| Checkbox, Radio | Content Subtext Caption/Regular 11/16 | Body/Small/Regular 12px → Caption/Regular 11px | `Checkbox.tsx`, `RadioButton.tsx` |
+| Checkbox, Radio | Selected Hover fill #4f4f4f | `var()` fallback #606060 → #4f4f4f (the token already rendered #4f4f4f) | `checkbox.css` |
+| Toggle | Set overrides Subtext to Caption/Regular 11/16 (24/24 variants) | 12px → 11px (the primitive still says 12: designer question) | `Toggle.tsx` |
+| Toggle | Track HUG = 2 × dot + 2 × Spacing/Padding/3XSmall | fixed sizes → `calc()` from the tokens, same 28×16 / 36×20 / 44×24; three fallbacks corrected | `toggle.css` |
+| Chat bubbles | Message → Time gap Spacing/Gap/3XSmall; Message max width 220 / 516 | gap 0 → 2px (Business bubble 60 → 62px); text content max 212 / 508 → 220 / 516 | `chat.css` |
+| Search/Popover | Focused and Typing: 3px OUTSIDE stroke on Input/Border/Default | no ring → `0 0 0 3px var(--zen-input-border-default)`; transparent except in Neutral - S4 | `search.css`, `Search.tsx` JSDoc |
+| Table cells | Subtext Caption/Regular 11/16; Trend icons trend-up-01 / trend-down-01 / minus | 12px → 11px; arrow icons → trend icons | `Table.tsx` |
+| Table editor | Editabled-Cell padding Small × Medium, Tags–input gap XSmall, underline INSIDE | padding, gap and the underline as an inset shadow | `table.css` |
+| Segmented | Medium badge Wrapper padding 3XSmall each side (Small: 0) | 0 → 2px each side (badge slot 16 → 20px) | `segmented.css` |
+| Breadcrumbs | Item/Slot gap 2XSmall 4; Item-List gap XSmall 8 | 0 → 4px; 2 → 8px | `breadcrumbs.css` |
+
+- **Figma changes that needed no code change:** Checkbox/Text root gap (a single child), Radio's removed SLOT prop,
+  Segmented Item lost its 4 Hover × Selected variants (code never had a hover on the selected item),
+  `.Primitives/Popover/Search` is unchanged.
+- **Follow-through:** Checkbox, Radio and Toggle caption JSDoc, the Checkbox and Table guideline text
+  (`guidelines.source.mjs`), `npm run guidelines:build`, and `npm run icons:build` (the trend icons joined the core set:
+  97 core icons). The Checkbox/Text suite lost its two Subtext map entries and a stale exception: the live nested
+  instance no longer exposes Subtext (1200 → 1120 checks).
+- **Contracts:** the fresh captures replaced the six Checkbox/Radio entries in `checkbox-radio-chip-popover.json`
+  (Chip and Popover entries byte-identical), the Segmented and Toggle entries in
+  `segmented-toggle-badge-avatarstack.json` and the Search/Popover entry in `input-search-primitives.json`. New:
+  `breadcrumbs.json`, `chat-bubbles.json`, `table-cells.json`. Same `json.dumps` format as the existing files.
+- **Checks:** `node tools/figma-contract/run-all.mjs` 23 suites + 25 interactions green; `tsc`, `style:check`,
+  `usage:check` (3 pre-existing platform warnings), `guidelines:check`, `icons:check`. Playwright before/after
+  measurements per group, including Comfortable density for Toggle and Breadcrumbs.
+- **Build-QA:** `npm run qa` (breadcrumbs, chat, checkbox, radio-button, segmented, search, table, toggle): **PASS**
+  (`.qa/reports/2026-09-28T21-03-18-a4b8c773.md`). Static gates, Figma contracts and the Vitest suite pass; audit 0
+  errors (9 `targets` ⚠ from the scaled phone previews, Backlog); dark 0; behaviour 0/0. After the Search example copy
+  was corrected ("no focus ring" → a ring only where inputs have a border), `npm run qa -- --pages=search` **PASS**
+  (`.qa/reports/2026-09-28T21-09-54-a4b8c773.md`). All 30 contact sheets were opened; the only new observation is
+  pre-existing (Popover "Selection toolbar" wraps at 390, Backlog).
+- **Not done (Scope lock):** 45 follow-ups were reported. Work items are in the HANDOFF Backlog ("From the Figma
+  parity update"), and designer questions are in Open items.

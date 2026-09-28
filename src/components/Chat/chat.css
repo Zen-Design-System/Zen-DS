@@ -33,8 +33,9 @@
 .zen-chat-message[data-reacted="true"] .zen-chat-message__meta { margin-top: var(--zen-spacing-gap-small, 12px); }
 
 /* Text bubble (Chat/Bubble/Text-You 6349:59476, Text-Others 6323:1394): Padding/Small (+ the Padding/2XSmall text inset);
-   Social Corner-Radius/XLarge, Business Large; the tail corner is XSmall. */
-.zen-chat-bubble { display: flex; max-width: 100%; box-sizing: border-box; flex-direction: column; gap: 0; padding: var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-xlarge, 20px) var(--zen-corner-radius-xlarge, 20px) var(--zen-corner-radius-xlarge, 20px) var(--zen-corner-radius-xsmall, 4px); background: linear-gradient(var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)), var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%))), var(--zen-color-background-surface-default, #fff); color: var(--zen-color-content-neutral-strongest, #111); }
+   Social Corner-Radius/XLarge, Business Large; the tail corner is XSmall. Message → Time is Spacing/Gap/3XSmall (Figma
+   Message-Text gap), so a Business bubble is 12 + 20 + 2 + 16 + 12 = 62 tall. */
+.zen-chat-bubble { display: flex; max-width: 100%; box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding: var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-xlarge, 20px) var(--zen-corner-radius-xlarge, 20px) var(--zen-corner-radius-xlarge, 20px) var(--zen-corner-radius-xsmall, 4px); background: linear-gradient(var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)), var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%))), var(--zen-color-background-surface-default, #fff); color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-chat-bubble[data-side="you"] { border-radius: var(--zen-corner-radius-xlarge, 20px) var(--zen-corner-radius-xlarge, 20px) var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xlarge, 20px); background: var(--zen-bubble-chat-you-background-default, #111); color: var(--zen-bubble-chat-you-content-default, #fafafa); }
 /* Business: radius 16, min width 66 (Message min 42); Others = Bubble-Chat-Others-Business + a 0 6 16 -4 lift, You = a 0 12 28 + 0 4 8 -4 lift. */
 .zen-chat-bubble[data-domain="business"] { min-width: 66px; border-radius: var(--zen-corner-radius-large, 16px) var(--zen-corner-radius-large, 16px) var(--zen-corner-radius-large, 16px) var(--zen-corner-radius-xsmall, 4px); }
@@ -42,7 +43,9 @@
    (You: 0 12 28 + 0 4 8 −4) and Light (Others: 0 6 16 −4), not an Effect style (6349:59476, 6323:1394). */
 .zen-chat-bubble[data-domain="business"][data-side="you"] { border-radius: var(--zen-corner-radius-large, 16px) var(--zen-corner-radius-large, 16px) var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-large, 16px); box-shadow: 0 12px 28px 0 var(--zen-color-shadow-neutral-base, rgb(0 0 0 / 8%)), 0 4px 8px -4px var(--zen-color-shadow-neutral-base, rgb(0 0 0 / 8%)); }
 .zen-chat-bubble[data-domain="business"][data-side="others"] { background: var(--zen-bubble-chat-others-business-background-default, var(--zen-color-background-surface-default, #fff)); box-shadow: 0 6px 16px -4px var(--zen-color-shadow-neutral-light, rgb(0 0 0 / 4%)); }
-.zen-chat-bubble__text { max-width: var(--zen-chat-text-max, 220px); margin: 0; padding-inline: var(--zen-spacing-padding-2-xsmall, 4px); overflow-wrap: anywhere; white-space: pre-wrap; }
+/* Figma puts maxW 220 / 516 and Business minW 42 on the Message text itself, inside the Padding/2XSmall inset:
+   content-box keeps both limits on the text, not on text + inset. */
+.zen-chat-bubble__text { max-width: var(--zen-chat-text-max, 220px); box-sizing: content-box; margin: 0; padding-inline: var(--zen-spacing-padding-2-xsmall, 4px); overflow-wrap: anywhere; white-space: pre-wrap; }
 .zen-chat-bubble[data-domain="business"] .zen-chat-bubble__text { min-width: 42px; }
 /* Time (Caption/Regular, right): Others Neutral/Light; You keeps the bubble content colour at 56%. */
 .zen-chat-bubble__time { padding-inline: var(--zen-spacing-padding-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: right; }

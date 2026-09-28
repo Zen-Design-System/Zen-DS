@@ -2,7 +2,7 @@
   "count": 1598,
   "monochrome": 1598,
   "multicolor": 0,
-  "core": 98,
+  "core": 97,
   "buckets": 256,
   "aliases": {
     "icon-chevron-left-line": "icon-chevron-left-line-medium",
@@ -945,7 +945,7 @@
       "viewBox": "0 0 20 20",
       "colorMode": "monochrome",
       "bucket": 209,
-      "core": true
+      "core": false
     },
     {
       "name": "icon-arrow-left-line",
@@ -1025,7 +1025,7 @@
       "viewBox": "0 0 20 20",
       "colorMode": "monochrome",
       "bucket": 92,
-      "core": true
+      "core": false
     },
     {
       "name": "icon-arrow-square-down-left-line",
@@ -1177,7 +1177,7 @@
       "viewBox": "0 0 20 20",
       "colorMode": "monochrome",
       "bucket": 70,
-      "core": true
+      "core": false
     },
     {
       "name": "icon-arrows-down-line",
@@ -11441,7 +11441,7 @@
       "viewBox": "0 0 20 20",
       "colorMode": "monochrome",
       "bucket": 132,
-      "core": false
+      "core": true
     },
     {
       "name": "icon-trend-down-02-line",
@@ -11457,7 +11457,7 @@
       "viewBox": "0 0 20 20",
       "colorMode": "monochrome",
       "bucket": 133,
-      "core": false
+      "core": true
     },
     {
       "name": "icon-trend-up-02-line",

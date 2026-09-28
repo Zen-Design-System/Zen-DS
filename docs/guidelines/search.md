@@ -32,7 +32,7 @@ Also accepts `Omit<InputHTMLAttributes<HTMLInputElement>, "size" | "disabled">`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `variant` | `"default" \| "popover"` | `"default"` | `popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, and no focus stroke or ring (it sits inside the Popover surface). `size` is ignored. |
+| `variant` | `"default" \| "popover"` | `"default"` | `popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, and no focus stroke; its 3px focus ring takes Input/Border/Default, so it shows only in component themes with a visible input border (Neutral S4). `size` is ignored. |
 | `size` | `"sm" \| "md" \| "small" \| "medium"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
 | `label` | `ReactNode` | — | Optional Input label above the field; when set it also names the input. |
 | `theme` | `"default" \| "filter-icon" \| "filter-dropdown"` | `"default"` |  |

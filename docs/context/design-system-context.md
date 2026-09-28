@@ -58,7 +58,8 @@ The 2026-09-28 export (`Zen-Variables.zip`: Global Colors, Component Theme, Emph
 matches the checked-in source by token name and every mode value. It brought:
 
 - Component Theme mode `Neutral - S4` (`data-component-theme="neutral-s4"`): Neutral-S1 with outlined inputs (Surface
-  fill, Subtle border, no inner shadow) and a Subtle-tinted Secondary chip selection. New token
+  fill, Subtle border, no inner shadow). Since the 2026-09-29 export its selected Secondary chip matches S1 (Surface
+  fill, Border/Active/Neutral/Solid at the Primary active weight, Shadow/Action/Tertiary). New token
   `Input/Border/Disabled`: transparent in S1–S3, `Color/Border/Disabled` in S4.
 - Emphasis Level mode `Light` (`data-emphasis="light"`): weights 400–500, active strokes 1px.
 - Typography Configuration: new Dashboard and Mobile sizes, line heights and tracking (Popular unchanged). The

@@ -975,7 +975,7 @@
       [
         "Caption / Bold",
         "caption / bold",
-        ".Primitives/Checkbox/Content (309:46789): Bold=Yes → Body/Base/Bold; Subtext (Body/Small/Regular, Content/Neutral/Light) sits directly under the label, gap 3XSmall, aligned with the label"
+        ".Primitives/Checkbox/Content (309:46789): Bold=Yes → Body/Base/Bold; Subtext (Caption/Regular 11/16, Content/Neutral/Light) sits directly under the label, gap 3XSmall, aligned with the label"
       ],
       [
         "Disabled",
@@ -3788,7 +3788,7 @@
       [
         "Cell primitives",
         "TableText · TableMedia · TableBadges · TableTags · TableTrend · TableActions",
-        "Figma Primitives/Table/Cell/*: Text-Cell (Body/Base Regular|Bold + Subtext Body/Small/Regular 12/16, gap 3XSmall); media size follows Subtext — Avatar/Photo-Cell 24px (Avatar XSmall) without a caption, 32px (Small) with one; Basic-Icon-Cell 20px (Icon base) / 28px (Icon lg); Dock-Icon-Cell Dock Icon XSmall 24px / Small 32px — media gap Small; Badge-Cell and Trend-Cell Badge Medium; Tag-Cell Tag; Items gap 2XSmall; Group-Avatar-Cell Avatar/Stack Small; Actions-Cell Button/Icon-Flat Medium, gap XSmall; Progress-Cell Progress-Bar"
+        "Figma Primitives/Table/Cell/*: Text-Cell (Body/Base Regular|Bold + Subtext Caption/Regular 11/16, gap 3XSmall); media size follows Subtext — Avatar/Photo-Cell 24px (Avatar XSmall) without a caption, 32px (Small) with one; Basic-Icon-Cell 20px (Icon base) / 28px (Icon lg); Dock-Icon-Cell Dock Icon XSmall 24px / Small 32px — media gap Small; Badge-Cell and Trend-Cell Badge Medium; Tag-Cell Tag; Items gap 2XSmall; Group-Avatar-Cell Avatar/Stack Small; Actions-Cell Button/Icon-Flat Medium, gap XSmall; Progress-Cell Progress-Bar"
       ]
     ],
     "keyboard": [

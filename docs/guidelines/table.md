@@ -29,7 +29,7 @@ Rows of structured records that users scan, compare, sort and act on.
 | Editable cells | `column.edit {type: text · number · select · tags, value, onCommit, validate, disabled, options, suggestions, multiline}` | Figma Table/Cell/Default State=Edit · Editabled-Cell; Focused ring Focus/Accent/Subtle |
 | Open button | `column.onOpen · openLabel` | Figma Open-Button: XSmall Tertiary “Open” on row hover |
 | Cells | `TableText · TableMedia · TableTrend · TableActions` | Text / Avatar-Photo-Icon-Dock / Trend / Actions cells; Badge, Tag, ProgressBar go in directly |
-| Cell primitives | `TableText · TableMedia · TableBadges · TableTags · TableTrend · TableActions` | Figma Primitives/Table/Cell/*: Text-Cell (Body/Base Regular|Bold + Subtext Body/Small/Regular 12/16, gap 3XSmall); media size follows Subtext — Avatar/Photo-Cell 24px (Avatar XSmall) without a caption, 32px (Small) with one; Basic-Icon-Cell 20px (Icon base) / 28px (Icon lg); Dock-Icon-Cell Dock Icon XSmall 24px / Small 32px — media gap Small; Badge-Cell and Trend-Cell Badge Medium; Tag-Cell Tag; Items gap 2XSmall; Group-Avatar-Cell Avatar/Stack Small; Actions-Cell Button/Icon-Flat Medium, gap XSmall; Progress-Cell Progress-Bar |
+| Cell primitives | `TableText · TableMedia · TableBadges · TableTags · TableTrend · TableActions` | Figma Primitives/Table/Cell/*: Text-Cell (Body/Base Regular|Bold + Subtext Caption/Regular 11/16, gap 3XSmall); media size follows Subtext — Avatar/Photo-Cell 24px (Avatar XSmall) without a caption, 32px (Small) with one; Basic-Icon-Cell 20px (Icon base) / 28px (Icon lg); Dock-Icon-Cell Dock Icon XSmall 24px / Small 32px — media gap Small; Badge-Cell and Trend-Cell Badge Medium; Tag-Cell Tag; Items gap 2XSmall; Group-Avatar-Cell Avatar/Stack Small; Actions-Cell Button/Icon-Flat Medium, gap XSmall; Progress-Cell Progress-Bar |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/table.json`.
@@ -55,7 +55,7 @@ Figma Table (page 1595:2631): Primitives/Table/Header (Table/Header/Size) over P
 | `className` | `string` | — |  |
 
 ### TableText
-Figma Primitives/Table/Cell/Text-Cell: Label (Body/Base Regular or Bold, Strongest) + optional Subtext (Body/Small/Regular 12/16, Light), gap 3XSmall — as rendered in every Avatar/Photo/Icon/Dock cell. (The Text-Cell master still carries a stale Caption/Regular layer.)
+Figma Primitives/Table/Cell/Text-Cell (1603:3247): Label (Body/Base Regular or Bold, Strongest) + optional Subtext (Caption/Regular 11/16, Light), gap 3XSmall — the same Subtext every Avatar/Photo/Icon/Dock cell renders.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -64,7 +64,7 @@ Figma Primitives/Table/Cell/Text-Cell: Label (Body/Base Regular or Bold, Stronge
 | `bold` | `boolean` | `false` |  |
 
 ### TableMedia
-Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a 32px visual + Text-Cell (gap Small).
+Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a visual + Text-Cell (gap Small). The visual follows the Subtext: Avatar/Photo/Dock Icon XSmall 24px (Icon base 20px) without a caption, Small 32px (Icon lg 28px) with one.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -74,7 +74,7 @@ Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a 32px visual
 | `bold` | `boolean` | `true` |  |
 
 ### TableTrend
-Figma Trend-Cell: a Medium Subtle Badge — Up green, Down red, Neutral grey — with an arrow.
+Figma Trend-Cell (1603:14279): a Medium Subtle Badge — Up green with icon-trend-up-01-line, Down red with icon-trend-down-01-line, Neutral grey with icon-minus-line.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |

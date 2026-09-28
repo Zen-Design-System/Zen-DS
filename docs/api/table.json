@@ -127,7 +127,7 @@
     {
       "name": "TableText",
       "file": "src/components/Table/Table.tsx",
-      "description": "Figma Primitives/Table/Cell/Text-Cell: Label (Body/Base Regular or Bold, Strongest) + optional Subtext (Body/Small/Regular 12/16, Light),\ngap 3XSmall — as rendered in every Avatar/Photo/Icon/Dock cell. (The Text-Cell master still carries a stale Caption/Regular layer.)",
+      "description": "Figma Primitives/Table/Cell/Text-Cell (1603:3247): Label (Body/Base Regular or Bold, Strongest) + optional Subtext\n(Caption/Regular 11/16, Light), gap 3XSmall — the same Subtext every Avatar/Photo/Icon/Dock cell renders.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -160,7 +160,7 @@
     {
       "name": "TableMedia",
       "file": "src/components/Table/Table.tsx",
-      "description": "Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a 32px visual + Text-Cell (gap Small).",
+      "description": "Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a visual + Text-Cell (gap Small). The visual follows\nthe Subtext: Avatar/Photo/Dock Icon XSmall 24px (Icon base 20px) without a caption, Small 32px (Icon lg 28px) with one.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -201,7 +201,7 @@
     {
       "name": "TableTrend",
       "file": "src/components/Table/Table.tsx",
-      "description": "Figma Trend-Cell: a Medium Subtle Badge — Up green, Down red, Neutral grey — with an arrow.",
+      "description": "Figma Trend-Cell (1603:14279): a Medium Subtle Badge — Up green with icon-trend-up-01-line, Down red with\nicon-trend-down-01-line, Neutral grey with icon-minus-line.",
       "deprecated": null,
       "extends": null,
       "props": [

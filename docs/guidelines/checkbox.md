@@ -20,7 +20,7 @@ Select zero, one or many independent options, or confirm a single statement.
 | Select | `checked / defaultChecked / onCheckedChange` | onCheckedChange(checked); the old onChange(checked, event) is deprecated |
 | Indeterminate | `indeterminate` | parent of a partially selected group; shows the minus mark whatever `checked` is and sets the DOM indeterminate (announced as mixed) |
 | Check-Side | `checkSide` | left · right |
-| Caption / Bold | `caption / bold` | .Primitives/Checkbox/Content (309:46789): Bold=Yes → Body/Base/Bold; Subtext (Body/Small/Regular, Content/Neutral/Light) sits directly under the label, gap 3XSmall, aligned with the label |
+| Caption / Bold | `caption / bold` | .Primitives/Checkbox/Content (309:46789): Bold=Yes → Body/Base/Bold; Subtext (Caption/Regular 11/16, Content/Neutral/Light) sits directly under the label, gap 3XSmall, aligned with the label |
 | Disabled | `disabled` | unavailable option (explain why in caption) |
 
 ## Props
@@ -36,7 +36,7 @@ Generated from the TypeScript source; full JSON in `docs/api/checkbox.json`.
 | `onChange` | `(checked: boolean, event: ChangeEvent<HTMLInputElement>) => void` | — | **Deprecated:** Use onCheckedChange (or read event.target.checked).  |
 | `label` | `ReactNode` | — |  |
 | `aria-label` | `string` | — | Name for a mark-only checkbox (no visible label, e.g. inside a List-Item or Table row). When set without `label`, no text renders — the Figma placeholder "Content label" only fills an unnamed demo. |
-| `caption` | `ReactNode` | — | .Primitives/Checkbox/Content Subtext: short help under the label (Body/Small/Regular, Content/Neutral/Light). |
+| `caption` | `ReactNode` | — | .Primitives/Checkbox/Content Subtext: short help under the label (Caption/Regular 11/16, Content/Neutral/Light). |
 | `bold` | `boolean` | `false` | .Primitives/Checkbox/Content Bold=Yes (Body/Base/Bold). |
 | `checkSide` | `"left" \| "right"` | `"left"` |  |
 | `state` | `"default" \| "hover" \| "focus" \| "disabled"` | `"default"` |  |

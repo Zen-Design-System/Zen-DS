@@ -3064,8 +3064,7 @@
   --zen-chip-secondary-background-unselected-hover: var(--zen-color-background-neutral-ghost-hover);
   --zen-chip-secondary-border-default: var(--zen-color-border-neutral-subtle-default);
   --zen-chip-secondary-content-selected: var(--zen-color-content-neutral-strongest);
-  --zen-chip-secondary-background-seclected-default: var(--zen-color-background-active-neutral-subtle);
-  --zen-chip-secondary-background-seclected-default-shadow-off: 0 0 #0000;
+  --zen-chip-secondary-background-seclected-default: var(--zen-color-background-surface-default);
   --zen-chip-secondary-background-seclected-hover: var(--zen-color-background-neutral-ghost-hover);
   --zen-segmented-item-primary-background-unselected-default: var(--zen-color-background-neutral-flat-default);
   --zen-segmented-item-primary-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
@@ -3148,8 +3147,8 @@
   --zen-chart-sector-primary: var(--zen-color-background-support-neutral-deep);
   --zen-chart-sector-secondary: var(--zen-color-background-support-brand-solid);
   --zen-card-border-active: var(--zen-color-border-active-neutral-solid);
-  --zen-chip-secondary-border-selected: var(--zen-color-border-neutral-subtle-default);
-  --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-secondary);
+  --zen-chip-secondary-border-selected: var(--zen-color-border-active-neutral-solid);
+  --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
   --zen-toggle-bar-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
   --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
   --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
@@ -3605,7 +3604,7 @@
   --zen-corner-radius-input-xlarge: var(--zen-dm-16);
   --zen-corner-radius-input-large: var(--zen-dm-16);
   --zen-corner-radius-input-medium: var(--zen-dm-12);
-  --zen-corner-radius-input-small: var(--zen-dm-8);
+  --zen-corner-radius-input-small: var(--zen-dm-12);
   --zen-corner-radius-giant: var(--zen-dm-32);
 }
 
@@ -3634,7 +3633,7 @@
   --zen-corner-radius-input-xlarge: var(--zen-dm-16);
   --zen-corner-radius-input-large: var(--zen-dm-16);
   --zen-corner-radius-input-medium: var(--zen-dm-12);
-  --zen-corner-radius-input-small: var(--zen-dm-8);
+  --zen-corner-radius-input-small: var(--zen-dm-12);
   --zen-corner-radius-giant: var(--zen-dm-32);
 }
 
@@ -3663,7 +3662,7 @@
   --zen-corner-radius-input-xlarge: var(--zen-dm-12);
   --zen-corner-radius-input-large: var(--zen-dm-12);
   --zen-corner-radius-input-medium: var(--zen-dm-8);
-  --zen-corner-radius-input-small: var(--zen-dm-4);
+  --zen-corner-radius-input-small: var(--zen-dm-8);
   --zen-corner-radius-giant: var(--zen-dm-28);
 }
 

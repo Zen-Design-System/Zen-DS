@@ -1,4 +1,4 @@
-// .Primitives/Radio-Button/Content (373:96322): Label (+ optional Subtext, Body/Small/Regular, gap Spacing/Gap/3XSmall).
+// .Primitives/Radio-Button/Content (373:96322): Label (+ optional Subtext, Caption/Regular, gap Spacing/Gap/3XSmall).
 export default {
   contract: "docs/figma-contracts/checkbox-radio-chip-popover.json",
   setId: "373:96322",

@@ -10,13 +10,14 @@
 .zen-search__trailing-group > .zen-icon,
 .zen-search__clear > .zen-icon { width: 100%; height: 100%; }
 /* Figma Search/Popover (1604:27401): Field-Only Small with Corner-Radius/Input/Medium.
-   Focused/Typing keep only Input/Background/Focused — no focus stroke and no 3px OUTSIDE
-   ring, because the field sits inside the Popover surface. Hover keeps the 2px stroke. */
+   Focused/Typing (live file 2026-09-29): Input/Background/Focused, no Container stroke, and the 3px OUTSIDE
+   ring bound to Input/Border/Default instead of the Focus colours — transparent in Neutral S1–S3 and the Brand
+   themes (fill only), the Subtle border in Neutral S4. Hover keeps the 2px stroke. */
 .zen-search.zen-search--popover[data-size] > .zen-input__control { border-radius: var(--zen-corner-radius-input-medium, 12px); }
 /* Specificity 0,7,0: must beat input.css's focus rule
    `.zen-input-field:is([data-state…]) .zen-input__control:focus-within:not(:has(.zen-input-leading-trailing__picker :focus))` (0,6,0). */
 .zen-search.zen-search--popover[data-size]:is([data-state="focused"], [data-state="typing"]) > .zen-input__control:not(:has(.zen-input-leading-trailing__picker :focus)),
-.zen-search.zen-search--popover[data-size] > .zen-input__control:focus-within:not(:has(.zen-input-leading-trailing__picker :focus)) { --zen-input-field-stroke: 1px; --zen-input-field-border: transparent; box-shadow: none; }
+.zen-search.zen-search--popover[data-size] > .zen-input__control:focus-within:not(:has(.zen-input-leading-trailing__picker :focus)) { --zen-input-field-stroke: 1px; --zen-input-field-border: transparent; box-shadow: 0 0 0 3px var(--zen-input-border-default, #ffffff00); }
 /* Figma Search/Filter-Dropdown in Side-Bar Small-Density (5974:25698): Leading-Trailing Label + command icon,
    Elements gap 3XSmall, Trailing padding-right 2XSmall, Body/Base/Medium in Content/Neutral/Light. */
 .zen-search__shortcut { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-right: var(--zen-spacing-padding-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-base, 14px)/var(--zen-typography-line-height-body-base, 20px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-base, -.14px); white-space: nowrap; }

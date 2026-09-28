@@ -49,13 +49,19 @@ Last updated: 2026-09-29.
   (Global Colors, Component Theme, Emphasis Level, Typography Configuration). New modes: Component Theme `neutral-s4`
   and Emphasis `light`, wired into ZenProvider, the platform topbar and Storybook. Dashboard/Mobile typography values
   changed. Log: `session-log-2026-09-28.md`, "Token sync". On 2026-09-29 the Figma connector confirmed the four
-  synced collections against the live file (except the drift listed in the Backlog). Chip/Trailing and Input/Heading
-  contracts were re-captured from it.
+  synced collections against the live file. Chip/Trailing and Input/Heading contracts were re-captured from it. Then
+  the user's 2026-09-29 exports were applied: Component Theme S4 Chip-Secondary selected background → Surface/Default,
+  selected border → Border/Active/Neutral/Solid, active border weight → Primary; `Corner-Radius/Input/Small` → 12 / 12 /
+  8 / 2. S3 keeps Active/Neutral/Subtle by the user's decision; the live file was set to the same value (read at
+  02:55), so repo and Figma agree. Log: `session-log-2026-09-29.md`, "Token update from the user's exports".
 - **Parity:** every Figma component is built; 49 guideline slugs.
 - **Figma contract:** `node tools/figma-contract/run-all.mjs` runs 23 suites + 25 interactions, all green: Checkbox,
   Radio, Chip, Popover, all six Button sets (every size, plus the Smooth radius mode) and Input/Heading. The review
   queue continues with Segmented, Toggle, Badge, Avatar, Search and the Input family, DatePicker and Sidebar; the
   Figma data is already in `docs/figma-contracts/` (`docs/context/handoff-claude-code-2026-09-27.md`).
+- **Figma parity update (2026-09-29):** Checkbox, Radio Button, Toggle, the Chat text bubbles, Search/Popover, the Table
+  cell primitives, Segmented and Breadcrumbs were re-read from the live file and updated where the code differed
+  (session log 2026-09-29, "Figma parity update"). Their fresh captures are in `docs/figma-contracts/`.
 - **Harness:** 146 usage rules. The newest is `date-picker/actions-need-apply` (2026-09-29): a DatePicker with
   `showActions` and no `onApply`. Before it, `interaction/action-without-handler` (repo only: examples, playgrounds,
   templates): an action passed with no handler at all. Before that, four came from the behaviour probes:
@@ -141,6 +147,32 @@ The full list is in `docs/component-usage-rules.md`. The ones most often forgott
 - For the designer (found on 2026-09-29 through the Figma connector): text styles Heading/2, Heading/3 and
   Caption/* still cache the old `paragraphSpacing` (28 / 24 / 10), although it is bound to Font-Size (25 / 22 / 11).
   Code follows the variable. Re-apply the styles in Figma to refresh them.
+- For the designer (Figma parity update, 2026-09-29; code keeps its current behaviour until answered):
+  - **Toggle caption (P2):** the set 1526:5703 overrides Subtext to Caption/Regular 11/16 in all 24 variants, but the
+    primitive `.Primitives/Toggle/Content` 1526:5945 says Body/Small/Regular 12/16. Code follows the set, like
+    Checkbox, Radio and the Table cells. Fix the primitive?
+  - **Segmented (P2):** Item Medium / Secondary / Selected (and the set's Item-1) binds Tag/Background/Default, while
+    Small binds Segmented-Item-Secondary/Background/Seclected/Default. Same in light, different in dark. Code uses the
+    Segmented token. Also: code has a Disabled state Figma lacks; the `*/Seclected/Hover` and Secondary Border tokens
+    are now unbound; the set description lists props it does not have; should focus stack with the selected shadow?
+  - **Search/Popover:** Focused · Theme=Default · Icon-Search=Yes has a 1px INSIDE stroke, while the other 11
+    Focused/Typing variants have a 3px OUTSIDE ring (code follows the 11). The Hover stroke weight is no longer bound
+    to Emphasis/Border-Weight/Active/Primary in Field-Only, Search/Default and Search/Popover (code keeps the binding).
+    The set description lists props that do not exist.
+  - **Checkbox / Radio:** Checkbox/Text centres the mark on label + caption (Radio top-aligns; code top-aligns both);
+    Checkbox/Text has a dead Caption prop and a root gap on a single child; neither set says what colour a Disabled
+    caption is (code: Content/Disabled).
+  - **Chat bubbles:** the Text-You Social background blur (40) sits on an opaque fill and does nothing; the Mobile
+    variants carry the Hover actions toolbar, but mobile uses hold-to-react.
+  - **Table cells:** Badge-Cell and Tag-Cell items do not wrap in Figma (code wraps); two-line and action cells do not
+    fit Table/Cell/Size 52 (code rows grow to 63–64px); Edit state stroke alignment, Control-Cell wrappers and a few
+    descriptions are inconsistent.
+  - **Breadcrumbs:** the root's 3XSmall gap has a single child and never renders; there is no current-page state and
+    no collapse (…) item.
+  - **Toggle:** the `Seclected` typo in its variables; Toggle-Button binds Segmented tokens and has an effect on an
+    empty frame.
+  - **Chip S3:** the selected Secondary chip keeps a Subtle border at the Secondary weight on a faint tint (selection
+    contrast about 1.15–1.3:1), unlike "Selected → Color/Border/Active/*". Should S3 switch?
 - Density tokens that no component uses yet:
   - Tag small
   - Segmented xsmall
@@ -229,6 +261,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   - Side Panel › "Docked inspector": the panel is clipped.
   - List Item › "Trailing actions": captions wrap to 4 lines.
   - Tables are cut off in narrow cards: Menu › "Row actions in a table" and the Sidebar shells.
+  - Popover › "Selection toolbar (Bulk-Action)": at 390 the Delete action wraps to a second row (seen 2026-09-29).
 - **P2 · Audit warnings kept as debt:**
   - Avatar initials contrast of 2.7–2.9:1 (List Item "BN" / "CT", Sidebar workspace "A").
   - Small targets: Chat reaction pills (15px tall), the Chip mobile filter row (20px), TopNavigation control-bar
@@ -250,12 +283,13 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - **P3 · A rendered-page check for apps** (a blocker from the final blind trial, score 8.5).
 - **P3 · Official Inter WOFF2** (with the glyf transform, about 10% smaller than today's conversion): needs the user's
   approval to download it.
-- **P2 · Live Figma is ahead of `Zen-Variables.zip`** (hash check of all 11 collections on 2026-09-29; the zip was
-  synced as approved, these were not applied). Session log 2026-09-29, "Figma connector check".
-  - Component Theme: `Chip-Secondary/Background/Seclected/Default` S3 + S4 → Surface/Default;
-    `Chip-Secondary/Border/Selected` S4 → Border/Active/Neutral/Solid; `Chip-Secondary/Border/Weigth-Active` S4 →
-    Primary.
-  - Corner Radius: `Corner-Radius/Input/Small` → 12 / 12 / 8 / 2 (repo 8 / 8 / 4 / 2; used by small fields).
+- **P3 · `-shadow-off` leaks into nested component themes** (found 2026-09-29, token update): companions are emitted
+  only in the modes whose fill is tinted, so a Neutral-S4 scope inside a Neutral-S3 scope inherits S3's `0 0 #0000`
+  and its selected chip loses the Figma shadow. Nothing in the repo nests component themes, but `ZenProvider` allows
+  it. Fix idea: `scripts/build-tokens.mjs` emits `<token>-shadow-off: initial` in the other modes.
+- **P3 · Input family contracts predate the new small radius:** `docs/figma-contracts/input-search*.json` and
+  `datepicker-sidebar.json` were captured when `Corner-Radius/Input/Small` was 8 / 8 / 4 / 2. No suite checks them
+  yet; re-capture before building the Input suites.
 - **P3 · Live modes that the repo does not have:** Typography Configuration `Ecom-Demo` (and `Zen-Platform`, kept in
   platform.css), Base Colors (Project) `Chat`, `VT`, `Ecom-Demo`. Global Dimensions' only mode is now named `Zen`
   (repo: `Mode 1`, no effect on CSS).
@@ -293,3 +327,35 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   that fits its own text but is cut off by an `overflow: hidden` ancestor or covered by a sibling. Examples: a
   Segmented with `flex-shrink: 0` in a clipping container would hide its last items, and at 390 the Side Panel ›
   "Docked inspector" card sits under the panel. `overflow` skips these as clipped, and `fit` does not see them.
+- **From the Figma parity update of 2026-09-29** (session log, "Figma parity update"). The designer questions from
+  the same run are under Open items.
+  - **P2 · Platform Table example vs Figma:** the Actions column uses IconButton sm (32px, 16px icons), while Figma
+    Actions-Cell 1603:14291 is Button/Icon-Flat Medium (40px). The Progress column uses `theme="accent"` with no
+    label; Figma Progress-Cell 4081:19726 is Theme=Neutral with its label. `PlatformExamples.tsx:2055–2080`.
+  - **P2 · Contract suites for the updated components.** The fresh captures are saved in `docs/figma-contracts/`
+    (`segmented-toggle-badge-avatarstack.json`, `input-search-primitives.json` for Search/Popover, and new
+    `breadcrumbs.json`, `chat-bubbles.json`, `table-cells.json`), but only Checkbox and Radio have suites. The gap
+    drifts fixed today would have failed a suite.
+    - Add suites for Segmented (a harness kind that renders SegmentedItem inside Segmented), Search/Popover
+      (a `search` kind, including a Neutral-S4 mode), Breadcrumbs (a figmaExceptions entry for the 4px list padding),
+      Toggle, the Table cells and the Chat bubbles.
+    - Re-add a caption x check to the Checkbox/Text suite: the nested instance no longer exposes Subtext, so only
+      the primitive's offset is checked.
+    - Labels render ~1px narrower than Figma's text boxes (Inter metrics); the suites need a global width tolerance.
+  - **P3 · `figma-console-extract.js` in `use_figma`:** `window` is a read-only binding there, so the documented
+    preamble throws. `const window = globalThis` or `globalThis.` instead of `window.` works. The ~20 KB output cap
+    needs a per-set or sliced capture recipe in `tools/figma-contract/README.md`.
+  - **P3 · Code follow-ups found in passing** (need approval):
+    - Chat: the keyboard focus ring on a bubble uses Corner-Radius/XLarge on every corner and ignores the Business
+      radius and the tail corner (`chat.css:172, 175`). One-emoji reaction pills measure 28×24 against Figma's 24×24
+      (Apple Color Emoji is 20px wide at 16px; `chat.css:99`, needs a design call).
+    - Segmented: `:focus-visible` on a selected item replaces its Shadow/Action/Basic (`segmented.css:15–16`).
+    - Table: `TableMedia` defaults to `bold = true` while every Figma media cell defaults to Bold=No (behaviour
+      change, needs a decision); Photo-Cell radius (XSmall at 24px, Small at 32px) has no API or harness check;
+      the text editor adds Effect/Popover over a Neutral/Pale fill when it grows (house-rule exception?); a duplicate
+      `gap` in the select-editor rule (`table.css:85`).
+    - Breadcrumbs: the nav is 28px tall (Figma 20) because the list pads 4px for the hover plate; the Sub plate's
+      bleed now covers the first 4px of the chevron's hit area.
+    - Toggle: the platform showcases still pass the deprecated `selected` / `onSelectedChange`
+      (`PlatformShowcases.tsx:557–559`); its JSDoc does not cite the node ids; Figma renamed the Caption prop to
+      Subtext (a `subtext` alias would be new API).

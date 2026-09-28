@@ -18,6 +18,7 @@ export interface RadioButtonProps {
   label?: ReactNode;
   /** Name for a mark-only radio (no visible label). When set without `label`, no placeholder text renders. */
   "aria-label"?: string;
+  /** .Primitives/Radio-Button/Content Subtext: short help under the label (Caption/Regular 11/16, Content/Neutral/Light). */
   caption?: ReactNode;
   bold?: boolean;
   radioSide?: RadioSide;
@@ -40,7 +41,7 @@ export function RadioButton({ checked, defaultChecked = false, onCheckedChange, 
       {radioSide === "left" ? <RadioMark /> : null}
       {label !== undefined || caption ? <span className="zen-radio-button__content">
         {label !== undefined ? <span className={`zen-radio-button__label ${typographyStyles[bold ? "Body/Base/Bold" : "Body/Base/Regular"]}`}>{label}</span> : null}
-        {caption ? <span className={`zen-radio-button__caption ${typographyStyles["Body/Small/Regular"]}`}>{caption}</span> : null}
+        {caption ? <span className={`zen-radio-button__caption ${typographyStyles["Caption/Regular"]}`}>{caption}</span> : null}
       </span> : null}
       {radioSide === "right" ? <RadioMark /> : null}
       <input type="radio" name={name} value={value} {...(checked === undefined ? { defaultChecked } : { checked })} disabled={isDisabled} onChange={(event) => { onCheckedChange?.(event.target.checked); onChange?.(event.target.checked, event); }} aria-label={ariaLabel ?? (typeof label === "string" ? label : undefined)} />

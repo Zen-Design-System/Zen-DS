@@ -71,7 +71,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": ".Primitives/Checkbox/Content Subtext: short help under the label (Body/Small/Regular, Content/Neutral/Light).",
+          "description": ".Primitives/Checkbox/Content Subtext: short help under the label (Caption/Regular 11/16, Content/Neutral/Light).",
           "deprecated": null
         },
         {

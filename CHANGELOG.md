@@ -59,8 +59,8 @@ removed.
   no line break and pasted line breaks become spaces. One line stays the default, for short names. HeadingField also
   reports `onValueChange(value)`.
 - **Token modes from the 2026-09-28 Figma variables:** Component Theme `neutral-s4` (`componentTheme="neutral-s4"`) is
-  Neutral-S1 with outlined inputs (Surface fill, Subtle border, no inner shadow) and a Subtle-tinted Secondary chip
-  selection, plus the token `Input/Border/Disabled` for a disabled field's border. Emphasis `light` (`emphasis="light"`)
+  Neutral-S1 with outlined inputs (Surface fill, Subtle border, no inner shadow), plus the token
+  `Input/Border/Disabled` for a disabled field's border. Emphasis `light` (`emphasis="light"`)
   uses lighter weights (400–500) and 1px active strokes. Both are in the docs platform topbar and Storybook.
 - **Docs platform:** Segmented has a phone example, "Period switch on a phone". Its four periods (This week · This
   month · This quarter · This year) are wider than the 390px screen, so the default Secondary Segmented keeps its full
@@ -158,6 +158,21 @@ removed.
   component-theme variables. Styling hooks that targeted `[data-theme=…]` on a component must switch to `[data-tone=…]`.
 - Inter ships as WOFF2 instead of WOFF: 771 KB instead of 960 KB for both files (normal 367 KB, italic 405 KB). The
   font tables are unchanged, so text renders pixel-identically.
+- **Tokens from the 2026-09-29 Figma exports:** in component theme Neutral - S4, a selected Secondary chip now looks
+  like Neutral - S1: a Surface fill with its shadow, and the solid active border at the Primary active weight (it was a
+  Subtle fill with a thin Subtle border, no shadow). Small input fields match Medium ones: `Corner-Radius/Input/Small`
+  is 12 / 12 / 8 / 2 px in Rounded / Smooth / Standard / Luxury (was 8 / 8 / 4 / 2).
+- **Matched to the live Figma file (2026-09-29):**
+  - Checkbox, Radio Button, Toggle and Table cell captions use Caption/Regular 11/16 (was Body/Small/Regular 12/16).
+  - Toggle tracks size from the dot plus Spacing/Padding/3XSmall on each side.
+  - Chat text bubbles keep Spacing/Gap/3XSmall between the message and its time, and cap the text at 220 / 516px
+    (Mobile / Desktop).
+  - Search in a popover (`variant="popover"`) draws a 3px Input/Border/Default ring while focused or typing. It is
+    transparent in every theme except Neutral - S4.
+  - Table trend badges use the trend-up-01 / trend-down-01 / minus icons. The in-place editor pads 12 × 16, keeps
+    XSmall between its tags and the input, and draws its underline inside the cell.
+  - Segmented Medium badges get Spacing/Padding/3XSmall on each side.
+  - Breadcrumbs: 4px between an item and its chevron, 8px between items (was 0 and 2).
 
 ### Quality
 - Browser tests (Vitest, Chromium): every component renders in light and dark with an axe baseline that only

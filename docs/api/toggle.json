@@ -87,7 +87,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Toggle (1526:5703) Content Subtext: short help under the label (Caption/Regular 11/16, Content/Neutral/Light).",
           "deprecated": null
         },
         {

@@ -435,18 +435,19 @@ function ownsClick(target: Element, cell: Element) {
   return Boolean(hit && hit !== cell && cell.contains(hit));
 }
 
-/** Figma Primitives/Table/Cell/Text-Cell: Label (Body/Base Regular or Bold, Strongest) + optional Subtext (Body/Small/Regular 12/16, Light),
- * gap 3XSmall — as rendered in every Avatar/Photo/Icon/Dock cell. (The Text-Cell master still carries a stale Caption/Regular layer.) */
+/** Figma Primitives/Table/Cell/Text-Cell (1603:3247): Label (Body/Base Regular or Bold, Strongest) + optional Subtext
+ * (Caption/Regular 11/16, Light), gap 3XSmall — the same Subtext every Avatar/Photo/Icon/Dock cell renders. */
 export function TableText({ children, caption, bold = false }: { children: ReactNode; caption?: ReactNode; bold?: boolean }) {
   return (
     <span className="zen-table-text">
       <span className={`zen-table-text__label ${typographyStyles[bold ? "Body/Base/Bold" : "Body/Base/Regular"]}`}>{children}</span>
-      {caption ? <span className={`zen-table-text__caption ${typographyStyles["Body/Small/Regular"]}`}>{caption}</span> : null}
+      {caption ? <span className={`zen-table-text__caption ${typographyStyles["Caption/Regular"]}`}>{caption}</span> : null}
     </span>
   );
 }
 
-/** Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a 32px visual + Text-Cell (gap Small). */
+/** Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a visual + Text-Cell (gap Small). The visual follows
+ * the Subtext: Avatar/Photo/Dock Icon XSmall 24px (Icon base 20px) without a caption, Small 32px (Icon lg 28px) with one. */
 export function TableMedia({ media, children, caption, bold = true }: { media: ReactNode; children: ReactNode; caption?: ReactNode; bold?: boolean }) {
   return (
     <span className="zen-table-media">
@@ -457,10 +458,11 @@ export function TableMedia({ media, children, caption, bold = true }: { media: R
 }
 
 export type TableTrendDirection = "up" | "down" | "neutral";
-/** Figma Trend-Cell: a Medium Subtle Badge — Up green, Down red, Neutral grey — with an arrow. */
+/** Figma Trend-Cell (1603:14279): a Medium Subtle Badge — Up green with icon-trend-up-01-line, Down red with
+ * icon-trend-down-01-line, Neutral grey with icon-minus-line. */
 export function TableTrend({ trend, children }: { trend: TableTrendDirection; children: ReactNode }) {
   const theme = trend === "up" ? "green" : trend === "down" ? "red" : "neutral";
-  const icon: IconName = trend === "up" ? "icon-arrow-up-right-line" : trend === "down" ? "icon-arrow-down-right-line" : "icon-arrow-right-line";
+  const icon: IconName = trend === "up" ? "icon-trend-up-01-line" : trend === "down" ? "icon-trend-down-01-line" : "icon-minus-line";
   return <Badge size="medium" theme={theme} background="subtle" leading={<Icon name={icon} decorative />}>{children}</Badge>;
 }
 

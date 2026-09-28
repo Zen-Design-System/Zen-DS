@@ -20,7 +20,7 @@ export interface CheckboxProps {
   /** Name for a mark-only checkbox (no visible label, e.g. inside a List-Item or Table row). When set without `label`,
    *  no text renders — the Figma placeholder "Content label" only fills an unnamed demo. */
   "aria-label"?: string;
-  /** .Primitives/Checkbox/Content Subtext: short help under the label (Body/Small/Regular, Content/Neutral/Light). */
+  /** .Primitives/Checkbox/Content Subtext: short help under the label (Caption/Regular 11/16, Content/Neutral/Light). */
   caption?: ReactNode;
   /** .Primitives/Checkbox/Content Bold=Yes (Body/Base/Bold). */
   bold?: boolean;
@@ -46,12 +46,12 @@ export function Checkbox({ checked, defaultChecked = false, indeterminate = fals
     <label className={["zen-checkbox", className].filter(Boolean).join(" ")} data-side={checkSide} data-state={isDisabled ? "disabled" : state} data-checked={isChecked || indeterminate ? "true" : "false"} data-indeterminate={indeterminate ? "true" : "false"}>
       {/* Figma Checkbox/Text (309:46871): Container row = Check-Wrapper (2px block padding) + Content (fill).
           Content is .Primitives/Checkbox/Content (309:46789): Label (Body/Base Regular|Bold) and, when on, the Subtext
-          (Body/Small/Regular, Content/Neutral/Light) directly under it — gap 3XSmall, aligned with the label, not the mark. */}
+          (Caption/Regular, Content/Neutral/Light) directly under it — gap 3XSmall, aligned with the label, not the mark. */}
       <span className="zen-checkbox__row">
         {checkSide === "left" ? <CheckboxMark checked={isChecked} indeterminate={indeterminate} /> : null}
         {label !== undefined || caption ? <span className="zen-checkbox__content">
           {label !== undefined ? <span className={`zen-checkbox__label ${typographyStyles[bold ? "Body/Base/Bold" : "Body/Base/Regular"]}`}>{label}</span> : null}
-          {caption ? <span className={`zen-checkbox__caption ${typographyStyles["Body/Small/Regular"]}`}>{caption}</span> : null}
+          {caption ? <span className={`zen-checkbox__caption ${typographyStyles["Caption/Regular"]}`}>{caption}</span> : null}
         </span> : null}
         {checkSide === "right" ? <CheckboxMark checked={isChecked} indeterminate={indeterminate} /> : null}
       </span>

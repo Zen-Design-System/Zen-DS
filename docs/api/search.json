@@ -15,7 +15,7 @@
           "type": "\"default\" | \"popover\"",
           "required": false,
           "default": "\"default\"",
-          "description": "`popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, and no\nfocus stroke or ring (it sits inside the Popover surface). `size` is ignored.",
+          "description": "`popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, and no focus\nstroke; its 3px focus ring takes Input/Border/Default, so it shows only in component themes\nwith a visible input border (Neutral S4). `size` is ignored.",
           "deprecated": null
         },
         {

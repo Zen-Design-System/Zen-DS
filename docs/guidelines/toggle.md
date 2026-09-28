@@ -39,7 +39,7 @@ Also accepts `ToggleButtonProps`.
 | `state` | `"default" \| "hover" \| "disabled"` | `"default"` |  |
 | `onSelectedChange` | `(selected: boolean, event: ChangeEvent<HTMLInputElement>) => void` | — | **Deprecated:** Use onCheckedChange (or read event.target.checked).  |
 | `label` (required) | `ReactNode` | — |  |
-| `caption` | `ReactNode` | — |  |
+| `caption` | `ReactNode` | — | Toggle (1526:5703) Content Subtext: short help under the label (Caption/Regular 11/16, Content/Neutral/Light). |
 | `bold` | `boolean` | `false` |  |
 | `theme` | `"text-first" \| "toggle-first"` | `"text-first"` |  |
 

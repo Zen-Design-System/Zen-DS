@@ -71,20 +71,24 @@
 .zen-table__cell[data-editable="true"]:focus { outline: none; }
 .zen-table__cell[data-editable="true"]:focus-visible:not([data-quiet="true"]) { box-shadow: inset 0 0 0 3px var(--zen-color-focus-accent-subtle, rgb(255 1 158 / 18%)); }
 /* State=Edit (1603:23599) / Primitives/Table/Cell/Editabled-Cell (1603:23274): the field fills the cell — Neutral/Pale
-   fill, 2px Emphasis/Border-Weight/Active/Primary underline in Color/Focus/Neutral/Solid, padding Small × Medium,
-   Body/Base/Medium text; Data=Yes puts Tags (gap 2XSmall) before the input. */
+   fill, 2px Emphasis/Border-Weight/Active/Primary underline in Color/Focus/Neutral/Solid stroked inside the field,
+   padding Small × Medium, gap XSmall, Body/Base/Medium text; Data=Yes puts Tags (gap 2XSmall) before the input. */
 .zen-table__cell[data-editing="true"] { position: relative; }
 /* Editing never changes layout: the hidden original keeps the column width and row height, the editor overlays it. */
 .zen-table__cell-ghost { visibility: hidden; }
 .zen-table__cell[data-editing="true"] > .zen-table-editor { position: absolute; inset: 0; height: auto; }
 /* Text grows with the value (Notion expands long text): the field keeps the cell's top edge and width, grows
    downward over the rows below and lifts with Effect/Popover while taller than the cell. */
-.zen-table__cell[data-editing="true"] > .zen-table-editor[data-type="text"] { z-index: 3; bottom: auto; min-height: 100%; height: auto; align-items: flex-start; padding-block: calc((var(--zen-table-cell-size, 52px) - var(--zen-emphasis-border-weight-active-primary, 2px) - var(--zen-typography-line-height-body-base, 20px)) / 2); }
-.zen-table-editor[data-type="text"]:has(textarea[style*="height"]:not([style*="height: 20px"])) { box-shadow: var(--zen-style-effect-popover-shadow); }
+.zen-table__cell[data-editing="true"] > .zen-table-editor[data-type="text"] { z-index: 3; bottom: auto; min-height: 100%; height: auto; align-items: flex-start; padding-block: calc((var(--zen-table-cell-size, 52px) - var(--zen-typography-line-height-body-base, 20px)) / 2); }
+.zen-table-editor[data-type="text"]:has(textarea[style*="height"]:not([style*="height: 20px"])) { box-shadow: var(--zen-table-editor-underline-shadow), var(--zen-style-effect-popover-shadow); }
 textarea.zen-table-editor__input { display: block; width: 100%; height: 20px; min-height: 20px; max-height: 240px; resize: none; overflow-y: auto; line-height: var(--zen-typography-line-height-body-base, 20px); white-space: pre-wrap; overflow-wrap: anywhere; }
 .zen-table-editor[data-type="select"] { justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); cursor: pointer; }
 .zen-table-editor[data-type="select"] > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-table-editor {
+  /* Figma strokes the underline INSIDE the field: an inset shadow draws it without taking layout space, so the
+     content centres in the full cell height like Figma (text 16px from the top in Compact). */
+  --zen-table-editor-underline: var(--zen-color-focus-neutral-solid, #111);
+  --zen-table-editor-underline-shadow: inset 0 calc(-1 * var(--zen-emphasis-border-weight-active-primary, 2px)) 0 0 var(--zen-table-editor-underline);
   display: flex;
   box-sizing: border-box;
   width: 100%;
@@ -92,15 +96,15 @@ textarea.zen-table-editor__input { display: block; width: 100%; height: 20px; mi
   height: var(--zen-table-cell-size, 52px);
   flex-wrap: nowrap;
   align-items: center;
-  gap: var(--zen-spacing-gap-2-xsmall, 4px);
-  padding: 0 var(--zen-spacing-padding-medium, 16px);
-  border-bottom: var(--zen-emphasis-border-weight-active-primary, 2px) solid var(--zen-color-focus-neutral-solid, #111);
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px);
   /* Neutral/Pale over an opaque Surface: the field can overlay the rows below without showing them through. */
   background: linear-gradient(var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)), var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%))), var(--zen-color-background-surface-default, #fff);
+  box-shadow: var(--zen-table-editor-underline-shadow);
   cursor: text;
 }
 .zen-table-editor[data-align="right"] { justify-content: flex-end; }
-.zen-table-editor[data-invalid="true"] { border-bottom-color: var(--zen-color-border-negative-solid-default, #e5532e); }
+.zen-table-editor[data-invalid="true"] { --zen-table-editor-underline: var(--zen-color-border-negative-solid-default, #e5532e); }
 /* Editabled-Cell Data=Yes: Tags (gap 2XSmall) scroll sideways instead of wrapping onto a second line. */
 .zen-table-editor__tags { display: inline-flex; min-width: 0; flex: 0 1 auto; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); overflow-x: auto; scrollbar-width: none; }
 .zen-table-editor__tags::-webkit-scrollbar { display: none; }

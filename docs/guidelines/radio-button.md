@@ -34,7 +34,7 @@ Generated from the TypeScript source; full JSON in `docs/api/radio-button.json`.
 | `onChange` | `(checked: boolean, event: ChangeEvent<HTMLInputElement>) => void` | — | **Deprecated:** Use onCheckedChange (or read event.target.checked).  |
 | `label` | `ReactNode` | — |  |
 | `aria-label` | `string` | — | Name for a mark-only radio (no visible label). When set without `label`, no placeholder text renders. |
-| `caption` | `ReactNode` | — |  |
+| `caption` | `ReactNode` | — | .Primitives/Radio-Button/Content Subtext: short help under the label (Caption/Regular 11/16, Content/Neutral/Light). |
 | `bold` | `boolean` | `false` |  |
 | `radioSide` | `"left" \| "right"` | `"left"` |  |
 | `state` | `"default" \| "hover" \| "focus" \| "disabled"` | `"default"` |  |

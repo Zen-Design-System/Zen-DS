@@ -390,7 +390,7 @@
           "Neutral - S2": "{Color/Background/Surface/Default}",
           "Brand - S2": "{Color/Background/Surface/Default}",
           "Neutral - S3": "{Color/Background/Active/Neutral/Subtle}",
-          "Neutral - S4": "{Color/Background/Active/Neutral/Subtle}"
+          "Neutral - S4": "{Color/Background/Surface/Default}"
         }
       },
       {
@@ -1302,7 +1302,7 @@
           "Neutral - S2": "{Color/Border/Active/Neutral/Solid}",
           "Brand - S2": "{Color/Border/Active/Accent/Solid}",
           "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}",
-          "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}"
+          "Neutral - S4": "{Color/Border/Active/Neutral/Solid}"
         }
       },
       {
@@ -1314,7 +1314,7 @@
           "Neutral - S2": "{Emphasis/Border-Weight/Active/Primary}",
           "Brand - S2": "{Emphasis/Border-Weight/Active/Primary}",
           "Neutral - S3": "{Emphasis/Border-Weight/Active/Secondary}",
-          "Neutral - S4": "{Emphasis/Border-Weight/Active/Secondary}"
+          "Neutral - S4": "{Emphasis/Border-Weight/Active/Primary}"
         }
       },
       {
