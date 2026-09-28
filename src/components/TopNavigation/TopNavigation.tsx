@@ -144,9 +144,10 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
         )}
         <div className="zen-top-nav__trailing">
           {search.mounted && searchButton ? <TopNavigationActionButton action={searchButton} variant={variant} className="zen-top-nav__search" state={search.phase} /> : null}
+          {/* Keyed by position: a label that changes (a count clearing, Like → Unlike) must not remount the button and drop its focus. */}
           {trailingGroup && trailing.length > 1 && !(search.mounted && searchButton)
-            ? <span className="zen-top-nav__group" role="group">{trailing.slice(0, 2).map((action) => <TopNavigationActionButton key={action.label} action={action} variant="flat-group" />)}</span>
-            : trailing.slice(0, search.mounted && searchButton ? 1 : 2).map((action) => <TopNavigationActionButton key={action.label} action={action} variant={variant} />)}
+            ? <span className="zen-top-nav__group" role="group">{trailing.slice(0, 2).map((action, index) => <TopNavigationActionButton key={index} action={action} variant="flat-group" />)}</span>
+            : trailing.slice(0, search.mounted && searchButton ? 1 : 2).map((action, index) => <TopNavigationActionButton key={index} action={action} variant={variant} />)}
         </div>
       </div>
       {showLarge ? (

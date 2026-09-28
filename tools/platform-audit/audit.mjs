@@ -29,19 +29,26 @@
  *   rhythm      (--quality, warn) flat title/description, title not Strongest, visual headings, > 6 text styles,
  *               non-concentric nested corners, list rows inset twice
  *   density     (--density) Zen elements outgrown by their content, and new overflow/size/edge errors, at Comfortable
- * These five are compared with tools/platform-audit/quality-baseline.json: pre-existing findings are listed as baseline and
- * do not fail the run; `--baseline-update` rewrites the entries of the pages and viewports in this run.
+ *   fit         (--quality) text wider than its own box with no ellipsis and no scroll: it runs into its neighbours or is
+ *               cut off, even inside an `overflow: hidden` ancestor (which `overflow` skips). With --density also at
+ *               Comfortable ("at Comfortable: …")
+ * These six are compared with tools/platform-audit/quality-baseline.json: pre-existing findings are listed as baseline and
+ * do not fail the run; `--baseline-update` rewrites the entries of the pages and viewports in this run, and
+ * `--baseline-update=fit` (a comma list of kinds) only those kinds — seed a new check without accepting the other kinds'
+ * current findings (a peer's work in progress) as debt.
+ * `--css=<file>` injects a stylesheet into every page before the checks: re-create a fixed bug (the old CSS) to prove a
+ * check catches it, without editing the shared tree. It cannot be combined with --baseline-update.
  *
  * Usage:
  *   node tools/platform-audit/audit.mjs [--url=http://localhost:5173] [--pages=button,chip] [--viewports=1512,390]
  *                                       [--dark] [--no-playground] [--smoke] [--quality] [--density] [--out=report.json]
- *                                       [--baseline-update] [--no-baseline]
+ *                                       [--baseline-update[=kinds]] [--no-baseline] [--css=file]
  * Exit code 1 when any error-level finding exists. See docs/qa/platform-audit.md and docs/qa/build-qa-process.md.
  */
 import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
-import { qualityChecks, densitySnapshot } from "./quality-checks.mjs";
+import { qualityChecks, densitySnapshot, textFit } from "./quality-checks.mjs";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const require = createRequire(path.join(root, "package.json"));
@@ -57,8 +64,10 @@ const OUT = arg("out", null);
 const QUALITY = Boolean(arg("quality", false));
 const DENSITY = Boolean(arg("density", false));
 const BASELINE_FILE = path.join(root, "tools/platform-audit/quality-baseline.json");
-const BASELINE_UPDATE = Boolean(arg("baseline-update", false));
-const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "density"];
+const BASELINE_UPDATE = arg("baseline-update", false); // true, or a comma list of kinds to rewrite
+const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "density", "fit"];
+const CSS = arg("css", null) ? fs.readFileSync(path.resolve(String(arg("css"))), "utf8") : null;
+if (CSS && BASELINE_UPDATE) { console.error("--css cannot be combined with --baseline-update: the injected CSS is not the page's real state."); process.exit(2); }
 const baseline = arg("no-baseline", false) ? {} : (() => { try { return JSON.parse(fs.readFileSync(BASELINE_FILE, "utf8")).keys ?? {}; } catch { return {}; } })();
 
 /** Every page id the platform routes to (component nav + app-layer pages + foundations). */
@@ -298,7 +307,7 @@ function pageChecks({ scopeSel, mobile }) {
 }
 
 const sum = (r) => Object.values(r).reduce((n, list) => n + list.length, 0);
-const SEVERITY = { errors: "error", overflow: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", density: "error" };
+const SEVERITY = { errors: "error", overflow: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", density: "error", fit: "error" };
 
 async function run() {
   const browser = await chromium.launch();
@@ -317,6 +326,7 @@ async function run() {
       if (report.baselined?.[`${id}@${width}${DARK ? "-dark" : ""}`]) delete report.baselined[`${id}@${width}${DARK ? "-dark" : ""}`];
       await page.goto(`${BASE}/?page=${id}`, { waitUntil: "networkidle" }).catch(() => undefined);
       if (DARK) await page.getByRole("button", { name: "Dark mode" }).first().click().catch(() => undefined);
+      if (CSS) await page.addStyleTag({ content: CSS }).catch(() => undefined);
       await page.waitForTimeout(500);
       await page.evaluate(() => document.getAnimations().forEach((a) => a.finish())).catch(() => undefined);
       const base = await page.evaluate(pageChecks, { scopeSel: ".official-platform", mobile });
@@ -324,17 +334,26 @@ async function run() {
       if (docOverflow) base.overflow.unshift("document scrolls horizontally");
       const entry = { ...base, errors: [...errors], playground: [], smoke: [] };
       // Build-QA: token scale, text styles, content hierarchy, rhythm (quality-checks.mjs). Playground and smoke add theirs below.
-      const addQuality = (q, prefix = "") => { for (const kind of ["scale", "roles", "hierarchy", "rhythm"]) for (const item of q?.[kind] ?? []) { const msg = `${prefix}${item}`; if (!entry[kind].includes(msg) && !entry[kind].includes(item)) entry[kind].push(msg); } };
-      if (QUALITY || DENSITY) Object.assign(entry, { scale: [], roles: [], hierarchy: [], rhythm: [], density: [] });
-      if (QUALITY) addQuality(await page.evaluate(qualityChecks, { scopeSel: ".official-platform" }).catch((e) => ({ scale: [`quality checks crashed: ${e.message.split("\n")[0]}`] })));
+      const addQuality = (q, prefix = "") => { for (const kind of ["scale", "roles", "hierarchy", "rhythm", "fit"]) for (const item of q?.[kind] ?? []) { const msg = `${prefix}${item}`; if (!entry[kind].includes(msg) && !entry[kind].includes(item)) entry[kind].push(msg); } };
+      // One scope's quality kinds: qualityChecks (text styles, tokens, hierarchy, rhythm) and textFit (text wider than its box).
+      const quality = async (scopeSel, crash = false) => ({
+        ...await page.evaluate(qualityChecks, { scopeSel }).catch((e) => (crash ? { scale: [`quality checks crashed: ${e.message.split("\n")[0]}`] } : null)),
+        ...await page.evaluate(textFit, { scopeSel }).catch((e) => (crash ? { fit: [`text-fit check crashed: ${e.message.split("\n")[0]}`] } : null)),
+      });
+      if (QUALITY || DENSITY) Object.assign(entry, { scale: [], roles: [], hierarchy: [], rhythm: [], density: [], fit: [] });
+      if (QUALITY) addQuality(await quality(".official-platform", true));
       if (DENSITY) {
         // Component Size: compare every Zen box Compact vs Comfortable; content that outgrows its box only in Comfortable is a
         // wrapper sized in px around a token-sized child (memory: density-safe slots). New layout errors count too.
         const setDensity = (d) => page.evaluate((d) => { const els = document.querySelectorAll(".official-platform, .official-portal-root"); const before = [...els].map((e) => e.getAttribute("data-density")); els.forEach((e) => e.setAttribute("data-density", d)); return before; }, d);
         const original = await setDensity("compact"); await page.waitForTimeout(200);
         const compact = await page.evaluate(densitySnapshot);
+        const fitCompact = await page.evaluate(textFit, { scopeSel: ".official-platform" }).catch(() => null);
         await setDensity("comfortable"); await page.waitForTimeout(300);
         const comfortable = await page.evaluate(densitySnapshot);
+        // Text that outgrows its box only at Comfortable (larger type and padding in the same width).
+        const fitRoomy = await page.evaluate(textFit, { scopeSel: ".official-platform" }).catch(() => null);
+        (fitRoomy?.fit ?? []).forEach((item, i) => { const msg = `at Comfortable: ${item}`; if (!fitCompact?.where.includes(fitRoomy.where[i]) && !entry.fit.includes(msg)) entry.fit.push(msg); });
         for (const [k, c] of Object.entries(comfortable)) { const a = compact[k]; if (a && c.over > 1.5 && (a.over <= 1.5 ? c.over > a.over + 1 : c.over > a.over * 1.5 + 2)) { const msg = `${c.text} outgrows its box by ${c.over}px at Comfortable (${a.over}px at Compact)`; if (!entry.density.includes(msg)) entry.density.push(msg); } }
         const roomy = await page.evaluate(pageChecks, { scopeSel: ".official-platform", mobile });
         for (const kind of ["overflow", "sizes", "edges"]) for (const item of roomy[kind]) if (!entry[kind].includes(item)) entry.density.push(`${kind} at Comfortable: ${item}`);
@@ -358,7 +377,7 @@ async function run() {
               const r = await page.evaluate(pageChecks, { scopeSel: ".platform-example-panel", mobile });
               const findings = [...errors.map((e) => `error: ${e}`), ...r.overflow, ...r.images, ...r.names.map((n) => `unnamed ${n}`), ...r.nesting, ...r.surfaces.map((n) => `surface ${n}`), ...r.edges.map((n) => `edge ${n}`), ...r.sizes.map((n) => `size ${n}`), ...r.typography.map((n) => `type ${n}`), ...r.device.map((n) => `device ${n}`)];
               if (findings.length) entry.playground.push(`${name}=${v}: ${findings.join(" · ")}`);
-              if (QUALITY) addQuality(await page.evaluate(qualityChecks, { scopeSel: ".platform-example-panel" }).catch(() => null), `${name}=${v}: `);
+              if (QUALITY) addQuality(await quality(".platform-example-panel"), `${name}=${v}: `);
             }
             await sel.selectOption(original).catch(() => undefined);
           }
@@ -370,7 +389,7 @@ async function run() {
             const r = await page.evaluate(pageChecks, { scopeSel: ".platform-example-panel", mobile });
             const findings = [...errors.map((e) => `error: ${e}`), ...r.overflow, ...r.images, ...r.names.map((n) => `unnamed ${n}`), ...r.nesting, ...r.surfaces.map((n) => `surface ${n}`), ...r.edges.map((n) => `edge ${n}`), ...r.sizes.map((n) => `size ${n}`), ...r.typography.map((n) => `type ${n}`), ...r.device.map((n) => `device ${n}`)];
             if (findings.length) entry.playground.push(`${name} toggled: ${findings.join(" · ")}`);
-            if (QUALITY) addQuality(await page.evaluate(qualityChecks, { scopeSel: ".platform-example-panel" }).catch(() => null), `${name} toggled: `);
+            if (QUALITY) addQuality(await quality(".platform-example-panel"), `${name} toggled: `);
             await t.click().catch(() => undefined); await page.waitForTimeout(60);
           }
         }
@@ -409,7 +428,7 @@ async function run() {
               }
             }
             // Overlays opened by the click (dialogs, sheets, menus) get the text-style and hierarchy checks too.
-            if (QUALITY) addQuality(await page.evaluate(qualityChecks, { scopeSel: ".official-portal-root" }).catch(() => null), `${title} → opened: `);
+            if (QUALITY) addQuality(await quality(".official-portal-root"), `${title} → opened: `);
             await page.keyboard.press("Escape").catch(() => undefined);
             if (errors.length || layout.length) entry.smoke.push(`${title} #${b}: ${[...errors, ...new Set(layout)].join(" · ")}`);
           }
@@ -453,13 +472,16 @@ async function run() {
   const knownTotal = Object.values(report.baselined ?? {}).flatMap((kinds) => Object.values(kinds)).flat().length;
   if (knownTotal) console.log(`\n${knownTotal} pre-existing Build-QA finding(s) are in tools/platform-audit/quality-baseline.json (listed in --out under "baselined").`);
   if (BASELINE_UPDATE && (QUALITY || DENSITY)) {
-    // Replace only the page runs of this invocation; other pages keep their recorded debt.
+    // Replace only the page runs of this invocation; other pages keep their recorded debt. With --baseline-update=<kinds>,
+    // only those kinds are replaced and the other kinds of these runs keep their entries.
     let stored = {}; try { stored = JSON.parse(fs.readFileSync(BASELINE_FILE, "utf8")).keys ?? {}; } catch { /* first run */ }
     const runs = new Set(Object.keys(report.pages));
-    const keys = Object.fromEntries(Object.entries(stored).filter(([k]) => !runs.has(k.slice(0, k.indexOf("|")))));
-    Object.assign(keys, report.current ?? {});
+    const kinds = typeof BASELINE_UPDATE === "string" ? new Set(BASELINE_UPDATE.split(",")) : null;
+    const replaced = (k) => runs.has(k.slice(0, k.indexOf("|"))) && (!kinds || kinds.has(k.split("|")[1]));
+    const keys = Object.fromEntries(Object.entries(stored).filter(([k]) => !replaced(k)));
+    for (const [k, n] of Object.entries(report.current ?? {})) if (replaced(k)) keys[k] = n;
     fs.writeFileSync(BASELINE_FILE, JSON.stringify({ generated: new Date().toISOString(), note: "Pre-existing Build-QA findings (audit.mjs --quality/--density). New findings fail; fix these when you touch the page, then re-run with --baseline-update.", total: Object.values(keys).reduce((a, b) => a + b, 0), keys }, null, 2) + "\n");
-    console.log(`Baseline → tools/platform-audit/quality-baseline.json (${Object.keys(keys).length} keys)`);
+    console.log(`Baseline → tools/platform-audit/quality-baseline.json (${Object.keys(keys).length} keys${kinds ? `; replaced ${[...kinds].join(", ")} only` : ""})`);
     process.exit(0);
   }
   if (OUT) { fs.writeFileSync(path.resolve(String(OUT)), JSON.stringify(report, null, 2)); console.log(`\nReport → ${OUT}`); }

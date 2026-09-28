@@ -35,7 +35,7 @@ Person-to-person messaging: a thread of bubbles (text, files, calls, photos) wit
 | Call glyphs | `ChatCall type · state` | solid: phone-incoming / phone-outgoing / phone-x · video-in / video-out / video-recorder-x; Red Solid only for an incoming missed call; Small Secondary button: Call Back · Call Again · Call back |
 | Desktop hover | `ChatThread device="desktop" + holdActions / onReact` | Figma Hover: an Icon-Flat Small Secondary toolbar 8px beside the bubble — Text/File: React · Reply · More, Photo: Share · React · More, Call: More; React opens the Reaction picker, More lists the remaining chatHoldActions |
 | Avatar group | `ChatAvatarGroup size` | Large 48 (32px avatars, conversation header) · Medium 40 (28px) · Small 32 (20px) |
-| Reply | `ChatMessage id · replyTo · onJumpToReply · ChatComposer replyTo · onCancelReply` | Messenger rhythm: caption (12px inset) → 4 → quote (padding 8/12, text 8 above and below its visible part) with the reply bubble tucked 12px over it; a reply turn starts 16px below the previous message; composer bar: full width on top of the composer, hairline above, text at 16, ✕ aligned with the last action; pressing the quote jumps to the original and flashes it |
+| Reply | `ChatMessage id · replyTo · onJumpToReply · ChatComposer replyTo · onCancelReply` | Messenger rhythm: caption (12px inset) → 4 → quote (padding 8/12, text 8 above and below its visible part) with the reply bubble tucked 12px over it; a reply turn starts 16px below the previous message; composer bar: full width on top of the composer, hairline above, text at 16, ✕ aligned with the last action; pressing the quote jumps to the original and flashes it; the quote of a deleted message (kind "deleted") is plain text, since there is nothing to jump to |
 | Who reacted | `reactions[{ kind, count, by }] · ChatReactorsPanel` | with `by` (or your own `reaction`) the pill is a button: mobile Bottom Sheet / desktop Popover "Reactions" — tabs by emoji, List-Item rows (photo or initials · name · emoji), "You · Tap to remove" |
 
 ## Props
@@ -60,7 +60,7 @@ Figma Chat/Conversation/Bubble (6349:64085): avatar (others) + bubble + reaction
 | `children` (required) | `ReactNode` | — | Figma Bubble-*-Content: plain text is wrapped in a text bubble; pass ChatFile / ChatCall / ChatPhotos as-is. |
 | `id` | `string` | — | Message id (→ data-message-id): lets a reply's quote jump back to this message. |
 | `replyTo` | `ChatReplyTarget` | — | This message replies to another: a quote of the original sits above the bubble (ChatReplyQuote). |
-| `onJumpToReply` | `(id: string) => void` | — | Pressing the quote; defaults to scrolling to `[data-message-id]` in the same thread and flashing it. |
+| `onJumpToReply` | `(id: string) => void` | — | Pressing the quote; defaults to scrolling to `[data-message-id]` in the same thread and flashing it. The quote of a deleted message (`replyTo.kind` "deleted") is not pressable. |
 | `holdActions` | `ChatHoldAction[]` | — | Hold to react (Figma Chat/Bubble/Focused/*, mobile): a long press, right-click, or Shift+F10 / the Menu key on the focused message opens a blurred layer with the Reaction-Bar above the bubble and these actions below it (Popover/Default). On desktop (ChatThread device="desktop") the same actions live in the Hover toolbar; right-click / Shift+F10 opens its More menu. Use `chatHoldActions` for the Figma sets: their built-in labels show in the ZenProvider locale, your own labels as written. |
 | `onHoldAction` | `(id: string) => void` | — |  |
 | `reaction` | `ChatQuickReaction \| (string & {})` | — | Your reaction to this message (selected in the Reaction-Bar); `onReact` enables the bar. |
@@ -120,7 +120,7 @@ In the composer: the "Replying to …" bar above the field, with × to cancel.
 | `onCancel` | `() => void` | — |  |
 
 ### ChatReplyQuote
-In the thread: the quote above a reply bubble. `side` is the reply's side (it aligns with the reply); `replier` names who replied ("You" for your own replies) for the caption.
+In the thread: the quote above a reply bubble. `side` is the reply's side (it aligns with the reply); `replier` names who replied ("You" for your own replies) for the caption. Pressing the quote jumps to the original (`onJump`, or scroll + flash in the same thread); the quote of a deleted message ("Message unavailable") is plain text with no hover, since there is nothing to jump to.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |

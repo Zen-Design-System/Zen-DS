@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef, useState, type ButtonHTMLAttributes, type MouseEvent, type ReactNode } from "react";
+import { forwardRef, useEffect, useRef, useState, type ButtonHTMLAttributes, type MouseEvent, type ReactNode, type Ref } from "react";
 import { Icon, type IconName } from "../Icon";
 import { Popover, PopoverManualAddNew, useExclusivePopover, type PopoverItemData } from "../Popover";
 import { BadgeCounter } from "../Badge";
@@ -82,6 +82,14 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
   popoverCreateLabel?: ReactNode;
 }
 
+/**
+ * Figma Chip/Pill: `Chip/Advanced` (512:7659, the filter control that owns a Popover), `Chip/Normal` (512:6843, toggle
+ * pills) and `Chip/Number-Only` (1536:26687). A chip is a `<button>`. A Number-only chip with nothing to do (no
+ * `onClick` or other press handler, no `selected`, not `disabled`) is a count, which Figma describes as a "numeric-only
+ * compact indicator for counts or rankings": it renders a `<span>` in the Default state, with no hover, no focus stop
+ * and no dead click, and the ref points at that span. Give it `onClick` or `selected` to make it a pressable number
+ * (Hover, Focused, Selected). Normal and Advanced chips always do something; Figma: a read-only label is a Tag.
+ */
 export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
   {
     children,
@@ -136,6 +144,13 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
   const photoSize: AvatarSize = size === "xsmall" ? "2xsmall" : size === "medium" ? "small" : "xsmall";
   const leading = photoSrc ? <Avatar size={photoSize} theme="photo" background="subtle" src={photoSrc} alt={photoAlt} /> : renderIcon(leadingProp, { size: "sm" });
   const isDisabled = disabled || state === "disabled";
+  // Anything that makes pressing the chip do something: a handler, a selection (a toggle, even while off), a submit,
+  // or ARIA state the caller manages (an external sheet it opens).
+  const pressable = Boolean(onClick || onKeyDown || onClearSelection || buttonProps.onPointerDown || buttonProps.onPointerUp || buttonProps.onMouseDown || buttonProps.onMouseUp || buttonProps.form || buttonProps.formAction)
+    || type !== "button" || selectedProp !== undefined || selectProp !== undefined
+    || buttonProps["aria-pressed"] !== undefined || buttonProps["aria-haspopup"] !== undefined || buttonProps["aria-expanded"] !== undefined;
+  // Figma Chip/Number-Only is a count as well as a pressable number: with nothing to do it is a <span> (see the JSDoc).
+  const isStatic = isNumberOnly && !isDisabled && !pressable;
   // Padding follows the rendered leading slot, including callers that omit Theme.
   const resolvedTheme = leading && !isNumberOnly ? (photoSrc || theme === "leading-photo" ? "leading-photo" : "leading-icon") : "text-only";
   // The chip owns a Popover only when it has something to show. `dropdown` alone is just the chevron affordance: a chip that
@@ -220,6 +235,27 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
     document.addEventListener("pointerdown", handleOutsidePointer);
     return () => document.removeEventListener("pointerdown", handleOutsidePointer);
   }, [canOpenPopover, isPopoverOpen, onPopoverOpenChange]);
+
+  if (isStatic) {
+    // A count: the Default state of the chip, not a control. Button-only attributes stay off the span.
+    const { form: _form, formAction: _formAction, formEncType: _formEncType, formMethod: _formMethod, formNoValidate: _formNoValidate, formTarget: _formTarget, name: _name, ...spanProps } = buttonProps;
+    return (
+      <span
+        {...spanProps}
+        ref={ref as unknown as Ref<HTMLSpanElement>}
+        className={["zen-chip", className].filter(Boolean).join(" ")}
+        data-level={resolvedLevel}
+        data-select="false"
+        data-size={size}
+        data-state={state}
+        data-static="true"
+        data-tone={resolvedTheme}
+        data-variant={variant}
+      >
+        <span className={`zen-chip__value ${typographyStyles["Body/Base/Bold"]}`}>{resolvedValue ?? children}</span>
+      </span>
+    );
+  }
 
   const button = (
     <button

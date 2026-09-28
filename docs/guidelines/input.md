@@ -163,7 +163,7 @@ Figma Input/Autocomplete-Field (1241:5616): Label, a wrapping Tag list (gap 4, T
 | `className` | `string` | — |  |
 
 ### RichTextField
-Figma `Input/Richtext` (6385:17480): the Editor-Bar (Control-Bar, optional) above a Text-Area field, gap Spacing/Gap/XSmall. The field is a content-editable editor inside the regular Input shell, so hover/focus/Read-only/error states match Text-Area. Output is HTML via `onValueChange(html, text)`.
+Figma `Input/Richtext` (6385:17480): the Editor-Bar (Control-Bar, optional) above a Text-Area field, gap Spacing/Gap/XSmall. The field is a content-editable editor inside the regular Input shell, so hover/focus/Read-only/error states match Text-Area. Output is HTML via `onValueChange(html, text)`. Undo / Redo (the Editor-Bar, ⌘Z, ⇧⌘Z, Ctrl+Y) step through this field's own history and are disabled while there is nothing to undo or redo; a new `value` from outside (clearing the field after it was posted) starts a new history.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -325,6 +325,7 @@ type SelectFieldOption = { label: string; value: string; disabled?: boolean }
 - Show requirement rules (passwords, handles) as InputConditions under the field: Default before typing, then Success/Wrong live as the value changes.
 - RichTextField: read content through onValueChange(html, text), store the HTML and render it through your sanitizer.
 - RichTextField: keep the Control-Bar (editorBar) unless the surface is tiny.
+- RichTextField keeps its own undo history: Undo / Redo (⌘Z, ⇧⌘Z, Ctrl+Y) step through this field's edits only and are disabled while there is nothing to undo or redo; replacing `value` from outside (clearing after Post) starts a new history.
 - HeadingField: set multiline when a title can run past one line, so it wraps instead of scrolling out of view.
 
 ## ❌ Don't

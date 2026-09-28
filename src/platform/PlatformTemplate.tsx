@@ -15,10 +15,10 @@ export type PlatformViewMode = "light" | "dark";
 export type PlatformShellSettings = {
   theme: PlatformViewMode;
   density: "compact" | "comfortable";
-  componentTheme: "neutral-s1" | "brand-s1" | "neutral-s2" | "brand-s2" | "neutral-s3";
+  componentTheme: "neutral-s1" | "brand-s1" | "neutral-s2" | "brand-s2" | "neutral-s3" | "neutral-s4";
   typography: "dashboard" | "popular" | "mobile";
   radius: "rounded" | "smooth" | "standard" | "luxury";
-  emphasis: "medium" | "strong";
+  emphasis: "medium" | "strong" | "light";
 };
 
 /** System Typography Configuration mode (topbar chip) for component previews. The platform
@@ -60,6 +60,7 @@ const shellControlDefinitions = [
       { id: "neutral-s2", label: "Neutral-S2" },
       { id: "brand-s2", label: "Brand-S2" },
       { id: "neutral-s3", label: "Neutral-S3" },
+      { id: "neutral-s4", label: "Neutral-S4" },
     ],
   },
   {
@@ -90,6 +91,7 @@ const shellControlDefinitions = [
     values: [
       { id: "medium", label: "Medium" },
       { id: "strong", label: "Strong" },
+      { id: "light", label: "Light" },
     ],
   },
 ] as const;

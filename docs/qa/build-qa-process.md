@@ -146,6 +146,7 @@ Các bước:
    | `hierarchy` | lỗi | h1 không phải Heading/1; heading nhỏ hơn body bên dưới; tiêu đề overlay không phải h2 hoặc là Heading/1 |
    | `rhythm` | cảnh báo | tiêu đề và mô tả giống hệt nhau; tiêu đề không Strongest; dòng mang style Heading mà không phải heading (và không phải con số); quá 7 text style trong một example; góc lồng nhau không đồng tâm; hàng list bị inset hai lần |
    | `density` | lỗi | phần tử Zen bị nội dung tràn ra khi chuyển Comfortable, và lỗi overflow/size/edge mới ở Comfortable |
+   | `fit` | lỗi | chữ rộng hơn box của chính nó (label, nút, dòng chữ) mà không có ellipsis, không cuộn: chữ đè sang phần tử bên cạnh hoặc bị cắt ngang, kể cả khi tổ tiên có `overflow: hidden` (check `overflow` bỏ qua vùng đó). Chạy ở Compact và, với `--density`, ở Comfortable. Không báo: vùng cuộn, chữ có ellipsis, mép mờ (mask), chữ chỉ cho screen reader, `data-audit-skip-quality`. Sửa: cho item giữ bề rộng (`flex-shrink: 0`, `min-width: auto`), cho xuống dòng, ellipsis, hoặc cho hàng cuộn ngang |
 
 3. **Hành vi** (`npm run platform:behaviour`): focus ring nhìn thấy khi Tab, mọi control tới được bằng bàn phím, không
    có phần tử chỉ bấm được bằng chuột, phím APG (tabs, menu button, dialog: focus trap + Escape + trả focus, slider,
@@ -163,7 +164,9 @@ server) mới được tính là pass.
 Lỗi có từ trước nằm trong `tools/style-guard/baseline.json`, `tools/platform-audit/quality-baseline.json` và
 `tools/platform-audit/behaviour-baseline.json`. Chúng được liệt kê riêng và không làm hỏng cổng; lỗi **mới** thì có.
 Khi chạm vào dòng hoặc example còn nợ, sửa luôn rồi cập nhật baseline (`npm run style:check -- --baseline-update`,
-`node tools/platform-audit/audit.mjs --pages=<trang> --quality --density --baseline-update`). Nợ chỉ được giảm.
+`node tools/platform-audit/audit.mjs --pages=<trang> --quality --density --baseline-update`). Nợ chỉ được giảm. Khi
+thêm một check mới, ghi nợ ban đầu bằng `--baseline-update=<kind>`: chỉ kind đó được ghi, lỗi hiện có của các kind
+khác (có thể là việc đang làm dở của session khác) không bị nhận thành nợ.
 
 ## 4. Nhìn ảnh: UX rubric
 

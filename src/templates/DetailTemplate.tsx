@@ -71,6 +71,7 @@ const parseAmount = (text: string) => Number(text.replace(/[$,\s]/g, ""));
 export function DetailTemplate() {
   const { toast } = useToast();
   const [tab, setTab] = useState("overview");
+  const [navId, setNavId] = useState("invoices");
   const [paid, setPaid] = useState(0);
   const [voided, setVoided] = useState(false);
   const [paying, setPaying] = useState(false);
@@ -103,7 +104,7 @@ export function DetailTemplate() {
   const recordPayment = () => { payment.reset({ amount: balance.toFixed(2), method: "bank", note: "" }); setPaying(true); };
 
   return (
-    <AppShell sidebar={<Sidebar logo={<Text as="span" textStyle="Heading/4">Acme</Text>} sections={nav} selectedId="invoices" />}>
+    <AppShell sidebar={<Sidebar logo={<Text as="span" textStyle="Heading/4">Acme</Text>} sections={nav} selectedId={navId} onItemClick={(item) => setNavId(item.id)} />}>
       <Container>
         <Stack gap="lg" paddingY="lg">
           <PageHeader

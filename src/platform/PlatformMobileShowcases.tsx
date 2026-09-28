@@ -12,17 +12,19 @@ import { ToggleButton } from "../components/Toggle";
 import { TopNavigation } from "../components/TopNavigation";
 import { BottomNavigation } from "../components/BottomNavigation";
 import { BottomSheet } from "../components/BottomSheet";
-import { ChatCall, ChatComposer, ChatConversationItem, ChatDateDivider, ChatFile, ChatMessage, ChatPhotos, ChatThread, chatHoldActions, type ChatReactionKind, type ChatReplyTarget } from "../components/Chat";
+import { ChatCall, ChatComposer, ChatConversationItem, ChatDateDivider, ChatFile, ChatMessage, ChatPhotos, ChatThread, chatHoldActions, type ChatPerson, type ChatReactionKind, type ChatReplyTarget } from "../components/Chat";
 import { AiChatBlock, AiChatBubble, AiChatField, AiChatThread } from "../components/AiChat";
 import { ChartCard, LineChart, StackBarChart } from "../components/Chart";
 import { MetricCard } from "../components/MetricWidget";
 import { EmptyState } from "../components/EmptyState";
+import { Thumbnail } from "../components/Image";
+import { plural } from "../components/Text";
 import { InlineMessage } from "../components/InlineMessage";
 import { SidePanel } from "../components/SidePanel";
 import { Table, TableText } from "../components/Table";
 import type { PlatformPage } from "./PlatformExamples";
 import { ChatDemoNote, useChatDemo } from "./chatDemo";
-import { PlatformPhone } from "./PlatformPhone";
+import { PlatformPhone, usePhoneScreen } from "./PlatformPhone";
 import { PlatformChatHeader } from "./PlatformChatHeader";
 import { avatarOf, bottomNavItems, budgetSeries, mobileConversations, mobileFiles, mobileInbox, mobilePeople, mobileProjects, mobileSettings, mobileTasks } from "./PlatformMobileData";
 import { PlatformPhoneMedia, platformMedia } from "./PlatformMedia";
@@ -32,23 +34,36 @@ import { typographyStyles } from "../tokens/typography.generated";
 type ExampleDef = { title: string; description: string; code: string; wide?: boolean; /** A whole desktop screen: the card offers Full screen. */ screen?: boolean; render: () => ReactNode };
 
 /* Shared screen content: long enough that every phone scrolls under its bars. */
-function ConversationList({ label = "Conversations", count = mobileConversations.length }: { label?: string; count?: number }) {
+/** A message sent from "New message": it starts a conversation at the top of the list. */
+type SentMessage = { id: string; to: string; text: string };
+/** The demo person whose name starts with what was typed ("bao" → Bao Nguyen), or a new contact shown by initials. */
+const personNamed = (typed: string): ChatPerson => Object.values(mobilePeople).find((p) => p.name.toLowerCase().startsWith(typed.trim().toLowerCase())) ?? { name: typed.trim(), theme: "teal" };
+
+function ConversationList({ label = "Conversations", count = mobileConversations.length, sent = [] }: { label?: string; count?: number; sent?: SentMessage[] }) {
   // Opening a conversation marks it read and selects it, like the Inbox example (no locked Chat interactions).
+  // A message sent from New message starts a conversation on top, opened.
   const [read, setRead] = useState<string[]>([]);
   const [open, setOpen] = useState<string | undefined>(undefined);
+  const newest = sent[0]?.id;
+  useEffect(() => { if (newest) setOpen(newest); }, [newest]);
   return (
     <List aria-label={label}>
+      {sent.map((m) => <ChatConversationItem key={m.id} person={personNamed(m.to)} preview={`You: ${m.text}`} time="Now" selected={open === m.id} onClick={() => setOpen(m.id)} />)}
       {mobileConversations.slice(0, count).map((c) => <ChatConversationItem key={c.id} person={c.person} preview={c.preview} time={c.time} unread={c.unread && !read.includes(c.id)} online={c.online} selected={open === c.id} onClick={() => { setOpen(c.id); setRead((r) => (r.includes(c.id) ? r : [...r, c.id])); }} />)}
     </List>
   );
 }
 
-function ProjectList() {
-  // Opening a project selects it, like a conversation in ConversationList.
+function ProjectList({ extra = [] }: { extra?: string[] }) {
+  // Opening a project selects it, like a conversation in ConversationList. A project created in the example (extra,
+  // newest first) lands on top, opened.
   const [open, setOpen] = useState<string | null>(null);
+  const newest = extra.length ? `new-${extra.length}` : null;
+  useEffect(() => { if (newest) setOpen(newest); }, [newest]);
+  const projects = [...extra.map((title, i) => ({ id: `new-${extra.length - i}`, title, caption: "Created just now", theme: (["teal", "purple", "indigo"] as const)[i % 3] })), ...mobileProjects.map((p) => ({ ...p, id: p.title }))];
   return (
     <List aria-label="Projects">
-      {mobileProjects.map((p) => <ListItem key={p.title} title={p.title} caption={p.caption} leading={<Avatar size="medium" shape="square" theme={p.theme} alt={p.title} />} selected={open === p.title} onClick={() => setOpen(p.title)} />)}
+      {projects.map((p) => <ListItem key={p.id} title={p.title} caption={p.caption} leading={<Avatar size="medium" shape="square" theme={p.theme} alt={p.title} />} selected={open === p.id} onClick={() => setOpen(p.id)} />)}
     </List>
   );
 }
@@ -77,6 +92,17 @@ function PhotoFeed({ bottomRoom = false }: { bottomRoom?: boolean }) {
   );
 }
 
+/** Copy on an AI answer: writes the text to the clipboard and confirms in place (a check and "Copied") for 2 s. */
+function useCopyAction(text: string) {
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return undefined;
+    const timer = window.setTimeout(() => setCopied(false), 2000);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+  return { icon: copied ? "icon-check-line" as const : "icon-copy-line" as const, label: copied ? "Copied" : "Copy", onClick: () => { void navigator.clipboard?.writeText(text).catch(() => undefined); setCopied(true); } };
+}
+
 /* ── Top Navigation ─────────────────────────────────────────────── */
 function TopNavCollapseExample() {
   const [collapsed, setCollapsed] = useState(false);
@@ -85,20 +111,50 @@ function TopNavCollapseExample() {
   const focusSearch = useRef(false);
   // The collapsed bar's Search action scrolls back to the top; once the search bar is back, it takes focus.
   useEffect(() => { if (!collapsed && focusSearch.current) { focusSearch.current = false; searchRef.current?.focus(); } }, [collapsed]);
-  const openSearch = () => { focusSearch.current = true; scrollerRef.current?.scrollTo({ top: 0, behavior: "smooth" }); };
+  const openSearch = () => {
+    if (!collapsed) { searchRef.current?.focus(); return; } // the bar is already out: straight into the field
+    focusSearch.current = true; scrollerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  // New message opens a compose sheet; Send starts the conversation on top of the list and scrolls up to it.
+  const [composing, setComposing] = useState(false);
+  const [to, setTo] = useState("");
+  const [text, setText] = useState("");
+  const [sent, setSent] = useState<SentMessage[]>([]);
+  const send = () => {
+    setSent((list) => [{ id: `sent-${list.length + 1}`, to: to.trim(), text: text.trim() || "Hi!" }, ...list]);
+    setTo(""); setText(""); setComposing(false);
+    scrollerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  };
   return (
-    <PlatformPhone label="Scrolling inbox" header={<TopNavigation title="Inbox" largeTitle="Inbox" collapsed={collapsed} trailing={[{ icon: "icon-edit-02-line", label: "New message" }]}
+    <PlatformPhone label="Scrolling inbox" header={<TopNavigation title="Inbox" largeTitle="Inbox" collapsed={collapsed} trailing={[{ icon: "icon-edit-02-line", label: "New message", onClick: () => setComposing(true) }]}
       controlBar={<Search ref={searchRef} placeholder="Search messages" />} searchAction={{ label: "Search messages", onClick: openSearch }} />}>
       <div ref={scrollerRef} onScroll={(e) => setCollapsed(e.currentTarget.scrollTop > 24)} className="pe-phone-scroll">
-        <ConversationList />
+        <ConversationList sent={sent} />
       </div>
+      <BottomSheet inline open={composing} onOpenChange={setComposing} title="New message"
+        primaryAction={{ label: "Send", disabled: !to.trim(), onClick: send }} secondaryAction={{ label: "Cancel" }}>
+        <InputField label="To" placeholder="Name or email" value={to} onValueChange={setTo} data-autofocus="" />
+        <TextAreaField label="Message" placeholder="Write a message" value={text} onValueChange={setText} />
+      </BottomSheet>
     </PlatformPhone>
   );
 }
 
+const profileNotifications = [
+  { id: "n1", person: mobilePeople.bao, title: "Bao Nguyen assigned you “Hero copy”", caption: "Brand refresh · 5 min ago" },
+  { id: "n2", person: mobilePeople.chi, title: "Chi Tran commented on Tokens.json", caption: "“Can we keep 8px here?” · 1 h ago" },
+  { id: "n3", person: mobilePeople.duy, title: "Duy shared Q3 report.pdf", caption: "Finance · 3 h ago" },
+];
+
 function TopNavProfileExample() {
+  // The bell opens the notifications and clears its dot; Settings opens a settings sheet.
+  const [sheet, setSheet] = useState<"notifications" | "settings" | null>(null);
+  const [seen, setSeen] = useState(false);
+  const [setting, setSetting] = useState<string | null>(null);
+  const close = (open: boolean) => { if (!open) setSheet(null); };
   return (
-    <PlatformPhone canvas="alt" label="Profile home" header={<TopNavigation type="alt" largeTitle="Good morning, Ava" headingLevel="h2" leading={<Avatar size="medium" theme="photo" background="subtle" src={mobilePeople.ava.src} alt="Ava Chen" />} trailing={[{ icon: "icon-bell-01-line", label: "Notifications, 3 new", dot: true }, { icon: "icon-settings-01-line", label: "Settings" }]} />}>
+    <PlatformPhone canvas="alt" label="Profile home" header={<TopNavigation type="alt" largeTitle="Good morning, Ava" headingLevel="h2" leading={<Avatar size="medium" theme="photo" background="subtle" src={mobilePeople.ava.src} alt="Ava Chen" />}
+      trailing={[{ icon: "icon-bell-01-line", label: seen ? "Notifications" : "Notifications, 3 new", dot: !seen, onClick: () => { setSheet("notifications"); setSeen(true); } }, { icon: "icon-settings-01-line", label: "Settings", onClick: () => setSheet("settings") }]} />}>
       <div className="pe-stack" style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px) var(--zen-spacing-padding-xlarge, 24px)", gap: "var(--zen-spacing-gap-large, 24px)" }}>
         <MetricCard label="Tasks due today" value="7" icon="icon-check-circle-line" size="large" trend={{ direction: "positive", label: "2 fewer than yesterday" }} />
         <section className="pe-stack" aria-label="Today">
@@ -110,27 +166,88 @@ function TopNavProfileExample() {
           <PhotoFeed />
         </section>
       </div>
+      <BottomSheet inline open={sheet === "notifications"} onOpenChange={close} title="Notifications">
+        <List aria-label="Notifications">
+          {profileNotifications.map((n) => <ListItem key={n.id} title={n.title} caption={n.caption} leading={<Avatar size="medium" background="subtle" alt="" {...avatarOf(n.person)} />} />)}
+        </List>
+      </BottomSheet>
+      <BottomSheet inline open={sheet === "settings"} onOpenChange={close} title="Settings">
+        <List aria-label="Settings">
+          {mobileSettings.slice(0, 6).map((s) => <ListItem key={s.title} title={s.title} caption={s.caption} selected={setting === s.title} onClick={() => setSetting(s.title)} />)}
+        </List>
+      </BottomSheet>
     </PlatformPhone>
   );
 }
+
+const sitePhotos = [platformMedia.viewer, ...platformMedia.site];
 
 function TopNavMediaExample() {
+  // Close viewer goes back to the album and a photo opens the viewer again; Share opens a share sheet; Like toggles.
+  const [index, setIndex] = useState<number | null>(0);
+  const [liked, setLiked] = useState<number[]>([]);
+  const [sharing, setSharing] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const screen = usePhoneScreen();
+  if (index === null) {
+    return (
+      <PlatformPhone label="Photo viewer" header={<TopNavigation type="compact" title="Site visit" />}>
+        {screen.anchor}
+        <List aria-label="Site visit photos">
+          {sitePhotos.map((photo, i) => <ListItem key={photo.src} title={photo.alt} caption={`Photo ${i + 1} of ${sitePhotos.length}${liked.includes(i) ? " · Liked" : ""}`} leading={<Thumbnail src={photo.src} alt="" />}
+            onClick={() => screen.go('.zen-top-nav__action[aria-label="Close viewer"]', () => setIndex(i))} data-photo={i} />)}
+        </List>
+      </PlatformPhone>
+    );
+  }
+  const isLiked = liked.includes(index);
   return (
-    <PlatformPhone canvas="media" statusBar="light" label="Photo viewer" header={<TopNavigation type="liquid-overlay" title="Site visit · 3 of 12" leading={{ icon: "icon-x-medium-line", label: "Close viewer" }} trailing={[{ icon: "icon-share-01-line", label: "Share" }, { icon: "icon-heart-line", label: "Like" }]} />}>
-      <PlatformPhoneMedia photo={platformMedia.viewer} />
+    <PlatformPhone canvas="media" statusBar="light" label="Photo viewer" header={<TopNavigation type="liquid-overlay" title={`Site visit · ${index + 1} of ${sitePhotos.length}`}
+      leading={{ icon: "icon-x-medium-line", label: "Close viewer", onClick: () => screen.go(`[data-photo="${index}"] .zen-list-item__wrapper`, () => setIndex(null)) }}
+      trailing={[{ icon: "icon-share-01-line", label: "Share", onClick: () => { setCopied(false); setSharing(true); } }, { icon: isLiked ? "icon-heart-solid" : "icon-heart-line", label: isLiked ? "Unlike" : "Like", onClick: () => setLiked((list) => (isLiked ? list.filter((i) => i !== index) : [...list, index])) }]} />}>
+      {screen.anchor}
+      <PlatformPhoneMedia photo={sitePhotos[index]} />
+      <BottomSheet inline open={sharing} onOpenChange={setSharing} type="action" title={copied ? "Link copied" : "Share photo"} keepOpen onSelect={(item) => { if (item.id === "copy") setCopied(true); else setSharing(false); }}
+        items={[{ id: "copy", label: copied ? "Copied" : "Copy link", icon: copied ? "icon-check-line" : "icon-link-01-line" }, { id: "message", label: "Message", icon: "icon-message-chat-circle-line" }, { id: "save", label: "Save to Files", icon: "icon-download-01-line" }]} />
     </PlatformPhone>
   );
 }
 
+const uploadSources = [{ id: "photos", label: "Photo library", icon: "icon-image-plus-line" }, { id: "camera", label: "Take photo", icon: "icon-camera-line" }, { id: "scan", label: "Scan document", icon: "icon-scan-line" }] as const;
+
 function TopNavSegmentedExample() {
+  // Back goes up to Drive, whose Files row comes back; Upload opens a source sheet and adds the new file on top.
   const [tab, setTab] = useState("all");
   const [open, setOpen] = useState<string | null>(null);
-  const files = mobileFiles.filter((f) => tab === "all" || (tab === "shared" ? f.shared : f.starred));
+  const [atDrive, setAtDrive] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploads, setUploads] = useState<string[]>([]);
+  const screen = usePhoneScreen();
+  const all = [...uploads.map((name) => ({ name, caption: "Uploaded just now", shared: false, starred: false })), ...mobileFiles];
+  const files = all.filter((f) => tab === "all" || (tab === "shared" ? f.shared : f.starred));
+  const upload = (source: string) => {
+    const n = uploads.length + 1;
+    const name = source === "photos" ? `IMG_${2040 + n}.jpg` : source === "camera" ? `Photo ${n}.heic` : `Scan ${n}.pdf`;
+    setUploads((list) => [name, ...list]); setOpen(name); setTab("all"); setUploading(false); screen.scrollTop();
+  };
+  if (atDrive) {
+    return (
+      <PlatformPhone label="Files with a control bar" header={<TopNavigation title="Drive" largeTitle="Drive" />}>
+        {screen.anchor}
+        <List aria-label="Drive">
+          <ListItem data-row="files" title="Files" caption={plural(all.length, "item")} leading={<Avatar size="medium" shape="square" theme="indigo" alt="Files" />} onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setAtDrive(false))} />
+          {[["Photos", "248 items", "orange"], ["Shared with me", "12 items", "green"], ["Trash", "Empty", "brown"]].map(([title, caption, theme]) => <ListItem key={title} title={title} caption={caption} leading={<Avatar size="medium" shape="square" theme={theme as "orange" | "green" | "brown"} alt={title} />} selected={open === title} onClick={() => setOpen(title)} />)}
+        </List>
+      </PlatformPhone>
+    );
+  }
   return (
-    <PlatformPhone label="Files with a control bar" header={<TopNavigation type="compact" title="Files" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} trailing={[{ icon: "icon-plus-line", label: "Upload" }]} controlBar={<Segmented fullWidth options={[{ id: "all", label: "All" }, { id: "shared", label: "Shared" }, { id: "starred", label: "Starred" }]} value={tab} onChange={setTab} aria-label="Filter files" />} />}>
+    <PlatformPhone label="Files with a control bar" header={<TopNavigation type="compact" title="Files" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go('[data-row="files"] .zen-list-item__wrapper', () => setAtDrive(true)) }} trailing={[{ icon: "icon-plus-line", label: "Upload", onClick: () => setUploading(true) }]} controlBar={<Segmented fullWidth options={[{ id: "all", label: "All" }, { id: "shared", label: "Shared" }, { id: "starred", label: "Starred" }]} value={tab} onChange={setTab} aria-label="Filter files" />} />}>
+      {screen.anchor}
       <List aria-label="Files">
         {files.map((f) => <ListItem key={f.name} title={f.name} caption={f.caption} selected={open === f.name} onClick={() => setOpen(f.name)} />)}
       </List>
+      <BottomSheet inline open={uploading} onOpenChange={setUploading} type="action" title="Upload from" items={[...uploadSources]} onSelect={(item) => upload(item.id)} />
     </PlatformPhone>
   );
 }
@@ -153,13 +270,21 @@ function BottomNavAppExample() {
 }
 
 function BottomNavFloatingExample() {
+  // Picking what to create starts a draft: a confirmation on top of the feed, scrolled into view.
   const [tab, setTab] = useState("home");
   const [sheet, setSheet] = useState(false);
+  const [draft, setDraft] = useState<string | null>(null);
+  const screen = usePhoneScreen();
   return (
     <PlatformPhone canvas="alt" label="Floating navigation with an action"
       footer={<BottomNavigation type="floating" selection="surface" items={bottomNavItems} value={tab} onValueChange={setTab} action={{ icon: "icon-plus-line", label: "New post", onClick: () => setSheet(true) }} />}>
-      <div style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px)" }}><PhotoFeed bottomRoom /></div>
-      <BottomSheet inline open={sheet} onOpenChange={setSheet} type="action" title="Create" items={[{ id: "post", label: "Post", icon: "icon-edit-02-line" }, { id: "photo", label: "Photo", icon: "icon-camera-line" }, { id: "event", label: "Event", icon: "icon-calendar-line" }]} />
+      {screen.anchor}
+      <div className="pe-stack" style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px)", gap: "var(--zen-spacing-gap-medium, 16px)" }}>
+        {draft ? <InlineMessage theme="positive" title={`${draft} draft started`}>Finish it from Drafts on your profile.</InlineMessage> : null}
+        <PhotoFeed bottomRoom />
+      </div>
+      <BottomSheet inline open={sheet} onOpenChange={setSheet} type="action" title="Create" items={[{ id: "post", label: "Post", icon: "icon-edit-02-line" }, { id: "photo", label: "Photo", icon: "icon-camera-line" }, { id: "event", label: "Event", icon: "icon-calendar-line" }]}
+        onSelect={(item) => { setDraft(String(item.label)); screen.scrollTop(); }} />
     </PlatformPhone>
   );
 }
@@ -175,10 +300,20 @@ function BottomNavGlassExample() {
 }
 
 function BottomNavLabelsExample() {
+  // Create opens a New project sheet; the project lands on top of the list, opened.
   const [tab, setTab] = useState("home");
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState("");
+  const [created, setCreated] = useState<string[]>([]);
+  const screen = usePhoneScreen();
+  const create = () => { setCreated((list) => [name.trim(), ...list]); setName(""); setCreating(false); screen.scrollTop(); };
   return (
-    <PlatformPhone label="Labelled accent navigation" header={<TopNavigation type="compact" title="Projects" />} footer={<BottomNavigation theme="accent" showLabels items={bottomNavItems} value={tab} onValueChange={setTab} action={{ icon: "icon-plus-line", label: "Create", theme: "accent" }} />}>
-      <ProjectList />
+    <PlatformPhone label="Labelled accent navigation" header={<TopNavigation type="compact" title="Projects" />} footer={<BottomNavigation theme="accent" showLabels items={bottomNavItems} value={tab} onValueChange={setTab} action={{ icon: "icon-plus-line", label: "Create", theme: "accent", onClick: () => setCreating(true) }} />}>
+      {screen.anchor}
+      <ProjectList extra={created} />
+      <BottomSheet inline open={creating} onOpenChange={setCreating} title="New project" primaryAction={{ label: "Create project", disabled: !name.trim(), onClick: create }} secondaryAction={{ label: "Cancel" }}>
+        <InputField label="Project name" placeholder="e.g. Spring campaign" value={name} onValueChange={setName} data-autofocus="" />
+      </BottomSheet>
     </PlatformPhone>
   );
 }
@@ -385,6 +520,7 @@ function AiStreamingExample() {
   const [answer, setAnswer] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const full = "Sure — here's a friendly reminder:\n\nHi team, the design review moves to Thursday 10:30. Please add your agenda items to the doc by Wednesday.";
+  const copy = useCopyAction(full);
   const ask = () => {
     setBusy(true); setAnswer("");
     let i = 0;
@@ -393,7 +529,7 @@ function AiStreamingExample() {
   return (
     <AiChatThread>
       <AiChatBubble side="you">Write a short note moving the design review to Thursday.</AiChatBubble>
-      {answer !== null ? <AiChatBubble side="ai" streaming={busy} actions={busy ? [] : [{ icon: "icon-copy-line", label: "Copy" }, { icon: "icon-refresh-cw-01-line", label: "Regenerate", onClick: ask }]}>{answer}</AiChatBubble> : null}
+      {answer !== null ? <AiChatBubble side="ai" streaming={busy} actions={busy ? [] : [copy, { icon: "icon-refresh-cw-01-line", label: "Regenerate", onClick: ask }]}>{answer}</AiChatBubble> : null}
       {answer === null ? <Button level="primary" onClick={ask}>Generate</Button> : null}
     </AiChatThread>
   );
@@ -401,12 +537,13 @@ function AiStreamingExample() {
 
 function AiFeedbackExample() {
   const [vote, setVote] = useState<"up" | "down" | null>(null);
+  const copy = useCopyAction("Churn fell to 2.1% in Q3, driven by the onboarding checklist and faster support replies.");
   return (
     <AiChatThread>
       <AiChatBubble side="ai" version="2/2" actions={[
         { icon: vote === "up" ? "icon-thumbs-up-solid" : "icon-thumbs-up-line", label: "Good response", pressed: vote === "up", onClick: () => setVote(vote === "up" ? null : "up") },
         { icon: vote === "down" ? "icon-thumbs-down-solid" : "icon-thumbs-down-line", label: "Bad response", pressed: vote === "down", onClick: () => setVote(vote === "down" ? null : "down") },
-        { icon: "icon-copy-line", label: "Copy" },
+        copy,
       ]}>Churn fell to 2.1% in Q3, driven by the onboarding checklist and faster support replies.</AiChatBubble>
       {vote ? <p className={`pe-text pe-text--light ${typographyStyles["Body/Small/Regular"]}`} role="status">{vote === "up" ? "Thanks for the feedback." : "Thanks — we'll use this to improve."}</p> : null}
     </AiChatThread>
@@ -588,12 +725,13 @@ function ChatFailedExample() {
 function AiErrorExample() {
   const [state, setState] = useState<"error" | "loading" | "done">("error");
   const retry = () => { setState("loading"); window.setTimeout(() => setState("done"), 800); };
+  const copy = useCopyAction("142 tickets: 38% billing, 27% sign-in, 19% exports. Median first reply 1h 12m.");
   return (
     <AiChatThread>
       <AiChatBubble side="you">Summarise last week's support tickets.</AiChatBubble>
       {state === "error" ? <InlineMessage theme="negative" title="The assistant couldn't finish this answer" action={{ label: "Try again", onClick: retry }}>The connection dropped after 12 seconds. Your question is kept.</InlineMessage> : null}
       {state === "loading" ? <AiChatBubble side="ai" thinking thinkingLabel="Retrying" /> : null}
-      {state === "done" ? <AiChatBubble side="ai" actions={[{ icon: "icon-copy-line", label: "Copy" }, { icon: "icon-refresh-cw-01-line", label: "Regenerate", onClick: () => setState("error") }]}>142 tickets: 38% billing, 27% sign-in, 19% exports. Median first reply 1h 12m.</AiChatBubble> : null}
+      {state === "done" ? <AiChatBubble side="ai" actions={[copy, { icon: "icon-refresh-cw-01-line", label: "Regenerate", onClick: () => setState("error") }]}>142 tickets: 38% billing, 27% sign-in, 19% exports. Median first reply 1h 12m.</AiChatBubble> : null}
     </AiChatThread>
   );
 }
@@ -609,15 +747,37 @@ function ChartEmptyExample() {
   );
 }
 
+const checkoutLines = [["Team plan · 12 seats", "$144.00"], ["Extra storage · 100 GB", "$12.00"], ["Priority support", "$20.00"], ["SSO & audit log", "$24.00"], ["Discount · annual", "−$20.00"], ["Tax", "$18.00"], ["Total per month", "$198.00"]];
+
 function SheetTermsExample() {
+  // Back goes up to the cart; "Continue to checkout" comes back to this screen.
   const [open, setOpen] = useState(false);
   const [accepted, setAccepted] = useState(false);
+  const [atCart, setAtCart] = useState(false);
+  const screen = usePhoneScreen();
+  const amount = (value: string) => <span className={`pe-text pe-text--strongest ${typographyStyles["Body/Base/Medium"]}`}>{value}</span>;
+  if (atCart) {
+    return (
+      <PlatformPhone canvas="canvas" label="Long content sheet" header={<TopNavigation title="Cart" largeTitle="Cart" />}
+        footer={<div className="pe-phone-cta"><Button level="primary" size="lg" onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setAtCart(false))}>Continue to checkout</Button></div>}>
+        {screen.anchor}
+        <div className="pe-stack" style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px) var(--zen-spacing-padding-xlarge, 24px)" }}>
+          <Card spacing="small" className="pe-list-card">
+            <List aria-label="Cart">
+              {checkoutLines.slice(0, 4).map(([label, value]) => <ListItem key={label} title={label} trailing={amount(value)} />)}
+            </List>
+          </Card>
+        </div>
+      </PlatformPhone>
+    );
+  }
   return (
-    <PlatformPhone canvas="canvas" label="Long content sheet" header={<TopNavigation type="compact" title="Checkout" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} />}>
+    <PlatformPhone canvas="canvas" label="Long content sheet" header={<TopNavigation type="compact" title="Checkout" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(".pe-phone-cta .zen-button", () => setAtCart(true)) }} />}>
+      {screen.anchor}
       <div className="pe-stack" style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px) var(--zen-spacing-padding-xlarge, 24px)", gap: "var(--zen-spacing-gap-medium, 16px)" }}>
         <Card spacing="small" className="pe-list-card">
           <List aria-label="Order summary">
-            {[["Team plan · 12 seats", "$144.00"], ["Extra storage · 100 GB", "$12.00"], ["Priority support", "$20.00"], ["SSO & audit log", "$24.00"], ["Discount · annual", "−$20.00"], ["Tax", "$18.00"], ["Total per month", "$198.00"]].map(([label, value]) => <ListItem key={label} title={label} trailing={<span className={`pe-text pe-text--strongest ${typographyStyles["Body/Base/Medium"]}`}>{value}</span>} />)}
+            {checkoutLines.map(([label, value]) => <ListItem key={label} title={label} trailing={amount(value)} />)}
           </List>
         </Card>
         <InputField label="Billing email" defaultValue="ava@zen.studio" />
@@ -640,31 +800,51 @@ function SheetTermsExample() {
 
 export const mobileExamples: Partial<Record<PlatformPage, ExampleDef[]>> = {
   "top-navigation": [
-    { title: "Collapse on scroll", description: "The large title folds into the navigator bar once the list scrolls (collapsed). The Search control bar folds into a Search action at the top right; scrolling back up (or tapping it) brings the search bar back and the action leaves.", render: () => <TopNavCollapseExample />, code: `const [collapsed, setCollapsed] = useState(false);
+    { title: "Collapse on scroll", description: "The large title folds into the navigator bar once the list scrolls (collapsed). The Search control bar folds into a Search action at the top right; scrolling back up (or tapping it) brings the search bar back and the action leaves. New message opens a compose sheet; Send starts the conversation on top.", render: () => <TopNavCollapseExample />, code: `const [collapsed, setCollapsed] = useState(false);
 
 <TopNavigation title="Inbox" largeTitle="Inbox" collapsed={collapsed}
-  trailing={[{ icon: "icon-edit-02-line", label: "New message" }]}
+  trailing={[{ icon: "icon-edit-02-line", label: "New message", onClick: () => setComposing(true) }]}
   controlBar={<Search ref={searchRef} placeholder="Search messages" />}
   searchAction={{ label: "Search messages", onClick: () => { scroller.scrollTo({ top: 0, behavior: "smooth" }); focusSearchWhenExpanded(); } }} />
-<div onScroll={(e) => setCollapsed(e.currentTarget.scrollTop > 24)}>…</div>` },
-    { title: "Home with avatar", description: "Alt background on an Alt canvas; a visual leading slot (Avatar) and a notification dot on the trailing action.", render: () => <TopNavProfileExample />, code: `<TopNavigation type="alt" headingLevel="h2" largeTitle="Good morning, Ava"
+<div onScroll={(e) => setCollapsed(e.currentTarget.scrollTop > 24)}>…</div>
+<BottomSheet inline open={composing} onOpenChange={setComposing} title="New message"
+  primaryAction={{ label: "Send", disabled: !to.trim(), onClick: send }} secondaryAction={{ label: "Cancel" }}>
+  <InputField label="To" value={to} onValueChange={setTo} data-autofocus="" />
+  <TextAreaField label="Message" value={text} onValueChange={setText} />
+</BottomSheet>` },
+    { title: "Home with avatar", description: "Alt background on an Alt canvas; a visual leading slot (Avatar) and a notification dot on the trailing action. The bell opens the notifications and clears the dot; Settings opens a settings sheet.", render: () => <TopNavProfileExample />, code: `<TopNavigation type="alt" headingLevel="h2" largeTitle="Good morning, Ava"
   leading={<Avatar size="medium" theme="photo" src={ava} alt="Ava Chen" />}
-  trailing={[{ icon: "icon-bell-01-line", label: "Notifications, 3 new", dot: true }, { icon: "icon-settings-01-line", label: "Settings" }]} />` },
-    { title: "Over media", description: "Liquid-Overlay: a black gradient keeps white actions readable on photos and video.", render: () => <TopNavMediaExample />, code: `<TopNavigation type="liquid-overlay" title="Site visit · 3 of 12"
-  leading={{ icon: "icon-x-medium-line", label: "Close viewer" }}
-  trailing={[{ icon: "icon-share-01-line", label: "Share" }, { icon: "icon-heart-line", label: "Like" }]} />` },
-    { title: "Control bar", description: "A Segmented in the Control-Bar slot filters the screen under a compact bar.", render: () => <TopNavSegmentedExample />, code: `<TopNavigation type="compact" title="Files"
-  leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }}
-  controlBar={<Segmented fullWidth options={tabs} value={tab} onChange={setTab} aria-label="Filter files" />} />` },
+  trailing={[
+    { icon: "icon-bell-01-line", label: seen ? "Notifications" : "Notifications, 3 new", dot: !seen, onClick: () => { setSheet("notifications"); setSeen(true); } },
+    { icon: "icon-settings-01-line", label: "Settings", onClick: () => setSheet("settings") },
+  ]} />
+<BottomSheet inline open={sheet === "notifications"} onOpenChange={close} title="Notifications">
+  <List aria-label="Notifications">…</List>
+</BottomSheet>` },
+    { title: "Over media", description: "Liquid-Overlay: a black gradient keeps white actions readable on photos and video. Close goes back to the album, Share opens a share sheet and Like toggles.", render: () => <TopNavMediaExample />, code: `<TopNavigation type="liquid-overlay" title={\`Site visit · \${index + 1} of \${photos.length}\`}
+  leading={{ icon: "icon-x-medium-line", label: "Close viewer", onClick: backToAlbum }}
+  trailing={[
+    { icon: "icon-share-01-line", label: "Share", onClick: () => setSharing(true) },
+    { icon: liked ? "icon-heart-solid" : "icon-heart-line", label: liked ? "Unlike" : "Like", onClick: toggleLike },
+  ]} />` },
+    { title: "Control bar", description: "A Segmented in the Control-Bar slot filters the screen under a compact bar. Back goes up to Drive; Upload opens a source sheet and adds the file on top.", render: () => <TopNavSegmentedExample />, code: `<TopNavigation type="compact" title="Files"
+  leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => setAtDrive(true) }}
+  trailing={[{ icon: "icon-plus-line", label: "Upload", onClick: () => setUploading(true) }]}
+  controlBar={<Segmented fullWidth options={tabs} value={tab} onChange={setTab} aria-label="Filter files" />} />
+<BottomSheet inline open={uploading} onOpenChange={setUploading} type="action" title="Upload from" items={sources} onSelect={(item) => upload(item.id)} />` },
   ],
   "bottom-navigation": [
     { title: "Tabbed app", description: "Default bar with a notification dot that clears when Inbox opens.", render: () => <BottomNavAppExample />, code: `<BottomNavigation items={items} value={tab} onValueChange={(id) => { setTab(id); if (id === "inbox") markRead(); }} />` },
-    { title: "Floating + action", description: "The floating pill over content, with a floating action that opens an Action bottom sheet.", render: () => <BottomNavFloatingExample />, code: `<BottomNavigation type="floating" items={items} value={tab} onValueChange={setTab}
+    { title: "Floating + action", description: "The floating pill over content, with a floating action that opens an Action bottom sheet; the pick starts a draft.", render: () => <BottomNavFloatingExample />, code: `<BottomNavigation type="floating" items={items} value={tab} onValueChange={setTab}
   action={{ icon: "icon-plus-line", label: "New post", onClick: () => setSheet(true) }} />
-<BottomSheet open={sheet} onOpenChange={setSheet} type="action" title="Create" items={createItems} />` },
+<BottomSheet open={sheet} onOpenChange={setSheet} type="action" title="Create" items={createItems} onSelect={(item) => startDraft(item.label)} />` },
     { title: "Glass over media", description: "Floating Glass with the Solid selection keeps contrast on imagery.", render: () => <BottomNavGlassExample />, code: `<BottomNavigation type="floating-glass" selection="solid" backdrop="none" items={items} value={tab} onValueChange={setTab} />` },
-    { title: "Labels + accent action", description: "Accent theme with labels and a Type=Action item in the bar.", render: () => <BottomNavLabelsExample />, code: `<BottomNavigation theme="accent" showLabels items={items} value={tab} onValueChange={setTab}
-  action={{ icon: "icon-plus-line", label: "Create", theme: "accent" }} />` },
+    { title: "Labels + accent action", description: "Accent theme with labels and a Type=Action item in the bar; Create opens a New project sheet.", render: () => <BottomNavLabelsExample />, code: `<BottomNavigation theme="accent" showLabels items={items} value={tab} onValueChange={setTab}
+  action={{ icon: "icon-plus-line", label: "Create", theme: "accent", onClick: () => setCreating(true) }} />
+<BottomSheet open={creating} onOpenChange={setCreating} title="New project"
+  primaryAction={{ label: "Create project", disabled: !name.trim(), onClick: create }} secondaryAction={{ label: "Cancel" }}>
+  <InputField label="Project name" value={name} onValueChange={setName} data-autofocus="" />
+</BottomSheet>` },
   ],
   "bottom-sheet": [
     { title: "Share sheet", description: "An Action sheet; Copy link confirms in place (keepOpen) and destructive items use Negative.", render: () => <SheetShareExample />, code: `<BottomSheet open={open} onOpenChange={setOpen} type="action" title="Share" keepOpen
@@ -688,7 +868,8 @@ export const mobileExamples: Partial<Record<PlatformPage, ExampleDef[]>> = {
     { title: "Full-height with search", description: "Max-Fixed size with a Search under the header; the body scrolls, the header stays.", render: () => <SheetSettingsExample />, code: `<BottomSheet open={open} onOpenChange={setOpen} size="max" title="Settings" search={<Search placeholder="Search settings" />}>
   <List aria-label="Settings">…</List>
 </BottomSheet>` },
-    { title: "Long content", description: "Max-Fixed for reading: the body scrolls under a fixed header, vertical actions stay reachable at the bottom.", render: () => <SheetTermsExample />, code: `<BottomSheet open={open} onOpenChange={setOpen} size="max" title="Subscription terms" actionsDirection="vertical"
+    { title: "Long content", description: "Max-Fixed for reading: the body scrolls under a fixed header, vertical actions stay reachable at the bottom. Back goes up to the cart.", render: () => <SheetTermsExample />, code: `<TopNavigation type="compact" title="Checkout" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => setAtCart(true) }} />
+<BottomSheet open={open} onOpenChange={setOpen} size="max" title="Subscription terms" actionsDirection="vertical"
   primaryAction={{ label: "Agree and close", onClick: agree }} secondaryAction={{ label: "Close" }}>
   {sections}
 </BottomSheet>` },
@@ -721,12 +902,14 @@ export const mobileExamples: Partial<Record<PlatformPage, ExampleDef[]>> = {
     ...chatDesktopExamples,
   ],
   "ai-chat": [
-    { title: "Streaming answer", description: "Three dots wave while the assistant thinks, then the answer streams in (aria-busy, pulsing caret); actions appear once it finishes.", render: () => <AiStreamingExample />, code: `<AiChatBubble side="ai" streaming={busy} actions={busy ? [] : [{ icon: "icon-copy-line", label: "Copy" }, { icon: "icon-refresh-cw-01-line", label: "Regenerate", onClick: regenerate }]}>
+    { title: "Streaming answer", description: "Three dots wave while the assistant thinks, then the answer streams in (aria-busy, pulsing caret); actions appear once it finishes.", render: () => <AiStreamingExample />, code: `// Copy confirms in place: { icon: copied ? "icon-check-line" : "icon-copy-line", label: copied ? "Copied" : "Copy", onClick: copyAnswer }
+<AiChatBubble side="ai" streaming={busy} actions={busy ? [] : [copy, { icon: "icon-refresh-cw-01-line", label: "Regenerate", onClick: regenerate }]}>
   {answer}
 </AiChatBubble>` },
     { title: "Feedback", description: "Thumbs are toggle buttons (aria-pressed) and swap to the solid glyph when chosen.", render: () => <AiFeedbackExample />, code: `<AiChatBubble side="ai" version="2/2" actions={[
   { icon: vote === "up" ? "icon-thumbs-up-solid" : "icon-thumbs-up-line", label: "Good response", pressed: vote === "up", onClick: toggleUp },
   …
+  { icon: copied ? "icon-check-line" : "icon-copy-line", label: copied ? "Copied" : "Copy", onClick: copyAnswer },
 ]}>…</AiChatBubble>` },
     { title: "Empty state", description: "The Block greets and offers suggestions that start a conversation.", render: () => <AiEmptyExample />, code: `<AiChatBlock suggestions={[{ label: "Help me write", icon: "icon-pencil-line", onClick: () => ask("…") }]}>
   <AiChatField model="AI Model V 1.0" onSubmit={ask} />

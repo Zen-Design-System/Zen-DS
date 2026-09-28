@@ -219,6 +219,12 @@
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
         "allow": "noop-handler"
+      },
+      {
+        "id": "interaction/action-without-handler",
+        "severity": "warn",
+        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "allow": "action-handler"
       }
     ]
   },
@@ -228,7 +234,7 @@
     "use": [
       "Filter/sort/scope/status/owner pickers (variant=\"advanced\" + popoverItems).",
       "Toggleable topic pills (variant=\"normal\", aria-pressed).",
-      "Counts in dense layouts (variant=\"number-only\")."
+      "Counts in dense layouts (variant=\"number-only\"): without onClick or selected it is a static count, not a button."
     ],
     "avoid": [
       "Primary actions → Button.",
@@ -297,6 +303,7 @@
     ],
     "do": [
       "Use one Advanced chip per filter dimension (Status, Owner, Date).",
+      "Show a count with a Number-only chip and no handler: it renders as a static count (Figma: a compact indicator for counts). Give it onClick or selected only when pressing the number does something.",
       "Show the chosen value as the chip label for single selection; show the counter for multiple.",
       "Wire onClearSelection so Delete/Backspace and the × clear the filter.",
       "Offer \"Clear all\" (Tertiary button) when two or more filters are active.",
@@ -311,7 +318,7 @@
       "Don't wrap chips inside another button."
     ],
     "a11y": [
-      "Chip is a <button>; the Popover is a listbox with role=option items.",
+      "Chip is a <button>; the Popover is a listbox with role=option items. A Number-only chip without onClick or selected is a count: a <span>, out of the tab order, with no hover.",
       "↓ opens, Escape closes and returns focus, Delete/Backspace clears (aria-keyshortcuts).",
       "Topic pills expose aria-pressed."
     ],
@@ -483,6 +490,7 @@
       "Show requirement rules (passwords, handles) as InputConditions under the field: Default before typing, then Success/Wrong live as the value changes.",
       "RichTextField: read content through onValueChange(html, text), store the HTML and render it through your sanitizer.",
       "RichTextField: keep the Control-Bar (editorBar) unless the surface is tiny.",
+      "RichTextField keeps its own undo history: Undo / Redo (⌘Z, ⇧⌘Z, Ctrl+Y) step through this field's edits only and are disabled while there is nothing to undo or redo; replacing `value` from outside (clearing after Post) starts a new history.",
       "HeadingField: set multiline when a title can run past one line, so it wraps instead of scrolling out of view."
     ],
     "dont": [
@@ -735,6 +743,11 @@
         "Full width",
         "fullWidth",
         "fills the container; items share it equally and labels ellipsize (automatic inside a Top Navigation control bar)"
+      ],
+      [
+        "Overflow",
+        "—",
+        "code only (the Figma container hugs and clips): in a container narrower than its options, e.g. a phone, the control scrolls sideways like Tabs; items keep their width and the selected segment scrolls into view"
       ]
     ],
     "keyboard": [
@@ -755,15 +768,18 @@
       "Keep the selected segment static: no hover and a default cursor, because one option is always selected and re-clicking it does nothing.",
       "Keep 2–5 options (harness: segmented/option-count).",
       "Name icon-only segments with \"aria-label\" on the option and mark the icon decorative (harness: segmented/icon-only-needs-name).",
-      "On mobile, stretch a Segmented to its container (fullWidth) in a Top Navigation control bar, a Bottom Sheet or a narrow panel, so the items share the width equally (harness: segmented/control-bar-full-width)."
+      "On mobile, stretch a Segmented to its container (fullWidth) in a Top Navigation control bar, a Bottom Sheet or a narrow panel, so the items share the width equally (harness: segmented/control-bar-full-width).",
+      "Elsewhere on a phone, keep the full labels and let a Segmented that outgrows the width scroll sideways; it does so on its own, like Tabs, and keeps the selected segment in view. Use fullWidth only when every label fits its equal share."
     ],
     "dont": [
       "Don't use Segmented as a filter.",
+      "Don't abbreviate labels or shrink the text to squeeze a Segmented onto a phone; past 5 options or long labels, switch to Tabs or SelectField.",
       "Don't mix icon-only and labelled items in one control.",
       "Don't add a hover or pressed state to the selected segment; it suggests the choice can be undone by clicking it again."
     ],
     "a11y": [
-      "A labelled group of toggle buttons (aria-pressed); Tab moves between segments, Enter/Space selects."
+      "A labelled group of toggle buttons (aria-pressed); Tab moves between segments, Enter/Space selects.",
+      "When the control scrolls, focusing a segment brings it into view; no scrollbar is drawn, as in Tabs."
     ],
     "content": [
       "Nouns for sections, no verbs."
@@ -1543,6 +1559,12 @@
         "allow": "noop-handler"
       },
       {
+        "id": "interaction/action-without-handler",
+        "severity": "warn",
+        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "allow": "action-handler"
+      },
+      {
         "id": "focus/selected-fill-only",
         "severity": "warn",
         "summary": "An item with a filled selected state shows keyboard focus with the Focus/Accent ring, not a fill alone: Selected, Flat/Hover and Flat/Pressed can be the same alpha, so focus on or beside a selected item vanishes.",
@@ -1669,6 +1691,12 @@
         "severity": "warn",
         "summary": "A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass.",
         "allow": "controlled-handler"
+      },
+      {
+        "id": "interaction/action-without-handler",
+        "severity": "warn",
+        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "allow": "action-handler"
       }
     ]
   },
@@ -1685,7 +1713,7 @@
     "api": [
       [
         "Selection",
-        "selectionMode",
+        "selectionMode · value / defaultValue · range / defaultRange",
         "single · range (onRangeChange)"
       ],
       [
@@ -1695,8 +1723,8 @@
       ],
       [
         "Actions",
-        "showActions / action",
-        "none · single · dual"
+        "showActions / action · onApply(value, range) · onCancel",
+        "none · single · dual; picks are a draft that Submit applies and Cancel drops"
       ]
     ],
     "keyboard": [
@@ -1723,7 +1751,8 @@
       "Let users type the date in the DateField; the calendar is a shortcut, not the only input.",
       "Use calendar=\"dual\" for ranges longer than a few days; single for one date.",
       "Use the month-year picker for dates far from today (billing periods, expiries).",
-      "Close the popover after a single date is picked (no actions) and return focus to the field."
+      "Close the popover after a single date is picked (no actions) and return focus to the field.",
+      "With showActions, commit in onApply(value, range): picks are a draft, Submit applies it and Cancel (or Escape) returns to the applied value. Inline, both stay disabled until there is a change, and Submit waits for a range's end date (harness: date-picker/actions-need-apply)."
     ],
     "dont": [
       "Don't open the calendar for read-only DateFields.",
@@ -1785,6 +1814,12 @@
         "severity": "warn",
         "summary": "A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass.",
         "allow": "controlled-handler"
+      },
+      {
+        "id": "date-picker/actions-need-apply",
+        "severity": "warn",
+        "summary": "A DatePicker with showActions commits in onApply(value, range): picks are a draft that Submit applies and Cancel drops. Without onApply the app never hears what Submit applied.",
+        "allow": "date-apply"
       }
     ]
   },
@@ -2096,6 +2131,12 @@
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
         "allow": "noop-handler"
+      },
+      {
+        "id": "interaction/action-without-handler",
+        "severity": "warn",
+        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "allow": "action-handler"
       }
     ]
   },
@@ -2447,6 +2488,12 @@
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
         "allow": "noop-handler"
+      },
+      {
+        "id": "interaction/action-without-handler",
+        "severity": "warn",
+        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "allow": "action-handler"
       }
     ]
   },
@@ -2543,6 +2590,12 @@
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
         "allow": "noop-handler"
+      },
+      {
+        "id": "interaction/action-without-handler",
+        "severity": "warn",
+        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "allow": "action-handler"
       }
     ]
   },
@@ -3001,6 +3054,12 @@
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
         "allow": "noop-handler"
+      },
+      {
+        "id": "interaction/action-without-handler",
+        "severity": "warn",
+        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "allow": "action-handler"
       }
     ]
   },
@@ -3100,6 +3159,12 @@
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
         "allow": "noop-handler"
+      },
+      {
+        "id": "interaction/action-without-handler",
+        "severity": "warn",
+        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "allow": "action-handler"
       }
     ]
   },
@@ -3448,6 +3513,12 @@
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
         "allow": "noop-handler"
+      },
+      {
+        "id": "interaction/action-without-handler",
+        "severity": "warn",
+        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "allow": "action-handler"
       }
     ]
   },
@@ -4170,6 +4241,12 @@
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
         "allow": "noop-handler"
+      },
+      {
+        "id": "interaction/action-without-handler",
+        "severity": "warn",
+        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "allow": "action-handler"
       }
     ]
   },
@@ -4974,6 +5051,12 @@
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
         "allow": "noop-handler"
+      },
+      {
+        "id": "interaction/action-without-handler",
+        "severity": "warn",
+        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "allow": "action-handler"
       }
     ]
   },
@@ -5085,6 +5168,12 @@
         "severity": "warn",
         "summary": "A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass.",
         "allow": "controlled-handler"
+      },
+      {
+        "id": "interaction/action-without-handler",
+        "severity": "warn",
+        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "allow": "action-handler"
       }
     ]
   },
@@ -5211,6 +5300,12 @@
         "severity": "warn",
         "summary": "A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass.",
         "allow": "controlled-handler"
+      },
+      {
+        "id": "interaction/action-without-handler",
+        "severity": "warn",
+        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "allow": "action-handler"
       }
     ]
   },
@@ -5315,7 +5410,7 @@
       [
         "Reply",
         "ChatMessage id · replyTo · onJumpToReply · ChatComposer replyTo · onCancelReply",
-        "Messenger rhythm: caption (12px inset) → 4 → quote (padding 8/12, text 8 above and below its visible part) with the reply bubble tucked 12px over it; a reply turn starts 16px below the previous message; composer bar: full width on top of the composer, hairline above, text at 16, ✕ aligned with the last action; pressing the quote jumps to the original and flashes it"
+        "Messenger rhythm: caption (12px inset) → 4 → quote (padding 8/12, text 8 above and below its visible part) with the reply bubble tucked 12px over it; a reply turn starts 16px below the previous message; composer bar: full width on top of the composer, hairline above, text at 16, ✕ aligned with the last action; pressing the quote jumps to the original and flashes it; the quote of a deleted message (kind \"deleted\") is plain text, since there is nothing to jump to"
       ],
       [
         "Who reacted",
@@ -5557,6 +5652,12 @@
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
         "allow": "noop-handler"
+      },
+      {
+        "id": "interaction/action-without-handler",
+        "severity": "warn",
+        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "allow": "action-handler"
       }
     ]
   },
@@ -6535,6 +6636,12 @@
         "severity": "warn",
         "summary": "A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass.",
         "allow": "controlled-handler"
+      },
+      {
+        "id": "interaction/action-without-handler",
+        "severity": "warn",
+        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "allow": "action-handler"
       }
     ]
   },
@@ -6560,7 +6667,7 @@
       [
         "Component Theme",
         "componentTheme",
-        "neutral-s1 (default) · neutral-s2 · neutral-s3 · brand-s1 · brand-s2"
+        "neutral-s1 (default) · neutral-s2 · neutral-s3 · neutral-s4 · brand-s1 · brand-s2"
       ],
       [
         "Density",
@@ -6575,7 +6682,7 @@
       [
         "Emphasis",
         "emphasis",
-        "medium (default) · strong"
+        "medium (default) · strong · light"
       ],
       [
         "Breakpoint & Grids",
@@ -6873,6 +6980,12 @@
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
         "allow": "noop-handler"
+      },
+      {
+        "id": "interaction/action-without-handler",
+        "severity": "warn",
+        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "allow": "action-handler"
       }
     ]
   },

@@ -381,6 +381,21 @@ gradient (a stand-in picture).
 - The empty baseline also records the locked-interactions session's two tokenised paddings in ButtonMobileFooterExample
   (its section below notes it did not run `--baseline-update`; they already dropped out at the batch 6 refresh).
 
+**Final check — `npm run qa -- --all` (61 pages), because core Popover/Input and platform.css changed.** Static,
+runtime (0 errors) and dark (0 errors) passed. Behaviour failed on one finding: action-bar "One set of actions, two
+widths": Tab navigation raised "Cannot access 'option' before initialization", with the page hot-updated mid-run. The
+Zen-Variables tokens sync regenerated tokens.css at about 22:12, and a peer edited PlatformTemplate.tsx during the run.
+- Cause: an import cycle, appLayer/shared.tsx → ../PlatformExamples + ../PlatformTemplate → … → appLayer/content.tsx,
+  which imports `option` from shared.tsx. An HMR update re-evaluates the modules mid-render (a TDZ error). A fresh load
+  is fine: `behaviour.mjs --pages=action-bar` found no error-level finding, and `npm run qa -- --pages=action-bar`
+  PASSED.
+- The behaviour probes and 1512/390 shots after 22:12 carry the new tokens. All 114 sheets were reviewed: the 23
+  batch-8 pages from their own run, and the other 34 from this one. Nothing my batches touched regressed.
+- Pre-existing issues seen in passing:
+  - Templates "Empty & error states" at 390: the Segmented labels collide ("No resultsFirst useLoad failed"). It is the
+    same in the batch-2 captures; a follow-up task was offered.
+  - Tables clip at 390, and "Docked inspector" is squeezed (already known).
+
 ## Locked interactions: the 22 interaction-rule warnings (session "Wire the 22 interaction-rule warnings")
 
 The user asked to wire the 22 pre-existing warnings of `interaction/no-noop-handler` and
@@ -457,3 +472,337 @@ paddings on lines I touched in ButtonMobileFooterExample are tokens now.
 - "Full-height with search": the Search in the sheet does not filter the settings list.
 - `style:check --baseline-update` not run for the two tokenised paddings. The style-debt session, which is editing
   PlatformShowcases.tsx now, owns that baseline.
+
+## Token sync: Zen-Variables.zip (session "Zen-Variables tokens update")
+
+The user sent `~/Desktop/Zen-Variables.zip`: four Figma variable exports, dated 2026-09-28 14:59. They are Global
+Colors, Component Theme, Emphasis Level and Typography Configuration. Each was copied verbatim (plus a trailing newline)
+into `tokens/source/figma/{global-colors,component-theme,emphasis-level,typography-configuration}.json`.
+
+| Collection | Tokens | Modes | Added | Removed | Changed |
+| --- | --- | --- | --- | --- | --- |
+| Global Colors | 1,152 → 1,152 | Zen | 0 | 0 | 4 values (below) |
+| Component Theme | 112 → 113 | 5 → 6 (+ `Neutral - S4`) | `Input/Border/Disabled` | 0 | 0 in the existing modes (token order changed) |
+| Emphasis Level | 6 → 6 | 2 → 3 (+ `Light`) | 0 | 0 | 0 |
+| Typography Configuration | 78 → 78 | unchanged | 0 | 0 | 75 values (Dashboard and Mobile; Popular unchanged) |
+
+- The total goes from 2,367 to 2,368. `tokens:check` is clean: 0 duplicates, missing modes, missing aliases or cycles.
+- The Global Colors changes are all Light greys at step 11:
+  - `Light/Gray/11`: #606060 → #4F4F4F;
+  - `Light/Gray-Alpha/11`: #0000009F → #000000B0;
+  - `Light/Neutral-Ananas/11`: #59645D → #49554E;
+  - `Light/Neutral-Ananas-Alpha/11`: #001106A6 → #001107B6.
+- Neutral-S4 differs from Neutral-S1 in 11 tokens:
+  - Input fills use Surface/Default.
+  - Input borders use Border/Neutral/Subtle (Default and Hover).
+  - The Input inner shadows are transparent.
+  - `Input/Border/Disabled` is Color/Border/Disabled; it is transparent in S1–S3.
+  - Chip-Secondary selected uses the Active/Neutral/Subtle fill, the Subtle border and the Secondary border weight.
+- Emphasis Light: Bold 500, Semi-Bold 450, Medium 450, Regular 400; both active strokes are 1px.
+
+### Consumers (token → where → before/after)
+
+- **Grey/11.** `Light/Neutral(-Alpha)/11` feeds the following, all value changes that need no wiring:
+  - Color/Content/Neutral/Base (Light); On-White-Overlay/Base; Inverse/Base (Dark);
+  - Background/Neutral/Solid/Hover, Border/Neutral/Solid/Hover and Black-Solid/Hover. Those feed the Button
+    Primary/Accent hover, the selected-hover of Chip, Checkbox, Radio, Toggle, Segmented and DatePicker, and
+    Tab/Content/Hover.
+  - Neutral-Ananas/11 has no consumer.
+- **Typography.** Every `zen-type-*` class and every direct `--zen-typography-*` use; value changes only.
+  - The platform chrome's Zen-Platform block in platform.css is a separate mode that this export does not contain, so it
+    is untouched.
+- **`Input/Border/Disabled`.** Wired in `src/components/Input/input.css`, on the disabled field:
+  `--zen-input-field-border: var(--zen-input-border-disabled)`.
+  - Before, the field kept Input/Border/Default.
+  - S1–S3 look the same (both transparent). S4 shows the Color/Border/Disabled outline.
+  - No Disabled variant was added (house rule: inputs use Read-only).
+- **`Neutral - S4`.** The generated selector is `[data-component-theme="neutral-s4"]`. Wired into:
+  - `zenComponentThemes` (ZenProvider);
+  - `PlatformShellSettings` and the topbar chip (PlatformTemplate);
+  - the Storybook toolbar;
+  - the provider API line in `guidelines.source.mjs` (then `guidelines:build`);
+  - the getting-started table.
+- **Emphasis `Light`.** Wired into the same places: `zenEmphases`, topbar, Storybook, docs.
+  - `src/foundations/TokenTableView.tsx` labelled any "Light"/"Dark" mode as "… Colors", so the Emphasis tab read
+    "Light Colors". The suffix now applies only in a Light + Dark collection.
+
+### Text-style snapshots
+
+`styles:build` failed after the sync. `build-text-styles.mjs` checks the resolved Dashboard size and tracking in
+`styles/source/figma/text-styles.json` against the Dashboard variables, and they no longer matched.
+
+- All 36 text styles bind Typography variables. The resolved numbers were therefore re-derived from the bound
+  variables with a scratch script; the round-trip formatting is identical, so the diffs show only values.
+  - `text-styles.json`: 31 values.
+  - `figma-styles.full.json`: 50 values (fontSize, lineHeight, letterSpacing, paragraphSpacing).
+  - `styles.json`: 44 values.
+- This is not a re-export. A fresh Styles export should confirm the values.
+- `styles:build` and `styles:check` pass.
+
+### HeadingField and the Figma contract
+
+After the sync, `run-all` failed on two suites:
+
+- `.Chip/Trailing`: the XSmall badge's Caption label, 12 vs 16.
+- Input/Heading: root 32 vs 28, Container 48 vs 44, and the placeholder text.
+
+The fixes:
+
+- **HeadingField height.** Figma binds the root height to Input/Size/Heading-H1–H3 in every single-line status. That
+  is Component Size, unchanged: 40/36/32 in Compact, 44/40/36 in Comfortable. Figma fixes the Container at that
+  +16 and centres the text.
+  - Code used the text's line box instead, which only matched while the Heading line heights equalled those sizes.
+  - `input.css` now gives the single-line input
+    `min-height: calc(var(--zen-input-size-heading-hN) + 2 × Padding/XSmall)`. It is min-height, so a taller Mobile
+    line box grows the field instead of clipping.
+  - The `multiline` textarea still hugs its text, as Figma's Inputted-Multi-Line does.
+- **Placeholder text exception.** In `suites/input-heading.mjs` it is now pinned to the new Heading/1–3 size and
+  tracking (28/25/22px, −0.56/−0.5/−0.44px).
+- **"Stale capture" exceptions**, not Figma inconsistencies:
+  - `suites/chip-trailing.mjs`: the Caption badge label (captured at line height 12).
+  - `suites/input-heading.mjs`: the Inputted-Multi-Line hugged heights (captured at 40/36/32).
+  - Re-capture `checkbox-radio-chip-popover.json` and `input-search.json`, then drop them.
+- All suites are green again.
+
+### Docs
+
+- `figma.collections.json`: counts, modes and the sync note.
+- `design-system-context.md`: the table and the 2026-09-28 notes.
+- `token-architecture.md`: the mode axes and the counts.
+- `getting-started.md` and the README count.
+- CHANGELOG:
+  - Added: the new modes.
+  - Changed: typography/colour and the HeadingField height.
+  - The Fixed line about the HeadingField line box was reworded.
+- HANDOFF: the Tokens line and the re-capture open item.
+- `guidelines:build` regenerated `docs/api` and the guidelines. It also picked up a peer's in-progress rule,
+  `interaction/action-without-handler`; that peer reruns it when done.
+
+### Gates
+
+- **`npm run qa -- --all`** (61 pages; report `.qa/reports/2026-09-28T15-25-59-f6051f48.md`). Every static gate
+  passed: tsc, style/usage guard, selftests, guidelines, Figma contracts, `npm test`, tokens/styles checks. The
+  behaviour probes had 0 findings. The audit found 3 errors, all fixed:
+  - **Sidebar small-density "Kaiz" badge.** This is baselined debt: Body/Small ×5/6 = 10/13.33, which Figma scales.
+    Its message changed only because the "nearest" styles are now caption-bold 11/16 and label-small-bold 9/12.
+    The two keys in `tools/platform-audit/quality-baseline.json` were re-keyed to the new message.
+  - **Layout "Title and actions row" at 390, Comfortable.** Button labels lost their negative tracking, so the pair
+    grew about 5px and overflowed by 3.3px. The actions Stack now wraps (`src/platform/appLayer/layout.tsx`, the
+    example and its code). The peer that wires those examples was told.
+- The 94 warnings are all known: avatar-initial contrast (2.70–2.93:1) and small targets (chat reactions, input label
+  tooltip, Glass over media). Every one is in earlier reports.
+- **Contact-sheet review** (all 1512 and 390 sheets of the verify run, plus button, templates and typography from the
+  `--all` run):
+  - Card "Surfaces" broke "Theme=shadow" mid-word at 1512: Caption is now 11px, in 100px tiles. The fix is
+    `.pe-card-grid--surfaces` minmax 100 → 120px in `platform.css`.
+  - Nothing else looked off: headings, button labels, inputs and templates all read well at the new sizes.
+- **Verify runs:**
+  - `npm run qa -- --pages=sidebar,layout,design-tokens,typography,input,overviews` (+ the representative set):
+    **PASS**, audit 0 errors.
+  - `npm run qa -- --pages=card`: **PASS**, 0 errors and 0 warnings, dark included.
+- **Build:**
+  - Library: `vite build --config vite.lib.config.ts`, then lib CSS and types (CSS 64.0 KB gz), then the platform
+    `vite build`.
+  - The generators were not re-run, so the shared dev server did not reload; they had already run after the last
+    source edit.
+  - `npm pack --ignore-scripts` then `verify:package --no-pack`: Package OK (all 19 checks).
+- **Browser checks** in this session's preview:
+  - Neutral-S4: input fill #FFFFFF, border Subtle, `--zen-input-border-disabled` #EFEFEF; Chip-Secondary selected
+    tokens resolve.
+  - Emphasis Light: Bold 500, Medium 450, Regular 400, stroke 1px.
+  - Typography gallery: Display/1 45/52, Heading/1 28/36, Heading/3 22/28, Caption 11/16, Label/Small 9/12,
+    Button-Label/M 14/20, 0 tracking.
+  - The Component Theme and Emphasis token pages show the new modes.
+
+## Segmented overflow: Templates › "Empty & error states" at 390px (session "Fix Segmented label collision in Empty & error template")
+
+### Symptom
+
+- At 390 the template's Segmented (404 · No results · First use · Load failed) read "404 No resultsFirst useLoad
+  failed" (`.platform-shots/templates-390.png`).
+- The visual-diff captures from earlier the same day show the same thing, so it predates the style-guard work.
+
+### Cause: Segmented, not the template
+
+- The four segments need 313px in Compact and 329px in Comfortable. The template's column at 390 is 236px, because
+  the platform frames it with card and stage padding. A real phone at 390 has about 358px, so it would fit there.
+- `.zen-segmented` had `max-width: 100%; overflow: hidden`, and its items had `min-width: 0` with the default
+  `flex-shrink: 1`. The items therefore shrank below their labels ("No results" went from 87 to 65px).
+- Outside `fullWidth`, the labels are nowrap with no ellipsis, so each one ran into the next segment.
+- Any hugging Segmented narrower than its options did this. The visual diff found two more:
+  - The Segmented playground at 390, with icons on: the leading icons were squeezed away. "Tokens" kept only a dot.
+  - Chart "Budget allocation": the labels touched each other.
+
+### The pattern chosen: sideways scroll
+
+- The DS already scrolls option strips on a phone:
+  - Tabs: `overflow-x: auto; scrollbar-width: none`.
+  - The chip filter row (`docs/guides/example-patterns.md`): scrolls sideways, no scrollbar.
+- Figma: the Segmented container hugs and clips (`clip: true`, HUG). Its description says 2–5 options and "more than 5
+  → Select/Dropdown". It says nothing about narrow widths.
+  - The live file could not be read: no Figma MCP in this session. The data comes from
+    `docs/figma-contracts/segmented-toggle-badge-avatarstack.json`.
+- Options rejected:
+  - Shorter labels: they would have to lose 77px, and Comfortable adds 16px more. "404 / Empty / New / Error" loses
+    the meaning.
+  - A Select on narrow widths: no Zen component switches components by width. It would also put a matchMedia hook in
+    a template that promises "only Zen components".
+  - `fullWidth`: four equal shares of 236px cut three labels down to "No r…".
+
+### Change
+
+- `segmented.css`:
+  - The container gets `overflow-x: auto; overflow-y: hidden; scrollbar-width: none` and
+    `::-webkit-scrollbar { display: none }`. The items get `flex-shrink: 0`.
+  - `fullWidth` and the Top Navigation control bar still set `flex: 1 1 0` and ellipsize; their rules override the
+    shrink.
+  - No new tokens and no raw values.
+- `Segmented.tsx`: a layout effect scrolls the selected segment into view inside the group.
+  - It runs when the selected element changes, including on mount, and only when the group overflows.
+  - It keeps the 2XSmall padding as the inset.
+  - It does not call `scrollIntoView`, which would scroll the page too.
+- The template is unchanged: 4 options with one- or two-word labels are within the guideline.
+- Guideline (`guidelines.source.mjs` → `guidelines:build`):
+  - an "Overflow (code only)" row;
+  - a Do: elsewhere on a phone, keep the full labels and let it scroll; use `fullWidth` only when every label fits
+    its share;
+  - a Don't: never abbreviate or shrink the labels; past 5 options or long labels, switch to Tabs or SelectField;
+  - an a11y line.
+- Test, `tests/interaction/controls.test.tsx` "Segmented scrolls sideways…", in a 200px column:
+  - the group scrolls;
+  - every item has scrollWidth ≤ clientWidth;
+  - no two items overlap;
+  - the selected last item is in view.
+  - Checked: the assertion fails when the old CSS is injected.
+
+### Verification
+
+- `npm run qa -- --pages=templates,segmented`:
+  - Passed: tsc, style-guard (0 new), usage-guard, guidelines in sync, figma-contract, `npm test`.
+  - Audit 1512 + 390 with smoke, quality and density: 0 errors. Dark: 0. Behaviour: 0.
+  - The first run's usage self-test failure came from a peer's in-progress rule `interaction/action-without-handler`
+    flagging `fixtures/good.tsx`. The peer fixed it, and the rerun is **PASS**
+    (`.qa/reports/2026-09-28T16-00-26-63bcc004.md`). All four contact sheets were opened and reviewed.
+  - ⚠ Example coverage for segmented is from before this fix: 3 examples, no states or mobile example.
+- Visual diff before/after on segmented, templates, chart, top-navigation, alert-banner, card, metric, action-bar and
+  image, at 1512 and 390:
+  - 110 panels identical, 4 changed, all at 390, all fixes: the template, the Segmented playground, Chart "Expense
+    trends" (5px overflow) and Chart "Budget allocation".
+  - Nothing changed at 1512, in the Top Navigation control bar or in `fullWidth`.
+- Component Size set to Comfortable in the platform topbar:
+  - 1512: 329px, no overflow.
+  - 390: 236px wide with 329px of content. Items at x = 4 / 55 / 147 / 228, no overlap, no page overflow.
+  - Selecting "Load failed" scrolls it fully into view (right edge 4px inside); "404" scrolls back to 0.
+
+### Open
+
+- **No overflow hint.** In Comfortable at 390, the fourth segment starts exactly at the edge, so nothing shows that
+  there are more.
+  - Tabs and the chip rows behave the same way.
+  - Figma has no fade or peek spec. This is a question for the designer (HANDOFF open items).
+- **The audit missed the overlap.** The overflow sat inside `overflow: hidden`, which the audit skips as clipped.
+  - A quality check for text wider than its own box without an ellipsis would catch this class of bug.
+  - Owner: "Quy trình kiểm tra Component build".
+
+## Handler-less actions: `interaction/action-without-handler` and the wiring (session "Catch and wire handler-less example actions")
+
+The user asked for a harness rule that lists actions passed with no handler at all (which `interaction/no-noop-handler`
+cannot see), and for the examples it lists to be wired so each action does something visible (example-patterns §3b),
+code samples included. After the rule landed, a peer relayed the user's change of cadence: wire every page first, then
+run one full `npm run qa` and the behaviour probes at the end (instead of after each batch).
+
+### The rule
+
+- `interaction/action-without-handler` (warn, `repoOnly`: judges the repo's examples, playgrounds, templates and
+  fixtures, never apps and never `src/components`; code samples and stories are skipped):
+  - a `Button` or raw `<button>` without `onClick` / `href` / `to` / `form` / `type="submit"` (or a pointer handler).
+    Spreads, `disabled` / `loading` pinned on, `aria-disabled` / `aria-hidden`, and Menu triggers pass (a Button
+    anywhere inside `trigger={…}`, a ternary included, or a variable used as `trigger={t}`).
+  - an action object without `onClick` (or `onSelect` / `href` / `to` / a spread / `type: "submit"`) in TopNavigation
+    `leading` / `trailing` / `largeTitleAction`, TopNavigationActionButton `action`, BottomNavigation `action`,
+    EmptyState and ActionBar `primaryAction` / `secondaryAction`, AlertBanner / InlineMessage / Toast `action`,
+    Card / MetricCard `subAction`, AiChatBubble `actions`, AiChatBlock `suggestions`, and ModalActions without
+    `onDefault`. The list was checked against docs/api: every prop whose type carries `onClick?`.
+  - pressable `items` whose list has no handler: Menu `onSelect`, Breadcrumbs `onNavigate` (the last crumb is the
+    current page), Sidebar / SidebarSubMenu `onItemClick` (literal entries without `href`); BottomSheet `type="action"`,
+    Popover and BottomNavigation (without `value`) whatever the list holds, since their entries cannot carry a handler.
+  - documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions without `onClick` close the overlay
+    (ModalActions `onDefault`).
+- Code samples are found with a template-aware scan (`templateText`), not the backtick count: a sample nested in a
+  playground's generated code (`${flag ? `<IconButton …>` : ""}`) counts as a sample too.
+- IconButton stays with `icon-button/needs-action`. That rule had a false negative: it treated any `${…}` in the
+  attributes as an opaque code sample, so live IconButtons with template-literal labels (`aria-label={`Edit ${name}`}`)
+  were never checked. It now treats `${…}` / `…` as opaque only inside a code sample: 6 dead IconButtons surfaced
+  (List item "Trailing actions" Resend, Table "Sortable members" Edit, Tooltip "Image annotations", three playgrounds).
+- engine.mjs: JSX checks get `file`; `repoOnly` rules are skipped in app mode (CLI `--consumer`, ESLint plugin, MCP
+  `check_usage`). **Fixed a scanner bug:** a glob in a string (`accept="image/*"`) opened a `/* … */` "comment" that hid
+  every tag up to the next `*/` from all rules — 70 lines of PlatformShowcases.tsx (the Uploader examples), which hid a
+  no-op `onRemove`, and two cases in fixtures/good.tsx. A comment now opens only after whitespace or punctuation.
+- Fixtures: 6 `expect:` cases in bad.tsx, 9 clean cases in good.tsx (handlers, a Dialog secondary without onClick, a
+  Menu trigger, a Breadcrumbs href, a Sidebar footer button, a submit, a pinned-disabled Button, a code sample). The
+  existing cases for other rules got handlers (23 in bad.tsx, 17 in good.tsx) so they stay about their own rule.
+- `npm run usage:selftest` 145 rules ✓, `npm run mcp:selftest` ✓, guidelines rebuilt (the rule shows in 17 guideline
+  tables); `docs/guides/example-patterns.md` §3b.
+
+### The wiring
+
+`npm run usage:check`: 96 findings (89 action-without-handler, 6 needs-action, 1 no-op) → 3 (the platform chrome, below).
+
+| Area | Now |
+| --- | --- |
+| Top navigation (mobile) | Collapse on scroll: New message opens a compose sheet; Send starts the conversation on top. Home with avatar: the bell opens Notifications and clears the dot; Settings opens a settings sheet. Over media: Close goes back to the album (a photo reopens the viewer), Share opens a share sheet, Like toggles. Control bar: Back goes up to Drive (its Files row returns), Upload opens a source sheet and adds the file on top |
+| Bottom navigation / sheet | Floating: the Create pick confirms a draft on top of the feed. Labels + accent: Create opens New project; the project lands on top, opened. Long content: Back goes up to the cart |
+| AI chat | Copy writes the answer to the clipboard and confirms in place (check, "Copied") in Streaming, Feedback and Error; the playground's suggestions ask, Copy / Edit / thumbs / Regenerate work ("More actions" left the playground: it is not in the component's documented actions) |
+| Phone Back (Button "Mobile footer CTA", Chip "Mobile filter row", Text "Mobile typography") | goes up to a parent screen (Cart, Explore, Orders) whose row comes back; focus lands on the new screen's control (`usePhoneScreen()`) |
+| Sidebar | Footer Settings / Help / Templates / Trash open their pages (aria-current); New project creates and opens a project; New page adds an untitled private page; Share, Invite, Invite people, Message and New task open a one-field dialog; ShellDoc Copy link confirms, Share opens a dialog |
+| Desktop examples | Export and Duplicate confirm with a toast; Share / Invite / New project / Compose / Continue with email open `DemoFieldDialog`; Publish toggles (Unpublish); Reserve → Change dates; Upgrade storage → 100 GB; Plan picker CTA switches the plan (its caption then says "Your plan", the CTA reads "Current plan" and focus returns to its radio); Manage plan and Open file open details; View plans upgrades (then Manage plan); KPI ⋯ and View failed payments open the numbers in a report Side Panel; Table Edit opens a role dialog; Resend confirms in the caption; App launcher tiles open a summary; truncated names and annotation pins pin their tooltip on click; Label variants' action copies; Delete workspace asks in a Negative dialog and can be restored; Uploader Cancel stops the upload and offers it again |
+| Breadcrumbs "In-page sections" | the crumbs move between sections (the instruction line under it is gone) |
+| Templates | Dashboard Export / New project (a ModalForm; the project lands in Top projects) / Notifications; Admin list and Detail page sidebars select |
+| Playgrounds | each action logs the handler it ran under the preview; the Button/IconButton specimen is `zen-allow` (the component being configured) |
+
+- Components: **TopNavigation** keys trailing actions by position, so a label that changes (a count clearing, Like →
+  Unlike) no longer remounts the button and drops focus (the behaviour probe caught it on "Home with avatar").
+- Platform helpers: `DemoFieldDialog` (`src/platform/PlatformDemoActions.tsx`), `usePhoneScreen()`
+  (`PlatformPhone.tsx`), `useFocusAfter()` and `ShellFooter` / `ShellFooterPage` (PlatformShowcases.tsx),
+  `useCopyAction()` (PlatformMobileShowcases.tsx).
+- Playground toasts: a playground panel has no ToastProvider (each example card has its own ZenProvider), so
+  `useToast()` there throws — App Shell and Page Header playgrounds crashed until they used in-place changes.
+
+### Verification
+
+- Cadence: batches 1–4 (mobile · PlatformShowcases · app layer, Typography and templates · playgrounds) were checked with
+  tsc, `usage:check`, `style:check` and read-only behaviour probes while wiring; the full gate ran once at the end, as
+  the user decided (relayed by "Đánh giá Zen DS hiện tại (fork)").
+- The mid-way probes caught three bugs before the gate: the TopNavigation focus drop above; the App Shell and Page
+  Header playgrounds crashing on `useToast()`; and "Collapse on scroll" Search, whose action did nothing while the bar
+  was already expanded (it now focuses the field). A scratch Playwright load check of the 32 touched pages then found
+  no page errors.
+- `npx tsc --noEmit -p .` clean · `npm run usage:check` 96 → 3 warnings · `npm run usage:selftest` 145 rules ✓ ·
+  `npm run mcp:selftest` 9 tools ✓ · `npm run style:check` 0 new · `npm run guidelines:build` + `guidelines:check` ✓.
+- `npm run qa -- --pages=<31 touched pages>` **PASS** (`.qa/reports/2026-09-28T15-57-41-4f86a2e6.md`): static incl.
+  Figma contracts and Vitest; runtime 1512 + 390 with smoke, quality and density 0 errors; dark 0 errors; behaviour
+  0 new (7 known). All 62 contact sheets opened. States the sheets do not show were shot and opened: Drive and the
+  album after Back / Close, the Notifications sheet, the Invite dialog, the KPI report panel, the Sidebar Trash page,
+  the Delete workspace dialog.
+- Two small edits after that run (a playground code-sample string; "4 persons" → "4 people" in App Shell / Page
+  Header) → `npm run qa -- --pages=list-item,page-header,app-shell` **PASS**
+  (`.qa/reports/2026-09-28T16-27-09-4f86a2e6.md`), its 6 sheets opened.
+- `node tools/platform-audit/behaviour.mjs --pages=<the 31 pages>`: "No new findings" (7 known). With
+  `--baseline-update`: 94 → 24 keys, **70 removed (all deadclick), 0 added, 0 changed** (diffed against a copy taken
+  just before); deadclick keys 75 → 5.
+- Kept warnings, all pre-existing classes: avatar-initial contrast (2.70–2.93:1) in ScreenList, ProjectList, the Bottom
+  Sheet and List Item playgrounds; BottomNavigation accent labels (1.92:1); Sidebar "A" (2.93:1); Dock Icon "On color"
+  (2.59:1); the small Alert Banner (2.93:1); 20px mobile chips, the Control-bar segments, the Glass icon button and
+  the Share sheet / Long content `sm` buttons; the 12px input-label tooltip; example-coverage gaps.
+
+### Open
+
+- Platform chrome (not examples): "Download Figma" (overview + sidebar footer) and "Feedback" have no destination; the
+  rule keeps them as its 3 warnings until the user gives the URLs.
+- Dead clicks that are component behaviour, not missing handlers:
+  - Chip "Counters": a number-only Chip renders a `<button>` with nothing to do.
+  - DatePicker "Report period": with `showActions`, Cancel and Submit both only `close()`; inline there is nothing to
+    close, and DatePicker has no `onApply` / `onCancel` to tell them apart.
+  - Input "Compose announcement": the editor bar's Redo is enabled with an empty history.
+  - Chat "Reply to any message": the quote only scrolls to the original; no feedback when it is already in view (Chat
+    owners).

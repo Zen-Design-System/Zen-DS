@@ -127,7 +127,7 @@
           "type": "(id: string) => void",
           "required": false,
           "default": null,
-          "description": "Pressing the quote; defaults to scrolling to `[data-message-id]` in the same thread and flashing it.",
+          "description": "Pressing the quote; defaults to scrolling to `[data-message-id]` in the same thread and flashing it. The quote of a\ndeleted message (`replyTo.kind` \"deleted\") is not pressable.",
           "deprecated": null
         },
         {
@@ -435,7 +435,7 @@
     {
       "name": "ChatReplyQuote",
       "file": "src/components/Chat/ChatReply.tsx",
-      "description": "In the thread: the quote above a reply bubble. `side` is the reply's side (it aligns with the reply);\n`replier` names who replied (\"You\" for your own replies) for the caption.",
+      "description": "In the thread: the quote above a reply bubble. `side` is the reply's side (it aligns with the reply);\n`replier` names who replied (\"You\" for your own replies) for the caption. Pressing the quote jumps to the original\n(`onJump`, or scroll + flash in the same thread); the quote of a deleted message (\"Message unavailable\") is plain\ntext with no hover, since there is nothing to jump to.",
       "deprecated": null,
       "extends": null,
       "props": [

@@ -67,7 +67,8 @@ export interface ChatMessageProps {
   id?: string;
   /** This message replies to another: a quote of the original sits above the bubble (ChatReplyQuote). */
   replyTo?: ChatReplyTarget;
-  /** Pressing the quote; defaults to scrolling to `[data-message-id]` in the same thread and flashing it. */
+  /** Pressing the quote; defaults to scrolling to `[data-message-id]` in the same thread and flashing it. The quote of a
+   * deleted message (`replyTo.kind` "deleted") is not pressable. */
   onJumpToReply?: (id: string) => void;
   /**
    * Hold to react (Figma Chat/Bubble/Focused/*, mobile): a long press, right-click, or Shift+F10 / the Menu key on the focused

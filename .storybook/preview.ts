@@ -39,7 +39,7 @@ const preview: Preview = {
       defaultValue: "neutral-s1",
       toolbar: {
         icon: "paintbrush",
-        items: ["neutral-s1", "brand-s1", "neutral-s2", "brand-s2", "neutral-s3"],
+        items: ["neutral-s1", "brand-s1", "neutral-s2", "brand-s2", "neutral-s3", "neutral-s4"],
       },
     },
     typography: {
@@ -63,7 +63,7 @@ const preview: Preview = {
       defaultValue: "medium",
       toolbar: {
         icon: "bold",
-        items: ["medium", "strong"],
+        items: ["medium", "strong", "light"],
       },
     },
   },

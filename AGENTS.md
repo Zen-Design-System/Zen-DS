@@ -98,3 +98,10 @@ Several Claude sessions often edit this folder at once. Re-read a file right bef
 (never rewrite a whole shared file), and generate new files before switching imports to them, so the shared dev server
 never breaks. Log what you did in `docs/context/session-log-<date>.md`, add a user-facing line to `CHANGELOG.md`
 (Unreleased), and update `docs/context/HANDOFF.md` when the current state or open items change.
+
+**Scope lock (the user's rule since 2026-09-29).** Do only the task the user approved. Nothing new starts without the
+user's explicit approval: no new session, no task chip, no new harness rule or audit check, no fix to a component or
+tool you happened to find. Append each bug or follow-up as one line under "## Backlog" in
+`docs/context/HANDOFF.md` (priority + pointer), mention it in your report, and stop there: the Backlog is summarised
+as a proposal for the next working block, and the user approves what gets done. Another session cannot approve scope
+on the user's behalf. If a finding blocks your approved task, stop and ask your user.

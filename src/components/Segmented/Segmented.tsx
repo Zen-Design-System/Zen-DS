@@ -1,4 +1,4 @@
-import { useState, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { typographyStyles } from "../../tokens/typography.generated";
 import { BadgeCounter } from "../Badge";
 import type { IconName } from "../Icon";
@@ -64,8 +64,27 @@ export function Segmented({ options, value, defaultValue, onValueChange, onChang
     onValueChange?.(next);
     onChange?.(next);
   };
+  const groupRef = useRef<HTMLDivElement>(null);
+  const shownRef = useRef<Element | null>(null);
+  // A Segmented wider than its container scrolls sideways (segmented.css). When the selection changes (or on mount),
+  // bring the selected segment into view inside the group only; scrollIntoView would scroll the page as well.
+  useLayoutEffect(() => {
+    const group = groupRef.current;
+    const item = group?.querySelector('.zen-segmented__item[data-selected="true"]');
+    if (!group || !item || item === shownRef.current) return;
+    shownRef.current = item;
+    if (group.scrollWidth <= group.clientWidth) return;
+    const box = group.getBoundingClientRect();
+    const rect = item.getBoundingClientRect();
+    // Rects are in screen pixels; scrollLeft and the padding are in the group's own CSS pixels. They differ under a scaled
+    // ancestor (a device preview's transform), where the segment would stop short of the edge, so convert.
+    const scale = box.width / group.offsetWidth || 1;
+    const inset = (parseFloat(getComputedStyle(group).paddingInlineStart) || 0) * scale;
+    if (rect.left < box.left + inset) group.scrollLeft -= (box.left + inset - rect.left) / scale;
+    else if (rect.right > box.right - inset) group.scrollLeft += (rect.right - (box.right - inset)) / scale;
+  });
   return (
-    <div className={["zen-segmented", className].filter(Boolean).join(" ")} data-level={level} data-size={size} data-full-width={fullWidth ? "true" : undefined} role="group" aria-label={ariaLabel}>
+    <div ref={groupRef} className={["zen-segmented", className].filter(Boolean).join(" ")} data-level={level} data-size={size} data-full-width={fullWidth ? "true" : undefined} role="group" aria-label={ariaLabel}>
       {options ? options.map((option) => <SegmentedItem key={option.id} level={level} selected={selectedValue === option.id} disabled={disabled || option.disabled || option.state === "disabled"} leading={option.leading} badge={option.badge} state={disabled ? "disabled" : option.state} size={size} aria-label={option["aria-label"]} onClick={() => select(option.id)}>{option.label}</SegmentedItem>) : children}
     </div>
   );

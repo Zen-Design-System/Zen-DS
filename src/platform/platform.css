@@ -781,7 +781,8 @@
 .platform-modal-side__icon > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
 .pe-anchor > .zen-card { justify-self: stretch; }
 .pe-card-grid { display: grid; width: 100%; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
-.pe-card-grid--surfaces { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+/* 120px: "Theme=semi-pale" in Caption (11px since the 2026-09-28 variables) plus Spacing=Small padding, unbroken. */
+.pe-card-grid--surfaces { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 .pe-app-grid { display: grid; grid-template-columns: repeat(3, 80px); gap: var(--zen-spacing-gap-medium, 16px); }
 .pe-app-tile { display: grid; justify-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-xsmall, 8px) 0; border-radius: var(--zen-corner-radius-base, 12px); background: transparent; }
 .pe-app-tile:hover { background: var(--zen-color-background-neutral-flat-hover); }

@@ -87,7 +87,8 @@
         "focus/visible-ring",
         "api/deprecated-prop",
         "icon/unknown-name",
-        "interaction/no-noop-handler"
+        "interaction/no-noop-handler",
+        "interaction/action-without-handler"
       ]
     },
     {
@@ -101,7 +102,7 @@
       "use": [
         "Filter/sort/scope/status/owner pickers (variant=\"advanced\" + popoverItems).",
         "Toggleable topic pills (variant=\"normal\", aria-pressed).",
-        "Counts in dense layouts (variant=\"number-only\")."
+        "Counts in dense layouts (variant=\"number-only\"): without onClick or selected it is a static count, not a button."
       ],
       "avoid": [
         "Primary actions → Button.",
@@ -145,6 +146,7 @@
       },
       "do": [
         "Use one Advanced chip per filter dimension (Status, Owner, Date).",
+        "Show a count with a Number-only chip and no handler: it renders as a static count (Figma: a compact indicator for counts). Give it onClick or selected only when pressing the number does something.",
         "Show the chosen value as the chip label for single selection; show the counter for multiple.",
         "Wire onClearSelection so Delete/Backspace and the × clear the filter.",
         "Offer \"Clear all\" (Tertiary button) when two or more filters are active.",
@@ -319,6 +321,7 @@
         "Show requirement rules (passwords, handles) as InputConditions under the field: Default before typing, then Success/Wrong live as the value changes.",
         "RichTextField: read content through onValueChange(html, text), store the HTML and render it through your sanitizer.",
         "RichTextField: keep the Control-Bar (editorBar) unless the surface is tiny.",
+        "RichTextField keeps its own undo history: Undo / Redo (⌘Z, ⇧⌘Z, Ctrl+Y) step through this field's edits only and are disabled while there is nothing to undo or redo; replacing `value` from outside (clearing after Post) starts a new history.",
         "HeadingField: set multiline when a title can run past one line, so it wraps instead of scrolling out of view."
       ],
       "dont": [
@@ -445,10 +448,12 @@
         "Keep the selected segment static: no hover and a default cursor, because one option is always selected and re-clicking it does nothing.",
         "Keep 2–5 options (harness: segmented/option-count).",
         "Name icon-only segments with \"aria-label\" on the option and mark the icon decorative (harness: segmented/icon-only-needs-name).",
-        "On mobile, stretch a Segmented to its container (fullWidth) in a Top Navigation control bar, a Bottom Sheet or a narrow panel, so the items share the width equally (harness: segmented/control-bar-full-width)."
+        "On mobile, stretch a Segmented to its container (fullWidth) in a Top Navigation control bar, a Bottom Sheet or a narrow panel, so the items share the width equally (harness: segmented/control-bar-full-width).",
+        "Elsewhere on a phone, keep the full labels and let a Segmented that outgrows the width scroll sideways; it does so on its own, like Tabs, and keeps the selected segment in view. Use fullWidth only when every label fits its equal share."
       ],
       "dont": [
         "Don't use Segmented as a filter.",
+        "Don't abbreviate labels or shrink the text to squeeze a Segmented onto a phone; past 5 options or long labels, switch to Tabs or SelectField.",
         "Don't mix icon-only and labelled items in one control.",
         "Don't add a hover or pressed state to the selected segment; it suggests the choice can be undone by clicking it again."
       ],
@@ -829,6 +834,7 @@
         "popover/explicit-open",
         "popover/bulk-action-limit",
         "interaction/no-noop-handler",
+        "interaction/action-without-handler",
         "focus/selected-fill-only"
       ]
     },
@@ -903,7 +909,8 @@
       "rules": [
         "sidebar/submenu-close",
         "interaction/no-noop-handler",
-        "interaction/controlled-needs-handler"
+        "interaction/controlled-needs-handler",
+        "interaction/action-without-handler"
       ]
     },
     {
@@ -926,11 +933,15 @@
           "open?: boolean = true",
           "value?: Date|null",
           "defaultValue?: Date|null = null",
+          "range?: DatePickerRange|null",
+          "defaultRange?: DatePickerRange|null = null",
           "month?: Date",
           "onValueChange?: (date: Date|null) => void",
           "onChange?: (date: Date|null) => void (deprecated)",
-          "onRangeChange?: (range: { start: Date; end: Date|null }) => void",
+          "onRangeChange?: (range: DatePickerRange) => void",
           "onMonthChange?: (month: Date) => void",
+          "onApply?: (value: Date|null, range: DatePickerRange|null) => void",
+          "onCancel?: () => void",
           "onClose?: () => void",
           "onOpenChange?: (open: boolean) => void",
           "anchorRef?: RefObject<HTMLElement|null>",
@@ -970,7 +981,8 @@
         "Let users type the date in the DateField; the calendar is a shortcut, not the only input.",
         "Use calendar=\"dual\" for ranges longer than a few days; single for one date.",
         "Use the month-year picker for dates far from today (billing periods, expiries).",
-        "Close the popover after a single date is picked (no actions) and return focus to the field."
+        "Close the popover after a single date is picked (no actions) and return focus to the field.",
+        "With showActions, commit in onApply(value, range): picks are a draft, Submit applies it and Cancel (or Escape) returns to the applied value. Inline, both stay disabled until there is a change, and Submit waits for a range's end date (harness: date-picker/actions-need-apply)."
       ],
       "dont": [
         "Don't open the calendar for read-only DateFields.",
@@ -985,7 +997,8 @@
         "input/placeholder-not-label",
         "api/deprecated-prop",
         "interaction/no-noop-handler",
-        "interaction/controlled-needs-handler"
+        "interaction/controlled-needs-handler",
+        "date-picker/actions-need-apply"
       ]
     },
     {
@@ -1129,7 +1142,8 @@
         "Don't show breadcrumbs on top-level pages (only one item)."
       ],
       "rules": [
-        "interaction/no-noop-handler"
+        "interaction/no-noop-handler",
+        "interaction/action-without-handler"
       ]
     },
     {
@@ -1336,7 +1350,8 @@
         "toast/needs-title",
         "toast/concise",
         "api/deprecated-prop",
-        "interaction/no-noop-handler"
+        "interaction/no-noop-handler",
+        "interaction/action-without-handler"
       ]
     },
     {
@@ -1383,7 +1398,8 @@
       "rules": [
         "alert-banner/small-no-action",
         "api/deprecated-prop",
-        "interaction/no-noop-handler"
+        "interaction/no-noop-handler",
+        "interaction/action-without-handler"
       ]
     },
     {
@@ -1629,7 +1645,8 @@
         "inline-message/custom-needs-visual",
         "api/deprecated-prop",
         "copy/plural-count",
-        "interaction/no-noop-handler"
+        "interaction/no-noop-handler",
+        "interaction/action-without-handler"
       ]
     },
     {
@@ -1681,7 +1698,8 @@
         "empty-state/way-out-tertiary",
         "icon/unknown-name",
         "copy/plural-count",
-        "interaction/no-noop-handler"
+        "interaction/no-noop-handler",
+        "interaction/action-without-handler"
       ]
     },
     {
@@ -1844,7 +1862,8 @@
       "rules": [
         "card/clickable-no-nested-controls",
         "api/deprecated-prop",
-        "interaction/no-noop-handler"
+        "interaction/no-noop-handler",
+        "interaction/action-without-handler"
       ]
     },
     {
@@ -2229,7 +2248,8 @@
       "rules": [
         "metric/formatted-value",
         "icon/unknown-name",
-        "interaction/no-noop-handler"
+        "interaction/no-noop-handler",
+        "interaction/action-without-handler"
       ]
     },
     {
@@ -2622,7 +2642,8 @@
         "segmented/control-bar-full-width",
         "top-navigation/max-two-trailing",
         "top-navigation/search-folds-to-action",
-        "interaction/no-noop-handler"
+        "interaction/no-noop-handler",
+        "interaction/action-without-handler"
       ]
     },
     {
@@ -2674,7 +2695,8 @@
       "rules": [
         "bottom-navigation/destinations",
         "interaction/no-noop-handler",
-        "interaction/controlled-needs-handler"
+        "interaction/controlled-needs-handler",
+        "interaction/action-without-handler"
       ]
     },
     {
@@ -2736,7 +2758,8 @@
         "bottom-sheet/action-needs-items",
         "api/deprecated-prop",
         "interaction/no-noop-handler",
-        "interaction/controlled-needs-handler"
+        "interaction/controlled-needs-handler",
+        "interaction/action-without-handler"
       ]
     },
     {
@@ -2945,7 +2968,8 @@
       ],
       "rules": [
         "ai-chat/no-actions-while-streaming",
-        "interaction/no-noop-handler"
+        "interaction/no-noop-handler",
+        "interaction/action-without-handler"
       ]
     },
     {
@@ -3473,7 +3497,8 @@
         "menu/not-for-selection",
         "menu/needs-trigger",
         "interaction/no-noop-handler",
-        "interaction/controlled-needs-handler"
+        "interaction/controlled-needs-handler",
+        "interaction/action-without-handler"
       ]
     },
     {
@@ -3497,10 +3522,10 @@
       "props": {
         "ZenProvider": [
           "theme?: light|dark|system",
-          "componentTheme?: neutral-s1|neutral-s2|neutral-s3|brand-s1|brand-s2",
+          "componentTheme?: neutral-s1|neutral-s2|neutral-s3|neutral-s4|brand-s1|brand-s2",
           "density?: compact|comfortable",
           "radius?: rounded|smooth|standard|luxury",
-          "emphasis?: medium|strong",
+          "emphasis?: medium|strong|light",
           "breakpoint?: auto|desktop|tablet|mobile",
           "typography?: dashboard|popular|mobile",
           "brand?: zen",
@@ -3643,7 +3668,8 @@
         "action-bar/one-primary",
         "action-bar/primary-order",
         "action-bar/full-width-size",
-        "interaction/no-noop-handler"
+        "interaction/no-noop-handler",
+        "interaction/action-without-handler"
       ]
     },
     {

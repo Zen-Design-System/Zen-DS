@@ -20,10 +20,10 @@ The root of every Zen UI. It sets the token modes (data-theme, data-density…),
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Theme | `theme` | light · dark · system (follows prefers-color-scheme) |
-| Component Theme | `componentTheme` | neutral-s1 (default) · neutral-s2 · neutral-s3 · brand-s1 · brand-s2 |
+| Component Theme | `componentTheme` | neutral-s1 (default) · neutral-s2 · neutral-s3 · neutral-s4 · brand-s1 · brand-s2 |
 | Density | `density` | compact (default, dashboards) · comfortable (touch, marketing) |
 | Radius | `radius` | rounded (default) · smooth · standard · luxury |
-| Emphasis | `emphasis` | medium (default) · strong |
+| Emphasis | `emphasis` | medium (default) · strong · light |
 | Breakpoint & Grids | `breakpoint` | auto (default on the root: < 744 mobile, < 1024 tablet) · desktop · tablet · mobile |
 | Typography Configuration | `typography` | dashboard (default, web apps) · mobile (phone apps) · popular (marketing) |
 | Language | `locale · labels` | BCP 47 (built in: en, vi): sets lang, date formats and every component's built-in text (aria-labels, Close, Next page, toolbar names); labels overrides single strings or adds a language |
@@ -40,10 +40,10 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "style" | "className" | "childre
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `theme` | `"light" \| "dark" \| "system"` | — | Colour mode. `system` follows the OS (prefers-color-scheme). Unset: inherit (the page default is light). |
-| `componentTheme` | `"neutral-s1" \| "neutral-s2" \| "neutral-s3" \| "brand-s1" \| "brand-s2"` | — | Component colour theme (Figma "Component Theme" mode). Default neutral-s1. |
+| `componentTheme` | `"neutral-s1" \| "neutral-s2" \| "neutral-s3" \| "neutral-s4" \| "brand-s1" \| "brand-s2"` | — | Component colour theme (Figma "Component Theme" mode). Default neutral-s1. |
 | `density` | `"compact" \| "comfortable"` | — | Spacing density. Default compact (dashboards); comfortable for touch-first or marketing layouts. |
 | `radius` | `"rounded" \| "smooth" \| "standard" \| "luxury"` | — | Corner-radius scale. Default rounded. |
-| `emphasis` | `"medium" \| "strong"` | — | Visual emphasis of surfaces and strokes. Default medium. |
+| `emphasis` | `"medium" \| "strong" \| "light"` | — | Font weights and active stroke widths (Figma "Emphasis Level" mode). Default medium; light is lighter, strong heavier. |
 | `breakpoint` | `"auto" \| "desktop" \| "tablet" \| "mobile"` | — | Layout tokens (page margin, gutter, modal/card padding). `auto` follows the viewport: < 744px mobile, < 1024px tablet, else desktop. Default: `auto` on the outermost provider, inherited in nested ones. |
 | `typography` | `"dashboard" \| "popular" \| "mobile"` | — | Text-style scale. dashboard (default) for web apps, mobile for phone apps, popular for marketing pages. |
 | `brand` | `"zen"` | — |  |

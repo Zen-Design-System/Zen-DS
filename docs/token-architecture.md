@@ -23,6 +23,8 @@ Modes remain independent to avoid a Cartesian product of every theme combination
 | Density | Compact, Comfortable | `data-density` |
 | Brand | Zen | `data-brand` (reserved; currently one mode) |
 | Shape | Rounded, Smooth, Standard, Luxury | `data-radius` |
+| Component theme | Neutral - S1, Brand - S1, Neutral - S2, Brand - S2, Neutral - S3, Neutral - S4 | `data-component-theme` |
+| Emphasis | Medium, Strong, Light | `data-emphasis` |
 | Breakpoint | Desktop, Tablet, Mobile | Media queries |
 | Typography | Dashboard, Popular, Mobile | `data-typography` |
 
@@ -49,4 +51,4 @@ Names remain stable even if the resolved value changes.
 
 ## Current synchronization status
 
-The imported export contains 11 collections and 2,367 variables. The current `Component Theme` export has 112 tokens and `Component Size` has 194 tokens. Validation confirms there are no duplicate names, missing mode values, missing alias targets or alias cycles.
+The imported export contains 11 collections and 2,368 variables (last sync 2026-09-28). The current `Component Theme` export has 113 tokens in 6 modes and `Component Size` has 194 tokens. Validation confirms there are no duplicate names, missing mode values, missing alias targets or alias cycles.

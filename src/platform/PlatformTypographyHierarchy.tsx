@@ -1,16 +1,20 @@
 import { useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { Badge } from "../components/Badge";
+import { BottomSheet } from "../components/BottomSheet";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
 import { DescriptionList } from "../components/DescriptionList";
+import { InputField } from "../components/Input";
 import { Stack } from "../components/Layout";
 import { List, ListItem } from "../components/ListItem";
 import { PageHeader } from "../components/PageHeader";
-import { Heading, Text } from "../components/Text";
+import { Heading, Text, plural } from "../components/Text";
+import { useToast } from "../components/Toast";
 import { TopNavigation } from "../components/TopNavigation";
 import { typographyStyles } from "../tokens/typography.generated";
 import type { ExampleDef } from "./appLayer/types";
 import { PlatformPhone } from "./PlatformPhone";
+import { DemoFieldDialog } from "./PlatformDemoActions";
 
 /*
  * Typography › Content hierarchy: which heading and text style each kind of content takes on each kind of page.
@@ -72,12 +76,13 @@ function Demo({ children }: { children: ReactNode }) {
 
 /** Master page (a sidebar destination): h1 Heading/1 → h2 Heading/4 sections → h3 Heading/Subheading cards. */
 function MasterPageExample() {
+  const { toast } = useToast();
   const [requests, setRequests] = useState(3);
   return (
     <Demo>
       <div className="pth-page">
         <PageHeader title="Workbench" description="Requests and balances for the Design team."
-          actions={<><Button level="tertiary" size="sm">Export</Button><Button level="primary" size="sm" onClick={() => setRequests((count) => count + 1)}>New request</Button></>} />
+          actions={<><Button level="tertiary" size="sm" onClick={() => toast({ type: "positive", title: `Exported ${plural(requests, "request")} as CSV` })}>Export</Button><Button level="primary" size="sm" onClick={() => setRequests((count) => count + 1)}>New request</Button></>} />
         <section className="pth-section">
           <Heading level={2} textStyle="Heading/4">Time off</Heading>
           <div className="pth-cards">
@@ -109,15 +114,18 @@ function MasterPageExample() {
 /** Child page (an item under a master page): Back named after the parent, the item's name as h1 Heading/1, same section ladder. */
 function ChildPageExample() {
   const [back, setBack] = useState(false);
+  // Edit changes the dates; the description and details follow.
+  const [dates, setDates] = useState("14–16 October");
+  const [editing, setEditing] = useState(false);
   return (
     <Demo>
       <div className="pth-page">
         <PageHeader back={{ label: back ? "Time off (pressed)" : "Time off", onClick: () => setBack(true) }} title="Annual leave"
-          meta={<Badge size="small" theme="green" background="subtle">Approved</Badge>} description="Ava Chen · 3 days, 14–16 October."
-          actions={<><Button level="tertiary" size="sm">Edit</Button></>} />
+          meta={<Badge size="small" theme="green" background="subtle">Approved</Badge>} description={`Ava Chen · 3 days, ${dates}.`}
+          actions={<><Button level="tertiary" size="sm" onClick={() => setEditing(true)}>Edit</Button></>} />
         <section className="pth-section">
           <Heading level={2} textStyle="Heading/4">Details</Heading>
-          <DescriptionList items={[{ term: "Type", description: "Annual leave" }, { term: "Dates", description: "14–16 October" }, { term: "Approver", description: "Chi Tran" }]} />
+          <DescriptionList items={[{ term: "Type", description: "Annual leave" }, { term: "Dates", description: dates }, { term: "Approver", description: "Chi Tran" }]} />
         </section>
         <section className="pth-section">
           <Heading level={2} textStyle="Heading/4">Activity</Heading>
@@ -127,6 +135,8 @@ function ChildPageExample() {
           </List>
         </section>
       </div>
+      <DemoFieldDialog open={editing} onOpenChange={setEditing} title="Edit request" description="Chi Tran approves the change again."
+        field={{ kind: "name", label: "Dates", placeholder: dates }} submitLabel="Save" confirm={(value) => `Dates changed to ${value}`} onSubmit={setDates} />
     </Demo>
   );
 }
@@ -134,10 +144,14 @@ function ChildPageExample() {
 /** Master screen on a phone (a tab root): TopNavigation large title = h1 Heading/1, collapsing into the Body/Extra/Bold bar title. */
 function MasterScreenExample() {
   const [collapsed, setCollapsed] = useState(false);
+  // New message opens a compose sheet; the new chat lands on top of All chats.
+  const [composing, setComposing] = useState(false);
+  const [to, setTo] = useState("");
+  const [started, setStarted] = useState<string[]>([]);
   const chats = [["Design team", "Chi: Standup moved to 10:30", "09:41"], ["Ava Chen", "Did you get the brand files?", "09:12"], ["Bao Nguyen", "Merged the token PR", "Yesterday"], ["Duy Le", "Can you review the icons?", "Mon"], ["Emi Sato", "Lunch at 12?", "Sun"], ["Finn Walker", "Slides are in the shared folder", "Sat"], ["Gia Pham", "Can we move the review?", "Fri"], ["Hana Kim", "Invoice sent", "Thu"], ["Ivy Tran", "See you at the launch", "Wed"], ["Khoa Vo", "The build is green", "Tue"], ["Linh Do", "Can you share the deck?", "Mon"], ["Minh Ho", "Booked the room", "12 Sep"], ["Nam Bui", "Thanks for the notes", "11 Sep"], ["Oanh Ly", "Photos from the event", "10 Sep"]];
   return (
     <Demo>
-      <PlatformPhone label="Master screen" header={<TopNavigation title="Chats" largeTitle="Chats" collapsed={collapsed} trailing={[{ icon: "icon-edit-02-line", label: "New message" }]} />}>
+      <PlatformPhone label="Master screen" header={<TopNavigation title="Chats" largeTitle="Chats" collapsed={collapsed} trailing={[{ icon: "icon-edit-02-line", label: "New message", onClick: () => setComposing(true) }]} />}>
         <div className="pe-phone-scroll" onScroll={(event) => setCollapsed(event.currentTarget.scrollTop > 24)}>
           <Heading level={2} textStyle="Body/Small/Bold" tone="base" className="pth-list-head">Pinned</Heading>
           <List aria-label="Pinned chats">
@@ -145,9 +159,13 @@ function MasterScreenExample() {
           </List>
           <Heading level={2} textStyle="Body/Small/Bold" tone="base" className="pth-list-head">All chats</Heading>
           <List aria-label="All chats">
-            {chats.slice(1).map(([name, preview, time]) => <ListItem key={name} title={name} caption={preview} trailing={<Text as="span" textStyle="Caption/Regular" tone="light">{time}</Text>} />)}
+            {[...started.map((name) => [name, "You: Hi!", "Now"]), ...chats.slice(1)].map(([name, preview, time]) => <ListItem key={name} title={name} caption={preview} trailing={<Text as="span" textStyle="Caption/Regular" tone="light">{time}</Text>} />)}
           </List>
         </div>
+        <BottomSheet inline open={composing} onOpenChange={setComposing} title="New message"
+          primaryAction={{ label: "Start chat", disabled: !to.trim() || started.includes(to.trim()), onClick: () => { setStarted((list) => [to.trim(), ...list]); setTo(""); setComposing(false); } }} secondaryAction={{ label: "Cancel" }}>
+          <InputField label="To" placeholder="Name or email" value={to} onValueChange={setTo} data-autofocus="" />
+        </BottomSheet>
       </PlatformPhone>
     </Demo>
   );
@@ -276,7 +294,7 @@ export const typographyHierarchyExamples: ExampleDef[] = [
   meta={<Badge theme="green">Approved</Badge>} description="Ava Chen · 3 days, 14–16 October." />
 <Heading level={2} textStyle="Heading/4">Details</Heading>
 <Heading level={2} textStyle="Heading/4">Activity</Heading>` },
-  { title: "Master screen · phone", wide: true, description: "A tab root: the TopNavigation large title is the h1 (Heading/1) and folds into the Body/Extra/Bold bar title as you scroll; list group headers are h2 in Body/Small/Bold.", render: () => <MasterScreenExample />, code: `<TopNavigation title="Chats" largeTitle="Chats" collapsed={scrolled} />
+  { title: "Master screen · phone", wide: true, description: "A tab root: the TopNavigation large title is the h1 (Heading/1) and folds into the Body/Extra/Bold bar title as you scroll; list group headers are h2 in Body/Small/Bold.", render: () => <MasterScreenExample />, code: `<TopNavigation title="Chats" largeTitle="Chats" collapsed={scrolled} trailing={[{ icon: "icon-edit-02-line", label: "New message", onClick: compose }]} />
 <Heading level={2} textStyle="Body/Small/Bold" tone="base">Pinned</Heading>
 <List>…</List>` },
   { title: "Child screen · phone", wide: true, description: "A pushed screen: the compact bar title (Body/Extra/Bold) names it, so content headings start at h2 — Heading/4 for the key status, Heading/Subheading for the sections under it.", render: () => <ChildScreenExample />, code: `<TopNavigation type="compact" title="Order #1042" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} />

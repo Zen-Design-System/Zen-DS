@@ -131,7 +131,7 @@ if (files.some((f) => /^src\/(styles|tokens)\//.test(f))) {
 
 /* ── ② runtime + ③ behaviour ─────────────────────────────────────────────────────────────────────────────────── */
 const serverUp = await fetch(BASE, { signal: AbortSignal.timeout(4000) }).then((r) => r.ok).catch(() => false);
-const ERROR_KINDS = new Set(["errors", "overflow", "images", "names", "nesting", "surfaces", "edges", "sizes", "typography", "device", "outline", "playground", "smoke", "scale", "hierarchy", "density"]);
+const ERROR_KINDS = new Set(["errors", "overflow", "images", "names", "nesting", "surfaces", "edges", "sizes", "typography", "device", "outline", "playground", "smoke", "scale", "hierarchy", "density", "fit"]);
 const readAudit = (file) => { try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch { return null; } };
 const auditItems = (report) => { const errs = [], warns = []; for (const [key, entry] of Object.entries(report?.pages ?? {})) for (const [kind, items] of Object.entries(entry)) for (const item of items) (ERROR_KINDS.has(kind) ? errs : warns).push(`[${kind}] ${key}: ${item}`); return { errs, warns }; };
 let shots = [];

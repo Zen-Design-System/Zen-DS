@@ -6,7 +6,7 @@
     {
       "name": "Chip",
       "file": "src/components/Chip/Chip.tsx",
-      "description": "",
+      "description": "Figma Chip/Pill: `Chip/Advanced` (512:7659, the filter control that owns a Popover), `Chip/Normal` (512:6843, toggle\npills) and `Chip/Number-Only` (1536:26687). A chip is a `<button>`. A Number-only chip with nothing to do (no\n`onClick` or other press handler, no `selected`, not `disabled`) is a count, which Figma describes as a \"numeric-only\ncompact indicator for counts or rankings\": it renders a `<span>` in the Default state, with no hover, no focus stop\nand no dead click, and the ref points at that span. Give it `onClick` or `selected` to make it a pressable number\n(Hover, Focused, Selected). Normal and Advanced chips always do something; Figma: a read-only label is a Tag.",
       "deprecated": null,
       "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
       "props": [

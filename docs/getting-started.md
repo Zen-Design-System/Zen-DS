@@ -49,10 +49,10 @@ Zen's tokens are Figma variables with several **modes**. `ZenProvider` writes ea
 | Prop | Attribute | Values (default first) | When to change it |
 | --- | --- | --- | --- |
 | `theme` | `data-theme` | `light` · `dark` · `system` | `system` follows the OS; a toggle sets `light`/`dark` |
-| `componentTheme` | `data-component-theme` | `neutral-s1` · `neutral-s2` · `neutral-s3` · `brand-s1` · `brand-s2` | Brand-coloured component styling |
+| `componentTheme` | `data-component-theme` | `neutral-s1` · `neutral-s2` · `neutral-s3` · `neutral-s4` · `brand-s1` · `brand-s2` | Brand-coloured component styling; `neutral-s4` is `neutral-s1` with outlined inputs (Surface fill, Subtle border) |
 | `density` | `data-density` | `compact` · `comfortable` | `comfortable` for touch-first or marketing layouts |
 | `radius` | `data-radius` | `rounded` · `smooth` · `standard` · `luxury` | Corner-radius personality |
-| `emphasis` | `data-emphasis` | `medium` · `strong` | Stronger surfaces and strokes |
+| `emphasis` | `data-emphasis` | `medium` · `strong` · `light` | Heavier (`strong`) or lighter (`light`) font weights and active strokes |
 | `breakpoint` | `data-breakpoint` | `auto` (root) · `desktop` · `tablet` · `mobile` | `auto`: < 744px mobile, < 1024px tablet. Drives page margin, gutter, modal and card padding |
 | `typography` | `data-typography` | `dashboard` · `popular` · `mobile` | `mobile` for phone apps, `popular` for marketing pages |
 | `brand` | `data-brand` | `zen` | — |

@@ -17,6 +17,7 @@ import { Tabs } from "../../components/Tabs";
 import { Text, plural } from "../../components/Text";
 import { useToast } from "../../components/Toast";
 import { PlatformPhone } from "../PlatformPhone";
+import { DemoFieldDialog } from "../PlatformDemoActions";
 import { figmaSidebarBrand } from "../PlatformSidebarBrand";
 import { bottomNavItems } from "../PlatformMobileData";
 import { Panel, PlaygroundFilterChip, PlaygroundToggle, option } from "./shared";
@@ -63,6 +64,8 @@ function AppShellPlayground() {
   const [canvas, setCanvas] = useState<"default" | "alt" | "flat">("default");
   const [withHeader, setWithHeader] = useState(true);
   const [page, setPage] = useState("members");
+  // Invite member adds a pending invite to the count (a playground has no toast host; examples do).
+  const [invited, setInvited] = useState(0);
   return (
     <Panel
       title="App Shell"
@@ -94,7 +97,7 @@ function AppShellPlayground() {
         >
           <Container>
             <Stack gap="lg" className="pash-page">
-              <PageHeader title={page === "members" ? "Members" : page[0].toUpperCase() + page.slice(1)} description={page === "members" ? `${plural(members.length, "person")} in Zen Studio` : "Pick Members to see the table."} actions={page === "members" ? <Button level="primary">Invite member</Button> : undefined} />
+              <PageHeader title={page === "members" ? "Members" : page[0].toUpperCase() + page.slice(1)} description={page === "members" ? `${plural(members.length, "person", "people")} in Zen Studio${invited ? ` · ${plural(invited, "invite")} pending` : ""}` : "Pick Members to see the table."} actions={page === "members" ? <Button level="primary" onClick={() => setInvited((count) => count + 1)}>Invite member</Button> : undefined} />
               {page === "members" ? <MembersTable /> : null}
             </Stack>
           </Container>
@@ -105,24 +108,28 @@ function AppShellPlayground() {
 }
 
 function AdminAppExample() {
+  const { toast } = useToast();
   const [page, setPage] = useState("members");
   const [query, setQuery] = useState("");
+  const [inviting, setInviting] = useState(false);
   const shown = members.filter((member) => member.name.toLowerCase().includes(query.toLowerCase()));
   return (
     <ShellFrame>
       <AppShell layout="sidebar" mainId="pash-admin-main"
         sidebar={<Sidebar {...figmaSidebarBrand} sections={navSections(page)} onItemClick={(item) => setPage(item.id)} />}
         header={<Search aria-label="Search members" placeholder="Search members" value={query} onChange={(event) => setQuery(event.target.value)} />}
-        headerActions={<IconButton aria-label="Notifications" icon={<Icon name="icon-bell-01-line" />} onClick={() => setQuery("")} />}
+        headerActions={<IconButton aria-label="Notifications" icon={<Icon name="icon-bell-01-line" />} onClick={() => toast({ title: "No new notifications" })} />}
       >
         <Container>
           <Stack gap="lg" className="pash-page">
-            <PageHeader title="Members" meta={<BadgeCounter value={shown.length} />} description="Manage who can access Zen Studio." actions={<><Button level="tertiary">Export</Button><Button level="primary">Invite member</Button></>} />
+            <PageHeader title="Members" meta={<BadgeCounter value={shown.length} />} description="Manage who can access Zen Studio." actions={<><Button level="tertiary" onClick={() => toast({ type: "positive", title: `Exported ${plural(shown.length, "member")} as CSV` })}>Export</Button><Button level="primary" onClick={() => setInviting(true)}>Invite member</Button></>} />
             <Table aria-label="Members" rows={shown} getRowId={(row) => row.id} empty={<Text tone="base">No members match “{query}”.</Text>}
               columns={[{ id: "name", header: "Name", cell: (row) => <TableText>{row.name}</TableText> }, { id: "email", header: "Email", cell: (row) => <TableText>{row.email}</TableText> }, { id: "role", header: "Role", cell: (row) => <TableText>{row.role}</TableText> }]} />
           </Stack>
         </Container>
       </AppShell>
+      <DemoFieldDialog open={inviting} onOpenChange={setInviting} title="Invite to Zen Studio" description="They get an email with a link to join."
+        field={{ kind: "email", label: "Email address", placeholder: "name@company.com" }} submitLabel="Send invite" confirm={(email) => `Invite sent to ${email}`} />
     </ShellFrame>
   );
 }
@@ -144,28 +151,32 @@ function DrawerExample() {
 
 function FlatCanvasExample() {
   const [page, setPage] = useState("projects");
+  const [creating, setCreating] = useState(false);
   return (
     <ShellFrame height={420}>
       <AppShell layout="sidebar" canvas="flat" mainId="pash-flat-main" sidebar={<Sidebar {...figmaSidebarBrand} background="flat" sections={navSections(page)} onItemClick={(item) => setPage(item.id)} />}>
         <Container>
           <Stack gap="md" className="pash-page">
-            <PageHeader title="Projects" description="Flat canvas: the Sidebar uses background=“flat” so navigation and page share one plane." actions={<Button level="primary">New project</Button>} />
+            <PageHeader title="Projects" description="Flat canvas: the Sidebar uses background=“flat” so navigation and page share one plane." actions={<Button level="primary" onClick={() => setCreating(true)}>New project</Button>} />
           </Stack>
         </Container>
       </AppShell>
+      <DemoFieldDialog open={creating} onOpenChange={setCreating} title="New project" description="You can invite people once it exists."
+        field={{ kind: "name", label: "Project name", placeholder: "e.g. Spring campaign" }} submitLabel="Create project" confirm={(name) => `“${name}” created`} />
     </ShellFrame>
   );
 }
 
 function PhoneAppExample() {
   const [tab, setTab] = useState(bottomNavItems[0].id);
+  const [open, setOpen] = useState<string | null>(null);
   return (
     <ZenProvider typography="mobile" paint={false} portal={false} breakpoint="mobile">
       <PlatformPhone footer={<BottomNavigation items={bottomNavItems} value={tab} onValueChange={setTab} />}>
         <Stack gap="lg" padding="lg">
           <PageHeader title={bottomNavItems.find((item) => item.id === tab)?.label ?? "Home"} description="Phone apps skip the Sidebar: BottomNavigation switches the top-level sections." />
           <List aria-label="Recent">
-            {["Brand refresh", "Mobile app", "Docs platform"].map((title) => <ListItem key={title} title={title} caption="Updated today" onClick={() => setTab(bottomNavItems[1]?.id ?? tab)} />)}
+            {["Brand refresh", "Mobile app", "Docs platform"].map((title) => <ListItem key={title} title={title} caption="Updated today" selected={open === title} onClick={() => setOpen(title)} />)}
           </List>
         </Stack>
       </PlatformPhone>
@@ -182,6 +193,9 @@ function PageHeaderPlayground() {
   const [withBack, setWithBack] = useState(false);
   const [tab, setTab] = useState("overview");
   const [clicks, setClicks] = useState(0);
+  // Share reports what ran under the preview; Publish toggles the status (a playground has no toast host).
+  const [shared, setShared] = useState(false);
+  const [published, setPublished] = useState(false);
   return (
     <Panel
       title="Page Header"
@@ -199,7 +213,7 @@ function PageHeaderPlayground() {
   description="Logo, colour and type updates for the 2026 launch."${withBack ? `
   back={{ label: "Projects", onClick: goBack }}` : ""}${withBreadcrumbs ? `
   breadcrumbs={<Breadcrumbs items={[{ id: "projects", label: "Projects" }, { id: "brand", label: "Brand refresh" }]} />}` : ""}${withActions ? `
-  actions={<><Button level="tertiary">Share</Button><Button level="primary">Publish</Button></>}` : ""}${withTabs ? `
+  actions={<><Button level="tertiary" onClick={share}>Share</Button><Button level="primary" onClick={publish}>Publish</Button></>}` : ""}${withTabs ? `
   tabs={<Tabs aria-label="Project sections" items={sections} value={tab} onChange={setTab} />}` : ""}
 />`}
     >
@@ -209,30 +223,33 @@ function PageHeaderPlayground() {
           description="Logo, colour and type updates for the 2026 launch."
           back={withBack ? { label: "Projects", onClick: () => setClicks((count) => count + 1) } : undefined}
           breadcrumbs={withBreadcrumbs ? <Breadcrumbs items={[{ id: "projects", label: "Projects" }, { id: "brand", label: "Brand refresh" }]} onNavigate={(_item, event) => event.preventDefault()} /> : undefined}
-          meta={<Badge size="small" theme="green" background="subtle">{clicks ? "Back pressed" : "In review"}</Badge>}
-          actions={withActions ? <><Button level="tertiary">Share</Button><Button level="primary">Publish</Button></> : undefined}
+          meta={<Badge size="small" theme="green" background="subtle">{clicks ? "Back pressed" : published ? "Published" : "In review"}</Badge>}
+          actions={withActions ? <><Button level="tertiary" onClick={() => setShared(true)}>Share</Button><Button level={published ? "tertiary" : "primary"} onClick={() => setPublished(!published)}>{published ? "Unpublish" : "Publish"}</Button></> : undefined}
           tabs={withTabs ? <Tabs aria-label="Project sections" items={[{ id: "overview", label: "Overview" }, { id: "files", label: "Files" }, { id: "activity", label: "Activity" }]} value={tab} onChange={setTab} /> : undefined}
         />
       </div>
+      {shared ? <Text as="p" textStyle="Body/Small/Regular" tone="light" role="status">“Share” pressed · onClick ran</Text> : null}
     </Panel>
   );
 }
 
 function ListPageHeaderExample() {
+  const { toast } = useToast();
   const [count, setCount] = useState(4);
-  return <PageHeader title="Members" meta={<BadgeCounter value={count} />} description={`${plural(count, "person")} can access Zen Studio.`} actions={<><Button level="tertiary">Export</Button><Button level="primary" onClick={() => setCount((value) => value + 1)}>Invite member</Button></>} />;
+  return <PageHeader title="Members" meta={<BadgeCounter value={count} />} description={`${plural(count, "person", "people")} can access Zen Studio.`} actions={<><Button level="tertiary" onClick={() => toast({ type: "positive", title: `Exported ${plural(count, "member")} as CSV` })}>Export</Button><Button level="primary" onClick={() => setCount((value) => value + 1)}>Invite member</Button></>} />;
 }
 
 function DetailPageHeaderExample() {
   const [tab, setTab] = useState("overview");
   const [back, setBack] = useState(false);
+  const [published, setPublished] = useState(false);
   return (
     <PageHeader
       back={{ label: back ? "Back to projects (pressed)" : "Projects", onClick: () => setBack(true) }}
       title="Brand refresh"
-      meta={<Badge size="small" theme="green" background="subtle">In review</Badge>}
+      meta={<Badge size="small" theme={published ? "blue" : "green"} background="subtle">{published ? "Published" : "In review"}</Badge>}
       description="Logo, colour and type updates for the 2026 launch."
-      actions={<Button level="primary">Publish</Button>}
+      actions={<Button level={published ? "tertiary" : "primary"} onClick={() => setPublished(!published)}>{published ? "Unpublish" : "Publish"}</Button>}
       tabs={<Tabs aria-label="Project sections" items={[{ id: "overview", label: "Overview" }, { id: "files", label: "Files", badge: 12 }, { id: "activity", label: "Activity" }]} value={tab} onChange={setTab} />}
     />
   );
@@ -250,7 +267,14 @@ function BreadcrumbHeaderExample() {
 }
 
 function OverviewHeaderExample() {
-  return <PageHeader eyebrow="Good morning, Ava" title="Your workspace" description="3 projects need your review this week." actions={<Button level="primary">New project</Button>} />;
+  const [creating, setCreating] = useState(false);
+  return (
+    <>
+      <PageHeader eyebrow="Good morning, Ava" title="Your workspace" description="3 projects need your review this week." actions={<Button level="primary" onClick={() => setCreating(true)}>New project</Button>} />
+      <DemoFieldDialog open={creating} onOpenChange={setCreating} title="New project" description="You can invite people once it exists."
+        field={{ kind: "name", label: "Project name", placeholder: "e.g. Spring campaign" }} submitLabel="Create project" confirm={(name) => `“${name}” created`} />
+    </>
+  );
 }
 
 /* ───────────── Toast (useToast) ───────────── */
@@ -296,7 +320,7 @@ export const examples: ExampleMap = {
 >
   <Container>
     <PageHeader title="Members" description="Manage who can access Zen Studio."
-      actions={<><Button level="tertiary">Export</Button><Button level="primary">Invite member</Button></>} />
+      actions={<><Button level="tertiary" onClick={exportCsv}>Export</Button><Button level="primary" onClick={() => setInviting(true)}>Invite member</Button></>} />
     <Table aria-label="Members" rows={shown} getRowId={(row) => row.id} columns={columns} />
   </Container>
 </AppShell>` },
@@ -306,7 +330,7 @@ export const examples: ExampleMap = {
 // Below 1024px (tablet, mobile) the Sidebar moves into a drawer automatically.
 // layout="drawer" | "sidebar" forces one.` },
     { title: "Flat canvas", screen: true, description: "canvas=“flat” with Sidebar background=“flat”: navigation and page share one plane (background-layers rule).", render: () => <FlatCanvasExample />, code: `<AppShell canvas="flat" sidebar={<Sidebar background="flat" … />}>
-  …
+  <PageHeader title="Projects" actions={<Button level="primary" onClick={() => setCreating(true)}>New project</Button>} />
 </AppShell>` },
     { title: "Phone app", description: "Phones skip the Sidebar: BottomNavigation switches sections and PageHeader keeps the same structure in mobile typography.", wide: true, render: () => <PhoneAppExample />, code: `<ZenProvider typography="mobile" density="comfortable">
   <Stack gap="lg" padding="lg">
@@ -318,14 +342,14 @@ export const examples: ExampleMap = {
   ],
   "page-header": [
     { title: "List page", description: "Title with a count Badge, a description and Tertiary + Primary actions (one Primary per page).", render: () => <ListPageHeaderExample />, code: `<PageHeader title="Members" meta={<BadgeCounter value={count} />}
-  description={\`\${plural(count, "person")} can access Zen Studio.\`}
-  actions={<><Button level="tertiary">Export</Button><Button level="primary" onClick={invite}>Invite member</Button></>} />` },
+  description={\`\${plural(count, "person", "people")} can access Zen Studio.\`}
+  actions={<><Button level="tertiary" onClick={exportCsv}>Export</Button><Button level="primary" onClick={invite}>Invite member</Button></>} />` },
     { title: "Detail page", description: "Back (chevron) to the parent list, a status Badge, one action and Tabs for the page's sections.", render: () => <DetailPageHeaderExample />, code: `<PageHeader
   back={{ label: "Projects", onClick: goBack }}
   title="Brand refresh"
-  meta={<Badge size="small" theme="green" background="subtle">In review</Badge>}
+  meta={<Badge size="small" theme={published ? "blue" : "green"} background="subtle">{published ? "Published" : "In review"}</Badge>}
   description="Logo, colour and type updates for the 2026 launch."
-  actions={<Button level="primary">Publish</Button>}
+  actions={<Button level={published ? "tertiary" : "primary"} onClick={() => setPublished(!published)}>{published ? "Unpublish" : "Publish"}</Button>}
   tabs={<Tabs aria-label="Project sections" items={sections} value={tab} onChange={setTab} />}
 />` },
     { title: "Nested page", description: "Breadcrumbs above the title for pages deeper than one level.", render: () => <BreadcrumbHeaderExample />, code: `<PageHeader
@@ -334,7 +358,7 @@ export const examples: ExampleMap = {
   description="Download receipts for every payment."
 />` },
     { title: "Overview page", description: "An eyebrow (Body/Small/Medium) above the Heading/1 title for top-level overview pages.", render: () => <OverviewHeaderExample />, code: `<PageHeader eyebrow="Good morning, Ava" title="Your workspace"
-  description="3 projects need your review this week." actions={<Button level="primary">New project</Button>} />` },
+  description="3 projects need your review this week." actions={<Button level="primary" onClick={() => setCreating(true)}>New project</Button>} />` },
   ],
   toast: [
     { title: "useToast()", description: "Call toast() after an action; ZenProvider hosts the stack. Deleting a file shows an Undo action that restores it.", render: () => <UseToastExample />, code: `const { toast } = useToast();

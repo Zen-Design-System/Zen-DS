@@ -1,13 +1,13 @@
 // Every element violates exactly one rule; the rule id is in the comment on the line above.
 export const Bad = () => <>
   {/* expect: button/secondary-justified */}
-  <Button level="secondary">Share</Button>
+  <Button level="secondary" onClick={share}>Share</Button>
   {/* expect: button/filter-is-chip */}
-  <Button level="tertiary" aria-haspopup="listbox">Sort: Name</Button>
+  <Button level="tertiary" aria-haspopup="listbox" onClick={openSort}>Sort: Name</Button>
   {/* expect: button/accent-is-promoted */}
-  <Button level="accent">Save</Button>
+  <Button level="accent" onClick={save}>Save</Button>
   {/* expect: button/destructive-is-danger */}
-  <Button level="primary">Delete project</Button>
+  <Button level="primary" onClick={remove}>Delete project</Button>
   {/* expect: icon-button/needs-name */}
   <IconButton onClick={act} level="tertiary" icon={<Icon name="icon-plus-line" />} />
   {/* expect: input/no-disabled */}
@@ -41,11 +41,11 @@ export const Bad = () => <>
   {/* expect: dialog/negative-uses-danger */}
   <Dialog open={open} onOpenChange={setOpen} theme="negative" title="Delete?" primaryAction={{ label: "Delete" }} />
   {/* expect: popover/controlled-close */}
-  <Popover open={open} items={items} />
+  <Popover open={open} items={items} onSelect={pick} />
   {/* expect: popover/explicit-open */}
-  <Popover items={items} label="Assignee" />
+  <Popover items={items} label="Assignee" onSelect={pick} />
   {/* expect: page-header/one-primary — also expect: button/one-primary (the two Primaries are siblings) */}
-  <PageHeader title="Members" actions={<><Button level="primary">Export</Button><Button level="primary">Invite member</Button></>} />
+  <PageHeader title="Members" actions={<><Button level="primary" onClick={exportCsv}>Export</Button><Button level="primary" onClick={invite}>Invite member</Button></>} />
   {/* expect: form/actions-order */}
   <FormActions><Button level="primary" type="submit">Save changes</Button><Button level="tertiary" onClick={cancel}>Cancel</Button></FormActions>
   {/* expect: form/submit-button */}
@@ -65,7 +65,7 @@ export const Bad = () => <>
   {/* expect: link/inherit-needs-underline */}
   <Link href="/legal/terms" tone="inherit" underline="hover">Terms of service</Link>
   {/* expect: menu/not-for-selection */}
-  <Menu trigger={sortTrigger} items={[{ id: "name", label: "Name", selected: true }, { id: "date", label: "Date modified" }]} />
+  <Menu trigger={sortTrigger} items={[{ id: "name", label: "Name", selected: true }, { id: "date", label: "Date modified" }]} onSelect={sortBy} />
   {/* expect: menu/needs-trigger */}
   <Menu items={rowActions} onSelect={run} />
   {/* expect: box/border-matches-action */}
@@ -75,16 +75,16 @@ export const Bad = () => <>
   {/* expect: toast/needs-title */}
   <Toast type="positive">Saved</Toast>
   {/* expect: alert-banner/small-no-action */}
-  <AlertBanner size="small" action={{ label: "Fix" }}>Payment failed</AlertBanner>
+  <AlertBanner size="small" action={{ label: "Fix", onClick: fix }}>Payment failed</AlertBanner>
   {/* expect: button/vague-label */}
-  <Button level="tertiary">OK</Button>
+  <Button level="tertiary" onClick={confirm}>OK</Button>
   {/* expect: button/one-primary */}
-  <Button level="primary">Save draft</Button>
-  <Button level="primary">Publish</Button>
+  <Button level="primary" onClick={saveDraft}>Save draft</Button>
+  <Button level="primary" onClick={publish}>Publish</Button>
   {/* expect: toggle/label-names-setting */}
   <Toggle label="On" selected={on} onSelectedChange={setOn} />
   {/* expect: tooltip/no-interactive-content */}
-  <Tooltip content={<Button level="tertiary">Learn more</Button>}><IconButton onClick={act} aria-label="Info" icon={<Icon name="icon-info-circle-line" />} /></Tooltip>
+  <Tooltip content={<Button level="tertiary" onClick={learnMore}>Learn more</Button>}><IconButton onClick={act} aria-label="Info" icon={<Icon name="icon-info-circle-line" />} /></Tooltip>
   {/* expect: tooltip/disabled-trigger */}
   <Tooltip content="Upgrade to export"><Button level="tertiary" disabled>Export</Button></Tooltip>
   {/* expect: tabs/item-count */}
@@ -115,9 +115,9 @@ export const Bad = () => <>
   {/* expect: inline-message/custom-needs-visual */}
   <InlineMessage theme="custom" title="New: Figma sync" />
   {/* expect: empty-state/needs-title */}
-  <EmptyState primaryAction={{ label: "Create project" }} />
+  <EmptyState primaryAction={{ label: "Create project", onClick: create }} />
   {/* expect: empty-state/action-label */}
-  <EmptyState title="No projects" primaryAction={{ label: "OK" }} />
+  <EmptyState title="No projects" primaryAction={{ label: "OK", onClick: create }} />
   {/* expect: table/actions-flat */}
   <TableActions><IconButton onClick={act} aria-label="Actions for Ava" icon={<Icon name="icon-dots-horizontal-line" />} /></TableActions>
   {/* expect: empty-state/way-out-tertiary */}
@@ -135,7 +135,7 @@ export const Bad = () => <>
   {/* expect: richtext/value-not-onchange */}
   <RichTextField label="Announcement" onChange={handle} />
   {/* expect: card/clickable-no-nested-controls */}
-  <Card onClick={open}><Button level="tertiary">Edit</Button></Card>
+  <Card onClick={open}><Button level="tertiary" onClick={edit}>Edit</Button></Card>
   {/* expect: list-item/clickable-row-toggle */}
   <ListItem title="Wi-Fi" onClick={open} trailing={<ToggleButton aria-label="Wi-Fi" selected={on} onSelectedChange={setOn} />} />
   {/* expect: dock-icon/emoji-needs-glyph */}
@@ -167,16 +167,16 @@ export const Bad = () => <>
   {/* expect: file-icon/not-an-action */}
   <IconButton onClick={act} appearance="flat" level="primary" aria-label="Download" icon={<FileIcon format="pdf" />} />
   {/* expect: button/small-full-width  expect: button/compact-size-special */}
-  <div style={{ display: "flex", flexDirection: "column" }}><Button level="tertiary" size="xs">Simulate an upload</Button></div>
+  <div style={{ display: "flex", flexDirection: "column" }}><Button level="tertiary" size="xs" onClick={simulate}>Simulate an upload</Button></div>
   {/* expect: button/small-full-width */}
-  <Button level="primary" size="sm" style={{ width: "100%" }}>Save changes</Button>
+  <Button level="primary" size="sm" style={{ width: "100%" }} onClick={save}>Save changes</Button>
   {/* expect: button/small-full-width */}
-  <div className="pe-stack"><Button level="primary" size="sm" style={{ alignSelf: "flex-start" }}>Reserve</Button></div>
+  <div className="pe-stack"><Button level="primary" size="sm" style={{ alignSelf: "flex-start" }} onClick={reserve}>Reserve</Button></div>
   {/* expect: table/title-heading-4 */}
   <Text style="Body/Base/Bold">Invoices</Text>
   <Table aria-label="Invoices" columns={[]} rows={[]} getRowId={(r) => r.id} />
   {/* expect: top-navigation/max-two-trailing */}
-  <TopNavigation title="Files" trailing={[{ icon: "icon-plus-line", label: "Add" }, { icon: "icon-share-01-line", label: "Share" }, { icon: "icon-trash-line", label: "Delete" }]} />
+  <TopNavigation title="Files" trailing={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, { icon: "icon-trash-line", label: "Delete", onClick: remove }]} />
   {/* expect: bottom-navigation/destinations */}
   <BottomNavigation value="a" onValueChange={go} items={[{ id: "a", label: "Home", icon: "icon-home-smile-line" }, { id: "b", label: "Me", icon: "icon-user-line" }]} />
   {/* expect: bottom-sheet/action-needs-items */}
@@ -184,7 +184,7 @@ export const Bad = () => <>
   {/* expect: chat/others-need-author */}
   <ChatMessage side="others" onReact={react}>Hi there</ChatMessage>
   {/* expect: ai-chat/no-actions-while-streaming */}
-  <AiChatBubble side="ai" streaming actions={[{ icon: "icon-copy-line", label: "Copy" }]}>Working</AiChatBubble>
+  <AiChatBubble side="ai" streaming actions={[{ icon: "icon-copy-line", label: "Copy", onClick: copy }]}>Working</AiChatBubble>
   {/* expect: chart/stack-needs-legend */}
   <StackBarChart aria-label="Budget" data={data} series={series} showLegend={false} />
   {/* expect: table/media-size-by-subtext */}
@@ -194,7 +194,7 @@ export const Bad = () => <>
   {/* expect: badge/count-uses-counter */}
   <Badge size="small">12</Badge>
   {/* expect: button/filter-is-chip */}
-  <Button level="tertiary" size="sm" startIcon={<Icon name="icon-filter-lines-line" decorative />}>All filters</Button>
+  <Button level="tertiary" size="sm" startIcon={<Icon name="icon-filter-lines-line" decorative />} onClick={openFilters}>All filters</Button>
   {/* expect: progress/quota-scale */}
   <ProgressBar value={92} theme="status" label="Storage · 92% used" />
   {/* expect: segmented/icon-only-needs-name */}
@@ -210,7 +210,7 @@ export const Bad = () => <>
   {/* expect: navigation/back-chevron */}
   <IconButton onClick={act} appearance="flat" level="primary" size="md" aria-label="Back" icon={<Icon name="icon-arrow-left-line" />} />
   {/* expect: ai-chat/no-actions-while-streaming */}
-  <AiChatBubble side="ai" thinking actions={[{ icon: "icon-copy-line", label: "Copy" }]} />
+  <AiChatBubble side="ai" thinking actions={[{ icon: "icon-copy-line", label: "Copy", onClick: copy }]} />
   {/* expect: segmented/control-bar-full-width */}
   <TopNavigation type="compact" title="Files" controlBar={<Segmented options={tabs} value={tab} onChange={setTab} aria-label="Filter files" />} />
   {/* expect: popover/bulk-action-limit */}
@@ -218,7 +218,7 @@ export const Bad = () => <>
   {/* expect: top-navigation/search-folds-to-action */}
   <TopNavigation title="Inbox" largeTitle="Inbox" collapsed={collapsed} controlBar={<Search placeholder="Search messages" />} />
   {/* expect: top-navigation/max-two-trailing */}
-  <TopNavigation title="Inbox" collapsed={collapsed} controlBar={<Search placeholder="Search messages" />} searchAction={{ onClick: openSearch }} trailing={[{ icon: "icon-edit-02-line", label: "New message" }, { icon: "icon-dots-horizontal-line", label: "More" }]} />
+  <TopNavigation title="Inbox" collapsed={collapsed} controlBar={<Search placeholder="Search messages" />} searchAction={{ onClick: openSearch }} trailing={[{ icon: "icon-edit-02-line", label: "New message", onClick: compose }, { icon: "icon-dots-horizontal-line", label: "More", onClick: openMore }]} />
   {/* expect: chat/hold-delete-destructive */}
   <ChatMessage side="you" holdActions={[{ id: "copy", label: "Copy", icon: "icon-copy-solid" }, { id: "delete", label: "Delete", icon: "icon-trash-solid" }]}>Hi</ChatMessage>
   {/* expect: icon-button/tooltip */}
@@ -271,5 +271,23 @@ export const Bad = () => <>
   {/* expect: interaction/controlled-needs-handler */}
   <DatePicker value={date} onValueChange={setDate} month={new Date(1995, 5, 1)} />
   {/* expect: interaction/controlled-needs-handler */}
+  <DatePicker selectionMode="range" range={period} />
+  {/* Actions without onApply: Cancel and Submit cannot differ, and the app never hears what was applied. */}
+  {/* expect: date-picker/actions-need-apply */}
+  <DatePicker calendar="dual" selectionMode="range" showActions onRangeChange={setRange} />
+  {/* expect: interaction/controlled-needs-handler */}
   <Pagination theme="inline" page={page} onPageChange={setPage} total={120} pageSize={pageSize} aria-label="Invoice pages" />
+  {/* No handler at all: the action is drawn and focusable, and pressing it does nothing. */}
+  {/* expect: interaction/action-without-handler */}
+  <TopNavigation type="liquid-overlay" title="Site visit" leading={{ icon: "icon-x-medium-line", label: "Close viewer" }} trailing={[{ icon: "icon-share-01-line", label: "Share", onClick: share }]} />
+  {/* expect: interaction/action-without-handler */}
+  <EmptyState title="No files yet" primaryAction={{ label: "Upload file", onClick: upload }} secondaryAction={{ label: "Import from Figma" }} />
+  {/* expect: interaction/action-without-handler */}
+  <Card theme="border"><Button appearance="flat" level="primary" size="sm">Duplicate</Button></Card>
+  {/* expect: interaction/action-without-handler */}
+  <Sidebar sections={sections} onItemClick={go} footer={<button type="button"><Icon name="icon-trash-line" /><span>Trash</span></button>} />
+  {/* expect: interaction/action-without-handler */}
+  <BottomSheet open={open} onOpenChange={setOpen} type="action" title="Create" items={createItems} />
+  {/* expect: interaction/action-without-handler */}
+  <Breadcrumbs items={[{ id: "settings", label: "Settings" }, { id: "billing", label: "Billing" }]} />
 </>;

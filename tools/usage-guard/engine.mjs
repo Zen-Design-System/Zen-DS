@@ -110,7 +110,8 @@ export function zenImports(src, packageName = "@zen/design-system") {
  */
 export function createChecker(allRules, { consumer = false, css = true, packageName = "@zen/design-system" } = {}) {
   // `consumerOnly` rules (e.g. api/deprecated-prop) judge apps only; the repo migrates at its own pace.
-  const rules = allRules.filter((rule) => consumer || !rule.consumerOnly);
+  // `repoOnly` rules (e.g. interaction/action-without-handler) judge the repo's own examples, never apps.
+  const rules = allRules.filter((rule) => (consumer ? !rule.repoOnly : !rule.consumerOnly));
   const byTag = new Map();
   for (const rule of rules) for (const c of rule.components) byTag.set(c, [...(byTag.get(c) ?? []), rule]);
   const cssRules = rules.filter((rule) => rule.css);
@@ -135,7 +136,9 @@ export function createChecker(allRules, { consumer = false, css = true, packageN
 
   function checkJsx(src, file) {
     // Tags quoted in block comments (JSDoc: "usually <Search variant=…/>") are documentation, not usage.
-    const comments = [...src.matchAll(/\/\*[\s\S]*?\*\//g)].map((c) => [c.index, c.index + c[0].length]);
+    // A comment opens after whitespace or punctuation, never inside a glob such as accept="image/*" (which would hide
+    // every tag up to the next */ from all rules).
+    const comments = [...src.matchAll(/(?<![^\s{}()[\];,:=?|&!>])\/\*[\s\S]*?\*\//g)].map((c) => [c.index, c.index + c[0].length]);
     const inComment = (i) => comments.some(([from, to]) => i > from && i < to);
     let tagRe = repoTagRe;
     let canonical = (tag) => tag;
@@ -163,7 +166,7 @@ export function createChecker(allRules, { consumer = false, css = true, packageN
       const children = read.selfClosing ? "" : readChildren(src, written, read.end);
       const end = read.selfClosing ? read.end : src.indexOf(`</${written}>`, read.end + children.length) + written.length + 3;
       for (const rule of byTag.get(tag)) {
-        const message = rule.check({ tag, attrs: read.attrs, children, src, start: match.index, end, parent: () => parentTag(src, match.index) });
+        const message = rule.check({ tag, attrs: read.attrs, children, src, start: match.index, end, file, parent: () => parentTag(src, match.index) });
         if (message && !allowed(src, match.index, rule.allow)) findings.push({ file, ...position(src, match.index), index: match.index, tag, rule, message });
       }
     }

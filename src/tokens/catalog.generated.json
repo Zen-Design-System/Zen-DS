@@ -36,9 +36,10 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ],
-      "variableCount": 112
+      "variableCount": 113
     },
     "component-size": {
       "name": "Component Size",
@@ -69,7 +70,8 @@
       "name": "Emphasis Level",
       "modes": [
         "Medium",
-        "Strong"
+        "Strong",
+        "Light"
       ],
       "variableCount": 6
     },
@@ -5113,7 +5115,7 @@
       "name": "Light/Gray/11",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#606060"
+        "Zen": "#4F4F4F"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5257,7 +5259,7 @@
       "name": "Light/Gray-Alpha/11",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#0000009F"
+        "Zen": "#000000B0"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13465,7 +13467,7 @@
       "name": "Light/Neutral-Ananas/11",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#59645D"
+        "Zen": "#49554E"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -13609,7 +13611,7 @@
       "name": "Light/Neutral-Ananas-Alpha/11",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#001106A6"
+        "Zen": "#001107B6"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -23967,7 +23969,8 @@
         "Brand - S1": "{Color/Background/Accent/Solid/Default}",
         "Neutral - S2": "{Color/Background/Neutral/Solid/Default}",
         "Brand - S2": "{Color/Background/Accent/Solid/Default}",
-        "Neutral - S3": "{Color/Background/Neutral/Solid/Default}"
+        "Neutral - S3": "{Color/Background/Neutral/Solid/Default}",
+        "Neutral - S4": "{Color/Background/Neutral/Solid/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -23976,7 +23979,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -23987,7 +23991,8 @@
         "Brand - S1": "{Color/Content/On-Accent/Default}",
         "Neutral - S2": "{Color/Content/Inverse/Strongest}",
         "Brand - S2": "{Color/Content/On-Accent/Default}",
-        "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+        "Neutral - S4": "{Color/Content/Inverse/Strongest}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -23996,7 +24001,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24007,7 +24013,8 @@
         "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
         "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Solid/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24016,7 +24023,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24027,7 +24035,8 @@
         "Brand - S1": "{Color/Background/Accent/Solid/Pressed}",
         "Neutral - S2": "{Color/Background/Neutral/Solid/Pressed}",
         "Brand - S2": "{Color/Background/Accent/Solid/Pressed}",
-        "Neutral - S3": "{Color/Background/Neutral/Solid/Pressed}"
+        "Neutral - S3": "{Color/Background/Neutral/Solid/Pressed}",
+        "Neutral - S4": "{Color/Background/Neutral/Solid/Pressed}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24036,7 +24045,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24047,7 +24057,8 @@
         "Brand - S1": "{Color/Content/Inverse/Strongest}",
         "Neutral - S2": "{Color/Content/On-Accent/Default}",
         "Brand - S2": "{Color/Content/Inverse/Strongest}",
-        "Neutral - S3": "{Color/Content/On-Accent/Default}"
+        "Neutral - S3": "{Color/Content/On-Accent/Default}",
+        "Neutral - S4": "{Color/Content/On-Accent/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24056,7 +24067,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24067,7 +24079,8 @@
         "Brand - S1": "{Color/Background/Neutral/Solid/Default}",
         "Neutral - S2": "{Color/Background/Accent/Solid/Default}",
         "Brand - S2": "{Color/Background/Neutral/Solid/Default}",
-        "Neutral - S3": "{Color/Background/Accent/Solid/Default}"
+        "Neutral - S3": "{Color/Background/Accent/Solid/Default}",
+        "Neutral - S4": "{Color/Background/Accent/Solid/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24076,7 +24089,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24087,7 +24101,8 @@
         "Brand - S1": "{Color/Background/Neutral/Solid/Hover}",
         "Neutral - S2": "{Color/Background/Accent/Solid/Hover}",
         "Brand - S2": "{Color/Background/Neutral/Solid/Hover}",
-        "Neutral - S3": "{Color/Background/Accent/Solid/Hover}"
+        "Neutral - S3": "{Color/Background/Accent/Solid/Hover}",
+        "Neutral - S4": "{Color/Background/Accent/Solid/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24096,7 +24111,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24107,7 +24123,8 @@
         "Brand - S1": "{Color/Background/Neutral/Solid/Pressed}",
         "Neutral - S2": "{Color/Background/Accent/Solid/Pressed}",
         "Brand - S2": "{Color/Background/Neutral/Solid/Pressed}",
-        "Neutral - S3": "{Color/Background/Accent/Solid/Pressed}"
+        "Neutral - S3": "{Color/Background/Accent/Solid/Pressed}",
+        "Neutral - S4": "{Color/Background/Accent/Solid/Pressed}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24116,7 +24133,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24127,7 +24145,8 @@
         "Brand - S1": "{Color/Content/On-Accent/Default}",
         "Neutral - S2": "{Color/Content/Inverse/Strongest}",
         "Brand - S2": "{Color/Content/On-Accent/Default}",
-        "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+        "Neutral - S4": "{Color/Content/Inverse/Strongest}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24136,7 +24155,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24147,7 +24167,8 @@
         "Brand - S1": "{Color/Background/Neutral/Pale/Default}",
         "Neutral - S2": "{Color/Background/Neutral/Pale/Default}",
         "Brand - S2": "{Color/Background/Neutral/Pale/Default}",
-        "Neutral - S3": "{Color/Background/Neutral/Pale/Default}"
+        "Neutral - S3": "{Color/Background/Neutral/Pale/Default}",
+        "Neutral - S4": "{Color/Background/Neutral/Pale/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24156,7 +24177,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24167,7 +24189,8 @@
         "Brand - S1": "{Color/Background/Neutral/Pale/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Pale/Hover}",
         "Brand - S2": "{Color/Background/Neutral/Pale/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Pale/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Pale/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Pale/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24176,7 +24199,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24187,7 +24211,8 @@
         "Brand - S1": "{Color/Background/Active/Accent/Solid}",
         "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
         "Brand - S2": "{Color/Background/Active/Accent/Solid}",
-        "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
+        "Neutral - S3": "{Color/Background/Active/Neutral/Solid}",
+        "Neutral - S4": "{Color/Background/Active/Neutral/Solid}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24196,7 +24221,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24207,7 +24233,8 @@
         "Brand - S1": "{Color/Background/Neutral/Ghost/Default}",
         "Neutral - S2": "{Color/Background/Neutral/Subtle/Default}",
         "Brand - S2": "{Color/Background/Neutral/Subtle/Default}",
-        "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}"
+        "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}",
+        "Neutral - S4": "{Color/Background/Neutral/Ghost/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24216,7 +24243,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24227,7 +24255,8 @@
         "Brand - S1": "{Color/Background/Neutral/Ghost/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Subtle/Hover}",
         "Brand - S2": "{Color/Background/Neutral/Subtle/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Ghost/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24236,7 +24265,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24247,7 +24277,8 @@
         "Brand - S1": "{Color/Background/Active/Accent/Solid}",
         "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
         "Brand - S2": "{Color/Background/Active/Accent/Solid}",
-        "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
+        "Neutral - S3": "{Color/Background/Active/Neutral/Solid}",
+        "Neutral - S4": "{Color/Background/Active/Neutral/Solid}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24256,7 +24287,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24267,7 +24299,8 @@
         "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
         "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Solid/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24276,7 +24309,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24287,7 +24321,8 @@
         "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
         "Neutral - S2": "#FFFFFF00",
         "Brand - S2": "#FFFFFF00",
-        "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+        "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}",
+        "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24296,7 +24331,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24307,7 +24343,8 @@
         "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
         "Neutral - S2": "{Color/Border/Neutral/Subtle/Default}",
         "Brand - S2": "{Color/Border/Neutral/Subtle/Default}",
-        "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+        "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}",
+        "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24316,7 +24353,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24327,7 +24365,8 @@
         "Brand - S1": "{Color/Border/Neutral/Subtle/Hover}",
         "Neutral - S2": "{Color/Border/Neutral/Subtle/Hover}",
         "Brand - S2": "{Color/Border/Neutral/Subtle/Hover}",
-        "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}"
+        "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}",
+        "Neutral - S4": "{Color/Border/Neutral/Subtle/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24336,7 +24375,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24347,7 +24387,8 @@
         "Brand - S1": "{Color/Content/On-Accent/Default}",
         "Neutral - S2": "{Color/Content/Inverse/Strongest}",
         "Brand - S2": "{Color/Content/On-Accent/Default}",
-        "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+        "Neutral - S4": "{Color/Content/Inverse/Strongest}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24356,7 +24397,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24367,7 +24409,8 @@
         "Brand - S1": "{Color/Background/Neutral/Pale/Default}",
         "Neutral - S2": "{Color/Background/Neutral/Pale/Default}",
         "Brand - S2": "{Color/Background/Neutral/Pale/Default}",
-        "Neutral - S3": "{Color/Background/Neutral/Pale/Default}"
+        "Neutral - S3": "{Color/Background/Neutral/Pale/Default}",
+        "Neutral - S4": "{Color/Background/Neutral/Pale/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24376,7 +24419,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24387,7 +24431,8 @@
         "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
         "Neutral - S2": "{Color/Border/Neutral/Subtle/Default}",
         "Brand - S2": "{Color/Border/Neutral/Subtle/Default}",
-        "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+        "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}",
+        "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24396,7 +24441,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24407,7 +24453,8 @@
         "Brand - S1": "{Color/Border/Neutral/Subtle/Hover}",
         "Neutral - S2": "{Color/Border/Neutral/Subtle/Hover}",
         "Brand - S2": "{Color/Border/Neutral/Subtle/Hover}",
-        "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}"
+        "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}",
+        "Neutral - S4": "{Color/Border/Neutral/Subtle/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24416,7 +24463,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24427,7 +24475,8 @@
         "Brand - S1": "{Color/Border/Neutral/Subtle/Pressed}",
         "Neutral - S2": "{Color/Border/Neutral/Subtle/Pressed}",
         "Brand - S2": "{Color/Border/Neutral/Subtle/Pressed}",
-        "Neutral - S3": "{Color/Border/Neutral/Subtle/Pressed}"
+        "Neutral - S3": "{Color/Border/Neutral/Subtle/Pressed}",
+        "Neutral - S4": "{Color/Border/Neutral/Subtle/Pressed}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24436,7 +24485,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24447,7 +24497,8 @@
         "Brand - S1": "{Color/Background/Neutral/Pale/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Pale/Hover}",
         "Brand - S2": "{Color/Background/Neutral/Pale/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Pale/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Pale/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Pale/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24456,7 +24507,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24467,7 +24519,8 @@
         "Brand - S1": "{Color/Background/Active/Accent/Solid}",
         "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
         "Brand - S2": "{Color/Background/Active/Accent/Solid}",
-        "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
+        "Neutral - S3": "{Color/Background/Active/Neutral/Solid}",
+        "Neutral - S4": "{Color/Background/Active/Neutral/Solid}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24476,7 +24529,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24487,7 +24541,8 @@
         "Brand - S1": "{Color/Content/On-Accent/Default}",
         "Neutral - S2": "{Color/Content/Inverse/Strongest}",
         "Brand - S2": "{Color/Content/On-Accent/Default}",
-        "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+        "Neutral - S4": "{Color/Content/Inverse/Strongest}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24496,7 +24551,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24507,7 +24563,8 @@
         "Brand - S1": "{Color/Background/Neutral/Ghost/Default}",
         "Neutral - S2": "{Color/Background/Neutral/Subtle/Default}",
         "Brand - S2": "{Color/Background/Neutral/Subtle/Default}",
-        "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}"
+        "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}",
+        "Neutral - S4": "{Color/Background/Neutral/Ghost/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24516,7 +24573,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24527,7 +24585,8 @@
         "Brand - S1": "{Color/Background/Neutral/Ghost/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Subtle/Hover}",
         "Brand - S2": "{Color/Background/Neutral/Subtle/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Ghost/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24536,7 +24595,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24547,7 +24607,8 @@
         "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
         "Neutral - S2": "#FFFFFF00",
         "Brand - S2": "#FFFFFF00",
-        "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+        "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}",
+        "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24556,7 +24617,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24567,7 +24629,8 @@
         "Brand - S1": "{Color/Content/Accent/Strongest}",
         "Neutral - S2": "{Color/Content/Neutral/Strongest}",
         "Brand - S2": "{Color/Content/Accent/Strongest}",
-        "Neutral - S3": "{Color/Content/Neutral/Strongest}"
+        "Neutral - S3": "{Color/Content/Neutral/Strongest}",
+        "Neutral - S4": "{Color/Content/Neutral/Strongest}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24576,7 +24639,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24587,7 +24651,8 @@
         "Brand - S1": "{Color/Background/Surface/Default}",
         "Neutral - S2": "{Color/Background/Surface/Default}",
         "Brand - S2": "{Color/Background/Surface/Default}",
-        "Neutral - S3": "{Color/Background/Active/Neutral/Subtle}"
+        "Neutral - S3": "{Color/Background/Active/Neutral/Subtle}",
+        "Neutral - S4": "{Color/Background/Active/Neutral/Subtle}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24596,7 +24661,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24607,7 +24673,8 @@
         "Brand - S1": "{Color/Background/Accent/Ghost/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Ghost/Hover}",
         "Brand - S2": "{Color/Background/Accent/Ghost/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Ghost/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24616,7 +24683,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24627,7 +24695,8 @@
         "Brand - S1": "{Color/Background/Neutral/Flat/Default}",
         "Neutral - S2": "{Color/Background/Neutral/Flat/Default}",
         "Brand - S2": "{Color/Background/Neutral/Flat/Default}",
-        "Neutral - S3": "{Color/Background/Neutral/Flat/Default}"
+        "Neutral - S3": "{Color/Background/Neutral/Flat/Default}",
+        "Neutral - S4": "{Color/Background/Neutral/Flat/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24636,7 +24705,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24647,7 +24717,8 @@
         "Brand - S1": "{Color/Background/Neutral/Flat/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Flat/Hover}",
         "Brand - S2": "{Color/Background/Neutral/Flat/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Flat/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24656,7 +24727,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24667,7 +24739,8 @@
         "Brand - S1": "{Color/Background/Active/Accent/Solid}",
         "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
         "Brand - S2": "{Color/Background/Active/Accent/Solid}",
-        "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
+        "Neutral - S3": "{Color/Background/Active/Neutral/Solid}",
+        "Neutral - S4": "{Color/Background/Active/Neutral/Solid}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24676,27 +24749,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
-      ]
-    },
-    {
-      "name": "Segmented-Item-Primary/Background/Seclected/Hover",
-      "type": "COLOR",
-      "valuesByMode": {
-        "Neutral - S1": "{Color/Background/Neutral/Solid/Hover}",
-        "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
-        "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
-        "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
-      },
-      "collectionSlug": "component-colors-theme",
-      "collectionName": "Component Theme",
-      "modes": [
-        "Neutral - S1",
-        "Brand - S1",
-        "Neutral - S2",
-        "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24707,7 +24761,8 @@
         "Brand - S1": "{Color/Background/Neutral/Flat/Default}",
         "Neutral - S2": "{Color/Background/Neutral/Flat/Default}",
         "Brand - S2": "{Color/Background/Neutral/Flat/Default}",
-        "Neutral - S3": "{Color/Background/Neutral/Flat/Default}"
+        "Neutral - S3": "{Color/Background/Neutral/Flat/Default}",
+        "Neutral - S4": "{Color/Background/Neutral/Flat/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24716,7 +24771,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24727,7 +24783,8 @@
         "Brand - S1": "{Color/Background/Neutral/Flat/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Flat/Hover}",
         "Brand - S2": "{Color/Background/Neutral/Flat/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Flat/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24736,7 +24793,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24747,7 +24805,8 @@
         "Brand - S1": "{Color/Background/Inverse/Solid/Default}",
         "Neutral - S2": "{Color/Background/Inverse/Solid/Default}",
         "Brand - S2": "{Color/Background/Inverse/Solid/Default}",
-        "Neutral - S3": "{Color/Background/Inverse/Solid/Default}"
+        "Neutral - S3": "{Color/Background/Inverse/Solid/Default}",
+        "Neutral - S4": "{Color/Background/Inverse/Solid/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24756,27 +24815,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
-      ]
-    },
-    {
-      "name": "Segmented-Item-Secondary/Background/Seclected/Hover",
-      "type": "COLOR",
-      "valuesByMode": {
-        "Neutral - S1": "{Color/Background/Neutral/Flat/Hover}",
-        "Brand - S1": "{Color/Background/Neutral/Flat/Hover}",
-        "Neutral - S2": "{Color/Background/Neutral/Flat/Hover}",
-        "Brand - S2": "{Color/Background/Neutral/Flat/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}"
-      },
-      "collectionSlug": "component-colors-theme",
-      "collectionName": "Component Theme",
-      "modes": [
-        "Neutral - S1",
-        "Brand - S1",
-        "Neutral - S2",
-        "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24787,7 +24827,8 @@
         "Brand - S1": "{Color/Border/Active/Accent/Solid}",
         "Neutral - S2": "{Color/Border/Active/Neutral/Solid}",
         "Brand - S2": "{Color/Border/Active/Accent/Solid}",
-        "Neutral - S3": "{Color/Border/Active/Neutral/Solid}"
+        "Neutral - S3": "{Color/Border/Active/Neutral/Solid}",
+        "Neutral - S4": "{Color/Border/Active/Neutral/Solid}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24796,7 +24837,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24807,7 +24849,8 @@
         "Brand - S1": "{Color/Background/Neutral/Flat/Default}",
         "Neutral - S2": "{Color/Background/Neutral/Flat/Default}",
         "Brand - S2": "{Color/Background/Neutral/Flat/Default}",
-        "Neutral - S3": "{Color/Background/Neutral/Flat/Default}"
+        "Neutral - S3": "{Color/Background/Neutral/Flat/Default}",
+        "Neutral - S4": "{Color/Background/Neutral/Flat/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24816,7 +24859,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24827,7 +24871,8 @@
         "Brand - S1": "{Color/Background/Neutral/Flat/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Flat/Hover}",
         "Brand - S2": "{Color/Background/Neutral/Flat/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Flat/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24836,7 +24881,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24847,7 +24893,8 @@
         "Brand - S1": "{Color/Background/Active/Accent/Solid}",
         "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
         "Brand - S2": "{Color/Background/Active/Accent/Solid}",
-        "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
+        "Neutral - S3": "{Color/Background/Active/Neutral/Solid}",
+        "Neutral - S4": "{Color/Background/Active/Neutral/Solid}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24856,7 +24903,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24867,7 +24915,8 @@
         "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
         "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Solid/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24876,7 +24925,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24887,7 +24937,8 @@
         "Brand - S1": "{Color/Border/Active/Accent/Subtle}",
         "Neutral - S2": "{Color/Border/Active/Neutral/Subtle}",
         "Brand - S2": "{Color/Border/Active/Accent/Subtle}",
-        "Neutral - S3": "{Color/Border/Active/Neutral/Subtle}"
+        "Neutral - S3": "{Color/Border/Active/Neutral/Subtle}",
+        "Neutral - S4": "{Color/Border/Active/Neutral/Subtle}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24896,7 +24947,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24907,7 +24959,8 @@
         "Brand - S1": "{Color/Content/On-Accent/Default}",
         "Neutral - S2": "{Color/Content/Inverse/Strongest}",
         "Brand - S2": "{Color/Content/On-Accent/Default}",
-        "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+        "Neutral - S4": "{Color/Content/Inverse/Strongest}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24916,7 +24969,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24927,7 +24981,8 @@
         "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
         "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Solid/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24936,7 +24991,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24947,7 +25003,8 @@
         "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
         "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Solid/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24956,7 +25013,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24967,7 +25025,8 @@
         "Brand - S1": "{Color/Background/Neutral/Ghost/Default}",
         "Neutral - S2": "{Color/Background/Neutral/Ghost/Default}",
         "Brand - S2": "{Color/Background/Neutral/Ghost/Default}",
-        "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}"
+        "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}",
+        "Neutral - S4": "{Color/Background/Neutral/Ghost/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24976,7 +25035,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -24987,7 +25047,8 @@
         "Brand - S1": "{Color/Background/Neutral/Ghost/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Ghost/Hover}",
         "Brand - S2": "{Color/Background/Neutral/Ghost/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Ghost/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -24996,7 +25057,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25007,7 +25069,8 @@
         "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
         "Neutral - S2": "{Color/Border/Neutral/Subtle/Default}",
         "Brand - S2": "{Color/Border/Neutral/Subtle/Default}",
-        "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+        "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}",
+        "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25016,7 +25079,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25027,7 +25091,8 @@
         "Brand - S1": "{Color/Border/Neutral/Subtle/Hover}",
         "Neutral - S2": "{Color/Border/Neutral/Subtle/Hover}",
         "Brand - S2": "{Color/Border/Neutral/Subtle/Hover}",
-        "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}"
+        "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}",
+        "Neutral - S4": "{Color/Border/Neutral/Subtle/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25036,7 +25101,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25047,7 +25113,8 @@
         "Brand - S1": "{Color/Content/Inverse/Strongest}",
         "Neutral - S2": "{Color/Content/Inverse/Strongest}",
         "Brand - S2": "{Color/Content/Inverse/Strongest}",
-        "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+        "Neutral - S4": "{Color/Content/Inverse/Strongest}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25056,7 +25123,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25067,7 +25135,8 @@
         "Brand - S1": "{Color/Background/Active/Accent/Subtle}",
         "Neutral - S2": "{Color/Background/Active/Neutral/Subtle}",
         "Brand - S2": "{Color/Background/Active/Accent/Subtle}",
-        "Neutral - S3": "{Color/Background/Active/Neutral/Subtle}"
+        "Neutral - S3": "{Color/Background/Active/Neutral/Subtle}",
+        "Neutral - S4": "{Color/Background/Active/Neutral/Subtle}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25076,7 +25145,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25087,7 +25157,8 @@
         "Brand - S1": "{Color/Background/Accent/Subtle/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Subtle/Hover}",
         "Brand - S2": "{Color/Background/Accent/Subtle/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Subtle/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Subtle/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Subtle/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25096,7 +25167,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25107,7 +25179,8 @@
         "Brand - S1": "{Color/Content/On-Accent/Default}",
         "Neutral - S2": "{Color/Content/Inverse/Strongest}",
         "Brand - S2": "{Color/Content/On-Accent/Default}",
-        "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+        "Neutral - S4": "{Color/Content/Inverse/Strongest}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25116,7 +25189,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25127,7 +25201,8 @@
         "Brand - S1": "{Color/Content/Neutral/Strongest}",
         "Neutral - S2": "{Color/Content/Neutral/Strongest}",
         "Brand - S2": "{Color/Content/Neutral/Strongest}",
-        "Neutral - S3": "{Color/Content/Neutral/Strongest}"
+        "Neutral - S3": "{Color/Content/Neutral/Strongest}",
+        "Neutral - S4": "{Color/Content/Neutral/Strongest}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25136,7 +25211,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25147,7 +25223,8 @@
         "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
         "Neutral - S2": "{Color/Border/Neutral/Subtle/Default}",
         "Brand - S2": "{Color/Border/Neutral/Subtle/Default}",
-        "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+        "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}",
+        "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25156,7 +25233,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25167,7 +25245,8 @@
         "Brand - S1": "{Color/Border/Neutral/Subtle/Hover}",
         "Neutral - S2": "{Color/Border/Neutral/Subtle/Hover}",
         "Brand - S2": "{Color/Border/Neutral/Subtle/Hover}",
-        "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}"
+        "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}",
+        "Neutral - S4": "{Color/Border/Neutral/Subtle/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25176,7 +25255,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25187,7 +25267,8 @@
         "Brand - S1": "{Color/Border/Active/Accent/Solid}",
         "Neutral - S2": "{Color/Border/Active/Neutral/Solid}",
         "Brand - S2": "{Color/Border/Active/Accent/Solid}",
-        "Neutral - S3": "{Color/Border/Active/Neutral/Solid}"
+        "Neutral - S3": "{Color/Border/Active/Neutral/Solid}",
+        "Neutral - S4": "{Color/Border/Active/Neutral/Solid}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25196,7 +25277,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25207,7 +25289,8 @@
         "Brand - S1": "{Color/Background/Neutral/Subtle/Default}",
         "Neutral - S2": "{Color/Background/Neutral/Subtle/Default}",
         "Brand - S2": "{Color/Background/Neutral/Subtle/Default}",
-        "Neutral - S3": "{Color/Background/Neutral/Subtle/Default}"
+        "Neutral - S3": "{Color/Background/Neutral/Subtle/Default}",
+        "Neutral - S4": "{Color/Background/Neutral/Subtle/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25216,7 +25299,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25227,7 +25311,8 @@
         "Brand - S1": "{Color/Background/Neutral/Subtle/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Subtle/Hover}",
         "Brand - S2": "{Color/Background/Neutral/Subtle/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Subtle/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Subtle/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Subtle/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25236,7 +25321,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25247,7 +25333,8 @@
         "Brand - S1": "{Color/Background/Active/Accent/Solid}",
         "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
         "Brand - S2": "{Color/Background/Active/Accent/Solid}",
-        "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
+        "Neutral - S3": "{Color/Background/Active/Neutral/Solid}",
+        "Neutral - S4": "{Color/Background/Active/Neutral/Solid}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25256,7 +25343,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25267,7 +25355,8 @@
         "Brand - S1": "{Color/Background/White-Solid/Default}",
         "Neutral - S2": "{Color/Background/White-Solid/Default}",
         "Brand - S2": "{Color/Background/White-Solid/Default}",
-        "Neutral - S3": "{Color/Background/White-Solid/Default}"
+        "Neutral - S3": "{Color/Background/White-Solid/Default}",
+        "Neutral - S4": "{Color/Background/White-Solid/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25276,7 +25365,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25287,7 +25377,8 @@
         "Brand - S1": "{Color/Background/White-Solid/Default}",
         "Neutral - S2": "{Color/Background/Inverse/Solid/Default}",
         "Brand - S2": "{Color/Background/White-Solid/Default}",
-        "Neutral - S3": "{Color/Background/Inverse/Solid/Default}"
+        "Neutral - S3": "{Color/Background/Inverse/Solid/Default}",
+        "Neutral - S4": "{Color/Background/Inverse/Solid/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25296,7 +25387,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25307,7 +25399,8 @@
         "Brand - S1": "{Color/Background/Subtle-Disabled}",
         "Neutral - S2": "{Color/Background/Subtle-Disabled}",
         "Brand - S2": "{Color/Background/Subtle-Disabled}",
-        "Neutral - S3": "{Color/Background/Subtle-Disabled}"
+        "Neutral - S3": "{Color/Background/Subtle-Disabled}",
+        "Neutral - S4": "{Color/Background/Subtle-Disabled}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25316,7 +25409,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25327,7 +25421,8 @@
         "Brand - S1": "{Color/Background/Surface/Default}",
         "Neutral - S2": "{Color/Background/Surface/Default}",
         "Brand - S2": "{Color/Background/Surface/Default}",
-        "Neutral - S3": "{Color/Background/Surface/Default}"
+        "Neutral - S3": "{Color/Background/Surface/Default}",
+        "Neutral - S4": "{Color/Background/Surface/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25336,7 +25431,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25347,7 +25443,8 @@
         "Brand - S1": "{Color/Background/Solid-Disabled}",
         "Neutral - S2": "{Color/Background/Solid-Disabled}",
         "Brand - S2": "{Color/Background/Solid-Disabled}",
-        "Neutral - S3": "{Color/Background/Solid-Disabled}"
+        "Neutral - S3": "{Color/Background/Solid-Disabled}",
+        "Neutral - S4": "{Color/Background/Solid-Disabled}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25356,7 +25453,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25367,7 +25465,8 @@
         "Brand - S1": "{Color/Background/Subtle-Disabled}",
         "Neutral - S2": "{Color/Background/Subtle-Disabled}",
         "Brand - S2": "{Color/Background/Subtle-Disabled}",
-        "Neutral - S3": "{Color/Background/Subtle-Disabled}"
+        "Neutral - S3": "{Color/Background/Subtle-Disabled}",
+        "Neutral - S4": "{Color/Background/Subtle-Disabled}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25376,7 +25475,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25387,7 +25487,8 @@
         "Brand - S1": "{Color/Background/Neutral/Flat/Default}",
         "Neutral - S2": "{Color/Background/Neutral/Flat/Default}",
         "Brand - S2": "{Color/Background/Neutral/Flat/Default}",
-        "Neutral - S3": "{Color/Background/Neutral/Flat/Default}"
+        "Neutral - S3": "{Color/Background/Neutral/Flat/Default}",
+        "Neutral - S4": "{Color/Background/Neutral/Flat/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25396,7 +25497,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25407,7 +25509,8 @@
         "Brand - S1": "{Color/Background/Neutral/Flat/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Flat/Hover}",
         "Brand - S2": "{Color/Background/Neutral/Flat/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Flat/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25416,7 +25519,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25427,7 +25531,8 @@
         "Brand - S1": "{Color/Background/Active/Accent/Subtle}",
         "Neutral - S2": "{Color/Background/Active/Neutral/Subtle}",
         "Brand - S2": "{Color/Background/Active/Accent/Subtle}",
-        "Neutral - S3": "{Color/Background/Active/Neutral/Subtle}"
+        "Neutral - S3": "{Color/Background/Active/Neutral/Subtle}",
+        "Neutral - S4": "{Color/Background/Active/Neutral/Subtle}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25436,7 +25541,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25447,7 +25553,8 @@
         "Brand - S1": "{Color/Content/Neutral/Light}",
         "Neutral - S2": "{Color/Content/Neutral/Light}",
         "Brand - S2": "{Color/Content/Neutral/Light}",
-        "Neutral - S3": "{Color/Content/Neutral/Light}"
+        "Neutral - S3": "{Color/Content/Neutral/Light}",
+        "Neutral - S4": "{Color/Content/Neutral/Light}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25456,7 +25563,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25467,7 +25575,8 @@
         "Brand - S1": "{Color/Content/Neutral/Base}",
         "Neutral - S2": "{Color/Content/Neutral/Base}",
         "Brand - S2": "{Color/Content/Neutral/Base}",
-        "Neutral - S3": "{Color/Content/Neutral/Base}"
+        "Neutral - S3": "{Color/Content/Neutral/Base}",
+        "Neutral - S4": "{Color/Content/Neutral/Base}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25476,7 +25585,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25487,7 +25597,8 @@
         "Brand - S1": "{Color/Content/Neutral/Strongest}",
         "Neutral - S2": "{Color/Content/Neutral/Strongest}",
         "Brand - S2": "{Color/Content/Neutral/Strongest}",
-        "Neutral - S3": "{Color/Content/Neutral/Strongest}"
+        "Neutral - S3": "{Color/Content/Neutral/Strongest}",
+        "Neutral - S4": "{Color/Content/Neutral/Strongest}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25496,7 +25607,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25507,7 +25619,8 @@
         "Brand - S1": "{Color/Background/Neutral/Flat/Default}",
         "Neutral - S2": "{Color/Background/Neutral/Flat/Default}",
         "Brand - S2": "{Color/Background/Neutral/Flat/Default}",
-        "Neutral - S3": "{Color/Background/Neutral/Flat/Default}"
+        "Neutral - S3": "{Color/Background/Neutral/Flat/Default}",
+        "Neutral - S4": "{Color/Background/Neutral/Flat/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25516,7 +25629,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25527,7 +25641,8 @@
         "Brand - S1": "{Color/Background/Support/Neutral/Pale}",
         "Neutral - S2": "{Color/Background/Support/Neutral/Pale}",
         "Brand - S2": "{Color/Background/Support/Neutral/Pale}",
-        "Neutral - S3": "{Color/Background/Support/Neutral/Pale}"
+        "Neutral - S3": "{Color/Background/Support/Neutral/Pale}",
+        "Neutral - S4": "{Color/Background/Support/Neutral/Pale}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25536,7 +25651,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25547,7 +25663,8 @@
         "Brand - S1": "{Color/Background/Support/Brand/Pale}",
         "Neutral - S2": "{Color/Background/Support/Neutral/Pale}",
         "Brand - S2": "{Color/Background/Support/Brand/Pale}",
-        "Neutral - S3": "{Color/Background/Support/Neutral/Pale}"
+        "Neutral - S3": "{Color/Background/Support/Neutral/Pale}",
+        "Neutral - S4": "{Color/Background/Support/Neutral/Pale}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25556,7 +25673,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25567,7 +25685,8 @@
         "Brand - S1": "{Color/Content/Neutral/Strongest}",
         "Neutral - S2": "{Color/Content/Neutral/Strongest}",
         "Brand - S2": "{Color/Content/Neutral/Strongest}",
-        "Neutral - S3": "{Color/Content/Neutral/Strongest}"
+        "Neutral - S3": "{Color/Content/Neutral/Strongest}",
+        "Neutral - S4": "{Color/Content/Neutral/Strongest}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25576,7 +25695,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25587,7 +25707,8 @@
         "Brand - S1": "{Color/Background/Neutral/Ghost/Default}",
         "Neutral - S2": "{Color/Background/Neutral/Subtle/Default}",
         "Brand - S2": "{Color/Background/Neutral/Subtle/Default}",
-        "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}"
+        "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}",
+        "Neutral - S4": "{Color/Background/Neutral/Ghost/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25596,7 +25717,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25607,7 +25729,8 @@
         "Brand - S1": "{Color/Background/Neutral/Ghost/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Subtle/Hover}",
         "Brand - S2": "{Color/Background/Neutral/Subtle/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Ghost/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25616,7 +25739,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25627,7 +25751,8 @@
         "Brand - S1": "{Color/Background/Neutral/Ghost/Pressed}",
         "Neutral - S2": "{Color/Background/Neutral/Subtle/Pressed}",
         "Brand - S2": "{Color/Background/Neutral/Subtle/Pressed}",
-        "Neutral - S3": "{Color/Background/Neutral/Ghost/Pressed}"
+        "Neutral - S3": "{Color/Background/Neutral/Ghost/Pressed}",
+        "Neutral - S4": "{Color/Background/Neutral/Ghost/Pressed}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25636,7 +25761,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25647,7 +25773,8 @@
         "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
         "Neutral - S2": "#FFFFFF00",
         "Brand - S2": "#FFFFFF00",
-        "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+        "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}",
+        "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25656,7 +25783,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25667,7 +25795,8 @@
         "Brand - S1": "{Color/Shadow/Neutral/Light}",
         "Neutral - S2": "#FFFFFF00",
         "Brand - S2": "#FFFFFF00",
-        "Neutral - S3": "{Color/Shadow/Neutral/Light}"
+        "Neutral - S3": "{Color/Shadow/Neutral/Light}",
+        "Neutral - S4": "{Color/Shadow/Neutral/Light}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25676,7 +25805,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25687,7 +25817,8 @@
         "Brand - S1": "{Color/Background/Ghost-Disabled}",
         "Neutral - S2": "{Color/Background/Subtle-Disabled}",
         "Brand - S2": "{Color/Background/Subtle-Disabled}",
-        "Neutral - S3": "{Color/Background/Ghost-Disabled}"
+        "Neutral - S3": "{Color/Background/Ghost-Disabled}",
+        "Neutral - S4": "{Color/Background/Ghost-Disabled}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25696,7 +25827,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25707,7 +25839,8 @@
         "Brand - S1": "{Color/Border/Disabled}",
         "Neutral - S2": "#FFFFFF00",
         "Brand - S2": "#FFFFFF00",
-        "Neutral - S3": "{Color/Border/Disabled}"
+        "Neutral - S3": "{Color/Border/Disabled}",
+        "Neutral - S4": "{Color/Border/Disabled}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25716,7 +25849,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25727,7 +25861,8 @@
         "Brand - S1": "{Color/Content/On-Accent/Default}",
         "Neutral - S2": "{Color/Content/Inverse/Strongest}",
         "Brand - S2": "{Color/Content/On-Accent/Default}",
-        "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+        "Neutral - S4": "{Color/Content/Inverse/Strongest}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25736,7 +25871,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25747,7 +25883,8 @@
         "Brand - S1": "{Color/Background/Accent/Solid/Default}",
         "Neutral - S2": "{Color/Background/Neutral/Solid/Default}",
         "Brand - S2": "{Color/Background/Accent/Solid/Default}",
-        "Neutral - S3": "{Color/Background/Neutral/Solid/Default}"
+        "Neutral - S3": "{Color/Background/Neutral/Solid/Default}",
+        "Neutral - S4": "{Color/Background/Neutral/Solid/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25756,7 +25893,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25767,7 +25905,8 @@
         "Brand - S1": "{Color/Background/Popover/Default}",
         "Neutral - S2": "{Color/Background/Popover/Default}",
         "Brand - S2": "{Color/Background/Popover/Default}",
-        "Neutral - S3": "{Color/Background/Popover/Default}"
+        "Neutral - S3": "{Color/Background/Popover/Default}",
+        "Neutral - S4": "{Color/Background/Popover/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25776,7 +25915,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25787,7 +25927,8 @@
         "Brand - S1": "{Color/Content/Inverse/Strongest}",
         "Neutral - S2": "{Color/Content/On-Accent/Pressed}",
         "Brand - S2": "{Color/Content/Inverse/Strongest}",
-        "Neutral - S3": "{Color/Content/On-Accent/Pressed}"
+        "Neutral - S3": "{Color/Content/On-Accent/Pressed}",
+        "Neutral - S4": "{Color/Content/On-Accent/Pressed}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25796,7 +25937,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25807,7 +25949,8 @@
         "Brand - S1": "{Color/Content/On-Accent/Pressed}",
         "Neutral - S2": "{Color/Content/Inverse/Strongest}",
         "Brand - S2": "{Color/Content/On-Accent/Pressed}",
-        "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+        "Neutral - S4": "{Color/Content/Inverse/Strongest}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25816,7 +25959,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25827,7 +25971,8 @@
         "Brand - S1": "{Color/Content/Inverse/Strongest}",
         "Neutral - S2": "{Color/Content/On-Accent/Hover}",
         "Brand - S2": "{Color/Content/Inverse/Strongest}",
-        "Neutral - S3": "{Color/Content/On-Accent/Hover}"
+        "Neutral - S3": "{Color/Content/On-Accent/Hover}",
+        "Neutral - S4": "{Color/Content/On-Accent/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25836,7 +25981,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25847,7 +25993,8 @@
         "Brand - S1": "{Color/Content/On-Accent/Hover}",
         "Neutral - S2": "{Color/Content/Inverse/Strongest}",
         "Brand - S2": "{Color/Content/On-Accent/Hover}",
-        "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+        "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+        "Neutral - S4": "{Color/Content/Inverse/Strongest}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25856,7 +26003,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25867,7 +26015,8 @@
         "Brand - S1": "{Color/Background/Neutral/Pale/Default}",
         "Neutral - S2": "{Color/Background/Neutral/Pale/Default}",
         "Brand - S2": "{Color/Background/Neutral/Pale/Default}",
-        "Neutral - S3": "{Color/Background/Neutral/Pale/Default}"
+        "Neutral - S3": "{Color/Background/Neutral/Pale/Default}",
+        "Neutral - S4": "{Color/Background/Surface/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25876,7 +26025,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25887,7 +26037,8 @@
         "Brand - S1": "{Color/Background/Neutral/Pale/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Pale/Hover}",
         "Brand - S2": "{Color/Background/Neutral/Pale/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Pale/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Pale/Hover}",
+        "Neutral - S4": "{Color/Background/Surface/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25896,7 +26047,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25907,7 +26059,8 @@
         "Brand - S1": "#FFFFFF00",
         "Neutral - S2": "#FFFFFF00",
         "Brand - S2": "#FFFFFF00",
-        "Neutral - S3": "#FFFFFF00"
+        "Neutral - S3": "#FFFFFF00",
+        "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25916,7 +26069,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25927,7 +26081,8 @@
         "Brand - S1": "#FFFFFF00",
         "Neutral - S2": "#FFFFFF00",
         "Brand - S2": "#FFFFFF00",
-        "Neutral - S3": "#FFFFFF00"
+        "Neutral - S3": "#FFFFFF00",
+        "Neutral - S4": "{Color/Border/Neutral/Subtle/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25936,7 +26091,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25947,7 +26103,8 @@
         "Brand - S1": "{Color/Shadow/Inverse/Base}",
         "Neutral - S2": "{Color/Shadow/Inverse/Base}",
         "Brand - S2": "{Color/Shadow/Inverse/Base}",
-        "Neutral - S3": "{Color/Shadow/Inverse/Base}"
+        "Neutral - S3": "{Color/Shadow/Inverse/Base}",
+        "Neutral - S4": "#00000000"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25956,7 +26113,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25967,7 +26125,8 @@
         "Brand - S1": "{Color/Shadow/Inverse/Strong}",
         "Neutral - S2": "{Color/Shadow/Inverse/Strong}",
         "Brand - S2": "{Color/Shadow/Inverse/Strong}",
-        "Neutral - S3": "{Color/Shadow/Inverse/Strong}"
+        "Neutral - S3": "{Color/Shadow/Inverse/Strong}",
+        "Neutral - S4": "#00000000"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25976,7 +26135,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -25987,7 +26147,8 @@
         "Brand - S1": "{Color/Border/Container/Subtle}",
         "Neutral - S2": "{Color/Border/Container/Subtle}",
         "Brand - S2": "{Color/Border/Container/Subtle}",
-        "Neutral - S3": "{Color/Border/Container/Subtle}"
+        "Neutral - S3": "{Color/Border/Container/Subtle}",
+        "Neutral - S4": "{Color/Border/Container/Subtle}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -25996,7 +26157,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -26007,7 +26169,8 @@
         "Brand - S1": "{Color/Border/Popover/Subtle}",
         "Neutral - S2": "{Color/Border/Popover/Subtle}",
         "Brand - S2": "{Color/Border/Popover/Subtle}",
-        "Neutral - S3": "{Color/Border/Popover/Subtle}"
+        "Neutral - S3": "{Color/Border/Popover/Subtle}",
+        "Neutral - S4": "{Color/Border/Popover/Subtle}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -26016,7 +26179,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -26027,7 +26191,8 @@
         "Brand - S1": "{Color/Background/Popover/Default}",
         "Neutral - S2": "{Color/Background/Popover/Default}",
         "Brand - S2": "{Color/Background/Popover/Default}",
-        "Neutral - S3": "{Color/Background/Popover/Default}"
+        "Neutral - S3": "{Color/Background/Popover/Default}",
+        "Neutral - S4": "{Color/Background/Popover/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -26036,7 +26201,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -26047,7 +26213,8 @@
         "Brand - S1": "{Color/Background/Neutral/Pale/Default}",
         "Neutral - S2": "{Color/Background/Neutral/Pale/Default}",
         "Brand - S2": "{Color/Background/Neutral/Pale/Default}",
-        "Neutral - S3": "{Color/Background/Neutral/Pale/Default}"
+        "Neutral - S3": "{Color/Background/Neutral/Pale/Default}",
+        "Neutral - S4": "{Color/Background/Surface/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -26056,7 +26223,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -26067,7 +26235,8 @@
         "Brand - S1": "#FFFFFF",
         "Neutral - S2": "#FFFFFF",
         "Brand - S2": "#FFFFFF",
-        "Neutral - S3": "#FFFFFF"
+        "Neutral - S3": "#FFFFFF",
+        "Neutral - S4": "#FFFFFF"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -26076,7 +26245,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -26087,7 +26257,8 @@
         "Brand - S1": "{Color/Background/Support/Brand/Solid}",
         "Neutral - S2": "{Color/Background/Support/Neutral/Deep}",
         "Brand - S2": "{Color/Background/Support/Brand/Solid}",
-        "Neutral - S3": "{Color/Background/Support/Neutral/Deep}"
+        "Neutral - S3": "{Color/Background/Support/Neutral/Deep}",
+        "Neutral - S4": "{Color/Background/Support/Neutral/Deep}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -26096,7 +26267,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -26107,7 +26279,8 @@
         "Brand - S1": "{Color/Background/Support/Neutral/Deep}",
         "Neutral - S2": "{Color/Background/Support/Brand/Solid}",
         "Brand - S2": "{Color/Background/Support/Neutral/Deep}",
-        "Neutral - S3": "{Color/Background/Support/Brand/Solid}"
+        "Neutral - S3": "{Color/Background/Support/Brand/Solid}",
+        "Neutral - S4": "{Color/Background/Support/Brand/Solid}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -26116,7 +26289,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -26127,7 +26301,8 @@
         "Brand - S1": "{Color/Border/Active/Accent/Solid}",
         "Neutral - S2": "{Color/Border/Active/Neutral/Solid}",
         "Brand - S2": "{Color/Border/Active/Accent/Solid}",
-        "Neutral - S3": "{Color/Border/Active/Neutral/Solid}"
+        "Neutral - S3": "{Color/Border/Active/Neutral/Solid}",
+        "Neutral - S4": "{Color/Border/Active/Neutral/Solid}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -26136,7 +26311,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -26147,7 +26323,8 @@
         "Brand - S1": "{Color/Border/Active/Accent/Solid}",
         "Neutral - S2": "{Color/Border/Active/Neutral/Solid}",
         "Brand - S2": "{Color/Border/Active/Accent/Solid}",
-        "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+        "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}",
+        "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -26156,7 +26333,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -26167,7 +26345,8 @@
         "Brand - S1": "{Emphasis/Border-Weight/Active/Primary}",
         "Neutral - S2": "{Emphasis/Border-Weight/Active/Primary}",
         "Brand - S2": "{Emphasis/Border-Weight/Active/Primary}",
-        "Neutral - S3": "{Emphasis/Border-Weight/Active/Secondary}"
+        "Neutral - S3": "{Emphasis/Border-Weight/Active/Secondary}",
+        "Neutral - S4": "{Emphasis/Border-Weight/Active/Secondary}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -26176,7 +26355,8 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -26187,7 +26367,8 @@
         "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
         "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
         "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
-        "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+        "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Solid/Hover}"
       },
       "collectionSlug": "component-colors-theme",
       "collectionName": "Component Theme",
@@ -26196,7 +26377,74 @@
         "Brand - S1",
         "Neutral - S2",
         "Brand - S2",
-        "Neutral - S3"
+        "Neutral - S3",
+        "Neutral - S4"
+      ]
+    },
+    {
+      "name": "Segmented-Item-Primary/Background/Seclected/Hover",
+      "type": "COLOR",
+      "valuesByMode": {
+        "Neutral - S1": "{Color/Background/Neutral/Solid/Hover}",
+        "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
+        "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
+        "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
+        "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Solid/Hover}"
+      },
+      "collectionSlug": "component-colors-theme",
+      "collectionName": "Component Theme",
+      "modes": [
+        "Neutral - S1",
+        "Brand - S1",
+        "Neutral - S2",
+        "Brand - S2",
+        "Neutral - S3",
+        "Neutral - S4"
+      ]
+    },
+    {
+      "name": "Segmented-Item-Secondary/Background/Seclected/Hover",
+      "type": "COLOR",
+      "valuesByMode": {
+        "Neutral - S1": "{Color/Background/Neutral/Flat/Hover}",
+        "Brand - S1": "{Color/Background/Neutral/Flat/Hover}",
+        "Neutral - S2": "{Color/Background/Neutral/Flat/Hover}",
+        "Brand - S2": "{Color/Background/Neutral/Flat/Hover}",
+        "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}",
+        "Neutral - S4": "{Color/Background/Neutral/Flat/Hover}"
+      },
+      "collectionSlug": "component-colors-theme",
+      "collectionName": "Component Theme",
+      "modes": [
+        "Neutral - S1",
+        "Brand - S1",
+        "Neutral - S2",
+        "Brand - S2",
+        "Neutral - S3",
+        "Neutral - S4"
+      ]
+    },
+    {
+      "name": "Input/Border/Disabled",
+      "type": "COLOR",
+      "valuesByMode": {
+        "Neutral - S1": "#FFFFFF00",
+        "Brand - S1": "#FFFFFF00",
+        "Neutral - S2": "#FFFFFF00",
+        "Brand - S2": "#FFFFFF00",
+        "Neutral - S3": "#FFFFFF00",
+        "Neutral - S4": "{Color/Border/Disabled}"
+      },
+      "collectionSlug": "component-colors-theme",
+      "collectionName": "Component Theme",
+      "modes": [
+        "Neutral - S1",
+        "Brand - S1",
+        "Neutral - S2",
+        "Brand - S2",
+        "Neutral - S3",
+        "Neutral - S4"
       ]
     },
     {
@@ -29634,13 +29882,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Medium": 600,
-        "Strong": 700
+        "Strong": 700,
+        "Light": 500
       },
       "collectionSlug": "emphasis-level",
       "collectionName": "Emphasis Level",
       "modes": [
         "Medium",
-        "Strong"
+        "Strong",
+        "Light"
       ]
     },
     {
@@ -29648,13 +29898,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Medium": 500,
-        "Strong": 550
+        "Strong": 550,
+        "Light": 450
       },
       "collectionSlug": "emphasis-level",
       "collectionName": "Emphasis Level",
       "modes": [
         "Medium",
-        "Strong"
+        "Strong",
+        "Light"
       ]
     },
     {
@@ -29662,13 +29914,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Medium": 400,
-        "Strong": 450
+        "Strong": 450,
+        "Light": 400
       },
       "collectionSlug": "emphasis-level",
       "collectionName": "Emphasis Level",
       "modes": [
         "Medium",
-        "Strong"
+        "Strong",
+        "Light"
       ]
     },
     {
@@ -29676,13 +29930,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Medium": 2,
-        "Strong": 3
+        "Strong": 3,
+        "Light": 1
       },
       "collectionSlug": "emphasis-level",
       "collectionName": "Emphasis Level",
       "modes": [
         "Medium",
-        "Strong"
+        "Strong",
+        "Light"
       ]
     },
     {
@@ -29690,13 +29946,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Medium": 550,
-        "Strong": 650
+        "Strong": 650,
+        "Light": 450
       },
       "collectionSlug": "emphasis-level",
       "collectionName": "Emphasis Level",
       "modes": [
         "Medium",
-        "Strong"
+        "Strong",
+        "Light"
       ]
     },
     {
@@ -29704,13 +29962,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Medium": 1,
-        "Strong": 2
+        "Strong": 2,
+        "Light": 1
       },
       "collectionSlug": "emphasis-level",
       "collectionName": "Emphasis Level",
       "modes": [
         "Medium",
-        "Strong"
+        "Strong",
+        "Light"
       ]
     },
     {
@@ -29941,9 +30201,9 @@
       "name": "Typography/Font-Size/Display-1",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 52,
+        "Dashboard": 45,
         "Popular": 60,
-        "Mobile": 57
+        "Mobile": 52
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -29957,9 +30217,9 @@
       "name": "Typography/Line-Height/Display-1",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 60,
+        "Dashboard": 52,
         "Popular": 68,
-        "Mobile": 64
+        "Mobile": 60
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -29973,9 +30233,9 @@
       "name": "Typography/Letter-Spacing/Display-1",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -1.559999942779541,
+        "Dashboard": -1.5199999809265137,
         "Popular": -3,
-        "Mobile": -1.7100000381469727
+        "Mobile": -2.0799999237060547
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -29989,9 +30249,9 @@
       "name": "Typography/Font-Size/Display-2",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 46,
+        "Dashboard": 40,
         "Popular": 52,
-        "Mobile": 50
+        "Mobile": 46
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30005,9 +30265,9 @@
       "name": "Typography/Line-Height/Display-2",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 52,
+        "Dashboard": 44,
         "Popular": 60,
-        "Mobile": 56
+        "Mobile": 52
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30021,9 +30281,9 @@
       "name": "Typography/Letter-Spacing/Display-2",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -1.3799999952316284,
+        "Dashboard": -1.2100000381469727,
         "Popular": -2.0799999237060547,
-        "Mobile": -1.5
+        "Mobile": -1.840000033378601
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30037,9 +30297,9 @@
       "name": "Typography/Font-Size/Display-3",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 40,
+        "Dashboard": 36,
         "Popular": 46,
-        "Mobile": 44
+        "Mobile": 41
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30053,9 +30313,9 @@
       "name": "Typography/Line-Height/Display-3",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 48,
+        "Dashboard": 44,
         "Popular": 52,
-        "Mobile": 52
+        "Mobile": 48
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30069,9 +30329,9 @@
       "name": "Typography/Letter-Spacing/Display-3",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -1.2000000476837158,
+        "Dashboard": -0.9800000190734863,
         "Popular": -1.840000033378601,
-        "Mobile": -1.3200000524520874
+        "Mobile": -1.6399999856948853
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30085,9 +30345,9 @@
       "name": "Typography/Font-Size/Display-4",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 36,
+        "Dashboard": 32,
         "Popular": 40,
-        "Mobile": 39
+        "Mobile": 36
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30101,9 +30361,9 @@
       "name": "Typography/Line-Height/Display-4",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 44,
+        "Dashboard": 40,
         "Popular": 48,
-        "Mobile": 48
+        "Mobile": 44
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30117,9 +30377,9 @@
       "name": "Typography/Letter-Spacing/Display-4",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -1.0800000429153442,
+        "Dashboard": -0.7599999904632568,
         "Popular": -1.600000023841858,
-        "Mobile": -1.1699999570846558
+        "Mobile": -1.0800000429153442
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30133,9 +30393,9 @@
       "name": "Typography/Font-Size/Heading-1",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 32,
+        "Dashboard": 28,
         "Popular": 36,
-        "Mobile": 34
+        "Mobile": 32
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30149,7 +30409,7 @@
       "name": "Typography/Line-Height/Heading-1",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 40,
+        "Dashboard": 36,
         "Popular": 44,
         "Mobile": 40
       },
@@ -30165,9 +30425,9 @@
       "name": "Typography/Letter-Spacing/Heading-1",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -0.9599999785423279,
+        "Dashboard": -0.5600000023841858,
         "Popular": -1.2599999904632568,
-        "Mobile": -1.0199999809265137
+        "Mobile": -0.9599999785423279
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30199,7 +30459,7 @@
       "valuesByMode": {
         "Dashboard": 28,
         "Popular": 32,
-        "Mobile": 28
+        "Mobile": 32
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30213,7 +30473,7 @@
       "name": "Typography/Letter-Spacing/Heading-4",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -0.6000000238418579,
+        "Dashboard": -0.4000000059604645,
         "Popular": -0.7200000286102295,
         "Mobile": -0.6899999976158142
       },
@@ -30247,7 +30507,7 @@
       "valuesByMode": {
         "Dashboard": 24,
         "Popular": 28,
-        "Mobile": 24
+        "Mobile": 28
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30261,7 +30521,7 @@
       "name": "Typography/Letter-Spacing/Subheading",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -0.5400000214576721,
+        "Dashboard": -0.36000001430511475,
         "Popular": -0.6000000238418579,
         "Mobile": -0.6000000238418579
       },
@@ -30373,9 +30633,9 @@
       "name": "Typography/Font-Size/Caption",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 10,
+        "Dashboard": 11,
         "Popular": 12,
-        "Mobile": 12
+        "Mobile": 13
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30389,7 +30649,7 @@
       "name": "Typography/Line-Height/Caption",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 12,
+        "Dashboard": 16,
         "Popular": 16,
         "Mobile": 16
       },
@@ -30421,9 +30681,9 @@
       "name": "Typography/Font-Size/Label-Small",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 8,
+        "Dashboard": 9,
         "Popular": 10,
-        "Mobile": 9
+        "Mobile": 10
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30501,9 +30761,9 @@
       "name": "Typography/Letter-Spacing/Button-Label-L",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -0.2800000011920929,
+        "Dashboard": 0,
         "Popular": -0.3199999928474426,
-        "Mobile": -0.3199999928474426
+        "Mobile": 0
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30549,9 +30809,9 @@
       "name": "Typography/Letter-Spacing/Button-Label-M",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -0.2800000011920929,
+        "Dashboard": 0,
         "Popular": -0.3199999928474426,
-        "Mobile": -0.3199999928474426
+        "Mobile": 0
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30597,9 +30857,9 @@
       "name": "Typography/Letter-Spacing/Button-Label-S",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -0.14000000059604645,
+        "Dashboard": 0,
         "Popular": -0.3199999928474426,
-        "Mobile": -0.1599999964237213
+        "Mobile": 0
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30631,7 +30891,7 @@
       "valuesByMode": {
         "Dashboard": 12,
         "Popular": 16,
-        "Mobile": 16
+        "Mobile": 14
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30757,7 +31017,7 @@
       "name": "Typography/Font-Size/Heading-3",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 24,
+        "Dashboard": 22,
         "Popular": 28,
         "Mobile": 26
       },
@@ -30773,9 +31033,9 @@
       "name": "Typography/Line-Height/Heading-3",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 32,
+        "Dashboard": 28,
         "Popular": 36,
-        "Mobile": 32
+        "Mobile": 36
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30789,7 +31049,7 @@
       "name": "Typography/Letter-Spacing/Heading-3",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -0.7200000286102295,
+        "Dashboard": -0.4399999976158142,
         "Popular": -0.8399999737739563,
         "Mobile": -0.7799999713897705
       },
@@ -30837,9 +31097,9 @@
       "name": "Typography/Letter-Spacing/Button-Label-XL",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -0.3199999928474426,
+        "Dashboard": 0,
         "Popular": -0.4000000059604645,
-        "Mobile": -0.36000001430511475
+        "Mobile": 0
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30853,9 +31113,9 @@
       "name": "Typography/Font-Size/Heading-2",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 28,
+        "Dashboard": 25,
         "Popular": 32,
-        "Mobile": 30
+        "Mobile": 29
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30869,7 +31129,7 @@
       "name": "Typography/Line-Height/Heading-2",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 36,
+        "Dashboard": 32,
         "Popular": 40,
         "Mobile": 36
       },
@@ -30885,9 +31145,9 @@
       "name": "Typography/Letter-Spacing/Heading-2",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -0.8399999737739563,
+        "Dashboard": -0.5,
         "Popular": -0.9599999785423279,
-        "Mobile": -0.8999999761581421
+        "Mobile": -0.8700000047683716
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30935,7 +31195,7 @@
       "valuesByMode": {
         "Dashboard": -0.1599999964237213,
         "Popular": -0.36000001430511475,
-        "Mobile": -0.18000000715255737
+        "Mobile": -0.27000001072883606
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30949,9 +31209,9 @@
       "name": "Typography/Font-Size/Display-Extra-1",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 78,
+        "Dashboard": 65,
         "Popular": 88,
-        "Mobile": 85
+        "Mobile": 74
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30965,9 +31225,9 @@
       "name": "Typography/Line-Height/Display-Extra-1",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 88,
+        "Dashboard": 72,
         "Popular": 100,
-        "Mobile": 96
+        "Mobile": 84
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30981,9 +31241,9 @@
       "name": "Typography/Letter-Spacing/Display-Extra-1",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -3.119999885559082,
+        "Dashboard": -2.880000114440918,
         "Popular": -3.5199999809265137,
-        "Mobile": -3.4000000953674316
+        "Mobile": -3.2699999809265137
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -30997,9 +31257,9 @@
       "name": "Typography/Font-Size/Display-Extra-2",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 68,
+        "Dashboard": 58,
         "Popular": 78,
-        "Mobile": 75
+        "Mobile": 66
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -31013,9 +31273,9 @@
       "name": "Typography/Line-Height/Display-Extra-2",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 72,
+        "Dashboard": 60,
         "Popular": 88,
-        "Mobile": 80
+        "Mobile": 70
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -31029,9 +31289,9 @@
       "name": "Typography/Letter-Spacing/Display-Extra-2",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -2.7200000286102295,
+        "Dashboard": -2.380000114440918,
         "Popular": -3.119999885559082,
-        "Mobile": -3
+        "Mobile": -2.700000047683716
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -31045,9 +31305,9 @@
       "name": "Typography/Font-Size/Display-Extra-3",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 60,
+        "Dashboard": 51,
         "Popular": 68,
-        "Mobile": 66
+        "Mobile": 58
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -31061,9 +31321,9 @@
       "name": "Typography/Line-Height/Display-Extra-3",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 68,
+        "Dashboard": 58,
         "Popular": 72,
-        "Mobile": 76
+        "Mobile": 66
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -31077,9 +31337,9 @@
       "name": "Typography/Letter-Spacing/Display-Extra-3",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -2.4000000953674316,
+        "Dashboard": -1.899999976158142,
         "Popular": -2.7200000286102295,
-        "Mobile": -2.640000104904175
+        "Mobile": -2.319999933242798
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",

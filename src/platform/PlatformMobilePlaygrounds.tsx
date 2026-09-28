@@ -1,4 +1,4 @@
-import { useContext, useState, type ReactNode } from "react";
+import { useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "../components/Button";
 import { Search } from "../components/Search";
 import { Segmented } from "../components/Segmented";
@@ -39,11 +39,15 @@ function Panel({ title, controls, children, code }: { title: string; controls: R
 
 const option = (id: string, label = id) => ({ id, label });
 
-function ScreenList() {
-  // Opening a project selects it (the rows are never locked, even in a playground).
+function ScreenList({ extra = [] }: { extra?: string[] }) {
+  // Opening a project selects it (the rows are never locked, even in a playground). A project created from the header
+  // (extra, newest first) lands on top, opened.
   const [open, setOpen] = useState<string | null>(null);
+  const newest = extra[0];
+  useEffect(() => { if (newest) setOpen(newest); }, [newest]);
   return (
     <List aria-label="Recent projects">
+      {extra.map((title) => <ListItem key={title} title={title} caption="Created just now" leading={<Avatar size="medium" shape="square" theme="teal" alt={title} />} selected={open === title} onClick={() => setOpen(title)} />)}
       {/* Long enough to scroll under a floating (blurring / glass / overlay) header. */}
       {["Zen website", "Brand refresh", "Mobile app", "Docs platform", "Design tokens", "Icon library", "Marketing site", "Onboarding flow", "Help center", "Release notes", "Pricing page", "Analytics", "Email templates", "Partner portal"].map((title, index) => (
         <ListItem key={title} title={title} caption={`${(index * 7) % 23 + 3} pages · updated ${index + 1}d ago`} leading={<Avatar size="medium" shape="square" theme={(["brown", "indigo", "green", "orange", "teal", "purple"] as const)[index % 6]} alt={title} />} selected={open === title} onClick={() => setOpen(title)} />
@@ -59,6 +63,9 @@ export function TopNavigationPlayground() {
   const [collapsed, setCollapsed] = useState(false);
   const [control, setControl] = useState(false);
   const [dot, setDot] = useState(true);
+  // Every action does something: Back reports where it goes, the bell clears its dot, + adds a project on top.
+  const [note, setNote] = useState<string | null>(null);
+  const [created, setCreated] = useState<string[]>([]);
   const t = (type ?? "default") as TopNavigationType;
   const overlay = t.endsWith("overlay");
   return (
@@ -77,16 +84,18 @@ export function TopNavigationPlayground() {
   title="Projects"
   largeTitle="Projects"${level !== "h1" ? `\n  headingLevel="${level}"` : ""}${collapsed ? "\n  collapsed" : ""}
   leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }}
-  trailing={[{ icon: "icon-bell-01-line", label: "Notifications"${dot ? ", dot: true" : ""} }]}
-  largeTitleAction={{ icon: "icon-plus-line", label: "New project" }}${control ? `\n  controlBar={<Search placeholder="Search projects" />}\n  searchAction={{ label: "Search projects", onClick: expandAndFocusSearch }}` : ""}
+  trailing={[{ icon: "icon-bell-01-line", label: "Notifications"${dot ? ", dot: true" : ""}, onClick: openNotifications }]}
+  largeTitleAction={{ icon: "icon-plus-line", label: "New project", onClick: createProject }}${control ? `\n  controlBar={<Search placeholder="Search projects" />}\n  searchAction={{ label: "Search projects", onClick: expandAndFocusSearch }}` : ""}
 />`}>
       <PlatformPhone canvas={overlay ? "media" : t.includes("alt") || t === "liquid-glass" ? "alt" : "default"} statusBar={overlay ? "light" : "dark"} headerOverlay={t.includes("blurring") || t === "liquid-glass" || overlay}
         header={<TopNavigation type={t} margin={(margin ?? "comfortable") as TopNavigationMargin} headingLevel={(level ?? "h1") as TopNavigationHeading} collapsed={collapsed}
-          title="Projects" largeTitle="Projects" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} trailing={[{ icon: "icon-bell-01-line", label: "Notifications", dot }]}
-          largeTitleAction={{ icon: "icon-plus-line", label: "New project" }} controlBar={control ? <Search placeholder="Search projects" /> : undefined}
+          title="Projects" largeTitle="Projects" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => setNote("Back returns to the previous screen.") }}
+          trailing={[{ icon: "icon-bell-01-line", label: "Notifications", dot, onClick: () => { setDot(false); setNote("Notifications opened; the dot clears."); } }]}
+          largeTitleAction={{ icon: "icon-plus-line", label: "New project", onClick: () => { setCreated((list) => [`New project ${list.length + 1}`, ...list]); setNote(null); } }} controlBar={control ? <Search placeholder="Search projects" /> : undefined}
           searchAction={control ? { label: "Search projects", onClick: () => setCollapsed(false) } : undefined} />}>
-        {overlay ? <PlatformPhoneMedia photo={platformMedia.mountainRoad} /> : <ScreenList />}
+        {overlay ? <PlatformPhoneMedia photo={platformMedia.mountainRoad} /> : <ScreenList extra={created} />}
       </PlatformPhone>
+      {note ? <p className={`pe-text pe-text--light ${typographyStyles["Body/Small/Regular"]}`} role="status">{note}</p> : null}
     </Panel>
   );
 }
@@ -99,6 +108,8 @@ export function BottomNavigationPlayground() {
   const [labels, setLabels] = useState(false);
   const [action, setAction] = useState(false);
   const [value, setValue] = useState("home");
+  const [sheet, setSheet] = useState(false);
+  const [draft, setDraft] = useState<string | null>(null);
   const t = (type ?? "default") as BottomNavigationType;
   return (
     <Panel title="Bottom Navigation / Mobile"
@@ -122,9 +133,11 @@ export function BottomNavigationPlayground() {
   onValueChange={setTab}${action ? `\n  action={{ icon: "icon-plus-line", label: "New post", onClick: compose }}` : ""}
 />`}>
       <PlatformPhone header={<TopNavigation type="compact" title={bottomNavItems.find((i) => i.id === value)?.label} />}
-        footer={<BottomNavigation type={t} theme={(theme ?? "neutral") as BottomNavigationTheme} selection={(selection ?? "surface") as BottomNavigationSelection} showLabels={labels} items={bottomNavItems} value={value} onValueChange={setValue} action={action ? { icon: "icon-plus-line", label: "New post" } : undefined} />}>
+        footer={<BottomNavigation type={t} theme={(theme ?? "neutral") as BottomNavigationTheme} selection={(selection ?? "surface") as BottomNavigationSelection} showLabels={labels} items={bottomNavItems} value={value} onValueChange={setValue} action={action ? { icon: "icon-plus-line", label: "New post", onClick: () => setSheet(true) } : undefined} />}>
         <ScreenList />
+        <BottomSheet inline open={sheet} onOpenChange={setSheet} type="action" title="Create" items={[{ id: "post", label: "Post", icon: "icon-edit-02-line" }, { id: "photo", label: "Photo", icon: "icon-camera-line" }, { id: "event", label: "Event", icon: "icon-calendar-line" }]} onSelect={(item) => setDraft(String(item.label))} />
       </PlatformPhone>
+      {draft ? <p className={`pe-text pe-text--light ${typographyStyles["Body/Small/Regular"]}`} role="status">{`${draft} draft started.`}</p> : null}
     </Panel>
   );
 }
@@ -258,14 +271,32 @@ export function AiChatPlayground() {
     { id: 2, side: "ai", text: "• Revenue grew 12% quarter on quarter.\n• Churn fell to 2.1%, the lowest this year.\n• Two enterprise deals closed in September." },
   ]);
   const [busy, setBusy] = useState(false);
+  // Every bubble action works: Copy confirms in place, Edit puts the prompt back in the field, the thumbs toggle and
+  // Regenerate writes another answer.
+  const [copied, setCopied] = useState<number | null>(null);
+  const [vote, setVote] = useState<"up" | "down" | null>(null);
+  const [draft, setDraft] = useState({ key: 0, text: "" });
+  const stageRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (copied === null) return undefined;
+    const timer = window.setTimeout(() => setCopied(null), 2000);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+  useEffect(() => { if (draft.key) stageRef.current?.querySelector("textarea")?.focus(); }, [draft.key]);
   const s = (style ?? "default") as AiChatFieldStyle;
+  const answer = (text: string) => {
+    setBusy(true); setVote(null);
+    window.setTimeout(() => { setTurns((all) => [...all, { id: Date.now() + 1, side: "ai", text }]); setBusy(false); }, 900);
+  };
   const send = (text: string) => {
     setTurns((all) => [...all, { id: Date.now(), side: "you", text }]);
-    setBusy(true);
-    window.setTimeout(() => { setTurns((all) => [...all, { id: Date.now() + 1, side: "ai", text: "Here is a first draft. Tell me what to change." }]); setBusy(false); }, 900);
+    answer("Here is a first draft. Tell me what to change.");
     setEmpty(false);
   };
-  const field = <AiChatField fieldStyle={s} model="AI Model V 1.0" busy={busy} onStop={() => setBusy(false)} onSubmit={send} />;
+  const regenerate = () => { setTurns((all) => all.slice(0, -1)); answer("Here's another take: shorter, with the numbers first."); };
+  const copy = (turn: AiTurn) => { void navigator.clipboard?.writeText(turn.text).catch(() => undefined); setCopied(turn.id); };
+  const copyAction = (turn: AiTurn) => ({ icon: copied === turn.id ? "icon-check-line" as const : "icon-copy-line" as const, label: copied === turn.id ? "Copied" : "Copy", onClick: () => copy(turn) });
+  const field = <AiChatField key={draft.key} defaultValue={draft.text} fieldStyle={s} model="AI Model V 1.0" busy={busy} onStop={() => setBusy(false)} onSubmit={send} />;
   return (
     <Panel title="AI Chat"
       controls={<>
@@ -275,26 +306,30 @@ export function AiChatPlayground() {
       code={`import { AiChatBubble, AiChatField, AiChatThread } from "@zen/design-system";
 
 <AiChatThread>
-  <AiChatBubble side="you" actions={[{ icon: "icon-copy-line", label: "Copy" }, { icon: "icon-edit-02-line", label: "Edit" }]}>
+  <AiChatBubble side="you" actions={[{ icon: "icon-copy-line", label: "Copy", onClick: copyPrompt }, { icon: "icon-edit-02-line", label: "Edit", onClick: editPrompt }]}>
     Summarise the Q3 report in three bullets.
   </AiChatBubble>
   <AiChatBubble side="ai" actions={[
-    { icon: "icon-thumbs-up-line", label: "Good response" },
-    { icon: "icon-thumbs-down-line", label: "Bad response" },
-    { icon: "icon-refresh-cw-01-line", label: "Regenerate" },
-    { icon: "icon-copy-line", label: "Copy" },
-    { icon: "icon-dots-vertical-line", label: "More actions" },
+    { icon: vote === "up" ? "icon-thumbs-up-solid" : "icon-thumbs-up-line", label: "Good response", pressed: vote === "up", onClick: toggleUp },
+    { icon: vote === "down" ? "icon-thumbs-down-solid" : "icon-thumbs-down-line", label: "Bad response", pressed: vote === "down", onClick: toggleDown },
+    { icon: "icon-refresh-cw-01-line", label: "Regenerate", onClick: regenerate },
+    { icon: copied ? "icon-check-line" : "icon-copy-line", label: copied ? "Copied" : "Copy", onClick: copyAnswer },
   ]}>…</AiChatBubble>
 </AiChatThread>
 <AiChatField${s !== "default" ? ` fieldStyle="${s}"` : ""} model="AI Model V 1.0" busy={streaming} onStop={stop} onSubmit={ask} />`}>
-      <div className="platform-ai-stage" data-style={s}>
+      <div ref={stageRef} className="platform-ai-stage" data-style={s}>
         {empty ? (
-          <AiChatBlock suggestions={[{ label: "Help me write", icon: "icon-pencil-line" }, { label: "Learn about", icon: "icon-book-open-line" }, { label: "Analyze image", icon: "icon-image-line" }, { label: "Summarize text", icon: "icon-align-left-line" }]}>{field}</AiChatBlock>
+          <AiChatBlock suggestions={[{ label: "Help me write", icon: "icon-pencil-line", onClick: () => send("Help me write a launch announcement") }, { label: "Learn about", icon: "icon-book-open-line", onClick: () => send("Teach me how design tokens work") }, { label: "Analyze image", icon: "icon-image-line", onClick: () => send("What stands out in this chart?") }, { label: "Summarize text", icon: "icon-align-left-line", onClick: () => send("Summarize this document in three bullets") }]}>{field}</AiChatBlock>
         ) : (
           <AiChatThread>
             {turns.map((turn, index) => (
               <AiChatBubble key={turn.id} side={turn.side}
-                actions={turn.side === "you" ? [{ icon: "icon-copy-line", label: "Copy" }, { icon: "icon-edit-02-line", label: "Edit" }] : index === turns.length - 1 ? [{ icon: "icon-thumbs-up-line", label: "Good response" }, { icon: "icon-thumbs-down-line", label: "Bad response" }, { icon: "icon-refresh-cw-01-line", label: "Regenerate" }, { icon: "icon-copy-line", label: "Copy" }, { icon: "icon-dots-vertical-line", label: "More actions" }] : undefined}>
+                actions={turn.side === "you" ? [copyAction(turn), { icon: "icon-edit-02-line", label: "Edit", onClick: () => setDraft((d) => ({ key: d.key + 1, text: turn.text })) }] : index === turns.length - 1 && !busy ? [
+                  { icon: vote === "up" ? "icon-thumbs-up-solid" : "icon-thumbs-up-line", label: "Good response", pressed: vote === "up", onClick: () => setVote(vote === "up" ? null : "up") },
+                  { icon: vote === "down" ? "icon-thumbs-down-solid" : "icon-thumbs-down-line", label: "Bad response", pressed: vote === "down", onClick: () => setVote(vote === "down" ? null : "down") },
+                  { icon: "icon-refresh-cw-01-line", label: "Regenerate", onClick: regenerate },
+                  copyAction(turn),
+                ] : undefined}>
                 {turn.text}
               </AiChatBubble>
             ))}

@@ -2934,7 +2934,7 @@
         "name": "Light/Gray/11",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#606060"
+          "Zen": "#4F4F4F"
         }
       },
       {
@@ -3018,7 +3018,7 @@
         "name": "Light/Gray-Alpha/11",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#0000009F"
+          "Zen": "#000000B0"
         }
       },
       {
@@ -7806,7 +7806,7 @@
         "name": "Light/Neutral-Ananas/11",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#59645D"
+          "Zen": "#49554E"
         }
       },
       {
@@ -7890,7 +7890,7 @@
         "name": "Light/Neutral-Ananas-Alpha/11",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#001106A6"
+          "Zen": "#001107B6"
         }
       },
       {

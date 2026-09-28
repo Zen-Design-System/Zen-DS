@@ -8,7 +8,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 
 | Component | Rules |
 | --- | --- |
-| [Button & IconButton](button.md) | `button/secondary-justified`, `button/filter-is-chip`, `button/accent-is-promoted`, `button/destructive-is-danger`, `icon-button/needs-name`, `icon-button/needs-action`, `icon-button/tooltip`, `button/icon-only-raw`, `navigation/back-chevron`, `button/flat-level`, `button/small-full-width`, `file-icon/not-an-action`, `button/vague-label`, `button/one-primary`, `button/compact-size-special`, `focus/visible-ring`, `api/deprecated-prop`, `icon/unknown-name`, `interaction/no-noop-handler` |
+| [Button & IconButton](button.md) | `button/secondary-justified`, `button/filter-is-chip`, `button/accent-is-promoted`, `button/destructive-is-danger`, `icon-button/needs-name`, `icon-button/needs-action`, `icon-button/tooltip`, `button/icon-only-raw`, `navigation/back-chevron`, `button/flat-level`, `button/small-full-width`, `file-icon/not-an-action`, `button/vague-label`, `button/one-primary`, `button/compact-size-special`, `focus/visible-ring`, `api/deprecated-prop`, `icon/unknown-name`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Chip / Pill](chip.md) | `button/filter-is-chip`, `chip/popover-needs-advanced`, `chip/multiple-needs-count`, `api/deprecated-prop`, `copy/plural-count`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Input fields](input.md) | `input/no-disabled`, `input/needs-label`, `input/placeholder-not-label`, `richtext/value-not-onchange`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `focus/state-parity` |
 | [Search](search.md) | `input/no-disabled`, `search/needs-name`, `interaction/no-noop-handler` |
@@ -19,31 +19,31 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Badge & Badge-Counter](badge.md) | `removable/needs-handler`, `badge-counter/cap`, `badge/count-uses-counter`, `api/deprecated-prop`, `copy/plural-count`, `interaction/no-noop-handler` |
 | [Tag](tag.md) | `removable/needs-handler`, `copy/plural-count`, `interaction/no-noop-handler` |
 | [Avatar & Avatar Stack](avatar.md) | `avatar/needs-alt`, `interaction/no-noop-handler` |
-| [Popover](popover.md) | `popover/controlled-close`, `popover/explicit-open`, `popover/bulk-action-limit`, `interaction/no-noop-handler`, `focus/selected-fill-only` |
-| [Sidebar](sidebar.md) | `sidebar/submenu-close`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
-| [Date Picker](date-picker.md) | `input/no-disabled`, `input/needs-label`, `input/placeholder-not-label`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
+| [Popover](popover.md) | `popover/controlled-close`, `popover/explicit-open`, `popover/bulk-action-limit`, `interaction/no-noop-handler`, `interaction/action-without-handler`, `focus/selected-fill-only` |
+| [Sidebar](sidebar.md) | `sidebar/submenu-close`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `interaction/action-without-handler` |
+| [Date Picker](date-picker.md) | `input/no-disabled`, `input/needs-label`, `input/placeholder-not-label`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `date-picker/actions-need-apply` |
 | [Tooltip](tooltip.md) | `tooltip/focusable-trigger`, `tooltip/short`, `tooltip/no-interactive-content`, `tooltip/disabled-trigger`, `interaction/no-noop-handler` |
 | [Tabs](tabs.md) | `tabs/needs-label`, `tabs/item-count`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
-| [Breadcrumbs](breadcrumbs.md) | `interaction/no-noop-handler` |
+| [Breadcrumbs](breadcrumbs.md) | `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Progress](progress.md) | `progress/value-range`, `progress/needs-label`, `progress/quota-scale`, `interaction/no-noop-handler` |
 | [Modal & Dialog](dialog.md) | `dialog/needs-title`, `dialog/negative-uses-danger`, `dialog/no-nested`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
-| [Toast Message](toast.md) | `toast/needs-title`, `toast/concise`, `api/deprecated-prop`, `interaction/no-noop-handler` |
-| [Alert Banner](alert-banner.md) | `alert-banner/small-no-action`, `api/deprecated-prop`, `interaction/no-noop-handler` |
+| [Toast Message](toast.md) | `toast/needs-title`, `toast/concise`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
+| [Alert Banner](alert-banner.md) | `alert-banner/small-no-action`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Accordion](accordion.md) | `accordion/no-nested`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Pagination](pagination.md) | `pagination/worth-paging`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Skeleton](skeleton.md) | `motion/reduced-motion`, `interaction/no-noop-handler` |
 | [Divider](divider.md) | `divider/no-double`, `interaction/no-noop-handler` |
-| [Inline Message](inline-message.md) | `inline-message/needs-content`, `inline-message/custom-needs-visual`, `api/deprecated-prop`, `copy/plural-count`, `interaction/no-noop-handler` |
-| [Empty State](empty-state.md) | `empty-state/needs-title`, `empty-state/action-label`, `empty-state/way-out-tertiary`, `icon/unknown-name`, `copy/plural-count`, `interaction/no-noop-handler` |
+| [Inline Message](inline-message.md) | `inline-message/needs-content`, `inline-message/custom-needs-visual`, `api/deprecated-prop`, `copy/plural-count`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
+| [Empty State](empty-state.md) | `empty-state/needs-title`, `empty-state/action-label`, `empty-state/way-out-tertiary`, `icon/unknown-name`, `copy/plural-count`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Stepper](stepper.md) | `stepper/needs-label`, `stepper/step-count`, `icon/unknown-name`, `interaction/no-noop-handler` |
 | [Slider](slider.md) | `slider/needs-name`, `slider/white-no-small`, `slider/solid-icon`, `api/deprecated-prop`, `icon/unknown-name`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
-| [Card](card.md) | `card/clickable-no-nested-controls`, `api/deprecated-prop`, `interaction/no-noop-handler` |
+| [Card](card.md) | `card/clickable-no-nested-controls`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Dock Icon](dock-icon.md) | `dock-icon/emoji-needs-glyph`, `icon/unknown-name`, `interaction/no-noop-handler` |
 | [List Item](list-item.md) | `list-item/inset-not-padding`, `list-item/clickable-row-toggle`, `list-item/trailing-button-medium`, `copy/plural-count`, `interaction/no-noop-handler` |
 | [Table](table.md) | `table/actions-flat`, `table/title-heading-4`, `table/needs-name`, `table/interaction-needs-handler`, `table/media-size-by-subtext`, `table/editor-needs-commit`, `table/editor-number-right`, `table/editor-number-validate`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Rating](rating.md) | `rating/needs-name`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Color Selector](color-selector.md) | `rating/needs-name`, `color-selector/token-values`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
-| [Metric Widget](metric.md) | `metric/formatted-value`, `icon/unknown-name`, `interaction/no-noop-handler` |
+| [Metric Widget](metric.md) | `metric/formatted-value`, `icon/unknown-name`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Uploader](uploader.md) | `uploader/needs-label`, `uploader/accept-caption`, `uploader/no-noop-replace`, `interaction/no-noop-handler` |
 | [Side Panel](side-panel.md) | `side-panel/not-for-confirmations`, `api/deprecated-prop`, `icon/unknown-name`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Container borders (Subtle vs Pale)](borders.md) | `border/subtle-static-box`, `border/pale-actionable-box`, `border/dashed-is-subtle`, `color/token-only` |
@@ -51,11 +51,11 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Content colours (text & icons)](content-colors.md) | `content/lights-no-light-text`, `content/title-is-strongest`, `content/colour-light-is-highlight` |
 | [File Icon](file-icon.md) | `file-icon/not-an-action`, `interaction/no-noop-handler` |
 | [Icon](icon.md) | `icon/unknown-name`, `icon/size-token`, `interaction/no-noop-handler` |
-| [Top Navigation](top-navigation.md) | `navigation/back-chevron`, `segmented/control-bar-full-width`, `top-navigation/max-two-trailing`, `top-navigation/search-folds-to-action`, `interaction/no-noop-handler` |
-| [Bottom Navigation](bottom-navigation.md) | `bottom-navigation/destinations`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
-| [Bottom Sheet](bottom-sheet.md) | `segmented/control-bar-full-width`, `bottom-sheet/action-needs-items`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
+| [Top Navigation](top-navigation.md) | `navigation/back-chevron`, `segmented/control-bar-full-width`, `top-navigation/max-two-trailing`, `top-navigation/search-folds-to-action`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
+| [Bottom Navigation](bottom-navigation.md) | `bottom-navigation/destinations`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `interaction/action-without-handler` |
+| [Bottom Sheet](bottom-sheet.md) | `segmented/control-bar-full-width`, `bottom-sheet/action-needs-items`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `interaction/action-without-handler` |
 | [Chat](chat.md) | `chat/reply-cancellable`, `chat/others-need-author`, `chat/no-locked-interaction`, `chat/reactions-name-people`, `chat/hold-delete-destructive`, `layout/scroll-anchor-flex-end`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
-| [AI Chat](ai-chat.md) | `ai-chat/no-actions-while-streaming`, `interaction/no-noop-handler` |
+| [AI Chat](ai-chat.md) | `ai-chat/no-actions-while-streaming`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Chart](chart.md) | `chart/stack-needs-legend`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Layout (Stack, Grid, Box, Container)](layout.md) | `box/border-matches-action`, `layout/use-stack`, `interaction/no-noop-handler` |
 | [Text & Heading](text.md) | `heading/h1-is-heading-1`, `table/title-heading-4`, `text/use-text`, `copy/plural-count`, `interaction/no-noop-handler` |
@@ -63,9 +63,9 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Page Header](page-header.md) | `page-header/one-primary`, `interaction/no-noop-handler` |
 | [Form](form.md) | `form/actions-order`, `form/submit-button`, `form/toggle-outside-form`, `form-fieldset/needs-legend`, `form-fieldset/radio-kind`, `interaction/no-noop-handler` |
 | [Link](link.md) | `link/needs-href`, `link/vague-text`, `link/new-tab-is-external`, `link/inherit-needs-underline`, `interaction/no-noop-handler` |
-| [Menu](menu.md) | `icon/unknown-name`, `menu/not-for-selection`, `menu/needs-trigger`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
+| [Menu](menu.md) | `icon/unknown-name`, `menu/not-for-selection`, `menu/needs-trigger`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `interaction/action-without-handler` |
 | [ZenProvider (app root)](provider.md) | `interaction/no-noop-handler` |
 | [Description List](description-list.md) | `description-list/one-emphasis`, `interaction/no-noop-handler` |
-| [Action Bar](action-bar.md) | `action-bar/one-primary`, `action-bar/primary-order`, `action-bar/full-width-size`, `interaction/no-noop-handler` |
+| [Action Bar](action-bar.md) | `action-bar/one-primary`, `action-bar/primary-order`, `action-bar/full-width-size`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Image & Thumbnail](image.md) | `image/needs-alt`, `image/alt-describes`, `interaction/no-noop-handler` |
 | [Visually Hidden](visually-hidden.md) | `visually-hidden/focusable-shows`, `interaction/no-noop-handler` |

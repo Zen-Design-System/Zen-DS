@@ -25,6 +25,33 @@ describe("value controls: onValueChange", () => {
     expect(onValueChange).toHaveBeenLastCalledWith("board");
   });
 
+  it("Segmented scrolls sideways when it outgrows its container, labels never overlap and the selection stays in view", async () => {
+    // Templates › Empty & error states at 390px: four two-word segments in a 236px column used to squeeze into each other.
+    const options = ["404", "No results", "First use", "Load failed"].map((label) => ({ id: label, label }));
+    const screen = await render(<ZenProvider><div style={{ width: 200 }}><Segmented aria-label="State" defaultValue="Load failed" options={options} /></div></ZenProvider>);
+    const group = screen.getByRole("group", { name: "State" }).element() as HTMLElement;
+    const items = [...group.querySelectorAll<HTMLElement>(".zen-segmented__item")];
+    expect(group.scrollWidth).toBeGreaterThan(group.clientWidth);
+    for (const item of items) expect(item.scrollWidth).toBeLessThanOrEqual(item.clientWidth);
+    for (let i = 1; i < items.length; i += 1) expect(items[i].getBoundingClientRect().left).toBeGreaterThanOrEqual(items[i - 1].getBoundingClientRect().right - 0.5);
+    const box = group.getBoundingClientRect();
+    const selected = items[3].getBoundingClientRect();
+    expect(selected.left).toBeGreaterThanOrEqual(box.left);
+    expect(selected.right).toBeLessThanOrEqual(box.right);
+  });
+
+  it("Segmented keeps the selection in view inside a scaled ancestor (device previews)", async () => {
+    // PlatformPhone scales the whole device with a transform: screen-pixel rects must be converted before scrolling.
+    const options = ["This week", "This month", "This quarter", "This year"].map((label) => ({ id: label, label }));
+    const screen = await render(<ZenProvider><div style={{ transform: "scale(0.5)", transformOrigin: "0 0" }}><div style={{ width: 200 }}><Segmented aria-label="Period" defaultValue="This year" options={options} /></div></div></ZenProvider>);
+    const group = screen.getByRole("group", { name: "Period" }).element() as HTMLElement;
+    expect(group.scrollWidth).toBeGreaterThan(group.clientWidth);
+    const box = group.getBoundingClientRect();
+    const selected = [...group.querySelectorAll<HTMLElement>(".zen-segmented__item")][3].getBoundingClientRect();
+    expect(selected.left).toBeGreaterThanOrEqual(box.left);
+    expect(selected.right).toBeLessThanOrEqual(box.right);
+  });
+
   it("Slider moves with the arrow keys", async () => {
     const onValueChange = vi.fn();
     const screen = await render(<ZenProvider><Slider aria-label="Volume" defaultValue={50} onValueChange={onValueChange} /></ZenProvider>);

@@ -4,7 +4,7 @@ import { Badge, BadgeCounter, type BadgeTheme } from "../components/Badge";
 import { Button, IconButton } from "../components/Button";
 import { Checkbox } from "../components/Checkbox";
 import { Chip, type ChipSize } from "../components/Chip";
-import { DatePicker } from "../components/DatePicker";
+import { DatePicker, type DatePickerRange } from "../components/DatePicker";
 import { Icon } from "../components/Icon";
 import { AutocompleteField, DateField, HeadingField, InputConditionItem, InputConditions, InputField, InputHelpText, InputLabel, NumberField, RichTextField, SelectField, TextAreaField, type InputHelpTheme } from "../components/Input";
 import { Popover, PopoverBulkAction, PopoverBulkActionDivider, PopoverBulkActionGroup, type PopoverItemData } from "../components/Popover";
@@ -49,10 +49,11 @@ import { Heading, Text } from "../components/Text";
 import { figmaSidebarBrand } from "./PlatformSidebarBrand";
 import { typographyStyles } from "../tokens/typography.generated";
 import { PlatformCode } from "./PlatformCode";
-import { PlatformPhone } from "./PlatformPhone";
+import { PlatformPhone, usePhoneScreen } from "./PlatformPhone";
 import type { PlatformPage } from "./PlatformExamples";
 import { PlatformTypographyContext } from "./PlatformTemplate";
-import { mobileExamples } from "./PlatformMobileShowcases";
+import { ChartReportPanel, mobileExamples } from "./PlatformMobileShowcases";
+import { DemoFieldDialog } from "./PlatformDemoActions";
 import { appLayerExamples } from "./PlatformAppLayer";
 import { typographyHierarchyExamples } from "./PlatformTypographyHierarchy";
 import { platformMedia, usePlatformVideo } from "./PlatformMedia";
@@ -61,6 +62,20 @@ import { auditLog, pageOf, ScrollBox, searchResults } from "./PlatformPagination
 /* Real-world compositions shown under each component playground. Every example
  * is a live, stateful composition of production components: no forced visual
  * states, so hover, focus, keyboard and outside-click behave like in an app. */
+
+/** After a change that replaces the focused control (a form swapped for its result, a list for a detail), focus lands
+ *  on `selector` inside the example instead of <body>: `go(selector, change)`; put `ref` on the example's root. */
+function useFocusAfter<T extends HTMLElement = HTMLDivElement>() {
+  const ref = useRef<T>(null);
+  const next = useRef<string | null>(null);
+  useEffect(() => {
+    const selector = next.current;
+    if (!selector) return;
+    next.current = null;
+    ref.current?.querySelector<HTMLElement>(selector)?.focus();
+  });
+  return { ref, go: (selector: string, change: () => void) => { next.current = selector; change(); } };
+}
 
 /** "1 item" / "3 items" — counts in example copy always agree with their number. */
 const plural = (count: number, one: string, many = `${one}s`) => `${count} ${count === 1 ? one : many}`;
@@ -460,6 +475,77 @@ function SegmentedInboxExample() {
   );
 }
 
+const spendingPeriods = [{ id: "week", label: "This week" }, { id: "month", label: "This month" }, { id: "quarter", label: "This quarter" }, { id: "year", label: "This year" }];
+const spendingCategories = [
+  { name: "Groceries", icon: "icon-shopping-cart-line", theme: "green" },
+  { name: "Bills & utilities", icon: "icon-lightning-01-line", theme: "orange" },
+  { name: "Eating out", icon: "icon-restaurant-line", theme: "red" },
+  { name: "Transport", icon: "icon-train-01-line", theme: "blue" },
+  { name: "Shopping", icon: "icon-shopping-bag-01-line", theme: "purple" },
+] as const;
+/** Per period: the total, the trend against the previous period and [amount, payments] per category (same order).
+ *  This week has no payments yet. */
+const spendingByPeriod: Record<string, { label: string; total: string; trend: string; rows: Array<[string, number]> } | undefined> = {
+  month: { label: "Spent this month", total: "$1,284.50", trend: "−8% vs. last month", rows: [["$412.30", 14], ["$298.80", 4], ["$286.40", 11], ["$164.00", 22], ["$123.00", 3]] },
+  quarter: { label: "Spent this quarter", total: "$3,912.75", trend: "−3% vs. last quarter", rows: [["$1,236.90", 41], ["$896.40", 12], ["$842.15", 33], ["$512.30", 64], ["$425.00", 9]] },
+  year: { label: "Spent this year", total: "$11,640.20", trend: "−5% vs. last year", rows: [["$3,684.10", 122], ["$2,701.60", 36], ["$2,455.30", 97], ["$1,512.20", 188], ["$1,287.00", 27]] },
+};
+
+/** Segmented · period switch on a phone: the four two-word periods are wider than the 390px screen, so the Segmented
+ *  keeps its full labels and scrolls sideways (segmented.css); fullWidth would cut them. An empty week shows an
+ *  EmptyState. Everything sits on the phone margin (Margin/Compact), the List through its inset. */
+function SegmentedPhonePeriodExample() {
+  const [period, setPeriod] = useState("month");
+  // Back goes up to Wallet; its Spending row comes back here.
+  const [atWallet, setAtWallet] = useState(false);
+  const [picked, setPicked] = useState<string | null>(null);
+  const screen = usePhoneScreen();
+  const headingId = `${useId().replace(/:/g, "")}-categories`;
+  const inset = { paddingInline: "var(--zen-margin-compact, 20px)" };
+  if (atWallet) {
+    return (
+      <PlatformPhone label="Period switch" header={<TopNavigation title="Wallet" largeTitle="Wallet" />}>
+        {screen.anchor}
+        <List aria-label="Wallet" inset="compact">
+          {([["Spending", "$1,284.50 this month", "icon-pie-chart-01-line", "green"], ["Budgets", "3 of 4 on track", "icon-target-04-line", "orange"], ["Savings", "$4,200.00 in 2 goals", "icon-piggy-bank-line", "pink"]] as const).map(([title, caption, icon, theme]) => (
+            <ListItem key={title} data-row={title} title={title} caption={caption} leading={<DockIcon icon={icon} theme={theme} background="subtle" />} selected={picked === title}
+              onClick={() => (title === "Spending" ? screen.go('.zen-top-nav__action[aria-label="Back"]', () => setAtWallet(false)) : setPicked(title))} />
+          ))}
+        </List>
+      </PlatformPhone>
+    );
+  }
+  const spent = spendingByPeriod[period];
+  return (
+    <PlatformPhone label="Period switch" header={<TopNavigation type="compact" title="Spending" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go('[data-row="Spending"] .zen-list-item__wrapper', () => setAtWallet(true)) }} />}>
+      {screen.anchor}
+      <Stack gap="lg" align="stretch" style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) 0 var(--zen-spacing-padding-large, 20px)" }}>
+        <div style={inset}><Segmented aria-label="Period" value={period} onValueChange={setPeriod} options={spendingPeriods} /></div>
+        {spent ? (
+          <>
+            {/* Normal trend: spending less is not good or bad in itself, and a Positive badge would draw an up arrow next to −8%. */}
+            <div style={inset}><Metric size="small" label={spent.label} value={spent.total} icon="icon-wallet-02-line" trend={{ direction: "normal", label: spent.trend }} /></div>
+            <Stack as="section" gap="xs" align="stretch" aria-labelledby={headingId}>
+              <div style={inset}><Heading id={headingId} level={2} textStyle="Heading/Subheading">By category</Heading></div>
+              <List aria-label="By category" inset="compact">
+                {spendingCategories.map((category, i) => <ListItem key={category.name} title={category.name} caption={plural(spent.rows[i][1], "payment")} leading={<DockIcon icon={category.icon} theme={category.theme} background="subtle" />} trailing={<Text as="span" textStyle="Body/Base/Medium">{spent.rows[i][0]}</Text>} />)}
+              </List>
+            </Stack>
+          </>
+        ) : (
+          <div style={inset}>
+            {/* The way out switches the period; focus moves to the selected segment instead of falling to <body>. */}
+            <EmptyState headingLevel={2} title="No spending yet this week" icon="icon-receipt-line"
+              secondaryAction={{ label: "Show this month", onClick: () => screen.go('.zen-segmented__item[data-selected="true"]', () => setPeriod("month")) }}>
+              Card payments show up here once they clear.
+            </EmptyState>
+          </div>
+        )}
+      </Stack>
+    </PlatformPhone>
+  );
+}
+
 /* ───────────── Toggle ───────────── */
 
 function ToggleSettingsExample() {
@@ -547,27 +633,36 @@ function AvatarShareExample() {
 function CheckboxSelectAllExample() {
   const files = ["tokens.css", "style-effects.css", "icons.svg", "typography.generated.ts"];
   const [picked, setPicked] = useState<string[]>(["tokens.css"]);
+  // Export confirms under the button; changing the selection clears the confirmation.
+  const [exported, setExported] = useState<string[] | null>(null);
+  const pick = (next: string[]) => { setPicked(next); setExported(null); };
   const all = picked.length === files.length;
   const some = picked.length > 0 && !all;
   return (
     <Stack gap="sm" align="stretch">
-      <Checkbox bold label="Include all build files" caption={`${picked.length} of ${files.length} selected`} checked={all || some} indeterminate={some} onChange={() => setPicked(all ? [] : files)} />
+      <Checkbox bold label="Include all build files" caption={`${picked.length} of ${files.length} selected`} checked={all || some} indeterminate={some} onChange={() => pick(all ? [] : files)} />
       <div className="pe-indent">
-        {files.map((file) => <Checkbox key={file} label={file} checked={picked.includes(file)} onChange={(on) => setPicked(on ? [...picked, file] : picked.filter((item) => item !== file))} />)}
+        {files.map((file) => <Checkbox key={file} label={file} checked={picked.includes(file)} onChange={(on) => pick(on ? [...picked, file] : picked.filter((item) => item !== file))} />)}
       </div>
-      <div className="pe-actions"><Button appearance="main" level="primary" size="sm" disabled={!picked.length}>Export {picked.length || ""} file{picked.length === 1 ? "" : "s"}</Button></div>
+      <div className="pe-actions"><Button appearance="main" level="primary" size="sm" disabled={!picked.length} onClick={() => setExported(picked)}>Export {picked.length || ""} file{picked.length === 1 ? "" : "s"}</Button></div>
+      {exported ? <Text as="p" textStyle="Body/Small/Regular" tone="light" role="status">{`Exported ${plural(exported.length, "file")} to build.zip`}</Text> : null}
     </Stack>
   );
 }
 
 function CheckboxConsentExample() {
   const [consent, setConsent] = useState({ terms: false, marketing: false });
+  // Continue confirms in place; closing the confirmation brings the button back, focused.
+  const [done, setDone] = useState(false);
+  const focus = useFocusAfter();
   return (
-    <Stack gap="sm" align="stretch">
+    <Stack ref={focus.ref} gap="sm" align="stretch">
       <Checkbox label="I accept the Terms of Service and Privacy Policy" checked={consent.terms} onChange={(on) => setConsent({ ...consent, terms: on })} />
       <Checkbox label="Send me product news" caption="Optional · about once a month" checked={consent.marketing} onChange={(on) => setConsent({ ...consent, marketing: on })} />
       <Checkbox label="Enable legacy API" caption="Unavailable on the Free plan" disabled />
-      <div className="pe-actions"><Button appearance="main" level="primary" size="sm" disabled={!consent.terms}>Continue</Button></div>
+      {done
+        ? <InlineMessage theme="positive" title="Terms accepted" onClose={() => focus.go(".pe-actions .zen-button", () => setDone(false))}>{consent.marketing ? "You'll get product news about once a month." : "Product news stays off; you can turn it on in Settings."}</InlineMessage>
+        : <div className="pe-actions"><Button appearance="main" level="primary" size="sm" disabled={!consent.terms} onClick={() => focus.go(".zen-inline-message button", () => setDone(true))}>Continue</Button></div>}
     </Stack>
   );
 }
@@ -581,17 +676,22 @@ function RadioPlanExample() {
     { id: "team", label: "Team", caption: "SSO · audit log · priority support", price: 24 },
   ];
   const [plan, setPlan] = useState("pro");
+  // The CTA moves you to the picked plan; then the picked plan is current and focus returns to its radio.
+  const [subscribed, setSubscribed] = useState("free");
+  const groupRef = useRef<HTMLDivElement>(null);
   const current = plans.find((item) => item.id === plan)!;
+  const mine = plans.find((item) => item.id === subscribed)!;
+  const subscribe = () => { setSubscribed(plan); window.requestAnimationFrame(() => groupRef.current?.querySelector<HTMLInputElement>("input:checked")?.focus()); };
   return (
     <Stack gap="sm" align="stretch">
-      <div className="pe-radio-cards" role="radiogroup" aria-label="Plan">
+      <div ref={groupRef} className="pe-radio-cards" role="radiogroup" aria-label="Plan">
         {plans.map((item) => (
           <Card key={item.id} theme="border" spacing="small" active={plan === item.id} className="pe-choice-card">
-            <RadioButton name="pe-plan" value={item.id} checked={plan === item.id} onChange={() => setPlan(item.id)} bold label={`${item.label} · $${item.price}/mo`} caption={item.caption} />
+            <RadioButton name="pe-plan" value={item.id} checked={plan === item.id} onChange={() => setPlan(item.id)} bold label={`${item.label} · $${item.price}/mo`} caption={item.id === subscribed ? `Your plan · ${item.caption}` : item.caption} />
           </Card>
         ))}
       </div>
-      <Stack direction="row" gap="xs" align="center" justify="between" wrap><Text as="span" tone="base">Total: ${current.price}/month</Text><Button appearance="main" level="primary" size="sm">{current.price ? `Upgrade to ${current.label}` : "Stay on Free"}</Button></Stack>
+      <Stack direction="row" gap="xs" align="center" justify="between" wrap><Text as="span" tone="base" role="status">{plan === subscribed ? `You're on ${mine.label} · $${mine.price}/month` : `Total: $${current.price}/month`}</Text><Button appearance="main" level="primary" size="sm" disabled={plan === subscribed} onClick={subscribe}>{plan === subscribed ? "Current plan" : current.price > mine.price ? `Upgrade to ${current.label}` : `Switch to ${current.label}`}</Button></Stack>
     </Stack>
   );
 }
@@ -768,6 +868,33 @@ const shellTeams = [
 ];
 const matches = (query: string, label: string) => label.toLowerCase().includes(query.trim().toLowerCase());
 
+/** Sidebar footer pages (Settings, Help, Templates, Trash): the footer buttons open them like any other page. */
+const shellFooterPages: Record<string, { title: string; description: string; icon: ShellIconName; rows: Array<[string, string, ShellIconName]> }> = {
+  settings: { title: "Settings", description: "Your profile, notifications and workspace preferences.", icon: "icon-settings-01-line", rows: [["Profile", "Name, photo and time zone", "icon-user-line"], ["Notifications", "Email, push and in-app", "icon-bell-01-line"], ["Workspace", "Name, members and billing", "icon-settings-01-line"]] },
+  help: { title: "Help", description: "Guides, shortcuts and a way to reach the team.", icon: "icon-help-circle-line", rows: [["Getting started", "A five-minute tour of the workspace", "icon-book-open-line"], ["Keyboard shortcuts", "Search and switch pages with ⌘K", "icon-keyboard-line"], ["Contact support", "We reply within one working day", "icon-message-chat-circle-line"]] },
+  templates: { title: "Templates", description: "Start a page from a ready-made layout.", icon: "icon-layers-three-01-line", rows: [["Meeting notes", "Agenda, notes and action items", "icon-file-doc-line"], ["Project brief", "Goals, scope and milestones", "icon-file-doc-line"], ["Retrospective", "What went well and what to change", "icon-file-doc-line"]] },
+  trash: { title: "Trash", description: "Deleted pages stay here for 30 days.", icon: "icon-trash-line", rows: [["Old roadmap", "Deleted 3 days ago", "icon-file-doc-line"], ["Q2 retro", "Deleted last week", "icon-file-doc-line"]] },
+};
+
+/** The footer buttons of a sidebar example: each opens its page (aria-current while it is shown). */
+function ShellFooter({ ids, page, onOpen }: { ids: string[]; page: string; onOpen: (id: string) => void }) {
+  return <>{ids.map((id) => <button key={id} type="button" aria-current={page === id ? "page" : undefined} onClick={() => onOpen(id)}><Icon name={shellFooterPages[id].icon} size="base" /><span>{shellFooterPages[id].title}</span></button>)}</>;
+}
+
+function ShellFooterPage({ page, root }: { page: string; root: string }) {
+  const [open, setOpen] = useState<string | null>(null);
+  const info = shellFooterPages[page];
+  return (
+    <ShellPage eyebrow={root} title={info.title} description={info.description}>
+      <Card theme="border" spacing="small" className="pe-list-card">
+        <List aria-label={info.title}>
+          {info.rows.map(([title, caption, icon]) => <ListItem key={title} selected={open === title} onClick={() => setOpen(title)} title={title} caption={caption} leading={<DockIcon icon={icon} theme="pale" size="small" />} trailing={<Icon name="icon-chevron-right-line-small" size="base" decorative />} />)}
+        </List>
+      </Card>
+    </ShellPage>
+  );
+}
+
 /** Right-hand page of the sidebar examples: header (eyebrow, title, description, actions) + body. */
 function ShellPage({ eyebrow, crumbs, title, description, actions, children }: { eyebrow: string; crumbs?: string[]; title: string; description: string; actions?: ReactNode; children?: ReactNode }) {
   return (
@@ -910,11 +1037,16 @@ function ShellAgenda() {
 }
 
 function ShellDoc({ doc, root }: { doc: ShellDocData; root?: string }) {
+  const { toast } = useToast();
   const [sub, setSub] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
   const trail = [...(root ? [root] : []), ...doc.path, doc.title];
+  const copyLink = () => { void navigator.clipboard?.writeText(`https://zen.studio/wiki/${doc.title.toLowerCase().replace(/\W+/g, "-")}`).catch(() => undefined); toast({ title: "Link copied" }); };
   return (
     <ShellPage eyebrow={trail.slice(0, -1).join(" / ")} crumbs={trail} title={doc.title} description={doc.summary}
-      actions={<>{doc.team ? teamStack(doc.team) : null}<Button appearance="main" level="tertiary" size="sm" startIcon={<Icon name="icon-link-01-line" decorative />}>Copy link</Button><Button appearance="main" level="primary" size="sm">Share</Button></>}>
+      actions={<>{doc.team ? teamStack(doc.team) : null}<Button appearance="main" level="tertiary" size="sm" startIcon={<Icon name="icon-link-01-line" decorative />} onClick={copyLink}>Copy link</Button><Button appearance="main" level="primary" size="sm" onClick={() => setSharing(true)}>Share</Button></>}>
+      <DemoFieldDialog open={sharing} onOpenChange={setSharing} title={`Share “${doc.title}”`} description="They can read and comment; editors can change the page."
+        field={{ kind: "email", label: "Email address", placeholder: "name@company.com" }} submitLabel="Share" confirm={(email) => `Shared with ${email}`} />
       <Stack direction="row" gap="xs" align="center" wrap>{personAvatar(doc.owner, "xsmall")}<Text as="span" textStyle="Body/Small/Regular" tone="light">{`${person(doc.owner).name} · edited ${doc.updated}`}</Text></Stack>
       {doc.sections.map(([heading, body]) => (
         <Stack gap="sm" align="stretch" key={heading}>
@@ -944,6 +1076,18 @@ function SidebarProjectsFlyoutExample() {
   const [query, setQuery] = useState("");
   // "New team" (the Teams section action) creates a team with you in it and opens its page.
   const [createdTeams, setCreatedTeams] = useState<typeof shellTeams>([]);
+  // "New project" (in the flyout) creates a project with you in it and opens its page, like New team.
+  const [createdProjects, setCreatedProjects] = useState<typeof shellProjects>([]);
+  const projects = [...createdProjects, ...shellProjects];
+  const addProject = () => {
+    const id = `new-${createdProjects.length + 1}`;
+    setCreatedProjects((list) => [{ id, name: list.length ? `New project ${list.length + 1}` : "New project", icon: "icon-folder-line" as ShellIconName, pinned: false, team: ["ava"], updated: "just now" }, ...list]);
+    setPage(`p-${id}`); setFlyout(false);
+  };
+  // Share, Invite and New task open a one-field dialog that confirms with a toast.
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogKind, setDialogKind] = useState<"share" | "invite" | "task">("share");
+  const openDialog = (kind: "share" | "invite" | "task") => { setDialogKind(kind); setDialogOpen(true); };
   // Newest first, right under the section label, so the new team is in view without scrolling the nav.
   const teams = [...[...createdTeams].reverse(), ...shellTeams];
   const addTeam = () => {
@@ -951,9 +1095,9 @@ function SidebarProjectsFlyoutExample() {
     setCreatedTeams((list) => [...list, { id, name: list.length ? `New team ${list.length + 1}` : "New team", icon: "icon-users-line", members: ["ava"], about: "A new team. Invite people to share its tasks and rituals.", ritual: "Not set" }]);
     setPage(`t-${id}`); setFlyout(false);
   };
-  const project = shellProjects.find((item) => `p-${item.id}` === page);
+  const project = projects.find((item) => `p-${item.id}` === page);
   const projectItem = (item: (typeof shellProjects)[number]) => ({ id: `p-${item.id}`, label: item.name, icon: shellIcon(item.icon), counter: tasks.filter((task) => item.team.includes(task.owner) && task.status !== "done").length, selected: page === `p-${item.id}` });
-  const visible = shellProjects.filter((item) => matches(query, item.name));
+  const visible = projects.filter((item) => matches(query, item.name));
   const sections: SidebarSection[] = [
     { items: [
       { id: "home", label: "Home", icon: shellIcon("icon-home-03-line"), selected: page === "home" },
@@ -982,7 +1126,7 @@ function SidebarProjectsFlyoutExample() {
           if (item.children) return;
           setPage(item.id); setFlyout(false);
         }}
-        footer={<><button type="button"><Icon name="icon-settings-01-line" size="base" /><span>Settings</span></button><button type="button"><Icon name="icon-help-circle-line" size="base" /><span>Help</span></button></>}
+        footer={<ShellFooter ids={["settings", "help"]} page={page} onOpen={(id) => { setPage(id); setFlyout(false); }} />}
         subMenuLabel="Projects"
         onSubMenuClose={() => setFlyout(false)}
         subMenu={flyout ? (
@@ -995,13 +1139,13 @@ function SidebarProjectsFlyoutExample() {
             onItemClick={(item) => { setPage(item.id); setFlyout(false); }}
           >
             {visible.length ? null : <Text as="span" tone="light">No project matches “{query}”.</Text>}
-            <Button appearance="main" level="tertiary" size="sm" startIcon={<Icon name="icon-plus-line" decorative />}>New project</Button>
+            <Button appearance="main" level="tertiary" size="sm" startIcon={<Icon name="icon-plus-line" decorative />} onClick={addProject}>New project</Button>
           </SidebarSubMenu>
         ) : undefined}
       />
       {project ? (
         <ShellPage eyebrow="Projects" title={project.name} description={`Updated ${project.updated} · ${plural(project.team.length, "member")}`}
-          actions={<><AvatarStack size="xsmall" items={project.team.map((id) => { const person = people.find((p) => p.id === id)!; return { theme: "photo" as AvatarTheme, src: person.photo, alt: person.name }; })} /><Button appearance="main" level="primary" size="sm">Share</Button></>}>
+          actions={<><AvatarStack size="xsmall" items={project.team.map((id) => { const person = people.find((p) => p.id === id)!; return { theme: "photo" as AvatarTheme, src: person.photo, alt: person.name }; })} /><Button appearance="main" level="primary" size="sm" onClick={() => openDialog("share")}>Share</Button></>}>
           <ShellStats stats={[
             { label: "Open tasks", value: String(tasks.filter((task) => project.team.includes(task.owner) && task.status !== "done").length), hint: "This sprint" },
             { label: "Completed", value: String(tasks.filter((task) => project.team.includes(task.owner) && task.status === "done").length), hint: "+2 this week", theme: "green" },
@@ -1012,12 +1156,13 @@ function SidebarProjectsFlyoutExample() {
       ) : doc && page.startsWith("docs-") ? <ShellDoc key={page} doc={doc} root="Zen Studio" />
       : team ? (
         <ShellPage eyebrow="Zen Studio · Teams" title={team.name} description={team.about}
-          actions={<>{teamStack(team.members)}<Button appearance="main" level="tertiary" size="sm">Invite</Button></>}>
+          actions={<>{teamStack(team.members)}<Button appearance="main" level="tertiary" size="sm" onClick={() => openDialog("invite")}>Invite</Button></>}>
           <ShellStats stats={[{ label: "Members", value: String(team.members.length), hint: `${team.members.filter((id) => person(id).online).length} online`, theme: "green" }, { label: "Open tasks", value: String(tasks.filter((task) => team.members.includes(task.owner) && task.status !== "done").length), hint: "This sprint" }, { label: "Next ritual", value: team.ritual }]} />
           <ShellTasks title="Team tasks" owners={team.members} />
         </ShellPage>
       ) : page === "inbox" ? <ShellPage eyebrow="Zen Studio" title="Inbox" description="Mentions, reviews and updates from your projects."><ShellInbox /></ShellPage>
       : page === "calendar" ? <ShellPage eyebrow="Zen Studio" title="Calendar" description="Thursday, 27 September · 4 meetings, 2h of focus time left."><ShellAgenda /></ShellPage>
+      : shellFooterPages[page] ? <ShellFooterPage page={page} root="Zen Studio" />
       : page === "reports" ? (
         <ShellPage eyebrow="Zen Studio" title="Reports" description="Sprint 42 · 16–27 September">
           <ShellStats stats={[{ label: "Velocity", value: "42 pts", hint: "+8% vs last sprint", theme: "green" }, { label: "Cycle time", value: "2.4 days", hint: "−0.6 days", theme: "green" }, { label: "Bugs opened", value: "7", hint: "3 critical", theme: "orange" }]} />
@@ -1025,15 +1170,22 @@ function SidebarProjectsFlyoutExample() {
         </ShellPage>
       ) : (
         <ShellPage eyebrow="Zen Studio" title={page === "tasks" ? "My tasks" : "Good morning, Ava"} description={page === "tasks" ? "Everything assigned to you, across projects." : "3 tasks due this week, 4 unread messages and your 11:00 roadmap review."}
-          actions={<Button appearance="main" level="primary" size="sm" startIcon={<Icon name="icon-plus-line" decorative />}>New task</Button>}>
+          actions={<Button appearance="main" level="primary" size="sm" startIcon={<Icon name="icon-plus-line" decorative />} onClick={() => openDialog("task")}>New task</Button>}>
           <ShellStats stats={[
-            { label: "Projects", value: String(shellProjects.length), hint: "2 pinned" },
+            { label: "Projects", value: String(projects.length), hint: "2 pinned" },
             { label: "Open tasks", value: String(tasks.filter((task) => task.status !== "done").length), hint: "3 due soon", theme: "orange" },
             { label: "Done this week", value: String(tasks.filter((task) => task.status === "done").length), hint: "+40%", theme: "green" },
           ]} />
           <ShellTasks title={page === "tasks" ? "Assigned to me" : "Recent activity"} owners={page === "tasks" ? ["ava", "bao"] : undefined} />
         </ShellPage>
       )}
+      {dialogKind === "task"
+        ? <DemoFieldDialog open={dialogOpen} onOpenChange={setDialogOpen} title="New task" description="It lands in My tasks, assigned to you."
+            field={{ kind: "name", label: "Task name", placeholder: "e.g. Review the icon PR" }} submitLabel="Create task" confirm={(name) => `“${name}” added to My tasks`} onSubmit={() => setPage("tasks")} />
+        : <DemoFieldDialog open={dialogOpen} onOpenChange={setDialogOpen} title={dialogKind === "share" ? `Share ${project?.name ?? "this project"}` : `Invite to ${team?.name ?? "the team"}`}
+            description={dialogKind === "share" ? "They can view and comment; editors can change tasks." : "They join the team's projects and rituals."}
+            field={{ kind: "email", label: "Email address", placeholder: "name@company.com" }} submitLabel={dialogKind === "share" ? "Share" : "Send invite"}
+            confirm={(email) => (dialogKind === "share" ? `Shared with ${email}` : `Invite sent to ${email}`)} />}
     </div>
   );
 }
@@ -1079,6 +1231,10 @@ function SidebarWorkspaceExample() {
     { id: "members", label: "Members", icon: shellIcon("icon-users-line"), trailingAction: flyoutChevron, selected: flyout || Boolean(member) },
     { id: "billing", label: "Billing", icon: shellIcon("icon-credit-card-line"), selected: page === "billing" },
   ] }];
+  // Invite people and Message open a one-field dialog that confirms with a toast.
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogKind, setDialogKind] = useState<"invite" | "message">("invite");
+  const openDialog = (kind: "invite" | "message") => { setDialogKind(kind); setDialogOpen(true); };
   return (
     <div className="pe-shell pe-shell--tall" data-canvas="alt">
       <Sidebar variant="workspace" background="alt" workspaceBar sections={sections}
@@ -1101,13 +1257,13 @@ function SidebarWorkspaceExample() {
             ].filter((section) => section.items.length)}
             onItemClick={(item) => { setPage(item.id); setFlyout(false); }}
           >
-            <Button appearance="main" level="tertiary" size="sm" startIcon={<Icon name="icon-plus-line" decorative />}>Invite people</Button>
+            <Button appearance="main" level="tertiary" size="sm" startIcon={<Icon name="icon-plus-line" decorative />} onClick={() => { setFlyout(false); openDialog("invite"); }}>Invite people</Button>
           </SidebarSubMenu>
         ) : undefined}
       />
       {member ? (
         <ShellPage eyebrow={`${current.label} · Members`} title={member.name} description={`${member.role} · ${member.online ? "Online now" : "Offline"}`}
-          actions={<><Avatar size="small" theme="photo" src={member.photo} alt={member.name} /><Button appearance="main" level="tertiary" size="sm">Message</Button></>}>
+          actions={<><Avatar size="small" theme="photo" src={member.photo} alt={member.name} /><Button appearance="main" level="tertiary" size="sm" onClick={() => openDialog("message")}>Message</Button></>}>
           <ShellStats stats={[{ label: "Assigned", value: String(tasks.filter((t) => t.owner === member.id).length) }, { label: "Projects", value: String(shellProjects.filter((p) => p.team.includes(member.id)).length) }, { label: "Status", value: member.online ? "Active" : "Away", hint: member.online ? "Online" : "Offline", theme: member.online ? "green" : "neutral" }]} />
           <ShellTasks title="Assigned tasks" owners={[member.id]} />
         </ShellPage>
@@ -1127,6 +1283,11 @@ function SidebarWorkspaceExample() {
           ) : <ShellTasks title="Workspace activity" />}
         </ShellPage>
       )}
+      {dialogKind === "message"
+        ? <DemoFieldDialog open={dialogOpen} onOpenChange={setDialogOpen} title={`Message ${member?.name ?? "a member"}`} description="They get it in their Inbox and by email."
+            field={{ kind: "name", label: "Message", placeholder: "Write a short note" }} submitLabel="Send" confirm={() => `Message sent to ${member?.name ?? "the member"}`} />
+        : <DemoFieldDialog open={dialogOpen} onOpenChange={setDialogOpen} title={`Invite people to ${current.label}`} description="They get an email with a link to join."
+            field={{ kind: "email", label: "Email address", placeholder: "name@company.com" }} submitLabel="Send invite" confirm={(email) => `Invite sent to ${email}`} />}
     </div>
   );
 }
@@ -1215,6 +1376,10 @@ function SidebarFlatExample() {
   const [createdSpaces, setCreatedSpaces] = useState<string[]>([]);
   const spaceLabel = (id: string) => { const index = createdSpaces.indexOf(id); return index ? `Untitled teamspace ${index + 1}` : "Untitled teamspace"; };
   const addSpace = () => { const id = `space-new-${createdSpaces.length + 1}`; setCreatedSpaces((list) => [...list, id]); setPage(id); setQuery(""); };
+  // "New page" adds an untitled private page and opens it; the footer opens Templates, Trash and Settings.
+  const [createdPages, setCreatedPages] = useState<string[]>([]);
+  const pageLabel = (id: string) => { const index = createdPages.indexOf(id); return index ? `Untitled ${index + 1}` : "Untitled"; };
+  const addPage = () => { const id = `page-new-${createdPages.length + 1}`; setCreatedPages((list) => [...list, id]); setPage(id); setQuery(""); };
   const doc = wikiDocs[page];
   const child = (id: string, label: string) => ({ id, label, selected: page === id });
   const sections: SidebarSection[] = [
@@ -1235,6 +1400,7 @@ function SidebarFlatExample() {
       { id: "eng", label: "Engineering", icon: shellIcon("icon-code-02-line"), selected: page.startsWith("eng-"), children: [child("eng-rfcs", "RFCs"), child("eng-runbooks", "Runbooks")] },
     ] },
     { label: "Private", items: [
+      ...[...createdPages].reverse().map((id) => ({ id, label: pageLabel(id), icon: shellIcon("icon-file-doc-line"), selected: page === id })),
       { id: "reading", label: "Reading list", icon: shellIcon("icon-bookmark-line"), selected: page === "reading" },
       { id: "one-on-one", label: "1:1 notes", icon: shellIcon("icon-file-doc-line"), selected: page === "one-on-one" },
     ] },
@@ -1245,7 +1411,7 @@ function SidebarFlatExample() {
       <Sidebar variant="basic" background="flat" {...figmaSidebarBrand} collapsed={collapsed} onCollapsedChange={setCollapsed} sections={sections}
         search={<Search variant="popover" placeholder="Search the wiki" aria-label="Search the wiki" value={query} onChange={(event) => setQuery(event.target.value)} />}
         onItemClick={(item) => { if (item.children) return; setPage(item.id); setQuery(""); }}
-        footer={<><button type="button"><Icon name="icon-layers-three-01-line" size="base" /><span>Templates</span></button><button type="button"><Icon name="icon-trash-line" size="base" /><span>Trash</span></button><button type="button"><Icon name="icon-settings-01-line" size="base" /><span>Settings</span></button></>} />
+        footer={<ShellFooter ids={["templates", "trash", "settings"]} page={page} onOpen={(id) => { setPage(id); setQuery(""); }} />} />
       {query.trim() ? (
         <ShellPage eyebrow="Zen Wiki · Search" title={`Results for “${query.trim()}”`} description={results.length ? `${plural(results.length, "page")} mention it.` : "Searched titles, page text and sub-pages in every teamspace."}>
           {!results.length ? <EmptyState title={`Nothing matches “${query.trim()}”`} illustration={false} secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>Try a teamspace name, or a keyword like “tokens” or “critique”.</EmptyState> : null}
@@ -1263,11 +1429,17 @@ function SidebarFlatExample() {
           <EmptyState title="No pages yet" illustration={false} icon="icon-file-doc-line">Pages you create in this teamspace appear here.</EmptyState>
         </ShellPage>
       )
+      : createdPages.includes(page) ? (
+        <ShellPage eyebrow="Zen Wiki · Private" title={pageLabel(page)} description="A private page: only you can see it until you share it.">
+          <EmptyState title="Nothing here yet" illustration={false} icon="icon-file-doc-line">Headings, lists and embeds you add show up here.</EmptyState>
+        </ShellPage>
+      )
+      : shellFooterPages[page] ? <ShellFooterPage page={page} root="Zen Wiki" />
       : page === "inbox" ? <ShellPage eyebrow="Zen Wiki" title="Inbox" description="Mentions, comments and page requests from your teamspaces."><ShellInbox /></ShellPage>
       : page === "calendar" ? <ShellPage eyebrow="Zen Wiki" title="Calendar" description="Thursday, 27 September · 4 meetings"><ShellAgenda /></ShellPage>
       : (
         <ShellPage eyebrow="Zen Wiki" title="Good morning, Ava" description="Pick up where you left off, or search the wiki from the sidebar."
-          actions={<Button appearance="main" level="primary" size="sm" startIcon={<Icon name="icon-plus-line" decorative />}>New page</Button>}>
+          actions={<Button appearance="main" level="primary" size="sm" startIcon={<Icon name="icon-plus-line" decorative />} onClick={addPage}>New page</Button>}>
           <ShellStats stats={[{ label: "Pages", value: String(Object.keys(wikiDocs).length), hint: "3 teamspaces" }, { label: "Edited this week", value: "12", hint: "+4", theme: "green" }, { label: "Open comments", value: "8", hint: "2 on RFC-014", theme: "orange" }]} />
           <Stack gap="sm" align="stretch">
             <Heading level={5} textStyle="Heading/4">Recently visited</Heading>
@@ -1323,16 +1495,19 @@ function TagRecipientsExample() {
 function DateBookingExample() {
   const today = useMemo(() => { const now = new Date(); return new Date(now.getFullYear(), now.getMonth(), now.getDate()); }, []);
   const [range, setRange] = useState<{ start: Date; end: Date | null } | null>(null);
+  // Reserve confirms the stay; Change dates (the same button) starts over. A new range clears the booking.
+  const [booked, setBooked] = useState(false);
   const nights = range?.end ? Math.round((range.end.getTime() - range.start.getTime()) / 86400000) : 0;
   const fmt = (date: Date) => date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   return (
     <Stack direction="row" gap="lg" align="start" wrap>
-      <div className="pe-inline-picker"><DatePicker selectionMode="range" minDate={today} onRangeChange={setRange} /></div>
+      <div className="pe-inline-picker"><DatePicker selectionMode="range" minDate={today} onRangeChange={(next) => { setRange(next); setBooked(false); }} /></div>
       <div className="pe-stack pe-summary">
         <Text as="span" textStyle="Body/Base/Bold">Your stay</Text>
         <Text as="span" tone="base">{range ? `${fmt(range.start)} → ${range.end ? fmt(range.end) : "pick check-out"}` : "Pick check-in, then check-out. Past dates are disabled."}</Text>
         {nights ? <Text as="span">{nights} night{nights === 1 ? "" : "s"} · ${nights * 89}</Text> : null}
-        <Button appearance="main" level="primary" size="sm" style={{ justifySelf: "start" }} disabled={!nights}>Reserve</Button>
+        {booked ? <Text as="span" textStyle="Body/Small/Regular" tone="light" role="status">Reserved · confirmation sent to ava@zen.studio</Text> : null}
+        <Button appearance="main" level={booked ? "tertiary" : "primary"} size="sm" style={{ justifySelf: "start" }} disabled={!nights} onClick={() => setBooked(!booked)}>{booked ? "Change dates" : "Reserve"}</Button>
       </div>
     </Stack>
   );
@@ -1386,11 +1561,13 @@ function TooltipCopyExample() {
 
 function TooltipTruncateExample() {
   const files = ["Q4-brand-refresh-final-final-v3-approved.fig", "Checkout flow — mobile explorations.fig", "Tokens.json"];
+  // Hover or focus shows the full name; a click (or a tap) pins it until the next click.
+  const [pinned, setPinned] = useState<string | null>(null);
   return (
     <List aria-label="Files" className="pe-narrow">
       {files.map((file) => (
         <ListItem key={file} title={file} leading={<FileIcon format={fileIconFormatOf(file)} size="xl" />}>
-          <Tooltip content={file} placement="bottom" size="small"><button type="button" className={`pe-truncate ${typographyStyles["Body/Base/Medium"]}`}>{file}</button></Tooltip>
+          <Tooltip content={file} placement="bottom" size="small" open={pinned === file ? true : undefined}><button type="button" className={`pe-truncate ${typographyStyles["Body/Base/Medium"]}`} aria-pressed={pinned === file} onClick={() => setPinned(pinned === file ? null : file)}>{file}</button></Tooltip>
         </ListItem>
       ))}
     </List>
@@ -2038,38 +2215,57 @@ function TabsMobileExample() {
 }
 
 function BreadcrumbsHeaderExample() {
+  const { toast } = useToast();
   const [path, setPath] = useState(["home", "projects", "web"]);
+  // Share opens a share dialog; Publish goes live (and turns into Unpublish).
+  const [sharing, setSharing] = useState(false);
+  const [published, setPublished] = useState(false);
   const labels: Record<string, string> = { home: "Home", projects: "Projects", web: "Website redesign" };
   return (
     <Stack gap="xs" align="stretch" style={{ width: "100%" }}>
       <Breadcrumbs items={path.map((id) => ({ id, label: labels[id], icon: id === "home" ? <Icon name="icon-home-03-line" decorative /> : undefined }))} onNavigate={(item, event) => { event.preventDefault(); setPath(path.slice(0, path.indexOf(item.id) + 1)); }} />
       <Stack direction="row" gap="xs" align="center" wrap justify="between">
         <Heading level={1}>{labels[path[path.length - 1]]}</Heading>
-        <Stack direction="row" gap="xs" align="center" wrap><Button level="tertiary" size="sm">Share</Button><Button level="primary" size="sm">Publish</Button></Stack>
+        <Stack direction="row" gap="xs" align="center" wrap>
+          <Button level="tertiary" size="sm" onClick={() => setSharing(true)}>Share</Button>
+          <Button level={published ? "tertiary" : "primary"} size="sm" onClick={() => { setPublished(!published); toast({ type: published ? "neutral" : "positive", title: `${labels[path[path.length - 1]]} ${published ? "unpublished" : "published"}` }); }}>{published ? "Unpublish" : "Publish"}</Button>
+        </Stack>
       </Stack>
       {path.length < 3 ? <Stack direction="row" gap="xs" align="center" wrap><Button level="tertiary" size="sm" onClick={() => setPath(["home", "projects", "web"])}>Reset path</Button></Stack> : null}
+      <DemoFieldDialog open={sharing} onOpenChange={setSharing} title={`Share ${labels[path[path.length - 1]]}`} description="They can view and comment."
+        field={{ kind: "email", label: "Email address", placeholder: "name@company.com" }} submitLabel="Share" confirm={(email) => `Shared with ${email}`} />
     </Stack>
   );
 }
 
 function BreadcrumbsSettingsExample() {
+  // A crumb moves up to its section; the section summary below follows.
+  const sections: Record<string, [string, string]> = { settings: ["Settings", "Workspace, members and billing."], billing: ["Billing", "Team plan · the next invoice is on 1 Oct."], invoices: ["Invoices", "12 paid · 1 due on 1 Oct."] };
+  const [path, setPath] = useState(["settings", "billing", "invoices"]);
+  const [title, summary] = sections[path[path.length - 1]];
   return (
     <Stack gap="xs" align="stretch">
-      <Breadcrumbs master={false} items={[{ id: "settings", label: "Settings" }, { id: "billing", label: "Billing" }, { id: "invoices", label: "Invoices" }]} onNavigate={(_item, event) => event.preventDefault()} />
-      <Text as="span" tone="base">Without the master icon: for in-page sections like Settings → Billing → Invoices.</Text>
+      <Breadcrumbs master={false} items={path.map((id) => ({ id, label: sections[id][0] }))} onNavigate={(item, event) => { event.preventDefault(); setPath(path.slice(0, path.indexOf(item.id) + 1)); }} />
+      <Text as="span" textStyle="Body/Base/Bold">{title}</Text>
+      <Text as="span" tone="base">{summary}</Text>
+      {path.length < 3 ? <Stack direction="row" gap="xs" align="center" wrap><Button level="tertiary" size="sm" onClick={() => setPath(["settings", "billing", "invoices"])}>Open invoices</Button></Stack> : null}
     </Stack>
   );
 }
 
 function ProgressStorageExample() {
-  const [used, setUsed] = useState(92);
+  // Clean up frees 6 GB; Upgrade storage moves to the 100 GB plan (the button leaves, focus goes to Clean up).
+  const [usedGb, setUsedGb] = useState(18.4);
+  const [total, setTotal] = useState(20);
+  const focus = useFocusAfter();
+  const used = Math.round((usedGb / total) * 100);
   return (
-    <Stack gap="sm" align="stretch" style={{ width: "100%" }}>
-      <Stack direction="row" gap="xs" align="center" wrap justify="between"><Text as="span" textStyle="Body/Base/Bold">Storage</Text><Text as="span" tone="base">{used}% of 20 GB</Text></Stack>
+    <Stack ref={focus.ref} gap="sm" align="stretch" style={{ width: "100%" }}>
+      <Stack direction="row" gap="xs" align="center" wrap justify="between"><Text as="span" textStyle="Body/Base/Bold">Storage</Text><Text as="span" tone="base">{used}% of {total} GB</Text></Stack>
       <ProgressBar value={used} theme="status" scale="quota" aria-label="Storage used" />
       <Stack direction="row" gap="xs" align="center" wrap>
-        <Button level="tertiary" size="sm" onClick={() => setUsed(Math.max(12, used - 30))}>Clean up</Button>
-        {used > 80 ? <Button level="primary" size="sm">Upgrade storage</Button> : null}
+        <Button level="tertiary" size="sm" onClick={() => setUsedGb(Math.max(2.4, Math.round((usedGb - 6) * 10) / 10))}>Clean up</Button>
+        {used > 80 ? <Button level="primary" size="sm" onClick={() => focus.go(".zen-button", () => setTotal(100))}>Upgrade storage</Button> : null}
       </Stack>
     </Stack>
   );
@@ -2094,16 +2290,22 @@ function ProgressOnboardingExample() {
 /* ───────────── Examples batch 2: new contexts ───────────── */
 
 function ButtonEmptyStateExample() {
-  const [created, setCreated] = useState(false);
+  // New project and Import from Figma both create the project; then the Primary invites the team.
+  const { toast } = useToast();
+  const [created, setCreated] = useState<"new" | "figma" | null>(null);
+  const [inviting, setInviting] = useState(false);
+  const importFigma = () => { setCreated((was) => was ?? "figma"); toast({ type: "positive", title: "Imported 12 components and 48 tokens from Figma" }); };
   return (
     <Stack gap="sm" align="center" padding="xl" style={{ textAlign: "center", width: "100%" }}>
       <Icon name="icon-folder-line" size="var(--zen-image-size-small, 32px)" decorative />
       <Text as="span" textStyle="Body/Extra/Bold">{created ? "Project created" : "No projects yet"}</Text>
       <Text as="span" tone="base">{created ? "Invite your team to start collaborating." : "Projects group your files, tokens and components."}</Text>
       <Stack direction="row" gap="xs" align="center" wrap>
-        <Button level="tertiary" size="sm">Import from Figma</Button>
-        <Button level="primary" size="sm" startIcon={<Icon name="icon-plus-line" decorative />} onClick={() => setCreated(true)}>{created ? "Invite team" : "New project"}</Button>
+        <Button level="tertiary" size="sm" onClick={importFigma}>Import from Figma</Button>
+        <Button level="primary" size="sm" startIcon={<Icon name={created ? "icon-user-plus-line" : "icon-plus-line"} decorative />} onClick={() => (created ? setInviting(true) : setCreated("new"))}>{created ? "Invite team" : "New project"}</Button>
       </Stack>
+      <DemoFieldDialog open={inviting} onOpenChange={setInviting} title="Invite your team" description="They get an email with a link to the project."
+        field={{ kind: "email", label: "Email address", placeholder: "name@company.com" }} submitLabel="Send invite" confirm={(email) => `Invite sent to ${email}`} />
     </Stack>
   );
 }
@@ -2155,12 +2357,20 @@ function InputHelpTextFormExample() {
 
 /** Figma Primitives/Input/Label (387:3651): Optional × Tooltip-Icon × Action, Default and Disabled. */
 function InputLabelVariantsExample() {
-  const variants: Array<[string, { optional?: boolean; tooltip?: boolean | string; action?: ReactNode }]> = [
+  // The Action slot holds a real action: Copy puts the label text on the clipboard and says so for 2 s.
+  const [copied, setCopied] = useState<string | null>(null);
+  useEffect(() => {
+    if (!copied) return undefined;
+    const timer = window.setTimeout(() => setCopied(null), 2000);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+  const copy = (row: string) => { void navigator.clipboard?.writeText("Display name").catch(() => undefined); setCopied(row); };
+  const variants: Array<[string, { optional?: boolean; tooltip?: boolean | string; action?: boolean }]> = [
     ["Label", {}],
     ["Optional", { optional: true }],
     ["Tooltip icon", { tooltip: "Visible to everyone in the workspace" }],
-    ["Action", { action: <button type="button">Action</button> }],
-    ["All", { optional: true, tooltip: "Visible to everyone in the workspace", action: <button type="button">Action</button> }],
+    ["Action", { action: true }],
+    ["All", { optional: true, tooltip: "Visible to everyone in the workspace", action: true }],
   ];
   return (
     <div className="pe-label-matrix">
@@ -2170,8 +2380,8 @@ function InputLabelVariantsExample() {
       {variants.map(([name, props]) => (
         <Fragment key={name}>
           <Text as="span" textStyle="Body/Small/Regular" tone="base">{name}</Text>
-          <InputLabel {...props}>Display name</InputLabel>
-          <InputLabel {...props} disabled>Display name</InputLabel>
+          <InputLabel optional={props.optional} tooltip={props.tooltip} action={props.action ? <button type="button" onClick={() => copy(name)}>{copied === name ? "Copied" : "Copy"}</button> : undefined}>Display name</InputLabel>
+          <InputLabel optional={props.optional} tooltip={props.tooltip} action={props.action ? <button type="button" disabled>Copy</button> : undefined} disabled>Display name</InputLabel>
         </Fragment>
       ))}
     </div>
@@ -2370,14 +2580,16 @@ function AccordionFiltersExample() {
     { team: "ops", status: "paused", owner: "ava" }, { team: "design", status: "active", owner: "bao" },
   ] as Array<Record<string, string>>;
   const [selected, setSelected] = useState<Record<string, string[]>>({ team: ["design"], status: [], owner: [] });
-  const toggle = (facet: string, option: string) => setSelected((all) => ({ ...all, [facet]: all[facet].includes(option) ? all[facet].filter((o) => o !== option) : [...all[facet], option] }));
+  // Show N projects applies the filters and says so on the button; changing a filter makes it "Show" again.
+  const [shown, setShown] = useState(false);
+  const toggle = (facet: string, option: string) => { setShown(false); setSelected((all) => ({ ...all, [facet]: all[facet].includes(option) ? all[facet].filter((o) => o !== option) : [...all[facet], option] })); };
   const applied = Object.values(selected).reduce((sum, list) => sum + list.length, 0);
   const results = projects.filter((project) => facets.every((facet) => !selected[facet.id].length || selected[facet.id].includes(project[facet.id]))).length;
   return (
     <Card theme="border" spacing="small" className="pe-filter-panel" as="section" aria-label="Filters">
       <header className="pe-filter-panel__head">
         <div className="pe-row"><Heading level={4} textStyle="Heading/4">Filters</Heading>{applied ? <BadgeCounter size="small" theme="neutral" background="subtle" value={applied} /> : null}</div>
-        <Button appearance="main" level="tertiary" size="sm" disabled={!applied} onClick={() => setSelected({ team: [], status: [], owner: [] })}>Clear all</Button>
+        <Button appearance="main" level="tertiary" size="sm" disabled={!applied} onClick={() => { setShown(false); setSelected({ team: [], status: [], owner: [] }); }}>Clear all</Button>
       </header>
       <div className="pe-filter-panel__facets">
         {facets.map((facet, index) => (
@@ -2389,7 +2601,7 @@ function AccordionFiltersExample() {
           </Accordion>
         ))}
       </div>
-      <Button appearance="main" level="primary" size="md" className="pe-filter-panel__submit" disabled={!results}>{results ? `Show ${results} ${results === 1 ? "project" : "projects"}` : "No matching projects"}</Button>
+      <Button appearance="main" level="primary" size="md" className="pe-filter-panel__submit" disabled={!results} startIcon={shown ? <Icon name="icon-check-line" decorative /> : undefined} onClick={() => setShown(true)}>{!results ? "No matching projects" : shown ? `Showing ${plural(results, "project")}` : `Show ${plural(results, "project")}`}</Button>
     </Card>
   );
 }
@@ -2514,15 +2726,29 @@ function DividerReceiptExample() {
 }
 
 function DividerLabelledExample() {
+  // Email asks for the address; Figma signs in at once. Signed in, Sign out comes back to the choice (focused).
+  const [signedIn, setSignedIn] = useState<string | null>(null);
+  const [asking, setAsking] = useState(false);
+  const focus = useFocusAfter();
+  if (signedIn) {
+    return (
+      <Stack ref={focus.ref} gap="sm" align="stretch" style={{ width: "100%" }}>
+        <InlineMessage theme="positive" title="Signed in">{`Welcome back, ${signedIn}.`}</InlineMessage>
+        <Button appearance="main" level="tertiary" size="md" autoFocus onClick={() => focus.go(".zen-button", () => setSignedIn(null))}>Sign out</Button>
+      </Stack>
+    );
+  }
   return (
-    <Stack gap="sm" align="stretch" style={{ width: "100%" }}>
-      <Button appearance="main" level="primary" size="md">Continue with email</Button>
+    <Stack ref={focus.ref} gap="sm" align="stretch" style={{ width: "100%" }}>
+      <Button appearance="main" level="primary" size="md" onClick={() => setAsking(true)}>Continue with email</Button>
       <Stack direction="row" gap="sm" align="center">
         <Divider dashed decorative />
         <Text as="span" textStyle="Caption/Regular" tone="light">or</Text>
         <Divider dashed decorative />
       </Stack>
-      <Button appearance="main" level="tertiary" size="md" startIcon={<Icon name="ic-figma-line" decorative />}>Continue with Figma</Button>
+      <Button appearance="main" level="tertiary" size="md" startIcon={<Icon name="ic-figma-line" decorative />} onClick={() => setSignedIn("Ava Chen")}>Continue with Figma</Button>
+      <DemoFieldDialog open={asking} onOpenChange={setAsking} title="Continue with email" description="We'll send a sign-in link to this address."
+        field={{ kind: "email", label: "Email address", placeholder: "name@company.com" }} submitLabel="Send link" confirm={(email) => `Sign-in link sent to ${email}`} onSubmit={setSignedIn} />
     </Stack>
   );
 }
@@ -2538,9 +2764,18 @@ function InlineContextExample() {
 
 function InlineUpgradeExample() {
   const [open, setOpen] = useState(true);
-  return open
-    ? <InlineMessage theme="info" title="Version history is limited to 30 days" action={{ label: "View plans" }} onClose={() => setOpen(false)}>Upgrade to Pro to keep every version forever.</InlineMessage>
-    : <Button appearance="main" level="tertiary" size="sm" onClick={() => setOpen(true)}>Show message again</Button>;
+  // View plans opens the plan dialog; after the upgrade the message confirms, and its action becomes Manage plan.
+  const [plans, setPlans] = useState(false);
+  const [pro, setPro] = useState(false);
+  return (
+    <>
+      {open
+        ? <InlineMessage theme={pro ? "positive" : "info"} title={pro ? "You're on Pro" : "Version history is limited to 30 days"} action={{ label: pro ? "Manage plan" : "View plans", onClick: () => setPlans(true) }} onClose={() => setOpen(false)}>{pro ? "Every version is kept, forever." : "Upgrade to Pro to keep every version forever."}</InlineMessage>
+        : <Button appearance="main" level="tertiary" size="sm" onClick={() => setOpen(true)}>Show message again</Button>}
+      <Dialog open={plans} onOpenChange={setPlans} title={pro ? "Pro plan" : "Upgrade to Pro"} description={pro ? "Every version is kept. The plan renews on 1 Oct at $12 per editor a month." : "Keep every version forever, plus unlimited editors. $12 per editor a month."}
+        primaryAction={pro ? { label: "Done" } : { label: "Upgrade to Pro", onClick: () => { setPro(true); setPlans(false); } }} secondaryAction={pro ? undefined : { label: "Not now" }} />
+    </>
+  );
 }
 
 function InlineVerifyExample() {
@@ -2567,8 +2802,17 @@ function InlineFormErrorsExample() {
 }
 
 function InlineCustomVisualExample() {
+  // Open file shows its details; Request edit access updates the message.
+  const [open, setOpen] = useState(false);
+  const [requested, setRequested] = useState(false);
   return (
-    <InlineMessage theme="custom" icon={<Avatar size="small" theme="blue" alt="">AC</Avatar>} title="Ava shared “Q4 roadmap”" action={{ label: "Open file" }}>You can comment; ask Ava for edit access.</InlineMessage>
+    <>
+      <InlineMessage theme="custom" icon={<Avatar size="small" theme="blue" alt="">AC</Avatar>} title="Ava shared “Q4 roadmap”" action={{ label: "Open file", onClick: () => setOpen(true) }}>{requested ? "Edit access requested; Ava gets an email." : "You can comment; ask Ava for edit access."}</InlineMessage>
+      <Dialog open={open} onOpenChange={setOpen} title="Q4 roadmap" description="Shared by Ava Chen"
+        primaryAction={requested ? { label: "Done" } : { label: "Request edit access", onClick: () => { setRequested(true); setOpen(false); } }} secondaryAction={requested ? undefined : { label: "Close" }}>
+        <DescriptionList items={[{ term: "Owner", description: "Ava Chen" }, { term: "Updated", description: "Today, 09:12" }, { term: "Your access", description: requested ? "Can comment · edit access requested" : "Can comment" }]} />
+      </Dialog>
+    </>
   );
 }
 
@@ -2587,7 +2831,15 @@ function EmptySearchExample() {
 }
 
 function EmptyFirstRunExample() {
-  return <EmptyState title="Your inbox is empty" icon="icon-mail-01-line" primaryAction={{ label: "Compose message" }}>Messages from your team and clients land here.</EmptyState>;
+  // Compose opens a message dialog; sending confirms with a toast (the inbox holds what you receive, so it stays empty).
+  const [composing, setComposing] = useState(false);
+  return (
+    <>
+      <EmptyState title="Your inbox is empty" icon="icon-mail-01-line" primaryAction={{ label: "Compose message", onClick: () => setComposing(true) }}>Messages from your team and clients land here.</EmptyState>
+      <DemoFieldDialog open={composing} onOpenChange={setComposing} title="New message" description="Start a conversation; replies land in your inbox."
+        field={{ kind: "email", label: "To", placeholder: "name@company.com" }} submitLabel="Send" confirm={(email) => `Message sent to ${email}`} />
+    </>
+  );
 }
 
 function EmptyFilteredExample() {
@@ -2606,7 +2858,23 @@ function EmptyFilteredExample() {
 
 function EmptyPermissionExample() {
   const [requested, setRequested] = useState(false);
-  return <EmptyState title="You don't have access" icon="icon-lock-01-line" primaryAction={requested ? undefined : { label: "Request access", onClick: () => setRequested(true) }} secondaryAction={{ label: "Back to projects" }}>{requested ? "Request sent to the workspace owner. We'll email you when it's approved." : "Ask the workspace owner to add you to “Finance Q4”."}</EmptyState>;
+  // Back to projects shows the project list; Finance Q4 (the locked one) opens this screen again.
+  const [atProjects, setAtProjects] = useState(false);
+  const [open, setOpen] = useState<string | null>(null);
+  const focus = useFocusAfter();
+  if (atProjects) {
+    return (
+      <div ref={focus.ref} style={{ width: "100%" }}>
+        <List aria-label="Projects">
+          {[["Website redesign", "Edited 2h ago", "icon-folder-line"], ["Finance Q4", requested ? "Access requested" : "No access", "icon-lock-01-line"], ["Brand refresh", "Edited last week", "icon-folder-line"]].map(([title, caption, icon]) => (
+            <ListItem key={title} data-project={title} title={title} caption={caption} leading={<DockIcon icon={icon as ShellIconName} theme="pale" size="small" />} selected={open === title}
+              onClick={() => (title === "Finance Q4" ? focus.go(".zen-empty-state .zen-button", () => setAtProjects(false)) : setOpen(title))} />
+          ))}
+        </List>
+      </div>
+    );
+  }
+  return <div ref={focus.ref} style={{ width: "100%" }}><EmptyState title="You don't have access" icon="icon-lock-01-line" primaryAction={requested ? undefined : { label: "Request access", onClick: () => setRequested(true) }} secondaryAction={{ label: "Back to projects", onClick: () => focus.go('[data-project="Finance Q4"] .zen-list-item__wrapper', () => setAtProjects(true)) }}>{requested ? "Request sent to the workspace owner. We'll email you when it's approved." : "Ask the workspace owner to add you to “Finance Q4”."}</EmptyState></div>;
 }
 
 const checkoutSteps: StepperStep[] = [
@@ -2801,12 +3069,26 @@ function CardSurfacesExample() {
 
 function DockIconAppsExample() {
   const apps = [["Figma", "ic-figma-line", "purple"], ["Mail", "icon-mail-01-line", "blue"], ["Calendar", "icon-calendar-line", "red"], ["Files", "icon-folder-line", "yellow"], ["Chat", "icon-message-chat-circle-line", "green"], ["Tokens", "icon-colors-line", "accent"]] as const;
+  // A tile opens its app: the card below shows what is new there; the same tile closes it again.
+  const news: Record<string, string> = { Figma: "2 files edited today", Mail: "3 unread messages", Calendar: "Next: roadmap review at 11:00", Files: "248 items · 12.4 GB", Chat: "Bao: “Ship it?”", Tokens: "1,284 tokens · synced 5 min ago" };
+  const [open, setOpen] = useState<string | null>(null);
+  const app = apps.find(([name]) => name === open);
   return (
-    <div className="pe-app-grid">
-      {apps.map(([name, icon, theme]) => (
-        <button key={name} type="button" className="pe-app-tile"><DockIcon icon={icon} theme={theme} size="large" /><Text as="span" textStyle="Caption/Regular">{name}</Text></button>
-      ))}
-    </div>
+    <Stack gap="md" align="start">
+      <div className="pe-app-grid">
+        {apps.map(([name, icon, theme]) => (
+          <button key={name} type="button" className="pe-app-tile" aria-pressed={open === name} onClick={() => setOpen(open === name ? null : name)}><DockIcon icon={icon} theme={theme} size="large" /><Text as="span" textStyle="Caption/Regular">{name}</Text></button>
+        ))}
+      </div>
+      {app ? (
+        <Card theme="border" spacing="small" role="status">
+          <Stack direction="row" gap="sm" align="center">
+            <DockIcon icon={app[1]} theme={app[2]} />
+            <Stack gap="3xs"><Text as="span" textStyle="Body/Base/Bold">{app[0]}</Text><Text as="span" textStyle="Body/Small/Regular" tone="base">{news[app[0]]}</Text></Stack>
+          </Stack>
+        </Card>
+      ) : null}
+    </Stack>
   );
 }
 
@@ -2876,11 +3158,13 @@ function ListItemSettingsExample() {
 
 function ListItemActionsExample() {
   const [members, setMembers] = useState(people.slice(0, 3));
+  // Resend confirms in the row's caption.
+  const [resent, setResent] = useState<string[]>([]);
   return (
     <List aria-label="Pending invites">
       {members.map((person) => (
-        <ListItem key={person.id} title={person.name} caption={`${person.role} · invited 2d ago`} leading={<Avatar size="medium" theme="photo" src={person.photo} alt="" />}
-          trailing={<><IconButton appearance="flat" level="primary" size="md" aria-label={`Resend invite to ${person.name}`} icon={<Icon name="icon-mail-01-line" />} /><IconButton appearance="flat" level="primary" size="md" aria-label={`Revoke invite for ${person.name}`} onClick={() => setMembers(members.filter((m) => m.id !== person.id))} icon={<Icon name="icon-x-small-line" />} /></>} />
+        <ListItem key={person.id} title={person.name} caption={`${person.role} · ${resent.includes(person.id) ? "invite resent just now" : "invited 2d ago"}`} leading={<Avatar size="medium" theme="photo" src={person.photo} alt="" />}
+          trailing={<><IconButton appearance="flat" level="primary" size="md" aria-label={`Resend invite to ${person.name}`} icon={<Icon name="icon-mail-01-line" />} onClick={() => setResent((list) => (list.includes(person.id) ? list : [...list, person.id]))} /><IconButton appearance="flat" level="primary" size="md" aria-label={`Revoke invite for ${person.name}`} onClick={() => setMembers(members.filter((m) => m.id !== person.id))} icon={<Icon name="icon-x-small-line" />} /></>} />
       ))}
       {members.length === 0 ? <li className="pe-empty"><Text as="span" tone="light">No pending invites.</Text></li> : null}
     </List>
@@ -2910,18 +3194,33 @@ const tableMembers = [
 ];
 
 function TableMembersExample() {
+  const { toast } = useToast();
   const [sort, setSort] = useState<TableSort | null>({ columnId: "name", direction: "asc" });
-  const rows = tableMembers.map((row, index) => ({ ...row, person: people[index % people.length] }))
+  // Edit opens a dialog that changes the member's role.
+  const [roles, setRoles] = useState<Record<string, string>>({});
+  const [editing, setEditing] = useState<string | null>(null);
+  const [draft, setDraft] = useState("Editor");
+  const rows = tableMembers.map((row, index) => ({ ...row, role: roles[row.id] ?? row.role, person: people[index % people.length] }))
     .sort((a, b) => !sort ? 0 : (sort.columnId === "name" ? a.person.name.localeCompare(b.person.name) : a.seats - b.seats) * (sort.direction === "asc" ? 1 : -1));
-  return (
+  const table = (
     <Table aria-label="Members" rows={rows} getRowId={(row) => row.id} sort={sort} onSortChange={setSort}
       columns={[
         { id: "name", header: "Member", sortable: true, cell: (row) => <TableMedia media={<Avatar size="small" theme="photo" src={row.person.photo} alt="" />} caption={row.person.role}>{row.person.name}</TableMedia> },
         { id: "role", header: "Role", cell: (row) => <TableText>{row.role}</TableText> },
         { id: "status", header: "Status", cell: (row) => <Badge size="medium" background="subtle" theme={row.status === "Active" ? "green" : row.status === "Invited" ? "blue" : "red"}>{row.status}</Badge> },
         { id: "seats", header: "Seats", sortable: true, align: "right", cell: (row) => <TableText>{row.seats}</TableText> },
-        { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: (row) => <TableActions><IconButton appearance="flat" level="primary" size="sm" aria-label={`Edit ${row.person.name}`} icon={<Icon name="icon-edit-02-line" />} /></TableActions> },
+        { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: (row) => <TableActions><IconButton appearance="flat" level="primary" size="sm" aria-label={`Edit ${row.person.name}`} icon={<Icon name="icon-edit-02-line" />} onClick={() => { setDraft(row.role); setEditing(row.id); }} /></TableActions> },
       ]} />
+  );
+  const member = rows.find((row) => row.id === editing);
+  return (
+    <>
+      {table}
+      <Dialog open={editing !== null} onOpenChange={(open) => { if (!open) setEditing(null); }} title={`Edit ${member?.person.name ?? "member"}`} description="The role decides what they can change."
+        primaryAction={{ label: "Save", onClick: () => { if (editing) setRoles((all) => ({ ...all, [editing]: draft })); toast({ type: "positive", title: `${member?.person.name ?? "Member"} is now ${draft === "Admin" ? "an" : "a"} ${draft}` }); setEditing(null); } }} secondaryAction={{ label: "Cancel" }}>
+        <SelectField label="Role" value={draft} onChange={(event) => setDraft(event.target.value)} options={["Admin", "Editor", "Viewer"].map((role) => ({ value: role, label: role }))} />
+      </Dialog>
+    </>
   );
 }
 
@@ -3073,12 +3372,22 @@ function ColorKeyboardExample() {
   );
 }
 
+const kpiReports = {
+  revenue: { title: "Revenue", head: ["Month", "Revenue"] as [string, string], rows: [["Jan", "$38,120"], ["Feb", "$40,450"], ["Mar", "$42,010"], ["Apr", "$44,300"], ["May", "$43,050"], ["Jun", "$48,210"]] as Array<[string, string]>, total: ["Total", "$256,140"] as [string, string] },
+  users: { title: "Active users", head: ["Month", "Users"] as [string, string], rows: [["Jan", "7,420"], ["Feb", "7,610"], ["Mar", "7,980"], ["Apr", "8,240"], ["May", "8,570"], ["Jun", "8,930"]] as Array<[string, string]> },
+  churn: { title: "Churn", head: ["Month", "Churn"] as [string, string], rows: [["Jan", "1.9%"], ["Feb", "1.8%"], ["Mar", "1.7%"], ["Apr", "1.9%"], ["May", "1.7%"], ["Jun", "2.1%"]] as Array<[string, string]> },
+};
+
 function MetricKpiExample() {
+  // Each card's ⋯ opens the numbers behind it in a modal Side Panel (like Chart "Dashboard tile").
+  const [report, setReport] = useState<keyof typeof kpiReports | null>(null);
+  const shown = kpiReports[report ?? "revenue"];
   return (
     <div className="pe-card-grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
-      <MetricCard label="Revenue" value="$48,210" icon="icon-credit-card-line" iconTheme="green" trend={{ direction: "positive", label: "+12% vs. last month" }} size="large" subAction={{ label: "Revenue actions", icon: "icon-dots-vertical-line" }} />
-      <MetricCard label="Active users" value="8,930" icon="icon-users-line" iconTheme="blue" trend={{ direction: "positive", label: "+4.2% vs. last month" }} size="large" subAction={{ label: "Users actions", icon: "icon-dots-vertical-line" }} />
-      <MetricCard label="Churn" value="2.1%" icon="icon-arrow-down-right-line" iconTheme="crimson" trend={{ direction: "negative", label: "+0.4 pt vs. last month" }} size="large" subAction={{ label: "Churn actions", icon: "icon-dots-vertical-line" }} />
+      <MetricCard label="Revenue" value="$48,210" icon="icon-credit-card-line" iconTheme="green" trend={{ direction: "positive", label: "+12% vs. last month" }} size="large" subAction={{ label: "Revenue actions", icon: "icon-dots-vertical-line", onClick: () => setReport("revenue") }} />
+      <MetricCard label="Active users" value="8,930" icon="icon-users-line" iconTheme="blue" trend={{ direction: "positive", label: "+4.2% vs. last month" }} size="large" subAction={{ label: "Users actions", icon: "icon-dots-vertical-line", onClick: () => setReport("users") }} />
+      <MetricCard label="Churn" value="2.1%" icon="icon-arrow-down-right-line" iconTheme="crimson" trend={{ direction: "negative", label: "+0.4 pt vs. last month" }} size="large" subAction={{ label: "Churn actions", icon: "icon-dots-vertical-line", onClick: () => setReport("churn") }} />
+      <ChartReportPanel open={report !== null} onOpenChange={(open) => { if (!open) setReport(null); }} title={`${shown.title} report`} description="January to June." head={shown.head} rows={shown.rows} total={"total" in shown ? shown.total : undefined} />
     </div>
   );
 }
@@ -3187,10 +3496,14 @@ function MetricInlineExample() {
 }
 
 function MetricAlertExample() {
+  // View failed payments opens the breakdown by reason in a modal Side Panel.
+  const [report, setReport] = useState(false);
   return (
     <Stack gap="sm" align="stretch" style={{ width: "100%" }}>
       <MetricCard label="Failed payments" value="37" icon="icon-alert-triangle-line" iconTheme="red" iconBackground="solid" trend={{ direction: "negative", label: "+9 vs. yesterday" }} theme="border" />
-      <InlineMessage theme="negative" title="Card declines are rising" action={{ label: "View failed payments" }}>Most failures come from expired cards — send a reminder.</InlineMessage>
+      <InlineMessage theme="negative" title="Card declines are rising" action={{ label: "View failed payments", onClick: () => setReport(true) }}>Most failures come from expired cards — send a reminder.</InlineMessage>
+      <ChartReportPanel open={report} onOpenChange={setReport} title="Failed payments" description="The last 24 hours, by reason." head={["Reason", "Payments"]}
+        rows={[["Expired card", "21"], ["Insufficient funds", "9"], ["Declined by the bank", "5"], ["Authentication failed", "2"]]} total={["Total", "37"]} />
     </Stack>
   );
 }
@@ -3246,11 +3559,15 @@ function UploaderErrorExample() {
 }
 
 function UploaderOverlayExample() {
+  // Cancel stops the upload and leaves a way to start it again (focused).
+  const [cancelled, setCancelled] = useState(false);
   return (
     <div className="pe-media-upload">
-      <ul className="zen-file-upload__list" aria-label="Uploading to the media wall">
-        <UploaderFileItem file={{ id: "v", name: "launch-teaser.mp4", size: "48 MB", state: "uploading", progress: 42, caption: "1 minute left" }} theme="overlay" thumbnail="file" onRemove={() => undefined} />
-      </ul>
+      {cancelled
+        ? <Button appearance="overlay" level="white" size="sm" autoFocus startIcon={<Icon name="icon-upload-01-line" decorative />} onClick={() => setCancelled(false)}>Upload launch-teaser.mp4 again</Button>
+        : <ul className="zen-file-upload__list" aria-label="Uploading to the media wall">
+            <UploaderFileItem file={{ id: "v", name: "launch-teaser.mp4", size: "48 MB", state: "uploading", progress: 42, caption: "1 minute left" }} theme="overlay" thumbnail="file" onRemove={() => setCancelled(true)} />
+          </ul>}
     </div>
   );
 }
@@ -3325,6 +3642,9 @@ function SidePanelActivityExample() {
 function ButtonMediaCardExample() {
   const { toast } = useToast();
   const [liked, setLiked] = useState(false);
+  // Edit renames the video; Duplicate confirms with a toast.
+  const [title, setTitle] = useState("Onboarding walkthrough");
+  const [renaming, setRenaming] = useState(false);
   const video = usePlatformVideo(false);
   return (
     <Stack gap="sm" align="stretch" style={{ width: "100%" }}>
@@ -3337,12 +3657,13 @@ function ButtonMediaCardExample() {
         <div style={{ position: "absolute", left: 12, bottom: 12 }}><Button appearance="overlay" level="white" size="sm" aria-pressed={video.playing} onClick={video.toggle} startIcon={<Icon name={video.playing ? "icon-pause-solid" : "icon-play-solid"} decorative />}>{video.playing ? "Pause preview" : "Play preview"}</Button></div>
       </div>
       <Stack direction="row" gap="xs" align="center" wrap justify="between">
-        <Text as="span" textStyle="Body/Base/Bold">Onboarding walkthrough</Text>
+        <Text as="span" textStyle="Body/Base/Bold">{title}</Text>
         <Stack direction="row" gap="2xs" align="center" wrap>
-          <Button appearance="flat" level="primary" size="sm">Edit</Button>
-          <Button appearance="flat" level="primary" size="sm">Duplicate</Button>
+          <Button appearance="flat" level="primary" size="sm" onClick={() => setRenaming(true)}>Edit</Button>
+          <Button appearance="flat" level="primary" size="sm" onClick={() => toast({ type: "positive", title: `Duplicated “${title}”` })}>Duplicate</Button>
         </Stack>
       </Stack>
+      <DemoFieldDialog open={renaming} onOpenChange={setRenaming} title="Rename video" field={{ kind: "name", label: "Title", placeholder: title }} submitLabel="Save" confirm={(name) => `Renamed to “${name}”`} onSubmit={setTitle} />
     </Stack>
   );
 }
@@ -3392,12 +3713,19 @@ function AvatarWorkspaceExample() {
 }
 
 function DateReportRangeExample() {
-  const [range, setRange] = useState<{ start: Date; end: Date | null } | null>(null);
+  const today = useMemo(() => { const now = new Date(); return new Date(now.getFullYear(), now.getMonth(), now.getDate()); }, []);
+  // The report covers the applied period (this month so far). Picks in the calendar are a draft: Submit applies them to
+  // the report, Cancel returns the calendar to the applied period.
+  const [period, setPeriod] = useState<DatePickerRange>(() => ({ start: new Date(today.getFullYear(), today.getMonth(), 1), end: today }));
+  // Reports look back: the dual calendar opens on last month and this one.
+  const [month, setMonth] = useState(() => new Date(today.getFullYear(), today.getMonth() - 1, 1));
+  const end = period.end ?? period.start;
+  const days = Math.round((end.getTime() - period.start.getTime()) / 86400000) + 1;
   const fmt = (date: Date) => date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   return (
     <Stack gap="sm" align="center">
-      <div className="pe-inline-picker"><DatePicker calendar="dual" selectionMode="range" onRangeChange={setRange} showActions action="dual" /></div>
-      <Text as="span" tone="base">{range ? `Report period: ${fmt(range.start)} → ${range.end ? fmt(range.end) : "…"}` : "Pick a start and end date across both months."}</Text>
+      <div className="pe-inline-picker"><DatePicker calendar="dual" selectionMode="range" range={period} maxDate={today} month={month} onMonthChange={setMonth} showActions action="dual" onApply={(_, range) => { if (range) setPeriod(range); }} /></div>
+      <Text as="span" tone="base" role="status">{`Report period: ${fmt(period.start)} → ${fmt(end)} · ${plural(days, "day")}`}</Text>
     </Stack>
   );
 }
@@ -3486,24 +3814,30 @@ function InputComposeExample() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [bodyText, setBodyText] = useState("");
+  // Post publishes the announcement: a confirmation on top, and the fields clear for the next one.
+  const [posted, setPosted] = useState<string | null>(null);
+  const post = () => { setPosted(title.trim()); setTitle(""); setBody(""); setBodyText(""); };
   return (
     <Stack gap="sm" align="stretch" style={{ width: "100%" }}>
+      {posted ? <InlineMessage theme="positive" title="Announcement posted">{`“${posted}” is live for 48 people.`}</InlineMessage> : null}
       <HeadingField headingSize="h2" multiline placeholder="Announcement title" value={title} onValueChange={setTitle} aria-label="Announcement title" />
       <RichTextField label="Message" placeholder="Share what changed and why it matters…" value={body} onValueChange={(html, text) => { setBody(html); setBodyText(text); }} characterLimit maxLength={2000} />
-      <Stack direction="row" gap="xs" align="center" wrap justify="end"><Button level="primary" size="sm" disabled={!title.trim() || !bodyText.trim()}>Post announcement</Button></Stack>
+      <Stack direction="row" gap="xs" align="center" wrap justify="end"><Button level="primary" size="sm" disabled={!title.trim() || !bodyText.trim()} onClick={post}>Post announcement</Button></Stack>
     </Stack>
   );
 }
 
 function TooltipAnnotationsExample() {
   const pins = [{ id: "a", x: "22%", y: "38%", text: "Header uses Heading/1", placement: "right" as const, color: "black-overlay" as const }, { id: "b", x: "72%", y: "64%", text: "Primary CTA", placement: "left" as const, color: "white-overlay" as const }];
+  // Hover or focus shows a note; a click (or a tap) pins it open until the next click.
+  const [pinned, setPinned] = useState<string | null>(null);
   // zen-allow-raw-colour: the gradient stands in for a screenshot of the annotated design (a picture, not UI colour).
   return (
     <div style={{ position: "relative", width: "100%", height: 180, borderRadius: "var(--zen-corner-radius-large, 16px)", background: "linear-gradient(135deg, #e8d7c9, #7b8fb8)" }}>
       {pins.map((pin) => (
         <div key={pin.id} style={{ position: "absolute", left: pin.x, top: pin.y }}>
-          <Tooltip content={pin.text} placement={pin.placement} color={pin.color} size="small">
-            <IconButton appearance="overlay" level={pin.color === "black-overlay" ? "black-overlay" : "white-overlay"} size="xs" aria-label={`Annotation: ${pin.text}`} icon={<Icon name="icon-info-circle-line" />} />
+          <Tooltip content={pin.text} placement={pin.placement} color={pin.color} size="small" open={pinned === pin.id ? true : undefined}>
+            <IconButton appearance="overlay" level={pin.color === "black-overlay" ? "black-overlay" : "white-overlay"} size="xs" aria-label={`Annotation: ${pin.text}`} aria-pressed={pinned === pin.id} onClick={() => setPinned(pinned === pin.id ? null : pin.id)} icon={<Icon name="icon-info-circle-line" />} />
           </Tooltip>
         </div>
       ))}
@@ -3677,6 +4011,9 @@ type ExampleDef = { title: string; description: string; code: string; wide?: boo
 /** Button · mobile footer CTA: Large (lg) buttons fill the footer, Primary on top; small sizes never stretch. */
 function ButtonMobileFooterExample() {
   const [placed, setPlaced] = useState(false);
+  // Back goes up to the cart; Review order comes back here.
+  const [atCart, setAtCart] = useState(false);
+  const screen = usePhoneScreen();
   const [saved, setSaved] = useState(false);
   // Each delivery / payment row opens an Action sheet that picks the value the row shows.
   const [sheet, setSheet] = useState<"address" | "delivery" | "payment" | null>(null);
@@ -3706,13 +4043,25 @@ function ButtonMobileFooterExample() {
     { name: "Stoneware mug", meta: "Sand · 1", price: "$16.00", icon: "icon-coffee-cup-line", theme: "purple" },
     { name: "Gift wrap", meta: "Recycled paper", price: "$4.00", icon: "icon-gift-01-line", theme: "green" },
   ] as const;
+  if (atCart) {
+    return (
+      <PlatformPhone height={560} label="Checkout footer" header={<TopNavigation title="Cart" largeTitle="Cart" />}
+        footer={<div className="pe-phone-cta"><Button level="primary" size="lg" onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setAtCart(false))}>Review order</Button></div>}>
+        {screen.anchor}
+        <List aria-label="Cart">
+          {items.map((item) => <ListItem key={item.name} title={item.name} caption={item.meta} leading={<DockIcon icon={item.icon} theme={item.theme} background="subtle" />} trailing={<Text as="span" textStyle="Body/Base/Medium">{item.price}</Text>} />)}
+        </List>
+      </PlatformPhone>
+    );
+  }
   return (
-    <PlatformPhone height={560} label="Checkout footer" header={<TopNavigation type="compact" title="Review order" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} />}
+    <PlatformPhone height={560} label="Checkout footer" header={<TopNavigation type="compact" title="Review order" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(".pe-phone-cta .zen-button", () => setAtCart(true)) }} />}
       footer={<div className="pe-phone-cta">
         <Button level="primary" size="lg" onClick={() => setPlaced(true)}>{placed ? "Track order" : `Place order · ${total}`}</Button>
         {/* The confirmation sits on the button itself: the list may be scrolled away from the top of the screen. */}
         <Button level="tertiary" size="lg" startIcon={saved ? <Icon name="icon-check-line" decorative /> : undefined} onClick={() => setSaved(true)}>{saved ? "Saved for later" : "Save for later"}</Button>
       </div>}>
+      {screen.anchor}
       <Stack gap="sm" align="stretch" style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) 0 var(--zen-spacing-padding-large, 20px)" }}>
         {placed ? <div style={{ padding: "0 var(--zen-spacing-padding-large, 20px)" }}><InlineMessage theme="positive" title="Order placed">{`Arrives ${ship.day}.`}</InlineMessage></div> : null}
         <List aria-label="Order items">
@@ -3748,6 +4097,9 @@ function CardPricingExample() {
     { id: "business", name: "Business", price: 30, blurb: "For organisations", features: ["Everything in Pro", "SSO and audit log", "Custom roles"] },
   ];
   const currentPrice = plans.find((plan) => plan.id === current)?.price ?? 0;
+  // Manage plan (on the current plan) opens its details.
+  const [managing, setManaging] = useState(false);
+  const currentPlan = plans.find((plan) => plan.id === current)!;
   return (
     <Stack gap="sm" align="stretch">
       <Segmented level="secondary" aria-label="Billing period" options={[{ id: "monthly", label: "Monthly" }, { id: "yearly", label: "Yearly · save 20%" }]} value={period} onChange={setPeriod} />
@@ -3767,13 +4119,20 @@ function CardPricingExample() {
                 <div className="pe-plan__price"><Text as="span" textStyle="Heading/2">{price ? `$${price}` : "Free"}</Text>{price ? <Text as="span" tone="light">per seat / month</Text> : null}</div>
                 <ul className="pe-checklist">{plan.features.map((feature) => <li key={feature}><Icon name="icon-check-line" size="sm" decorative /><Text as="span">{feature}</Text></li>)}</ul>
                 {isCurrent
-                  ? <Button level="tertiary" size="md">Manage plan</Button>
+                  ? <Button level="tertiary" size="md" onClick={() => setManaging(true)}>Manage plan</Button>
                   : <Button level={plan.recommended ? "primary" : "tertiary"} size="md" onClick={() => setCurrent(plan.id)}>{plan.price > currentPrice ? `Upgrade to ${plan.name}` : `Switch to ${plan.name}`}</Button>}
               </div>
             </Card>
           );
         })}
       </div>
+      <Dialog open={managing} onOpenChange={setManaging} title={`Your ${currentPlan.name} plan`} description={currentPlan.price ? `Billed ${period} · renews on 1 Oct` : "Free forever · no card on file"} primaryAction={{ label: "Done" }}>
+        <DescriptionList items={[
+          { term: "Seats", description: "5 seats · 4 in use" },
+          { term: "Price", description: currentPlan.price ? `$${period === "yearly" ? currentPlan.price * 0.8 : currentPlan.price} per seat / month` : "Free" },
+          { term: "Next invoice", description: currentPlan.price ? `$${(period === "yearly" ? currentPlan.price * 0.8 : currentPlan.price) * 5} on 1 Oct` : "None" },
+        ]} />
+      </Dialog>
     </Stack>
   );
 }
@@ -3819,8 +4178,26 @@ function ChipMobileFilterExample() {
   const shown = places.filter((place) => on.every((f) => place.tags.includes(f)))
     .sort((a, b) => (sort === "distance" ? a.km - b.km : sort === "rating" ? b.rating - a.rating : 0));
   const sortLabel = sorts.find((s) => s.id === sort)?.label ?? "Sort";
+  // Back goes up to Explore; its Coffee row comes back here.
+  const [atExplore, setAtExplore] = useState(false);
+  const [picked, setPicked] = useState<string | null>(null);
+  const screen = usePhoneScreen();
+  if (atExplore) {
+    return (
+      <PlatformPhone height={560} label="Mobile filter row" header={<TopNavigation title="Explore" largeTitle="Explore" />}>
+        {screen.anchor}
+        <List aria-label="Nearby">
+          {[["Coffee nearby", `${plural(places.length, "place")} · open now`, "icon-coffee-cup-line"], ["Lunch nearby", "12 places · open now", "icon-shopping-bag-01-line"], ["Parks nearby", "4 places", "icon-map-line"]].map(([title, caption, icon]) => (
+            <ListItem key={title} data-row={title} title={title} caption={caption} leading={<DockIcon icon={icon as ShellIconName} theme="brown" background="subtle" />} selected={picked === title}
+              onClick={() => (title === "Coffee nearby" ? screen.go('.zen-top-nav__action[aria-label="Back"]', () => setAtExplore(false)) : setPicked(title))} />
+          ))}
+        </List>
+      </PlatformPhone>
+    );
+  }
   return (
-    <PlatformPhone height={560} label="Mobile filter row" header={<TopNavigation type="compact" title="Coffee nearby" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} />}>
+    <PlatformPhone height={560} label="Mobile filter row" header={<TopNavigation type="compact" title="Coffee nearby" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go('[data-row="Coffee nearby"] .zen-list-item__wrapper', () => setAtExplore(true)) }} />}>
+      {screen.anchor}
       <div className="pe-chip-scroll" role="group" aria-label="Filters">
         <Chip variant="advanced" size="small" dropdown aria-haspopup="dialog" aria-expanded={sheet} popoverOpen={sheet} select={sort !== "recommended"} onClick={() => setSheet(true)} onClearSelection={sort !== "recommended" ? () => setSort("recommended") : undefined}>{sort === "recommended" ? "Sort" : sortLabel}</Chip>
         {quickFilters.map((f) => {
@@ -3841,12 +4218,15 @@ function ChipMobileFilterExample() {
 
 const examples: Partial<Record<PlatformPage, ExampleDef[]>> = {
   button: [
-    { title: "Empty state", description: "Tertiary secondary path + one Primary CTA in an empty state.", render: () => <ButtonEmptyStateExample />, code: `<Button level="tertiary" size="sm">Import from Figma</Button>
-<Button level="primary" size="sm" startIcon={<Icon name="icon-plus-line" />}>New project</Button>` },
+    { title: "Empty state", description: "Tertiary secondary path + one Primary CTA in an empty state. Either creates the project; then the Primary invites the team.", render: () => <ButtonEmptyStateExample />, code: `<Button level="tertiary" size="sm" onClick={importFromFigma}>Import from Figma</Button>
+<Button level="primary" size="sm" startIcon={<Icon name="icon-plus-line" />} onClick={created ? openInvite : createProject}>
+  {created ? "Invite team" : "New project"}
+</Button>` },
     { title: "Media card", description: "Overlay buttons (White-Overlay / Black-Overlay icon buttons, White label button) sit on imagery; Flat buttons handle quiet inline actions in the card footer.", render: () => <ButtonMediaCardExample />, code: `<IconButton appearance="overlay" level="white-overlay" size="sm" aria-label="Like" aria-pressed={liked} onClick={() => setLiked(!liked)} icon={<Icon name="icon-heart-line" />} />
 <IconButton appearance="overlay" level="black-overlay" size="sm" aria-label="Share" onClick={copyLink} icon={<Icon name="icon-share-01-line" />} />
-<Button appearance="overlay" level="white" size="sm">Play preview</Button>
-<Button appearance="flat" level="primary" size="sm">Edit</Button>` },
+<Button appearance="overlay" level="white" size="sm" aria-pressed={playing} onClick={togglePreview}>Play preview</Button>
+<Button appearance="flat" level="primary" size="sm" onClick={() => setRenaming(true)}>Edit</Button>
+<Button appearance="flat" level="primary" size="sm" onClick={duplicate}>Duplicate</Button>` },
     { title: "Confirm a destructive action", description: "Danger + tertiary pair; the primary action shows progress and disables both buttons while it runs.", render: () => <ButtonDialogExample />, code: `<Button level="tertiary" size="sm" disabled={busy} onClick={close}>Cancel</Button>
 <Button level="danger" size="sm" disabled={busy}
   startIcon={<Icon name="icon-trash-line" decorative />}
@@ -3860,7 +4240,8 @@ const examples: Partial<Record<PlatformPage, ExampleDef[]>> = {
     disabled={!canRedo} onClick={redo} icon={<Icon name="icon-reverse-right-line" />} />
   <Button level="primary" size="sm" disabled={published} onClick={publish}>Publish</Button>
 </div>` },
-    { title: "Mobile footer CTA", description: "On a phone the main action sits in the footer: Large buttons fill the width, Primary on top, one Tertiary alternative below. Small sizes never stretch. Each delivery and payment row opens an Action sheet that changes it.", render: () => <ButtonMobileFooterExample />, code: `<ListItem title="Deliver to" caption={address.caption} trailing={chevron} onClick={() => setSheet("address")} />
+    { title: "Mobile footer CTA", description: "On a phone the main action sits in the footer: Large buttons fill the width, Primary on top, one Tertiary alternative below. Small sizes never stretch. Each delivery and payment row opens an Action sheet that changes it.", render: () => <ButtonMobileFooterExample />, code: `<TopNavigation type="compact" title="Review order" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToCart }} />
+<ListItem title="Deliver to" caption={address.caption} trailing={chevron} onClick={() => setSheet("address")} />
 <BottomSheet open={sheet === "address"} onOpenChange={(open) => !open && setSheet(null)} type="action"
   title="Deliver to" items={addresses} selectedId={address.id} onSelect={(item) => setAddress(item.id)} />
 
@@ -3892,7 +4273,8 @@ const examples: Partial<Record<PlatformPage, ExampleDef[]>> = {
     {topic}
   </Chip>
 ))}` },
-    { title: "Mobile filter row", description: "On a phone chips sit in one horizontally scrolling row. Quick filters are Normal toggle chips; the Sort chip opens an Action Bottom Sheet instead of a Popover. The result count uses a plural label and an empty result offers Clear filters.", render: () => <ChipMobileFilterExample />, code: `<div className="chip-scroll" role="group" aria-label="Filters"> {/* overflow-x: auto; flex-wrap: nowrap */}
+    { title: "Mobile filter row", description: "On a phone chips sit in one horizontally scrolling row. Quick filters are Normal toggle chips; the Sort chip opens an Action Bottom Sheet instead of a Popover. The result count uses a plural label and an empty result offers Clear filters.", render: () => <ChipMobileFilterExample />, code: `<TopNavigation type="compact" title="Coffee nearby" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToExplore }} />
+<div className="chip-scroll" role="group" aria-label="Filters"> {/* overflow-x: auto; flex-wrap: nowrap */}
   <Chip variant="advanced" size="small" dropdown aria-haspopup="dialog" aria-expanded={sheet} popoverOpen={sheet} select={sorted}
     onClick={() => setSheet(true)} onClearSelection={sorted ? resetSort : undefined}>{sortLabel}</Chip>
   {quickFilters.map((f) => <Chip key={f} variant="normal" size="small" level={on(f) ? "primary" : "secondary"}
@@ -3905,8 +4287,8 @@ const examples: Partial<Record<PlatformPage, ExampleDef[]>> = {
     { title: "Label variants", description: "Figma Primitives/Input/Label: Optional, Tooltip-Icon and Action, in the Default and Disabled states. Hover or focus the info icon for its tooltip.", wide: true, render: () => <InputLabelVariantsExample />, code: `<InputLabel id="name">Display name</InputLabel>
 <InputLabel id="name" optional>Display name</InputLabel>
 <InputLabel id="name" tooltip="Visible to everyone in the workspace">Display name</InputLabel>
-<InputLabel id="name" action={<button type="button" onClick={onAction}>Action</button>}>Display name</InputLabel>
-<InputLabel id="name" optional tooltip="…" action={…} disabled>Display name</InputLabel>` },
+<InputLabel id="name" action={<button type="button" onClick={copyLabel}>{copied ? "Copied" : "Copy"}</button>}>Display name</InputLabel>
+<InputLabel id="name" optional tooltip="…" action={<button type="button" disabled>Copy</button>} disabled>Display name</InputLabel>` },
     { title: "Labels in a sign-in form", description: "Fields take the same parts through labelTooltip, labelAction and labelOptional: a tooltip that explains, a Forgot password? action, and an Optional marker.", render: () => <InputLabelFormExample />, code: `<InputField label="Work email" labelTooltip="We use this for SSO and billing receipts." />
 <InputField label="Password" type="password"
   labelAction={<button type="button" onClick={sendReset}>Forgot password?</button>} />
@@ -3926,7 +4308,8 @@ const examples: Partial<Record<PlatformPage, ExampleDef[]>> = {
 <InputField label="Coupon" value={coupon} error={invalid ? "This code is not valid." : undefined} />` },
     { title: "Compose announcement", description: "A multi-line heading field (H2) above a Rich-Text field with its editor bar; long titles wrap instead of scrolling.", wide: true, render: () => <InputComposeExample />, code: `<HeadingField headingSize="h2" multiline placeholder="Announcement title" value={title} onValueChange={setTitle} />
 <RichTextField label="Message" value={html} characterLimit maxLength={2000}
-  onValueChange={(html, text) => { setHtml(html); setText(text); }} />` },
+  onValueChange={(html, text) => { setHtml(html); setText(text); }} />
+<Button level="primary" size="sm" disabled={!title.trim() || !text.trim()} onClick={post}>Post announcement</Button>` },
     { title: "Sign-up form", description: "Email validates on blur, password rules update while typing, and submit stays disabled until everything passes.", render: () => <SignUpExample />, code: `<InputField label="Work email" required type="email" value={email}
   onChange={(e) => setEmail(e.target.value)} onBlur={() => setTouched(true)}
   leading={<Icon name="icon-mail-01-line" decorative />}
@@ -3981,6 +4364,31 @@ const examples: Partial<Record<PlatformPage, ExampleDef[]>> = {
   { id: "mentions", label: "Mentions", badge: counts.mentions || undefined },
   { id: "archived", label: "Archived" },
 ]} />` },
+    { title: "Period switch on a phone", description: "On a phone the four periods are wider than the screen, so the Segmented (default Secondary, no fullWidth) keeps its full labels, scrolls sideways like Tabs and brings the selected period into view. An empty week shows an EmptyState in place of the summary, with Show this month as its way out.", render: () => <SegmentedPhonePeriodExample />, code: `<TopNavigation type="compact" title="Spending" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToWallet }} />
+{/* padding-inline: Margin/Compact (20px). No fullWidth: wider than the phone, the Segmented scrolls sideways. */}
+<Segmented aria-label="Period" value={period} onValueChange={setPeriod} options={[
+  { id: "week", label: "This week" },
+  { id: "month", label: "This month" },
+  { id: "quarter", label: "This quarter" },
+  { id: "year", label: "This year" },
+]} />
+{spent ? (
+  <>
+    <Metric size="small" label={spent.label} value={spent.total} icon="icon-wallet-02-line"
+      trend={{ direction: "normal", label: spent.trend }} />
+    <Heading level={2} textStyle="Heading/Subheading">By category</Heading>
+    <List aria-label="By category" inset="compact">
+      {spent.categories.map((c) => <ListItem key={c.name} title={c.name} caption={plural(c.payments, "payment")}
+        leading={<DockIcon icon={c.icon} theme={c.theme} background="subtle" />}
+        trailing={<Text as="span" textStyle="Body/Base/Medium">{c.amount}</Text>} />)}
+    </List>
+  </>
+) : (
+  <EmptyState headingLevel={2} title="No spending yet this week" icon="icon-receipt-line"
+    secondaryAction={{ label: "Show this month", onClick: showThisMonth }}>
+    Card payments show up here once they clear.
+  </EmptyState>
+)}` },
   ],
   toggle: [
     { title: "Privacy cards", description: "Text-first bold toggles with captions inside selectable cards.", render: () => <TogglePrivacyCardsExample />, code: `<Toggle theme="text-first" bold label="Public profile" caption="Anyone in your organisation can see your profile." selected={on} onSelectedChange={setOn} />` },
@@ -4010,10 +4418,11 @@ const some = picked.length > 0 && !all;
   onChange={() => setPicked(all ? [] : files)} />
 {files.map((file) => (
   <Checkbox key={file} label={file} checked={picked.includes(file)} onChange={(on) => toggle(file, on)} />
-))}` },
+))}
+<Button level="primary" size="sm" disabled={!picked.length} onClick={() => exportFiles(picked)}>Export {plural(picked.length, "file")}</Button>` },
     { title: "Consent", description: "A required checkbox gates the primary action; unavailable options are disabled with a reason.", render: () => <CheckboxConsentExample />, code: `<Checkbox label="I accept the Terms of Service" checked={terms} onChange={setTerms} />
 <Checkbox label="Enable legacy API" caption="Unavailable on the Free plan" disabled />
-<Button level="primary" size="sm" disabled={!terms}>Continue</Button>` },
+<Button level="primary" size="sm" disabled={!terms} onClick={next}>Continue</Button>` },
   ],
   "radio-button": [
     { title: "Shipping method", description: "Radio cards: bold label, caption and a price on the trailing side.", render: () => <RadioShippingExample />, code: `<RadioButton name="shipping" value="express" bold label="Express" caption="1–2 business days" checked={m === "express"} onChange={() => setM("express")} />` },
@@ -4024,7 +4433,10 @@ const some = picked.length > 0 && !all;
       checked={plan === p.id} onChange={() => setPlan(p.id)}
       label={\`\${p.label} · $\${p.price}/mo\`} caption={p.caption} />
   ))}
-</div>` },
+</div>
+<Button level="primary" size="sm" disabled={plan === subscribed} onClick={() => setSubscribed(plan)}>
+  {plan === subscribed ? "Current plan" : \`Upgrade to \${label}\`}
+</Button>` },
     { title: "Settings list", description: "Right-side radios for a settings panel, with a disabled option.", render: () => <RadioSettingsExample />, code: `<RadioButton name="density" radioSide="right" value="compact"
   checked={density === "compact"} onChange={() => setDensity("compact")}
   label="Compact" caption="More rows on screen" />` },
@@ -4093,8 +4505,9 @@ const some = picked.length > 0 && !all;
   subMenu={flyout && <SidebarSubMenu search={<Search variant="popover" placeholder="Search projects" />}
     sections={[{ label: "Pinned", items: pinned }, { label: "All projects", items: rest }]}
     onItemClick={(item) => setPage(item.id)}>
-    <Button appearance="main" level="tertiary" size="sm">New project</Button>
-  </SidebarSubMenu>} />
+    <Button appearance="main" level="tertiary" size="sm" onClick={addProject}>New project</Button>
+  </SidebarSubMenu>}
+  footer={<><button type="button" onClick={() => setPage("settings")}><Icon name="icon-settings-01-line" /><span>Settings</span></button>…</>} />
 
 // Page body: the task list is a sortable Table
 <Table aria-label="Tasks" rows={sorted} getRowId={(t) => t.id} sort={sort} onSortChange={setSort}
@@ -4111,7 +4524,9 @@ const some = picked.length > 0 && !all;
   headerAction={<IconButton appearance="flat" level="primary" size="sm" aria-label="Workspace settings" onClick={() => setPage("settings")} icon={<Icon name="icon-settings-01-line" />} />}
   onSubMenuClose={() => setFlyout(false)}
   subMenu={flyout && <SidebarSubMenu search={<Search variant="popover" placeholder="Search people" />}
-    sections={[{ label: "Online", items: online }, { label: "Offline", items: offline }]} />} />
+    sections={[{ label: "Online", items: online }, { label: "Offline", items: offline }]}>
+    <Button appearance="main" level="tertiary" size="sm" onClick={openInvite}>Invite people</Button>
+  </SidebarSubMenu>} />
 
 // Projects page: one Table row per project
 <Table aria-label="Projects" rows={sorted} getRowId={(p) => p.id} sort={sort} onSortChange={setSort}
@@ -4131,7 +4546,7 @@ const some = picked.length > 0 && !all;
     { label: "Private", items: privatePages },
   ]}
   onItemClick={(item) => !item.children && setPage(item.id)}
-  footer={<><button type="button"><Icon name="icon-layers-three-01-line" /><span>Templates</span></button>…</>} />
+  footer={<><button type="button" aria-current={page === "templates" ? "page" : undefined} onClick={() => setPage("templates")}><Icon name="icon-layers-three-01-line" /><span>Templates</span></button>…</>} />
 
 // Page body: cards on a flat page keep their own frame
 <Breadcrumbs items={[{ id: "wiki", label: "Zen Wiki" }, { id: "product", label: "Product" }, { id: "roadmap", label: "Roadmap" }]} />
@@ -4167,8 +4582,8 @@ const some = picked.length > 0 && !all;
   value={to} onChange={setTo} invalidValues={outside} error={outside.length ? "Outside your organization" : undefined} />` },
   ],
   tooltip: [
-    { title: "Image annotations", description: "Black-Overlay and White-Overlay tooltips on imagery, placed right and left of their pins.", render: () => <TooltipAnnotationsExample />, code: `<Tooltip content="Primary CTA" placement="left" color="white-overlay" size="small">
-  <IconButton appearance="overlay" level="white-overlay" size="xs" aria-label="Annotation" icon={…} />
+    { title: "Image annotations", description: "Black-Overlay and White-Overlay tooltips on imagery, placed right and left of their pins; a click or a tap pins a note open.", render: () => <TooltipAnnotationsExample />, code: `<Tooltip content="Primary CTA" placement="left" color="white-overlay" size="small" open={pinned ? true : undefined}>
+  <IconButton appearance="overlay" level="white-overlay" size="xs" aria-label="Annotation: Primary CTA" aria-pressed={pinned} onClick={() => setPinned(!pinned)} icon={…} />
 </Tooltip>` },
     { title: "Toolbar hints", description: "Small tooltips name icon-only buttons and show their shortcut; they appear on hover after a delay and instantly on keyboard focus.", render: () => <TooltipToolbarExample />, code: `<Tooltip content="Bold · ⌘B" size="small">
   <IconButton aria-label="Bold" level="tertiary" size="sm" aria-pressed={bold} onClick={() => setBold(!bold)} icon={<Icon name="icon-bold-01-line" />} />
@@ -4176,8 +4591,8 @@ const some = picked.length > 0 && !all;
     { title: "Copy feedback", description: "Controlled open briefly confirms the action with the Accent color.", render: () => <TooltipCopyExample />, code: `<Tooltip content={copied ? "Copied!" : "Copy link"} color={copied ? "accent" : "default"} open={copied || undefined}>
   <IconButton aria-label="Copy link" icon={<Icon name="icon-copy-line" />} onClick={copy} />
 </Tooltip>` },
-    { title: "Truncated text", description: "Reveal the full file name without widening the list.", render: () => <TooltipTruncateExample />, code: `<Tooltip content={file.name} placement="bottom" size="small">
-  <button className="truncate">{file.name}</button>
+    { title: "Truncated text", description: "Reveal the full file name without widening the list; a click or a tap pins it.", render: () => <TooltipTruncateExample />, code: `<Tooltip content={file.name} placement="bottom" size="small" open={pinned ? true : undefined}>
+  <button className="truncate" aria-pressed={pinned} onClick={() => setPinned(!pinned)}>{file.name}</button>
 </Tooltip>` },
   ],
   tabs: [
@@ -4194,8 +4609,11 @@ const some = picked.length > 0 && !all;
   ],
   breadcrumbs: [
     { title: "Page header", description: "Breadcrumbs above the page title with Tertiary + Primary actions; clicking a crumb navigates up.", render: () => <BreadcrumbsHeaderExample />, code: `<Breadcrumbs items={path} onNavigate={(item) => go(item.id)} />
-<Heading level={1}>Website redesign</Heading>` },
-    { title: "In-page sections", description: "master={false} drops the home icon for in-page navigation such as Settings.", render: () => <BreadcrumbsSettingsExample />, code: `<Breadcrumbs master={false} items={[{ id: "settings", label: "Settings" }, { id: "billing", label: "Billing" }, …]} />` },
+<Heading level={1}>Website redesign</Heading>
+<Button level="tertiary" size="sm" onClick={() => setSharing(true)}>Share</Button>
+<Button level={published ? "tertiary" : "primary"} size="sm" onClick={togglePublish}>{published ? "Unpublish" : "Publish"}</Button>` },
+    { title: "In-page sections", description: "master={false} drops the home icon for in-page navigation such as Settings; a crumb moves up to its section.", render: () => <BreadcrumbsSettingsExample />, code: `<Breadcrumbs master={false} items={path.map((id) => ({ id, label: sections[id].title }))}
+  onNavigate={(item, event) => { event.preventDefault(); setPath(path.slice(0, path.indexOf(item.id) + 1)); }} />` },
     { title: "File browser", description: "Open folders to go deeper; click a breadcrumb to go back up.", render: () => <BreadcrumbsDriveExample />, code: `<Breadcrumbs
   items={trail.map((f) => ({ id: f.id, label: f.name }))}
   onNavigate={(item) => setTrail(trail.slice(0, indexOf(item.id) + 1))}
@@ -4204,7 +4622,9 @@ const some = picked.length > 0 && !all;
   onNavigate={(item, event) => { event.preventDefault(); router.push(item.href); }} />` },
   ],
   progress: [
-    { title: "Storage quota", description: "Status theme on the quota scale: green while there is room, Warning from 75%, Negative from 90%; the upgrade CTA appears above 80%.", render: () => <ProgressStorageExample />, code: `<ProgressBar value={used} theme="status" scale="quota" aria-label="Storage used" />` },
+    { title: "Storage quota", description: "Status theme on the quota scale: green while there is room, Warning from 75%, Negative from 90%; the upgrade CTA appears above 80%.", render: () => <ProgressStorageExample />, code: `<ProgressBar value={used} theme="status" scale="quota" aria-label="Storage used" />
+<Button level="tertiary" size="sm" onClick={cleanUp}>Clean up</Button>
+{used > 80 ? <Button level="primary" size="sm" onClick={() => setTotal(100)}>Upgrade storage</Button> : null}` },
     { title: "Onboarding steps", description: "Progress-Circles as step indicators: green when done, accent for the current step.", render: () => <ProgressOnboardingExample />, code: `<ProgressCircle value={done ? 100 : current ? 50 : 0} theme={done ? "green" : "accent"} label="Team" />` },
     { title: "File uploads", description: "Accent bars while uploading; Status theme turns green when a file completes.", render: () => <ProgressUploadExample />, code: `<ProgressBar value={file.progress} theme={file.progress >= 100 ? "status" : "accent"}
   aria-label={\`\${file.name} upload\`} />` },
@@ -4222,7 +4642,7 @@ const some = picked.length > 0 && !all;
       {facet.options.map((option) => <Checkbox key={option.id} label={option.label} checked={…} onChange={…} />)}
     </Accordion>
   ))}
-  <Button level="primary" size="md">Show {results} projects</Button>
+  <Button level="primary" size="md" disabled={!results} onClick={applyFilters}>Show {plural(results, "project")}</Button>
 </Card>` },
     { title: "Release notes", description: "XLarge size with the Divider theme for long-form, one-at-a-time sections.", render: () => <AccordionReleaseNotesExample />, code: `<Accordion size="xlarge" theme="divider" title="v1.0.2" expanded={open === "v1.0.2"} onExpandedChange={…}>…</Accordion>` },
     { title: "FAQ", description: "Box theme; several answers can be open at once, the first starts expanded.", render: () => <AccordionFaqExample />, code: `<Accordion theme="box" title="Can I change my plan later?" defaultExpanded>
@@ -4334,9 +4754,14 @@ const dismiss = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id
   "date-picker": [
     { title: "Birthday", description: "Single date, future disabled (maxDate), starting in 1995; the month/year wheel jumps decades.", render: () => <DateBirthdayExample />, code: `const [month, setMonth] = useState(() => new Date(1995, 5, 1));
 <DatePicker value={date} onValueChange={setDate} maxDate={today} month={month} onMonthChange={setMonth} />` },
-    { title: "Report period", description: "Dual calendar with range selection and Cancel / Submit actions.", render: () => <DateReportRangeExample />, code: `<DatePicker calendar="dual" selectionMode="range" onRangeChange={setRange} showActions action="dual" />` },
+    { title: "Report period", description: "Dual calendar with range selection and Cancel / Submit actions: picks are a draft until Submit applies them to the report, and Cancel returns to the applied period.", render: () => <DateReportRangeExample />, code: `<DatePicker calendar="dual" selectionMode="range" range={period} maxDate={today}
+  month={month} onMonthChange={setMonth}
+  showActions action="dual" onApply={(_, range) => range && setPeriod(range)} />` },
     { title: "Booking range", description: "Range selection with past dates disabled and a live night count.", wide: true, render: () => <DateBookingExample />, code: `<DatePicker selectionMode="range" minDate={today}
-  onRangeChange={({ start, end }) => setRange({ start, end })} />` },
+  onRangeChange={(range) => { setRange(range); setBooked(false); }} />
+<Button level={booked ? "tertiary" : "primary"} size="sm" disabled={!nights} onClick={() => setBooked(!booked)}>
+  {booked ? "Change dates" : "Reserve"}
+</Button>` },
     { title: "Date field in a form", description: "The field opens the calendar on focus and formats the picked date.", render: () => <DateFieldFormExample />, code: `<DateField label="Date" onDateChange={setDate} helpText={date ? format(date) : "Click the field to open the calendar"} />` },
   ],
   divider: [
@@ -4354,11 +4779,13 @@ const dismiss = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id
     { title: "Receipt total", description: "High (Solid) marks the one line that closes a calculation.", render: () => <DividerReceiptExample />, code: `<LineItem label="Discount" amount="−$6.80" />
 <Divider color="high" />
 <Total amount="$61.20" />` },
-    { title: "Labelled separator", description: "Dashed dividers step up to Subtle; the label sits between two decorative lines.", render: () => <DividerLabelledExample />, code: `<div className="row">
+    { title: "Labelled separator", description: "Dashed dividers step up to Subtle; the label sits between two decorative lines.", render: () => <DividerLabelledExample />, code: `<Button level="primary" size="md" onClick={continueWithEmail}>Continue with email</Button>
+<div className="row">
   <Divider dashed decorative />
   <Text as="span">or</Text>
   <Divider dashed decorative />
-</div>` },
+</div>
+<Button level="tertiary" size="md" startIcon={<Icon name="ic-figma-line" />} onClick={continueWithFigma}>Continue with Figma</Button>` },
   ],
   "inline-message": [
     { title: "Context above a form", description: "Warning on its Subtle surface; the text stays Strongest/Base while the icon uses Light.", render: () => <InlineContextExample />, code: `<InlineMessage theme="warning" title="You're editing production">
@@ -4367,7 +4794,9 @@ const dismiss = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id
     { title: "Upgrade prompt", description: "Info with one Tertiary action and a close control.", render: () => <InlineUpgradeExample />, code: `<InlineMessage theme="info" title="Version history is limited to 30 days"
   action={{ label: "View plans", onClick: openPlans }} onClose={dismiss}>
   Upgrade to Pro to keep every version forever.
-</InlineMessage>` },
+</InlineMessage>
+<Dialog open={plans} onOpenChange={setPlans} title="Upgrade to Pro" description="Keep every version forever, plus unlimited editors."
+  primaryAction={{ label: "Upgrade to Pro", onClick: upgrade }} secondaryAction={{ label: "Not now" }} />` },
     { title: "Result of an action", description: "Positive replaces the button once the check finishes, next to the field it describes.", render: () => <InlineVerifyExample />, code: `{verified
   ? <InlineMessage theme="positive" title="Domain verified">DNS records found…</InlineMessage>
   : <Button level="primary" onClick={verify}>Verify domain</Button>}` },
@@ -4376,9 +4805,13 @@ const dismiss = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id
 </InlineMessage>
 <InputField label="Card number" error="Enter all 16 digits." />` },
     { title: "Custom visual", description: "Theme Custom swaps the icon for any visual — here an Avatar.", render: () => <InlineCustomVisualExample />, code: `<InlineMessage theme="custom" icon={<Avatar size="small" theme="blue" alt="">AC</Avatar>}
-  title="Ava shared “Q4 roadmap”" action={{ label: "Open file", onClick: open }}>
+  title="Ava shared “Q4 roadmap”" action={{ label: "Open file", onClick: () => setOpen(true) }}>
   You can comment; ask Ava for edit access.
-</InlineMessage>` },
+</InlineMessage>
+<Dialog open={open} onOpenChange={setOpen} title="Q4 roadmap" description="Shared by Ava Chen"
+  primaryAction={{ label: "Request edit access", onClick: requestAccess }} secondaryAction={{ label: "Close" }}>
+  <DescriptionList items={details} />
+</Dialog>` },
   ],
   "empty-state": [
     { title: "No search results", description: "Echo the query and offer a way out (Tertiary “Clear search”).", render: () => <EmptySearchExample />, code: `<EmptyState title={\`No results for “\${query}”\`} icon="icon-search-medium-line"
@@ -4393,7 +4826,7 @@ const dismiss = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id
   secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>
   Nothing is stuck right now. Nice.
 </EmptyState>` },
-    { title: "No permission", description: "Primary requests access; the caption updates after the request.", render: () => <EmptyPermissionExample />, code: `<EmptyState title="You don't have access" icon="icon-lock-01-line"
+    { title: "No permission", description: "Primary requests access; the caption updates after the request. Back to projects shows the project list.", render: () => <EmptyPermissionExample />, code: `<EmptyState title="You don't have access" icon="icon-lock-01-line"
   primaryAction={{ label: "Request access", onClick: request }}
   secondaryAction={{ label: "Back to projects", onClick: back }}>
   Ask the workspace owner to add you to “Finance Q4”.
@@ -4468,11 +4901,13 @@ const dismiss = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id
   {recommended ? <Badge theme="accent" background="subtle" size="small">Recommended</Badge> : null}
   <Text as="span" textStyle="Heading/2">$12</Text> <Text as="span" tone="light">per seat / month</Text>
   <ul>{features.map((f) => <li key={f}><Icon name="icon-check-line" decorative />{f}</li>)}</ul>
-  <Button level={recommended ? "primary" : "tertiary"} size="md" onClick={upgrade}>Upgrade to Pro</Button>
+  {isCurrent
+    ? <Button level="tertiary" size="md" onClick={() => setManaging(true)}>Manage plan</Button>
+    : <Button level={recommended ? "primary" : "tertiary"} size="md" onClick={upgrade}>Upgrade to Pro</Button>}
 </Card>` },
   ],
   "dock-icon": [
-    { title: "App launcher", description: "Large Solid dock icons as app tiles.", render: () => <DockIconAppsExample />, code: `<button type="button" className="app-tile">
+    { title: "App launcher", description: "Large Solid dock icons as app tiles; a tile opens a summary of its app.", render: () => <DockIconAppsExample />, code: `<button type="button" className="app-tile" aria-pressed={open === "Figma"} onClick={() => toggle("Figma")}>
   <DockIcon icon="ic-figma-line" theme="purple" size="large" />
   <Text as="span">Figma</Text>
 </button>` },
@@ -4495,10 +4930,10 @@ const dismiss = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id
       trailing={<Icon name="icon-chevron-right-line-small" decorative />} />
   </List>
 </Card>` },
-    { title: "Trailing actions", description: "Static rows with two Flat icon buttons (Figma Slot-Actions).", render: () => <ListItemActionsExample />, code: `<ListItem title={name} caption="Editor · invited 2d ago" leading={<Avatar size="medium" theme="photo" src={photo} alt="" />}
+    { title: "Trailing actions", description: "Static rows with two Flat icon buttons (Figma Slot-Actions): Resend confirms in the caption, Revoke removes the row.", render: () => <ListItemActionsExample />, code: `<ListItem title={name} caption="Editor · invited 2d ago" leading={<Avatar size="medium" theme="photo" src={photo} alt="" />}
   trailing={<>
-    <IconButton appearance="flat" level="primary" size="md" aria-label="Resend invite" … />
-    <IconButton appearance="flat" level="primary" size="md" aria-label="Revoke invite" … />
+    <IconButton appearance="flat" level="primary" size="md" aria-label={\`Resend invite to \${name}\`} onClick={resend} icon={<Icon name="icon-mail-01-line" />} />
+    <IconButton appearance="flat" level="primary" size="md" aria-label={\`Revoke invite for \${name}\`} onClick={revoke} icon={<Icon name="icon-trash-line" />} />
   </>} />` },
     { title: "Custom contents", description: "The Contents slot takes any content — here a progress bar.", render: () => <ListItemCustomContentExample />, code: `<ListItem title="brand-kit.zip" leading={<DockIcon icon="icon-folder-line" theme="blue" background="subtle" size="small" />}>
   <Text as="span">brand-kit.zip</Text>
@@ -4536,6 +4971,9 @@ const dismiss = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id
     { id: "name", header: "Member", sortable: true, cell: (row) => <TableMedia media={<Avatar size="small" theme="photo" src={row.photo} alt="" />} caption={row.role}>{row.name}</TableMedia> },
     { id: "status", header: "Status", cell: (row) => <Badge size="medium" background="subtle" theme="green">{row.status}</Badge> },
     { id: "seats", header: "Seats", sortable: true, align: "right", cell: (row) => <TableText>{row.seats}</TableText> },
+    { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: (row) => (
+      <TableActions><IconButton appearance="flat" level="primary" size="sm" aria-label={\`Edit \${row.name}\`} onClick={() => edit(row)} icon={<Icon name="icon-edit-02-line" />} /></TableActions>
+    ) },
   ]} />` },
     { title: "Invoices with pagination", description: "Header icon, Text cells with captions and Pagination (Inline) under the table; its Chip changes the page size.", wide: true, render: () => <TableInvoicesExample />, code: `<Table aria-label="Invoices" rows={pageRows} getRowId={(row) => row.id} columns={[
   { id: "id", header: "Invoice", icon: "icon-file-doc-line", cell: (row) => <TableText bold>{row.id}</TableText> },
@@ -4566,9 +5004,9 @@ const dismiss = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id
     { title: "Keyboard", description: "One radio group: Tab in, arrows move; focus shows the 48px halo.", render: () => <ColorKeyboardExample />, code: `<ColorSelector aria-label="Chart series colour" colors={twelveColours} value={color} onChange={setColor} />` },
   ],
   metric: [
-    { title: "KPI cards", description: "MetricCard (Large) on Shadow cards; each Dock-Icon theme colour-codes its category.", wide: true, render: () => <MetricKpiExample />, code: `<MetricCard size="large" label="Revenue" value="$48,210" icon="icon-credit-card-line" iconTheme="green"
+    { title: "KPI cards", description: "MetricCard (Large) on Shadow cards; each Dock-Icon theme colour-codes its category. The ⋯ opens the numbers behind a card in a modal Side Panel.", wide: true, render: () => <MetricKpiExample />, code: `<MetricCard size="large" label="Revenue" value="$48,210" icon="icon-credit-card-line" iconTheme="green"
   trend={{ direction: "positive", label: "+12% vs. last month" }}
-  subAction={{ label: "Revenue actions", icon: "icon-dots-vertical-line", onClick: open }} />
+  subAction={{ label: "Revenue actions", icon: "icon-dots-vertical-line", onClick: () => setReport("revenue") }} />
 <MetricCard size="large" label="Active users" value="8,930" icon="icon-users-line" iconTheme="blue" … />
 <MetricCard size="large" label="Churn" value="2.1%" icon="icon-arrow-down-right-line" iconTheme="crimson" … />` },
     { title: "Sales by period", description: "A Segmented period switch updates four Border cards; Golden, Orange, Teal and Violet tell the metrics apart.", wide: true, render: () => <MetricSalesExample />, code: `<Segmented options={periods} value={range} onChange={setRange} aria-label="Sales period" />
@@ -4594,7 +5032,7 @@ const dismiss = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id
 <Metric size="small" label="CSAT" value="94%" icon="icon-face-smile-line" iconTheme="green" … />` },
     { title: "Metric with context", description: "A negative trend with a Solid Red icon, paired with an Inline Message that says what to do.", render: () => <MetricAlertExample />, code: `<MetricCard theme="border" label="Failed payments" value="37" icon="icon-alert-triangle-line" iconTheme="red" iconBackground="solid"
   trend={{ direction: "negative", label: "+9 vs. yesterday" }} />
-<InlineMessage theme="negative" title="Card declines are rising" action={{ label: "View failed payments" }}>…</InlineMessage>` },
+<InlineMessage theme="negative" title="Card declines are rising" action={{ label: "View failed payments", onClick: () => setReport(true) }}>…</InlineMessage>` },
     { title: "Sizes", description: "Large stacks the icon; Medium–XSmall put it inline; the number scales Heading/1 → Subheading.", render: () => <MetricSizesExample />, code: `<Metric size="medium" label="Revenue" value="$1,680.68" iconTheme="blue" trend={{ direction: "positive", label: "+24%" }} />` },
   ],
   uploader: [

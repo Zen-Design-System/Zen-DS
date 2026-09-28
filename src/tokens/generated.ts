@@ -1321,6 +1321,7 @@ export const tokens = {
   "Input/Background/Focused": "var(--zen-input-background-focused)",
   "Input/Background/Hover": "var(--zen-input-background-hover)",
   "Input/Border/Default": "var(--zen-input-border-default)",
+  "Input/Border/Disabled": "var(--zen-input-border-disabled)",
   "Input/Border/Hover": "var(--zen-input-border-hover)",
   "Input/Shadow/Base": "var(--zen-input-shadow-base)",
   "Input/Shadow/Strong": "var(--zen-input-shadow-strong)",
@@ -2406,9 +2407,10 @@ export const tokenCollections = {
       "Brand - S1",
       "Neutral - S2",
       "Brand - S2",
-      "Neutral - S3"
+      "Neutral - S3",
+      "Neutral - S4"
     ],
-    "variableCount": 112
+    "variableCount": 113
   },
   "component-size": {
     "name": "Component Size",
@@ -2439,7 +2441,8 @@ export const tokenCollections = {
     "name": "Emphasis Level",
     "modes": [
       "Medium",
-      "Strong"
+      "Strong",
+      "Light"
     ],
     "variableCount": 6
   },

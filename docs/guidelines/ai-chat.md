@@ -120,6 +120,7 @@ interface AiChatSuggestion { label: string; icon?: IconName | ReactElement; onCl
 | --- | --- | --- | --- |
 | `ai-chat/no-actions-while-streaming` | warn | Hide Copy / Regenerate / feedback while the assistant is thinking or an answer is still streaming. | `zen-allow-ai-streaming-actions: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
+| `interaction/action-without-handler` | warn | Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
 
 ## References
 - [Material 3 — Generative AI patterns](https://m3.material.io/)

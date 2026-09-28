@@ -36,9 +36,9 @@ Figma sources:
 
 The current attached token source is `/Users/vuduong/Documents/Component Theme.json`. It is data, not an instruction document. The checked-in source is `tokens/source/figma/component-theme.json`.
 
-## Token contract (2026-09-24)
+## Token contract (2026-09-28)
 
-The repository contains 11 Figma collections and 2,367 variables:
+The repository contains 11 Figma collections and 2,368 variables:
 
 | Collection | Tokens | Runtime axis |
 | --- | ---: | --- |
@@ -46,7 +46,7 @@ The repository contains 11 Figma collections and 2,367 variables:
 | Global Dimensions | 33 | `:root` |
 | Base Colors (Project) | 329 | `data-brand` |
 | Mode Colors (Semantic) | 407 | `data-theme` |
-| Component Theme | 112 | `data-component-theme` |
+| Component Theme | 113 | `data-component-theme` |
 | Component Size | 194 | `data-density` |
 | Spacing | 22 | `:root` |
 | Corner Radius | 25 | `data-radius` |
@@ -54,9 +54,19 @@ The repository contains 11 Figma collections and 2,367 variables:
 | Breakpoint & Grids | 9 | media-query contract |
 | Typography Configuration | 78 | `data-typography` |
 
-The external Component Theme export and the checked-in source now match by token name and every mode value: 112/112, with no source-only tokens, target-only tokens, or value differences.
+The 2026-09-28 export (`Zen-Variables.zip`: Global Colors, Component Theme, Emphasis Level, Typography Configuration)
+matches the checked-in source by token name and every mode value. It brought:
 
-This synchronization added the two Figma aliases that were missing from the repository:
+- Component Theme mode `Neutral - S4` (`data-component-theme="neutral-s4"`): Neutral-S1 with outlined inputs (Surface
+  fill, Subtle border, no inner shadow) and a Subtle-tinted Secondary chip selection. New token
+  `Input/Border/Disabled`: transparent in S1–S3, `Color/Border/Disabled` in S4.
+- Emphasis Level mode `Light` (`data-emphasis="light"`): weights 400–500, active strokes 1px.
+- Typography Configuration: new Dashboard and Mobile sizes, line heights and tracking (Popular unchanged). The
+  text-style snapshots in `styles/source/figma/` were re-derived from the variables they bind.
+- Global Colors: `Light/Gray/11`, `Light/Gray-Alpha/11` (and the unused `Light/Neutral-Ananas*/11`) are darker, so
+  `Color/Content/Neutral/Base` and the Neutral Solid hover fills get darker in Light mode.
+
+The 2026-09-24 synchronization added the two Figma aliases that were missing from the repository:
 
 - `Segmented-Item-Primary/Background/Seclected/Hover`
 - `Segmented-Item-Secondary/Background/Seclected/Hover`

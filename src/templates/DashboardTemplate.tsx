@@ -13,9 +13,11 @@ import {
   Icon,
   IconButton,
   LineChart,
+  InputField,
   List,
   ListItem,
   MetricCard,
+  ModalForm,
   PageHeader,
   Search,
   Sidebar,
@@ -24,6 +26,7 @@ import {
   TableText,
   TableTrend,
   Text,
+  useToast,
   type SidebarSection,
 } from "@zen/design-system";
 
@@ -54,17 +57,28 @@ const sections = (active: string): SidebarSection[] => [
 ];
 
 export function DashboardTemplate() {
+  const { toast } = useToast();
   const [page, setPage] = useState("dashboard");
   const [range, setRange] = useState<keyof typeof ranges>("Monthly");
+  // New project: a one-field form; the project lands on top of Top projects.
+  const [rows, setRows] = useState(projects);
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState("");
+  const create = () => {
+    if (!name.trim()) return;
+    setRows((list) => [{ id: `new-${list.length + 1}`, name: name.trim(), owner: "Ava Chen", visits: "0", delta: "New", up: true }, ...list]);
+    toast({ type: "positive", title: `“${name.trim()}” created` });
+    setName(""); setCreating(false);
+  };
   return (
     <AppShell
       sidebar={<Sidebar logo={<Text as="span" textStyle="Heading/4">Acme</Text>} sections={sections(page)} onItemClick={(item) => setPage(item.id)} />}
       header={<Search aria-label="Search" placeholder="Search projects and customers" />}
-      headerActions={<IconButton aria-label="Notifications" icon={<Icon name="icon-bell-01-line" />} onClick={() => setPage("dashboard")} />}
+      headerActions={<IconButton aria-label="Notifications" icon={<Icon name="icon-bell-01-line" />} onClick={() => toast({ title: "No new notifications" })} />}
     >
       <Container>
         <Stack gap="xl" paddingY="lg">
-          <PageHeader eyebrow="Good morning, Ava" title="Dashboard" description="How Acme is doing this month." actions={<><Button level="tertiary" startIcon={<Icon name="icon-download-01-line" decorative />}>Export</Button><Button level="primary">New project</Button></>} />
+          <PageHeader eyebrow="Good morning, Ava" title="Dashboard" description="How Acme is doing this month." actions={<><Button level="tertiary" startIcon={<Icon name="icon-download-01-line" decorative />} onClick={() => toast({ type: "positive", title: `Exported the ${range.toLowerCase()} dashboard as CSV` })}>Export</Button><Button level="primary" onClick={() => setCreating(true)}>New project</Button></>} />
 
           <Grid minColumnWidth={160} gap="md">
             {metrics.map((metric) => <MetricCard key={metric.id} label={metric.label} value={metric.value} trend={metric.trend} icon={metric.icon} theme="border" />)}
@@ -84,7 +98,7 @@ export function DashboardTemplate() {
 
           <Stack gap="sm">
             <Heading level={2} textStyle="Heading/4">Top projects</Heading>
-            <Table aria-label="Top projects" rows={projects} getRowId={(row) => row.id}
+            <Table aria-label="Top projects" rows={rows} getRowId={(row) => row.id}
               columns={[
                 { id: "name", header: "Project", cell: (row) => <TableText>{row.name}</TableText> },
                 { id: "owner", header: "Owner", cell: (row) => <TableText>{row.owner}</TableText> },
@@ -95,6 +109,10 @@ export function DashboardTemplate() {
           <Text textStyle="Caption/Regular" tone="light">Data refreshes every 15 minutes.</Text>
         </Stack>
       </Container>
+      <ModalForm open={creating} onOpenChange={(open) => { setCreating(open); if (!open) setName(""); }} title="New project" description="You can invite people once it exists."
+        onSubmit={(event) => { event.preventDefault(); create(); }} primaryAction={{ label: "Create project" }} secondaryAction={{ label: "Cancel" }}>
+        <InputField label="Project name" placeholder="e.g. Spring campaign" value={name} onValueChange={setName} autoComplete="off" data-autofocus="" />
+      </ModalForm>
     </AppShell>
   );
 }

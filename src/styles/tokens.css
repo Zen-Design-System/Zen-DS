@@ -419,7 +419,7 @@
   --zen-light-gray-8: #BBBBBB;
   --zen-light-gray-9: #8D8D8D;
   --zen-light-gray-10: #828282;
-  --zen-light-gray-11: #606060;
+  --zen-light-gray-11: #4F4F4F;
   --zen-light-gray-12: #111111;
   --zen-light-gray-alpha-1: #05050503;
   --zen-light-gray-alpha-2: #05050508;
@@ -431,7 +431,7 @@
   --zen-light-gray-alpha-8: #00000044;
   --zen-light-gray-alpha-9: #01010172;
   --zen-light-gray-alpha-10: #0000007D;
-  --zen-light-gray-alpha-11: #0000009F;
+  --zen-light-gray-alpha-11: #000000B0;
   --zen-light-gray-alpha-12: #000000EE;
   --zen-light-blue-1: #FAFCFF;
   --zen-light-blue-2: #F3F8FF;
@@ -1115,7 +1115,7 @@
   --zen-light-neutral-ananas-8: #B3BFB7;
   --zen-light-neutral-ananas-9: #809287;
   --zen-light-neutral-ananas-10: #77887E;
-  --zen-light-neutral-ananas-11: #59645D;
+  --zen-light-neutral-ananas-11: #49554E;
   --zen-light-neutral-ananas-12: #0F1310;
   --zen-light-neutral-ananas-alpha-1: #059B3705;
   --zen-light-neutral-ananas-alpha-2: #05501E0A;
@@ -1127,7 +1127,7 @@
   --zen-light-neutral-ananas-alpha-8: #002B114D;
   --zen-light-neutral-ananas-alpha-9: #00250F7F;
   --zen-light-neutral-ananas-alpha-10: #00200D88;
-  --zen-light-neutral-ananas-alpha-11: #001106A6;
+  --zen-light-neutral-ananas-alpha-11: #001107B6;
   --zen-light-neutral-ananas-alpha-12: #000401F0;
   --zen-dark-neutral-ananas-1: #0E100F;
   --zen-dark-neutral-ananas-2: #191D1B;
@@ -2394,11 +2394,9 @@
   --zen-segmented-item-primary-background-unselected-default: var(--zen-color-background-neutral-flat-default);
   --zen-segmented-item-primary-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-segmented-item-primary-background-seclected-default: var(--zen-color-background-active-neutral-solid);
-  --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
   --zen-segmented-item-secondary-background-unselected-default: var(--zen-color-background-neutral-flat-default);
   --zen-segmented-item-secondary-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-segmented-item-secondary-background-seclected-default: var(--zen-color-background-inverse-solid-default);
-  --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-tab-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-date-picker-item-background-unselected-default: var(--zen-color-background-neutral-flat-default);
   --zen-date-picker-item-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
@@ -2480,6 +2478,9 @@
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
   --zen-toggle-bar-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
+  --zen-input-border-disabled: #FFFFFF00;
 }
 
 /* Component Theme / Brand - S1 */
@@ -2525,11 +2526,9 @@
   --zen-segmented-item-primary-background-unselected-default: var(--zen-color-background-neutral-flat-default);
   --zen-segmented-item-primary-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-segmented-item-primary-background-seclected-default: var(--zen-color-background-active-accent-solid);
-  --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-accent-solid-hover);
   --zen-segmented-item-secondary-background-unselected-default: var(--zen-color-background-neutral-flat-default);
   --zen-segmented-item-secondary-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-segmented-item-secondary-background-seclected-default: var(--zen-color-background-inverse-solid-default);
-  --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-tab-border-selected: var(--zen-color-border-active-accent-solid);
   --zen-date-picker-item-background-unselected-default: var(--zen-color-background-neutral-flat-default);
   --zen-date-picker-item-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
@@ -2611,6 +2610,9 @@
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-accent-solid);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
   --zen-toggle-bar-background-seclected-hover: var(--zen-color-background-accent-solid-hover);
+  --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-accent-solid-hover);
+  --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
+  --zen-input-border-disabled: #FFFFFF00;
 }
 
 /* Component Theme / Neutral - S2 */
@@ -2660,11 +2662,9 @@
   --zen-segmented-item-primary-background-unselected-default: var(--zen-color-background-neutral-flat-default);
   --zen-segmented-item-primary-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-segmented-item-primary-background-seclected-default: var(--zen-color-background-active-neutral-solid);
-  --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
   --zen-segmented-item-secondary-background-unselected-default: var(--zen-color-background-neutral-flat-default);
   --zen-segmented-item-secondary-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-segmented-item-secondary-background-seclected-default: var(--zen-color-background-inverse-solid-default);
-  --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-tab-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-date-picker-item-background-unselected-default: var(--zen-color-background-neutral-flat-default);
   --zen-date-picker-item-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
@@ -2749,6 +2749,9 @@
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
   --zen-toggle-bar-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
+  --zen-input-border-disabled: #FFFFFF00;
 }
 
 /* Component Theme / Brand - S2 */
@@ -2798,11 +2801,9 @@
   --zen-segmented-item-primary-background-unselected-default: var(--zen-color-background-neutral-flat-default);
   --zen-segmented-item-primary-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-segmented-item-primary-background-seclected-default: var(--zen-color-background-active-accent-solid);
-  --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-accent-solid-hover);
   --zen-segmented-item-secondary-background-unselected-default: var(--zen-color-background-neutral-flat-default);
   --zen-segmented-item-secondary-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-segmented-item-secondary-background-seclected-default: var(--zen-color-background-inverse-solid-default);
-  --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-tab-border-selected: var(--zen-color-border-active-accent-solid);
   --zen-date-picker-item-background-unselected-default: var(--zen-color-background-neutral-flat-default);
   --zen-date-picker-item-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
@@ -2887,6 +2888,9 @@
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-accent-solid);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
   --zen-toggle-bar-background-seclected-hover: var(--zen-color-background-accent-solid-hover);
+  --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-accent-solid-hover);
+  --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
+  --zen-input-border-disabled: #FFFFFF00;
 }
 
 /* Component Theme / Neutral - S3 */
@@ -2933,11 +2937,9 @@
   --zen-segmented-item-primary-background-unselected-default: var(--zen-color-background-neutral-flat-default);
   --zen-segmented-item-primary-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-segmented-item-primary-background-seclected-default: var(--zen-color-background-active-neutral-solid);
-  --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
   --zen-segmented-item-secondary-background-unselected-default: var(--zen-color-background-neutral-flat-default);
   --zen-segmented-item-secondary-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-segmented-item-secondary-background-seclected-default: var(--zen-color-background-inverse-solid-default);
-  --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-tab-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-date-picker-item-background-unselected-default: var(--zen-color-background-neutral-flat-default);
   --zen-date-picker-item-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
@@ -3019,6 +3021,139 @@
   --zen-chip-secondary-border-selected: var(--zen-color-border-neutral-subtle-default);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-secondary);
   --zen-toggle-bar-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
+  --zen-input-border-disabled: #FFFFFF00;
+}
+
+/* Component Theme / Neutral - S4 */
+[data-component-theme="neutral-s4"],
+[data-component-theme="neutral-s4"] [data-theme] {
+  --zen-button-primary-background-default: var(--zen-color-background-neutral-solid-default);
+  --zen-button-primary-content-default: var(--zen-color-content-inverse-strongest);
+  --zen-button-primary-background-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-button-primary-background-pressed: var(--zen-color-background-neutral-solid-pressed);
+  --zen-button-accent-content-default: var(--zen-color-content-on-accent-default);
+  --zen-button-accent-background-default: var(--zen-color-background-accent-solid-default);
+  --zen-button-accent-background-hover: var(--zen-color-background-accent-solid-hover);
+  --zen-button-accent-background-pressed: var(--zen-color-background-accent-solid-pressed);
+  --zen-checkbox-icon-check-default: var(--zen-color-content-inverse-strongest);
+  --zen-checkbox-background-unselected-default: var(--zen-color-background-neutral-pale-default);
+  --zen-checkbox-background-unselected-default-shadow-off: 0 0 #0000;
+  --zen-checkbox-background-unselected-hover: var(--zen-color-background-neutral-pale-hover);
+  --zen-checkbox-background-unselected-hover-shadow-off: 0 0 #0000;
+  --zen-checkbox-background-seclected-default: var(--zen-color-background-active-neutral-solid);
+  --zen-chip-primary-background-unselected-default: var(--zen-color-background-neutral-ghost-default);
+  --zen-chip-primary-background-unselected-hover: var(--zen-color-background-neutral-ghost-hover);
+  --zen-chip-primary-background-seclected-default: var(--zen-color-background-active-neutral-solid);
+  --zen-chip-primary-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-chip-primary-border-default: var(--zen-color-border-neutral-subtle-default);
+  --zen-checkbox-border-default: var(--zen-color-border-neutral-subtle-default);
+  --zen-checkbox-border-hover: var(--zen-color-border-neutral-subtle-hover);
+  --zen-radio-button-icon-radio-default: var(--zen-color-content-inverse-strongest);
+  --zen-radio-button-background-unselected-default: var(--zen-color-background-neutral-pale-default);
+  --zen-radio-button-background-unselected-default-shadow-off: 0 0 #0000;
+  --zen-radio-button-border-default: var(--zen-color-border-neutral-subtle-default);
+  --zen-radio-button-border-hover: var(--zen-color-border-neutral-subtle-hover);
+  --zen-radio-button-border-pressed: var(--zen-color-border-neutral-subtle-pressed);
+  --zen-radio-button-background-unselected-hover: var(--zen-color-background-neutral-pale-hover);
+  --zen-radio-button-background-unselected-hover-shadow-off: 0 0 #0000;
+  --zen-radio-button-background-seclected-default: var(--zen-color-background-active-neutral-solid);
+  --zen-chip-primary-content-selected: var(--zen-color-content-inverse-strongest);
+  --zen-chip-secondary-background-unselected-default: var(--zen-color-background-neutral-ghost-default);
+  --zen-chip-secondary-background-unselected-hover: var(--zen-color-background-neutral-ghost-hover);
+  --zen-chip-secondary-border-default: var(--zen-color-border-neutral-subtle-default);
+  --zen-chip-secondary-content-selected: var(--zen-color-content-neutral-strongest);
+  --zen-chip-secondary-background-seclected-default: var(--zen-color-background-active-neutral-subtle);
+  --zen-chip-secondary-background-seclected-default-shadow-off: 0 0 #0000;
+  --zen-chip-secondary-background-seclected-hover: var(--zen-color-background-neutral-ghost-hover);
+  --zen-segmented-item-primary-background-unselected-default: var(--zen-color-background-neutral-flat-default);
+  --zen-segmented-item-primary-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
+  --zen-segmented-item-primary-background-seclected-default: var(--zen-color-background-active-neutral-solid);
+  --zen-segmented-item-secondary-background-unselected-default: var(--zen-color-background-neutral-flat-default);
+  --zen-segmented-item-secondary-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
+  --zen-segmented-item-secondary-background-seclected-default: var(--zen-color-background-inverse-solid-default);
+  --zen-tab-border-selected: var(--zen-color-border-active-neutral-solid);
+  --zen-date-picker-item-background-unselected-default: var(--zen-color-background-neutral-flat-default);
+  --zen-date-picker-item-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
+  --zen-date-picker-item-background-seclected-default: var(--zen-color-background-active-neutral-solid);
+  --zen-date-picker-item-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-date-picker-item-border-today: var(--zen-color-border-active-neutral-subtle);
+  --zen-date-picker-item-content-selected: var(--zen-color-content-inverse-strongest);
+  --zen-radio-button-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-checkbox-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-tag-background-default: var(--zen-color-background-neutral-ghost-default);
+  --zen-tag-background-hover: var(--zen-color-background-neutral-ghost-hover);
+  --zen-tag-border-default: var(--zen-color-border-neutral-subtle-default);
+  --zen-tag-border-hover: var(--zen-color-border-neutral-subtle-hover);
+  --zen-tag-content-selected: var(--zen-color-content-inverse-strongest);
+  --zen-date-picker-item-background-seclected-in-range-default: var(--zen-color-background-active-neutral-subtle);
+  --zen-date-picker-item-background-seclected-in-range-default-shadow-off: 0 0 #0000;
+  --zen-date-picker-item-background-seclected-in-range-hover: var(--zen-color-background-neutral-subtle-hover);
+  --zen-date-picker-item-background-seclected-in-range-hover-shadow-off: 0 0 #0000;
+  --zen-segmented-item-primary-content-selected: var(--zen-color-content-inverse-strongest);
+  --zen-segmented-item-secondary-content-selected: var(--zen-color-content-neutral-strongest);
+  --zen-segmented-item-secondary-border-default: var(--zen-color-border-neutral-subtle-default);
+  --zen-segmented-item-secondary-border-hover: var(--zen-color-border-neutral-subtle-hover);
+  --zen-segmented-item-secondary-border-selected: var(--zen-color-border-active-neutral-solid);
+  --zen-toggle-bar-background-unselected-default: var(--zen-color-background-neutral-subtle-default);
+  --zen-toggle-bar-background-unselected-default-shadow-off: 0 0 #0000;
+  --zen-toggle-bar-background-unselected-hover: var(--zen-color-background-neutral-subtle-hover);
+  --zen-toggle-bar-background-unselected-hover-shadow-off: 0 0 #0000;
+  --zen-toggle-bar-background-seclected-default: var(--zen-color-background-active-neutral-solid);
+  --zen-toggle-dot-background-unselected-default: var(--zen-color-background-white-solid-default);
+  --zen-toggle-dot-background-seclected-default: var(--zen-color-background-inverse-solid-default);
+  --zen-toggle-bar-background-unselected-disabled: var(--zen-color-background-subtle-disabled);
+  --zen-toggle-dot-background-seclected-disabled: var(--zen-color-background-surface-default);
+  --zen-toggle-bar-background-seclected-disabled: var(--zen-color-background-solid-disabled);
+  --zen-toggle-dot-background-unselected-disabled: var(--zen-color-background-subtle-disabled);
+  --zen-tab-background-default: var(--zen-color-background-neutral-flat-default);
+  --zen-tab-background-hover: var(--zen-color-background-neutral-flat-hover);
+  --zen-tab-background-selected: var(--zen-color-background-active-neutral-subtle);
+  --zen-tab-background-selected-shadow-off: 0 0 #0000;
+  --zen-tab-content-default: var(--zen-color-content-neutral-light);
+  --zen-tab-content-hover: var(--zen-color-content-neutral-base);
+  --zen-tab-content-selected: var(--zen-color-content-neutral-strongest);
+  --zen-table-cell-background-default: var(--zen-color-background-neutral-flat-default);
+  --zen-table-cell-background-hover: var(--zen-color-background-support-neutral-pale);
+  --zen-table-cell-background-hover-shadow-off: 0 0 #0000;
+  --zen-table-cell-background-selected: var(--zen-color-background-support-neutral-pale);
+  --zen-table-cell-background-selected-shadow-off: 0 0 #0000;
+  --zen-button-tertiary-content-default: var(--zen-color-content-neutral-strongest);
+  --zen-button-tertiary-background-default: var(--zen-color-background-neutral-ghost-default);
+  --zen-button-tertiary-background-hover: var(--zen-color-background-neutral-ghost-hover);
+  --zen-button-tertiary-background-pressed: var(--zen-color-background-neutral-ghost-pressed);
+  --zen-button-tertiary-border-default: var(--zen-color-border-neutral-subtle-default);
+  --zen-button-tertiary-shadow-default: var(--zen-color-shadow-neutral-light);
+  --zen-button-tertiary-background-disabled: var(--zen-color-background-ghost-disabled);
+  --zen-button-tertiary-border-disabled: var(--zen-color-border-disabled);
+  --zen-bubble-chat-you-content-default: var(--zen-color-content-inverse-strongest);
+  --zen-bubble-chat-you-background-default: var(--zen-color-background-neutral-solid-default);
+  --zen-bubble-chat-others-business-background-default: var(--zen-color-background-popover-default);
+  --zen-button-accent-content-pressed: var(--zen-color-content-on-accent-pressed);
+  --zen-button-primary-content-pressed: var(--zen-color-content-inverse-strongest);
+  --zen-button-accent-content-hover: var(--zen-color-content-on-accent-hover);
+  --zen-button-primary-content-hover: var(--zen-color-content-inverse-strongest);
+  --zen-input-background-default: var(--zen-color-background-surface-default);
+  --zen-input-background-hover: var(--zen-color-background-surface-default);
+  --zen-input-border-default: var(--zen-color-border-neutral-subtle-default);
+  --zen-input-border-hover: var(--zen-color-border-neutral-subtle-hover);
+  --zen-input-shadow-base: #00000000;
+  --zen-input-shadow-strong: #00000000;
+  --zen-container-border: var(--zen-color-border-container-subtle);
+  --zen-popover-border: var(--zen-color-border-popover-subtle);
+  --zen-popover-background: var(--zen-color-background-popover-default);
+  --zen-input-background-focused: var(--zen-color-background-surface-default);
+  --zen-table-cell-background-color: #FFFFFF;
+  --zen-chart-sector-primary: var(--zen-color-background-support-neutral-deep);
+  --zen-chart-sector-secondary: var(--zen-color-background-support-brand-solid);
+  --zen-card-border-active: var(--zen-color-border-active-neutral-solid);
+  --zen-chip-secondary-border-selected: var(--zen-color-border-neutral-subtle-default);
+  --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-secondary);
+  --zen-toggle-bar-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-segmented-item-primary-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-segmented-item-secondary-background-seclected-hover: var(--zen-color-background-neutral-flat-hover);
+  --zen-input-border-disabled: var(--zen-color-border-disabled);
 }
 
 /* Component Size / Compact */
@@ -3582,6 +3717,16 @@
   --zen-emphasis-border-weight-active-secondary: 2px;
 }
 
+/* Emphasis Level / Light */
+[data-emphasis="light"] {
+  --zen-emphasis-font-weight-bold: 500;
+  --zen-emphasis-font-weight-medium: 450;
+  --zen-emphasis-font-weight-regular: 400;
+  --zen-emphasis-border-weight-active-primary: 1px;
+  --zen-emphasis-font-weight-semi-bold: 450;
+  --zen-emphasis-border-weight-active-secondary: 1px;
+}
+
 /* Breakpoint & Grids / Desktop */
 :root,
 [data-breakpoint="desktop"] {
@@ -3630,48 +3775,48 @@
   --zen-typography-font-family-sans: "Inter";
   --zen-typography-font-family-button: "Inter";
   --zen-typography-font-family-dev: "JetBrains Mono";
-  --zen-typography-font-size-display-1: 52px;
-  --zen-typography-line-height-display-1: 60px;
-  --zen-typography-letter-spacing-display-1: -1.559999942779541px;
-  --zen-typography-font-size-display-2: 46px;
-  --zen-typography-line-height-display-2: 52px;
-  --zen-typography-letter-spacing-display-2: -1.3799999952316284px;
-  --zen-typography-font-size-display-3: 40px;
-  --zen-typography-line-height-display-3: 48px;
-  --zen-typography-letter-spacing-display-3: -1.2000000476837158px;
-  --zen-typography-font-size-display-4: 36px;
-  --zen-typography-line-height-display-4: 44px;
-  --zen-typography-letter-spacing-display-4: -1.0800000429153442px;
-  --zen-typography-font-size-heading-1: 32px;
-  --zen-typography-line-height-heading-1: 40px;
-  --zen-typography-letter-spacing-heading-1: -0.9599999785423279px;
+  --zen-typography-font-size-display-1: 45px;
+  --zen-typography-line-height-display-1: 52px;
+  --zen-typography-letter-spacing-display-1: -1.5199999809265137px;
+  --zen-typography-font-size-display-2: 40px;
+  --zen-typography-line-height-display-2: 44px;
+  --zen-typography-letter-spacing-display-2: -1.2100000381469727px;
+  --zen-typography-font-size-display-3: 36px;
+  --zen-typography-line-height-display-3: 44px;
+  --zen-typography-letter-spacing-display-3: -0.9800000190734863px;
+  --zen-typography-font-size-display-4: 32px;
+  --zen-typography-line-height-display-4: 40px;
+  --zen-typography-letter-spacing-display-4: -0.7599999904632568px;
+  --zen-typography-font-size-heading-1: 28px;
+  --zen-typography-line-height-heading-1: 36px;
+  --zen-typography-letter-spacing-heading-1: -0.5600000023841858px;
   --zen-typography-font-size-heading-4: 20px;
   --zen-typography-line-height-heading-4: 28px;
-  --zen-typography-letter-spacing-heading-4: -0.6000000238418579px;
+  --zen-typography-letter-spacing-heading-4: -0.4000000059604645px;
   --zen-typography-font-size-subheading: 18px;
   --zen-typography-line-height-subheading: 24px;
-  --zen-typography-letter-spacing-subheading: -0.5400000214576721px;
+  --zen-typography-letter-spacing-subheading: -0.36000001430511475px;
   --zen-typography-font-size-body-base: 14px;
   --zen-typography-line-height-body-base: 20px;
   --zen-typography-letter-spacing-body-base: -0.14000000059604645px;
   --zen-typography-font-size-body-small: 12px;
   --zen-typography-line-height-body-small: 16px;
   --zen-typography-letter-spacing-body-small: 0px;
-  --zen-typography-font-size-caption: 10px;
-  --zen-typography-line-height-caption: 12px;
+  --zen-typography-font-size-caption: 11px;
+  --zen-typography-line-height-caption: 16px;
   --zen-typography-letter-spacing-caption: 0px;
-  --zen-typography-font-size-label-small: 8px;
+  --zen-typography-font-size-label-small: 9px;
   --zen-typography-line-height-label-small: 12px;
   --zen-typography-letter-spacing-label-small: 0px;
   --zen-typography-font-size-button-label-l: 14px;
   --zen-typography-line-height-button-label-l: 20px;
-  --zen-typography-letter-spacing-button-label-l: -0.2800000011920929px;
+  --zen-typography-letter-spacing-button-label-l: 0px;
   --zen-typography-font-size-button-label-m: 14px;
   --zen-typography-line-height-button-label-m: 20px;
-  --zen-typography-letter-spacing-button-label-m: -0.2800000011920929px;
+  --zen-typography-letter-spacing-button-label-m: 0px;
   --zen-typography-font-size-button-label-s: 14px;
   --zen-typography-line-height-button-label-s: 20px;
-  --zen-typography-letter-spacing-button-label-s: -0.14000000059604645px;
+  --zen-typography-letter-spacing-button-label-s: 0px;
   --zen-typography-font-size-button-label-xs: 12px;
   --zen-typography-line-height-button-label-xs: 12px;
   --zen-typography-letter-spacing-button-label-xs: 0px;
@@ -3681,27 +3826,27 @@
   --zen-typography-font-size-all-caps-s: 12px;
   --zen-typography-line-height-all-caps-s: 16px;
   --zen-typography-letter-spacing-all-caps-s: 0px;
-  --zen-typography-font-size-heading-3: 24px;
-  --zen-typography-line-height-heading-3: 32px;
-  --zen-typography-letter-spacing-heading-3: -0.7200000286102295px;
+  --zen-typography-font-size-heading-3: 22px;
+  --zen-typography-line-height-heading-3: 28px;
+  --zen-typography-letter-spacing-heading-3: -0.4399999976158142px;
   --zen-typography-font-size-button-label-xl: 16px;
   --zen-typography-line-height-button-label-xl: 24px;
-  --zen-typography-letter-spacing-button-label-xl: -0.3199999928474426px;
-  --zen-typography-font-size-heading-2: 28px;
-  --zen-typography-line-height-heading-2: 36px;
-  --zen-typography-letter-spacing-heading-2: -0.8399999737739563px;
+  --zen-typography-letter-spacing-button-label-xl: 0px;
+  --zen-typography-font-size-heading-2: 25px;
+  --zen-typography-line-height-heading-2: 32px;
+  --zen-typography-letter-spacing-heading-2: -0.5px;
   --zen-typography-font-size-body-extra: 16px;
   --zen-typography-line-height-body-extra: 24px;
   --zen-typography-letter-spacing-body-extra: -0.1599999964237213px;
-  --zen-typography-font-size-display-extra-1: 78px;
-  --zen-typography-line-height-display-extra-1: 88px;
-  --zen-typography-letter-spacing-display-extra-1: -3.119999885559082px;
-  --zen-typography-font-size-display-extra-2: 68px;
-  --zen-typography-line-height-display-extra-2: 72px;
-  --zen-typography-letter-spacing-display-extra-2: -2.7200000286102295px;
-  --zen-typography-font-size-display-extra-3: 60px;
-  --zen-typography-line-height-display-extra-3: 68px;
-  --zen-typography-letter-spacing-display-extra-3: -2.4000000953674316px;
+  --zen-typography-font-size-display-extra-1: 65px;
+  --zen-typography-line-height-display-extra-1: 72px;
+  --zen-typography-letter-spacing-display-extra-1: -2.880000114440918px;
+  --zen-typography-font-size-display-extra-2: 58px;
+  --zen-typography-line-height-display-extra-2: 60px;
+  --zen-typography-letter-spacing-display-extra-2: -2.380000114440918px;
+  --zen-typography-font-size-display-extra-3: 51px;
+  --zen-typography-line-height-display-extra-3: 58px;
+  --zen-typography-letter-spacing-display-extra-3: -1.899999976158142px;
   --zen-typography-letter-spacing-body-code: 0px;
 }
 
@@ -3794,26 +3939,26 @@
   --zen-typography-font-family-sans: "Inter";
   --zen-typography-font-family-button: "Inter";
   --zen-typography-font-family-dev: "JetBrains Mono";
-  --zen-typography-font-size-display-1: 57px;
-  --zen-typography-line-height-display-1: 64px;
-  --zen-typography-letter-spacing-display-1: -1.7100000381469727px;
-  --zen-typography-font-size-display-2: 50px;
-  --zen-typography-line-height-display-2: 56px;
-  --zen-typography-letter-spacing-display-2: -1.5px;
-  --zen-typography-font-size-display-3: 44px;
-  --zen-typography-line-height-display-3: 52px;
-  --zen-typography-letter-spacing-display-3: -1.3200000524520874px;
-  --zen-typography-font-size-display-4: 39px;
-  --zen-typography-line-height-display-4: 48px;
-  --zen-typography-letter-spacing-display-4: -1.1699999570846558px;
-  --zen-typography-font-size-heading-1: 34px;
+  --zen-typography-font-size-display-1: 52px;
+  --zen-typography-line-height-display-1: 60px;
+  --zen-typography-letter-spacing-display-1: -2.0799999237060547px;
+  --zen-typography-font-size-display-2: 46px;
+  --zen-typography-line-height-display-2: 52px;
+  --zen-typography-letter-spacing-display-2: -1.840000033378601px;
+  --zen-typography-font-size-display-3: 41px;
+  --zen-typography-line-height-display-3: 48px;
+  --zen-typography-letter-spacing-display-3: -1.6399999856948853px;
+  --zen-typography-font-size-display-4: 36px;
+  --zen-typography-line-height-display-4: 44px;
+  --zen-typography-letter-spacing-display-4: -1.0800000429153442px;
+  --zen-typography-font-size-heading-1: 32px;
   --zen-typography-line-height-heading-1: 40px;
-  --zen-typography-letter-spacing-heading-1: -1.0199999809265137px;
+  --zen-typography-letter-spacing-heading-1: -0.9599999785423279px;
   --zen-typography-font-size-heading-4: 23px;
-  --zen-typography-line-height-heading-4: 28px;
+  --zen-typography-line-height-heading-4: 32px;
   --zen-typography-letter-spacing-heading-4: -0.6899999976158142px;
   --zen-typography-font-size-subheading: 20px;
-  --zen-typography-line-height-subheading: 24px;
+  --zen-typography-line-height-subheading: 28px;
   --zen-typography-letter-spacing-subheading: -0.6000000238418579px;
   --zen-typography-font-size-body-base: 16px;
   --zen-typography-line-height-body-base: 24px;
@@ -3821,23 +3966,23 @@
   --zen-typography-font-size-body-small: 14px;
   --zen-typography-line-height-body-small: 20px;
   --zen-typography-letter-spacing-body-small: -0.14000000059604645px;
-  --zen-typography-font-size-caption: 12px;
+  --zen-typography-font-size-caption: 13px;
   --zen-typography-line-height-caption: 16px;
   --zen-typography-letter-spacing-caption: 0px;
-  --zen-typography-font-size-label-small: 9px;
+  --zen-typography-font-size-label-small: 10px;
   --zen-typography-line-height-label-small: 12px;
   --zen-typography-letter-spacing-label-small: 0px;
   --zen-typography-font-size-button-label-l: 16px;
   --zen-typography-line-height-button-label-l: 24px;
-  --zen-typography-letter-spacing-button-label-l: -0.3199999928474426px;
+  --zen-typography-letter-spacing-button-label-l: 0px;
   --zen-typography-font-size-button-label-m: 16px;
   --zen-typography-line-height-button-label-m: 24px;
-  --zen-typography-letter-spacing-button-label-m: -0.3199999928474426px;
+  --zen-typography-letter-spacing-button-label-m: 0px;
   --zen-typography-font-size-button-label-s: 16px;
   --zen-typography-line-height-button-label-s: 24px;
-  --zen-typography-letter-spacing-button-label-s: -0.1599999964237213px;
+  --zen-typography-letter-spacing-button-label-s: 0px;
   --zen-typography-font-size-button-label-xs: 14px;
-  --zen-typography-line-height-button-label-xs: 16px;
+  --zen-typography-line-height-button-label-xs: 14px;
   --zen-typography-letter-spacing-button-label-xs: 0px;
   --zen-typography-font-size-all-caps-m: 16px;
   --zen-typography-line-height-all-caps-m: 18px;
@@ -3846,25 +3991,25 @@
   --zen-typography-line-height-all-caps-s: 20px;
   --zen-typography-letter-spacing-all-caps-s: 0px;
   --zen-typography-font-size-heading-3: 26px;
-  --zen-typography-line-height-heading-3: 32px;
+  --zen-typography-line-height-heading-3: 36px;
   --zen-typography-letter-spacing-heading-3: -0.7799999713897705px;
   --zen-typography-font-size-button-label-xl: 18px;
   --zen-typography-line-height-button-label-xl: 28px;
-  --zen-typography-letter-spacing-button-label-xl: -0.36000001430511475px;
-  --zen-typography-font-size-heading-2: 30px;
+  --zen-typography-letter-spacing-button-label-xl: 0px;
+  --zen-typography-font-size-heading-2: 29px;
   --zen-typography-line-height-heading-2: 36px;
-  --zen-typography-letter-spacing-heading-2: -0.8999999761581421px;
+  --zen-typography-letter-spacing-heading-2: -0.8700000047683716px;
   --zen-typography-font-size-body-extra: 18px;
   --zen-typography-line-height-body-extra: 24px;
-  --zen-typography-letter-spacing-body-extra: -0.18000000715255737px;
-  --zen-typography-font-size-display-extra-1: 85px;
-  --zen-typography-line-height-display-extra-1: 96px;
-  --zen-typography-letter-spacing-display-extra-1: -3.4000000953674316px;
-  --zen-typography-font-size-display-extra-2: 75px;
-  --zen-typography-line-height-display-extra-2: 80px;
-  --zen-typography-letter-spacing-display-extra-2: -3px;
-  --zen-typography-font-size-display-extra-3: 66px;
-  --zen-typography-line-height-display-extra-3: 76px;
-  --zen-typography-letter-spacing-display-extra-3: -2.640000104904175px;
+  --zen-typography-letter-spacing-body-extra: -0.27000001072883606px;
+  --zen-typography-font-size-display-extra-1: 74px;
+  --zen-typography-line-height-display-extra-1: 84px;
+  --zen-typography-letter-spacing-display-extra-1: -3.2699999809265137px;
+  --zen-typography-font-size-display-extra-2: 66px;
+  --zen-typography-line-height-display-extra-2: 70px;
+  --zen-typography-letter-spacing-display-extra-2: -2.700000047683716px;
+  --zen-typography-font-size-display-extra-3: 58px;
+  --zen-typography-line-height-display-extra-3: 66px;
+  --zen-typography-letter-spacing-display-extra-3: -2.319999933242798px;
   --zen-typography-letter-spacing-body-code: 0px;
 }

@@ -1,7 +1,7 @@
 // Correct usage of every rule's subject: the harness must report nothing here.
 export const Good = () => <>
-  <Button level="primary">Save</Button>
-  <Button level="tertiary">Cancel</Button>
+  <Button level="primary" onClick={save}>Save</Button>
+  <Button level="tertiary" onClick={cancel}>Cancel</Button>
   {/* zen-allow-secondary: pressed toolbar toggle */}
   <IconButton onClick={act} level="secondary" aria-label="Bold" aria-pressed icon={<Icon name="icon-bold-01-line" />} />
   <Button level="danger" onClick={remove}>Delete project</Button>
@@ -23,9 +23,9 @@ export const Good = () => <>
   <Tabs aria-label="Settings" items={tabs} value={tab} onChange={setTab} />
   <Segmented aria-label="Layout" options={views} value={view} onChange={setView} />
   <Dialog open={open} onOpenChange={setOpen} theme="negative" title="Delete?" primaryAction={{ label: "Delete", level: "danger" }} />
-  <Popover open={open} onOpenChange={setOpen} items={items} />
-  <PageHeader title="Members" actions={<><Button level="tertiary">Export</Button><Button level="primary">Invite member</Button></>} />
-  <Popover open items={items} />
+  <Popover open={open} onOpenChange={setOpen} items={items} onSelect={pick} />
+  <PageHeader title="Members" actions={<><Button level="tertiary" onClick={exportCsv}>Export</Button><Button level="primary" onClick={invite}>Invite member</Button></>} />
+  <Popover open items={items} onSelect={pick} />
   <Link href="/settings/billing">Billing settings</Link>
   <Link as={RouterLink} to="/projects/atlas">Project Atlas</Link>
   <Link href="https://status.zen.design" external>Status page</Link>
@@ -43,11 +43,11 @@ export const Good = () => <>
   <ProgressBar value={40} label />
   <ProgressCircle value={40} aria-label="Upload" />
   <Toast type="positive" title="Changes saved" action={{ label: "Undo", onClick: undo }} />
-  <AlertBanner size="medium" theme="warning" action={{ label: "Upgrade" }}>Your trial ends in 3 days.</AlertBanner>
+  <AlertBanner size="medium" theme="warning" action={{ label: "Upgrade", onClick: upgrade }}>Your trial ends in 3 days.</AlertBanner>
   <AlertBanner size="small">Scheduled maintenance tonight.</AlertBanner>
-  <Button level="primary">Save changes</Button>
-  <Button appearance="flat" level="primary" size="sm">Edit</Button>
-  <Button appearance="flat" level="primary" size="sm">Duplicate</Button>
+  <Button level="primary" onClick={save}>Save changes</Button>
+  <Button appearance="flat" level="primary" size="sm" onClick={edit}>Edit</Button>
+  <Button appearance="flat" level="primary" size="sm" onClick={duplicate}>Duplicate</Button>
   <Toggle label="Email notifications" selected={on} onSelectedChange={setOn} />
   <Tooltip content="Bold · ⌘B"><IconButton onClick={act} aria-label="Bold" icon={<Icon name="icon-bold-01-line" />} /></Tooltip>
   <Tabs aria-label="Order" items={[{ id: "overview", label: "Overview" }, { id: "refunds", label: "Refunds" }]} />
@@ -64,13 +64,13 @@ export const Good = () => <>
   <Divider />
   <InlineMessage theme="info" title="Invites expire after 7 days">Resend the invite from Members.</InlineMessage>
   <InlineMessage theme="custom" icon={<Avatar size="small" alt="">AC</Avatar>} title="Ava shared a file" />
-  <EmptyState title="No projects yet" primaryAction={{ label: "Create project" }}>Projects you create show up here.</EmptyState>
+  <EmptyState title="No projects yet" primaryAction={{ label: "Create project", onClick: create }}>Projects you create show up here.</EmptyState>
   <Stepper aria-label="Checkout" steps={[{ id: "cart", title: "Cart" }, { id: "pay", title: "Payment" }, { id: "review", title: "Review" }]} current={1} />
   <Slider aria-label="Volume" value={v} onChange={setV} icon="icon-volume-max-solid" />
   <Slider aria-labelledby="brightness-label" theme="white" size="large" />
   <RichTextField label="Announcement" onValueChange={(html) => setHtml(html)} />
   <Card onClick={open} aria-label="Zen website"><Text>Zen website</Text></Card>
-  <Card theme="border" subAction={{ label: "More actions" }}><Text>Q4 review</Text></Card>
+  <Card theme="border" subAction={{ label: "More actions", onClick: openMenu }}><Text>Q4 review</Text></Card>
   <ListItem title="Ava Chen" onClick={open} trailing={<Text>9:41</Text>} />
   <ListItem title="Ava Chen" trailing={<IconButton onClick={act} size="md" aria-label="Message" icon={<Icon name="icon-mail-01-line" />} />} />
   <ListItem title="Ava Chen" onClick={open} trailing={<IconButton onClick={act} appearance="flat" size="md" aria-label="Message" icon={<Icon name="icon-mail-01-line" />} />} />
@@ -86,15 +86,15 @@ export const Good = () => <>
   <SidePanel open={open} onOpenChange={setOpen} title="Edit project" primaryAction={{ label: "Save changes" }} />
   <IconButton onClick={act} appearance="flat" level="primary" size="sm" aria-label="Close" icon={<Icon name="icon-x-small-line" />} />
   <ListItem title="brand.pdf" leading={<FileIcon format={fileIconFormatOf("brand.pdf")} size={36} />} trailing={<IconButton onClick={act} appearance="flat" level="primary" size="md" aria-label="Download brand.pdf" icon={<Icon name="icon-download-01-line" />} />} />
-  <div style={{ display: "flex", flexDirection: "column" }}><Button level="primary" size="md">Create project</Button></div>
-  <div style={{ display: "flex", flexDirection: "column" }}><Button level="tertiary" size="sm" style={{ alignSelf: "flex-start" }}>Simulate an upload</Button></div>
-  <div className="pe-stack"><Button level="primary" size="sm" style={{ justifySelf: "start" }}>Reserve</Button></div>
-  <div style={{ display: "flex", gap: 8 }}><Button level="tertiary" size="sm">Cancel</Button></div>
+  <div style={{ display: "flex", flexDirection: "column" }}><Button level="primary" size="md" onClick={create}>Create project</Button></div>
+  <div style={{ display: "flex", flexDirection: "column" }}><Button level="tertiary" size="sm" style={{ alignSelf: "flex-start" }} onClick={simulate}>Simulate an upload</Button></div>
+  <div className="pe-stack"><Button level="primary" size="sm" style={{ justifySelf: "start" }} onClick={reserve}>Reserve</Button></div>
+  <div style={{ display: "flex", gap: 8 }}><Button level="tertiary" size="sm" onClick={cancel}>Cancel</Button></div>
   <Text style="Heading/4">Invoices</Text>
   <Table aria-label="Invoices" columns={[]} rows={[]} getRowId={(r) => r.id} />
-  <TopNavigation title="Files" trailing={[{ icon: "icon-plus-line", label: "Add" }, { icon: "icon-dots-horizontal-line", label: "More" }]} />
+  <TopNavigation title="Files" trailing={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-dots-horizontal-line", label: "More", onClick: openMore }]} />
   <BottomNavigation value="a" onValueChange={go} items={[{ id: "a", label: "Home", icon: "icon-home-smile-line" }, { id: "b", label: "Search", icon: "icon-search-medium-line" }, { id: "c", label: "Me", icon: "icon-user-line" }]} />
-  <BottomSheet open={open} onOpenChange={setOpen} type="action" title="Share" items={shareItems} />
+  <BottomSheet open={open} onOpenChange={setOpen} type="action" title="Share" items={shareItems} onSelect={share} />
   <ChatMessage side="others" author={{ name: "Ava Chen" }} {...demo.act("m1", "others")}>Hi there</ChatMessage>
   <AiChatBubble side="ai" streaming={busy} actions={busy ? [] : answerActions}>Working</AiChatBubble>
   <StackBarChart aria-label="Budget" data={data} series={series} />
@@ -117,11 +117,11 @@ export const Good = () => <>
   <Chip variant="advanced" size="small" selectionMode="multiple" selectionCount={statuses.length} select={statuses.length > 0}>Status</Chip>
   <TopNavigation type="compact" title="Files" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />
   <IconButton onClick={act} appearance="flat" level="primary" size="md" aria-label="Back" icon={<Icon name="icon-chevron-left-line-medium" />} />
-  <Button level="tertiary" startIcon={<Icon name="icon-arrow-left-line" decorative />}>Move to the left column</Button>
+  <Button level="tertiary" startIcon={<Icon name="icon-arrow-left-line" decorative />} onClick={moveLeft}>Move to the left column</Button>
   <AiChatBubble side="ai" thinking />
   <TopNavigation type="compact" title="Files" controlBar={<Segmented fullWidth options={tabs} value={tab} onChange={setTab} aria-label="Filter files" />} />
   <PopoverBulkAction aria-label="Selection actions"><PopoverBulkActionGroup aria-label="Edit"><IconButton onClick={act} appearance="flat" size="md" aria-label="Copy" icon={copy} /></PopoverBulkActionGroup></PopoverBulkAction>
-  <TopNavigation title="Inbox" largeTitle="Inbox" collapsed={collapsed} controlBar={<Search placeholder="Search messages" />} searchAction={{ label: "Search messages", onClick: openSearch }} trailing={[{ icon: "icon-edit-02-line", label: "New message" }]} />
+  <TopNavigation title="Inbox" largeTitle="Inbox" collapsed={collapsed} controlBar={<Search placeholder="Search messages" />} searchAction={{ label: "Search messages", onClick: openSearch }} trailing={[{ icon: "icon-edit-02-line", label: "New message", onClick: compose }]} />
   <TopNavigation title="Files" collapsed={collapsed} controlBar={<Segmented fullWidth options={tabs} value={tab} onChange={setTab} aria-label="Filter files" />} />
   <ChatMessage side="you" holdActions={[{ id: "copy", label: "Copy", icon: "icon-copy-solid" }, { id: "delete", label: "Delete", icon: "icon-trash-solid", destructive: true }]}>Hi</ChatMessage>
   <IconButton onClick={act} appearance="flat" level="primary" size="md" aria-label="Archive" icon={<Icon name="icon-archive-line" />} />
@@ -131,7 +131,7 @@ export const Good = () => <>
   <ChatCall state="in-missed" detail="12:33" onAction={callBack} />
   <ChatMessage side="you" onReact={react} reactions={[{ kind: "heart", by: [ava, bao, chi] }]}>Nice work</ChatMessage>
   {/* zen-allow-compact-button: App Store-style Get pill beside the app row */}
-  <Button level="tertiary" size="xs">Get</Button>
+  <Button level="tertiary" size="xs" onClick={install}>Get</Button>
   <Image src={photo} alt="White houses and a windmill by the sea" ratio="4:3" caption="Oia, Santorini" />
   <Thumbnail src={photo} alt="" size="sm" />
   <ActionBar primaryAction={{ label: "Add to cart", onClick: add }} secondaryAction={{ label: "Save for later", onClick: save }} />
@@ -148,8 +148,21 @@ export const Good = () => <>
   <NumberField label="Width" value={width} onValueChange={setWidth} />
   <Toast type="warning" title="Storage almost full" action={{ label: "Upgrade", onClick: upgrade }} onClose={dismiss}>You have used 92% of your space.</Toast>
   <DatePicker value={date} onValueChange={setDate} month={month} onMonthChange={setMonth} />
+  {/* With actions, onApply commits the draft: it is the handler of value and range. */}
+  <DatePicker value={date} showActions onApply={(picked) => setDate(picked)} />
+  <DatePicker calendar="dual" selectionMode="range" range={period} showActions onApply={(_, picked) => picked && setPeriod(picked)} />
   <Pagination theme="inline" page={page} onPageChange={setPage} total={120} pageSize={pageSize} onPageSizeChange={setPageSize} aria-label="Invoice pages" />
   {/* A pin (expanded only while pinned, uncontrolled otherwise) and a disabled preview are not frozen controls. */}
   <Accordion title="Shipping" expanded={pinned ? true : undefined}>Ships in 2 days.</Accordion>
   <Checkbox label="Remember me" checked={remember} disabled />
+  {/* Every action does something: its own onClick or href, a submit, a Menu trigger, or a documented default (Dialog,
+      ModalForm, SidePanel and BottomSheet actions without onClick close the overlay). */}
+  <TopNavigation type="liquid-overlay" title="Site visit" leading={{ icon: "icon-x-medium-line", label: "Close viewer", onClick: close }} trailing={[{ icon: "icon-share-01-line", label: "Share", onClick: share }]} />
+  <Dialog open={open} onOpenChange={setOpen} title="Discard draft?" primaryAction={{ label: "Discard", level: "danger", onClick: discard }} secondaryAction={{ label: "Keep editing" }} />
+  <Menu trigger={<Button level="tertiary" size="sm">Actions</Button>} items={[{ id: "rename", label: "Rename" }, { id: "archive", label: "Archive" }]} onSelect={run} />
+  <Breadcrumbs items={[{ id: "files", label: "Files", href: "/files" }, { id: "brand", label: "Brand refresh" }]} />
+  <Sidebar sections={[{ items: [{ id: "home", label: "Home", icon: "icon-home-03-line" }] }]} onItemClick={go} footer={<button type="button" onClick={openHelp}>Help</button>} />
+  <Form onSubmit={save}><Button level="primary" type="submit">Save profile</Button></Form>
+  <Button level="primary" disabled>Publish</Button>
+  {`<Button level="primary">Save</Button>`}
 </>;

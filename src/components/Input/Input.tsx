@@ -647,6 +647,8 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
         onChange={handleChange}
         onValueChange={onValueChange}
       />
+      {/* zen-allow-date-apply: DateField commits a pick at once (onValueChange); making datePickerActions a draft that
+          Submit applies is in docs/context/HANDOFF.md Backlog (2026-09-29). */}
       {datePicker ? <DatePicker open={open} value={parsedValue} onValueChange={handleDateChange} onClose={close} anchorRef={fieldRef} showActions={datePickerActions} /> : null}
     </div>
   );
@@ -1029,7 +1031,6 @@ export function RichTextEditorBar({ theme = "subtle", active = {}, disabled, blo
 }
 
 const richTextExec: Partial<Record<RichTextCommand, [string, string?]>> = {
-  undo: ["undo"], redo: ["redo"],
   bold: ["bold"], underline: ["underline"], italic: ["italic"], strikethrough: ["strikeThrough"],
   "align-left": ["justifyLeft"], "align-center": ["justifyCenter"], "align-right": ["justifyRight"], "align-justify": ["justifyFull"],
   "bulleted-list": ["insertUnorderedList"], "numbered-list": ["insertOrderedList"], outdent: ["outdent"], indent: ["indent"],
@@ -1046,6 +1047,52 @@ const safeUrl = (raw: string) => {
   return /^(https?:|mailto:)/i.test(withScheme) ? withScheme : null;
 };
 const escapeAttribute = (value: string) => value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+
+/** A selection boundary as child indexes from the editor root plus an offset. The editor is normalised before a step is
+ *  saved, so the indexes still match after the step's HTML is parsed back in. */
+type RichTextPoint = { path: number[]; offset: number };
+type RichTextSelection = { anchor: RichTextPoint; focus: RichTextPoint } | null;
+/** One undo step of a RichTextField: its HTML and the selection to restore with it. */
+type RichTextStep = { html: string; selection: RichTextSelection };
+const richTextPoint = (root: Node, node: Node | null, offset: number): RichTextPoint | null => {
+  if (!node || !root.contains(node)) return null;
+  const path: number[] = [];
+  for (let current = node; current !== root && current.parentNode; current = current.parentNode) path.unshift(Array.prototype.indexOf.call(current.parentNode.childNodes, current));
+  return { path, offset };
+};
+const saveRichTextSelection = (root: Node): RichTextSelection => {
+  const selection = document.getSelection();
+  const anchor = selection?.rangeCount ? richTextPoint(root, selection.anchorNode, selection.anchorOffset) : null;
+  const focus = selection?.rangeCount ? richTextPoint(root, selection.focusNode, selection.focusOffset) : null;
+  return anchor && focus ? { anchor, focus } : null;
+};
+const richTextNodeAt = (root: Node, point: RichTextPoint): [Node, number] | null => {
+  let node: Node = root;
+  for (const index of point.path) {
+    const child = node.childNodes[index];
+    if (!child) return null;
+    node = child;
+  }
+  return [node, Math.min(point.offset, node.nodeType === Node.TEXT_NODE ? (node as Text).length : node.childNodes.length)];
+};
+/** Put a saved selection back; without one (the first step), the caret goes to the end of the last text, or into the
+ *  last empty paragraph (before its placeholder <br>). */
+const restoreRichTextSelection = (root: Node, saved: RichTextSelection) => {
+  const selection = document.getSelection();
+  if (!selection) return;
+  const anchor = saved ? richTextNodeAt(root, saved.anchor) : null;
+  const focus = saved ? richTextNodeAt(root, saved.focus) : null;
+  if (anchor && focus) { selection.setBaseAndExtent(anchor[0], anchor[1], focus[0], focus[1]); return; }
+  let end: Node = root;
+  while (end.lastChild && end.lastChild.nodeName !== "BR") end = end.lastChild;
+  const offset = end.nodeType === Node.TEXT_NODE ? (end as Text).length : Math.max(0, end.childNodes.length - (end.lastChild?.nodeName === "BR" ? 1 : 0));
+  selection.setBaseAndExtent(end, offset, end, offset);
+};
+/** An empty editor is "" before it is focused and one empty paragraph after: both are the same (empty) content. */
+const sameRichTextHtml = (a: string, b: string) => a === b || (/^(<p><br><\/p>)?$/.test(a) && /^(<p><br><\/p>)?$/.test(b));
+/** Typing of one kind (inserting or deleting characters) within this many ms of the last keystroke is one undo step. */
+const RICH_TEXT_TYPING_STEP_MS = 1000;
+const richTextTypingKind = (inputType: string | undefined) => (inputType === "insertText" ? "insert" : /^delete(Content|Word|SoftLine|HardLine)/.test(inputType ?? "") ? "delete" : null);
 
 export type RichTextFieldProps = Omit<CommonFieldProps, "size" | "leading" | "trailing"> & {
   id?: string;
@@ -1080,7 +1127,9 @@ const insertCopy: Record<RichTextInsert, { label: "insertLink" | "insertImage" |
 /**
  * Figma `Input/Richtext` (6385:17480): the Editor-Bar (Control-Bar, optional) above a Text-Area field, gap Spacing/Gap/XSmall.
  * The field is a content-editable editor inside the regular Input shell, so hover/focus/Read-only/error states match
- * Text-Area. Output is HTML via `onValueChange(html, text)`.
+ * Text-Area. Output is HTML via `onValueChange(html, text)`. Undo / Redo (the Editor-Bar, ⌘Z, ⇧⌘Z, Ctrl+Y) step
+ * through this field's own history and are disabled while there is nothing to undo or redo; a new `value` from
+ * outside (clearing the field after it was posted) starts a new history.
  */
 export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(function RichTextField(
   { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, className, value, defaultValue, onValueChange, placeholder, readOnly = false, required, maxLength, editorBar = true, editorBarTheme = "subtle", onFocus, onBlur },
@@ -1103,6 +1152,14 @@ export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(func
   const anchorRef = useRef<HTMLElement | null>(null);
   const resolvedState = readOnly ? "read-only" : state;
   const isReadOnly = readOnly || normalizeInputState(state, error) === "read-only";
+  // This field's own undo history. The browser's undo stack (execCommand "undo") is shared by every field on the page,
+  // so the Editor-Bar's Undo could undo typing in another field, and it cannot tell whether this field has anything to
+  // undo. `before` is the selection just before the edit being recorded: undo puts the caret back there.
+  const history = useRef<{ steps: RichTextStep[]; index: number; typing: string | null; at: number; before: RichTextSelection; marked: boolean }>({ steps: [], index: -1, typing: null, at: 0, before: null, marked: false });
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+  // execCommand fires input events of its own; the command records one step when it is done.
+  const executing = useRef(false);
 
   const emit = () => {
     const el = editorRef.current;
@@ -1121,14 +1178,92 @@ export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(func
     setText(nextText);
     onValueChange?.(el.innerHTML, nextText);
   };
-  // Initial content, and controlled updates that did not come from typing (keeps the caret stable).
+  const syncHistory = () => {
+    const h = history.current;
+    setCanUndo(h.index > 0);
+    setCanRedo(h.index < h.steps.length - 1);
+  };
+  /** Start a new history at the current content (first render, or a `value` set from outside). */
+  const resetHistory = () => {
+    const el = editorRef.current;
+    if (!el) return;
+    el.normalize();
+    history.current = { steps: [{ html: el.innerHTML, selection: null }], index: 0, typing: null, at: 0, before: null, marked: false };
+    syncHistory();
+  };
+  /** Remember the selection just before an edit (typing: every keystroke; a command: its first execCommand). */
+  const markBefore = () => {
+    const el = editorRef.current;
+    if (!el) return;
+    history.current.before = saveRichTextSelection(el);
+    history.current.marked = true;
+  };
+  /** Record the content as a new step, or grow the current step while the same kind of typing goes on. */
+  const record = (typing: string | null) => {
+    const el = editorRef.current;
+    const h = history.current;
+    if (!el || h.index < 0) return;
+    el.normalize();
+    const html = el.innerHTML;
+    if (!sameRichTextHtml(html, h.steps[h.index].html)) {
+      const now = Date.now();
+      const step = { html, selection: saveRichTextSelection(el) };
+      if (typing && typing === h.typing && now - h.at < RICH_TEXT_TYPING_STEP_MS && h.index > 0 && h.index === h.steps.length - 1) {
+        h.steps[h.index] = step;
+      } else {
+        if (h.before) h.steps[h.index] = { ...h.steps[h.index], selection: h.before };
+        h.steps = [...h.steps.slice(0, h.index + 1), step];
+        h.index = h.steps.length - 1;
+      }
+      h.typing = typing;
+      h.at = now;
+      syncHistory();
+    }
+    h.before = null;
+    h.marked = false;
+  };
+  /** Undo (-1) or redo (+1): put that step's content and selection back and report it. */
+  const travel = (delta: -1 | 1) => {
+    const el = editorRef.current;
+    const h = history.current;
+    const target = h.index + delta;
+    if (!el || isReadOnly || target < 0 || target >= h.steps.length) return;
+    h.index = target;
+    h.typing = null;
+    // Back to empty: keep the paragraph a focused editor starts with, so typing goes on in a block.
+    el.innerHTML = h.steps[target].html || "<p><br></p>";
+    el.focus({ preventScroll: true });
+    restoreRichTextSelection(el, h.steps[target].selection);
+    emit();
+    refreshActive();
+    syncHistory();
+  };
+  // Initial content, and controlled updates that did not come from typing (keeps the caret stable); both start a new
+  // history, like setting a textarea's value.
   useEffect(() => {
     const el = editorRef.current;
     if (!el) return;
     const next = value ?? (el.dataset.initialised ? undefined : defaultValue ?? "");
     el.dataset.initialised = "true";
-    if (next !== undefined && next !== el.innerHTML) { el.innerHTML = next; setText(el.textContent ?? ""); }
+    if (next !== undefined && next !== el.innerHTML) { el.innerHTML = next; setText(el.textContent ?? ""); resetHistory(); }
+    else if (history.current.index < 0) resetHistory();
   }, [value, defaultValue]);
+  // The browser's Edit menu, context menu and shake-to-undo arrive as historyUndo / historyRedo: use this field's history.
+  // Every other edit marks the selection it starts from.
+  useEffect(() => {
+    const el = editorRef.current;
+    if (!el) return undefined;
+    const handleBeforeInput = (event: InputEvent) => {
+      if (event.inputType === "historyUndo" || event.inputType === "historyRedo") {
+        event.preventDefault();
+        travel(event.inputType === "historyUndo" ? -1 : 1);
+        return;
+      }
+      if (!event.isComposing) markBefore();
+    };
+    el.addEventListener("beforeinput", handleBeforeInput);
+    return () => el.removeEventListener("beforeinput", handleBeforeInput);
+  });
 
   const selectionInEditor = () => {
     const selection = document.getSelection();
@@ -1163,14 +1298,21 @@ export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(func
   };
   const exec = (command: string, argument?: string) => {
     restoreSelection();
-    document.execCommand("styleWithCSS", false, "false");
-    document.execCommand("defaultParagraphSeparator", false, "p");
-    document.execCommand(command, false, argument);
+    if (!history.current.marked) markBefore();
+    executing.current = true;
+    try {
+      document.execCommand("styleWithCSS", false, "false");
+      document.execCommand("defaultParagraphSeparator", false, "p");
+      document.execCommand(command, false, argument);
+    } finally {
+      executing.current = false;
+    }
     emit();
     refreshActive();
   };
   const runCommand = (command: RichTextCommand, trigger: HTMLButtonElement) => {
     if (isReadOnly) return;
+    if (command === "undo" || command === "redo") { travel(command === "undo" ? -1 : 1); return; }
     if (command === "link" || command === "image" || command === "video") {
       const selection = selectionInEditor();
       if (selection) savedRange.current = selection.getRangeAt(0).cloneRange();
@@ -1192,10 +1334,11 @@ export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(func
         heading.replaceWith(paragraph);
       });
       emit();
+      record(null);
       return;
     }
     const mapped = richTextExec[command];
-    if (mapped) exec(mapped[0], mapped[1]);
+    if (mapped) { exec(mapped[0], mapped[1]); record(null); }
   };
   const confirmInsert = () => {
     if (!insert) return;
@@ -1212,6 +1355,7 @@ export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(func
     }
     if (kind === "image") exec("insertHTML", `<img src="${escapeAttribute(url)}" alt="" />`);
     if (kind === "video") exec("insertHTML", `<video src="${escapeAttribute(url)}" controls></video><p><br></p>`);
+    record(null);
   };
 
   const count = characterLimit === true ? (maxLength !== undefined ? `${text.length}/${maxLength}` : String(text.length)) : characterLimit;
@@ -1228,9 +1372,9 @@ export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(func
           <RichTextEditorBar
             theme={editorBarTheme}
             active={active}
-            disabled={isReadOnly || undefined}
+            disabled={isReadOnly || { undo: !canUndo, redo: !canRedo }}
             blockType={blockType}
-            onBlockTypeChange={(next) => { setBlockType(next); exec("formatBlock", `<${next}>`); }}
+            onBlockTypeChange={(next) => { setBlockType(next); exec("formatBlock", `<${next}>`); record(null); }}
             onCommand={runCommand}
             controls={id}
             aria-label={typeof label === "string" ? t.formattingOf(label) : t.formatting}
@@ -1274,9 +1418,14 @@ export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(func
           data-placeholder={placeholder}
           data-empty={empty ? "true" : "false"}
           tabIndex={isReadOnly ? 0 : undefined}
-          onInput={emit}
+          onInput={(event) => {
+            emit();
+            const input = event.nativeEvent as InputEvent;
+            if (!executing.current && !input.isComposing) record(richTextTypingKind(input.inputType));
+          }}
+          onCompositionEnd={() => record(null)}
           onKeyUp={refreshActive}
-          onMouseUp={refreshActive}
+          onMouseUp={() => { history.current.typing = null; refreshActive(); }}
           onFocus={(event) => {
             document.execCommand("defaultParagraphSeparator", false, "p");
             // Start every document inside a paragraph so the first line is a block like the ones after it.
@@ -1294,16 +1443,27 @@ export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(func
           }}
           onBlur={onBlur}
           onKeyDown={(event) => {
+            // Moving the caret ends a typing step: the next keystroke starts a new one.
+            if (/^(Arrow|Home$|End$|Page)/.test(event.key)) history.current.typing = null;
             const mod = event.metaKey || event.ctrlKey;
             if (!mod || isReadOnly) return;
             const key = event.key.toLowerCase();
+            if (key === "z" || (key === "y" && event.ctrlKey && !event.metaKey)) { event.preventDefault(); travel(key === "z" && !event.shiftKey ? -1 : 1); return; }
             if (key === "k") { event.preventDefault(); const trigger = event.currentTarget.closest(".zen-rich-text-field")?.querySelector<HTMLButtonElement>('.zen-rich-text-field__bar [data-command="link"]'); if (trigger) runCommand("link", trigger); }
-            if (key === "s" && event.shiftKey) { event.preventDefault(); exec("strikeThrough"); }
+            if (key === "s" && event.shiftKey) { event.preventDefault(); exec("strikeThrough"); record(null); }
           }}
           onPaste={(event) => {
-            // Paste as plain text: keeps foreign styles and scripts out of the document.
+            // Paste as plain text: keeps foreign styles and scripts out of the document. A paste is a step of its own.
             event.preventDefault();
-            document.execCommand("insertText", false, event.clipboardData.getData("text/plain"));
+            markBefore();
+            executing.current = true;
+            try {
+              document.execCommand("insertText", false, event.clipboardData.getData("text/plain"));
+            } finally {
+              executing.current = false;
+            }
+            emit();
+            record(null);
           }}
         />
       </FieldShell>

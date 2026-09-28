@@ -3550,7 +3550,7 @@
           "type": "Date | null",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Single mode, controlled: the selected date. With `showActions` it is the applied date; picks stay a draft until Submit.",
           "deprecated": null
         },
         {
@@ -3558,7 +3558,23 @@
           "type": "Date | null",
           "required": false,
           "default": "null",
-          "description": "",
+          "description": "Single mode, uncontrolled: the date selected at first.",
+          "deprecated": null
+        },
+        {
+          "name": "range",
+          "type": "DatePickerRange | null",
+          "required": false,
+          "default": null,
+          "description": "Range mode, controlled: the selected range. With `showActions` it is the applied range; picks stay a draft until Submit.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultRange",
+          "type": "DatePickerRange | null",
+          "required": false,
+          "default": "null",
+          "description": "Range mode, uncontrolled: the range selected at first.",
           "deprecated": null
         },
         {
@@ -3574,7 +3590,7 @@
           "type": "(date: Date | null) => void",
           "required": false,
           "default": null,
-          "description": "Called with the picked date; in range mode with the start, then again with the end (see `onRangeChange`).",
+          "description": "Called with each picked date; in range mode with the start, then again with the end (see `onRangeChange`). With\n`showActions` a pick is a draft: read the applied value in `onApply`.",
           "deprecated": null
         },
         {
@@ -3587,10 +3603,10 @@
         },
         {
           "name": "onRangeChange",
-          "type": "(range: { start: Date; end: Date | null }) => void",
+          "type": "(range: DatePickerRange) => void",
           "required": false,
           "default": null,
-          "description": "Range mode: called with the new start (end = null) and again once the end date is picked.",
+          "description": "Range mode: called with the new start (end = null) and again once the end date is picked. With `showActions`\nthese are drafts: read the applied range in `onApply`.",
           "deprecated": null
         },
         {
@@ -3599,6 +3615,22 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onApply",
+          "type": "(value: Date | null, range: DatePickerRange | null) => void",
+          "required": false,
+          "default": null,
+          "description": "With `showActions`, pressing Submit (the Primary action) applies the picks, then closes a popover. Called with the\npicked date (single mode; null in range mode) and the picked range (range mode; null in single mode). An\nuncontrolled picker keeps what was applied and Cancel returns to it; a controlled one expects `value` / `range` to\nfollow. Inline, Submit is disabled until there is a change, and in range mode until the end date is picked.",
+          "deprecated": null
+        },
+        {
+          "name": "onCancel",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "With `showActions`, pressing Cancel (the Tertiary action) drops the picks made since the last Submit (the\ncalendar shows the applied value again), then calls this and closes a popover. Inline, Cancel is disabled while\nthere is nothing to drop. Escape and an outside click close a popover without applying, too.",
           "deprecated": null
         },
         {
@@ -3630,7 +3662,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "",
+          "description": "Figma `Actions`: Cancel + Submit under the calendar. Picks are then a draft that Submit applies (`onApply`) and\nCancel drops (`onCancel`); without actions a pick applies at once.",
           "deprecated": null
         },
         {
@@ -3638,7 +3670,7 @@
           "type": "\"single\" | \"dual\"",
           "required": false,
           "default": "\"dual\"",
-          "description": "",
+          "description": "`.Primitives/Date-Picker/Action`: `dual` (Cancel + Submit, default) or `single` (Submit only).",
           "deprecated": null
         },
         {
@@ -3950,7 +3982,7 @@
           "type": "\"single\" | \"dual\"",
           "required": false,
           "default": "\"dual\"",
-          "description": "",
+          "description": "Figma Action: `dual` (Cancel + Submit) or `single` (Submit only).",
           "deprecated": null
         },
         {
@@ -3958,7 +3990,7 @@
           "type": "() => void",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Pressing Cancel (the Tertiary button).",
           "deprecated": null
         },
         {
@@ -3966,7 +3998,7 @@
           "type": "() => void",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Pressing Submit (the Primary button).",
           "deprecated": null
         },
         {
@@ -3983,6 +4015,22 @@
           "required": false,
           "default": null,
           "description": "Text of the Primary button. Default: the locale's \"Submit\".",
+          "deprecated": null
+        },
+        {
+          "name": "cancelDisabled",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Cancel in its Button/Main Disabled state, e.g. while there is nothing to cancel.",
+          "deprecated": null
+        },
+        {
+          "name": "applyDisabled",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Submit in its Button/Main Disabled state, e.g. until a range has its end date.",
           "deprecated": null
         }
       ]
@@ -8076,7 +8124,7 @@
           "type": "(id: string) => void",
           "required": false,
           "default": null,
-          "description": "Pressing the quote; defaults to scrolling to `[data-message-id]` in the same thread and flashing it.",
+          "description": "Pressing the quote; defaults to scrolling to `[data-message-id]` in the same thread and flashing it. The quote of a\ndeleted message (`replyTo.kind` \"deleted\") is not pressable.",
           "deprecated": null
         },
         {
@@ -9359,7 +9407,7 @@
         },
         {
           "name": "componentTheme",
-          "type": "\"neutral-s1\" | \"neutral-s2\" | \"neutral-s3\" | \"brand-s1\" | \"brand-s2\"",
+          "type": "\"neutral-s1\" | \"neutral-s2\" | \"neutral-s3\" | \"neutral-s4\" | \"brand-s1\" | \"brand-s2\"",
           "required": false,
           "default": null,
           "description": "Component colour theme (Figma \"Component Theme\" mode). Default neutral-s1.",
@@ -9383,10 +9431,10 @@
         },
         {
           "name": "emphasis",
-          "type": "\"medium\" | \"strong\"",
+          "type": "\"medium\" | \"strong\" | \"light\"",
           "required": false,
           "default": null,
-          "description": "Visual emphasis of surfaces and strokes. Default medium.",
+          "description": "Font weights and active stroke widths (Figma \"Emphasis Level\" mode). Default medium; light is lighter, strong heavier.",
           "deprecated": null
         },
         {

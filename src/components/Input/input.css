@@ -315,7 +315,10 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
   backdrop-filter: none;
 }
 
+/* Input/Border/Disabled: transparent in Neutral-S1…S3 (like Input/Border/Default), Color/Border/Disabled in Neutral-S4,
+   whose fields are outlined. */
 .zen-input-field[data-state="disabled"] .zen-input__control {
+  --zen-input-field-border: var(--zen-input-border-disabled, #ffffff00);
   cursor: not-allowed;
 }
 
@@ -338,10 +341,15 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
 .zen-input-field.zen-number[data-align="center"] .zen-input__native,
 .zen-input-field.zen-number .zen-input__native[data-align="center"] { text-align: center; }
 
-/* Input/Heading (694:13062). The root is the heading's line box (Input/Size/Heading-H*) and the native input's
-   Spacing/Padding/XSmall pad overhangs it by −8px; flow-root keeps those negative margins from collapsing through
-   the root (which made it 16px taller and dropped the overhang). */
-.zen-heading-field { position: relative; display: flow-root; min-width: 0; }
+/* Input/Heading (694:13062). Figma binds the root's height to Input/Size/Heading-H* and fixes the Container at that
+   + 2 × 8 with the text centred. That is not always the text's line box: since the 2026-09-28 variables, Dashboard
+   Heading/3 is 22/28 in a 32px field. The native input's Spacing/Padding/XSmall pad overhangs the root by −8px;
+   flow-root keeps those negative margins from collapsing through the root (which made it 16px taller and dropped the
+   overhang). min-height, not height: a taller line box (Mobile typography) grows the field instead of clipping. */
+.zen-heading-field { --zen-heading-field-size: var(--zen-input-size-heading-h3, 32px); position: relative; display: flow-root; min-width: 0; }
+.zen-heading-field[data-size="h1"] { --zen-heading-field-size: var(--zen-input-size-heading-h1, 40px); }
+.zen-heading-field[data-size="h2"] { --zen-heading-field-size: var(--zen-input-size-heading-h2, 36px); }
+.zen-heading-field:not([data-status="inputted-multi-line"]) > input.zen-heading-field__native { min-height: calc(var(--zen-heading-field-size) + 2 * var(--zen-spacing-padding-xsmall, 8px)); }
 .zen-heading-field__native { display: block; box-sizing: border-box; width: calc(100% + 2 * var(--zen-spacing-padding-xsmall, 8px)); margin: calc(-1 * var(--zen-spacing-padding-xsmall, 8px)); padding: var(--zen-spacing-padding-xsmall, 8px); border: 0; border-radius: var(--zen-corner-radius-base, 12px); outline: 0; background: transparent; color: var(--zen-color-content-neutral-strongest, #111); caret-color: var(--zen-color-background-active-neutral-solid, #111); }
 .zen-heading-field__native::placeholder { color: var(--zen-color-content-placeholder, rgb(0 0 0 / 27%)); opacity: 1; }
 .zen-heading-field__native:is(:hover, :focus),

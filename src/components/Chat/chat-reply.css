@@ -13,7 +13,9 @@
   border: 0; border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-neutral-pale-default, rgb(1 1 1 / 6%));
   color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); cursor: pointer; font: inherit; text-align: start;
 }
-.zen-chat-reply__quote:hover { background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 11%)); }
+.zen-chat-reply__quote:not([data-static="true"]):hover { background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 11%)); }
+/* The quote of a deleted message is plain text (ChatReply.tsx): nothing to jump to, so no pointer and no hover. */
+.zen-chat-reply__quote[data-static="true"] { cursor: default; }
 .zen-chat-reply__quote:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
 /* The reply bubble sits on top of the quote's lower edge (Messenger-style tuck). */
 .zen-chat-reply + .zen-chat-message__content { z-index: 1; }

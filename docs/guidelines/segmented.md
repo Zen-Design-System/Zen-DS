@@ -25,6 +25,7 @@ Switch between 2–5 mutually exclusive views or sections of the same content.
 | Disabled | `disabled` | whole control |
 | Icon-only item | `options[] {id, label: null, "aria-label", leading}` | the option's aria-label names the segment |
 | Full width | `fullWidth` | fills the container; items share it equally and labels ellipsize (automatic inside a Top Navigation control bar) |
+| Overflow | `—` | code only (the Figma container hugs and clips): in a container narrower than its options, e.g. a phone, the control scrolls sideways like Tabs; items keep their width and the selected segment scrolls into view |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/segmented.json`.
@@ -80,14 +81,17 @@ type SegmentedState = "default" | "hover" | "focused" | "disabled"
 - Keep 2–5 options (harness: segmented/option-count).
 - Name icon-only segments with "aria-label" on the option and mark the icon decorative (harness: segmented/icon-only-needs-name).
 - On mobile, stretch a Segmented to its container (fullWidth) in a Top Navigation control bar, a Bottom Sheet or a narrow panel, so the items share the width equally (harness: segmented/control-bar-full-width).
+- Elsewhere on a phone, keep the full labels and let a Segmented that outgrows the width scroll sideways; it does so on its own, like Tabs, and keeps the selected segment in view. Use fullWidth only when every label fits its equal share.
 
 ## ❌ Don't
 - Don't use Segmented as a filter.
+- Don't abbreviate labels or shrink the text to squeeze a Segmented onto a phone; past 5 options or long labels, switch to Tabs or SelectField.
 - Don't mix icon-only and labelled items in one control.
 - Don't add a hover or pressed state to the selected segment; it suggests the choice can be undone by clicking it again.
 
 ## Accessibility
 - A labelled group of toggle buttons (aria-pressed); Tab moves between segments, Enter/Space selects.
+- When the control scrolls, focusing a segment brings it into view; no scrollbar is drawn, as in Tabs.
 
 ## Content
 - Nouns for sections, no verbs.

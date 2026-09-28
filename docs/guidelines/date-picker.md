@@ -16,31 +16,35 @@ Pick a date or a date range. DatePicker is the calendar panel itself and is visi
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Selection | `selectionMode` | single · range (onRangeChange) |
+| Selection | `selectionMode · value / defaultValue · range / defaultRange` | single · range (onRangeChange) |
 | Bounds | `minDate / maxDate` | disabled days |
-| Actions | `showActions / action` | none · single · dual |
+| Actions | `showActions / action · onApply(value, range) · onCancel` | none · single · dual; picks are a draft that Submit applies and Cancel drops |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/date-picker.json`.
 
 ### DatePicker
-Figma `Date-Picker/Single-Calendar` and `Date-Picker/Dual-Calendar` on the shared token and Button primitives. The single calendar's month/year opens the Select-Month-Year state. It is also the calendar surface used by Input/Date-Field.
+Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` on the shared token and Button primitives. The single calendar's month/year opens the Select-Month-Year state. It is also the calendar surface used by Input/Date-Field. With `showActions` (Figma Actions, `.Primitives/Date-Picker/Action` 460:38871) picks are a draft: Submit applies it through `onApply(value, range)`, Cancel drops it (`onCancel`) and the calendar shows the applied `value` / `range` again.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `open` | `boolean` | `true` | Default true: DatePicker is the calendar panel itself. As a popover, pass `open` with `onOpenChange` (or `onClose`). |
-| `value` | `Date \| null` | — |  |
-| `defaultValue` | `Date \| null` | `null` |  |
+| `value` | `Date \| null` | — | Single mode, controlled: the selected date. With `showActions` it is the applied date; picks stay a draft until Submit. |
+| `defaultValue` | `Date \| null` | `null` | Single mode, uncontrolled: the date selected at first. |
+| `range` | `DatePickerRange \| null` | — | Range mode, controlled: the selected range. With `showActions` it is the applied range; picks stay a draft until Submit. |
+| `defaultRange` | `DatePickerRange \| null` | `null` | Range mode, uncontrolled: the range selected at first. |
 | `month` | `Date` | — | First (left) visible month. |
-| `onValueChange` | `(date: Date \| null) => void` | — | Called with the picked date; in range mode with the start, then again with the end (see `onRangeChange`). |
+| `onValueChange` | `(date: Date \| null) => void` | — | Called with each picked date; in range mode with the start, then again with the end (see `onRangeChange`). With `showActions` a pick is a draft: read the applied value in `onApply`. |
 | `onChange` | `(date: Date \| null) => void` | — | **Deprecated:** Use onValueChange (same arguments).  |
-| `onRangeChange` | `(range: { start: Date; end: Date \| null }) => void` | — | Range mode: called with the new start (end = null) and again once the end date is picked. |
+| `onRangeChange` | `(range: DatePickerRange) => void` | — | Range mode: called with the new start (end = null) and again once the end date is picked. With `showActions` these are drafts: read the applied range in `onApply`. |
 | `onMonthChange` | `(month: Date) => void` | — |  |
+| `onApply` | `(value: Date \| null, range: DatePickerRange \| null) => void` | — | With `showActions`, pressing Submit (the Primary action) applies the picks, then closes a popover. Called with the picked date (single mode; null in range mode) and the picked range (range mode; null in single mode). An uncontrolled picker keeps what was applied and Cancel returns to it; a controlled one expects `value` / `range` to follow. Inline, Submit is disabled until there is a change, and in range mode until the end date is picked. |
+| `onCancel` | `() => void` | — | With `showActions`, pressing Cancel (the Tertiary action) drops the picks made since the last Submit (the calendar shows the applied value again), then calls this and closes a popover. Inline, Cancel is disabled while there is nothing to drop. Escape and an outside click close a popover without applying, too. |
 | `onClose` | `() => void` | — | Popover behaviour: called on a pointer-down outside the picker (and outside `anchorRef`), on Escape, after a single date / a complete range is picked (without actions), and by the actions. |
 | `onOpenChange` | `(open: boolean) => void` | — | Called with `false` wherever `onClose` is called (the `open` / `onOpenChange` pair of every Zen overlay). |
 | `anchorRef` | `RefObject<HTMLElement \| null>` | — | The trigger. Pointer-downs on it are left to its own toggle; Escape returns focus to it. |
-| `showActions` | `boolean` | `false` |  |
-| `action` | `"single" \| "dual"` | `"dual"` |  |
+| `showActions` | `boolean` | `false` | Figma `Actions`: Cancel + Submit under the calendar. Picks are then a draft that Submit applies (`onApply`) and Cancel drops (`onCancel`); without actions a pick applies at once. |
+| `action` | `"single" \| "dual"` | `"dual"` | `.Primitives/Date-Picker/Action`: `dual` (Cancel + Submit, default) or `single` (Submit only). |
 | `selectionMode` | `"single" \| "range"` | `"single"` |  |
 | `calendar` | `"single" \| "dual"` | `"single"` | Figma Date-Picker/Single-Calendar or Date-Picker/Dual-Calendar (two consecutive months side by side; Static headers with Back on the first and Next on the second). |
 | `minDate` | `Date` | — |  |
@@ -94,15 +98,17 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `next` | `boolean` | `true` |  |
 
 ### DatePickerAction
-`.Primitives/Date-Picker/Action`: Button/Main Small Tertiary "Cancel" + Primary "Submit".
+`.Primitives/Date-Picker/Action` (460:38871): Button/Main Small Tertiary "Cancel" + Primary "Submit", gap Spacing/Gap/XSmall.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `action` | `"single" \| "dual"` | `"dual"` |  |
-| `onCancel` | `() => void` | — |  |
-| `onApply` | `() => void` | — |  |
+| `action` | `"single" \| "dual"` | `"dual"` | Figma Action: `dual` (Cancel + Submit) or `single` (Submit only). |
+| `onCancel` | `() => void` | — | Pressing Cancel (the Tertiary button). |
+| `onApply` | `() => void` | — | Pressing Submit (the Primary button). |
 | `cancelLabel` | `ReactNode` | — | Text of the Tertiary button. Default: the locale's "Cancel". |
 | `applyLabel` | `ReactNode` | — | Text of the Primary button. Default: the locale's "Submit". |
+| `cancelDisabled` | `boolean` | — | Cancel in its Button/Main Disabled state, e.g. while there is nothing to cancel. |
+| `applyDisabled` | `boolean` | — | Submit in its Button/Main Disabled state, e.g. until a range has its end date. |
 
 ### DatePickerMonthYear
 `.Primitives/Date-Picker/Calendar` Type=Select-Month-Year: the focused month/year header, a month wheel and a year wheel (Heading/4, 5 visible rows), then Cancel / Submit.
@@ -112,6 +118,13 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `month` (required) | `Date` | — |  |
 | `onSubmit` | `(month: Date) => void` | — |  |
 | `onCancel` | `() => void` | — |  |
+
+### Types
+Object shapes the props above refer to.
+
+```ts
+interface DatePickerRange { start: Date; end: Date | null; }
+```
 
 ## Keyboard
 | Keys | Action |
@@ -128,6 +141,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 - Use calendar="dual" for ranges longer than a few days; single for one date.
 - Use the month-year picker for dates far from today (billing periods, expiries).
 - Close the popover after a single date is picked (no actions) and return focus to the field.
+- With showActions, commit in onApply(value, range): picks are a draft, Submit applies it and Cancel (or Escape) returns to the applied value. Inline, both stay disabled until there is a change, and Submit waits for a range's end date (harness: date-picker/actions-need-apply).
 
 ## ❌ Don't
 - Don't open the calendar for read-only DateFields.
@@ -151,6 +165,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
+| `date-picker/actions-need-apply` | warn | A DatePicker with showActions commits in onApply(value, range): picks are a draft that Submit applies and Cancel drops. Without onApply the app never hears what Submit applied. | `zen-allow-date-apply: <reason>` |
 
 ## References
 - [Material 3 — Date pickers](https://m3.material.io/components/date-pickers/guidelines)

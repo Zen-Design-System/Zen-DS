@@ -9,7 +9,7 @@ Compact, selectable tokens. Advanced chips are the Zen filter control: each owns
 ## Use it for
 - Filter/sort/scope/status/owner pickers (variant="advanced" + popoverItems).
 - Toggleable topic pills (variant="normal", aria-pressed).
-- Counts in dense layouts (variant="number-only").
+- Counts in dense layouts (variant="number-only"): without onClick or selected it is a static count, not a button.
 
 ## Use something else for
 - Primary actions → Button.
@@ -32,6 +32,8 @@ Compact, selectable tokens. Advanced chips are the Zen filter control: each owns
 Generated from the TypeScript source; full JSON in `docs/api/chip.json`.
 
 ### Chip
+Figma Chip/Pill: `Chip/Advanced` (512:7659, the filter control that owns a Popover), `Chip/Normal` (512:6843, toggle pills) and `Chip/Number-Only` (1536:26687). A chip is a `<button>`. A Number-only chip with nothing to do (no `onClick` or other press handler, no `selected`, not `disabled`) is a count, which Figma describes as a "numeric-only compact indicator for counts or rankings": it renders a `<span>` in the Default state, with no hover, no focus stop and no dead click, and the ref points at that span. Give it `onClick` or `selected` to make it a pressable number (Hover, Focused, Selected). Normal and Advanced chips always do something; Figma: a read-only label is a Tag.
+
 Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 
 | Prop | Type | Default | Description |
@@ -87,6 +89,7 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 
 ## ✅ Do
 - Use one Advanced chip per filter dimension (Status, Owner, Date).
+- Show a count with a Number-only chip and no handler: it renders as a static count (Figma: a compact indicator for counts). Give it onClick or selected only when pressing the number does something.
 - Show the chosen value as the chip label for single selection; show the counter for multiple.
 - Wire onClearSelection so Delete/Backspace and the × clear the filter.
 - Offer "Clear all" (Tertiary button) when two or more filters are active.
@@ -101,7 +104,7 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 - Don't wrap chips inside another button.
 
 ## Accessibility
-- Chip is a `<button>`; the Popover is a listbox with role=option items.
+- Chip is a `<button>`; the Popover is a listbox with role=option items. A Number-only chip without onClick or selected is a count: a `<span>`, out of the tab order, with no hover.
 - ↓ opens, Escape closes and returns focus, Delete/Backspace clears (aria-keyshortcuts).
 - Topic pills expose aria-pressed.
 

@@ -796,7 +796,7 @@
     {
       "name": "RichTextField",
       "file": "src/components/Input/Input.tsx",
-      "description": "Figma `Input/Richtext` (6385:17480): the Editor-Bar (Control-Bar, optional) above a Text-Area field, gap Spacing/Gap/XSmall.\nThe field is a content-editable editor inside the regular Input shell, so hover/focus/Read-only/error states match\nText-Area. Output is HTML via `onValueChange(html, text)`.",
+      "description": "Figma `Input/Richtext` (6385:17480): the Editor-Bar (Control-Bar, optional) above a Text-Area field, gap Spacing/Gap/XSmall.\nThe field is a content-editable editor inside the regular Input shell, so hover/focus/Read-only/error states match\nText-Area. Output is HTML via `onValueChange(html, text)`. Undo / Redo (the Editor-Bar, ⌘Z, ⇧⌘Z, Ctrl+Y) step\nthrough this field's own history and are disabled while there is nothing to undo or redo; a new `value` from\noutside (clearing the field after it was posted) starts a new history.",
       "deprecated": null,
       "extends": null,
       "props": [

@@ -10,4 +10,5 @@ export {
   type DatePickerItemState,
   type DatePickerMonthYearProps,
   type DatePickerProps,
+  type DatePickerRange,
 } from "./DatePicker";

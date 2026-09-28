@@ -4,7 +4,7 @@ This is the short, current picture of Zen DS. It tells a new session what state 
 details. Keep it current: when a session finishes something that changes this picture, edit the matching line here,
 add a CHANGELOG entry, and log the details in `docs/context/session-log-<date>.md`.
 
-Last updated: 2026-09-28.
+Last updated: 2026-09-29.
 
 ## Read order
 
@@ -20,10 +20,19 @@ Last updated: 2026-09-28.
 
 - **Version:**
   - `package.json` says 0.3.0, not released yet.
-  - The user asked, on 2026-09-28, for everything to be committed to a separate branch. It is one commit on the local
-    branch `claude/zen-ds-0.4.0`, on top of `eafb0de` ("Udated", 2026-09-26), and this folder is checked out on that
-    branch. It is **not pushed**, and `main` still points at `eafb0de`.
-  - New work shows up as uncommitted changes on that branch. **Do not commit again or push until the user asks.**
+  - At the user's request (2026-09-28), the work is committed on the local branch `claude/zen-ds-0.4.0`, on top of
+    `eafb0de` ("Udated", 2026-09-26). This folder is checked out on that branch.
+    - `13581fe`: everything up to 2026-09-28 afternoon.
+    - `eccbf4a`: evening checkpoint (style-guard debt → 0, the 22 interaction warnings wired).
+    - The commit after it: night checkpoint of 2026-09-29.
+      - Handler-less example actions wired, with rule `interaction/action-without-handler`.
+      - The last 5 component dead clicks fixed; DatePicker `onApply`/`onCancel`.
+      - Figma variables sync (Neutral-S4, Emphasis Light, type sizes).
+      - The text-fit audit check.
+      - Segmented phone example and its scaled-scroll fix.
+      - The scope-lock rule.
+    - Nothing is **pushed**, and `main` still points at `eafb0de`.
+  - New work shows up as uncommitted changes on that branch. **Commit or push only when the user asks.**
 - **Vibe-code readiness part 2 (`[0.4.0]` in CHANGELOG) is in this folder**, landed on 2026-09-28 and included in
   that commit. It came from branch `feat/vibe-ready` (worktree `../Zen-DS-vibe`, local commits only, not pushed); the
   branch keeps the history. It adds:
@@ -36,15 +45,24 @@ Last updated: 2026-09-28.
   - `zen-usage`, the ESLint plugin, the MCP server (`.mcp.json`) and `npx zen-ds init / doctor`.
   - Log: `docs/context/session-log-2026-09-28-vibe-ready.md`.
 - **Library:** 60 component folders exported from `src/index.ts`.
+- **Tokens:** 2,368 Figma variables in 11 collections, last synced on 2026-09-28 from the user's `Zen-Variables.zip`
+  (Global Colors, Component Theme, Emphasis Level, Typography Configuration). New modes: Component Theme `neutral-s4`
+  and Emphasis `light`, wired into ZenProvider, the platform topbar and Storybook. Dashboard/Mobile typography values
+  changed. Log: `session-log-2026-09-28.md`, "Token sync". On 2026-09-29 the Figma connector confirmed the four
+  synced collections against the live file (except the drift listed in the Backlog). Chip/Trailing and Input/Heading
+  contracts were re-captured from it.
 - **Parity:** every Figma component is built; 49 guideline slugs.
 - **Figma contract:** `node tools/figma-contract/run-all.mjs` runs 23 suites + 25 interactions, all green: Checkbox,
   Radio, Chip, Popover, all six Button sets (every size, plus the Smooth radius mode) and Input/Heading. The review
   queue continues with Segmented, Toggle, Badge, Avatar, Search and the Input family, DatePicker and Sidebar; the
   Figma data is already in `docs/figma-contracts/` (`docs/context/handoff-claude-code-2026-09-27.md`).
-- **Harness:** 144 usage rules. The newest four come from the behaviour probes: `interaction/no-noop-handler`,
-  `interaction/controlled-needs-handler`, `focus/state-parity` and `focus/selected-fill-only`. The two interaction rules
-  report 0 warnings: their 22 pre-existing ones were wired on 2026-09-28 (session log "Wire the 22 interaction-rule
-  warnings").
+- **Harness:** 146 usage rules. The newest is `date-picker/actions-need-apply` (2026-09-29): a DatePicker with
+  `showActions` and no `onApply`. Before it, `interaction/action-without-handler` (repo only: examples, playgrounds,
+  templates): an action passed with no handler at all. Before that, four came from the behaviour probes:
+  `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `focus/state-parity` and
+  `focus/selected-fill-only`. The interaction rules report 0 warnings in examples; `npm run usage:check` shows 3, all
+  on the platform chrome (Open items). Their findings were wired on 2026-09-28 (session log "Wire the 22 interaction-rule
+  warnings" and "Handler-less actions").
 - **Figma:** the source of truth is the live file `9nZv4uW2LT21yuHabMTCh1`, read-only through `use_figma`. The older key
   `yhWJ…` in some docs has no MCP access.
 - **Dev server:** `npm run dev`, then open http://localhost:5173. It binds IPv6 only: `http://127.0.0.1:5173` does not
@@ -69,8 +87,9 @@ findings are in `tools/platform-audit/*-baseline.json`; only new ones fail, and 
 tools/qa, tools/style-guard, quality-checks/behaviour and the hooks: the session "Quy trình kiểm tra Component build".
 
 Basic UI slips are not acceptable: text flush to an edge, a stretched small button, a wrong-size avatar or icon, a
-white box on white. `platform:audit` catches them through its `edges`, `sizes` and `surfaces` checks. Also flip
-Component Size (Compact ↔ Comfortable) on any component you touched.
+white box on white, a label running into its neighbour. `platform:audit` catches them through its `edges`, `sizes`
+and `surfaces` checks, and `--quality` (so `npm run qa`) through `fit`. Also flip Component Size (Compact ↔
+Comfortable) on any component you touched.
 
 ## House rules that are easy to miss
 
@@ -119,6 +138,9 @@ The full list is in `docs/component-usage-rules.md`. The ones most often forgott
 - Figma inconsistencies to report to the designer are the `figmaExceptions` in `tools/figma-contract/suites/`:
   Button Surface blur/hover, Overlay rings on Disabled, Icon-Main shadows, the IconButton ring radius, Input/Heading
   H3 at 44px.
+- For the designer (found on 2026-09-29 through the Figma connector): text styles Heading/2, Heading/3 and
+  Caption/* still cache the old `paragraphSpacing` (28 / 24 / 10), although it is bound to Font-Size (25 / 22 / 11).
+  Code follows the variable. Re-apply the styles in Figma to refresh them.
 - Density tokens that no component uses yet:
   - Tag small
   - Segmented xsmall
@@ -147,13 +169,127 @@ The full list is in `docs/component-usage-rules.md`. The ones most often forgott
 - Figma has no Focus state for Popover/Item and no Error+Focused state for the Input family. Code draws the 3px
   Focus/Accent ring inside the option, and keeps the error border plus the Focused ring on an invalid field. Confirm
   both with the designer.
+- Figma `Control-Bar/Select-Item` (9021:27379) has Default / Hover / Selected only. Code draws a disabled item with
+  Content/Disabled: the whole bar of a Read-only RichTextField, and since 2026-09-29 Undo / Redo with nothing to undo
+  or redo. Ask the designer for a Disabled state.
+- Scrolling strips show no overflow hint. Since 2026-09-28 a Segmented wider than its container scrolls sideways,
+  like Tabs and the chip filter row: no scrollbar, no edge fade.
+  - When a segment boundary lands on the edge, nothing shows that there are more. Example: Templates › "Empty & error
+    states" at 390 in Comfortable.
+  - Figma has no fade or peek spec. Ask the designer; if the answer is yes, add it once for Tabs, chip rows and
+    Segmented.
 - Read-only fields show no focus indicator (behaviour warn "while read-only": dialog, inline-message, side-panel,
   tooltip, visually-hidden). Waiting on the user: give them the error state's fix, or keep them as they are.
-- Dead clicks the no-op rule cannot see: actions passed with no handler at all. They are in
-  `tools/platform-audit/behaviour-baseline.json`, 22 keys on button, sidebar, search, table, top-/bottom-navigation and
-  bottom-sheet alone. Examples: TopNavigation Back / Upload / Like / Share, the BottomNavigation "Create" action,
-  Sidebar footer items, Media card Edit / Duplicate. A harness rule for handler-less actions would list them; the
-  debt only shrinks.
+- Dead clicks: none left in `tools/platform-audit/behaviour-baseline.json` (deadclick 75 → 5 on 2026-09-28, 5 → 0 on
+  2026-09-29; 24 → 19 keys). The 96 handler-less actions were wired on 2026-09-28 (session log "Handler-less
+  actions"); the last 5 were component behaviour, fixed on 2026-09-29 (session log "The last 5 dead clicks"):
+  - Chip: a Number-only chip without `onClick` or `selected` is a static count (`<span>`).
+  - DatePicker: with `showActions` picks are a draft; `onApply(value, range)`, `onCancel`, `range` / `defaultRange`.
+  - RichTextField: its own undo history; Undo / Redo are disabled with nothing to undo or redo.
+  - Chat: the quote of a deleted message is plain text. The other quotes already flashed the original; the Chat
+    owners' sessions were not running, so the change stayed inside `ChatReplyQuote`.
+- Platform chrome: "Download Figma" (overview + sidebar footer) and "Feedback" have no destination, so
+  `interaction/action-without-handler` keeps them as its 3 warnings. Waiting on the user for the URLs.
 - Scratch tests written before the vibe-ready landing may still select component variants by `[data-theme=…]`.
   Those now use `data-tone`, so re-check such selectors before trusting a failing scratch test.
-- Nothing is committed since `eafb0de`. Cut a release (0.3.0 + 0.4.0) when the user asks, using CHANGELOG.md.
+- appLayer has an import cycle: `appLayer/shared.tsx` imports `../PlatformExamples` and `../PlatformTemplate`, and
+  `content.tsx` imports `option` from `shared.tsx`.
+  - A hot update while a probe runs (another session editing) can throw "Cannot access 'option' before
+    initialization" in `behaviour.mjs`.
+  - Re-run the page: a fresh load is clean.
+  - Moving the shared helpers (`option`, `Panel`) into a leaf module would end it. The owner is "Đánh giá Zen DS hiện
+    tại" (appLayer).
+- The work is committed on the local branch `claude/zen-ds-0.4.0` (see Current state); `main` is still `eafb0de`. Cut a
+  release (0.3.0 + 0.4.0) when the user asks, using CHANGELOG.md.
+
+## Backlog (plan before opening sessions)
+
+The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
+- A session does only the task the user approved.
+- Nothing new starts without the user's explicit approval: no new session or task chip, no new rule or check, no fix
+  found along the way. Another session cannot approve scope on the user's behalf.
+- Every bug found and every follow-up goes here as one line, with a priority and a pointer, and is mentioned in the
+  session's report. Nobody fixes it in passing.
+- At the end of a working block this list is summarised as a **proposal for the next block**. The user approves what
+  gets done; the approved items run as one planned batch, with fewer sessions that each own a set of files.
+- Items that need a decision from the user or the designer stay under "Open items"; this list holds work.
+
+- **P1 · Faster QA.** Owner: "Quy trình kiểm tra Component build". On 28/9, 32 QA runs audited 419 pages one at a
+  time, about 5 hours of browser time on an 11-core Mac.
+  - Add `--workers=N` to `audit.mjs`, `behaviour.mjs` and `shoot.mjs`: one browser with N contexts working from a page
+    queue.
+  - Run the static gates concurrently in `tools/qa/run.mjs`.
+  - Optionally audit a `vite build` preview on its own port, so other sessions' HMR never breaks a run.
+  - Expected: 3–4× faster; `qa --all` from ~45 to ~12–15 min.
+- **P1 · Session setup.** Give each parallel session its own file area, and a worktree when two sessions touch the same
+  files. Commit from one place, at agreed stable points. 8 of 32 QA runs on 28/9 failed, most of them because another
+  session was mid-edit.
+- **P2 · Narrow-width example slips** seen in the 390 contact sheets (pre-existing):
+  - Templates › Sign in: the SSO button label is cut off.
+  - Side Panel › "Docked inspector": the panel is clipped.
+  - List Item › "Trailing actions": captions wrap to 4 lines.
+  - Tables are cut off in narrow cards: Menu › "Row actions in a table" and the Sidebar shells.
+- **P2 · Audit warnings kept as debt:**
+  - Avatar initials contrast of 2.7–2.9:1 (List Item "BN" / "CT", Sidebar workspace "A").
+  - Small targets: Chat reaction pills (15px tall), the Chip mobile filter row (20px), TopNavigation control-bar
+    Segmented (20px).
+- **P2 · Example coverage gaps** (qa step ④):
+  - sidebar: edge cases.
+  - divider: states, edge cases, mobile.
+  - side-panel, popover, dialog: mobile.
+  - tooltip, list-item: states, mobile.
+  - link: states.
+  - card: states, edge cases, mobile.
+- **P2 · appLayer import cycle:** `appLayer/shared.tsx` ↔ `PlatformExamples` / `PlatformTemplate`. It can throw
+  "Cannot access 'option' before initialization" under HMR. Move `option` and `Panel` into a leaf module (Open items
+  has the detail).
+- **P2 · Figma vs code differences found during the style-guard burn-down** (Open items: Slider thumb shadows, Chart
+  bar corners, Bottom Navigation icon size, the phone home indicator). Fix them once the designer confirms the
+  behaviour.
+- **P3 · Package weight:** every app loads the whole 63 KB gz stylesheet. Consider per-component CSS entry points.
+- **P3 · A rendered-page check for apps** (a blocker from the final blind trial, score 8.5).
+- **P3 · Official Inter WOFF2** (with the glyf transform, about 10% smaller than today's conversion): needs the user's
+  approval to download it.
+- **P2 · Live Figma is ahead of `Zen-Variables.zip`** (hash check of all 11 collections on 2026-09-29; the zip was
+  synced as approved, these were not applied). Session log 2026-09-29, "Figma connector check".
+  - Component Theme: `Chip-Secondary/Background/Seclected/Default` S3 + S4 → Surface/Default;
+    `Chip-Secondary/Border/Selected` S4 → Border/Active/Neutral/Solid; `Chip-Secondary/Border/Weigth-Active` S4 →
+    Primary.
+  - Corner Radius: `Corner-Radius/Input/Small` → 12 / 12 / 8 / 2 (repo 8 / 8 / 4 / 2; used by small fields).
+- **P3 · Live modes that the repo does not have:** Typography Configuration `Ecom-Demo` (and `Zen-Platform`, kept in
+  platform.css), Base Colors (Project) `Chat`, `VT`, `Ecom-Demo`. Global Dimensions' only mode is now named `Zen`
+  (repo: `Mode 1`, no effect on CSS).
+- **P3 · Badge-Counter parity:** the 2026-09-29 Chip/Trailing capture shows the Small badge's Text-Wrapper with
+  Spacing/Padding/3XSmall side padding. There is no Badge contract suite yet to check the component.
+- **P3 · `targets` audit reads scaled phone previews:** at a 390 viewport PlatformPhone is scaled to ~0.63, so a 32px
+  control measures 20px (a 24px reaction pill 15px). The "Small targets" debt above and the 4 new Segmented ⚠ are
+  likely all this; measure in device px (divide by the frame's scale). Owner: "Quy trình kiểm tra Component build".
+- **P3 · Phone List inset:** Chip "Mobile filter row" and Button "Mobile footer CTA" keep List at its default inset
+  (Margin/Comfortable 24px) while the rest of the screen sits on Margin/Compact (20px), so rows start 4px right of the
+  chips and the Back chevron. `List inset="compact"` lines them up (as in the new Segmented phone example).
+- **Blocked:** Code Connect needs a Figma Organization or Enterprise plan.
+- **P2 · DateField `datePickerActions` commits on pick:** `handleDateChange` (onValueChange) writes the field and closes
+  at once, so Cancel and Submit can never differ. Make the pick a draft and commit in the new DatePicker `onApply`
+  (Cancel and Escape keep the old date). `zen-allow-date-apply` in `Input.tsx` marks the spot; session log
+  2026-09-29, "The last 5 dead clicks".
+- **P3 · Harness idea `chip/needs-action`:** a Normal or Advanced Chip with no onClick, `selected`, `popoverItems`,
+  `onPopoverCreate` or `onClearSelection` renders a dead button; Figma says a read-only label is a Tag (Badge for
+  status). 0 cases in the repo today (Chip "Counters" was Number-only, now a static count). Same session log.
+- **P3 · Chat quote whose original is not in the thread** (older history not loaded): the default jump finds nothing
+  and does nothing. Apps must pass `onJumpToReply` to load it; add that to the Chat guideline, or give the default a
+  fallback. Chat owners ("Search popover component và Overviews").
+- **P2 · Text-fit debt:** 24 findings of the new `fit` check (text wider than its box, no ellipsis, no scroll),
+  baselined in `tools/platform-audit/quality-baseline.json`; table in session log 2026-09-29, "Text-fit audit check".
+  - Stepper at 390: equal-share steps (`.zen-stepper__step { flex: 1 1 0; min-width: 0 }`) squeeze one-word titles,
+    e.g. "WorkspaceInvite team" (Stepper, Checkout, Icon steps).
+  - App Shell at 390: the desktop examples keep the sidebar open (the card sets `breakpoint="desktop"`), so `main` is
+    16px wide and the PageHeader title breaks one letter per line.
+  - Templates page list at 390: the trailing file name leaves the caption column ~63px wide.
+  - Captions narrower than one word: Sidebar "Flat · knowledge base" (390) and List Item "Trailing actions" (390,
+    Comfortable).
+  - DatePicker at Comfortable (1512 and 390): "September 2026" fills the month button's padding.
+- **P3 · `fit` follow-ups** for its owner "Quy trình kiểm tra Component build" (offline while it was built): review
+  `textFit` and the new `audit.mjs` flags `--baseline-update=<kinds>` and `--css=<file>`. Still unchecked: a control
+  that fits its own text but is cut off by an `overflow: hidden` ancestor or covered by a sibling. Examples: a
+  Segmented with `flex-shrink: 0` in a clipping container would hide its last items, and at 390 the Side Panel ›
+  "Docked inspector" card sits under the panel. `overflow` skips these as clipped, and `fit` does not see them.

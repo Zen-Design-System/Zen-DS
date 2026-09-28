@@ -59,7 +59,9 @@ Mọi tương tác mà component hỗ trợ phải chạy được trong **mọi
 - Harness:
   - `interaction/no-noop-handler` cảnh báo handler rỗng trên mọi component Zen, kể cả `onClick: () => {}` trong object action. Code mẫu trong template string được bỏ qua.
   - `interaction/controlled-needs-handler` cảnh báo prop controlled thiếu handler, kiểm tra cả code mẫu vì người đọc sẽ copy. Boolean trơn (preview cố định) và dạng ghim `x ? true : undefined` không bị tính.
-  - Cả hai bỏ qua file stories.
+  - `interaction/action-without-handler` cảnh báo action không có handler nào: Button hay `<button>` thiếu `onClick` / `href` / `type="submit"`, object action (`leading`, `trailing`, `action`, `primaryAction`, `secondaryAction`, `subAction`, `actions`, `suggestions`) thiếu `onClick`, và danh sách `items` bấm được mà thiếu `onSelect` / `onNavigate` / `onItemClick` / `onValueChange`. IconButton thuộc `icon-button/needs-action`. Hành vi mặc định có tài liệu được bỏ qua: action của Dialog, ModalForm, SidePanel, BottomSheet không có `onClick` thì đóng overlay; Button làm `trigger` của Menu. Rule chỉ chạy trong repo (example, playground, template), không chạy cho app.
+  - Cả ba bỏ qua file stories.
+- Mỗi action phải cho thấy kết quả: mở sheet, dialog hay chi tiết, chọn, xác nhận tại chỗ, hoặc điều hướng trong demo. Back trên điện thoại về màn cha (`usePhoneScreen()` trong `PlatformPhone.tsx` đưa focus sang màn mới); Share, Invite, New … mở `DemoFieldDialog` (`PlatformDemoActions.tsx`); việc ra ngoài demo (Export, Duplicate) xác nhận bằng toast. Trong playground, action ghi lại handler đã chạy ngay dưới preview. Specimen của playground Button là chính component đang cấu hình nên được `zen-allow`.
 
 Riêng Chat, các example dùng `useChatDemo()` (`src/platform/chatDemo.tsx`) để có đủ tương tác:
 

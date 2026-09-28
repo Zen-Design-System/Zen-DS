@@ -6,9 +6,9 @@
     "capturedFrom": "Figma Variables JSON export",
     "capturedAt": "2026-09-21",
     "previousAuditVariableCount": 2356,
-    "exportVariableCount": 2367,
-    "lastSynchronizedAt": "2026-09-24",
-    "synchronizationNote": "Component Theme was re-synced from the user-provided JSON export; the two selected-hover aliases for Segmented were added."
+    "exportVariableCount": 2368,
+    "lastSynchronizedAt": "2026-09-28",
+    "synchronizationNote": "Zen-Variables.zip (2026-09-28): Global Colors, Component Theme, Emphasis Level and Typography Configuration re-synced. Component Theme adds mode Neutral - S4 and Input/Border/Disabled; Emphasis Level adds mode Light; Typography Dashboard/Mobile values and four Light/*/11 greys changed. Text-style snapshots re-derived from the bound variables."
   },
   "collections": [
     {
@@ -59,9 +59,9 @@
       "slug": "component-colors-theme",
       "name": "Component Theme",
       "layer": "component",
-      "variableCount": 112,
-      "modes": ["Neutral - S1", "Brand - S1", "Neutral - S2", "Brand - S2", "Neutral - S3"],
-      "types": { "COLOR": 111, "FLOAT": 1 },
+      "variableCount": 113,
+      "modes": ["Neutral - S1", "Brand - S1", "Neutral - S2", "Brand - S2", "Neutral - S3", "Neutral - S4"],
+      "types": { "COLOR": 112, "FLOAT": 1 },
       "hiddenVariableCount": 96,
       "purpose": "Theme-level aliases for component colors.",
       "codeAxis": "data-component-theme"
@@ -104,7 +104,7 @@
       "name": "Emphasis Level",
       "layer": "semantic",
       "variableCount": 6,
-      "modes": ["Medium", "Strong"],
+      "modes": ["Medium", "Strong", "Light"],
       "types": { "FLOAT": 6 },
       "hiddenVariableCount": 4,
       "purpose": "Font-weight and stroke emphasis decisions.",

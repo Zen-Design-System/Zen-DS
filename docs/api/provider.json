@@ -20,7 +20,7 @@
         },
         {
           "name": "componentTheme",
-          "type": "\"neutral-s1\" | \"neutral-s2\" | \"neutral-s3\" | \"brand-s1\" | \"brand-s2\"",
+          "type": "\"neutral-s1\" | \"neutral-s2\" | \"neutral-s3\" | \"neutral-s4\" | \"brand-s1\" | \"brand-s2\"",
           "required": false,
           "default": null,
           "description": "Component colour theme (Figma \"Component Theme\" mode). Default neutral-s1.",
@@ -44,10 +44,10 @@
         },
         {
           "name": "emphasis",
-          "type": "\"medium\" | \"strong\"",
+          "type": "\"medium\" | \"strong\" | \"light\"",
           "required": false,
           "default": null,
-          "description": "Visual emphasis of surfaces and strokes. Default medium.",
+          "description": "Font weights and active stroke widths (Figma \"Emphasis Level\" mode). Default medium; light is lighter, strong heavier.",
           "deprecated": null
         },
         {

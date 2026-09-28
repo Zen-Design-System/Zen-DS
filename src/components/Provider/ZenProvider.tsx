@@ -10,10 +10,10 @@ import "./provider.css";
 
 /** Token mode axes (Figma variable modes). Each maps to a `data-*` attribute that tokens.css reads. */
 export const zenThemes = ["light", "dark", "system"] as const;
-export const zenComponentThemes = ["neutral-s1", "neutral-s2", "neutral-s3", "brand-s1", "brand-s2"] as const;
+export const zenComponentThemes = ["neutral-s1", "neutral-s2", "neutral-s3", "neutral-s4", "brand-s1", "brand-s2"] as const;
 export const zenDensities = ["compact", "comfortable"] as const;
 export const zenRadii = ["rounded", "smooth", "standard", "luxury"] as const;
-export const zenEmphases = ["medium", "strong"] as const;
+export const zenEmphases = ["medium", "strong", "light"] as const;
 export const zenBreakpoints = ["auto", "desktop", "tablet", "mobile"] as const;
 export const zenTypographies = ["dashboard", "popular", "mobile"] as const;
 export const zenBrands = ["zen"] as const;
@@ -36,7 +36,7 @@ export interface ZenProviderProps extends Omit<HTMLAttributes<HTMLElement>, "sty
   density?: ZenDensity;
   /** Corner-radius scale. Default rounded. */
   radius?: ZenRadius;
-  /** Visual emphasis of surfaces and strokes. Default medium. */
+  /** Font weights and active stroke widths (Figma "Emphasis Level" mode). Default medium; light is lighter, strong heavier. */
   emphasis?: ZenEmphasis;
   /**
    * Layout tokens (page margin, gutter, modal/card padding). `auto` follows the viewport: < 744px mobile,

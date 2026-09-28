@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 /** Device presets: CSS-pixel screen size and the system safe areas the Figma frames use. */
 export const platformDevices = {
@@ -102,4 +102,26 @@ export function PlatformPhone({ children, device = "iphone", canvas = "default",
       </div>
     </div>
   );
+}
+
+/**
+ * Navigation inside a phone example (Back to the parent screen, a row opening the child again): the next screen's
+ * control takes focus instead of <body>, and the screen can scroll back to the top. Render `anchor` inside the phone on
+ * every screen.
+ */
+export function usePhoneScreen() {
+  const anchorRef = useRef<HTMLSpanElement>(null);
+  const focusNext = useRef<string | null>(null);
+  useEffect(() => {
+    const selector = focusNext.current;
+    if (!selector) return;
+    focusNext.current = null;
+    anchorRef.current?.closest(".platform-phone")?.querySelector<HTMLElement>(selector)?.focus();
+  });
+  return {
+    anchor: <span ref={anchorRef} hidden />,
+    /** Run a change, then focus `selector` inside the phone once the next screen has rendered. */
+    go: (selector: string, change: () => void) => { focusNext.current = selector; change(); },
+    scrollTop: () => anchorRef.current?.closest(".platform-phone__screen")?.scrollTo({ top: 0, behavior: "smooth" }),
+  };
 }

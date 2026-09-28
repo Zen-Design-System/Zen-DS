@@ -62,7 +62,9 @@ const schemeOf = (name: string) => (name.startsWith("Light/") ? "Light" : name.s
 function viewOptions(collectionSlug: string, modes: string[]): ViewOption[] {
   if (schemeCollections.has(collectionSlug)) return [{ id: "Light", label: "Light Colors" }, { id: "Dark", label: "Dark Colors" }];
   if (modes.length < 2) return [];
-  return modes.map((mode) => ({ id: mode, label: mode === "Light" || mode === "Dark" ? `${mode} Colors` : mode }));
+  // "Light"/"Dark" read as colour schemes only in a Light + Dark collection: Emphasis Level's "Light" is a weight mode.
+  const scheme = modes.includes("Light") && modes.includes("Dark");
+  return modes.map((mode) => ({ id: mode, label: scheme && (mode === "Light" || mode === "Dark") ? `${mode} Colors` : mode }));
 }
 
 /** Groups by the path above the leaf (`Light/Tomato/1` → `Tomato`); leaf-level tokens form the untitled first table. */

@@ -123,14 +123,18 @@
   --zen-chip-icon: var(--zen-chip-primary-content-selected, #fff);
 }
 
+/* A Number-only chip with nothing to do is a count (a <span>, Chip.tsx): the Default state only — no pointer, and the
+   pointer hover / press below skip it. A forced data-state still draws that state for specimens. */
+.zen-chip[data-static="true"] { cursor: default; }
+
 .zen-chip[data-state="hover"],
-.zen-chip:hover:not(:disabled) {
+.zen-chip:hover:not(:disabled, [data-static="true"]) {
   background: var(--zen-chip-background-hover);
   box-shadow: var(--zen-chip-shadow-off-hover, var(--zen-style-shadow-action-tertiary-shadow));
 }
 
 .zen-chip[data-state="press"],
-.zen-chip:active:not(:disabled) {
+.zen-chip:active:not(:disabled, [data-static="true"]) {
   background: var(--zen-chip-background-hover);
   box-shadow: var(--zen-chip-shadow-off-hover, var(--zen-style-shadow-action-tertiary-shadow));
 }

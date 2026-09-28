@@ -58,6 +58,13 @@ removed.
 - **HeadingField `multiline`:** long titles wrap and the field grows with them (Figma Inputted-Multi-Line); Enter adds
   no line break and pasted line breaks become spaces. One line stays the default, for short names. HeadingField also
   reports `onValueChange(value)`.
+- **Token modes from the 2026-09-28 Figma variables:** Component Theme `neutral-s4` (`componentTheme="neutral-s4"`) is
+  Neutral-S1 with outlined inputs (Surface fill, Subtle border, no inner shadow) and a Subtle-tinted Secondary chip
+  selection, plus the token `Input/Border/Disabled` for a disabled field's border. Emphasis `light` (`emphasis="light"`)
+  uses lighter weights (400–500) and 1px active strokes. Both are in the docs platform topbar and Storybook.
+- **Docs platform:** Segmented has a phone example, "Period switch on a phone". Its four periods (This week · This
+  month · This quarter · This year) are wider than the 390px screen, so the default Secondary Segmented keeps its full
+  labels and scrolls sideways; an empty week shows an EmptyState. The page now has 4 examples, with states and mobile.
 
 ### Fixed
 - Overlays (Dialog, ModalForm, SidePanel, BottomSheet) no longer move focus back to their first field when the parent
@@ -78,7 +85,7 @@ removed.
   ring follows each size's Action/Focus radius (every size used Medium's); IconButton is a circle with a circular
   ring in every radius mode; Flat IconButton Secondary rests on Neutral/Light, and Danger/Positive stay Light on hover
   and turn Base when pressed.
-- HeadingField measures the heading's line box again (40/36/32 for H1–H3): the input's pad collapsed through it and
+- HeadingField reports its real height again (40/36/32 for H1–H3): the input's pad collapsed through the root and
   made the field report 16px taller.
 - Docs platform: every icon-only button in the examples does something (27 had no action). Sidebar "+" actions create
   the team, teamspace, project or workspace and open it; Workspace settings opens its page (a menu in the playground);
@@ -106,6 +113,18 @@ removed.
   - AI Chat "Long prompt" sends and answers (Stop works).
   - "Quick create": the bottom bar switches tabs.
   - List rows in the Sidebar, Search, mobile and playground examples select.
+- Docs platform: actions passed with no handler at all now do something visible (96 found by the harness changes
+  below; code samples show the handlers).
+  - Phone Back buttons go up to a parent screen whose row comes back (focus moves to the new screen); Top Navigation
+    New message, Upload, Share, Notifications and Settings open sheets; Like toggles; Close viewer goes to the album.
+  - Share, Invite, New project, New task, Compose and Continue with email open a one-field dialog that confirms;
+    Export and Duplicate confirm with a toast; Publish toggles; Sidebar footer items open their pages.
+  - KPI ⋯ and "View failed payments" open the numbers in a report Side Panel; Table Edit changes a member's role;
+    AI answers' Copy confirms in place; truncated names and annotation pins pin their tooltip on click.
+  - Templates: Dashboard Export, New project and Notifications work; the Admin list and Detail sidebars select.
+  - Playground actions show which handler ran under the preview.
+- Top Navigation: a trailing action whose label changes (a count clearing, Like → Unlike) keeps keyboard focus; the
+  actions were keyed by label, so the button was remounted.
 - Figma details found while moving component CSS to tokens:
   - Rating emoji: Heading/4 in its 32px slot (was 24px).
   - Slider: the Medium thumb shadow is Shadow/Neutral/Strong (was Base).
@@ -115,8 +134,25 @@ removed.
   - DatePicker: range ends follow the radius mode.
   - Docs platform: the topbar chips use the Shadow/Action/Tertiary effect with its backdrop blur, and example gaps and
     paddings that were off the scale (6, 10 and 20px) snap to the nearest Gap or Padding token.
+- Segmented no longer squeezes its labels into each other when its options are wider than the container. On a phone,
+  Templates › "Empty & error states" read "404 No resultsFirst useLoad failed". It now scrolls sideways like Tabs:
+  there is no scrollbar, the segments keep their width, and the selected segment scrolls into view. `fullWidth` still
+  splits the width equally.
+- Segmented now scrolls the selected segment fully into view inside a scaled container too, such as the docs
+  platform's phone preview. The scroll used to stop short by the scale, so the last segment stayed a few pixels clipped.
+- No more dead clicks in components: a Number-only Chip without `onClick` or `selected` is a static count; with
+  `showActions`, DatePicker picks are a draft that Submit applies through the new `onApply(value, range)` and Cancel
+  drops (`onCancel`; new `range` / `defaultRange`, harness `date-picker/actions-need-apply`); RichTextField keeps its
+  own undo history, so Undo / Redo are disabled with nothing to undo or redo and never undo another field; the quote
+  of a deleted Chat message is plain text.
 
 ### Changed
+- **Typography and colour from the 2026-09-28 Figma variables:** Dashboard and Mobile text styles have new sizes, line
+  heights and tracking (Dashboard: Heading/1 28/36, Heading/3 22/28, Display/1 45/52, Caption 11/16, Label/Small 9;
+  button labels are no longer tracked tighter); Popular is unchanged. In Light mode `Color/Content/Neutral/Base` text
+  and the Neutral Solid hover fills are darker (Gray/11).
+- HeadingField keeps its Figma height (Input/Size/Heading-H1–H3: 40/36/32, Comfortable 44/40/36) and centres the
+  heading text in it; it used to take the text's line box, which is now smaller.
 - Component variant attributes are `data-tone` (was `data-theme`), and Sidebar density is `data-sidebar-density`
   (was `data-density`): those names are the token mode attributes, and every variant element used to re-declare the
   component-theme variables. Styling hooks that targeted `[data-theme=…]` on a component must switch to `[data-tone=…]`.
@@ -144,11 +180,24 @@ removed.
   e.g. `month` without `onMonthChange`), and for CSS `focus/state-parity` (a focus selector in the same rule as its
   resting state) and `focus/selected-fill-only` (focus drawn only as a fill on an item whose selected state is a
   fill). Interaction tests for the focus fixes: `tests/interaction/focus.test.tsx`.
+- Harness rule `interaction/action-without-handler` (repo examples, playgrounds and templates; apps are not judged):
+  a Button or `<button>` without `onClick` / `href` / `type="submit"`, an action object (`leading`, `trailing`,
+  `action`, `primaryAction`, `subAction`, `actions`, `suggestions`…) without `onClick`, and pressable `items` whose
+  list has no `onSelect` / `onNavigate` / `onItemClick` / `onValueChange`. Documented defaults pass (Dialog, ModalForm,
+  SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger). `icon-button/needs-action` now
+  also checks IconButtons whose label is a template literal, and the usage scanner no longer reads a glob such as
+  `accept="image/*"` as the start of a comment (it hid the code after it from every rule).
 - Style-guard debt is paid off: `tools/style-guard/baseline.json` went from 376 findings in 32 files to 0.
   - Component CSS binds the token that the live Figma node binds.
   - Platform CSS and example inline styles use the Spacing, Corner-Radius, typography and shadow tokens.
   - Deliberate exceptions carry a `zen-allow-<rule>` reason that cites the Figma node.
   - With an empty baseline, every finding is new, so the gate reports it.
+- Runtime check `fit` (`platform:audit --quality`, so `npm run qa`): text wider than its own box with no ellipsis and
+  no scroll, which runs into its neighbours or is cut off. It also looks inside `overflow: hidden` ancestors, which the
+  `overflow` check skips, so the Segmented that read "404 No resultsFirst use" on 2026-09-28 is now caught. With
+  `--density` it also runs at Comfortable. The 24 findings already on the platform are baselined. `audit.mjs` also
+  gains `--baseline-update=<kinds>` (seed one kind without touching the others) and `--css=<file>` (re-create a fixed
+  bug to prove that a check catches it).
 
 ## [0.3.0] — Unreleased
 

@@ -100,6 +100,7 @@ It prints ✗ / ⚠ per step and writes `.qa/reports/<stamp>.md`. Read the repor
 | `scale` (runtime) | text without a Zen text style, example markup off the spacing/radius/colour tokens |
 | `hierarchy` / `rhythm` | heading level and style, title vs description, visual headings, concentric corners, double inset |
 | `density` | wrapper sized in px around a token-sized child |
+| `fit` | text wider than its own box, no ellipsis, no scroll (it runs into its neighbours even under `overflow: hidden`): let the item keep its width (`flex-shrink: 0` / `min-width: auto`), wrap, ellipsize, or scroll the row |
 | `edges`, `sizes`, `overflow`, `surfaces`, `outline`, `typography` | see `docs/qa/platform-audit.md` |
 | behaviour ✗ | focus ring, keyboard reach, APG keys, dialog focus trap / Escape / focus return |
 | coverage ⚠ | add the missing example (state, edge case, mobile, keyboard) or say why it does not apply |

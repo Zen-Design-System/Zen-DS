@@ -12,14 +12,15 @@ export default {
   cases: (vp) => ({ headingSize: vp.Size.toLowerCase(), status: vp.Status.toLowerCase(), value: typed(vp) ? "Heading" : "", multiline: vp.Status === "Inputted-Multi-Line" || undefined }),
   figmaExceptions: [
     // Figma-side inconsistency (reported): H3's padding binds Spacing/Padding/XSmall (8) like H1/H2 and H3 Default,
-    // but five H3 statuses fix the Container at 44px (−6). Code keeps line box + 2 × 8.
+    // but five H3 statuses fix the Container at 44px (−6). Code keeps Input/Size/Heading-H3 + 2 × 8.
     ...["Hover", "Focus", "Typing", "Inputted-Single-Line", "Inputted-Hover"].flatMap((Status) => [
-      { vp: { Size: "H3", Status }, layer: "Container", prop: "h", code: "48", note: "H3 non-Default statuses fix the Container at 44px (−6) although its padding binds Spacing/Padding/XSmall (8) as in H3 Default and every H1/H2 status; code keeps 32 + 2 × 8." },
+      { vp: { Size: "H3", Status }, layer: "Container", prop: "h", code: "48", note: "H3 non-Default statuses fix the Container at 44px (−6) although its padding binds Spacing/Padding/XSmall (8) as in H3 Default and every H1/H2 status; code keeps Input/Size/Heading-H3 (32) + 2 × 8." },
       { vp: { Size: "H3", Status }, layer: "Container", prop: "y", code: "-8", note: "Same 44px H3 Container (see h)." },
     ]),
     // Browser, not Figma: Chrome forces `line-height: initial !important` on input::placeholder (author !important cannot
     // override it). Measured: the placeholder glyphs sit on the same pixel rows as typed text, so only the reported value differs.
-    ...[["H1", "32px", "-0.96px"], ["H2", "28px", "-0.84px"], ["H3", "24px", "-0.72px"]].map(([Size, size, ls]) => ({
+    // Pinned to the Dashboard Heading/1–3 size and tracking (variables export 2026-09-28).
+    ...[["H1", "28px", "-0.56px"], ["H2", "25px", "-0.5px"], ["H3", "22px", "-0.44px"]].map(([Size, size, ls]) => ({
       vp: { Size }, layer: "Container/Heading", prop: "text", code: `Inter 600 ${size}/normal ls=${ls} none`,
       note: "Chrome forces line-height: initial on input::placeholder; placeholder glyphs render on the same rows as typed text.",
     })),

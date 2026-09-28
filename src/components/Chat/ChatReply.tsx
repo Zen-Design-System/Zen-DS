@@ -13,7 +13,8 @@ import "../Icon/core";
  * pattern of Messenger / iMessage / WhatsApp / Slack):
  * - the composer shows a "Replying to …" bar above the field (Escape or × cancels);
  * - the sent reply carries a quote above its bubble — "Ava replied to you" + a muted preview of the original —
- *   and pressing the quote jumps to the original message and flashes it.
+ *   and pressing the quote jumps to the original message and flashes it. The quote of a deleted message is plain
+ *   text, not a button: there is nothing left to jump to.
  * The preview adapts to what is being replied to: text (2 lines), photo(s), file, call, voice or a deleted message.
  */
 export type ChatReplyKind = "text" | "photo" | "file" | "call" | "voice" | "deleted";
@@ -116,7 +117,9 @@ export function jumpToChatMessage(from: HTMLElement | null, id: string) {
 
 /**
  * In the thread: the quote above a reply bubble. `side` is the reply's side (it aligns with the reply);
- * `replier` names who replied ("You" for your own replies) for the caption.
+ * `replier` names who replied ("You" for your own replies) for the caption. Pressing the quote jumps to the original
+ * (`onJump`, or scroll + flash in the same thread); the quote of a deleted message ("Message unavailable") is plain
+ * text with no hover, since there is nothing to jump to.
  */
 export function ChatReplyQuote({ target, side, replier, onJump }: { target: ChatReplyTarget; side: ChatSide; replier?: string; onJump?: (id: string) => void }) {
   const t = useZenLabels();
@@ -127,10 +130,14 @@ export function ChatReplyQuote({ target, side, replier, onJump }: { target: Chat
   return (
     <div className="zen-chat-reply" data-side={side}>
       <span className={`zen-chat-reply__caption ${typographyStyles["Caption/Regular"]}`}><Icon name="icon-reply-solid" size="xs" decorative />{caption}</span>
-      <button type="button" className="zen-chat-reply__quote" data-kind={target.kind} aria-label={`${caption}: ${summary.text}. ${t.goToOriginal}`}
-        onClick={(event) => { if (onJump) onJump(target.id); else jumpToChatMessage(event.currentTarget, target.id); }}>
-        <ChatReplyBody target={target} lines={2} />
-      </button>
+      {target.kind === "deleted" ? (
+        <span className="zen-chat-reply__quote" data-kind={target.kind} data-static="true"><ChatReplyBody target={target} lines={2} /></span>
+      ) : (
+        <button type="button" className="zen-chat-reply__quote" data-kind={target.kind} aria-label={`${caption}: ${summary.text}. ${t.goToOriginal}`}
+          onClick={(event) => { if (onJump) onJump(target.id); else jumpToChatMessage(event.currentTarget, target.id); }}>
+          <ChatReplyBody target={target} lines={2} />
+        </button>
+      )}
     </div>
   );
 }

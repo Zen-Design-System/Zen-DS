@@ -4,11 +4,12 @@ import { FileIcon, fileIconFormatOf } from "../../components/FileIcon";
 import { Icon } from "../../components/Icon";
 import { Card } from "../../components/Card";
 import { Grid, Stack } from "../../components/Layout";
+import { List, ListItem } from "../../components/ListItem";
 import { ZenProvider } from "../../components/Provider";
 import { Heading, Text, plural, textTones, type HeadingLevel, type TextTone } from "../../components/Text";
 import { TopNavigation } from "../../components/TopNavigation";
 import { typographyStyles, type TypographyStyleName } from "../../tokens/typography.generated";
-import { PlatformPhone } from "../PlatformPhone";
+import { PlatformPhone, usePhoneScreen } from "../PlatformPhone";
 import { Panel, PlaygroundFilterChip, PlaygroundToggle, option } from "./shared";
 import type { AppLayerPage, AppLayerPageMeta, ExampleMap } from "./types";
 
@@ -128,9 +129,29 @@ function PluralExample() {
 }
 
 function MobileTypographyExample() {
+  // Back goes up to Orders; the #1042 row comes back here.
+  const [atOrders, setAtOrders] = useState(false);
+  const [open, setOpen] = useState<string | null>(null);
+  const screen = usePhoneScreen();
+  if (atOrders) {
+    return (
+      <ZenProvider typography="mobile" paint={false} portal={false} breakpoint="mobile">
+        <PlatformPhone header={<TopNavigation title="Orders" largeTitle="Orders" />}>
+          {screen.anchor}
+          <List aria-label="Orders">
+            {[["#1042", "Arriving Thursday"], ["#1038", "Delivered 22 Sep"], ["#1031", "Delivered 9 Sep"]].map(([id, caption]) => (
+              <ListItem key={id} data-order={id} title={`Order ${id}`} caption={caption} selected={open === id}
+                onClick={() => (id === "#1042" ? screen.go('.zen-top-nav__action[aria-label="Back"]', () => setAtOrders(false)) : setOpen(id))} />
+            ))}
+          </List>
+        </PlatformPhone>
+      </ZenProvider>
+    );
+  }
   return (
     <ZenProvider typography="mobile" paint={false} portal={false} breakpoint="mobile">
-      <PlatformPhone header={<TopNavigation type="default" title="Order #1042" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} />}>
+      <PlatformPhone header={<TopNavigation type="default" title="Order #1042" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go('[data-order="#1042"] .zen-list-item__wrapper', () => setAtOrders(true)) }} />}>
+        {screen.anchor}
         <Stack gap="lg" padding="lg">
           <Stack gap="2xs">
             <Heading level={1}>Arriving Thursday</Heading>

@@ -16,6 +16,10 @@
  *              in one example, nested corners that are not concentric (outer = inner + inset), list rows padded twice
  *   density    (error) (densitySnapshot, compared by audit.mjs) Zen elements whose in-flow content outgrows them once
  *              Component Size is Comfortable
+ *   fit        (error) (textFit) text wider than its own box with no ellipsis and no scroll: it runs into what sits next
+ *              to it, or is cut off mid-text. The platform `overflow` check skips anything inside an `overflow: hidden`
+ *              ancestor, so on 2026-09-28 a Segmented whose items shrank below their labels read "404 No resultsFirst use"
+ *              and nothing was reported
  *
  * Opt out one element (with a reason in code) by `data-audit-skip-quality`.
  */
@@ -235,5 +239,95 @@ export function densitySnapshot() {
       out[`${ri}:${i}`] = { over: Math.round(over * 10) / 10, text: `${card}: ${cls} ← ${kid}` };
     });
   });
+  return out;
+}
+
+/**
+ * Text fit: a label, button or line whose text is wider than its own box (scrollWidth > clientWidth), with no ellipsis and
+ * no scroll. Its text runs into its neighbours even when an ancestor clips, or is cut off mid-text.
+ *
+ * Not reported: scroll containers, ellipsized text, faded edges (mask-image), screen-reader-only text, floating layers
+ * sized to their content (tooltip bubbles), drawings and code, `data-audit-skip-quality`.
+ *
+ * Returns { fit, where }. `where[i]` is the stable part of `fit[i]`: audit.mjs matches it across densities.
+ */
+export function textFit({ scopeSel }) {
+  const out = { fit: [], where: [] };
+  const scope = scopeSel ? document.querySelector(scopeSel) : document;
+  if (!scope) return out;
+  const REGION = ".pe-card__stage, .platform-example-panel .platform-example-row, .official-portal-root > *";
+  const regions = [...(scope.matches?.(REGION) ? [scope] : []), ...scope.querySelectorAll(REGION)]
+    .filter((r) => !r.closest(".platform-guideline-visual__dont, [data-verdict='dont']"));
+  const label = (el) => (el.closest("[data-audit-label]")?.getAttribute("data-audit-label") ?? el.closest(".pe-card")?.querySelector("h3")?.textContent ?? el.closest(".platform-example-panel")?.querySelector("h2")?.textContent ?? (el.closest(".official-portal-root") ? "overlay" : "page")).trim().slice(0, 40);
+  const describe = (el) => `${el.tagName.toLowerCase()}${typeof el.className === "string" && el.className.trim() ? "." + el.className.trim().split(/\s+/).filter((c) => !/^zen-type-/.test(c)).slice(0, 2).join(".") : ""}`;
+  const px = (v) => parseFloat(v) || 0;
+  const flat = (el) => /^(inline|contents)$/.test(getComputedStyle(el).display);
+  // Example frames are not the text's box: content escaping them is the platform `overflow` check's business.
+  const FRAME = ".pe-card__stage, .pe-card__preview, .platform-example-row";
+  const SKIP = "svg, .zen-chart__svg, .platform-code, pre, textarea, select, option, .zen-skeleton, .zen-visually-hidden:not(:focus-within), [data-audit-skip-quality]";
+  // A control owns its label: the walk climbs from a label span to its Segmented item, chip or tab, never past it.
+  const CONTROL = "button, a[href], label, summary, [role='button'], [role='tab'], [role='option'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'], [role='switch'], [role='checkbox'], [role='radio'], [role='link'], .zen-chip, .zen-badge, .zen-tag";
+  const BLOCK = /^(block|inline-block|list-item|flow-root|table-cell|table-caption)$/; // text-overflow works on block containers only
+  const shown = (el) => { const s = getComputedStyle(el); return s.visibility !== "hidden" && s.display !== "none" && px(s.opacity) > 0.05; };
+  const srOnly = (el) => { for (let a = el; a && a !== document.body; a = a.parentElement) { const r = a.getBoundingClientRect(); const s = getComputedStyle(a); if ((r.width <= 1 || r.height <= 1) && s.overflowX !== "visible") return true; if (/inset\(50%/.test(s.clipPath) || /rect\(0px,? 0px,? 0px,? 0px\)/.test(s.clip)) return true; } return false; };
+  const turned = (t) => { if (!t || t === "none") return false; if (/matrix3d/.test(t)) return true; const [, b, c] = (t.match(/matrix\(([^)]+)\)/)?.[1] ?? "1,0,0,1").split(",").map(Number); return Math.abs(b) > 1e-3 || Math.abs(c) > 1e-3; };
+  // Horizontal extent of a text node: the whole node (cheap), or its words only. The trailing spaces of pre-wrap text hang
+  // past the line end by design, so a near miss is measured again word by word.
+  const extent = (n, words) => {
+    const rg = document.createRange(); let left = Infinity, right = -Infinity;
+    const add = () => { for (const q of rg.getClientRects()) if (q.width > 0 && q.height > 0) { left = Math.min(left, q.left); right = Math.max(right, q.right); } };
+    if (!words) { rg.selectNodeContents(n); add(); } else for (const m of n.textContent.matchAll(/\S+/g)) { rg.setStart(n, m.index); rg.setEnd(n, m.index + m[0].length); add(); }
+    return left < right ? { left, right } : null;
+  };
+  const flagged = new Set();
+  for (const region of regions) {
+    const walker = document.createTreeWalker(region, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const text = n.textContent.trim(); const el = n.parentElement;
+      if (!text || !el || el.closest(SKIP) || !shown(el)) continue;
+      let ext = extent(n, false), exact = false, words = null;
+      if (!ext) continue;
+      // The text's own boxes: its block, then wrappers that hold nothing but this label, up to the control that owns it.
+      for (let a = el, depth = 0; a && depth < 8; depth++) {
+        if (a.matches(FRAME)) break;
+        if (flat(a)) { if (a === region) break; a = a.parentElement; continue; }
+        const s = getComputedStyle(a);
+        if (turned(s.transform) || !s.writingMode.startsWith("horizontal")) break;
+        const r = a.getBoundingClientRect(); const k = a.offsetWidth ? r.width / a.offsetWidth : 1;  // phone frames scale
+        const inL = r.left + px(s.borderLeftWidth) * k, inR = r.right - px(s.borderRightWidth) * k;      // padding box
+        const cL = inL + px(s.paddingLeft) * k, cR = inR - px(s.paddingRight) * k;                      // content box
+        const past = () => Math.max(0, cL - ext.left) + Math.max(0, ext.right - cR);
+        let over = past();
+        if (over > k && !exact) { ext = extent(n, true) ?? ext; exact = true; over = past(); }
+        const clips = s.overflowX !== "visible";
+        if (over > k) {
+          if (["auto", "scroll"].includes(s.overflowX)) break;                                  // it scrolls
+          if (clips && s.textOverflow === "ellipsis" && BLOCK.test(s.display)) break;           // it ellipsizes
+          if ([s.maskImage, s.webkitMaskImage].some((m) => m && m !== "none")) break;           // it fades out
+          if (clips && (ext.right <= inL || ext.left >= inR)) break;                            // moved out of view on purpose
+          if (flagged.has(a) || srOnly(a)) break;
+          flagged.add(a);
+          const where = `${label(a)}: "${text.slice(0, 24)}" (${describe(a)})`;
+          const beyond = ext.left < inL - k || ext.right > inR + k;                             // past the padding too
+          const why = !beyond ? "fills its padding" : !clips ? "spills out of it" : s.textOverflow === "ellipsis"
+            ? "is cut off: text-overflow: ellipsis does nothing on a flex or grid container, set it on the text's own block"
+            : "is cut off with no ellipsis";
+          out.where.push(where);
+          out.fit.push(`${where} is ${Math.round(over / k)}px wider than its box and ${why} — give it room (flex-shrink: 0 / min-width: auto), wrap, ellipsize, or scroll the row`);
+          break;
+        }
+        if (clips) ext = { left: Math.max(ext.left, inL), right: Math.min(ext.right, inR) };
+        // A floating layer (tooltip bubble, corner badge) places itself: its parent's box is not its room.
+        if (a === region || a.matches(CONTROL) || ["absolute", "fixed"].includes(s.position)) break;
+        // Climb on only while the next box wraps this label and nothing else (a cell around a pill). A box holding other
+        // text is a layout container: its children sit side by side and do not overlap.
+        words ??= a.textContent.trim();
+        let p = a.parentElement;
+        while (p && p !== region && flat(p)) p = p.parentElement;
+        if (!p || (!p.matches(CONTROL) && p.textContent.trim() !== words)) break;
+        a = p;
+      }
+    }
+  }
   return out;
 }

@@ -1,4 +1,4 @@
-import { useContext, useRef, useState, type ReactNode } from "react";
+import { useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Button, IconButton, type ButtonAppearance, type ButtonLevel, type ButtonSize } from "../components/Button";
 import { Chip, type ChipLevel, type ChipSize, type ChipState, type ChipTheme, type ChipVariant } from "../components/Chip";
 import { Icon, type IconName } from "../components/Icon";
@@ -218,8 +218,10 @@ import { Icon } from "@zen/design-system";
         </div>
         <div data-typography={previewTypography} className={`platform-example-row${appearance === "overlay" ? " platform-example-row--overlay" : ""}`}>
           {iconOnly ? (
+            // zen-allow-no-action: the playground specimen is the component being configured, not an action.
             <IconButton aria-label={`${title} preview`} appearance={appearance} level={level} size={size} disabled={disabled} icon={<Icon name="icon-plus-line" decorative />} />
           ) : (
+            // zen-allow-action-handler: the playground specimen is the component being configured, not an action.
             <Button appearance={appearance} level={level} size={size} disabled={disabled} startIcon={leading ? <Icon name="icon-check-line" decorative /> : undefined} endIcon={trailing ? <Icon name="icon-chevron-right-line-small" decorative /> : undefined}>Button</Button>
           )}
         </div>
@@ -231,6 +233,11 @@ import { Icon } from "@zen/design-system";
 
 export function PlatformComponentPage({ page, activeCollection, onCollectionClick }: { page: PlatformPage; activeCollection?: string | null; onCollectionClick?: (slug: string) => void }) {
   const previewTypography = useContext(PlatformTypographyContext);
+  // Playground actions never do nothing: the preview logs which handler ran (like Storybook's Actions panel).
+  const [actionLog, setActionLog] = useState<string | null>(null);
+  useEffect(() => { setActionLog(null); }, [page]);
+  const logAction = (label: string, handler = "onClick") => setActionLog(`“${label}” pressed · ${handler} ran`);
+  const actionNote = actionLog ? <p className={`pe-text pe-text--light ${typographyStyles["Body/Small/Regular"]}`} role="status">{actionLog}</p> : null;
   const [chipVariant, setChipVariant] = useState<string | undefined>("advanced");
   const [chipSize, setChipSize] = useState<string | undefined>("small");
   const [chipDisabled, setChipDisabled] = useState(false);
@@ -634,7 +641,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
         { id: "archive", label: "Archive (read-only)", disabled: true, icon: sidebarIcon("icon-folder-line") },
       ] },
     ];
-    const sidebarFooter = <><button type="button"><Icon name="ic-figma-line" size="base" /><span>Download Figma</span></button><button type="button"><Icon name="icon-message-chat-circle-line" size="base" /><span>Feedback</span></button></>;
+    const sidebarFooter = <>{([["figma", "ic-figma-line", "Download Figma"], ["feedback", "icon-message-chat-circle-line", "Feedback"]] as const).map(([id, icon, label]) => <button key={id} type="button" aria-current={sidebarSelected === id ? "page" : undefined} onClick={() => setSidebarSelected(id)}><Icon name={icon} size="base" /><span>{label}</span></button>)}</>;
     return (
       <ExamplePage page="sidebar" eyebrow="Components / Sidebar" title="Patterns/Sidebar" titleLines={["Patterns/", "Sidebar"]} description="One shared Sidebar preview with the Figma Basic, Small-Density and Workspace variants selectable from the playground.">
         <ComponentPreview className="platform-example-panel platform-example-panel--stack">
@@ -721,7 +728,9 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
     // Character-Limitation counts against maxLength on free-text fields only.
     const inputSupportsCount = ["text", "field-only", "textarea", "richtext"].includes(resolvedInputKind);
     const helpMessages: Record<InputHelpTheme, string> = { neutral: "Supporting help text", warning: "Double-check this value", positive: "Looks good", negative: "This value is not valid" };
-    const labelActionNode = inputLabelAction ? <button type="button">Action</button> : undefined;
+    // The label action does something visible: it moves focus into its field (the label's htmlFor).
+    const focusField = (event: { currentTarget: HTMLElement }) => { const id = event.currentTarget.closest(".zen-input-label")?.querySelector("label")?.htmlFor; if (id) document.getElementById(id)?.focus(); };
+    const labelActionNode = inputLabelAction ? <button type="button" onClick={focusField}>Action</button> : undefined;
     const sharedFieldProps = {
       label: inputLabel ? "Label" : undefined,
       // Without a visible label the field still needs an accessible name.
@@ -1352,7 +1361,8 @@ import { Icon } from "@zen/design-system";` : ""}
           <PlaygroundToggle label="Disable Past Dates" selected={datePast} onChange={setDatePast} />
         </div>
         <div data-typography={previewTypography} className="platform-example-row platform-date-picker-preview">
-          <div className="platform-date-picker-inline"><DatePicker key={`${resolvedCalendar}-${resolvedMode}`} calendar={resolvedCalendar} selectionMode={resolvedMode} value={resolvedMode === "single" ? dateValue : undefined} onChange={resolvedMode === "single" ? setDateValue : undefined} onRangeChange={setDateRange} minDate={datePast ? today : undefined} showActions={Boolean(actions)} action={actions} /></div>
+          {/* With actions a pick is a draft: the summary shows what Submit applied, and Cancel returns the calendar to it. */}
+          <div className="platform-date-picker-inline"><DatePicker key={`${resolvedCalendar}-${resolvedMode}`} calendar={resolvedCalendar} selectionMode={resolvedMode} value={resolvedMode === "single" ? dateValue : undefined} onValueChange={resolvedMode === "single" && !actions ? setDateValue : undefined} onRangeChange={actions ? undefined : setDateRange} onApply={actions ? (date, range) => { if (resolvedMode === "range") setDateRange(range); else setDateValue(date); } : undefined} minDate={datePast ? today : undefined} showActions={Boolean(actions)} action={actions} /></div>
           <p className={`platform-date-picker-summary ${typographyStyles["Body/Base/Medium"]}`} aria-live="polite">{summary}</p>
         </div>
         <PlatformCode code={`import { DatePicker } from "@zen/design-system";
@@ -1360,12 +1370,13 @@ import { Icon } from "@zen/design-system";` : ""}
 <DatePicker
 ${[
   ...(resolvedCalendar === "dual" ? [`calendar="dual"`] : []),
-  ...(resolvedMode === "range" ? [`selectionMode="range"`, "onRangeChange={setRange}"] : ["value={date}", "onChange={setDate}"]),
+  ...(resolvedMode === "range" ? [`selectionMode="range"`, actions ? "onApply={(_, range) => setRange(range)}" : "onRangeChange={setRange}"] : ["value={date}", actions ? "onApply={(picked) => setDate(picked)}" : "onValueChange={setDate}"]),
   ...(datePast ? ["minDate={today}"] : []),
   ...(actions ? ["showActions", `action="${actions}"`] : []),
 ].map((line) => `  ${line}`).join("\n")}
 />
-
+${actions ? `
+// With actions, picks are a draft: Submit calls onApply, Cancel returns to the applied value.` : ""}
 // As a popover, add open={open}, anchorRef={triggerRef} and onClose={() => setOpen(false)}:
 // it then closes on an outside click, Escape, a completed pick or the actions.`} />
       </ComponentPreview>
@@ -1566,8 +1577,9 @@ ${[
         <div data-typography={previewTypography} className="platform-example-row platform-banner-preview">
           {alertDismissed
             ? <Button appearance="main" level="tertiary" size="sm" onClick={() => setAlertDismissed(false)}>Show banner again</Button>
-            : <AlertBanner theme={theme} size={size} leading={alertLeading} action={alertAction ? { label: "Details" } : undefined} onClose={alertClose ? () => setAlertDismissed(true) : undefined}>{messages[theme]}</AlertBanner>}
+            : <AlertBanner theme={theme} size={size} leading={alertLeading} action={alertAction ? { label: "Details", onClick: () => logAction("Details", "action.onClick") } : undefined} onClose={alertClose ? () => setAlertDismissed(true) : undefined}>{messages[theme]}</AlertBanner>}
         </div>
+        {actionNote}
         <PlatformCode code={`import { AlertBanner } from "@zen/design-system";
 
 <AlertBanner
@@ -1737,8 +1749,9 @@ ${code}`} />
           <PlaygroundToggle label="Card" selected={metricCard} onChange={setMetricCard} />
         </div>
         <div data-typography={previewTypography} className="platform-example-row platform-metric-preview">
-          {metricCard ? <MetricCard {...props} subAction={{ label: "Metric actions", icon: "icon-dots-vertical-line" }} /> : <Metric {...props} />}
+          {metricCard ? <MetricCard {...props} subAction={{ label: "Metric actions", icon: "icon-dots-vertical-line", onClick: () => logAction("Metric actions", "subAction.onClick") }} /> : <Metric {...props} />}
         </div>
+        {actionNote}
         <PlatformCode code={`import { ${metricCard ? "MetricCard" : "Metric"} } from "@zen/design-system";
 
 <${metricCard ? "MetricCard" : "Metric"}
@@ -1879,7 +1892,7 @@ ${code}`} />
           <PlaygroundToggle label="Sub-Action" selected={cardSubAction} onChange={setCardSubAction} />
         </div>
         <div data-typography={previewTypography} className="platform-example-row platform-card-preview" data-tone={theme}>
-          <Card theme={theme} spacing={spacing} active={cardActive} subAction={cardSubAction ? { label: "More actions" } : undefined}>
+          <Card theme={theme} spacing={spacing} active={cardActive} subAction={cardSubAction ? { label: "More actions", onClick: () => logAction("More actions", "subAction.onClick") } : undefined}>
             <div className="platform-card-demo">
               <DockIcon icon="icon-colors-line" theme="accent" background="subtle" />
               <span className={typographyStyles["Body/Base/Bold"]}>Design tokens</span>
@@ -1887,6 +1900,7 @@ ${code}`} />
             </div>
           </Card>
         </div>
+        {actionNote}
         <PlatformCode code={`import { Card } from "@zen/design-system";
 
 <Card${theme !== "shadow" ? ` theme="${theme}"` : ""}${spacing !== "medium" ? ` spacing="${spacing}"` : ""}${cardActive ? " active" : ""}${cardSubAction ? `
@@ -1940,10 +1954,11 @@ ${code}`} />
             {people.map((person) => (
               <ListItem key={person.id} title={person.name} caption={listCaption ? person.role : undefined} selected={listSelected === person.id} onClick={() => setListSelected(person.id)}
                 leading={listLeading ? <Avatar size="medium" theme={person.theme} alt="">{person.initials}</Avatar> : undefined}
-                trailing={listTrailing ? <IconButton appearance="flat" level="primary" size="md" aria-label={`Message ${person.name}`} icon={<Icon name="icon-message-chat-circle-line" />} /> : undefined} />
+                trailing={listTrailing ? <IconButton appearance="flat" level="primary" size="md" aria-label={`Message ${person.name}`} icon={<Icon name="icon-message-chat-circle-line" />} onClick={() => logAction(`Message ${person.name}`)} /> : undefined} />
             ))}
           </List>
         </div>
+        {actionNote}
         <PlatformCode code={`import { List, ListItem } from "@zen/design-system";
 
 <List aria-label="Team"${listInset && listInset !== "auto" ? ` inset="${listInset}"` : ""}>
@@ -1955,7 +1970,7 @@ ${code}`} />
       selected={selected === person.id}
       onClick={() => setSelected(person.id)}${listLeading ? `
       leading={<Avatar size="medium" theme={person.theme} alt="">{person.initials}</Avatar>}` : ""}${listTrailing ? `
-      trailing={<IconButton appearance="flat" level="primary" size="md" aria-label={\`Message \${person.name}\`} icon={<Icon name="icon-message-chat-circle-line" />} />}` : ""}
+      trailing={<IconButton appearance="flat" level="primary" size="md" aria-label={\`Message \${person.name}\`} icon={<Icon name="icon-message-chat-circle-line" />} onClick={() => message(person)} />}` : ""}
     />
   ))}
 </List>`} />
@@ -2033,15 +2048,16 @@ ${code}`} />
         </div>
         <div data-typography={previewTypography} className="platform-example-row platform-table-preview">
           <Table aria-label="Projects" rows={rows} getRowId={(row) => row.id} selectable={tableSelectable} selectedIds={tableSelected} onSelectionChange={setTableSelected} sort={tableSort} onSortChange={setTableSort}
-            empty={<EmptyState title="No projects yet" illustration={false} primaryAction={{ label: "Create project" }}>Projects you create show up here.</EmptyState>}
+            empty={<EmptyState title="No projects yet" illustration={false} primaryAction={{ label: "Create project", onClick: () => logAction("Create project", "primaryAction.onClick") }}>Projects you create show up here.</EmptyState>}
             columns={[
               { id: "name", header: "Project", sortable: true, width: "34%", cell: (row) => <TableMedia media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia> },
               { id: "status", header: "Status", cell: (row) => <Badge size="medium" theme={row.status === "Live" ? "green" : row.status === "Blocked" ? "red" : "yellow"} background="subtle">{row.status}</Badge> },
               { id: "progress", header: "Progress", width: "20%", cell: (row) => <ProgressBar value={row.progress} theme="accent" aria-label={`${row.name} progress`} /> },
               { id: "trend", header: "Traffic", cell: (row) => <TableTrend trend={row.trend}>{row.delta}</TableTrend> },
-              { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: (row) => <TableActions><IconButton appearance="flat" level="primary" size="sm" aria-label={`Open ${row.name}`} icon={<Icon name="icon-dots-horizontal-line" />} /></TableActions> },
+              { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: (row) => <TableActions><IconButton appearance="flat" level="primary" size="sm" aria-label={`Open ${row.name}`} icon={<Icon name="icon-dots-horizontal-line" />} onClick={() => logAction(`Open ${row.name}`)} /></TableActions> },
             ]} />
         </div>
+        {actionNote}
         <PlatformCode code={`import { Table, TableMedia, TableText, TableTrend, TableActions } from "@zen/design-system";
 
 <Table
@@ -2114,8 +2130,9 @@ ${code}`} />
         <div data-typography={previewTypography} className="platform-example-row platform-inline-message-preview">
           {inlineDismissed
             ? <Button appearance="main" level="tertiary" size="sm" onClick={() => setInlineDismissed(false)}>Show message again</Button>
-            : <InlineMessage theme={theme} title={inlineTitle ? copy[theme][0] : undefined} action={inlineAction ? { label: "Learn more" } : undefined} onClose={inlineClose ? () => setInlineDismissed(true) : undefined}>{inlineCaption || !inlineTitle ? copy[theme][1] : undefined}</InlineMessage>}
+            : <InlineMessage theme={theme} title={inlineTitle ? copy[theme][0] : undefined} action={inlineAction ? { label: "Learn more", onClick: () => logAction("Learn more", "action.onClick") } : undefined} onClose={inlineClose ? () => setInlineDismissed(true) : undefined}>{inlineCaption || !inlineTitle ? copy[theme][1] : undefined}</InlineMessage>}
         </div>
+        {actionNote}
         <PlatformCode code={`import { InlineMessage } from "@zen/design-system";
 
 <InlineMessage
@@ -2141,8 +2158,9 @@ ${code}`} />
           <PlaygroundToggle label="Secondary CTA" selected={emptySecondary} onChange={setEmptySecondary} />
         </div>
         <div data-typography={previewTypography} className="platform-example-row platform-empty-state-preview">
-          <EmptyState title="No projects yet" illustration={emptyIllustration} icon="icon-folder-line" primaryAction={emptyPrimary ? { label: "Create project" } : undefined} secondaryAction={emptySecondary ? { label: "Import from Figma" } : undefined}>{emptyCaption ? "Projects you create or join will show up here." : undefined}</EmptyState>
+          <EmptyState title="No projects yet" illustration={emptyIllustration} icon="icon-folder-line" primaryAction={emptyPrimary ? { label: "Create project", onClick: () => logAction("Create project", "primaryAction.onClick") } : undefined} secondaryAction={emptySecondary ? { label: "Import from Figma", onClick: () => logAction("Import from Figma", "secondaryAction.onClick") } : undefined}>{emptyCaption ? "Projects you create or join will show up here." : undefined}</EmptyState>
         </div>
+        {actionNote}
         <PlatformCode code={`import { EmptyState } from "@zen/design-system";
 
 <EmptyState

@@ -59,6 +59,115 @@ const NOOP_KEY = /\b(on[A-Z]\w*)\s*:\s*(async\s*)?\(\s*[\w\s,]*\)\s*=>\s*(\{\s*\
 const ACTION_OBJECTS = /^(action|primaryAction|secondaryAction|actions|items)$/;
 /** Inside a template string (the platform's code samples): documentation, not a live example. */
 const inCodeSample = (src, end) => ((src.slice(0, end).match(/(?<!\\)`/g) ?? []).length) % 2 === 1;
+// interaction/action-without-handler: actions passed with no handler at all (the no-op rule only sees empty ones).
+/** Text parts of template literals (code samples), as [from, to) ranges: one pass per file, cached. Unlike inCodeSample's
+ *  backtick count it follows `${…}`, so a sample nested in a playground's code (`${flag ? `<Button …>` : ""}`) counts
+ *  too. Comments are skipped (their backticks are prose). */
+let sampleSource = null, sampleRanges = [];
+const templateText = (src) => {
+  if (src === sampleSource) return sampleRanges;
+  const ranges = [], stack = [];
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i], top = stack[stack.length - 1];
+    if (top?.text) {
+      if (ch === "\\") i += 1;
+      else if (ch === "`") { ranges.push([top.from, i]); stack.pop(); }
+      else if (ch === "$" && src[i + 1] === "{") { ranges.push([top.from, i]); stack.push({ depth: 0 }); i += 1; }
+      continue;
+    }
+    if (ch === "/" && src[i + 1] === "*" && /[\s{}()[\];,:=?|&!>]/.test(src[i - 1] ?? "\n")) { const close = src.indexOf("*/", i + 2); i = close < 0 ? src.length : close + 1; continue; }
+    if (ch === "/" && src[i + 1] === "/" && /[\s;{}(),]/.test(src[i - 1] ?? "\n")) { const eol = src.indexOf("\n", i); i = eol < 0 ? src.length : eol; continue; }
+    if (ch === "`") stack.push({ text: true, from: i + 1 });
+    else if (top && ch === "{") top.depth += 1;
+    else if (top && ch === "}") { if (top.depth > 0) top.depth -= 1; else { stack.pop(); stack[stack.length - 1].from = i + 1; } }
+  }
+  sampleSource = src; sampleRanges = ranges;
+  return ranges;
+};
+const inTemplateText = (src, index) => templateText(src).some(([from, to]) => index >= from && index < to);
+/** Component internals get their handlers through props: the rule judges the repo's demo code (platform examples and
+ *  playgrounds, templates, fixtures), never src/components, and never apps (repoOnly). */
+const COMPONENT_SOURCE = /(^|[\\/])src[\\/]components[\\/]/;
+/** Action-object props ({ icon?, label, onClick? }): without onClick the action is drawn, focusable, and does nothing.
+ *  Dialog, ModalForm, SidePanel and BottomSheet are left out on purpose: they give ModalActions an onDefault that
+ *  closes the overlay, so their actions without onClick close it (the documented default). */
+const ACTION_PROPS = {
+  TopNavigation: ["leading", "trailing", "largeTitleAction"], TopNavigationActionButton: ["action"], BottomNavigation: ["action"],
+  EmptyState: ["primaryAction", "secondaryAction"],
+  AlertBanner: ["action"], InlineMessage: ["action"], Toast: ["action"], ActionBar: ["primaryAction", "secondaryAction"],
+  Card: ["subAction"], MetricCard: ["subAction"], AiChatBubble: ["actions"], AiChatBlock: ["suggestions"],
+  ModalActions: ["primaryAction", "secondaryAction", "tertiaryAction"], // only without onDefault
+};
+/** Lists whose entries are pressed through the component's handler. `own`: an entry can bring its own (onSelect,
+ *  href), so only literal entries are judged; otherwise a list without the handler is dead whatever it holds. */
+const ITEM_LISTS = {
+  Menu: { props: ["items"], handler: "onSelect", own: true },
+  Breadcrumbs: { props: ["items"], handler: "onNavigate", own: true },
+  Sidebar: { props: ["sections"], handler: "onItemClick", own: true },
+  SidebarSubMenu: { props: ["items", "sections"], handler: "onItemClick", own: true },
+  BottomSheet: { props: ["items"], handler: "onSelect", own: false },
+  Popover: { props: ["items"], handler: "onSelect", own: false },
+  BottomNavigation: { props: ["items"], handler: "onValueChange", own: false },
+};
+/** Props that make a button do something when pressed. */
+const PRESS_PROPS = ["onClick", "onPointerDown", "onPointerUp", "onMouseDown", "onMouseUp", "href", "to", "form"];
+/** Object literals in an expression, with their nesting depth among objects. A `{` after `=`, `>` or a word is a JSX
+ *  container or a block, not an object: it is skipped with everything inside it. Strings are skipped. */
+const objectLiterals = (source) => {
+  const out = [], open = [];
+  for (let i = 0, quote = null; i < source.length; i++) {
+    const ch = source[i];
+    if (quote) { if (ch === "\\") i += 1; else if (ch === quote) quote = null; continue; }
+    if (ch === '"' || ch === "'" || ch === "`") { quote = ch; continue; }
+    if (ch === "{") {
+      const before = source.slice(0, i).trimEnd().slice(-1);
+      if (before && !"([,:?|&".includes(before)) { // skip a JSX container or a block
+        for (let depth = 0, q = null; i < source.length; i++) { const c = source[i]; if (q) { if (c === "\\") i += 1; else if (c === q) q = null; } else if (c === '"' || c === "'" || c === "`") q = c; else if (c === "{") depth += 1; else if (c === "}" && --depth === 0) break; }
+        continue;
+      }
+      open.push(i);
+    } else if (ch === "}" && open.length) { const from = open.pop(); out.push({ from, depth: open.length, text: source.slice(from, i + 1) }); }
+  }
+  return out.sort((a, b) => a.from - b.from);
+};
+/** Top-level properties of an object literal: Map(key → value source); `{ label, onClick }` shorthand gives "", a spread "...". */
+const objectProps = (literal) => {
+  const body = literal.slice(1, -1), props = new Map();
+  const take = (segment) => {
+    const s = segment.trim(); if (!s) return;
+    if (s.startsWith("...")) { props.set("...", s.slice(3)); return; }
+    const m = s.match(/^(?:["']([^"']+)["']|([A-Za-z_$][\w$]*))\s*(?::([\s\S]*))?$/) ?? s.match(/^()([A-Za-z_$][\w$]*)\s*\(/);
+    if (m) props.set(m[1] || m[2], m[3]?.trim() ?? "");
+  };
+  let depth = 0, start = 0;
+  for (let i = 0, quote = null; i < body.length; i++) {
+    const ch = body[i];
+    if (quote) { if (ch === "\\") i += 1; else if (ch === quote) quote = null; continue; }
+    if (ch === '"' || ch === "'" || ch === "`") quote = ch;
+    else if ("{[(".includes(ch)) depth += 1;
+    else if ("}])".includes(ch)) depth -= 1;
+    else if (ch === "," && depth === 0) { take(body.slice(start, i)); start = i + 1; }
+  }
+  take(body.slice(start));
+  return props;
+};
+/** Pressing it does something: its own handler or link, a submit, or props spread in from elsewhere. */
+const handlesPress = (props) => ["onClick", "onSelect", "href", "to", "..."].some((key) => props.has(key)) || /["'`]submit["'`]/.test(props.get("type") ?? "");
+/** An entry someone can press: a label or an icon, not a section/group holding other entries, not pinned disabled. */
+const pressable = (props) => (props.has("label") || props.has("icon")) && !props.has("items") && !props.has("children")
+  && !/^["'`](separator|group)["'`]$/.test(props.get("type") ?? "") && props.get("disabled") !== "true";
+const actionName = (props) => { const v = props.get("label") ?? props.get("aria-label") ?? ""; return `"${(v.match(/^["'`]([^"'`]*)["'`]$/)?.[1] ?? v).slice(0, 40) || "unnamed"}"`; };
+/** Props spread in (`{...rest}`) may bring the handler. (Not `opaque`: live code builds names with `${…}` too.) */
+const spreadsProps = (attrs) => /(^|\s)\{\s*\.\.\./.test(attrs);
+/** The element at `start` sits inside the `prop={…}` expression of an enclosing tag (a Menu's trigger). */
+const insideProp = (src, start, prop) => {
+  const from = src.lastIndexOf(`${prop}={`, start); if (from < 0 || start - from > 600) return false;
+  let depth = 0;
+  for (let i = from + prop.length + 1; i < start; i++) { if (src[i] === "{") depth += 1; else if (src[i] === "}") depth -= 1; }
+  return depth > 0;
+};
+/** A bare boolean or `{true}`: the state is pinned for the whole example. */
+const pinnedOn = (own, name) => own.get(name)?.bare === true || /^\s*true\s*$/.test(own.get(name)?.expr ?? "");
 
 /* ── rule registry ─────────────────────────────────────────────────── */
 // Each rule: id, components (JSX tag names), severity, allow (suppression token), guideline, summary, check(ctx) → message | null.
@@ -185,6 +294,13 @@ function setInteractionProps(apiDocs) {
       if (!change || firstArgType(change.type) !== String(prop.type ?? "").replace(/\s+/g, "")) continue;
       (CONTROLLED[c.name] ??= {})[name] = [change.name, ...(/^(value|checked)$/.test(name) && props.has("onChange") ? ["onChange"] : []), ...(name === "open" && props.has("onClose") ? ["onClose"] : [])];
     }
+  }
+  // DatePicker with showActions commits through onApply(value, range), which changes value and range too. `range`
+  // (DatePickerRange | null) never matches onRangeChange's argument, so it is paired by hand.
+  const datePicker = apiDocs.flatMap((doc) => doc.components ?? []).find((c) => c.name === "DatePicker");
+  if (datePicker?.props?.some((p) => p.name === "onApply")) {
+    CONTROLLED.DatePicker?.value?.push("onApply");
+    if (datePicker.props.some((p) => p.name === "range")) (CONTROLLED.DatePicker ??= {}).range = ["onRangeChange", "onApply"];
   }
   controlledComponents.splice(0, controlledComponents.length, ...Object.keys(CONTROLLED).sort());
   handlerComponents.splice(0, handlerComponents.length, ...[...takesHandlers].sort());
@@ -322,7 +438,8 @@ export const rules = [
   { id: "icon-button/needs-action", components: ["IconButton"], severity: "warn", allow: "no-action", guideline: "docs/guidelines/button.md",
     summary: "An IconButton does something: it has onClick (or href, or type=\"submit\"), unless it is a Menu trigger (the Menu wires it).",
     check: ({ attrs, parent, src, start }) => {
-      if (["onClick", "href", "onPointerDown", "onMouseDown"].some((name) => present(attrs, name)) || /\btype="(submit|reset)"/.test(attrs)) return null;
+      // `${…}` and "…" only make a code sample opaque; in live code aria-label={`Edit ${name}`} is just a label.
+      if (["onClick", "href", "onPointerDown", "onMouseDown"].some((name) => has(attrs, name)) || spreadsProps(attrs) || (opaque(attrs) && inTemplateText(src, start)) || /\btype="(submit|reset)"/.test(attrs)) return null;
       // `<Menu trigger={<IconButton …/>}>` (self-closing too): the owner wires the trigger.
       if (/\btrigger=\{\s*(\(\s*)?$/.test(src.slice(Math.max(0, start - 40), start))) return null;
       if (["Menu", "MenuTrigger", "Popover"].includes(parent()?.tag ?? "")) return null;
@@ -845,6 +962,52 @@ export const rules = [
         if (!handlers.some((h) => own.has(h))) return `passes ${prop} without ${handlers.join(" or ")}, so nothing can change it and the control is frozen${inCodeSample(src, end) ? " (a code sample: readers copy it)" : ""} — keep ${prop} in state and add ${handlers[0]}.`;
       }
       return null;
+    } },
+  // The behaviour probes (2026-09-28): an inline "Report period" whose Cancel and Submit both only closed, doing nothing.
+  { id: "date-picker/actions-need-apply", components: ["DatePicker"], severity: "warn", allow: "date-apply", guideline: "docs/guidelines/date-picker.md",
+    summary: "A DatePicker with showActions commits in onApply(value, range): picks are a draft that Submit applies and Cancel drops. Without onApply the app never hears what Submit applied.",
+    check: ({ attrs, src, end }) => {
+      if (/@storybook\//.test(src) || spreadsProps(attrs)) return null;
+      const own = topAttrs(attrs);
+      const actions = own.get("showActions");
+      if (!actions || /^\s*false\s*$/.test(actions.expr ?? "") || own.has("onApply")) return null;
+      return `passes showActions without onApply, so Submit applies nothing the app can read${inCodeSample(src, end) ? " (a code sample: readers copy it)" : ""} — commit the picked value in onApply(value, range); Cancel returns to the applied value by itself.`;
+    } },
+  { id: "interaction/action-without-handler", repoOnly: true, components: ["Button", "button", ...new Set([...Object.keys(ACTION_PROPS), ...Object.keys(ITEM_LISTS)])], severity: "warn", allow: "action-handler", guideline: "docs/guidelines/README.md",
+    summary: "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+    check: ({ tag, attrs, children, src, start, end, file }) => {
+      if (inTemplateText(src, start) || /@storybook\//.test(src) || COMPONENT_SOURCE.test(file ?? "")) return null; // code samples, stories, component internals
+      const own = topAttrs(attrs);
+      if (tag === "Button" || tag === "button") {
+        if (spreadsProps(attrs) || PRESS_PROPS.some((p) => own.has(p)) || /submit|reset/.test(own.get("type")?.literal ?? own.get("type")?.expr ?? "")) return null;
+        if (pinnedOn(own, "disabled") || pinnedOn(own, "loading") || own.get("aria-disabled")?.literal === "true" || own.get("aria-hidden")?.literal === "true") return null;
+        // A Menu clones its trigger and adds the click that opens it: trigger={<Button …/>} (a ternary too), or
+        // `const t = <Button …/>` used as trigger={t}.
+        const variable = src.slice(Math.max(0, start - 80), start).match(/\b(?:const|let)\s+(\w+)\s*=\s*\(?\s*$/)?.[1];
+        if (insideProp(src, start, "trigger") || (variable && new RegExp(`\\btrigger=\\{\\s*${variable}\\s*\\}`).test(src))) return null;
+        const name = own.get("aria-label")?.literal ?? own.get("aria-label")?.expr ?? (children ?? "").replace(/<[^>]*>/g, " ").replace(/\{[^{}]*\}/g, "…").replace(/\s+/g, " ").trim();
+        return `"${(name || "unnamed").slice(0, 40)}" has no onClick (or href, type="submit"), so pressing it does nothing — make it do something visible (open a sheet or dialog, select, confirm in place, navigate inside the demo) or leave it out.`;
+      }
+      const dead = [];
+      if (!(tag === "ModalActions" && own.has("onDefault"))) for (const prop of ACTION_PROPS[tag] ?? []) {
+        const v = own.get(prop)?.expr; if (!v || /^\s*\(?\s*</.test(v)) continue; // a node, not an action object
+        const names = objectLiterals(v).filter((o) => o.depth === 0).map((o) => objectProps(o.text)).filter((p) => (p.has("label") || p.has("icon")) && !handlesPress(p)).map(actionName);
+        if (names.length) dead.push(`${prop} ${names.join(", ")}`);
+      }
+      const list = ITEM_LISTS[tag];
+      const listLive = !list || own.has(list.handler) || spreadsProps(attrs) || (tag === "BottomSheet" && own.get("type")?.literal !== "action") || (tag === "BottomNavigation" && own.has("value"));
+      if (!listLive) for (const prop of list.props) {
+        const v = own.get(prop); if (!v) continue;
+        if (!list.own) { dead.push(prop); continue; } // entries cannot bring their own handler
+        if (v.expr === undefined) continue;
+        let entries = objectLiterals(v.expr).map((o) => objectProps(o.text)).filter(pressable);
+        if (tag === "Breadcrumbs") entries = entries.slice(0, -1); // the last crumb is the current page, not a button
+        const names = entries.filter((p) => !handlesPress(p)).map(actionName);
+        if (names.length) dead.push(`${prop} ${names.join(", ")}`);
+      }
+      if (!dead.length) return null;
+      const fix = list && !listLive ? ` (add ${list.handler}${list.own ? ", or give each entry its own handler or href" : ""})` : "";
+      return `passes ${dead.join("; ")} with no handler, so pressing them does nothing${fix} — make each one do something visible (open a sheet or dialog, select, confirm in place, navigate inside the demo) or leave it out.`;
     } },
   { id: "focus/state-parity", css: true, components: [], severity: "error", allow: "focus-parity", guideline: "docs/guidelines/input.md",
     summary: "Focus never looks like the state it starts from: a :focus / :focus-visible / :focus-within selector is not listed in the same rule as its resting state (an error field whose focus changed nothing). Give focus its own rule with the ring (WCAG 2.4.7).",

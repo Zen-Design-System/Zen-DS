@@ -96,24 +96,31 @@ export function DatePickerHeader({ month, onPrevious, onNext, onMonthYearClick, 
 }
 
 export interface DatePickerActionProps {
+  /** Figma Action: `dual` (Cancel + Submit) or `single` (Submit only). */
   action?: "single" | "dual";
+  /** Pressing Cancel (the Tertiary button). */
   onCancel?: () => void;
+  /** Pressing Submit (the Primary button). */
   onApply?: () => void;
   /** Text of the Tertiary button. Default: the locale's "Cancel". */
   cancelLabel?: ReactNode;
   /** Text of the Primary button. Default: the locale's "Submit". */
   applyLabel?: ReactNode;
+  /** Cancel in its Button/Main Disabled state, e.g. while there is nothing to cancel. */
+  cancelDisabled?: boolean;
+  /** Submit in its Button/Main Disabled state, e.g. until a range has its end date. */
+  applyDisabled?: boolean;
 }
 
-/** `.Primitives/Date-Picker/Action`: Button/Main Small Tertiary "Cancel" + Primary "Submit". */
-export function DatePickerAction({ action = "dual", onCancel, onApply, cancelLabel: cancelLabelProp, applyLabel: applyLabelProp }: DatePickerActionProps) {
+/** `.Primitives/Date-Picker/Action` (460:38871): Button/Main Small Tertiary "Cancel" + Primary "Submit", gap Spacing/Gap/XSmall. */
+export function DatePickerAction({ action = "dual", onCancel, onApply, cancelLabel: cancelLabelProp, applyLabel: applyLabelProp, cancelDisabled, applyDisabled }: DatePickerActionProps) {
   const t = useZenLabels();
   const cancelLabel = cancelLabelProp === undefined ? t.cancel : cancelLabelProp;
   const applyLabel = applyLabelProp === undefined ? t.apply : applyLabelProp;
   return (
     <footer className="zen-date-picker__actions">
-      {action === "dual" ? <Button level="tertiary" size="sm" onClick={onCancel}>{cancelLabel}</Button> : null}
-      <Button level="primary" size="sm" onClick={onApply}>{applyLabel}</Button>
+      {action === "dual" ? <Button level="tertiary" size="sm" disabled={cancelDisabled} onClick={onCancel}>{cancelLabel}</Button> : null}
+      <Button level="primary" size="sm" disabled={applyDisabled} onClick={onApply}>{applyLabel}</Button>
     </footer>
   );
 }
@@ -344,21 +351,56 @@ function monthDays(month: Date) {
     return day < 1 || day > count ? null : new Date(first.getFullYear(), first.getMonth(), day);
   });
 }
+/** What the calendar shows: the single date and the range (each selection mode reads its own). */
+type DatePickerSelection = { date: Date | null; range: DatePickerRange | null };
+/** The selection in `mode` as a key of days (not instants): equal keys are the same selection. */
+function selectionKey(selection: DatePickerSelection, mode: "single" | "range") {
+  const day = (date: Date | null | undefined) => (date ? dateKey(date) : "");
+  return mode === "range" ? `${day(selection.range?.start)}-${day(selection.range?.end)}` : day(selection.date);
+}
+const sameSelection = (a: DatePickerSelection, b: DatePickerSelection, mode: "single" | "range") => selectionKey(a, mode) === selectionKey(b, mode);
+
+/** A date range; `end` is null until the second date is picked. */
+export interface DatePickerRange {
+  start: Date;
+  end: Date | null;
+}
 
 export interface DatePickerProps {
   /** Default true: DatePicker is the calendar panel itself. As a popover, pass `open` with `onOpenChange` (or `onClose`). */
   open?: boolean;
+  /** Single mode, controlled: the selected date. With `showActions` it is the applied date; picks stay a draft until Submit. */
   value?: Date | null;
+  /** Single mode, uncontrolled: the date selected at first. */
   defaultValue?: Date | null;
+  /** Range mode, controlled: the selected range. With `showActions` it is the applied range; picks stay a draft until Submit. */
+  range?: DatePickerRange | null;
+  /** Range mode, uncontrolled: the range selected at first. */
+  defaultRange?: DatePickerRange | null;
   /** First (left) visible month. */
   month?: Date;
-  /** Called with the picked date; in range mode with the start, then again with the end (see `onRangeChange`). */
+  /** Called with each picked date; in range mode with the start, then again with the end (see `onRangeChange`). With
+   * `showActions` a pick is a draft: read the applied value in `onApply`. */
   onValueChange?: (date: Date | null) => void;
   /** @deprecated Use onValueChange (same arguments). */
   onChange?: (date: Date | null) => void;
-  /** Range mode: called with the new start (end = null) and again once the end date is picked. */
-  onRangeChange?: (range: { start: Date; end: Date | null }) => void;
+  /** Range mode: called with the new start (end = null) and again once the end date is picked. With `showActions`
+   * these are drafts: read the applied range in `onApply`. */
+  onRangeChange?: (range: DatePickerRange) => void;
   onMonthChange?: (month: Date) => void;
+  /**
+   * With `showActions`, pressing Submit (the Primary action) applies the picks, then closes a popover. Called with the
+   * picked date (single mode; null in range mode) and the picked range (range mode; null in single mode). An
+   * uncontrolled picker keeps what was applied and Cancel returns to it; a controlled one expects `value` / `range` to
+   * follow. Inline, Submit is disabled until there is a change, and in range mode until the end date is picked.
+   */
+  onApply?: (value: Date | null, range: DatePickerRange | null) => void;
+  /**
+   * With `showActions`, pressing Cancel (the Tertiary action) drops the picks made since the last Submit (the
+   * calendar shows the applied value again), then calls this and closes a popover. Inline, Cancel is disabled while
+   * there is nothing to drop. Escape and an outside click close a popover without applying, too.
+   */
+  onCancel?: () => void;
   /** Popover behaviour: called on a pointer-down outside the picker (and outside `anchorRef`), on
    * Escape, after a single date / a complete range is picked (without actions), and by the actions. */
   onClose?: () => void;
@@ -366,7 +408,10 @@ export interface DatePickerProps {
   onOpenChange?: (open: boolean) => void;
   /** The trigger. Pointer-downs on it are left to its own toggle; Escape returns focus to it. */
   anchorRef?: RefObject<HTMLElement | null>;
+  /** Figma `Actions`: Cancel + Submit under the calendar. Picks are then a draft that Submit applies (`onApply`) and
+   * Cancel drops (`onCancel`); without actions a pick applies at once. */
   showActions?: boolean;
+  /** `.Primitives/Date-Picker/Action`: `dual` (Cancel + Submit, default) or `single` (Submit only). */
   action?: "single" | "dual";
   selectionMode?: "single" | "range";
   /** Figma Date-Picker/Single-Calendar or Date-Picker/Dual-Calendar (two consecutive months side by
@@ -377,18 +422,24 @@ export interface DatePickerProps {
   className?: string;
 }
 
-/** Figma `Date-Picker/Single-Calendar` and `Date-Picker/Dual-Calendar` on the shared token and
+/** Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` on the shared token and
  * Button primitives. The single calendar's month/year opens the Select-Month-Year state. It is
- * also the calendar surface used by Input/Date-Field. */
+ * also the calendar surface used by Input/Date-Field. With `showActions` (Figma Actions,
+ * `.Primitives/Date-Picker/Action` 460:38871) picks are a draft: Submit applies it through `onApply(value, range)`,
+ * Cancel drops it (`onCancel`) and the calendar shows the applied `value` / `range` again. */
 export function DatePicker({
   open = true,
   value,
   defaultValue = null,
+  range,
+  defaultRange = null,
   month: controlledMonth,
   onValueChange,
   onChange,
   onRangeChange,
   onMonthChange,
+  onApply,
+  onCancel,
   onClose,
   onOpenChange,
   anchorRef,
@@ -404,12 +455,21 @@ export function DatePicker({
   const locale = useZenLocale();
   const weekdays = useMemo(() => weekdayInitials(locale), [locale]);
   const [internalValue, setInternalValue] = useState<Date | null>(defaultValue);
-  const [internalMonth, setInternalMonth] = useState<Date>(() => monthStart(value ?? defaultValue ?? new Date()));
+  const [internalRange, setInternalRange] = useState<DatePickerRange | null>(defaultRange);
+  const [internalMonth, setInternalMonth] = useState<Date>(() => monthStart(value ?? defaultValue ?? range?.start ?? defaultRange?.start ?? new Date()));
   const [view, setView] = useState<"days" | "month-year">("days");
-  const selected = value === undefined ? internalValue : value;
+  // The applied selection; with actions, picks are a draft over it until Submit (null: no draft, show the applied one).
+  const applied: DatePickerSelection = { date: value === undefined ? internalValue : value, range: range === undefined ? internalRange : range };
+  const [draft, setDraft] = useState<DatePickerSelection | null>(null);
+  const shown = showActions && draft ? draft : applied;
+  const selected = shown.date;
+  const rangeStart = shown.range?.start ?? null;
+  const rangeEnd = shown.range?.end ?? null;
+  const dirty = Boolean(showActions && draft && !sameSelection(draft, applied, selectionMode));
+  // A new applied value (Submit, a controlled change such as a date typed into the field) replaces any draft.
+  const appliedKey = selectionKey(applied, selectionMode);
+  useEffect(() => { setDraft(null); }, [appliedKey]);
   const currentMonth = controlledMonth ? monthStart(controlledMonth) : internalMonth;
-  const [rangeStart, setRangeStart] = useState<Date | null>(null);
-  const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
   const months = useMemo(() => (calendar === "dual" ? [currentMonth, addMonths(currentMonth, 1)] : [currentMonth]), [calendar, currentMonth]);
   // Smooth view switch: the viewport height follows the measured content (CSS transitions it) and
   // the incoming view plays its enter animation — only after a switch, not on first open.
@@ -469,8 +529,8 @@ export function DatePicker({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [open, hasClose, anchorRef]);
-  // Every opening starts on the day view.
-  useEffect(() => { if (!open) { setView("days"); setSwitched(false); } }, [open]);
+  // Every opening starts on the day view and on the applied value (closing without Submit drops the draft).
+  useEffect(() => { if (!open) { setView("days"); setSwitched(false); setDraft(null); } }, [open]);
   const close = () => {
     requestClose();
     const anchor = anchorRef?.current;
@@ -486,18 +546,50 @@ export function DatePicker({
     if (minDate && dateKey(date) < dateKey(minDate)) return;
     if (maxDate && dateKey(date) > dateKey(maxDate)) return;
     if (selectionMode === "range") {
-      if (!rangeStart || rangeEnd) { setRangeStart(date); setRangeEnd(null); onValueChange?.(date); onChange?.(date); onRangeChange?.({ start: date, end: null }); return; }
-      const start = dateKey(date) < dateKey(rangeStart) ? date : rangeStart;
-      const end = dateKey(date) < dateKey(rangeStart) ? rangeStart : date;
-      setRangeStart(start); setRangeEnd(end); onValueChange?.(end); onChange?.(end); onRangeChange?.({ start, end });
-      if (!showActions) close();
+      // A pick after a complete range (or the first one) starts a new range; the next completes it, in either order.
+      const before = rangeStart && !rangeEnd ? dateKey(date) < dateKey(rangeStart) : false;
+      const next: DatePickerRange = !rangeStart || rangeEnd ? { start: date, end: null } : { start: before ? date : rangeStart, end: before ? rangeStart : date };
+      if (showActions) setDraft({ date: shown.date, range: next });
+      else if (range === undefined) setInternalRange(next);
+      onValueChange?.(next.end ?? next.start);
+      onChange?.(next.end ?? next.start);
+      onRangeChange?.(next);
+      if (next.end && !showActions) close();
       return;
     }
-    if (value === undefined) setInternalValue(date);
+    if (showActions) setDraft({ date, range: shown.range });
+    else if (value === undefined) setInternalValue(date);
     onValueChange?.(date);
     onChange?.(date);
     if (!showActions) close();
   };
+  // Inline, both actions turn disabled once nothing is left to apply or drop: keyboard focus on the one just pressed
+  // would fall back to the page, so it moves to the calendar (the selected day, else the first day that can be picked).
+  const finishAction = () => {
+    if (hasClose) { close(); return; }
+    const root = rootRef.current;
+    if (!root?.querySelector(".zen-date-picker__actions")?.contains(document.activeElement)) return;
+    requestAnimationFrame(() => {
+      const days = root.querySelector(".zen-date-picker__panels");
+      (days?.querySelector<HTMLElement>(".zen-date-picker__day:is([data-state^='range-selected'], [data-state='single-selected'])") ?? days?.querySelector<HTMLElement>(".zen-date-picker__day:not(:disabled)"))?.focus({ preventScroll: true });
+    });
+  };
+  // Submit: the draft becomes the applied value (kept here when uncontrolled; a controlled parent follows onApply).
+  const apply = () => {
+    if (selectionMode === "range") { if (range === undefined) setInternalRange(shown.range); }
+    else if (value === undefined) setInternalValue(shown.date);
+    setDraft(null);
+    onApply?.(selectionMode === "range" ? null : shown.date, selectionMode === "range" ? shown.range : null);
+    finishAction();
+  };
+  // Cancel: drop the draft, so the calendar shows the applied value again.
+  const cancel = () => {
+    setDraft(null);
+    onCancel?.();
+    finishAction();
+  };
+  // A range is applied whole: Submit waits for its end date.
+  const complete = selectionMode !== "range" || !shown.range || shown.range.end !== null;
   const isDisabled = (date: Date) => Boolean((minDate && dateKey(date) < dateKey(minDate)) || (maxDate && dateKey(date) > dateKey(maxDate)));
   const stateFor = (date: Date): DatePickerItemState => {
     const key = dateKey(date);
@@ -558,7 +650,8 @@ export function DatePicker({
                   </div>
                 ))}
               </div>
-              {showActions ? <DatePickerAction action={action} onCancel={close} onApply={close} /> : null}
+              {/* Inline there is nothing to close: the actions are live only while there is a draft to apply or drop. */}
+              {showActions ? <DatePickerAction action={action} onCancel={cancel} onApply={apply} cancelDisabled={!dirty && !hasClose} applyDisabled={!complete || (!dirty && !hasClose)} /> : null}
             </>
           )}
         </div>

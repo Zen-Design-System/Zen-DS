@@ -70,6 +70,7 @@ export function AdminListTemplate() {
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [sort, setSort] = useState<TableSort | null>({ columnId: "name", direction: "asc" });
   const [page, setPage] = useState(1);
+  const [navId, setNavId] = useState("members");
   const [inviteOpen, setInviteOpen] = useState(false);
   const [removing, setRemoving] = useState<Member | null>(null);
 
@@ -110,7 +111,7 @@ export function AdminListTemplate() {
 
   return (
     <AppShell
-      sidebar={<Sidebar logo={<Text as="span" textStyle="Heading/4">Acme</Text>} sections={nav} selectedId="members" onItemClick={() => setPage(1)} />}
+      sidebar={<Sidebar logo={<Text as="span" textStyle="Heading/4">Acme</Text>} sections={nav} selectedId={navId} onItemClick={(item) => { setNavId(item.id); setPage(1); }} />}
       headerActions={<IconButton aria-label="Notifications" icon={<Icon name="icon-bell-01-line" />} onClick={() => toast({ title: "No new notifications" })} />}
     >
       <Container>
