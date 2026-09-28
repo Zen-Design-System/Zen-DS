@@ -1,0 +1,49 @@
+/* Figma Inline-Message (595:54857). */
+.zen-inline-message {
+  --zen-inline-message-background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%));
+  --zen-inline-message-icon: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%));
+  --zen-inline-message-title: var(--zen-color-content-neutral-strongest, #111);
+  --zen-inline-message-caption: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%));
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  align-items: flex-start;
+  gap: var(--zen-spacing-gap-small, 12px);
+  padding: var(--zen-spacing-padding-medium, 16px);
+  border-radius: var(--zen-corner-radius-large, 16px);
+  background: var(--zen-inline-message-background);
+}
+/* Colour themes: icon Light (highlight), title Strongest, caption Base on the theme's Subtle surface. */
+.zen-inline-message[data-tone="info"] { --zen-inline-message-background: var(--zen-color-background-info-subtle-default); --zen-inline-message-icon: var(--zen-color-content-info-light); --zen-inline-message-title: var(--zen-color-content-info-strongest); --zen-inline-message-caption: var(--zen-color-content-info-base); }
+.zen-inline-message[data-tone="positive"] { --zen-inline-message-background: var(--zen-color-background-positive-subtle-default); --zen-inline-message-icon: var(--zen-color-content-positive-light); --zen-inline-message-title: var(--zen-color-content-positive-strongest); --zen-inline-message-caption: var(--zen-color-content-positive-base); }
+.zen-inline-message[data-tone="warning"] { --zen-inline-message-background: var(--zen-color-background-warning-subtle-default); --zen-inline-message-icon: var(--zen-color-content-warning-light); --zen-inline-message-title: var(--zen-color-content-warning-strongest); --zen-inline-message-caption: var(--zen-color-content-warning-base); }
+.zen-inline-message[data-tone="negative"] { --zen-inline-message-background: var(--zen-color-background-negative-subtle-default); --zen-inline-message-icon: var(--zen-color-content-negative-light); --zen-inline-message-title: var(--zen-color-content-negative-strongest); --zen-inline-message-caption: var(--zen-color-content-negative-base); }
+.zen-inline-message[data-tone="custom"] { --zen-inline-message-icon: var(--zen-color-content-disabled, rgb(0 0 0 / 25%)); }
+
+.zen-inline-message__container { display: flex; min-width: 0; flex: 1 1 auto; align-items: flex-start; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-inline-message__icon { display: inline-flex; flex: 0 0 auto; color: var(--zen-inline-message-icon); }
+.zen-inline-message__icon > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
+/* Custom Visual slot: a 36px image placeholder. */
+.zen-inline-message[data-tone="custom"] .zen-inline-message__icon > .zen-icon { width: var(--zen-element-size-popular-xlarge, 36px); height: var(--zen-element-size-popular-xlarge, 36px); }
+.zen-inline-message__content { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; align-items: flex-start; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-inline-message__text { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-inline-message__title { color: var(--zen-inline-message-title); }
+.zen-inline-message__caption { padding-block: var(--zen-spacing-padding-3-xsmall, 2px); color: var(--zen-inline-message-caption); }
+.zen-inline-message__close {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  background: transparent;
+  color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%));
+  cursor: pointer;
+}
+.zen-inline-message__close > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
+.zen-inline-message__close:hover { color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-inline-message__close:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
+/* Hit area ≥ 24×24 (WCAG 2.5.8) around the Figma-sized glyph: an invisible, centred layer; the visual size is unchanged. */
+.zen-inline-message__close { position: relative; }
+.zen-inline-message__close::after { position: absolute; top: 50%; left: 50%; width: max(100%, 24px); height: max(100%, 24px); content: ""; transform: translate(-50%, -50%); }

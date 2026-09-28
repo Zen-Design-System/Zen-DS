@@ -1935,7 +1935,7 @@
   --zen-color-background-surface-hover: var(--zen-light-neutral-alpha-1);
   --zen-color-background-surface-pressed: var(--zen-light-neutral-alpha-2);
   --zen-color-background-canvas-flat: var(--zen-white);
-  --zen-color-background-surface-flat: var(--zen-light-neutral-1);
+  --zen-color-background-surface-flat: var(--zen-white);
 }
 
 /* Mode Colors (Semantic) / Dark */
@@ -2351,7 +2351,9 @@
 
 /* Component Theme / Neutral - S1 */
 :root,
-[data-component-theme="neutral-s1"] {
+:where(:root [data-theme]),
+[data-component-theme="neutral-s1"],
+[data-component-theme="neutral-s1"] [data-theme] {
   --zen-button-primary-background-default: var(--zen-color-background-neutral-solid-default);
   --zen-button-primary-content-default: var(--zen-color-content-inverse-strongest);
   --zen-button-primary-background-hover: var(--zen-color-background-neutral-solid-hover);
@@ -2362,7 +2364,9 @@
   --zen-button-accent-background-pressed: var(--zen-color-background-accent-solid-pressed);
   --zen-checkbox-icon-check-default: var(--zen-color-content-inverse-strongest);
   --zen-checkbox-background-unselected-default: var(--zen-color-background-neutral-pale-default);
+  --zen-checkbox-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-checkbox-background-unselected-hover: var(--zen-color-background-neutral-pale-hover);
+  --zen-checkbox-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-checkbox-background-seclected-default: var(--zen-color-background-active-neutral-solid);
   --zen-chip-primary-background-unselected-default: var(--zen-color-background-neutral-ghost-default);
   --zen-chip-primary-background-unselected-hover: var(--zen-color-background-neutral-ghost-hover);
@@ -2373,10 +2377,12 @@
   --zen-checkbox-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-radio-button-icon-radio-default: var(--zen-color-content-inverse-strongest);
   --zen-radio-button-background-unselected-default: var(--zen-color-background-neutral-pale-default);
+  --zen-radio-button-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-radio-button-border-default: var(--zen-color-border-neutral-subtle-default);
   --zen-radio-button-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-radio-button-border-pressed: var(--zen-color-border-neutral-subtle-pressed);
   --zen-radio-button-background-unselected-hover: var(--zen-color-background-neutral-pale-hover);
+  --zen-radio-button-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-radio-button-background-seclected-default: var(--zen-color-background-active-neutral-solid);
   --zen-chip-primary-content-selected: var(--zen-color-content-inverse-strongest);
   --zen-chip-secondary-background-unselected-default: var(--zen-color-background-neutral-ghost-default);
@@ -2408,14 +2414,18 @@
   --zen-tag-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-tag-content-selected: var(--zen-color-content-inverse-strongest);
   --zen-date-picker-item-background-seclected-in-range-default: var(--zen-color-background-active-neutral-subtle);
+  --zen-date-picker-item-background-seclected-in-range-default-shadow-off: 0 0 #0000;
   --zen-date-picker-item-background-seclected-in-range-hover: var(--zen-color-background-neutral-subtle-hover);
+  --zen-date-picker-item-background-seclected-in-range-hover-shadow-off: 0 0 #0000;
   --zen-segmented-item-primary-content-selected: var(--zen-color-content-inverse-strongest);
   --zen-segmented-item-secondary-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-segmented-item-secondary-border-default: var(--zen-color-border-neutral-subtle-default);
   --zen-segmented-item-secondary-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-segmented-item-secondary-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-toggle-bar-background-unselected-default: var(--zen-color-background-neutral-subtle-default);
+  --zen-toggle-bar-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-toggle-bar-background-unselected-hover: var(--zen-color-background-neutral-subtle-hover);
+  --zen-toggle-bar-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-toggle-bar-background-seclected-default: var(--zen-color-background-active-neutral-solid);
   --zen-toggle-dot-background-unselected-default: var(--zen-color-background-white-solid-default);
   --zen-toggle-dot-background-seclected-default: var(--zen-color-background-inverse-solid-default);
@@ -2426,12 +2436,15 @@
   --zen-tab-background-default: var(--zen-color-background-neutral-flat-default);
   --zen-tab-background-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-tab-background-selected: var(--zen-color-background-active-neutral-subtle);
+  --zen-tab-background-selected-shadow-off: 0 0 #0000;
   --zen-tab-content-default: var(--zen-color-content-neutral-light);
   --zen-tab-content-hover: var(--zen-color-content-neutral-base);
   --zen-tab-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-table-cell-background-default: var(--zen-color-background-neutral-flat-default);
   --zen-table-cell-background-hover: var(--zen-color-background-support-neutral-pale);
+  --zen-table-cell-background-hover-shadow-off: 0 0 #0000;
   --zen-table-cell-background-selected: var(--zen-color-background-support-neutral-pale);
+  --zen-table-cell-background-selected-shadow-off: 0 0 #0000;
   --zen-button-tertiary-content-default: var(--zen-color-content-neutral-strongest);
   --zen-button-tertiary-background-default: var(--zen-color-background-neutral-ghost-default);
   --zen-button-tertiary-background-hover: var(--zen-color-background-neutral-ghost-hover);
@@ -2448,7 +2461,9 @@
   --zen-button-accent-content-hover: var(--zen-color-content-on-accent-hover);
   --zen-button-primary-content-hover: var(--zen-color-content-inverse-strongest);
   --zen-input-background-default: var(--zen-color-background-neutral-pale-default);
+  --zen-input-background-default-shadow-off: 0 0 #0000;
   --zen-input-background-hover: var(--zen-color-background-neutral-pale-hover);
+  --zen-input-background-hover-shadow-off: 0 0 #0000;
   --zen-input-border-default: #FFFFFF00;
   --zen-input-border-hover: #FFFFFF00;
   --zen-input-shadow-base: var(--zen-color-shadow-inverse-base);
@@ -2457,6 +2472,7 @@
   --zen-popover-border: var(--zen-color-border-popover-subtle);
   --zen-popover-background: var(--zen-color-background-popover-default);
   --zen-input-background-focused: var(--zen-color-background-neutral-pale-default);
+  --zen-input-background-focused-shadow-off: 0 0 #0000;
   --zen-table-cell-background-color: #FFFFFF;
   --zen-chart-sector-primary: var(--zen-color-background-support-neutral-deep);
   --zen-chart-sector-secondary: var(--zen-color-background-support-brand-solid);
@@ -2467,7 +2483,8 @@
 }
 
 /* Component Theme / Brand - S1 */
-[data-component-theme="brand-s1"] {
+[data-component-theme="brand-s1"],
+[data-component-theme="brand-s1"] [data-theme] {
   --zen-button-primary-background-default: var(--zen-color-background-accent-solid-default);
   --zen-button-primary-content-default: var(--zen-color-content-on-accent-default);
   --zen-button-primary-background-hover: var(--zen-color-background-accent-solid-hover);
@@ -2478,7 +2495,9 @@
   --zen-button-accent-background-pressed: var(--zen-color-background-neutral-solid-pressed);
   --zen-checkbox-icon-check-default: var(--zen-color-content-on-accent-default);
   --zen-checkbox-background-unselected-default: var(--zen-color-background-neutral-pale-default);
+  --zen-checkbox-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-checkbox-background-unselected-hover: var(--zen-color-background-neutral-pale-hover);
+  --zen-checkbox-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-checkbox-background-seclected-default: var(--zen-color-background-active-accent-solid);
   --zen-chip-primary-background-unselected-default: var(--zen-color-background-neutral-ghost-default);
   --zen-chip-primary-background-unselected-hover: var(--zen-color-background-neutral-ghost-hover);
@@ -2489,10 +2508,12 @@
   --zen-checkbox-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-radio-button-icon-radio-default: var(--zen-color-content-on-accent-default);
   --zen-radio-button-background-unselected-default: var(--zen-color-background-neutral-pale-default);
+  --zen-radio-button-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-radio-button-border-default: var(--zen-color-border-neutral-subtle-default);
   --zen-radio-button-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-radio-button-border-pressed: var(--zen-color-border-neutral-subtle-pressed);
   --zen-radio-button-background-unselected-hover: var(--zen-color-background-neutral-pale-hover);
+  --zen-radio-button-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-radio-button-background-seclected-default: var(--zen-color-background-active-accent-solid);
   --zen-chip-primary-content-selected: var(--zen-color-content-on-accent-default);
   --zen-chip-secondary-background-unselected-default: var(--zen-color-background-neutral-ghost-default);
@@ -2524,14 +2545,18 @@
   --zen-tag-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-tag-content-selected: var(--zen-color-content-inverse-strongest);
   --zen-date-picker-item-background-seclected-in-range-default: var(--zen-color-background-active-accent-subtle);
+  --zen-date-picker-item-background-seclected-in-range-default-shadow-off: 0 0 #0000;
   --zen-date-picker-item-background-seclected-in-range-hover: var(--zen-color-background-accent-subtle-hover);
+  --zen-date-picker-item-background-seclected-in-range-hover-shadow-off: 0 0 #0000;
   --zen-segmented-item-primary-content-selected: var(--zen-color-content-on-accent-default);
   --zen-segmented-item-secondary-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-segmented-item-secondary-border-default: var(--zen-color-border-neutral-subtle-default);
   --zen-segmented-item-secondary-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-segmented-item-secondary-border-selected: var(--zen-color-border-active-accent-solid);
   --zen-toggle-bar-background-unselected-default: var(--zen-color-background-neutral-subtle-default);
+  --zen-toggle-bar-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-toggle-bar-background-unselected-hover: var(--zen-color-background-neutral-subtle-hover);
+  --zen-toggle-bar-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-toggle-bar-background-seclected-default: var(--zen-color-background-active-accent-solid);
   --zen-toggle-dot-background-unselected-default: var(--zen-color-background-white-solid-default);
   --zen-toggle-dot-background-seclected-default: var(--zen-color-background-white-solid-default);
@@ -2542,12 +2567,15 @@
   --zen-tab-background-default: var(--zen-color-background-neutral-flat-default);
   --zen-tab-background-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-tab-background-selected: var(--zen-color-background-active-accent-subtle);
+  --zen-tab-background-selected-shadow-off: 0 0 #0000;
   --zen-tab-content-default: var(--zen-color-content-neutral-light);
   --zen-tab-content-hover: var(--zen-color-content-neutral-base);
   --zen-tab-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-table-cell-background-default: var(--zen-color-background-neutral-flat-default);
   --zen-table-cell-background-hover: var(--zen-color-background-support-neutral-pale);
+  --zen-table-cell-background-hover-shadow-off: 0 0 #0000;
   --zen-table-cell-background-selected: var(--zen-color-background-support-brand-pale);
+  --zen-table-cell-background-selected-shadow-off: 0 0 #0000;
   --zen-button-tertiary-content-default: var(--zen-color-content-neutral-strongest);
   --zen-button-tertiary-background-default: var(--zen-color-background-neutral-ghost-default);
   --zen-button-tertiary-background-hover: var(--zen-color-background-neutral-ghost-hover);
@@ -2564,7 +2592,9 @@
   --zen-button-accent-content-hover: var(--zen-color-content-inverse-strongest);
   --zen-button-primary-content-hover: var(--zen-color-content-on-accent-hover);
   --zen-input-background-default: var(--zen-color-background-neutral-pale-default);
+  --zen-input-background-default-shadow-off: 0 0 #0000;
   --zen-input-background-hover: var(--zen-color-background-neutral-pale-hover);
+  --zen-input-background-hover-shadow-off: 0 0 #0000;
   --zen-input-border-default: #FFFFFF00;
   --zen-input-border-hover: #FFFFFF00;
   --zen-input-shadow-base: var(--zen-color-shadow-inverse-base);
@@ -2573,6 +2603,7 @@
   --zen-popover-border: var(--zen-color-border-popover-subtle);
   --zen-popover-background: var(--zen-color-background-popover-default);
   --zen-input-background-focused: var(--zen-color-background-neutral-pale-default);
+  --zen-input-background-focused-shadow-off: 0 0 #0000;
   --zen-table-cell-background-color: #FFFFFF;
   --zen-chart-sector-primary: var(--zen-color-background-support-brand-solid);
   --zen-chart-sector-secondary: var(--zen-color-background-support-neutral-deep);
@@ -2583,7 +2614,8 @@
 }
 
 /* Component Theme / Neutral - S2 */
-[data-component-theme="neutral-s2"] {
+[data-component-theme="neutral-s2"],
+[data-component-theme="neutral-s2"] [data-theme] {
   --zen-button-primary-background-default: var(--zen-color-background-neutral-solid-default);
   --zen-button-primary-content-default: var(--zen-color-content-inverse-strongest);
   --zen-button-primary-background-hover: var(--zen-color-background-neutral-solid-hover);
@@ -2594,10 +2626,14 @@
   --zen-button-accent-background-pressed: var(--zen-color-background-accent-solid-pressed);
   --zen-checkbox-icon-check-default: var(--zen-color-content-inverse-strongest);
   --zen-checkbox-background-unselected-default: var(--zen-color-background-neutral-pale-default);
+  --zen-checkbox-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-checkbox-background-unselected-hover: var(--zen-color-background-neutral-pale-hover);
+  --zen-checkbox-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-checkbox-background-seclected-default: var(--zen-color-background-active-neutral-solid);
   --zen-chip-primary-background-unselected-default: var(--zen-color-background-neutral-subtle-default);
+  --zen-chip-primary-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-chip-primary-background-unselected-hover: var(--zen-color-background-neutral-subtle-hover);
+  --zen-chip-primary-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-chip-primary-background-seclected-default: var(--zen-color-background-active-neutral-solid);
   --zen-chip-primary-background-seclected-hover: var(--zen-color-background-neutral-solid-hover);
   --zen-chip-primary-border-default: #FFFFFF00;
@@ -2605,14 +2641,18 @@
   --zen-checkbox-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-radio-button-icon-radio-default: var(--zen-color-content-inverse-strongest);
   --zen-radio-button-background-unselected-default: var(--zen-color-background-neutral-pale-default);
+  --zen-radio-button-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-radio-button-border-default: var(--zen-color-border-neutral-subtle-default);
   --zen-radio-button-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-radio-button-border-pressed: var(--zen-color-border-neutral-subtle-pressed);
   --zen-radio-button-background-unselected-hover: var(--zen-color-background-neutral-pale-hover);
+  --zen-radio-button-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-radio-button-background-seclected-default: var(--zen-color-background-active-neutral-solid);
   --zen-chip-primary-content-selected: var(--zen-color-content-inverse-strongest);
   --zen-chip-secondary-background-unselected-default: var(--zen-color-background-neutral-subtle-default);
+  --zen-chip-secondary-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-chip-secondary-background-unselected-hover: var(--zen-color-background-neutral-subtle-hover);
+  --zen-chip-secondary-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-chip-secondary-border-default: #FFFFFF00;
   --zen-chip-secondary-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-chip-secondary-background-seclected-default: var(--zen-color-background-surface-default);
@@ -2640,14 +2680,18 @@
   --zen-tag-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-tag-content-selected: var(--zen-color-content-inverse-strongest);
   --zen-date-picker-item-background-seclected-in-range-default: var(--zen-color-background-active-neutral-subtle);
+  --zen-date-picker-item-background-seclected-in-range-default-shadow-off: 0 0 #0000;
   --zen-date-picker-item-background-seclected-in-range-hover: var(--zen-color-background-neutral-subtle-hover);
+  --zen-date-picker-item-background-seclected-in-range-hover-shadow-off: 0 0 #0000;
   --zen-segmented-item-primary-content-selected: var(--zen-color-content-inverse-strongest);
   --zen-segmented-item-secondary-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-segmented-item-secondary-border-default: var(--zen-color-border-neutral-subtle-default);
   --zen-segmented-item-secondary-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-segmented-item-secondary-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-toggle-bar-background-unselected-default: var(--zen-color-background-neutral-subtle-default);
+  --zen-toggle-bar-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-toggle-bar-background-unselected-hover: var(--zen-color-background-neutral-subtle-hover);
+  --zen-toggle-bar-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-toggle-bar-background-seclected-default: var(--zen-color-background-active-neutral-solid);
   --zen-toggle-dot-background-unselected-default: var(--zen-color-background-white-solid-default);
   --zen-toggle-dot-background-seclected-default: var(--zen-color-background-inverse-solid-default);
@@ -2658,16 +2702,22 @@
   --zen-tab-background-default: var(--zen-color-background-neutral-flat-default);
   --zen-tab-background-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-tab-background-selected: var(--zen-color-background-active-neutral-subtle);
+  --zen-tab-background-selected-shadow-off: 0 0 #0000;
   --zen-tab-content-default: var(--zen-color-content-neutral-light);
   --zen-tab-content-hover: var(--zen-color-content-neutral-base);
   --zen-tab-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-table-cell-background-default: var(--zen-color-background-neutral-flat-default);
   --zen-table-cell-background-hover: var(--zen-color-background-support-neutral-pale);
+  --zen-table-cell-background-hover-shadow-off: 0 0 #0000;
   --zen-table-cell-background-selected: var(--zen-color-background-support-neutral-pale);
+  --zen-table-cell-background-selected-shadow-off: 0 0 #0000;
   --zen-button-tertiary-content-default: var(--zen-color-content-neutral-strongest);
   --zen-button-tertiary-background-default: var(--zen-color-background-neutral-subtle-default);
+  --zen-button-tertiary-background-default-shadow-off: 0 0 #0000;
   --zen-button-tertiary-background-hover: var(--zen-color-background-neutral-subtle-hover);
+  --zen-button-tertiary-background-hover-shadow-off: 0 0 #0000;
   --zen-button-tertiary-background-pressed: var(--zen-color-background-neutral-subtle-pressed);
+  --zen-button-tertiary-background-pressed-shadow-off: 0 0 #0000;
   --zen-button-tertiary-border-default: #FFFFFF00;
   --zen-button-tertiary-shadow-default: #FFFFFF00;
   --zen-button-tertiary-background-disabled: var(--zen-color-background-subtle-disabled);
@@ -2680,7 +2730,9 @@
   --zen-button-accent-content-hover: var(--zen-color-content-on-accent-hover);
   --zen-button-primary-content-hover: var(--zen-color-content-inverse-strongest);
   --zen-input-background-default: var(--zen-color-background-neutral-pale-default);
+  --zen-input-background-default-shadow-off: 0 0 #0000;
   --zen-input-background-hover: var(--zen-color-background-neutral-pale-hover);
+  --zen-input-background-hover-shadow-off: 0 0 #0000;
   --zen-input-border-default: #FFFFFF00;
   --zen-input-border-hover: #FFFFFF00;
   --zen-input-shadow-base: var(--zen-color-shadow-inverse-base);
@@ -2689,6 +2741,7 @@
   --zen-popover-border: var(--zen-color-border-popover-subtle);
   --zen-popover-background: var(--zen-color-background-popover-default);
   --zen-input-background-focused: var(--zen-color-background-neutral-pale-default);
+  --zen-input-background-focused-shadow-off: 0 0 #0000;
   --zen-table-cell-background-color: #FFFFFF;
   --zen-chart-sector-primary: var(--zen-color-background-support-neutral-deep);
   --zen-chart-sector-secondary: var(--zen-color-background-support-brand-solid);
@@ -2699,7 +2752,8 @@
 }
 
 /* Component Theme / Brand - S2 */
-[data-component-theme="brand-s2"] {
+[data-component-theme="brand-s2"],
+[data-component-theme="brand-s2"] [data-theme] {
   --zen-button-primary-background-default: var(--zen-color-background-accent-solid-default);
   --zen-button-primary-content-default: var(--zen-color-content-on-accent-default);
   --zen-button-primary-background-hover: var(--zen-color-background-accent-solid-hover);
@@ -2710,10 +2764,14 @@
   --zen-button-accent-background-pressed: var(--zen-color-background-neutral-solid-pressed);
   --zen-checkbox-icon-check-default: var(--zen-color-content-on-accent-default);
   --zen-checkbox-background-unselected-default: var(--zen-color-background-neutral-pale-default);
+  --zen-checkbox-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-checkbox-background-unselected-hover: var(--zen-color-background-neutral-pale-hover);
+  --zen-checkbox-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-checkbox-background-seclected-default: var(--zen-color-background-active-accent-solid);
   --zen-chip-primary-background-unselected-default: var(--zen-color-background-neutral-subtle-default);
+  --zen-chip-primary-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-chip-primary-background-unselected-hover: var(--zen-color-background-neutral-subtle-hover);
+  --zen-chip-primary-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-chip-primary-background-seclected-default: var(--zen-color-background-active-accent-solid);
   --zen-chip-primary-background-seclected-hover: var(--zen-color-background-accent-solid-hover);
   --zen-chip-primary-border-default: #FFFFFF00;
@@ -2721,14 +2779,18 @@
   --zen-checkbox-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-radio-button-icon-radio-default: var(--zen-color-content-on-accent-default);
   --zen-radio-button-background-unselected-default: var(--zen-color-background-neutral-pale-default);
+  --zen-radio-button-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-radio-button-border-default: var(--zen-color-border-neutral-subtle-default);
   --zen-radio-button-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-radio-button-border-pressed: var(--zen-color-border-neutral-subtle-pressed);
   --zen-radio-button-background-unselected-hover: var(--zen-color-background-neutral-pale-hover);
+  --zen-radio-button-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-radio-button-background-seclected-default: var(--zen-color-background-active-accent-solid);
   --zen-chip-primary-content-selected: var(--zen-color-content-on-accent-default);
   --zen-chip-secondary-background-unselected-default: var(--zen-color-background-neutral-subtle-default);
+  --zen-chip-secondary-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-chip-secondary-background-unselected-hover: var(--zen-color-background-neutral-subtle-hover);
+  --zen-chip-secondary-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-chip-secondary-border-default: #FFFFFF00;
   --zen-chip-secondary-content-selected: var(--zen-color-content-accent-strongest);
   --zen-chip-secondary-background-seclected-default: var(--zen-color-background-surface-default);
@@ -2756,14 +2818,18 @@
   --zen-tag-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-tag-content-selected: var(--zen-color-content-inverse-strongest);
   --zen-date-picker-item-background-seclected-in-range-default: var(--zen-color-background-active-accent-subtle);
+  --zen-date-picker-item-background-seclected-in-range-default-shadow-off: 0 0 #0000;
   --zen-date-picker-item-background-seclected-in-range-hover: var(--zen-color-background-accent-subtle-hover);
+  --zen-date-picker-item-background-seclected-in-range-hover-shadow-off: 0 0 #0000;
   --zen-segmented-item-primary-content-selected: var(--zen-color-content-on-accent-default);
   --zen-segmented-item-secondary-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-segmented-item-secondary-border-default: var(--zen-color-border-neutral-subtle-default);
   --zen-segmented-item-secondary-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-segmented-item-secondary-border-selected: var(--zen-color-border-active-accent-solid);
   --zen-toggle-bar-background-unselected-default: var(--zen-color-background-neutral-subtle-default);
+  --zen-toggle-bar-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-toggle-bar-background-unselected-hover: var(--zen-color-background-neutral-subtle-hover);
+  --zen-toggle-bar-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-toggle-bar-background-seclected-default: var(--zen-color-background-active-accent-solid);
   --zen-toggle-dot-background-unselected-default: var(--zen-color-background-white-solid-default);
   --zen-toggle-dot-background-seclected-default: var(--zen-color-background-white-solid-default);
@@ -2774,16 +2840,22 @@
   --zen-tab-background-default: var(--zen-color-background-neutral-flat-default);
   --zen-tab-background-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-tab-background-selected: var(--zen-color-background-active-accent-subtle);
+  --zen-tab-background-selected-shadow-off: 0 0 #0000;
   --zen-tab-content-default: var(--zen-color-content-neutral-light);
   --zen-tab-content-hover: var(--zen-color-content-neutral-base);
   --zen-tab-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-table-cell-background-default: var(--zen-color-background-neutral-flat-default);
   --zen-table-cell-background-hover: var(--zen-color-background-support-neutral-pale);
+  --zen-table-cell-background-hover-shadow-off: 0 0 #0000;
   --zen-table-cell-background-selected: var(--zen-color-background-support-brand-pale);
+  --zen-table-cell-background-selected-shadow-off: 0 0 #0000;
   --zen-button-tertiary-content-default: var(--zen-color-content-neutral-strongest);
   --zen-button-tertiary-background-default: var(--zen-color-background-neutral-subtle-default);
+  --zen-button-tertiary-background-default-shadow-off: 0 0 #0000;
   --zen-button-tertiary-background-hover: var(--zen-color-background-neutral-subtle-hover);
+  --zen-button-tertiary-background-hover-shadow-off: 0 0 #0000;
   --zen-button-tertiary-background-pressed: var(--zen-color-background-neutral-subtle-pressed);
+  --zen-button-tertiary-background-pressed-shadow-off: 0 0 #0000;
   --zen-button-tertiary-border-default: #FFFFFF00;
   --zen-button-tertiary-shadow-default: #FFFFFF00;
   --zen-button-tertiary-background-disabled: var(--zen-color-background-subtle-disabled);
@@ -2796,7 +2868,9 @@
   --zen-button-accent-content-hover: var(--zen-color-content-inverse-strongest);
   --zen-button-primary-content-hover: var(--zen-color-content-on-accent-hover);
   --zen-input-background-default: var(--zen-color-background-neutral-pale-default);
+  --zen-input-background-default-shadow-off: 0 0 #0000;
   --zen-input-background-hover: var(--zen-color-background-neutral-pale-hover);
+  --zen-input-background-hover-shadow-off: 0 0 #0000;
   --zen-input-border-default: #FFFFFF00;
   --zen-input-border-hover: #FFFFFF00;
   --zen-input-shadow-base: var(--zen-color-shadow-inverse-base);
@@ -2805,6 +2879,7 @@
   --zen-popover-border: var(--zen-color-border-popover-subtle);
   --zen-popover-background: var(--zen-color-background-popover-default);
   --zen-input-background-focused: var(--zen-color-background-neutral-pale-default);
+  --zen-input-background-focused-shadow-off: 0 0 #0000;
   --zen-table-cell-background-color: #FFFFFF;
   --zen-chart-sector-primary: var(--zen-color-background-support-brand-solid);
   --zen-chart-sector-secondary: var(--zen-color-background-support-neutral-deep);
@@ -2815,7 +2890,8 @@
 }
 
 /* Component Theme / Neutral - S3 */
-[data-component-theme="neutral-s3"] {
+[data-component-theme="neutral-s3"],
+[data-component-theme="neutral-s3"] [data-theme] {
   --zen-button-primary-background-default: var(--zen-color-background-neutral-solid-default);
   --zen-button-primary-content-default: var(--zen-color-content-inverse-strongest);
   --zen-button-primary-background-hover: var(--zen-color-background-neutral-solid-hover);
@@ -2826,7 +2902,9 @@
   --zen-button-accent-background-pressed: var(--zen-color-background-accent-solid-pressed);
   --zen-checkbox-icon-check-default: var(--zen-color-content-inverse-strongest);
   --zen-checkbox-background-unselected-default: var(--zen-color-background-neutral-pale-default);
+  --zen-checkbox-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-checkbox-background-unselected-hover: var(--zen-color-background-neutral-pale-hover);
+  --zen-checkbox-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-checkbox-background-seclected-default: var(--zen-color-background-active-neutral-solid);
   --zen-chip-primary-background-unselected-default: var(--zen-color-background-neutral-ghost-default);
   --zen-chip-primary-background-unselected-hover: var(--zen-color-background-neutral-ghost-hover);
@@ -2837,10 +2915,12 @@
   --zen-checkbox-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-radio-button-icon-radio-default: var(--zen-color-content-inverse-strongest);
   --zen-radio-button-background-unselected-default: var(--zen-color-background-neutral-pale-default);
+  --zen-radio-button-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-radio-button-border-default: var(--zen-color-border-neutral-subtle-default);
   --zen-radio-button-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-radio-button-border-pressed: var(--zen-color-border-neutral-subtle-pressed);
   --zen-radio-button-background-unselected-hover: var(--zen-color-background-neutral-pale-hover);
+  --zen-radio-button-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-radio-button-background-seclected-default: var(--zen-color-background-active-neutral-solid);
   --zen-chip-primary-content-selected: var(--zen-color-content-inverse-strongest);
   --zen-chip-secondary-background-unselected-default: var(--zen-color-background-neutral-ghost-default);
@@ -2848,6 +2928,7 @@
   --zen-chip-secondary-border-default: var(--zen-color-border-neutral-subtle-default);
   --zen-chip-secondary-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-chip-secondary-background-seclected-default: var(--zen-color-background-active-neutral-subtle);
+  --zen-chip-secondary-background-seclected-default-shadow-off: 0 0 #0000;
   --zen-chip-secondary-background-seclected-hover: var(--zen-color-background-neutral-ghost-hover);
   --zen-segmented-item-primary-background-unselected-default: var(--zen-color-background-neutral-flat-default);
   --zen-segmented-item-primary-background-unselected-hover: var(--zen-color-background-neutral-flat-hover);
@@ -2872,14 +2953,18 @@
   --zen-tag-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-tag-content-selected: var(--zen-color-content-inverse-strongest);
   --zen-date-picker-item-background-seclected-in-range-default: var(--zen-color-background-active-neutral-subtle);
+  --zen-date-picker-item-background-seclected-in-range-default-shadow-off: 0 0 #0000;
   --zen-date-picker-item-background-seclected-in-range-hover: var(--zen-color-background-neutral-subtle-hover);
+  --zen-date-picker-item-background-seclected-in-range-hover-shadow-off: 0 0 #0000;
   --zen-segmented-item-primary-content-selected: var(--zen-color-content-inverse-strongest);
   --zen-segmented-item-secondary-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-segmented-item-secondary-border-default: var(--zen-color-border-neutral-subtle-default);
   --zen-segmented-item-secondary-border-hover: var(--zen-color-border-neutral-subtle-hover);
   --zen-segmented-item-secondary-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-toggle-bar-background-unselected-default: var(--zen-color-background-neutral-subtle-default);
+  --zen-toggle-bar-background-unselected-default-shadow-off: 0 0 #0000;
   --zen-toggle-bar-background-unselected-hover: var(--zen-color-background-neutral-subtle-hover);
+  --zen-toggle-bar-background-unselected-hover-shadow-off: 0 0 #0000;
   --zen-toggle-bar-background-seclected-default: var(--zen-color-background-active-neutral-solid);
   --zen-toggle-dot-background-unselected-default: var(--zen-color-background-white-solid-default);
   --zen-toggle-dot-background-seclected-default: var(--zen-color-background-inverse-solid-default);
@@ -2890,12 +2975,15 @@
   --zen-tab-background-default: var(--zen-color-background-neutral-flat-default);
   --zen-tab-background-hover: var(--zen-color-background-neutral-flat-hover);
   --zen-tab-background-selected: var(--zen-color-background-active-neutral-subtle);
+  --zen-tab-background-selected-shadow-off: 0 0 #0000;
   --zen-tab-content-default: var(--zen-color-content-neutral-light);
   --zen-tab-content-hover: var(--zen-color-content-neutral-base);
   --zen-tab-content-selected: var(--zen-color-content-neutral-strongest);
   --zen-table-cell-background-default: var(--zen-color-background-neutral-flat-default);
   --zen-table-cell-background-hover: var(--zen-color-background-support-neutral-pale);
+  --zen-table-cell-background-hover-shadow-off: 0 0 #0000;
   --zen-table-cell-background-selected: var(--zen-color-background-support-neutral-pale);
+  --zen-table-cell-background-selected-shadow-off: 0 0 #0000;
   --zen-button-tertiary-content-default: var(--zen-color-content-neutral-strongest);
   --zen-button-tertiary-background-default: var(--zen-color-background-neutral-ghost-default);
   --zen-button-tertiary-background-hover: var(--zen-color-background-neutral-ghost-hover);
@@ -2912,7 +3000,9 @@
   --zen-button-accent-content-hover: var(--zen-color-content-on-accent-hover);
   --zen-button-primary-content-hover: var(--zen-color-content-inverse-strongest);
   --zen-input-background-default: var(--zen-color-background-neutral-pale-default);
+  --zen-input-background-default-shadow-off: 0 0 #0000;
   --zen-input-background-hover: var(--zen-color-background-neutral-pale-hover);
+  --zen-input-background-hover-shadow-off: 0 0 #0000;
   --zen-input-border-default: #FFFFFF00;
   --zen-input-border-hover: #FFFFFF00;
   --zen-input-shadow-base: var(--zen-color-shadow-inverse-base);
@@ -2921,6 +3011,7 @@
   --zen-popover-border: var(--zen-color-border-popover-subtle);
   --zen-popover-background: var(--zen-color-background-popover-default);
   --zen-input-background-focused: var(--zen-color-background-neutral-pale-default);
+  --zen-input-background-focused-shadow-off: 0 0 #0000;
   --zen-table-cell-background-color: #FFFFFF;
   --zen-chart-sector-primary: var(--zen-color-background-support-neutral-deep);
   --zen-chart-sector-secondary: var(--zen-color-background-support-brand-solid);

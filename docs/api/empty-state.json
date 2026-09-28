@@ -1,0 +1,109 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "empty-state",
+  "import": "import { EmptyState, EmptyStateIllustration } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "EmptyState",
+      "file": "src/components/EmptyState/EmptyState.tsx",
+      "description": "Figma Empty-State (6085:25796): 320px centred column — illustration (240), gap XSmall, then the content wrapper\n(gap XLarge) of Title + Caption (gap 4) and the CTAs (full-width Primary + Tertiary, gap Small); padding-bottom 4XLarge.",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<section>`.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Title (Heading/4).",
+          "deprecated": null
+        },
+        {
+          "name": "headingLevel",
+          "type": "2 | 3 | 4 | 5 | 6",
+          "required": false,
+          "default": "3",
+          "description": "Heading level of the title (default 3 → `<h3>`); only the tag changes, the text style stays Heading/4.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Caption (Body/Base/Regular, Content/Neutral/Light).",
+          "deprecated": null
+        },
+        {
+          "name": "illustration",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": "true",
+          "description": "Figma Illustration: `true` renders the placeholder with `icon`; pass a node for your own art; `false` hides it.",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactElement",
+          "required": false,
+          "default": null,
+          "description": "Icon at the centre of the placeholder illustration: an icon name or an icon element.",
+          "deprecated": null
+        },
+        {
+          "name": "primaryAction",
+          "type": "EmptyStateAction",
+          "required": false,
+          "default": null,
+          "description": "Figma CTA Primary: Button/Main Medium Primary, full width.",
+          "deprecated": null
+        },
+        {
+          "name": "secondaryAction",
+          "type": "EmptyStateAction",
+          "required": false,
+          "default": null,
+          "description": "Figma CTA Secondary: Button/Main Medium Tertiary, full width.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "EmptyStateIllustration",
+      "file": "src/components/EmptyState/EmptyState.tsx",
+      "description": "Figma Empty-State/Illustration/Placeholder (6085:25816): a faded grid, a dashed and a solid circle, and an icon.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "icon",
+          "type": "IconName | ReactElement",
+          "required": false,
+          "default": "\"icon-user-circle-line\"",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "ButtonLevel": "type ButtonLevel = \"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\"",
+    "EmptyStateAction": "interface EmptyStateAction { label: ReactNode; onClick?: () => void; level?: ButtonLevel; }"
+  }
+}

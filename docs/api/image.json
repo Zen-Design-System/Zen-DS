@@ -1,0 +1,167 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "image",
+  "import": "import { Image, Thumbnail } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Image",
+      "file": "src/components/Image/Image.tsx",
+      "description": "A responsive picture in a ratio frame: Skeleton while it loads, a neutral placeholder with an image icon when it\nfails (the alt text stays available to screen readers), and an optional figure caption. The frame is Neutral/Pale\nwith a 1px Border/Neutral/Pale inner hairline so light pictures keep their edge; radius from Corner-Radius.\n\n  <Image src={photo} alt=\"Snowy rooftops of the old town\" ratio=\"16:9\" caption=\"Old town, January\" />",
+      "deprecated": null,
+      "extends": "Omit<ImgHTMLAttributes<HTMLImageElement>, \"src\" | \"alt\" | \"loading\" | \"width\" | \"height\" | \"children\" | \"className\" | \"style\" | \"placeholder\">",
+      "props": [
+        {
+          "name": "src",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Image URL. While it is undefined (the URL is still being fetched) the Skeleton shows.",
+          "deprecated": null
+        },
+        {
+          "name": "alt",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "Required text alternative: what the picture shows, in context (\"Matte black pour-over kettle, side view\"). Use \"\"\nonly for a decorative picture that repeats text next to it; never a file name or \"image of…\".",
+          "deprecated": null
+        },
+        {
+          "name": "ratio",
+          "type": "ImageRatioName | number",
+          "required": false,
+          "default": null,
+          "description": "Frame ratio (width : height): \"1:1\" · \"4:3\" · \"3:2\" · \"16:9\" · \"3:4\", or a number (2.35). The frame keeps its size\nwhile loading, so nothing jumps. Unset: the picture's own ratio (4:3 while it loads or fails).",
+          "deprecated": null
+        },
+        {
+          "name": "fit",
+          "type": "\"cover\" | \"contain\"",
+          "required": false,
+          "default": "\"cover\"",
+          "description": "cover (default): fills the frame and crops. contain: shows the whole picture on Neutral/Pale bars (logos, documents).",
+          "deprecated": null
+        },
+        {
+          "name": "radius",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Corner radius on the Zen scale (Corner-Radius): none · 2xs · xs · sm · md (default, 12) · lg · xl · 2xl · 3xl · full.",
+          "deprecated": null
+        },
+        {
+          "name": "loading",
+          "type": "\"lazy\" | \"eager\"",
+          "required": false,
+          "default": "\"lazy\"",
+          "description": "Native loading: lazy (default) waits until the picture nears the viewport; eager for the first picture on screen.",
+          "deprecated": null
+        },
+        {
+          "name": "caption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "A caption under the picture (Body/Small/Regular, Content/Neutral/Base); the picture becomes a figure with a figcaption.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "On the root (figure or div).",
+          "deprecated": null
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "required": false,
+          "default": null,
+          "description": "On the root (figure or div).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "Thumbnail",
+      "file": "src/components/Image/Image.tsx",
+      "description": "A fixed square picture for list rows, tables and pickers, sized on the Figma Image-Size scale (the same steps as\nAvatar). Same loading (Skeleton) and error (image icon placeholder) behaviour as Image.\n\n  <ListItem title=\"Pour-over kettle\" caption=\"$64.00\" leading={<Thumbnail src={kettle} alt=\"\" />} />",
+      "deprecated": null,
+      "extends": "Omit<ImgHTMLAttributes<HTMLImageElement>, \"src\" | \"alt\" | \"loading\" | \"width\" | \"height\" | \"children\" | \"className\" | \"style\" | \"placeholder\">",
+      "props": [
+        {
+          "name": "src",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Image URL. While it is undefined the Skeleton shows.",
+          "deprecated": null
+        },
+        {
+          "name": "alt",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "Required text alternative. \"\" when the row already names the item (a ListItem title, a table cell label) next to it.",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "ZenScale | ZenScaleLong",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Image-Size token: 3xs 16 · 2xs 20 · xs 24 · sm 32 · md 40 (default, a ListItem leading visual) · lg 48 · xl 56 ·\n2xl 80 · 3xl 112 (compact density; comfortable scales them). Tables use sm with a caption, xs without.",
+          "deprecated": null
+        },
+        {
+          "name": "shape",
+          "type": "\"rounded\" | \"circle\" | \"square\"",
+          "required": false,
+          "default": "\"rounded\"",
+          "description": "rounded (default: the radius steps with the size, like Avatar Square), circle, or square (no radius).",
+          "deprecated": null
+        },
+        {
+          "name": "fit",
+          "type": "\"cover\" | \"contain\"",
+          "required": false,
+          "default": "\"cover\"",
+          "description": "cover (default) crops to the square; contain shows the whole picture (logos, app icons).",
+          "deprecated": null
+        },
+        {
+          "name": "loading",
+          "type": "\"lazy\" | \"eager\"",
+          "required": false,
+          "default": "\"lazy\"",
+          "description": "Native loading: lazy (default) or eager.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "On the root span.",
+          "deprecated": null
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "required": false,
+          "default": null,
+          "description": "On the root span.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "ImageRatioName": "type ImageRatioName = \"1:1\" | \"4:3\" | \"3:2\" | \"16:9\" | \"3:4\"",
+    "ZenScale": "type ZenScale = \"3xs\" | \"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\" | \"3xl\"",
+    "ZenScaleInput": "type ZenScaleInput = ZenScale | ZenScaleLong",
+    "ZenScaleLong": "type ZenScaleLong = \"3xsmall\" | \"2xsmall\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\" | \"2xlarge\" | \"3xlarge\""
+  }
+}

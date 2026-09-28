@@ -92,6 +92,16 @@ const modeSelector = (slug, mode, modeIndex) => {
   };
   const selector = selectors[slug];
   if (!selector) throw new Error(`No CSS selector configured for ${slug}`);
+  // Component colours alias the semantic (data-theme) colours, and a custom property resolves where it is declared.
+  // A nested light/dark scope (e.g. one card switched to dark) would keep the outer mode's component colours, so
+  // each component theme is re-declared on every [data-theme] inside it (later blocks win at equal specificity).
+  if (slug === "component-colors-theme") {
+    const nested = `${selector},\n${selector} [data-theme]`;
+    // The default theme's nested selector is wrapped in :where() (specificity 0): otherwise `:root [data-theme]` (0,2,0)
+    // would beat an explicit `[data-component-theme="brand-s1"]` (0,1,0) on the same element — e.g. the app root that
+    // carries both data-theme and data-component-theme — and switching the component theme would do nothing.
+    return modeIndex === 0 ? `:root,\n:where(:root [data-theme]),\n${nested}` : nested;
+  }
   if (modeIndex === 0 && selector !== ":root") return `:root,\n${selector}`;
   return selector;
 };
@@ -103,6 +113,16 @@ for (const collection of collections) {
     cssBlocks.push(`${modeSelector(collection.slug, mode, modeIndex)} {`);
     for (const token of collection.tokens) {
       cssBlocks.push(`  ${cssName(token.name)}: ${formatCssValue(token, token.valuesByMode[mode])};`);
+      // House rule: a surface filled with a Subtle / Pale / Surface-Alt background carries no drop shadow.
+      // A component background that aliases one of those in this theme gets `<token>-shadow-off: none`;
+      // components write `box-shadow: var(<their background>-shadow-off, <shadow>)` so the shadow drops per theme.
+      if (collection.slug === "component-colors-theme" && /background/i.test(token.name)) {
+        const value = token.valuesByMode[mode];
+        const alias = typeof value === "string" ? value.match(aliasPattern)?.[1] : undefined;
+        if (alias && /^Color\/Background\//.test(alias) && /(\/(Subtle|Pale)(\/|$)|Subtle\/|Pale\/|\/Surface\/Alt$|-Subtle$|-Pale$)/.test(alias)) {
+          cssBlocks.push(`  ${cssName(token.name)}-shadow-off: 0 0 #0000;`); // an empty shadow layer: combinable in a shadow list, unlike `none`
+        }
+      }
     }
     cssBlocks.push("}", "");
   });

@@ -1,0 +1,6 @@
+/* Layout page (platform only): the playground preview box. */
+.pal-preview { justify-content: stretch; }
+.pal-preview > .pal-stage { width: 100%; }
+.pal-container-frame { width: 100%; padding-block: var(--zen-spacing-padding-medium, 16px); border: 1px dashed var(--zen-color-border-neutral-subtle-default); border-radius: var(--zen-corner-radius-large, 16px); }
+/* Text page (platform only). */
+.pat-stage { width: min(100%, 560px); }

@@ -5,6 +5,7 @@ import "../src/styles/tokens.css";
 import "../src/styles/typography.css";
 import "../src/styles/style-effects.css";
 import "../src/styles/foundations.css";
+import "../src/icons/all";
 
 const preview: Preview = {
   parameters: {

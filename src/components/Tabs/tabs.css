@@ -7,7 +7,10 @@
 .zen-tabs::-webkit-scrollbar { display: none; }
 .zen-tabs[data-variant="indicator"] { box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-pale-default); padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-tabs[data-variant="subtle"] { gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+/* Full width (a code-only extension — Figma Tab-Bar items hug): the bar fills its container and the items share it
+   equally, the mobile "fixed tabs" pattern. Labels stay centred in each item. */
 .zen-tabs[data-full-width="true"] { width: 100%; }
+.zen-tabs[data-full-width="true"] > [role="tab"] { min-width: 0; flex: 1 1 0; justify-content: center; }
 
 .zen-tab {
   --zen-tab-height: var(--zen-tab-item-size-medium-height, 40px);
@@ -44,7 +47,9 @@
 .zen-tab__icon > .zen-icon { width: 100%; height: 100%; }
 .zen-tab__label { white-space: nowrap; }
 /* Reserve the Bold width so selecting a tab doesn't shift its neighbours. */
-.zen-tab__label[data-text]::after { display: block; height: 0; overflow: hidden; visibility: hidden; font-weight: var(--zen-emphasis-font-weight-bold, 600); content: attr(data-text); }
+/* Reserves the bold width so the label does not shift when selected. It is a real aria-hidden span, not ::after
+   content: generated text counts toward the tab's accessible name in some engines ("Activity Activity"). */
+.zen-tab__label-reserve { display: block; height: 0; overflow: hidden; visibility: hidden; font-weight: var(--zen-emphasis-font-weight-bold, 600); }
 .zen-tab__label[data-text] { display: inline-flex; flex-direction: column; align-items: center; }
 
 .zen-tab:hover:not(:disabled), .zen-tab[data-state="hover"] { --zen-tab-fill: var(--zen-tab-background-hover); --zen-tab-content: var(--zen-tab-content-hover); }

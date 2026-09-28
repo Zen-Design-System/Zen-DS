@@ -10,33 +10,137 @@ The shared floating list used by Chip, Select, Autocomplete and Leading/Trailing
 - Option lists (single or multiple), sort menus, assignee pickers with search.
 
 ## Use something else for
+- A list of actions for an object (row ⋯, Edit, New) → Menu.
 - Rich interactive content or forms → Dialog.
 - Short hints → Tooltip.
 
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
+| Item role | `PopoverItem itemRole` | option (default; listbox, aria-selected) · menuitem (Menu; no aria-selected) · menuitemcheckbox / menuitemradio (aria-checked from selected) |
 | Label | `label` | names the group ("Sort by") |
 | Search | `search / searchValue / onSearchChange` | Search/Popover row |
 | Manual-Add-New | `PopoverManualAddNew · Chip onPopoverCreate · AutocompleteField onCreate` | Create + Accent Badge row for a new value; Enter creates |
 | Items | `items[] {id,label,caption,leading,photoSrc,theme,badgeTheme,selected}` | Content themes: icon, text-only, avatar-small/big, photo-small/big, dock-icon, badge |
 | Open | `open / onOpenChange / anchorRef / autoFocus` | outside click + Escape close |
 
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/popover.json`.
+
+### Popover
+Popover/Default composition. It mirrors the exported Figma structure while keeping the item list composable for Select, Autocomplete, and menu fields.
+
+Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children" | "onSelect">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `open` | `boolean` | `false` | Whether the surface is shown. Default false: pass `open` (controlled, with `onOpenChange`) to show it. |
+| `label` | `ReactNode` | — | Semantic group heading for the options (for example `Component Size`), not the current selection. It also names the option list. |
+| `aria-label` | `string` | — | Accessible name of the option list (role=listbox) when there is no visible `label`, e.g. "Sort by". |
+| `aria-labelledby` | `string` | — | id of the element that names the option list (role=listbox); wins over `label` and `aria-label`. |
+| `search` | `boolean` | `false` |  |
+| `searchValue` | `string` | `""` |  |
+| `searchPlaceholder` | `string` | — | Placeholder and accessible name of the Search row. Default: the locale's "Search". |
+| `onSearchChange` | `(value: string) => void` | — |  |
+| `scrollBar` | `boolean` | `true` |  |
+| `items` | `PopoverItemData[]` | — |  |
+| `onSelect` | `(item: PopoverItemData) => void` | — |  |
+| `children` | `ReactNode` | — |  |
+| `emptyState` | `ReactNode` | — | Shown when the (filtered) item list is empty. Default: the locale's "No results"; `null` shows nothing. |
+| `autoFocus` | `boolean` | `false` | Move focus into the popover when it opens (use when it was opened from the keyboard). |
+| `onOpenChange` | `(open: boolean) => void` | — | Called with `false` on a pointer-down outside the popover (and outside `anchorRef`) or on Escape. |
+| `anchorRef` | `RefObject<HTMLElement \| null>` | — | The trigger element; pointer-downs on it are left to the trigger's own toggle. |
+| `searchClearable` | `boolean` | `true` | Show the Search clear button while it has a value (Figma Search/Popover Typing/Inputted). |
+| `align` | `"start" \| "end"` | `"start"` | Preferred horizontal edge against the anchor box; flips when it would overflow the viewport. |
+| `multiple` | `boolean` | `false` | Multi-select list: every item gets a trailing Checkbox/Mark (Figma multi-select Popover). |
+
+### PopoverItem
+The 240px Popover/Item primitive.
+
+Also accepts `Omit<HTMLAttributes<HTMLButtonElement>, "onSelect">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `item` | `{ id: string; label: ReactNode; value?: string; caption?: ReactNode; /** Before the label: an icon name (`"icon-folder-line"`, drawn at 20px) or any node. */ leading?: IconName \| ReactNode; /** After the label: an icon name (drawn at 16px) or any node (a Badge, a shortcut). */ trailing?: IconName \| ReactNode; disabled?: boolean; selected?: boolean; /** Image for the Avatar/Photo themes. The item renders the Figma-sized primitive itself * (Avatar Small 32 · Avatar Big 40 · Photo Small 20 · Photo Big 32), so callers don't size it. */ photoSrc?: string; photoAlt?: string; /** Theme=Badge: colour of the Medium Solid Badge that carries the label. */ badgeTheme?: BadgeTheme; /** Figma Content variant; React nodes remain fully composable. */ theme?: "icon" \| "text-only" \| "photo-small" \| "photo-big" \| "avatar-small" \| "avatar-big" \| "dock-icon" \| "badge"; /** Figma Function variant used by the Manual-Add-New composition. */ function?: "default" \| "manual-add-new"; }` | — |  |
+| `label` | `ReactNode` | — |  |
+| `caption` | `ReactNode` | — |  |
+| `leading` | `IconName \| ReactNode` | — | Before the label: an icon name (`"icon-folder-line"`, drawn at 20px) or any node. |
+| `trailing` | `IconName \| ReactNode` | — | After the label: an icon name (drawn at 16px) or any node (a Badge, a shortcut). |
+| `selected` | `boolean` | — |  |
+| `disabled` | `boolean` | — |  |
+| `theme` | `PopoverItemData["theme"]` | — |  |
+| `function` | `PopoverItemData["function"]` | — |  |
+| `state` | `"default" \| "hover"` | — | Static preview of Figma's Hover state (real hover/focus work without it). |
+| `control` | `"check" \| "checkbox"` | `"check"` | `checkbox`: multi-select row — a trailing Checkbox/Mark shows the selection instead of the Single-Selected fill + check icon. |
+| `itemRole` | `"option" \| "menuitem" \| "menuitemcheckbox" \| "menuitemradio"` | `"option"` | ARIA role of the row. `option` (default) in a listbox, with aria-selected from `selected`; `menuitem` in a Menu (no aria-selected); `menuitemcheckbox` / `menuitemradio` for a checkable menu row, with aria-checked from `selected`. |
+| `onSelect` | `() => void` | — |  |
+
+### PopoverSearch
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+
+### PopoverBunkAction
+Also accepts `HTMLAttributes<HTMLDivElement>`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `theme` | `"default"` | `"default"` |  |
+
+### PopoverBunkActionGroup
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+
+### PopoverBunkActionDivider
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+
+### PopoverManualAddNew
+Also accepts `Omit<PopoverProps, "label" | "search">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` | `ReactNode` | — | Heading above the options. Default: the locale's "Select an option or create one". |
+| `createLabel` | `ReactNode` | — | Text of the create row, before the Badge with the typed value. Default: the locale's "Create". |
+| `onCreate` | `(value: string) => void` | — |  |
+| `items` | _HTML attribute_ | `[]` |  |
+
+### Types
+Object shapes the props above refer to.
+
+```ts
+type BadgeTheme = "accent" | "neutral" | "yellow" | "orange" | "red" | "crimson" | "pink" | "plum" | "purple" | "violet" | "indigo" | "blue" | "cyan" | "teal" | "green" | "brown" | "inverse" | "on-color"
+type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?: ReactNode; leading?: IconName | ReactNode; trailing?: IconName | ReactNode; disabled?: boolean; selected?: boolean; photoSrc?: string; photoAlt?: string; badgeTheme?: BadgeTheme; theme?: "icon" | "text-only" | "photo-small" | "photo-big" | "avatar-small" | "avatar-big" | "dock-icon" | "badge"; function?: "default" | "manual-add-new"; }
+```
+
+## Keyboard
+| Keys | Action |
+| --- | --- |
+| ↑ / ↓ | Move between options |
+| Home / End | First / last option |
+| Enter | Choose the focused option |
+| Escape | Close and return focus to the trigger |
+
 ## ✅ Do
+- Pass `open`: a Popover is closed by default. Controlled `open={isOpen}` goes with `onOpenChange` (harness: popover/explicit-open, popover/controlled-close).
 - Pass images via photoSrc; the item renders the Figma size for its theme.
-- Use Avatar Small (32px) or larger when an item has a caption.
+- Avatar items are 32px (Avatar Small) or 40px (Avatar Big); long labels and captions stay on one line and end in "…".
 - Give it anchorRef + onOpenChange so outside-click and Escape close it and focus returns.
+- Keep one popover open at a time: opening a popover for another object closes the open one. Popover (with onOpenChange), Chip, Select and DatePicker do this for you; a custom popup joins with useExclusivePopover(open, close, rootRef). A popover opened from inside another popover is nested and keeps its parent open.
 - Keep single-select popovers closing on select; keep multi-select open.
 - Offer Manual-Add-New (onPopoverCreate / onCreate) when users may need a value that isn't listed, e.g. labels, tags or keywords. The Create row appears only for a new value, and Enter creates it.
+- Use Popover/Bulk-Action (PopoverBulkAction) for quick actions on a selection — text, a canvas element or selected rows: name it with aria-label, group actions with PopoverBulkActionGroup and 40px dividers, Button/Icon-Flat Medium only, 6 actions at most (harness: popover/bulk-action-limit). For list selections, say how many items each action affects.
 
 ## ❌ Don't
 - Don't pass your own sized `<Avatar>`/`<img>` as leading for avatar/photo themes.
+- Don't show popovers for two different objects side by side (e.g. two filter chips' menus, or a row menu next to a Select list); an uncontrolled Popover without onOpenChange cannot be closed by the next one (harness: popover/controlled-close).
 - Don't put buttons or inputs (other than the Search row) inside items.
 - Don't dead-end a searchable list with "No results" when creating the value is allowed; use Manual-Add-New.
 - Don't offer Create for closed sets (statuses, roles, countries).
+- Don't use Bulk-Action for page-level or navigation actions — that is a Toolbar or Sidebar.
 
 ## Accessibility
 - role=listbox / option with aria-selected; ↑/↓/Home/End move; Escape closes and restores focus.
+- Keyboard focus on an option is the 3px Focus/Accent ring, drawn inside the row: Selected, Flat/Hover and Flat/Pressed are the same alpha, so a fill alone would hide focus on or beside the selected option (harness: focus/selected-fill-only).
 
 ## Content
 - Label = category; item label = value; caption = secondary fact.
@@ -45,6 +149,10 @@ The shared floating list used by Chip, Select, Autocomplete and Leading/Trailing
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `popover/controlled-close` | warn | A controlled Popover needs onOpenChange so outside-click and Escape can close it. | `zen-allow-popover-close: <reason>` |
+| `popover/explicit-open` | error | Popover is closed by default: pass `open` (open={isOpen} with onOpenChange, or a bare `open` for an always-visible surface). | `zen-allow-popover-open: <reason>` |
+| `popover/bulk-action-limit` | warn | Popover/Bulk-Action is a named toolbar (aria-label) of at most 6 Button/Icon-Flat Medium actions — more belongs in a context menu or side panel. | `zen-allow-bulk-action: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
+| `focus/selected-fill-only` | warn | An item with a filled selected state shows keyboard focus with the Focus/Accent ring, not a fill alone: Selected, Flat/Hover and Flat/Pressed can be the same alpha, so focus on or beside a selected item vanishes. | `zen-allow-focus-fill: <reason>` |
 
 ## References
 - [WAI-ARIA APG — Listbox](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/)

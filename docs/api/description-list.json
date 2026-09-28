@@ -1,0 +1,108 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "description-list",
+  "import": "import { DescriptionList, DescriptionItem } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "DescriptionList",
+      "file": "src/components/DescriptionList/DescriptionList.tsx",
+      "description": "A semantic description list (dl) of term → description pairs: order summaries and receipts, profile details, specs\nand metadata. Typography comes from the Figma text styles (term Body/Small/Regular Base, value Body/Base/Medium\nStrongest, total Body/Base/Bold); rules use Border/Neutral/Pale, and the total's rule Border/Neutral/Solid (Divider High).\n\n  <DescriptionList items={[{ term: \"Subtotal\", description: \"$311.90\" }, { term: \"Total\", description: \"$321.90\", emphasis: true }]} />",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLDListElement>, \"children\">",
+      "props": [
+        {
+          "name": "items",
+          "type": "DescriptionListItem[]",
+          "required": false,
+          "default": "[]",
+          "description": "The rows, in reading order. Or pass DescriptionItem children (both render, items first).",
+          "deprecated": null
+        },
+        {
+          "name": "layout",
+          "type": "\"inline\" | \"stacked\"",
+          "required": false,
+          "default": "\"inline\"",
+          "description": "inline (default): term at the start and value at the end of one line (order summaries, specs); it stacks by itself\nwhen the list is narrower than `stackBelow`. stacked: term above value (profiles, addresses, long values).",
+          "deprecated": null
+        },
+        {
+          "name": "divider",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Pale rules (Border/Neutral/Pale) between rows, with Padding/Small above and below each rule. Default false.",
+          "deprecated": null
+        },
+        {
+          "name": "stackBelow",
+          "type": "number",
+          "required": false,
+          "default": "280",
+          "description": "Inline layout only: below this width (px) of the list itself the rows stack (term above value). Default 280, so\nlists in phone cards and sheets (about 300–350px) stay inline while narrow columns stack; 0 keeps them inline.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "DescriptionItem rows.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "DescriptionItem",
+      "file": "src/components/DescriptionList/DescriptionList.tsx",
+      "description": "One row of a DescriptionList: a dt + dd group (plus a dd for the action). Use it only as a child of DescriptionList.\n\n  <DescriptionItem term=\"Total\" description=\"$321.90\" emphasis />",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "term",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "The label (dt): Body/Small/Regular, Content/Neutral/Base.",
+          "deprecated": null
+        },
+        {
+          "name": "description",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "The value (dd): Body/Base/Medium, Content/Neutral/Strongest.",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "An action for this row only (rendered in its own dd at the end of the row).",
+          "deprecated": null
+        },
+        {
+          "name": "emphasis",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "The total row: Body/Base/Bold with a High rule above it. One per list.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "On the row's div (the dt/dd group).",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "DescriptionListItem": "interface DescriptionListItem { id?: string; term: ReactNode; description: ReactNode; action?: ReactNode; emphasis?: boolean; }"
+  }
+}

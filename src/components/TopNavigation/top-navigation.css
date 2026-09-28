@@ -1,0 +1,142 @@
+/* Figma Top-Navigation/Mobile (12014:45167). */
+/* Figma Margin (Breakpoint & Grids, Mobile mode): Comfortable = Margin-Comfortable → Spacing/Padding/Large (20);
+   Compact = Margin-Compact → Spacing/Padding/Medium (16). Bound to the Spacing tokens, not --zen-margin-*, because those
+   follow the page breakpoint (Comfortable would collapse to 16 = Compact under [data-breakpoint="mobile"]). */
+.zen-top-nav {
+  --zen-top-nav-side: var(--zen-spacing-padding-large, 20px);
+  --zen-top-nav-content: var(--zen-color-content-neutral-strongest, #111);
+  position: relative;
+  z-index: 2;
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  flex-direction: column;
+  padding-top: var(--zen-safe-area-top, env(safe-area-inset-top, 0px));
+  background: var(--zen-color-background-surface-default, #fff);
+  color: var(--zen-top-nav-content);
+}
+.zen-top-nav[data-margin="compact"] { --zen-top-nav-side: var(--zen-spacing-padding-medium, 16px); }
+.zen-top-nav[data-sticky="true"] { position: sticky; top: 0; }
+
+/* Backgrounds (Figma Type). */
+.zen-top-nav:is([data-type="alt"], [data-type="compact-alt"]) { background: var(--zen-color-background-surface-alt, #f7f7f7); }
+.zen-top-nav[data-type="default-blurring"] {
+  --zen-top-nav-blur: 5px;
+  background: linear-gradient(180deg, var(--zen-color-background-surface-default, #fff) 50%, var(--zen-color-background-surface-default-bluring-end, rgb(255 255 255 / 0%)) 100%);
+}
+.zen-top-nav:is([data-type="alt-blurring"], [data-type="liquid-glass"]) {
+  background: linear-gradient(180deg, var(--zen-color-background-surface-alt, #f7f7f7) 0%, var(--zen-color-background-surface-alt-bluring-end, rgb(247 247 247 / 0%)) 100%);
+}
+.zen-top-nav:is([data-type="default-overlay"], [data-type="liquid-overlay"], [data-type="compact-overlay"]) {
+  --zen-top-nav-content: var(--zen-color-content-on-black-overlay-strongest, #fff);
+  background: linear-gradient(180deg, var(--zen-color-background-black-overlay-hover, rgb(0 0 0 / 50%)) 0%, transparent 100%);
+}
+.zen-top-nav[data-type="compact-overlay"] { background: linear-gradient(180deg, var(--zen-color-background-black-overlay-pressed, rgb(0 0 0 / 60%)) 0%, transparent 100%); }
+
+/* Progressive background blur (Figma blurType=PROGRESSIVE, start radius at the top → 0 at the bottom). CSS has one
+   backdrop-filter per element, so five stacked layers each blur the backdrop and are masked to a band that ends
+   1/5 higher than the previous one: the top edge sits under all five (strongest), the bottom under none (sharp).
+   Figma radius ≈ 2 × CSS blur(): Default-Bluring 10 → 5px, Alt-Bluring / Liquid Glass / Overlays 20 → 10px.
+   Each layer blurs by R/√5 so the stacked top edge adds up to ≈ R. Layers sit under the gradient fill and content. */
+.zen-top-nav { --zen-top-nav-blur: 10px; }
+.zen-top-nav__progressive { position: absolute; z-index: -1; inset: 0; pointer-events: none; }
+.zen-top-nav__progressive > i { position: absolute; inset: 0; -webkit-backdrop-filter: blur(calc(var(--zen-top-nav-blur) / 2.236)); backdrop-filter: blur(calc(var(--zen-top-nav-blur) / 2.236)); }
+.zen-top-nav__progressive > i:nth-child(1) { -webkit-mask-image: linear-gradient(180deg, #000 80%, transparent 100%); mask-image: linear-gradient(180deg, #000 80%, transparent 100%); }
+.zen-top-nav__progressive > i:nth-child(2) { -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent 80%); mask-image: linear-gradient(180deg, #000 60%, transparent 80%); }
+.zen-top-nav__progressive > i:nth-child(3) { -webkit-mask-image: linear-gradient(180deg, #000 40%, transparent 60%); mask-image: linear-gradient(180deg, #000 40%, transparent 60%); }
+.zen-top-nav__progressive > i:nth-child(4) { -webkit-mask-image: linear-gradient(180deg, #000 20%, transparent 40%); mask-image: linear-gradient(180deg, #000 20%, transparent 40%); }
+.zen-top-nav__progressive > i:nth-child(5) { -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 20%); mask-image: linear-gradient(180deg, #000 0%, transparent 20%); }
+
+/* Navigator bar: 64px, leading · centred Sub heading · trailing. */
+.zen-top-nav__bar { display: grid; min-height: 64px; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; }
+.zen-top-nav__leading, .zen-top-nav__trailing { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding-block: var(--zen-spacing-padding-xsmall, 8px); }
+/* Figma Leading-Slot gap = Spacing/Gap/Medium (16). Trailing-Slot gap between actions:
+   Style=Default/Glass 44px buttons = Navigation-Mobile/Top/Action-Button-Gap (8);
+   Style=Flat 24px icons (Type=Compact*) = Navigation-Mobile/Top/Action-Icon-Gap (20). Same in both Margin variants. */
+.zen-top-nav__leading { gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-top-nav__trailing { gap: var(--zen-navigation-mobile-top-action-button-gap, 8px); }
+.zen-top-nav__trailing:has(> .zen-top-nav__action[data-style="flat"]) { gap: var(--zen-navigation-mobile-top-action-icon-gap, 20px); }
+.zen-top-nav__leading { padding-inline: var(--zen-top-nav-side) var(--zen-spacing-padding-small, 12px); }
+.zen-top-nav__trailing { justify-content: flex-end; padding-inline: var(--zen-spacing-padding-small, 12px) var(--zen-top-nav-side); }
+/* Top-Heading-Text (12014:44793): Padding/XSmall × Padding/2XSmall. */
+.zen-top-nav__title { overflow: hidden; max-width: 100%; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-2-xsmall, 4px); color: var(--zen-top-nav-content); text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.zen-top-nav__title[data-visible="false"] { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) { .zen-top-nav__title { transition: opacity var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
+
+/* Expand-Heading: 64px, Main-Heading-Text (Navigation-Mobile/Top/Bar-Padding-H1…H3 × the side margin, 12005:30073) +
+   Header-Trailing; the row centres the heading. */
+.zen-top-nav__expand { display: flex; min-height: 64px; align-items: center; }
+.zen-top-nav__heading { overflow: hidden; min-width: 0; flex: 1; margin: 0; padding: var(--zen-navigation-mobile-top-bar-padding-h1, 12px) var(--zen-top-nav-side); color: var(--zen-top-nav-content); text-overflow: ellipsis; white-space: nowrap; }
+.zen-top-nav__heading[data-level="h2"] { padding-block: var(--zen-navigation-mobile-top-bar-padding-h2, 12px); }
+.zen-top-nav__heading[data-level="h3"] { padding-block: var(--zen-navigation-mobile-top-bar-padding-h3, 16px); }
+.zen-top-nav__expand-trailing { display: flex; align-items: center; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-top-nav-side) var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); }
+.zen-top-nav__control { display: flex; min-height: 48px; box-sizing: border-box; align-items: center; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-top-nav-side) var(--zen-spacing-padding-xsmall, 8px); }
+.zen-top-nav__control > * { min-width: 0; flex: 1; }
+/* A Segmented in the Control-Bar always spans the bar with equal items (mobile pattern), even without fullWidth. */
+.zen-top-nav__control > .zen-segmented { display: flex; width: 100%; }
+.zen-top-nav__control > .zen-segmented > .zen-segmented__item { flex: 1 1 0; }
+
+/* Nav-Action (Nav-Action/Icon-Main 6085:34010): Navigation-Action/Size circle (Corner-Radius/Rounded), Navigation-Action/Icon
+   padding around a Navigation-Mobile/Top/Icon-Size icon (Icon-Main Tertiary · Flat · Liquid-Glass). */
+.zen-top-nav__action {
+  position: relative;
+  display: inline-flex;
+  width: var(--zen-navigation-action-size, 44px);
+  height: var(--zen-navigation-action-size, 44px);
+  flex: 0 0 var(--zen-navigation-action-size, 44px);
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  padding: var(--zen-navigation-action-icon-spacing-vertical-padding, 10px) var(--zen-navigation-action-icon-spacing-horizontal-padding, 10px);
+  border: 0;
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  background: var(--zen-button-tertiary-background-default, #fff);
+  box-shadow: inset 0 0 0 1px var(--zen-button-tertiary-border-default, rgb(1 1 1 / 11%)), var(--zen-style-shadow-action-tertiary-shadow, 0 1px 1px rgb(0 0 0 / 6%));
+  color: var(--zen-top-nav-content);
+  cursor: pointer;
+  --zen-icon-size: var(--zen-navigation-mobile-top-icon-size, 24px);
+}
+.zen-top-nav__action .zen-icon, .zen-top-nav__action svg { width: var(--zen-navigation-mobile-top-icon-size, 24px); height: var(--zen-navigation-mobile-top-icon-size, 24px); }
+.zen-top-nav__action:hover:not(:disabled) { background: var(--zen-button-tertiary-background-hover, #f7f7f7); }
+.zen-top-nav__action:active:not(:disabled) { background: var(--zen-button-tertiary-background-pressed, #efefef); box-shadow: inset 0 0 0 1px var(--zen-button-tertiary-border-default, rgb(1 1 1 / 11%)); }
+.zen-top-nav__action:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 2px; }
+.zen-top-nav__action:disabled { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); cursor: not-allowed; }
+/* Flat: no container; the 44px target stays but only the 24px icon takes layout room (Figma Style=Flat 12012:36254: an
+   Icon-Size slot with the Navigation-Action/Size button at −10px). */
+.zen-top-nav__action[data-style="flat"] { margin: calc((var(--zen-navigation-mobile-top-icon-size, 24px) - var(--zen-navigation-action-size, 44px)) / 2); background: transparent; box-shadow: none; }
+.zen-top-nav__action[data-style="flat"]:hover:not(:disabled) { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+.zen-top-nav__action[data-style="glass"] { background: var(--zen-color-background-liquid-glass-normal-default, rgb(255 255 255 / 70%)); box-shadow: var(--zen-style-liquid-glass-normal-shadow, 0 4px 16px rgb(0 0 0 / 8%)); backdrop-filter: blur(12px); }
+.zen-top-nav__action[data-style="glass"]:hover:not(:disabled) { background: var(--zen-color-background-liquid-glass-normal-hover, rgb(255 255 255 / 80%)); }
+.zen-top-nav__action[data-style="glass-dark"] { background: var(--zen-color-background-liquid-glass-black-overlay-default, rgb(0 0 0 / 30%)); box-shadow: none; backdrop-filter: blur(12px); }
+.zen-top-nav__action[data-style="glass-dark"]:hover:not(:disabled) { background: var(--zen-color-background-liquid-glass-black-overlay-hover, rgb(0 0 0 / 40%)); }
+.zen-top-nav__dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-negative-solid-default, #e5532e); box-shadow: 0 0 0 2px var(--zen-color-border-inverse, #fff); }
+.zen-top-nav__action[data-style="flat"] .zen-top-nav__dot { top: 8px; right: 8px; }
+@media (prefers-reduced-motion: no-preference) { .zen-top-nav__action { transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
+
+/* searchAction: the Search control bar folds into a trailing Search action while collapsed (and back). */
+.zen-top-nav__search { animation: zen-top-nav-search-in var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-emphasized, ease-out) both; }
+.zen-top-nav__search[data-state="closing"] { animation: zen-top-nav-search-out var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-exit, ease-in) both; pointer-events: none; }
+@keyframes zen-top-nav-search-in { from { opacity: 0; transform: scale(0.8); } }
+@keyframes zen-top-nav-search-out { to { opacity: 0; transform: scale(0.8); } }
+@media (prefers-reduced-motion: reduce) { .zen-top-nav__search, .zen-top-nav__search[data-state="closing"] { animation: none; } }
+
+/* Identity title (Figma ◆ Social conversation header: Heading-Text Type=Sub + Leading + Subheading). The bar switches to
+   leading · identity (fills, left-aligned) · trailing; the identity keeps the Heading-Text padding 8/4. */
+.zen-top-nav__bar:has(> .zen-top-nav__identity) { grid-template-columns: auto minmax(0, 1fr) auto; }
+.zen-top-nav__bar:has(> .zen-top-nav__identity) > .zen-top-nav__leading { padding-inline-end: var(--zen-spacing-padding-small, 12px); }
+.zen-top-nav__identity { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-base, 12px); background: transparent; color: var(--zen-top-nav-content); font: inherit; text-align: start; }
+button.zen-top-nav__identity { cursor: pointer; }
+button.zen-top-nav__identity:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+button.zen-top-nav__identity:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: -3px; }
+.zen-top-nav__identity-leading { display: inline-flex; width: var(--zen-image-size-large, 48px); height: var(--zen-image-size-large, 48px); flex: 0 0 var(--zen-image-size-large, 48px); align-items: center; justify-content: center; }
+.zen-top-nav__identity-text { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-top-nav__identity-title, .zen-top-nav__identity-subtitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zen-top-nav__identity-subtitle { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-top-nav[data-type$="overlay"] .zen-top-nav__identity-subtitle { color: var(--zen-color-content-on-black-overlay-base, rgb(255 255 255 / 70%)); }
+
+/* Grouped trailing actions: one Tertiary pill (Figma Nav-Action/Icon-Main with a trailing icon, 92×44 — padding 10,
+   two 24px icons 24 apart) made of two 44px flat halves, so each icon keeps its own target and name. */
+.zen-top-nav__group { display: inline-flex; box-sizing: border-box; align-items: center; padding: 0 var(--zen-spacing-padding-3-xsmall, 2px); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-button-tertiary-background-default, #fff); box-shadow: inset 0 0 0 1px var(--zen-button-tertiary-border-default, rgb(1 1 1 / 11%)), var(--zen-style-shadow-action-tertiary-shadow, 0 1px 1px rgb(0 0 0 / 6%)); -webkit-backdrop-filter: var(--zen-style-shadow-action-tertiary-backdrop-filter, none); backdrop-filter: var(--zen-style-shadow-action-tertiary-backdrop-filter, none); }
+.zen-top-nav__action[data-style="flat-group"] { background: transparent; box-shadow: none; }
+.zen-top-nav__action[data-style="flat-group"]:hover:not(:disabled) { background: var(--zen-button-tertiary-background-hover, rgb(1 1 1 / 4%)); }
+.zen-top-nav__action[data-style="flat-group"]:active:not(:disabled) { background: var(--zen-button-tertiary-background-pressed, rgb(1 1 1 / 8%)); }

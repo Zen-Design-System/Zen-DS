@@ -1,12 +1,13 @@
-import { useContext, useState, type ReactNode } from "react";
+import { useContext, useRef, useState, type ReactNode } from "react";
 import { Button, IconButton, type ButtonAppearance, type ButtonLevel, type ButtonSize } from "../components/Button";
 import { Chip, type ChipLevel, type ChipSize, type ChipState, type ChipTheme, type ChipVariant } from "../components/Chip";
 import { Icon, type IconName } from "../components/Icon";
-import { AutocompleteField, ControlBarSelectItem, DateField, HeadingField, InputConditionItem, InputConditions, InputContent, InputField, InputHelpText, InputLabel, InputLeadingTrailing, NumberField, RichTextEditorBar, RichTextField, SelectField, TextAreaField, type InputSize, type InputState } from "../components/Input";
+import { AutocompleteField, ControlBarSelectItem, DateField, HeadingField, headingInputSizes, type HeadingInputSize, InputConditionItem, InputConditions, InputContent, InputField, InputHelpText, InputLabel, InputLeadingTrailing, NumberField, type InputHelpTheme, RichTextEditorBar, RichTextField, SelectField, TextAreaField, type InputSize, type InputState } from "../components/Input";
 import { Search, type SearchSize, type SearchTheme, type SearchVariant } from "../components/Search";
-import { Sidebar, type SidebarBackground, type SidebarSection, type SidebarVariant } from "../components/Sidebar";
+import { Sidebar, SidebarSubMenu, type SidebarBackground, type SidebarSection, type SidebarVariant } from "../components/Sidebar";
 import { Segmented, type SegmentedLevel, type SegmentedSize } from "../components/Segmented";
 import { Avatar, AvatarStack, avatarThemes, type AvatarBackground, type AvatarShape, type AvatarSize, type AvatarTheme } from "../components/Avatar";
+import { Menu } from "../components/Menu";
 import { Checkbox, type CheckboxSide } from "../components/Checkbox";
 import { RadioButton, type RadioSide } from "../components/RadioButton";
 import { Badge, BadgeCounter, badgeThemes, type BadgeBackground, type BadgeSize, type BadgeTheme } from "../components/Badge";
@@ -18,10 +19,26 @@ import { Tooltip, tooltipColors, type TooltipColor, type TooltipPlacement, type 
 import { Tabs, TabPanel, type TabSize, type TabVariant } from "../components/Tabs";
 import { Breadcrumbs, type BreadcrumbEmphasis } from "../components/Breadcrumbs";
 import { ProgressBar, ProgressCircle, progressCircleThemes, type ProgressBarTheme, type ProgressCircleTheme } from "../components/Progress";
-import { Dialog, dialogThemes, type DialogTheme } from "../components/Dialog";
+import { Dialog, ModalForm, dialogThemes, modalActionDirections, modalFormLayouts, type DialogTheme, type ModalActionDirection, type ModalFormLayout } from "../components/Dialog";
 import { Accordion, type AccordionSize, type AccordionTheme } from "../components/Accordion";
+import { Divider, dividerColors, type DividerColor } from "../components/Divider";
+import { InlineMessage, inlineMessageThemes, type InlineMessageTheme } from "../components/InlineMessage";
+import { EmptyState } from "../components/EmptyState";
+import { Stepper, type StepperOrientation } from "../components/Stepper";
+import { Slider, sliderSizes, sliderThemes, type SliderSize, type SliderTheme } from "../components/Slider";
+import { Card, cardSpacings, cardThemes, type CardSpacing, type CardTheme } from "../components/Card";
+import { DockIcon, dockIconSizes, dockIconThemes, type DockIconBackground, type DockIconSize, type DockIconTheme } from "../components/DockIcon";
+import { List, ListItem, type ListInset } from "../components/ListItem";
+import { Table, TableActions, TableBadges, TableMedia, TableTags, TableText, TableTrend, type TableSort } from "../components/Table";
+import { VisuallyHidden } from "../components/VisuallyHidden";
+import { NpsScale, OpinionScale, Rating, RatingDisplay, ratingSizes, ratingThemes, type RatingSize, type RatingTheme } from "../components/Rating";
+import { ColorSelector } from "../components/ColorSelector";
+import { Metric, MetricCard, metricSizes, type MetricSize, type MetricTrendDirection } from "../components/MetricWidget";
+import { FileUpload, type UploaderFile } from "../components/Uploader";
+import { SidePanel, type SidePanelSize, type SidePanelType } from "../components/SidePanel";
 import { AlertBanner, alertBannerThemes, type AlertBannerSize, type AlertBannerTheme } from "../components/AlertBanner";
 import { Pagination, type PaginationItemSize, type PaginationTheme } from "../components/Pagination";
+import { orders, pageOf, ScrollBox } from "./PlatformPaginationData";
 import { SkeletonHeading, SkeletonShape, SkeletonText, skeletonShapes, skeletonShapeSizes, type SkeletonHeadingSize, type SkeletonShapeSize } from "../components/Skeleton";
 import { Toast, toastTypes, type ToastType } from "../components/Toast";
 import { typographyStyles } from "../tokens/typography.generated";
@@ -33,35 +50,65 @@ import { collections } from "../foundations/collections";
 import { PlatformPageTemplate, PlatformTypographyContext } from "./PlatformTemplate";
 import { PlatformCode } from "./PlatformCode";
 import { ComponentGuidelines } from "./PlatformGuidelines";
-import { ComponentExamples, popoverContentKinds, popoverContentSet, type PopoverContentKind } from "./PlatformShowcases";
+import { ComponentApi, ComponentKeyboard, ComponentProps, PlatformOnThisPage, PlatformSection } from "./PlatformReference";
+import { AiChatPlayground, BottomNavigationPlayground, BottomSheetPlayground, ChartPlayground, ChatPlayground, TopNavigationPlayground } from "./PlatformMobilePlaygrounds";
+import { figmaSidebarBrand } from "./PlatformSidebarBrand";
+import { appLayerPages } from "./PlatformAppLayer";
+import { TypographyHierarchyRules } from "./PlatformTypographyHierarchy";
+import type { AppLayerPage } from "./appLayer/types";
+import { ComponentExamples, PopoverBulkSelectionDemo, popoverContentKinds, popoverContentSet, type PopoverContentKind } from "./PlatformShowcases";
 
 const samplePhoto = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#d9c7b8"/><circle cx="16" cy="13" r="6" fill="#8f735f"/><rect x="6" y="21" width="20" height="14" rx="7" fill="#8f735f"/></svg>');
 
-export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typography" | "iconography" | "button" | "chip" | "sidebar" | "input" | "search" | "segmented" | "toggle" | "avatar" | "checkbox" | "radio-button" | "badge" | "popover" | "tag" | "date-picker" | "tooltip" | "tabs" | "breadcrumbs" | "progress" | "dialog" | "accordion" | "alert-banner" | "pagination" | "skeleton" | "toast";
+export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typography" | "iconography" | "button" | "chip" | "sidebar" | "input" | "search" | "segmented" | "toggle" | "avatar" | "checkbox" | "radio-button" | "badge" | "popover" | "tag" | "date-picker" | "tooltip" | "tabs" | "breadcrumbs" | "progress" | "dialog" | "accordion" | "alert-banner" | "pagination" | "skeleton" | "toast" | "divider" | "empty-state" | "inline-message" | "slider" | "stepper" | "card" | "dock-icon" | "list-item" | "table" | "color-selector" | "metric" | "rating" | "side-panel" | "uploader" | "ai-chat" | "bottom-navigation" | "bottom-sheet" | "chart" | "chat" | "top-navigation" | AppLayerPage;
 
+/**
+ * Figma Component-Page-Template (Codebase Platform 14260:96953): the content column (Playground, Examples,
+ * Keyboard, API, Guidelines) with the sticky "On this page" bookmarks beside it.
+ */
 function ExamplePage({ eyebrow, title, description, titleLines, page, children }: { eyebrow: string; title: string; description: string; titleLines?: string[]; page?: PlatformPage; children: ReactNode }) {
+  const contentRef = useRef<HTMLDivElement>(null);
   return (
     <PlatformPageTemplate title={title} eyebrow={eyebrow} titleLines={titleLines} description={description}>
-      <div className="platform-example-page">{children}{page ? <><ComponentExamples page={page} /><ComponentGuidelines page={page} /></> : null}</div>
+      {page ? (
+        <div className="platform-example-page platform-component-page">
+          <div ref={contentRef} className="platform-component-page__content">
+            <PlatformSection id="playground" label="Playground">{children}</PlatformSection>
+            <PlatformSection id="examples" label="Examples"><ComponentExamples page={page} /></PlatformSection>
+            <ComponentKeyboard page={page} />
+            <ComponentApi page={page} />
+            <ComponentProps page={page} />
+            <PlatformSection id="guidelines" label="Guidelines"><ComponentGuidelines page={page} /></PlatformSection>
+          </div>
+          <PlatformOnThisPage scope={contentRef} />
+        </div>
+      ) : <div className="platform-example-page">{children}</div>}
     </PlatformPageTemplate>
   );
 }
 
 /** Keep component previews on the same Figma token mode as the platform shell. */
-function ComponentPreview({ children, className = "" }: { children: ReactNode; className?: string }) {
+export function ComponentPreview({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <div className={`platform-component-preview ${className}`.trim()}>{children}</div>;
 }
 
 /** Only production field compositions are selectable in the platform page.
  * Figma primitive owners remain nested implementation details, not previews. */
-const inputPlaygroundKinds = ["text", "field-only", "textarea", "select", "date", "autocomplete", "number-left", "number-center", "richtext", "heading"] as const;
+const inputPlaygroundKinds = ["text", "field-only", "textarea", "select", "date", "autocomplete", "number-left", "number-center", "richtext", "heading", "conditions", "label", "help-text"] as const;
+/** Input-Conditions demo rules: each turns Success when met, Wrong once the user has typed and it is not. */
+const passwordRules = [
+  { label: "At least 8 characters", test: (value: string) => value.length >= 8 },
+  { label: "Contains an uppercase letter (A-Z)", test: (value: string) => /[A-Z]/.test(value) },
+  { label: "Contains a digit (0-9)", test: (value: string) => /\d/.test(value) },
+  { label: "Contains a special character", test: (value: string) => /[^A-Za-z0-9]/.test(value) },
+];
 
 type PlaygroundOption = { id: string; label: string };
 
 /** Platform composition for choosing one documented axis without rendering a
  * wall of variants. Single-value axes use the Figma Input/Select-Field owner;
  * multiple-choice axes reuse the production Advanced Chip + Popover owners. */
-function PlaygroundFilterChip({
+export function PlaygroundFilterChip({
   label,
   value,
   options,
@@ -115,10 +162,10 @@ function PlaygroundFilterChip({
   </div>;
 }
 
-function PlaygroundToggle({ label, selected, onChange }: { label: string; selected: boolean; onChange: (selected: boolean) => void }) {
+export function PlaygroundToggle({ label, selected, onChange }: { label: string; selected: boolean; onChange: (selected: boolean) => void }) {
   return <div className="platform-property-row" data-kind="boolean">
     <span className="platform-property-row__label">{label}</span>
-    <ToggleButton aria-label={label} selected={selected} onSelectedChange={onChange} size="small" />
+    <ToggleButton aria-label={label} selected={selected} onSelectedChange={onChange} size="medium" />
   </div>;
 }
 
@@ -134,7 +181,7 @@ function ButtonSetPlayground({ title, appearance, iconOnly, levels, sizes }: { t
   const headingId = `button-${iconOnly ? "icon-" : ""}${appearance}-heading`;
   const code = iconOnly
     ? `import { IconButton } from "@zen/design-system";
-import { Icon } from "@zen/design-system/icons";
+import { Icon } from "@zen/design-system";
 
 <IconButton
   appearance="${appearance}"
@@ -145,7 +192,7 @@ import { Icon } from "@zen/design-system/icons";
   icon={<Icon name="icon-plus-line" decorative />}
 />`
     : `import { Button } from "@zen/design-system";
-import { Icon } from "@zen/design-system/icons";
+import { Icon } from "@zen/design-system";
 
 
 <Button
@@ -196,14 +243,28 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [sidebarVariant, setSidebarVariant] = useState<string | undefined>("basic");
   const [inputKind, setInputKind] = useState<string | undefined>("text");
   const [inputSize, setInputSize] = useState<string | undefined>("medium");
-  // Zen inputs have Read-only instead of Disabled (Search is the only input with Disabled).
+  const [conditionsPassword, setConditionsPassword] = useState("Zen2026");
+  // Zen inputs, Search included, have no Disabled state (inputs use Read-only).
   const [inputReadOnly, setInputReadOnly] = useState(false);
+  const [inputHeadingSize, setInputHeadingSize] = useState<string | undefined>("h2");
+  const [inputHeadingMultiline, setInputHeadingMultiline] = useState(false);
+  const [inputRichBar, setInputRichBar] = useState(true);
+  const [inputRichHtml, setInputRichHtml] = useState("");
   const [inputLabel, setInputLabel] = useState(true);
   const [inputHelp, setInputHelp] = useState(true);
+  const [inputLabelOptional, setInputLabelOptional] = useState(false);
+  const [inputLabelTooltip, setInputLabelTooltip] = useState(false);
+  const [inputLabelAction, setInputLabelAction] = useState(false);
+  const [inputLabelDisabled, setInputLabelDisabled] = useState(false);
+  const [inputHelpTheme, setInputHelpTheme] = useState<string | undefined>("neutral");
+  const [inputHelpIcon, setInputHelpIcon] = useState(true);
+  const [inputHelpLimit, setInputHelpLimit] = useState(false);
   const [inputLeading, setInputLeading] = useState(true);
   const [inputLeadingLabel, setInputLeadingLabel] = useState(true);
   const [inputTrailing, setInputTrailing] = useState(true);
   const [inputTrailingLabel, setInputTrailingLabel] = useState(true);
+  const [inputLeadingClickable, setInputLeadingClickable] = useState(true);
+  const [inputTrailingClickable, setInputTrailingClickable] = useState(true);
   const [inputError, setInputError] = useState(false);
   const [inputNumber, setInputNumber] = useState<number | null>(1);
   const [inputLeadingValue, setInputLeadingValue] = useState("user");
@@ -211,10 +272,12 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [searchTheme, setSearchTheme] = useState<string | undefined>("default");
   const [searchSize, setSearchSize] = useState<string | undefined>("medium");
   const [searchVariant, setSearchVariant] = useState<string | undefined>("default");
-  const [searchDisabled, setSearchDisabled] = useState(false);
   const [searchIcon, setSearchIcon] = useState<string | undefined>("yes");
   const [searchValue, setSearchValue] = useState("");
-  const [segmentedLevel, setSegmentedLevel] = useState<string | undefined>("primary");
+  const [searchFilterClickable, setSearchFilterClickable] = useState(true);
+  const [searchFilter, setSearchFilter] = useState("all");
+  const [segmentedLevel, setSegmentedLevel] = useState<string | undefined>("secondary");
+  const [segmentedFull, setSegmentedFull] = useState(false);
   const [segmentedSize, setSegmentedSize] = useState<string | undefined>("medium");
   const [segmentedDisabled, setSegmentedDisabled] = useState(false);
   const [segmentedValue, setSegmentedValue] = useState("overview");
@@ -253,12 +316,18 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [badgeRemoved, setBadgeRemoved] = useState(false);
   const [badgeCount, setBadgeCount] = useState<string | undefined>("7");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [sidebarBackground, setSidebarBackground] = useState<string | undefined>("flat");
+  const [sidebarBackground, setSidebarBackground] = useState<string | undefined>(undefined);
+  const [sidebarCanvas, setSidebarCanvas] = useState<string | undefined>(undefined);
   const [sidebarWorkspaceBar, setSidebarWorkspaceBar] = useState(true);
   const [sidebarSubMenu, setSidebarSubMenu] = useState(false);
+  const [sidebarWorkspace, setSidebarWorkspace] = useState("workspace-a");
   const [sidebarSelected, setSidebarSelected] = useState("dashboard");
+  const [sidebarNewProjects, setSidebarNewProjects] = useState<string[]>([]);
+  const [sidebarNewWorkspaces, setSidebarNewWorkspaces] = useState<string[]>([]);
   const [popoverOpen, setPopoverOpen] = useState(true);
   const [popoverTrigger, setPopoverTrigger] = useState<string | undefined>("chip");
+  const [popoverBulkHistory, setPopoverBulkHistory] = useState(true);
+  const [popoverBulkDelete, setPopoverBulkDelete] = useState(true);
   const [popoverLabelOn, setPopoverLabelOn] = useState(true);
   const [popoverSearch, setPopoverSearch] = useState("");
   const [popoverSearchOn, setPopoverSearchOn] = useState(true);
@@ -282,6 +351,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [tooltipSize, setTooltipSize] = useState<string | undefined>("medium");
   const [tooltipPlacement, setTooltipPlacement] = useState<string | undefined>("top");
   const [tooltipPinned, setTooltipPinned] = useState(false);
+  const [tooltipDuplicated, setTooltipDuplicated] = useState(false);
   const [tabsVariant, setTabsVariant] = useState<string | undefined>("indicator");
   const [tabsSize, setTabsSize] = useState<string | undefined>("medium");
   const [tabsIcon, setTabsIcon] = useState(true);
@@ -320,12 +390,90 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [skeletonShapeSize, setSkeletonShapeSize] = useState<string | undefined>("medium");
   const [skeletonAnimated, setSkeletonAnimated] = useState(true);
   const [toastType, setToastType] = useState<string | undefined>("neutral");
-  const [toastTitle, setToastTitle] = useState(true);
   const [toastCaption, setToastCaption] = useState(true);
   const [toastAction, setToastAction] = useState(true);
   const [toastClose, setToastClose] = useState(true);
   const [toastDismissed, setToastDismissed] = useState(false);
+  const [dividerColor, setDividerColor] = useState<string | undefined>("default");
+  const [dividerOrientation, setDividerOrientation] = useState<string | undefined>("horizontal");
+  const [dividerDashed, setDividerDashed] = useState(false);
+  const [inlineTheme, setInlineTheme] = useState<string | undefined>("info");
+  const [inlineTitle, setInlineTitle] = useState(true);
+  const [inlineCaption, setInlineCaption] = useState(true);
+  const [inlineAction, setInlineAction] = useState(false);
+  const [inlineClose, setInlineClose] = useState(true);
+  const [inlineDismissed, setInlineDismissed] = useState(false);
+  const [emptyCaption, setEmptyCaption] = useState(true);
+  const [emptyPrimary, setEmptyPrimary] = useState(true);
+  const [emptySecondary, setEmptySecondary] = useState(true);
+  const [emptyIllustration, setEmptyIllustration] = useState(true);
+  const [stepperOrientation, setStepperOrientation] = useState<string | undefined>("horizontal");
+  const [stepperCurrent, setStepperCurrent] = useState(1);
+  const [stepperError, setStepperError] = useState(false);
+  const [stepperCaption, setStepperCaption] = useState(true);
+  const [sliderTheme, setSliderTheme] = useState<string | undefined>("neutral");
+  const [sliderSize, setSliderSize] = useState<string | undefined>("medium");
+  const [sliderValue, setSliderValue] = useState(40);
+  const [sliderIcon, setSliderIcon] = useState(true);
+  const [sliderLimits, setSliderLimits] = useState(false);
+  const [sliderDisabled, setSliderDisabled] = useState(false);
+  const [cardTheme, setCardTheme] = useState<string | undefined>("shadow");
+  const [cardSpacing, setCardSpacing] = useState<string | undefined>("medium");
+  const [cardActive, setCardActive] = useState(false);
+  const [cardSubAction, setCardSubAction] = useState(true);
+  const [dockTheme, setDockTheme] = useState<string | undefined>("accent");
+  const [dockSize, setDockSize] = useState<string | undefined>("medium");
+  const [dockBackground, setDockBackground] = useState<string | undefined>("solid");
+  const [listLeading, setListLeading] = useState(true);
+  const [listCaption, setListCaption] = useState(true);
+  const [listTrailing, setListTrailing] = useState(true);
+  const [listInset, setListInset] = useState<string | undefined>(undefined);
+  const [listSelected, setListSelected] = useState("ava");
+  const [tableSelectable, setTableSelectable] = useState(true);
+  const [tableSelected, setTableSelected] = useState<string[]>(["zen-web"]);
+  const [tableSort, setTableSort] = useState<TableSort | null>({ columnId: "name", direction: "asc" });
+  const [tableEmpty, setTableEmpty] = useState(false);
+  const [ratingType, setRatingType] = useState<string | undefined>("star");
+  const [ratingSize, setRatingSize] = useState<string | undefined>("large");
+  const [ratingTheme, setRatingTheme] = useState<string | undefined>("default");
+  const [ratingValue, setRatingValue] = useState(4);
+  const [colorValue, setColorValue] = useState("var(--zen-color-background-support-blue-solid)");
+  const [metricSize, setMetricSize] = useState<string | undefined>("xlarge");
+  const [metricTrend, setMetricTrend] = useState<string | undefined>("positive");
+  const [metricIcon, setMetricIcon] = useState(true);
+  const [metricCard, setMetricCard] = useState(true);
+  const [metricIconTheme, setMetricIconTheme] = useState<string | undefined>("green");
+  const [metricIconSolid, setMetricIconSolid] = useState(false);
+  const [uploadType, setUploadType] = useState<string | undefined>("dropzone");
+  const [uploadThumb, setUploadThumb] = useState<string | undefined>("file");
+  const [uploadError, setUploadError] = useState(false);
+  const [uploadMultiple, setUploadMultiple] = useState(true);
+  const [uploadExtended, setUploadExtended] = useState(true);
+  const [uploadFiles, setUploadFiles] = useState<UploaderFile[]>([
+    { id: "f1", name: "brand-guidelines.pdf", size: "1.2 MB", state: "uploading", progress: 64, caption: "7 seconds left" },
+    { id: "f2", name: "tokens.json", size: "86 KB", state: "uploaded" },
+    { id: "f3", name: "hero-banner.png", size: "2.4 MB", state: "alert", error: "File is over 2 MB" },
+  ]);
+  const [panelType, setPanelType] = useState<string | undefined>("modal");
+  const [panelSize, setPanelSize] = useState<string | undefined>("default");
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelDescription, setPanelDescription] = useState(true);
+  const [tableMode, setTableMode] = useState<string | undefined>("display");
+  const [tableOpenButton, setTableOpenButton] = useState(true);
+  const [tableLockRow, setTableLockRow] = useState(true);
+  const [tableEditLog, setTableEditLog] = useState("");
+  const [tableBudget, setTableBudget] = useState([
+    { id: "zen-web", name: "Zen website", owner: "ava", budget: "12000", tags: ["web", "brand"], status: "live", archived: false },
+    { id: "tokens", name: "Token pipeline", owner: "bao", budget: "8500", tags: ["tooling"], status: "review", archived: false },
+    { id: "mobile", name: "Mobile kit", owner: "chi", budget: "4200", tags: ["ios", "android"], status: "blocked", archived: false },
+    { id: "legacy", name: "Legacy docs", owner: "duy", budget: "0", tags: ["archive"], status: "live", archived: true },
+  ]);
   const [dialogActions, setDialogActions] = useState<string | undefined>("dual");
+  const [dialogKind, setDialogKind] = useState<string | undefined>("dialog");
+  const [dialogDirection, setDialogDirection] = useState<string | undefined>("horizontal");
+  const [formLayout, setFormLayout] = useState<string | undefined>("basic");
+  const [formSide, setFormSide] = useState(true);
+  const [formClose, setFormClose] = useState(true);
   const [dialogIcon, setDialogIcon] = useState(true);
   const [dialogDescription, setDialogDescription] = useState(true);
   const [dialogCustom, setDialogCustom] = useState(false);
@@ -347,14 +495,16 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
           <p className="foundation-eyebrow">Collections</p>
           <div>{collections.map((collection) => <button key={collection.slug} onClick={() => onCollectionClick?.(collection.slug)} type="button">{collection.name}<span>{collection.variableCount.toLocaleString("en-US")} vars</span></button>)}</div>
         </section>
+        <ComponentGuidelines page="design-tokens" title="Border usage" />
+        <ComponentGuidelines page="design-tokens" slug="content-colors" title="Content colour usage" />
       </PlatformPageTemplate>
     );
   }
   if (page === "typography") {
-    return <PlatformPageTemplate title="Typography" eyebrow="Foundations" description="Composite typography contracts exported from Figma and connected to Typography and Emphasis variables."><TextStylesGallery embedded sampleTypography={previewTypography} /></PlatformPageTemplate>;
+    return <PlatformPageTemplate title="Typography" eyebrow="Foundations" description="Composite typography contracts exported from Figma and connected to Typography and Emphasis variables."><TextStylesGallery embedded sampleTypography={previewTypography} /><PlatformSection id="hierarchy" label="Content hierarchy"><TypographyHierarchyRules /></PlatformSection><PlatformSection id="examples" label="Examples"><ComponentExamples page="typography" /></PlatformSection></PlatformPageTemplate>;
   }
   if (page === "iconography") {
-    return <PlatformPageTemplate title="Iconography" eyebrow="Foundations" description="SVG icons are generated from one source folder and rendered through one component."><IconGallery embedded /><ComponentGuidelines page="iconography" /></PlatformPageTemplate>;
+    return <PlatformPageTemplate title="Iconography" eyebrow="Foundations" description="SVG icons are generated from one source folder and rendered through one component."><IconGallery embedded /><ComponentGuidelines page="iconography" /><ComponentGuidelines page="iconography" slug="file-icon" title="File icon usage" /></PlatformPageTemplate>;
   }
 
   if (page === "button") {
@@ -463,15 +613,22 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
 
   if (page === "sidebar") {
     const resolvedSidebarVariant = (sidebarVariant ?? "basic") as SidebarVariant;
-    const resolvedSidebarBackground = (sidebarBackground ?? "flat") as SidebarBackground;
+    // Background layers: the page Canvas decides the sidebar Surface unless Background is picked by hand.
+    const resolvedSidebarCanvas = (sidebarCanvas ?? (resolvedSidebarVariant === "workspace" ? "alt" : "default")) as "default" | "alt" | "flat";
+    const resolvedSidebarBackground = (sidebarBackground ?? { default: "default", alt: "alt", flat: "flat" }[resolvedSidebarCanvas]) as SidebarBackground;
     const sidebarIcon = (name: IconName) => <Icon name={name} size="base" />;
+    // Section and rail actions work: New project / Add workspace create an item and select it.
+    const addSidebarProject = () => { const id = `project-new-${sidebarNewProjects.length + 1}`; setSidebarNewProjects((list) => [...list, id]); setSidebarSelected(id); };
+    const addSidebarWorkspace = () => { const id = `workspace-new-${sidebarNewWorkspaces.length + 1}`; setSidebarNewWorkspaces((list) => [...list, id]); setSidebarWorkspace(id); };
     const sidebarSections: SidebarSection[] = [
       { items: [
         { id: "dashboard", label: "Dashboard", selected: sidebarSelected === "dashboard", icon: sidebarIcon("icon-home-03-line") },
         { id: "inbox", label: "Inbox", counter: 12, selected: sidebarSelected === "inbox", icon: sidebarIcon("ic-inbox-01-line") },
         { id: "activity", label: "Activity", notificationDot: true, selected: sidebarSelected === "activity", icon: sidebarIcon("icon-bell-01-line") },
       ] },
-      { label: "Projects", action: <IconButton appearance="main" level="tertiary" size="2xs" aria-label="New project" icon={<Icon name="icon-plus-line" />} />, items: [
+      { label: "Projects", action: <IconButton appearance="flat" level="primary" size="sm" aria-label="New project" icon={<Icon name="icon-plus-line" />} onClick={addSidebarProject} />, items: [
+        // New projects come first (newest on top), in view right under the section label.
+        ...[...sidebarNewProjects].reverse().map((id) => ({ id, label: sidebarNewProjects.indexOf(id) ? `Untitled project ${sidebarNewProjects.indexOf(id) + 1}` : "Untitled project", selected: sidebarSelected === id, icon: sidebarIcon("icon-cube-line") })),
         { id: "design-system", label: "Design system", dropdown: true, selected: sidebarSelected.startsWith("ds-"), icon: sidebarIcon("icon-cube-line"), children: [{ id: "ds-components", label: "Components", selected: sidebarSelected === "ds-components" }, { id: "ds-tokens", label: "Tokens", selected: sidebarSelected === "ds-tokens" }] },
         { id: "website", label: "Website", selected: sidebarSelected === "website", icon: sidebarIcon("icon-globe-02-line"), trailingAction: <Icon name="icon-dots-horizontal-line" size="base" decorative /> },
         { id: "archive", label: "Archive (read-only)", disabled: true, icon: sidebarIcon("icon-folder-line") },
@@ -485,36 +642,64 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
             <div className="platform-playground-controls" aria-label="Sidebar playground controls">
               <PlaygroundFilterChip label="Variant" value={sidebarVariant} onChange={(value) => setSidebarVariant(String(value) || undefined)} options={["basic", "small-density", "workspace"].map((id) => ({ id, label: id }))} />
               {resolvedSidebarVariant !== "workspace" ? <PlaygroundToggle label="Expand" selected={!sidebarCollapsed} onChange={(selected) => setSidebarCollapsed(!selected)} /> : null}
-              {resolvedSidebarVariant === "workspace" ? <PlaygroundFilterChip label="Master Background" value={sidebarBackground} onChange={(value) => setSidebarBackground(String(value) || undefined)} options={["flat", "default", "inverse"].map((id) => ({ id, label: id }))} /> : null}
+              <PlaygroundFilterChip label="Canvas" value={sidebarCanvas} onChange={(value) => { setSidebarCanvas(String(value) || undefined); setSidebarBackground(undefined); }} options={["default", "alt", "flat"].map((id) => ({ id, label: id }))} />
+              <PlaygroundFilterChip label={resolvedSidebarVariant === "workspace" ? "Master Background" : "Background"} value={sidebarBackground} onChange={(value) => setSidebarBackground(String(value) || undefined)} options={["default", "alt", "flat", "inverse"].map((id) => ({ id, label: id }))} />
               {resolvedSidebarVariant === "workspace" ? <PlaygroundToggle label="Workspace Bar" selected={sidebarWorkspaceBar} onChange={setSidebarWorkspaceBar} /> : null}
               <PlaygroundToggle label="Sub Menu" selected={sidebarSubMenu} onChange={setSidebarSubMenu} />
           </div>
-          <div data-typography={previewTypography} className="platform-example-row">
+          <div data-typography={previewTypography} className="platform-example-row platform-sidebar-stage" data-canvas={resolvedSidebarCanvas}>
             <Sidebar
               variant={resolvedSidebarVariant}
+              {...figmaSidebarBrand}
               collapsed={sidebarCollapsed && resolvedSidebarVariant !== "workspace"}
               onCollapsedChange={setSidebarCollapsed}
               background={resolvedSidebarBackground}
               workspaceBar={sidebarWorkspaceBar}
-              workspaceItems={[{ id: "workspace-a", label: "Workspace A", selected: true, icon: <Avatar size="medium" theme="accent" background="subtle" alt="">A</Avatar> }, { id: "workspace-b", label: "Workspace B", icon: <Avatar size="medium" theme="indigo" background="solid" alt="">B</Avatar> }]}
-              search={resolvedSidebarVariant === "small-density" ? <Search size="small" placeholder="Search" /> : undefined}
+              workspaceItems={[{ id: "workspace-a", label: "Workspace A", selected: sidebarWorkspace === "workspace-a", icon: <Avatar size="medium" shape="square" theme="brown" background="solid" alt="">A</Avatar> }, { id: "workspace-b", label: "Workspace B", selected: sidebarWorkspace === "workspace-b", icon: <Avatar size="medium" shape="square" theme="indigo" background="solid" alt="">B</Avatar> }, ...sidebarNewWorkspaces.map((id, index) => ({ id, label: `Workspace ${String.fromCharCode(67 + index)}`, selected: sidebarWorkspace === id, icon: <Avatar size="medium" shape="square" theme="green" background="solid" alt="">{String.fromCharCode(67 + index)}</Avatar> }))]}
+              workspaceAction={<IconButton appearance="main" level="tertiary" size="md" aria-label="Add workspace" icon={<Icon name="icon-plus-line" />} onClick={addSidebarWorkspace} />}
+              headerAction={(
+                <Menu align="end" aria-label="Workspace settings"
+                  trigger={<IconButton appearance="flat" level="primary" size="sm" aria-label="Workspace settings" icon={<Icon name="icon-settings-01-line" />} />}
+                  items={[
+                    { id: "new", label: "New workspace", icon: "icon-plus-line" },
+                    { id: "rail", label: sidebarWorkspaceBar ? "Hide workspace rail" : "Show workspace rail", icon: "icon-layout-left-line" },
+                  ]}
+                  onSelect={(item) => { if (item.id === "new") addSidebarWorkspace(); else setSidebarWorkspaceBar((shown) => !shown); }} />
+              )}
+              search={resolvedSidebarVariant === "small-density" ? <Search size="small" placeholder="Search" shortcut="K" /> : undefined}
               sections={sidebarSections}
-              onItemClick={(item) => { if (!item.children) setSidebarSelected(item.id); }}
+              onItemClick={(item) => { if (item.id.startsWith("workspace-")) { setSidebarWorkspace(item.id); return; } if (!item.children) setSidebarSelected(item.id); }}
               footer={sidebarFooter}
-              subMenu={sidebarSubMenu ? <div className="platform-sidebar-demo__submenu"><strong>Sub menu</strong><span>Slot content from the Figma master template.</span></div> : undefined}
+              subMenu={sidebarSubMenu ? (
+                <SidebarSubMenu
+                  search={<Search variant="popover" placeholder="Search projects" aria-label="Search projects" />}
+                  items={[
+                    { id: "sub-components", label: "Components", icon: sidebarIcon("icon-cube-line"), selected: sidebarSelected === "sub-components" },
+                    { id: "sub-tokens", label: "Tokens", icon: sidebarIcon("icon-palette-line"), counter: 8, selected: sidebarSelected === "sub-tokens" },
+                    { id: "sub-patterns", label: "Patterns", icon: sidebarIcon("icon-layout-grid-01-line"), selected: sidebarSelected === "sub-patterns" },
+                    { id: "sub-changelog", label: "Changelog", icon: sidebarIcon("icon-book-open-line"), notificationDot: true, selected: sidebarSelected === "sub-changelog" },
+                  ]}
+                  onItemClick={(item) => setSidebarSelected(item.id)}
+                />
+              ) : undefined}
+              subMenuLabel="Projects"
+              onSubMenuClose={(event) => { if (!(event.target instanceof Element && event.target.closest(".platform-playground-controls"))) setSidebarSubMenu(false); }}
             />
           </div>
           <PlatformCode code={`import { Sidebar } from "@zen/design-system";
 
 <Sidebar
-  variant="${resolvedSidebarVariant}"${resolvedSidebarVariant === "workspace" ? `
-  background="${resolvedSidebarBackground}"
+  variant="${resolvedSidebarVariant}"
+  background="${resolvedSidebarBackground}" // page: Canvas/${resolvedSidebarCanvas[0].toUpperCase() + resolvedSidebarCanvas.slice(1)}${resolvedSidebarVariant === "workspace" ? `
   workspaceBar={${sidebarWorkspaceBar}}` : `
   collapsed={${sidebarCollapsed}}
   onCollapsedChange={setCollapsed}`}
   sections={sections}
   onItemClick={(item) => setSelected(item.id)}
-  footer={footer}
+  footer={footer}${sidebarSubMenu ? `
+  subMenu={<SidebarSubMenu search={<Search variant="popover" placeholder="Search projects" />} items={subItems} onItemClick={open} />}
+  subMenuLabel="Projects"
+  onSubMenuClose={() => setSubMenuOpen(false)}` : ""}
 />`} />
         </ComponentPreview>
       </ExamplePage>
@@ -523,20 +708,36 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
 
   if (page === "input") {
     const resolvedInputKind = inputKind ?? "text";
-    const resolvedInputSize = (inputSize ?? "medium") as InputSize;
+    const resolvedInputSize = (inputSize ?? "medium") as Exclude<InputSize, "sm" | "md" | "lg" | "xl">;
     const resolvedInputState: InputState = inputReadOnly ? "read-only" : "default";
     // Read-only shows a committed value, never a placeholder.
     const ro = <T,>(sample: T) => (inputReadOnly ? sample : undefined);
     // Only plain text fields own the Leading-Trailing slots; select/date/number keep their built-in affordances.
     const inputSupportsSlots = resolvedInputKind === "text" || resolvedInputKind === "field-only";
+    // HeadingField has no label, help text, error or field size: its controls are Heading Size and Multi-line.
+    const isHeadingKind = resolvedInputKind === "heading";
+    const resolvedHeadingSize = (inputHeadingSize ?? "h2") as HeadingInputSize;
+    const resolvedHelpTheme = (inputHelpTheme ?? "neutral") as InputHelpTheme;
+    // Character-Limitation counts against maxLength on free-text fields only.
+    const inputSupportsCount = ["text", "field-only", "textarea", "richtext"].includes(resolvedInputKind);
+    const helpMessages: Record<InputHelpTheme, string> = { neutral: "Supporting help text", warning: "Double-check this value", positive: "Looks good", negative: "This value is not valid" };
+    const labelActionNode = inputLabelAction ? <button type="button">Action</button> : undefined;
     const sharedFieldProps = {
       label: inputLabel ? "Label" : undefined,
-      helpText: inputHelp ? "Supporting help text" : undefined,
+      // Without a visible label the field still needs an accessible name.
+      "aria-label": inputLabel ? undefined : "Label",
+      labelOptional: inputLabelOptional,
+      labelTooltip: inputLabelTooltip ? "Shown to teammates in the workspace" : undefined,
+      labelAction: labelActionNode,
+      helpText: inputHelp ? helpMessages[resolvedHelpTheme] : undefined,
+      helpTheme: resolvedHelpTheme,
+      helpIcon: inputHelpIcon,
+      ...(inputHelpLimit && inputSupportsCount ? { characterLimit: true as const, maxLength: 100 } : {}),
       error: inputError && !inputReadOnly ? "This field is required" : undefined,
       size: resolvedInputSize,
       state: resolvedInputState,
     };
-    // Labelled slots are pickers (click → Popover); icon-only slots stay decorative and focus the field.
+    // Each slot is clickable (picker → Popover) or decorative (a click focuses the field), chosen per use case.
     const accountOptions = [
       { value: "user", label: "User", icon: <Icon name="icon-user-circle-line" decorative /> },
       { value: "team", label: "Team", icon: <Icon name="icon-users-line" decorative /> },
@@ -551,17 +752,17 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
     const slotSize = resolvedInputSize === "xlarge" ? "large" : resolvedInputSize;
     const slotProps = {
       leading: inputSupportsSlots && inputLeading ? <InputLeadingTrailing size={slotSize} icon={<Icon name="icon-user-circle-line" decorative />} label={inputLeadingLabel ? "User" : undefined} showLabel={inputLeadingLabel}
-        options={accountOptions} value={inputLeadingValue} onValueChange={setInputLeadingValue} popoverLabel="Account type" align="start" disabled={inputReadOnly} /> : undefined,
+        interactive={inputLeadingClickable} options={accountOptions} value={inputLeadingValue} onValueChange={setInputLeadingValue} popoverLabel="Account type" align="start" disabled={inputReadOnly} /> : undefined,
       trailing: inputSupportsSlots && inputTrailing ? <InputLeadingTrailing size={slotSize} label={inputTrailingLabel ? "VN" : undefined} showLabel={inputTrailingLabel} dropdown
-        options={regionOptions} value={inputTrailingValue} onValueChange={setInputTrailingValue} popoverLabel="Region" align="end" disabled={inputReadOnly} /> : undefined,
+        interactive={inputTrailingClickable} options={regionOptions} value={inputTrailingValue} onValueChange={setInputTrailingValue} popoverLabel="Region" align="end" disabled={inputReadOnly} /> : undefined,
     };
     let inputPreview: ReactNode;
     let inputComponentName = "InputField";
     switch (resolvedInputKind) {
-      case "field-only": inputPreview = <InputField {...sharedFieldProps} {...slotProps} label={undefined} helpText={undefined} error={undefined} placeholder="Field only" />; inputComponentName = "InputField"; break;
+      case "field-only": inputPreview = <InputField {...sharedFieldProps} {...slotProps} label={undefined} aria-label="Search projects" helpText={undefined} error={undefined} placeholder="Field only" />; inputComponentName = "InputField"; break;
       case "input-content": inputPreview = <InputContent size={resolvedInputSize === "xlarge" ? "large" : resolvedInputSize} state="default" text="Content" />; inputComponentName = "InputContent"; break;
-      case "label": inputPreview = <InputLabel optional tooltip action="Action">Label</InputLabel>; inputComponentName = "InputLabel"; break;
-      case "help-text": inputPreview = <InputHelpText theme="neutral" characterLimit="0/120">Supporting help text</InputHelpText>; inputComponentName = "InputHelpText"; break;
+      case "label": inputPreview = <InputLabel optional={inputLabelOptional} tooltip={inputLabelTooltip ? "Shown to teammates in the workspace" : false} action={labelActionNode} disabled={inputLabelDisabled}>Label</InputLabel>; inputComponentName = "InputLabel"; break;
+      case "help-text": inputPreview = <InputHelpText theme={resolvedHelpTheme} icon={inputHelpIcon} characterLimit={inputHelpLimit ? "0/100" : undefined}>{helpMessages[resolvedHelpTheme]}</InputHelpText>; inputComponentName = "InputHelpText"; break;
       case "leading-trailing": inputPreview = <InputLeadingTrailing size={resolvedInputSize === "xlarge" ? "large" : resolvedInputSize} icon={inputLeading ? <Icon name="icon-globe-02-line" decorative /> : undefined} label={inputTrailingLabel ? "VN" : undefined} showLabel={inputTrailingLabel} dropdown={inputTrailing} />; inputComponentName = "InputLeadingTrailing"; break;
       case "textarea": inputPreview = <TextAreaField key={`ta-${inputReadOnly}`} {...sharedFieldProps} size={resolvedInputSize === "xlarge" ? "large" : resolvedInputSize} placeholder="Tell us more" defaultValue={ro("Shipped the Date Picker range mode and fixed the Checkbox hover.")} />; inputComponentName = "TextAreaField"; break;
       case "textarea-primitive": inputPreview = <TextAreaField {...sharedFieldProps} label={undefined} helpText={undefined} size={resolvedInputSize === "xlarge" ? "large" : resolvedInputSize} placeholder="Textarea primitive" />; inputComponentName = "TextAreaField"; break;
@@ -570,11 +771,16 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
       case "autocomplete": inputPreview = <AutocompleteField label={sharedFieldProps.label} helpText={sharedFieldProps.helpText} error={sharedFieldProps.error} readOnly={inputReadOnly} options={[{ id: "button", label: "Button" }, { id: "chip", label: "Chip" }, { id: "input", label: "Input" }, { id: "popover", label: "Popover" }, { id: "search", label: "Search" }, { id: "tag", label: "Tag" }]} defaultValue={["button", "chip"]} />; inputComponentName = "AutocompleteField"; break;
       case "number-center": inputPreview = <NumberField {...sharedFieldProps} align="center" value={inputNumber} onValueChange={setInputNumber} min={0} max={10} />; inputComponentName = "NumberField"; break;
       case "number-left": inputPreview = <NumberField {...sharedFieldProps} align="left" value={inputNumber} onValueChange={setInputNumber} min={0} max={10} />; inputComponentName = "NumberField"; break;
-      case "richtext": inputPreview = <RichTextField {...sharedFieldProps} size={resolvedInputSize === "xlarge" ? "large" : resolvedInputSize} placeholder="Write formatted content" />; inputComponentName = "RichTextField"; break;
+      case "richtext": inputPreview = <RichTextField key={`rt-${inputReadOnly}`} {...sharedFieldProps} size={resolvedInputSize === "xlarge" ? "large" : resolvedInputSize} readOnly={inputReadOnly} editorBar={inputRichBar} placeholder="Write formatted content" value={inputReadOnly ? "<h2>Release notes</h2><p><b>Date Picker</b> now supports ranges.</p><ul><li>Checkbox hover fixed</li><li>New <a href=\"https://zen.design\">Popover</a> states</li></ul>" : inputRichHtml} onValueChange={(html) => setInputRichHtml(html)} />; inputComponentName = "RichTextField"; break;
       case "editor-bar": inputPreview = <RichTextEditorBar />; inputComponentName = "RichTextEditorBar"; break;
-      case "control-bar-item": inputPreview = <><ControlBarSelectItem aria-label="Default" icon={<Icon name="icon-bold-01-line" decorative />} /><ControlBarSelectItem aria-label="Selected" state="selected" icon={<Icon name="icon-bold-01-line" decorative />} /></>; inputComponentName = "ControlBarSelectItem"; break;
-      case "heading": inputPreview = <HeadingField key={`h-${inputReadOnly}`} headingSize="h2" readOnly={inputReadOnly} defaultValue={ro("Q4 roadmap")} placeholder="Section heading" />; inputComponentName = "HeadingField"; break;
-      case "conditions": inputPreview = <InputConditions><InputConditionItem label="At least 8 characters" state="success" /><InputConditionItem label="Includes a number" state="default" /><InputConditionItem label="Avoids common passwords" state="wrong" /></InputConditions>; inputComponentName = "InputConditions"; break;
+      case "control-bar-item": inputPreview = <><ControlBarSelectItem aria-label="Default" icon={<Icon name="icon-bold-02-line" decorative />} /><ControlBarSelectItem aria-label="Selected" state="selected" icon={<Icon name="icon-bold-02-line" decorative />} /></>; inputComponentName = "ControlBarSelectItem"; break;
+      case "heading": inputPreview = <HeadingField key={`h-${inputReadOnly}-${inputHeadingMultiline}`} headingSize={resolvedHeadingSize} multiline={inputHeadingMultiline} aria-label="Section heading" readOnly={inputReadOnly} defaultValue={inputHeadingMultiline ? "Q4 roadmap: ship Zen DS to every product team, with templates, docs and a migration guide" : ro("Q4 roadmap")} placeholder="Section heading" />; inputComponentName = "HeadingField"; break;
+      case "conditions": inputPreview = (
+        <div className="platform-input-conditions-demo">
+          <InputField {...sharedFieldProps} state="default" label={inputLabel ? "Password" : undefined} aria-label={inputLabel ? undefined : "Password"} helpText={inputHelp ? "Use a phrase you don't use elsewhere." : undefined} error={undefined} type="password" placeholder="Create a password" value={conditionsPassword} onChange={(event) => setConditionsPassword(event.target.value)} />
+          <InputConditions>{passwordRules.map((rule) => <InputConditionItem key={rule.label} label={rule.label} state={!conditionsPassword ? "default" : rule.test(conditionsPassword) ? "success" : "wrong"} />)}</InputConditions>
+        </div>
+      ); inputComponentName = "InputConditions"; break;
       default: inputPreview = <InputField key={`text-${inputReadOnly}`} {...sharedFieldProps} {...slotProps} placeholder="Enter your name" defaultValue={ro("Ava Chen")} />;
     }
     const showLeading = inputSupportsSlots && inputLeading;
@@ -582,47 +788,124 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
     const fieldLines = [
       `size="${resolvedInputSize}"`,
       resolvedInputKind !== "field-only" && inputLabel ? `label="Label"` : "",
-      resolvedInputKind !== "field-only" && inputHelp ? `helpText="Supporting help text"` : "",
+      resolvedInputKind !== "field-only" && inputLabel && inputLabelOptional ? "labelOptional" : "",
+      resolvedInputKind !== "field-only" && inputLabel && inputLabelTooltip ? `labelTooltip="Shown to teammates in the workspace"` : "",
+      resolvedInputKind !== "field-only" && inputLabel && inputLabelAction ? `labelAction={<button type="button" onClick={onAction}>Action</button>}` : "",
+      resolvedInputKind !== "field-only" && inputHelp ? `helpText="${helpMessages[resolvedHelpTheme]}"` : "",
+      resolvedInputKind !== "field-only" && inputHelp && resolvedHelpTheme !== "neutral" ? `helpTheme="${resolvedHelpTheme}"` : "",
+      resolvedInputKind !== "field-only" && inputHelp && !inputHelpIcon ? "helpIcon={false}" : "",
+      inputHelpLimit && inputSupportsCount ? "maxLength={100}\n  characterLimit" : "",
       resolvedInputKind !== "field-only" && inputError && !inputReadOnly ? `error="This field is required"` : "",
       inputReadOnly ? "readOnly" : "",
-      showLeading ? (inputLeadingLabel
-        ? `leading={<InputLeadingTrailing label="User" popoverLabel="Account type" align="start"\n    options={accountTypes} value={account} onValueChange={setAccount} />}`
-        : `leading={<InputLeadingTrailing icon={<Icon name="icon-user-circle-line" decorative />} />}`) : "",
-      showTrailing ? (inputTrailingLabel
-        ? `trailing={<InputLeadingTrailing label="VN" popoverLabel="Region"\n    options={regions} value={region} onValueChange={setRegion} />}`
-        : `trailing={<InputLeadingTrailing dropdown />}`) : "",
+      showLeading ? (inputLeadingClickable
+        ? `leading={<InputLeadingTrailing ${inputLeadingLabel ? `label="User"` : `icon={<Icon name="icon-user-circle-line" decorative />} interactive`} popoverLabel="Account type" align="start"\n    options={accountTypes} value={account} onValueChange={setAccount} />}`
+        : `leading={<InputLeadingTrailing icon={<Icon name="icon-user-circle-line" decorative />}${inputLeadingLabel ? ` label="User"` : ""} interactive={false} />}`) : "",
+      showTrailing ? (inputTrailingClickable
+        ? `trailing={<InputLeadingTrailing ${inputTrailingLabel ? `label="VN"` : "dropdown interactive"} popoverLabel="Region"\n    options={regions} value={region} onValueChange={setRegion} />}`
+        : `trailing={<InputLeadingTrailing${inputTrailingLabel ? ` label="VN"` : ""} dropdown interactive={false} />}`) : "",
       resolvedInputKind === "select" ? "options={options}" : "",
       resolvedInputKind === "autocomplete" ? "options={options}\n  value={selected}\n  onChange={setSelected}" : "",
       resolvedInputKind === "date" ? "onDateChange={setDate}" : "",
       resolvedInputKind.startsWith("number") ? `align="${resolvedInputKind === "number-center" ? "center" : "left"}"\n  min={0}\n  max={10}\n  value={quantity}\n  onValueChange={setQuantity}` : "",
-      ["text", "field-only", "textarea", "richtext"].includes(resolvedInputKind) ? "value={value}\n  onChange={(event) => setValue(event.target.value)}" : "",
+      ["text", "field-only", "textarea"].includes(resolvedInputKind) ? "value={value}\n  onChange={(event) => setValue(event.target.value)}" : "",
+      resolvedInputKind === "richtext" ? `${inputRichBar ? "" : "editorBar={false}\n  "}value={html}\n  onValueChange={(html, text) => { setHtml(html); setText(text); }}` : "",
     ].filter(Boolean);
-    const inputCode = `import { ${[inputComponentName, showLeading || showTrailing ? "InputLeadingTrailing" : ""].filter(Boolean).join(", ")} } from "@zen/design-system";${showLeading ? `
-import { Icon } from "@zen/design-system/icons";` : ""}
+    const primitiveCode: Partial<Record<string, string>> = {
+      label: `import { InputLabel } from "@zen/design-system";
+
+<InputLabel id="workspace"${inputLabelOptional ? `
+  optional` : ""}${inputLabelTooltip ? `
+  tooltip="Shown to teammates in the workspace"` : ""}${inputLabelAction ? `
+  action={<button type="button" onClick={onAction}>Action</button>}` : ""}${inputLabelDisabled ? `
+  disabled` : ""}
+>
+  Label
+</InputLabel>`,
+      "help-text": `import { InputHelpText } from "@zen/design-system";
+
+<InputHelpText theme="${resolvedHelpTheme}"${inputHelpIcon ? "" : " icon={false}"}${inputHelpLimit ? ` characterLimit="0/100"` : ""}>
+  ${helpMessages[resolvedHelpTheme]}
+</InputHelpText>`,
+      heading: `import { HeadingField } from "@zen/design-system";
+
+<HeadingField
+  headingSize="${resolvedHeadingSize}"${inputHeadingMultiline ? `
+  multiline` : ""}${inputReadOnly ? `
+  readOnly` : ""}
+  aria-label="Section heading"
+  placeholder="Section heading"
+  value={title}
+  onValueChange={setTitle}
+/>`,
+    };
+    const inputCode = primitiveCode[resolvedInputKind] ?? `import { ${[inputComponentName, showLeading || showTrailing ? "InputLeadingTrailing" : ""].filter(Boolean).join(", ")} } from "@zen/design-system";${showLeading ? `
+import { Icon } from "@zen/design-system";` : ""}
 
 <${inputComponentName}
   ${fieldLines.join("\n  ")}
 />`;
+    const conditionsCode = `import { InputConditionItem, InputConditions, InputField } from "@zen/design-system";
+
+const rules = [
+  { label: "At least 8 characters", test: (v: string) => v.length >= 8 },
+  { label: "Contains an uppercase letter (A-Z)", test: (v: string) => /[A-Z]/.test(v) },
+  { label: "Contains a digit (0-9)", test: (v: string) => /\\d/.test(v) },
+  { label: "Contains a special character", test: (v: string) => /[^A-Za-z0-9]/.test(v) },
+];
+
+<InputField
+  size="${resolvedInputSize}"
+  label="Password"
+  type="password"
+  value={password}
+  onChange={(event) => setPassword(event.target.value)}
+/>
+<InputConditions>
+  {rules.map((rule) => (
+    <InputConditionItem
+      key={rule.label}
+      label={rule.label}
+      state={!password ? "default" : rule.test(password) ? "success" : "wrong"}
+    />
+  ))}
+</InputConditions>`;
     return (
       <ExamplePage page="input" eyebrow="Components / Input" title="Input" description="Production field compositions from the Figma Input page, with leading/trailing slots and native interaction states.">
         <ComponentPreview className="platform-example-panel platform-example-panel--stack">
           <h2 className="platform-main-component__title">Input</h2>
           <div className="platform-playground-controls" aria-label="Input playground controls">
             <PlaygroundFilterChip label="Type" value={inputKind} onChange={(value) => setInputKind(String(value) || undefined)} options={inputPlaygroundKinds.map((id) => ({ id, label: id }))} />
-            <PlaygroundFilterChip label="Size" value={inputSize} onChange={(value) => setInputSize(String(value) || undefined)} options={["small", "medium", "large", "xlarge"].map((id) => ({ id, label: id }))} />
-            <PlaygroundToggle label="Label" selected={inputLabel} onChange={setInputLabel} />
-            <PlaygroundToggle label="Help Text" selected={inputHelp} onChange={setInputHelp} />
+            {isHeadingKind
+              ? <PlaygroundFilterChip label="Heading Size" value={inputHeadingSize} onChange={(value) => setInputHeadingSize(String(value) || undefined)} options={headingInputSizes.map((id) => ({ id, label: id.toUpperCase() }))} />
+              : <PlaygroundFilterChip label="Size" value={inputSize} onChange={(value) => setInputSize(String(value) || undefined)} options={["small", "medium", "large", "xlarge"].map((id) => ({ id, label: id }))} />}
+            {isHeadingKind ? null : <PlaygroundToggle label="Label" selected={inputLabel} onChange={setInputLabel} />}
+            {!isHeadingKind && (inputLabel || resolvedInputKind === "label") ? <>
+              <PlaygroundToggle label="Label Optional" selected={inputLabelOptional} onChange={setInputLabelOptional} />
+              <PlaygroundToggle label="Label Tooltip" selected={inputLabelTooltip} onChange={setInputLabelTooltip} />
+              <PlaygroundToggle label="Label Action" selected={inputLabelAction} onChange={setInputLabelAction} />
+            </> : null}
+            {resolvedInputKind === "label" ? <PlaygroundToggle label="Label Disabled" selected={inputLabelDisabled} onChange={setInputLabelDisabled} /> : null}
+            {isHeadingKind ? null : <PlaygroundToggle label="Help Text" selected={inputHelp} onChange={setInputHelp} />}
+            {!isHeadingKind && (inputHelp || resolvedInputKind === "help-text") ? <>
+              <PlaygroundFilterChip label="Help Theme" value={inputHelpTheme} onChange={(value) => setInputHelpTheme(String(value) || undefined)} options={["neutral", "warning", "positive", "negative"].map((id) => ({ id, label: id }))} />
+              <PlaygroundToggle label="Help Icon" selected={inputHelpIcon} onChange={setInputHelpIcon} />
+            </> : null}
+            {inputSupportsCount || resolvedInputKind === "help-text" ? <PlaygroundToggle label="Character Limit" selected={inputHelpLimit} onChange={setInputHelpLimit} /> : null}
             {inputSupportsSlots ? <>
               <PlaygroundToggle label="Leading" selected={inputLeading} onChange={setInputLeading} />
               {inputLeading ? <PlaygroundToggle label="Leading Label" selected={inputLeadingLabel} onChange={setInputLeadingLabel} /> : null}
+              {inputLeading ? <PlaygroundToggle label="Leading Clickable" selected={inputLeadingClickable} onChange={setInputLeadingClickable} /> : null}
               <PlaygroundToggle label="Trailing" selected={inputTrailing} onChange={setInputTrailing} />
               {inputTrailing ? <PlaygroundToggle label="Trailing Label" selected={inputTrailingLabel} onChange={setInputTrailingLabel} /> : null}
+              {inputTrailing ? <PlaygroundToggle label="Trailing Clickable" selected={inputTrailingClickable} onChange={setInputTrailingClickable} /> : null}
             </> : null}
-            {resolvedInputKind !== "field-only" ? <PlaygroundToggle label="Error" selected={inputError} onChange={setInputError} /> : null}
-            <PlaygroundToggle label="Read-only" selected={inputReadOnly} onChange={setInputReadOnly} />
+            {resolvedInputKind === "richtext" ? <PlaygroundToggle label="Control Bar" selected={inputRichBar} onChange={setInputRichBar} /> : null}
+            {resolvedInputKind !== "field-only" && resolvedInputKind !== "conditions" && !isHeadingKind ? <PlaygroundToggle label="Error" selected={inputError} onChange={setInputError} /> : null}
+            {isHeadingKind ? <PlaygroundToggle label="Multi-line" selected={inputHeadingMultiline} onChange={setInputHeadingMultiline} /> : null}
+            {resolvedInputKind !== "conditions" ? <PlaygroundToggle label="Read-only" selected={inputReadOnly} onChange={setInputReadOnly} /> : null}
           </div>
           <div data-typography={previewTypography} className="platform-input-preview">{inputPreview}</div>
-          <PlatformCode code={inputCode} />
+          <PlatformCode code={resolvedInputKind === "conditions" ? conditionsCode : inputCode} />
         </ComponentPreview>
       </ExamplePage>
     );
@@ -634,6 +917,8 @@ import { Icon } from "@zen/design-system/icons";` : ""}
     const resolvedSearchIcon = searchIcon !== "no";
     const resolvedSearchVariant = (searchVariant ?? "default") as SearchVariant;
     const isPopoverSearch = resolvedSearchVariant === "popover";
+    const hasSearchFilter = resolvedSearchTheme !== "default";
+    const searchFilterOptions = [{ value: "all", label: "All" }, { value: "components", label: "Components" }, { value: "tokens", label: "Tokens" }, { value: "guidelines", label: "Guidelines" }];
     return (
       <ExamplePage page="search" eyebrow="Components / Search" title="Search" description="Search/Default and Search/Popover with default, filter-icon and filter-dropdown themes, mapped from the Figma Search page.">
         <ComponentPreview className="platform-example-panel platform-example-panel--stack">
@@ -643,10 +928,11 @@ import { Icon } from "@zen/design-system/icons";` : ""}
             <PlaygroundFilterChip label="Theme" value={searchTheme} onChange={(value) => setSearchTheme(String(value) || undefined)} options={["default", "filter-icon", "filter-dropdown"].map((id) => ({ id, label: id }))} />
             {isPopoverSearch ? null : <PlaygroundFilterChip label="Size" value={searchSize} onChange={(value) => setSearchSize(String(value) || undefined)} options={["small", "medium"].map((id) => ({ id, label: id }))} />}
             <PlaygroundToggle label="Icon Search" selected={searchIcon !== "no"} onChange={(selected) => setSearchIcon(selected ? "yes" : "no")} />
-            <PlaygroundToggle label="Disabled" selected={searchDisabled} onChange={setSearchDisabled} />
+            {hasSearchFilter ? <PlaygroundToggle label="Filter Clickable" selected={searchFilterClickable} onChange={setSearchFilterClickable} /> : null}
           </div>
           <div data-typography={previewTypography} className="platform-example-row platform-search-row">
-            <Search variant={resolvedSearchVariant} theme={resolvedSearchTheme} size={resolvedSearchSize} disabled={searchDisabled} iconSearch={resolvedSearchIcon} placeholder="Search components" value={searchValue} onChange={(event) => setSearchValue(event.target.value)} filterLabel="All" />
+            <Search variant={resolvedSearchVariant} theme={resolvedSearchTheme} size={resolvedSearchSize} iconSearch={resolvedSearchIcon} placeholder="Search components" value={searchValue} onChange={(event) => setSearchValue(event.target.value)}
+              filterLabel="All" filterInteractive={searchFilterClickable} filterOptions={resolvedSearchTheme === "filter-dropdown" ? searchFilterOptions : undefined} filterValue={searchFilter} onFilterChange={setSearchFilter} />
           </div>
           <PlatformCode code={`import { Search } from "@zen/design-system";
 
@@ -654,9 +940,13 @@ import { Icon } from "@zen/design-system/icons";` : ""}
   variant="popover"` : ""}
   theme="${resolvedSearchTheme}"${isPopoverSearch ? "" : `
   size="${resolvedSearchSize}"`}${resolvedSearchIcon ? "" : `
-  iconSearch={false}`}${searchDisabled ? `
-  disabled` : ""}${resolvedSearchTheme === "filter-dropdown" ? `
-  filterLabel="All"` : ""}
+  iconSearch={false}`}${hasSearchFilter && !searchFilterClickable ? `
+  filterInteractive={false}` : ""}${resolvedSearchTheme === "filter-dropdown" ? (searchFilterClickable ? `
+  filterOptions={scopes}
+  filterValue={scope}
+  onFilterChange={setScope}` : `
+  filterLabel="All"`) : ""}${resolvedSearchTheme === "filter-icon" && searchFilterClickable ? `
+  onFilterClick={openFilters}` : ""}
   placeholder="Search components"
   value={query}
   onChange={(event) => setQuery(event.target.value)}
@@ -667,40 +957,42 @@ import { Icon } from "@zen/design-system/icons";` : ""}
   }
 
   if (page === "segmented") {
-    const resolvedLevel = (segmentedLevel ?? "primary") as SegmentedLevel;
+    const resolvedLevel = (segmentedLevel ?? "secondary") as SegmentedLevel;
     const resolvedSize = (segmentedSize ?? "medium") as SegmentedSize;
     // An item needs at least an icon or a label: turning both off keeps the icon.
     const showSegIcon = segmentedIcon || !segmentedLabel;
     const segmentedOptions = [
-      { id: "overview", label: segmentedLabel ? "Overview" : null, leading: showSegIcon ? <Icon name="icon-grid-01-line" decorative /> : undefined, badge: segmentedBadge ? 2 : undefined },
-      { id: "tokens", label: segmentedLabel ? "Tokens" : null, leading: showSegIcon ? <Icon name="icon-colors-line" decorative /> : undefined, badge: segmentedBadge ? 4 : undefined },
-      { id: "components", label: segmentedLabel ? "Components" : null, leading: showSegIcon ? <Icon name="icon-cube-line" decorative /> : undefined },
+      { id: "overview", label: segmentedLabel ? "Overview" : null, "aria-label": segmentedLabel ? undefined : "Overview", leading: showSegIcon ? <Icon name="icon-grid-01-line" decorative /> : undefined, badge: segmentedBadge ? 2 : undefined },
+      { id: "tokens", label: segmentedLabel ? "Tokens" : null, "aria-label": segmentedLabel ? undefined : "Tokens", leading: showSegIcon ? <Icon name="icon-colors-line" decorative /> : undefined, badge: segmentedBadge ? 4 : undefined },
+      { id: "components", label: segmentedLabel ? "Components" : null, "aria-label": segmentedLabel ? undefined : "Components", leading: showSegIcon ? <Icon name="icon-cube-line" decorative /> : undefined },
     ];
     return <ExamplePage page="segmented" eyebrow="Components / Segmented" title="Segmented" description="Mutually exclusive options using the Figma Segmented container and item primitives.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Segmented</h2>
         <div className="platform-playground-controls" aria-label="Segmented playground controls">
-          <PlaygroundFilterChip label="Level" value={segmentedLevel} onChange={(value) => setSegmentedLevel(String(value) || undefined)} options={["primary", "secondary"].map((id) => ({ id, label: id }))} />
+          <PlaygroundFilterChip label="Level" value={segmentedLevel} onChange={(value) => setSegmentedLevel(String(value) || undefined)} options={["secondary", "primary"].map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Size" value={segmentedSize} onChange={(value) => setSegmentedSize(String(value) || undefined)} options={["small", "medium"].map((id) => ({ id, label: id }))} />
           <PlaygroundToggle label="Icon" selected={segmentedIcon} onChange={setSegmentedIcon} />
           <PlaygroundToggle label="Label" selected={segmentedLabel} onChange={setSegmentedLabel} />
           <PlaygroundToggle label="Badge" selected={segmentedBadge} onChange={setSegmentedBadge} />
           <PlaygroundToggle label="Disabled" selected={segmentedDisabled} onChange={setSegmentedDisabled} />
+          <PlaygroundToggle label="Full width" selected={segmentedFull} onChange={setSegmentedFull} />
         </div>
-        <div data-typography={previewTypography} className="platform-example-row"><Segmented aria-label="Section" level={resolvedLevel} size={resolvedSize} disabled={segmentedDisabled} value={segmentedValue} onChange={setSegmentedValue} options={segmentedOptions} /></div>
+        <div data-typography={previewTypography} className="platform-example-row" style={segmentedFull ? { display: "block" } : undefined}><Segmented aria-label="Section" fullWidth={segmentedFull} level={resolvedLevel} size={resolvedSize} disabled={segmentedDisabled} value={segmentedValue} onChange={setSegmentedValue} options={segmentedOptions} /></div>
         <PlatformCode code={`import { Segmented } from "@zen/design-system";
 
 <Segmented
-  aria-label="Section"
+  aria-label="Section"${segmentedFull ? `
+  fullWidth` : ""}
   level="${resolvedLevel}"
   size="${resolvedSize}"${segmentedDisabled ? `
   disabled` : ""}
   value={value}
   onChange={setValue}
   options={[
-    { id: "overview", label: ${segmentedLabel ? `"Overview"` : "null"}${showSegIcon ? `, leading: <Icon name="icon-grid-01-line" decorative />` : ""}${segmentedBadge ? ", badge: 2" : ""} },
-    { id: "tokens", label: ${segmentedLabel ? `"Tokens"` : "null"}${showSegIcon ? `, leading: <Icon name="icon-colors-line" decorative />` : ""}${segmentedBadge ? ", badge: 4" : ""} },
-    { id: "components", label: ${segmentedLabel ? `"Components"` : "null"}${showSegIcon ? `, leading: <Icon name="icon-cube-line" decorative />` : ""} },
+    { id: "overview", label: ${segmentedLabel ? `"Overview"` : `null, "aria-label": "Overview"`}${showSegIcon ? `, leading: <Icon name="icon-grid-01-line" decorative />` : ""}${segmentedBadge ? ", badge: 2" : ""} },
+    { id: "tokens", label: ${segmentedLabel ? `"Tokens"` : `null, "aria-label": "Tokens"`}${showSegIcon ? `, leading: <Icon name="icon-colors-line" decorative />` : ""}${segmentedBadge ? ", badge: 4" : ""} },
+    { id: "components", label: ${segmentedLabel ? `"Components"` : `null, "aria-label": "Components"`}${showSegIcon ? `, leading: <Icon name="icon-cube-line" decorative />` : ""} },
   ]}
 />`} />
       </ComponentPreview>
@@ -757,7 +1049,7 @@ import { Icon } from "@zen/design-system/icons";` : ""}
           <PlaygroundToggle label="Focus" selected={avatarFocus} onChange={setAvatarFocus} />
           <PlaygroundFilterChip label="Stack Count" value={avatarStackCount} onChange={(value) => setAvatarStackCount(String(value) || undefined)} options={["1", "2", "3", "4", "5"].map((id) => ({ id, label: id }))} />
         </div>
-        <div data-typography={previewTypography} className="platform-example-row">
+        <div data-typography={previewTypography} className="platform-example-row platform-avatar-preview">
           {resolvedTheme === "photo"
             ? <Avatar size={resolvedSize} theme="photo" shape={resolvedShape} background={resolvedBackground} src={samplePhoto} alt="Zen Design" status={avatarStatus === "yes"} focus={avatarFocus} />
             : <Avatar size={resolvedSize} theme={resolvedTheme} shape={resolvedShape} background={resolvedBackground} alt="Zen Design" status={avatarStatus === "yes"} focus={avatarFocus}>ZD</Avatar>}
@@ -870,12 +1162,12 @@ import { Icon } from "@zen/design-system/icons";` : ""}
         </div>
         <div data-typography={previewTypography} className="platform-example-row">
           {badgeRemoved
-            ? <Button appearance="main" level="tertiary" size="xs" onClick={() => setBadgeRemoved(false)}>Restore badge</Button>
+            ? <Button appearance="main" level="tertiary" size="sm" onClick={() => setBadgeRemoved(false)}>Restore badge</Button>
             : <Badge size={resolvedSize} theme={resolvedTheme} background={resolvedBackground} leadingIcon={showLeading} leading={showLeading ? <Icon name="icon-check-line" decorative /> : undefined} remove={showRemove} onRemove={() => setBadgeRemoved(true)}>Approved</Badge>}
           <BadgeCounter size={resolvedSize} theme={resolvedTheme} background={resolvedBackground} value={badgeCount ?? "7"} />
         </div>
         <PlatformCode code={`import { Badge, BadgeCounter } from "@zen/design-system";${showLeading ? `
-import { Icon } from "@zen/design-system/icons";` : ""}
+import { Icon } from "@zen/design-system";` : ""}
 
 <Badge
   size="${resolvedSize}"
@@ -909,15 +1201,17 @@ import { Icon } from "@zen/design-system/icons";` : ""}
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Popover</h2>
         <div className="platform-playground-controls" aria-label="Popover playground controls">
-          <PlaygroundFilterChip label="Trigger" value={popoverTrigger} onChange={(value) => { setPopoverTrigger(String(value) || undefined); setPopoverOpen(false); if (value === "select") setPopoverContent("text-only"); }} options={[{ id: "chip", label: "Chip" }, { id: "select", label: "Select Input" }]} />
+          <PlaygroundFilterChip label="Trigger" value={popoverTrigger} onChange={(value) => { setPopoverTrigger(String(value) || undefined); setPopoverOpen(false); if (value === "select") setPopoverContent("text-only"); }} options={[{ id: "chip", label: "Chip" }, { id: "select", label: "Select Input" }, { id: "bulk", label: "Bulk-Action (selection)" }]} />
+          {popoverTrigger === "bulk" ? <><PlaygroundToggle label="History group" selected={popoverBulkHistory} onChange={setPopoverBulkHistory} /><PlaygroundToggle label="Delete" selected={popoverBulkDelete} onChange={setPopoverBulkDelete} /></> : <>
           {popoverTrigger !== "select" ? <PlaygroundFilterChip label="Content" value={popoverContent} onChange={(value) => { const kind = (String(value) || "icon") as PopoverContentKind; setPopoverContent(kind); setPopoverCreated([]); setPopoverSelected(popoverContentSet(kind, false).items[0].id); setPopoverSearch(""); setPopoverOpen(true); }} options={popoverContentKinds.map((id) => ({ id, label: id }))} /> : null}
           {popoverKind !== "badge" ? <PlaygroundToggle label="Caption" selected={popoverCaption} onChange={setPopoverCaption} /> : null}
           {popoverTrigger !== "select" ? <PlaygroundToggle label="Manual-Add-New" selected={popoverCreateOn} onChange={(on) => { setPopoverCreateOn(on); setPopoverSearch(""); setPopoverOpen(true); }} /> : null}
           <PlaygroundToggle label="Label" selected={popoverLabelOn} onChange={setPopoverLabelOn} />
           <PlaygroundToggle label="Search" selected={popoverSearchOn} onChange={(on) => { setPopoverSearchOn(on); if (!on) setPopoverSearch(""); }} />
+          </>}
         </div>
         <div data-typography={previewTypography} className="platform-example-row platform-popover-preview">
-          {popoverTrigger === "select" ? (
+          {popoverTrigger === "bulk" ? <PopoverBulkSelectionDemo history={popoverBulkHistory} destructive={popoverBulkDelete} /> : popoverTrigger === "select" ? (
             <SelectField
               className="platform-popover-select"
               label={popoverSet.title}
@@ -950,7 +1244,27 @@ import { Icon } from "@zen/design-system/icons";` : ""}
             </Chip>
           )}
         </div>
-        <PlatformCode code={popoverTrigger === "select" ? `import { SelectField } from "@zen/design-system";
+        <PlatformCode code={popoverTrigger === "bulk" ? `import { PopoverBulkAction, PopoverBulkActionDivider, PopoverBulkActionGroup } from "@zen/design-system";
+
+<PopoverBulkAction aria-label="Selection actions">${popoverBulkHistory ? `
+  <PopoverBulkActionGroup aria-label="History">
+    <IconButton appearance="flat" size="md" aria-label="Undo" onClick={undo} icon={<Icon name="icon-flip-backward-line" />} />
+    <IconButton appearance="flat" size="md" aria-label="Redo" onClick={redo} icon={<Icon name="icon-flip-forward-line" />} />
+  </PopoverBulkActionGroup>
+  <PopoverBulkActionDivider />` : ""}
+  <PopoverBulkActionGroup aria-label="Format">
+    <IconButton appearance="flat" size="md" aria-label="Bold" aria-pressed={bold} onClick={() => setBold(!bold)} icon={<Icon name="icon-bold-01-line" />} />
+    <IconButton appearance="flat" size="md" aria-label="Italic" aria-pressed={italic} onClick={() => setItalic(!italic)} icon={<Icon name="icon-italic-01-line" />} />
+  </PopoverBulkActionGroup>
+  <PopoverBulkActionDivider />
+  <PopoverBulkActionGroup aria-label="Comment">
+    <IconButton appearance="flat" size="md" aria-label="Comment" onClick={addComment} icon={<Icon name="icon-message-plus-circle-line" />} />
+  </PopoverBulkActionGroup>${popoverBulkDelete ? `
+  <PopoverBulkActionDivider />
+  <PopoverBulkActionGroup aria-label="Delete">
+    <IconButton appearance="flat" size="md" aria-label="Delete selection" onClick={deleteSelection} icon={<Icon name="icon-trash-line" />} />
+  </PopoverBulkActionGroup>` : ""}
+</PopoverBulkAction>` : popoverTrigger === "select" ? `import { SelectField } from "@zen/design-system";
 
 // SelectField owns the trigger, open state and the shared Popover.
 <SelectField
@@ -962,7 +1276,7 @@ import { Icon } from "@zen/design-system/icons";` : ""}
   popoverLabel="${popoverSet.title}"` : ""}${popoverSearchOn ? `
   popoverSearch` : ""}
 />` : `import { Chip } from "@zen/design-system";
-import { Icon } from "@zen/design-system/icons";
+import { Icon } from "@zen/design-system";
 
 // Chip (Advanced) is the trigger; it composes the shared Popover.
 <Chip
@@ -1004,11 +1318,11 @@ ${popoverChipLeading ? `  leading={selected.leading}
         </div>
         <div data-typography={previewTypography} className="platform-example-row">
           {tagRemoved
-            ? <Button appearance="main" level="tertiary" size="xs" onClick={() => setTagRemoved(false)}>Restore tag</Button>
+            ? <Button appearance="main" level="tertiary" size="sm" onClick={() => setTagRemoved(false)}>Restore tag</Button>
             : <Tag leading={resolvedTheme === "leading-icon" ? <Icon name="icon-hash-02-line" decorative /> : undefined} photoSrc={resolvedTheme === "leading-photo" ? samplePhoto : undefined} error={tagError} disabled={tagDisabled} remove={tagRemove} onRemove={() => setTagRemoved(true)}>{resolvedTheme === "leading-photo" ? "Ava Chen" : "design-system"}</Tag>}
         </div>
         <PlatformCode code={`import { Tag } from "@zen/design-system";${resolvedTheme === "leading-icon" ? `
-import { Icon } from "@zen/design-system/icons";` : ""}
+import { Icon } from "@zen/design-system";` : ""}
 
 <Tag${tagProps.length ? `
   ${tagProps.join("\n  ")}
@@ -1072,14 +1386,16 @@ ${[
           <PlaygroundToggle label="Always Show" selected={tooltipPinned} onChange={setTooltipPinned} />
         </div>
         <div data-typography={previewTypography} className={`platform-example-row platform-tooltip-preview${color === "white-overlay" || color === "black-overlay" ? " platform-example-row--overlay" : ""}`}>
-          <Tooltip content="Duplicate layer" color={color} size={size} placement={placement} open={tooltipPinned ? true : undefined}>
-            <IconButton appearance={color === "white-overlay" || color === "black-overlay" ? "overlay" : "main"} level={color === "white-overlay" || color === "black-overlay" ? "white-overlay" : "tertiary"} size="md" aria-label="Duplicate" icon={<Icon name="icon-copy-line" />} />
+          {/* Clicking Duplicate confirms it in the tooltip for 1.5s (the copy-feedback pattern). */}
+          <Tooltip content={tooltipDuplicated ? "Layer duplicated" : "Duplicate layer"} color={color} size={size} placement={placement} open={tooltipPinned || tooltipDuplicated ? true : undefined}>
+            <IconButton appearance={color === "white-overlay" || color === "black-overlay" ? "overlay" : "main"} level={color === "white-overlay" || color === "black-overlay" ? "white-overlay" : "tertiary"} size="md" aria-label="Duplicate" icon={<Icon name="icon-copy-line" />}
+              onClick={() => { setTooltipDuplicated(true); window.setTimeout(() => setTooltipDuplicated(false), 1500); }} />
           </Tooltip>
         </div>
         <PlatformCode code={`import { IconButton, Tooltip } from "@zen/design-system";
 
-<Tooltip content="Duplicate layer"${color !== "default" ? ` color="${color}"` : ""}${size !== "medium" ? ` size="${size}"` : ""}${placement !== "top" ? ` placement="${placement}"` : ""}>
-  <IconButton aria-label="Duplicate" icon={<Icon name="icon-copy-line" />} />
+<Tooltip content={duplicated ? "Layer duplicated" : "Duplicate layer"}${color !== "default" ? ` color="${color}"` : ""}${size !== "medium" ? ` size="${size}"` : ""}${placement !== "top" ? ` placement="${placement}"` : ""} open={duplicated || undefined}>
+  <IconButton aria-label="Duplicate" icon={<Icon name="icon-copy-line" />} onClick={duplicateLayer} />
 </Tooltip>`} />
       </ComponentPreview>
     </ExamplePage>;
@@ -1181,8 +1497,8 @@ ${[
         <div data-typography={previewTypography} className="platform-example-row platform-progress-preview">
           {isBar ? <ProgressBar value={progressValue} theme={barTheme} label={progressLabel ? true : undefined} aria-label="Upload progress" /> : <ProgressCircle value={progressValue} theme={circleTheme} label={progressLabel ? true : undefined} aria-label="Task progress" />}
           <div className="pe-row">
-            <Button appearance="main" level="tertiary" size="xs" disabled={progressValue === 0} onClick={() => step(-10)}>−10%</Button>
-            <Button appearance="main" level="tertiary" size="xs" disabled={progressValue === 100} onClick={() => step(10)}>+10%</Button>
+            <Button appearance="main" level="tertiary" size="sm" disabled={progressValue === 0} onClick={() => step(-10)}>−10%</Button>
+            <Button appearance="main" level="tertiary" size="sm" disabled={progressValue === 100} onClick={() => step(10)}>+10%</Button>
           </div>
         </div>
         <PlatformCode code={`import { ${isBar ? "ProgressBar" : "ProgressCircle"} } from "@zen/design-system";
@@ -1214,7 +1530,7 @@ ${[
           <PlaygroundFilterChip label="Theme" value={accordionTheme} onChange={(value) => setAccordionTheme(String(value) || undefined)} options={[["divider", "Divider"], ["box", "Box"]].map(([id, label]) => ({ id, label }))} />
         </div>
         <div data-typography={previewTypography} className="platform-example-row platform-accordion-preview">
-          <div className="platform-accordion-stack" data-theme={theme}>
+          <div className="platform-accordion-stack" data-tone={theme}>
             {faqs.map((faq) => <Accordion key={faq.id} size={size} theme={theme} title={faq.title} expanded={accordionOpen === faq.id} onExpandedChange={(open) => setAccordionOpen(open ? faq.id : "")}>{faq.body}</Accordion>)}
           </div>
         </div>
@@ -1249,7 +1565,7 @@ ${[
         </div>
         <div data-typography={previewTypography} className="platform-example-row platform-banner-preview">
           {alertDismissed
-            ? <Button appearance="main" level="tertiary" size="xs" onClick={() => setAlertDismissed(false)}>Show banner again</Button>
+            ? <Button appearance="main" level="tertiary" size="sm" onClick={() => setAlertDismissed(false)}>Show banner again</Button>
             : <AlertBanner theme={theme} size={size} leading={alertLeading} action={alertAction ? { label: "Details" } : undefined} onClose={alertClose ? () => setAlertDismissed(true) : undefined}>{messages[theme]}</AlertBanner>}
         </div>
         <PlatformCode code={`import { AlertBanner } from "@zen/design-system";
@@ -1279,7 +1595,18 @@ ${[
           {compact ? null : <PlaygroundFilterChip label="Item Size" value={paginationSize} onChange={(value) => setPaginationSize(String(value) || undefined)} options={[["xsmall", "XSmall · 24"], ["small", "Small · 32"]].map(([id, label]) => ({ id, label }))} />}
         </div>
         <div data-typography={previewTypography} className="platform-example-row">
-          <Pagination theme={theme} size={size} page={paginationPage} onPageChange={setPaginationPage} pageCount={10} total={480} pageSize={paginationPageSize} onPageSizeChange={(value) => { setPaginationPageSize(value); setPaginationPage(1); }} />
+          {/* Pagination always pages real content: the orders on the current page (48 per page for the numbered themes). */}
+          <div className="pe-stack" style={{ width: "100%", gap: 12 }}>
+            <ScrollBox label={`Orders, page ${paginationPage}`} resetKey={`${theme}-${paginationPage}-${paginationPageSize}`}>
+              <Table aria-label="Orders" rows={pageOf(orders, paginationPage, compact ? paginationPageSize : 48)} getRowId={(row) => String(row.id)}
+                columns={[
+                  { id: "number", header: "Order", cell: (row) => <TableText>{row.number}</TableText> },
+                  { id: "customer", header: "Customer", cell: (row) => <TableText>{row.customer}</TableText> },
+                  { id: "total", header: "Total", align: "right", cell: (row) => <TableText>{row.total}</TableText> },
+                ]} />
+            </ScrollBox>
+            <Pagination theme={theme} size={size} page={paginationPage} onPageChange={setPaginationPage} pageCount={10} total={480} pageSize={paginationPageSize} onPageSizeChange={(value) => { setPaginationPageSize(value); setPaginationPage(1); }} />
+          </div>
         </div>
         <PlatformCode code={`import { Pagination } from "@zen/design-system";
 
@@ -1330,6 +1657,577 @@ ${code}`} />
     </ExamplePage>;
   }
 
+  if (page === "rating") {
+    const size = (ratingSize ?? "large") as RatingSize;
+    const theme = (ratingTheme ?? "default") as RatingTheme;
+    const type = ratingType ?? "star";
+    const preview = type === "display"
+      ? <RatingDisplay value={4.5} size={size} theme={theme} />
+      : type === "opinion" ? <OpinionScale scale={5} aria-label="How was the onboarding?" />
+      : type === "nps" ? <NpsScale scale={10} aria-label="How likely are you to recommend Zen?" />
+      : <Rating aria-label="Rate this template" value={ratingValue} onChange={setRatingValue} size={size} theme={theme} />;
+    const code = type === "display" ? `<RatingDisplay value={4.5} size="${size}" theme="${theme}" />`
+      : type === "opinion" ? `<OpinionScale scale={5} aria-label="How was the onboarding?" value={mood} onChange={setMood} />`
+      : type === "nps" ? `<NpsScale scale={10} aria-label="How likely are you to recommend Zen?" value={score} onChange={setScore} />`
+      : `<Rating aria-label="Rate this template" value={stars} onChange={setStars} size="${size}" theme="${theme}" />`;
+    return <ExamplePage page="rating" eyebrow="Components / Rating" title="Rating" description="Star input and display (5 sizes × Default/Neutral/Accent), an emoji Opinion scale and an NPS number scale.">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Rating</h2>
+        <div className="platform-playground-controls" aria-label="Rating playground controls">
+          <PlaygroundFilterChip label="Type" value={ratingType} onChange={(value) => setRatingType(String(value) || undefined)} options={[["star", "Star input"], ["display", "Display"], ["opinion", "Opinion scale"], ["nps", "NPS scale"]].map(([id, label]) => ({ id, label }))} />
+          {type === "star" || type === "display" ? <>
+            <PlaygroundFilterChip label="Size" value={ratingSize} onChange={(value) => setRatingSize(String(value) || undefined)} options={ratingSizes.map((id) => ({ id, label: id }))} />
+            <PlaygroundFilterChip label="Theme" value={ratingTheme} onChange={(value) => setRatingTheme(String(value) || undefined)} options={ratingThemes.map((id) => ({ id, label: id }))} />
+          </> : null}
+        </div>
+        <div data-typography={previewTypography} className="platform-example-row platform-rating-preview">
+          {preview}
+          {type === "star" ? <span className={`platform-rating-readout ${typographyStyles["Body/Small/Regular"]}`}>{ratingValue} / 5</span> : null}
+        </div>
+        <PlatformCode code={`import { ${type === "display" ? "RatingDisplay" : type === "opinion" ? "OpinionScale" : type === "nps" ? "NpsScale" : "Rating"} } from "@zen/design-system";
+
+${code}`} />
+      </ComponentPreview>
+    </ExamplePage>;
+  }
+
+  if (page === "color-selector") {
+    const colors = ["blue", "green", "yellow", "orange", "red", "pink", "purple", "teal"].map((name) => ({ value: `var(--zen-color-background-support-${name}-solid)`, label: name[0].toUpperCase() + name.slice(1), contrast: name === "yellow" ? "dark" as const : undefined }));
+    const picked = colors.find((color) => color.value === colorValue);
+    return <ExamplePage page="color-selector" eyebrow="Components / Color Selector" title="Color Selector" description="Round colour swatches with a check when selected, a hover ring and a keyboard focus halo; one radio per swatch.">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Color Selector</h2>
+        <div className="platform-playground-controls" aria-label="Color selector playground controls">
+          <PlaygroundFilterChip label="Selected" value={colorValue} onChange={(value) => setColorValue(String(value))} options={colors.map((color) => ({ id: color.value, label: color.label }))} />
+        </div>
+        <div data-typography={previewTypography} className="platform-example-row platform-color-preview">
+          <ColorSelector aria-label="Label colour" colors={colors} value={colorValue} onChange={setColorValue} />
+          <span className={`platform-color-readout ${typographyStyles["Body/Small/Regular"]}`}>{picked?.label}</span>
+        </div>
+        <PlatformCode code={`import { ColorSelector } from "@zen/design-system";
+
+<ColorSelector
+  aria-label="Label colour"
+  value={colour}
+  onChange={setColour}
+  colors={[
+    { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" },
+    { value: "var(--zen-color-background-support-yellow-solid)", label: "Yellow", contrast: "dark" },
+    …
+  ]}
+/>`} />
+      </ComponentPreview>
+    </ExamplePage>;
+  }
+
+  if (page === "metric") {
+    const size = (metricSize ?? "xlarge") as MetricSize;
+    const trend = (metricTrend ?? "positive") as MetricTrendDirection;
+    const trendLabel = trend === "positive" ? "+24% vs. last year" : trend === "negative" ? "−24% vs. last year" : "0% vs. last year";
+    const props = { label: "Revenue", value: "$1,680.68", trend: { direction: trend, label: trendLabel }, icon: metricIcon ? "icon-credit-card-line" as const : false as const, iconTheme: (metricIconTheme ?? "neutral") as DockIconTheme, iconBackground: (metricIconSolid ? "solid" : "subtle") as DockIconBackground, size };
+    return <ExamplePage page="metric" eyebrow="Components / Metric Widget" title="Metric Widget" description="Metric-Inline (icon, label, number, trend) in five sizes, and Metric-Card — the XLarge metric on a Shadow Card with a ⋮ Sub-Action.">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Metric Widget</h2>
+        <div className="platform-playground-controls" aria-label="Metric playground controls">
+          <PlaygroundFilterChip label="Size" value={metricSize} onChange={(value) => setMetricSize(String(value) || undefined)} options={metricSizes.map((id) => ({ id, label: id }))} />
+          <PlaygroundFilterChip label="Trend" value={metricTrend} onChange={(value) => setMetricTrend(String(value) || undefined)} options={["positive", "negative", "normal"].map((id) => ({ id, label: id }))} />
+          <PlaygroundToggle label="Dock Icon" selected={metricIcon} onChange={setMetricIcon} />
+          {metricIcon ? <PlaygroundFilterChip label="Icon theme" value={metricIconTheme} onChange={(value) => setMetricIconTheme(String(value) || undefined)} options={dockIconThemes.filter((id) => !["emoji", "on-color", "inverse", "surface"].includes(id)).map((id) => ({ id, label: id }))} /> : null}
+          {metricIcon ? <PlaygroundToggle label="Solid icon" selected={metricIconSolid} onChange={setMetricIconSolid} /> : null}
+          <PlaygroundToggle label="Card" selected={metricCard} onChange={setMetricCard} />
+        </div>
+        <div data-typography={previewTypography} className="platform-example-row platform-metric-preview">
+          {metricCard ? <MetricCard {...props} subAction={{ label: "Metric actions", icon: "icon-dots-vertical-line" }} /> : <Metric {...props} />}
+        </div>
+        <PlatformCode code={`import { ${metricCard ? "MetricCard" : "Metric"} } from "@zen/design-system";
+
+<${metricCard ? "MetricCard" : "Metric"}
+  label="Revenue"
+  value="$1,680.68"
+  trend={{ direction: "${trend}", label: "${trendLabel}" }}${metricIcon ? `
+  icon="icon-credit-card-line"${metricIconTheme && metricIconTheme !== "neutral" ? `
+  iconTheme="${metricIconTheme}"` : ""}${metricIconSolid ? `
+  iconBackground="solid"` : ""}` : `
+  icon={false}`}${size !== "xlarge" ? `
+  size="${size}"` : ""}${metricCard ? `
+  subAction={{ label: "Metric actions", icon: "icon-dots-vertical-line", onClick: openMenu }}` : ""}
+/>`} />
+      </ComponentPreview>
+    </ExamplePage>;
+  }
+
+  if (page === "top-navigation") {
+    return <ExamplePage page="top-navigation" eyebrow="Components / Top Navigation" title="Top Navigation" description="The mobile app bar: a 64px navigator bar (leading action · centred title · trailing actions) over a large Heading and an optional control bar. Ten types pair a background (Surface, Alt, blurring, overlay) with an action style (Tertiary, Flat, Liquid Glass)."><TopNavigationPlayground /></ExamplePage>;
+  }
+  if (page === "bottom-navigation") {
+    return <ExamplePage page="bottom-navigation" eyebrow="Components / Bottom Navigation" title="Bottom Navigation" description="Root-level navigation anchored to the bottom of a mobile screen: a full-width Default bar, or a Floating / Floating Glass pill with an optional floating action. Three to five destinations."><BottomNavigationPlayground /></ExamplePage>;
+  }
+  if (page === "bottom-sheet") {
+    return <ExamplePage page="bottom-sheet" eyebrow="Components / Bottom Sheet" title="Bottom Sheet" description="An anchored surface that slides up from the bottom of the screen for supplementary content, a short task (Modal) or a list of actions (Action). Drag, Escape or the scrim dismiss it; focus stays inside while it is open."><BottomSheetPlayground /></ExamplePage>;
+  }
+  if (page === "chat") {
+    return <ExamplePage page="chat" eyebrow="Components / Chat" title="Chat" description="Person-to-person conversation: text, file, call and photo bubbles for you and others, reactions, read receipts, the composer and conversation-list rows. Social and Business domains."><ChatPlayground /></ExamplePage>;
+  }
+  if (page === "ai-chat") {
+    return <ExamplePage page="ai-chat" eyebrow="Components / AI Chat" title="AI Chat" description="Prompting and conversing with an assistant: the Chat-Field (Default, Surface, Liquid Glass), You / AI bubbles with feedback actions, and the empty-state Block with suggestions."><AiChatPlayground /></ExamplePage>;
+  }
+  if (page === "chart") {
+    return <ExamplePage page="chart" eyebrow="Components / Chart" title="Chart" description="Data visualisation: a Line chart for trends, a Stack-bar chart for part-to-whole comparisons, and the Chart Card that frames either with a title, range switch and report link."><ChartPlayground /></ExamplePage>;
+  }
+  if (page === "uploader") {
+    const type = (uploadType ?? "dropzone") as "dropzone" | "button";
+    const thumbnail = (uploadThumb ?? "file") as "none" | "file" | "photo";
+    return <ExamplePage page="uploader" eyebrow="Components / Uploader" title="Uploader" description="File-Upload with a Drag & Drop field or a Choose File button, help text, and File-Items that show uploading, uploaded, replaceable and error states.">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Uploader</h2>
+        <div className="platform-playground-controls" aria-label="Uploader playground controls">
+          <PlaygroundFilterChip label="Type" value={uploadType} onChange={(value) => setUploadType(String(value) || undefined)} options={[["dropzone", "Drag & Drop"], ["button", "Browse Button"]].map(([id, label]) => ({ id, label }))} />
+          <PlaygroundFilterChip label="Thumbnail" value={uploadThumb} onChange={(value) => setUploadThumb(String(value) || undefined)} options={["none", "file"].map((id) => ({ id, label: id }))} />
+          {type === "dropzone" ? <PlaygroundToggle label="Extended" selected={uploadExtended} onChange={setUploadExtended} /> : null}
+          <PlaygroundToggle label="Multiple" selected={uploadMultiple} onChange={(on) => { setUploadMultiple(on); if (!on) setUploadFiles((current) => current.slice(0, 1)); }} />
+          <PlaygroundToggle label="Field Error" selected={uploadError} onChange={setUploadError} />
+        </div>
+        <div data-typography={previewTypography} className="platform-example-row platform-uploader-preview">
+          <FileUpload label="Attachments" type={type} caption="JPG, PNG or PDF. Max size of 2 MB" helpText="Up to 5 files." error={uploadError ? "Only JPG, PNG or PDF files are allowed." : undefined} multiple={uploadMultiple} extended={uploadExtended} thumbnail={thumbnail}
+            files={uploadFiles}
+            onFilesAdd={(added) => { const next = added.map((file, index) => ({ id: `${file.name}-${Date.now()}-${index}`, name: file.name, size: `${Math.max(1, Math.round(file.size / 1024))} KB`, state: "uploaded" as const })); setUploadFiles((current) => uploadMultiple ? [...current, ...next] : next.slice(0, 1)); }}
+            onRemove={(file) => setUploadFiles((current) => current.filter((item) => item.id !== file.id))}
+            onRetry={(file) => setUploadFiles((current) => current.map((item) => item.id === file.id ? { ...item, state: "uploading", progress: 10, caption: "Retrying…", error: undefined } : item))} />
+        </div>
+        <PlatformCode code={`import { FileUpload } from "@zen/design-system";
+
+<FileUpload
+  label="Attachments"${type === "button" ? `
+  type="button"` : ""}
+  caption="JPG, PNG or PDF. Max size of 2 MB"
+  helpText="Up to 5 files."${uploadError ? `
+  error="Only JPG, PNG or PDF files are allowed."` : ""}${uploadMultiple ? "\n  multiple" : ""}${type === "dropzone" && !uploadExtended ? "\n  extended={false}" : ""}
+  thumbnail="${thumbnail}"
+  files={files}
+  onFilesAdd={upload}
+  onRemove={remove}
+  onRetry={retry}
+/>`} />
+      </ComponentPreview>
+    </ExamplePage>;
+  }
+
+  if (page === "side-panel") {
+    const type = (panelType ?? "modal") as SidePanelType;
+    const size = (panelSize ?? "default") as SidePanelSize;
+    const body = (
+      <>
+        <InputField label="Project name" defaultValue="Zen website" />
+        <SelectField label="Owner" defaultValue="ava" options={[{ label: "Ava Chen", value: "ava" }, { label: "Bao Nguyen", value: "bao" }]} />
+        <TextAreaField label="Notes" placeholder="Anything the team should know" />
+      </>
+    );
+    const panel = <SidePanel open={panelOpen} onOpenChange={setPanelOpen} type={type} size={size} icon={type === "modal" ? "icon-info-circle-solid" : undefined} title="Edit project" description={panelDescription ? "Changes apply to everyone in the workspace." : undefined} primaryAction={{ label: "Save changes", onClick: () => setPanelOpen(false) }} secondaryAction={{ label: "Cancel" }}>{body}</SidePanel>;
+    return <ExamplePage page="side-panel" eyebrow="Components / Side Panel" title="Side Panel" description="A panel on the right edge: Standard docks beside the page (non-modal); Modal floats over a scrim and traps focus. Header, Contents slot and Modal/Actions footer.">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Side Panel</h2>
+        <div className="platform-playground-controls" aria-label="Side panel playground controls">
+          <PlaygroundFilterChip label="Type" value={panelType} onChange={(value) => { setPanelType(String(value) || undefined); setPanelOpen(false); }} options={["modal", "standard"].map((id) => ({ id, label: id }))} />
+          <PlaygroundFilterChip label="Size" value={panelSize} onChange={(value) => setPanelSize(String(value) || undefined)} options={[["default", "Default (440)"], ["small", "Small (360)"]].map(([id, label]) => ({ id, label }))} />
+          <PlaygroundToggle label="Caption" selected={panelDescription} onChange={setPanelDescription} />
+        </div>
+        <div data-typography={previewTypography} className="platform-example-row platform-side-panel-preview" data-type={type}>
+          {type === "standard" ? (
+            <div className="platform-side-panel-shell">
+              <div className="platform-side-panel-shell__page">
+                <span className={typographyStyles["Body/Base/Bold"]}>Zen website</span>
+                <span className={`platform-side-panel-shell__muted ${typographyStyles["Body/Small/Regular"]}`}>12 pages · updated 5d ago</span>
+                <Button appearance="main" level="tertiary" size="sm" onClick={() => setPanelOpen(!panelOpen)}>{panelOpen ? "Close details" : "Open details"}</Button>
+              </div>
+              {panel}
+            </div>
+          ) : (
+            <>
+              <Button appearance="main" level="primary" size="md" onClick={() => setPanelOpen(true)}>Edit project</Button>
+              {panel}
+            </>
+          )}
+        </div>
+        <PlatformCode code={`import { SidePanel } from "@zen/design-system";
+
+<SidePanel
+  open={open}
+  onOpenChange={setOpen}${type === "standard" ? `
+  type="standard"` : ""}${size === "small" ? `
+  size="small"` : ""}
+  title="Edit project"${panelDescription ? `
+  description="Changes apply to everyone in the workspace."` : ""}
+  primaryAction={{ label: "Save changes", onClick: save }}
+  secondaryAction={{ label: "Cancel" }}
+>
+  <InputField label="Project name" … />
+</SidePanel>`} />
+      </ComponentPreview>
+    </ExamplePage>;
+  }
+
+  if (page === "card") {
+    const theme = (cardTheme ?? "shadow") as CardTheme;
+    const spacing = (cardSpacing ?? "medium") as CardSpacing;
+    return <ExamplePage page="card" eyebrow="Components / Card" title="Card" description="A Content slot on five surfaces — Shadow, Flat, Pale, Border and Semi-Pale — in two paddings, with an Active (selected) state and a top-right Sub-Action.">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Card</h2>
+        <div className="platform-playground-controls" aria-label="Card playground controls">
+          <PlaygroundFilterChip label="Theme" value={cardTheme} onChange={(value) => setCardTheme(String(value) || undefined)} options={cardThemes.map((id) => ({ id, label: id }))} />
+          <PlaygroundFilterChip label="Spacing" value={cardSpacing} onChange={(value) => setCardSpacing(String(value) || undefined)} options={cardSpacings.map((id) => ({ id, label: id }))} />
+          <PlaygroundToggle label="Active" selected={cardActive} onChange={setCardActive} />
+          <PlaygroundToggle label="Sub-Action" selected={cardSubAction} onChange={setCardSubAction} />
+        </div>
+        <div data-typography={previewTypography} className="platform-example-row platform-card-preview" data-tone={theme}>
+          <Card theme={theme} spacing={spacing} active={cardActive} subAction={cardSubAction ? { label: "More actions" } : undefined}>
+            <div className="platform-card-demo">
+              <DockIcon icon="icon-colors-line" theme="accent" background="subtle" />
+              <span className={typographyStyles["Body/Base/Bold"]}>Design tokens</span>
+              <span className={`platform-card-demo__caption ${typographyStyles["Body/Small/Regular"]}`}>1,240 variables across 6 collections.</span>
+            </div>
+          </Card>
+        </div>
+        <PlatformCode code={`import { Card } from "@zen/design-system";
+
+<Card${theme !== "shadow" ? ` theme="${theme}"` : ""}${spacing !== "medium" ? ` spacing="${spacing}"` : ""}${cardActive ? " active" : ""}${cardSubAction ? `
+  subAction={{ label: "More actions", onClick: openMenu }}` : ""}>
+  <DockIcon icon="icon-colors-line" theme="accent" background="subtle" />
+  <Text>Design tokens</Text>
+</Card>`} />
+      </ComponentPreview>
+    </ExamplePage>;
+  }
+
+  if (page === "dock-icon") {
+    const theme = (dockTheme ?? "accent") as DockIconTheme;
+    const size = (dockSize ?? "medium") as DockIconSize;
+    const background = (dockBackground ?? "solid") as DockIconBackground;
+    return <ExamplePage page="dock-icon" eyebrow="Components / Dock Icon" title="Dock Icon" description="Round icon tiles in five sizes and 22 themes — Solid or Subtle — for apps, categories and file types in lists, tables and cards.">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Dock Icon</h2>
+        <div className="platform-playground-controls" aria-label="Dock icon playground controls">
+          <PlaygroundFilterChip label="Theme" value={dockTheme} onChange={(value) => setDockTheme(String(value) || undefined)} options={dockIconThemes.map((id) => ({ id, label: id }))} />
+          <PlaygroundFilterChip label="Size" value={dockSize} onChange={(value) => setDockSize(String(value) || undefined)} options={dockIconSizes.map((id) => ({ id, label: id }))} />
+          <PlaygroundFilterChip label="Background" value={dockBackground} onChange={(value) => setDockBackground(String(value) || undefined)} options={["solid", "subtle"].map((id) => ({ id, label: id }))} />
+        </div>
+        <div data-typography={previewTypography} className="platform-example-row platform-dock-preview" data-tone={theme}>
+          {dockIconSizes.map((s) => <DockIcon key={s} icon="icon-colors-line" emoji="🎨" theme={theme} size={s} background={background} label={s === size ? "Design tokens" : undefined} className={s === size ? "platform-dock-preview__current" : undefined} />)}
+        </div>
+        <PlatformCode code={`import { DockIcon } from "@zen/design-system";
+
+<DockIcon ${theme === "emoji" ? `theme="emoji" emoji="🎨"` : `icon="icon-colors-line"${theme !== "neutral" ? ` theme="${theme}"` : ""}`}${size !== "medium" ? ` size="${size}"` : ""}${background !== "solid" ? ` background="${background}"` : ""} />`} />
+      </ComponentPreview>
+    </ExamplePage>;
+  }
+
+  if (page === "list-item") {
+    const people = [
+      { id: "ava", name: "Ava Chen", role: "Product Designer", initials: "AC", theme: "blue" as const },
+      { id: "bao", name: "Bao Nguyen", role: "Frontend Engineer", initials: "BN", theme: "green" as const },
+      { id: "chi", name: "Chi Tran", role: "Design Ops", initials: "CT", theme: "orange" as const },
+    ];
+    return <ExamplePage page="list-item" eyebrow="Components / List Item" title="List Item" description="List-Item rows with Leading (avatar or dock icon), Title + Caption, and Trailing actions; Hover, Pressed and Selected come from real interaction.">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">List Item</h2>
+        <div className="platform-playground-controls" aria-label="List item playground controls">
+          <PlaygroundToggle label="Leading" selected={listLeading} onChange={setListLeading} />
+          <PlaygroundToggle label="Caption" selected={listCaption} onChange={setListCaption} />
+          <PlaygroundToggle label="Trailing" selected={listTrailing} onChange={setListTrailing} />
+          <PlaygroundFilterChip label="Inset" value={listInset} onChange={(value) => setListInset(String(value) || undefined)} options={["auto", "comfortable", "compact", "none"].map((id) => ({ id, label: id }))} />
+        </div>
+        <div data-typography={previewTypography} className="platform-example-row platform-list-preview">
+          <List aria-label="Team" inset={(listInset ?? "auto") as ListInset}>
+            {people.map((person) => (
+              <ListItem key={person.id} title={person.name} caption={listCaption ? person.role : undefined} selected={listSelected === person.id} onClick={() => setListSelected(person.id)}
+                leading={listLeading ? <Avatar size="medium" theme={person.theme} alt="">{person.initials}</Avatar> : undefined}
+                trailing={listTrailing ? <IconButton appearance="flat" level="primary" size="md" aria-label={`Message ${person.name}`} icon={<Icon name="icon-message-chat-circle-line" />} /> : undefined} />
+            ))}
+          </List>
+        </div>
+        <PlatformCode code={`import { List, ListItem } from "@zen/design-system";
+
+<List aria-label="Team"${listInset && listInset !== "auto" ? ` inset="${listInset}"` : ""}>
+  {people.map((person) => (
+    <ListItem
+      key={person.id}
+      title={person.name}${listCaption ? `
+      caption={person.role}` : ""}
+      selected={selected === person.id}
+      onClick={() => setSelected(person.id)}${listLeading ? `
+      leading={<Avatar size="medium" theme={person.theme} alt="">{person.initials}</Avatar>}` : ""}${listTrailing ? `
+      trailing={<IconButton appearance="flat" level="primary" size="md" aria-label={\`Message \${person.name}\`} icon={<Icon name="icon-message-chat-circle-line" />} />}` : ""}
+    />
+  ))}
+</List>`} />
+      </ComponentPreview>
+    </ExamplePage>;
+  }
+
+  if (page === "table") {
+    const projects = [
+      { id: "zen-web", name: "Zen website", owner: "Ava Chen", icon: "icon-globe-02-line" as const, theme: "blue" as const, status: "Live", progress: 100, trend: "up" as const, delta: "+12%", updated: 5 },
+      { id: "tokens", name: "Token pipeline", owner: "Bao Nguyen", icon: "icon-colors-line" as const, theme: "purple" as const, status: "In review", progress: 72, trend: "neutral" as const, delta: "0%", updated: 2 },
+      { id: "mobile", name: "Mobile kit", owner: "Chi Tran", icon: "icon-mobile-line" as const, theme: "orange" as const, status: "Blocked", progress: 38, trend: "down" as const, delta: "−8%", updated: 9 },
+    ];
+    const rows = tableEmpty ? [] : [...projects].sort((a, b) => {
+      if (!tableSort) return 0;
+      const dir = tableSort.direction === "asc" ? 1 : -1;
+      return tableSort.columnId === "name" ? a.name.localeCompare(b.name) * dir : (a.updated - b.updated) * dir;
+    });
+    type BudgetRow = (typeof tableBudget)[number];
+    const statuses = [{ value: "live", label: "Live", theme: "green" as const }, { value: "review", label: "In review", theme: "yellow" as const }, { value: "blocked", label: "Blocked", theme: "red" as const }];
+    const updateRow = (row: BudgetRow, patch: Partial<BudgetRow>, log: string) => { setTableBudget((list) => list.map((item) => item.id === row.id ? { ...item, ...patch } : item)); setTableEditLog(log); };
+    const money = (value: string) => `$${Number(value || 0).toLocaleString("en-US")}`;
+    const locked = (row: BudgetRow) => tableLockRow && row.archived;
+    if (tableMode === "editable") {
+      return <ExamplePage page="table" eyebrow="Components / Table" title="Table" description="Header and data rows built from Table/Cell/Header and Table/Cell/Default: sortable headers, row selection, right-aligned numbers, cell primitives and in-place editable cells.">
+        <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+          <h2 className="platform-main-component__title">Table · Editable cells</h2>
+          <div className="platform-playground-controls" aria-label="Table playground controls">
+            <PlaygroundFilterChip label="Mode" value={tableMode} onChange={(value) => setTableMode(String(value) || undefined)} options={[{ id: "display", label: "display" }, { id: "editable", label: "editable" }]} />
+            <PlaygroundToggle label="Open Button" selected={tableOpenButton} onChange={setTableOpenButton} />
+            <PlaygroundToggle label="Lock Archived Row" selected={tableLockRow} onChange={setTableLockRow} />
+          </div>
+          <div data-typography={previewTypography} className="platform-example-row platform-table-preview platform-table-preview--editable">
+            <Table aria-label="Project budgets" rows={tableBudget} getRowId={(row) => row.id}
+              columns={[
+                { id: "name", header: "Project", width: "26%", cell: (row) => <TableText bold caption={row.archived ? "Archived" : undefined}>{row.name}</TableText>,
+                  onOpen: tableOpenButton ? (row) => setTableEditLog(`Opened ${row.name}`) : undefined,
+                  edit: { value: (row) => row.name, placeholder: "Project name", "aria-label": "Project name", disabled: locked, validate: (value) => value.trim() ? undefined : "Name can't be empty", onCommit: (row: BudgetRow, value: string) => updateRow(row, { name: value.trim() }, `Renamed “${row.name}” → “${value.trim()}”`) } },
+                { id: "status", header: "Status", cell: (row) => { const st = statuses.find((x) => x.value === row.status)!; return <Badge size="medium" theme={st.theme} background="subtle">{st.label}</Badge>; },
+                  edit: { type: "select", value: (row) => row.status, options: statuses.map(({ value, label }) => ({ value, label })), "aria-label": "Status", disabled: locked, onCommit: (row, value) => updateRow(row, { status: value }, `${row.name} status → ${statuses.find((x) => x.value === value)?.label}`) } },
+                { id: "tags", header: "Tags", width: "26%", cell: (row) => <TableTags>{row.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}</TableTags>,
+                  edit: { type: "tags", value: (row) => row.tags, suggestions: ["web", "brand", "tooling", "ios", "android", "research"], "aria-label": "Tags", disabled: locked, onCommit: (row, value) => updateRow(row, { tags: value }, `${row.name} tags → ${value.join(", ") || "none"}`) } },
+                { id: "budget", header: "Budget", align: "right", cell: (row) => <TableText>{money(row.budget)}</TableText>,
+                  edit: { type: "number", value: (row) => row.budget, placeholder: "0", "aria-label": "Budget", disabled: locked, validate: (value) => Number(value.replace(/,/g, "")) < 0 ? "Budget can't be negative" : undefined, onCommit: (row, value) => updateRow(row, { budget: value || "0" }, `${row.name} budget → ${money(value)}`) } },
+              ]} />
+            <p className={`platform-date-picker-summary ${typographyStyles["Body/Small/Regular"]}`} aria-live="polite">{tableEditLog || "Click a cell to edit (or select it with the arrows and just type). Enter saves, Tab moves on, Escape leaves and keeps the value."}</p>
+          </div>
+          <PlatformCode code={`import { Table, TableText } from "@zen/design-system";
+
+<Table
+  aria-label="Project budgets"
+  rows={rows}
+  getRowId={(row) => row.id}
+  columns={[
+    { id: "name", header: "Project", cell: (row) => <TableText bold>{row.name}</TableText>,${tableOpenButton ? `
+      onOpen: (row) => openProject(row),` : ""}
+      edit: { value: (row) => row.name, validate: (v) => v.trim() ? undefined : "Name can't be empty",
+        onCommit: (row, value) => update(row.id, { name: value })${tableLockRow ? `, disabled: (row) => row.archived` : ""} } },
+    { id: "tags", header: "Tags", cell: …,
+      edit: { type: "tags", value: (row) => row.tags, suggestions, onCommit: (row, tags) => update(row.id, { tags }) } },
+    { id: "budget", header: "Budget", align: "right", cell: (row) => <TableText>{money(row.budget)}</TableText>,
+      edit: { type: "number", value: (row) => row.budget, onCommit: (row, budget) => update(row.id, { budget }) } },
+  ]}
+/>`} />
+        </ComponentPreview>
+      </ExamplePage>;
+    }
+    return <ExamplePage page="table" eyebrow="Components / Table" title="Table" description="Header and data rows built from Table/Cell/Header and Table/Cell/Default: sortable headers, row selection, right-aligned numbers and cell primitives (media, text, trend, actions).">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Table</h2>
+        <div className="platform-playground-controls" aria-label="Table playground controls">
+          <PlaygroundFilterChip label="Mode" value={tableMode} onChange={(value) => setTableMode(String(value) || undefined)} options={[{ id: "display", label: "display" }, { id: "editable", label: "editable" }]} />
+          <PlaygroundToggle label="Selectable" selected={tableSelectable} onChange={setTableSelectable} />
+          <PlaygroundToggle label="Empty" selected={tableEmpty} onChange={setTableEmpty} />
+        </div>
+        <div data-typography={previewTypography} className="platform-example-row platform-table-preview">
+          <Table aria-label="Projects" rows={rows} getRowId={(row) => row.id} selectable={tableSelectable} selectedIds={tableSelected} onSelectionChange={setTableSelected} sort={tableSort} onSortChange={setTableSort}
+            empty={<EmptyState title="No projects yet" illustration={false} primaryAction={{ label: "Create project" }}>Projects you create show up here.</EmptyState>}
+            columns={[
+              { id: "name", header: "Project", sortable: true, width: "34%", cell: (row) => <TableMedia media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia> },
+              { id: "status", header: "Status", cell: (row) => <Badge size="medium" theme={row.status === "Live" ? "green" : row.status === "Blocked" ? "red" : "yellow"} background="subtle">{row.status}</Badge> },
+              { id: "progress", header: "Progress", width: "20%", cell: (row) => <ProgressBar value={row.progress} theme="accent" aria-label={`${row.name} progress`} /> },
+              { id: "trend", header: "Traffic", cell: (row) => <TableTrend trend={row.trend}>{row.delta}</TableTrend> },
+              { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: (row) => <TableActions><IconButton appearance="flat" level="primary" size="sm" aria-label={`Open ${row.name}`} icon={<Icon name="icon-dots-horizontal-line" />} /></TableActions> },
+            ]} />
+        </div>
+        <PlatformCode code={`import { Table, TableMedia, TableText, TableTrend, TableActions } from "@zen/design-system";
+
+<Table
+  aria-label="Projects"
+  rows={projects}
+  getRowId={(row) => row.id}${tableSelectable ? `
+  selectable
+  selectedIds={selected}
+  onSelectionChange={setSelected}` : ""}
+  sort={sort}
+  onSortChange={setSort}
+  empty={<EmptyState title="No projects yet" illustration={false} />}
+  columns={[
+    { id: "name", header: "Project", sortable: true, cell: (row) => (
+      <TableMedia media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia>
+    ) },
+    { id: "status", header: "Status", cell: (row) => <Badge size="medium" theme="green" background="subtle">{row.status}</Badge> },
+    { id: "progress", header: "Progress", cell: (row) => <ProgressBar value={row.progress} aria-label="Progress" /> },
+    { id: "trend", header: "Traffic", cell: (row) => <TableTrend trend={row.trend}>{row.delta}</TableTrend> },
+    { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: (row) => <TableActions><IconButton appearance="flat" level="primary" aria-label="Open" … /></TableActions> },
+  ]}
+/>`} />
+      </ComponentPreview>
+    </ExamplePage>;
+  }
+
+  if (page === "divider") {
+    const color = (dividerColor ?? "default") as DividerColor;
+    const orientation = dividerOrientation === "vertical" ? "vertical" : "horizontal";
+    return <ExamplePage page="divider" eyebrow="Components / Divider" title="Divider" description="A 1px line that separates content. Default (Pale) is the everyday rule; Medium and High add emphasis, and dashed lines step up to Subtle.">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Divider</h2>
+        <div className="platform-playground-controls" aria-label="Divider playground controls">
+          <PlaygroundFilterChip label="Color" value={dividerColor} onChange={(value) => setDividerColor(String(value) || undefined)} options={dividerColors.map((id) => ({ id, label: id }))} />
+          <PlaygroundFilterChip label="Orientation" value={dividerOrientation} onChange={(value) => setDividerOrientation(String(value) || undefined)} options={["horizontal", "vertical"].map((id) => ({ id, label: id }))} />
+          <PlaygroundToggle label="Dashed" selected={dividerDashed} onChange={setDividerDashed} />
+        </div>
+        <div data-typography={previewTypography} className="platform-example-row platform-divider-preview" data-orientation={orientation}>
+          <span className={typographyStyles["Body/Base/Regular"]}>Profile</span>
+          <Divider color={color} orientation={orientation} dashed={dividerDashed} />
+          <span className={typographyStyles["Body/Base/Regular"]}>Security</span>
+        </div>
+        <PlatformCode code={`import { Divider } from "@zen/design-system";
+
+<Divider${color !== "default" ? ` color="${color}"` : ""}${orientation === "vertical" ? ` orientation="vertical"` : ""}${dividerDashed ? " dashed" : ""} />`} />
+      </ComponentPreview>
+    </ExamplePage>;
+  }
+
+  if (page === "inline-message") {
+    const theme = (inlineTheme ?? "info") as InlineMessageTheme;
+    const copy: Record<InlineMessageTheme, [string, string]> = {
+      neutral: ["Heads up", "Changes to this template apply to new projects only."],
+      info: ["Invites expire after 7 days", "Resend the invite from Members if a teammate missed it."],
+      positive: ["Domain verified", "Emails from hello@zen.studio now pass SPF and DKIM."],
+      warning: ["Storage almost full", "You've used 92% of your plan. Archive old files or upgrade."],
+      negative: ["Payment failed", "Update your card to keep publishing. We'll retry in 3 days."],
+      custom: ["New: Figma sync", "Connect a Figma file to pull tokens straight into this workspace."],
+    };
+    return <ExamplePage page="inline-message" eyebrow="Components / Inline Message" title="Inline Message" description="A Subtle-surface message inside the content it describes: six themes with title, caption, one action and a close control.">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Inline Message</h2>
+        <div className="platform-playground-controls" aria-label="Inline message playground controls">
+          <PlaygroundFilterChip label="Theme" value={inlineTheme} onChange={(value) => { setInlineTheme(String(value) || undefined); setInlineDismissed(false); }} options={inlineMessageThemes.map((id) => ({ id, label: id }))} />
+          <PlaygroundToggle label="Title" selected={inlineTitle} onChange={setInlineTitle} />
+          <PlaygroundToggle label="Caption" selected={inlineCaption} onChange={setInlineCaption} />
+          <PlaygroundToggle label="Action" selected={inlineAction} onChange={setInlineAction} />
+          <PlaygroundToggle label="Close" selected={inlineClose} onChange={setInlineClose} />
+        </div>
+        <div data-typography={previewTypography} className="platform-example-row platform-inline-message-preview">
+          {inlineDismissed
+            ? <Button appearance="main" level="tertiary" size="sm" onClick={() => setInlineDismissed(false)}>Show message again</Button>
+            : <InlineMessage theme={theme} title={inlineTitle ? copy[theme][0] : undefined} action={inlineAction ? { label: "Learn more" } : undefined} onClose={inlineClose ? () => setInlineDismissed(true) : undefined}>{inlineCaption || !inlineTitle ? copy[theme][1] : undefined}</InlineMessage>}
+        </div>
+        <PlatformCode code={`import { InlineMessage } from "@zen/design-system";
+
+<InlineMessage
+  theme="${theme}"${inlineTitle ? `
+  title="${copy[theme][0]}"` : ""}${inlineAction ? `
+  action={{ label: "Learn more", onClick: openDocs }}` : ""}${inlineClose ? `
+  onClose={dismiss}` : ""}
+>${inlineCaption || !inlineTitle ? `
+  ${copy[theme][1]}
+` : ""}</InlineMessage>`} />
+      </ComponentPreview>
+    </ExamplePage>;
+  }
+
+  if (page === "empty-state") {
+    return <ExamplePage page="empty-state" eyebrow="Components / Empty State" title="Empty State" description="Illustration, title, caption and up to two full-width actions for screens with nothing to show yet.">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Empty State</h2>
+        <div className="platform-playground-controls" aria-label="Empty state playground controls">
+          <PlaygroundToggle label="Illustration" selected={emptyIllustration} onChange={setEmptyIllustration} />
+          <PlaygroundToggle label="Caption" selected={emptyCaption} onChange={setEmptyCaption} />
+          <PlaygroundToggle label="Primary CTA" selected={emptyPrimary} onChange={setEmptyPrimary} />
+          <PlaygroundToggle label="Secondary CTA" selected={emptySecondary} onChange={setEmptySecondary} />
+        </div>
+        <div data-typography={previewTypography} className="platform-example-row platform-empty-state-preview">
+          <EmptyState title="No projects yet" illustration={emptyIllustration} icon="icon-folder-line" primaryAction={emptyPrimary ? { label: "Create project" } : undefined} secondaryAction={emptySecondary ? { label: "Import from Figma" } : undefined}>{emptyCaption ? "Projects you create or join will show up here." : undefined}</EmptyState>
+        </div>
+        <PlatformCode code={`import { EmptyState } from "@zen/design-system";
+
+<EmptyState
+  title="No projects yet"${emptyIllustration ? `
+  icon="icon-folder-line"` : `
+  illustration={false}`}${emptyPrimary ? `
+  primaryAction={{ label: "Create project", onClick: create }}` : ""}${emptySecondary ? `
+  secondaryAction={{ label: "Import from Figma", onClick: importFile }}` : ""}
+>${emptyCaption ? `
+  Projects you create or join will show up here.
+` : ""}</EmptyState>`} />
+      </ComponentPreview>
+    </ExamplePage>;
+  }
+
+  if (page === "stepper") {
+    const orientation = (stepperOrientation ?? "horizontal") as StepperOrientation;
+    const steps = [
+      { id: "account", title: "Account", caption: stepperCaption ? "Email & password" : undefined },
+      { id: "workspace", title: "Workspace", caption: stepperCaption ? "Name & URL" : undefined, error: stepperError },
+      { id: "team", title: "Invite team", caption: stepperCaption ? "Optional" : undefined },
+      { id: "done", title: "Done", caption: stepperCaption ? "Start building" : undefined },
+    ];
+    return <ExamplePage page="stepper" eyebrow="Components / Stepper" title="Stepper" description="Stepper-Bar in horizontal and vertical layouts: Passed, Focused, Default and Error steps with a title and caption.">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Stepper</h2>
+        <div className="platform-playground-controls" aria-label="Stepper playground controls">
+          <PlaygroundFilterChip label="Orientation" value={stepperOrientation} onChange={(value) => setStepperOrientation(String(value) || undefined)} options={["horizontal", "vertical"].map((id) => ({ id, label: id }))} />
+          <PlaygroundFilterChip label="Current Step" value={String(stepperCurrent)} onChange={(value) => setStepperCurrent(Number(value) || 0)} options={steps.map((step, index) => ({ id: String(index), label: `${index + 1} · ${step.title}` }))} />
+          <PlaygroundToggle label="Caption" selected={stepperCaption} onChange={setStepperCaption} />
+          <PlaygroundToggle label="Error on Workspace" selected={stepperError} onChange={setStepperError} />
+        </div>
+        <div data-typography={previewTypography} className="platform-example-row platform-stepper-preview" data-orientation={orientation}>
+          <Stepper aria-label="Sign-up progress" orientation={orientation} steps={steps} current={stepperCurrent} onStepClick={(_, index) => setStepperCurrent(index)} />
+        </div>
+        <PlatformCode code={`import { Stepper } from "@zen/design-system";
+
+<Stepper
+  aria-label="Sign-up progress"${orientation === "vertical" ? `
+  orientation="vertical"` : ""}
+  current={${stepperCurrent}}
+  onStepClick={(step, index) => setCurrent(index)}
+  steps={[
+${steps.map((step) => `    { id: "${step.id}", title: "${step.title}"${step.caption ? `, caption: "${step.caption}"` : ""}${step.error ? ", error: true" : ""} },`).join("\n")}
+  ]}
+/>`} />
+      </ComponentPreview>
+    </ExamplePage>;
+  }
+
+  if (page === "slider") {
+    const theme = (sliderTheme ?? "neutral") as SliderTheme;
+    const size = (sliderSize ?? "medium") as SliderSize;
+    return <ExamplePage page="slider" eyebrow="Components / Slider" title="Slider" description="Slider/Horizontal in Neutral, Accent and White themes and three sizes, with a leading icon and min/max labels. A native range input keeps keyboard and screen-reader support.">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Slider</h2>
+        <div className="platform-playground-controls" aria-label="Slider playground controls">
+          <PlaygroundFilterChip label="Theme" value={sliderTheme} onChange={(value) => setSliderTheme(String(value) || undefined)} options={sliderThemes.map((id) => ({ id, label: id }))} />
+          <PlaygroundFilterChip label="Size" value={sliderSize} onChange={(value) => setSliderSize(String(value) || undefined)} options={sliderSizes.map((id) => ({ id, label: id }))} />
+          {size !== "small" ? <PlaygroundToggle label="Icon" selected={sliderIcon} onChange={setSliderIcon} /> : null}
+          <PlaygroundToggle label="Value Labels" selected={sliderLimits} onChange={setSliderLimits} />
+          <PlaygroundToggle label="Disabled" selected={sliderDisabled} onChange={setSliderDisabled} />
+        </div>
+        <div data-typography={previewTypography} className="platform-example-row platform-slider-preview" data-tone={theme}>
+          <Slider aria-label="Volume" theme={theme} size={size} value={sliderValue} onChange={setSliderValue} icon={sliderIcon ? "icon-volume-max-solid" : false} showLimits={sliderLimits} disabled={sliderDisabled} valueText={(value) => `${value}%`} />
+          <span className={`platform-slider-readout ${typographyStyles["Body/Small/Regular"]}`}>{sliderValue}%</span>
+        </div>
+        <PlatformCode code={`import { Slider } from "@zen/design-system";
+
+<Slider
+  aria-label="Volume"${theme !== "neutral" ? `
+  theme="${theme}"` : ""}${size !== "medium" ? `
+  size="${size}"` : ""}
+  value={volume}
+  onChange={setVolume}${size !== "small" && sliderIcon ? `
+  icon="icon-volume-max-solid"` : size !== "small" ? `
+  icon={false}` : ""}${sliderLimits ? `
+  showLimits` : ""}${sliderDisabled ? `
+  disabled` : ""}
+  valueText={(value) => \`\${value}%\`}
+/>`} />
+      </ComponentPreview>
+    </ExamplePage>;
+  }
+
   if (page === "toast") {
     const type = (toastType ?? "neutral") as ToastType;
     const copy: Record<ToastType, [string, string]> = { neutral: ["Changes saved", "Your draft was saved a moment ago."], subtle: ["Link copied", "Anyone with the link can view this file."], info: ["Update available", "Reload to get the latest version."], positive: ["Project published", "It is now live for your team."], warning: ["Storage almost full", "You have used 92% of your space."], negative: ["Upload failed", "The file is larger than 25 MB."] };
@@ -1338,21 +2236,20 @@ ${code}`} />
         <h2 className="platform-main-component__title">Toast Message</h2>
         <div className="platform-playground-controls" aria-label="Toast playground controls">
           <PlaygroundFilterChip label="Type" value={toastType} onChange={(value) => { setToastType(String(value) || undefined); setToastDismissed(false); }} options={toastTypes.map((id) => ({ id, label: id }))} />
-          <PlaygroundToggle label="Title" selected={toastTitle} onChange={setToastTitle} />
           <PlaygroundToggle label="Caption" selected={toastCaption} onChange={setToastCaption} />
           <PlaygroundToggle label="Action" selected={toastAction} onChange={setToastAction} />
           <PlaygroundToggle label="Close" selected={toastClose} onChange={setToastClose} />
         </div>
         <div data-typography={previewTypography} className="platform-example-row platform-banner-preview">
           {toastDismissed
-            ? <Button appearance="main" level="tertiary" size="xs" onClick={() => setToastDismissed(false)}>Show toast again</Button>
-            : <Toast type={type} title={toastTitle ? copy[type][0] : undefined} action={toastAction ? { label: "Undo" } : undefined} onClose={toastClose ? () => setToastDismissed(true) : undefined}>{toastCaption ? copy[type][1] : undefined}</Toast>}
+            ? <Button appearance="main" level="tertiary" size="sm" onClick={() => setToastDismissed(false)}>Show toast again</Button>
+            : <Toast type={type} title={copy[type][0]} action={toastAction ? { label: "Undo", onClick: () => setToastDismissed(true) } : undefined} onClose={toastClose ? () => setToastDismissed(true) : undefined}>{toastCaption ? copy[type][1] : undefined}</Toast>}
         </div>
         <PlatformCode code={`import { Toast } from "@zen/design-system";
 
 <Toast
-  type="${type}"${toastTitle ? `
-  title="${copy[type][0]}"` : ""}${toastAction ? `
+  type="${type}"
+  title="${copy[type][0]}"${toastAction ? `
   action={{ label: "Undo", onClick: undo }}` : ""}${toastClose ? `
   onClose={dismiss}` : ""}
 >${toastCaption ? `
@@ -1365,35 +2262,51 @@ ${code}`} />
   if (page === "dialog") {
     const theme = (dialogTheme ?? "default") as DialogTheme;
     const count = dialogActions === "single" ? 1 : dialogActions === "triple" ? 3 : 2;
+    const direction = (dialogDirection ?? "horizontal") as ModalActionDirection;
+    const isForm = dialogKind === "form";
+    const layout = (formLayout ?? "basic") as ModalFormLayout;
+    const layoutHasSide = layout === "1-3" || layout === "half-half" || layout === "3-4";
     const titles: Record<DialogTheme, string> = { default: "Publish changes?", info: "New version available", positive: "Project published", warning: "Unsaved changes", negative: "Delete project?" };
-    return <ExamplePage page="dialog" eyebrow="Components / Modal & Dialog" title="Dialog" description="Modal/Dialog with themed icon, heading, caption and up to three actions. Focus is trapped while open and returns to the trigger; Escape or the overlay closes it.">
-      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
-        <h2 className="platform-main-component__title">Dialog</h2>
-        <div className="platform-playground-controls" aria-label="Dialog playground controls">
-          <PlaygroundFilterChip label="Theme" value={dialogTheme} onChange={(value) => setDialogTheme(String(value) || undefined)} options={dialogThemes.map((id) => ({ id, label: id }))} />
-          <PlaygroundFilterChip label="Actions" value={dialogActions} onChange={(value) => setDialogActions(String(value) || undefined)} options={["single", "dual", "triple"].map((id) => ({ id, label: id }))} />
-          <PlaygroundToggle label="Icon" selected={dialogIcon} onChange={setDialogIcon} />
-          <PlaygroundToggle label="Caption" selected={dialogDescription} onChange={setDialogDescription} />
-          <PlaygroundToggle label="Custom Slot" selected={dialogCustom} onChange={setDialogCustom} />
-        </div>
-        <div data-typography={previewTypography} className="platform-example-row platform-dialog-preview">
-          <Button appearance="main" level={theme === "negative" ? "danger" : "primary"} size="md" onClick={() => setDialogOpen(true)}>Open dialog</Button>
-          <p className={`platform-date-picker-summary ${typographyStyles["Body/Small/Regular"]}`} aria-live="polite">{dialogResult || "Try Tab, Shift+Tab and Escape while it is open."}</p>
-          <Dialog
-            open={dialogOpen}
-            onOpenChange={(next) => { setDialogOpen(next); if (!next) setDialogResult((current) => current || "Dismissed"); }}
-            theme={theme}
-            icon={dialogIcon}
-            title={titles[theme]}
-            description={dialogDescription ? "Everything in Zen contains Auto Layout. Review the summary below before you continue." : undefined}
-            primaryAction={{ label: theme === "negative" ? "Delete" : "Continue", level: theme === "negative" ? "danger" : "primary", onClick: () => { setDialogResult("Primary action"); setDialogOpen(false); } }}
-            secondaryAction={count >= 2 ? { label: "Cancel", onClick: () => { setDialogResult("Cancelled"); setDialogOpen(false); } } : undefined}
-            tertiaryAction={count === 3 ? { label: "Learn more", onClick: () => { setDialogResult("Learn more"); setDialogOpen(false); } } : undefined}
-          >
-            {dialogCustom ? <InputField label="Project name" placeholder="Type the project name to confirm" /> : null}
-          </Dialog>
-        </div>
-        <PlatformCode code={`import { Button, Dialog } from "@zen/design-system";
+    const close = (result: string) => { setDialogResult(result); setDialogOpen(false); };
+    const actionProps = {
+      primaryAction: { label: isForm ? "Create project" : theme === "negative" ? "Delete" : "Continue", level: !isForm && theme === "negative" ? "danger" as const : "primary" as const, onClick: isForm ? undefined : () => close("Primary action") },
+      secondaryAction: count >= 2 ? { label: "Cancel", onClick: () => close("Cancelled") } : undefined,
+      tertiaryAction: count === 3 ? { label: isForm ? "Save draft" : "Learn more", onClick: () => close(isForm ? "Saved as draft" : "Learn more") } : undefined,
+      actionsDirection: direction,
+    };
+    const formSideContent = (
+      <div className="platform-modal-side">
+        <span className="platform-modal-side__icon" aria-hidden="true"><Icon name="icon-folder-plus-line" /></span>
+        <p className={typographyStyles["Body/Base/Bold"]}>New project</p>
+        <ul className={typographyStyles["Body/Small/Regular"]}>
+          <li>Projects group files, tokens and tasks.</li>
+          <li>Owners can invite members later.</li>
+          <li>Private projects stay hidden from search.</li>
+        </ul>
+      </div>
+    );
+    const actionsCode = `  primaryAction={{ label: "${actionProps.primaryAction.label}"${!isForm && theme === "negative" ? `, level: "danger"` : ""}${isForm ? "" : ", onClick: confirm"} }}${count >= 2 ? `
+  secondaryAction={{ label: "Cancel" }}` : ""}${count === 3 ? `
+  tertiaryAction={{ label: "${isForm ? "Save draft" : "Learn more"}", onClick: ${isForm ? "saveDraft" : "openDocs"} }}` : ""}${direction === "vertical" ? `
+  actionsDirection="vertical"` : ""}`;
+    const code = isForm ? `import { Button, InputField, ModalForm, SelectField, TextAreaField } from "@zen/design-system";
+
+<Button onClick={() => setOpen(true)}>New project</Button>
+<ModalForm
+  open={open}
+  onOpenChange={setOpen}${layout !== "basic" ? `
+  layout="${layout}"` : ""}
+  title="Create a project"${dialogDescription ? `
+  description="Projects group files, tokens and tasks for one team."` : ""}${layoutHasSide && formSide ? `
+  side={<ProjectTips />}` : ""}${formClose ? "" : `
+  closeButton={false}`}
+  onSubmit={createProject}
+${actionsCode}
+>
+  <InputField label="Project name" required />
+  <SelectField label="Owner" options={people} />
+  <TextAreaField label="Description" labelOptional rows={3} />
+</ModalForm>` : `import { Button, Dialog } from "@zen/design-system";
 
 <Button onClick={() => setOpen(true)}>Open dialog</Button>
 <Dialog
@@ -1403,18 +2316,101 @@ ${code}`} />
   icon={false}`}
   title="${titles[theme]}"${dialogDescription ? `
   description="Review the summary below before you continue."` : ""}
-  primaryAction={{ label: "${theme === "negative" ? "Delete" : "Continue"}",${theme === "negative" ? ` level: "danger",` : ""} onClick: confirm }}${count >= 2 ? `
-  secondaryAction={{ label: "Cancel" }}` : ""}${count === 3 ? `
-  tertiaryAction={{ label: "Learn more", onClick: openDocs }}` : ""}
+${actionsCode}
 >${dialogCustom ? `
   <InputField label="Project name" />
-` : ""}</Dialog>`} />
+` : ""}</Dialog>`;
+    return <ExamplePage page="dialog" eyebrow="Components / Modal & Dialog" title="Dialog" description="Modal/Dialog and Modal/Forms with themed icon, heading, caption and up to three actions in a horizontal or vertical direction. Focus is trapped while open and returns to the trigger; Escape or the overlay closes it.">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">{isForm ? "Modal/Forms" : "Modal/Dialog"}</h2>
+        <div className="platform-playground-controls" aria-label="Dialog playground controls">
+          <PlaygroundFilterChip label="Type" value={dialogKind} onChange={(value) => setDialogKind(String(value) || undefined)} options={[{ id: "dialog", label: "dialog" }, { id: "form", label: "form" }]} />
+          {isForm
+            ? <PlaygroundFilterChip label="Layout" value={formLayout} onChange={(value) => setFormLayout(String(value) || undefined)} options={modalFormLayouts.map((id) => ({ id, label: id }))} />
+            : <PlaygroundFilterChip label="Theme" value={dialogTheme} onChange={(value) => setDialogTheme(String(value) || undefined)} options={dialogThemes.map((id) => ({ id, label: id }))} />}
+          <PlaygroundFilterChip label="Actions" value={dialogActions} onChange={(value) => setDialogActions(String(value) || undefined)} options={["single", "dual", "triple"].map((id) => ({ id, label: id }))} />
+          <PlaygroundFilterChip label="Direction" value={dialogDirection} onChange={(value) => setDialogDirection(String(value) || undefined)} options={modalActionDirections.map((id) => ({ id, label: id }))} />
+          {isForm ? null : <PlaygroundToggle label="Icon" selected={dialogIcon} onChange={setDialogIcon} />}
+          <PlaygroundToggle label="Caption" selected={dialogDescription} onChange={setDialogDescription} />
+          {isForm ? <>
+            {layoutHasSide ? <PlaygroundToggle label="Side Content" selected={formSide} onChange={setFormSide} /> : null}
+            <PlaygroundToggle label="Close" selected={formClose} onChange={setFormClose} />
+          </> : <PlaygroundToggle label="Custom Slot" selected={dialogCustom} onChange={setDialogCustom} />}
+        </div>
+        <div data-typography={previewTypography} className="platform-example-row platform-dialog-preview">
+          <Button appearance="main" level={!isForm && theme === "negative" ? "danger" : "primary"} size="md" onClick={() => { setDialogResult(""); setDialogOpen(true); }}>{isForm ? "New project" : "Open dialog"}</Button>
+          <p className={`platform-date-picker-summary ${typographyStyles["Body/Small/Regular"]}`} aria-live="polite">{dialogResult || "Try Tab, Shift+Tab and Escape while it is open."}</p>
+          {isForm ? (
+            <ModalForm
+              open={dialogOpen}
+              onOpenChange={(next) => { setDialogOpen(next); if (!next) setDialogResult((current) => current || "Dismissed"); }}
+              layout={layout}
+              title="Create a project"
+              description={dialogDescription ? "Projects group files, tokens and tasks for one team." : undefined}
+              side={layoutHasSide && formSide ? formSideContent : undefined}
+              closeButton={formClose}
+              onSubmit={(event) => { const name = new FormData(event.currentTarget).get("project") || "Untitled"; close(`Created “${name}”`); }}
+              {...actionProps}
+            >
+              <InputField name="project" label="Project name" placeholder="Website redesign" required />
+              <SelectField label="Owner" options={[{ label: "Ava Chen", value: "ava" }, { label: "Bao Nguyen", value: "bao" }, { label: "Chi Tran", value: "chi" }]} />
+              <TextAreaField label="Description" labelOptional rows={3} placeholder="What is this project about?" />
+            </ModalForm>
+          ) : (
+            <Dialog
+              open={dialogOpen}
+              onOpenChange={(next) => { setDialogOpen(next); if (!next) setDialogResult((current) => current || "Dismissed"); }}
+              theme={theme}
+              icon={dialogIcon}
+              title={titles[theme]}
+              description={dialogDescription ? "Everything in Zen contains Auto Layout. Review the summary below before you continue." : undefined}
+              {...actionProps}
+            >
+              {dialogCustom ? <InputField label="Project name" placeholder="Type the project name to confirm" /> : null}
+            </Dialog>
+          )}
+        </div>
+        <PlatformCode code={code} />
       </ComponentPreview>
     </ExamplePage>;
   }
 
   if (page === "installation") {
-    return <ExamplePage eyebrow="Installation" title="Install Zen DS" description="Use the generated CSS, tokens and React components from the package source."><div className="platform-example-panel"><pre><code>{`npm install @zen/design-system\n\nimport "@zen/design-system/styles";\nimport { Button, Icon } from "@zen/design-system";`}</code></pre></div></ExamplePage>;
+    const steps: Array<{ title: string; text: string; command?: string; code?: string }> = [
+      { title: "1. Build the package", text: "In the Zen DS repo. It writes dist-pack/zen-design-system-<version>.tgz (ES modules, TypeScript types, styles.css).", command: "npm run pack:local" },
+      { title: "2. Add it to your app", text: "Peer dependencies: react and react-dom 19.", command: "npm install /path/to/Zen-DS/dist-pack/zen-design-system-0.3.0.tgz" },
+      { title: "3. Import the styles and wrap the app", text: "One stylesheet (Inter, tokens, text styles, every component). ZenProvider sets the token modes, paints the page Canvas and hosts the overlay portal.", code: `import "@zen/design-system/styles.css";
+import "@zen/design-system/reset.css"; // optional page reset
+import { Button, ZenProvider } from "@zen/design-system";
+
+createRoot(document.getElementById("root")!).render(
+  <ZenProvider theme="system" typography="dashboard">
+    <Button level="primary">Save changes</Button>
+  </ZenProvider>,
+);` },
+      { title: "4. Point your AI agent at the docs", text: "The package ships AGENTS.consumer.md (setup + the rules that go wrong most often), llms.txt, docs/getting-started.md, docs/guidelines (Do/Don't + props per component) and docs/api (props as JSON). Add one line to your app's CLAUDE.md or AGENTS.md:", command: "Read node_modules/@zen/design-system/AGENTS.consumer.md before writing UI, and follow it." },
+    ];
+    return (
+      <ExamplePage eyebrow="Installation" title="Install Zen DS" description="Build the package, add it to your app, import the stylesheet once and wrap the app in ZenProvider.">
+        <div className="platform-install">
+          {steps.map((step) => (
+            <section key={step.title} className="platform-example-panel platform-install__step">
+              <h2 className={typographyStyles["Heading/4"]}>{step.title}</h2>
+              <p className={typographyStyles["Body/Base/Regular"]}>{step.text}</p>
+              {step.command ? <pre className="platform-install__command"><code>{step.command}</code></pre> : null}
+              {step.code ? <PlatformCode code={step.code} /> : null}
+            </section>
+          ))}
+        </div>
+      </ExamplePage>
+    );
+  }
+
+  // Phase-2 app layer pages (src/platform/appLayer/*): meta + playground come from their group module.
+  const appLayerPage = appLayerPages[page as AppLayerPage];
+  if (appLayerPage) {
+    const Playground = appLayerPage.playground;
+    return <ExamplePage page={page} eyebrow={appLayerPage.eyebrow} title={appLayerPage.title} description={appLayerPage.description}><Playground /></ExamplePage>;
   }
 
   return <ExamplePage eyebrow="Components" title="Component" description="Select a component from the sidebar."><div /></ExamplePage>;

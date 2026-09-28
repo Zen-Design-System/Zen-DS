@@ -1,0 +1,51 @@
+/* Figma Stepper (page 1625:3394). */
+.zen-stepper { display: flex; width: 100%; margin: 0; padding: 0; list-style: none; }
+.zen-stepper[data-orientation="vertical"] { flex-direction: column; }
+.zen-stepper__step { display: flex; min-width: 0; flex: 1 1 0; }
+.zen-stepper[data-orientation="vertical"] .zen-stepper__step { flex: 0 0 auto; }
+.zen-stepper__hit { display: flex; width: 100%; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: transparent; color: inherit; font: inherit; text-align: center; }
+button.zen-stepper__hit { cursor: pointer; }
+button.zen-stepper__hit:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
+.zen-stepper[data-orientation="vertical"] .zen-stepper__hit { flex-direction: row; text-align: start; }
+
+/* Track: line · marker · line (gap XSmall). Lines are 2px; the outer lines of the first/last step stay invisible. */
+.zen-stepper__track { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-stepper[data-orientation="vertical"] .zen-stepper__track { flex-direction: column; align-self: stretch; }
+.zen-stepper__line { --zen-stepper-line: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); flex: 1 1 0; height: 2px; background: var(--zen-stepper-line); }
+.zen-stepper[data-orientation="vertical"] .zen-stepper__line { width: 2px; height: auto; min-height: 21px; }
+.zen-stepper__step[data-position="first"] .zen-stepper__line[data-part="before"],
+.zen-stepper__step[data-position="last"] .zen-stepper__line[data-part="after"] { visibility: hidden; }
+.zen-stepper__step[data-state="focused"] .zen-stepper__line[data-part="before"],
+.zen-stepper__step[data-state="passed"] .zen-stepper__line { --zen-stepper-line: var(--zen-color-background-neutral-solid-default, #111); }
+.zen-stepper__step[data-state="error"] .zen-stepper__line { --zen-stepper-line: var(--zen-color-background-negative-solid-default, #d03e19); }
+
+.zen-stepper__contents { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
+.zen-stepper[data-orientation="vertical"] .zen-stepper__contents { flex: 1 1 auto; align-self: center; }
+.zen-stepper__title { color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-stepper__caption { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-stepper__step[data-state="error"] .zen-stepper__title { color: var(--zen-color-content-negative-base); }
+.zen-stepper__step[data-state="error"] .zen-stepper__caption { color: var(--zen-color-content-negative-strongest); }
+
+/* Marker (.Primitives/Stepper/Item): Select-Item/Size/Small, Corner-Radius/Action/XSmall; the 36px Focus-Ring is a
+   3px stroke 3px outside the marker. */
+.zen-stepper-item {
+  display: inline-flex;
+  box-sizing: border-box;
+  width: var(--zen-select-item-size-small, 24px);
+  height: var(--zen-select-item-size-small, 24px);
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--zen-corner-radius-action-xsmall, 1000px);
+  background: var(--zen-date-picker-item-background-unselected-hover, rgb(1 1 1 / 6%));
+  color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%));
+}
+.zen-stepper-item > .zen-icon { width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); }
+.zen-stepper-item[data-state="focused"] { background: var(--zen-color-background-neutral-solid-default, #111); color: var(--zen-color-content-inverse-strongest, #fff); outline: 3px solid var(--zen-color-border-active-neutral-subtle); outline-offset: 3px; }
+.zen-stepper-item[data-state="passed"] { background: var(--zen-color-background-inverse-solid-default, #fff); box-shadow: inset 0 0 0 1px var(--zen-color-border-active-neutral-solid, #111); color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-stepper-item[data-state="error"] { background: var(--zen-color-background-negative-subtle-default); color: var(--zen-color-content-negative-light); outline: 3px solid var(--zen-color-border-negative-subtle-default); outline-offset: 3px; }
+/* The ring needs 6px clear on each side; the marker takes it as margin so the lines still meet the next step.
+   zen-allow-raw-spacing: 6px is the ring's overhang, not a Spacing token — Figma .Primitives/Stepper/Item (1625:4827)
+   draws the Focus-Ring as an absolute 36px rectangle at −6px (3px inside stroke) around the 24px marker. */
+.zen-stepper-item:is([data-state="focused"], [data-state="error"]) { margin-inline: 6px; }
+.zen-stepper[data-orientation="vertical"] .zen-stepper-item:is([data-state="focused"], [data-state="error"]) { margin-inline: 0; margin-block: 6px; }

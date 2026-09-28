@@ -1,0 +1,7 @@
+/* App Shell / Page Header pages (platform only). The frame gives the shell a box instead of the whole viewport. */
+.pash-preview { align-items: stretch; }
+.pash-frame { width: 100%; overflow: auto; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-large, 16px); }
+.pash-frame > .zen-app-shell { min-height: 100%; }
+.pash-frame .zen-app-shell__sidebar { height: auto; max-height: 100%; }
+.pash-page { padding-block: var(--zen-spacing-padding-large, 20px); }
+.pash-page-header-stage { width: 100%; }

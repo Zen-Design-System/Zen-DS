@@ -1,11 +1,68 @@
 {
   "name": "@zen/design-system",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
+  "description": "Zen Design System: React components, design tokens and icons generated from the Zen Figma library. AI agents: read AGENTS.consumer.md.",
   "type": "module",
+  "sideEffects": [
+    "**/*.css",
+    "./dist/icons/all.js",
+    "./dist/components/Icon/core.js"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./reset.css": "./dist/reset.css",
+    "./icons/all": {
+      "types": "./dist/icons/all.d.ts",
+      "import": "./dist/icons/all.js",
+      "default": "./dist/icons/all.js"
+    },
+    "./icons/names": {
+      "types": "./dist/icons/names.d.ts",
+      "import": "./dist/icons/names.js",
+      "default": "./dist/icons/names.js"
+    },
+    "./tokens": {
+      "types": "./dist/tokens/index.d.ts",
+      "import": "./dist/tokens/index.js",
+      "default": "./dist/tokens/index.js"
+    },
+    "./eslint": "./tools/usage-guard/eslint.mjs",
+    "./usage": "./tools/usage-guard/api.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "AGENTS.consumer.md",
+    "llms.txt",
+    "docs/getting-started.md",
+    "docs/guidelines",
+    "docs/api",
+    "src/templates",
+    "tools/usage-guard/check-usage.mjs",
+    "tools/usage-guard/engine.mjs",
+    "tools/usage-guard/cli.mjs",
+    "tools/usage-guard/eslint.mjs",
+    "tools/usage-guard/api.mjs",
+    "mcp/server.mjs",
+    "tools/zen-ds.mjs"
+  ],
   "scripts": {
     "dev": "vite",
-    "build": "npm run tokens:build && npm run styles:build && npm run icons:build && tsc --noEmit && vite build",
+    "build": "npm run build:lib && tsc --noEmit && vite build",
+    "build:lib": "npm run tokens:build && npm run styles:build && npm run icons:build && vite build --config vite.lib.config.ts && node scripts/build-lib-css.mjs && node scripts/build-lib-types.mjs && node tools/usage-guard/cli.mjs --write-context=dist/usage-context.json",
+    "build:platform": "npm run tokens:build && npm run styles:build && npm run icons:build && tsc --noEmit && vite build",
+    "prepack": "npm run build:lib",
+    "pack:local": "mkdir -p dist-pack && npm pack --pack-destination dist-pack",
+    "verify:package": "node scripts/verify-package.mjs",
     "preview": "vite preview",
     "storybook": "npm run tokens:build && npm run styles:build && npm run icons:build && storybook dev -p 6006",
     "build-storybook": "npm run tokens:build && npm run styles:build && npm run icons:build && storybook build",
@@ -19,22 +76,48 @@
     "usage:selftest": "node tools/usage-guard/selftest.mjs",
     "usage:rules": "node tools/usage-guard/check-usage.mjs --list",
     "guidelines:build": "node tools/usage-guard/build-guidelines.mjs",
-    "guidelines:check": "node tools/usage-guard/build-guidelines.mjs --check"
+    "guidelines:check": "node tools/usage-guard/build-guidelines.mjs --check",
+    "platform:audit": "node tools/platform-audit/audit.mjs",
+    "platform:audit:full": "node tools/platform-audit/audit.mjs --viewports=1512,1024,390 --smoke",
+    "platform:shoot": "node tools/platform-audit/shoot.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "mcp:selftest": "node mcp/selftest.mjs",
+    "platform:behaviour": "node tools/platform-audit/behaviour.mjs",
+    "style:check": "node tools/style-guard/check-styles.mjs",
+    "style:selftest": "node tools/style-guard/selftest.mjs",
+    "qa": "node tools/qa/run.mjs",
+    "qa:quick": "node tools/qa/run.mjs --quick"
   },
-  "dependencies": {
-    "@vitejs/plugin-react": "latest",
-    "react": "19.3.0",
-    "react-dom": "19.3.0",
-    "vite": "8.3.0"
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "1.30.1",
     "@storybook/addon-a11y": "10.6.0",
     "@storybook/addon-docs": "^10.6.0",
     "@storybook/react-vite": "10.6.0",
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
+    "@types/node": "^26.6.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitest/browser-playwright": "5.0.2",
+    "axe-core": "4.13.0",
+    "eslint": "10.11.0",
+    "playwright": "1.63.0",
+    "react": "19.3.0",
+    "react-docgen": "8.0.4",
+    "react-dom": "19.3.0",
     "storybook": "10.6.0",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "vite": "8.3.0",
+    "vitest": "5.0.2",
+    "vitest-browser-react": "2.3.0"
+  },
+  "bin": {
+    "zen-ds": "tools/zen-ds.mjs",
+    "zen-usage": "tools/usage-guard/cli.mjs",
+    "zen-ds-mcp": "mcp/server.mjs"
   }
 }

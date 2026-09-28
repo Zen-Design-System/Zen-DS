@@ -1,0 +1,104 @@
+/* Figma Bottom-Navigation/Mobile (7042:38507). */
+.zen-bottom-nav {
+  --zen-bottom-nav-idle: var(--zen-color-content-placeholder, rgb(0 0 0 / 27%));
+  --zen-bottom-nav-active: var(--zen-color-content-neutral-strongest, #111);
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+  width: 100%;
+  padding-bottom: var(--zen-safe-area-bottom, env(safe-area-inset-bottom, 0px));
+}
+.zen-bottom-nav[data-fixed="true"] { position: sticky; bottom: 0; }
+.zen-bottom-nav[data-tone="accent"] { --zen-bottom-nav-active: var(--zen-color-content-accent-base, #95197b); }
+
+/* Items share the bar up to 120px each and centre (Figma Nav-Items alignment Center, item maxW 120). */
+.zen-bottom-nav__items { display: flex; justify-content: center; margin: 0; padding: 0; list-style: none; }
+.zen-bottom-nav__cell { display: flex; min-width: 0; max-width: 120px; flex: 1; align-items: center; justify-content: center; }
+.zen-bottom-nav:not([data-type="default"]) .zen-bottom-nav__cell { min-width: 64px; }
+
+/* Item (.Primitives/Bottom-Navigation/Items, 9017:26130): 56px cell, Padding/2XSmall, Corner-Radius/Rounded; its 48px
+   container stacks the Navigation-Mobile/Bottom/Icon-Size icon and the label Gap/3XSmall apart. */
+.zen-bottom-nav__item {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 56px;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--zen-spacing-gap-3-xsmall, 2px);
+  padding: var(--zen-spacing-padding-2-xsmall, 4px);
+  border: 0;
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  background: transparent;
+  color: var(--zen-bottom-nav-idle);
+  cursor: pointer;
+  font: inherit;
+}
+.zen-bottom-nav__item[data-selected="true"] { color: var(--zen-bottom-nav-active); }
+.zen-bottom-nav__item:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: -3px; }
+.zen-bottom-nav__icon { position: relative; display: inline-flex; width: var(--zen-navigation-mobile-bottom-icon-size, 24px); height: var(--zen-navigation-mobile-bottom-icon-size, 24px); }
+.zen-bottom-nav__icon .zen-icon, .zen-bottom-nav__icon svg { width: var(--zen-navigation-mobile-bottom-icon-size, 24px); height: var(--zen-navigation-mobile-bottom-icon-size, 24px); }
+.zen-bottom-nav__label { overflow: hidden; max-width: 100%; color: inherit; text-overflow: ellipsis; white-space: nowrap; }
+.zen-bottom-nav__dot { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-negative-solid-default, #e5532e); box-shadow: 0 0 0 2px var(--zen-color-border-inverse, #fff); }
+@media (prefers-reduced-motion: no-preference) { .zen-bottom-nav__item { transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), box-shadow var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
+
+/* Default: full-width Surface/Default bar with a 1px top hairline (Figma 4060:26671: drop shadow 0 -1 0 at 4%). */
+.zen-bottom-nav[data-type="default"] { background: var(--zen-color-background-surface-default, #fff); box-shadow: 0 -1px 0 0 var(--zen-color-shadow-neutral-light, rgb(0 0 0 / 4%)); }
+.zen-bottom-nav[data-type="default"] .zen-bottom-nav__item:hover:not([data-selected="true"]) { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+/* Type=Action: a 48px Main Primary / Accent circle. */
+.zen-bottom-nav__action { display: inline-flex; width: 48px; height: 48px; align-items: center; justify-content: center; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-button-primary-background-default, #111); box-shadow: var(--zen-style-shadow-action-basic-shadow, 0 1px 1px rgb(0 0 0 / 8%)); color: var(--zen-button-primary-content-default, #fafafa); cursor: pointer; }
+.zen-bottom-nav__action:hover { background: var(--zen-button-primary-background-hover, #333); }
+.zen-bottom-nav__action[data-tone="accent"] { background: var(--zen-button-accent-background-default, #ff66d4); color: var(--zen-button-accent-content-default, #fff); }
+.zen-bottom-nav__action[data-tone="accent"]:hover { background: var(--zen-button-accent-background-hover, #ff4fcb); }
+/* Figma binds these icons to Button/Icon-Size/Medium (24px in the mobile frames); the bar keeps one fixed icon size, like the
+   rest of the mobile navigation (no density), so they use Navigation-Mobile/Bottom/Icon-Size. */
+.zen-bottom-nav__action .zen-icon, .zen-bottom-nav__action svg, .zen-bottom-nav__fab .zen-icon, .zen-bottom-nav__fab svg { width: var(--zen-navigation-mobile-bottom-icon-size, 24px); height: var(--zen-navigation-mobile-bottom-icon-size, 24px); }
+.zen-bottom-nav__action:focus-visible, .zen-bottom-nav__fab:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 2px; }
+
+/* Floating: a pill over content that fades to Surface; the action floats beside it. */
+/* Floating (9017:26239): the pill row (padding 0/16, gap 12) sits at the top of a fade from Inverse/Flat (transparent) to Surface/Default. */
+/* The 64px row sits directly on the home-indicator area (Figma 64 + 28). */
+.zen-bottom-nav:not([data-type="default"]) { padding: 0 var(--zen-spacing-padding-medium, 16px) var(--zen-safe-area-bottom, env(safe-area-inset-bottom, 0px)); background: linear-gradient(180deg, var(--zen-color-background-inverse-flat-default, rgb(0 0 0 / 0%)) 0%, var(--zen-color-background-surface-default, #fff) 100%); }
+/* Figma PROGRESSIVE background blur (radius 24, start 0): 0 at the top edge, full at the bottom — the mirror of the Top
+   Navigation blur. Five stacked layers, each masked to a band 20% shorter from the bottom and blurred by R/√5, so the
+   bottom edge sums to R (Figma radius ≈ 2 × CSS blur → R = 12px) and the top edge to 0. The wrapper itself must not
+   set backdrop-filter, or it becomes the backdrop root and the layers would only see its own gradient. */
+.zen-bottom-nav { --zen-bottom-nav-blur: 12px; }
+.zen-bottom-nav__progressive { position: absolute; z-index: -1; inset: 0; pointer-events: none; }
+.zen-bottom-nav__progressive > i { position: absolute; inset: 0; -webkit-backdrop-filter: blur(calc(var(--zen-bottom-nav-blur) / 2.236)); backdrop-filter: blur(calc(var(--zen-bottom-nav-blur) / 2.236)); }
+.zen-bottom-nav__progressive > i:nth-child(1) { -webkit-mask-image: linear-gradient(0deg, #000 80%, transparent 100%); mask-image: linear-gradient(0deg, #000 80%, transparent 100%); }
+.zen-bottom-nav__progressive > i:nth-child(2) { -webkit-mask-image: linear-gradient(0deg, #000 60%, transparent 80%); mask-image: linear-gradient(0deg, #000 60%, transparent 80%); }
+.zen-bottom-nav__progressive > i:nth-child(3) { -webkit-mask-image: linear-gradient(0deg, #000 40%, transparent 60%); mask-image: linear-gradient(0deg, #000 40%, transparent 60%); }
+.zen-bottom-nav__progressive > i:nth-child(4) { -webkit-mask-image: linear-gradient(0deg, #000 20%, transparent 40%); mask-image: linear-gradient(0deg, #000 20%, transparent 40%); }
+.zen-bottom-nav__progressive > i:nth-child(5) { -webkit-mask-image: linear-gradient(0deg, #000 0%, transparent 20%); mask-image: linear-gradient(0deg, #000 0%, transparent 20%); }
+.zen-bottom-nav__row { display: flex; align-items: center; justify-content: center; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-bottom-nav__pill { position: relative; min-width: 0; flex: 1; padding: var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-surface-glass, rgb(255 255 255 / 60%)); box-shadow: var(--zen-style-effect-popover-shadow-unclipped, 0 8px 24px rgb(0 0 0 / 8%)); backdrop-filter: var(--zen-style-effect-popover-backdrop-filter, blur(20px)); }
+/* Figma 0.5px gradient glass border, drawn as a masked ring. */
+.zen-bottom-nav__pill::before, .zen-bottom-nav__fab::before { position: absolute; inset: 0; padding: 0.5px; border-radius: inherit; background: var(--zen-style-gradients-border-glass-white-overlay-fill, linear-gradient(180deg, rgb(255 255 255 / 16%), rgb(255 255 255 / 4%), rgb(255 255 255 / 16%))); content: ""; pointer-events: none; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+/* Floating-Glass (9017:42257): Liquid-Glass/Normal fill + Glass-Floating shadows + a GLASS effect (≈ 8px backdrop blur); no stroke. */
+.zen-bottom-nav[data-type="floating-glass"] .zen-bottom-nav__pill { background: var(--zen-color-background-liquid-glass-normal-default, rgb(255 255 255 / 70%)); box-shadow: var(--zen-style-glass-floating-shadow-unclipped, var(--zen-style-glass-floating-shadow, 0 8px 24px -12px rgb(0 0 0 / 8%))); backdrop-filter: blur(8px) saturate(1.4); }
+.zen-bottom-nav[data-type="floating-glass"] :is(.zen-bottom-nav__pill, .zen-bottom-nav__fab)::before { display: none; }
+/* On glass every icon stays Content/Neutral/Strongest (Figma 9018:43881); only the selected fill changes. */
+.zen-bottom-nav[data-type="floating-glass"] { --zen-bottom-nav-idle: var(--zen-color-content-neutral-strongest, #111); }
+.zen-bottom-nav:not([data-type="default"]) { --zen-bottom-nav-idle: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-bottom-nav:not([data-type="default"]) .zen-bottom-nav__item:hover:not([data-selected="true"]) { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-bottom-nav:not([data-type="default"])[data-selection="subtle"] .zen-bottom-nav__item[data-selected="true"] { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 6%)); }
+.zen-bottom-nav:not([data-type="default"])[data-selection="surface"] .zen-bottom-nav__item[data-selected="true"] { background: var(--zen-color-background-surface-default, #fff); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow-unclipped, 0 1px 3px rgb(0 0 0 / 10%)); }
+.zen-bottom-nav:not([data-type="default"])[data-selection="solid"] .zen-bottom-nav__item[data-selected="true"] { background: var(--zen-color-background-active-neutral-solid, #111); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow-unclipped, 0 1px 3px rgb(0 0 0 / 10%)); color: var(--zen-color-content-inverse-strongest, #fafafa); }
+.zen-bottom-nav:not([data-type="default"])[data-tone="accent"][data-selection="subtle"] .zen-bottom-nav__item[data-selected="true"] { background: var(--zen-color-background-active-accent-subtle, rgb(255 2 152 / 9%)); }
+.zen-bottom-nav:not([data-type="default"])[data-tone="accent"][data-selection="solid"] .zen-bottom-nav__item[data-selected="true"] { background: var(--zen-color-background-active-accent-solid, #ff66d4); color: var(--zen-color-content-on-accent-default, #fff); }
+
+/* Floating action: 64px circle (Theme Default = Surface + popover effect; Primary/Accent = solid; Glass on Floating-Glass). */
+.zen-bottom-nav__fab { position: relative; display: inline-flex; width: 64px; height: 64px; flex: 0 0 64px; align-items: center; justify-content: center; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-surface-default, #fff); box-shadow: var(--zen-style-effect-popover-shadow-unclipped, 0 8px 24px rgb(0 0 0 / 8%)); color: var(--zen-color-content-neutral-strongest, #111); cursor: pointer; }
+.zen-bottom-nav__fab:hover { background: var(--zen-color-background-surface-hover, #f7f7f7); }
+.zen-bottom-nav[data-type="floating-glass"] .zen-bottom-nav__fab[data-tone="default"] { background: var(--zen-color-background-liquid-glass-normal-default, rgb(255 255 255 / 70%)); box-shadow: var(--zen-style-glass-floating-shadow-unclipped, var(--zen-style-glass-floating-shadow, 0 8px 24px -12px rgb(0 0 0 / 8%))); backdrop-filter: blur(8px) saturate(1.4); }
+.zen-bottom-nav__fab[data-tone="primary"] { background: var(--zen-button-primary-background-default, #111); color: var(--zen-button-primary-content-default, #fafafa); }
+.zen-bottom-nav__fab[data-tone="primary"]:hover { background: var(--zen-button-primary-background-hover, #333); }
+.zen-bottom-nav__fab[data-tone="accent"] { background: var(--zen-button-accent-background-default, #ff66d4); color: var(--zen-button-accent-content-default, #fff); }
+.zen-bottom-nav__fab[data-tone="accent"]:hover { background: var(--zen-button-accent-background-hover, #ff4fcb); }
+.zen-bottom-nav__fab:not([data-tone="default"])::before { display: none; }
+
+/* backdrop="none": over photos / video the Surface fade would read as a white strip — keep only the progressive blur. */
+.zen-bottom-nav[data-backdrop="none"] { background: none; }

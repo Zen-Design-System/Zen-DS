@@ -1,28 +1,27 @@
 /* Search is the Figma Input/Text-Field primitive with a Search composition.
    It owns only its custom 4px affordance gap; all state, focus, inset-shadow,
-   border, typography, and disabled behavior are inherited from Input. */
+   border and typography are inherited from Input. */
 .zen-search { width: 100%; }
 .zen-search > .zen-input__control { gap: var(--zen-input-spacing-medium-inside-field-gap, var(--zen-spacing-gap-xsmall, 8px)); }
 .zen-search__trailing-group { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.zen-search__clear,
-.zen-search__theme-trailing { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-search__clear { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-search__clear { cursor: pointer; }
-.zen-search__clear:disabled { cursor: not-allowed; }
-.zen-search__filter-dropdown { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-base, 14px)/var(--zen-typography-line-height-body-base, 20px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-base, -.14px); white-space: nowrap; }
-.zen-search[data-size="small"] .zen-search__clear,
-.zen-search[data-size="small"] .zen-search__theme-trailing { width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); }
+.zen-search[data-size="small"] .zen-search__clear { width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); }
 .zen-search__trailing-group > .zen-icon,
-.zen-search__clear > .zen-icon,
-.zen-search__theme-trailing > .zen-icon { width: 100%; height: 100%; }
-.zen-search__filter-dropdown > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
-.zen-search[data-size="small"] .zen-search__filter-dropdown { gap: var(--zen-spacing-gap-3-xsmall, 2px); }
-.zen-search[data-size="small"] .zen-search__filter-dropdown > .zen-icon { width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); }
-/* Must beat the per-size icon slot rules in input.css (clear + filter need their natural width). */
-.zen-search .zen-input__control > .zen-input__affordance--trailing:has(.zen-search__trailing-group) { width: auto; height: auto; flex-basis: auto; }
-.zen-search .zen-search__trailing-group > .zen-search__theme-trailing:has(.zen-search__filter-dropdown) { width: auto; height: auto; }
+.zen-search__clear > .zen-icon { width: 100%; height: 100%; }
 /* Figma Search/Popover (1604:27401): Field-Only Small with Corner-Radius/Input/Medium.
    Focused/Typing keep only Input/Background/Focused — no focus stroke and no 3px OUTSIDE
    ring, because the field sits inside the Popover surface. Hover keeps the 2px stroke. */
 .zen-search.zen-search--popover[data-size] > .zen-input__control { border-radius: var(--zen-corner-radius-input-medium, 12px); }
-.zen-search.zen-search--popover:is([data-state="focused"], [data-state="typing"]) > .zen-input__control,
-.zen-search.zen-search--popover:not([data-state="disabled"]) > .zen-input__control:focus-within { --zen-input-field-stroke: 1px; --zen-input-field-border: transparent; box-shadow: none; }
+/* Specificity 0,7,0: must beat input.css's focus rule
+   `.zen-input-field:is([data-state…]) .zen-input__control:focus-within:not(:has(.zen-input-leading-trailing__picker :focus))` (0,6,0). */
+.zen-search.zen-search--popover[data-size]:is([data-state="focused"], [data-state="typing"]) > .zen-input__control:not(:has(.zen-input-leading-trailing__picker :focus)),
+.zen-search.zen-search--popover[data-size] > .zen-input__control:focus-within:not(:has(.zen-input-leading-trailing__picker :focus)) { --zen-input-field-stroke: 1px; --zen-input-field-border: transparent; box-shadow: none; }
+/* Figma Search/Filter-Dropdown in Side-Bar Small-Density (5974:25698): Leading-Trailing Label + command icon,
+   Elements gap 3XSmall, Trailing padding-right 2XSmall, Body/Base/Medium in Content/Neutral/Light. */
+.zen-search__shortcut { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-right: var(--zen-spacing-padding-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-base, 14px)/var(--zen-typography-line-height-body-base, 20px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-base, -.14px); white-space: nowrap; }
+.zen-search__shortcut > .zen-icon { width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); }
+.zen-search[data-size="medium"] .zen-search__shortcut > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
+/* Hit area ≥ 24×24 (WCAG 2.5.8) around the Figma-sized glyph: an invisible, centred layer; the visual size is unchanged. */
+.zen-search__clear { position: relative; }
+.zen-search__clear::after { position: absolute; top: 50%; left: 50%; width: max(100%, 24px); height: max(100%, 24px); content: ""; transform: translate(-50%, -50%); }

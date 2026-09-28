@@ -1,0 +1,76 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "action-bar",
+  "import": "import { ActionBar } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "ActionBar",
+      "file": "src/components/ActionBar/ActionBar.tsx",
+      "description": "The footer bar that holds a screen's main actions: the mobile footer CTA (Large, full width, Primary on top) and the\nsticky action row of desktop detail and edit pages (Tertiary · Primary at the end). Surface/Default with a\nBorder/Neutral/Pale top rule, padding Spacing/Padding/Small × Margin/Comfortable, and a bottom padding that clears the\ndevice safe area (`--zen-safe-area-bottom`, else `env(safe-area-inset-bottom)`).\n\n  <ActionBar primaryAction={{ label: \"Add to cart\", onClick: add }} secondaryAction={{ label: \"Save for later\", onClick: save }} />",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLDivElement>",
+      "props": [
+        {
+          "name": "position",
+          "type": "\"sticky\" | \"fixed\" | \"static\"",
+          "required": false,
+          "default": "\"sticky\"",
+          "description": "sticky (default): stays at the bottom of the scrolling area while the content above scrolls, and settles at the end\nof it. fixed: pinned to the bottom of the viewport; an invisible spacer of the bar's height keeps the end of the page\nreachable. static: in the flow, e.g. the last row of a card.",
+          "deprecated": null
+        },
+        {
+          "name": "direction",
+          "type": "\"vertical\" | \"horizontal\"",
+          "required": false,
+          "default": "\"vertical\"",
+          "description": "vertical (default, phones and narrow panels): full-width stacked buttons, Primary on top. horizontal (desktop): the\nsummary at the start, buttons hug their labels at the end, Tertiary then Primary; when the bar itself is narrower\nthan 480px the summary takes its own row and the buttons split the next one (the Bottom-Sheet dual footer).",
+          "deprecated": null
+        },
+        {
+          "name": "surface",
+          "type": "\"default\" | \"alt\" | \"none\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "default: Surface/Default with a Pale (Border/Neutral/Pale) top rule. alt: Surface/Alt with the same rule. none: no\nfill and no rule, for a static bar inside a container that already has one. Never a drop shadow.",
+          "deprecated": null
+        },
+        {
+          "name": "primaryAction",
+          "type": "ActionBarAction",
+          "required": false,
+          "default": null,
+          "description": "The one main action (level primary). Rendered first (top) when vertical and last (end) when horizontal.",
+          "deprecated": null
+        },
+        {
+          "name": "secondaryAction",
+          "type": "ActionBarAction",
+          "required": false,
+          "default": null,
+          "description": "One alternative (level tertiary), next to the primary: below it when vertical, before it when horizontal.",
+          "deprecated": null
+        },
+        {
+          "name": "summary",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Context for the actions: a total, a selection count or a status line. Above the buttons when vertical, at the start when horizontal.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Custom actions (Buttons, in visual order: Primary first when vertical, last when horizontal). With primaryAction /\nsecondaryAction they sit on the side away from the Primary.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "ActionBarAction": "interface ActionBarAction { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; startIcon?: ReactNode; type?: \"button\" | \"submit\"; form?: string; }",
+    "ButtonLevel": "type ButtonLevel = \"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\""
+  }
+}

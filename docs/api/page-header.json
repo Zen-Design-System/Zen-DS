@@ -1,0 +1,91 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "page-header",
+  "import": "import { PageHeader } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "PageHeader",
+      "file": "src/components/PageHeader/PageHeader.tsx",
+      "description": "The top of an app page: breadcrumbs or eyebrow, the h1 title with its meta and actions, a description and optional\nsection tabs. Spacing and type come from the Figma scales; the header paints nothing (it sits on the page Canvas).\n\n  <PageHeader title=\"Team members\" description=\"12 members · Design workspace\"\n    actions={<><Button level=\"tertiary\">Export</Button><Button level=\"primary\">Invite member</Button></>} />",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">",
+      "props": [
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "The page title (an h1 by default: one per page).",
+          "deprecated": null
+        },
+        {
+          "name": "description",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "One or two sentences under the title.",
+          "deprecated": null
+        },
+        {
+          "name": "breadcrumbs",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Above the title: <Breadcrumbs> for nested pages.",
+          "deprecated": null
+        },
+        {
+          "name": "eyebrow",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Above the title when there are no breadcrumbs: a short section label.",
+          "deprecated": null
+        },
+        {
+          "name": "actions",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Page actions on the right of the title: Tertiary buttons first, then at most one Primary. They wrap under the title on narrow screens; on phones (ZenProvider breakpoint mobile) the Primary is shown first.",
+          "deprecated": null
+        },
+        {
+          "name": "meta",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Next to the title: a status Badge, Tag or AvatarStack.",
+          "deprecated": null
+        },
+        {
+          "name": "tabs",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Under the header: <Tabs> that switch the page's sections.",
+          "deprecated": null
+        },
+        {
+          "name": "back",
+          "type": "PageHeaderBack",
+          "required": false,
+          "default": null,
+          "description": "A Back control for detail pages (chevron icon, per the navigation rule).",
+          "deprecated": null
+        },
+        {
+          "name": "headingLevel",
+          "type": "1 | 2",
+          "required": false,
+          "default": "1",
+          "description": "Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 (Heading/2) only when the\n page already has an h1 (e.g. inside a tab). The text style always follows the level.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "PageHeaderBack": "interface PageHeaderBack { label: string; onClick: () => void; }"
+  }
+}

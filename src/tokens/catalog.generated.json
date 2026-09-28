@@ -23949,7 +23949,7 @@
       "name": "Color/Background/Surface/Flat",
       "type": "COLOR",
       "valuesByMode": {
-        "Light": "{Light/Neutral/1}",
+        "Light": "{White}",
         "Dark": "{Dark/Neutral/1}"
       },
       "collectionSlug": "mode-colors-semantic",

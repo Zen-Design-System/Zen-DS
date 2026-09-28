@@ -76,7 +76,17 @@ paint branch (default, hover/pressed where CSS changes, and disabled) and for
 the main template geometry. If browser evidence is unavailable, label the row
 `Chưa xác minh`; do not report a source-level mapping as a visual match.
 
+## Screenshot parity and stale contracts
+
+- For a visual parity check, `get_screenshot` the exact Figma node, capture the matching platform example with `npm run platform:shoot -- <page> --title="…" [--click="…"] [--width=390]`, and place the two side by side with `npm run platform:shoot -- --compose=out.png "Figma=a.png" "Platform=b.png"`. Compare sizes (avatar, icon, hit area), text style, token colour, state (selected/unread/failed), spacing and shadow row by row; record differences in the evidence table.
+- Mobile components (Top/Bottom Navigation, Bottom Sheet, Chat, AI Chat, Chart) are compared at 390px inside `PlatformPhone`, section by section of their Figma page (for example Chat 6331:34480 for the conversation list).
+- When `node tools/figma-contract/run-all.mjs` fails because Figma changed, not the code, re-extract only the affected variant with `use_figma`: run `tools/figma-contract/figma-console-extract.js` with `window.` replaced by `globalThis.` (output is capped at about 20KB, so scope it to the variant), patch `docs/figma-contracts/<component>.json`, and re-run the contracts. Figma stays read-only.
+- Deliberate differences decided by the user (for example, Popover labels truncate on one line with "…") are recorded as decisions, not mismatches. Figma-side defects (for example, a variant that is an accidental copy of another) are reported to the user, never "fixed" in code. When Figma is fixed later, re-sync generated asset data (icons, FileIcon paths) by exporting each variant with `exportAsync({ format: "SVG_STRING" })`, hashing each path on both sides, updating only the variants whose hash differs, and re-checking the hashes after writing. This avoids hand-copying long path strings.
+
 ## End-of-run checklist
+
+Finish every implementation with the Build-QA gate (`skills/zen-build-qa`): `npm run qa`, then open the contact sheets
+it prints. The items below are the Figma-specific part of that review.
 
 Before handing off every execution, confirm:
 

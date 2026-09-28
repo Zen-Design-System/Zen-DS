@@ -12,7 +12,7 @@
   padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px);
   border-radius: var(--zen-corner-radius-base, 12px);
   background: var(--zen-tooltip-fill);
-  box-shadow: var(--zen-style-effect-popover-shadow);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
   backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
   color: var(--zen-tooltip-content);
   pointer-events: none;
@@ -31,3 +31,6 @@
 .zen-tooltip--floating[data-placement="right"] { left: calc(100% + 8px); top: 50%; translate: 0 -50%; }
 @keyframes zen-tooltip-in { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .zen-tooltip--floating { animation: none; } }
+/* Built-in icon tooltip (useIconTooltip): portalled, fixed to the trigger's viewport rect. */
+.zen-tooltip-layer { position: fixed; z-index: 1000; display: inline-flex; pointer-events: none; animation: zen-tooltip-in .12s ease-out; }
+@media (prefers-reduced-motion: reduce) { .zen-tooltip-layer { animation: none; } }

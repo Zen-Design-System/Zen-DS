@@ -15,11 +15,24 @@
 }
 
 .zen-input-label { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+/* Figma Primitives/Input/Label (387:3651): Content (label · (Optional) · 12px Icon-Tooltip, gap 2XSmall) + Action. */
 .zen-input-label__content { display: inline-flex; min-width: 0; flex: 1 1 auto; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
-.zen-input-label__content > .zen-icon { width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-input-label__text { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-input-label__tooltip { display: inline-flex; width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 1000px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); cursor: help; }
+.zen-input-label__tooltip:focus-visible { outline: 3px solid var(--zen-color-focus-neutral-subtle, rgb(2 2 2 / 8%)); outline-offset: 0; }
+.zen-input-label__tooltip > .zen-icon { width: 100%; height: 100%; }
+/* The info trigger is a real <button> (focusable Tooltip trigger): strip the UA button chrome. */
+button.zen-input-label__tooltip { padding: 0; border: 0; background: none; cursor: help; font: inherit; }
 .zen-input-label__optional { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+/* Action: a text link/button that inherits Body/Small/Bold and Content/Neutral/Strongest. */
 .zen-input-label__action { flex: 0 0 auto; color: var(--zen-color-content-neutral-strongest, #111); }
-.zen-input-label[data-state="disabled"] { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); }
+.zen-input-label__action :is(a, button) { padding: 0; border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: none; color: inherit; font: inherit; letter-spacing: inherit; text-decoration: none; cursor: pointer; }
+.zen-input-label__action :is(a, button):hover { text-decoration: underline; }
+.zen-input-label__action :is(a, button):focus-visible { outline: 3px solid var(--zen-color-focus-neutral-subtle, rgb(2 2 2 / 8%)); outline-offset: 1px; }
+/* Figma State=Disabled: label, (Optional), tooltip icon and Action all use Content/Disabled. */
+.zen-input-label[data-state="disabled"],
+.zen-input-label[data-state="disabled"] :is(.zen-input-label__optional, .zen-input-label__tooltip, .zen-input-label__action) { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); }
+.zen-input-label[data-state="disabled"] .zen-input-label__action :is(a, button) { pointer-events: none; }
 
 .zen-input__control {
   --zen-input-field-background: var(--zen-input-background-default, #05050508);
@@ -45,6 +58,9 @@
 .zen-select__trigger { display: flex; align-items: center; border: 0; cursor: pointer; text-align: left; }
 .zen-select__trigger:disabled { cursor: not-allowed; }
 .zen-select__native { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; opacity: 0; pointer-events: none; }
+/* SelectField `placeholder` while nothing is selected: Content/Placeholder, like a text field's placeholder. */
+.zen-select__placeholder { color: var(--zen-color-content-placeholder, #00000045); }
+.zen-input-field[data-state="disabled"] .zen-select__placeholder { color: var(--zen-color-content-disabled, #00000045); }
 
 /* Keep fill and Effect/Input on ONE painted layer. A child backdrop-filter
    above a parent's inset shadow blurs/obscures that shadow. */
@@ -110,37 +126,28 @@
   resize: vertical;
 }
 
+/* Leading/Trailing slots hug their content (icon, label, picker, steppers, "results"…). The field size only
+   sets the icon size: Element-Size/Popular Small 16 · Base 20 · Medium 24 · Large 28. */
 .zen-input__affordance {
+  --zen-input-affordance-icon: var(--zen-element-size-popular-base, 20px);
   display: inline-flex;
-  flex: 0 0 var(--zen-element-size-popular-base, 20px);
-  width: var(--zen-element-size-popular-base, 20px);
-  height: var(--zen-element-size-popular-base, 20px);
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: var(--zen-input-affordance-icon);
   align-items: center;
   justify-content: center;
   color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%));
+  white-space: nowrap;
 }
 
-.zen-input-field[data-size="small"] .zen-input__affordance {
-  flex-basis: var(--zen-element-size-popular-small, 16px);
-  width: var(--zen-element-size-popular-small, 16px);
-  height: var(--zen-element-size-popular-small, 16px);
-}
-
-.zen-input-field[data-size="large"] .zen-input__affordance {
-  flex-basis: var(--zen-element-size-popular-medium, 24px);
-  width: var(--zen-element-size-popular-medium, 24px);
-  height: var(--zen-element-size-popular-medium, 24px);
-}
-
-.zen-input-field[data-size="xlarge"] .zen-input__affordance {
-  flex-basis: var(--zen-element-size-popular-large, 28px);
-  width: var(--zen-element-size-popular-large, 28px);
-  height: var(--zen-element-size-popular-large, 28px);
-}
+.zen-input-field[data-size="small"] .zen-input__affordance { --zen-input-affordance-icon: var(--zen-element-size-popular-small, 16px); }
+.zen-input-field[data-size="large"] .zen-input__affordance { --zen-input-affordance-icon: var(--zen-element-size-popular-medium, 24px); }
+.zen-input-field[data-size="xlarge"] .zen-input__affordance { --zen-input-affordance-icon: var(--zen-element-size-popular-large, 28px); }
 
 .zen-input__affordance > .zen-icon {
-  width: 100%;
-  height: 100%;
+  width: var(--zen-input-affordance-icon);
+  height: var(--zen-input-affordance-icon);
+  flex: 0 0 var(--zen-input-affordance-icon);
 }
 
 .zen-input__message,
@@ -154,8 +161,10 @@
   color: var(--zen-color-content-neutral-light, #0000007d);
 }
 
-.zen-input-help__content { display: inline-flex; min-width: 0; align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
-.zen-input-help__limit { flex: 0 0 auto; }
+/* Figma .Primitives/Input/Help-Text (373:97364): Content row (icon 12 + message, gap 2XSmall) centred; the
+   Character-Limitation text is right-aligned, never wraps and stays Content/Neutral/Light in every theme. */
+.zen-input-help__content { display: inline-flex; min-width: 0; flex: 1 1 auto; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-input-help__limit { flex: 0 0 auto; margin-left: auto; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: right; white-space: nowrap; }
 
 .zen-input__message-icon,
 .zen-input-help__icon {
@@ -176,9 +185,9 @@
 .zen-input__message.is-error {
   color: var(--zen-color-content-negative-light, #d03e19);
 }
-.zen-input-help[data-theme="negative"] { color: var(--zen-color-content-negative-light, #d03e19); }
-.zen-input-help[data-theme="warning"] { color: var(--zen-color-content-warning-base, #ad5700); }
-.zen-input-help[data-theme="positive"] { color: var(--zen-color-content-positive-light, #16845b); }
+.zen-input-help[data-tone="negative"] { color: var(--zen-color-content-negative-light, #d03e19); }
+.zen-input-help[data-tone="warning"] { color: var(--zen-color-content-warning-base, #ad5700); }
+.zen-input-help[data-tone="positive"] { color: var(--zen-color-content-positive-light, #16845b); }
 
 /* .Primitives/Input/Leading-Trailing — HUG height. Small: 16px flag/icon, 4px gap, 2px element gap.
    Medium: 20px, 8px, 4px. Large (XLarge field): 24px flag/icon, Heading/4 label, 20px dropdown.
@@ -203,7 +212,6 @@
 .zen-input-field:is([data-state="disabled"], [data-state="read-only"]) .zen-input-leading-trailing,
 .zen-input-field:is([data-state="disabled"], [data-state="read-only"]) .zen-input-leading-trailing :is(.zen-input-leading-trailing__label, .zen-input-leading-trailing__dropdown) { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); }
 /* A composite Leading-Trailing hugs its content; it must beat the per-size icon slot rules above. */
-.zen-input-field .zen-input__control > .zen-input__affordance:has(.zen-input-leading-trailing) { width: auto; height: auto; flex-basis: auto; }
 .zen-input-content { display: inline-flex; min-width: 0; align-items: center; padding-inline-start: var(--zen-spacing-padding-3-xsmall, 2px); color: var(--zen-color-content-placeholder, rgb(0 0 0 / 27%)); }
 .zen-input-content:is([data-state="typing"], [data-state="inputted"]) { color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-input-content[data-state="disabled"] { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); }
@@ -272,7 +280,7 @@
 
 .zen-input-field[data-state="focused"] .zen-input__control,
 .zen-input-field[data-state="typing"] .zen-input__control,
-.zen-input-field:is([data-state="default"], [data-state="inputted"], [data-state="hover"]) .zen-input__control:focus-within:not(:has(.zen-input-leading-trailing__picker :focus)) {
+.zen-input-field:is([data-state="default"], [data-state="inputted"], [data-state="hover"]) .zen-input__control:focus-within:not(:where(:has(.zen-input-leading-trailing__picker :focus))) {
   --zen-input-field-stroke: 1px;
   --zen-input-field-border: var(--zen-color-focus-neutral-solid, #111);
   --zen-input-field-background: var(--zen-input-background-focused, #05050508);
@@ -282,12 +290,18 @@
 
 .zen-input-field[data-state="inputted-error"] .zen-input__control,
 .zen-input-field[data-state="blank-error"] .zen-input__control,
-.zen-input-field[data-state="error"] .zen-input__control,
-.zen-input-field:is([data-state="inputted-error"], [data-state="blank-error"], [data-state="error"]) .zen-input__control:focus-within:not(:has(.zen-input-leading-trailing__picker :focus)) {
+.zen-input-field[data-state="error"] .zen-input__control {
   --zen-input-field-stroke: 1px;
   --zen-input-field-border: var(--zen-color-border-negative-solid-default, #e5532e);
   --zen-input-field-background: var(--zen-input-background-focused, #05050508);
   box-shadow: none;
+}
+
+/* Error + focus. Figma has no Error-Focused state and the error look already uses the Focused fill, so focusing an
+   invalid field used to change nothing (WCAG 2.4.7). Keep the Negative border, so the error stays visible, and add the
+   Focused state's 3px outside ring. */
+.zen-input-field:is([data-state="inputted-error"], [data-state="blank-error"], [data-state="error"]) .zen-input__control:focus-within:not(:where(:has(.zen-input-leading-trailing__picker :focus))) {
+  box-shadow: 0 0 0 3px var(--zen-color-border-active-neutral-subtle, #00000024);
 }
 
 .zen-input-field[data-state="read-only"] .zen-input__control {
@@ -320,34 +334,76 @@
 }
 
 /* Input/Number (421:10057 / 450:7900): 24px Button/Icon-Main 2XSmall Tertiary steppers; the affordance slots hug them. */
-.zen-input-field.zen-number .zen-input__control > .zen-input__affordance:has(.zen-number__stepper, .zen-number__steppers) { width: auto; height: auto; flex-basis: auto; }
 .zen-number__steppers { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-input-field.zen-number[data-align="center"] .zen-input__native,
 .zen-input-field.zen-number .zen-input__native[data-align="center"] { text-align: center; }
 
-/* Input/Heading (694:13062) */
-.zen-heading-field { position: relative; display: block; min-width: 0; }
+/* Input/Heading (694:13062). The root is the heading's line box (Input/Size/Heading-H*) and the native input's
+   Spacing/Padding/XSmall pad overhangs it by −8px; flow-root keeps those negative margins from collapsing through
+   the root (which made it 16px taller and dropped the overhang). */
+.zen-heading-field { position: relative; display: flow-root; min-width: 0; }
 .zen-heading-field__native { display: block; box-sizing: border-box; width: calc(100% + 2 * var(--zen-spacing-padding-xsmall, 8px)); margin: calc(-1 * var(--zen-spacing-padding-xsmall, 8px)); padding: var(--zen-spacing-padding-xsmall, 8px); border: 0; border-radius: var(--zen-corner-radius-base, 12px); outline: 0; background: transparent; color: var(--zen-color-content-neutral-strongest, #111); caret-color: var(--zen-color-background-active-neutral-solid, #111); }
 .zen-heading-field__native::placeholder { color: var(--zen-color-content-placeholder, rgb(0 0 0 / 27%)); opacity: 1; }
 .zen-heading-field__native:is(:hover, :focus),
 .zen-heading-field:is([data-status="hover"], [data-status="focus"], [data-status="typing"], [data-status="inputted-hover"]) .zen-heading-field__native { background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); }
 .zen-heading-field[data-status="inputted-multi-line"] .zen-heading-field__native { width: 100%; margin: 0; padding: 0; background: transparent; }
+/* `multiline` (Figma Status=Inputted-Multi-Line): a one-row textarea that grows to its wrapped text; Input.tsx sets the height. */
+textarea.zen-heading-field__native { resize: none; overflow: hidden; }
 
-.zen-rich-text-field { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.zen-rich-text-editor-bar { display: flex; width: 100%; min-height: 40px; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); overflow-x: auto; }
-.zen-rich-text-editor-bar__group { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
-.zen-rich-text-editor-bar__divider { width: 1px; height: 40px; flex: 0 0 1px; background: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+/* Figma Input/Richtext: Editor-Bar (Control-Bar) above a Text-Area field, gap Spacing/Gap/XSmall. */
+.zen-rich-text-field { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-rich-text-field__bar { position: relative; display: block; min-width: 0; }
+/* Editor-Bar: blocks gap Spacing/Gap/2XSmall, items inside a block Spacing/Gap/3XSmall. One row at Figma's 920px;
+   narrower containers wrap the blocks instead of hiding items behind a scroll. */
+.zen-rich-text-editor-bar { display: flex; width: 100%; min-height: var(--zen-button-size-medium, 40px); flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-rich-text-editor-bar__group { display: inline-flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+/* Divider/Default rotated to a 1×40 vertical rule (Border/Neutral/Pale). */
+.zen-rich-text-editor-bar__divider { width: 1px; height: var(--zen-button-size-medium, 40px); flex: 0 0 1px; background: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
 .zen-control-bar-item { display: inline-flex; width: 40px; height: 40px; flex: 0 0 40px; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-small, 12px); border: 0; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-flat-default, transparent); color: var(--zen-color-content-neutral-strongest, #111); cursor: pointer; }
 .zen-control-bar-item:hover, .zen-control-bar-item[data-state="hover"] { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
-.zen-control-bar-item[data-state="selected"][data-theme="subtle"] { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 6%)); }
-.zen-control-bar-item[data-state="selected"][data-theme="solid"] { background: var(--zen-color-background-active-neutral-solid, #111); color: var(--zen-color-content-inverse-strongest, #fff); }
-.zen-control-bar-item[data-state="selected"][data-theme="inverse"] { background: var(--zen-color-background-inverse-solid-default, #fff); color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-control-bar-item[data-state="selected"][data-tone="subtle"] { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 6%)); }
+.zen-control-bar-item[data-state="selected"][data-tone="solid"] { background: var(--zen-color-background-active-neutral-solid, #111); color: var(--zen-color-content-inverse-strongest, #fff); }
+.zen-control-bar-item[data-state="selected"][data-tone="inverse"] { background: var(--zen-color-background-inverse-solid-default, #fff); color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-control-bar-item > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
 .zen-rich-text-editor-bar__select { width: 132px; flex: 0 0 132px; }
+/* The block-type Select is a .zen-input-field (align-self: start by default); centre its 32px field on the 40px toolbar row. */
+.zen-rich-text-editor-bar > .zen-rich-text-editor-bar__select { align-self: center; }
 .zen-rich-text-editor-bar__select .zen-input__control { width: 132px; }
+.zen-control-bar-item:disabled { cursor: default; color: var(--zen-color-content-disabled, rgb(0 0 0 / 24%)); }
+.zen-control-bar-item:disabled:hover { background: var(--zen-color-background-neutral-flat-default, transparent); }
+.zen-control-bar-item:focus-visible { outline: 2px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 0; }
 
-.zen-input-conditions { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); margin: 0; padding: 0; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); list-style: none; }
-.zen-input-condition { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+/* Rich text editor inside the Text-Area shell: the size token is the minimum height, content grows up to a cap. */
+.zen-input__control:has(.zen-rich-text__editor) {
+  height: auto;
+  min-height: var(--zen-text-area-size-medium, 112px);
+  align-items: stretch;
+  padding: var(--zen-text-area-spacing-medium-vertical-padding, 12px) var(--zen-text-area-spacing-medium-horizontal-padding, 12px);
+  cursor: text;
+}
+.zen-input-field[data-size="small"] .zen-input__control:has(.zen-rich-text__editor) { min-height: var(--zen-text-area-size-small, 96px); padding: var(--zen-text-area-spacing-small-vertical-padding, 6px) var(--zen-text-area-spacing-small-horizontal-padding, 8px); }
+.zen-input-field[data-size="large"] .zen-input__control:has(.zen-rich-text__editor) { min-height: var(--zen-text-area-size-large, 144px); padding: var(--zen-text-area-spacing-large-vertical-padding, 12px) var(--zen-text-area-spacing-large-horizontal-padding, 16px); }
+.zen-rich-text__editor { flex: 1 1 auto; max-height: 480px; overflow-y: auto; outline: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.zen-rich-text__editor[data-empty="true"]::before { position: absolute; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); content: attr(data-placeholder); pointer-events: none; }
+.zen-rich-text__editor > :first-child { margin-top: 0; }
+.zen-rich-text__editor > :last-child { margin-bottom: 0; }
+.zen-rich-text__editor :is(p, ul, ol) { margin: 0 0 var(--zen-spacing-gap-xsmall, 8px); }
+.zen-rich-text__editor :is(ul, ol) { padding-inline-start: var(--zen-spacing-padding-xlarge, 24px); }
+.zen-rich-text__editor blockquote { margin: 0 0 var(--zen-spacing-gap-xsmall, 8px) var(--zen-spacing-padding-xlarge, 24px); }
+.zen-rich-text__editor h1 { margin: 0 0 var(--zen-spacing-gap-xsmall, 8px); font-family: var(--zen-typography-font-family-heading); font-size: var(--zen-typography-font-size-heading-3, 24px); font-weight: var(--zen-emphasis-font-weight-bold, 700); line-height: var(--zen-typography-line-height-heading-3, 32px); letter-spacing: var(--zen-typography-letter-spacing-heading-3); }
+.zen-rich-text__editor h2 { margin: 0 0 var(--zen-spacing-gap-xsmall, 8px); font-family: var(--zen-typography-font-family-heading); font-size: var(--zen-typography-font-size-heading-4, 20px); font-weight: var(--zen-emphasis-font-weight-bold, 700); line-height: var(--zen-typography-line-height-heading-4, 28px); letter-spacing: var(--zen-typography-letter-spacing-heading-4); }
+.zen-rich-text__editor h3 { margin: 0 0 var(--zen-spacing-gap-xsmall, 8px); font-size: var(--zen-typography-font-size-body-extra, 16px); font-weight: var(--zen-emphasis-font-weight-semi-bold, 550); line-height: var(--zen-typography-line-height-body-extra, 24px); }
+.zen-rich-text__editor a { color: var(--zen-color-content-accent-base, #0a84ff); text-decoration: underline; }
+.zen-rich-text__editor :is(img, video) { display: block; max-width: 100%; height: auto; margin: var(--zen-spacing-gap-xsmall, 8px) 0; border-radius: var(--zen-corner-radius-base, 12px); }
+.zen-rich-text-field__insert { width: min(320px, calc(100vw - 32px)); }
+.zen-rich-text-field__insert-form { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px); }
+.zen-rich-text-field__insert-actions { display: flex; justify-content: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); }
+
+/* Figma Input-Conditions (Item-List gap Spacing/Gap/XSmall) and Condition-Item (gap 2XSmall). */
+.zen-input-conditions { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; list-style: none; }
+.zen-input-condition { display: flex; min-width: 0; align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
+.zen-input-condition > .zen-icon { flex: 0 0 auto; }
+.zen-input-condition__text { min-width: 0; }
 .zen-input-condition[data-state="success"] { color: var(--zen-color-content-positive-light, #16845b); }
 .zen-input-condition[data-state="wrong"] { color: var(--zen-color-content-negative-light, #d03e19); }
 
@@ -371,7 +427,21 @@
 .zen-input-leading-trailing--interactive:hover:not(:disabled) { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
 .zen-input-leading-trailing--interactive:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 0; }
 .zen-input-leading-trailing--interactive:disabled { cursor: default; }
+/* Icon-only action slot: square 4px hit padding so the hover fill stays centred on the icon. */
+.zen-input-leading-trailing--interactive[data-icon-only="true"] { margin: -4px; padding: 4px; }
+.zen-input-leading-trailing--interactive[data-icon-only="true"] > .zen-input-leading-trailing__elements:empty { display: none; }
 /* Position comes from Popover's anchored placement (4px from the field box, flips above near the viewport edge). */
 /* The field clips its content; let an open picker escape it. */
 .zen-input__control:has(.zen-input-leading-trailing__picker[data-open="true"]) { overflow: visible; z-index: 4; }
 .zen-input-field:is([data-state="read-only"]) .zen-input-leading-trailing--interactive { pointer-events: none; }
+
+/* Read-Only dashed stroke (Figma dashPattern [2, 2], 1px INSIDE, Color/Border/Neutral/Subtle/Default). */
+.zen-input-field[data-state="read-only"] .zen-input__control::after { border-color: transparent; }
+.zen-input__dash { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; overflow: hidden; border-radius: inherit; pointer-events: none; }
+.zen-input__dash rect { fill: none; stroke: var(--zen-color-border-neutral-subtle-default, #0000001c); stroke-width: 2px; stroke-dasharray: 2 2; rx: var(--zen-corner-radius-input-medium, 12px); ry: var(--zen-corner-radius-input-medium, 12px); }
+.zen-input-field[data-size="small"] .zen-input__dash rect { rx: var(--zen-corner-radius-input-small, 8px); ry: var(--zen-corner-radius-input-small, 8px); }
+.zen-input-field[data-size="large"] .zen-input__dash rect { rx: var(--zen-corner-radius-input-large, 16px); ry: var(--zen-corner-radius-input-large, 16px); }
+.zen-input-field[data-size="xlarge"] .zen-input__dash rect { rx: var(--zen-corner-radius-input-xlarge, 16px); ry: var(--zen-corner-radius-input-xlarge, 16px); }
+/* Hit area ≥ 24×24 (WCAG 2.5.8) around the Figma-sized glyph: an invisible, centred layer; the visual size is unchanged. */
+.zen-input-label__action :is(a, button) { position: relative; }
+.zen-input-label__action :is(a, button)::after { position: absolute; top: 50%; left: 50%; width: max(100%, 24px); height: max(100%, 24px); content: ""; transform: translate(-50%, -50%); }

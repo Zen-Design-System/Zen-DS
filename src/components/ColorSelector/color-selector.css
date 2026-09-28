@@ -1,0 +1,27 @@
+/* Figma Color-Selector (373:97252). */
+.zen-color-selector { display: flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+/* The swatch hugs Spacing/Padding/XSmall around the 16px check (Element-Size/Popular/Small, 4952:853): 32px, and it
+   grows with Component Size like the Figma swatch does. */
+.zen-color-swatch { --zen-color-swatch-size: calc(var(--zen-element-size-popular-small, 16px) + 2 * var(--zen-spacing-padding-xsmall, 8px)); position: relative; display: inline-flex; width: var(--zen-color-swatch-size); height: var(--zen-color-swatch-size); flex: 0 0 auto; cursor: pointer; }
+.zen-color-swatch input { position: absolute; inset: 0; z-index: 1; margin: 0; opacity: 0; cursor: inherit; }
+/* The swatch is a colour sample (a visual), so its hairline is a media stroke, not a container border. */
+.zen-color-swatch__fill {
+  position: relative;
+  display: inline-flex;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  background: var(--zen-swatch);
+  box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-hover, rgb(1 1 1 / 16%));
+  color: var(--zen-color-content-on-colors, #fff);
+}
+.zen-color-swatch[data-contrast="dark"] .zen-color-swatch__fill { color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-color-swatch__fill > .zen-icon { width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); }
+/* Hover: 40px ring, 2px Focus/Neutral/Solid. Keyboard focus: 48px Neutral/Flat/Hover halo. */
+.zen-color-swatch::before { position: absolute; inset: -4px; border-radius: var(--zen-corner-radius-rounded, 1000px); content: ""; pointer-events: none; }
+.zen-color-swatch:hover::before { box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid, #111); }
+.zen-color-swatch:has(input:focus-visible)::before { inset: -8px; background: var(--zen-color-background-neutral-flat-hover); box-shadow: none; z-index: -1; }
+.zen-color-swatch:has(input:focus-visible) { isolation: isolate; }

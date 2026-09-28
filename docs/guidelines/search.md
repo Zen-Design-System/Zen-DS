@@ -4,7 +4,7 @@
 **Figma:** Search (page 846:37480)  
 **Import:** `import { Search } from "@zen/design-system";`
 
-Find or filter content by typing. The only input with a Disabled state.
+Find or filter content by typing. Like every Zen input it has no Disabled state.
 
 ## Use it for
 - Filtering a visible list or table as the user types.
@@ -21,17 +21,67 @@ Find or filter content by typing. The only input with a Disabled state.
 | Size | `size` | small · medium |
 | Icon-Search | `iconSearch` | magnifier on/off |
 | Clear | `clearable / onClear` | × appears once there is a value |
-| Disabled | `disabled` | allowed for Search only |
+| Filter | `onFilterClick · filterOptions / filterValue / onFilterChange · filterInteractive` | filter-icon / filter-dropdown trailing is clickable by default (Input Leading/Trailing) |
+| Shortcut | `shortcut` | ⌘K hint in the trailing slot; ⌘/Ctrl + key focuses the field |
+
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/search.json`.
+
+### Search
+Also accepts `Omit<InputHTMLAttributes<HTMLInputElement>, "size" | "disabled">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `variant` | `"default" \| "popover"` | `"default"` | `popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, and no focus stroke or ring (it sits inside the Popover surface). `size` is ignored. |
+| `size` | `"sm" \| "md" \| "small" \| "medium"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `label` | `ReactNode` | — | Optional Input label above the field; when set it also names the input. |
+| `theme` | `"default" \| "filter-icon" \| "filter-dropdown"` | `"default"` |  |
+| `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted"` | — |  |
+| `iconSearch` | `boolean` | `true` | Figma's `Icon-Search` property. |
+| `leading` | `IconName \| ReactNode` | — | Replaces the search icon: an icon name (`"icon-filter-lines-line"`, sized to the field) or any node. |
+| `trailing` | `IconName \| ReactNode` | — | Replaces the whole trailing group (clear button, shortcut, filter): an icon name (sized to the field) or any node. |
+| `clearable` | `boolean` | `true` | Shows the Figma Inputted clear affordance when the field has a value. |
+| `onValueChange` | `(value: string) => void` | — | Called with the text on every change, and with "" when the clear button empties the field. |
+| `placeholder` | `string` | — | What is searched ("Search members"); also the accessible name without `label`/`aria-label`. Default: the locale's "Search". |
+| `filterLabel` | `ReactNode` | — | Label paired with the chevron in the Filter-Dropdown variant. Default: the locale's "All". |
+| `filterInteractive` | `boolean` | `true` | Filter-Icon / Filter-Dropdown trailing is an `InputLeadingTrailing`: clickable by default, `false` makes it decorative. |
+| `onFilterClick` | `(event: MouseEvent<HTMLButtonElement>) => void` | — | Action for the filter affordance (e.g. open a filter panel or your own menu). |
+| `filterOptions` | `InputLeadingTrailingOption[]` | — | Filter-Dropdown picker: options open the shared Popover and replace `filterLabel` with the selected label. |
+| `filterValue` | `string` | — |  |
+| `onFilterChange` | `(value: string, option: InputLeadingTrailingOption) => void` | — |  |
+| `filterActionLabel` | `string` | — | Accessible name / Popover heading for the filter affordance. Default: the locale's "Filter". |
+| `shortcut` | `string` | — | Keyboard shortcut key shown as `⌘K` in the trailing slot (Figma Side-Bar Small-Density search); pressing ⌘/Ctrl + key focuses the field. Hidden while the field has a value (the clear button takes the slot). |
+| `onClear` | `() => void` | — |  |
+
+### Types
+Object shapes the props above refer to.
+
+```ts
+type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: ReactNode; icon?: IconName | ReactNode; flag?: ReactNode; }
+```
+
+## Keyboard
+| Keys | Action |
+| --- | --- |
+| Type | Filter as you type |
+| Tab | Reach the clear button |
+| Enter / Space on × | Clear the query |
 
 ## ✅ Do
 - Describe the scope in the placeholder ("Search components").
 - Filter live and show an empty state that echoes the query.
 - Let Enter open the first result; the clear button resets to recent items.
-- Pair Search with Chip filters in table toolbars.
+- Pair Search with Chip filters in table toolbars. Search fills its container, so give it a Grid column: columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} with the chips in the second cell.
+- Debounce remote search (~250ms) and keep the query when results refresh.
+- Show the result count in an aria-live region ("12 results").
+- When nothing matches, show an EmptyState that echoes the query and offers “Clear search” (illustration={false} in narrow panels such as sidebars and pickers).
 
 ## ❌ Don't
 - Don't hide search behind an icon on desktop when search is a primary task.
 - Don't clear the query when results update.
+- Don't use Disabled; hide Search or keep it Read-only when it is unavailable.
+- Don't trigger search only on Enter for small, local lists; filter as the user types.
+- Don't use a vague placeholder ("Type here…").
 
 ## Accessibility
 - type=search; aria-label defaults to the placeholder.
@@ -43,7 +93,9 @@ Find or filter content by typing. The only input with a Disabled state.
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `input/no-disabled` | error | Inputs (Search included) never use Disabled; fields use Read-only. | `zen-allow-disabled-input: <reason>` |
 | `search/needs-name` | warn | Search needs a placeholder that says what is searched, or an aria-label. | `zen-allow-unnamed: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 
 ## References
 - [Material 3 — Search](https://m3.material.io/components/search/guidelines)

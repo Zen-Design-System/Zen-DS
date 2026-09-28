@@ -1,0 +1,33 @@
+/* Who reacted (ChatReactors.tsx): the panel content shared by the mobile Bottom Sheet and the desktop Popover. */
+.zen-chat-reactors { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-chat-reactors .zen-list { --zen-list-inset: 0px; }
+/* With emoji tabs the list sits in their tab panel; like the list itself, the panel may shrink so long names truncate. */
+.zen-chat-reactors__panel { min-width: 0; }
+.zen-chat-reactors__emoji { display: inline-flex; width: 24px; height: 24px; align-items: center; justify-content: center; color: var(--zen-color-content-neutral-strongest, #111); font-size: 20px; line-height: 1; }
+/* Colour emoji inherit the alpha of `color`; an opaque colour keeps them at full strength in every tab state. */
+.zen-chat-reactors__tab-emoji { color: var(--zen-color-content-neutral-strongest, #111); }
+/* Desktop: a Popover under the pill, portalled to the body so the thread never clips it; above page chrome. */
+.zen-chat-reactors__popover { z-index: 1000; width: 280px; max-height: 360px; overflow: auto; }
+/* Inside the Popover the rows follow Primitives/Popover/Item: the popover pads 4, the row pads 8, so avatar and emoji sit
+   12 from the edge (aligned with the "Reactions" label). The hover/selected fill covers the row box itself — inside the
+   popover padding, never cropped by its edge — with concentric corners: popover Corner-Radius/Large 16 − 4 =
+   Corner-Radius/Base 12. The mobile Bottom Sheet keeps inset 0 (the sheet body already pads its content). */
+.zen-chat-reactors__popover .zen-chat-reactors .zen-list { --zen-list-inset: var(--zen-spacing-padding-xsmall, 8px); }
+.zen-chat-reactors__popover .zen-list-item::before { inset: 0; border-radius: var(--zen-corner-radius-base, 12px); }
+.zen-chat-reactors__popover .zen-list-item { padding-block: var(--zen-spacing-padding-xsmall, 8px); }
+/* Popover Item gap (XSmall 8) between avatar, name and emoji instead of the List-Item Medium 16. */
+.zen-chat-reactors__popover :is(.zen-list-item, .zen-list-item__wrapper) { gap: var(--zen-spacing-gap-xsmall, 8px); }
+
+/* The pill becomes a button when it can show who reacted. */
+button.zen-chat-reactions { margin: 0; border: 0; color: inherit; cursor: pointer; font: inherit; }
+/* Hover = the opaque Surface with the Neutral/Flat/Hover tint laid over it: the pill stays solid over the bubble edge
+   (Surface/Hover alone is a 1% translucent tint, so the bubble showed through and the pill looked pushed under). */
+button.zen-chat-reactions:hover { background: linear-gradient(var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)), var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%))), var(--zen-color-background-surface-default, #fff); }
+button.zen-chat-reactions:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 2px; }
+
+/* Mobile: the Reactions Bottom Sheet is a fixed 50% of the screen so switching tabs ("All · ❤️ · 👍") never makes it jump;
+   the people list scrolls inside. 100% is the overlay's content box (the screen minus its top padding), so that padding
+   is added back before halving. The emoji tabs stay pinned while the list scrolls. */
+.zen-bottom-sheet.zen-chat-reactors__sheet { height: calc((100% + var(--zen-safe-area-top, env(safe-area-inset-top, 0px)) + var(--zen-spacing-padding-small, 12px)) / 2); }
+.zen-chat-reactors__sheet .zen-bottom-sheet__body:has(> .zen-chat-reactors > .zen-tabs) { padding-top: 0; }
+.zen-chat-reactors__sheet .zen-chat-reactors > .zen-tabs { position: sticky; z-index: 1; top: 0; padding-top: var(--zen-margin-compact, 20px); background: var(--zen-color-background-container, #f7f7f7); }

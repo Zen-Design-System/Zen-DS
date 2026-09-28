@@ -2,8 +2,12 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ButtonHTMLA
 import { Icon } from "../Icon";
 import { Button, IconButton } from "../Button";
 import { useAnchoredPosition } from "../Popover/useAnchoredPosition";
+import { useExclusivePopover } from "../Popover/useExclusivePopover";
+import { scaleKey } from "../_shared/scale";
+import { useZenLabels, useZenLocale } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./date-picker.css";
+import "../Icon/core";
 
 export type DatePickerItemState =
   | "default" | "hover" | "single-selected" | "range-selected-start" | "range-selected-end"
@@ -13,11 +17,17 @@ export interface DatePickerItemProps extends Omit<ButtonHTMLAttributes<HTMLButto
   day?: number | string;
   state?: DatePickerItemState;
   event?: boolean;
-  size?: "medium" | "small";
+  /** Short (sm, md…) or Figma (small, medium…) spelling. */
+  size?: "md" | "sm" | "medium" | "small";
 }
 
+/** DatePickerItem CSS / Figma keys (its `data-size` values). */
+const datePickerItemSizes = ["medium", "small"] as const;
+
 /** The 32px day primitive from `.Primitives/Date-Picker/Item`. */
-export function DatePickerItem({ day = "", state = "default", event = false, size = "medium", className, ...props }: DatePickerItemProps) {
+export function DatePickerItem({ day = "", state = "default", event = false, size: sizeProp = "md", className, ...props }: DatePickerItemProps) {
+  const t = useZenLabels();
+  const size = scaleKey(sizeProp, datePickerItemSizes);
   const blank = state === "blank" || day === "";
   return (
     <button
@@ -26,7 +36,10 @@ export function DatePickerItem({ day = "", state = "default", event = false, siz
       data-state={state}
       data-size={size}
       type="button"
-      aria-label={blank ? undefined : `Day ${day}`}
+      aria-label={blank ? undefined : t.day(day)}
+      // Padding cells before the 1st / after the last day are layout only: keep them out of the accessibility tree.
+      aria-hidden={blank || undefined}
+      tabIndex={blank ? -1 : props.tabIndex}
       disabled={blank || state === "disabled" || props.disabled}
     >
       <span>{day}</span>
@@ -48,18 +61,30 @@ export interface DatePickerHeaderProps {
   next?: boolean;
 }
 
-const monthLabel = (month: Date) => new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(month).split(" ");
+/** The month name of `month` ("September", vi "Tháng 9") in `locale`. */
+const monthName = (month: Date, locale: string) => new Intl.DateTimeFormat(locale, { month: "long" }).format(month);
+/** The 12 month names in `locale`, January first. */
+const monthNamesFor = (locale: string) => Array.from({ length: 12 }, (_, index) => monthName(new Date(2026, index, 1), locale));
+/** Monday-first narrow weekday names in `locale` (en M T W T F S S, vi T2 … CN); 5 January 2026 is a Monday. */
+const weekdayInitials = (locale: string) => {
+  const format = new Intl.DateTimeFormat(locale, { weekday: "narrow" });
+  return Array.from({ length: 7 }, (_, index) => format.format(new Date(2026, 0, 5 + index)));
+};
 
 export function DatePickerHeader({ month, onPrevious, onNext, onMonthYearClick, type = "interactive", back = true, next = true }: DatePickerHeaderProps) {
-  const label = monthLabel(month);
+  const t = useZenLabels();
+  const locale = useZenLocale();
+  // Shown as two parts, month name then year; the accessible name is the locale's "Month YYYY" ("September 2026").
+  const label = [monthName(month, locale), String(month.getFullYear())];
+  const fullLabel = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(month);
   const slot = (show: boolean, direction: "previous" | "next") => show
-    ? <IconButton className="zen-date-picker__nav" appearance="main" level="tertiary" size="sm" aria-label={direction === "previous" ? "Previous month" : "Next month"} onClick={direction === "previous" ? onPrevious : onNext} icon={<Icon name={direction === "previous" ? "icon-chevron-left-line-small" : "icon-chevron-right-line-small"} />} />
+    ? <IconButton className="zen-date-picker__nav" appearance="main" level="tertiary" size="sm" aria-label={direction === "previous" ? t.previousMonth : t.nextMonth} onClick={direction === "previous" ? onPrevious : onNext} icon={<Icon name={direction === "previous" ? "icon-chevron-left-line-small" : "icon-chevron-right-line-small"} />} />
     : <span className="zen-date-picker__nav-slot" aria-hidden="true" />;
   return (
     <header className="zen-date-picker__header" data-type={type}>
       {type !== "display" ? slot(back, "previous") : null}
       {type === "interactive" ? (
-        <button className={`zen-date-picker__month ${typographyStyles["Body/Extra/Bold"]}`} type="button" onClick={onMonthYearClick} aria-label={`${label.join(" ")}, choose month and year`}>
+        <button className={`zen-date-picker__month ${typographyStyles["Body/Extra/Bold"]}`} type="button" onClick={onMonthYearClick} aria-label={t.chooseMonthAndYear(fullLabel)}>
           <span>{label[0]}</span><span>{label[1]}</span>
         </button>
       ) : (
@@ -74,12 +99,17 @@ export interface DatePickerActionProps {
   action?: "single" | "dual";
   onCancel?: () => void;
   onApply?: () => void;
+  /** Text of the Tertiary button. Default: the locale's "Cancel". */
   cancelLabel?: ReactNode;
+  /** Text of the Primary button. Default: the locale's "Submit". */
   applyLabel?: ReactNode;
 }
 
 /** `.Primitives/Date-Picker/Action`: Button/Main Small Tertiary "Cancel" + Primary "Submit". */
-export function DatePickerAction({ action = "dual", onCancel, onApply, cancelLabel = "Cancel", applyLabel = "Submit" }: DatePickerActionProps) {
+export function DatePickerAction({ action = "dual", onCancel, onApply, cancelLabel: cancelLabelProp, applyLabel: applyLabelProp }: DatePickerActionProps) {
+  const t = useZenLabels();
+  const cancelLabel = cancelLabelProp === undefined ? t.cancel : cancelLabelProp;
+  const applyLabel = applyLabelProp === undefined ? t.apply : applyLabelProp;
   return (
     <footer className="zen-date-picker__actions">
       {action === "dual" ? <Button level="tertiary" size="sm" onClick={onCancel}>{cancelLabel}</Button> : null}
@@ -88,7 +118,6 @@ export function DatePickerAction({ action = "dual", onCancel, onApply, cancelLab
   );
 }
 
-const monthNames = Array.from({ length: 12 }, (_, index) => new Intl.DateTimeFormat("en-US", { month: "long" }).format(new Date(2026, index, 1)));
 /** Row pitch of the wheel: 28px Heading/4 row + Spacing/Gap/2XSmall. */
 const WHEEL_PITCH = 32;
 /** Figma fades rows 1 / 0.4 / 0.2 by distance from the selection; interpolated for motion, 0 at 3. */
@@ -106,7 +135,9 @@ const prefersReducedMotion = () => typeof window !== "undefined" && window.match
  * target the position eases towards. Rows are laid out absolutely from the position, so everything
  * slides instead of stepping.
  */
-function WheelColumn({ label, value, count, format, onChange, align = "start" }: {
+function WheelColumn({ id, label, value, count, format, onChange, align = "start" }: {
+  /** Stable prefix of the option ids (the accessible `label` is translated). */
+  id: string;
   label: string;
   value: number;
   /** Wrap modulo `count` (months); omit for an open-ended sequence (years). */
@@ -201,7 +232,7 @@ function WheelColumn({ label, value, count, format, onChange, align = "start" }:
       role="listbox"
       tabIndex={0}
       aria-label={label}
-      aria-activedescendant={`${label}-${selectedIndex}`}
+      aria-activedescendant={`${id}-${selectedIndex}`}
       data-align={align}
       data-dragging={dragging ? "true" : undefined}
       onKeyDown={(event) => {
@@ -246,7 +277,7 @@ function WheelColumn({ label, value, count, format, onChange, align = "start" }:
         return (
           <button
             key={index}
-            id={`${label}-${index}`}
+            id={`${id}-${index}`}
             type="button"
             role="option"
             aria-selected={index === selectedIndex}
@@ -272,6 +303,9 @@ export interface DatePickerMonthYearProps {
 /** `.Primitives/Date-Picker/Calendar` Type=Select-Month-Year: the focused month/year header, a
  * month wheel and a year wheel (Heading/4, 5 visible rows), then Cancel / Submit. */
 export function DatePickerMonthYear({ month, onSubmit, onCancel }: DatePickerMonthYearProps) {
+  const t = useZenLabels();
+  const locale = useZenLocale();
+  const monthNames = useMemo(() => monthNamesFor(locale), [locale]);
   const [draftMonth, setDraftMonth] = useState(month.getMonth());
   const [draftYear, setDraftYear] = useState(month.getFullYear());
   const rootRef = useRef<HTMLDivElement>(null);
@@ -280,13 +314,13 @@ export function DatePickerMonthYear({ month, onSubmit, onCancel }: DatePickerMon
     <>
       <div ref={rootRef} className="zen-date-picker__month-year">
         <header className="zen-date-picker__header" data-type="interactive" data-state="focused">
-          <button className={`zen-date-picker__month ${typographyStyles["Body/Extra/Bold"]}`} type="button" onClick={onCancel} aria-label="Back to calendar">
+          <button className={`zen-date-picker__month ${typographyStyles["Body/Extra/Bold"]}`} type="button" onClick={onCancel} aria-label={t.backToCalendar}>
             <span>{monthNames[draftMonth]}</span><span>{draftYear}</span>
           </button>
         </header>
         <div className="zen-date-picker__wheels">
-          <WheelColumn label="Month" value={draftMonth} count={12} format={(value) => monthNames[value]} onChange={setDraftMonth} />
-          <WheelColumn label="Year" value={draftYear} format={String} onChange={setDraftYear} align="end" />
+          <WheelColumn id="Month" label={t.month} value={draftMonth} count={12} format={(value) => monthNames[value]} onChange={setDraftMonth} />
+          <WheelColumn id="Year" label={t.year} value={draftYear} format={String} onChange={setDraftYear} align="end" />
         </div>
       </div>
       <DatePickerAction action="dual" onCancel={onCancel} onApply={() => onSubmit?.(new Date(draftYear, draftMonth, 1))} />
@@ -312,11 +346,15 @@ function monthDays(month: Date) {
 }
 
 export interface DatePickerProps {
+  /** Default true: DatePicker is the calendar panel itself. As a popover, pass `open` with `onOpenChange` (or `onClose`). */
   open?: boolean;
   value?: Date | null;
   defaultValue?: Date | null;
   /** First (left) visible month. */
   month?: Date;
+  /** Called with the picked date; in range mode with the start, then again with the end (see `onRangeChange`). */
+  onValueChange?: (date: Date | null) => void;
+  /** @deprecated Use onValueChange (same arguments). */
   onChange?: (date: Date | null) => void;
   /** Range mode: called with the new start (end = null) and again once the end date is picked. */
   onRangeChange?: (range: { start: Date; end: Date | null }) => void;
@@ -324,6 +362,8 @@ export interface DatePickerProps {
   /** Popover behaviour: called on a pointer-down outside the picker (and outside `anchorRef`), on
    * Escape, after a single date / a complete range is picked (without actions), and by the actions. */
   onClose?: () => void;
+  /** Called with `false` wherever `onClose` is called (the `open` / `onOpenChange` pair of every Zen overlay). */
+  onOpenChange?: (open: boolean) => void;
   /** The trigger. Pointer-downs on it are left to its own toggle; Escape returns focus to it. */
   anchorRef?: RefObject<HTMLElement | null>;
   showActions?: boolean;
@@ -345,10 +385,12 @@ export function DatePicker({
   value,
   defaultValue = null,
   month: controlledMonth,
+  onValueChange,
   onChange,
   onRangeChange,
   onMonthChange,
   onClose,
+  onOpenChange,
   anchorRef,
   showActions = false,
   action = "dual",
@@ -358,6 +400,9 @@ export function DatePicker({
   maxDate,
   className,
 }: DatePickerProps) {
+  const t = useZenLabels();
+  const locale = useZenLocale();
+  const weekdays = useMemo(() => weekdayInitials(locale), [locale]);
   const [internalValue, setInternalValue] = useState<Date | null>(defaultValue);
   const [internalMonth, setInternalMonth] = useState<Date>(() => monthStart(value ?? defaultValue ?? new Date()));
   const [view, setView] = useState<"days" | "month-year">("days");
@@ -397,19 +442,25 @@ export function DatePicker({
   });
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
-  const hasClose = Boolean(onClose);
+  const onOpenChangeRef = useRef(onOpenChange);
+  onOpenChangeRef.current = onOpenChange;
+  const hasClose = Boolean(onClose || onOpenChange);
+  /** Every close request: `onClose()` and `onOpenChange(false)`. */
+  const requestClose = () => { onCloseRef.current?.(); onOpenChangeRef.current?.(false); };
+  // One popover at a time (shared with Popover): opening the calendar closes any other object's popover and vice versa.
+  useExclusivePopover(open, hasClose ? requestClose : undefined, rootRef, anchorRef);
   useEffect(() => {
     if (!open || !hasClose) return undefined;
     const handlePointerDown = (event: PointerEvent) => {
       const target = event.target as Node | null;
       if (!target || rootRef.current?.contains(target) || anchorRef?.current?.contains(target)) return;
-      onCloseRef.current?.();
+      requestClose();
     };
     // Escape while focus is still on the trigger (e.g. an input that opened it on focus).
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || event.defaultPrevented) return;
       const active = document.activeElement;
-      if (active && anchorRef?.current?.contains(active)) onCloseRef.current?.();
+      if (active && anchorRef?.current?.contains(active)) requestClose();
     };
     document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("keydown", handleKeyDown);
@@ -421,7 +472,7 @@ export function DatePicker({
   // Every opening starts on the day view.
   useEffect(() => { if (!open) { setView("days"); setSwitched(false); } }, [open]);
   const close = () => {
-    onClose?.();
+    requestClose();
     const anchor = anchorRef?.current;
     (anchor?.matches("button, input, [tabindex]") ? anchor : anchor?.querySelector<HTMLElement>("button, input, [tabindex]"))?.focus({ preventScroll: true });
   };
@@ -435,14 +486,15 @@ export function DatePicker({
     if (minDate && dateKey(date) < dateKey(minDate)) return;
     if (maxDate && dateKey(date) > dateKey(maxDate)) return;
     if (selectionMode === "range") {
-      if (!rangeStart || rangeEnd) { setRangeStart(date); setRangeEnd(null); onChange?.(date); onRangeChange?.({ start: date, end: null }); return; }
+      if (!rangeStart || rangeEnd) { setRangeStart(date); setRangeEnd(null); onValueChange?.(date); onChange?.(date); onRangeChange?.({ start: date, end: null }); return; }
       const start = dateKey(date) < dateKey(rangeStart) ? date : rangeStart;
       const end = dateKey(date) < dateKey(rangeStart) ? rangeStart : date;
-      setRangeStart(start); setRangeEnd(end); onChange?.(end); onRangeChange?.({ start, end });
+      setRangeStart(start); setRangeEnd(end); onValueChange?.(end); onChange?.(end); onRangeChange?.({ start, end });
       if (!showActions) close();
       return;
     }
     if (value === undefined) setInternalValue(date);
+    onValueChange?.(date);
     onChange?.(date);
     if (!showActions) close();
   };
@@ -464,7 +516,7 @@ export function DatePicker({
       ref={rootRef}
       className={["zen-date-picker", className].filter(Boolean).join(" ")}
       role="dialog"
-      aria-label={dual ? "Choose dates" : "Choose date"}
+      aria-label={dual ? t.chooseDates : t.chooseDate}
       data-calendar={calendar}
       data-view={view}
       data-side={placement.side}
@@ -474,7 +526,7 @@ export function DatePicker({
         event.preventDefault();
         // Escape steps back out of Select-Month-Year first, then closes the popover.
         if (view === "month-year") switchView("days");
-        else if (onClose) close();
+        else if (hasClose) close();
       }}
     >
       <div className="zen-date-picker__viewport" style={viewHeight === undefined ? undefined : { height: viewHeight + 8 }}>
@@ -500,7 +552,7 @@ export function DatePicker({
                       onMonthYearClick={() => switchView("month-year")}
                     />
                     <div className={`zen-date-picker__calendar ${typographyStyles["Body/Small/Medium"]}`}>
-                      <div className="zen-date-picker__weekdays">{["M", "T", "W", "T", "F", "S", "S"].map((day, dayIndex) => <span key={`${day}-${dayIndex}`}>{day}</span>)}</div>
+                      <div className="zen-date-picker__weekdays">{weekdays.map((day, dayIndex) => <span key={`${day}-${dayIndex}`}>{day}</span>)}</div>
                       <div className="zen-date-picker__grid">{monthDays(month).map((date, dayIndex) => date ? <DatePickerItem key={date.toISOString()} day={date.getDate()} state={stateFor(date)} disabled={isDisabled(date)} onClick={() => selectDate(date)} /> : <DatePickerItem key={`blank-${dayIndex}`} state="blank" />)}</div>
                     </div>
                   </div>

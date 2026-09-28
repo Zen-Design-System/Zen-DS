@@ -25,7 +25,7 @@ window.__spec = async (n, depth) => {
   if (n.effects && n.effects.length) { o.fx = []; for (const e of n.effects) { if (e.visible === false) continue; const x = { t: e.type }; if (e.radius !== undefined) x.r = e.radius; if (e.offset) x.o = [e.offset.x, e.offset.y]; if (e.spread) x.s = e.spread; if (e.color) x.c = __hex(e.color); if (e.boundVariables && e.boundVariables.color) x.v = await __vname(e.boundVariables.color.id); o.fx.push(x); } if (!o.fx.length) delete o.fx; }
   if (n.effectStyleId && typeof n.effectStyleId === 'string') o.fxStyle = await __sname(n.effectStyleId, __ES);
   if (n.strokeStyleId && typeof n.strokeStyleId === 'string') o.strokeStyle = await __sname(n.strokeStyleId, __ES);
-  const bv = await __bvs(n.boundVariables); if (bv) { delete bv.fills; delete bv.strokes; delete bv.effects; if (Object.keys(bv).length) o.bv = bv; }
+  const bv = await __bvs(n.boundVariables); if (bv && n.type === 'TEXT' && typeof n.textStyleId === 'string') { for (const k of ['fontSize','fontFamily','fontWeight','lineHeight','letterSpacing','paragraphSpacing','fontStyle']) delete bv[k]; } if (bv) { delete bv.fills; delete bv.strokes; delete bv.effects; if (Object.keys(bv).length) o.bv = bv; }
   if (n.type === 'TEXT') {
     o.txt = n.characters.slice(0, 60);
     if (typeof n.textStyleId === 'string') o.ts = await __sname(n.textStyleId, __TS); else if (n.textStyleId === figma.mixed) o.ts = 'MIXED';
@@ -37,17 +37,22 @@ window.__spec = async (n, depth) => {
   }
   if (n.type === 'INSTANCE') {
     try { const mc = await n.getMainComponentAsync(); if (mc) o.main = (mc.parent && mc.parent.type === 'COMPONENT_SET' ? mc.parent.name + ' / ' : '') + mc.name; } catch (e) { o.main = '?'; }
-    const cp = n.componentProperties; if (cp) { o.props = {}; for (const [k, v] of Object.entries(cp)) o.props[k.split('#')[0]] = v.value; }
+    let cp; try { cp = n.componentProperties; } catch (e) { o.propsError = true; } if (cp) { o.props = {}; for (const [k, v] of Object.entries(cp)) o.props[k.split('#')[0]] = v.value; }
   }
   if ('children' in n && n.children.length) { o.c = []; for (const ch of n.children) o.c.push(await __spec(ch, depth + 1)); }
   return o;
 };
+window.__vpOf = (c) => { try { return c.variantProperties || {}; } catch (e) { return Object.fromEntries(c.name.split(',').map(p => p.split('=').map(x => x.trim()))); } };
 window.__setSpec = async (id, filter) => {
   const s = await figma.getNodeByIdAsync(id);
   const out = { id, name: s.name, type: s.type, description: s.description || undefined, docs: (s.documentationLinks || []).map(l => l.uri) };
-  if (s.type === 'COMPONENT_SET') { out.props = {}; for (const [k, v] of Object.entries(s.componentPropertyDefinitions)) out.props[k] = { t: v.type, d: v.defaultValue, o: v.variantOptions }; out.variants = []; for (const c of s.children) { if (filter && !filter(c.variantProperties || {})) continue; out.variants.push({ vp: c.variantProperties, d: c.description || undefined, spec: await __spec(c, 0) }); } }
+  if (s.type === 'COMPONENT_SET') { out.props = {}; let defs = {}; try { defs = s.componentPropertyDefinitions; } catch (e) { out.defsError = String(e.message).slice(0, 80); } for (const [k, v] of Object.entries(defs)) out.props[k] = { t: v.type, d: v.defaultValue, o: v.variantOptions }; out.variants = []; for (const c of s.children) { if (filter && !filter(__vpOf(c))) continue; out.variants.push({ vp: __vpOf(c), d: c.description || undefined, spec: await __spec(c, 0) }); } }
   else out.spec = await __spec(s, 0);
   return out;
 };
 window.__RUN = async (ids, filter) => { window.__OUT = []; for (const id of ids) window.__OUT.push(await __setSpec(id, filter)); window.__OUTS = JSON.stringify(window.__OUT); return 'ready ' + window.__OUTS.length; };
+// Clipboard reads through the device bridge cap at ~256 kB: copy one padded chunk at a time with
+// copy(__C(i)) for i < __N(). Padding keeps small chunks large enough to be saved to a file.
+window.__N = () => Math.ceil(window.__OUTS.length / 230000);
+window.__C = (i) => { const part = window.__OUTS.slice(i * 230000, (i + 1) * 230000); return part + ' '.repeat(Math.max(0, 130000 - part.length)); };
 'extractor loaded';

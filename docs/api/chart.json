@@ -1,0 +1,233 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "chart",
+  "import": "import { LineChart, StackBarChart, ChartCard } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "LineChart",
+      "file": "src/components/Chart/Chart.tsx",
+      "description": "Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle, on a\ndashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector (Active/Accent/Subtle rule, Solid when active)\nand the active sector shows a Tooltip with its value. ←/→, Home/End move between points.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "height",
+          "type": "number",
+          "required": false,
+          "default": "280",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "data",
+          "type": "ChartPoint[]",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "initialIndex",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "StackBarChart",
+      "file": "src/components/Chart/Chart.tsx",
+      "description": "Figma Chart/Stack-Bar-Chart (6643:73471): one column per sector (2px side padding, 4px radius on the top segment),\nsegments in series order from the bottom, a 12px-dot legend (Caption/Regular), and a Tooltip with the active total.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "height",
+          "type": "number",
+          "required": false,
+          "default": "236",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "data",
+          "type": "ChartStack[]",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "series",
+          "type": "ChartSeries[]",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "initialIndex",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "showLegend",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChartCard",
+      "file": "src/components/Chart/Chart.tsx",
+      "description": "Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) → header · Segmented · chart, gap 16.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Header Label (Heading/Subheading).",
+          "deprecated": null
+        },
+        {
+          "name": "headingLevel",
+          "type": "2 | 3 | 4",
+          "required": false,
+          "default": "3",
+          "description": "Heading level of the title in the page outline (default 3: a card inside an h2 section). Use 2 when the card sits\n directly under the page title. The look stays Heading/Subheading — the level follows the outline, not the size.",
+          "deprecated": null
+        },
+        {
+          "name": "onOpen",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Figma Header trailing Button/Icon-Main XSmall Tertiary (chevron): opens the full report.",
+          "deprecated": null
+        },
+        {
+          "name": "openLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the open button. Default: the locale's “Open report”.",
+          "deprecated": null
+        },
+        {
+          "name": "ranges",
+          "type": "SegmentedOption[]",
+          "required": false,
+          "default": null,
+          "description": "Figma Segmented (Secondary) range switch.",
+          "deprecated": null
+        },
+        {
+          "name": "range",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onRangeChange",
+          "type": "(id: string) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "surface",
+          "type": "\"default\" | \"alt\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "ChartPoint": "interface ChartPoint { label: string; value: number }",
+    "ChartSeries": "interface ChartSeries { id: string; label: string; color?: string }",
+    "ChartStack": "interface ChartStack { label: string; values: Record<string, number> }",
+    "SegmentedOption": "type SegmentedOption = { id: string; label: ReactNode; leading?: IconName | ReactNode; badge?: ReactNode; state?: SegmentedState; disabled?: boolean; \"aria-label\"?: string; }",
+    "SegmentedState": "type SegmentedState = \"default\" | \"hover\" | \"focused\" | \"disabled\""
+  }
+}

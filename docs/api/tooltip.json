@@ -1,0 +1,122 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "tooltip",
+  "import": "import { Tooltip, TooltipSurface } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Tooltip",
+      "file": "src/components/Tooltip/Tooltip.tsx",
+      "description": "Shows a TooltipSurface next to its trigger on hover (after `delay`) and keyboard focus; Escape dismisses.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "content",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Tooltip text. Keep it short and non-interactive; use Popover for rich content.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactElement",
+          "required": true,
+          "default": null,
+          "description": "A single focusable element (Button, IconButton, link…). It receives aria-describedby.",
+          "deprecated": null
+        },
+        {
+          "name": "color",
+          "type": "\"default\" | \"accent\" | \"white-overlay\" | \"black-overlay\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"md\" | \"sm\" | \"medium\" | \"small\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "placement",
+          "type": "\"top\" | \"bottom\" | \"left\" | \"right\"",
+          "required": false,
+          "default": "\"top\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "delay",
+          "type": "number",
+          "required": false,
+          "default": "1000",
+          "description": "Hover delay in ms before showing (focus shows immediately). Zen rule: 1s (`TOOLTIP_HOVER_DELAY`).",
+          "deprecated": null
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Controlled visibility; omit for hover/focus behavior.",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "TooltipSurface",
+      "file": "src/components/Tooltip/Tooltip.tsx",
+      "description": "Figma Tooltip (1595:2220): Color × Size bubble with the Simple-Label primitive (Caption/Medium).",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLSpanElement>",
+      "props": [
+        {
+          "name": "color",
+          "type": "\"default\" | \"accent\" | \"white-overlay\" | \"black-overlay\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"md\" | \"sm\" | \"medium\" | \"small\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

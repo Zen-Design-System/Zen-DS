@@ -1,0 +1,46 @@
+/* Image & Thumbnail: a frame on Neutral/Pale with a 1px Border/Neutral/Pale inner hairline (a stroke around media, not a
+   container border, §6), the picture, a Skeleton while it loads and a neutral placeholder with an image icon on error. */
+.zen-image { display: flex; box-sizing: border-box; width: 100%; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; }
+.zen-image__frame {
+  --zen-image-icon-size: clamp(20px, 20%, 48px);
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--zen-image-radius, var(--zen-corner-radius-base, 12px));
+  background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%));
+}
+.zen-image[data-ratio="true"] > .zen-image__frame { aspect-ratio: var(--zen-image-ratio); }
+/* No ratio: the picture sets the height once loaded; 4:3 holds its place while it loads or after it fails. */
+.zen-image:not([data-ratio="true"]):not([data-status="loaded"]) > .zen-image__frame { aspect-ratio: 4 / 3; }
+.zen-image__frame::after,
+.zen-thumbnail::after { position: absolute; z-index: 1; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); content: ""; pointer-events: none; }
+
+.zen-image__img { display: block; width: 100%; height: auto; object-fit: cover; }
+.zen-image__img[data-fit="contain"] { object-fit: contain; }
+/* In a ratio frame (and while loading, when the frame holds 4:3) the picture fills the frame. */
+.zen-image:is([data-ratio="true"], :not([data-status="loaded"])) .zen-image__img,
+.zen-thumbnail > .zen-image__img { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Loading: the Skeleton (Neutral/Subtle, pulsing unless reduced motion) covers the frame until the picture has loaded. */
+:is(.zen-image__frame, .zen-thumbnail) > .zen-image__skeleton.zen-skeleton-shape { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 0; }
+
+/* Error: Neutral/Subtle with the image icon (Content/Neutral/Light); the alt text stays the accessible name. */
+.zen-image__fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-image__fallback > .zen-icon[data-size] { width: var(--zen-image-icon-size); height: auto; aspect-ratio: 1; }
+
+.zen-image__caption { margin: 0; }
+
+/* Thumbnail: a fixed square on the Image-Size scale (Avatar steps); the radius steps with the size (set in TSX). */
+.zen-thumbnail {
+  --zen-image-icon-size: clamp(12px, 50%, 40px);
+  position: relative;
+  display: inline-flex;
+  box-sizing: border-box;
+  width: var(--zen-thumbnail-size, var(--zen-image-size-medium, 40px));
+  height: var(--zen-thumbnail-size, var(--zen-image-size-medium, 40px));
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: var(--zen-image-radius, var(--zen-corner-radius-base, 12px));
+  background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%));
+  vertical-align: middle;
+}

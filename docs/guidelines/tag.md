@@ -17,16 +17,46 @@ A chosen value inside a field (keywords, recipients), usually removable.
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Theme | `leading / photoSrc` | text-only · leading-icon · leading-photo |
+| Action | `onClick` | the tag itself is a button (filter by it, open it): focusable, Enter / Space; Remove still works separately |
 | Remove | `remove / onRemove` |  |
 | Error | `error` | invalid value |
 | Disabled | `disabled` |  |
 
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/tag.json`.
+
+### Tag
+Figma Tag (288:32046): Medium only — Theme × State × Remove.
+
+Also accepts `Omit<HTMLAttributes<HTMLSpanElement>, "children">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` (required) | `ReactNode` | — |  |
+| `leading` | `IconName \| ReactNode` | — | Leading icon (Theme=Leading-Icon): an icon name (`"icon-tag-line"`) or a node. |
+| `photoSrc` | `string` | — | Leading photo (Theme=Leading-Photo) rendered as Avatar 2XSmall. |
+| `state` | `"default" \| "hover" \| "focused" \| "error" \| "disabled"` | — | Deterministic Figma State for matrices; hover and keyboard focus also apply natively. |
+| `error` | `boolean` | `false` |  |
+| `disabled` | `boolean` | `false` |  |
+| `remove` | `boolean` | `false` | Figma Remove=Yes: trailing icon-x-circle-solid button. |
+| `onRemove` | `() => void` | — |  |
+| `removeLabel` | `string` | — | Name of the remove button (default "Remove" and the tag text, from the locale's labels). |
+
+## Keyboard
+| Keys | Action |
+| --- | --- |
+| Enter / Space | Activate a clickable tag |
+| Enter / Space on × | Remove the tag |
+
 ## ✅ Do
 - Let Backspace in an empty field remove the last tag.
 - Flag invalid values with error and explain in the field's error text.
+- Keep tag labels short (≤ 24 characters) and truncate with a tooltip beyond that.
 
 ## ❌ Don't
-- Don't use tags as buttons.
+- Don't use a Tag as a generic action button (Save, Delete) — onClick is only for acting on the value itself (filter by it, open it).
+- Don't use Tags for statuses (→ Badge) or filters (→ Chip).
+- Don't let users add duplicate values; merge them silently.
 
 ## Accessibility
 - The remove button is named "Remove `<value>`".
@@ -38,6 +68,8 @@ A chosen value inside a field (keywords, recipients), usually removable.
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `removable/needs-handler` | error | A remove affordance must be wired to onRemove. | `zen-allow-remove-handler: <reason>` |
+| `copy/plural-count` | warn | Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`. | `zen-allow-plural: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 
 ## References
 - [Carbon — Tag](https://carbondesignsystem.com/components/tag/usage/)

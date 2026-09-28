@@ -22,6 +22,10 @@
 .zen-toggle-button[data-state="disabled"] .zen-toggle-button__dot { --zen-toggle-dot-stroke: transparent; background: var(--zen-toggle-dot-background-unselected-disabled, rgb(1 1 1 / 6%)); box-shadow: none; }
 .zen-toggle-button[data-state="disabled"][data-selected="true"] .zen-toggle-button__track { background: var(--zen-toggle-bar-background-seclected-disabled, #dbdbdb); }
 .zen-toggle-button[data-state="disabled"][data-selected="true"] .zen-toggle-button__dot { background: var(--zen-toggle-dot-background-seclected-disabled, #fff); }
+/* The focusable element is the role="switch" span (the native input is hidden from everyone): its focus ring is the
+   Figma Focused state on the track, never the browser outline. */
+.zen-toggle-button:focus-visible { outline: none; }
+.zen-toggle-button:focus-visible .zen-toggle-button__track,
 .zen-toggle-button:has(input:focus-visible) .zen-toggle-button__track { outline: 2px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
 .zen-toggle-button input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); opacity: 0; }
 

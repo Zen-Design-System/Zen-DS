@@ -1,0 +1,196 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "provider",
+  "import": "import { ZenProvider, ZenPortalProvider } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "ZenProvider",
+      "file": "src/components/Provider/ZenProvider.tsx",
+      "description": "Root of a Zen UI. Sets the token modes (`data-theme`, `data-density`…), paints the page Canvas and text colour,\nand hosts a portal root so overlays inherit the same modes. Wrap the app once; nest another provider to switch a\nregion (e.g. a dark hero). Unset props inherit from the parent provider.\n\n  <ZenProvider theme=\"system\" typography=\"dashboard\">…</ZenProvider>\n  <ZenProvider typography=\"mobile\" density=\"comfortable\">…phone app…</ZenProvider>",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"style\" | \"className\" | \"children\" | \"id\">",
+      "props": [
+        {
+          "name": "theme",
+          "type": "\"light\" | \"dark\" | \"system\"",
+          "required": false,
+          "default": null,
+          "description": "Colour mode. `system` follows the OS (prefers-color-scheme). Unset: inherit (the page default is light).",
+          "deprecated": null
+        },
+        {
+          "name": "componentTheme",
+          "type": "\"neutral-s1\" | \"neutral-s2\" | \"neutral-s3\" | \"brand-s1\" | \"brand-s2\"",
+          "required": false,
+          "default": null,
+          "description": "Component colour theme (Figma \"Component Theme\" mode). Default neutral-s1.",
+          "deprecated": null
+        },
+        {
+          "name": "density",
+          "type": "\"compact\" | \"comfortable\"",
+          "required": false,
+          "default": null,
+          "description": "Spacing density. Default compact (dashboards); comfortable for touch-first or marketing layouts.",
+          "deprecated": null
+        },
+        {
+          "name": "radius",
+          "type": "\"rounded\" | \"smooth\" | \"standard\" | \"luxury\"",
+          "required": false,
+          "default": null,
+          "description": "Corner-radius scale. Default rounded.",
+          "deprecated": null
+        },
+        {
+          "name": "emphasis",
+          "type": "\"medium\" | \"strong\"",
+          "required": false,
+          "default": null,
+          "description": "Visual emphasis of surfaces and strokes. Default medium.",
+          "deprecated": null
+        },
+        {
+          "name": "breakpoint",
+          "type": "\"auto\" | \"desktop\" | \"tablet\" | \"mobile\"",
+          "required": false,
+          "default": null,
+          "description": "Layout tokens (page margin, gutter, modal/card padding). `auto` follows the viewport: < 744px mobile,\n< 1024px tablet, else desktop. Default: `auto` on the outermost provider, inherited in nested ones.",
+          "deprecated": null
+        },
+        {
+          "name": "typography",
+          "type": "\"dashboard\" | \"popular\" | \"mobile\"",
+          "required": false,
+          "default": null,
+          "description": "Text-style scale. dashboard (default) for web apps, mobile for phone apps, popular for marketing pages.",
+          "deprecated": null
+        },
+        {
+          "name": "brand",
+          "type": "\"zen\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "BCP 47 language of the content: sets `lang`, date formats, and the built-in labels of every Zen component\n(accessible names, \"Close\", \"Next page\", toolbar tooltips…). Built in: en, vi. Unknown languages fall back to en.",
+          "deprecated": null
+        },
+        {
+          "name": "labels",
+          "type": "Partial<Omit<ZenLabels, \"richText\" | \"holdActions\" | \"opinion\">> & { richText?: Partial<ZenLabels[\"richText\"]>; holdActions?: Partial<ZenLabels[\"holdActions\"]>; opinion?: Partial<ZenLabels[\"opinion\"]>; }",
+          "required": false,
+          "default": null,
+          "description": "Override single built-in labels, or supply every label for another language: `labels={{ close: \"Schließen\" }}`.",
+          "deprecated": null
+        },
+        {
+          "name": "paint",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Paint the Canvas background, the primary text colour and the Zen font on this element. Default true.",
+          "deprecated": null
+        },
+        {
+          "name": "syncDocument",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Also write the modes onto <html>, so the page background (reset.css) and anything portalled to <body> follow\nthem. Default: true for the outermost provider that paints, false otherwise.",
+          "deprecated": null
+        },
+        {
+          "name": "portal",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Render a portal root inside this provider so overlays (Dialog, Toast, Tooltip, Menu…) inherit its modes. Default true.",
+          "deprecated": null
+        },
+        {
+          "name": "toastPlacement",
+          "type": "\"bottom-center\" | \"bottom-right\" | \"top-center\" | \"top-right\"",
+          "required": false,
+          "default": null,
+          "description": "Where toasts from useToast() appear (the outermost provider hosts them; nested providers share it).\nDefault bottom-center.",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "ElementType",
+          "required": false,
+          "default": "\"div\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ZenPortalProvider",
+      "file": "src/components/Portal/Portal.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "container",
+          "type": "HTMLElement | null",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "ZenLabels": "type ZenLabels = { close: string; closePanel: string; dismiss: string; remove: string; removeItem: (name: string) => string; search: string; searchOptions: string; clearSearch: string; filter: string; filterAll: string; noResults: string; noOptionMatches: (query: string) => string; create: string; createOption: (text: string) => string; selectOrCreate: string; addItem: string; searchAndSelect: string; selectAllRows: string; selectRow: (row: number) => string; editableCellHint: string; enterNumber: string; addTag: string; suggestions: string; open: string; pagination: string; previousPage: string; nextPage: string; page: (page: number) => string; resultsPerPage: string; results: (count: number) => string; resultsRange: (first: number, last: number, total: number) => string; resultsUnit: string; breadcrumb: string; showMore: (count: number) => string; cancel: string; apply: string; previousMonth: string; nextMonth: string; backToCalendar: string; month: string; year: string; day: (day: number | string) => string; chooseMonthAndYear: (month: string) => string; chooseDate: string; chooseDates: string; fieldsNeedAttention: (count: number) => string; optional: string; somethingWentWrong: string; decrease: string; increase: string; moreInformation: string; formatting: string; formattingOf: (label: string) => string; textStyle: string; insertLink: string; heading: string; richText: Record<\"paragraph\" | \"heading1\" | \"heading2\" | \"heading3\" | \"undo\" | \"redo\" | \"bold\" | \"italic\" | \"underline\" | \"strikethrough\" | \"alignLeft\" | \"alignCenter\" | \"alignRight\" | \"justify\" | \"bulletedList\" | \"numberedList\" | \"decreaseIndent\" | \"increaseIndent\" | \"insertLink\" | \"insertImage\" | \"insertVideo\" | \"clearFormatting\", string>; mainNavigation: string; workspaceNavigation: string; navigation: string; openNavigation: string; skipToContent: string; expandSidebar: string; collapseSidebar: string; workspace: string; switchWorkspace: string; subMenu: string; mainTabs: string; back: string; opensInNewTab: string; online: string; progress: string; stepError: string; stepCompleted: string; rating: string; stars: (count: number) => string; ratingValue: (value: string, max: number) => string; opinion: Record<\"veryDisappointed\" | \"disappointed\" | \"neutral\" | \"happy\" | \"veryHappy\", string>; howDoYouFeel: string; npsQuestion: string; npsLow: string; npsHigh: string; range: string; openReport: string; chartPoint: (index: number, count: number) => string; chartTotal: (value: string) => string; noData: string; colour: string; segmentedControl: string; chooseFile: string; files: string; file: string; dropzoneText: string; replaceFile: (name: string) => string; retryFile: (name: string) => string; uploadingFile: (name: string) => string; cancelUpload: (name: string) => string; messages: string; message: string; composerPlaceholder: string; send: string; sendLike: string; addAttachment: string; recordVoice: string; sendPhoto: string; addEmoji: string; retry: string; notDelivered: string; unread: string; messageActions: string; moreActions: string; react: string; reactToMessage: string; moreReactions: string; chooseReaction: string; reactions: string; reactionsSummary: (label: string) => string; showWhoReacted: (label: string) => string; peopleWhoReacted: string; filterReactions: string; allCount: (count: number) => string; you: string; tapToRemove: string; seenBy: (names: string) => string; cancelReply: string; emoji: string; searchEmoji: string; noEmojiMatches: (query: string) => string; backToQuickReactions: string; andMorePhotos: (alt: string, count: number) => string; audioCall: string; videoCall: string; missedAudioCall: string; missedVideoCall: string; callBack: string; callBackMissed: string; callAgain: string; sendVoice: string; previewMissedCall: string; previewAudioCall: string; previewOngoingCall: string; repliedTo: (who: string, whom: string) => string; replyingTo: (name: string) => string; they: string; youObject: string; yourself: string; themselves: string; goToOriginal: string; replyPhoto: string; replyPhotos: (count: number) => string; replyFile: string; replyCall: (type: \"audio\" | \"video\", missed: boolean) => string; replyVoice: (duration?: string) => string; replyUnavailable: string; holdActions: Record<\"reply\" | \"forward\" | \"copy\" | \"pin\" | \"delete\" | \"report\" | \"callBack\" | \"more\", string>; greeting: string; conversation: string; askAnything: string; thinking: string; stopGenerating: string; startVoiceMode: string; addFilesAndTools: string; dictate: string; assistant: string; }"
+  }
+}

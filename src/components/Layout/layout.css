@@ -1,0 +1,50 @@
+/* Layout primitives: Figma Spacing/Gap, Spacing/Padding, Corner-Radius and background/border tokens only. */
+.zen-stack { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-stack-gap, var(--zen-spacing-gap-medium, 16px)); padding-block: var(--zen-stack-padding-block, 0); padding-inline: var(--zen-stack-padding-inline, 0); }
+.zen-stack[data-direction="row"] { flex-direction: row; }
+.zen-stack[data-wrap="true"] { flex-wrap: wrap; }
+.zen-stack[data-align="start"] { align-items: flex-start; }
+.zen-stack[data-align="center"] { align-items: center; }
+.zen-stack[data-align="end"] { align-items: flex-end; }
+.zen-stack[data-align="stretch"] { align-items: stretch; }
+.zen-stack[data-align="baseline"] { align-items: baseline; }
+/* Column stacks give children the full width, even components that align themselves to start (Input fields)… */
+.zen-stack[data-direction="column"]:is(:not([data-align]), [data-align="stretch"]) > * { align-self: stretch; }
+/* …except label-sized controls, which keep their own width unless align="stretch" is explicit. */
+.zen-stack[data-direction="column"]:not([data-align]) > :is(.zen-button, .zen-chip, .zen-badge, .zen-badge--counter, .zen-tag, .zen-avatar, .zen-avatar-stack, img) { align-self: flex-start; }
+.zen-stack[data-justify="start"] { justify-content: flex-start; }
+.zen-stack[data-justify="center"] { justify-content: center; }
+.zen-stack[data-justify="end"] { justify-content: flex-end; }
+.zen-stack[data-justify="between"] { justify-content: space-between; }
+.zen-stack[data-justify="around"] { justify-content: space-around; }
+:is(ul, ol).zen-stack, :is(ul, ol).zen-grid { margin: 0; list-style: none; }
+
+.zen-grid { display: grid; min-width: 0; row-gap: var(--zen-grid-row-gap, var(--zen-spacing-gap-medium, 16px)); column-gap: var(--zen-grid-column-gap, var(--zen-spacing-gap-medium, 16px)); padding: var(--zen-grid-padding, 0); }
+.zen-grid[data-mode="fill"] { grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--zen-grid-min, 240px)), 1fr)); }
+/* --zen-grid-cols* hold whole track lists (Grid writes a count as repeat(n, minmax(0, 1fr))). */
+.zen-grid:is([data-mode="fixed"], [data-mode="responsive"]) { grid-template-columns: var(--zen-grid-cols, minmax(0, 1fr)); }
+[data-breakpoint="tablet"] .zen-grid[data-mode="responsive"] { grid-template-columns: var(--zen-grid-cols-tablet, var(--zen-grid-cols, minmax(0, 1fr))); }
+[data-breakpoint="mobile"] .zen-grid[data-mode="responsive"] { grid-template-columns: var(--zen-grid-cols-mobile, minmax(0, 1fr)); }
+.zen-grid[data-align="start"] { align-items: start; }
+.zen-grid[data-align="center"] { align-items: center; }
+.zen-grid[data-align="end"] { align-items: end; }
+
+.zen-box { min-width: 0; padding-block: var(--zen-box-padding-block, 0); padding-inline: var(--zen-box-padding-inline, 0); border-radius: var(--zen-box-radius, 0); }
+.zen-box[data-surface="surface"] { background: var(--zen-color-background-surface-default, #fff); }
+.zen-box[data-surface="surface-alt"] { background: var(--zen-color-background-surface-alt); }
+.zen-box[data-surface="subtle"] { background: var(--zen-color-background-neutral-subtle-default); }
+.zen-box[data-surface="pale"] { background: var(--zen-color-background-neutral-pale-default); }
+.zen-box[data-border="pale"] { border: 1px solid var(--zen-color-border-neutral-pale-default); }
+/* zen-allow-subtle-static-box: border="subtle" is for actionable boxes; the JSX rule box/border-matches-action checks each use. */
+.zen-box[data-border="subtle"] { border: 1px solid var(--zen-color-border-neutral-subtle-default); }
+
+/* Content-box: max-width is the content width and the page margin (gutter) sits outside it. */
+.zen-container { --zen-container-gutter: 0px; box-sizing: content-box; max-width: var(--zen-container-max, none); margin-inline: auto; padding-inline: var(--zen-container-gutter); }
+.zen-container[data-gutter="true"] { --zen-container-gutter: var(--zen-margin-comfortable, 24px); }
+.zen-container[data-width="sm"] { --zen-container-max: 640px; }
+.zen-container[data-width="md"] { --zen-container-max: 960px; }
+.zen-container[data-width="lg"] { --zen-container-max: 1280px; }
+.zen-container[data-width="xl"] { --zen-container-max: 1440px; }
+
+/* A Stack or Box that pads its own content gives nested Lists no extra inset, so rows line up with the fields and
+   text around them (List inset rule, docs/guidelines/list-item.md). */
+.zen-stack[data-padded="true"], .zen-box[data-padded="true"] { --zen-list-inset: 0px; }

@@ -1,0 +1,28 @@
+/* Link: an inline anchor in the Content/Hyperlink colours (Default · Pressed · Visited). It takes the font of the text
+   around it (Text, a table cell, a caption); only the colour, the underline and the focus ring are its own. */
+.zen-link {
+  border-radius: var(--zen-corner-radius-2-xsmall, 2px);
+  color: var(--zen-color-content-hyperlink-default);
+  cursor: pointer;
+  text-decoration-line: none;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 0.2em;
+}
+/* hover (default): the underline appears on hover and on keyboard focus. always: links inside running text. */
+.zen-link[data-underline="always"],
+.zen-link[data-underline="hover"]:is(:hover, :focus-visible) { text-decoration-line: underline; }
+/* Visited is opt-in (visited prop) and only for the hyperlink tone; Pressed wins while the pointer is down. */
+.zen-link[data-visited="true"]:visited { color: var(--zen-color-content-hyperlink-visited); }
+.zen-link[data-tone="hyperlink"]:active { color: var(--zen-color-content-hyperlink-pressed); }
+/* inherit: the colour of the surrounding text (footers, captions); the underline says it is a link. */
+.zen-link[data-tone="inherit"] { color: inherit; }
+/* Focus/Accent ring, drawn around each line of a wrapped link. */
+.zen-link:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid); outline-offset: 1px; }
+
+/* external: a trailing Link-External glyph at the text size (it scales with the font it inherits), sitting on the text.
+   The last word and the glyph never break apart. */
+.zen-link__keep { white-space: nowrap; }
+/* zen-allow-raw-spacing: the glyph's gap scales with the font the link inherits (0.2em, like text-underline-offset
+   above); a Spacing token would be fixed px next to Heading/1 and Caption alike. Link is code-only (no Figma node). */
+.zen-link__external { margin-inline-start: 0.2em; }
+.zen-link__external > .zen-icon { vertical-align: -0.125em; }

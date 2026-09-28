@@ -1,0 +1,61 @@
+/* Figma Side-Panel (1573:3128). */
+.zen-side-panel {
+  --zen-side-panel-width: 440px;
+  /* Close: 20px Wrapper inset (Standard: Modal-Padding; Modal: + 4px Close-Container padding) holding a 32px button. */
+  --zen-side-panel-close-inset: var(--zen-modal-padding, 24px);
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  width: min(var(--zen-side-panel-width), 100%);
+  height: 100%;
+  min-height: 0;
+  flex: 0 0 auto;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--zen-color-content-neutral-strongest, #111);
+}
+.zen-side-panel[data-size="small"] { --zen-side-panel-width: 360px; }
+/* Standard: Surface column, 1px left edge Border/Neutral/Pale (a single edge, not a closed box). */
+.zen-side-panel[data-type="standard"] { background: var(--zen-color-background-surface-default, #fff); border-left: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+/* Modal: floating Container panel 8px from the edges. */
+.zen-side-panel-overlay { position: fixed; z-index: 1000; inset: 0; display: flex; justify-content: flex-end; padding: var(--zen-spacing-padding-xsmall, 8px); background: var(--zen-color-background-overlay); animation: zen-motion-scrim-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease-out) both; }
+/* Figma Modal: the 440/360 component includes the 8px outer padding, so the floating Container is 424/344. */
+.zen-side-panel[data-type="modal"] {
+  width: min(calc(var(--zen-side-panel-width) - 2 * var(--zen-spacing-padding-xsmall, 8px)), 100%);
+  height: 100%;
+  border-radius: var(--zen-corner-radius-xlarge, 20px);
+  background: var(--zen-color-background-container);
+  box-shadow: inset 0 0 0 1px var(--zen-container-border, var(--zen-color-border-container-subtle)), var(--zen-style-effect-container-shadow);
+  outline: none;
+  animation: zen-side-panel-slide-in var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, cubic-bezier(.16, 1, .3, 1)) both;
+}
+.zen-side-panel__header { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-modal-padding, 24px); }
+.zen-side-panel__icon { display: inline-flex; width: var(--zen-element-size-popular-2-xlarge, 44px); height: var(--zen-element-size-popular-2-xlarge, 44px); color: var(--zen-color-content-neutral-base); }
+.zen-side-panel__icon > .zen-icon { width: 100%; height: 100%; }
+/* The title keeps clear of the close: Wrapper (20) + gap Medium; Modal: Close-Container (28) + gap Medium. */
+.zen-side-panel__heading { display: flex; padding-inline-end: calc(var(--zen-element-size-popular-base, 20px) + var(--zen-spacing-gap-medium, 16px)); }
+.zen-side-panel[data-type="modal"] { --zen-side-panel-close-inset: calc(var(--zen-modal-padding, 24px) + var(--zen-spacing-padding-2-xsmall, 4px)); }
+.zen-side-panel[data-type="modal"] .zen-side-panel__heading { padding-inline-end: calc(var(--zen-element-size-popular-base, 20px) + 2 * var(--zen-spacing-padding-2-xsmall, 4px) + var(--zen-spacing-gap-medium, 16px)); }
+.zen-side-panel__title { min-width: 0; flex: 1 1 auto; margin: 0; }
+.zen-side-panel__close { position: absolute; z-index: 1; top: calc(var(--zen-side-panel-close-inset) + (var(--zen-element-size-popular-base, 20px) - 32px) / 2); right: calc(var(--zen-side-panel-close-inset) + (var(--zen-element-size-popular-base, 20px) - 32px) / 2); }
+.zen-side-panel__description { margin: calc(-1 * var(--zen-spacing-gap-xsmall, 8px)) 0 0; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
+.zen-side-panel__body { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: 0 var(--zen-modal-padding, 24px) var(--zen-modal-padding, 24px); overflow-y: auto; }
+.zen-side-panel__actions { padding: var(--zen-spacing-padding-small, 12px) var(--zen-modal-padding, 24px) var(--zen-modal-padding, 24px); }
+/* Motion: Modal slides in from beyond the edge (Slow, emphasized) over a fading scrim and leaves faster (Base, exit
+   curve). Standard nudges 16px + fades. data-state="closing" is held by usePresence for the exit duration. */
+@keyframes zen-side-panel-slide-in { from { transform: translateX(calc(100% + var(--zen-spacing-padding-xsmall, 8px))); } }
+@keyframes zen-side-panel-slide-out { to { transform: translateX(calc(100% + var(--zen-spacing-padding-xsmall, 8px))); } }
+@keyframes zen-side-panel-nudge-in { from { opacity: 0; transform: translateX(16px); } }
+@keyframes zen-side-panel-nudge-out { to { opacity: 0; transform: translateX(16px); } }
+.zen-side-panel-overlay[data-state="closing"] { animation: zen-motion-scrim-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; pointer-events: none; }
+.zen-side-panel[data-type="modal"][data-state="closing"] { animation: zen-side-panel-slide-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; }
+.zen-side-panel[data-type="standard"] { animation: zen-side-panel-nudge-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-emphasized, ease-out) both; }
+.zen-side-panel[data-type="standard"][data-state="closing"] { animation: zen-side-panel-nudge-out 160ms var(--zen-motion-ease-exit, ease-in) both; }
+@media (prefers-reduced-motion: reduce) { .zen-side-panel-overlay, .zen-side-panel { animation: none !important; } }
+@media (max-width: 480px) { .zen-side-panel[data-type="modal"] { width: 100%; } }
+/* The Contents slot is a form/detail column: direct children span its width. */
+.zen-side-panel__body { --zen-list-inset: 0px; }
+/* Content blocks (fields, lists, cards…) fill the panel; fixed-size visuals keep their own size (an Avatar stretched to 376×56). */
+.zen-side-panel__body > * { box-sizing: border-box; max-width: 100%; }
+.zen-side-panel__body > :not(.zen-avatar, .zen-avatar-stack, .zen-dock-icon, .zen-file-icon, .zen-icon, .zen-badge, .zen-tag, .zen-button, .zen-chip, img, svg, video) { width: 100%; }
+.zen-side-panel__body > :is(.zen-avatar, .zen-avatar-stack, .zen-dock-icon, .zen-file-icon, .zen-icon, .zen-badge, .zen-tag, .zen-chip, img, svg, video) { align-self: flex-start; }

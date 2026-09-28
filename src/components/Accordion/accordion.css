@@ -7,6 +7,8 @@
   --zen-accordion-icon: var(--zen-element-size-popular-base, 20px);
   --zen-accordion-icon-inset: var(--zen-spacing-padding-3-xsmall, 2px);
   --zen-accordion-radius: var(--zen-corner-radius-large, 16px);
+  /* Container itemSpacing (239:10693): Title ↔ chevron column, every size. The content column stops at the same edge. */
+  --zen-accordion-header-gap: var(--zen-spacing-gap-medium, 16px);
   display: flex;
   box-sizing: border-box;
   width: 100%;
@@ -27,15 +29,15 @@
 }
 /* Theme=Divider: 1px Border/Neutral/Subtle rule under the item. Figma centres the stroke on the edge
    without growing the 56/88/116px box, so it is drawn as an inset shadow instead of a border. */
-.zen-accordion[data-theme="divider"] { box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
+.zen-accordion[data-tone="divider"] { box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
 /* Theme=Box: Support/Neutral/Pale surface, padding on every side, Corner-Radius Large (XLarge: 2XLarge). */
-.zen-accordion[data-theme="box"] { padding: var(--zen-accordion-padding); border-radius: var(--zen-accordion-radius); background: var(--zen-color-background-support-neutral-pale, rgb(5 5 5 / 3%)); }
+.zen-accordion[data-tone="box"] { padding: var(--zen-accordion-padding); border-radius: var(--zen-accordion-radius); background: var(--zen-color-background-support-neutral-pale, rgb(5 5 5 / 3%)); }
 
 .zen-accordion__trigger {
   display: flex;
   width: 100%;
   align-items: flex-start;
-  gap: var(--zen-spacing-gap-medium, 16px);
+  gap: var(--zen-accordion-header-gap);
   margin: 0;
   padding: 0;
   border: 0;
@@ -67,11 +69,17 @@
 }
 .zen-accordion[data-expanded="true"] .zen-accordion__panel { grid-template-rows: 1fr; }
 .zen-accordion__panel-inner { min-height: 0; overflow: hidden; }
+/* Clip only while collapsed or animating: once open, content may paint outside the panel — hover halos
+   (Checkbox/Radio −8px), focus rings (−4px) and shadows must not be cut. The 240ms animation keeps the clip
+   for the duration of the height transition, then releases it. */
+.zen-accordion[data-expanded="true"] .zen-accordion__panel-inner { overflow: visible; animation: zen-accordion-clip 240ms; }
+@keyframes zen-accordion-clip { from, to { overflow: hidden; } }
 .zen-accordion__content {
   padding-top: var(--zen-accordion-gap);
-  padding-inline-end: calc(var(--zen-accordion-icon) + var(--zen-spacing-gap-medium, 16px));
+  padding-inline-end: calc(var(--zen-accordion-icon) + var(--zen-accordion-header-gap));
   color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%));
 }
 @media (prefers-reduced-motion: reduce) {
   .zen-accordion__panel, .zen-accordion__icon { transition: none; }
+  .zen-accordion[data-expanded="true"] .zen-accordion__panel-inner { animation: none; }
 }

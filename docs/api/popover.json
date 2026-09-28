@@ -1,0 +1,367 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "popover",
+  "import": "import { Popover, PopoverItem, PopoverSearch, PopoverBunkAction, PopoverBunkActionGroup, PopoverBunkActionDivider, PopoverManualAddNew } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Popover",
+      "file": "src/components/Popover/Popover.tsx",
+      "description": "Popover/Default composition. It mirrors the exported Figma structure while\nkeeping the item list composable for Select, Autocomplete, and menu fields.",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\" | \"onSelect\">",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Whether the surface is shown. Default false: pass `open` (controlled, with `onOpenChange`) to show it.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Semantic group heading for the options (for example `Component Size`), not the current selection. It also names the option list.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the option list (role=listbox) when there is no visible `label`, e.g. \"Sort by\".",
+          "deprecated": null
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "id of the element that names the option list (role=listbox); wins over `label` and `aria-label`.",
+          "deprecated": null
+        },
+        {
+          "name": "search",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "searchValue",
+          "type": "string",
+          "required": false,
+          "default": "\"\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "searchPlaceholder",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Placeholder and accessible name of the Search row. Default: the locale's \"Search\".",
+          "deprecated": null
+        },
+        {
+          "name": "onSearchChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "scrollBar",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "items",
+          "type": "PopoverItemData[]",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onSelect",
+          "type": "(item: PopoverItemData) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "emptyState",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Shown when the (filtered) item list is empty. Default: the locale's \"No results\"; `null` shows nothing.",
+          "deprecated": null
+        },
+        {
+          "name": "autoFocus",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Move focus into the popover when it opens (use when it was opened from the keyboard).",
+          "deprecated": null
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with `false` on a pointer-down outside the popover (and outside `anchorRef`) or on Escape.",
+          "deprecated": null
+        },
+        {
+          "name": "anchorRef",
+          "type": "RefObject<HTMLElement | null>",
+          "required": false,
+          "default": null,
+          "description": "The trigger element; pointer-downs on it are left to the trigger's own toggle.",
+          "deprecated": null
+        },
+        {
+          "name": "searchClearable",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Show the Search clear button while it has a value (Figma Search/Popover Typing/Inputted).",
+          "deprecated": null
+        },
+        {
+          "name": "align",
+          "type": "\"start\" | \"end\"",
+          "required": false,
+          "default": "\"start\"",
+          "description": "Preferred horizontal edge against the anchor box; flips when it would overflow the viewport.",
+          "deprecated": null
+        },
+        {
+          "name": "multiple",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Multi-select list: every item gets a trailing Checkbox/Mark (Figma multi-select Popover).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "PopoverItem",
+      "file": "src/components/Popover/Popover.tsx",
+      "description": "The 240px Popover/Item primitive.",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLButtonElement>, \"onSelect\">",
+      "props": [
+        {
+          "name": "item",
+          "type": "{ id: string; label: ReactNode; value?: string; caption?: ReactNode; /** Before the label: an icon name (`\"icon-folder-line\"`, drawn at 20px) or any node. */ leading?: IconName | ReactNode; /** After the label: an icon name (drawn at 16px) or any node (a Badge, a shortcut). */ trailing?: IconName | ReactNode; disabled?: boolean; selected?: boolean; /** Image for the Avatar/Photo themes. The item renders the Figma-sized primitive itself * (Avatar Small 32 · Avatar Big 40 · Photo Small 20 · Photo Big 32), so callers don't size it. */ photoSrc?: string; photoAlt?: string; /** Theme=Badge: colour of the Medium Solid Badge that carries the label. */ badgeTheme?: BadgeTheme; /** Figma Content variant; React nodes remain fully composable. */ theme?: \"icon\" | \"text-only\" | \"photo-small\" | \"photo-big\" | \"avatar-small\" | \"avatar-big\" | \"dock-icon\" | \"badge\"; /** Figma Function variant used by the Manual-Add-New composition. */ function?: \"default\" | \"manual-add-new\"; }",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "caption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Before the label: an icon name (`\"icon-folder-line\"`, drawn at 20px) or any node.",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "After the label: an icon name (drawn at 16px) or any node (a Badge, a shortcut).",
+          "deprecated": null
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "PopoverItemData[\"theme\"]",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "function",
+          "type": "PopoverItemData[\"function\"]",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\"",
+          "required": false,
+          "default": null,
+          "description": "Static preview of Figma's Hover state (real hover/focus work without it).",
+          "deprecated": null
+        },
+        {
+          "name": "control",
+          "type": "\"check\" | \"checkbox\"",
+          "required": false,
+          "default": "\"check\"",
+          "description": "`checkbox`: multi-select row — a trailing Checkbox/Mark shows the selection instead of the\nSingle-Selected fill + check icon.",
+          "deprecated": null
+        },
+        {
+          "name": "itemRole",
+          "type": "\"option\" | \"menuitem\" | \"menuitemcheckbox\" | \"menuitemradio\"",
+          "required": false,
+          "default": "\"option\"",
+          "description": "ARIA role of the row. `option` (default) in a listbox, with aria-selected from `selected`; `menuitem` in a Menu (no\naria-selected); `menuitemcheckbox` / `menuitemradio` for a checkable menu row, with aria-checked from `selected`.",
+          "deprecated": null
+        },
+        {
+          "name": "onSelect",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "PopoverSearch",
+      "file": "src/components/Popover/Popover.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": null,
+      "props": []
+    },
+    {
+      "name": "PopoverBunkAction",
+      "file": "src/components/Popover/Popover.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLDivElement>",
+      "props": [
+        {
+          "name": "theme",
+          "type": "\"default\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "PopoverBunkActionGroup",
+      "file": "src/components/Popover/Popover.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": null,
+      "props": []
+    },
+    {
+      "name": "PopoverBunkActionDivider",
+      "file": "src/components/Popover/Popover.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": null,
+      "props": []
+    },
+    {
+      "name": "PopoverManualAddNew",
+      "file": "src/components/Popover/Popover.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": "Omit<PopoverProps, \"label\" | \"search\">",
+      "props": [
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Heading above the options. Default: the locale's \"Select an option or create one\".",
+          "deprecated": null
+        },
+        {
+          "name": "createLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Text of the create row, before the Badge with the typed value. Default: the locale's \"Create\".",
+          "deprecated": null
+        },
+        {
+          "name": "onCreate",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "items",
+          "type": "unknown",
+          "required": false,
+          "default": "[]",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "BadgeTheme": "type BadgeTheme = \"accent\" | \"neutral\" | \"yellow\" | \"orange\" | \"red\" | \"crimson\" | \"pink\" | \"plum\" | \"purple\" | \"violet\" | \"indigo\" | \"blue\" | \"cyan\" | \"teal\" | \"green\" | \"brown\" | \"inverse\" | \"on-color\"",
+    "PopoverItemData": "type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?: ReactNode; leading?: IconName | ReactNode; trailing?: IconName | ReactNode; disabled?: boolean; selected?: boolean; photoSrc?: string; photoAlt?: string; badgeTheme?: BadgeTheme; theme?: \"icon\" | \"text-only\" | \"photo-small\" | \"photo-big\" | \"avatar-small\" | \"avatar-big\" | \"dock-icon\" | \"badge\"; function?: \"default\" | \"manual-add-new\"; }"
+  }
+}

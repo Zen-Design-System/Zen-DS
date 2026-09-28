@@ -24,14 +24,46 @@ Non-interactive status, category or count labels.
 | Leading-Icon | `leading / leadingIcon` | hidden on xsmall |
 | Remove | `remove / onRemove` | icon-x-circle-solid |
 
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/badge.json`.
+
+### Badge
+Also accepts `Omit<HTMLAttributes<HTMLSpanElement>, "color">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `ref` | `Ref<HTMLSpanElement>` | — | The root `<span>`. |
+| `children` | `ReactNode` | — |  |
+| `size` | `"xs" \| "sm" \| "md" \| "xsmall" \| "small" \| "medium"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `theme` | `"accent" \| "neutral" \| "yellow" \| "orange" \| "red" \| "crimson" \| "pink" \| "plum" \| "purple" \| "violet" \| "indigo" \| "blue" \| "cyan" \| "teal" \| "green" \| "brown" \| "inverse" \| "on-color"` | — |  |
+| `color` | `"accent" \| "neutral" \| "yellow" \| "orange" \| "red" \| "crimson" \| "pink" \| "plum" \| "purple" \| "violet" \| "indigo" \| "blue" \| "cyan" \| "teal" \| "green" \| "brown" \| "inverse" \| "on-color"` | — | **Deprecated:** Use theme (same values).  |
+| `background` | `"solid" \| "subtle"` | `"solid"` |  |
+| `leading` | `IconName \| ReactNode` | — | Leading icon: an icon name (`"icon-check-line"`) or a node; replaces the default dot. |
+| `leadingIcon` | `boolean` | `true` |  |
+| `remove` | `boolean` | `false` |  |
+| `onRemove` | `() => void` | — |  |
+| `className` | `string` | — |  |
+
+### BadgeCounter
+Also accepts `Omit<BadgeProps, "remove" | "onRemove" | "leading">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `ReactNode` | — |  |
+| `size` | _HTML attribute_ | `"sm"` |  |
+
 ## ✅ Do
 - Map status to semantic themes consistently (green = success, red = failure, yellow = attention).
 - Use Subtle backgrounds in dense tables and Solid for emphasis.
 - Cap counters at "99+" and hide them at zero.
+- Show counts (unread, items, filters applied) with BadgeCounter (Figma Badge-Counter) — a round pill whose min width equals its height; keep Badge for words and statuses (harness: badge/count-uses-counter).
+- Make counts agree with their noun — "1 file" / "3 files" — with a plural helper; never print {list.length} straight before a noun (harness: copy/plural-count).
 
 ## ❌ Don't
 - Don't make a badge clickable (use Chip).
 - Don't rely on colour alone; keep the text.
+- Don't use more than two badges on one row item; summarise the rest.
+- Don't show counters at zero.
 
 ## Accessibility
 - The remove button is labelled ("Remove `<label>`").
@@ -44,6 +76,10 @@ Non-interactive status, category or count labels.
 | --- | --- | --- | --- |
 | `removable/needs-handler` | error | A remove affordance must be wired to onRemove. | `zen-allow-remove-handler: <reason>` |
 | `badge-counter/cap` | warn | Counters cap at 99+. | `zen-allow-counter-cap: <reason>` |
+| `badge/count-uses-counter` | warn | A bare count (a number, or an expression like count / length / total / unread) is a Badge-Counter, not a Badge — BadgeCounter keeps the round pill and a min width equal to its height. | `zen-allow-badge-count: <reason>` |
+| `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `copy/plural-count` | warn | Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`. | `zen-allow-plural: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 
 ## References
 - [Material 3 — Badges](https://m3.material.io/components/badges/guidelines)

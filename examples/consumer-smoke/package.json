@@ -1,0 +1,19 @@
+{
+  "name": "zen-consumer-smoke",
+  "private": true,
+  "type": "module",
+  "description": "Template app for scripts/verify-package.mjs: installs the packed @zen/design-system like a real app would.",
+  "scripts": { "build": "tsc --noEmit -p . && vite build" },
+  "dependencies": {
+    "@zen/design-system": "file:../../dist-pack/zen-design-system.tgz",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "typescript": "^7.0.0",
+    "vite": "^8.0.0"
+  }
+}

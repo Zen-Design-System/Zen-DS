@@ -1,0 +1,287 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "sidebar",
+  "import": "import { Sidebar, SidebarSubMenu } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Sidebar",
+      "file": "src/components/Sidebar/Sidebar.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "variant",
+          "type": "\"basic\" | \"workspace\" | \"small-density\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "density",
+          "type": "\"medium\" | \"small\"",
+          "required": false,
+          "default": null,
+          "description": "Compatibility alias for the earlier component API.",
+          "deprecated": null
+        },
+        {
+          "name": "collapsed",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onCollapsedChange",
+          "type": "(collapsed: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Controlled collapse callback used by the Figma Basic/Small-Density header control. Without it the control is\nnot rendered. Ignored by `variant=\"workspace\"`, which has no collapsed state.",
+          "deprecated": null
+        },
+        {
+          "name": "brand",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Replaces the whole header, including the collapse control. Prefer `logo` / `productName`, which keep it.",
+          "deprecated": null
+        },
+        {
+          "name": "logo",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Header logo while expanded (Figma LOGO / Union). Sized to the header height (24px; 20px in Small-Density).",
+          "deprecated": null
+        },
+        {
+          "name": "logoCollapsed",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Mark shown in the collapsed rail instead of `logo` (Figma collapsed Logo, 28px; 20px in Small-Density).",
+          "deprecated": null
+        },
+        {
+          "name": "productName",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Small product label after the logo (Figma: the product badge beside the wordmark).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the navigation landmark. Default: the locale's “Main navigation” (“Workspace navigation” for the workspace variant).",
+          "deprecated": null
+        },
+        {
+          "name": "sections",
+          "type": "SidebarSection[]",
+          "required": false,
+          "default": "[]",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "selectedId",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Id of the current page's item: it is marked selected (aria-current=\"page\") and its parent groups open (and stay\n open until the user collapses them), so the app passes its route id instead of setting `selected` in `sections`.\n When set, it replaces the items' own `selected` / `active` flags in the navigation (not in the workspace rail).",
+          "deprecated": null
+        },
+        {
+          "name": "linkAs",
+          "type": "ElementType",
+          "required": false,
+          "default": null,
+          "description": "Component that renders items with an `href`, e.g. your router's link. It receives `href`, `className`, `onClick`,\n `aria-current` and the children; adapt a router link that takes `to` (`({ href, ...rest }) => <RouterLink to={href} {...rest} />`). Default `a`.",
+          "deprecated": null
+        },
+        {
+          "name": "footer",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "search",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onItemClick",
+          "type": "(item: SidebarItem) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "background",
+          "type": "\"default\" | \"alt\" | \"flat\" | \"inverse\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "workspaceBrand",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "workspaceItems",
+          "type": "SidebarItem[]",
+          "required": false,
+          "default": "[]",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "workspaceFooter",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "workspaceAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Workspace rail: the action after the workspace avatars (usually an \"Add workspace\" Button/Icon-Main).",
+          "deprecated": null
+        },
+        {
+          "name": "headerAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Workspace panel header action on the right (Figma: settings Button/Icon-Flat).",
+          "deprecated": null
+        },
+        {
+          "name": "workspaceBar",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "subMenu",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Side-Bar/Sub: a 260px flyout panel opened beside the sidebar (usually a <SidebarSubMenu>).",
+          "deprecated": null
+        },
+        {
+          "name": "subMenuLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the flyout panel. Default: the locale's “Sub menu”.",
+          "deprecated": null
+        },
+        {
+          "name": "onSubMenuClose",
+          "type": "(event: KeyboardEvent | globalThis.PointerEvent) => void",
+          "required": false,
+          "default": null,
+          "description": "Called on Escape or a pointer press outside the sidebar and its flyout, so the owner can close it.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "SidebarSubMenu",
+      "file": "src/components/Sidebar/Sidebar.tsx",
+      "description": "Figma Side-Bar/Sub → Sub-Item: Search/Popover, then the Item-List of Master menu items (gap Small).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "search",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Sub-Item/Search: usually <Search variant=\"popover\" />.",
+          "deprecated": null
+        },
+        {
+          "name": "items",
+          "type": "SidebarItem[]",
+          "required": false,
+          "default": "[]",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "sections",
+          "type": "SidebarSection[]",
+          "required": false,
+          "default": "[]",
+          "description": "Grouped items with Menu-Item section titles (rendered after `items`).",
+          "deprecated": null
+        },
+        {
+          "name": "onItemClick",
+          "type": "(item: SidebarItem) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Extra content under the item list.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "SidebarItem": "type SidebarItem = { id: string; label: string; icon?: IconName | ReactNode; active?: boolean; selected?: boolean; disabled?: boolean; state?: SidebarItemState; theme?: SidebarItemTheme; dropdown?: boolean; indent?: boolean; counter?: ReactNode; notificationDot?: boolean; trailingAction?: ReactNode; children?: SidebarItem[]; href?: string; }",
+    "SidebarItemState": "type SidebarItemState = \"default\" | \"hover\" | \"focus\" | \"disabled\"",
+    "SidebarItemTheme": "type SidebarItemTheme = \"neutral\" | \"accent\"",
+    "SidebarSection": "type SidebarSection = { label?: string; action?: ReactNode; items: SidebarItem[]; }"
+  }
+}

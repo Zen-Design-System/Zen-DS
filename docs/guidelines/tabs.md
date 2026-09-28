@@ -20,17 +20,85 @@ Switch between related panels of content at the same level.
 | --- | --- | --- |
 | Style | `variant` | indicator · subtle |
 | Size | `size` | medium · small |
-| Items | `items[] {id,label,icon,badge,disabled}` | Badge-Counter xsmall |
+| Items | `items[] {id,label,icon,badge,disabled}` | icon: a name ("icon-home-02-line") or a node; Badge-Counter xsmall |
+| Value | `value / defaultValue / onValueChange(id)` | controlled or not (onChange is the deprecated alias) |
 | Panels | `idPrefix + TabPanel` | aria-controls wiring |
+| Full width | `fullWidth` | equal-width items that share the bar (min-width 0, centred labels) — e.g. a mobile screen header |
+
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/tabs.json`.
+
+### Tabs
+Figma Tab-Bar (1577:5477). Roving tabindex: ←/→ move and select, Home/End jump, disabled tabs are skipped.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `items` (required) | `TabOption[]` | — |  |
+| `value` | `string` | — |  |
+| `defaultValue` | `string` | — |  |
+| `onValueChange` | `(id: string) => void` | — | Called with the selected tab's id. |
+| `onChange` | `(id: string) => void` | — | **Deprecated:** Use onValueChange (same arguments).  |
+| `size` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `variant` | `"indicator" \| "subtle"` | `"indicator"` |  |
+| `fullWidth` | `boolean` | `false` | Stretch the bar to its container (Indicator style keeps its bottom border full width). |
+| `aria-label` | `string` | — |  |
+| `idPrefix` | `string` | — | Prefix for tab/panel ids so panels can reference `${idPrefix}-tab-${id}`. |
+| `className` | `string` | — |  |
+
+### TabItem
+Figma Primitives/Tab-Item (1576:2090): Size × Style × State × Select × Label × Icon (+ Badge).
+
+Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `ref` | `Ref<HTMLButtonElement>` | — |  |
+| `label` | `ReactNode` | — |  |
+| `icon` | `IconName \| ReactNode` | — | Leading icon (Element-Size/Popular/Base 20): an icon name (`"icon-home-03-line"`) or a node. |
+| `badge` | `number \| string` | — | Figma Badge=Yes: Badge-Counter XSmall · Neutral · Subtle after the label. |
+| `selected` | `boolean` | `false` |  |
+| `size` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `variant` | `"indicator" \| "subtle"` | `"indicator"` | Figma Style: Indicator (underline) or Subtle (filled). |
+| `state` | `"default" \| "hover" \| "disabled"` | `"default"` | Deterministic Figma State for matrices; real hover/disabled apply natively. |
+| `type` | _HTML attribute_ | `"button"` |  |
+
+### TabPanel
+Panel paired with a tab: `<TabPanel idPrefix="settings" id="general" hidden={tab !== "general"}>`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `idPrefix` (required) | `string` | — |  |
+| `id` (required) | `string` | — |  |
+| `children` (required) | `ReactNode` | — |  |
+| `hidden` | `boolean` | — |  |
+| `className` | `string` | — |  |
+
+### Types
+Object shapes the props above refer to.
+
+```ts
+type TabOption = { id: string; label?: ReactNode; icon?: IconName | ReactNode; badge?: number | string; disabled?: boolean; "aria-label"?: string; }
+```
+
+## Keyboard
+| Keys | Action |
+| --- | --- |
+| ← / → | Select the previous / next tab |
+| Home / End | First / last tab |
+| Tab | Move into the active panel |
 
 ## ✅ Do
 - Give the tablist an aria-label and pair each tab with a TabPanel.
 - Keep 2–7 tabs with short labels.
 - Show counts with badges; hide at zero.
+- Keep the selected tab when the page reloads (URL or state).
+- Use fullWidth for 2–4 tabs that should split the width evenly (mobile headers); keep hugging tabs for longer sets.
 
 ## ❌ Don't
 - Don't use tabs to submit or navigate away.
 - Don't mix icon-only and labelled tabs.
+- Don't use more than 7 tabs or a single tab (harness: tabs/item-count).
+- Don't nest tab bars inside tab panels; use Segmented for the inner switch.
 
 ## Accessibility
 - Roving tabindex; ←/→ select, Home/End jump, disabled tabs are skipped.
@@ -42,6 +110,10 @@ Switch between related panels of content at the same level.
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `tabs/needs-label` | error | A tablist needs an aria-label. | `zen-allow-tabs-label: <reason>` |
+| `tabs/item-count` | warn | Tabs hold 2–7 items; more → Sidebar or a SelectField, one → no tabs. | `zen-allow-tab-count: <reason>` |
+| `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
+| `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 
 ## References
 - [WAI-ARIA APG — Tabs](https://www.w3.org/WAI/ARIA/apg/patterns/tabs/)

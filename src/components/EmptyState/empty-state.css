@@ -1,0 +1,30 @@
+/* Figma Empty-State (6085:25796). */
+.zen-empty-state {
+  display: flex;
+  box-sizing: border-box;
+  width: min(320px, 100%);
+  flex-direction: column;
+  align-items: center;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  margin-inline: auto;
+  padding-bottom: var(--zen-spacing-padding-4-xlarge, 48px);
+  text-align: center;
+}
+.zen-empty-state__body { display: flex; width: 100%; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-xlarge, 32px); }
+.zen-empty-state__content { display: flex; width: 100%; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-empty-state__title { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-empty-state__caption { margin: 0; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-empty-state__actions { display: flex; width: 100%; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-empty-state__actions > .zen-button { width: 100%; }
+
+/* Placeholder illustration: grid lines Border/Neutral/Pale fading out at the edges; dashed ghost circle and solid
+   ring Border/Neutral/Subtle (2px) on Surface; inner well Background/Neutral/Pale; icon Content/Neutral/Light. */
+.zen-empty-state__illustration { position: relative; display: inline-flex; width: 240px; max-width: 100%; aspect-ratio: 1; flex: 0 0 auto; }
+.zen-empty-state__art { width: 100%; height: 100%; overflow: visible; }
+.zen-empty-state__illustration .zen-empty-state__grid { stroke: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); stroke-width: 1; mask: radial-gradient(closest-side, #000 60%, transparent); }
+.zen-empty-state__illustration .zen-empty-state__grid line { stroke: inherit; }
+.zen-empty-state__illustration .zen-empty-state__ghost { fill: var(--zen-color-background-surface-default, #fff); stroke: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); stroke-width: 2; stroke-dasharray: 4 4; }
+.zen-empty-state__illustration .zen-empty-state__ring { fill: var(--zen-color-background-surface-default, #fff); stroke: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); stroke-width: 2; }
+.zen-empty-state__illustration .zen-empty-state__well { fill: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); }
+.zen-empty-state__icon { position: absolute; top: 50%; left: 60.8%; display: inline-flex; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); transform: translate(-50%, -50%); }
+.zen-empty-state__icon > .zen-icon { width: var(--zen-element-size-popular-2-xlarge, 44px); height: var(--zen-element-size-popular-2-xlarge, 44px); }

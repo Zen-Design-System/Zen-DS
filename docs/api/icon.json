@@ -1,0 +1,51 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "icon",
+  "import": "import { Icon } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Icon",
+      "file": "src/components/Icon/Icon.tsx",
+      "description": "Zen icon. Icons used by Zen components draw synchronously; any other name loads its bucket on first use (an empty\nbox of the same size shows for that first frame — `preloadIcons()` or `@zen/design-system/icons/all` avoid it).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "name",
+          "type": "IconName",
+          "required": true,
+          "default": null,
+          "description": "One of the 1,598 Zen icon names (`IconName` autocompletes them), e.g. `icon-home-03-line`, `icon-search-medium-line`.\nIcons that only come in cuts also take their plain name (`icon-search-line`, `icon-x-line`,\n`icon-chevron-left-line`, `icon-chevron-right-line`), which draws the Medium cut.",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "IconSize | number | string",
+          "required": false,
+          "default": null,
+          "description": "A token size (`2xs`…`3xl`, default `base` = 20px) or a px number.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name; without it the icon is decorative (aria-hidden).",
+          "deprecated": null
+        },
+        {
+          "name": "decorative",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "IconSize": "type IconSize = \"2xs\" | \"xs\" | \"sm\" | \"base\" | \"md\" | \"lg\" | \"xl\" | \"2xl\" | \"3xl\""
+  }
+}

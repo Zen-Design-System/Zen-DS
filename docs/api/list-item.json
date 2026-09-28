@@ -1,0 +1,154 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "list-item",
+  "import": "import { List, ListItem } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "List",
+      "file": "src/components/ListItem/ListItem.tsx",
+      "description": "A plain list of List-Items (ul, no bullets).",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLUListElement>",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLUListElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<ul>`.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "inset",
+          "type": "\"auto\" | \"comfortable\" | \"compact\" | \"none\"",
+          "required": false,
+          "default": "\"auto\"",
+          "description": "Horizontal inset of the rows' content, following the layout it sits in.\n auto (default): full-bleed on a page = Margin/Comfortable (24px); inside a container that already has its own\n padding (Modal, Side Panel, Card) = none, so row content lines up with the container's other content.\n comfortable = Margin/Comfortable, compact = Margin/Compact, none = 0 (the hover/selected fill bleeds 12px outward).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ListItem",
+      "file": "src/components/ListItem/ListItem.tsx",
+      "description": "Figma List-Item (4080:11700): padding Spacing/Padding/Small × Margin-Comfortable, a Wrapper row (gap Medium) of\nLeading · Contents · Trailing, and an Interactive-Background inset 12px (Corner-Radius/Large) that shows\nNeutral/Flat Hover · Pressed and Active/Neutral/Subtle when selected.",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\" | \"onClick\">",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The root row element.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Info-Content Title (Body/Base/Bold, Content/Neutral/Strongest).",
+          "deprecated": null
+        },
+        {
+          "name": "caption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Info-Content Subtitle (Body/Small/Regular, Content/Neutral/Light).",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Leading slot: an Avatar (Image-Size/Medium), Dock Icon, thumbnail or an icon name (`\"icon-clock-line\"`).",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Trailing slot (Slot-Actions): Medium (md) buttons / icon buttons, a Badge, a value or a chevron.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Contents slot override: replaces the title/caption stack.",
+          "deprecated": null
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma State=Selected (Background/Active/Neutral/Subtle).",
+          "deprecated": null
+        },
+        {
+          "name": "onClick",
+          "type": "(event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void",
+          "required": false,
+          "default": null,
+          "description": "Makes the row one action (Hover / Pressed from real interaction). Keep trailing buttons out of clickable rows.",
+          "deprecated": null
+        },
+        {
+          "name": "href",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Renders the row as a link.",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "\"li\" | \"div\"",
+          "required": false,
+          "default": "\"li\"",
+          "description": "\"li\" (default, inside <List>) or \"div\" when used on its own.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

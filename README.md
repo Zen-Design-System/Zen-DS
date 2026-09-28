@@ -1,46 +1,60 @@
 # Zen Design System
 
-React, TypeScript and Storybook implementation of the Zen design foundations and components.
+React 19 + TypeScript components, design tokens and icons generated from the Zen Figma library
+(file `9nZv4uW2LT21yuHabMTCh1`), plus the Codebase Platform docs site.
 
-## Commands
+- **Documented components** (Button, inputs, Table, Dialog, Sidebar, Chat, Chart, layout, text, app shell…), each with
+  Do/Don't guidelines, generated props docs and machine-checked usage rules.
+- **Foundations:** 2,367 Figma variables in 7 mode axes (theme, component theme, density, radius, emphasis,
+  breakpoint, typography), 36 text styles, 18 effect styles, 1,598 icons.
+- **AI-ready:** agents building apps start at [`AGENTS.consumer.md`](AGENTS.consumer.md) (shipped with the package);
+  [`llms.txt`](llms.txt) indexes every doc. Agents working on the design system itself read `AGENTS.md` (repo only).
+
+## Use it in an app
+
+```bash
+npm run pack:local            # in this repo → dist-pack/zen-design-system-<version>.tgz
+npm install /path/to/Zen-DS/dist-pack/zen-design-system-0.3.0.tgz   # in your app
+```
+
+```tsx
+import "@zen/design-system/styles.css";
+import { Button, ZenProvider } from "@zen/design-system";
+
+<ZenProvider theme="system">
+  <Button level="primary">Save changes</Button>
+</ZenProvider>;
+```
+
+Full setup (modes, dark mode, mobile, icons, fonts): [docs/getting-started.md](docs/getting-started.md).
+Per-component docs: [docs/guidelines/](docs/guidelines/README.md) and [docs/api/](docs/api).
+
+## Develop (repo only)
+
+The sections below are for working on the design system in its repo; their links don't exist in the installed package.
 
 ```bash
 npm install
-npm run tokens:build
-npm run tokens:check
-npm run styles:build
-npm run styles:check
-npm run icons:build
-npm run icons:check
-npm run storybook
-npm run dev
+npm run dev              # Codebase Platform at http://localhost:5173
+npm run storybook        # Storybook at http://localhost:6006
+npm run build            # library (dist/) + platform (dist-platform/)
 ```
 
-## Platform preview
-
-The Vite app at `http://127.0.0.1:5173/` mirrors the Codebase Platform template from the official Figma file. The cover title uses the supplied TASA Explorer font; the platform UI uses the generated Zen typography and token contracts. Component pages use the existing Chip/Popover playground to select one preview at a time; the code surface uses the platform-only JetBrains Mono asset.
-
-The platform sidebar maps the current Storybook pages as follows:
-
-| Platform entry | Storybook source |
+| Check | Command |
 | --- | --- |
-| Overviews | `Foundations/Overview` |
-| Design Tokens | `Foundations/Collections` plus each of the 11 collection detail pages |
-| Typography | `Foundations/Styles/Text Styles` |
-| Iconography | `Foundations/Iconography` |
-| Button (Main + Icon) | `Components/Button/Main` plus Figma `Button/Icon-Main` |
-| Chip/Pill (Normal, Advanced, Number-only) | `Components/Chip` |
-| Sidebar | `Components/Sidebar` |
-| Input (Text, Text Area, Select, Date, Autocomplete, Number, Richtext) | `Components/Input` |
+| Types | `npx tsc --noEmit -p .` |
+| Usage rules | `npm run usage:selftest` · `npm run usage:check` |
+| Guidelines + props docs | `npm run guidelines:build` · `npm run guidelines:check` |
+| Tokens / styles / icons | `npm run tokens:check` · `npm run styles:check` · `npm run icons:check` |
+| Figma parity | `node tools/figma-contract/run-all.mjs` |
+| Platform QA | `npm run platform:audit` · `npm run platform:shoot -- <page>` |
+| Package | `npm run verify:package` (packs, installs into a temp app, type-checks, builds, checks budgets) |
 
-`Installation` and `Avatar` are template entries ready for their next content pass. Component pages use the shared Codebase Platform frame with the five token-mode chips plus segmented view control; foundation/token pages use the same frame with the segmented control only, matching their Figma frames. All pages use the 400px hero and centered intro; Search remains the shared `Search` component on its own page, and navigation remains the reusable `Sidebar` component. The platform starts with `Zen / Light / Neutral-S1 / Compact / Rounded / Medium / Dashboard`. See the [Figma → platform workflow](docs/figma-to-platform-workflow.md) and [template lock](docs/platform-template-lock.md) before changing the shell or component pages.
+Adding or changing a component: follow the definition of done in [AGENTS.md](AGENTS.md#b-building-or-changing-a-component).
 
-## Foundation status
+## Architecture notes (repo only)
 
-The repository contains the complete 11-collection Figma variable export with 2,367 variables, 36 local Text Styles, the generated CSS/TypeScript contracts, the Foundations overview, and searchable Storybook references. The SVG icon pipeline includes 1,592 imported icons and a typed React primitive. `Button` (Main + Icon) is the first implemented component pilot. See [token architecture](docs/token-architecture.md), [Text Style architecture](docs/text-style-architecture.md), [icon architecture](docs/icon-architecture.md), [icon import report](docs/icon-import-report.md), [Button Main](docs/button-main.md), and the [Figma audit](docs/figma-audit.md).
-
-Component implementation order:
-
-1. Confirm the three icon source anomalies in `docs/icon-import-report.md`.
-2. Define any required icon aliases or deprecations.
-3. Validate Button (Main + Icon) visually against Figma and lock the shared public API.
+[Token architecture](docs/token-architecture.md) · [Text styles](docs/text-style-architecture.md) ·
+[Icons](docs/icon-architecture.md) · [Usage rules](docs/component-usage-rules.md) ·
+[Figma → platform workflow](docs/figma-to-platform-workflow.md) · [Platform template lock](docs/platform-template-lock.md) ·
+[QA](docs/qa/platform-audit.md) · [Session logs](docs/context/README.md)

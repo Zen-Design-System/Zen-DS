@@ -2,7 +2,9 @@ import { useDeferredValue, useEffect, useState } from "react";
 import { Icon, iconSizes, type IconSize } from "../components/Icon";
 import { Search } from "../components/Search";
 import { SelectField } from "../components/Input";
-import { getIconData, iconNames } from "../icons/generated/iconData";
+import { EmptyState } from "../components/EmptyState";
+import { FileIcon, fileIconData, fileIconFormats } from "../components/FileIcon";
+import { getIconData, iconNames } from "../icons/all";
 
 export function IconGallery({ embedded = false }: { embedded?: boolean }) {
   const pageSize = 120;
@@ -12,6 +14,8 @@ export function IconGallery({ embedded = false }: { embedded?: boolean }) {
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
   const matches = iconNames.filter((name) => name.includes(deferredQuery));
   const visibleIcons = matches.slice(0, visibleCount);
+  // Figma Special Icons → File (icon-media-file): matched by format, label or "file".
+  const fileMatches = fileIconFormats.filter((format) => !deferredQuery || `file media ${format} ${fileIconData[format].label}`.toLowerCase().includes(deferredQuery));
 
   useEffect(() => setVisibleCount(pageSize), [deferredQuery]);
 
@@ -63,6 +67,31 @@ export function IconGallery({ embedded = false }: { embedded?: boolean }) {
             <p aria-live="polite">{matches.length.toLocaleString("en-US")} matches</p>
           </section>
 
+          {fileMatches.length ? (
+            <section className="icon-gallery__special" aria-labelledby="icon-gallery-file-title">
+              <header className="icon-gallery__special-header">
+                <h2 id="icon-gallery-file-title">File icons</h2>
+                <p>Figma <code>icon-media-file</code> · identifies a file type next to its name (uploads, attachments, file lists). Not an action icon.</p>
+              </header>
+              <div className="icon-grid">
+                {fileMatches.map((format) => (
+                  <article className="icon-card" key={format}>
+                    <div><FileIcon format={format} size={size} /></div>
+                    <strong>{fileIconData[format].label}</strong>
+                    <span>{fileIconData[format].tone}</span>
+                    <code>{`<FileIcon format="${format}" />`}</code>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {matches.length === 0 && fileMatches.length === 0 ? (
+            <EmptyState className="icon-gallery__no-results" title={`No icons match “${query.trim()}”`} icon="icon-search-medium-line" secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>
+              Try a shorter name such as “arrow” or “user”, or browse all {iconNames.length.toLocaleString("en-US")} icons.
+            </EmptyState>
+          ) : null}
+          {matches.length && fileMatches.length ? <h2 className="icon-gallery__section-title">System icons</h2> : null}
           <section className="icon-grid" aria-label="Available icons">
             {visibleIcons.map((name) => (
               <article className="icon-card" key={name}>
@@ -86,17 +115,9 @@ export function IconGallery({ embedded = false }: { embedded?: boolean }) {
           ) : null}
         </>
       ) : (
-        <section className="icon-gallery__empty">
-          <span aria-hidden="true">◇</span>
-          <div>
-            <h2>SVG source folder is ready</h2>
-            <p>
-              Export Figma icons into <code>icons/source/</code>, then run{" "}
-              <code>npm run icons:build</code>. The gallery and TypeScript names update
-              automatically.
-            </p>
-          </div>
-        </section>
+        <EmptyState title="SVG source folder is ready" icon="icon-folder-line">
+          Export Figma icons into <code>icons/source/</code>, then run <code>npm run icons:build</code>. The gallery and TypeScript names update automatically.
+        </EmptyState>
       )}
     </main>
   );

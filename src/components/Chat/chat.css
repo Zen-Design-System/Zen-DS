@@ -1,0 +1,225 @@
+/* Figma ❖ Chat (7042:23220). */
+.zen-chat-thread { --zen-chat-text-max: 220px; --zen-chat-photo-size: 260px; --zen-chat-photo-pair: 160px; display: flex; min-height: 0; flex-direction: column; gap: 4px; overflow: auto; padding: var(--zen-spacing-padding-medium, 16px); }
+/* Figma Device: the Message text caps at 220 (Mobile) / 516 (Desktop); photo grids are 260 / 400 square. */
+.zen-chat-thread[data-device="desktop"] { --zen-chat-text-max: 516px; --zen-chat-photo-size: 400px; --zen-chat-photo-pair: 240px; }
+.zen-chat-thread > .zen-chat-message:not(:first-child) { margin-top: var(--zen-spacing-gap-small, 12px); }
+/* The latest message sits at the bottom of a tall thread. margin-top:auto (not justify-content:flex-end) keeps older
+   messages reachable when the thread overflows: flex-end pushes them above the scroll origin where they cannot be scrolled to. */
+.zen-chat-thread > :first-child { margin-top: auto; }
+/* Consecutive messages from the same side form a run: 4px apart instead of 12. */
+.zen-chat-thread > .zen-chat-message[data-side="you"] + .zen-chat-message[data-side="you"],
+.zen-chat-thread > .zen-chat-message[data-side="others"] + .zen-chat-message[data-side="others"] { margin-top: 0; }
+
+/* Conversation row: avatar column (24px, bottom-aligned) + stack. */
+.zen-chat-message { display: flex; max-width: 100%; align-items: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-chat-message[data-side="you"] { align-self: flex-end; flex-direction: row-reverse; }
+/* Desktop: every message row spans the thread, so hovering anywhere on the row (not just the bubble) reveals its
+   Hover toolbar; the bubble keeps its side through the row direction. */
+.zen-chat-thread[data-device="desktop"] > .zen-chat-message { align-self: stretch; }
+/* Desktop rows keep room for the Hover toolbar (up to three 32px Icon-Flat Small actions + the 8px gap) on the free side,
+   so a long bubble wraps before it pushes the toolbar out of the thread (Messenger reserves the same gutter). */
+.zen-chat-thread[data-device="desktop"] { --zen-chat-hover-room: calc(3 * var(--zen-button-size-small, 32px) + var(--zen-spacing-gap-xsmall, 8px)); }
+.zen-chat-thread[data-device="desktop"] > .zen-chat-message[data-side="you"] { padding-inline-start: var(--zen-chat-hover-room); }
+.zen-chat-thread[data-device="desktop"] > .zen-chat-message[data-side="others"] { padding-inline-end: var(--zen-chat-hover-room); }
+.zen-chat-message[data-reacted="true"] { padding-bottom: var(--zen-spacing-padding-medium, 16px); }
+/* The avatar column follows Avatar XSmall (Image-Size/XSmall: 24 Compact · 32 Comfortable), so the 8px gap to the bubble holds in every density. */
+.zen-chat-message__avatar { display: flex; width: var(--zen-image-size-xsmall, 24px); flex: 0 0 var(--zen-image-size-xsmall, 24px); align-self: flex-end; }
+.zen-chat-message__stack { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 4px; }
+.zen-chat-message[data-side="you"] .zen-chat-message__stack { align-items: flex-end; }
+.zen-chat-message__name { padding-inline: var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-chat-message__content { position: relative; max-width: 100%; }
+.zen-chat-message__meta { display: inline-flex; gap: 6px; padding-inline: 4px; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-chat-message[data-reacted="true"] .zen-chat-message__meta { margin-top: 12px; }
+
+/* Text bubble: padding 12 (+4 text inset); Social radius 20, Business 16; the tail corner is 4. */
+.zen-chat-bubble { display: flex; max-width: 100%; box-sizing: border-box; flex-direction: column; gap: 0; padding: var(--zen-spacing-padding-small, 12px); border-radius: 20px 20px 20px 4px; background: linear-gradient(var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)), var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%))), var(--zen-color-background-surface-default, #fff); color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-chat-bubble[data-side="you"] { border-radius: 20px 20px 4px 20px; background: var(--zen-bubble-chat-you-background-default, #111); color: var(--zen-bubble-chat-you-content-default, #fafafa); }
+/* Business: radius 16, min width 66 (Message min 42); Others = Bubble-Chat-Others-Business + a 0 6 16 -4 lift, You = a 0 12 28 + 0 4 8 -4 lift. */
+.zen-chat-bubble[data-domain="business"] { min-width: 66px; border-radius: 16px 16px 16px 4px; }
+.zen-chat-bubble[data-domain="business"][data-side="you"] { border-radius: 16px 16px 4px 16px; box-shadow: 0 12px 28px 0 var(--zen-color-shadow-neutral-base, rgb(0 0 0 / 8%)), 0 4px 8px -4px var(--zen-color-shadow-neutral-base, rgb(0 0 0 / 8%)); }
+.zen-chat-bubble[data-domain="business"][data-side="others"] { background: var(--zen-bubble-chat-others-business-background-default, var(--zen-color-background-surface-default, #fff)); box-shadow: 0 6px 16px -4px var(--zen-color-shadow-neutral-light, rgb(0 0 0 / 4%)); }
+.zen-chat-bubble__text { max-width: var(--zen-chat-text-max, 220px); margin: 0; padding-inline: 4px; overflow-wrap: anywhere; white-space: pre-wrap; }
+.zen-chat-bubble[data-domain="business"] .zen-chat-bubble__text { min-width: 42px; }
+/* Time (Caption/Regular, right): Others Neutral/Light; You keeps the bubble content colour at 56%. */
+.zen-chat-bubble__time { padding-inline: 4px; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: right; }
+.zen-chat-bubble[data-side="you"] .zen-chat-bubble__time { color: inherit; opacity: .56; }
+
+/* File / call cards share the Others bubble surface; radius 20. */
+.zen-chat-card { display: flex; width: 220px; max-width: 100%; box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-small, 12px); border: 0; border-radius: 20px; background: linear-gradient(var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)), var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%))), var(--zen-color-background-surface-default, #fff); color: var(--zen-color-content-neutral-strongest, #111); font: inherit; text-align: left; text-decoration: none; }
+.zen-chat-file { flex-direction: row; align-items: center; cursor: pointer; }
+.zen-chat-file:hover { background: linear-gradient(var(--zen-color-background-neutral-subtle-hover, rgb(1 1 1 / 11%)), var(--zen-color-background-neutral-subtle-hover, rgb(1 1 1 / 11%))), var(--zen-color-background-surface-default, #fff); }
+.zen-chat-file:focus-visible, .zen-chat-photos__tile:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 2px; }
+/* Message-Text is a fixed 32px box: name (20) + size (16) + gap 2 overflow it evenly, so the row stays 32 high. */
+.zen-chat-file__text { display: flex; height: 32px; min-width: 0; flex: 1; flex-direction: column; justify-content: center; gap: 2px; }
+/* The lines keep their full line-height (no flex shrink): shrinking the overflow:hidden name to fit 32 cropped its glyphs. */
+.zen-chat-file__text > * { flex: none; }
+.zen-chat-file__footer { display: flex; align-items: flex-end; gap: 4px; }
+.zen-chat-file__footer > .zen-chat-file__size { flex: 0 0 auto; }
+.zen-chat-file__time { min-width: 0; flex: 1; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: right; }
+/* Business cards: radius 16, Bubble-Chat-Others-Business + the 0 6 16 -4 lift; the text column keeps 4px from the edge. */
+.zen-chat-card[data-domain="business"] { border-radius: 16px; background: var(--zen-bubble-chat-others-business-background-default, var(--zen-color-background-surface-default, #fff)); box-shadow: 0 6px 16px -4px var(--zen-color-shadow-neutral-light, rgb(0 0 0 / 4%)); }
+.zen-chat-file[data-domain="business"]:hover { background: linear-gradient(var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)), var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%))), var(--zen-bubble-chat-others-business-background-default, var(--zen-color-background-surface-default, #fff)); }
+.zen-chat-card[data-domain="business"] .zen-chat-file__text { padding-right: 4px; }
+.zen-chat-file__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zen-chat-file__size { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-chat-call { padding: var(--zen-spacing-padding-xsmall, 8px); }
+/* Business photos: a Surface card (padding 12, radius 24, gap 8) around the grid, time (Body/Small, right) under it. */
+.zen-chat-card.zen-chat-photo-card[data-domain] { width: auto; padding: var(--zen-spacing-padding-small, 12px); border-radius: 24px; background: var(--zen-color-background-surface-default, #fff); }
+.zen-chat-photo-card__time { padding-inline: 4px; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: right; }
+.zen-chat-call__row { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 4px; }
+.zen-chat-call__action { width: 100%; }
+
+/* Figma Chat/Photo/Grid-Slot: a square (260 Mobile · 400 Desktop); every Photo-Container is its own radius-16 tile, gap 4.
+   1 = one tile · 2 = two overlapping tiles (160 · 240) on the diagonal · 3 = a tall tile + two · 4+ = 2×2. */
+.zen-chat-photos { display: grid; width: var(--zen-chat-photo-size, 260px); max-width: 100%; aspect-ratio: 1; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 4px; }
+.zen-chat-photos[data-count="1"] { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+.zen-chat-photos[data-count="3"] > :first-child { grid-row: span 2; }
+.zen-chat-photos[data-count="2"] { position: relative; display: block; }
+.zen-chat-photos[data-count="2"] > .zen-chat-photos__tile { position: absolute; width: calc(var(--zen-chat-photo-pair, 160px) / var(--zen-chat-photo-size, 260px) * 100%); height: auto; aspect-ratio: 1; }
+.zen-chat-photos[data-count="2"] > :first-child { z-index: 1; top: 0; left: 0; }
+.zen-chat-photos[data-count="2"] > :last-child { right: 0; bottom: 0; }
+.zen-chat-photos__tile { position: relative; display: block; min-width: 0; min-height: 0; padding: 0; overflow: hidden; border: 0; border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-subtle-disabled, rgb(1 1 1 / 6%)); cursor: pointer; }
+.zen-chat-photos__tile img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.zen-chat-photos__more { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--zen-color-background-overlay, rgb(0 0 0 / 40%)); color: var(--zen-color-content-on-black-overlay-strongest, #fff); }
+
+/* Figma Chat/Reaction/Status: a 24px Surface pill (padding 4; 4/4/4/8 with a count) on the bubble's bottom-right corner,
+   16px below it (the row reserves that 16px); 16px emojis, gap 2; lift 0 12 28 + 0 4 8 -4 at 8%. */
+.zen-chat-reactions { position: absolute; right: 0; bottom: -16px; display: inline-flex; height: 24px; box-sizing: border-box; align-items: center; gap: 4px; padding: 4px 4px 4px 8px; border-radius: 1000px; background: var(--zen-color-background-surface-default, #fff); box-shadow: 0 12px 28px 0 var(--zen-color-shadow-neutral-base, rgb(0 0 0 / 8%)), 0 4px 8px -4px var(--zen-color-shadow-neutral-base, rgb(0 0 0 / 8%)); color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-chat-reactions:not(:has(> :nth-child(2))) { padding-left: 4px; }
+.zen-chat-reactions__emojis { display: inline-flex; gap: 2px; font-size: 16px; line-height: 16px; }
+
+/* Figma Chat/Reaction-Bar: a 48px Popover pill (padding 8/8/8/12, gap 15) of six 28px emojis (+ a Small Tertiary "+").
+   Hover grows the emoji to 36; Selected sits on a 36px Active/Neutral/Subtle circle behind the 28px glyph. */
+.zen-chat-picker { display: inline-flex; height: 48px; box-sizing: border-box; align-items: center; gap: 15px; padding: 8px 8px 8px 12px; border-radius: 1000px; background: var(--zen-color-background-popover-default, #fff); box-shadow: var(--zen-style-effect-popover-shadow-unclipped, 0 8px 24px rgb(0 0 0 / 8%)); }
+.zen-chat-picker__emoji { position: relative; display: inline-flex; width: 28px; height: 28px; flex: 0 0 28px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 1000px; background: transparent; cursor: pointer; font-size: 28px; line-height: 28px; }
+.zen-chat-picker__emoji::before { position: absolute; z-index: -1; inset: -4px; border-radius: 1000px; content: ""; }
+.zen-chat-picker__emoji[aria-pressed="true"]::before { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 6%)); }
+.zen-chat-picker__emoji:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 4px; }
+.zen-chat-picker__emoji { isolation: isolate; }
+@media (prefers-reduced-motion: no-preference) { .zen-chat-picker__emoji { transition: transform var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } .zen-chat-picker__emoji:hover { transform: scale(calc(36 / 28)); } }
+
+/* Figma Chat/Section/Read-List: a 16px row of 20px avatars (gap 4; they overflow the row by 2 each way); 5+ leads with a Small Neutral Subtle Badge. */
+.zen-chat-read { display: inline-flex; height: calc(var(--zen-image-size-2-xsmall, 20px) - 4px); align-items: center; gap: 4px; }
+/* Figma Chat/Section/Time: Caption/Regular Neutral/Light, centred, padding 8/0 (28 high). */
+.zen-chat-date { margin: 0; padding: var(--zen-spacing-padding-xsmall, 8px) 0; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: center; }
+.zen-chat-thread > .zen-chat-date + .zen-chat-message { margin-top: 0; }
+
+/* Chat-Control: Surface bar, padding 8, gap 8 (Mobile 60 high: 44px Nav-Actions; Desktop 56: 40px Button/Icon-Flat). */
+.zen-chat-composer { display: flex; box-sizing: border-box; align-items: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px) calc(var(--zen-spacing-padding-xsmall, 8px) + var(--zen-safe-area-bottom, env(safe-area-inset-bottom, 0px))); background: var(--zen-color-background-surface-default, #fff); }
+.zen-chat-composer__leading, .zen-chat-composer__trailing { display: flex; flex: 0 0 auto; }
+.zen-top-nav__action[data-style="flat-chat"] { background: transparent; box-shadow: none; color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-top-nav__action[data-style="flat-chat"]:hover:not(:disabled) { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+/* Figma Search/Default in the bar: 40 high, padding 10/0/10/12 (+2 text inset), gap 8; the emoji is a flat 44px Nav-Action at its trailing edge. */
+.zen-chat-composer__field { display: flex; min-width: 0; min-height: 40px; flex: 1; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); align-self: center; box-sizing: border-box; padding: 10px 0 10px 14px; /* Figma Container p10/0/10/12 + the 2px text-wrapper inset = text at 14 */ border-radius: 20px; background: var(--zen-input-background-default, rgb(5 5 5 / 3%)); box-shadow: var(--zen-style-effect-input-shadow, none); -webkit-backdrop-filter: var(--zen-style-effect-input-backdrop-filter, none); backdrop-filter: var(--zen-style-effect-input-backdrop-filter, none); }
+.zen-chat-composer__field:hover { background: var(--zen-input-background-hover, rgb(5 5 5 / 5%)); }
+/* Figma State=Focused keeps the Default field — only the Accent caret shows (no white fill, no ring). */
+.zen-chat-composer__field > .zen-top-nav__action { margin-block: -12px; }
+.zen-chat-composer__field > .zen-button { margin-block: -10px; }
+.zen-chat-composer__field textarea { width: 100%; max-height: 120px; min-height: 20px; padding: 0; border: 0; background: transparent; color: var(--zen-color-content-neutral-strongest, #111); caret-color: var(--zen-color-background-active-accent-solid, #ff66d4); field-sizing: content; outline: 0; resize: none; }
+.zen-chat-composer__field textarea::placeholder { color: var(--zen-color-content-placeholder, rgb(0 0 0 / 27%)); }
+
+/* Conversation list item (ListItem composition): Figma List-Item padding 12/16 whatever list it sits in. */
+.zen-list-item.zen-chat-convo { --zen-list-inset: var(--zen-spacing-padding-medium, 16px); }
+.zen-chat-convo__title { display: inline-flex; min-width: 0; max-width: 100%; align-items: baseline; gap: 4px; }
+.zen-chat-convo__name { overflow: hidden; color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
+.zen-chat-convo__time { flex: 0 0 auto; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+/* Subtitle row: icon 16 · text · (unread) 12px Active status dot at the end. */
+.zen-chat-convo__preview { display: flex; min-width: 0; align-items: center; gap: 4px; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-chat-convo__preview-text { overflow: hidden; min-width: 0; flex: 1; text-overflow: ellipsis; white-space: nowrap; }
+.zen-chat-convo__preview[data-tone="strong"] { color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-chat-convo__preview[data-tone="negative"] { color: var(--zen-color-content-negative-light, #e5532e); }
+.zen-chat-convo__preview[data-tone="positive"] { color: var(--zen-color-content-positive-light, #2ea44f); }
+.zen-chat-convo__preview > .zen-icon { flex: 0 0 16px; }
+/* Figma Status (Size=Medium): a 12px Positive dot with a 2px Border/Inverse ring outside it. */
+.zen-chat-convo__unread { width: 12px; height: 12px; flex: 0 0 12px; margin-inline-end: 2px; border-radius: 1000px; background: var(--zen-color-background-positive-solid-default, #2ea44f); box-shadow: 0 0 0 2px var(--zen-color-border-inverse, #fff); }
+/* Figma Chat/Avatar-Group (Size=Medium): an Avatar-Medium box (40 Compact) with two avatars at 70% of it (28) — top-right
+   behind, bottom-left in front. Both follow Component Size through --zen-image-size-medium. */
+.zen-chat-group { --zen-chat-group-size: var(--zen-image-size-medium, 40px); position: relative; display: inline-block; width: var(--zen-chat-group-size); height: var(--zen-chat-group-size); flex: 0 0 var(--zen-chat-group-size); }
+.zen-chat-group > .zen-avatar { position: absolute; --zen-avatar-size: calc(var(--zen-chat-group-size) * .7); }
+.zen-chat-group > .zen-avatar:first-child { top: 0; right: 0; }
+.zen-chat-group > .zen-avatar:nth-child(2) { bottom: 0; left: 0; }
+.zen-chat-group[data-size="small"] { width: 32px; height: 32px; flex-basis: 32px; }
+.zen-chat-group[data-size="small"] > .zen-avatar { --zen-avatar-size: 20px; }
+/* The ◆ Social conversation header (Heading-Text Leading 48): 32px avatars. */
+.zen-chat-group[data-size="large"] { width: 48px; height: 48px; flex-basis: 48px; }
+.zen-chat-group[data-size="large"] > .zen-avatar { --zen-avatar-size: 32px; }
+.zen-chat-group__status { position: absolute; right: 0; bottom: 0; width: 8px; height: 8px; border-radius: 1000px; background: var(--zen-color-background-positive-solid-default, #2ea44f); box-shadow: 0 0 0 2px var(--zen-color-border-inverse, #fff); }
+/* Failed send: Negative content, a Retry text action (24px hit area) — the bubble keeps its place in the thread. */
+.zen-chat-message__failed { align-items: center; gap: 4px; color: var(--zen-color-content-negative-base, #c0392b); }
+.zen-chat-message[data-failed="true"] .zen-chat-bubble { opacity: .72; }
+.zen-chat-message__retry { position: relative; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; font: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.zen-chat-message__retry::after { position: absolute; top: 50%; left: 50%; width: max(100%, 24px); height: 24px; content: ""; transform: translate(-50%, -50%); }
+.zen-chat-message__retry:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 2px; border-radius: 4px; }
+
+
+/* Hold to react (Figma Chat/Bubble/Focused on Chat/Mobile/Bubble/Overlay). */
+.zen-chat-message__content[data-holdable="true"] { border-radius: 20px; outline: 0; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.zen-chat-message__content[data-holdable="true"]:focus-visible { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #0a84ff); }
+/* Desktop: no hold — the focusable bubble opens the Hover toolbar's More menu (right-click / Shift+F10 / Enter); text stays selectable. */
+.zen-chat-message__content[data-menu="true"] { border-radius: 20px; outline: 0; }
+.zen-chat-message__content[data-menu="true"]:focus-visible { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #0a84ff); }
+.zen-chat-message__content[data-holding="true"] { transform: scale(.97); }
+@media (prefers-reduced-motion: no-preference) { .zen-chat-message__content[data-holdable="true"] { transition: transform var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease); } }
+/* Overlay: Background/Overlay at 25% + background blur (Figma 100 → CSS 50px) over the whole screen. */
+.zen-chat-hold { position: fixed; z-index: 1000; inset: 0; background: color-mix(in srgb, var(--zen-color-background-overlay, rgb(0 0 0 / 40%)) 25%, transparent); -webkit-backdrop-filter: blur(50px); backdrop-filter: blur(50px); animation: zen-motion-fade-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease) both; }
+.zen-chat-hold[data-contained="true"] { position: absolute; z-index: 25; }
+.zen-chat-hold__panel { position: absolute; inset: 0; outline: 0; pointer-events: none; }
+/* The stack keeps the bubble where it was: Reaction-Bar 8px above, the 240px menu 8px below, aligned to the bubble's side. */
+.zen-chat-hold__stack { position: absolute; display: flex; max-width: calc(100% - 40px); flex-direction: column; align-items: flex-start; gap: var(--zen-spacing-gap-xsmall, 8px); pointer-events: auto; animation: zen-chat-hold-in var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, cubic-bezier(.16, 1, .3, 1)) both; }
+.zen-chat-hold__stack[data-side="you"] { align-items: flex-end; }
+.zen-chat-hold__bubble { width: var(--zen-chat-hold-bubble, auto); max-width: 100%; }
+.zen-chat-hold__bubble > * { max-width: 100%; }
+.zen-chat-hold__menu.zen-popover { position: static; top: auto; left: auto; width: 240px; min-width: 240px; }
+.zen-chat-hold__danger, .zen-chat-hold__menu .zen-icon.zen-chat-hold__danger { color: var(--zen-color-content-negative-light, #e5532e); }
+@keyframes zen-chat-hold-in { from { opacity: 0; transform: scale(.96); } }
+@media (prefers-reduced-motion: reduce) { .zen-chat-hold, .zen-chat-hold__stack { animation: none; } .zen-chat-message__content[data-holding="true"] { transform: none; } }
+/* Contained layer (device frame): the root's other children blur instead of relying on backdrop-filter. */
+.zen-chat-hold[data-contained="true"] { -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-zen-holding="true"] > :not(.zen-chat-hold) { filter: blur(24px); }
+@media (prefers-reduced-motion: no-preference) { [data-zen-overlay-root] > :not(.zen-chat-hold) { transition: filter var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease); } }
+
+/* Desktop Hover (Figma Text/File/Photo/Call "Actions"): Button/Icon-Flat Small Secondary, 32px, gap 0, 8px beside the
+   bubble (Spacing/Gap/XSmall) and vertically centred — after the bubble for others, before it for you. It floats so the
+   row never reflows; it shows on hover or keyboard focus within the message and stays while its menu is open. */
+.zen-chat-message__hover { position: absolute; z-index: 2; top: 50%; display: flex; gap: 0; opacity: 0; pointer-events: none; transform: translateY(-50%); }
+.zen-chat-message__hover[data-side="others"] { left: calc(100% + var(--zen-spacing-gap-xsmall, 8px)); }
+.zen-chat-message__hover[data-side="you"] { right: calc(100% + var(--zen-spacing-gap-xsmall, 8px)); }
+.zen-chat-message:is(:hover, :focus-within) .zen-chat-message__hover,
+.zen-chat-message__hover[data-open="true"] { opacity: 1; pointer-events: auto; }
+/* Reactions under a bubble push the content box taller: centre on the bubble, not the bubble + reactions. */
+/* The toolbar lives in .zen-chat-message__content (bubble + the absolutely-placed pill), so top:50% is already the
+   bubble centre with or without reactions — no reacted offset. */
+/* Hover menus are portalled (ZenPortal) and sit above everything in the page, like the who-reacted Popover. */
+.zen-chat-message__hover-popover, .zen-chat-message__menu-popover { z-index: 1000; }
+@media (prefers-reduced-motion: no-preference) { .zen-chat-message__hover { transition: opacity var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
+@media (hover: none) { .zen-chat-message:hover .zen-chat-message__hover:not([data-open="true"]) { opacity: 0; pointer-events: none; } }
+
+/* Desktop React: the floating surface is the Reaction-Bar itself (Figma Chat/Reaction-Bar), not a Popover box around it. */
+.zen-chat-message__hover-popover.zen-popover { width: max-content; min-width: 0; padding: 0; overflow: visible; outline: 0; border-radius: 1000px; background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.zen-chat-message__hover-popover .zen-popover__items { max-height: none; padding: 0; overflow: visible; }
+/* While a hover popover (React / More) is open, its message row stacks above the following messages. */
+.zen-chat-message:has(> .zen-chat-message__stack .zen-chat-message__hover[data-open="true"]), .zen-chat-message:has(.zen-chat-message__hover[data-open="true"]) { position: relative; z-index: 5; }
+/* Figma Chat/Reaction-Bar carries Effect/Popover, which includes the background blur (40 → CSS 20px): the 90% Popover fill
+   frosts whatever sits behind it, wherever the bar floats (desktop React popover, mobile hold layer). */
+.zen-chat-picker { -webkit-backdrop-filter: var(--zen-style-effect-popover-backdrop-filter, blur(20px)); backdrop-filter: var(--zen-style-effect-popover-backdrop-filter, blur(20px)); }
+
+/* zen-allow-popover-layer: the panel only ever floats (inside the React popover or the hold layer), like the Reaction-Bar it replaces. */
+/* Reaction-Bar "+" panel: the bar's own surface (Popover 90% + Effect/Popover), radius Large, 8 × 36px grid. */
+.zen-chat-emoji { display: flex; width: 332px; max-width: calc(100vw - 32px); box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-popover-default, #fff); box-shadow: var(--zen-style-effect-popover-shadow-unclipped, 0 8px 24px rgb(0 0 0 / 8%)); -webkit-backdrop-filter: var(--zen-style-effect-popover-backdrop-filter, blur(20px)); backdrop-filter: var(--zen-style-effect-popover-backdrop-filter, blur(20px)); animation: zen-motion-fade-in var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease) both; }
+.zen-chat-emoji__head { display: flex; align-items: center; gap: 4px; }
+.zen-chat-emoji__search { display: flex; min-width: 0; height: 32px; flex: 1; box-sizing: border-box; align-items: center; gap: 6px; padding: 0 10px; border-radius: 1000px; background: var(--zen-input-background-default, rgb(5 5 5 / 3%)); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-chat-emoji__search:focus-within { box-shadow: 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
+.zen-chat-emoji__search .zen-icon { width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex: 0 0 var(--zen-element-size-popular-small, 16px); }
+.zen-chat-emoji__search input { min-width: 0; flex: 1; padding: 0; border: 0; background: transparent; color: var(--zen-color-content-neutral-strongest, #111); outline: 0; }
+.zen-chat-emoji__search input::placeholder { color: var(--zen-color-content-placeholder, rgb(0 0 0 / 27%)); }
+.zen-chat-emoji__grid { display: grid; max-height: 196px; grid-template-columns: repeat(8, 36px); gap: 4px; overflow-y: auto; overscroll-behavior: contain; }
+.zen-chat-emoji__cell { display: inline-flex; width: 36px; height: 36px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 1000px; background: transparent; cursor: pointer; font-size: 24px; line-height: 28px; }
+.zen-chat-emoji__cell:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+.zen-chat-emoji__cell[aria-pressed="true"] { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 6%)); }
+.zen-chat-emoji__cell:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: -3px; }
+.zen-chat-emoji__empty { grid-column: 1 / -1; margin: 8px; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: center; }
+@media (prefers-reduced-motion: reduce) { .zen-chat-emoji { animation: none; } }
+/* Desktop: the hovered / focused row stacks above its neighbours so its hover toolbar (which can overhang the row) stays clickable. */
+.zen-chat-thread[data-device="desktop"] > .zen-chat-message:is(:hover, :focus-within) { position: relative; z-index: 4; }
+/* The message whose menu is open keeps its toolbar above a neighbour that is merely hovered or focused. */
+.zen-chat-thread[data-device="desktop"] > .zen-chat-message:has(.zen-chat-message__hover[data-open="true"]) { z-index: 5; }

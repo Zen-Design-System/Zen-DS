@@ -1,0 +1,89 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "inline-message",
+  "import": "import { InlineMessage } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "InlineMessage",
+      "file": "src/components/InlineMessage/InlineMessage.tsx",
+      "description": "Figma Inline-Message (595:54857): a Subtle-surface message inside the content it describes.\nPadding Medium, gap Small, Corner-Radius/Large. Icon Content/<theme>/Light, title Strongest, caption Base.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "theme",
+          "type": "\"neutral\" | \"info\" | \"positive\" | \"warning\" | \"negative\" | \"custom\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "status",
+          "type": "\"success\" | \"error\" | \"warning\" | \"info\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use theme: success → positive, error → negative (warning and info are the same)."
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Title (Body/Base/Bold).",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Caption (Body/Small/Regular).",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "boolean | IconName | ReactNode",
+          "required": false,
+          "default": "true",
+          "description": "`false` hides the icon; an icon name or a node replaces it. Theme=Custom: the Visual slot (defaults to a 36px image placeholder).",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "{ label: ReactNode; onClick?: () => void }",
+          "required": false,
+          "default": null,
+          "description": "Figma Action: one Button/Main Small Tertiary under the text.",
+          "deprecated": null
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Shows the close control (icon-x-small-line, Content/Neutral/Light).",
+          "deprecated": null
+        },
+        {
+          "name": "closeLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the close control. Default: the locale's “Dismiss”.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

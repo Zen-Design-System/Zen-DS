@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    name: Gates, tests and package
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Playwright Chromium (browser tests, audits, figma contract)
+        run: npx playwright install --with-deps chromium
+
+      - name: Generated sources are committed and up to date
+        run: |
+          npm run tokens:build && npm run styles:build && npm run icons:build
+          git diff --exit-code -- src/styles src/tokens src/icons
+      - run: npm run tokens:check
+      - run: npm run styles:check
+      - run: npm run icons:check
+      - name: Types
+        run: npx tsc --noEmit -p .
+      - name: Usage harness (rules, fixtures, app mode, ESLint plugin)
+        run: npm run usage:selftest && npm run usage:check
+      - name: Guidelines and props docs are up to date
+        run: npm run guidelines:check
+      - name: MCP server
+        run: npm run mcp:selftest
+      - name: Browser tests (smoke + axe baseline, sizes, interactions)
+        run: npm test
+      - name: Figma parity
+        run: node tools/figma-contract/run-all.mjs
+      - name: Build (library + platform)
+        run: npm run build
+      - name: Package (pack, install in a temp app, budgets, zen-usage, MCP, zen-ds)
+        run: npm run verify:package
+
+  platform-audit:
+    name: Platform audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Dev server
+        run: |
+          npx vite --port 5173 --strictPort > vite.log 2>&1 &
+          npx --yes wait-on@8 --timeout 120000 http://localhost:5173
+      - name: DOM, a11y, overflow, contrast and edge checks (light, then dark)
+        run: npm run platform:audit && npm run platform:audit -- --dark

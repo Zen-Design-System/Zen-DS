@@ -1,0 +1,302 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "rating",
+  "import": "import { Rating, RatingDisplay, OpinionScale, NpsScale } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Rating",
+      "file": "src/components/Rating/Rating.tsx",
+      "description": "Figma Rating/Star (1536:26008): a star input — one radio per star (arrow keys move, Space/click sets), hover previews\nthe value. Stars are icon-star-01-solid with gap 3XSmall.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: number) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the chosen number of stars.",
+          "deprecated": null
+        },
+        {
+          "name": "onChange",
+          "type": "(value: number) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use onValueChange (same arguments)."
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": "5",
+          "description": "Number of stars (Figma: 5).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Figma Size: XSmall 12 · Small 16 · Medium 20 · Large 28 · XLarge 44 (Element-Size/Popular). Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"default\" | \"neutral\" | \"accent\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "Figma Theme: Default (Support/Yellow/Light) · Neutral (Neutral/Strongest) · Accent (Accent/Light); empty stars Content/Placeholder.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Name of the rated thing, e.g. \"Rate this template\" (default \"Rating\", from the locale's labels).",
+          "deprecated": null
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "RatingDisplay",
+      "file": "src/components/Rating/Rating.tsx",
+      "description": "Figma Rating-Display (9818:5582): a Rating=None base row with the filled row clipped to the value on top.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "number",
+          "required": true,
+          "default": null,
+          "description": "0 – max, decimals allowed (4.5 fills half of the fifth star).",
+          "deprecated": null
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": "5",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"default\" | \"neutral\" | \"accent\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible text; defaults to the locale's \"4.5 out of 5 stars\".",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "OpinionScale",
+      "file": "src/components/Rating/Rating.tsx",
+      "description": "Figma Rating/Opinion-Scale (1536:25762) of .Primitives/Rating/Opinion item: emoji (32) + Caption/Regular label,\npadding XSmall, gap 2XSmall, Corner-Radius/Base; Hover Neutral/Flat/Hover, Selected Active/Neutral/Subtle + Caption/Bold.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "scale",
+          "type": "2 | 3 | 5",
+          "required": false,
+          "default": "5",
+          "description": "Figma Scale: 2 · 3 · 5 emoji options.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "OpinionEmotion | null",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: OpinionEmotion) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the chosen emotion.",
+          "deprecated": null
+        },
+        {
+          "name": "onChange",
+          "type": "(value: OpinionEmotion) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use onValueChange (same arguments)."
+        },
+        {
+          "name": "labels",
+          "type": "Partial<Record<OpinionEmotion, ReactNode>>",
+          "required": false,
+          "default": null,
+          "description": "Override option labels (keep them short).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "NpsScale",
+      "file": "src/components/Rating/Rating.tsx",
+      "description": "Figma Rating/NPS-Scale (1536:26034): Chip/Number-Only Small Secondary buttons (gap 2XSmall) over two Caption/Regular end labels.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "scale",
+          "type": "5 | 10",
+          "required": false,
+          "default": "10",
+          "description": "Figma Scale: 0–5 or 0–10.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "number | null",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: number) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the chosen score.",
+          "deprecated": null
+        },
+        {
+          "name": "onChange",
+          "type": "(value: number) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use onValueChange (same arguments)."
+        },
+        {
+          "name": "lowLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Top / Bottom criteria: the labels under the two ends (the locale's \"Very disappointed\" / \"Very happy\" by default).",
+          "deprecated": null
+        },
+        {
+          "name": "highLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "OpinionEmotion": "type OpinionEmotion = \"very-disappointed\" | \"😡\" | \"Very Disappointed\" | \"disappointed\" | \"🙁\" | \"Disappointed\" | \"neutral\" | \"😐\" | \"Neutral\" | \"happy\" | \"😊\" | \"Happy\" | \"very-happy\" | \"😍\" | \"Very Happy\"[\"id\"]"
+  }
+}

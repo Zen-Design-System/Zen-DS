@@ -22,11 +22,40 @@ Represent a person or workspace with a photo or initials.
 | Background | `background` | solid · subtle |
 | Status | `status` | presence dot |
 
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/avatar.json`.
+
+### Avatar
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `size` | `"2xs" \| "xs" \| "sm" \| "md" \| "lg" \| "xl" \| "2xl" \| "3xl" \| "2xsmall" \| "xsmall" \| "small" \| "medium" \| "large" \| "xlarge" \| "2xlarge" \| "3xlarge"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `theme` | `"photo" \| "accent" \| "blue" \| "brown" \| "crimson" \| "cyan" \| "green" \| "indigo" \| "neutral" \| "orange" \| "pink" \| "plum" \| "purple" \| "red" \| "teal" \| "violet" \| "yellow"` | `"neutral"` |  |
+| `background` | `"solid" \| "subtle"` | `"solid"` |  |
+| `shape` | `"circle" \| "square"` | `"circle"` |  |
+| `status` | `boolean` | `false` |  |
+| `focus` | `boolean` | `false` |  |
+| `src` | `string` | — |  |
+| `alt` | `string` | `""` |  |
+| `children` | `ReactNode` | — |  |
+| `className` | `string` | — |  |
+
+### AvatarStack
+Figma Avatar/Stack: 1–5 avatars, first on top, no overflow chip (`showMore` is an opt-in extension).
+
+Also accepts `Omit<AvatarProps, "children" | "alt" | "src">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `items` (required) | `Array<Pick<AvatarProps, "src" \| "alt" \| "children" \| "theme">>` | — |  |
+| `max` | `number` | `5` |  |
+| `showMore` | `boolean` | `false` |  |
+| `size` | _HTML attribute_ | `"md"` |  |
+
 ## ✅ Do
 - Set alt to the person's name; use alt="" only when the name is shown next to the avatar.
 - Use 2 initials (1 on xsmall/2xsmall).
 - Use square avatars for workspaces and organisations.
-- In captioned Popover items use Avatar Small (32px) or larger (enforced by PopoverItem).
+- Popover items (Theme=Avatar Small) use Avatar Size=Small (32px); Avatar Big uses Medium (40px) — PopoverItem sizes them for you.
 
 ## ❌ Don't
 - Don't show more than 5 avatars in a stack; summarise the rest in text.
@@ -42,6 +71,7 @@ Represent a person or workspace with a photo or initials.
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `avatar/needs-alt` | error | Avatars need alt (the person's name; alt="" only when the name is shown next to it). | `zen-allow-avatar-alt: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 
 ## References
 - [Carbon — Avatar (pattern)](https://carbondesignsystem.com/patterns/global-header/)

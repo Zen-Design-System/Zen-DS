@@ -1,0 +1,114 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "progress",
+  "import": "import { ProgressBar, ProgressCircle } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "ProgressBar",
+      "file": "src/components/Progress/Progress.tsx",
+      "description": "Figma Progress-Bar (1536:260): 8px Neutral/Subtle track, rounded, Active fill; Body/Base/Regular label, gap 8.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "number",
+          "required": true,
+          "default": null,
+          "description": "0–100.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"neutral\" | \"accent\" | \"status\"",
+          "required": false,
+          "default": "\"neutral\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode | true",
+          "required": false,
+          "default": null,
+          "description": "Trailing label (Figma Label=Yes). `true` shows the rounded percentage.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name when there is no visible label.",
+          "deprecated": null
+        },
+        {
+          "name": "scale",
+          "type": "\"completion\" | \"quota\"",
+          "required": false,
+          "default": "\"completion\"",
+          "description": "Status theme only: `quota` for usage against a limit (high = bad); default `completion`.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ProgressCircle",
+      "file": "src/components/Progress/Progress.tsx",
+      "description": "Figma Progress-Circle (1531:13954) + Progress-Circle/Icon (6915:62964): 20px ring (2px Support/Subtle border on\nNeutral/Subtle) with a 12px Support/Solid pie from 12 o'clock; Done = full solid disc + 12px icon-check-solid.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "number",
+          "required": true,
+          "default": null,
+          "description": "0–100. 100 renders the Done state with a check.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"neutral\" | \"accent\" | \"red\" | \"orange\" | \"yellow\" | \"green\" | \"blue\"",
+          "required": false,
+          "default": "\"accent\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode | true",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

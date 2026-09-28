@@ -1,0 +1,50 @@
+/* Figma ❖ Chart (7032:8969). */
+.zen-chart { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Y labels sit on their gridlines: same 36px top / 28px bottom insets as the plot, centred on each line. */
+.zen-chart__y { position: relative; min-width: 28px; height: var(--zen-chart-height, 280px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: right; }
+.zen-chart__y > span { position: absolute; right: 0; line-height: var(--zen-typography-line-height-label-small, 12px); white-space: nowrap; transform: translateY(50%); }
+/* zen-allow-raw-spacing: the plot's lanes, not spacing — 36px above the grid for the Tooltip and 28px below it for the
+   X labels (Figma Line-Chart 6643:63324); the grid, bars, sector rules and Y labels share them. */
+.zen-chart__plot { position: relative; height: var(--zen-chart-height, 280px); box-sizing: border-box; padding: 36px 0 28px; border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 0; }
+.zen-chart__plot:focus-visible { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #0a84ff); }
+/* Top 36px holds the active Tooltip so it never covers the header / range switch. */
+.zen-chart__grid, .zen-chart__visual, .zen-chart__bars { position: absolute; inset: 36px 0 28px; }
+/* zen-allow-dashed-color: Figma chart gridlines (Line-2…6) are dashed Border/Neutral/Pale — a data guide, not a container edge. */
+.zen-chart__grid > span { position: absolute; right: 0; left: 0; height: 0; border-top: 1px dashed var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.zen-chart__grid > span[data-base="true"] { border-top-style: solid; }
+.zen-chart__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.zen-chart__line { fill: none; stroke: var(--zen-color-border-accent-solid-default, #ff66d4); stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round; }
+.zen-chart__dot { position: absolute; width: 10px; height: 10px; box-sizing: border-box; border: 2px solid var(--zen-color-border-accent-solid-default, #ff66d4); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-surface-default, #fff); pointer-events: none; transform: translate(-50%, -50%); }
+
+/* Sectors: one column per X value; a 1px rule (Active/Accent/Subtle, Solid when active) and the X label (a pill when active). */
+.zen-chart__sectors { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--zen-chart-count, 4), minmax(0, 1fr)); }
+.zen-chart__sector { position: relative; display: flex; min-width: 0; align-items: flex-end; justify-content: center; padding: 0; border: 0; background: transparent; cursor: pointer; font: inherit; }
+.zen-chart__sector::before { position: absolute; top: 36px; bottom: 28px; left: 50%; width: 0; border-left: 1px solid transparent; content: ""; }
+/* Figma: idle sector rules are Active/Accent/Subtle at 35% opacity. */
+.zen-chart[data-kind="line"] .zen-chart__sector::before, .zen-chart__sector:hover::before { border-left-color: var(--zen-color-border-active-accent-subtle, rgb(255 2 152 / 35%)); opacity: .35; }
+.zen-chart__sector[data-active]::before { opacity: 1; }
+.zen-chart__sector[data-active="accent"]::before { border-left-color: var(--zen-color-border-active-accent-solid, #ff66d4); }
+.zen-chart__sector[data-active="neutral"]::before { border-left-color: var(--zen-color-border-active-neutral-subtle, rgb(1 1 1 / 14%)); }
+/* X label Wrapper (4388:8501): Corner-Radius/Rounded pill. */
+.zen-chart__x { display: inline-flex; height: 20px; align-items: center; margin-bottom: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0 var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-rounded, 1000px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); white-space: nowrap; }
+.zen-chart__sector[data-active] .zen-chart__x { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-chart__tooltip { position: absolute; top: 2px; left: 50%; z-index: 1; pointer-events: none; transform: translateX(-50%); }
+
+/* Stack bars: 2px side padding per column, 4px top radius, segments bottom-up. */
+.zen-chart__bars { display: grid; grid-template-columns: repeat(var(--zen-chart-count, 4), minmax(0, 1fr)); align-items: end; }
+.zen-chart__column { display: flex; height: 100%; align-items: flex-end; justify-content: center; padding-inline: var(--zen-spacing-padding-3-xsmall, 2px); }
+.zen-chart__stack { display: flex; width: min(100%, 40px); flex-direction: column-reverse; overflow: hidden; border-radius: var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0; }
+.zen-chart__segment { display: block; min-height: 2px; flex-basis: 0; }
+.zen-chart__column:not([data-active="true"]) .zen-chart__stack { opacity: .88; }
+.zen-chart__legend { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-2-xsmall, 4px) var(--zen-spacing-gap-xsmall, 8px); margin: var(--zen-spacing-gap-medium, 16px) 0 0; padding: 0; list-style: none; color: var(--zen-color-content-neutral-strongest, #111); }
+/* Legend item (6643:73387): a 12px dot, Spacing/Gap/2XSmall before its label. */
+.zen-chart__legend li { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-chart__swatch { width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); border-radius: var(--zen-corner-radius-rounded, 1000px); }
+
+/* Chart card: header · Segmented · chart, gap 16. */
+.zen-chart-card__body { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-chart-card__header { display: flex; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-chart-card__title { min-width: 0; flex: 1; margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-chart-card .zen-segmented { width: 100%; }
+@media (prefers-reduced-motion: no-preference) { .zen-chart__x, .zen-chart__sector::before { transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), border-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
+.zen-chart__visual > .zen-chart__bars { inset: 0; }

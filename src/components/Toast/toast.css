@@ -47,3 +47,39 @@
 }
 .zen-toast__close:hover { opacity: 0.72; }
 .zen-toast__close:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+/* ToastStack: fixed layer (or inline), newest at the bottom (bottom placements) / top (top placements). */
+/* Toasts sit Gap/XSmall apart. The rows carry it (half above, half below each toast) so the space collapses with a closing row. */
+.zen-toast-stack { --zen-toast-stack-gap: var(--zen-spacing-gap-xsmall, 8px); position: fixed; z-index: 1100; display: flex; width: min(648px, calc(100vw - 32px)); flex-direction: column; gap: 0; pointer-events: none; }
+.zen-toast-stack[data-placement^="bottom"] { bottom: var(--zen-spacing-padding-large, 20px); }
+.zen-toast-stack[data-placement^="top"] { top: var(--zen-spacing-padding-large, 20px); flex-direction: column-reverse; }
+.zen-toast-stack[data-placement$="center"] { left: 50%; transform: translateX(-50%); align-items: center; }
+.zen-toast-stack[data-placement$="right"] { right: var(--zen-spacing-padding-large, 20px); align-items: flex-end; }
+.zen-toast-stack[data-inline="true"] { position: static; width: 100%; transform: none; }
+/* Each row animates its height (grid 0fr ↔ 1fr) so neighbours slide instead of jumping; gap lives in the row. */
+.zen-toast-stack__item {
+  display: grid;
+  width: 100%;
+  grid-template-rows: 1fr;
+  justify-items: inherit;
+  pointer-events: auto;
+  animation: zen-toast-row-in var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, cubic-bezier(.16, 1, .3, 1)) both;
+}
+.zen-toast-stack[data-placement$="center"] .zen-toast-stack__item { justify-items: center; }
+.zen-toast-stack[data-placement$="right"] .zen-toast-stack__item { justify-items: end; }
+.zen-toast-stack__clip { min-height: 0; padding-block: calc(var(--zen-toast-stack-gap) / 2); }
+.zen-toast-stack__clip > .zen-toast { animation: zen-toast-in var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, cubic-bezier(.16, 1, .3, 1)) both; }
+.zen-toast-stack__item[data-state="closing"] { animation: zen-toast-row-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; pointer-events: none; }
+.zen-toast-stack__item[data-state="closing"] .zen-toast-stack__clip { overflow: hidden; }
+.zen-toast-stack__item[data-state="closing"] .zen-toast { animation: zen-toast-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; }
+.zen-toast-stack[data-placement^="top"] .zen-toast-stack__clip > .zen-toast { --zen-toast-enter-y: -16px; }
+@keyframes zen-toast-row-in { from { grid-template-rows: 0fr; } }
+@keyframes zen-toast-row-out { to { grid-template-rows: 0fr; } }
+@keyframes zen-toast-in { from { opacity: 0; transform: translateY(var(--zen-toast-enter-y, 16px)) scale(.96); } }
+@keyframes zen-toast-out { to { opacity: 0; transform: scale(.96); } }
+@media (prefers-reduced-motion: reduce) {
+  .zen-toast-stack__item, .zen-toast-stack__clip > .zen-toast, .zen-toast-stack__item[data-state="closing"], .zen-toast-stack__item[data-state="closing"] .zen-toast { animation: none; }
+}
+/* Hit area ≥ 24×24 (WCAG 2.5.8) around the Figma-sized glyph: an invisible, centred layer; the visual size is unchanged. */
+.zen-toast__close { position: relative; }
+.zen-toast__close::after { position: absolute; top: 50%; left: 50%; width: max(100%, 24px); height: max(100%, 24px); content: ""; transform: translate(-50%, -50%); }

@@ -16,19 +16,98 @@ Primary app navigation with sections, nested items and a collapsible rail.
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
+| Links | `items[].href · linkAs · selectedId` | href rows render as links (linkAs = your router link; it receives href); selectedId marks the current route (aria-current="page") and opens its group |
 | Variant | `variant` | basic · small-density · workspace |
-| Collapse | `collapsed / onCollapsedChange` |  |
+| Collapse | `collapsed / onCollapsedChange` | control renders only with onCollapsedChange; workspace never collapses |
 | Items | `sections[] items {id,label,icon,selected,counter,notificationDot,children}` |  |
-| Background | `background` | workspace master: default · flat · inverse |
+| Background | `background` | the Surface of the page it sits on: default (Canvas/Default page) · alt (Canvas/Alt white page) · flat (Canvas/Flat page, seamless navigation) · inverse |
+| Sub-menu flyout | `subMenu={<SidebarSubMenu search items sections onItemClick />} · subMenuLabel · onSubMenuClose` | 260px Popover-surface panel 8px outside the rail |
+| Workspace rail | `workspaceItems (selected = active) · workspaceAction · headerAction` | active workspace gets the 3px accent Focus-Ring; the header name + chevron switches workspace |
+
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
+
+### Sidebar
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `variant` | `"basic" \| "workspace" \| "small-density"` | — |  |
+| `density` | `"medium" \| "small"` | — | Compatibility alias for the earlier component API. |
+| `collapsed` | `boolean` | `false` |  |
+| `onCollapsedChange` | `(collapsed: boolean) => void` | — | Controlled collapse callback used by the Figma Basic/Small-Density header control. Without it the control is not rendered. Ignored by `variant="workspace"`, which has no collapsed state. |
+| `brand` | `ReactNode` | — | Replaces the whole header, including the collapse control. Prefer `logo` / `productName`, which keep it. |
+| `logo` | `ReactNode` | — | Header logo while expanded (Figma LOGO / Union). Sized to the header height (24px; 20px in Small-Density). |
+| `logoCollapsed` | `ReactNode` | — | Mark shown in the collapsed rail instead of `logo` (Figma collapsed Logo, 28px; 20px in Small-Density). |
+| `productName` | `ReactNode` | — | Small product label after the logo (Figma: the product badge beside the wordmark). |
+| `aria-label` | `string` | — | Accessible name of the navigation landmark. Default: the locale's “Main navigation” (“Workspace navigation” for the workspace variant). |
+| `sections` | `SidebarSection[]` | `[]` |  |
+| `selectedId` | `string` | — | Id of the current page's item: it is marked selected (aria-current="page") and its parent groups open (and stay open until the user collapses them), so the app passes its route id instead of setting `selected` in `sections`. When set, it replaces the items' own `selected` / `active` flags in the navigation (not in the workspace rail). |
+| `linkAs` | `ElementType` | — | Component that renders items with an `href`, e.g. your router's link. It receives `href`, `className`, `onClick`, `aria-current` and the children; adapt a router link that takes `to` (`({ href, ...rest }) => <RouterLink to={href} {...rest} />`). Default `a`. |
+| `footer` | `ReactNode` | — |  |
+| `search` | `ReactNode` | — |  |
+| `onItemClick` | `(item: SidebarItem) => void` | — |  |
+| `className` | `string` | — |  |
+| `background` | `"default" \| "alt" \| "flat" \| "inverse"` | `"default"` |  |
+| `workspaceBrand` | `ReactNode` | — |  |
+| `workspaceItems` | `SidebarItem[]` | `[]` |  |
+| `workspaceFooter` | `ReactNode` | — |  |
+| `workspaceAction` | `ReactNode` | — | Figma Workspace rail: the action after the workspace avatars (usually an "Add workspace" Button/Icon-Main). |
+| `headerAction` | `ReactNode` | — | Workspace panel header action on the right (Figma: settings Button/Icon-Flat). |
+| `workspaceBar` | `boolean` | `true` |  |
+| `subMenu` | `ReactNode` | — | Figma Side-Bar/Sub: a 260px flyout panel opened beside the sidebar (usually a `<SidebarSubMenu>`). |
+| `subMenuLabel` | `string` | — | Accessible name of the flyout panel. Default: the locale's “Sub menu”. |
+| `onSubMenuClose` | `(event: KeyboardEvent \| globalThis.PointerEvent) => void` | — | Called on Escape or a pointer press outside the sidebar and its flyout, so the owner can close it. |
+
+### SidebarSubMenu
+Figma Side-Bar/Sub → Sub-Item: Search/Popover, then the Item-List of Master menu items (gap Small).
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `search` | `ReactNode` | — | Figma Sub-Item/Search: usually <Search variant="popover" />. |
+| `items` | `SidebarItem[]` | `[]` |  |
+| `sections` | `SidebarSection[]` | `[]` | Grouped items with Menu-Item section titles (rendered after `items`). |
+| `onItemClick` | `(item: SidebarItem) => void` | — |  |
+| `children` | `ReactNode` | — | Extra content under the item list. |
+| `className` | `string` | — |  |
+
+### Types
+Object shapes the props above refer to.
+
+```ts
+type SidebarItem = { id: string; label: string; icon?: IconName | ReactNode; active?: boolean; selected?: boolean; disabled?: boolean; state?: SidebarItemState; theme?: SidebarItemTheme; dropdown?: boolean; indent?: boolean; counter?: ReactNode; notificationDot?: boolean; trailingAction?: ReactNode; children?: SidebarItem[]; href?: string; }
+type SidebarItemState = "default" | "hover" | "focus" | "disabled"
+type SidebarItemTheme = "neutral" | "accent"
+type SidebarSection = { label?: string; action?: ReactNode; items: SidebarItem[]; }
+```
+
+## Keyboard
+| Keys | Action |
+| --- | --- |
+| Tab / Shift+Tab | Move between items |
+| Enter / Space | Open an item or expand a group (link rows: Enter) |
+| Escape | Close the sub-menu flyout |
 
 ## ✅ Do
+- Give destinations an href so rows are real links (open in a new tab, copy the address), and pass the current route's id as selectedId instead of remapping selected in sections.
 - Move selection with onItemClick; exactly one selected item.
 - Group items under short section titles.
 - Use counters for actionable counts; notification dots for "something new".
+- Keep labels to one or two words; icons are required on the top level so the collapsed rail still works.
+- Remember the collapsed state per user.
+- Put account, settings and help in the footer, not between destinations.
+- Show the Workspace variant only when users belong to more than one workspace; mark exactly one workspace item selected so its Focus-Ring shows which one is active.
+- Fill a SidebarSubMenu flyout with a `<Search variant="popover">` and Master items.
+- Wire onSubMenuClose so Escape and an outside press close the flyout, and give it a subMenuLabel.
+- Match background to the page Canvas (background layers): Canvas/Default → default, Canvas/Alt (white page) → alt, Canvas/Flat → flat so the navigation and page read as one surface in light and dark. Cards on that page use the same Surface.
+- Give a section title at most one action, as a Button/Icon-Flat Small (IconButton appearance="flat" level="primary" size="sm" with aria-label). Don't resize it — the sidebar centres it in a 16px wrapper so the title row keeps its height.
 
 ## ❌ Don't
 - Don't force hover/focus states in examples; use real interaction.
 - Don't nest more than one level.
+- Don't put primary actions ("New project") as nav items; use a Button in the page header.
+- Don't mix navigation and filters in the Sidebar.
+- Don't hide the only route to a destination inside a collapsed group.
+- Don't open a second flyout from a flyout.
+- Don't give one item both an inline tree (children) and a flyout.
 
 ## Accessibility
 - aria-current=page on the selected item; collapsed items keep aria-label/title.
@@ -37,7 +116,11 @@ Primary app navigation with sections, nested items and a collapsible rail.
 - Nouns, one or two words.
 
 ## Harness (`npm run usage:check`)
-_No machine-checkable rules yet. Follow the Do/Don't lists above._
+| Rule | Severity | Checks | Suppress with |
+| --- | --- | --- | --- |
+| `sidebar/submenu-close` | warn | A Sidebar with a subMenu flyout wires onSubMenuClose so Escape and outside presses close it. | `zen-allow-submenu-close: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
+| `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 
 ## References
 - [Material 3 — Navigation drawer](https://m3.material.io/components/navigation-drawer/guidelines)

@@ -1,0 +1,101 @@
+/* Figma Bottom-Sheet (4059:14161). */
+.zen-bottom-sheet-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  /* Below the status bar with iOS's large-sheet gap; the sheet itself caps at 720 (Figma maxH). */
+  padding-top: calc(var(--zen-safe-area-top, env(safe-area-inset-top, 0px)) + var(--zen-spacing-padding-small, 12px));
+  background: var(--zen-color-background-overlay, rgb(0 0 0 / 40%));
+  animation: zen-motion-scrim-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease-out) both;
+}
+.zen-bottom-sheet-overlay[data-inline="true"] { position: absolute; z-index: 5; border-radius: inherit; overflow: hidden; }
+.zen-bottom-sheet-overlay[data-state="closing"] { animation: zen-motion-scrim-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; }
+
+.zen-bottom-sheet {
+  /* Lists inside the sheet line up with its own padding. */
+  --zen-list-inset: 0px;
+  display: flex;
+  width: 100%;
+  max-width: 560px;
+  max-height: min(720px, 100%);
+  box-sizing: border-box;
+  flex-direction: column;
+  overflow: hidden;
+  /* The footer / body sits directly on the home-indicator area (Figma System/Bottom-Indicator, 28). */
+  padding-bottom: var(--zen-safe-area-bottom, env(safe-area-inset-bottom, 0px));
+  /* Corner-Radius/3XLarge on the top corners (4059:14162). */
+  border-radius: var(--zen-corner-radius-3-xlarge, 28px) var(--zen-corner-radius-3-xlarge, 28px) 0 0;
+  background: var(--zen-color-background-container, #f7f7f7);
+  box-shadow: var(--zen-style-shadow-top-level-2-shadow, 0 -12px 40px -16px rgb(0 0 0 / 16%));
+  outline: 0;
+  animation: zen-bottom-sheet-in var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, cubic-bezier(.16, 1, .3, 1)) both;
+}
+.zen-bottom-sheet[data-size="max"] { height: min(720px, 100%); }
+.zen-bottom-sheet[data-state="closing"] { animation: zen-bottom-sheet-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; }
+.zen-bottom-sheet:not([data-dragging="true"]) { transition: transform var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease); }
+
+/* Top-Indicator (grabber, padding 8/20) + Header-Bar (Heading-Text H3 16/20 + Header-Trailing 4/20/4/12). */
+.zen-bottom-sheet__top { flex: 0 0 auto; touch-action: none; cursor: grab; }
+.zen-bottom-sheet[data-dragging="true"] .zen-bottom-sheet__top { cursor: grabbing; }
+.zen-bottom-sheet__grabber { display: block; width: 40px; height: 5px; margin: var(--zen-spacing-padding-xsmall, 8px) auto 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); }
+.zen-bottom-sheet__header { display: flex; min-height: 64px; align-items: center; }
+.zen-bottom-sheet__title { overflow: hidden; min-width: 0; flex: 1; margin: 0; padding: var(--zen-spacing-padding-medium, 16px) var(--zen-margin-compact, 20px); color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
+.zen-bottom-sheet__close { display: flex; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-margin-compact, 20px) var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-small, 12px); }
+
+.zen-bottom-sheet__search { flex: 0 0 auto; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-margin-compact, 20px); }
+.zen-bottom-sheet__body { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); overflow: auto; overscroll-behavior: contain; padding: var(--zen-margin-compact, 20px); }
+.zen-bottom-sheet[data-type="action"] .zen-bottom-sheet__body { gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-2-xsmall, 4px); }
+/* Fields fill the sheet like in ModalForm: .zen-input-field is align-self:start (for grids), which in this flex column would hug its content. */
+.zen-bottom-sheet__body > .zen-input-field { align-self: stretch; }
+
+/* Primitives/Sheet-Actions/Item: 48px, padding 12/16, radius 12; a 24px icon 12px before the label (Popover/Item/Content Theme=Icon), the 16px check 8px after. */
+.zen-bottom-sheet__items { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: 0; list-style: none; }
+.zen-bottom-sheet__item {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  box-sizing: border-box;
+  align-items: center;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px);
+  border: 0;
+  border-radius: var(--zen-corner-radius-base, 12px);
+  background: var(--zen-color-background-neutral-flat-default, transparent);
+  color: var(--zen-color-content-neutral-strongest, #111);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+/* zen-allow-slot-size: the sheet keeps fixed sizes (mobile, no density). Figma binds Element-Size/Popular/Base (item icon)
+   and Popular/XSmall (check), which its mobile frames resolve in Comfortable: 24px and 16px (4060:9288). */
+.zen-bottom-sheet__item .zen-icon { flex: 0 0 auto; width: 24px; height: 24px; }
+/* Figma Item gap Spacing/Gap/Small between the icon and the label; the row's own gap is Gap/XSmall. */
+.zen-bottom-sheet__item > .zen-icon:first-child { margin-inline-end: calc(var(--zen-spacing-gap-small, 12px) - var(--zen-spacing-gap-xsmall, 8px)); }
+.zen-bottom-sheet__item:hover:not(:disabled), .zen-bottom-sheet__item:active:not(:disabled) { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+.zen-bottom-sheet__item:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: -3px; }
+.zen-bottom-sheet__item[data-selected="true"] { background: var(--zen-color-background-active-accent-subtle, rgb(255 2 152 / 9%)); }
+.zen-bottom-sheet__item[data-destructive="true"] { color: var(--zen-color-content-negative-base, #c0392b); }
+.zen-bottom-sheet__item:disabled { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); cursor: not-allowed; }
+.zen-bottom-sheet__item-label { overflow: hidden; min-width: 0; flex: 1; text-overflow: ellipsis; white-space: nowrap; }
+.zen-bottom-sheet__item-trailing { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 64%)); }
+/* zen-allow-slot-size: fixed 16px check (see the item icon above). */
+.zen-bottom-sheet__check.zen-icon { width: 16px; height: 16px; color: var(--zen-color-content-accent-base, #95197b); }
+
+/* Footer: Large buttons, padding 12/20; Dual horizontal splits the row, vertical stacks Primary over Tertiary. */
+.zen-bottom-sheet__footer { flex: 0 0 auto; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-compact, 20px); }
+.zen-bottom-sheet__actions { display: flex; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-bottom-sheet__actions[data-direction="vertical"] { flex-direction: column; }
+.zen-bottom-sheet__actions > .zen-button { min-width: 0; height: 56px; flex: 1; }
+/* Figma stretches the Large buttons to 56 (fixed height, Container padding 16) in the sheet footer. */
+/* Vertical actions stack at their own 48px height; `flex: 1` (basis 0) in a column would collapse them. */
+.zen-bottom-sheet__actions[data-direction="vertical"] > .zen-button { flex: 0 0 auto; }
+
+@keyframes zen-bottom-sheet-in { from { transform: translateY(100%); } }
+@keyframes zen-bottom-sheet-out { to { transform: translateY(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .zen-bottom-sheet-overlay, .zen-bottom-sheet-overlay[data-state="closing"], .zen-bottom-sheet, .zen-bottom-sheet[data-state="closing"] { animation: none; }
+  .zen-bottom-sheet:not([data-dragging="true"]) { transition: none; }
+}

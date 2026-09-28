@@ -1,0 +1,8 @@
+/* Figma Metric (page 595:54968). */
+.zen-metric { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-metric[data-layout="inline"] { flex-direction: row; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-metric__contents { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-metric__content { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-metric__label { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-metric__value { color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; }
+.zen-metric-card { min-width: 0; }

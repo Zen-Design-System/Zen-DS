@@ -8,6 +8,7 @@ import "../../src/styles/reset.css";
 import "../../src/styles/tokens.css";
 import "../../src/styles/typography.css";
 import "../../src/styles/style-effects.css";
+import "../../src/icons/all";
 import { cases } from "./cases";
 
 type Case = { id: string; kind: string; props: Record<string, unknown> };

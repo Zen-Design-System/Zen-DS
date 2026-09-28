@@ -16,11 +16,38 @@ Pick exactly one option from a small visible set.
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Select | `checked / onChange` | controlled per group |
+| Select | `checked / onCheckedChange` | controlled per group; the old onChange(checked, event) is deprecated |
 | Radio-Side | `radioSide` | left · right |
 | Group | `name` | shared by all radios |
 | Caption / Bold | `caption / bold` |  |
 | Disabled | `disabled` |  |
+
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/radio-button.json`.
+
+### RadioButton
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `checked` | `boolean` | — |  |
+| `defaultChecked` | `boolean` | `false` |  |
+| `onCheckedChange` | `(checked: boolean) => void` | — | Called with the new checked state. |
+| `onChange` | `(checked: boolean, event: ChangeEvent<HTMLInputElement>) => void` | — | **Deprecated:** Use onCheckedChange (or read event.target.checked).  |
+| `label` | `ReactNode` | — |  |
+| `aria-label` | `string` | — | Name for a mark-only radio (no visible label). When set without `label`, no placeholder text renders. |
+| `caption` | `ReactNode` | — |  |
+| `bold` | `boolean` | `false` |  |
+| `radioSide` | `"left" \| "right"` | `"left"` |  |
+| `state` | `"default" \| "hover" \| "focus" \| "disabled"` | `"default"` |  |
+| `disabled` | `boolean` | `false` |  |
+| `name` | `string` | — |  |
+| `value` | `string` | — |  |
+| `className` | `string` | — |  |
+
+## Keyboard
+| Keys | Action |
+| --- | --- |
+| Tab | Move into the group (to the checked radio) |
+| ↑ ↓ ← → | Move and select within the group |
 
 ## ✅ Do
 - Wrap radios in role=radiogroup with an aria-label, and share one name.
@@ -30,6 +57,8 @@ Pick exactly one option from a small visible set.
 ## ❌ Don't
 - Don't render a lone radio; it cannot be unselected.
 - Don't use radios for independent choices.
+- Don't use more than ~7 radios; switch to a SelectField.
+- Don't trigger navigation or an action on selection; radios only choose.
 
 ## Accessibility
 - Arrow keys move and select within the group; Tab enters/leaves the group.
@@ -42,6 +71,9 @@ Pick exactly one option from a small visible set.
 | --- | --- | --- | --- |
 | `choice/needs-label` | error | Checkbox, Radio and Toggle always carry a label. | `zen-allow-unlabelled-choice: <reason>` |
 | `radio/needs-name` | error | Radios share a name so arrow keys move within one group. | `zen-allow-radio-name: <reason>` |
+| `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
+| `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 
 ## References
 - [Material 3 — Radio button](https://m3.material.io/components/radio-button/guidelines)

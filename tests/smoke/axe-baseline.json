@@ -1,0 +1,68 @@
+{
+  "AiChatField": [
+    "color-contrast",
+    "color-contrast:dark"
+  ],
+  "ChatComposerReply": [
+    "color-contrast"
+  ],
+  "ChatConversationItem": [
+    "color-contrast"
+  ],
+  "ChatDateDivider": [
+    "color-contrast"
+  ],
+  "ChatReactorsPanel": [
+    "color-contrast"
+  ],
+  "ChatReplyQuote": [
+    "color-contrast"
+  ],
+  "DatePicker": [
+    "color-contrast"
+  ],
+  "DatePickerMonthYear": [
+    "color-contrast",
+    "color-contrast:dark"
+  ],
+  "InputContent": [
+    "color-contrast",
+    "color-contrast:dark"
+  ],
+  "InputHelpText": [
+    "color-contrast"
+  ],
+  "LineChart": [
+    "color-contrast"
+  ],
+  "Link": [
+    "color-contrast"
+  ],
+  "Metric": [
+    "color-contrast"
+  ],
+  "MetricCard": [
+    "color-contrast"
+  ],
+  "Segmented": [
+    "color-contrast"
+  ],
+  "SegmentedItem": [
+    "color-contrast"
+  ],
+  "StackBarChart": [
+    "color-contrast"
+  ],
+  "TabItem": [
+    "color-contrast"
+  ],
+  "Table": [
+    "color-contrast"
+  ],
+  "Tabs": [
+    "color-contrast"
+  ],
+  "UploaderFileItem": [
+    "color-contrast"
+  ]
+}

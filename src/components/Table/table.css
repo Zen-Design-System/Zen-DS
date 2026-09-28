@@ -1,0 +1,127 @@
+/* Figma Table (page 1595:2631). */
+/* position: relative keeps absolutely positioned descendants (sr-only labels, checkbox inputs) inside the scroll box. */
+.zen-table { position: relative; width: 100%; min-width: 0; overflow-x: auto; }
+/* Right-aligned cells hold numbers, amounts and actions: keep them on one line ("4.2 MB", "$1,200") — a narrow
+   container scrolls the table sideways (overflow-x above) instead of breaking values apart. */
+.zen-table__cell[data-align="right"], .zen-table__header[data-align="right"] { white-space: nowrap; }
+.zen-table__table { width: 100%; border-collapse: collapse; border-spacing: 0; table-layout: auto; }
+.zen-table__caption { padding-bottom: var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-strongest, #111); text-align: start; caption-side: top; }
+.zen-table__col-select { width: 48px; }
+
+/* Header cell (Table/Cell/Header): Table/Header/Size, padding Small × Medium, All-Caps/S Neutral/Light. */
+.zen-table__header {
+  box-sizing: border-box;
+  height: var(--zen-table-header-size, 36px);
+  padding: 0 var(--zen-spacing-padding-medium, 16px);
+  border-bottom: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  background: var(--zen-table-cell-background-default, transparent);
+  color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%));
+  font-weight: inherit;
+  text-align: start;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.zen-table__header[data-align="right"] { text-align: end; }
+.zen-table__head, .zen-table__sort { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-table__header[data-align="right"] :is(.zen-table__head, .zen-table__sort) { flex-direction: row; justify-content: flex-end; }
+.zen-table__header .zen-icon { width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); flex: 0 0 auto; }
+.zen-table__sort { margin: 0 calc(-1 * var(--zen-spacing-padding-xsmall, 8px)); padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: transparent; color: inherit; font: inherit; cursor: pointer; }
+/* Figma Header State=Hover: Table-Cell/Background/Hover; Title + leading icon step up to Strongest, the sort chevron stays Light. */
+.zen-table__header:has(.zen-table__sort:hover) { background: var(--zen-table-cell-background-hover); color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-table__header:not([data-sorted]) .zen-table__sort > .zen-icon:last-child { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-table__header[data-sorted="true"] { color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-table__sort:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 0; }
+
+/* Body cell (Table/Cell/Default): Table/Cell/Size, padding Small × Medium, 1px bottom Border/Neutral/Pale. */
+.zen-table__cell {
+  box-sizing: border-box;
+  height: var(--zen-table-cell-size, 52px);
+  padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px);
+  border-bottom: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  background: var(--zen-table-cell-background-default, transparent);
+  color: var(--zen-color-content-neutral-strongest, #111);
+  text-align: start;
+  vertical-align: middle;
+}
+.zen-table__cell[data-align="right"] { text-align: end; }
+.zen-table__row:hover > .zen-table__cell { background: var(--zen-table-cell-background-hover); }
+.zen-table__row[data-selected="true"] > .zen-table__cell { background: var(--zen-table-cell-background-selected); }
+.zen-table__select { width: 48px; padding-inline-end: 0; }
+.zen-table__checkbox { width: auto; }
+.zen-table__checkbox .zen-checkbox__content { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.zen-table__empty { padding: var(--zen-spacing-padding-2-xlarge, 32px) var(--zen-spacing-padding-medium, 16px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+
+/* Cell primitives. */
+.zen-table-text { display: inline-flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); vertical-align: middle; }
+.zen-table-text__label { color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-table-text__caption { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-table-media { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-small, 12px); vertical-align: middle; text-align: start; }
+.zen-table-media__visual { display: inline-flex; flex: 0 0 auto; }
+/* Badge-Cell / Tag-Cell Items slot: wraps, gap 2XSmall. */
+.zen-table-items { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); vertical-align: middle; }
+.zen-table-actions { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); vertical-align: middle; }
+
+/* Figma Table/Cell/Default State=Focused (1603:23600): 3px Color/Focus/Accent/Subtle ring inside the cell. */
+.zen-table__cell[data-editable="true"] { position: relative; cursor: text; }
+/* Clickable content keeps its own cursor so the two targets read apart. */
+.zen-table__cell[data-editable="true"] :is(button, a[href], [role=button], [role=link], [data-cell-action]) { cursor: pointer; }
+/* Notion-like affordance: an editable cell tints on hover, so a single click reads as "edit here". */
+.zen-table__cell[data-editable="true"]:not([data-editing="true"]):hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+/* Keyboard focus ring on an editable cell. None after an edit ends (data-quiet) or on a pointer focus. */
+.zen-table__cell[data-editable="true"]:focus { outline: none; }
+.zen-table__cell[data-editable="true"]:focus-visible:not([data-quiet="true"]) { box-shadow: inset 0 0 0 3px var(--zen-color-focus-accent-subtle, rgb(255 1 158 / 18%)); }
+/* State=Edit (1603:23599) / Primitives/Table/Cell/Editabled-Cell (1603:23274): the field fills the cell — Neutral/Pale
+   fill, 2px Emphasis/Border-Weight/Active/Primary underline in Color/Focus/Neutral/Solid, padding Small × Medium,
+   Body/Base/Medium text; Data=Yes puts Tags (gap 2XSmall) before the input. */
+.zen-table__cell[data-editing="true"] { position: relative; }
+/* Editing never changes layout: the hidden original keeps the column width and row height, the editor overlays it. */
+.zen-table__cell-ghost { visibility: hidden; }
+.zen-table__cell[data-editing="true"] > .zen-table-editor { position: absolute; inset: 0; height: auto; }
+/* Text grows with the value (Notion expands long text): the field keeps the cell's top edge and width, grows
+   downward over the rows below and lifts with Effect/Popover while taller than the cell. */
+.zen-table__cell[data-editing="true"] > .zen-table-editor[data-type="text"] { z-index: 3; bottom: auto; min-height: 100%; height: auto; align-items: flex-start; padding-block: calc((var(--zen-table-cell-size, 52px) - var(--zen-emphasis-border-weight-active-primary, 2px) - var(--zen-typography-line-height-body-base, 20px)) / 2); }
+.zen-table-editor[data-type="text"]:has(textarea[style*="height"]:not([style*="height: 20px"])) { box-shadow: var(--zen-style-effect-popover-shadow); }
+textarea.zen-table-editor__input { display: block; width: 100%; height: 20px; min-height: 20px; max-height: 240px; resize: none; overflow-y: auto; line-height: var(--zen-typography-line-height-body-base, 20px); white-space: pre-wrap; overflow-wrap: anywhere; }
+.zen-table-editor[data-type="select"] { justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); cursor: pointer; }
+.zen-table-editor[data-type="select"] > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-table-editor {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  /* Exactly the cell height (Table/Cell/Size, underline included) — editing never grows the row. */
+  height: var(--zen-table-cell-size, 52px);
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--zen-spacing-gap-2-xsmall, 4px);
+  padding: 0 var(--zen-spacing-padding-medium, 16px);
+  border-bottom: var(--zen-emphasis-border-weight-active-primary, 2px) solid var(--zen-color-focus-neutral-solid, #111);
+  /* Neutral/Pale over an opaque Surface: the field can overlay the rows below without showing them through. */
+  background: linear-gradient(var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)), var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%))), var(--zen-color-background-surface-default, #fff);
+  cursor: text;
+}
+.zen-table-editor[data-align="right"] { justify-content: flex-end; }
+.zen-table-editor[data-invalid="true"] { border-bottom-color: var(--zen-color-border-negative-solid-default, #e5532e); }
+/* Editabled-Cell Data=Yes: Tags (gap 2XSmall) scroll sideways instead of wrapping onto a second line. */
+.zen-table-editor__tags { display: inline-flex; min-width: 0; flex: 0 1 auto; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); overflow-x: auto; scrollbar-width: none; }
+.zen-table-editor__tags::-webkit-scrollbar { display: none; }
+.zen-table-editor__tags > .zen-tag { flex: 0 0 auto; }
+.zen-table-editor__input { min-width: 64px; flex: 1 1 64px; margin: 0; padding: 0 0 0 var(--zen-spacing-padding-3-xsmall, 2px); border: 0; outline: 0; background: transparent; color: var(--zen-color-content-neutral-strongest, #111); caret-color: var(--zen-color-background-active-neutral-solid, #111); }
+.zen-table-editor[data-align="right"] .zen-table-editor__input { text-align: end; }
+.zen-table-editor__input::placeholder { color: var(--zen-color-content-placeholder, rgb(0 0 0 / 27%)); }
+.zen-table-editor__value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Portalled layer: the Popover positions against the editing cell (4px below it, flipping above near the viewport
+   bottom) without being clipped by the table's scroll box; the layer itself lets clicks through. */
+.zen-table-editor__layer { position: fixed; z-index: 1000; inset: 0; pointer-events: none; }
+.zen-table-editor__layer > * { pointer-events: auto; }
+.zen-table-editor__popover { min-width: 200px; }
+/* Floating validation message under the editing cell (a small tooltip-like overlay, hence Background/Popover). */
+.zen-table-editor__error-tooltip { position: fixed; padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-popover-default); box-shadow: var(--zen-style-effect-popover-shadow); color: var(--zen-color-content-negative-light, #d03e19); white-space: nowrap; }
+/* Figma Open-Button (Table/Cell/Default Open-Button=Yes): XSmall Tertiary Button 12px from the right, shown on row hover/focus. */
+/* zen-allow-raw-spacing: 56px is the Open button's hug width in Figma (1603:18563, Button/Main XSmall Tertiary "Open",
+   absolute 12px from the right); Figma lets it cover the content, the cell keeps the content clear of it. */
+.zen-table__cell[data-open="true"] { position: relative; padding-right: calc(var(--zen-spacing-padding-medium, 16px) + 56px); }
+.zen-table__open { position: absolute; top: 50%; right: var(--zen-spacing-padding-small, 12px); opacity: 0; translate: 0 -50%; pointer-events: none; transition: opacity 120ms ease; }
+/* Shown on row hover or keyboard focus inside the row — not for the quiet focus a cell keeps after an edit ends. */
+.zen-table__row:hover .zen-table__open,
+.zen-table__row:has(:focus-visible:not([data-quiet="true"])) .zen-table__open { opacity: 1; pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) { .zen-table__open { transition: none; } }

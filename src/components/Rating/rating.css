@@ -1,0 +1,60 @@
+/* Figma Rating (page 1536:355). */
+.zen-rating, .zen-rating-display {
+  --zen-rating-star: var(--zen-element-size-popular-base, 20px);
+  --zen-rating-on: var(--zen-color-content-support-yellow-light);
+  --zen-rating-off: var(--zen-color-content-placeholder, rgb(0 0 0 / 25%));
+}
+:is(.zen-rating, .zen-rating-display)[data-size="xsmall"] { --zen-rating-star: var(--zen-element-size-popular-xsmall, 12px); }
+:is(.zen-rating, .zen-rating-display)[data-size="small"] { --zen-rating-star: var(--zen-element-size-popular-small, 16px); }
+:is(.zen-rating, .zen-rating-display)[data-size="large"] { --zen-rating-star: var(--zen-element-size-popular-large, 28px); }
+:is(.zen-rating, .zen-rating-display)[data-size="xlarge"] { --zen-rating-star: var(--zen-element-size-popular-2-xlarge, 44px); }
+:is(.zen-rating, .zen-rating-display)[data-tone="neutral"] { --zen-rating-on: var(--zen-color-content-neutral-strongest, #111); }
+:is(.zen-rating, .zen-rating-display)[data-tone="accent"] { --zen-rating-on: var(--zen-color-content-accent-light); }
+
+/* Input: one radio per star, gap 3XSmall. */
+.zen-rating { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-rating__star { position: relative; display: inline-flex; color: var(--zen-rating-off); cursor: pointer; transition: color 100ms ease, transform 100ms ease; }
+.zen-rating__star[data-filled="true"] { color: var(--zen-rating-on); }
+.zen-rating__star > .zen-icon { width: var(--zen-rating-star); height: var(--zen-rating-star); }
+.zen-rating__star input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: inherit; }
+.zen-rating__star:has(input:focus-visible) { border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 1px; }
+.zen-rating__star:hover { transform: scale(1.08); }
+.zen-rating[aria-disabled="true"] .zen-rating__star { cursor: not-allowed; opacity: 0.5; transform: none; }
+
+/* Display: filled row clipped to the value over the empty base row. */
+.zen-rating-display { position: relative; display: inline-flex; vertical-align: middle; }
+.zen-rating-display__base, .zen-rating-display__fill { display: inline-flex; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-rating-display__base { color: var(--zen-rating-off); }
+.zen-rating-display__fill { position: absolute; inset: 0 auto 0 0; overflow: hidden; width: var(--zen-rating-fill); color: var(--zen-rating-on); white-space: nowrap; }
+.zen-rating-display .zen-icon { width: var(--zen-rating-star); height: var(--zen-rating-star); flex: 0 0 auto; }
+
+/* Opinion scale (.Primitives/Rating/Opinion item): gap XSmall between items. */
+.zen-opinion-scale { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-opinion-item {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  min-width: 96px;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--zen-spacing-gap-2-xsmall, 4px);
+  padding: var(--zen-spacing-padding-xsmall, 8px);
+  border-radius: var(--zen-corner-radius-base, 12px);
+  background: var(--zen-color-background-neutral-flat-default, transparent);
+  color: var(--zen-color-content-neutral-strongest, #111);
+  cursor: pointer;
+  text-align: center;
+}
+.zen-opinion-item:hover { background: var(--zen-color-background-neutral-flat-hover); }
+.zen-opinion-item[data-selected="true"] { background: var(--zen-color-background-active-neutral-subtle); }
+.zen-opinion-item:has(input:focus-visible) { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
+.zen-opinion-item input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: inherit; }
+/* .Primitives/Rating/Emoji (1536:25750): the emoji is Heading/4 text in a slot whose height Figma binds to dm-32. */
+.zen-opinion-item__emoji { display: inline-flex; height: var(--zen-dm-32, 32px); align-items: center; font-family: var(--zen-typography-font-family-heading); font-size: var(--zen-typography-font-size-heading-4, 20px); font-weight: var(--zen-emphasis-font-weight-bold); line-height: var(--zen-typography-line-height-heading-4, 28px); letter-spacing: var(--zen-typography-letter-spacing-heading-4); }
+
+/* NPS scale: number chips gap 2XSmall, labels under the two ends (gap Medium). */
+.zen-nps-scale { display: inline-flex; max-width: 100%; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-nps-scale__numbers { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-nps-scale__labels { display: flex; justify-content: space-between; gap: var(--zen-spacing-gap-medium, 16px); color: var(--zen-color-content-neutral-strongest, #111); }
+@media (prefers-reduced-motion: reduce) { .zen-rating__star { transition: none; } .zen-rating__star:hover { transform: none; } }

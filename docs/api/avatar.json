@@ -1,0 +1,138 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "avatar",
+  "import": "import { Avatar, AvatarStack } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Avatar",
+      "file": "src/components/Avatar/Avatar.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "size",
+          "type": "\"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\" | \"3xl\" | \"2xsmall\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\" | \"2xlarge\" | \"3xlarge\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"photo\" | \"accent\" | \"blue\" | \"brown\" | \"crimson\" | \"cyan\" | \"green\" | \"indigo\" | \"neutral\" | \"orange\" | \"pink\" | \"plum\" | \"purple\" | \"red\" | \"teal\" | \"violet\" | \"yellow\"",
+          "required": false,
+          "default": "\"neutral\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "background",
+          "type": "\"solid\" | \"subtle\"",
+          "required": false,
+          "default": "\"solid\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "shape",
+          "type": "\"circle\" | \"square\"",
+          "required": false,
+          "default": "\"circle\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "status",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "focus",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "src",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "alt",
+          "type": "string",
+          "required": false,
+          "default": "\"\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "AvatarStack",
+      "file": "src/components/Avatar/Avatar.tsx",
+      "description": "Figma Avatar/Stack: 1–5 avatars, first on top, no overflow chip (`showMore` is an opt-in extension).",
+      "deprecated": null,
+      "extends": "Omit<AvatarProps, \"children\" | \"alt\" | \"src\">",
+      "props": [
+        {
+          "name": "items",
+          "type": "Array<Pick<AvatarProps, \"src\" | \"alt\" | \"children\" | \"theme\">>",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": "5",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "showMore",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "unknown",
+          "required": false,
+          "default": "\"md\"",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

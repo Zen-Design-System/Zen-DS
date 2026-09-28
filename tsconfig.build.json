@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "dist",
+    "rootDir": "src"
+  },
+  "include": [],
+  "files": ["src/index.ts", "src/icons/all.ts", "src/icons/names.ts", "src/tokens/index.ts", "src/vite-env.d.ts"]
+}

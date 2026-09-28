@@ -1,0 +1,117 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "bottom-navigation",
+  "import": "import { BottomNavigation } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "BottomNavigation",
+      "file": "src/components/BottomNavigation/BottomNavigation.tsx",
+      "description": "Figma Bottom-Navigation (page ❖ Bottom-Navigations, 7042:38507): 3–5 root destinations.\nDefault: Surface/Default bar, 56px items (24px icon, Content/Placeholder → Neutral/Strongest or Accent/Base when selected).\nFloating: a 4px-padded pill (Surface/Glass + glass border + Effect/Popover) of 56px round items, selected on\nActive/Subtle · Surface (+ Shadow/Bottom/Level-1) · Active/Solid, with an optional 64px floating action beside it.\nFloating types sit on a transparent → Surface fade with Figma's PROGRESSIVE background blur (radius 24): 0 at the top\nedge, strongest at the bottom — the mirror of the Top Navigation blur.\nThe home indicator is the OS's; the bar pads `env(safe-area-inset-bottom)`.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "items",
+          "type": "BottomNavigationItem[]",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(id: string) => void",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "type",
+          "type": "\"default\" | \"floating\" | \"floating-glass\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"neutral\" | \"accent\"",
+          "required": false,
+          "default": "\"neutral\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "selection",
+          "type": "\"subtle\" | \"surface\" | \"solid\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "showLabels",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Label (Label/Small/Medium; Bold when selected on Floating). Off by default, like Figma; the label is still the accessible name.",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "BottomNavigationAction",
+          "required": false,
+          "default": null,
+          "description": "Default: a 48px Primary/Accent action item in the bar (Type=Action). Floating: a separate 64px floating button.",
+          "deprecated": null
+        },
+        {
+          "name": "fixed",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Pin to the bottom of the viewport / scroll container.",
+          "deprecated": null
+        },
+        {
+          "name": "backdrop",
+          "type": "\"surface\" | \"none\"",
+          "required": false,
+          "default": "\"surface\"",
+          "description": "Floating types: what sits behind the pill. `surface` (Figma) fades transparent → Surface/Default for plain screens; `none` keeps only the progressive blur, for photos and video where a Surface band would show as a white strip.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the navigation landmark. Default: the locale's “Main”.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "BottomNavigationAction": "interface BottomNavigationAction { icon: IconName | ReactElement; label: string; onClick?: () => void; theme?: BottomNavigationActionTheme; }",
+    "BottomNavigationActionTheme": "type BottomNavigationActionTheme = \"default\" | \"primary\" | \"accent\"",
+    "BottomNavigationItem": "interface BottomNavigationItem { id: string; label: string; icon: IconName | ReactElement; selectedIcon?: IconName | ReactElement; dot?: boolean; }"
+  }
+}

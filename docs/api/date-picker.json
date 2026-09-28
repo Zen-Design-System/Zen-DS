@@ -1,0 +1,510 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "date-picker",
+  "import": "import { DatePicker, DateField, DatePickerItem, DatePickerHeader, DatePickerAction, DatePickerMonthYear } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "DatePicker",
+      "file": "src/components/DatePicker/DatePicker.tsx",
+      "description": "Figma `Date-Picker/Single-Calendar` and `Date-Picker/Dual-Calendar` on the shared token and\nButton primitives. The single calendar's month/year opens the Select-Month-Year state. It is\nalso the calendar surface used by Input/Date-Field.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Default true: DatePicker is the calendar panel itself. As a popover, pass `open` with `onOpenChange` (or `onClose`).",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "Date | null",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "Date | null",
+          "required": false,
+          "default": "null",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "month",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "First (left) visible month.",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(date: Date | null) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the picked date; in range mode with the start, then again with the end (see `onRangeChange`).",
+          "deprecated": null
+        },
+        {
+          "name": "onChange",
+          "type": "(date: Date | null) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use onValueChange (same arguments)."
+        },
+        {
+          "name": "onRangeChange",
+          "type": "(range: { start: Date; end: Date | null }) => void",
+          "required": false,
+          "default": null,
+          "description": "Range mode: called with the new start (end = null) and again once the end date is picked.",
+          "deprecated": null
+        },
+        {
+          "name": "onMonthChange",
+          "type": "(month: Date) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Popover behaviour: called on a pointer-down outside the picker (and outside `anchorRef`), on\nEscape, after a single date / a complete range is picked (without actions), and by the actions.",
+          "deprecated": null
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with `false` wherever `onClose` is called (the `open` / `onOpenChange` pair of every Zen overlay).",
+          "deprecated": null
+        },
+        {
+          "name": "anchorRef",
+          "type": "RefObject<HTMLElement | null>",
+          "required": false,
+          "default": null,
+          "description": "The trigger. Pointer-downs on it are left to its own toggle; Escape returns focus to it.",
+          "deprecated": null
+        },
+        {
+          "name": "showActions",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "\"single\" | \"dual\"",
+          "required": false,
+          "default": "\"dual\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "selectionMode",
+          "type": "\"single\" | \"range\"",
+          "required": false,
+          "default": "\"single\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "calendar",
+          "type": "\"single\" | \"dual\"",
+          "required": false,
+          "default": "\"single\"",
+          "description": "Figma Date-Picker/Single-Calendar or Date-Picker/Dual-Calendar (two consecutive months side by\nside; Static headers with Back on the first and Next on the second).",
+          "deprecated": null
+        },
+        {
+          "name": "minDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "maxDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "DateField",
+      "file": "src/components/Input/Input.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelOptional",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel).",
+          "deprecated": null
+        },
+        {
+          "name": "labelTooltip",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpTheme",
+          "type": "\"neutral\" | \"negative\" | \"warning\" | \"positive\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative.",
+          "deprecated": null
+        },
+        {
+          "name": "helpIcon",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Icon` axis (default on).",
+          "deprecated": null
+        },
+        {
+          "name": "characterLimit",
+          "type": "ReactNode | true",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Character-Limitation`: custom text (e.g. \"12/100\"), or `true` to count the value against `maxLength`.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "errorMessage",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use error (same meaning)."
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": null,
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"typing\" | \"inputted\" | \"read-only\" | \"disabled\" | \"inputted-error\" | \"blank-error\" | \"error\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Before the value: an icon name (`\"icon-mail-01-line\"`, sized to the field) or any node (a unit, a picker).",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "After the value: an icon name (sized to the field) or any node (a unit, a picker, an action).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the new text on every change (next to the native `onChange(event)`, which still runs).",
+          "deprecated": null
+        },
+        {
+          "name": "datePicker",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "datePickerActions",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onDateChange",
+          "type": "(date: Date | null) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "DatePickerItem",
+      "file": "src/components/DatePicker/DatePicker.tsx",
+      "description": "The 32px day primitive from `.Primitives/Date-Picker/Item`.",
+      "deprecated": null,
+      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
+      "props": [
+        {
+          "name": "day",
+          "type": "number | string",
+          "required": false,
+          "default": "\"\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "| \"default\" | \"hover\" | \"single-selected\" | \"range-selected-start\" | \"range-selected-end\" | \"in-range\" | \"today\" | \"blank\" | \"weekend\" | \"disabled\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "event",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"md\" | \"sm\" | \"medium\" | \"small\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "DatePickerHeader",
+      "file": "src/components/DatePicker/DatePicker.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "month",
+          "type": "Date",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onPrevious",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onNext",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onMonthYearClick",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "type",
+          "type": "\"interactive\" | \"static\" | \"display\"",
+          "required": false,
+          "default": "\"interactive\"",
+          "description": "Figma Header Type: Interactive (month/year opens Select-Month-Year), Static (label only,\nused by the Dual calendar) or Display (label only, no navigation slots).",
+          "deprecated": null
+        },
+        {
+          "name": "back",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Figma `Back` / `Next`. A hidden button keeps its 32px slot so the label stays centred.",
+          "deprecated": null
+        },
+        {
+          "name": "next",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "DatePickerAction",
+      "file": "src/components/DatePicker/DatePicker.tsx",
+      "description": "`.Primitives/Date-Picker/Action`: Button/Main Small Tertiary \"Cancel\" + Primary \"Submit\".",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "action",
+          "type": "\"single\" | \"dual\"",
+          "required": false,
+          "default": "\"dual\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onCancel",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onApply",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "cancelLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Text of the Tertiary button. Default: the locale's \"Cancel\".",
+          "deprecated": null
+        },
+        {
+          "name": "applyLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Text of the Primary button. Default: the locale's \"Submit\".",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "DatePickerMonthYear",
+      "file": "src/components/DatePicker/DatePicker.tsx",
+      "description": "`.Primitives/Date-Picker/Calendar` Type=Select-Month-Year: the focused month/year header, a\nmonth wheel and a year wheel (Heading/4, 5 visible rows), then Cancel / Submit.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "month",
+          "type": "Date",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onSubmit",
+          "type": "(month: Date) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onCancel",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

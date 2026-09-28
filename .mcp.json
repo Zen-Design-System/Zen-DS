@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "zen-ds": {
+      "command": "node",
+      "args": ["mcp/server.mjs"]
+    }
+  }
+}

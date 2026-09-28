@@ -1,0 +1,20 @@
+/* Text & Heading: Figma text styles (typography.css classes) + Color/Content roles. */
+.zen-text { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); overflow-wrap: break-word; }
+.zen-text[data-tone="base"] { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
+.zen-text[data-tone="light"] { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-text[data-tone="accent"] { color: var(--zen-color-content-accent-base); }
+.zen-text[data-tone="info"] { color: var(--zen-color-content-info-base); }
+.zen-text[data-tone="positive"] { color: var(--zen-color-content-positive-base); }
+.zen-text[data-tone="negative"] { color: var(--zen-color-content-negative-base); }
+.zen-text[data-tone="warning"] { color: var(--zen-color-content-warning-base); }
+.zen-text[data-tone="inverse"] { color: var(--zen-color-content-inverse-strongest); }
+.zen-text[data-tone="on-colors"] { color: var(--zen-color-content-on-colors); }
+.zen-text[data-tone="disabled"] { color: var(--zen-color-content-disabled); }
+.zen-text[data-tone="inherit"] { color: inherit; }
+.zen-text[data-align="center"] { text-align: center; }
+.zen-text[data-align="end"] { text-align: end; }
+/* Truncation needs a box: even an inline span (as="span") becomes a block so the ellipsis can show. */
+.zen-text[data-truncate="line"] { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zen-text[data-truncate="lines"] { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: var(--zen-text-lines, 2); line-clamp: var(--zen-text-lines, 2); }
+/* Inline code inside copy uses the Dev font family (JetBrains Mono in Zen; the app loads it, else the system mono). */
+.zen-text code { font: inherit; font-family: var(--zen-typography-font-family-dev, ui-monospace), ui-monospace, monospace; }

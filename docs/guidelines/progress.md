@@ -19,15 +19,47 @@ Show determinate progress of a task or a step.
 | Theme | `theme` | bar: neutral · accent · status; circle: neutral · accent · red · orange · yellow · green · blue |
 | Value | `value` | 0–100 |
 | Label | `label` | true = percentage |
+| Scale | `scale` | status only: completion (default, low = red) · quota (usage against a limit: ≥75% Warning, ≥90% Negative) |
+
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/progress.json`.
+
+### ProgressBar
+Figma Progress-Bar (1536:260): 8px Neutral/Subtle track, rounded, Active fill; Body/Base/Regular label, gap 8.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` (required) | `number` | — | 0–100. |
+| `theme` | `"neutral" \| "accent" \| "status"` | `"neutral"` |  |
+| `label` | `ReactNode \| true` | — | Trailing label (Figma Label=Yes). `true` shows the rounded percentage. |
+| `aria-label` | `string` | — | Accessible name when there is no visible label. |
+| `scale` | `"completion" \| "quota"` | `"completion"` | Status theme only: `quota` for usage against a limit (high = bad); default `completion`. |
+| `className` | `string` | — |  |
+
+### ProgressCircle
+Figma Progress-Circle (1531:13954) + Progress-Circle/Icon (6915:62964): 20px ring (2px Support/Subtle border on Neutral/Subtle) with a 12px Support/Solid pie from 12 o'clock; Done = full solid disc + 12px icon-check-solid.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` (required) | `number` | — | 0–100. 100 renders the Done state with a check. |
+| `theme` | `"neutral" \| "accent" \| "red" \| "orange" \| "yellow" \| "green" \| "blue"` | `"accent"` |  |
+| `label` | `ReactNode \| true` | — |  |
+| `aria-label` | `string` | — |  |
+| `className` | `string` | — |  |
 
 ## ✅ Do
 - Label every progress (visible label or aria-label).
 - Use Status only when low values are a problem (quotas, health).
 - Switch to Status/green or Done when complete.
+- Keep the value a percentage from 0 to 100 (harness: progress/value-range).
+- Pair the percentage with the unit that matters ("12 / 48 MB", "3 of 5 steps").
+- Use scale="quota" for storage, seats or credits measured against a limit, so a nearly full quota turns Warning/Negative instead of green (harness: progress/quota-scale).
 
 ## ❌ Don't
 - Don't animate backwards.
 - Don't use colour alone to convey state.
+- Don't use a progress bar for unknown durations → Skeleton or a spinner.
+- Don't stop at 99% without explaining what's left.
 
 ## Accessibility
 - role=progressbar with aria-valuenow/min/max and valuetext.
@@ -38,7 +70,10 @@ Show determinate progress of a task or a step.
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `progress/value-range` | error | Progress value is a percentage between 0 and 100. | `zen-allow-progress-range: <reason>` |
 | `progress/needs-label` | error | Progress needs a visible label or an aria-label. | `zen-allow-progress-label: <reason>` |
+| `progress/quota-scale` | warn | A Status bar that measures usage against a limit (storage, quota, seats, credits) uses scale="quota" so high values turn Warning/Negative, not green. | `zen-allow-progress-scale: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 
 ## References
 - [Material 3 — Progress indicators](https://m3.material.io/components/progress-indicators/guidelines)

@@ -1,0 +1,113 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "app-shell",
+  "import": "import { AppShell } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "AppShell",
+      "file": "src/components/AppShell/AppShell.tsx",
+      "description": "The frame of a web app: navigation, a sticky top bar and the main content, with a skip link. From 1024px the\nSidebar sits beside the content; below, it becomes a drawer (scrim, Escape and choosing a page close it).\n\n  <AppShell sidebar={<Sidebar … />} header={<Search … />}>\n    <Container><PageHeader title=\"Team members\" /> …</Container>\n  </AppShell>",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">",
+      "props": [
+        {
+          "name": "sidebar",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Left navigation, usually <Sidebar>. Below 1024px it moves into a drawer opened from the header's menu button.",
+          "deprecated": null
+        },
+        {
+          "name": "header",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Top bar content on the left (it grows): search, breadcrumbs. On small screens the drawer's menu button comes first.",
+          "deprecated": null
+        },
+        {
+          "name": "headerActions",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Top bar actions on the right: notifications, help, the account menu.",
+          "deprecated": null
+        },
+        {
+          "name": "footer",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "A sticky bar at the bottom of the main column, e.g. BottomNavigation on phones.",
+          "deprecated": null
+        },
+        {
+          "name": "canvas",
+          "type": "\"default\" | \"alt\" | \"flat\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "Page background layer: default Canvas, alt (a white page) or flat (pair it with Sidebar background=\"flat\").",
+          "deprecated": null
+        },
+        {
+          "name": "navOpen",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Drawer state when controlled (small screens).",
+          "deprecated": null
+        },
+        {
+          "name": "defaultNavOpen",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onNavOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "navLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the navigation drawer and its menu button's target. Default: the locale's “Navigation”.",
+          "deprecated": null
+        },
+        {
+          "name": "mainId",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "id of <main>, the target of the \"Skip to content\" link. Default: a generated unique id.",
+          "deprecated": null
+        },
+        {
+          "name": "layout",
+          "type": "\"auto\" | \"sidebar\" | \"drawer\"",
+          "required": false,
+          "default": "\"auto\"",
+          "description": "Force the layout; by default it follows ZenProvider's breakpoint (tablet and mobile use the drawer).",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The page.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

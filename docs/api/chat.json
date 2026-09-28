@@ -1,0 +1,963 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "chat",
+  "import": "import { ChatMessage, ChatComposer, ChatThread, ChatConversationItem, ChatComposerReply, ChatReplyQuote, ChatEmojiPicker, ChatReactorsPanel, ChatBubble, ChatFile, ChatCall, ChatPhotos, ChatReactions, ChatReactionPicker, ChatReadList, ChatDateDivider, ChatAvatarGroup } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "ChatMessage",
+      "file": "src/components/Chat/Chat.tsx",
+      "description": "Figma Chat/Conversation/Bubble (6349:64085): avatar (others) + bubble + reactions, with time / status / read list under it.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "side",
+          "type": "\"you\" | \"others\"",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "domain",
+          "type": "\"social\" | \"business\"",
+          "required": false,
+          "default": "\"social\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "author",
+          "type": "ChatPerson",
+          "required": false,
+          "default": null,
+          "description": "Others: who sent it (the avatar and, when `showName`, the name above the bubble).",
+          "deprecated": null
+        },
+        {
+          "name": "showName",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Show the author's name above the bubble (Figma Name; group chats).",
+          "deprecated": null
+        },
+        {
+          "name": "continued",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Hide the avatar but keep its space (follow-up messages in a run).",
+          "deprecated": null
+        },
+        {
+          "name": "time",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Business: inside the bubble (Caption/Regular). Social: under the bubble.",
+          "deprecated": null
+        },
+        {
+          "name": "status",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Sent: a status line under your last message (\"Sent\", \"Seen\").",
+          "deprecated": null
+        },
+        {
+          "name": "failed",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Your message could not be sent: a Negative \"Not delivered\" line with a Retry action replaces the status.",
+          "deprecated": null
+        },
+        {
+          "name": "onRetry",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "reactions",
+          "type": "ChatReaction[]",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "seenBy",
+          "type": "ChatPerson[]",
+          "required": false,
+          "default": null,
+          "description": "Figma Chat/Section/Read-List: people who have seen the message.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Bubble-*-Content: plain text is wrapped in a text bubble; pass ChatFile / ChatCall / ChatPhotos as-is.",
+          "deprecated": null
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Message id (→ data-message-id): lets a reply's quote jump back to this message.",
+          "deprecated": null
+        },
+        {
+          "name": "replyTo",
+          "type": "ChatReplyTarget",
+          "required": false,
+          "default": null,
+          "description": "This message replies to another: a quote of the original sits above the bubble (ChatReplyQuote).",
+          "deprecated": null
+        },
+        {
+          "name": "onJumpToReply",
+          "type": "(id: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Pressing the quote; defaults to scrolling to `[data-message-id]` in the same thread and flashing it.",
+          "deprecated": null
+        },
+        {
+          "name": "holdActions",
+          "type": "ChatHoldAction[]",
+          "required": false,
+          "default": null,
+          "description": "Hold to react (Figma Chat/Bubble/Focused/*, mobile): a long press, right-click, or Shift+F10 / the Menu key on the focused\nmessage opens a blurred layer with the Reaction-Bar above the bubble and these actions below it (Popover/Default).\nOn desktop (ChatThread device=\"desktop\") the same actions live in the Hover toolbar; right-click / Shift+F10 opens its More menu.\nUse `chatHoldActions` for the Figma sets: their built-in labels show in the ZenProvider locale, your own labels as written.",
+          "deprecated": null
+        },
+        {
+          "name": "onHoldAction",
+          "type": "(id: string) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "reaction",
+          "type": "ChatQuickReaction | (string & {})",
+          "required": false,
+          "default": null,
+          "description": "Your reaction to this message (selected in the Reaction-Bar); `onReact` enables the bar.",
+          "deprecated": null
+        },
+        {
+          "name": "onReact",
+          "type": "(kind: ChatReactionKind | undefined) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onMoreReactions",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Reaction-Bar \"+\": open a full emoji picker.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatComposer",
+      "file": "src/components/Chat/Chat.tsx",
+      "description": "Figma Chat-Control (6182:56819): Surface bar, padding 8, gap 8. Actions are flat Neutral/Strongest icons — Mobile\nNav-Action/Icon-Flat 44px (icon 24), Desktop Button/Icon-Flat Medium 40px (icon 20). The pill field is\nInput/Background/Default + Effect/Input with Body/Base/Medium text (\"Aa\" in Placeholder); State=Focused only adds the\nAccent caret, the field itself does not change. The trailing quick action becomes Send while typing (same flat style).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "onSend",
+          "type": "(text: string) => void",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Figma placeholder \"Aa\" (the locale's `composerPlaceholder` by default).",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the field (the placeholder is not a label); the locale's \"Message\" by default.",
+          "deprecated": null
+        },
+        {
+          "name": "onEmoji",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "The emoji button inside the field.",
+          "deprecated": null
+        },
+        {
+          "name": "actions",
+          "type": "{ icon: IconName | ReactElement; label: string; onClick?: () => void }[]",
+          "required": false,
+          "default": null,
+          "description": "Figma Leading-Actions (plus · mic · photo; only plus while typing): Nav-Action/Icon-Flat 44px on mobile, Button/Icon-Flat Medium 40px on desktop. `icon`: an icon name or an element.",
+          "deprecated": null
+        },
+        {
+          "name": "quickAction",
+          "type": "{ icon: IconName | ReactElement; label: string; onClick?: () => void }",
+          "required": false,
+          "default": null,
+          "description": "Figma Trailing-Actions when the field is empty (a 👍 \"Send a like\" by default). While typing it becomes Send. `icon`: an icon name or an element.",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"mobile\" | \"desktop\"",
+          "required": false,
+          "default": "\"mobile\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "replyTo",
+          "type": "ChatReplyTarget",
+          "required": false,
+          "default": null,
+          "description": "Replying to a message: a \"Replying to …\" bar above the field (× or Escape cancels). Attach it to what you send.",
+          "deprecated": null
+        },
+        {
+          "name": "onCancelReply",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatThread",
+      "file": "src/components/Chat/Chat.tsx",
+      "description": "Opens at the latest message and stays pinned to the bottom when new messages arrive — unless the reader has scrolled up\n(more than 48px from the bottom), in which case their position is kept.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"mobile\" | \"desktop\"",
+          "required": false,
+          "default": "\"mobile\"",
+          "description": "Figma Device: text caps at 220 (Mobile) / 516 (Desktop), photo grids at 260 / 400.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the thread; defaults to the locale's \"Messages\".",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatConversationItem",
+      "file": "src/components/Chat/Chat.tsx",
+      "description": "Figma Chat/Conversation-List/List-Item (7522:371057 · content 6331:34480), composed from ListItem: 40px avatar,\nTitle (Body/Base/Bold when unread, Medium when read) · \"•\" · time (Body/Small/Regular, Neutral/Light), then the\nSubtitle — unread text Body/Small/Bold Strongest + a 12px Positive \"Active\" status dot; read text Regular Light;\na missed call is Negative/Light (Medium) with its 16px icon while unread, Neutral/Light once read; an ongoing call is\nPositive/Light.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "person",
+          "type": "ChatPerson",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "group",
+          "type": "ChatPerson[]",
+          "required": false,
+          "default": null,
+          "description": "A group conversation shows two overlapping avatars (Figma Chat/Avatar-Group).",
+          "deprecated": null
+        },
+        {
+          "name": "preview",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Last message (State=Text). Ignored when `call` is set.",
+          "deprecated": null
+        },
+        {
+          "name": "call",
+          "type": "\"missed-audio\" | \"missed-video\" | \"incoming\" | \"outgoing\" | \"ongoing\"",
+          "required": false,
+          "default": null,
+          "description": "Last activity was a call (State=Audio Missed Call · Video Missed Call · Audio In/Out-Call · Ongoing-Call).",
+          "deprecated": null
+        },
+        {
+          "name": "callLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Override the call label (the locale's \"Missed Call\", \"Audio Call\", \"Ongoing Call…\").",
+          "deprecated": null
+        },
+        {
+          "name": "time",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "unread",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "online",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onClick",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatComposerReply",
+      "file": "src/components/Chat/ChatReply.tsx",
+      "description": "In the composer: the \"Replying to …\" bar above the field, with × to cancel.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "target",
+          "type": "ChatReplyTarget",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onCancel",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatReplyQuote",
+      "file": "src/components/Chat/ChatReply.tsx",
+      "description": "In the thread: the quote above a reply bubble. `side` is the reply's side (it aligns with the reply);\n`replier` names who replied (\"You\" for your own replies) for the caption.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "target",
+          "type": "ChatReplyTarget",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "side",
+          "type": "\"you\" | \"others\"",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "replier",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onJump",
+          "type": "(id: string) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatEmojiPicker",
+      "file": "src/components/Chat/ChatEmojiPicker.tsx",
+      "description": "The Reaction-Bar \"+\" panel (no Figma frame exists, so it is built from the bar's own tokens): the same Popover surface\nas Chat/Reaction-Bar (90% Popover fill + Effect/Popover, radius Large), a back chevron, a search field and an 8-column\ngrid of 36px emoji buttons (the Reaction/Emoji/Interactive size). Arrow keys move through the grid, Home/End jump,\nEnter/Space picks, Escape (handled by the popover) closes.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onPick",
+          "type": "(emoji: string) => void",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onBack",
+          "type": "() => void",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the panel (the locale's \"Choose a reaction\" by default).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatReactorsPanel",
+      "file": "src/components/Chat/ChatReactors.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "reactions",
+          "type": "ChatReaction[]",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "mine",
+          "type": "ChatQuickReaction | (string & {})",
+          "required": false,
+          "default": null,
+          "description": "Your reaction (ChatMessage `reaction`): listed first as \"You\".",
+          "deprecated": null
+        },
+        {
+          "name": "onRemoveMine",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Pressing the \"You\" row removes your reaction (ChatMessage passes `onReact(undefined)`).",
+          "deprecated": null
+        },
+        {
+          "name": "glyph",
+          "type": "(kind: ChatReactionKind) => string",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"mobile\" | \"desktop\"",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "side",
+          "type": "\"you\" | \"others\"",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "anchorRef",
+          "type": "RefObject<HTMLElement | null>",
+          "required": true,
+          "default": null,
+          "description": "The pill: anchors the desktop Popover and finds the device frame's overlay root on mobile.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatBubble",
+      "file": "src/components/Chat/Chat.tsx",
+      "description": "Figma Chat/Bubble/Text-You · Text-Others: padding 12 (+4 text inset), Body/Base/Regular; the tail corner is 4px.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "side",
+          "type": "\"you\" | \"others\"",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "domain",
+          "type": "\"social\" | \"business\"",
+          "required": false,
+          "default": "\"social\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "time",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatFile",
+      "file": "src/components/Chat/Chat.tsx",
+      "description": "Figma Chat/Bubble/File (6182:57708): 220 wide, padding 12; a Small Dock-Icon by type (Doc blue · PDF red · Sheet green Solid,\nOthers Neutral Subtle) + a 32px text column: name (Body/Base/Bold) and size (Body/Small/Regular). In a Business message the\ncard is Bubble-Chat-Others-Business (radius 16) and the time sits beside the size.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "side",
+          "type": "\"you\" | \"others\"",
+          "required": false,
+          "default": "\"others\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "kind",
+          "type": "\"doc\" | \"pdf\" | \"sheet\" | \"other\"",
+          "required": false,
+          "default": "\"other\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "href",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onOpen",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatCall",
+      "file": "src/components/Chat/Chat.tsx",
+      "description": "Figma Chat/Bubble/Call (6349:59813): 220 wide, padding 8; a 40px row (padding 4, gap 8) of a Small Dock-Icon with the\nsolid call glyph (Red Solid only for an incoming missed call, else Neutral Subtle) + title/duration, then a full-width\nSmall action: Social = Button/Overlay Inverse; Business = Button/Flat Primary, on missed calls only (the card is\nBubble-Chat-Others-Business, radius 16, and the time sits beside the duration). Never a Secondary button.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "side",
+          "type": "\"you\" | \"others\"",
+          "required": false,
+          "default": "\"others\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "type",
+          "type": "\"audio\" | \"video\"",
+          "required": false,
+          "default": "\"audio\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"in-call\" | \"in-missed\" | \"out-call\" | \"out-missed\"",
+          "required": false,
+          "default": "\"in-call\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "detail",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "actionLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The action's text (the locale's Call back / Call Again / Send Voice by default).",
+          "deprecated": null
+        },
+        {
+          "name": "onAction",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatPhotos",
+      "file": "src/components/Chat/Chat.tsx",
+      "description": "Figma Chat/Photo/Grid-Slot (6347:52935): 1 · 2 · 3 · 4+ photos as radius-16 tiles in a 260 (Mobile) / 400 (Desktop) square;\nthe 4th tile shows \"+N\" (Heading/2 on Background/Overlay). Business wraps the grid in a Surface card (padding 12, radius 24)\nwith the time under it (Figma Chat/Bubble/Photo-*, Domain=Business).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "side",
+          "type": "\"you\" | \"others\"",
+          "required": false,
+          "default": "\"others\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "photos",
+          "type": "{ src: string; alt: string }[]",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onOpen",
+          "type": "(index: number) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatReactions",
+      "file": "src/components/Chat/Chat.tsx",
+      "description": "Figma Chat/Reaction/Status: the pill on a bubble (total + up to 3 emojis). When it knows who reacted (`by`, or your\nown `mine`), it is a button that opens the \"Reactions\" panel (ChatReactorsPanel): tabs by emoji and the people.\nIt stops pointer/key events so pressing it never starts the message's hold-to-react.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "reactions",
+          "type": "ChatReaction[]",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "mine",
+          "type": "ChatQuickReaction | (string & {})",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onRemoveMine",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "side",
+          "type": "\"you\" | \"others\"",
+          "required": false,
+          "default": "\"others\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"mobile\" | \"desktop\"",
+          "required": false,
+          "default": "\"mobile\"",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatReactionPicker",
+      "file": "src/components/Chat/Chat.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "ChatQuickReaction | (string & {})",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(kind: ChatReactionKind | undefined) => void",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the bar; defaults to the locale's \"React\".",
+          "deprecated": null
+        },
+        {
+          "name": "onMore",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Figma Reaction-Bar \"+\": replace the built-in emoji panel with your own full picker.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatReadList",
+      "file": "src/components/Chat/Chat.tsx",
+      "description": "Figma Chat/Section/Read-List (6101:61545): 20px avatars (gap 4); more than 5 shows \"+N\".",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "people",
+          "type": "ChatPerson[]",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatDateDivider",
+      "file": "src/components/Chat/Chat.tsx",
+      "description": "Figma Chat/Section Time (7042:24411): a centred Caption/Regular Neutral/Light time stamp between runs (\"Sat 17:55\") — no rules.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatAvatarGroup",
+      "file": "src/components/Chat/Chat.tsx",
+      "description": "Figma Chat/Avatar-Group (6340:46191): two overlapping photo avatars on the diagonal — Medium 40px frame with 28px\n avatars (conversation list), Small 32px with 20px avatars (compact rows, thread headers). Decorative: name the\n conversation in the surrounding text.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "people",
+          "type": "ChatPerson[]",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"lg\" | \"md\" | \"sm\" | \"large\" | \"medium\" | \"small\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "online",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "AvatarTheme": "type AvatarTheme = \"photo\" | \"accent\" | \"blue\" | \"brown\" | \"crimson\" | \"cyan\" | \"green\" | \"indigo\" | \"neutral\" | \"orange\" | \"pink\" | \"plum\" | \"purple\" | \"red\" | \"teal\" | \"violet\" | \"yellow\"",
+    "ChatFileKind": "type ChatFileKind = \"doc\" | \"pdf\" | \"sheet\" | \"other\"",
+    "ChatHoldAction": "interface ChatHoldAction { id: string; label: string; icon: IconName | ReactElement; destructive?: boolean; }",
+    "ChatPerson": "interface ChatPerson { name: string; src?: string; theme?: AvatarTheme }",
+    "ChatQuickReaction": "type ChatQuickReaction = keyof typeof chatReactionEmojis",
+    "ChatReaction": "interface ChatReaction { kind: ChatReactionKind; count?: number; by?: ChatPerson[]; }",
+    "ChatReactionKind": "type ChatReactionKind = ChatQuickReaction | (string & {})",
+    "ChatReplyKind": "type ChatReplyKind = \"text\" | \"photo\" | \"file\" | \"call\" | \"voice\" | \"deleted\"",
+    "ChatReplyTarget": "interface ChatReplyTarget { id: string; author: string; fromYou?: boolean; kind: ChatReplyKind; text?: string; photo?: { src: string; alt: string }; count?: number; fileName?: string; fileKind?: ChatFileKind; callType?: \"audio\" | \"video\"; missed?: boolean; duration?: string; }"
+  }
+}

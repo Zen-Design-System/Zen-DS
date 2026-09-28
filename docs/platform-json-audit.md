@@ -395,3 +395,11 @@ Deliberate data differences (repo data kept): Token pill shows the real CSS vari
 - Color collections (Mode Colors, Component Theme) use Name | Token | Value; swatches and resolved hex follow the selected mode (alias chain resolved per hop; targets without that mode fall back to their first mode, e.g. Component Theme → Mode Colors Light).
 - Numeric collections use Token | Value | Dimension; typography/emphasis collections label the third column Preview (Aa sample with the font family/size/weight, letter-spacing sample, text-style class). Corner radius previews as a 40px square with that radius; other dimensions keep the accent bar capped at the cell width.
 - Verified in browser at 1512×982: all 11 collections render, mode switching changes values (Corner Radius Base 12px → Luxury 2px), no console errors. Dark theme still not measured.
+
+### Checkbox re-audit (2026-09-27)
+| Layer/node | Figma | Code | Result |
+| --- | --- | --- | --- |
+| Checkbox/Text 309:46871 Container | row: Check-Wrapper (py 3XSmall) + Content (fill), gap Small (12px, updated in Figma 2026-09-27; Radio-Button too) | `.zen-checkbox__row`, `.zen-radio-button` | Khớp |
+| .Primitives/Checkbox/Content 309:46789 | Label + Subtext (boolean Subtext#14366:5) in one column, gap 3XSmall (2px); Body/Small/Regular, Content/Neutral/Light — re-extracted live via use_figma; Checkbox/Text no longer has an outer Caption layer (Caption#309:249 prop is dangling) | caption moved INTO `.zen-checkbox__content` (was below the row, full width, gap XSmall) | Đã sửa |
+| Mark states 308:46684 · 309:46870/69/68 · 309:46872/81/92/904 · 4034:9560 | unselected default/hover/focus/disabled + selected default/hover/focus/disabled tokens, 12px check, 2px padding | checkbox.css | Khớp |
+| Row alignment | Figma `items-center` (single line) | `flex-start` + 2px wrapper = same for one line; keeps the mark on line 1 with a caption | Chủ ý |

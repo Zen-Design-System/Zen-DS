@@ -1,0 +1,282 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "form",
+  "import": "import { Form, FormField, FormFieldset, FormActions } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Form",
+      "file": "src/components/Form/Form.tsx",
+      "description": "A `<form noValidate>` laid out as a Stack (gap lg between groups). On submit it prevents the page reload and calls\n`form.handleSubmit` (from `useFormState`) or `onSubmit`. When the submit fails it moves focus to the first invalid\nfield and announces \"N fields need attention\" in a polite live region.\n\n  <Form form={form}>\n    <Stack gap=\"md\"><InputField label=\"Work email\" {...form.field(\"email\")} /></Stack>\n    <FormActions><Button level=\"tertiary\">Cancel</Button><Button level=\"primary\" type=\"submit\">Create account</Button></FormActions>\n  </Form>",
+      "deprecated": null,
+      "extends": "Omit<FormHTMLAttributes<HTMLFormElement>, \"onSubmit\" | \"children\">",
+      "props": [
+        {
+          "name": "form",
+          "type": "FormSubmitSource",
+          "required": false,
+          "default": null,
+          "description": "The state from `useFormState()`. Form submits through `form.handleSubmit`: it validates, shows every error, moves\nfocus to the first invalid field and announces how many need attention. Pass either `form` or `onSubmit`.",
+          "deprecated": null
+        },
+        {
+          "name": "onSubmit",
+          "type": "(event: SubmitEvent<HTMLFormElement>) => unknown",
+          "required": false,
+          "default": null,
+          "description": "Your own submit handler, called after `preventDefault()` (e.g. react-hook-form's `handleSubmit(onValid)`). Return a\npromise and Form waits for it; then, if any field is invalid (aria-invalid), it focuses the first one and announces the count.",
+          "deprecated": null
+        },
+        {
+          "name": "gap",
+          "type": "\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\"",
+          "required": false,
+          "default": "\"lg\"",
+          "description": "Space between the form's direct children (Figma Spacing/Gap): the groups of a form. Default lg (24px); fields inside a group use md.",
+          "deprecated": null
+        },
+        {
+          "name": "invalidMessage",
+          "type": "(count: number) => string",
+          "required": false,
+          "default": null,
+          "description": "Screen-reader message after a failed submit. Default: the locale's \"1 field needs attention\" / \"3 fields need attention\".",
+          "deprecated": null
+        },
+        {
+          "name": "noValidate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Skip the browser's own validation bubbles; Zen shows errors under each field. Default true.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The groups of the form, top to bottom: Stacks or Grids of fields, FormFieldsets, and FormActions last.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "FormField",
+      "file": "src/components/Form/Form.tsx",
+      "description": "Label, help text and error for a control that has no built-in ones (Slider, ColorSelector, a custom picker). Zen\ninputs (InputField, SelectField…) already have label/helpText/error: use them directly. The wrapper is marked invalid\nwhile `error` is set, so Form can focus it after a failed submit.",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">",
+      "props": [
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The field label (Figma Input/Label, Body/Small/Regular). Omit it only when the control carries its own label (a Checkbox).",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "One line of guidance under the control (Help-Text, Neutral). Replaced by `error` while there is one.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The error message (Help-Text, Negative). Pass `form.fieldError(name)` so it shows at the right moment.",
+          "deprecated": null
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Adds \" *\" to the label and aria-required to the control. Mark the few optional fields instead when most are required.",
+          "deprecated": null
+        },
+        {
+          "name": "optional",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Label `Optional`: appends \"(Optional)\".",
+          "deprecated": null
+        },
+        {
+          "name": "labelTooltip",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Label `Tooltip-Icon`: an info icon with this text as a tooltip.",
+          "deprecated": null
+        },
+        {
+          "name": "labelAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Label `Action`: a right-aligned link or text button (\"Reset to default\").",
+          "deprecated": null
+        },
+        {
+          "name": "controlId",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "id given to the control (default: generated). The label points at it.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactElement",
+          "required": true,
+          "default": null,
+          "description": "Exactly one control. It receives `id`, `aria-labelledby`, `aria-describedby`, `aria-invalid` and `aria-required`,\nso it must put them on its focusable element (Slider takes aria-labelledby; your own controls should take all five).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "FormFieldset",
+      "file": "src/components/Form/Form.tsx",
+      "description": "A `<fieldset>` + `<legend>` for a group of Checkbox, RadioButton or Toggle rows, with one help text and one error\nfor the whole group. `kind=\"radio\"` makes it a radiogroup. The legend uses the field label style (Body/Small/Regular).",
+      "deprecated": null,
+      "extends": "Omit<FieldsetHTMLAttributes<HTMLFieldSetElement>, \"children\">",
+      "props": [
+        {
+          "name": "legend",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Names the group (\"Delivery speed\", \"Email me about\"); read before each option. Required.",
+          "deprecated": null
+        },
+        {
+          "name": "hideLegend",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Hide the legend visually (screen readers still read it) when a heading right above already names the group.",
+          "deprecated": null
+        },
+        {
+          "name": "kind",
+          "type": "\"group\" | \"checkbox\" | \"radio\" | \"toggle\"",
+          "required": false,
+          "default": "\"group\"",
+          "description": "What the group holds. `radio` adds role=\"radiogroup\" (with aria-required / aria-invalid), as the RadioButton\nguideline asks; `toggle` spaces rows md; `checkbox`, `radio` and `group` space them sm. Default group.",
+          "deprecated": null
+        },
+        {
+          "name": "direction",
+          "type": "\"column\" | \"row\"",
+          "required": false,
+          "default": "\"column\"",
+          "description": "Stack the options (column, default) or lay them in a wrapping row (2–3 short options).",
+          "deprecated": null
+        },
+        {
+          "name": "gap",
+          "type": "\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\"",
+          "required": false,
+          "default": null,
+          "description": "Space between options (Figma Spacing/Gap). Default sm, or md for toggles.",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "One line of guidance for the whole group, under the options. Replaced by `error` while there is one.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The group's error (\"Choose a delivery speed\"). Pass `form.fieldError(name)`.",
+          "deprecated": null
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Adds \" *\" to the legend (and aria-required to a radio group): at least one option must be chosen.",
+          "deprecated": null
+        },
+        {
+          "name": "optional",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Label `Optional`: appends \"(Optional)\" to the legend.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The options: Checkbox, RadioButton (sharing one `name`) or Toggle rows.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "FormActions",
+      "file": "src/components/Form/Form.tsx",
+      "description": "The footer row of a form. Desktop: Tertiary (cancel) then Primary (submit), on the right. When the form is narrower\nthan 480px, or inside a ZenProvider with breakpoint mobile, the buttons stack full width at size lg with Primary on\ntop (the mobile footer pattern). `sticky` pins the row to the bottom of the scrolling area.",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">",
+      "props": [
+        {
+          "name": "align",
+          "type": "\"end\" | \"start\" | \"between\"",
+          "required": false,
+          "default": "\"end\"",
+          "description": "Where the buttons sit on wide layouts: `end` (default, right), `start`, or `between` (the first child alone on the\nleft, e.g. \"Delete draft\", the rest on the right). Write Tertiary (cancel) first and Primary (submit) last in every case.",
+          "deprecated": null
+        },
+        {
+          "name": "sticky",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Keep the bar pinned to the bottom of the scrolling area (Surface background, Pale top line, safe-area padding).",
+          "deprecated": null
+        },
+        {
+          "name": "inset",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Sticky only: side padding of the bar, e.g. lg on a full-bleed phone screen so the buttons line up with the fields.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The buttons: Tertiary (cancel) first, Primary (`type=\"submit\"`, named for the outcome) last.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "FormSubmitEvent": "type FormSubmitEvent = { preventDefault?: () => void; currentTarget?: EventTarget | null }",
+    "FormSubmitSource": "interface FormSubmitSource { handleSubmit: (event?: FormSubmitEvent) => Promise<{ ok: boolean; errorCount: number }>; isSubmitting?: boolean; }",
+    "ZenScale": "type ZenScale = \"3xs\" | \"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\" | \"3xl\"",
+    "ZenScaleInput": "type ZenScaleInput = ZenScale | ZenScaleLong",
+    "ZenScaleLong": "type ZenScaleLong = \"3xsmall\" | \"2xsmall\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\" | \"2xlarge\" | \"3xlarge\""
+  }
+}

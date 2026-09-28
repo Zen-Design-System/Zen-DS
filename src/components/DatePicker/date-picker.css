@@ -1,9 +1,9 @@
-.zen-date-picker { position: absolute; z-index: 40; display: flex; width: max-content; min-width: 256px; box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: calc(var(--zen-spacing-padding-medium, 16px) - 1px); border: 1px solid var(--zen-color-border-popover-subtle, rgb(5 5 5 / 1%)); border-radius: var(--zen-corner-radius-3-xlarge, 28px); background: var(--zen-color-background-popover-default, rgb(255 255 255 / 90%)); box-shadow: var(--zen-style-effect-popover-shadow); backdrop-filter: var(--zen-style-effect-popover-backdrop-filter); }
+.zen-date-picker { position: absolute; z-index: 40; display: flex; width: max-content; min-width: 256px; box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: calc(var(--zen-spacing-padding-medium, 16px) - 1px); border: 1px solid var(--zen-color-border-popover-subtle, rgb(5 5 5 / 1%)); border-radius: var(--zen-corner-radius-3-xlarge, 28px); background: var(--zen-color-background-popover-default, rgb(255 255 255 / 90%)); box-shadow: var(--zen-style-effect-popover-shadow-unclipped); backdrop-filter: var(--zen-style-effect-popover-backdrop-filter); }
 /* Calendar panels: Single = one 224px panel; Dual-Calendar = two panels with Spacing/Gap/Small between.
    Inside a panel the Header and Calendar-Table are 12 apart (Spacing/Gap/Small). */
 .zen-date-picker__panels { display: flex; gap: var(--zen-spacing-gap-small, 12px); align-items: flex-start; }
 .zen-date-picker__panel { display: flex; width: 224px; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); }
-.zen-date-picker__header { display: flex; width: 100%; height: 32px; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-date-picker__header { display: flex; width: 100%; height: var(--zen-button-size-small, 32px); align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 /* A hidden Back/Next (Dual headers) keeps its 32px Button-Wrapper so the label stays centred. */
 .zen-date-picker__nav-slot { width: var(--zen-button-size-small, 32px); height: var(--zen-button-size-small, 32px); flex: 0 0 var(--zen-button-size-small, 32px); }
 /* Figma overrides the Small icon button's Leading-Icon to Element-Size/Popular/Base. */
@@ -61,4 +61,8 @@ span.zen-date-picker__month { cursor: default; }
 @media (prefers-reduced-motion: reduce) {
   .zen-date-picker__viewport { transition: none; }
   .zen-date-picker__view.is-entering { animation: none; }
+}
+/* Phones: Dual-Calendar stacks its two months vertically instead of overflowing (2 × 224 + gap > a 390px screen). */
+@media (max-width: 560px) {
+  .zen-date-picker__panels { flex-direction: column; }
 }

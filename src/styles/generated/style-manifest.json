@@ -2361,7 +2361,8 @@
           "dispersion": 0.5,
           "splay": 0
         }
-      ]
+      ],
+      "unclippedBoxShadow": "0 8px 24px 0 var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 12px 32px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04))"
     },
     {
       "name": "Effect/Container",
@@ -2415,7 +2416,8 @@
       "boxShadow": "0 12px 32px -16px var(--zen-color-shadow-neutral-strong, rgba(0, 0, 0, 0.12)), 0 8px 24px -16px var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04))",
       "backdropFilter": null,
       "filter": null,
-      "glass": []
+      "glass": [],
+      "unclippedBoxShadow": "0 12px 32px 0 var(--zen-color-shadow-neutral-strong, rgba(0, 0, 0, 0.12)), 0 8px 24px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04))"
     },
     {
       "name": "Effect/Popover",
@@ -2475,7 +2477,8 @@
       "boxShadow": "0 8px 24px -12px var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 12px 32px -16px var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04))",
       "backdropFilter": "blur(20px)",
       "filter": null,
-      "glass": []
+      "glass": [],
+      "unclippedBoxShadow": "0 8px 24px 0 var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 12px 32px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04))"
     },
     {
       "name": "Effect/Overlay",
@@ -2493,7 +2496,8 @@
       "boxShadow": "none",
       "backdropFilter": "blur(50px)",
       "filter": null,
-      "glass": []
+      "glass": [],
+      "unclippedBoxShadow": null
     },
     {
       "name": "Effect/Input",
@@ -2551,7 +2555,8 @@
       "boxShadow": "inset 0 0 1px 0 var(--zen-input-shadow-base, rgba(0, 0, 0, 0.08)), inset 0 0 3px 0 var(--zen-input-shadow-strong, rgba(0, 0, 0, 0.12))",
       "backdropFilter": "blur(20px)",
       "filter": null,
-      "glass": []
+      "glass": [],
+      "unclippedBoxShadow": null
     },
     {
       "name": "Shadow/Neo-Brutalism",
@@ -2584,7 +2589,8 @@
       "boxShadow": "4px 4px 0 0 var(--zen-color-shadow-inverse-strongest, rgba(17, 17, 17, 1))",
       "backdropFilter": null,
       "filter": null,
-      "glass": []
+      "glass": [],
+      "unclippedBoxShadow": null
     },
     {
       "name": "Shadow/Action/Basic",
@@ -2617,7 +2623,8 @@
       "boxShadow": "0 1px 1px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04))",
       "backdropFilter": null,
       "filter": null,
-      "glass": []
+      "glass": [],
+      "unclippedBoxShadow": null
     },
     {
       "name": "Shadow/Action/Tertiary",
@@ -2656,7 +2663,8 @@
       "boxShadow": "0 1px 1px 0 var(--zen-button-tertiary-shadow-default, rgba(0, 0, 0, 0.04))",
       "backdropFilter": "blur(20px)",
       "filter": null,
-      "glass": []
+      "glass": [],
+      "unclippedBoxShadow": null
     },
     {
       "name": "Shadow/Bottom/Level-1",
@@ -2731,7 +2739,8 @@
       "boxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 1px 4px -2px var(--zen-color-shadow-neutral-strong, rgba(0, 0, 0, 0.12)), 0 4px 8px -4px var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08))",
       "backdropFilter": null,
       "filter": null,
-      "glass": []
+      "glass": [],
+      "unclippedBoxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 1px 4px 0 var(--zen-color-shadow-neutral-strong, rgba(0, 0, 0, 0.12)), 0 4px 8px 0 var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08))"
     },
     {
       "name": "Shadow/Bottom/Level-2",
@@ -2806,7 +2815,8 @@
       "boxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 4px 16px -8px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 12px 40px -16px var(--zen-color-shadow-neutral-strong, rgba(0, 0, 0, 0.12))",
       "backdropFilter": null,
       "filter": null,
-      "glass": []
+      "glass": [],
+      "unclippedBoxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 4px 16px 0 var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 12px 40px 0 var(--zen-color-shadow-neutral-strong, rgba(0, 0, 0, 0.12))"
     },
     {
       "name": "Shadow/Bottom/Level-3",
@@ -2902,7 +2912,8 @@
       "boxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 4px 16px -8px var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 12px 28px -12px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 16px 64px -20px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16))",
       "backdropFilter": null,
       "filter": null,
-      "glass": []
+      "glass": [],
+      "unclippedBoxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 4px 16px 0 var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 12px 28px 0 var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 16px 64px 0 var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16))"
     },
     {
       "name": "Shadow/Bottom/Level-4",
@@ -2998,7 +3009,8 @@
       "boxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 8px 28px -8px var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 24px 44px -12px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 28px 80px -32px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16))",
       "backdropFilter": null,
       "filter": null,
-      "glass": []
+      "glass": [],
+      "unclippedBoxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 8px 28px 0 var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 24px 44px 0 var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 28px 80px 0 var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16))"
     },
     {
       "name": "Shadow/Top/Level-1",
@@ -3073,7 +3085,8 @@
       "boxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 -1px 4px -2px var(--zen-color-shadow-neutral-strong, rgba(0, 0, 0, 0.12)), 0 -4px 8px -4px var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08))",
       "backdropFilter": null,
       "filter": null,
-      "glass": []
+      "glass": [],
+      "unclippedBoxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 -1px 4px 0 var(--zen-color-shadow-neutral-strong, rgba(0, 0, 0, 0.12)), 0 -4px 8px 0 var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08))"
     },
     {
       "name": "Shadow/Top/Level-2",
@@ -3148,7 +3161,8 @@
       "boxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 -4px 16px -8px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 -12px 40px -16px var(--zen-color-shadow-neutral-strong, rgba(0, 0, 0, 0.12))",
       "backdropFilter": null,
       "filter": null,
-      "glass": []
+      "glass": [],
+      "unclippedBoxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 -4px 16px 0 var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 -12px 40px 0 var(--zen-color-shadow-neutral-strong, rgba(0, 0, 0, 0.12))"
     },
     {
       "name": "Shadow/Top/Level-3",
@@ -3244,7 +3258,8 @@
       "boxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 -4px 16px -8px var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 -12px 28px -12px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 -16px 64px -20px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16))",
       "backdropFilter": null,
       "filter": null,
-      "glass": []
+      "glass": [],
+      "unclippedBoxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 -4px 16px 0 var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 -12px 28px 0 var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 -16px 64px 0 var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16))"
     },
     {
       "name": "Shadow/Top/Level-4",
@@ -3340,7 +3355,8 @@
       "boxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 -8px 28px -8px var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 -24px 44px -12px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 -28px 80px -32px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16))",
       "backdropFilter": null,
       "filter": null,
-      "glass": []
+      "glass": [],
+      "unclippedBoxShadow": "0 0 2px 0 var(--zen-color-shadow-neutral-light, rgba(0, 0, 0, 0.04)), 0 -8px 28px 0 var(--zen-color-shadow-neutral-base, rgba(0, 0, 0, 0.08)), 0 -24px 44px 0 var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16)), 0 -28px 80px 0 var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16))"
     },
     {
       "name": "Liquid-Glass/Normal",
@@ -3394,7 +3410,8 @@
           "dispersion": 0.5,
           "splay": 0
         }
-      ]
+      ],
+      "unclippedBoxShadow": "0 4px 24px 0 var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16))"
     },
     {
       "name": "Liquid-Glass/Large",
@@ -3427,7 +3444,8 @@
           "dispersion": 0.6000000238418579,
           "splay": 0
         }
-      ]
+      ],
+      "unclippedBoxShadow": null
     }
   ],
   "gridStyles": []

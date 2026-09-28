@@ -1,0 +1,81 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "accordion",
+  "import": "import { Accordion } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Accordion",
+      "file": "src/components/Accordion/Accordion.tsx",
+      "description": "Figma Accordion/Text (239:16847): Size XLarge/Large/Medium × Theme Divider/Box × Expanded.\nThe whole header row is the toggle button; the chevron turns 180° when expanded and the panel\nheight animates open (disabled for reduced motion).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Content slot (Figma .Primitives/Accordion/Content/Text is Body/Base/Regular, Neutral/Base).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"md\" | \"lg\" | \"xl\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"divider\" | \"box\"",
+          "required": false,
+          "default": "\"divider\"",
+          "description": "Divider: bottom Border/Neutral/Subtle rule; Box: Support/Neutral/Pale surface with radius.",
+          "deprecated": null
+        },
+        {
+          "name": "expanded",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Controlled open state (Figma Expanded).",
+          "deprecated": null
+        },
+        {
+          "name": "defaultExpanded",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onExpandedChange",
+          "type": "(expanded: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

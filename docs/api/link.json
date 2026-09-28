@@ -1,0 +1,73 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "link",
+  "import": "import { Link } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Link",
+      "file": "src/components/Link/Link.tsx",
+      "description": "An inline link in the Content/Hyperlink colours (Default · Pressed · Visited). It inherits the font of the text around\nit, so place it inside a `<Text>` or any line of copy. Links navigate; actions on the page are Buttons.\n\n  <Text>Invoices are in <Link href=\"/settings/billing\">Billing settings</Link>.</Text>\n  <Link href=\"https://status.zen.design\" external>Status page</Link>\n  <Link as={RouterLink} to=\"/projects\">All projects</Link>",
+      "deprecated": null,
+      "extends": "Omit<AnchorHTMLAttributes<HTMLAnchorElement>, \"color\">",
+      "props": [
+        {
+          "name": "href",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Destination URL. Required unless `as` renders a router link that takes its own destination prop (e.g. `to`).",
+          "deprecated": null
+        },
+        {
+          "name": "external",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Opens the destination in a new tab: adds `target=\"_blank\"`, `rel=\"noopener noreferrer\"`, a trailing external-link icon\nand a visually hidden “(opens in a new tab)” (in the locale's language), so the change of context is visible and announced. Use it for other\nsites (docs, status pages, help centres), not for pages of the same app.",
+          "deprecated": null
+        },
+        {
+          "name": "underline",
+          "type": "\"hover\" | \"always\" | \"none\"",
+          "required": false,
+          "default": "tone === \"inherit\" ? \"always\" : \"hover\"",
+          "description": "When the underline shows: `hover` (default; also on keyboard focus) for standalone links, `always` for links inside\nrunning text so they never rely on colour alone, `none` only where the context already says it is a link\n(a navigation list). Defaults to `always` when `tone=\"inherit\"`.",
+          "deprecated": null
+        },
+        {
+          "name": "tone",
+          "type": "\"hyperlink\" | \"inherit\"",
+          "required": false,
+          "default": "\"hyperlink\"",
+          "description": "Colour: `hyperlink` (default) uses Content/Hyperlink Default, Pressed while pressed and Visited (see `visited`);\n`inherit` takes the surrounding text colour (footers, captions, legal lines) and is underlined by default.",
+          "deprecated": null
+        },
+        {
+          "name": "visited",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Show the Content/Hyperlink/Visited colour once the destination has been visited. Default false: in-app links keep one\ncolour; turn it on for content links people scan repeatedly (search results, articles, docs). `hyperlink` tone only.",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "ElementType",
+          "required": false,
+          "default": "\"a\"",
+          "description": "Element or router component rendered instead of `<a>`, e.g. `as={RouterLink} to=\"/settings\"` (React Router,\nNext.js Link). Every other prop, the ref included, is forwarded to it.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The link text. Name the destination (“Billing settings”), never “click here”. The font comes from the surrounding Text.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

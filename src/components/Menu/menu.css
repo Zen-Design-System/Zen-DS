@@ -1,0 +1,15 @@
+/* Menu: an action menu on the Popover surface (Popover/Default + Popover/Item rows). It is portalled to the overlay
+   root (or into a device frame, [data-zen-overlay-root]) and placed against its trigger, above page content, dialogs
+   and sheets. */
+.zen-popover.zen-menu { z-index: 1000; }
+/* Room for about ten actions before the list scrolls (the Popover list stops at 240px). */
+.zen-popover__items.zen-menu__list { max-height: min(400px, calc(100vh - 32px)); }
+.zen-menu__group { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+/* A separator gets a little more air than the 4px between rows. */
+.zen-divider.zen-menu__separator { margin-block: var(--zen-spacing-gap-3-xsmall, 2px); }
+/* Destructive actions: Content/Negative (text and icon); a disabled one stays Disabled. */
+.zen-menu__item[data-danger="true"]:not(:disabled) { color: var(--zen-color-content-negative-base); }
+/* The shortcut hugs its text instead of the 16px trailing icon slot. */
+.zen-menu__item .zen-popover__item-trailing { width: auto; height: auto; flex-basis: auto; }
+.zen-menu__shortcut { color: var(--zen-color-content-neutral-light); white-space: nowrap; }
+.zen-menu__item:disabled .zen-menu__shortcut { color: inherit; }

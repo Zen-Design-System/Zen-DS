@@ -1,0 +1,1 @@
+export { DescriptionItem, DescriptionList, descriptionListLayouts, type DescriptionItemProps, type DescriptionListItem, type DescriptionListLayout, type DescriptionListProps } from "./DescriptionList";

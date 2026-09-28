@@ -1,0 +1,43 @@
+/* Figma Card (6643:51021). */
+.zen-card {
+  --zen-card-padding: var(--zen-card-padding-medium, 24px);
+  --zen-card-radius: var(--zen-corner-radius-2-xlarge, 24px);
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  min-width: 0;
+  flex-direction: column;
+  padding: var(--zen-card-padding);
+  border-radius: var(--zen-card-radius);
+  background: var(--zen-card-surface, var(--zen-color-background-surface-default, #fff));
+  color: var(--zen-color-content-neutral-strongest, #111);
+  text-align: start;
+}
+.zen-card { --zen-list-inset: 0px; }
+.zen-card[data-spacing="small"] { --zen-card-padding: var(--zen-card-padding-small, 16px); --zen-card-radius: var(--zen-corner-radius-large, 16px); }
+/* Shadow: Shadow/Bottom/Level-1 (the card clips its content, so the spread-aware token applies). */
+.zen-card[data-tone="shadow"] { box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
+/* Border: a static card is framed with Neutral/Pale (non-actionable container, §6); the clickable variant below steps up to Subtle.
+   zen-allow-pale-actionable-box: this rule styles the static card only. */
+.zen-card[data-tone="border"] { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.zen-card[data-surface="default"] { --zen-card-surface: var(--zen-color-background-surface-default, #fff); }
+.zen-card[data-surface="alt"] { --zen-card-surface: var(--zen-color-background-surface-alt, #f7f7f7); }
+.zen-card[data-tone="pale"] { background: var(--zen-color-background-support-neutral-pale); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
+.zen-card[data-tone="semi-pale"] { background: linear-gradient(135deg, var(--zen-color-background-support-neutral-pale), var(--zen-color-background-support-neutral-subtle)); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
+/* Active=Yes: Surface fill + 2px INSIDE Card/Border/Active, on every theme (Shadow keeps its shadow). */
+.zen-card[data-active="true"] { background: var(--zen-card-surface, var(--zen-color-background-surface-default, #fff)); box-shadow: inset 0 0 0 2px var(--zen-card-border-active, #111); }
+.zen-card[data-tone="shadow"][data-active="true"] { box-shadow: inset 0 0 0 2px var(--zen-card-border-active, #111), var(--zen-style-shadow-bottom-level-1-shadow); }
+
+/* Clickable cards are actionable containers: Border theme steps up to Neutral/Subtle with hover/pressed (§6). */
+.zen-card[data-interactive="true"] { cursor: pointer; transition: box-shadow 120ms ease, background-color 120ms ease; }
+.zen-card[data-interactive="true"][data-tone="border"]:not([data-active="true"]) { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
+.zen-card[data-interactive="true"][data-tone="border"]:not([data-active="true"]):hover { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-hover, rgb(1 1 1 / 16%)); }
+.zen-card[data-interactive="true"]:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
+
+.zen-card__content { display: flex; min-width: 0; flex-direction: column; }
+/* Sub-Action: a 20px anchor at the padding corner holding the 32px Small icon button, so it overhangs 6px. */
+.zen-card__sub-action { position: absolute; top: var(--zen-card-padding); right: var(--zen-card-padding); display: flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; }
+.zen-card:has(.zen-card__sub-action) > .zen-card__content { padding-inline-end: calc(var(--zen-element-size-popular-base, 20px) + var(--zen-spacing-gap-xsmall, 8px)); }
+@media (prefers-reduced-motion: reduce) { .zen-card[data-interactive="true"] { transition: none; } }
+/* Choice controls in a card span its width (the Toggle switch sits on the right edge). */
+.zen-card__content > :is(.zen-toggle, .zen-checkbox, .zen-radio-button) { width: 100%; }

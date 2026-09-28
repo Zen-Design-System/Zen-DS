@@ -1,0 +1,27 @@
+/* AppShell: navigation + sticky top bar + main; a drawer below 1024px. Background layers follow
+   docs/guidelines/background-layers.md: the page is Canvas, the drawer scrim is the Overlay background. */
+/* position: relative anchors the skip link (VisuallyHidden focusable) to the shell's top-start corner. */
+.zen-app-shell { --zen-app-shell-canvas: var(--zen-color-background-canvas-default, #f7f7f7); position: relative; display: flex; min-height: 100dvh; min-width: 0; }
+/* zen-allow-canvas-layer: AppShell is the page frame; it paints Canvas (default, alt or flat) like ZenProvider. */
+.zen-app-shell { background: var(--zen-app-shell-canvas); }
+.zen-app-shell[data-canvas="alt"] { --zen-app-shell-canvas: var(--zen-color-background-canvas-alt, #fff); }
+.zen-app-shell[data-canvas="flat"] { --zen-app-shell-canvas: var(--zen-color-background-canvas-flat); }
+
+.zen-app-shell__sidebar { position: sticky; top: 0; display: flex; height: 100dvh; flex: 0 0 auto; }
+.zen-app-shell__sidebar > * { height: 100%; }
+.zen-app-shell__column { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; }
+/* zen-allow-canvas-layer: the sticky top bar continues the page Canvas so content scrolls under it. */
+.zen-app-shell__header { position: sticky; z-index: 20; top: 0; display: flex; min-height: 64px; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-margin-comfortable, 24px); background: var(--zen-app-shell-canvas); }
+.zen-app-shell__header-content { display: flex; min-width: 0; flex: 1 1 auto; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-app-shell__header-actions { display: flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-app-shell__main { min-width: 0; flex: 1 1 auto; outline: none; }
+.zen-app-shell__footer { position: sticky; z-index: 20; bottom: 0; }
+
+.zen-app-shell__overlay { position: fixed; z-index: 1000; inset: 0; }
+.zen-app-shell__scrim { position: absolute; inset: 0; background: var(--zen-color-background-overlay); animation: zen-motion-scrim-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease) both; }
+.zen-app-shell__drawer { position: absolute; inset: 0 auto 0 0; display: flex; max-width: calc(100vw - 48px); animation: zen-app-shell-drawer-in var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, ease-out) both; }
+.zen-app-shell__drawer > * { height: 100%; }
+@keyframes zen-app-shell-drawer-in { from { transform: translateX(-100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .zen-app-shell__scrim, .zen-app-shell__drawer { animation: none; }
+}

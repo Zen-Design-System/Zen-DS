@@ -1,4 +1,5 @@
 import { createContext, type ReactNode } from "react";
+import { IconButton } from "../components/Button";
 import { Chip } from "../components/Chip";
 import { Icon, type IconName } from "../components/Icon";
 import { Segmented } from "../components/Segmented";
@@ -29,6 +30,9 @@ type PlatformTopbarProps = {
   settings: PlatformShellSettings;
   onSettingsChange: (changes: Partial<PlatformShellSettings>) => void;
   showSettingsControls?: boolean;
+  /** Narrow viewports: the menu button that opens the navigation drawer. */
+  navOpen?: boolean;
+  onMenuClick?: () => void;
 };
 
 const viewModes: ReadonlyArray<{ mode: PlatformViewMode; label: string; icon: IconName }> = [
@@ -90,9 +94,10 @@ const shellControlDefinitions = [
   },
 ] as const;
 
-export function PlatformTopbar({ breadcrumbs, settings, onSettingsChange, showSettingsControls = false }: PlatformTopbarProps) {
+export function PlatformTopbar({ breadcrumbs, settings, onSettingsChange, showSettingsControls = false, navOpen = false, onMenuClick }: PlatformTopbarProps) {
   return (
     <header className="official-topbar">
+      {onMenuClick ? <IconButton className="official-topbar__menu" appearance="main" level="tertiary" size="sm" aria-label={navOpen ? "Close navigation" : "Open navigation"} aria-expanded={navOpen} aria-controls="official-navigation" onClick={onMenuClick} icon={<Icon name="icon-menu-01-line" />} /> : null}
       <nav className="official-topbar__breadcrumbs" aria-label="Breadcrumb">
         {breadcrumbs.map((breadcrumb, index) => (
           <span className="official-topbar__breadcrumb-group" key={`${breadcrumb.label}-${index}`}>

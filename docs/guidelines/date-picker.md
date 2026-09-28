@@ -4,10 +4,11 @@
 **Figma:** Date-Picker/Single-Calendar (page 453:32817)  
 **Import:** `import { DatePicker, DateField } from "@zen/design-system";`
 
-Pick a date or a date range.
+Pick a date or a date range. DatePicker is the calendar panel itself and is visible by default (open defaults to true), like an inline calendar; DateField is the input that opens it in a popover.
 
 ## Use it for
-- DateField in forms; inline DatePicker for booking-style range selection.
+- DateField in forms (the field owns the popover); inline DatePicker for booking-style range selection.
+- A DatePicker anchored to your own trigger: pass open, onClose and anchorRef.
 
 ## Use something else for
 - Known far-past dates (birthdays) → typed DateField without calendar-first UX.
@@ -19,12 +20,121 @@ Pick a date or a date range.
 | Bounds | `minDate / maxDate` | disabled days |
 | Actions | `showActions / action` | none · single · dual |
 
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/date-picker.json`.
+
+### DatePicker
+Figma `Date-Picker/Single-Calendar` and `Date-Picker/Dual-Calendar` on the shared token and Button primitives. The single calendar's month/year opens the Select-Month-Year state. It is also the calendar surface used by Input/Date-Field.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `open` | `boolean` | `true` | Default true: DatePicker is the calendar panel itself. As a popover, pass `open` with `onOpenChange` (or `onClose`). |
+| `value` | `Date \| null` | — |  |
+| `defaultValue` | `Date \| null` | `null` |  |
+| `month` | `Date` | — | First (left) visible month. |
+| `onValueChange` | `(date: Date \| null) => void` | — | Called with the picked date; in range mode with the start, then again with the end (see `onRangeChange`). |
+| `onChange` | `(date: Date \| null) => void` | — | **Deprecated:** Use onValueChange (same arguments).  |
+| `onRangeChange` | `(range: { start: Date; end: Date \| null }) => void` | — | Range mode: called with the new start (end = null) and again once the end date is picked. |
+| `onMonthChange` | `(month: Date) => void` | — |  |
+| `onClose` | `() => void` | — | Popover behaviour: called on a pointer-down outside the picker (and outside `anchorRef`), on Escape, after a single date / a complete range is picked (without actions), and by the actions. |
+| `onOpenChange` | `(open: boolean) => void` | — | Called with `false` wherever `onClose` is called (the `open` / `onOpenChange` pair of every Zen overlay). |
+| `anchorRef` | `RefObject<HTMLElement \| null>` | — | The trigger. Pointer-downs on it are left to its own toggle; Escape returns focus to it. |
+| `showActions` | `boolean` | `false` |  |
+| `action` | `"single" \| "dual"` | `"dual"` |  |
+| `selectionMode` | `"single" \| "range"` | `"single"` |  |
+| `calendar` | `"single" \| "dual"` | `"single"` | Figma Date-Picker/Single-Calendar or Date-Picker/Dual-Calendar (two consecutive months side by side; Static headers with Back on the first and Next on the second). |
+| `minDate` | `Date` | — |  |
+| `maxDate` | `Date` | — |  |
+| `className` | `string` | — |  |
+
+### DateField
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` | `ReactNode` | — |  |
+| `helpText` | `ReactNode` | — |  |
+| `labelOptional` | `boolean` | — | Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel). |
+| `labelTooltip` | `boolean \| ReactNode` | — |  |
+| `labelAction` | `ReactNode` | — |  |
+| `helpTheme` | `"neutral" \| "negative" \| "warning" \| "positive"` | — | Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative. |
+| `helpIcon` | `boolean` | — | Figma Help-Text `Icon` axis (default on). |
+| `characterLimit` | `ReactNode \| true` | — | Figma Help-Text `Character-Limitation`: custom text (e.g. "12/100"), or `true` to count the value against `maxLength`. |
+| `error` | `ReactNode` | — |  |
+| `errorMessage` | `ReactNode` | — | **Deprecated:** Use error (same meaning).  |
+| `size` | `"sm" \| "md" \| "lg" \| "xl" \| "small" \| "medium" \| "large" \| "xlarge"` | — | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted" \| "read-only" \| "disabled" \| "inputted-error" \| "blank-error" \| "error"` | — |  |
+| `leading` | `IconName \| ReactNode` | — | Before the value: an icon name (`"icon-mail-01-line"`, sized to the field) or any node (a unit, a picker). |
+| `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
+| `className` | `string` | — |  |
+| `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |
+| `datePicker` | `boolean` | `true` |  |
+| `datePickerActions` | `boolean` | `false` |  |
+| `onDateChange` | `(date: Date \| null) => void` | — |  |
+
+### DatePickerItem
+The 32px day primitive from `.Primitives/Date-Picker/Item`.
+
+Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `day` | `number \| string` | `""` |  |
+| `state` | `\| "default" \| "hover" \| "single-selected" \| "range-selected-start" \| "range-selected-end" \| "in-range" \| "today" \| "blank" \| "weekend" \| "disabled"` | `"default"` |  |
+| `event` | `boolean` | `false` |  |
+| `size` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+
+### DatePickerHeader
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `month` (required) | `Date` | — |  |
+| `onPrevious` | `() => void` | — |  |
+| `onNext` | `() => void` | — |  |
+| `onMonthYearClick` | `() => void` | — |  |
+| `type` | `"interactive" \| "static" \| "display"` | `"interactive"` | Figma Header Type: Interactive (month/year opens Select-Month-Year), Static (label only, used by the Dual calendar) or Display (label only, no navigation slots). |
+| `back` | `boolean` | `true` | Figma `Back` / `Next`. A hidden button keeps its 32px slot so the label stays centred. |
+| `next` | `boolean` | `true` |  |
+
+### DatePickerAction
+`.Primitives/Date-Picker/Action`: Button/Main Small Tertiary "Cancel" + Primary "Submit".
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `action` | `"single" \| "dual"` | `"dual"` |  |
+| `onCancel` | `() => void` | — |  |
+| `onApply` | `() => void` | — |  |
+| `cancelLabel` | `ReactNode` | — | Text of the Tertiary button. Default: the locale's "Cancel". |
+| `applyLabel` | `ReactNode` | — | Text of the Primary button. Default: the locale's "Submit". |
+
+### DatePickerMonthYear
+`.Primitives/Date-Picker/Calendar` Type=Select-Month-Year: the focused month/year header, a month wheel and a year wheel (Heading/4, 5 visible rows), then Cancel / Submit.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `month` (required) | `Date` | — |  |
+| `onSubmit` | `(month: Date) => void` | — |  |
+| `onCancel` | `() => void` | — |  |
+
+## Keyboard
+| Keys | Action |
+| --- | --- |
+| Tab / Shift+Tab | Move between navigation buttons and days |
+| Enter / Space | Pick the focused day |
+| ↑ / ↓ | Month-year wheel: scroll one step |
+| Escape | Close the picker and return focus |
+
 ## ✅ Do
 - Disable impossible dates (past check-in) with minDate.
 - Show the chosen range and its consequence (nights, price) next to the calendar.
+- Let users type the date in the DateField; the calendar is a shortcut, not the only input.
+- Use calendar="dual" for ranges longer than a few days; single for one date.
+- Use the month-year picker for dates far from today (billing periods, expiries).
+- Close the popover after a single date is picked (no actions) and return focus to the field.
 
 ## ❌ Don't
 - Don't open the calendar for read-only DateFields.
+- Don't make users click back through years for birthdays; type the date or use the month-year picker.
+- Don't show Apply/Cancel for a single-date pick that can commit immediately.
+- Don't allow a range end before its start; the second click after an earlier date restarts the range.
+- Don't pass `month` without `onMonthChange`: Previous / Next and the month-year wheel stop working. To open on another month, keep it in state: `month={month} onMonthChange={setMonth}` (harness: interaction/controlled-needs-handler).
 
 ## Accessibility
 - Nav buttons are labelled; days are buttons with the date in the label.
@@ -35,8 +145,12 @@ Pick a date or a date range.
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
-| `input/no-disabled` | error | Inputs use Read-only, never Disabled (Search is the only exception). | `zen-allow-disabled-input: <reason>` |
+| `input/no-disabled` | error | Inputs (Search included) never use Disabled; fields use Read-only. | `zen-allow-disabled-input: <reason>` |
 | `input/needs-label` | error | Every field has a visible label (or an aria-label when the context labels it). | `zen-allow-unlabelled-input: <reason>` |
+| `input/placeholder-not-label` | warn | Placeholder shows an example or format, never repeats the label. | `zen-allow-placeholder-label: <reason>` |
+| `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
+| `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 
 ## References
 - [Material 3 — Date pickers](https://m3.material.io/components/date-pickers/guidelines)

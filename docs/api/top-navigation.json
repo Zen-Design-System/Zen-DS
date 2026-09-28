@@ -1,0 +1,212 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "top-navigation",
+  "import": "import { TopNavigation, TopNavigationActionButton } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "TopNavigation",
+      "file": "src/components/TopNavigation/TopNavigation.tsx",
+      "description": "Figma Top-Navigation/Mobile (12014:45167, page ❖ Top-Navigations): a 64px navigator bar (Top-Leading 44px action ·\ncentred Sub heading · Top-Trailing) over an optional 64px Expand-Heading (H1–H3 + one action) and a Control-Bar slot.\nThe OS status bar is not part of the component; leave room for it with `env(safe-area-inset-top)`.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "type",
+          "type": "\"default\" | \"alt\" | \"default-blurring\" | \"alt-blurring\" | \"liquid-glass\" | \"default-overlay\" | \"liquid-overlay\" | \"compact\" | \"compact-alt\" | \"compact-overlay\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "margin",
+          "type": "\"comfortable\" | \"compact\"",
+          "required": false,
+          "default": "\"comfortable\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "subtitle",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Heading-Text Type=Sub with Subheading / Leading (◆ Social conversation header): with either set, the bar title\nbecomes a left-aligned identity — a 48px `titleLeading` visual (Avatar / ChatAvatarGroup), gap 12, the title in\nBody/Extra/Bold over the subtitle in Caption/Regular (Neutral/Light), gap 2.",
+          "deprecated": null
+        },
+        {
+          "name": "titleLeading",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onTitleClick",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Makes the identity a button (open the profile / group info).",
+          "deprecated": null
+        },
+        {
+          "name": "titleLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "trailingGroup",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Nav-Action/Icon-Main with a trailing icon: the trailing actions share one Tertiary pill (e.g. audio + video call).",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Top-Heading-Text (Type=Sub, Body/Extra/Bold), centred in the navigator bar. Shown when collapsed or when there is no large title.",
+          "deprecated": null
+        },
+        {
+          "name": "largeTitle",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Expand-Heading (Heading/1–3) under the navigator bar.",
+          "deprecated": null
+        },
+        {
+          "name": "headingLevel",
+          "type": "\"h1\" | \"h2\" | \"h3\"",
+          "required": false,
+          "default": "\"h1\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "TopNavigationAction | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Top-Leading: an action (usually Back) or a visual (e.g. an Avatar).",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "TopNavigationAction[]",
+          "required": false,
+          "default": "[]",
+          "description": "Figma Top-Trailing: up to two actions.",
+          "deprecated": null
+        },
+        {
+          "name": "largeTitleAction",
+          "type": "TopNavigationAction",
+          "required": false,
+          "default": null,
+          "description": "Figma Expand-Trailing: one action beside the large title.",
+          "deprecated": null
+        },
+        {
+          "name": "controlBar",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Control-Bar slot (48px): a Search, Segmented or Tabs under the heading.",
+          "deprecated": null
+        },
+        {
+          "name": "searchAction",
+          "type": "{ onClick: () => void; label?: string; icon?: IconName | ReactElement }",
+          "required": false,
+          "default": null,
+          "description": "For a Search control bar: while `collapsed`, the bar folds away and this Search action appears at the start of the\ntrailing slot (top-right); it leaves again when the bar expands. Its `onClick` usually scrolls back up and focuses\nthe field. Counts toward the two trailing actions, so keep at most one other. `label` defaults to the locale's\n“Search”, `icon` to icon-search-medium-line (an icon name or an element).",
+          "deprecated": null
+        },
+        {
+          "name": "collapsed",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Scrolled state: hides the large title and shows `title` (or the large title) in the navigator bar.",
+          "deprecated": null
+        },
+        {
+          "name": "sticky",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Stick to the top of the scroll container.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "TopNavigationActionButton",
+      "file": "src/components/TopNavigation/TopNavigation.tsx",
+      "description": "Figma Nav-Action (Icon-Main Tertiary · Flat · Liquid-Glass): a 44px circle with a 24px icon.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "action",
+          "type": "TopNavigationAction",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "variant",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"open\" | \"closing\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "TopNavigationAction": "interface TopNavigationAction { icon: IconName | ReactElement; label: string; onClick?: () => void; dot?: boolean; disabled?: boolean; }"
+  }
+}

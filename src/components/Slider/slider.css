@@ -1,0 +1,86 @@
+/* Figma Slider/Horizontal (4010:35946) + .Primitives/Slider/Slide-Dot (6455:2135). */
+.zen-slider {
+  --zen-slider-height: 24px;
+  --zen-slider-dot: 24px;
+  --zen-slider-knob: 20px;
+  --zen-slider-fill: var(--zen-color-background-neutral-solid-default, #111);
+  --zen-slider-knob-fill: var(--zen-color-background-inverse-solid-default, #fff);
+  --zen-slider-knob-hover: var(--zen-slider-knob-fill);
+  --zen-slider-knob-pressed: var(--zen-slider-knob-fill);
+  --zen-slider-icon: var(--zen-color-content-inverse-strongest, #fff);
+  --zen-slider-icon-size: var(--zen-element-size-popular-2-xsmall, 12px);
+  display: flex;
+  width: 100%;
+  min-width: 120px;
+  flex-direction: column;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+}
+.zen-slider[data-size="small"] {
+  --zen-slider-height: 10px;
+  --zen-slider-dot: 16px;
+  --zen-slider-knob: 16px;
+  --zen-slider-knob-fill: var(--zen-color-background-neutral-solid-default, #111);
+  --zen-slider-knob-hover: var(--zen-color-background-neutral-solid-hover);
+  --zen-slider-knob-pressed: var(--zen-color-background-neutral-solid-pressed);
+}
+.zen-slider[data-size="large"] {
+  --zen-slider-height: 32px;
+  --zen-slider-dot: 32px;
+  --zen-slider-knob: 28px;
+  --zen-slider-icon-size: var(--zen-element-size-popular-xsmall, 12px);
+  /* Large knob is invisible on the fill until hover/hold overlays it. */
+  --zen-slider-knob-fill: transparent;
+  --zen-slider-knob-hover: var(--zen-color-background-inverse-flat-hover);
+  --zen-slider-knob-pressed: var(--zen-color-background-inverse-flat-pressed);
+}
+.zen-slider[data-tone="accent"] { --zen-slider-fill: var(--zen-color-background-accent-solid-default); --zen-slider-icon: var(--zen-color-content-on-white-overlay-placeholder); --zen-slider-knob-fill: var(--zen-color-background-white-solid-default, #fff); --zen-slider-knob-hover: var(--zen-color-background-white-solid-default, #fff); --zen-slider-knob-pressed: var(--zen-color-background-white-solid-default, #fff); }
+.zen-slider[data-tone="accent"][data-size="small"] { --zen-slider-knob-fill: var(--zen-color-background-accent-solid-default); --zen-slider-knob-hover: var(--zen-color-background-accent-solid-hover); --zen-slider-knob-pressed: var(--zen-color-background-accent-solid-pressed); }
+.zen-slider[data-tone="accent"][data-size="large"] { --zen-slider-knob-fill: transparent; --zen-slider-knob-hover: var(--zen-color-background-neutral-flat-hover); --zen-slider-knob-pressed: var(--zen-color-background-neutral-flat-pressed); }
+.zen-slider[data-tone="white"] { --zen-slider-fill: var(--zen-color-background-white-solid-default, #fff); --zen-slider-icon: var(--zen-color-content-on-white-overlay-placeholder); --zen-slider-knob-fill: var(--zen-color-background-white-solid-default, #fff); --zen-slider-knob-hover: var(--zen-color-background-white-solid-default, #fff); --zen-slider-knob-pressed: var(--zen-color-background-white-solid-default, #fff); }
+.zen-slider[data-tone="white"][data-size="large"] { --zen-slider-knob-fill: transparent; --zen-slider-knob-hover: var(--zen-color-background-black-overlay-default); --zen-slider-knob-pressed: var(--zen-color-background-black-overlay-default); }
+.zen-slider[data-disabled="true"] { --zen-slider-fill: var(--zen-color-background-solid-disabled); --zen-slider-knob-fill: var(--zen-color-background-subtle-disabled); --zen-slider-knob-hover: var(--zen-slider-knob-fill); --zen-slider-knob-pressed: var(--zen-slider-knob-fill); }
+.zen-slider[data-disabled="true"][data-size="small"] { --zen-slider-knob-fill: var(--zen-color-background-solid-disabled); }
+.zen-slider[data-disabled="true"][data-size="large"] { --zen-slider-knob-fill: transparent; }
+
+.zen-slider__control { position: relative; display: flex; height: max(var(--zen-slider-height), var(--zen-slider-dot)); align-items: center; }
+/* Slide-Container: Neutral/Subtle rail, Corner-Radius/Rounded. */
+.zen-slider__rail { position: relative; display: block; box-sizing: border-box; width: 100%; height: var(--zen-slider-height); padding: 1px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); }
+/* The fill ends at the dot's outer edge. Figma: the dot (24/32) is flush with the rail edge at both ends, so the
+   knob sits 2px (3XSmall) from the edge at 0 and at 100. The fill lives inside the rail's 1px inset and the dot
+   overhangs it by 1px (right: -1px), so its minimum length is dot − 2px — which also makes it a circle at 0. */
+.zen-slider__fill {
+  --zen-slider-fill-min: calc(var(--zen-slider-dot) - 2px);
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  width: calc(var(--zen-slider-fill-min) + (100% - var(--zen-slider-fill-min)) * var(--zen-slider-ratio));
+  height: 100%;
+  align-items: center;
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  background: var(--zen-slider-fill);
+}
+.zen-slider__icon { display: inline-flex; width: calc(var(--zen-slider-height) - 2px); height: 100%; flex: 0 0 auto; align-items: center; justify-content: center; color: var(--zen-slider-icon); }
+.zen-slider__icon > .zen-icon { width: var(--zen-slider-icon-size); height: var(--zen-slider-icon-size); }
+/* Slide-Dot: Medium/Large pad 3XSmall around the knob, flush with the fill's end; Small floats 16px over the rail. */
+.zen-slider__thumb { position: absolute; top: 50%; right: -1px; display: inline-flex; box-sizing: border-box; width: var(--zen-slider-dot); height: var(--zen-slider-dot); align-items: center; justify-content: center; border-radius: var(--zen-corner-radius-rounded, 1000px); transform: translateY(-50%); }
+.zen-slider[data-size="small"] .zen-slider__thumb { right: 0; }
+/* Small: the 16px dot floats over the 10px rail and ends flush with the fill (1px from the rail at both ends). */
+.zen-slider[data-size="small"] .zen-slider__fill { --zen-slider-fill-min: var(--zen-slider-dot); }
+.zen-slider__knob { display: block; box-sizing: border-box; width: var(--zen-slider-knob); height: var(--zen-slider-knob); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-slider-knob-fill); transition: background-color 120ms ease, box-shadow 120ms ease; }
+/* zen-allow-raw-shadow: Slide-Dot (6455:2135) uses local drop shadows, not an Effect style, with colours bound to
+   Color/Shadow/*. Small (6455:2131): 0 2 4 Neutral/Base + 0 2 8 −4 Neutral/Strongest. Medium Thumb (6455:2141): 0 0 4 Neutral/Strong. */
+.zen-slider[data-size="small"] .zen-slider__knob { box-shadow: 0 2px 4px var(--zen-color-shadow-neutral-base), 0 2px 8px -4px var(--zen-color-shadow-neutral-strongest); }
+.zen-slider[data-size="medium"]:not([data-disabled="true"]) .zen-slider__knob { box-shadow: 0 0 4px var(--zen-color-shadow-neutral-strong); }
+
+/* Native range input on top: transparent, full size; drives hover / hold / focus of the dot. */
+.zen-slider__input { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.zen-slider__input:disabled { cursor: not-allowed; }
+.zen-slider__input:hover:not(:disabled) + .zen-slider__rail .zen-slider__knob { background: var(--zen-slider-knob-hover); }
+.zen-slider[data-size="medium"] .zen-slider__input:hover:not(:disabled) + .zen-slider__rail .zen-slider__knob { box-shadow: inset 0 0 0 3px var(--zen-color-focus-neutral-subtle); }
+/* Hold: 3px Focus/Neutral/Subtle ring on the dot. */
+.zen-slider__input:active:not(:disabled) + .zen-slider__rail .zen-slider__knob { background: var(--zen-slider-knob-pressed); }
+.zen-slider__input:active:not(:disabled) + .zen-slider__rail .zen-slider__thumb { box-shadow: 0 0 0 3px var(--zen-color-focus-neutral-subtle); }
+.zen-slider__input:focus-visible + .zen-slider__rail .zen-slider__thumb { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
+
+.zen-slider__limits { display: flex; justify-content: space-between; color: var(--zen-color-content-neutral-strongest, #111); }
+@media (prefers-reduced-motion: reduce) { .zen-slider__knob { transition: none; } }

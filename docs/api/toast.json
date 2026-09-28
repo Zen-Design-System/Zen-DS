@@ -1,0 +1,205 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "toast",
+  "import": "import { Toast, ToastStack, ToastProvider } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Toast",
+      "file": "src/components/Toast/Toast.tsx",
+      "description": "Figma Toast-Message (1579:13276): Corner-Radius/2XLarge surface with Effect/Popover, padding Medium/Large,\ngap Medium; the Body groups the Title/Caption stack (gap 3XSmall) with the action (gap XSmall).\nSubtle is the Popover surface with a 1px OUTSIDE Border/Popover/Subtle stroke.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "type",
+          "type": "\"neutral\" | \"subtle\" | \"info\" | \"positive\" | \"warning\" | \"negative\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "status",
+          "type": "\"success\" | \"error\" | \"warning\" | \"info\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use type: success → positive, error → negative (warning and info are the same)."
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Title (Body/Base/Bold).",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Caption (Body/Small/Regular).",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "boolean | IconName | ReactNode",
+          "required": false,
+          "default": "true",
+          "description": "`true` (default) shows the type's icon, `false` hides it; an icon name or a node replaces it.",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "{ label: ReactNode; onClick?: () => void }",
+          "required": false,
+          "default": null,
+          "description": "Figma Actions: one Small button.",
+          "deprecated": null
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Shows the close control (icon-x-small-line).",
+          "deprecated": null
+        },
+        {
+          "name": "closeLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the close control. Default: the locale's “Dismiss”.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ToastStack",
+      "file": "src/components/Toast/ToastStack.tsx",
+      "description": "Toast queue with motion: new toasts rise in (Slow, emphasized), leaving toasts fade/scale out while their row\ncollapses (Base, exit curve) so the stack reflows smoothly. Portals through ZenPortal; aria-live is on each Toast.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "toasts",
+          "type": "ToastItem[]",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onDismiss",
+          "type": "(id: ToastItem[\"id\"]) => void",
+          "required": true,
+          "default": null,
+          "description": "Called when a toast times out or its close button is pressed; remove it from `toasts`.",
+          "deprecated": null
+        },
+        {
+          "name": "placement",
+          "type": "\"bottom-center\" | \"bottom-right\" | \"top-center\" | \"top-right\"",
+          "required": false,
+          "default": "\"bottom-center\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "required": false,
+          "default": "5000",
+          "description": "Default auto-dismiss (ms). Toasts with an action get +3s. Timers pause while the stack is hovered or focused.",
+          "deprecated": null
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": "3",
+          "description": "Most toasts shown at once; older ones are dismissed.",
+          "deprecated": null
+        },
+        {
+          "name": "inline",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Render in place (e.g. inside a demo card) instead of the fixed viewport layer.",
+          "deprecated": null
+        },
+        {
+          "name": "closeLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of every toast's close button (a toast's own `closeLabel` wins). Default: the locale's “Dismiss”.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ToastProvider",
+      "file": "src/components/Toast/ToastProvider.tsx",
+      "description": "Owns the toast queue and renders one ToastStack. ZenProvider already includes it (outermost provider), so apps\nonly call useToast(); render ToastProvider yourself only outside a ZenProvider.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "placement",
+          "type": "\"bottom-center\" | \"bottom-right\" | \"top-center\" | \"top-right\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Default auto-dismiss in ms (toasts with an action get +3s).",
+          "deprecated": null
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Most toasts on screen at once.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "ToastItem": "interface ToastItem extends Omit<ToastProps, \"onClose\" | \"className\"> { id: string | number; duration?: number | null; }"
+  }
+}

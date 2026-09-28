@@ -1,0 +1,18 @@
+/* Zen motion tokens (platform-wide; not yet in Figma variables). Enter uses the decelerating "emphasized" curve,
+   exit the accelerating "exit" curve and a shorter duration, so overlays arrive gently and leave quickly. */
+:root {
+  --zen-motion-duration-fast: 120ms;
+  --zen-motion-duration-base: 200ms;
+  --zen-motion-duration-slow: 280ms;
+  --zen-motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --zen-motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --zen-motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+}
+@keyframes zen-motion-fade-in { from { opacity: 0; } }
+@keyframes zen-motion-fade-out { to { opacity: 0; } }
+/* Scrims fade their background only — never opacity, which would also fade the panel inside them. */
+@keyframes zen-motion-scrim-in { from { background-color: transparent; } }
+@keyframes zen-motion-scrim-out { to { background-color: transparent; } }
+@media (prefers-reduced-motion: reduce) {
+  :root { --zen-motion-duration-fast: 0ms; --zen-motion-duration-base: 0ms; --zen-motion-duration-slow: 0ms; }
+}

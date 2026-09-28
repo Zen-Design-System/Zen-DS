@@ -1,0 +1,33 @@
+/* Style-guard fixture: every rule marked below must fire exactly once where marked (npm run style:selftest). */
+/* expect: spacing/token */
+.pe-bad-a { padding: 12px 16px; }
+/* expect: spacing/token */
+.pe-bad-b { gap: 6px; }
+/* expect: spacing/token */
+.pe-bad-c { --pe-bad-row-gap: 10px; }
+/* expect: spacing/role */
+.pe-bad-d { padding: var(--zen-spacing-gap-small); }
+/* expect: radius/token */
+.pe-bad-e { border-radius: 10px; }
+/* expect: radius/role */
+.pe-bad-panel { border-radius: var(--zen-corner-radius-input-medium); }
+/* expect: type/token */
+.pe-bad-f { font-size: 13px; }
+/* expect: type/token */
+.pe-bad-g { font-weight: 600; }
+/* expect: type/mixed-style */
+.pe-bad-h { font-size: var(--zen-typography-font-size-heading-4); line-height: var(--zen-typography-line-height-body-base); }
+/* expect: type/token-role */
+.pe-bad-i { font-size: var(--zen-typography-line-height-body-base); }
+/* expect: type/derived */
+.pe-bad-j { font-size: calc(var(--zen-typography-font-size-body-small) * 0.8); }
+/* expect: color/token */
+.pe-bad-k { color: #333; }
+/* expect: color/role */
+.pe-bad-l { color: var(--zen-color-background-surface-default); }
+/* expect: color/role-fill */
+.pe-bad-m { width: 40px; height: 40px; background: var(--zen-color-content-neutral-base); }
+/* expect: shadow/token */
+.pe-bad-n { box-shadow: 0 4px 12px var(--zen-color-shadow-neutral-default); }
+/* expect: size/slot-token */
+.pe-bad-icon { width: 24px; }

@@ -1,0 +1,130 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "badge",
+  "import": "import { Badge, BadgeCounter } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Badge",
+      "file": "src/components/Badge/Badge.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLSpanElement>, \"color\">",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<span>`.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"md\" | \"xsmall\" | \"small\" | \"medium\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"accent\" | \"neutral\" | \"yellow\" | \"orange\" | \"red\" | \"crimson\" | \"pink\" | \"plum\" | \"purple\" | \"violet\" | \"indigo\" | \"blue\" | \"cyan\" | \"teal\" | \"green\" | \"brown\" | \"inverse\" | \"on-color\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "color",
+          "type": "\"accent\" | \"neutral\" | \"yellow\" | \"orange\" | \"red\" | \"crimson\" | \"pink\" | \"plum\" | \"purple\" | \"violet\" | \"indigo\" | \"blue\" | \"cyan\" | \"teal\" | \"green\" | \"brown\" | \"inverse\" | \"on-color\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use theme (same values)."
+        },
+        {
+          "name": "background",
+          "type": "\"solid\" | \"subtle\"",
+          "required": false,
+          "default": "\"solid\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Leading icon: an icon name (`\"icon-check-line\"`) or a node; replaces the default dot.",
+          "deprecated": null
+        },
+        {
+          "name": "leadingIcon",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "remove",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onRemove",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "BadgeCounter",
+      "file": "src/components/Badge/Badge.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": "Omit<BadgeProps, \"remove\" | \"onRemove\" | \"leading\">",
+      "props": [
+        {
+          "name": "value",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "unknown",
+          "required": false,
+          "default": "\"sm\"",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

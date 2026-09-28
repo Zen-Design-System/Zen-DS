@@ -110,13 +110,15 @@ await page.evaluate(() => document.fonts.ready);
 
 const results = [];
 for (const mode of modes) {
-  await page.evaluate(({ theme, componentTheme }) => {
+  // A mode may set `radius` (Corner Radius mode) so radius bindings are verified where the tokens differ per size;
+  // Figma geometry is Compact, so density stays fixed.
+  await page.evaluate(({ theme, componentTheme, radius }) => {
     const html = document.documentElement;
     html.dataset.brand = "zen";
     html.dataset.theme = theme;
     html.dataset.componentTheme = componentTheme;
     html.dataset.density = "compact";
-    html.dataset.radius = "rounded";
+    html.dataset.radius = radius ?? "rounded";
     html.dataset.emphasis = "medium";
     html.dataset.typography = "dashboard";
   }, mode);
@@ -144,6 +146,8 @@ for (const mode of modes) {
         fill: visiblePaint(node.fill), stroke: visiblePaint(node.stroke), sw: node.sw, sa: node.sa,
         r: node.r, bvR: node.bv?.topLeftRadius, op: node.op,
         fxStyle: node.fxStyle, ts: node.ts, textFill: node.t === "TEXT" ? visiblePaint(node.fill) : null,
+        // Figma applies shadow spread only on rectangles/ellipses or on filled frames that clip content.
+        spreadApplies: ["RECTANGLE", "ELLIPSE"].includes(node.t) || (Boolean(node.clip) && Boolean(visiblePaint(node.fill))),
       };
       const got = await page.evaluate(({ id, sel, want, entry, cssVars, styleTokens }) => {
         const root = document.querySelector(`[data-case="${id}"]`);
@@ -178,6 +182,8 @@ for (const mode of modes) {
           if (!paint) return null;
           if (paint.v) return probe("color", `var(${cssVars[paint.v]})`) || `UNDEFINED ${cssVars[paint.v]}`;
           if (paint.c) return probe("color", paint.c);
+          // Linear gradients (Button/Overlay's 1px ring) compare as their colour stops, top → bottom.
+          if (paint.t === "GRADIENT_LINEAR" && paint.stops) return `linear-gradient(${paint.stops.map((stop) => `${probe("color", stop.c)} ${+(stop.p * 100).toFixed(2)}%`).join(", ")})`;
           return paint.t;
         };
         const out = {};
@@ -189,7 +195,7 @@ for (const mode of modes) {
         if (need.includes("pos") || need.includes("y")) out.y = [want.y, +(rect.top - rr.top).toFixed(2)];
         if (need.includes("fill")) {
           const expected = want.fill ? colorOf(want.fill) : "rgba(0, 0, 0, 0)";
-          const actual = entry.fillVia === "color" ? cs.color : entry.fillVia === "fill" ? cs.fill : cs.backgroundColor;
+          const actual = entry.fillVia === "color" ? cs.color : entry.fillVia === "fill" ? cs.fill : entry.fillVia === "caret" ? cs.caretColor : cs.backgroundColor;
           out.fill = [expected + (want.fill?.v ? `  [${want.fill.v}]` : ""), actual];
         }
         if (need.includes("stroke")) {
@@ -206,16 +212,39 @@ for (const mode of modes) {
             const m = cs.boxShadow.match(/(rgba?\([^)]*\))\s+0px\s+0px\s+0px\s+([\d.]+)px/);
             if (m) actual = `${parseFloat(m[2])}px ${m[1]}`;
           }
+          // "mask": a ring painted by a masked ::after (padding = stroke width, background = the paint), for gradient strokes.
+          if (via === "mask") {
+            const ps = getComputedStyle(el, "::after");
+            if (ps.content !== "none" && ps.display !== "none" && parseFloat(ps.paddingTop) > 0) {
+              const paint = ps.backgroundImage !== "none" ? ps.backgroundImage.replace(/^linear-gradient\((?:180deg|to bottom), /, "linear-gradient(") : ps.backgroundColor;
+              actual = `${parseFloat(ps.paddingTop)}px ${paint}`;
+            }
+          }
           if (actual !== "none" && /rgba\(0, 0, 0, 0\)$/.test(actual)) actual = "none (transparent)";
-          out.stroke = [expected + (want.stroke?.v ? `  [${want.stroke.v}]` : "") + (want.sa ? ` ${want.sa}` : ""), actual];
+          out.stroke = [expected + (want.stroke?.v ? `  [${want.stroke.v}]` : "") + (want.sa ? `  [${want.sa}]` : ""), actual];
         }
         if (need.includes("radius")) {
           const expected = want.bvR ? probe("width", `var(${cssVars[want.bvR]})`) : `${want.r ?? 0}px`;
           out.r = [expected + (want.bvR ? `  [${want.bvR}]` : ""), cs.borderTopLeftRadius];
         }
         if (need.includes("fx")) {
-          const expected = want.fxStyle ? probe("box-shadow", `var(--zen-style-${styleTokens[want.fxStyle]}-shadow)`) : "none";
-          out.fx = [expected + (want.fxStyle ? `  [${want.fxStyle}]` : ""), cs.boxShadow];
+          const base = `--zen-style-${styleTokens[want.fxStyle]}-shadow`;
+          const unclipped = !want.spreadApplies && getComputedStyle(document.documentElement).getPropertyValue(`${base}-unclipped`).trim();
+          const expected = want.fxStyle ? probe("box-shadow", `var(${unclipped ? `${base}-unclipped` : base})`) : "none";
+          // fxIgnoreInset: components that paint their stroke as an inset ring in the same box-shadow list (Button) compare
+          // only the outer shadows; fully transparent zero shadows ("0 0 #0000" placeholders) count as none.
+          const outer = (value) => {
+            if (!entry.fxIgnoreInset || value === "none") return value;
+            const layers = value.split(/,(?![^(]*\))/).map((layer) => layer.trim())
+              .filter((layer) => !/\binset\b/.test(layer) && !/^rgba\(\d+, \d+, \d+, 0\)(\s+0px)+$/.test(layer));
+            return layers.length ? layers.join(", ") : "none";
+          };
+          out.fx = [outer(expected) + (want.fxStyle ? `  [${want.fxStyle}${unclipped ? ", spread ignored: no clip" : ""}]` : ""), outer(cs.boxShadow)];
+          // fxBackdrop: the effect style's BACKGROUND_BLUR (`--zen-style-*-backdrop-filter`) must be on the element, and only then.
+          if (entry.fxBackdrop) {
+            const blur = want.fxStyle ? getComputedStyle(document.documentElement).getPropertyValue(`--zen-style-${styleTokens[want.fxStyle]}-backdrop-filter`).trim() : "";
+            out.blur = [(blur ? probe("backdrop-filter", blur) : "none") + (want.fxStyle ? `  [${want.fxStyle}]` : ""), cs.backdropFilter];
+          }
         }
         if (need.includes("text")) {
           const p = document.createElement("span");
@@ -230,7 +259,7 @@ for (const mode of modes) {
         if (need.includes("opacity")) out.op = [String(want.op ?? 1), cs.opacity];
         return out;
       }, {
-        id: item.id, sel: entry.dom, want, entry: { check: entry.check, fillVia: entry.fillVia, strokeVia: entry.strokeVia, root: entry.root ?? suite.root },
+        id: item.id, sel: entry.dom, want, entry: { check: entry.check, fillVia: entry.fillVia, strokeVia: entry.strokeVia, fxIgnoreInset: entry.fxIgnoreInset, fxBackdrop: entry.fxBackdrop, root: entry.root ?? suite.root },
         cssVars: Object.fromEntries([want.fill?.v, want.stroke?.v, want.textFill?.v, want.bvR].filter(Boolean).map((name) => [name, cssVar(name)])),
         styleTokens: Object.fromEntries([want.fxStyle, want.ts].filter(Boolean).map((name) => [name, styleToken(name)])),
       });
@@ -240,7 +269,7 @@ for (const mode of modes) {
         let ok;
         const norm = (value) => String(value).split("  [")[0].trim().replace(/rgba\(\d+, \d+, \d+, 0\)/g, "transparent");
         if (typeof expected === "number") ok = Math.abs(expected - actual) <= tolerance;
-        else ok = norm(expected) === norm(actual) || (expected === "none" && String(actual).startsWith("none"));
+        else ok = norm(expected) === norm(actual) || (norm(expected) === "none" && String(actual).startsWith("none"));
         if (prop === "r" && !ok) {
           const e = parseFloat(expected); const a = parseFloat(actual);
           ok = e >= 999 && a >= 999; // "rounded" pill tokens
@@ -248,7 +277,7 @@ for (const mode of modes) {
         checks.push({ layer: entry.figma || "(root)", dom: entry.dom, prop, figma: expected, actual, ok });
       }
     }
-    results.push({ mode: `${mode.theme}/${mode.componentTheme}`, variant: item.variant.vp, props: item.props, checks });
+    results.push({ mode: `${mode.theme}/${mode.componentTheme}${mode.radius ? `/${mode.radius}` : ""}`, variant: item.variant.vp, props: item.props, checks });
   }
 }
 await browser.close();
@@ -258,8 +287,10 @@ let failures = 0;
 let total = 0;
 const lines = [];
 const known = [];
+// An exception may pin `code` (the value code deliberately renders instead), so a later drift still fails.
 const isKnown = (result, check) => (suite.figmaExceptions ?? []).find((item) =>
-  item.layer === check.layer && item.prop === check.prop && Object.entries(item.vp).every(([key, value]) => result.variant[key] === value));
+  item.layer === check.layer && item.prop === check.prop && Object.entries(item.vp).every(([key, value]) => result.variant[key] === value)
+  && (item.code === undefined || String(check.actual) === item.code));
 for (const result of results) {
   for (const check of result.checks) {
     const exception = !check.ok && isKnown(result, check);

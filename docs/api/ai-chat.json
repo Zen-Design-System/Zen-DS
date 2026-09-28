@@ -1,0 +1,271 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "ai-chat",
+  "import": "import { AiChatBubble, AiChatField, AiChatBlock, AiChatThread } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "AiChatBubble",
+      "file": "src/components/AiChat/AiChat.tsx",
+      "description": "Figma AI/Chat-Bubble (4218:1270): You = a Neutral/Subtle bubble (radius 24, padding 12/16, right-aligned, max 560);\nAI = plain Body/Extra/Regular text across the column. Both use Body/Extra/Regular; actions appear under the bubble on hover.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "side",
+          "type": "\"you\" | \"ai\"",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "actions",
+          "type": "AiChatAction[]",
+          "required": false,
+          "default": "[]",
+          "description": "Figma Items slot: actions shown on hover / focus (You: copy · edit; AI: like · dislike · regenerate · copy).",
+          "deprecated": null
+        },
+        {
+          "name": "version",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "AI: which answer version is shown (\"1/2\"), next to the actions.",
+          "deprecated": null
+        },
+        {
+          "name": "streaming",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "AI: the reply is still streaming (a pulsing caret follows the text).",
+          "deprecated": null
+        },
+        {
+          "name": "thinking",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "AI: the assistant is working and no text has arrived yet — three dots in a looping wave. Also shown when `streaming` has no content yet.",
+          "deprecated": null
+        },
+        {
+          "name": "thinkingLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the thinking indicator (the locale's \"Thinking\" by default).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "AiChatField",
+      "file": "src/components/AiChat/AiChat.tsx",
+      "description": "Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt Body/Extra/Medium · model · mic · Primary\n40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and\nSend (arrow-up) once there is text. Enter sends, Shift+Enter adds a line.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "onSubmit",
+          "type": "(text: string) => void",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Prompt placeholder, also the field's accessible name (the locale's \"Ask me anything\" by default).",
+          "deprecated": null
+        },
+        {
+          "name": "fieldStyle",
+          "type": "\"default\" | \"surface\" | \"liquid-glass\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "model",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Model: the model switch label (Body/Base/Medium + chevron) — open your model Popover from `onModelClick`.",
+          "deprecated": null
+        },
+        {
+          "name": "onModelClick",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onAttach",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Figma Leading-Actions (+): attachments or tools.",
+          "deprecated": null
+        },
+        {
+          "name": "onVoice",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Figma trailing microphone (Icon-Flat).",
+          "deprecated": null
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "While the reply streams, the primary button becomes Stop.",
+          "deprecated": null
+        },
+        {
+          "name": "onStop",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "required": false,
+          "default": "\"\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "AiChatBlock",
+      "file": "src/components/AiChat/AiChat.tsx",
+      "description": "Figma AI/Chat-Block/Pale (7140:115622): Say-Hi (44px logo + Heading/1) · Chat-Field · Chip/Normal suggestions (Medium, Secondary, Leading-Icon).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "greeting",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Say-Hi heading (the locale's \"How can I help you today?\" by default).",
+          "deprecated": null
+        },
+        {
+          "name": "logo",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Say-Hi logo: an icon name or your own node (the Zen mark by default).",
+          "deprecated": null
+        },
+        {
+          "name": "suggestions",
+          "type": "AiChatSuggestion[]",
+          "required": false,
+          "default": "[]",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "AiChatThread",
+      "file": "src/components/AiChat/AiChat.tsx",
+      "description": "Conversation column (max 800, gap 24); the field docks at the bottom.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the conversation (the locale's \"Conversation\" by default).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "AiChatAction": "interface AiChatAction { icon: IconName | ReactElement; label: string; onClick?: () => void; pressed?: boolean; }",
+    "AiChatSuggestion": "interface AiChatSuggestion { label: string; icon?: IconName | ReactElement; onClick?: () => void; }"
+  }
+}

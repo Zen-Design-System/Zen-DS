@@ -1,0 +1,4 @@
+interface:
+  display_name: "Zen platform QA"
+  short_description: "Audit every Zen component page (playground, examples, mobile, Figma) and fix what it finds"
+  default_prompt: "Use $zen-platform-qa to audit all Codebase Platform component pages: static gates, platform:audit, a visual pass with platform:shoot, Figma parity for mobile components, then fix bugs and turn repeatable ones into harness rules and guidelines."

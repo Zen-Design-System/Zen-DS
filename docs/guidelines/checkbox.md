@@ -17,11 +17,48 @@ Select zero, one or many independent options, or confirm a single statement.
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Select | `checked / onChange` |  |
-| Indeterminate | `indeterminate` | parent of a partially selected group |
+| Select | `checked / defaultChecked / onCheckedChange` | onCheckedChange(checked); the old onChange(checked, event) is deprecated |
+| Indeterminate | `indeterminate` | parent of a partially selected group; shows the minus mark whatever `checked` is and sets the DOM indeterminate (announced as mixed) |
 | Check-Side | `checkSide` | left · right |
-| Caption / Bold | `caption / bold` |  |
+| Caption / Bold | `caption / bold` | .Primitives/Checkbox/Content (309:46789): Bold=Yes → Body/Base/Bold; Subtext (Body/Small/Regular, Content/Neutral/Light) sits directly under the label, gap 3XSmall, aligned with the label |
 | Disabled | `disabled` | unavailable option (explain why in caption) |
+
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/checkbox.json`.
+
+### Checkbox
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `checked` | `boolean` | — |  |
+| `defaultChecked` | `boolean` | `false` |  |
+| `indeterminate` | `boolean` | `false` |  |
+| `onCheckedChange` | `(checked: boolean) => void` | — | Called with the new checked state. |
+| `onChange` | `(checked: boolean, event: ChangeEvent<HTMLInputElement>) => void` | — | **Deprecated:** Use onCheckedChange (or read event.target.checked).  |
+| `label` | `ReactNode` | — |  |
+| `aria-label` | `string` | — | Name for a mark-only checkbox (no visible label, e.g. inside a List-Item or Table row). When set without `label`, no text renders — the Figma placeholder "Content label" only fills an unnamed demo. |
+| `caption` | `ReactNode` | — | .Primitives/Checkbox/Content Subtext: short help under the label (Body/Small/Regular, Content/Neutral/Light). |
+| `bold` | `boolean` | `false` | .Primitives/Checkbox/Content Bold=Yes (Body/Base/Bold). |
+| `checkSide` | `"left" \| "right"` | `"left"` |  |
+| `state` | `"default" \| "hover" \| "focus" \| "disabled"` | `"default"` |  |
+| `disabled` | `boolean` | `false` |  |
+| `name` | `string` | — |  |
+| `value` | `string` | — |  |
+| `className` | `string` | — |  |
+
+### CheckboxMarkIndicator
+Figma Checkbox/Mark on its own (16px, State=Default): the visual control for rows that own the interaction themselves, e.g. multi-select Popover items. Decorative — the row carries the state.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `checked` | `boolean` | `false` |  |
+| `indeterminate` | `boolean` | `false` |  |
+| `disabled` | `boolean` | `false` |  |
+| `className` | `string` | — |  |
+
+## Keyboard
+| Keys | Action |
+| --- | --- |
+| Space | Check / uncheck |
 
 ## ✅ Do
 - Always give a label; clicking the label toggles.
@@ -31,6 +68,8 @@ Select zero, one or many independent options, or confirm a single statement.
 ## ❌ Don't
 - Don't use a checkbox for an action that happens immediately.
 - Don't pre-check consent boxes for marketing.
+- Don't use a Checkbox group for mutually exclusive options → RadioButton.
+- Don't word labels negatively ("Don't send emails"); checked should mean "yes".
 
 ## Accessibility
 - Native checkbox; Space toggles; aria-checked=mixed for indeterminate.
@@ -42,6 +81,9 @@ Select zero, one or many independent options, or confirm a single statement.
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `choice/needs-label` | error | Checkbox, Radio and Toggle always carry a label. | `zen-allow-unlabelled-choice: <reason>` |
+| `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
+| `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 
 ## References
 - [Material 3 — Checkbox](https://m3.material.io/components/checkbox/guidelines)

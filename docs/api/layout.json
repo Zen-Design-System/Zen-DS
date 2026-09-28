@@ -1,0 +1,297 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "layout",
+  "import": "import { Stack, Grid, Box, Container } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Stack",
+      "file": "src/components/Layout/Layout.tsx",
+      "description": "One-dimensional layout with token spacing. Use it instead of hand-written flex CSS.\n\n  <Stack gap=\"lg\">…sections…</Stack>\n  <Stack direction=\"row\" gap=\"sm\" align=\"center\" justify=\"between\">…toolbar…</Stack>",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLElement>",
+      "props": [
+        {
+          "name": "direction",
+          "type": "\"column\" | \"row\"",
+          "required": false,
+          "default": "\"column\"",
+          "description": "column (default) stacks top to bottom; row lays items side by side.",
+          "deprecated": null
+        },
+        {
+          "name": "gap",
+          "type": "\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Space between items (Figma Spacing/Gap). Default md (16px).",
+          "deprecated": null
+        },
+        {
+          "name": "align",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\" | \"baseline\"",
+          "required": false,
+          "default": null,
+          "description": "Cross-axis alignment. Default: rows center their items; columns stretch fields, cards and lists to the full width\nwhile buttons, chips, badges, tags and avatars keep their own width (pass `align=\"stretch\"` to stretch those too,\ne.g. full-width buttons in a mobile footer).",
+          "deprecated": null
+        },
+        {
+          "name": "justify",
+          "type": "\"start\" | \"center\" | \"end\" | \"between\" | \"around\"",
+          "required": false,
+          "default": null,
+          "description": "Main-axis distribution. `between` pushes the first and last items to the edges.",
+          "deprecated": null
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Let row items wrap onto new lines.",
+          "deprecated": null
+        },
+        {
+          "name": "padding",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Space inside the stack (Figma Spacing/Padding).",
+          "deprecated": null
+        },
+        {
+          "name": "paddingX",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Horizontal padding (overrides `padding` on the sides).",
+          "deprecated": null
+        },
+        {
+          "name": "paddingY",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Vertical padding (overrides `padding` top and bottom), e.g. page content inside a Container that already has side margins.",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "\"div\" | \"section\" | \"article\" | \"aside\" | \"header\" | \"footer\" | \"main\" | \"nav\" | \"form\" | \"fieldset\" | \"ul\" | \"ol\" | \"li\"",
+          "required": false,
+          "default": "\"div\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "Grid",
+      "file": "src/components/Layout/Layout.tsx",
+      "description": "Two-dimensional layout for cards, tiles and form columns.\n\n  <Grid minColumnWidth={280}>…cards…</Grid>\n  <Grid columns={{ mobile: 1, desktop: 2 }} gap=\"lg\">…fields…</Grid>\n  <Grid columns={{ mobile: 1, desktop: \"2fr 1fr\" }} gap=\"lg\" align=\"start\">…main…aside…</Grid>",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLElement>",
+      "props": [
+        {
+          "name": "columns",
+          "type": "GridTracks | { mobile?: GridTracks; tablet?: GridTracks; desktop?: GridTracks }",
+          "required": false,
+          "default": null,
+          "description": "Fixed column count, or per breakpoint (`{ mobile: 1, tablet: 2, desktop: 3 }`, following ZenProvider's\nbreakpoint). A string is a track list for unequal columns: `{ mobile: 1, desktop: \"2fr 1fr\" }` puts a main column\nnext to an aside. Omit it to fit as many `minColumnWidth` columns as the width allows.",
+          "deprecated": null
+        },
+        {
+          "name": "minColumnWidth",
+          "type": "number | string",
+          "required": false,
+          "default": "240",
+          "description": "Responsive auto-fill: every column is at least this wide (px or CSS length). Default 240.",
+          "deprecated": null
+        },
+        {
+          "name": "gap",
+          "type": "\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Space between cells. Default md (16px).",
+          "deprecated": null
+        },
+        {
+          "name": "rowGap",
+          "type": "\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "columnGap",
+          "type": "\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "align",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "required": false,
+          "default": null,
+          "description": "Vertical alignment of cells. Default stretch (equal-height cards).",
+          "deprecated": null
+        },
+        {
+          "name": "padding",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "\"div\" | \"section\" | \"article\" | \"aside\" | \"header\" | \"footer\" | \"main\" | \"nav\" | \"form\" | \"fieldset\" | \"ul\" | \"ol\" | \"li\"",
+          "required": false,
+          "default": "\"div\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "Box",
+      "file": "src/components/Layout/Layout.tsx",
+      "description": "A plain container with token padding, background layer, border and radius. For clickable or selectable tiles use\nCard; for page width use Container.",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLElement>",
+      "props": [
+        {
+          "name": "padding",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "paddingX",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "paddingY",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "surface",
+          "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\"",
+          "required": false,
+          "default": "\"none\"",
+          "description": "Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page,\n`surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. Never Canvas (the page), Flat (navigation) or\nContainer (modals and sheets use Dialog / BottomSheet).",
+          "deprecated": null
+        },
+        {
+          "name": "border",
+          "type": "\"none\" | \"pale\" | \"subtle\"",
+          "required": false,
+          "default": "\"none\"",
+          "description": "Closed-box border: `subtle` when the box is actionable, `pale` when it is static (docs/guidelines/borders.md).",
+          "deprecated": null
+        },
+        {
+          "name": "radius",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "\"div\" | \"section\" | \"article\" | \"aside\" | \"header\" | \"footer\" | \"main\" | \"nav\" | \"form\" | \"fieldset\" | \"ul\" | \"ol\" | \"li\"",
+          "required": false,
+          "default": "\"div\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "Container",
+      "file": "src/components/Layout/Layout.tsx",
+      "description": "Centres page content at a readable width with the breakpoint's page margin.",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLElement>",
+      "props": [
+        {
+          "name": "maxWidth",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"full\"",
+          "required": false,
+          "default": "\"lg\"",
+          "description": "Content width: sm 640 (forms) · md 960 (settings, reading) · lg 1280 (dashboards, default) · xl 1440 · full.",
+          "deprecated": null
+        },
+        {
+          "name": "gutter",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Page margin on both sides from the breakpoint tokens (24 desktop/tablet, 20 mobile). Default true.",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "\"div\" | \"section\" | \"article\" | \"aside\" | \"header\" | \"footer\" | \"main\" | \"nav\" | \"form\" | \"fieldset\" | \"ul\" | \"ol\" | \"li\"",
+          "required": false,
+          "default": "\"div\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "GridTracks": "type GridTracks = number | string",
+    "ZenScale": "type ZenScale = \"3xs\" | \"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\" | \"3xl\"",
+    "ZenScaleInput": "type ZenScaleInput = ZenScale | ZenScaleLong",
+    "ZenScaleLong": "type ZenScaleLong = \"3xsmall\" | \"2xsmall\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\" | \"2xlarge\" | \"3xlarge\""
+  }
+}

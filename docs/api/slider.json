@@ -1,0 +1,145 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "slider",
+  "import": "import { Slider } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Slider",
+      "file": "src/components/Slider/Slider.tsx",
+      "description": "Figma Slider/Horizontal (4010:35946): a rounded Neutral/Subtle rail with a filled track inset 1px that ends at the\nthumb (.Primitives/Slider/Slide-Dot). A native range input on top provides keyboard, pointer and screen-reader support.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "number",
+          "required": false,
+          "default": "50",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: number) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the new value while the thumb moves.",
+          "deprecated": null
+        },
+        {
+          "name": "onChange",
+          "type": "(value: number) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use onValueChange (same arguments)."
+        },
+        {
+          "name": "min",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": "100",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "step",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"neutral\" | \"accent\" | \"white\"",
+          "required": false,
+          "default": "\"neutral\"",
+          "description": "Figma Theme: Neutral · Accent · White (White has Medium/Large only).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Figma Size: Small (10px rail, floating 16px dot) · Medium (24px) · Large (32px). Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactElement | false",
+          "required": false,
+          "default": "\"icon-star-93-solid\"",
+          "description": "Figma Icon (Medium/Large): the leading icon inside the filled track — an icon name or an icon element; `false` hides it.",
+          "deprecated": null
+        },
+        {
+          "name": "showLimits",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Value: the min/max labels under the rail.",
+          "deprecated": null
+        },
+        {
+          "name": "valueText",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": null,
+          "description": "Screen-reader text for the current value, e.g. \"40%\".",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

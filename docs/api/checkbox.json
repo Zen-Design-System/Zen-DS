@@ -1,0 +1,178 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "checkbox",
+  "import": "import { Checkbox, CheckboxMarkIndicator } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Checkbox",
+      "file": "src/components/Checkbox/Checkbox.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "checked",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "defaultChecked",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "indeterminate",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onCheckedChange",
+          "type": "(checked: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the new checked state.",
+          "deprecated": null
+        },
+        {
+          "name": "onChange",
+          "type": "(checked: boolean, event: ChangeEvent<HTMLInputElement>) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use onCheckedChange (or read event.target.checked)."
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Name for a mark-only checkbox (no visible label, e.g. inside a List-Item or Table row). When set without `label`,\n no text renders — the Figma placeholder \"Content label\" only fills an unnamed demo.",
+          "deprecated": null
+        },
+        {
+          "name": "caption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": ".Primitives/Checkbox/Content Subtext: short help under the label (Body/Small/Regular, Content/Neutral/Light).",
+          "deprecated": null
+        },
+        {
+          "name": "bold",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": ".Primitives/Checkbox/Content Bold=Yes (Body/Base/Bold).",
+          "deprecated": null
+        },
+        {
+          "name": "checkSide",
+          "type": "\"left\" | \"right\"",
+          "required": false,
+          "default": "\"left\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focus\" | \"disabled\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "CheckboxMarkIndicator",
+      "file": "src/components/Checkbox/Checkbox.tsx",
+      "description": "Figma Checkbox/Mark on its own (16px, State=Default): the visual control for rows that own the\ninteraction themselves, e.g. multi-select Popover items. Decorative — the row carries the state.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "checked",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "indeterminate",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

@@ -1,0 +1,213 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "uploader",
+  "import": "import { FileUpload, UploaderFileItem } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "FileUpload",
+      "file": "src/components/Uploader/Uploader.tsx",
+      "description": "Figma Uploader/File-Upload (1581:22708): Label → Drag & Drop field (Primitives/Uploader/DragDrop-Field, Extended) or a\n“Choose File” button → Help-Text → File-Item list (gap XSmall). The drop zone is a real button (Enter/Space open the\npicker) that also accepts dropped files; Dragover shows the 2px dashed Focus/Neutral/Subtle stroke.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma hasLabel.",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma hasHelperText (or the error text when `error` is set).",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Field-level error (State=Alert on the drop zone), e.g. \"Max 800 KB\".",
+          "deprecated": null
+        },
+        {
+          "name": "type",
+          "type": "\"dropzone\" | \"button\"",
+          "required": false,
+          "default": "\"dropzone\"",
+          "description": "Figma Type: Drag & Drop (dropzone) or Browse Button.",
+          "deprecated": null
+        },
+        {
+          "name": "text",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Dropzone text and caption (Figma Text / Caption). Default text: the locale's “Drag & Drop or Choose file to upload”.",
+          "deprecated": null
+        },
+        {
+          "name": "caption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "accept",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "multiple",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onFilesAdd",
+          "type": "(files: File[]) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the picked or dropped files; the app uploads them and feeds `files` back.",
+          "deprecated": null
+        },
+        {
+          "name": "files",
+          "type": "UploaderFile[]",
+          "required": false,
+          "default": "[]",
+          "description": "Figma File List: the files to show under the field.",
+          "deprecated": null
+        },
+        {
+          "name": "thumbnail",
+          "type": "UploaderFileItemProps[\"thumbnail\"]",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onRemove",
+          "type": "(file: UploaderFile) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onReplace",
+          "type": "(file: UploaderFile) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onRetry",
+          "type": "(file: UploaderFile) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "buttonLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Browse button label. Default: the locale's “Choose File”.",
+          "deprecated": null
+        },
+        {
+          "name": "extended",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Figma DragDrop-Field Extended: Yes (default) stacks icon, text and caption; No is a single 48px row (icon + text).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "UploaderFileItem",
+      "file": "src/components/Uploader/Uploader.tsx",
+      "description": "Figma Primitives/Uploader/File-Item (1581:22739): padding Medium, gap Small, Corner-Radius/Large.\nName Body/Base/Bold · details Caption/Regular Neutral/Light (gap XSmall, 4px dot) · 8px Neutral progress while uploading.\nAlert switches to Negative/Subtle with the error as help text. Actions are 16px icons 12px apart (24px hit areas).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "file",
+          "type": "UploaderFile",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "thumbnail",
+          "type": "\"none\" | \"file\" | \"photo\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Thumbnail: none · file (icon-media-file 36px via FileIcon) · photo (previewUrl). Defaults to photo when previewUrl is set.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"default\" | \"overlay\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "Figma Theme: Default (Surface + Pale border) · Overlay (Liquid-Glass/Normal + Effect/Overlay, no border — for photos, dark or busy backgrounds).",
+          "deprecated": null
+        },
+        {
+          "name": "onRemove",
+          "type": "(file: UploaderFile) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onReplace",
+          "type": "(file: UploaderFile) => void",
+          "required": false,
+          "default": null,
+          "description": "Replaceable: swap the file.",
+          "deprecated": null
+        },
+        {
+          "name": "onRetry",
+          "type": "(file: UploaderFile) => void",
+          "required": false,
+          "default": null,
+          "description": "Alert: try again.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "UploaderFile": "interface UploaderFile { id: string; name: string; size?: string; state?: UploaderFileState; progress?: number; caption?: ReactNode; error?: ReactNode; previewUrl?: string; }",
+    "UploaderFileState": "type UploaderFileState = \"uploading\" | \"uploaded\" | \"replaceable\" | \"alert\""
+  }
+}

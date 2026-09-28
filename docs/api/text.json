@@ -1,0 +1,130 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "text",
+  "import": "import { Text, Heading } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Text",
+      "file": "src/components/Text/Text.tsx",
+      "description": "Figma text styles with Zen's content colours. Paragraphs, labels and inline copy; titles use <Heading>.\n\n  <Text>Invite people to collaborate on this project.</Text>\n  <Text textStyle=\"Body/Small/Regular\" tone=\"base\">Updated 2 min ago</Text>",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"color\">",
+      "props": [
+        {
+          "name": "textStyle",
+          "type": "keyof typeof typographyStyles",
+          "required": false,
+          "default": "\"Body/Base/Regular\"",
+          "description": "Figma text style, e.g. \"Body/Base/Regular\" (default), \"Body/Small/Medium\", \"Caption/Regular\", \"Heading/4\".",
+          "deprecated": null
+        },
+        {
+          "name": "tone",
+          "type": "\"strongest\" | \"base\" | \"light\" | \"primary\" | \"secondary\" | \"tertiary\" | \"accent\" | \"info\" | \"positive\" | \"negative\" | \"warning\" | \"inverse\" | \"on-colors\" | \"disabled\" | \"inherit\"",
+          "required": false,
+          "default": "\"strongest\"",
+          "description": "Colour role. Default strongest (primary text).",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "\"p\" | \"span\" | \"div\" | \"strong\" | \"em\" | \"small\" | \"label\" | \"li\" | \"dt\" | \"dd\" | \"figcaption\" | \"legend\" | \"code\" | \"time\"",
+          "required": false,
+          "default": "\"p\"",
+          "description": "Element to render. Default p (a block); use span inside a line, label for a form label.",
+          "deprecated": null
+        },
+        {
+          "name": "truncate",
+          "type": "boolean | number",
+          "required": false,
+          "default": null,
+          "description": "true: one line with an ellipsis; a number: clamp to that many lines. The full text stays in the DOM.",
+          "deprecated": null
+        },
+        {
+          "name": "align",
+          "type": "\"start\" | \"center\" | \"end\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "htmlFor",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "For `as=\"label\"`.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "Heading",
+      "file": "src/components/Text/Text.tsx",
+      "description": "A real heading (h1–h6) in a Figma text style. The level follows the page outline; the look can differ:\n\n  <Heading level={2} textStyle=\"Heading/Subheading\">Team members</Heading>",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLHeadingElement>, \"color\">",
+      "props": [
+        {
+          "name": "level",
+          "type": "(typeof headingLevels)[number]",
+          "required": false,
+          "default": "2",
+          "description": "Document level (h1–h6): pick it from the page outline, not from the size. Default 2.",
+          "deprecated": null
+        },
+        {
+          "name": "textStyle",
+          "type": "keyof typeof typographyStyles",
+          "required": false,
+          "default": null,
+          "description": "Visual style; defaults to the level's style (1 → Heading/1 … 4 → Heading/4, 5 → Heading/Subheading). An h1 — the\n page title — always stays Heading/1 (harness: heading/h1-is-heading-1); lower levels may take another style.",
+          "deprecated": null
+        },
+        {
+          "name": "tone",
+          "type": "\"strongest\" | \"base\" | \"light\" | \"primary\" | \"secondary\" | \"tertiary\" | \"accent\" | \"info\" | \"positive\" | \"negative\" | \"warning\" | \"inverse\" | \"on-colors\" | \"disabled\" | \"inherit\"",
+          "required": false,
+          "default": "\"strongest\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "truncate",
+          "type": "boolean | number",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "align",
+          "type": "\"start\" | \"center\" | \"end\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

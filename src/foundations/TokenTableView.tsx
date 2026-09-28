@@ -2,6 +2,7 @@ import { useDeferredValue, useMemo, useState, type CSSProperties } from "react";
 import catalog from "../tokens/catalog.generated.json";
 import { Search } from "../components/Search";
 import { Segmented } from "../components/Segmented";
+import { EmptyState } from "../components/EmptyState";
 import { typographyStyles } from "../tokens/typography.generated";
 import { toKebab, type ResolvedToken, type TokenValue } from "./resolvedTokens";
 
@@ -205,7 +206,11 @@ export function TokenTableView({ collectionSlug, collectionName, modes, tokens }
           columns={colorLayout ? ["Name", "Token", "Value"] : ["Token", "Value", previewColumn]}
           plainValue={collectionSlug === "global-colors"}
         />
-      )) : <p className="token-table-view__empty">No tokens match “{query}”.</p>}
+      )) : (
+        <EmptyState title={`No tokens match “${query.trim()}”`} icon="icon-search-medium-line" secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>
+          Search by token name (“surface”), path (“Background/Neutral”) or value (“#111”).
+        </EmptyState>
+      )}
     </div>
   );
 }

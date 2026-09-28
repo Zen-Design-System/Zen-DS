@@ -1,0 +1,285 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "table",
+  "import": "import { Table, TableText, TableMedia, TableTrend, TableBadges, TableTags, TableActions } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Table",
+      "file": "src/components/Table/Table.tsx",
+      "description": "Figma Table (page 1595:2631): Primitives/Table/Header (Table/Header/Size) over Primitives/Table/Data-Row of\nTable/Cell/Default (Table/Cell/Size; padding Small × Medium; gap XSmall; 1px bottom Border/Neutral/Pale).\nCells use Table-Cell/Background Default · Hover (row hover) · Selected (checked rows).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root element (the scroll box around the `<table>`).",
+          "deprecated": null
+        },
+        {
+          "name": "columns",
+          "type": "TableColumn<T>[]",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "rows",
+          "type": "T[]",
+          "required": false,
+          "default": null,
+          "description": "The items, one row each.",
+          "deprecated": null
+        },
+        {
+          "name": "data",
+          "type": "T[]",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use rows (same meaning)."
+        },
+        {
+          "name": "getRowId",
+          "type": "(row: T) => string",
+          "required": false,
+          "default": null,
+          "description": "A stable, unique id per row (selection, editing, React keys). Default: the row's `id` field, else its position —\npass it when rows have no `id`, or selection and edits stay on the position when rows are sorted or filtered.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the table (required for screen readers when there is no visible caption).",
+          "deprecated": null
+        },
+        {
+          "name": "caption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Visible caption above the table.",
+          "deprecated": null
+        },
+        {
+          "name": "selectable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Type=Checkbox header + a checkbox cell per row.",
+          "deprecated": null
+        },
+        {
+          "name": "selectedIds",
+          "type": "string[]",
+          "required": false,
+          "default": "[]",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onSelectionChange",
+          "type": "(ids: string[]) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "sort",
+          "type": "TableSort | null",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onSortChange",
+          "type": "(sort: TableSort | null) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "empty",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Rendered in a full-width row when `rows` is empty (e.g. an EmptyState).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "TableText",
+      "file": "src/components/Table/Table.tsx",
+      "description": "Figma Primitives/Table/Cell/Text-Cell: Label (Body/Base Regular or Bold, Strongest) + optional Subtext (Body/Small/Regular 12/16, Light),\ngap 3XSmall — as rendered in every Avatar/Photo/Icon/Dock cell. (The Text-Cell master still carries a stale Caption/Regular layer.)",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "caption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "bold",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "TableMedia",
+      "file": "src/components/Table/Table.tsx",
+      "description": "Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a 32px visual + Text-Cell (gap Small).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "media",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "caption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "bold",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "TableTrend",
+      "file": "src/components/Table/Table.tsx",
+      "description": "Figma Trend-Cell: a Medium Subtle Badge — Up green, Down red, Neutral grey — with an arrow.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "trend",
+          "type": "\"up\" | \"down\" | \"neutral\"",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "TableBadges",
+      "file": "src/components/Table/Table.tsx",
+      "description": "Figma Badge-Cell (1603:6158): an Items slot of Badge/Size=Medium, gap 2XSmall.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "TableTags",
+      "file": "src/components/Table/Table.tsx",
+      "description": "Figma Tag-Cell (1603:23304): an Items slot of Tag (Medium), gap 2XSmall.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "TableActions",
+      "file": "src/components/Table/Table.tsx",
+      "description": "Figma Actions-Cell: icon buttons (Button/Icon-Flat Medium), gap XSmall, aligned to the cell's end.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "TableAlign": "type TableAlign = \"left\" | \"right\"",
+    "TableCellEditor": "type TableCellEditor<T> = | (TableEditorBase<T> & { type?: \"text\" | \"number\"; value: (row: T) => string; onCommit: (row: T, value: string) => void; multiline?: boolean }) | (TableEditorBase<T> & { type: \"select\"; value: (row: T) => string; options: Array<{ value: string; label: ReactNode }>; onCommit: (row: T, value: string) => void }) | (Omit<TableEditorBase<T>, \"validate\"> & { type: \"tags\"; value: (row: T) => string[]; onCommit: (row: T, value: string[]) => void; suggestions?: string[] })",
+    "TableColumn": "interface TableColumn<T> { id: string; header: ReactNode; align?: TableAlign; width?: string; sortable?: boolean; icon?: IconName | ReactElement; cell: (row: T, index: number) => ReactNode; edit?: TableCellEditor<T>; onOpen?: (row: T) => void; openLabel?: ReactNode; }",
+    "TableSort": "interface TableSort { columnId: string; direction: TableSortDirection }",
+    "TableSortDirection": "type TableSortDirection = \"asc\" | \"desc\""
+  }
+}

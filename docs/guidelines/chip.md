@@ -23,9 +23,67 @@ Compact, selectable tokens. Advanced chips are the Zen filter control: each owns
 | Size | `size` | xsmall (normal only) · small · medium |
 | Level | `level` | primary · secondary (normal only) |
 | Theme | `leading / photoSrc` | text-only · leading-icon · leading-photo |
-| Select / Dropdown | `select / dropdown` | selected styling; chevron |
+| Select / Dropdown | `selected / dropdown` | selected styling (select is the deprecated alias); chevron only — the chip opens its own Popover only with popoverItems (or onPopoverCreate) |
+| External surface | `onClick + aria-haspopup="dialog" + aria-expanded + popoverOpen` | a chip that opens a Bottom Sheet or filter panel; popoverOpen flips the chevron |
 | Multiple | `selectionMode="multiple" + selectionCount + popoverMultiple` | counter + remove on hover |
 | Clear | `onClearSelection` | remove affordance; Delete/Backspace on focus |
+
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/chip.json`.
+
+### Chip
+Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` | — |  |
+| `variant` | `"advanced" \| "normal" \| "number-only"` | `"advanced"` | Component set: Advanced, Normal, or Number-only. |
+| `size` | `"xs" \| "sm" \| "md" \| "xsmall" \| "small" \| "medium"` | `"sm"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `level` | `"primary" \| "secondary"` | `"secondary"` |  |
+| `theme` | `"text-only" \| "leading-icon" \| "leading-photo"` | — |  |
+| `state` | `"default" \| "hover" \| "press" \| "focused" \| "placeholder" \| "disabled"` | `"default"` |  |
+| `selected` | `boolean` | — | Selected (Figma Select=Yes): Advanced chips show the close affordance, Normal chips the selected styling. |
+| `select` | `boolean` | — | **Deprecated:** Use selected. Figma's Select property. Selected chips show the close affordance in Advanced. |
+| `dropdown` | `boolean` | — | Figma's Dropdown property. Advanced chips show a chevron when enabled. |
+| `selectionMode` | `"single" \| "multiple"` | — | Filter behavior: single keeps the dropdown affordance; multiple uses the Figma Chip/Trailing counter and changes to remove on hover. |
+| `selectionCount` | `number` | — | Number of selected options for a multiple filter. |
+| `counter` | `number \| string` | — |  |
+| `value` | `number \| string` | — | Alias used by the Number-only component set. |
+| `leading` | `IconName \| ReactNode` | — | Leading icon: an icon name (`"icon-grid-01-line"`) or a node. |
+| `photoSrc` | `string` | — | Leading-Photo theme: image rendered through the shared Avatar/Single (Photo, Subtle) primitive, sized per Figma (XSmall → 2XSmall 20, Small → XSmall 24, Medium → Small 32). |
+| `photoAlt` | `string` | `""` |  |
+| `trailing` | `IconName \| ReactNode` | — | Trailing slot: an icon name or a node; replaces the dropdown chevron / remove affordance. |
+| `popoverItems` | `PopoverItemData[]` | — | Items rendered by the shared Figma Popover/Default composition. |
+| `popoverOpen` | `boolean` | — | Controlled open state for the advanced chip menu. |
+| `popoverMultiple` | `boolean` | `false` | Keep the shared Popover open while selected options are toggled. |
+| `onPopoverOpenChange` | `(open: boolean) => void` | — |  |
+| `onPopoverSelect` | `(item: PopoverItemData) => void` | — |  |
+| `onClearSelection` | `() => void` | — | Clear the current single or multiple filter selection. |
+| `popoverLabel` | `ReactNode` | — |  |
+| `popoverSearch` | `boolean` | `false` |  |
+| `popoverSearchValue` | `string` | `""` |  |
+| `onPopoverSearchChange` | `(value: string) => void` | — |  |
+| `popoverSearchPlaceholder` | `string` | — |  |
+| `popoverScrollBar` | `boolean` | `true` |  |
+| `onPopoverCreate` | `(value: string) => void` | — | Figma Popover/Manual-Add-New: lets users create a value that isn't listed (labels, tags). The popover gets a Search row; a "Create" + Accent Badge row appears only for a new value, Enter creates it. |
+| `popoverCreateLabel` | `ReactNode` | — |  |
+| `type` | _HTML attribute_ | `"button"` |  |
+
+### Types
+Object shapes the props above refer to.
+
+```ts
+type BadgeTheme = "accent" | "neutral" | "yellow" | "orange" | "red" | "crimson" | "pink" | "plum" | "purple" | "violet" | "indigo" | "blue" | "cyan" | "teal" | "green" | "brown" | "inverse" | "on-color"
+type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?: ReactNode; leading?: IconName | ReactNode; trailing?: IconName | ReactNode; disabled?: boolean; selected?: boolean; photoSrc?: string; photoAlt?: string; badgeTheme?: BadgeTheme; theme?: "icon" | "text-only" | "photo-small" | "photo-big" | "avatar-small" | "avatar-big" | "dock-icon" | "badge"; function?: "default" | "manual-add-new"; }
+```
+
+## Keyboard
+| Keys | Action |
+| --- | --- |
+| Enter / Space | Toggle the chip or open its list |
+| ↓ | Open the Popover (Advanced) |
+| Escape | Close the Popover and return focus |
+| Delete / Backspace | Clear the selection (when clearable) |
 
 ## ✅ Do
 - Use one Advanced chip per filter dimension (Status, Owner, Date).
@@ -33,6 +91,8 @@ Compact, selectable tokens. Advanced chips are the Zen filter control: each owns
 - Wire onClearSelection so Delete/Backspace and the × clear the filter.
 - Offer "Clear all" (Tertiary button) when two or more filters are active.
 - Keep Advanced chips' Popover open while toggling multiple options (popoverMultiple).
+- Show the count on multiple-selection chips (harness: chip/multiple-needs-count).
+- On a phone, keep filter chips in one horizontally scrolling row (no wrapping) and open choices in an Action Bottom Sheet instead of a Popover; show the result count with a plural label and offer Clear filters on an empty result.
 
 ## ❌ Don't
 - Don't use Secondary or any Button to open a filter list.
@@ -53,6 +113,11 @@ Compact, selectable tokens. Advanced chips are the Zen filter control: each owns
 | --- | --- | --- | --- |
 | `button/filter-is-chip` | error | Filter, sort and scope pickers are Chip (variant=advanced), never buttons. | `zen-allow-filter-button: <reason>` |
 | `chip/popover-needs-advanced` | error | Only Chip variant=advanced opens a Popover. | `zen-allow-chip-variant: <reason>` |
+| `chip/multiple-needs-count` | warn | A multiple-selection Chip shows how many values are active with selectionCount. | `zen-allow-chip-count: <reason>` |
+| `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `copy/plural-count` | warn | Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`. | `zen-allow-plural: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
+| `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 
 ## References
 - [Material 3 — Chips](https://m3.material.io/components/chips/guidelines)

@@ -55,11 +55,15 @@ export function useAnchoredPosition(surfaceRef: RefObject<HTMLElement | null>, a
       const target = anchorRef.current?.() ?? surface.parentElement?.closest<HTMLElement>(".zen-input__control") ?? container;
       const box = target.getBoundingClientRect();
       const frame = container.getBoundingClientRect();
-      // Absolute offsets are measured from the containing block's padding box.
-      const originTop = frame.top + container.clientTop;
-      const originLeft = frame.left + container.clientLeft;
-      const originBottom = originTop + container.clientHeight;
-      const originRight = originLeft + container.clientWidth;
+      // Absolute offsets are measured from the containing block's padding box. A portalled surface (ZenPortal) often has
+      // no positioned ancestor: offsetParent is then a static <body>, but CSS resolves top/bottom against the initial
+      // containing block — viewport-sized and pinned to the top of the document — so a flipped (bottom-based) surface
+      // measured from the body's full height flew thousands of pixels off screen.
+      const icb = (container === document.body || container === document.documentElement) && getComputedStyle(container).position === "static";
+      const originTop = icb ? -window.scrollY : frame.top + container.clientTop;
+      const originLeft = icb ? -window.scrollX : frame.left + container.clientLeft;
+      const originBottom = originTop + (icb ? document.documentElement.clientHeight : container.clientHeight);
+      const originRight = originLeft + (icb ? document.documentElement.clientWidth : container.clientWidth);
       const bounds = visibleBounds(container);
       const height = surface.offsetHeight;
       const width = surface.offsetWidth;

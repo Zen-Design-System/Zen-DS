@@ -54,7 +54,7 @@ export const States: Story = {
   ),
   parameters: {
     docs: {
-      description: { story: "State matrix verifies Search against Input's default, hover, focus, typing, inputted and disabled contracts." },
+      description: { story: "State matrix verifies Search against Input's default, hover, focus, typing and inputted contracts." },
     },
   },
 };

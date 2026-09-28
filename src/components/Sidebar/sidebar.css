@@ -2,6 +2,8 @@
   --zen-sidebar-width: var(--zen-sidebar-default-width, 260px);
   --zen-sidebar-item-padding: var(--zen-spacing-padding-small, 12px);
   --zen-sidebar-item-gap: var(--zen-spacing-gap-small, 12px);
+  /* Collapse (5974:20597): a Button/Size/Small inside an Element-Size/Popular/Base Wrapper, so it bleeds (20 − 32) / 2 = −6px. */
+  --zen-sidebar-collapse-bleed: calc((var(--zen-element-size-popular-base, 20px) - var(--zen-button-size-small, 32px)) / 2);
   position: relative;
   display: flex;
   width: var(--zen-sidebar-width);
@@ -25,6 +27,10 @@
   background: var(--zen-color-background-surface-default, #fff);
   box-shadow: var(--zen-style-shadow-bottom-level-1-shadow);
 }
+/* House rule: a Surface/Alt surface carries no drop shadow. */
+.zen-sidebar[data-background="alt"] .zen-sidebar__surface,
+.zen-sidebar[data-background="alt"] .zen-sidebar__workspace-main { background: var(--zen-color-background-surface-alt, #f7f7f7); box-shadow: none; }
+/* The workspace avatar rail always sits on Surface/Default (never Alt), so the avatar tiles and their Border/Inverse ring read clearly. */
 .zen-sidebar[data-background="flat"] .zen-sidebar__surface,
 .zen-sidebar[data-background="flat"] .zen-sidebar__workspace-main { background: var(--zen-color-background-surface-flat, transparent); box-shadow: none; }
 .zen-sidebar[data-background="inverse"] .zen-sidebar__surface,
@@ -32,15 +38,16 @@
 
 .zen-sidebar__header { display: flex; min-height: 68px; align-items: center; box-sizing: border-box; padding: var(--zen-margin-compact, 20px); }
 .zen-sidebar__default-brand { display: flex; width: 100%; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.zen-sidebar__default-brand-expanded { display: inline-flex; width: 78.9px; height: 24px; flex: 0 0 78.9px; align-items: center; }
-.zen-sidebar__default-brand-expanded img { display: block; width: 100%; height: 100%; }
+/* The logo slot takes the header height; its width follows the artwork (Figma Union 78.9×24). */
+.zen-sidebar__default-brand-expanded { display: inline-flex; height: 24px; flex: 0 0 auto; align-items: center; }
+.zen-sidebar__default-brand-expanded > :is(img, svg) { display: block; width: auto; height: 100%; }
 .zen-sidebar__default-brand-collapsed { display: none; width: 28px; height: 28px; flex: 0 0 28px; align-items: center; justify-content: center; color: var(--zen-color-content-neutral-strongest, #111); }
-.zen-sidebar__default-brand-kaiz { display: inline-flex; height: 20px; align-items: center; box-sizing: border-box; padding: var(--zen-badge-spacing-small-vertical-padding, 2px) var(--zen-badge-spacing-small-horizontal-padding, 4px); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-small, 0); }
+.zen-sidebar__default-brand-product { display: inline-flex; height: 20px; align-items: center; box-sizing: border-box; padding: var(--zen-badge-spacing-small-vertical-padding, 2px) var(--zen-badge-spacing-small-horizontal-padding, 4px); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-small, 0); }
 /* Figma Collapse = Button/Icon-Flat Small (32px) inside a 20×20 Wrapper at −6,−6: it occupies 20px of layout. */
-.zen-sidebar__collapse { display: inline-flex; width: var(--zen-button-size-small, 32px); height: var(--zen-button-size-small, 32px); flex: 0 0 auto; align-items: center; justify-content: center; margin: -6px -6px -6px auto; padding: 0; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: transparent; color: var(--zen-color-content-neutral-strongest, #111); cursor: pointer; }
+.zen-sidebar__collapse { display: inline-flex; width: var(--zen-button-size-small, 32px); height: var(--zen-button-size-small, 32px); flex: 0 0 auto; align-items: center; justify-content: center; margin: var(--zen-sidebar-collapse-bleed) var(--zen-sidebar-collapse-bleed) var(--zen-sidebar-collapse-bleed) auto; padding: 0; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: transparent; color: var(--zen-color-content-neutral-strongest, #111); cursor: pointer; }
 .zen-sidebar__collapse:hover:not(:disabled) { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
 .zen-sidebar__collapse:disabled { cursor: default; }
-.zen-sidebar__workspace-default-mark { display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-sidebar__workspace-default-mark { display: inline-flex; width: var(--zen-image-size-medium, 40px); height: var(--zen-image-size-medium, 40px); align-items: center; justify-content: center; color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-sidebar__body { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; padding: var(--zen-spacing-padding-xsmall, 8px); overflow-y: auto; }
 .zen-sidebar__items { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-sidebar__section { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
@@ -48,8 +55,13 @@
 .zen-sidebar__section-title { display: flex; min-height: 32px; align-items: center; box-sizing: border-box; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); }
 .zen-sidebar__section-item { min-height: 32px; height: 32px; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-base, 12px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); cursor: default; font: var(--zen-emphasis-font-weight-regular, 400) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-small, 0); }
 .zen-sidebar__section-item:hover { background: transparent; }
-.zen-sidebar__section-action { display: inline-flex; width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); align-items: center; justify-content: center; }
-.zen-sidebar__section-action > :is(button, .zen-button) { width: 20px; height: 20px; min-height: 20px; padding: 0; }
+/* Same pattern as the Figma header Wrapper → Collapse: a fixed wrapper (16px, the row's Trailing-Slot) holds a
+   Button/Icon-Flat Small at its real 32px size, centred so it overhangs evenly and never resizes the title row.
+   The button keeps its own geometry (no width/height/padding overrides → no squashed icon); only the icon is pinned
+   to 16px so it matches the Body/Small title in every density. */
+.zen-sidebar__section-action { display: inline-flex; width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex: 0 0 var(--zen-element-size-popular-small, 16px); align-items: center; justify-content: center; }
+.zen-sidebar__section-action > * { flex: 0 0 auto; }
+.zen-sidebar__section-action .zen-button--icon-only { --zen-button-icon-size: var(--zen-element-size-popular-small, 16px); }
 .zen-sidebar__item-group { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 /* Figma Menu-Item Level=Child: 12px inset, a 16px Tree-Line column with a 2px line at x=9 inside it, then the item (x = 28). */
 .zen-sidebar__sub-menu { position: relative; display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-left: calc(var(--zen-spacing-padding-small, 12px) + var(--zen-element-size-popular-small, 16px)); }
@@ -73,6 +85,8 @@
   letter-spacing: var(--zen-typography-letter-spacing-body-base, -.14px);
   text-align: left;
 }
+/* Items with an href render as links (a or the linkAs router link): same row, no link underline. */
+a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar__item:hover,
 .zen-sidebar__item[data-state="hover"] { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
 .zen-sidebar__item.zen-sidebar__section-item { min-height: 32px; height: 32px; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); cursor: default; font: var(--zen-emphasis-font-weight-regular, 400) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-small, 0); }
@@ -80,22 +94,23 @@
 /* Figma Focus: 3px OUTSIDE stroke (Color/Focus/Neutral|Accent/Subtle) — outside the 12px-radius box, padding unchanged. */
 .zen-sidebar__item:focus-visible,
 .zen-sidebar__item[data-state="focus"] { outline: 3px solid var(--zen-color-focus-neutral-subtle, rgb(2 2 2 / 8%)); outline-offset: 0; }
-.zen-sidebar__item[data-theme="accent"]:is(:focus-visible, [data-state="focus"]) { outline-color: var(--zen-color-focus-accent-subtle, rgb(255 1 158 / 18%)); }
-.zen-sidebar__item[data-selected="true"][data-theme="neutral"] { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 6%)); }
-.zen-sidebar__item[data-selected="true"][data-theme="accent"] { background: var(--zen-color-background-active-accent-subtle, rgb(255 2 152 / 9%)); color: var(--zen-color-content-accent-strongest, #5e004e); }
+.zen-sidebar__item[data-tone="accent"]:is(:focus-visible, [data-state="focus"]) { outline-color: var(--zen-color-focus-accent-subtle, rgb(255 1 158 / 18%)); }
+.zen-sidebar__item[data-selected="true"][data-tone="neutral"] { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 6%)); }
+.zen-sidebar__item[data-selected="true"][data-tone="accent"] { background: var(--zen-color-background-active-accent-subtle, rgb(255 2 152 / 9%)); color: var(--zen-color-content-accent-strongest, #5e004e); }
 /* Selected + Hover moves to the Subtle/Hover fill of the item theme. */
-.zen-sidebar__item[data-selected="true"][data-theme="neutral"]:is(:hover:not(:disabled), [data-state="hover"]) { background: var(--zen-color-background-neutral-subtle-hover); }
-.zen-sidebar__item[data-selected="true"][data-theme="accent"]:is(:hover:not(:disabled), [data-state="hover"]) { background: var(--zen-color-background-accent-subtle-hover); }
+.zen-sidebar__item[data-selected="true"][data-tone="neutral"]:is(:hover:not(:disabled), [data-state="hover"]) { background: var(--zen-color-background-neutral-subtle-hover); }
+.zen-sidebar__item[data-selected="true"][data-tone="accent"]:is(:hover:not(:disabled), [data-state="hover"]) { background: var(--zen-color-background-accent-subtle-hover); }
 .zen-sidebar__item[data-state="disabled"], .zen-sidebar__item:disabled { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); cursor: not-allowed; }
 .zen-sidebar__item-icon { position: relative; display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; color: inherit; }
 .zen-sidebar__item-icon > .zen-icon { width: 100%; height: 100%; }
 .zen-sidebar__item-label { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.zen-sidebar__counter { display: inline-flex; min-width: 20px; height: 20px; align-items: center; justify-content: center; box-sizing: border-box; padding: var(--zen-badge-spacing-small-vertical-padding, 2px) var(--zen-badge-spacing-small-horizontal-padding, 4px); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-small, 0); }
-.zen-sidebar__item[data-theme="accent"][data-selected="true"] .zen-sidebar__counter { background: var(--zen-color-background-inverse-solid-default, #fff); }
+/* Figma Menu-Item Counter = Badge-Counter Small · Neutral · Subtle (BadgeCounter owns size, padding, type and fill). */
+.zen-sidebar__counter { flex: 0 0 auto; }
+.zen-sidebar__item[data-tone="accent"][data-selected="true"] .zen-sidebar__counter { background: var(--zen-color-background-inverse-solid-default, #fff); }
 .zen-sidebar__notification-dot { position: absolute; top: 8px; left: 26px; width: 8px; height: 8px; box-sizing: border-box; border: 2px solid var(--zen-color-border-inverse, #fff); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-negative-solid-default, #e5532e); }
 .zen-sidebar__item-dropdown { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; color: inherit; transition: transform 160ms ease; }
 .zen-sidebar__item-dropdown[data-open="true"] { transform: rotate(180deg); }
-.zen-sidebar__trailing-action { display: inline-flex; width: 20px; height: 20px; align-items: center; justify-content: center; }
+.zen-sidebar__trailing-action { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; }
 
 .zen-sidebar__divider { width: 100%; height: 1px; flex: 0 0 1px; background: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
 .zen-sidebar__footer { display: flex; width: 100%; flex-direction: column; align-items: flex-start; box-sizing: border-box; padding: var(--zen-spacing-padding-xsmall, 8px); }
@@ -107,17 +122,30 @@
 /* Figma Side-Bar/Master/Small-Density: 260px, 32px search, 36px menu items. */
 .zen-sidebar[data-variant="small-density"] { --zen-sidebar-item-padding: var(--zen-spacing-padding-xsmall, 8px); --zen-sidebar-item-gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0; }
 .zen-sidebar[data-variant="small-density"] .zen-sidebar__surface { border-radius: 0; backdrop-filter: blur(40px); box-shadow: none; }
-.zen-sidebar[data-variant="small-density"] .zen-sidebar__header { min-height: 48px; padding: var(--zen-spacing-padding-small, 12px); }
+/* Figma Header (5974:20593): 12px padding around a 20px row → 44px. The .Primitives/Sidebar/LOGO instance is the
+   Basic logo scaled to 5/6: Union 65.75×20, Kaiz badge 16.67px (Body/Small 10/13.33), 6.67px gap. */
+.zen-sidebar[data-variant="small-density"] .zen-sidebar__header { min-height: 44px; padding: var(--zen-spacing-padding-small, 12px); }
+.zen-sidebar[data-variant="small-density"] .zen-sidebar__default-brand { gap: calc(var(--zen-spacing-gap-xsmall, 8px) * 5 / 6); }
+.zen-sidebar[data-variant="small-density"] .zen-sidebar__default-brand-expanded { height: 20px; }
+/* zen-allow-derived-type: the Kaiz badge is Body/Small scaled to 5/6 with the rest of the Small-Density logo instance
+   (5974:20593, 10/13.33px) — Figma scales the instance, it does not use another text style. */
+.zen-sidebar[data-variant="small-density"] .zen-sidebar__default-brand-product { height: calc(20px * 5 / 6); padding: calc(var(--zen-badge-spacing-small-vertical-padding, 2px) * 5 / 6) calc(var(--zen-badge-spacing-small-horizontal-padding, 4px) * 5 / 3); font-size: calc(var(--zen-typography-font-size-body-small, 12px) * 5 / 6); line-height: calc(var(--zen-typography-line-height-body-small, 16px) * 5 / 6); }
 .zen-sidebar[data-variant="small-density"] .zen-sidebar__collapse { align-self: flex-start; }
 .zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__collapse { align-self: center; }
-.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__default-brand-collapsed { width: var(--zen-element-size-popular-medium, 24px); height: var(--zen-element-size-popular-medium, 24px); flex-basis: var(--zen-element-size-popular-medium, 24px); }
+/* Figma collapsed Logo (5974:20632): 20×20. */
+.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__default-brand-collapsed { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex-basis: var(--zen-element-size-popular-base, 20px); }
 .zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__default-brand-collapsed > .zen-icon { width: 100%; height: 100%; }
+/* Search slot lines up with the menu items: the same inline inset as .zen-sidebar__body (XSmall; Small-Density uses Small). */
+.zen-sidebar__search { padding: 0 var(--zen-spacing-padding-xsmall, 8px); }
+.zen-sidebar__search > * { width: 100%; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__search { display: flex; justify-content: center; padding: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-sidebar[data-variant="small-density"] .zen-sidebar__search { padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); }
+/* Figma collapsed Search-Container (5974:25764): 8px on every side around the 32px Button/Icon-Main. */
+.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__search { padding: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-sidebar[data-variant="small-density"] .zen-sidebar__body { padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); }
 .zen-sidebar[data-variant="small-density"] .zen-sidebar__items { gap: 0; }
-.zen-sidebar[data-density="small"] { --zen-sidebar-item-padding: var(--zen-spacing-padding-xsmall, 8px); --zen-sidebar-item-gap: var(--zen-spacing-gap-xsmall, 8px); }
-.zen-sidebar[data-density="small"] .zen-sidebar__item { min-height: 36px; }
+.zen-sidebar[data-sidebar-density="small"] { --zen-sidebar-item-padding: var(--zen-spacing-padding-xsmall, 8px); --zen-sidebar-item-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-sidebar[data-sidebar-density="small"] .zen-sidebar__item { min-height: 36px; }
 .zen-sidebar[data-variant="small-density"] .zen-sidebar__footer { padding: var(--zen-spacing-padding-small, 12px); }
 
 /* Figma Side-Bar/Master/Small-Density collapsed: 52px fixed rail. This is
@@ -127,18 +155,18 @@
 .zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__header { min-height: 0; flex-direction: column; gap: var(--zen-spacing-gap-large, 24px); align-items: center; padding: var(--zen-spacing-padding-small, 12px); }
 .zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__default-brand { width: auto; flex-direction: column; gap: var(--zen-spacing-gap-large, 24px); }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__default-brand-expanded,
-.zen-sidebar[data-collapsed="true"] .zen-sidebar__default-brand-kaiz { display: none; }
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__default-brand-product { display: none; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__default-brand-collapsed { display: inline-flex; }
-.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__collapse { margin: -6px; }
+.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__collapse { margin: var(--zen-sidebar-collapse-bleed); }
 .zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__body { align-items: center; padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-xsmall, 8px); }
-.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__items { width: 100%; gap: 0; }
-.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__item { justify-content: center; gap: 0; padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
-.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__item-label,
-.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__counter,
-.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__item-dropdown,
-.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__trailing-action,
-.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__section-title,
-.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__section-item { display: none; }
+.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__items { width: 100%; gap: 0; }
+.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__item { justify-content: center; gap: 0; padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
+.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__item-label,
+.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__counter,
+.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__item-dropdown,
+.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__trailing-action,
+.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section-title,
+.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section-item { display: none; }
 .zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__footer { align-items: center; padding: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__footer-content > button { width: calc(var(--zen-element-size-popular-base, 20px) + 2 * var(--zen-spacing-padding-xsmall, 8px)); justify-content: center; gap: 0; padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__footer-content > button > span:not(.zen-icon) { display: none; }
@@ -151,32 +179,70 @@
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__default-brand { width: auto; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__body { align-items: center; }
 /* Collapsed: Figma keeps the collapse wrapper centred and items square (icon 20 + 12px padding = 44). */
-.zen-sidebar[data-collapsed="true"] .zen-sidebar__collapse { margin: -6px; }
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__collapse { margin: var(--zen-sidebar-collapse-bleed); }
 .zen-sidebar[data-variant="basic"][data-collapsed="true"] :is(.zen-sidebar__body .zen-sidebar__item, .zen-sidebar__footer-content > button) { width: calc(var(--zen-element-size-popular-base, 20px) + 2 * var(--zen-sidebar-item-padding, 12px)); align-self: center; margin-inline: auto; }
-.zen-sidebar[data-collapsed="true"] .zen-sidebar__item { justify-content: center; gap: 0; padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
-.zen-sidebar[data-collapsed="true"] .zen-sidebar__item-label,
-.zen-sidebar[data-collapsed="true"] .zen-sidebar__counter,
-.zen-sidebar[data-collapsed="true"] .zen-sidebar__item-dropdown,
-.zen-sidebar[data-collapsed="true"] .zen-sidebar__trailing-action,
-.zen-sidebar[data-collapsed="true"] .zen-sidebar__section-title,
-.zen-sidebar[data-collapsed="true"] .zen-sidebar__section-item { display: none; }
-.zen-sidebar[data-collapsed="true"] .zen-sidebar__items { width: 100%; gap: 0; }
-.zen-sidebar[data-collapsed="true"] .zen-sidebar__section { gap: 0; }
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__item { justify-content: center; gap: 0; padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__item-label,
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__counter,
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__item-dropdown,
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__trailing-action,
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section-title,
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section-item { display: none; }
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__items { width: 100%; gap: 0; }
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section { gap: 0; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__footer { padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
-.zen-sidebar[data-collapsed="true"] .zen-sidebar__footer-content > button { justify-content: center; gap: 0; padding-inline: 8px; }
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__footer-content > button { justify-content: center; gap: 0; padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__footer-content > button > span:not(.zen-icon) { display: none; }
 
 /* Figma Side-Bar/Master/Workspace: workspace rail + 260px child panel. */
-.zen-sidebar[data-variant="workspace"] { width: 340px; flex-basis: 340px; }
-.zen-sidebar__workspace-rail { display: flex; width: 68px; min-height: 0; flex: 0 0 68px; flex-direction: column; overflow: hidden; border-radius: var(--zen-corner-radius-xlarge, 20px); background: var(--zen-color-background-surface-default, #fff); backdrop-filter: blur(40px); }
+/* Workspace rail = the 40px (Compact) / 48px (Comfortable) avatar tile + 14px each side; the panel keeps its 272px. */
+.zen-sidebar[data-variant="workspace"] { --zen-sidebar-rail-width: calc(var(--zen-image-size-medium, 40px) + 28px); width: calc(var(--zen-sidebar-rail-width) + 272px); flex-basis: calc(var(--zen-sidebar-rail-width) + 272px); }
+.zen-sidebar__workspace-rail { display: flex; width: var(--zen-sidebar-rail-width, 68px); min-height: 0; flex: 0 0 var(--zen-sidebar-rail-width, 68px); flex-direction: column; overflow: hidden; border-radius: var(--zen-corner-radius-xlarge, 20px); background: var(--zen-color-background-surface-default, #fff); backdrop-filter: blur(40px); }
 .zen-sidebar__workspace-header { display: flex; min-height: 68px; align-items: center; justify-content: center; box-sizing: border-box; padding: var(--zen-margin-compact, 20px); }
 .zen-sidebar__workspace-body { display: flex; min-height: 0; flex: 1; flex-direction: column; align-items: center; padding: var(--zen-spacing-padding-small, 12px); }
 .zen-sidebar__workspace-items { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); }
-.zen-sidebar__workspace-items .zen-sidebar__item { width: 40px; min-height: 40px; justify-content: center; padding: 0; border: 1px solid var(--zen-color-border-inverse, #fff); border-radius: var(--zen-corner-radius-base, 12px); }
+/* Figma Master-Body-Content: each workspace is an Avatar (Square, Medium 40×40, radius 12) with a 1px OUTSIDE
+   Border/Inverse stroke — drawn as a spread shadow so the avatar keeps its full 40×40 box. */
+.zen-sidebar__workspace-items .zen-sidebar__item { width: var(--zen-image-size-medium, 40px); min-height: var(--zen-image-size-medium, 40px); justify-content: center; padding: 0; border: 0; border-radius: var(--zen-corner-radius-base, 12px); box-shadow: 0 0 0 1px var(--zen-color-border-inverse, #fff); }
 .zen-sidebar__workspace-items .zen-sidebar__item-label, .zen-sidebar__workspace-items .zen-sidebar__item-dropdown { display: none; }
 .zen-sidebar__workspace-footer { display: flex; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-small, 12px); }
 .zen-sidebar__workspace-main { width: 260px; flex: 0 0 260px; }
-.zen-sidebar__submenu-overlay { position: absolute; z-index: 2; inset: var(--zen-spacing-padding-xsmall, 8px) auto var(--zen-spacing-padding-xsmall, 8px) 0; width: 260px; }
+/* Figma Side-Bar/Sub: a Sidebar/Default-Width flyout OUTSIDE the sidebar's right edge (Spacing/Padding/XSmall away),
+   inset XSmall top/bottom like the master surface. Basic: Popover surface + Effect/Popover, Corner-Radius/XLarge;
+   Small-Density and Workspace: Popover fill + Background-Blur only, Corner-Radius/2XLarge. */
+.zen-sidebar__submenu {
+  position: absolute;
+  z-index: 20;
+  top: var(--zen-spacing-padding-xsmall, 8px);
+  bottom: var(--zen-spacing-padding-xsmall, 8px);
+  left: calc(100% + var(--zen-spacing-padding-xsmall, 8px));
+  display: flex;
+  width: var(--zen-sidebar-default-width, 260px);
+  box-sizing: border-box;
+  flex-direction: column;
+  padding: var(--zen-spacing-padding-xsmall, 8px);
+  overflow: auto;
+  /* Figma Side-Bar/Sub placeholder: 1px INSIDE Border/Popover/Subtle; it does not clip content, so the
+     Effect/Popover spread is ignored (-unclipped shadow). */
+  border: 1px solid var(--zen-color-border-popover-subtle);
+  border-radius: var(--zen-corner-radius-xlarge, 20px);
+  background: var(--zen-color-background-popover-default);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+  animation: zen-sidebar-submenu-in 160ms ease-out;
+}
+.zen-sidebar[data-variant="small-density"] .zen-sidebar__submenu,
+.zen-sidebar[data-variant="workspace"] .zen-sidebar__submenu { border-radius: var(--zen-corner-radius-2-xlarge, 24px); box-shadow: none; backdrop-filter: blur(40px); }
+.zen-sidebar[data-variant="workspace"] .zen-sidebar__submenu,
+.zen-sidebar[data-variant="small-density"] .zen-sidebar__submenu { padding: var(--zen-spacing-padding-small, 12px); }
+/* Figma Side-Bar/Sub Item-List uses Density=Medium items (12px padding/gap) even beside a Small-Density master. */
+.zen-sidebar__submenu { --zen-sidebar-item-padding: var(--zen-spacing-padding-small, 12px); --zen-sidebar-item-gap: var(--zen-spacing-gap-small, 12px); }
+.zen-sidebar__submenu .zen-sidebar__item { min-height: 44px; }
+@keyframes zen-sidebar-submenu-in { from { opacity: 0; translate: -4px 0; } }
+@media (prefers-reduced-motion: reduce) { .zen-sidebar__submenu { animation: none; } }
+.zen-sidebar__sub-content { display: flex; min-height: 0; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-sidebar__sub-search > * { width: 100%; }
+.zen-sidebar__sub-items { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 
 /* Figma Side-Bar/Master/Workspace: Master rail and Main panel carry Background-Blur (blur 80 → 40px) and no drop shadow. */
 .zen-sidebar[data-variant="workspace"] .zen-sidebar__workspace-main { box-shadow: none; backdrop-filter: blur(40px); }
@@ -184,3 +250,36 @@
 /* Collapsed rail: item label shown as a Tooltip (Default/Medium) to the right of the item. */
 .zen-sidebar__rail-tooltip { position: fixed; z-index: 1000; translate: 0 -50%; animation: zen-tooltip-in .12s ease-out; }
 @media (prefers-reduced-motion: reduce) { .zen-sidebar__rail-tooltip { animation: none; } }
+
+/* Figma Workspace (4233:5946): 40px avatar tile, 1px Border/Inverse, Corner-Radius/Base. The active workspace shows
+   the Focus-Ring: 3px Border/Active/Accent/Solid at −4px around the tile, Corner-Radius/Large — no fill change. */
+.zen-sidebar__workspace-items .zen-sidebar__item { overflow: visible; box-sizing: border-box; height: var(--zen-image-size-medium, 40px); }
+.zen-sidebar__workspace-items .zen-sidebar__item,
+.zen-sidebar__workspace-items .zen-sidebar__item[data-selected="true"][data-tone],
+.zen-sidebar__workspace-items .zen-sidebar__item:is(:hover, [data-state="hover"]):not(:disabled) { background: transparent; }
+.zen-sidebar__workspace-items .zen-sidebar__item-icon { width: var(--zen-image-size-medium, 40px); height: var(--zen-image-size-medium, 40px); flex: 0 0 var(--zen-image-size-medium, 40px); }
+/* Figma Focus-Ring: 48×48 rect (4px out), radius Large, 3px OUTSIDE stroke → the ring spans 4–7px outside the avatar.
+   zen-allow-raw-radius: the border box is the stroke's outer edge, so its radius is Corner-Radius/Large + the 3px stroke. */
+.zen-sidebar__workspace-items .zen-sidebar__item::after { position: absolute; inset: -7px; box-sizing: border-box; border: 3px solid transparent; border-radius: calc(var(--zen-corner-radius-large, 16px) + 3px); content: ""; pointer-events: none; transition: border-color 120ms ease; }
+.zen-sidebar__workspace-items .zen-sidebar__item[data-selected="true"]::after { border-color: var(--zen-color-border-active-accent-solid, #ff66d4); }
+.zen-sidebar__workspace-items .zen-sidebar__item:not([data-selected="true"]):hover::after { border-color: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
+.zen-sidebar__workspace-items .zen-sidebar__item:focus-visible { outline: 0; }
+.zen-sidebar__workspace-items .zen-sidebar__item:focus-visible::after { border-color: var(--zen-color-focus-accent-subtle, rgb(255 1 158 / 18%)); }
+.zen-sidebar__workspace-items .zen-sidebar__item[data-selected="true"]:focus-visible::after { border-color: var(--zen-color-border-active-accent-solid, #ff66d4); box-shadow: 0 0 0 3px var(--zen-color-focus-accent-subtle, rgb(255 1 158 / 18%)); }
+.zen-sidebar__workspace-action-slot { display: flex; width: var(--zen-button-size-medium, 40px); justify-content: center; }
+/* Figma Child-Header: Header padding Margin/Compact (20px); name + chevron gap 3XSmall; action wrapper 20px (32px button at −6px). */
+.zen-sidebar__workspace-title { display: flex; width: 100%; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-sidebar__workspace-switcher { position: relative; display: flex; min-width: 0; flex: 1 1 auto; }
+.zen-sidebar__workspace-trigger { display: inline-flex; max-width: 100%; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); margin: calc(-1 * var(--zen-spacing-padding-3-xsmall, 2px)) calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)); padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: transparent; color: var(--zen-color-content-neutral-strongest, #111); cursor: pointer; }
+.zen-sidebar__workspace-trigger:hover:not(:disabled) { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+.zen-sidebar__workspace-trigger:focus-visible { outline: 3px solid var(--zen-color-focus-neutral-subtle, rgb(2 2 2 / 8%)); outline-offset: 0; }
+.zen-sidebar__workspace-trigger:disabled { cursor: default; }
+.zen-sidebar__workspace-trigger:disabled > .zen-icon { display: none; }
+.zen-sidebar__workspace-trigger > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-sidebar__workspace-name { max-width: 148px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zen-sidebar__workspace-action { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; }
+.zen-sidebar__workspace-action > * { flex: 0 0 auto; }
+/* Figma Child-Header settings = Button/Icon-Flat 32px with a 20px icon, like every sidebar icon — the Small button's
+   icon token drops to 16px in Compact density, so pin it here. */
+.zen-sidebar__workspace-action .zen-button--icon-only { --zen-button-icon-size: var(--zen-element-size-popular-base, 20px); }
+.zen-sidebar__workspace-popover { z-index: 1000; min-width: 220px; }

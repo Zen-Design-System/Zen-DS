@@ -1,0 +1,87 @@
+/* Figma Uploader (page 1581:17515). */
+/* Figma Uploader/File-Upload: [Label → field (or the single File-Item) → Help-Text] gap XSmall; the file List sits
+   Spacing/Gap/Medium below that block (State=Uploaded, File List=Multiple Files). */
+.zen-file-upload { display: flex; width: 100%; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-file-upload__field { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-file-upload__label { color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-file-upload__input { display: none; }
+.zen-file-upload__button { display: flex; }
+.zen-file-upload__help { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-file-upload__help[data-tone="negative"] { color: var(--zen-color-content-negative-strongest); }
+.zen-file-upload__help > .zen-icon { width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); }
+.zen-file-upload__list { display: flex; margin: 0; padding: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); list-style: none; }
+
+/* Figma Primitives/Uploader/DragDrop-Field (1581:22873). Extended=Yes: vertical, padding Medium, gap Medium (icon → content),
+   content gap 3XSmall (text → caption), Corner-Radius/Large. Extended=No: one 48px row, padding Small × Medium, gap XSmall,
+   Corner-Radius/Base. Neutral/Pale fill + Effect/Overlay; Hover Pale/Hover; Dragover Pale/Hover + 2px INSIDE dash [4,4]
+   Focus/Neutral/Subtle; Focus 2px INSIDE Focus/Accent/Subtle; Alert 2px INSIDE Border/Negative/Solid. */
+.zen-dropzone {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--zen-spacing-gap-medium, 16px);
+  margin: 0;
+  padding: var(--zen-spacing-padding-medium, 16px);
+  border: 0;
+  border-radius: var(--zen-corner-radius-large, 16px);
+  background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%));
+  backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter);
+  color: var(--zen-color-content-neutral-strongest, #111);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 120ms ease, box-shadow 120ms ease;
+}
+.zen-dropzone:hover { background: var(--zen-color-background-neutral-pale-hover); }
+.zen-dropzone[data-state="dragover"] { background: var(--zen-color-background-neutral-pale-hover); }
+/* Exact dash [4,4]: a 4px stroke centred on the edge and clipped by the rounded box leaves the inner 2px. */
+.zen-dropzone__dash { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; border-radius: inherit; pointer-events: none; }
+/* zen-allow-dashed-color: Figma DragDrop-Field State=Dragover strokes the dash with Color/Focus/Neutral/Subtle (a drop-target cue, not a border tone). */
+.zen-dropzone__dash rect { fill: none; stroke: var(--zen-color-focus-neutral-subtle); stroke-width: 4px; stroke-dasharray: 4 4; rx: var(--zen-corner-radius-large, 16px); ry: var(--zen-corner-radius-large, 16px); }
+.zen-dropzone[data-extended="false"] .zen-dropzone__dash rect { rx: var(--zen-corner-radius-base, 12px); ry: var(--zen-corner-radius-base, 12px); }
+.zen-dropzone:focus-visible { outline: 2px solid var(--zen-color-focus-accent-subtle); outline-offset: -2px; }
+.zen-dropzone[data-state="alert"] { box-shadow: inset 0 0 0 2px var(--zen-color-border-negative-solid-default); }
+.zen-dropzone__icon { display: inline-flex; flex: 0 0 auto; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-dropzone__content { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-dropzone[data-extended="false"] { min-height: 48px; flex-direction: row; justify-content: flex-start; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-base, 12px); text-align: start; }
+.zen-dropzone__icon > .zen-icon { width: var(--zen-element-size-popular-medium, 24px); height: var(--zen-element-size-popular-medium, 24px); }
+.zen-dropzone__caption { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+
+/* File-Item: Surface + 1px Pale border (a static box; its buttons carry their own states). */
+/* zen-allow-pale-actionable-box: the file row itself is not interactive — only its icon buttons are (§6: a static box holding actionable children stays Pale). */
+.zen-upload-file {
+  display: flex;
+  box-sizing: border-box;
+  flex-direction: column;
+  gap: var(--zen-spacing-gap-small, 12px);
+  padding: var(--zen-spacing-padding-medium, 16px);
+  border-radius: var(--zen-corner-radius-large, 16px);
+  background: var(--zen-color-background-surface-default, #fff);
+  box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+}
+/* Figma File-Item Theme=Overlay: Background/Liquid-Glass/Normal/Default (white 70% · dark #262626 70%), no stroke,
+   Effect/Overlay (background blur 100 → CSS blur(50px)). Alert keeps Negative/Subtle + Effect/Overlay in both themes. */
+.zen-upload-file[data-tone="overlay"] { background: var(--zen-color-background-liquid-glass-normal-default, rgb(255 255 255 / 70%)); box-shadow: none; backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
+.zen-upload-file[data-state="alert"] { background: var(--zen-color-background-negative-subtle-default); box-shadow: none; backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
+.zen-upload-file__row { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-upload-file__content { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-upload-file__main { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-upload-file__name { min-width: 0; flex: 1 1 auto; overflow: hidden; color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
+/* Figma Right Side: 16px icons, gap Small (12). Each is a 24px hit area (a 2XS icon button around the icon) 4px apart →
+   icons 12px apart. The hit areas hang past the row: the end margin puts the last icon on the content edge and the block
+   margin keeps the Body/Base (20px) Main Information row. */
+.zen-upload-file__actions { display: inline-flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin-block: calc((var(--zen-typography-line-height-body-base, 20px) - var(--zen-button-size-2-xsmall, 24px)) / 2); margin-inline-end: calc((var(--zen-element-size-popular-small, 16px) - var(--zen-button-size-2-xsmall, 24px)) / 2); }
+.zen-upload-file .zen-upload-file__actions .zen-button.zen-button--icon-only { --zen-button-icon-size: var(--zen-element-size-popular-small, 16px); }
+.zen-upload-file__details { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-upload-file__dot { width: 4px; height: 4px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: currentColor; }
+.zen-upload-file[data-state="alert"] .zen-upload-file__details { color: var(--zen-color-content-negative-strongest); }
+.zen-upload-file__error { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-upload-file__error > .zen-icon { width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); }
+/* Thumbnail=File: FileIcon (Figma icon-media-file) at 36px; Thumbnail=Photo: a 32px image, Corner-Radius/Small. */
+.zen-upload-file__type { flex: 0 0 auto; }
+.zen-upload-file__photo { width: var(--zen-image-size-small, 32px); height: var(--zen-image-size-small, 32px); flex: 0 0 auto; border-radius: var(--zen-corner-radius-small, 8px); }
+.zen-upload-file__photo { object-fit: cover; }
+@media (prefers-reduced-motion: reduce) { .zen-dropzone { transition: none; } }

@@ -1,1 +1,1 @@
-export { Tooltip, TooltipSurface, tooltipColors, tooltipPlacements, tooltipSizes, type TooltipColor, type TooltipPlacement, type TooltipProps, type TooltipSize, type TooltipSurfaceProps } from "./Tooltip";
+export { Tooltip, TooltipSurface, TOOLTIP_HOVER_DELAY, useIconTooltip, tooltipColors, tooltipPlacements, tooltipSizes, type TooltipColor, type TooltipPlacement, type TooltipProps, type TooltipSize, type TooltipSurfaceProps } from "./Tooltip";

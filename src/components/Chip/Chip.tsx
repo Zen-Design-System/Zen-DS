@@ -1,10 +1,13 @@
 import { forwardRef, useEffect, useRef, useState, type ButtonHTMLAttributes, type MouseEvent, type ReactNode } from "react";
-import { Icon } from "../Icon";
-import { Popover, PopoverManualAddNew, type PopoverItemData } from "../Popover";
-import { Badge, BadgeCounter } from "../Badge";
+import { Icon, type IconName } from "../Icon";
+import { Popover, PopoverManualAddNew, useExclusivePopover, type PopoverItemData } from "../Popover";
+import { BadgeCounter } from "../Badge";
 import { Avatar, type AvatarSize } from "../Avatar";
+import { renderIcon } from "../_shared/icon";
+import { scaleKey } from "../_shared/scale";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chip.css";
+import "../Icon/core";
 
 /** Figma's three Chip/Pill component sets. */
 export const chipVariants = ["advanced", "normal", "number-only"] as const;
@@ -14,7 +17,10 @@ export const chipThemes = ["text-only", "leading-icon", "leading-photo"] as cons
 export const chipStates = ["default", "hover", "press", "focused", "placeholder", "disabled"] as const;
 
 export type ChipVariant = (typeof chipVariants)[number];
-export type ChipSize = (typeof chipSizes)[number];
+/** CSS / Figma key (the `data-size` value). */
+type ChipSizeKey = (typeof chipSizes)[number];
+/** Short (canonical) or long Figma spelling — both render the same. */
+export type ChipSize = "xs" | "sm" | "md" | "xsmall" | "small" | "medium";
 export type ChipLevel = (typeof chipLevels)[number];
 export type ChipTheme = (typeof chipThemes)[number];
 export type ChipState = (typeof chipStates)[number];
@@ -24,11 +30,17 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
   children?: ReactNode;
   /** Component set: Advanced, Normal, or Number-only. */
   variant?: ChipVariant;
+  /** Short (sm, md…) or Figma (small, medium…) spelling. */
   size?: ChipSize;
   level?: ChipLevel;
   theme?: ChipTheme;
   state?: ChipState;
-  /** Figma's Select property. Selected chips show the close affordance in Advanced. */
+  /** Selected (Figma Select=Yes): Advanced chips show the close affordance, Normal chips the selected styling. */
+  selected?: boolean;
+  /**
+   * Figma's Select property. Selected chips show the close affordance in Advanced.
+   * @deprecated Use selected.
+   */
   select?: boolean;
   /** Figma's Dropdown property. Advanced chips show a chevron when enabled. */
   dropdown?: boolean;
@@ -40,12 +52,14 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
   counter?: number | string;
   /** Alias used by the Number-only component set. */
   value?: number | string;
-  leading?: ReactNode;
+  /** Leading icon: an icon name (`"icon-grid-01-line"`) or a node. */
+  leading?: IconName | ReactNode;
   /** Leading-Photo theme: image rendered through the shared Avatar/Single (Photo, Subtle) primitive,
    * sized per Figma (XSmall → 2XSmall 20, Small → XSmall 24, Medium → Small 32). */
   photoSrc?: string;
   photoAlt?: string;
-  trailing?: ReactNode;
+  /** Trailing slot: an icon name or a node; replaces the dropdown chevron / remove affordance. */
+  trailing?: IconName | ReactNode;
   /** Items rendered by the shared Figma Popover/Default composition. */
   popoverItems?: PopoverItemData[];
   /** Controlled open state for the advanced chip menu. */
@@ -72,11 +86,12 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
   {
     children,
     variant = "advanced",
-    size = "small",
+    size: sizeProp = "sm",
     level = "secondary",
     theme,
     state = "default",
-    select = false,
+    selected: selectedProp,
+    select: selectProp,
     dropdown,
     selectionMode,
     selectionCount,
@@ -85,7 +100,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
     leading: leadingProp,
     photoSrc,
     photoAlt = "",
-    trailing,
+    trailing: trailingProp,
     popoverItems,
     popoverOpen,
     popoverMultiple = false,
@@ -109,17 +124,23 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
   },
   ref,
 ) {
+  const size = scaleKey(sizeProp, chipSizes);
+  const select = selectedProp ?? selectProp ?? false;
+  // Icon names render at the slot's size today (leading Small 16, trailing chevron 2XSmall); the slot CSS sizes the glyph.
+  const trailing = renderIcon(trailingProp, { size: "2xs" });
   const [uncontrolledPopoverOpen, setUncontrolledPopoverOpen] = useState(false);
   const [openedFromKeyboard, setOpenedFromKeyboard] = useState(false);
   const dropdownRef = useRef<HTMLSpanElement>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const isNumberOnly = variant === "number-only";
   const photoSize: AvatarSize = size === "xsmall" ? "2xsmall" : size === "medium" ? "small" : "xsmall";
-  const leading = photoSrc ? <Avatar size={photoSize} theme="photo" background="subtle" src={photoSrc} alt={photoAlt} /> : leadingProp;
+  const leading = photoSrc ? <Avatar size={photoSize} theme="photo" background="subtle" src={photoSrc} alt={photoAlt} /> : renderIcon(leadingProp, { size: "sm" });
   const isDisabled = disabled || state === "disabled";
   // Padding follows the rendered leading slot, including callers that omit Theme.
   const resolvedTheme = leading && !isNumberOnly ? (photoSrc || theme === "leading-photo" ? "leading-photo" : "leading-icon") : "text-only";
-  const canOpenPopover = !isNumberOnly && !isDisabled && (popoverItems !== undefined || dropdown === true);
+  // The chip owns a Popover only when it has something to show. `dropdown` alone is just the chevron affordance: a chip that
+  // opens an external surface (a Bottom Sheet, a filter panel) passes its own onClick / aria-haspopup / aria-expanded.
+  const canOpenPopover = !isNumberOnly && !isDisabled && (popoverItems !== undefined || onPopoverCreate !== undefined);
   const isPopoverOpen = popoverOpen ?? uncontrolledPopoverOpen;
   const showDropdown = !isNumberOnly && !select && !trailing && (dropdown ?? variant === "advanced");
   // The Advanced set owns the removable trailing primitive. Normal's Select
@@ -161,6 +182,8 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
     onPopoverOpenChange?.(nextOpen);
     if (!nextOpen && restoreFocus) buttonRef.current?.focus();
   };
+  // One popover at a time: opening this chip's menu closes another object's open popover (and vice versa).
+  useExclusivePopover(canOpenPopover && isPopoverOpen, () => setPopoverOpen(false), dropdownRef);
   const handleClick: NonNullable<ButtonHTMLAttributes<HTMLButtonElement>["onClick"]> = (event) => {
     onClick?.(event);
     // detail === 0 means the click came from Enter/Space.
@@ -210,8 +233,8 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
       disabled={isDisabled}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      aria-haspopup={canOpenPopover ? "listbox" : undefined}
-      aria-expanded={canOpenPopover ? isPopoverOpen : undefined}
+      aria-haspopup={canOpenPopover ? "listbox" : buttonProps["aria-haspopup"]}
+      aria-expanded={canOpenPopover ? isPopoverOpen : buttonProps["aria-expanded"]}
       aria-pressed={!canOpenPopover && variant !== "advanced" ? select : undefined}
       aria-keyshortcuts={select && onClearSelection ? "Delete Backspace" : undefined}
       className={["zen-chip", className].filter(Boolean).join(" ")}
@@ -220,13 +243,13 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
       data-select={select ? "true" : "false"}
       data-size={size}
       data-state={isPopoverOpen && canOpenPopover ? "press" : state}
-      data-theme={resolvedTheme}
+      data-tone={resolvedTheme}
       data-variant={variant}
     >
       {leading && !isNumberOnly ? <span className={["zen-chip__slot", resolvedTheme === "leading-photo" ? "zen-chip__photo" : ""].filter(Boolean).join(" ")}>{leading}</span> : null}
       {isNumberOnly ? <span className={`zen-chip__value ${typographyStyles["Body/Base/Bold"]}`}>{resolvedValue ?? children}</span> : <span className={`zen-chip__label ${typographyStyles[state === "placeholder" ? "Body/Base/Medium" : "Body/Base/Bold"]}`}>{children}</span>}
-      {/* Figma Chip/Advanced "Counter" boolean: nested Badge XSmall · Neutral · Subtle. */}
-      {!isNumberOnly && counter !== undefined ? <Badge className="zen-chip__counter" size="xsmall" theme="neutral" background="subtle" leadingIcon={false}>{counter}</Badge> : null}
+      {/* Figma Chip/Advanced "Counter" boolean: a count → Badge-Counter XSmall · Neutral · Subtle (Figma still nests a plain Badge). */}
+      {!isNumberOnly && counter !== undefined ? <BadgeCounter className="zen-chip__counter" size="xsmall" theme="neutral" background="subtle" value={counter} /> : null}
       {resolvedTrailing ? <span className="zen-chip__slot zen-chip__trailing">{resolvedTrailing}</span> : null}
     </button>
   );
@@ -256,7 +279,8 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
             }
           }}
         />
-      ) : <Popover
+      ) : // zen-allow-popover-close: Chip owns dismissal (document pointerdown outside + Escape handlers above).
+      <Popover
         open={isPopoverOpen}
         label={popoverLabel}
         search={popoverSearch}

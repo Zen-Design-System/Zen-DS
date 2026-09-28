@@ -63,6 +63,15 @@ This synchronization added the two Figma aliases that were missing from the repo
 
 The spelling `Seclected` is part of the Figma token name and must remain stable for compatibility. The generated CSS and TypeScript contracts are produced by `npm run tokens:build`; do not edit generated files directly.
 
+## Border contract (2026-09-26)
+
+- Scope: the border of a **closed container** only.
+- `Color/Border/Neutral/Subtle/{Default,Hover,Pressed}` goes on **actionable** containers. Every actionable component border token aliases it (Button-Tertiary, Chip, Tag, Checkbox, Radio-Button, Segmented-Item-Secondary). Selected states switch to `Color/Border/Active/*`.
+- `Color/Border/Neutral/Pale/Default` goes on **non-actionable** containers (static cards, panels, wells).
+- Not covered: stand-alone lines (dividers, separators, row rules, Tab baseline, tree-lines; `Divider` Default/Medium/High) and strokes around avatars, photos, visuals and graphics. These follow Figma.
+- `Divider` defaults to Pale (Medium = Subtle, High = Solid). **Dashed** lines and strokes step up to `Border/Neutral/Subtle` (dashed dividers, dashed empty states/drop zones, the Read-only field).
+- Full rule and checklist: `docs/component-usage-rules.md` §6.
+
 ## Platform shell lock
 
 The Codebase Platform shell is fixed, not responsive in the sense of shrinking the rail:
@@ -144,7 +153,8 @@ For Advanced Chip:
 `tools/figma-contract/` renders the production components and compares them with Plugin-API data in
 `docs/figma-contracts/*.json` (size/offsets, fills, strokes, radius, effect + text styles, bound
 variables resolved in light/neutral-s1 and dark/brand-s1) plus keyboard/pointer behaviour.
-Run `node tools/figma-contract/run-all.mjs` after touching Checkbox, Radio, Chip, Popover or their primitives.
+Run `node tools/figma-contract/run-all.mjs` after touching Button/IconButton (all six sets, every size, plus the Smooth
+radius mode), Input/Heading, Checkbox, Radio, Chip, Popover or their primitives.
 
 ## Verification gate
 
@@ -161,3 +171,13 @@ npm run build
 Then inspect the Vite Platform app at the Figma reference viewport. Measure computed styles for the changed state and record the node ID, mode, token, browser value, and result in `docs/platform-json-audit.md`. A row not measured is `Not verified`; never call it exact by visual inference.
 
 Known evidence gaps remain intentionally explicit: the full Date Picker dual-calendar/mobile/time/event matrix and complete per-level visual comparisons for every Button Overlay and Sidebar Workspace state still require targeted Figma child-node reads.
+
+## Content colour contract (2026-09-26)
+
+- **Neutral families** (Neutral, Inverse, On-Black-Overlay, On-White-Overlay): Strongest, Base and Light map to the Primary, Secondary and Tertiary text roles.
+- **Colour families** (Accent, Info, Positive, Negative, Warning, Support/*):
+  - Strongest and Base are regular text (Primary and Secondary) on that colour's Subtle background.
+  - Light is only for highlighted text or icons.
+- **Lights group** (families referencing Sky, Mint, Yellow or Zen; today Accent, Warning and Support/Yellow): text uses Base at most, never Light. Light is only for icons. Golden is not in the group.
+- **Solid fills** use On-Colors, or On-Brights on Lights-group solids.
+- Enforced by `content/*` rules in `tools/usage-guard/check-usage.mjs`. See `docs/component-usage-rules.md` §7.

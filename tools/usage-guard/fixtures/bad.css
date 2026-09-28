@@ -1,0 +1,53 @@
+/* Every rule below violates exactly one CSS rule; the rule id is in the comment above it. */
+/* expect: border/subtle-static-box */
+.panel--static { border: 1px solid var(--zen-color-border-neutral-subtle-default); }
+/* expect: border/pale-actionable-box */
+.card--clickable:hover { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
+/* expect: border/dashed-is-subtle */
+.empty-state { border: 1px dashed var(--zen-color-border-neutral-pale-default); }
+/* expect: border/dashed-is-subtle  expect: color/token-only */
+.dropzone__outline rect { stroke: #0101012f; stroke-dasharray: 4 4; }
+/* expect: color/token-only */
+.badge--custom { background: #ff6bd5; }
+/* expect: focus/visible-ring */
+.menu-item:focus-visible { outline: none; }
+/* expect: motion/reduced-motion */
+.loader { animation: spin 1s linear infinite; }
+/* expect: content/lights-no-light-text */
+.notice--warning { color: var(--zen-color-content-warning-light); }
+/* expect: content/lights-no-light-text */
+.promo__label { --promo-label: var(--zen-color-content-accent-light); }
+/* expect: content/title-is-strongest */
+.card__title { color: var(--zen-color-content-neutral-light); }
+/* expect: content/colour-light-is-highlight */
+.callout__body { color: var(--zen-color-content-info-light); }
+/* expect: layer/root-is-canvas */
+body { background: var(--zen-color-background-surface-default); }
+/* expect: layer/canvas-is-page */
+.product-card { background: var(--zen-color-background-canvas-alt); }
+/* expect: layer/surface-flat-is-navigation */
+.stat-card { background: var(--zen-color-background-surface-flat); }
+/* expect: layer/container-is-modal */
+.settings-card { background: var(--zen-color-background-container); }
+/* expect: layer/popover-is-overlay */
+.summary-panel { background-color: var(--zen-color-background-popover-default); }
+/* expect: list-item/inset-not-padding */
+.drawer .zen-list-item { padding-inline: 16px; }
+/* expect: surface/no-shadow-on-tinted */
+.hint-panel { background: var(--zen-color-background-neutral-pale-default); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
+/* expect: surface/no-shadow-on-tinted */
+.alt-card { background: var(--zen-color-background-surface-alt); box-shadow: 0 4px 12px -4px var(--zen-color-shadow-neutral-base); }
+/* expect: layout/scroll-anchor-flex-end */
+.thread { display: flex; flex-direction: column; justify-content: flex-end; overflow-y: auto; }
+/* §11: a Surface/Default card on a Canvas/Alt page (same colour) with only a shadow. */
+.white-page { background: var(--zen-color-background-canvas-alt); }
+/* expect: layer/surface-on-canvas-alt-border */
+.white-page .note-card { background: var(--zen-color-background-surface-default); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
+/* Invisible focus (behaviour probes 2026-09-28): an error field styled with its focus in one rule; a selected option whose
+   focus is only a fill (Selected = Flat/Hover = Flat/Pressed). */
+/* expect: focus/state-parity */
+.x-field[data-state="error"] .x-field__control,
+.x-field[data-state="error"] .x-field__control:focus-within { --x-field-border: var(--zen-color-border-negative-solid-default); box-shadow: none; }
+.x-option.is-selected { background: var(--zen-color-background-active-neutral-subtle); }
+/* expect: focus/selected-fill-only */
+.x-option:hover, .x-option:focus-visible { background: var(--zen-color-background-neutral-flat-hover); }

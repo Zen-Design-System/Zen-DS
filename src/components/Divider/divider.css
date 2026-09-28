@@ -1,0 +1,19 @@
+/* Figma Divider (460:38361): a single 1px line — not a closed container, so any Border/Neutral level may be used. */
+.zen-divider {
+  --zen-divider-color: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  /* Shrinks in a row (e.g. a labelled “— or —” separator), never grows a column. */
+  flex: 0 1 auto;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 0;
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--zen-divider-color);
+}
+.zen-divider[data-color="medium"] { --zen-divider-color: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
+.zen-divider[data-color="high"] { --zen-divider-color: var(--zen-color-border-neutral-solid-default, #111); }
+.zen-divider[data-orientation="vertical"] { width: 0; height: auto; min-height: 1em; align-self: stretch; border-top: 0; border-left: 1px solid var(--zen-divider-color); }
+.zen-divider[data-dashed="true"] { border-top-style: dashed; border-left-style: dashed; }
+/* A Default dashed line steps up to Neutral/Subtle (docs/component-usage-rules.md §6). */
+.zen-divider[data-dashed="true"][data-color="default"] { --zen-divider-color: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
