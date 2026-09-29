@@ -11,6 +11,9 @@
  *   npm run qa -- --since=90          add every UI file modified in the last 90 minutes (or --since=<ISO time>)
  *   npm run qa -- --keep-going        run the browser steps even when a static gate failed (default: skip them)
  *   npm run qa -- --quick             fast loop while building: static gates + audit at 1512 (never counts as a pass)
+ *   npm run qa -- --serial            run the steps one after another (default: tsc, contract suites and Vitest run side by side,
+ *                                     and audit + dark audit + behaviour run side by side, split over ZEN_QA_SHARDS=2 processes
+ *                                     per job when 6+ pages are rendered)
  *   npm run qa -- --tokens-base=HEAD~1  diff the token files against another ref (default HEAD) for the token scope
  *
  * ① Static     tsc · style-guard (spacing/radius/type/colour/shadow tokens) · usage-guard · guidelines (stale docs of
@@ -35,7 +38,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
+import { spawnSync, spawn } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   INTERACTION_FOLDERS, LABELS_FILE, REPRESENTATIVE, TOKEN_STYLE_FILES, allPages, auxKind, contractSuites, dirtyFiles, guidelineOwners,
@@ -154,6 +157,29 @@ try {
 /* ── helpers ────────────────────────────────────────────────────────────────────────────────────────────────────── */
 const steps = []; // { group, name, status: "pass"|"fail"|"warn"|"skip", detail, items: [] }
 const run = (cmd, args, timeoutMs = 600000) => { const r = spawnSync(cmd, args, { cwd: root, encoding: "utf8", maxBuffer: 256 * 1024 * 1024, timeout: timeoutMs, env: { ...process.env, FORCE_COLOR: "0" } }); return { code: r.status ?? (r.error ? 2 : 1), out: `${r.stdout ?? ""}${r.stderr ?? ""}`, error: r.error }; };
+// Runtime jobs (audit, dark audit, behaviour) are independent processes that only read the shared baselines and write their own
+// --out file, so they run side by side; --serial (or ZEN_QA_SERIAL=1) restores one-after-another if timing-sensitive checks ever flake.
+const SERIAL = flag("serial") || process.env.ZEN_QA_SERIAL === "1";
+const runAsync = (cmd, args, timeoutMs = 600000) => new Promise((resolve) => { const t0 = Date.now(); const c = spawn(cmd, args, { cwd: root, env: { ...process.env, FORCE_COLOR: "0" } }); let out = ""; const timer = setTimeout(() => c.kill("SIGKILL"), timeoutMs); c.stdout.on("data", (d) => { out += d; }); c.stderr.on("data", (d) => { out += d; }); c.on("error", (e) => { clearTimeout(timer); resolve({ code: 2, out: String(e), ms: Date.now() - t0 }); }); c.on("close", (code) => { clearTimeout(timer); resolve({ code: code ?? 1, out, ms: Date.now() - t0 }); }); });
+const launch = (cmd, args, timeoutMs) => { let p = null; const go = () => (p ??= runAsync(cmd, args, timeoutMs)); if (!SERIAL) go(); return go; };
+// The pages of a runtime job are independent (reports are keyed by page@width), so a run of 6+ pages is also split in
+// ZEN_QA_SHARDS (default 2) processes per job and the part reports are merged back into the one file the gate reads.
+const mergeReports = (reps) => { const m = { ...reps[0], pages: {} }; for (const r of reps) { Object.assign(m.pages, r.pages ?? {}); for (const k of ["baselined", "current"]) if (r[k]) m[k] = { ...(m[k] ?? {}), ...r[k] }; } return m; };
+const launchSharded = (cmd, baseArgs, pageList, finalOut, timeoutMs) => {
+  const n = SERIAL ? 1 : Math.max(1, Math.min(Number(process.env.ZEN_QA_SHARDS ?? 2) || 1, Math.floor(pageList.length / 3)));
+  const argsFor = (pages, out) => baseArgs.map((a) => (a.startsWith("--pages=") ? `--pages=${pages.join(",")}` : a.startsWith("--out=") ? `--out=${out}` : a));
+  if (n <= 1) return launch(cmd, argsFor(pageList, finalOut), timeoutMs);
+  const groups = Array.from({ length: n }, () => []); pageList.forEach((pg, i) => groups[i % n].push(pg));
+  const parts = groups.map((g, i) => { const out = finalOut.replace(/\.json$/, `.part${i}.json`); return { out, job: launch(cmd, argsFor(g, out), timeoutMs) }; });
+  let done = null;
+  return () => (done ??= (async () => {
+    const rs = await Promise.all(parts.map((x) => x.job()));
+    const reps = parts.map((x) => { try { return JSON.parse(fs.readFileSync(x.out, "utf8")); } catch { return null; } });
+    if (reps.every(Boolean)) fs.writeFileSync(finalOut, JSON.stringify(mergeReports(reps), null, 2));
+    return { code: rs.find((r) => r.code !== 0)?.code ?? 0, out: rs.map((r) => r.out).join("\n"), ms: Math.max(...rs.map((r) => r.ms)) };
+  })());
+};
+const secs = (r) => (r?.ms ? ` · ${Math.round(r.ms / 1000)}s` : "");
 const step = (group, name, status, detail = "", items = []) => { steps.push({ group, name, status, detail, items }); say(`  ${{ pass: "✓", fail: "✗", warn: "⚠", skip: "–" }[status]} ${name}${detail ? ` — ${detail}` : ""}`); for (const i of items.slice(0, 15)) say(`      ${i}`); if (items.length > 15) say(`      … ${items.length - 15} more (see the report)`); };
 const tail = (out, re = /✗|error|Error/) => out.split("\n").filter((l) => re.test(l)).slice(0, 40).map((l) => l.trim());
 const compFolders = new Set(files.map((f) => f.match(/^src\/components\/([^/]+)\//)?.[1]).filter(Boolean));
@@ -161,11 +187,13 @@ const BACKLOG = "write one Backlog line (priority + pointer) in docs/context/BAC
 
 /* ── ① static ───────────────────────────────────────────────────────────────────────────────────────────────────── */
 say("\n① Static gates");
+const staticJobs = [], serialJobs = []; // heavy static gates run beside the cheap synchronous ones; --serial runs them one by one
+const addJob = (fn) => { if (SERIAL) serialJobs.push(fn); else staticJobs.push(fn()); };
 if (TOKEN_ONLY) step("static", "TypeScript", "skip", "token-only change");
-else {
-  const r = run("npx", ["tsc", "--noEmit", "-p", "."]);
+else addJob(async () => {
+  const r = await runAsync("npx", ["tsc", "--noEmit", "-p", "."]);
   step("static", "TypeScript", r.code === 0 ? "pass" : "fail", r.code === 0 ? "" : "type errors", r.code === 0 ? [] : tail(r.out, /error TS/));
-}
+});
 // Lines this session changed (recorded by the PostToolUse hook for Edit/Write): findings there are "yours"; the rest of
 // a touched file is old debt, reported as a count so a one-line change is not buried under the file's history. Files
 // with no recorded lines (--files, --since, Bash edits) are "unknown": their old findings are counted, never called yours.
@@ -229,12 +257,12 @@ for (const [name, script, dir] of [["Usage-guard self-test", "tools/usage-guard/
 }
 // Figma contracts (S5c): the suites of the components in scope (edited, or consuming a changed token); all of them when
 // the contract tooling, _shared or --all is in play.
-{
+addJob(async () => {
   const inScope = new Set([...compFolders, ...(tokens?.folders ?? [])]);
   const everything = ALL || auxHas(/^tools\/figma-contract\//) || SHARED_LOGIC;
   if (QUICK) step("static", "Figma contracts", "skip", "quick run");
   else if (everything) {
-    const r = run(process.execPath, ["tools/figma-contract/run-all.mjs"], 900000);
+    const r = await runAsync(process.execPath, ["tools/figma-contract/run-all.mjs"], 900000);
     step("static", "Figma contracts (all suites)", r.code === 0 ? "pass" : "fail", `${ALL ? "--all" : auxHas(/^tools\/figma-contract\//) ? "tools/figma-contract changed" : "_shared changed"}${r.code === 0 ? "" : " — a component no longer matches its Figma contract"}`, r.code === 0 ? [] : tail(r.out, /✗|FAIL|mismatch/i));
   } else {
     const all = contractSuites(root);
@@ -243,18 +271,19 @@ for (const [name, script, dir] of [["Usage-guard self-test", "tools/usage-guard/
     if (!suites.length && !interactions) step("static", "Figma contracts", "skip", inScope.size ? `no contract suite covers ${[...inScope].join(", ")}` : "no component files in scope");
     else {
       const items = []; let failed = 0;
-      for (const s of suites) {
-        const r = run(process.execPath, [path.join(root, "tools/figma-contract/check.mjs"), path.join(root, s.file)], 300000);
+      const results = await Promise.all(suites.map((s) => runAsync(process.execPath, [path.join(root, "tools/figma-contract/check.mjs"), path.join(root, s.file)], 300000)));
+      for (const [i, s] of suites.entries()) {
+        const r = results[i];
         const summary = r.out.trim().split("\n").at(-1) ?? s.file;
         if (r.code !== 0) { failed += 1; items.push(`✗ ${path.basename(s.file)}: ${summary}`, ...r.out.split("\n").filter((l) => l.includes("✗")).slice(0, 8).map((l) => `  ${l.trim()}`)); }
       }
-      if (interactions) { const r = run(process.execPath, ["tools/figma-contract/interactions.mjs"], 300000); if (r.code !== 0) { failed += 1; items.push(`✗ interactions: ${r.out.trim().split("\n").at(-1)}`, ...tail(r.out, /✗/).slice(0, 8)); } }
+      if (interactions) { const r = await runAsync(process.execPath, ["tools/figma-contract/interactions.mjs"], 300000); if (r.code !== 0) { failed += 1; items.push(`✗ interactions: ${r.out.trim().split("\n").at(-1)}`, ...tail(r.out, /✗/).slice(0, 8)); } }
       step("static", "Figma contracts", failed ? "fail" : "pass", `${suites.length} of ${all.length} suite(s)${interactions ? " + interactions" : ""} for ${[...inScope].join(", ")}${failed ? " — a component no longer matches its Figma contract" : ""}`, items);
     }
   }
-}
+});
 // Browser tests (S5d): Vitest on the tests related to the edited component files; the full suite for tests/**, _shared, --all.
-if (!QUICK && fs.existsSync(path.join(root, "node_modules/.bin/vitest"))) {
+if (!QUICK && fs.existsSync(path.join(root, "node_modules/.bin/vitest"))) addJob(async () => {
   const name = "Browser tests (Vitest: smoke + axe baseline + interactions)";
   const hint = "npm test fails (after a deliberate a11y fix: ZEN_UPDATE_AXE=1 npm test -- tests/smoke)";
   const failRe = /FAIL|×|AssertionError|expected|Error:/;
@@ -262,21 +291,24 @@ if (!QUICK && fs.existsSync(path.join(root, "node_modules/.bin/vitest"))) {
   const full = ALL || auxHas(/^tests\//) || SHARED_LOGIC;
   const related = [...new Set([...files.filter((f) => /^src\/components\//.test(f)), ...(tokens?.consumers ?? []).map((c) => c.file).filter((f) => /^src\/components\//.test(f))])];
   if (full) {
-    const r = run("npx", ["vitest", "run", "--reporter=dot"], 900000);
+    const r = await runAsync("npx", ["vitest", "run", "--reporter=dot"], 900000);
     step("static", name, r.code === 0 ? "pass" : "fail", `full suite (${ALL ? "--all" : auxHas(/^tests\//) ? "tests/** changed" : "_shared changed"}) · ${counted(r.out)}${r.code === 0 ? "" : ` — ${hint}`}`, r.code === 0 ? [] : tail(r.out, failRe));
   } else if (related.length) {
-    let r = run("npx", ["vitest", "related", ...related, "--run", "--reporter=dot", "--passWithNoTests"], 900000);
+    let r = await runAsync("npx", ["vitest", "related", ...related, "--run", "--reporter=dot", "--passWithNoTests"], 900000);
     let how = `related to ${related.length} file(s) in scope (edited, or using a changed token)`;
     if (r.code !== 0 && !/Test Files/.test(r.out) && /unknown (command|option)|not supported|CACError/i.test(r.out)) {
-      r = run("npx", ["vitest", "run", "--reporter=dot"], 900000);
+      r = await runAsync("npx", ["vitest", "run", "--reporter=dot"], 900000);
       how = "vitest related is not supported here: ran the full suite";
     }
     step("static", name, r.code === 0 ? "pass" : "fail", `${how} · ${counted(r.out) || "no related test files"}${r.code === 0 ? "" : ` — ${hint}`}`, r.code === 0 ? [] : tail(r.out, failRe));
   } else step("static", name, "skip", "no component or test files in scope");
-}
+});
 if (files.some((f) => /^src\/(styles|tokens)\//.test(f)) || auxHas(/^(src\/tokens|tokens\/source|styles\/source)\//)) {
   for (const s of ["tokens:check", "styles:check"]) { const r = run("npm", ["run", "-s", s]); step("static", s, r.code === 0 ? "pass" : "fail", "", r.code === 0 ? [] : tail(r.out, /./).slice(0, 10)); }
 }
+
+for (const fn of serialJobs) await fn();
+await Promise.all(staticJobs);
 
 /* ── ② runtime + ③ behaviour ─────────────────────────────────────────────────────────────────────────────────── */
 // Fail fast (S5e): a static ✗ already fails the run; the browser steps (minutes per page) wait for the fix.
@@ -303,30 +335,36 @@ if (failFast) {
   if (QUICK) args.push("--viewports=1512", "--no-playground");
   else if (TOKEN_ONLY) args.push("--viewports=1512,390", ...(TOKEN_SIZES ? ["--density"] : []));
   else args.push("--viewports=1512,390", "--smoke", "--density");
-  const r = run(process.execPath, args, 1800000);
+  const darkOut = path.join(runDir, "audit-dark.json");
+  const behScript = path.join(root, "tools/platform-audit/behaviour.mjs");
+  const behOut = path.join(runDir, "behaviour.json");
+  const jobMain = launchSharded(process.execPath, args, P, main, 1800000);
+  const jobDark = QUICK ? null : launchSharded(process.execPath, ["tools/platform-audit/audit.mjs", `--url=${BASE}`, `--pages=${P.join(",")}`, "--viewports=1512", "--dark", "--no-playground", "--quality", `--out=${darkOut}`], P, darkOut, 1800000);
+  const jobBeh = QUICK || TOKEN_ONLY || !fs.existsSync(behScript) ? null : launchSharded(process.execPath, [behScript, `--url=${BASE}`, `--pages=${P.join(",")}`, `--out=${behOut}`], P, behOut, 1800000);
+  const r = await jobMain();
   const report = readAudit(main);
   if (!report) step("runtime", "Platform audit", "fail", `audit crashed (exit ${r.code})`, tail(r.out, /./).slice(-12));
-  else { const { errs, warns } = auditItems(report); const known = Object.values(report.baselined ?? {}).flatMap((k) => Object.values(k)).flat().length; step("runtime", `Platform audit ${QUICK ? "1512" : TOKEN_ONLY ? `1512 + 390 · quality${TOKEN_SIZES ? " · density" : ""} (token fast path)` : "1512 + 390 · smoke · quality · density"}`, errs.length ? "fail" : warns.length ? "warn" : "pass", `${errs.length} error(s), ${warns.length} new warning(s)${known ? `, ${known} baseline` : ""}`, [...errs, ...warns.map((w) => `⚠ ${w}`)]); }
+  else { const { errs, warns } = auditItems(report); const known = Object.values(report.baselined ?? {}).flatMap((k) => Object.values(k)).flat().length; step("runtime", `Platform audit ${QUICK ? "1512" : TOKEN_ONLY ? `1512 + 390 · quality${TOKEN_SIZES ? " · density" : ""} (token fast path)` : "1512 + 390 · smoke · quality · density"}${secs(r)}`, errs.length ? "fail" : warns.length ? "warn" : "pass", `${errs.length} error(s), ${warns.length} new warning(s)${known ? `, ${known} baseline` : ""}`, [...errs, ...warns.map((w) => `⚠ ${w}`)]); }
   if (!QUICK) {
-    const dark = path.join(runDir, "audit-dark.json");
-    const d = run(process.execPath, ["tools/platform-audit/audit.mjs", `--url=${BASE}`, `--pages=${P.join(",")}`, "--viewports=1512", "--dark", "--no-playground", "--quality", `--out=${dark}`], 1800000);
+    const dark = darkOut;
+    const d = await jobDark();
     const dr = readAudit(dark);
     if (!dr) step("runtime", "Dark mode audit", "fail", `audit crashed (exit ${d.code})`, tail(d.out, /./).slice(-8));
-    else { const { errs, warns } = auditItems(dr); const known = Object.values(dr.baselined ?? {}).flatMap((k) => Object.values(k)).flat().length; step("runtime", "Dark mode audit", errs.length ? "fail" : warns.length ? "warn" : "pass", `${errs.length} error(s), ${warns.length} new warning(s)${known ? `, ${known} baseline` : ""}`, [...errs, ...warns.map((w) => `⚠ ${w}`)]); }
+    else { const { errs, warns } = auditItems(dr); const known = Object.values(dr.baselined ?? {}).flatMap((k) => Object.values(k)).flat().length; step("runtime", "Dark mode audit", errs.length ? "fail" : warns.length ? "warn" : "pass", `${errs.length} error(s), ${warns.length} new warning(s)${known ? `, ${known} baseline` : ""}${secs(d)}`, [...errs, ...warns.map((w) => `⚠ ${w}`)]); }
 
     say("\n③ Behaviour");
-    const script = path.join(root, "tools/platform-audit/behaviour.mjs");
+    const script = behScript;
     if (TOKEN_ONLY) step("behaviour", "Behaviour probes", "skip", "token-only change: focus, keyboard and click behaviour cannot change");
     else if (!fs.existsSync(script)) step("behaviour", "Behaviour probes", "skip", "tools/platform-audit/behaviour.mjs is not installed yet");
     else {
-      const out = path.join(runDir, "behaviour.json");
-      const b = run(process.execPath, [script, `--url=${BASE}`, `--pages=${P.join(",")}`, `--out=${out}`], 1800000);
+      const out = behOut;
+      const b = await jobBeh();
       const br = readAudit(out);
       if (!br) step("behaviour", "Behaviour probes", b.code === 0 ? "pass" : "fail", b.code === 0 ? "" : `crashed (exit ${b.code})`, tail(b.out, /./).slice(-8));
       else {
         const all = Object.entries(br.pages ?? {}).flatMap(([key, fs_]) => (fs_ ?? []).map((f) => ({ ...f, key })));
         const fresh = all.filter((f) => f.new !== false); const errs = fresh.filter((f) => f.severity === "error"); const warns = fresh.filter((f) => f.severity !== "error");
-        step("behaviour", "Focus ring · keyboard reach · APG keys · dead clicks · hover", errs.length ? "fail" : warns.length ? "warn" : "pass", `${errs.length} error(s), ${warns.length} new warning(s), ${all.length - fresh.length} baseline`, [...errs, ...warns].map((f) => `${f.severity === "error" ? "✗" : "⚠"} [${f.check}] ${f.key} ${f.card ? `${f.card}: ` : ""}${f.message}`));
+        step("behaviour", "Focus ring · keyboard reach · APG keys · dead clicks · hover", errs.length ? "fail" : warns.length ? "warn" : "pass", `${errs.length} error(s), ${warns.length} new warning(s), ${all.length - fresh.length} baseline${secs(b)}`, [...errs, ...warns].map((f) => `${f.severity === "error" ? "✗" : "⚠"} [${f.check}] ${f.key} ${f.card ? `${f.card}: ` : ""}${f.message}`));
       }
     }
   }
