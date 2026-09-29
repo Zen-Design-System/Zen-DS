@@ -2194,3 +2194,43 @@ abstract final class ZenCollection {
   static const String breakpointGrids = 'breakpoint-grids';
   static const String typographyConfiguration = 'typography-configuration';
 }
+
+/// Text style names as Figma writes them. Pass one to `ZenTokens.instance.textStyle`.
+abstract final class ZenTextStyleName {
+  static const String displayExtra1 = 'Display-Extra/1';
+  static const String displayExtra2 = 'Display-Extra/2';
+  static const String displayExtra3 = 'Display-Extra/3';
+  static const String display1 = 'Display/1';
+  static const String display2 = 'Display/2';
+  static const String display3 = 'Display/3';
+  static const String display4 = 'Display/4';
+  static const String heading1 = 'Heading/1';
+  static const String heading2 = 'Heading/2';
+  static const String heading3 = 'Heading/3';
+  static const String heading4 = 'Heading/4';
+  static const String headingSubheading = 'Heading/Subheading';
+  static const String bodyExtraRegular = 'Body/Extra/Regular';
+  static const String bodyExtraMedium = 'Body/Extra/Medium';
+  static const String bodyExtraBold = 'Body/Extra/Bold';
+  static const String bodyBaseRegular = 'Body/Base/Regular';
+  static const String bodyBaseMedium = 'Body/Base/Medium';
+  static const String bodyBaseBold = 'Body/Base/Bold';
+  static const String bodySmallRegular = 'Body/Small/Regular';
+  static const String bodySmallMedium = 'Body/Small/Medium';
+  static const String bodySmallBold = 'Body/Small/Bold';
+  static const String bodyCodeRegular = 'Body/Code/Regular';
+  static const String bodyCodeBold = 'Body/Code/Bold';
+  static const String captionRegular = 'Caption/Regular';
+  static const String captionMedium = 'Caption/Medium';
+  static const String captionBold = 'Caption/Bold';
+  static const String labelSmallMedium = 'Label/Small/Medium';
+  static const String labelSmallBold = 'Label/Small/Bold';
+  static const String buttonLabelXL = 'Button-Label/XL';
+  static const String buttonLabelL = 'Button-Label/L';
+  static const String buttonLabelM = 'Button-Label/M';
+  static const String buttonLabelS = 'Button-Label/S';
+  static const String buttonLabelXS = 'Button-Label/XS';
+  static const String allCapsM = 'All-Caps/M';
+  static const String allCapsMBOLD = 'All-Caps/M-BOLD';
+  static const String allCapsS = 'All-Caps/S';
+}

@@ -30,6 +30,25 @@ void main() {
     }
   });
 
+  test('text styles match the reference resolver', () {
+    final vectors = jsonDecode(File('test/text-style-vectors.json').readAsStringSync()) as List<dynamic>;
+    expect(vectors.length, greaterThan(100));
+    for (final raw in vectors) {
+      final vector = raw as Map<String, dynamic>;
+      final name = vector['name'] as String;
+      final context = ZenContext(Map<String, String>.from(vector['context'] as Map));
+      final expected = vector['expected'] as Map<String, dynamic>;
+      final style = ZenTokens.instance.textStyle(name, context);
+      expect(style, isNotNull, reason: name);
+      expect(style!.family, expected['family'], reason: name);
+      expect(style.size, closeTo((expected['size'] as num).toDouble(), 1e-9), reason: name);
+      expect(style.weight, closeTo((expected['weight'] as num).toDouble(), 1e-9), reason: name);
+      expect(style.lineHeight, closeTo((expected['lineHeight'] as num).toDouble(), 1e-9), reason: name);
+      expect(style.letterSpacing, closeTo((expected['letterSpacing'] as num).toDouble(), 1e-9), reason: name);
+      expect(style.uppercase, expected['uppercase'], reason: name);
+    }
+  });
+
   test('every name constant exists', () {
     expect(ZenTokens.instance.tokenCount, greaterThan(2000));
     expect(ZenTokens.instance.resolve(ZenToken.spacingGap2XSmall), isNotNull);

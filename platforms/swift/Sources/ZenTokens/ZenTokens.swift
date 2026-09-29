@@ -27,6 +27,7 @@ public final class ZenTokens {
 
     private let entries: [String: Entry]
     private let modesOf: [String: [String]]
+    private let textStyleDefs: [String: [String: Any]]
 
     private init() {
         guard let data = ZenTokenData.json.data(using: .utf8),
@@ -42,6 +43,7 @@ public final class ZenTokens {
         }
         entries = parsed
         modesOf = collections
+        textStyleDefs = root["textStyles"] as? [String: [String: Any]] ?? [:]
     }
 
     public var tokenCount: Int { entries.count }
@@ -87,6 +89,63 @@ public final class ZenTokens {
     public func bool(_ name: String, _ context: ZenContext = .standard) -> Bool? {
         guard let found = resolve(name, context), found.type == "BOOLEAN" else { return nil }
         return (found.value as? NSNumber)?.boolValue
+    }
+
+    /// A Figma text style resolved in the context (its size, weight, line height and letter spacing follow the typography mode).
+    public func textStyle(_ name: String, _ context: ZenContext = .standard) -> ZenTextStyle? {
+        guard let def = textStyleDefs[name],
+              let familyToken = def["family"] as? String, let sizeToken = def["size"] as? String,
+              let weightToken = def["weight"] as? String, let lineHeightToken = def["lineHeight"] as? String,
+              let letterSpacingToken = def["letterSpacing"] as? String,
+              let family = string(familyToken, context), let size = number(sizeToken, context),
+              let weight = number(weightToken, context), let lineHeight = number(lineHeightToken, context),
+              let letterSpacing = number(letterSpacingToken, context) else { return nil }
+        return ZenTextStyle(family: family, size: size, weight: weight, lineHeight: lineHeight, letterSpacing: letterSpacing, uppercase: (def["uppercase"] as? Bool) ?? false)
+    }
+}
+
+public struct ZenTextStyle: Equatable {
+    public let family: String
+    public let size: Double
+    /// The Figma weight, for example 500 or 550.
+    public let weight: Double
+    /// Line height in points.
+    public let lineHeight: Double
+    /// Letter spacing in points.
+    public let letterSpacing: Double
+    public let uppercase: Bool
+
+    /// Figma weights such as 450 or 550 snap to the nearest step SwiftUI has.
+    public var fontWeight: Font.Weight {
+        let step = Int(((weight + 50) / 100).rounded(.down)) * 100
+        switch step {
+        case ..<200: return .ultraLight
+        case 200: return .thin
+        case 300: return .light
+        case 400: return .regular
+        case 500: return .medium
+        case 600: return .semibold
+        case 700: return .bold
+        case 800: return .heavy
+        default: return .black
+        }
+    }
+
+    /// The font by family name; SwiftUI falls back to the system font when the family is not installed.
+    public var font: Font { Font.custom(family, size: size).weight(fontWeight) }
+
+    /// Approximate: line height minus the natural line height of Inter (about 1.21 × size). SwiftUI has no exact line-height setter.
+    public var lineSpacing: Double { max(0, lineHeight - size * 1.21) }
+}
+
+public extension Text {
+    /// Font, letter spacing, line spacing and case of a Figma text style.
+    @ViewBuilder func zenStyle(_ name: String, context: ZenContext = .standard) -> some View {
+        if let style = ZenTokens.shared.textStyle(name, context) {
+            self.font(style.font).kerning(style.letterSpacing).lineSpacing(style.lineSpacing).textCase(style.uppercase ? Text.Case.uppercase : nil)
+        } else {
+            self
+        }
     }
 }
 

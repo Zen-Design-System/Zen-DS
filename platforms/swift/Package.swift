@@ -8,6 +8,6 @@ let package = Package(
     products: [.library(name: "ZenTokens", targets: ["ZenTokens"])],
     targets: [
         .target(name: "ZenTokens"),
-        .testTarget(name: "ZenTokensTests", dependencies: ["ZenTokens"], resources: [.copy("vectors.json")]),
+        .testTarget(name: "ZenTokensTests", dependencies: ["ZenTokens"], resources: [.copy("vectors.json"), .copy("text-style-vectors.json")]),
     ]
 )

@@ -27,8 +27,23 @@ Token names are the Figma names (`Color/Background/Surface/Default`); the consta
 
 ## Parity
 
-`scripts/build-native-tokens.mjs` holds the reference resolver. It writes `platforms/tests/vectors.json` (its answers for 636 token × mode-context pairs) and copies it next to the Swift and Flutter tests, which assert their own resolver returns the same. `npm run tokens:native:check` fails when these files are stale or a token cannot be resolved in any of its collection's modes.
+`scripts/build-native-tokens.mjs` holds the reference resolver. It writes `platforms/tests/vectors.json` (its answers for 795 token × mode-context pairs) and copies it next to the Swift and Flutter tests, which assert their own resolver returns the same. `npm run tokens:native:check` fails when these files are stale or a token cannot be resolved in any of its collection's modes.
 
 Run the platform tests on a machine with the toolchain: `cd platforms/swift && swift test`, `cd platforms/flutter && flutter test`.
 
-Not covered yet: composite text styles and effects (shadows), and the components themselves (see the zen-ds-port-platform skill).
+## Text styles
+
+Figma text styles are stored as the token names they bind (family, size, weight, line height, letter spacing) and resolved in the context, so a style follows the typography mode (`typography-configuration`: Dashboard, Popular, Mobile).
+
+```swift
+Text("Title").zenStyle(ZenTextStyleName.heading2, context: ZenContext.standard.with(ZenCollection.typographyConfiguration, "Mobile"))
+let style = ZenTokens.shared.textStyle(ZenTextStyleName.bodyBaseMedium)   // family, size, weight, lineHeight, letterSpacing, uppercase
+```
+
+```dart
+final style = ZenTokens.instance.textStyle(ZenTextStyleName.bodyBaseMedium)?.textStyle;   // a Flutter TextStyle
+```
+
+Weights such as 450 and 550 snap to the nearest step the platform has. SwiftUI has no exact line-height setter, so `lineSpacing` is approximate. Flutter has no text-transform: apply `toUpperCase()` when `uppercase` is true. The font family (Inter) must be installed or bundled by the app.
+
+Not covered yet: effects (shadows) and the components themselves (see the zen-ds-port-platform skill).

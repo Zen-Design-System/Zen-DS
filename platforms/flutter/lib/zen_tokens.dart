@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:ui' show Color;
 
+import 'package:flutter/painting.dart' show FontWeight, TextStyle;
+
 import 'src/zen_token_data.dart';
 
 export 'src/zen_token_names.dart';
@@ -32,12 +34,14 @@ class ZenTokens {
     final root = jsonDecode(zenTokenData) as Map<String, dynamic>;
     _modesOf = (root['collections'] as Map<String, dynamic>).map((key, value) => MapEntry(key, List<String>.from(value as List)));
     _entries = (root['tokens'] as Map<String, dynamic>).map((key, value) => MapEntry(key, value as List<dynamic>));
+    _textStyles = (root['textStyles'] as Map<String, dynamic>).map((key, value) => MapEntry(key, value as Map<String, dynamic>));
   }
 
   static final ZenTokens instance = ZenTokens._();
 
   late final Map<String, List<String>> _modesOf;
   late final Map<String, List<dynamic>> _entries;
+  late final Map<String, Map<String, dynamic>> _textStyles;
 
   int get tokenCount => _entries.length;
 
@@ -86,6 +90,43 @@ class ZenTokens {
     final found = resolve(name, context);
     return found != null && found.type == 'BOOLEAN' ? found.value as bool? : null;
   }
+
+  /// A Figma text style resolved in the context (its size, weight, line height and letter spacing follow the typography mode).
+  ZenTextStyle? textStyle(String name, [ZenContext context = ZenContext.standard]) {
+    final def = _textStyles[name];
+    if (def == null) return null;
+    final family = string(def['family'] as String, context);
+    final size = number(def['size'] as String, context);
+    final weight = number(def['weight'] as String, context);
+    final lineHeight = number(def['lineHeight'] as String, context);
+    final letterSpacing = number(def['letterSpacing'] as String, context);
+    if (family == null || size == null || weight == null || lineHeight == null || letterSpacing == null) return null;
+    return ZenTextStyle(family: family, size: size, weight: weight, lineHeight: lineHeight, letterSpacing: letterSpacing, uppercase: def['uppercase'] as bool? ?? false);
+  }
+}
+
+class ZenTextStyle {
+  const ZenTextStyle({required this.family, required this.size, required this.weight, required this.lineHeight, required this.letterSpacing, required this.uppercase});
+
+  final String family;
+  final double size;
+
+  /// The Figma weight, for example 500 or 550.
+  final double weight;
+
+  /// Line height in logical pixels.
+  final double lineHeight;
+
+  /// Letter spacing in logical pixels.
+  final double letterSpacing;
+
+  /// Apply with text.toUpperCase(): Flutter has no text-transform.
+  final bool uppercase;
+
+  /// Figma weights such as 450 or 550 snap to the nearest step Flutter has.
+  FontWeight get fontWeight => FontWeight.values[((weight + 50) / 100).floor().clamp(1, 9).toInt() - 1];
+
+  TextStyle get textStyle => TextStyle(fontFamily: family, fontSize: size, fontWeight: fontWeight, height: lineHeight / size, letterSpacing: letterSpacing);
 }
 
 /// "#RRGGBB" or "#RRGGBBAA" (the order the Figma export and the CSS use).

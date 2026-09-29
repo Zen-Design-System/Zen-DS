@@ -27,6 +27,16 @@
  {
   "name": "Badge/Spacing/Small/Gap",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 0
+ },
+ {
+  "name": "Badge/Spacing/Small/Gap",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -65,6 +75,16 @@
  {
   "name": "Badge/Spacing/Small/Text-Wrapper-Padding",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Badge/Spacing/Small/Text-Wrapper-Padding",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -103,6 +123,16 @@
  {
   "name": "Button-Accent/Background/Default",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FF66D4"
+ },
+ {
+  "name": "Button-Accent/Background/Default",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -141,6 +171,16 @@
  {
   "name": "Button-Accent/Background/Hover",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FF91DD"
+ },
+ {
+  "name": "Button-Accent/Background/Hover",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -175,6 +215,16 @@
   },
   "type": "COLOR",
   "expected": "#9E9E9E"
+ },
+ {
+  "name": "Button-Accent/Background/Pressed",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FFD6F1"
  },
  {
   "name": "Button-Accent/Background/Pressed",
@@ -217,6 +267,16 @@
  {
   "name": "Button-Primary/Background/Default",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FAFAFA"
+ },
+ {
+  "name": "Button-Primary/Background/Default",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -255,6 +315,16 @@
  {
   "name": "Button-Primary/Background/Hover",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#D2D2D2"
+ },
+ {
+  "name": "Button-Primary/Background/Hover",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -289,6 +359,16 @@
   },
   "type": "COLOR",
   "expected": "#FFD6F1"
+ },
+ {
+  "name": "Button-Primary/Background/Pressed",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#9E9E9E"
  },
  {
   "name": "Button-Primary/Background/Pressed",
@@ -331,6 +411,16 @@
  {
   "name": "Button-Primary/Content/Default",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#111111"
+ },
+ {
+  "name": "Button-Primary/Content/Default",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -369,6 +459,16 @@
  {
   "name": "Button-Primary/Content/Pressed",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#111111"
+ },
+ {
+  "name": "Button-Primary/Content/Pressed",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -407,6 +507,16 @@
  {
   "name": "Button-Tertiary/Background/Pressed",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FEFEFE12"
+ },
+ {
+  "name": "Button-Tertiary/Background/Pressed",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -438,6 +548,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 56
+ },
+ {
+  "name": "Button/Size/XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 56
@@ -483,6 +603,16 @@
  {
   "name": "Button/Spacing/Small/Text-Wrapper-Padding",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Button/Spacing/Small/Text-Wrapper-Padding",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -514,6 +644,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Card-padding-medium",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 24
@@ -559,6 +699,16 @@
  {
   "name": "Card-padding-small",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Card-padding-small",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -597,6 +747,16 @@
  {
   "name": "Checkbox/Background/Seclected/Default",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FAFAFA"
+ },
+ {
+  "name": "Checkbox/Background/Seclected/Default",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -628,6 +788,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF0D"
+ },
+ {
+  "name": "Checkbox/Background/Unselected/Default",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "COLOR",
   "expected": "#FFFFFF0D"
@@ -673,6 +843,16 @@
  {
   "name": "Checkbox/Background/Unselected/Hover",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FEFEFE12"
+ },
+ {
+  "name": "Checkbox/Background/Unselected/Hover",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -704,6 +884,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FEFEFE2A"
+ },
+ {
+  "name": "Checkbox/Border/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "COLOR",
   "expected": "#FEFEFE2A"
@@ -749,6 +939,16 @@
  {
   "name": "Checkbox/Icon-Check/Default",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#111111"
+ },
+ {
+  "name": "Checkbox/Icon-Check/Default",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -787,6 +987,16 @@
  {
   "name": "Chip-Primary/Background/Unselected/Hover",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF0D"
+ },
+ {
+  "name": "Chip-Primary/Background/Unselected/Hover",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -825,6 +1035,16 @@
  {
   "name": "Chip-Secondary/Background/Unselected/Default",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#1B1B1B"
+ },
+ {
+  "name": "Chip-Secondary/Background/Unselected/Default",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -856,6 +1076,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Chip-Secondary/Border/Weigth-Active",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 2
@@ -901,6 +1131,16 @@
  {
   "name": "Color/Background/Active/Accent/Subtle",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FF46C125"
+ },
+ {
+  "name": "Color/Background/Active/Accent/Subtle",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -939,6 +1179,16 @@
  {
   "name": "Color/Background/Info/Flat/Hover",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#0F75FE16"
+ },
+ {
+  "name": "Color/Background/Info/Flat/Hover",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -977,6 +1227,16 @@
  {
   "name": "Color/Background/Liquid-Glass/Black-Overlay/Hover",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#1F1F1F80"
+ },
+ {
+  "name": "Color/Background/Liquid-Glass/Black-Overlay/Hover",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1015,6 +1275,16 @@
  {
   "name": "Color/Background/Neutral/Subtle/Hover",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF18"
+ },
+ {
+  "name": "Color/Background/Neutral/Subtle/Hover",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1053,6 +1323,16 @@
  {
   "name": "Color/Background/Support/Brand/Solid",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FF66D4"
+ },
+ {
+  "name": "Color/Background/Support/Brand/Solid",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1091,6 +1371,16 @@
  {
   "name": "Color/Background/Support/Crimson/Solid",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#E94E75"
+ },
+ {
+  "name": "Color/Background/Support/Crimson/Solid",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1129,6 +1419,16 @@
  {
   "name": "Color/Background/Support/Neutral/Pale",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF0D"
+ },
+ {
+  "name": "Color/Background/Support/Neutral/Pale",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1167,6 +1467,16 @@
  {
   "name": "Color/Border/Neutral/Pale/Pressed",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF1F"
+ },
+ {
+  "name": "Color/Border/Neutral/Pale/Pressed",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1205,6 +1515,16 @@
  {
   "name": "Color/Border/Overlay/Solid/Pressed",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#9E9E9E"
+ },
+ {
+  "name": "Color/Border/Overlay/Solid/Pressed",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1243,6 +1563,16 @@
  {
   "name": "Color/Border/Support/Golden/Subtle",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#493300F5"
+ },
+ {
+  "name": "Color/Border/Support/Golden/Subtle",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1281,6 +1611,16 @@
  {
   "name": "Color/Border/Support/Purple/Subtle",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#BB5CFF53"
+ },
+ {
+  "name": "Color/Border/Support/Purple/Subtle",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1319,6 +1659,16 @@
  {
   "name": "Color/Content/Neutral/Strongest",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FAFAFA"
+ },
+ {
+  "name": "Color/Content/Neutral/Strongest",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1357,6 +1707,16 @@
  {
   "name": "Color/Content/Support/Pink/Strongest",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FFEBF6"
+ },
+ {
+  "name": "Color/Content/Support/Pink/Strongest",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1395,6 +1755,16 @@
  {
   "name": "Container/Border",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FEFEFE12"
+ },
+ {
+  "name": "Container/Border",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1429,6 +1799,16 @@
   },
   "type": "FLOAT",
   "expected": 28
+ },
+ {
+  "name": "Corner-Radius/3XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 24
  },
  {
   "name": "Corner-Radius/3XLarge",
@@ -1471,6 +1851,16 @@
  {
   "name": "Corner-Radius/Action/Focus-Medium",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 14
+ },
+ {
+  "name": "Corner-Radius/Action/Focus-Medium",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1509,6 +1899,16 @@
  {
   "name": "Corner-Radius/Action/Focus-XLarge",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 18
+ },
+ {
+  "name": "Corner-Radius/Action/Focus-XLarge",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1540,6 +1940,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Action/Focus-XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 1000
@@ -1585,6 +1995,16 @@
  {
   "name": "Corner-Radius/Action/Medium",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Corner-Radius/Action/Medium",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1616,6 +2036,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Action/XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 1000
@@ -1657,6 +2087,16 @@
   },
   "type": "FLOAT",
   "expected": 12
+ },
+ {
+  "name": "Corner-Radius/Base",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 8
  },
  {
   "name": "Corner-Radius/Base",
@@ -1699,6 +2139,16 @@
  {
   "name": "Corner-Radius/Giant",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 28
+ },
+ {
+  "name": "Corner-Radius/Giant",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1737,6 +2187,16 @@
  {
   "name": "Corner-Radius/Input/Medium",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Corner-Radius/Input/Medium",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1771,6 +2231,16 @@
   },
   "type": "FLOAT",
   "expected": 16
+ },
+ {
+  "name": "Corner-Radius/Input/XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 12
  },
  {
   "name": "Corner-Radius/Input/XLarge",
@@ -1806,6 +2276,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Rounded",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 1000
@@ -1851,6 +2331,16 @@
  {
   "name": "Corner-Radius/Small",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Corner-Radius/Small",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -1885,6 +2375,16 @@
   },
   "type": "FLOAT",
   "expected": 36
+ },
+ {
+  "name": "Corner-Radius/XGiant",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 32
  },
  {
   "name": "Corner-Radius/XGiant",
@@ -1920,6 +2420,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#471D3A"
+ },
+ {
+  "name": "Dark/Brand/4",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "COLOR",
   "expected": "#471D3A"
@@ -1958,6 +2468,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#110F0E"
+ },
+ {
+  "name": "Dark/Brown/1",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "COLOR",
   "expected": "#110F0E"
@@ -1996,6 +2516,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#140E0F"
+ },
+ {
+  "name": "Dark/Crimson/1",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "COLOR",
   "expected": "#140E0F"
@@ -2034,6 +2564,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#003D4FF5"
+ },
+ {
+  "name": "Dark/Cyan-Alpha/5",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "COLOR",
   "expected": "#003D4FF5"
@@ -2072,6 +2612,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#262626B2"
+ },
+ {
+  "name": "Dark/Glass-Default",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "COLOR",
   "expected": "#262626B2"
@@ -2110,6 +2660,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF1F"
+ },
+ {
+  "name": "Dark/Gray-Alpha/5",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "COLOR",
   "expected": "#FFFFFF1F"
@@ -2148,6 +2708,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#00448B"
+ },
+ {
+  "name": "Dark/Info/7",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "COLOR",
   "expected": "#00448B"
@@ -2186,6 +2756,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FF6B45F5"
+ },
+ {
+  "name": "Dark/Negative-Alpha/10",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "COLOR",
   "expected": "#FF6B45F5"
@@ -2224,6 +2804,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#9E9E9E"
+ },
+ {
+  "name": "Dark/Neutral/10",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "COLOR",
   "expected": "#9E9E9E"
@@ -2262,6 +2852,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#3FFF5A25"
+ },
+ {
+  "name": "Dark/Positive-Alpha/4",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "COLOR",
   "expected": "#3FFF5A25"
@@ -2300,6 +2900,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#9141C3"
+ },
+ {
+  "name": "Dark/Purple/9",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "COLOR",
   "expected": "#9141C3"
@@ -2338,6 +2948,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#120F0C"
+ },
+ {
+  "name": "Dark/Warning/1",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "COLOR",
   "expected": "#120F0C"
@@ -2376,6 +2996,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFBA1A"
+ },
+ {
+  "name": "Dark/Yellow/9",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "COLOR",
   "expected": "#FFBA1A"
@@ -2414,6 +3044,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "BOOLEAN",
+  "expected": true
+ },
+ {
+  "name": "Darkmode",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "BOOLEAN",
   "expected": true
@@ -2459,6 +3099,16 @@
  {
   "name": "Date-Picker-Item/Background/Seclected-In-Range/Hover",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF18"
+ },
+ {
+  "name": "Date-Picker-Item/Background/Seclected-In-Range/Hover",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -2497,6 +3147,16 @@
  {
   "name": "Date-Picker-Item/Content/Selected",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#111111"
+ },
+ {
+  "name": "Date-Picker-Item/Content/Selected",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -2535,6 +3195,16 @@
  {
   "name": "Element-Size/Popular/Base",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Element-Size/Popular/Base",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -2566,6 +3236,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Emphasis/Border-Weight/Active/Primary",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 2
@@ -2611,6 +3291,16 @@
  {
   "name": "Emphasis/Border-Weight/Active/Secondary",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 1
+ },
+ {
+  "name": "Emphasis/Border-Weight/Active/Secondary",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -2642,6 +3332,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 600
+ },
+ {
+  "name": "Emphasis/Font-Weight/Bold",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 600
@@ -2687,6 +3387,16 @@
  {
   "name": "Emphasis/Font-Weight/Medium",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 500
+ },
+ {
+  "name": "Emphasis/Font-Weight/Medium",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -2718,6 +3428,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 400
+ },
+ {
+  "name": "Emphasis/Font-Weight/Regular",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 400
@@ -2763,6 +3483,16 @@
  {
   "name": "Emphasis/Font-Weight/Semi-Bold",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 550
+ },
+ {
+  "name": "Emphasis/Font-Weight/Semi-Bold",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -2801,6 +3531,16 @@
  {
   "name": "Gutter",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Gutter",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -2839,6 +3579,16 @@
  {
   "name": "Input/Spacing/Small/Horizontal-Padding",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Input/Spacing/Small/Horizontal-Padding",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -2877,6 +3627,16 @@
  {
   "name": "Light/Brand/1",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FFFBFD"
+ },
+ {
+  "name": "Light/Brand/1",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -2915,6 +3675,16 @@
  {
   "name": "Light/Golden-Alpha/5",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#D990007A"
+ },
+ {
+  "name": "Light/Golden-Alpha/5",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -2953,6 +3723,16 @@
  {
   "name": "Light/Indigo-Alpha/5",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#0135FF3F"
+ },
+ {
+  "name": "Light/Indigo-Alpha/5",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -2991,6 +3771,16 @@
  {
   "name": "Light/Info/4",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#C7DFFF"
+ },
+ {
+  "name": "Light/Info/4",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -3029,6 +3819,16 @@
  {
   "name": "Light/Mint/9",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#04CDA1"
+ },
+ {
+  "name": "Light/Mint/9",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -3067,6 +3867,16 @@
  {
   "name": "Light/Negative-Alpha/7",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FF330078"
+ },
+ {
+  "name": "Light/Negative-Alpha/7",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -3105,6 +3915,16 @@
  {
   "name": "Light/Neutral/7",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#D0D0D0"
+ },
+ {
+  "name": "Light/Neutral/7",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -3143,6 +3963,16 @@
  {
   "name": "Light/Orange/1",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FFFCF9"
+ },
+ {
+  "name": "Light/Orange/1",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -3181,6 +4011,16 @@
  {
   "name": "Light/Plum/9",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#BB4ABF"
+ },
+ {
+  "name": "Light/Plum/9",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -3219,6 +4059,16 @@
  {
   "name": "Light/Positive-Alpha/1",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#05B80507"
+ },
+ {
+  "name": "Light/Positive-Alpha/1",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -3257,6 +4107,16 @@
  {
   "name": "Light/Tomato/1",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FFFCFA"
+ },
+ {
+  "name": "Light/Tomato/1",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -3295,6 +4155,16 @@
  {
   "name": "Margin-Comfortable",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Margin-Comfortable",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -3326,6 +4196,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Margin-Compact",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 20
@@ -3364,6 +4244,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Modal-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 24
@@ -3409,6 +4299,16 @@
  {
   "name": "Modal-Radius",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Modal-Radius",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -3447,6 +4347,16 @@
  {
   "name": "Navigation-Action/Icon/Spacing/Vertical-Padding",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 10
+ },
+ {
+  "name": "Navigation-Action/Icon/Spacing/Vertical-Padding",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -3485,6 +4395,16 @@
  {
   "name": "Navigation-Action/Margin",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Navigation-Action/Margin",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -3523,6 +4443,16 @@
  {
   "name": "Overlay/White/10",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF78"
+ },
+ {
+  "name": "Overlay/White/10",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -3561,6 +4491,16 @@
  {
   "name": "Segmented-Item-Secondary/Background/Unselected/Default",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF00"
+ },
+ {
+  "name": "Segmented-Item-Secondary/Background/Unselected/Default",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -3599,6 +4539,16 @@
  {
   "name": "Segmented/Spacing/Small/Text-Wrapper-Padding",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Segmented/Spacing/Small/Text-Wrapper-Padding",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -3637,6 +4587,16 @@
  {
   "name": "Spacing/Gap/2XGiant",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 144
+ },
+ {
+  "name": "Spacing/Gap/2XGiant",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -3675,6 +4635,16 @@
  {
   "name": "Spacing/Gap/2XLarge",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 40
+ },
+ {
+  "name": "Spacing/Gap/2XLarge",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -3706,6 +4676,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Spacing/Gap/2XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 4
@@ -3744,6 +4724,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 48
+ },
+ {
+  "name": "Spacing/Gap/3XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 48
@@ -3782,6 +4772,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Spacing/Gap/3XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 2
@@ -3820,6 +4820,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 64
+ },
+ {
+  "name": "Spacing/Gap/Giant",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 64
@@ -3858,6 +4868,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Spacing/Gap/Large",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 24
@@ -3896,6 +4916,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Spacing/Gap/Medium",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 16
@@ -3934,6 +4964,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Spacing/Gap/Small",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 12
@@ -3972,6 +5012,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 88
+ },
+ {
+  "name": "Spacing/Gap/XGiant",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 88
@@ -4010,6 +5060,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Spacing/Gap/XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 32
@@ -4048,6 +5108,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Spacing/Gap/XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 8
@@ -4086,6 +5156,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Spacing/Padding/2XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 32
@@ -4124,6 +5204,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Spacing/Padding/2XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 4
@@ -4162,6 +5252,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 40
+ },
+ {
+  "name": "Spacing/Padding/3XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 40
@@ -4200,6 +5300,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Spacing/Padding/3XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 2
@@ -4238,6 +5348,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 48
+ },
+ {
+  "name": "Spacing/Padding/4XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 48
@@ -4276,6 +5396,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Spacing/Padding/Large",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 20
@@ -4314,6 +5444,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Spacing/Padding/Medium",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 16
@@ -4352,6 +5492,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Spacing/Padding/Small",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 12
@@ -4390,6 +5540,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Spacing/Padding/XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 24
@@ -4428,6 +5588,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Spacing/Padding/XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 8
@@ -4466,6 +5636,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 0
+ },
+ {
+  "name": "Tab-Item/Spacing/Medium/Horizontal-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 0
@@ -4511,6 +5691,16 @@
  {
   "name": "Tab/Content/Default",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF98"
+ },
+ {
+  "name": "Tab/Content/Default",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -4549,6 +5739,16 @@
  {
   "name": "Tag/Size/Small",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Tag/Size/Small",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -4587,6 +5787,16 @@
  {
   "name": "Tag/Spacing/Medium/Minimum-Padding",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Tag/Spacing/Medium/Minimum-Padding",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -4618,6 +5828,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Text-Area/Spacing/Medium/Vertical-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 12
@@ -4663,6 +5883,16 @@
  {
   "name": "Toggle/Dot/Background/Unselected-Default",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FCFCFC"
+ },
+ {
+  "name": "Toggle/Dot/Background/Unselected-Default",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -4701,6 +5931,16 @@
  {
   "name": "Typography/Font-Family/Button",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Button",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -4739,6 +5979,16 @@
  {
   "name": "Typography/Font-Family/Dev",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "STRING",
+  "expected": "JetBrains Mono"
+ },
+ {
+  "name": "Typography/Font-Family/Dev",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -4777,6 +6027,16 @@
  {
   "name": "Typography/Font-Family/Display",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Display",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -4808,6 +6068,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Heading",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "STRING",
   "expected": "Inter"
@@ -4846,6 +6116,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Sans",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "STRING",
   "expected": "Inter"
@@ -4887,6 +6167,16 @@
   },
   "type": "FLOAT",
   "expected": 16
+ },
+ {
+  "name": "Typography/Line-Height/ALL-CAPS-S",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 20
  },
  {
   "name": "Typography/Line-Height/ALL-CAPS-S",
@@ -4922,6 +6212,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Typography/Line-Height/Body-Extra",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 24
@@ -4963,6 +6263,16 @@
   },
   "type": "FLOAT",
   "expected": 16
+ },
+ {
+  "name": "Typography/Line-Height/Body-Small",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 20
  },
  {
   "name": "Typography/Line-Height/Body-Small",
@@ -5001,6 +6311,16 @@
   },
   "type": "FLOAT",
   "expected": 20
+ },
+ {
+  "name": "Typography/Line-Height/Button-Label-M",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 24
  },
  {
   "name": "Typography/Line-Height/Button-Label-M",
@@ -5039,6 +6359,16 @@
   },
   "type": "FLOAT",
   "expected": 24
+ },
+ {
+  "name": "Typography/Line-Height/Button-Label-XL",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 28
  },
  {
   "name": "Typography/Line-Height/Button-Label-XL",
@@ -5077,6 +6407,16 @@
   },
   "type": "FLOAT",
   "expected": 12
+ },
+ {
+  "name": "Typography/Line-Height/Button-Label-XS",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 14
  },
  {
   "name": "Typography/Line-Height/Button-Label-XS",
@@ -5115,6 +6455,16 @@
   },
   "type": "FLOAT",
   "expected": 52
+ },
+ {
+  "name": "Typography/Line-Height/Display-1",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 60
  },
  {
   "name": "Typography/Line-Height/Display-1",
@@ -5153,6 +6503,16 @@
   },
   "type": "FLOAT",
   "expected": 44
+ },
+ {
+  "name": "Typography/Line-Height/Display-3",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 48
  },
  {
   "name": "Typography/Line-Height/Display-3",
@@ -5191,6 +6551,16 @@
   },
   "type": "FLOAT",
   "expected": 60
+ },
+ {
+  "name": "Typography/Line-Height/Display-Extra-2",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 70
  },
  {
   "name": "Typography/Line-Height/Display-Extra-2",
@@ -5229,6 +6599,16 @@
   },
   "type": "FLOAT",
   "expected": 36
+ },
+ {
+  "name": "Typography/Line-Height/Heading-1",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 40
  },
  {
   "name": "Typography/Line-Height/Heading-1",
@@ -5264,6 +6644,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Typography/Line-Height/Label-Small",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 12
@@ -5305,6 +6695,16 @@
   },
   "type": "FLOAT",
   "expected": 24
+ },
+ {
+  "name": "Typography/Line-Height/Subheading",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 28
  },
  {
   "name": "Typography/Line-Height/Subheading",
@@ -5340,6 +6740,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 982
+ },
+ {
+  "name": "Viewport-Height",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 982
@@ -5385,6 +6795,16 @@
  {
   "name": "Viewport-Width",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 1512
+ },
+ {
+  "name": "Viewport-Width",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -5423,6 +6843,16 @@
  {
   "name": "dm-100",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 100
+ },
+ {
+  "name": "dm-100",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -5461,6 +6891,16 @@
  {
   "name": "dm-112",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 112
+ },
+ {
+  "name": "dm-112",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -5499,6 +6939,16 @@
  {
   "name": "dm-144",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 144
+ },
+ {
+  "name": "dm-144",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -5537,6 +6987,16 @@
  {
   "name": "dm-16",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "dm-16",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -5575,6 +7035,16 @@
  {
   "name": "dm-184",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 184
+ },
+ {
+  "name": "dm-184",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -5613,6 +7083,16 @@
  {
   "name": "dm-2",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "dm-2",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -5651,6 +7131,16 @@
  {
   "name": "dm-24",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "dm-24",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -5689,6 +7179,16 @@
  {
   "name": "dm-240",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 240
+ },
+ {
+  "name": "dm-240",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -5727,6 +7227,16 @@
  {
   "name": "dm-32",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "dm-32",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -5765,6 +7275,16 @@
  {
   "name": "dm-40",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 40
+ },
+ {
+  "name": "dm-40",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -5803,6 +7323,16 @@
  {
   "name": "dm-48",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 48
+ },
+ {
+  "name": "dm-48",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -5841,6 +7371,16 @@
  {
   "name": "dm-56",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 56
+ },
+ {
+  "name": "dm-56",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -5879,6 +7419,16 @@
  {
   "name": "dm-68",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 68
+ },
+ {
+  "name": "dm-68",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -5917,6 +7467,16 @@
  {
   "name": "dm-72",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 72
+ },
+ {
+  "name": "dm-72",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -5955,6 +7515,16 @@
  {
   "name": "dm-76",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 76
+ },
+ {
+  "name": "dm-76",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -5993,6 +7563,16 @@
  {
   "name": "dm-8",
   "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "dm-8",
+  "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
    "component-size": "Comfortable",
@@ -6024,6 +7604,16 @@
    "component-colors-theme": "Brand - S1",
    "component-size": "Compact",
    "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 88
+ },
+ {
+  "name": "dm-88",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
   },
   "type": "FLOAT",
   "expected": 88
