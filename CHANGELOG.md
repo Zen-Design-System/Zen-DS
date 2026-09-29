@@ -15,8 +15,8 @@ How to maintain it:
 ## [0.4.0] — Unreleased
 
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
-`feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); nothing was
-removed.
+`feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
+removed (four unused colour ramps were, see Removed).
 
 ### Added
 - **Language:** `<ZenProvider locale="vi">` translates every built-in label of every component (close/dismiss,
@@ -195,6 +195,9 @@ removed.
 - **Global Colors step 3 (2026-09-29 Figma export):** step 3 of every colour ramp and its Alpha twin moved (79 values;
   no token added, removed or renamed). It is a little darker in Light and a little lighter in Dark, so the Subtle
   fills, Pale borders, pressed states and disabled borders built on it read slightly stronger.
+- **Dark Gray step 9 (2026-09-29 Figma export):** Dark/Gray/9 is #929292 (was #656565) and Dark/Gray-Alpha/9 is
+  #FFFFFF8B (was #FFFFFF5C), from the Zen Plugin's Dark Neutral step 9. In Dark mode the Neutral solid (e.g. the
+  neutral Progress circle's done ring) and `Color/Content/On-Black-Overlay/Light` are lighter; Light is unchanged.
 - **Matched to the live Figma file (2026-09-29):**
   - Checkbox, Radio Button, Toggle and Table cell captions use Caption/Regular 11/16 (was Body/Small/Regular 12/16).
   - Toggle tracks size from the dot plus Spacing/Padding/3XSmall on each side.
@@ -218,6 +221,11 @@ removed.
     frame that sets `contain: layout`.
   - A shell inside a scrolling frame can fill it by setting `--zen-app-shell-height`.
   - Templates Detail and Settings put Breadcrumbs in the top bar; the Detail page drops its PageHeader Back.
+
+### Removed
+- **Colour ramps VT, Chat, Brand-Ananas and Neutral-Ananas (2026-09-29):** 192 Global Colors primitives are gone, in
+  Light and Dark and with their Alpha twins, e.g. `--zen-light-vt-9` and `--zen-dark-chat-3`. No Zen token or component
+  used them. Global Colors now has 960 variables and the library 2,176.
 
 ### Quality
 - **Proportional process (2026-09-29):** a tier table (XS/S/M/L) in AGENTS.md decides how much planning, QA and

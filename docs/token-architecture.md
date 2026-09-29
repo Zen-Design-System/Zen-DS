@@ -51,4 +51,5 @@ Names remain stable even if the resolved value changes.
 
 ## Current synchronization status
 
-The imported export contains 11 collections and 2,368 variables (last sync 2026-09-28). The current `Component Theme` export has 113 tokens in 6 modes and `Component Size` has 194 tokens. Validation confirms there are no duplicate names, missing mode values, missing alias targets or alias cycles.
+The repository holds 11 collections and 2,176 variables (last sync 2026-09-29). The Figma export has 192 more: the
+VT, Chat, Brand-Ananas and Neutral-Ananas ramps, which the repo leaves out at the user's request. The current `Component Theme` export has 113 tokens in 6 modes and `Component Size` has 194 tokens. Validation confirms there are no duplicate names, missing mode values, missing alias targets or alias cycles.

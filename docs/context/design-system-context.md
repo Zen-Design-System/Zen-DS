@@ -38,11 +38,11 @@ The current attached token source is `/Users/vuduong/Documents/Component Theme.j
 
 ## Token contract (2026-09-28)
 
-The repository contains 11 Figma collections and 2,368 variables:
+The repository contains 11 Figma collections and 2,176 variables:
 
 | Collection | Tokens | Runtime axis |
 | --- | ---: | --- |
-| Global Colors | 1,152 | `:root` |
+| Global Colors | 960 | `:root` |
 | Global Dimensions | 33 | `:root` |
 | Base Colors (Project) | 329 | `data-brand` |
 | Mode Colors (Semantic) | 407 | `data-theme` |

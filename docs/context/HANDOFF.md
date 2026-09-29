@@ -45,7 +45,7 @@ Last updated: 2026-09-29.
   - `zen-usage`, the ESLint plugin, the MCP server (`.mcp.json`) and `npx zen-ds init / doctor`.
   - Log: `docs/context/session-log-2026-09-28-vibe-ready.md`.
 - **Library:** 60 component folders exported from `src/index.ts`.
-- **Tokens:** 2,368 Figma variables in 11 collections, last synced on 2026-09-28 from the user's `Zen-Variables.zip`
+- **Tokens:** 2,176 Figma variables in 11 collections, last synced on 2026-09-28 from the user's `Zen-Variables.zip`
   (Global Colors, Component Theme, Emphasis Level, Typography Configuration). New modes: Component Theme `neutral-s4`
   and Emphasis `light`, wired into ZenProvider, the platform topbar and Storybook. Dashboard/Mobile typography values
   changed. Log: `session-log-2026-09-28.md`, "Token sync". On 2026-09-29 the Figma connector confirmed the four
@@ -56,6 +56,10 @@ Last updated: 2026-09-29.
   02:55), so repo and Figma agree. Log: `session-log-2026-09-29.md`, "Token update from the user's exports". Later
   the same day the user's `Global Colors.json` moved step 3 of every Light and Dark ramp and its Alpha twin (79 values,
   no names changed; log "Global Colors step 3").
+  - A second export moved Dark/Gray/9 and Dark/Gray-Alpha/9 (the plugin's Dark Neutral step 9).
+  - At the user's request the VT, Chat, Brand-Ananas and Neutral-Ananas ramps (192 variables) were removed from the
+    repo. The Figma file still has them, so a future sync must drop them again, or they should be deleted in Figma.
+  - Log: "Dark Gray 9 and ramp removal".
 - **Parity:** every Figma component is built; 49 guideline slugs.
 - **Figma contract:** `node tools/figma-contract/run-all.mjs` runs 23 suites + 25 interactions, all green: Checkbox,
   Radio, Chip, Popover, all six Button sets (every size, plus the Smooth radius mode) and Input/Heading. The review
