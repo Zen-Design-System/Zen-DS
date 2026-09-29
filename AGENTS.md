@@ -44,18 +44,30 @@ with the QA loop below.
 
 ## C. Build → QA → Deliver (every UI change)
 
-Follow `skills/zen-build-qa` (team write-up: `docs/qa/build-qa-process.md`): plan the spec card (tokens per element,
-text styles, hierarchy, APG keyboard pattern, states), build, then run **`npm run qa`** — it checks exactly the files
-this session edited: static gates, style-guard (spacing/radius/typography/colour-role/shadow tokens), runtime text-style,
-content-hierarchy and token-scale checks, dark, Comfortable density, behaviour (focus, keyboard, APG, dead clicks),
-example coverage and 1512/390 screenshots. Open every screenshot before delivering. Hooks in
-`Zen-CodeBase/.claude/settings.json` lint each edit at once and block finishing a turn until the gate passed.
+**Pick your tier** before you start. Every other doc (skills, `docs/qa/*`, the Figma workflow) defers to this table.
+
+| Tier | The change | What it needs |
+| --- | --- | --- |
+| **XS** | a token value, copy, or one CSS value | No spec card. QA = the consumer pages (automatic for tokens). Review only the sheets the gate asks for. One CHANGELOG line if user-facing; session log ≤ 10 lines. |
+| **S** | one component or example | Spec card for the changed elements only. Scoped `npm run qa`. Session log ≤ 30 lines. |
+| **M** | a Figma re-sync, or a variant set across 1–3 components | Evidence table + contract re-capture + the component's suites + scoped `npm run qa`. |
+| **L** | a new component, typography or spacing scale, platform shell, `src/components/_shared` | Full recipe (definition of done, §B), 3-level manifest, `npm run qa -- --all`. |
+
+Parallel agents: only for M/L, one agent per 3 or fewer components, one reviewer; never multi-agent audits for XS/S.
+
+Follow `skills/zen-build-qa` (team write-up: `docs/qa/build-qa-process.md`): plan the spec card your tier asks for
+(tokens per element, text styles, hierarchy, APG keyboard pattern, states), build, then run **`npm run qa`** — it
+checks the files this session edited since its last passing run: static gates, style-guard
+(spacing/radius/typography/colour-role/shadow tokens), runtime text-style, content-hierarchy and token-scale checks,
+dark, Comfortable density, behaviour (focus, keyboard, APG, dead clicks), example coverage and 1512/390 screenshots.
+Open the contact sheets the gate asks for before delivering. Hooks in `Zen-CodeBase/.claude/settings.json` lint each
+edit at once and block finishing a turn until the gate passed (not while your own run is still going).
 
 ## Commands
 
 | Gate | Command |
 | --- | --- |
-| **Build-QA gate** | `npm run qa` (scope = this session's edits; `--pages=`, `--all`) · `npm run qa:quick` while iterating |
+| **Build-QA gate** | `npm run qa` (scope = this session's edits since its last pass; `--only=` exactly these pages, `--pages=` add pages, `--all`, `--keep-going` browser steps even after a static ✗) · `npm run qa:quick` while iterating |
 | Style tokens | `npm run style:check` (`--list`, `--all`, `--baseline-update`) · `npm run style:selftest` |
 | Types | `npx tsc --noEmit -p .` |
 | Usage harness | `npm run usage:selftest` · `npm run usage:check` (the CLI, ESLint plugin and app mode are checked by the selftest) |
@@ -64,13 +76,13 @@ example coverage and 1512/390 screenshots. Open every screenshot before deliveri
 | Visual regression | `node tools/platform-audit/visual-diff.mjs capture <dir> --url=…` before and after, then `… compare <before> <after> --sheets=<dir>`: refactors that must not change the UI need 0 changed panels |
 | Guidelines + props docs | `npm run guidelines:build` then `npm run guidelines:check` |
 | Tokens / styles / icons | `npm run tokens:check` · `npm run styles:check` · `npm run icons:check` |
-| Figma parity | `node tools/figma-contract/run-all.mjs` |
+| Figma parity | `node tools/figma-contract/run-all.mjs` (the gate runs only the suites of the components you edited) · re-capture: `tools/figma-contract/README.md` |
 | Platform (dev server on :5173) | `npm run platform:audit` (`:full`, `--dark`, `--quality`, `--density`) · `npm run platform:behaviour` · `npm run platform:shoot -- <page>`, and look at the images |
 | Package | `npm run build:lib` · `npm run pack:local` · `npm run verify:package` |
 | Everything | `npm run build` (library + platform) |
 
 The full QA loop is `skills/zen-platform-qa` (detail in `docs/qa/platform-audit.md`). Basic UI slips (text flush to
-an edge, a stretched small button, an oversized icon) must be caught with `platform:audit` and screenshots before
+an edge, a stretched small button, an oversized icon) must be caught by the gate's audit and contact sheets before
 reporting work as done.
 
 ## Where things live
@@ -96,8 +108,8 @@ reporting work as done.
 
 Several Claude sessions often edit this folder at once. Re-read a file right before writing it, make targeted edits
 (never rewrite a whole shared file), and generate new files before switching imports to them, so the shared dev server
-never breaks. Log what you did in `docs/context/session-log-<date>.md`, add a user-facing line to `CHANGELOG.md`
-(Unreleased), and update `docs/context/HANDOFF.md` when the current state or open items change.
+never breaks. Log what you did in `docs/context/session-log-<date>.md` (length by tier, §C), add a user-facing line
+to `CHANGELOG.md` (Unreleased), and update `docs/context/HANDOFF.md` when the current state or open items change.
 
 **Scope lock (the user's rule since 2026-09-29).** Do only the task the user approved. Nothing new starts without the
 user's explicit approval: no new session, no task chip, no new harness rule or audit check, no fix to a component or

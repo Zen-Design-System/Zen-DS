@@ -167,14 +167,19 @@ removed.
   - Toggle tracks size from the dot plus Spacing/Padding/3XSmall on each side.
   - Chat text bubbles keep Spacing/Gap/3XSmall between the message and its time, and cap the text at 220 / 516px
     (Mobile / Desktop).
-  - Search in a popover (`variant="popover"`) draws a 3px Input/Border/Default ring while focused or typing. It is
-    transparent in every theme except Neutral - S4.
+  - Search in a popover (`variant="popover"`) keeps a 1px Input/Border stroke in every state (Input/Border/Hover on
+    hover, 1px instead of 2px) and draws no focus ring. The stroke is transparent in every theme except Neutral - S4.
   - Table trend badges use the trend-up-01 / trend-down-01 / minus icons. The in-place editor pads 12 × 16, keeps
     XSmall between its tags and the input, and draws its underline inside the cell.
   - Segmented Medium badges get Spacing/Padding/3XSmall on each side.
   - Breadcrumbs: 4px between an item and its chevron, 8px between items (was 0 and 2).
 
 ### Quality
+- **Proportional process (2026-09-29):** a tier table (XS/S/M/L) in AGENTS.md decides how much planning, QA and
+  logging a change gets. `npm run qa` now checks only what changed since the session's last pass (token edits → the
+  pages that use them), with `--only=` and `--keep-going`; static gates run only for what you edited and stop the run
+  early on a ✗; the Stop hook asks for at most 12 new contact sheets and lets a turn end while a run is still going.
+  `figma-console-extract.js` works in `use_figma` as is and adds `__HASHES(ids)`.
 - Browser tests (Vitest, Chromium): every component renders in light and dark with an axe baseline that only
   shrinks; size spellings render identically; interaction tests for Menu, Dialog, Tooltip, useToast, Table,
   Pagination, Accordion, Form and ZenProvider. CI workflow for every gate. Pixel-level visual diff tool for the

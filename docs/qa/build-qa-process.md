@@ -11,8 +11,9 @@ Quy trình có ba lớp. Máy đo những gì đo được; người build lập
 | Sau **mỗi lần** sửa một file UI | style-guard + usage-guard trên đúng file đó; lỗi mới trả về ngay cho Claude | hook PostToolUse (tự động) |
 | Trong lúc lặp | `npm run qa:quick` — cổng tĩnh + audit 1512 | người build |
 | Trước khi deliver | `npm run qa` — tĩnh, runtime, dark, Comfortable, hành vi, độ phủ example, ảnh chụp | người build |
-| Khi Claude định kết thúc lượt | chặn nếu còn file UI chưa qua QA đầy đủ, hoặc chưa mở xem ảnh của lần pass | hook Stop (tự động) |
+| Khi Claude định kết thúc lượt | chặn nếu còn file UI chưa qua QA đầy đủ, hoặc chưa mở các ảnh gate yêu cầu; nếu lần `npm run qa` của chính session còn đang chạy thì chỉ in một dòng ghi chú và cho dừng | hook Stop (tự động) |
 
+Làm bao nhiêu bước là tuỳ **tier** của thay đổi: bảng **Pick your tier** trong [AGENTS.md §C](../../AGENTS.md).
 Skill cho agent: [`skills/zen-build-qa/SKILL.md`](../../skills/zen-build-qa/SKILL.md). QA toàn bộ platform (audit
 định kỳ) vẫn theo [platform-audit](platform-audit.md); viết example theo
 [example-patterns](../guides/example-patterns.md).
@@ -20,7 +21,7 @@ Skill cho agent: [`skills/zen-build-qa/SKILL.md`](../../skills/zen-build-qa/SKIL
 ## 1. Trước khi build: spec card
 
 Trước khi viết code cho component mới, example mới hay một thay đổi nhìn thấy được, chốt các điểm sau. Phần lớn kết
-quả "chưa chuẩn" đến từ việc bỏ qua bước này.
+quả "chưa chuẩn" đến từ việc bỏ qua bước này. Có cần spec card không, và cho phần tử nào, là theo tier (AGENTS.md §C).
 
 1. Node Figma chính xác (file `9nZv4uW2LT21yuHabMTCh1`) và mode.
 2. Bảng anatomy, mỗi phần tử một dòng: token padding/gap, token radius, text style + tone, role màu
@@ -126,16 +127,35 @@ Khi Figma thật sự dùng một giá trị ngoài scale: ưu tiên gắn vào 
 ## 3. Cổng QA: `npm run qa`
 
 ```bash
-npm run qa                        # phạm vi = các file session này đã sửa (lấy từ sổ theo dõi của hook)
+npm run qa                        # phạm vi = file UI session này sửa sau lần pass gần nhất (sổ theo dõi của hook)
+npm run qa -- --only=card,chip    # chỉ đúng các trang này (bỏ qua trang suy ra từ sổ theo dõi)
 npm run qa -- --pages=card,chip   # thêm trang khi ánh xạ không tự đoán được (lệnh sẽ báo)
 npm run qa -- --files=src/a.css   # thêm file (ví dụ khi sửa ngoài Claude)
-npm run qa -- --all               # mọi trang — bắt buộc trước khi deliver thay đổi ở component lõi, token, shell
+npm run qa -- --keep-going        # vẫn chạy các bước browser khi một cổng tĩnh lỗi
+npm run qa -- --all               # mọi trang: tier L (AGENTS.md §C)
 ```
+
+Phạm vi được tính như sau:
+
+- **Trang** lấy từ các lần sửa sau lần pass gần nhất; sau một lần pass, các lần sửa cũ hơn và ghi chú của chúng không
+  còn được tính.
+- **Token** (`src/styles/tokens.css`, `tokens/source/**`, `src/tokens/**`): gate so custom property đã đổi với git
+  HEAD, thêm mọi biến `--zen-*` alias tới chúng, tìm CSS component và platform đọc các tên đó, rồi kiểm các trang của
+  những file ấy. Gate in ra danh sách trang consumer, hoặc báo không tìm thấy consumer và quay về bộ trang đại diện.
+  Gate chỉ nhắc `--all` với nguồn typography/spacing scale, `src/components/_shared` và shell platform.
 
 Các bước:
 
-1. **Tĩnh:** tsc · style-guard · usage-guard · self-test của hai harness · guidelines đồng bộ · figma-contract (khi sửa
-   component) · tokens/styles check (khi sửa style).
+1. **Tĩnh:** tsc · style-guard · usage-guard · guidelines đồng bộ · tokens/styles check (khi sửa style), và theo đúng
+   phần đã sửa:
+   - self-test của hai harness chỉ khi sửa `tools/usage-guard/**` hoặc `tools/style-guard/**`;
+   - figma-contract chỉ chạy suite của component đã sửa (chạy hết khi sửa `tools/figma-contract/**`);
+   - Vitest chỉ chạy test liên quan tới file đã sửa (cả bộ khi sửa `tests/**`, `_shared`, hoặc khi `related` không
+     dùng được, lệnh sẽ báo);
+   - guidelines lệch ở component session đã sửa thì được build lại và báo "regenerated"; lệch ở component session
+     không sửa là ⚠ nêu tên (việc của session khác), không phải lỗi.
+
+   `--all` chạy tất cả. Một cổng tĩnh lỗi thì các bước browser bị bỏ qua (báo rõ bước nào), trừ khi có `--keep-going`.
 2. **Runtime** (`audit.mjs --quality --density --smoke` ở 1512 + 390, rồi `--dark` ở 1512). Ngoài các check cũ (edges,
    sizes, surfaces, overflow, typography, outline…) có thêm:
 
@@ -151,8 +171,10 @@ Các bước:
 3. **Hành vi** (`npm run platform:behaviour`): focus ring nhìn thấy khi Tab, mọi control tới được bằng bàn phím, không
    có phần tử chỉ bấm được bằng chuột, phím APG (tabs, menu button, dialog: focus trap + Escape + trả focus, slider,
    disclosure, combobox…), nút bấm không có tác dụng (dead click), không có phản hồi hover.
-4. **Độ phủ example:** mỗi trang đủ state, edge case, mobile, bàn phím/a11y, kết hợp — thiếu thì thêm example hoặc
-   nêu lý do.
+4. **Độ phủ example:** mỗi trang đủ state, edge case, mobile, bàn phím/a11y, kết hợp. ⚠ chỉ hiện cho trang có nguồn
+   example mà session đã sửa; các trang khác gộp thành một dòng "N pages with known coverage gaps (Backlog)". Thiếu
+   example: ghi một dòng Backlog (mức ưu tiên + chỗ trỏ) vào `docs/context/HANDOFF.md`; chỉ thêm example khi việc đó
+   nằm trong task đã được duyệt.
 5. **Ảnh chụp:** contact sheet 1512 và 390 cho từng trang.
 
 Kết quả ghi vào `.qa/reports/<thời điểm>.md` (kèm `.json`), có khối **"Tóm tắt để báo cáo"** để dán khi deliver.
@@ -162,15 +184,20 @@ server) mới được tính là pass.
 ### Nợ cũ (baseline)
 
 Lỗi có từ trước nằm trong `tools/style-guard/baseline.json`, `tools/platform-audit/quality-baseline.json` và
-`tools/platform-audit/behaviour-baseline.json`. Chúng được liệt kê riêng và không làm hỏng cổng; lỗi **mới** thì có.
-Khi chạm vào dòng hoặc example còn nợ, sửa luôn rồi cập nhật baseline (`npm run style:check -- --baseline-update`,
-`node tools/platform-audit/audit.mjs --pages=<trang> --quality --density --baseline-update`). Nợ chỉ được giảm. Khi
-thêm một check mới, ghi nợ ban đầu bằng `--baseline-update=<kind>`: chỉ kind đó được ghi, lỗi hiện có của các kind
-khác (có thể là việc đang làm dở của session khác) không bị nhận thành nợ.
+`tools/platform-audit/behaviour-baseline.json` (cảnh báo `contrast` và `targets` nay cũng có baseline). Chúng được liệt
+kê riêng và không làm hỏng cổng; lỗi **mới** thì có. Chỉ triage ⚠ **mới**; ⚠ có từ trước là nợ: ghi vào Backlog (Scope
+lock), không sửa trong task này. Khi chạm vào dòng hoặc example còn nợ: ghi một dòng Backlog (mức ưu tiên + chỗ trỏ)
+vào `docs/context/HANDOFF.md`; chỉ sửa rồi cập nhật baseline (`npm run style:check -- --baseline-update`,
+`node tools/platform-audit/audit.mjs --pages=<trang> --quality --density --baseline-update`) khi việc đó nằm trong task
+đã được duyệt. Nợ chỉ được giảm. Khi thêm một check mới, ghi nợ ban đầu bằng `--baseline-update=<kind>`: chỉ kind đó
+được ghi, lỗi hiện có của các kind khác (có thể là việc đang làm dở của session khác) không bị nhận thành nợ.
 
 ## 4. Nhìn ảnh: UX rubric
 
-Mở từng contact sheet (1512 và 390) và đi qua từng card:
+Mở (Read) các contact sheet mà hook Stop yêu cầu: sheet của lần pass gần nhất có ảnh khác mọi sheet đã xem trong
+session, tối đa 12, ưu tiên trang có file component/example của chính nó vừa sửa, 390 trước 1512. Phần còn lại được
+liệt kê là tuỳ chọn; sheet trùng hash với sheet đã xem thì không bao giờ bị yêu cầu lại. Với mỗi sheet, đi qua từng
+card:
 
 1. **Hierarchy:** một điểm vào rõ ràng; tiêu đề > body > meta nhìn là thấy; không gì tranh với hành động chính.
 2. **Nhịp khoảng cách:** thứ liên quan gần nhau hơn thứ không liên quan; khoảng cách trong nhóm đồng đều; không chật,
@@ -190,14 +217,15 @@ lập, rồi sửa theo.
 
 ## 5. Deliver
 
-Chỉ deliver sau một lần `npm run qa` pass đầy đủ và đã xem hết ảnh. Câu trả lời (tiếng Việt) gồm: thay đổi gì và vì
-sao; khối "Tóm tắt để báo cáo"; các ảnh đã xem; mọi cảnh báo được giữ lại kèm lý do; lỗi phía Figma; phần chưa kiểm
-chứng được. Sau đó ghi `docs/context/session-log-<ngày>.md`, một dòng CHANGELOG (Unreleased) và cập nhật HANDOFF.md khi
-bức tranh chung thay đổi.
+Chỉ deliver sau một lần `npm run qa` pass đầy đủ và đã xem các ảnh gate yêu cầu. Câu trả lời (tiếng Việt) gồm: thay
+đổi gì và vì sao; khối "Tóm tắt để báo cáo"; các ảnh đã xem; mọi cảnh báo **mới** được giữ lại kèm lý do; lỗi phía
+Figma; các dòng Backlog đã thêm; phần chưa kiểm chứng được. Sau đó ghi `docs/context/session-log-<ngày>.md`, một dòng
+CHANGELOG (Unreleased) và cập nhật HANDOFF.md khi bức tranh chung thay đổi, với độ dài theo tier (AGENTS.md §C).
 
-Hook Stop chặn việc kết thúc lượt khi còn file UI chưa qua QA đầy đủ sau lần sửa cuối, hoặc khi ảnh của lần pass chưa
-được mở. Nếu Claude dừng lần nữa mà không có gì thay đổi, lượt vẫn kết thúc (không lặp vô hạn) và người dùng nhận một
-cảnh báo.
+Hook Stop chặn việc kết thúc lượt khi còn file UI chưa qua QA đầy đủ sau lần sửa cuối, hoặc khi các ảnh nó yêu cầu
+chưa được mở. Khi lần `npm run qa` của chính session còn đang chạy (pid còn sống), hook không chặn mà in
+"QA run <pid> still in progress; results will follow"; pid đã chết thì bị bỏ qua và xoá. Nếu Claude dừng lần nữa mà
+không có gì thay đổi, lượt vẫn kết thúc (không lặp vô hạn) và người dùng nhận một cảnh báo.
 
 ## 6. Hook: cài đặt, tắt, xử lý sự cố
 
@@ -213,9 +241,10 @@ cảnh báo.
 - Sổ theo dõi và báo cáo nằm trong `Zen-DS/.qa/` (đã gitignore). Xoá `.qa/sessions/<session>.json` để làm lại từ đầu.
 - Hook không bao giờ làm hỏng tool call: lỗi nội bộ thì im lặng thoát 0.
 
-## 7. Làm cho lỗi không lặp lại
+## 7. Lỗi có thể lặp lại
 
-Một loại lỗi có thể lặp lại phải thành rule: token → style-guard (`tools/style-guard/check-styles.mjs` + fixture
-`bad.*`/`good.*`, `npm run style:selftest`); cách dùng component → usage-guard; thứ chỉ thấy khi render →
-`tools/platform-audit/quality-checks.mjs` hoặc `behaviour.mjs`. Kèm một dòng Do/Don't trong guideline. Xem thêm
-[`skills/zen-platform-qa`](../../skills/zen-platform-qa/SKILL.md) bước 7.
+Một loại lỗi có thể lặp lại: ghi một dòng Backlog (mức ưu tiên + chỗ trỏ) vào `docs/context/HANDOFF.md`; chỉ làm khi
+việc đó nằm trong task đã được duyệt. Khi được duyệt, rule đặt ở: token → style-guard
+(`tools/style-guard/check-styles.mjs` + fixture `bad.*`/`good.*`, `npm run style:selftest`); cách dùng component →
+usage-guard; thứ chỉ thấy khi render → `tools/platform-audit/quality-checks.mjs` hoặc `behaviour.mjs`; kèm một dòng
+Do/Don't trong guideline.

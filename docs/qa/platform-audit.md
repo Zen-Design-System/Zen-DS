@@ -1,6 +1,6 @@
 # Quy trình QA toàn bộ component trên Codebase Platform
 
-Mục tiêu: mỗi lần "audit và QA lại hết component" đều chạy cùng một quy trình, có bằng chứng, và mỗi lỗi hệ thống tìm được sẽ thành một rule harness hoặc một dòng guideline để không lặp lại. Quy trình này dùng cùng skill [`zen-platform-qa`](../../skills/zen-platform-qa/SKILL.md). Hướng dẫn viết example nằm ở [example-patterns](../guides/example-patterns.md). So Figma theo [figma-to-platform-workflow](../figma-to-platform-workflow.md).
+Mục tiêu: mỗi lần "audit và QA lại hết component" đều chạy cùng một quy trình, có bằng chứng, và mỗi lỗi hệ thống tìm được được ghi thành một dòng Backlog (mức ưu tiên + chỗ trỏ) trong `docs/context/HANDOFF.md`; chỉ biến nó thành rule harness hoặc dòng guideline khi việc đó nằm trong task đã được duyệt. Thay đổi đơn lẻ thì chọn tier theo bảng **Pick your tier** trong [AGENTS.md §C](../../AGENTS.md) và dùng `npm run qa`. Quy trình này dùng cùng skill [`zen-platform-qa`](../../skills/zen-platform-qa/SKILL.md). Hướng dẫn viết example nằm ở [example-patterns](../guides/example-patterns.md). So Figma theo [figma-to-platform-workflow](../figma-to-platform-workflow.md).
 
 ## 0. Chuẩn bị
 
@@ -10,21 +10,17 @@ Mục tiêu: mỗi lần "audit và QA lại hết component" đều chạy cùn
 
 ## 1. Cổng tĩnh (nhanh, chạy trước)
 
-```bash
-npx tsc --noEmit -p .
-npm run usage:check          # rule dùng component: JSX của src/platform và src/components (trừ stories) + CSS
-npm run usage:selftest       # mỗi rule có case trong fixtures/bad.* và good.* sạch
-npm run guidelines:check     # docs/guidelines đồng bộ với guidelines.source.mjs
-node tools/figma-contract/run-all.mjs   # hợp đồng Figma ↔ component
-```
+Cổng tĩnh nằm trong cùng lần `npm run qa` ở bước 2. Với `--all` nó chạy tsc, self-test của hai harness, guidelines,
+mọi suite hợp đồng Figma và Vitest. Gate chỉ lint file trong phạm vi, nên một lượt sweep chạy thêm một lần
+`npm run usage:check` (rule dùng component cho toàn bộ JSX của src/platform và src/components, trừ stories, + CSS). Cổng
+tĩnh lỗi thì các bước browser bị bỏ qua (gate nêu tên), trừ khi có `--keep-going`.
 
 ## 2. Audit runtime (Playwright)
 
 ```bash
-npm run platform:audit                      # mọi trang, 1512 + 390, quét cả playground
-npm run platform:audit:full                 # 1512 + 1024 + 390 và smoke-click mọi nút trong example
-node tools/platform-audit/audit.mjs --dark  # dark mode
-node tools/platform-audit/audit.mjs --pages=chat,bottom-sheet --smoke   # chỉ các trang vừa sửa
+npm run qa -- --all                        # sweep: audit 1512 + 390 (smoke, quality, density, playground), dark 1512, hành vi, độ phủ, contact sheet
+npm run qa -- --only=chat,bottom-sheet     # chỉ đúng các trang này
+npm run platform:audit:full -- --pages=…   # thêm 1024 chỉ khi layout 1024 nằm trong phạm vi
 ```
 
 | Loại | Mức | Ý nghĩa và cách xử lý |
@@ -41,17 +37,19 @@ node tools/platform-audit/audit.mjs --pages=chat,bottom-sheet --smoke   # chỉ 
 | typography | lỗi | Chữ trong preview hoặc trong overlay được portal ra `.official-portal-root` (Dialog, Side Panel, Toast, Tooltip, Popover…) lại dùng typography Zen-Platform của khung platform (Heading font TASA Explorer, letter-spacing giãn), thay vì `data-typography` của preview (mặc định Dashboard, theo chip Typography). Sửa ở container: portal root và mọi vùng preview phải mang `data-typography`; không đặt font riêng cho từng example. |
 | device | lỗi | Phần chat không khớp khung: ChatThread/ChatComposer desktop trong điện thoại, bản mobile trong cửa sổ desktop (`.pe-chat-desktop`), example chat (kể cả dòng Conversation-List) không nằm trong khung thiết bị nào, hoặc message desktop còn dùng nhấn giữ của mobile. |
 | outline | lỗi | Outline heading trong mỗi example hoặc preview playground: hơn một `h1`, nhảy cấp khi đi xuống (`h1` → `h3`), hoặc heading to hơn heading chứa nó. Rule nằm ở mục Typography › Content hierarchy. Sửa bằng cấp heading (level, `headingLevel`), không đổi cỡ chữ. |
+| ids | cảnh báo | Id trùng. Trong example dùng `useId()` để không trùng khi render hai lần. |
+| targets | cảnh báo (có baseline) | Trên mobile, hit area nhỏ hơn 24×24 (WCAG 2.5.8). Thêm lớp `::after` vô hình tối thiểu 24px. |
+| contrast | cảnh báo (có baseline) | Chữ dưới 3:1. Nếu do palette Figma thì ghi vào mục "Chấp nhận" bên dưới; không tự đổi màu so với Figma. |
 
 Với `--smoke`, `sizes`, `edges`, `typography` và `device` còn chạy lại sau mỗi cú bấm vào example, nên kiểm được cả dialog, side panel, sheet và popover chỉ xuất hiện khi mở.
-| ids | cảnh báo | Id trùng. Trong example dùng `useId()` để không trùng khi render hai lần. |
-| targets | cảnh báo | Trên mobile, hit area nhỏ hơn 24×24 (WCAG 2.5.8). Thêm lớp `::after` vô hình tối thiểu 24px. |
-| contrast | cảnh báo | Chữ dưới 3:1. Nếu do palette Figma thì ghi vào mục "Chấp nhận" bên dưới; không tự đổi màu so với Figma. |
 
-Lệnh trả exit code 1 khi còn lỗi. Chỉ chuyển sang bước sau khi không còn lỗi nào.
+Lệnh trả exit code 1 khi còn lỗi. Chỉ chuyển sang bước sau khi không còn lỗi nào. Chỉ triage ⚠ **mới**; ⚠ có từ trước là nợ: ghi vào Backlog (Scope lock), không sửa trong task này.
 
 ## 3. Kiểm tra bằng mắt (bắt buộc)
 
-Audit DOM không thấy được một nút bị bẹp, icon phóng to hay CTA lệch hàng. Phải chụp và xem từng card:
+Audit DOM không thấy được một nút bị bẹp, icon phóng to hay CTA lệch hàng. `npm run qa` đã chụp contact sheet 1512 và
+390 cho mọi trang trong phạm vi; mở các sheet hook Stop yêu cầu, rồi mở thêm các sheet tuỳ chọn của trang đã sửa và
+trang mobile. `platform:shoot` dùng cho trạng thái sau thao tác và để đặt cạnh Figma:
 
 ```bash
 npm run platform:shoot -- <page>                          # mọi card + contact sheet → .platform-shots/<page>-1512.png
@@ -82,7 +80,7 @@ Bắt buộc xem ở 390px cho mọi component mobile (Top/Bottom Navigation, Bo
 1. Tìm node cụ thể trong Figma (xem memory *Zen DS project map* để có node id), rồi `get_screenshot` node đó.
 2. Chụp example hoặc playground tương ứng bằng `platform:shoot`, rồi dùng `--compose` đặt hai ảnh cạnh nhau.
 3. So sánh: kích thước (avatar, icon, hit area), typography style, màu token, trạng thái (selected, unread, failed), khoảng cách, bóng.
-4. Nếu một hợp đồng trong `docs/figma-contracts/*.json` lỗi thời (Figma đã đổi), đọc lại variant bằng `use_figma`: chạy `tools/figma-contract/figma-console-extract.js`, thay `window.` bằng `globalThis.`. Output giới hạn khoảng 20KB, nên chỉ trích đúng variant cần. Sau đó vá JSON và chạy lại `run-all.mjs`.
+4. Nếu một hợp đồng trong `docs/figma-contracts/*.json` lỗi thời (Figma đã đổi), đọc lại bằng `tools/figma-contract/figma-console-extract.js`: file chạy nguyên văn trong `use_figma` lẫn console Figma desktop (cách làm và công thức chia nhỏ/hash ở [README](../../tools/figma-contract/README.md)). Dùng `__HASHES(ids)` để biết variant nào đổi, rồi chỉ trích các variant đó (output của `use_figma` giới hạn khoảng 20 KB). Sau đó vá JSON và chạy lại `run-all.mjs`.
 5. Chỗ nào chủ ý khác Figma thì ghi rõ lý do, ví dụ quyết định của người dùng: nhãn Popover chỉ một dòng, cắt bằng "…". Lỗi nằm ở phía Figma thì ghi vào mục "Vấn đề phía Figma" để báo người dùng; không tự sửa.
 
 ## 5. Vòng sửa
@@ -91,17 +89,17 @@ Bắt buộc xem ở 390px cho mọi component mobile (Top/Bottom Navigation, Bo
 | --- | --- |
 | Component (CSS/TSX) | `src/components/<X>`; cập nhật story nếu API đổi |
 | Example hoặc playground | `src/platform/Platform*Showcases.tsx`, `PlatformExamples.tsx`, `PlatformMobile*.tsx` |
-| Lỗi có thể lặp lại | Thêm rule vào `check-usage.mjs`, case `expect:` trong `fixtures/bad.*`, case sạch trong `good.*`, và một dòng Do/Don't trong `guidelines.source.mjs` |
-| Thiếu kịch bản | Thêm example theo ma trận trong [example-patterns](../guides/example-patterns.md) |
+| Lỗi có thể lặp lại | Ghi một dòng Backlog (mức ưu tiên + chỗ trỏ) vào `docs/context/HANDOFF.md`; chỉ làm khi việc đó nằm trong task đã được duyệt (khi đó: rule trong `check-usage.mjs`, case `expect:` trong `fixtures/bad.*`, case sạch trong `good.*`, một dòng Do/Don't trong `guidelines.source.mjs`) |
+| Thiếu kịch bản | Ghi một dòng Backlog (mức ưu tiên + chỗ trỏ) vào `docs/context/HANDOFF.md`; chỉ thêm example (theo ma trận trong [example-patterns](../guides/example-patterns.md)) khi việc đó nằm trong task đã được duyệt |
 
-Sau mỗi đợt sửa, chạy lại bước 1, bước 2 (trên các trang đã sửa, kèm `--smoke`) và bước 3 cho các card đã sửa.
+Sau mỗi đợt sửa, chạy lại `npm run qa` (chỉ kiểm lại phần sửa sau lần pass trước) và mở các sheet gate yêu cầu.
 
 ## 6. Kết thúc
 
-- Chạy toàn bộ bước 1, `platform:audit:full` và `--dark`.
-- Thêm một mục vào `docs/context/session-log-<ngày>.md`: đã sửa gì, rule mới, phần còn lệch.
+- Chạy lại `npm run qa` cho tới khi pass (phạm vi = phần sửa sau lần pass trước).
+- Thêm một mục vào `docs/context/session-log-<ngày>.md`: đã sửa gì, dòng Backlog đã thêm, phần còn lệch.
 - Báo các session đang chạy song song về những thay đổi chạm vào phần họ phụ trách.
-- Báo cáo cho người dùng: lỗi đã sửa, example mới, rule mới, và danh sách "Chấp nhận" / "Vấn đề phía Figma".
+- Báo cáo cho người dùng: lỗi đã sửa, dòng Backlog mới, và danh sách "Chấp nhận" / "Vấn đề phía Figma".
 
 ## Chấp nhận (cảnh báo đã biết, theo palette Figma)
 

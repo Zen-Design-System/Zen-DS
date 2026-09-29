@@ -65,7 +65,7 @@ const QUALITY = Boolean(arg("quality", false));
 const DENSITY = Boolean(arg("density", false));
 const BASELINE_FILE = path.join(root, "tools/platform-audit/quality-baseline.json");
 const BASELINE_UPDATE = arg("baseline-update", false); // true, or a comma list of kinds to rewrite
-const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "density", "fit"];
+const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "density", "fit", "contrast", "targets"]; // contrast + targets stay warnings; baselined so only NEW ones are listed
 const CSS = arg("css", null) ? fs.readFileSync(path.resolve(String(arg("css"))), "utf8") : null;
 if (CSS && BASELINE_UPDATE) { console.error("--css cannot be combined with --baseline-update: the injected CSS is not the page's real state."); process.exit(2); }
 const baseline = arg("no-baseline", false) ? {} : (() => { try { return JSON.parse(fs.readFileSync(BASELINE_FILE, "utf8")).keys ?? {}; } catch { return {}; } })();

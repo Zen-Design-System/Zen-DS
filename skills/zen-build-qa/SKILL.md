@@ -1,6 +1,6 @@
 ---
 name: zen-build-qa
-description: Build → QA → Deliver process for Zen DS components, playgrounds, examples and templates. Use whenever you build or change anything under src/components, src/platform or src/templates, and before you report UI work as done. Plan tokens and hierarchy first, let the instant checks catch drift while you build, run `npm run qa`, look at every screenshot with the UX rubric, and deliver with the QA summary.
+description: Build → QA → Deliver process for Zen DS components, playgrounds, examples and templates. Use whenever you build or change anything under src/components, src/platform or src/templates, and before you report UI work as done. Plan tokens and hierarchy first, let the instant checks catch drift while you build, run `npm run qa`, look at the screenshots the gate asks for with the UX rubric, and deliver with the QA summary.
 ---
 
 # Zen Build → QA → Deliver
@@ -8,6 +8,7 @@ description: Build → QA → Deliver process for Zen DS components, playgrounds
 Every component, playground and example must be right on six axes: **spacing** (padding, gap), **corner radius**,
 **tokens in the right role**, **style** (layers, borders, effects), **typography and content hierarchy**, and
 **function + UX**. This skill is the order of work. Tools do the measuring; you do the planning and the looking.
+How much of it a change needs is set by its tier: the **Pick your tier** table in `AGENTS.md` §C.
 
 The machinery (see `docs/qa/build-qa-process.md` for details and the Vietnamese write-up for the team):
 
@@ -16,12 +17,13 @@ The machinery (see `docs/qa/build-qa-process.md` for details and the Vietnamese 
 | After every Edit/Write of a UI file | style-guard + usage-guard on that file; new errors come back to you at once | PostToolUse hook |
 | While iterating | `npm run qa:quick` (static + audit at 1512) | you |
 | Before delivering | `npm run qa` (static, runtime quality, dark, Comfortable density, behaviour, coverage, screenshots) | you |
-| When you try to finish | blocks if UI files changed without a passing full run, or its screenshots were not opened | Stop hook |
+| When you try to finish | blocks if UI files changed since the last passing full run, or the sheets it asks for were not opened; while your own `npm run qa` is still running it prints one note and lets you stop | Stop hook |
 
 ## 1. Plan before you build (spec card)
 
 Before writing code for a new component, a new example or a visible change, decide these and write them down (in
 the reply for a big piece of work, otherwise in your notes). Most "not standard" results come from skipping this.
+Whether you need a card, and for which elements, follows your tier (`AGENTS.md` §C).
 
 1. **Source:** exact Figma node (live file `9nZv4uW2LT21yuHabMTCh1`) and mode. Read tokens from the node; never guess.
 2. **Anatomy table** — one row per element:
@@ -87,10 +89,28 @@ the reply for a big piece of work, otherwise in your notes). Most "not standard"
 ## 3. Run the gate
 
 ```bash
-npm run qa                      # scope = the files this session edited (from the hook's ledger)
-npm run qa -- --pages=card      # add pages the mapping could not infer (it tells you when)
-npm run qa -- --all             # core components (Button, Text, Icon, Popover…), tokens, shell: before delivering
+npm run qa                        # scope = UI files this session edited since its last passing run (hook's ledger)
+npm run qa -- --only=card,chip    # exactly these pages (ignores the pages inferred from the ledger)
+npm run qa -- --pages=card        # add pages the mapping could not infer (it tells you when)
+npm run qa -- --keep-going        # still run the browser steps when a static gate failed
+npm run qa -- --all               # every page: tier L (AGENTS.md §C)
 ```
+
+What the scope means:
+
+- **Pages** come from edits made after the last passing run; after a pass, older edits and their notes stop counting.
+- **Tokens** (`src/styles/tokens.css`, `tokens/source/**`, `src/tokens/**`): the gate diffs the changed custom
+  properties against git HEAD, adds every `--zen-*` var that aliases them, finds the component and platform CSS that
+  reads those names and checks those files' pages. It prints the consumer pages, or says none was found and falls back
+  to the representative set. It asks for `--all` only for typography/spacing-scale sources, `src/components/_shared`
+  and the platform shell.
+- **Static gates** follow the change: harness self-tests only when `tools/usage-guard/**` or `tools/style-guard/**`
+  changed; Figma contract suites only for the components you edited (all of them when `tools/figma-contract/**`
+  changed); Vitest runs the tests related to the edited files (the full suite for `tests/**` or `_shared` edits, or
+  when `related` is unsupported, which it says). Stale guidelines of a component you edited are rebuilt and reported
+  "regenerated"; stale files of components you did not edit are a ⚠ naming them (another session's work). `--all`
+  runs everything.
+- **Fail fast:** a failing static gate skips the browser steps and names them; add `--keep-going` to run them anyway.
 
 It prints ✗ / ⚠ per step and writes `.qa/reports/<stamp>.md`. Read the report, then fix at the owner:
 
@@ -103,15 +123,21 @@ It prints ✗ / ⚠ per step and writes `.qa/reports/<stamp>.md`. Read the repor
 | `fit` | text wider than its own box, no ellipsis, no scroll (it runs into its neighbours even under `overflow: hidden`): let the item keep its width (`flex-shrink: 0` / `min-width: auto`), wrap, ellipsize, or scroll the row |
 | `edges`, `sizes`, `overflow`, `surfaces`, `outline`, `typography` | see `docs/qa/platform-audit.md` |
 | behaviour ✗ | focus ring, keyboard reach, APG keys, dialog focus trap / Escape / focus return |
-| coverage ⚠ | add the missing example (state, edge case, mobile, keyboard) or say why it does not apply |
+| coverage ⚠ (only pages whose examples you edited; other pages' known gaps are one summary line) | write one Backlog line (priority + pointer) in `docs/context/HANDOFF.md`; add the example only if it is in the approved task |
 
-Pre-existing findings live in baselines (`tools/style-guard/baseline.json`, `tools/platform-audit/*-baseline.json`)
-and do not fail the gate. When you touch a line or example that has baseline debt, fix it and refresh the baseline
-(`npm run style:check -- --baseline-update`, `audit.mjs … --quality --density --baseline-update`) — debt only shrinks.
+Pre-existing findings live in baselines (`tools/style-guard/baseline.json`, `tools/platform-audit/*-baseline.json`,
+now including `contrast` and `targets`) and do not fail the gate. Triage NEW ⚠ only; pre-existing warnings are debt:
+note them in the Backlog (Scope lock), do not fix them in this task. Baseline debt on a line or example you touch:
+write one Backlog line (priority + pointer) in `docs/context/HANDOFF.md`; fix it and refresh the baseline
+(`npm run style:check -- --baseline-update`, `audit.mjs … --quality --density --baseline-update`) only if it is in
+the approved task — debt only shrinks.
 
 ## 4. Look at the screenshots (UX rubric)
 
-Open every contact sheet the gate lists (1512 and 390) with Read. DOM checks cannot see these; go through each card:
+Open the contact sheets the Stop gate asks for with Read: the sheets of the last passing run whose image differs
+from every sheet you already reviewed this session, at most 12, pages whose own component or example files you edited
+first, 390 before 1512. The rest are listed as optional; a sheet with the same hash as one you reviewed is never asked
+for again. DOM checks cannot see these; go through each card:
 
 1. **Hierarchy:** one obvious entry point; title > body > meta at a glance; nothing competes with the primary action.
 2. **Rhythm:** related things closer than unrelated ones; consistent gaps inside a group; no cramped or doubled insets.
@@ -127,11 +153,12 @@ Open states the sheet does not show (a dialog, menu or sheet) with
 `npm run platform:shoot -- <page> --title="…" --click="…"` (add `--width=390`). For a new component or a new set of
 examples, also ask the `zen-ux-reviewer` agent for a fresh-eyes review of the sheets, then fix what it finds.
 
-## 5. Fix loop and make it stick
+## 5. Fix loop
 
-Fix, re-run `npm run qa`, look again. A bug class that could recur becomes a rule (style-guard for tokens,
-usage-guard for component usage, quality-checks/behaviour for runtime) with a fixture, plus a guideline line — see
-`skills/zen-platform-qa` step 7. Tell peer sessions when you change something they own.
+Fix, re-run `npm run qa` (it re-checks what you edited since the last pass; `--only=` narrows it), look at the sheets
+it asks for. A bug class that could recur (a candidate style-guard, usage-guard or quality/behaviour rule): write one
+Backlog line (priority + pointer) in `docs/context/HANDOFF.md`; do it only if it is in the approved task. Tell peer
+sessions when you change something they own.
 
 ## 6. Deliver
 
@@ -139,8 +166,8 @@ Only after a passing full run and the screenshot review. The reply (in Vietnames
 
 1. What changed and why (files, pages).
 2. The "Tóm tắt để báo cáo" block from the QA report, and which screenshots you reviewed.
-3. Every warning you kept, with the reason; Figma-side issues you found; baseline debt you touched or left.
+3. Every NEW warning you kept, with the reason; Figma-side issues you found; the Backlog lines you added.
 4. What you could not verify (say it plainly).
 
-Then log it: `docs/context/session-log-<date>.md`, a CHANGELOG line (Unreleased), and HANDOFF.md when the picture
-changes.
+Then log it at the size your tier sets (`AGENTS.md` §C): `docs/context/session-log-<date>.md`, a CHANGELOG line
+(Unreleased), and HANDOFF.md when the picture changes.

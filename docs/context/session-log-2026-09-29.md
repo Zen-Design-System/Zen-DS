@@ -515,3 +515,45 @@ everything else going to the Backlog.
   pre-existing (Popover "Selection toolbar" wraps at 390, Backlog).
 - **Not done (Scope lock):** 45 follow-ups were reported. Work items are in the HANDOFF Backlog ("From the Figma
   parity update"), and designer questions are in Open items.
+
+## Search Popover, second pass (session "Đánh giá Zen DS hiện tại (fork)")
+
+The user updated Figma Search/Popover 1604:27401 after the parity update and asked to update it again.
+
+- **Live file, read-only:** per-variant hashes against the stored contract showed 17 changed variants, then (after
+  the designer's final edit) a consistent rule across all 30: a 1px INSIDE Container stroke, Input/Border/Hover on
+  Hover and Input/Border/Default in every other state, no outer ring. Fills are unchanged (Default · Hover ·
+  Focused). The two Filter-* Focused/Yes outliers (1px OUTSIDE) were fixed in Figma during the check. The Input
+  variables are unchanged; the set now sits in a frame with an explicit Component Theme mode, so its previews
+  resolve S4 colours.
+- **Code (`search.css`):** Focused/Typing draw the 1px Input/Border/Default stroke and no ring (was a 3px
+  Input/Border/Default ring); Hover stays on Input/Border/Hover at 1px (was the Emphasis 2px of Field-Only). JSDoc,
+  the story and the Icon picker example copy follow.
+- **Measured (Playwright, `?page=search` and `?page=popover`):** Neutral S1: stroke 1px transparent, no ring, fills
+  Pale Default / Pale Hover / Pale Default. Neutral S4: stroke 1px Subtle Default (Hover: Subtle Hover), no ring,
+  Surface fill, in rest, hover, focus and typing.
+- **Contracts:** the 30 stored variants were patched (outer stroke removed, Container stroke added) and match the
+  live file structurally (colour-free hash, 30/30); `.Primitives/Popover/Search` dropped its stale Text typography
+  bindings and matches too. `popover-search` suite 22/22.
+
+## Process optimisation, batch A (session "Đánh giá Zen DS hiện tại (fork)")
+
+The user approved batch A of `process-audit-2026-09-29.md`, then chose to stop there and try it for a few days
+(B, C and D wait in the HANDOFF Backlog).
+
+- **Gate (`tools/qa`):** ledger v2 scopes a run to the edits since the last pass; `--only`, `--keep-going`; a
+  `running` marker so the Stop hook does not block during a run; the sheets to open are fixed when the run ends
+  (new content only, ≤ 12, own pages and 390 first); token edits map to consumer pages (29/9 diff → chip, input and 5
+  pages that render them); self-tests only on harness edits; guidelines auto-rebuilt when only this session's docs are
+  stale; only the edited components' Figma suites and related Vitest files; fail-fast; contrast/targets can be
+  baselined (not seeded yet); coverage ⚠ only for edited example pages; "triage NEW ⚠ only".
+- **Docs:** tier table in AGENTS.md §C; zen-build-qa, zen-platform-qa, zen-figma-component-audit, zen-component-usage,
+  build-qa-process.md, platform-audit.md and figma-to-platform-workflow.md defer to it; instructions that created
+  unapproved work now say "one Backlog line". The Skill tool's stub (`Zen-CodeBase/.claude/skills/zen-build-qa`) too.
+- **Figma:** the extractor uses `globalThis` and has `__HASHES(ids)`; checked read-only against the live file.
+- **Review fixes:** the 12-sheet cap no longer pages (reproduced, fixed, re-run); `--only` no longer clears edits
+  whose pages were not rendered; hooks survive an unreadable transcript or a null ledger entry.
+- **Checks:** reviewer's hook tests (30 malformed payloads, exit 0), `npm run qa -- --only=divider` PASS in ≈40 s
+  (`.qa/reports/2026-09-29T06-22-45-a4b8c773.md`), running marker cleared, required sheets recorded.
+- Follow-ups (seed contrast/targets, Read hook for exact review, token builds via Bash, live Figma drift in 9 Chip and
+  Popover sets, gate details): HANDOFF Backlog, "Process (2026-09-29)".

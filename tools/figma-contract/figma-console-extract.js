@@ -1,10 +1,15 @@
-window.__V = window.__V || {}; window.__ES = window.__ES || {}; window.__TS = window.__TS || {};
-window.__vname = async (id) => { if (!(id in __V)) { const v = await figma.variables.getVariableByIdAsync(id); __V[id] = v ? v.name : '?'; } return __V[id]; };
-window.__sname = async (id, cache) => { if (!id || typeof id !== 'string') return undefined; if (!(id in cache)) { try { const s = await figma.getStyleByIdAsync(id); cache[id] = s ? s.name : '?'; } catch (e) { cache[id] = '?'; } } return cache[id]; };
-window.__bvs = async (bv) => { if (!bv) return undefined; const o = {}; for (const [k, v] of Object.entries(bv)) { if (Array.isArray(v)) o[k] = await Promise.all(v.map(x => __vname(x.id))); else if (v && v.id) o[k] = await __vname(v.id); else if (v && typeof v === 'object') { const inner = {}; for (const [k2, v2] of Object.entries(v)) if (v2 && v2.id) inner[k2] = await __vname(v2.id); o[k] = inner; } } return Object.keys(o).length ? o : undefined; };
-window.__hex = (c, op) => { if (!c) return undefined; const a = (c.a ?? 1) * (op ?? 1); return '#' + [c.r, c.g, c.b].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('') + (a < 0.999 ? Math.round(a * 255).toString(16).padStart(2, '0') : ''); };
-window.__paints = async (ps) => { if (!Array.isArray(ps) || !ps.length) return undefined; const out = []; for (const p of ps) { const o = { t: p.type }; if (p.visible === false) o.hidden = true; if (p.type === 'SOLID') o.c = __hex(p.color, p.opacity); else if (p.opacity !== 1) o.op = p.opacity; if (p.boundVariables && p.boundVariables.color) o.v = await __vname(p.boundVariables.color.id); if (p.gradientStops) o.stops = await Promise.all(p.gradientStops.map(async s => ({ p: +s.position.toFixed(3), c: __hex(s.color), v: s.boundVariables && s.boundVariables.color ? await __vname(s.boundVariables.color.id) : undefined }))); out.push(o); } return out; };
-window.__spec = async (n, depth) => {
+// Figma contract extractor. Runs unchanged in the Figma desktop console and in the use_figma MCP tool
+// (see README "Refreshing the Figma data"). It never touches `window` (use_figma binds it read-only to
+// undefined): internals live in this block, the public helpers are set on globalThis.
+{
+const G = globalThis;
+const __V = (G.__V = G.__V || {}), __ES = (G.__ES = G.__ES || {}), __TS = (G.__TS = G.__TS || {});
+const __vname = async (id) => { if (!(id in __V)) { const v = await figma.variables.getVariableByIdAsync(id); __V[id] = v ? v.name : '?'; } return __V[id]; };
+const __sname = async (id, cache) => { if (!id || typeof id !== 'string') return undefined; if (!(id in cache)) { try { const s = await figma.getStyleByIdAsync(id); cache[id] = s ? s.name : '?'; } catch (e) { cache[id] = '?'; } } return cache[id]; };
+const __bvs = async (bv) => { if (!bv) return undefined; const o = {}; for (const [k, v] of Object.entries(bv)) { if (Array.isArray(v)) o[k] = await Promise.all(v.map(x => __vname(x.id))); else if (v && v.id) o[k] = await __vname(v.id); else if (v && typeof v === 'object') { const inner = {}; for (const [k2, v2] of Object.entries(v)) if (v2 && v2.id) inner[k2] = await __vname(v2.id); o[k] = inner; } } return Object.keys(o).length ? o : undefined; };
+const __hex = (c, op) => { if (!c) return undefined; const a = (c.a ?? 1) * (op ?? 1); return '#' + [c.r, c.g, c.b].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('') + (a < 0.999 ? Math.round(a * 255).toString(16).padStart(2, '0') : ''); };
+const __paints = async (ps) => { if (!Array.isArray(ps) || !ps.length) return undefined; const out = []; for (const p of ps) { const o = { t: p.type }; if (p.visible === false) o.hidden = true; if (p.type === 'SOLID') o.c = __hex(p.color, p.opacity); else if (p.opacity !== 1) o.op = p.opacity; if (p.boundVariables && p.boundVariables.color) o.v = await __vname(p.boundVariables.color.id); if (p.gradientStops) o.stops = await Promise.all(p.gradientStops.map(async s => ({ p: +s.position.toFixed(3), c: __hex(s.color), v: s.boundVariables && s.boundVariables.color ? await __vname(s.boundVariables.color.id) : undefined }))); out.push(o); } return out; };
+const __spec = async (n, depth) => {
   depth = depth || 0;
   const o = { n: n.name, t: n.type };
   if (n.visible === false) o.hidden = true;
@@ -42,17 +47,27 @@ window.__spec = async (n, depth) => {
   if ('children' in n && n.children.length) { o.c = []; for (const ch of n.children) o.c.push(await __spec(ch, depth + 1)); }
   return o;
 };
-window.__vpOf = (c) => { try { return c.variantProperties || {}; } catch (e) { return Object.fromEntries(c.name.split(',').map(p => p.split('=').map(x => x.trim()))); } };
-window.__setSpec = async (id, filter) => {
+const __vpOf = (c) => { try { return c.variantProperties || {}; } catch (e) { return Object.fromEntries(c.name.split(',').map(p => p.split('=').map(x => x.trim()))); } };
+const __setSpec = async (id, filter) => {
   const s = await figma.getNodeByIdAsync(id);
   const out = { id, name: s.name, type: s.type, description: s.description || undefined, docs: (s.documentationLinks || []).map(l => l.uri) };
   if (s.type === 'COMPONENT_SET') { out.props = {}; let defs = {}; try { defs = s.componentPropertyDefinitions; } catch (e) { out.defsError = String(e.message).slice(0, 80); } for (const [k, v] of Object.entries(defs)) out.props[k] = { t: v.type, d: v.defaultValue, o: v.variantOptions }; out.variants = []; for (const c of s.children) { if (filter && !filter(__vpOf(c))) continue; out.variants.push({ vp: __vpOf(c), d: c.description || undefined, spec: await __spec(c, 0) }); } }
   else out.spec = await __spec(s, 0);
   return out;
 };
-window.__RUN = async (ids, filter) => { window.__OUT = []; for (const id of ids) window.__OUT.push(await __setSpec(id, filter)); window.__OUTS = JSON.stringify(window.__OUT); return 'ready ' + window.__OUTS.length; };
+const __RUN = async (ids, filter) => { G.__OUT = []; for (const id of ids) G.__OUT.push(await __setSpec(id, filter)); G.__OUTS = JSON.stringify(G.__OUT); return 'ready ' + G.__OUTS.length; };
 // Clipboard reads through the device bridge cap at ~256 kB: copy one padded chunk at a time with
 // copy(__C(i)) for i < __N(). Padding keeps small chunks large enough to be saved to a file.
-window.__N = () => Math.ceil(window.__OUTS.length / 230000);
-window.__C = (i) => { const part = window.__OUTS.slice(i * 230000, (i + 1) * 230000); return part + ' '.repeat(Math.max(0, 130000 - part.length)); };
+const __N = () => Math.ceil(G.__OUTS.length / 230000);
+const __C = (i) => { const part = G.__OUTS.slice(i * 230000, (i + 1) * 230000); return part + ' '.repeat(Math.max(0, 130000 - part.length)); };
+// Hashing: 32-bit FNV-1a over the UTF-16 code units of a string, as 8 hex digits.
+const __FNV = (str) => { let h = 0x811c9dc5; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); } return (h >>> 0).toString(16).padStart(8, '0'); };
+// Variant key: the variant properties in Figma order, 'Size=Small,State=Default'. A plain component has key ''.
+const __KEY = (vp) => Object.entries(vp || {}).map(([k, x]) => k + '=' + x).join(',');
+// Digest of one extracted entry (a __RUN entry or a stored contract entry): h = the whole entry,
+// v = { variant key: hash of JSON.stringify(spec) }. Same input, same digest, in Figma and in node.
+const __DIGEST = (e) => { const v = {}; for (const x of e.variants || [{ vp: {}, spec: e.spec }]) { let k = __KEY(x.vp); for (let i = 2; k in v; i++) k = __KEY(x.vp) + ' #' + i; v[k] = __FNV(JSON.stringify(x.spec)); } return { id: e.id, n: e.name, h: __FNV(JSON.stringify(e)), v }; };
+const __HASHES = async (ids, filter) => { const out = []; for (const id of ids) { try { out.push(__DIGEST(await __setSpec(id, filter))); } catch (e) { out.push({ id, error: String((e && e.message) || e).slice(0, 120) }); } } return out; };
+Object.assign(G, { __vname, __sname, __bvs, __hex, __paints, __spec, __vpOf, __setSpec, __RUN, __N, __C, __FNV, __KEY, __DIGEST, __HASHES });
+}
 'extractor loaded';

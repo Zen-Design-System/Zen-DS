@@ -33,7 +33,7 @@ Examples are copied into products, so they must model correct usage. Follow `doc
 3. **Copy:** counts use a plural helper (`plural(n, "item")`, harness `copy/plural-count`); labels name the outcome; real data, formatted values; the description matches what the example really does.
 4. **Composition:** List/ListItem for rows (never `div` + Text + Badge), EmptyState, FileIcon + `fileIconFormatOf`, Chip advanced for filters, BadgeCounter for counts, token swatches in ColorSelector, `scale="quota"` for usage-against-limit bars, Icon sizes from the token scale only.
 5. **Platform CSS:** example classes are `pe-*`; grep `src/platform/platform.css` for the name first (a reused `.pe-summary` once broke a layout); tokens only; titles are Strongest.
-6. **Verify:** run `npm run qa` (the Build-QA gate in `skills/zen-build-qa`: static gates, style tokens, text styles and content hierarchy, Comfortable density, dark, behaviour, coverage, screenshots) and look at every contact sheet it prints. DOM checks cannot see a squashed button or an oversized icon.
+6. **Verify:** run `npm run qa` (the Build-QA gate in `skills/zen-build-qa`: static gates, style tokens, text styles and content hierarchy, Comfortable density, dark, behaviour, coverage, screenshots) and open the contact sheets the gate asks for. DOM checks cannot see a squashed button or an oversized icon.
 
 For a full audit of every page, use the `zen-platform-qa` skill.
 

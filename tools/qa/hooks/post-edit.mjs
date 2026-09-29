@@ -2,11 +2,14 @@
 // Claude Code PostToolUse hook (Edit | Write | MultiEdit | NotebookEdit | Bash) for the Zen DS Build-QA gate.
 //
 // After every edit of a UI file (component, playground, example, template, hand-kept styles) it:
-//   1. records the file in this session's ledger (.qa/sessions/<session>.json) with the platform pages it renders on,
-//      so `npm run qa` knows what to check and the Stop hook knows QA is still owed;
+//   1. records the edit in this session's ledger (.qa/sessions/<session>.json) with its time and the platform pages it
+//      renders on, so `npm run qa` checks the pages of the edits made since the last passing run and the Stop hook knows
+//      QA is still owed;
 //   2. lints the file at once — style-guard (spacing / radius / typography / colour roles / shadows / slot sizes) and
 //      usage-guard (component rules) — and hands NEW errors back to Claude as a blocking message, so drift is fixed
 //      while building instead of at the end. Warnings and pre-existing (baseline) debt go back as context only.
+// Edits of harness/contract tooling, tests and token sources are recorded too (ledger `aux`): they scope the static gates
+// (self-tests, contract suites, Vitest, token consumers) and never make the Stop hook ask for a QA run.
 // Bash edits count only for changed files the command itself names (another session may write files meanwhile).
 // It never fails the tool call: any internal problem exits 0 silently.
 import fs from "node:fs";
@@ -26,11 +29,11 @@ async function main() {
     const changed = input.tool_response?.changedFiles ?? input.tool_response?.result?.changedFiles ?? null;
     const cmd = String(ti.command ?? "");
     if (Array.isArray(changed)) targets = changed.filter((f) => typeof f === "string" && (cmd.includes(f) || cmd.includes(path.basename(f))));
-    else if (/\bsed\s+-i|perl\s+-p?i|writeFile|write_text|open\([^)]*['"][wa]['"]|\.write\(|\btee\b|>\s*["']?[\w./-]+\.(tsx|ts|css)\b|\b(cp|mv|patch|git\s+(apply|checkout|restore))\b/.test(cmd)) {
-      // No changed-file list (it is only reported in some permission modes): take the UI files the command names
-      // that were modified in the last two minutes.
+    else if (/\bsed\s+-i|perl\s+-p?i|writeFile|write_text|open\([^)]*['"][wa]['"]|\.write\(|\btee\b|>\s*["']?[\w./-]+\.(tsx|ts|css|mjs|json)\b|\b(cp|mv|patch|git\s+(apply|checkout|restore))\b/.test(cmd)) {
+      // No changed-file list (it is only reported in some permission modes): take the files the command names that were
+      // modified in the last two minutes (UI files, and the tooling/test/token files that scope the static gates).
       const cwd = input.cwd ?? process.cwd();
-      const named = [...new Set([...cmd.matchAll(/(?:\/|\b)[\w.@-]+(?:\/[\w.@-]+)*\.(?:tsx|ts|css)\b/g)].map((m) => m[0]))];
+      const named = [...new Set([...cmd.matchAll(/(?:\/|\b)[\w.@-]+(?:\/[\w.@-]+)*\.(?:tsx|ts|css|mjs|json)\b/g)].map((m) => m[0]))];
       const bases = [cwd, path.join(cwd, "Zen-DS"), process.env.CLAUDE_PROJECT_DIR ?? "", path.join(process.env.CLAUDE_PROJECT_DIR ?? "", "Zen-DS")].filter(Boolean);
       for (const n of named) {
         const hit = (path.isAbsolute(n) ? [n] : bases.map((b) => path.join(b, n))).find((f) => fs.existsSync(f));
@@ -47,7 +50,12 @@ async function main() {
   const messages = { block: [], context: [] };
   for (const file of targets) {
     const root = lib.repoRootOf(file); if (!root) continue;
-    const rel = lib.relTo(root, file); const kind = lib.uiKind(rel); if (!kind) continue;
+    const rel = lib.relTo(root, file); const kind = lib.uiKind(rel);
+    if (!kind) {
+      // Tooling / tests / token sources: record the edit so the gate scopes its static checks; no lint, no brief.
+      if (session && lib.auxKind(rel)) { const ledger = lib.readLedger(root, session); lib.recordAux(ledger, rel); ledger.repo = root; lib.writeLedger(root, session, ledger); }
+      continue;
+    }
     const snippets = [ti.new_string, ti.content, ...(ti.edits ?? []).map((e) => e.new_string), ti.old_string].filter((s) => typeof s === "string");
 
     // 1 · ledger
@@ -55,12 +63,12 @@ async function main() {
       const ledger = lib.readLedger(root, session);
       const first = !Object.keys(ledger.files ?? {}).length;
       const found = lib.pagesForEdit(root, rel, snippets);
-      const prev = ledger.files?.[rel] ?? {};
       // Where the edit landed (line ranges), so the gate can tell findings in this change from old debt elsewhere.
       const text = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "";
       const lineAt = (i) => text.slice(0, i).split("\n").length;
       const ranges = tool === "Write" ? [[1, text.split("\n").length]] : snippets.filter((s) => s !== ti.old_string && s.length > 2).flatMap((s) => { const i = text.indexOf(s); return i < 0 ? [] : [[lineAt(i), lineAt(i + s.length)]]; });
-      (ledger.files ??= {})[rel] = { ...prev, editedAt: Date.now(), pages: [...new Set([...(prev.pages ?? []), ...found.pages])], notes: [...new Set([...(prev.notes ?? []), ...found.notes])], ranges: [...(prev.ranges ?? []), ...ranges].slice(-40) };
+      const entry = lib.recordEdit(ledger, rel, found);
+      entry.ranges = [...(entry.ranges ?? []), ...ranges].slice(-40);
       ledger.repo = root;
       // First touch of a component in this session: brief the spec — Figma node, guideline, the harness rules for it.
       const folder = rel.match(/^src\/components\/([^/_][^/]*)\//)?.[1];
@@ -73,10 +81,10 @@ async function main() {
         const slug = found.pages.find((p) => fs.existsSync(path.join(root, "docs/guidelines", `${p}.md`)));
         let ruleIds = [];
         try { const listed = spawnSync(process.execPath, [path.join(root, "tools/usage-guard/check-usage.mjs"), "--list"], { cwd: root, encoding: "utf8", timeout: 10000 }); ruleIds = JSON.parse(listed.stdout).filter((r) => r.components?.some((c) => exported.includes(c) || c === folder)).map((r) => r.id); } catch { /* registry unavailable */ }
-        messages.context.push(`You are changing ${folder}. Before styling, pin the spec: ${nodes.length ? `Figma node ${nodes.join(", ")} (live file 9nZv4uW2LT21yuHabMTCh1)` : "its Figma node"}; tokens per element (padding/gap, radius, text style + tone, colour roles), states and keyboard pattern.${slug ? ` Guideline: docs/guidelines/${slug}.md.` : ""}${ruleIds.length ? ` Harness rules for it: ${ruleIds.join(", ")}.` : ""} Pages to check afterwards: ${found.pages.join(", ") || "(pass --pages)"}.`);
+        messages.context.push(`You are changing ${folder}. Before styling, pin the spec your tier asks for (AGENTS.md §C): ${nodes.length ? `Figma node ${nodes.join(", ")} (live file 9nZv4uW2LT21yuHabMTCh1)` : "its Figma node"}; tokens per changed element (padding/gap, radius, text style + tone, colour roles), states and keyboard pattern.${slug ? ` Guideline: docs/guidelines/${slug}.md.` : ""}${ruleIds.length ? ` Harness rules for it: ${ruleIds.join(", ")}.` : ""} Pages to check afterwards: ${found.pages.join(", ") || "(pass --pages)"}.`);
       }
       lib.writeLedger(root, session, ledger);
-      if (first) messages.context.push(`Zen Build-QA gate is on for this session: before you deliver, run \`npm --prefix "${root}" run qa\` (it checks exactly the files you edit), fix every ✗, open the contact sheets it prints and review them with skills/zen-build-qa/SKILL.md. Use \`npm --prefix "${root}" run qa:quick\` for fast loops while building.`);
+      if (first) messages.context.push(`Zen Build-QA gate is on for this session: before you deliver, run \`npm --prefix "${root}" run qa\` (it checks the files you edited since your last passing run), fix every ✗, open the contact sheets it asks for and review them with skills/zen-build-qa/SKILL.md. Use \`npm --prefix "${root}" run qa:quick\` for fast loops while building.`);
     }
 
     // 2 · instant lint of this file
@@ -89,7 +97,7 @@ async function main() {
       const debt = found.length - fresh.length;
       if (errs.length) messages.block.push(`style-guard found ${errs.length} new token problem(s) in ${rel}:\n${errs.slice(0, 12).map((f) => `  ✗ ${rel}:${f.line} ${f.rule} — ${f.message}`).join("\n")}${errs.length > 12 ? `\n  … ${errs.length - 12} more (npm run style:check -- ${rel})` : ""}`);
       if (warns.length) messages.context.push(`style-guard warnings in ${rel} (fix, or add \`zen-allow-<id>: <reason>\` above the line when Figma requires it):\n${warns.slice(0, 8).map((f) => `  ⚠ ${rel}:${f.line} ${f.rule} — ${f.message}`).join("\n")}`);
-      if (debt && (errs.length || warns.length)) messages.context.push(`${rel} also carries ${debt} pre-existing style-guard finding(s) (baseline); fix those on lines you are already changing.`);
+      if (debt && (errs.length || warns.length)) messages.context.push(`${rel} also carries ${debt} pre-existing style-guard finding(s) (baseline debt): write one Backlog line (priority + pointer) in docs/context/HANDOFF.md; fix them only if that is in the approved task.`);
     }
     const usage = spawnSync(process.execPath, [path.join(root, "tools/usage-guard/check-usage.mjs"), rel], { cwd: root, encoding: "utf8", timeout: 20000 });
     if (usage.status === 1) {

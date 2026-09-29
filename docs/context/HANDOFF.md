@@ -79,15 +79,16 @@ Last updated: 2026-09-29.
 One command, the Build-QA gate (process: `docs/qa/build-qa-process.md`, skill `skills/zen-build-qa`):
 
 ```
-npm run qa              # scoped to the files this session edited (the hooks record them); --pages=, --all, --since=<min>
+npm run qa              # what this session edited since its last pass; tokens → consumer pages; --only=, --pages=, --all, --keep-going
 npm run qa:quick        # fast loop while building; never counts as a pass
 ```
 
-It runs tsc, style-guard, usage-guard, both selftests, guidelines, figma-contract and `npm test` (when components
-changed), the platform audit with `--quality --density --smoke` at 1512 + 390 and in dark mode, the behaviour probes,
-the example coverage matrix, and shoots 1512/390 contact sheets — then LOOK at them. The hooks in
-`Zen-CodeBase/.claude/settings.json` lint every edit at once and hold a turn until the gate passed and its sheets were
-opened. The style-guard baseline is empty since 2026-09-28 (376 → 0), so every style finding is new. Fix it with the
+It runs tsc, style-guard, usage-guard, guidelines (rebuilt automatically when only your docs are stale), the Figma
+suites and related tests of the components you edited (self-tests only when the harness changed), the platform audit
+with `--quality --density --smoke` at 1512 + 390 and in dark mode, the behaviour probes, and 1512/390 contact sheets;
+a static failure skips the browser steps unless `--keep-going`. Open the sheets it asks for (new content, at most 12).
+The hooks in `Zen-CodeBase/.claude/settings.json` lint every edit at once and hold a turn until the gate passed and
+those sheets were opened (not while a run is still going). The style-guard baseline is empty since 2026-09-28 (376 → 0), so every style finding is new. Fix it with the
 token Figma binds, or add `zen-allow-<rule>: reason` (citing the node) within the 4 lines above. Other pre-existing
 findings are in `tools/platform-audit/*-baseline.json`; only new ones fail, and the debt only shrinks. Owner of
 tools/qa, tools/style-guard, quality-checks/behaviour and the hooks: the session "Quy trình kiểm tra Component build".
@@ -155,10 +156,11 @@ The full list is in `docs/component-usage-rules.md`. The ones most often forgott
     Small binds Segmented-Item-Secondary/Background/Seclected/Default. Same in light, different in dark. Code uses the
     Segmented token. Also: code has a Disabled state Figma lacks; the `*/Seclected/Hover` and Secondary Border tokens
     are now unbound; the set description lists props it does not have; should focus stack with the selected shadow?
-  - **Search/Popover:** Focused · Theme=Default · Icon-Search=Yes has a 1px INSIDE stroke, while the other 11
-    Focused/Typing variants have a 3px OUTSIDE ring (code follows the 11). The Hover stroke weight is no longer bound
-    to Emphasis/Border-Weight/Active/Primary in Field-Only, Search/Default and Search/Popover (code keeps the binding).
-    The set description lists props that do not exist.
+  - **Search/Popover:** the designer made all 30 variants consistent on 2026-09-29 (a 1px INSIDE Container stroke,
+    no ring); code follows. Still open: the set description lists props that do not exist, and the Hover stroke
+    weight of Field-Only and Search/Default is no longer bound to Emphasis/Border-Weight/Active/Primary (code keeps
+    the binding there). The set now sits in a frame with an explicit Component Theme mode, so its previews resolve
+    in that mode.
   - **Checkbox / Radio:** Checkbox/Text centres the mark on label + caption (Radio top-aligns; code top-aligns both);
     Checkbox/Text has a dead Caption prop and a root gap on a single child; neither set says what colour a Disabled
     caption is (code: Content/Disabled).
@@ -246,6 +248,26 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   gets done; the approved items run as one planned batch, with fewer sessions that each own a set of files.
 - Items that need a decision from the user or the designer stay under "Open items"; this list holds work.
 
+- **Process (2026-09-29):** batch A of `docs/context/process-audit-2026-09-29.md` is done (tiers in AGENTS.md §C,
+  consumer-scoped QA, ledger/Stop-hook fixes, scoped static gates, Scope-lock wording, a `use_figma`-safe extractor).
+  The user chose to work with it for a few days; batches B (parallel gate), C (Figma kit, suites, live tokens) and
+  D (lighter docs) wait here until needed. Batch A follow-ups:
+  - **P2 · Seed the contrast/targets baseline:** `node tools/platform-audit/audit.mjs --quality --viewports=1512,390
+    --baseline-update=contrast,targets` over all pages, plus a `--dark` pass (≈20 min). Until then those known
+    warnings show as new.
+  - **P2 · Exact sheet review:** add `Read` to the PostToolUse matcher in `Zen-CodeBase/.claude/settings.json` so a
+    sheet's hash is saved when it is opened (needs the user's OK: settings), and give each run its own sheet folder
+    (B3), since `.platform-shots/` is shared by sessions.
+  - **P2 · Token builds run through Bash** (`npm run tokens:build`) are not recorded by post-edit, so the Stop hook does
+    not ask for QA after a token change made only in `tokens/source`.
+  - **P2 · Live Figma drift found by `__HASHES`:** 9 of 18 sets in `checkbox-radio-chip-popover.json` (Chip/Normal,
+    Chip/Advanced, Chip/Number-Only, Popover label/item primitives …) no longer hash-match; check whether this is a
+    real change or only the frame's variable mode (captures are not mode-independent until kit C1).
+  - **P3 · Gate details:** baseline JSON notes and their generators (`check-styles.mjs:353`, `audit.mjs:483`) still say
+    "fix these when you touch them" (Scope lock wording); token scope follows importers one level (a Button token →
+    23 pages); token scope reads CSS only, not inline `var()` in TSX; `foundations.css` maps to the representative set;
+    a reused pid can keep a stale "running" marker alive for up to 6 h; mixed stale guidelines (own + another
+    session's) fail instead of rebuilding.
 - **P1 · Faster QA.** Owner: "Quy trình kiểm tra Component build". On 28/9, 32 QA runs audited 419 pages one at a
   time, about 5 hours of browser time on an 11-core Mac.
   - Add `--workers=N` to `audit.mjs`, `behaviour.mjs` and `shoot.mjs`: one browser with N contexts working from a page
@@ -342,9 +364,6 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     - Re-add a caption x check to the Checkbox/Text suite: the nested instance no longer exposes Subtext, so only
       the primitive's offset is checked.
     - Labels render ~1px narrower than Figma's text boxes (Inter metrics); the suites need a global width tolerance.
-  - **P3 · `figma-console-extract.js` in `use_figma`:** `window` is a read-only binding there, so the documented
-    preamble throws. `const window = globalThis` or `globalThis.` instead of `window.` works. The ~20 KB output cap
-    needs a per-set or sliced capture recipe in `tools/figma-contract/README.md`.
   - **P3 · Code follow-ups found in passing** (need approval):
     - Chat: the keyboard focus ring on a bubble uses Corner-Radius/XLarge on every corner and ignores the Business
       radius and the tail corner (`chat.css:172, 175`). One-emoji reaction pills measure 28×24 against Figma's 24×24

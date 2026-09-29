@@ -24,9 +24,9 @@ export type SearchVariant = (typeof searchVariants)[number];
 
 /** Search has no Disabled state (like every Zen input); hide or omit it instead. */
 export interface SearchProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "size" | "disabled"> {
-  /** `popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, and no focus
-   * stroke; its 3px focus ring takes Input/Border/Default, so it shows only in component themes
-   * with a visible input border (Neutral S4). `size` is ignored. */
+  /** `popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, and a 1px
+   * Input/Border stroke in every state with no focus ring, so the border shows only in component
+   * themes with a visible input border (Neutral S4). `size` is ignored. */
   variant?: SearchVariant;
   /** Short (sm, md…) or Figma (small, medium…) spelling. */
   size?: SearchSize;

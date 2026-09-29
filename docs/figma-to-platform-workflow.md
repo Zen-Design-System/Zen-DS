@@ -25,7 +25,7 @@ Nếu live Figma, export JSON và tài liệu cũ mâu thuẫn, ghi rõ node, mo
 ## Một lượt triển khai
 
 1. Chốt **một** frame/component và những state cần xử lý. Nếu link là page/canvas, dùng metadata tìm frame con rồi đọc `get_design_context` trên frame đó; với frame lớn, đọc thêm các layer con cần thiết. Giữ screenshot để so hình.
-2. Lập manifest ba tầng trước khi sửa: (a) mọi component set/primitive của page, (b) mọi axis/value/slot của từng set, (c) owner thật và override của từng nested instance. Không được bắt đầu từ một representative node rồi coi đó là toàn bộ page.
+2. Với tier L (bảng **Pick your tier** trong [AGENTS.md §C](../AGENTS.md)), lập manifest ba tầng trước khi sửa: (a) mọi component set/primitive của page, (b) mọi axis/value/slot của từng set, (c) owner thật và override của từng nested instance. Không được bắt đầu từ một representative node rồi coi đó là toàn bộ page. Tier thấp hơn chỉ cần các hàng evidence của phần thay đổi (xem "Mức kiểm tra").
 3. Nếu có ZIP/JSON, liệt kê **toàn bộ file** và property axes, đối chiếu số variant với live Figma. Khôi phục variant delta trước khi kết luận kích thước, padding hay paint. Với layer liên quan, đọc auto-layout, hug/fill/fixed, padding từng cạnh, gap, stroke alignment, styles, bindings, effect và override.
 4. Điền bảng đối chiếu bên dưới trong audit riêng của component/trang dưới `docs/` (ghi ngày và node ID). Chỉ bắt đầu sửa khi các hàng thiết yếu có nguồn Figma và đích code rõ ràng. Dùng token/style/component hiện có trước khi tạo quy tắc mới; tái sử dụng bảng đã xác minh nếu thiết kế chưa thay đổi.
 5. Sửa ở đúng owner: primitive cho quy tắc dùng chung, platform CSS cho bố cục trang, shell chỉ khi template thay đổi. Mỗi lần sửa nên giải quyết một nhóm mismatch đã ghi trong bảng.
@@ -54,7 +54,7 @@ Font/style chỉ phục vụ Codebase Platform (ví dụ JetBrains Mono cho code
 
 Mỗi lượt phải lưu node ID và mapping trong audit hoặc PR note. Các nested layer chưa đọc đủ property, effect hoặc binding được đánh dấu `Chưa xác minh`, không được suy đoán từ tên hoặc screenshot.
 
-### Variant completeness gate (bắt buộc)
+### Variant completeness gate (bắt buộc ở tier L)
 
 Trước khi viết JSX/CSS, lập ma trận đầy đủ cho component set: số set và số variant từ Figma, toàn bộ property/value từ JSON, nested primitive, state, size/density, icon/no-icon, leading/trailing, selected/error và các slot banner/header/footer/popover. Mỗi hàng phải được đánh dấu `covered`, `deferred` (kèm lý do và owner dự kiến), hoặc `not applicable` (kèm bằng chứng). Không được kết luận “đã build đủ” nếu còn hàng chưa đánh dấu.
 
@@ -70,10 +70,12 @@ Với shadow/effect, ghi riêng loại (`INNER_SHADOW` hay `DROP_SHADOW`), offse
 
 ## Mức kiểm tra
 
-- **Sửa nhỏ một token, icon hoặc text style:** vài hàng evidence; build và một phép đo hoặc quan sát trực tiếp tại state bị ảnh hưởng.
-- **Sửa component/variant:** đầy đủ property axes; kiểm tra các state liên quan và edge case gây sai trước đây như icon/no-icon, selected/focus/error; không nhân toàn bộ tổ hợp khi không cần.
+Mức kiểm tra theo tier trong bảng **Pick your tier** ([AGENTS.md §C](../AGENTS.md)); các dòng dưới là phần riêng cho Figma.
+
+- **Sửa nhỏ một token, icon hoặc text style (XS):** vài hàng evidence; build và một phép đo hoặc quan sát trực tiếp tại state bị ảnh hưởng.
+- **Sửa component/variant (S hoặc M):** đầy đủ property axes; kiểm tra các state liên quan và edge case gây sai trước đây như icon/no-icon, selected/focus/error; không nhân toàn bộ tổ hợp khi không cần.
 - **Sửa layout trang:** so mốc hình học của header, sidebar, content, các block chính ở viewport Figma; kiểm tra thêm một viewport hẹp chỉ nếu hành vi màn hình hẹp nằm trong phạm vi yêu cầu.
-- **Audit banner/template:** kiểm tra một page overview và ít nhất một page foundation/component; xác nhận topbar controls, breadcrumb, cover, metadata và intro đều dùng đúng owner/token. Nếu các frame khác nhau, ghi rõ ngoại lệ (ví dụ overview cover 492px so với cover 400px).
+- **Audit banner/template (shell platform, L):** kiểm tra một page overview và ít nhất một page foundation/component; xác nhận topbar controls, breadcrumb, cover, metadata và intro đều dùng đúng owner/token. Nếu các frame khác nhau, ghi rõ ngoại lệ (ví dụ overview cover 492px so với cover 400px).
 
 `npm run build` bao gồm build token/style/icon, TypeScript và Vite. Chạy `tokens:check`, `styles:check`, `icons:check` khi sửa nguồn tương ứng. Storybook hiện không phải bề mặt nghiệm thu của platform; dùng app Vite và component thật.
 
@@ -83,16 +85,16 @@ Với shadow/effect, ghi riêng loại (`INNER_SHADOW` hay `DROP_SHADOW`), offse
 - [ ] Đã search registry/component set; không tạo component trùng chức năng.
 - [ ] Đã tách shell/banner khỏi nested component và kiểm tra token, layout, radius, shadow, typography riêng.
 - [ ] Playground dùng component production, có Chip/Popover để chọn axis, và chỉ render một preview đang chọn.
-- [ ] Playaround không biến primitive owner thành preview row; trạng thái tương tác được kiểm tra bằng hover/click/typing/Tab trên component production thay vì một State-chip tĩnh. Disabled là ngoại lệ duy nhất: dùng một toggle Disabled vì không thể đạt được bằng tương tác bình thường; không cho chọn các state runtime khác.
+- [ ] Playground không biến primitive owner thành preview row; trạng thái tương tác được kiểm tra bằng hover/click/typing/Tab trên component production thay vì một State-chip tĩnh. Disabled là ngoại lệ duy nhất: dùng một toggle Disabled vì không thể đạt được bằng tương tác bình thường; không cho chọn các state runtime khác.
 - [ ] Với Chip filter: single-choice giữ chevron như header chip; multi-choice dùng X khi có 1 lựa chọn, Counter khi có nhiều lựa chọn và đổi sang X khi hover/focus trailing; click thân mở Popover, click trailing chỉ clear.
 - [ ] Header chỉ có control đúng theo frame (component pages có Chip settings; foundation/overview chỉ có Segmented).
 - [ ] Build/check/browser measurement đã chạy theo phạm vi thay đổi; mọi gap chưa xác minh được ghi lại.
 - [ ] Popover Label mô tả nhóm lựa chọn (không lặp selected value); Code view mở sẵn với React và các ngôn ngữ khác được đánh dấu Coming Soon.
-- [ ] Nếu token/variable đã thay đổi, đã rà toàn bộ consumer và cập nhật preview production; các component mới không trùng owner cũ.
+- [ ] Nếu token/variable đã thay đổi, đã rà toàn bộ consumer (`npm run qa` in ra các trang consumer) và cập nhật preview production; các component mới không trùng owner cũ.
 - [ ] Main-Component-View phải được đọc lại theo node hiện hành trước khi sửa CSS: outer 2XLarge/24px, Component Container và Code Surface Small/8px, preview `min-height:152px` nhưng auto-grow. Right rail phải có heading `Select Property & Variant`, Select-Field cho property string và Toggle-Button cho boolean; không thay bằng Chip trang trí.
 - [ ] Khi audit nested component, section title Sidebar phải reuse Menu-Item/Master không icon (32px, Body/Small/Regular), Input Leading-Trailing phải giữ nesting `outer gap → Elements gap → dropdown slot`, và Chip multiple trailing chỉ có số mặc định, X line khi hover/focus.
 - [ ] Nếu có Styles JSON, đã đưa vào `styles/source/figma/styles.json`, build manifest cho color/text/effect/grid và chạy `npm run styles:check`; effect/shadow mới đã được nối vào consumer thay vì chỉ lưu dữ liệu.
-- [ ] Quyết định mới, số đo browser và evidence gap đã được lưu vào audit/skill để lần chạy sau tái sử dụng.
+- [ ] Quyết định mới, số đo browser và evidence gap của task đã được lưu vào audit để lần chạy sau tái sử dụng. Quy tắc mới dùng lại được cho skill/workflow: ghi một dòng Backlog (mức ưu tiên + chỗ trỏ) vào `docs/context/HANDOFF.md`; chỉ làm khi việc đó nằm trong task đã được duyệt.
 
 ## Nâng cấp sau khi props ổn định
 

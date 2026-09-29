@@ -79,7 +79,7 @@ export const PopoverVariant: Story = {
   ),
   parameters: {
     docs: {
-      description: { story: "Figma Search/Popover: always Small with Corner-Radius/Input/Medium; Focused/Typing show the focused fill and no stroke; the 3px ring takes Input/Border/Default (visible only in Neutral S4). Popover uses it with Icon-Search=No." },
+      description: { story: "Figma Search/Popover: always Small with Corner-Radius/Input/Medium; every state keeps a 1px Input/Border stroke (Hover: Input/Border/Hover) and Focused/Typing add no ring; the border is visible only in Neutral S4. Popover uses it with Icon-Search=No." },
     },
   },
 };
