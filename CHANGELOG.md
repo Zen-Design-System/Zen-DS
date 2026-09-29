@@ -208,6 +208,15 @@ removed (four unused colour ramps were, see Removed).
   - Table trend badges use the trend-up-01 / trend-down-01 / minus icons. The in-place editor pads 12 × 16, keeps
     XSmall between its tags and the input, and draws its underline inside the cell.
   - Segmented Medium badges get Spacing/Padding/3XSmall on each side.
+- **Dark Alpha steps (2026-09-29 Figma export):** 69 Dark Alpha values at steps 1–9 are now bright hues at low alpha
+  (most were near-opaque dark colours), e.g. Dark/Teal-Alpha/5 #003F37F5 → #00FFDB2F; step 3 moved in Orange, Yellow,
+  Golden and Mint. In Dark mode the Subtle fills and borders built on them (Warning InlineMessage and Badge; orange,
+  yellow and golden Avatar, Badge and DockIcon; the orange and yellow Progress ring) let the surface under them show
+  through: on the canvas they look almost the same, on a lighter surface slightly lighter. Gray and Light are unchanged.
+- **Dark ramps (2026-09-29, fourth Figma export):** steps 1–8 of the Dark colour ramps are a touch lighter (at most
+  4/255 per channel), with small matching Alpha adjustments; Light is unchanged. In Dark mode the canvas is #121212
+  (was #0F0F0F) and Surface/Default #191919 (was #1B1B1B), so surfaces stand out from the canvas a little less and
+  rely more on their border; Neutral text is slightly brighter (Gray/12 #FDFDFD, Gray/11 #D5D5D5).
   - Breadcrumbs: 4px between an item and its chevron, 8px between items (was 0 and 2).
 - **AppShell:**
   - The top bar follows Figma Header Type=Navigation: 72px on desktop (Margin-Comfortable above, Spacing/Padding/XSmall
