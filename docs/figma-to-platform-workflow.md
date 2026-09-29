@@ -94,7 +94,7 @@ Mức kiểm tra theo tier trong bảng **Pick your tier** ([AGENTS.md §C](../A
 - [ ] Main-Component-View phải được đọc lại theo node hiện hành trước khi sửa CSS: outer 2XLarge/24px, Component Container và Code Surface Small/8px, preview `min-height:152px` nhưng auto-grow. Right rail phải có heading `Select Property & Variant`, Select-Field cho property string và Toggle-Button cho boolean; không thay bằng Chip trang trí.
 - [ ] Khi audit nested component, section title Sidebar phải reuse Menu-Item/Master không icon (32px, Body/Small/Regular), Input Leading-Trailing phải giữ nesting `outer gap → Elements gap → dropdown slot`, và Chip multiple trailing chỉ có số mặc định, X line khi hover/focus.
 - [ ] Nếu có Styles JSON, đã đưa vào `styles/source/figma/styles.json`, build manifest cho color/text/effect/grid và chạy `npm run styles:check`; effect/shadow mới đã được nối vào consumer thay vì chỉ lưu dữ liệu.
-- [ ] Quyết định mới, số đo browser và evidence gap của task đã được lưu vào audit để lần chạy sau tái sử dụng. Quy tắc mới dùng lại được cho skill/workflow: ghi một dòng Backlog (mức ưu tiên + chỗ trỏ) vào `docs/context/HANDOFF.md`; chỉ làm khi việc đó nằm trong task đã được duyệt.
+- [ ] Quyết định mới, số đo browser và evidence gap của task đã được lưu vào audit để lần chạy sau tái sử dụng. Quy tắc mới dùng lại được cho skill/workflow: ghi một dòng Backlog (mức ưu tiên + chỗ trỏ) vào `docs/context/BACKLOG.md`; chỉ làm khi việc đó nằm trong task đã được duyệt.
 
 ## Nâng cấp sau khi props ổn định
 

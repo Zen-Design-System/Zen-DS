@@ -157,7 +157,7 @@ const run = (cmd, args, timeoutMs = 600000) => { const r = spawnSync(cmd, args, 
 const step = (group, name, status, detail = "", items = []) => { steps.push({ group, name, status, detail, items }); say(`  ${{ pass: "✓", fail: "✗", warn: "⚠", skip: "–" }[status]} ${name}${detail ? ` — ${detail}` : ""}`); for (const i of items.slice(0, 15)) say(`      ${i}`); if (items.length > 15) say(`      … ${items.length - 15} more (see the report)`); };
 const tail = (out, re = /✗|error|Error/) => out.split("\n").filter((l) => re.test(l)).slice(0, 40).map((l) => l.trim());
 const compFolders = new Set(files.map((f) => f.match(/^src\/components\/([^/]+)\//)?.[1]).filter(Boolean));
-const BACKLOG = "write one Backlog line (priority + pointer) in docs/context/HANDOFF.md; fix it only if that is in the approved task";
+const BACKLOG = "write one Backlog line (priority + pointer) in docs/context/BACKLOG.md; fix it only if that is in the approved task";
 
 /* ── ① static ───────────────────────────────────────────────────────────────────────────────────────────────────── */
 say("\n① Static gates");

@@ -97,7 +97,7 @@ async function main() {
       const debt = found.length - fresh.length;
       if (errs.length) messages.block.push(`style-guard found ${errs.length} new token problem(s) in ${rel}:\n${errs.slice(0, 12).map((f) => `  ✗ ${rel}:${f.line} ${f.rule} — ${f.message}`).join("\n")}${errs.length > 12 ? `\n  … ${errs.length - 12} more (npm run style:check -- ${rel})` : ""}`);
       if (warns.length) messages.context.push(`style-guard warnings in ${rel} (fix, or add \`zen-allow-<id>: <reason>\` above the line when Figma requires it):\n${warns.slice(0, 8).map((f) => `  ⚠ ${rel}:${f.line} ${f.rule} — ${f.message}`).join("\n")}`);
-      if (debt && (errs.length || warns.length)) messages.context.push(`${rel} also carries ${debt} pre-existing style-guard finding(s) (baseline debt): write one Backlog line (priority + pointer) in docs/context/HANDOFF.md; fix them only if that is in the approved task.`);
+      if (debt && (errs.length || warns.length)) messages.context.push(`${rel} also carries ${debt} pre-existing style-guard finding(s) (baseline debt): write one Backlog line (priority + pointer) in docs/context/BACKLOG.md; fix them only if that is in the approved task.`);
     }
     const usage = spawnSync(process.execPath, [path.join(root, "tools/usage-guard/check-usage.mjs"), rel], { cwd: root, encoding: "utf8", timeout: 20000 });
     if (usage.status === 1) {

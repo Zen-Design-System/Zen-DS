@@ -1,6 +1,6 @@
 # Quy trình QA toàn bộ component trên Codebase Platform
 
-Mục tiêu: mỗi lần "audit và QA lại hết component" đều chạy cùng một quy trình, có bằng chứng, và mỗi lỗi hệ thống tìm được được ghi thành một dòng Backlog (mức ưu tiên + chỗ trỏ) trong `docs/context/HANDOFF.md`; chỉ biến nó thành rule harness hoặc dòng guideline khi việc đó nằm trong task đã được duyệt. Thay đổi đơn lẻ thì chọn tier theo bảng **Pick your tier** trong [AGENTS.md §C](../../AGENTS.md) và dùng `npm run qa`. Quy trình này dùng cùng skill [`zen-platform-qa`](../../skills/zen-platform-qa/SKILL.md). Hướng dẫn viết example nằm ở [example-patterns](../guides/example-patterns.md). So Figma theo [figma-to-platform-workflow](../figma-to-platform-workflow.md).
+Mục tiêu: mỗi lần "audit và QA lại hết component" đều chạy cùng một quy trình, có bằng chứng, và mỗi lỗi hệ thống tìm được được ghi thành một dòng Backlog (mức ưu tiên + chỗ trỏ) trong `docs/context/BACKLOG.md`; chỉ biến nó thành rule harness hoặc dòng guideline khi việc đó nằm trong task đã được duyệt. Thay đổi đơn lẻ thì chọn tier theo bảng **Pick your tier** trong [AGENTS.md §C](../../AGENTS.md) và dùng `npm run qa`. Quy trình này dùng cùng skill [`zen-platform-qa`](../../skills/zen-platform-qa/SKILL.md). Hướng dẫn viết example nằm ở [example-patterns](../guides/example-patterns.md). So Figma theo [figma-to-platform-workflow](../figma-to-platform-workflow.md).
 
 ## 0. Chuẩn bị
 
@@ -89,8 +89,8 @@ Bắt buộc xem ở 390px cho mọi component mobile (Top/Bottom Navigation, Bo
 | --- | --- |
 | Component (CSS/TSX) | `src/components/<X>`; cập nhật story nếu API đổi |
 | Example hoặc playground | `src/platform/Platform*Showcases.tsx`, `PlatformExamples.tsx`, `PlatformMobile*.tsx` |
-| Lỗi có thể lặp lại | Ghi một dòng Backlog (mức ưu tiên + chỗ trỏ) vào `docs/context/HANDOFF.md`; chỉ làm khi việc đó nằm trong task đã được duyệt (khi đó: rule trong `check-usage.mjs`, case `expect:` trong `fixtures/bad.*`, case sạch trong `good.*`, một dòng Do/Don't trong `guidelines.source.mjs`) |
-| Thiếu kịch bản | Ghi một dòng Backlog (mức ưu tiên + chỗ trỏ) vào `docs/context/HANDOFF.md`; chỉ thêm example (theo ma trận trong [example-patterns](../guides/example-patterns.md)) khi việc đó nằm trong task đã được duyệt |
+| Lỗi có thể lặp lại | Ghi một dòng Backlog (mức ưu tiên + chỗ trỏ) vào `docs/context/BACKLOG.md`; chỉ làm khi việc đó nằm trong task đã được duyệt (khi đó: rule trong `check-usage.mjs`, case `expect:` trong `fixtures/bad.*`, case sạch trong `good.*`, một dòng Do/Don't trong `guidelines.source.mjs`) |
+| Thiếu kịch bản | Ghi một dòng Backlog (mức ưu tiên + chỗ trỏ) vào `docs/context/BACKLOG.md`; chỉ thêm example (theo ma trận trong [example-patterns](../guides/example-patterns.md)) khi việc đó nằm trong task đã được duyệt |
 
 Sau mỗi đợt sửa, chạy lại `npm run qa` (chỉ kiểm lại phần sửa sau lần pass trước) và mở các sheet gate yêu cầu.
 

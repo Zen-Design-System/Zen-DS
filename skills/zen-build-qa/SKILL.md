@@ -131,12 +131,12 @@ It prints ✗ / ⚠ per step and writes `.qa/reports/<stamp>.md`. Read the repor
 | `fit` | text wider than its own box, no ellipsis, no scroll (it runs into its neighbours even under `overflow: hidden`): let the item keep its width (`flex-shrink: 0` / `min-width: auto`), wrap, ellipsize, or scroll the row |
 | `edges`, `sizes`, `overflow`, `surfaces`, `outline`, `typography` | see `docs/qa/platform-audit.md` |
 | behaviour ✗ | focus ring, keyboard reach, APG keys, dialog focus trap / Escape / focus return |
-| coverage ⚠ (only pages whose examples you edited; other pages' known gaps are one summary line) | write one Backlog line (priority + pointer) in `docs/context/HANDOFF.md`; add the example only if it is in the approved task |
+| coverage ⚠ (only pages whose examples you edited; other pages' known gaps are one summary line) | write one Backlog line (priority + pointer) in `docs/context/BACKLOG.md`; add the example only if it is in the approved task |
 
 Pre-existing findings live in baselines (`tools/style-guard/baseline.json`, `tools/platform-audit/*-baseline.json`,
 now including `contrast` and `targets`) and do not fail the gate. Triage NEW ⚠ only; pre-existing warnings are debt:
 note them in the Backlog (Scope lock), do not fix them in this task. Baseline debt on a line or example you touch:
-write one Backlog line (priority + pointer) in `docs/context/HANDOFF.md`; fix it and refresh the baseline
+write one Backlog line (priority + pointer) in `docs/context/BACKLOG.md`; fix it and refresh the baseline
 (`npm run style:check -- --baseline-update`, `audit.mjs … --quality --density --baseline-update`) only if it is in
 the approved task — debt only shrinks.
 
@@ -165,7 +165,7 @@ examples, also ask the `zen-ux-reviewer` agent for a fresh-eyes review of the sh
 
 Fix, re-run `npm run qa` (it re-checks what you edited since the last pass; `--only=` narrows it), look at the sheets
 it asks for. A bug class that could recur (a candidate style-guard, usage-guard or quality/behaviour rule): write one
-Backlog line (priority + pointer) in `docs/context/HANDOFF.md`; do it only if it is in the approved task. Tell peer
+Backlog line (priority + pointer) in `docs/context/BACKLOG.md`; do it only if it is in the approved task. Tell peer
 sessions when you change something they own.
 
 ## 6. Deliver

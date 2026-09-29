@@ -713,3 +713,69 @@ Backlog lines are in HANDOFF under "From the App Shell rework"; designer questio
 - At the user's request the VT, Chat, Brand-Ananas and Neutral-Ananas ramps were removed. That is Light/Dark with their Alpha twins, 192 variables. Nothing aliased or used them: no token source, CSS or TS outside generated files.
 - Global Colors 1,152 → 960, repo total 2,368 → 2,176. The counts were updated in the manifest (Global Colors variableCount/types, exportVariableCount; the hidden count assumes the removed ramps were hidden), README, design-system-context, token-architecture and HANDOFF. CHANGELOG has a Changed line and a new Removed entry. The Figma file still holds the ramps.
 - `tokens:build` + `tokens:check`: 2,176 tokens, 0 missing aliases. `npm run qa` token fast path: consumer pages progress and uploader, **PASS** with 0 errors and 0 warnings, dark included (`.qa/reports/2026-09-29T10-57-32-fbc81114.md`). In Dark, `--zen-color-background-support-neutral-solid` resolves to #929292 and `--zen-color-content-on-black-overlay-light` to #FFFFFF8B.
+
+## DatePicker radius + Breadcrumbs (session "App Shell kiểm tra lại", tier M)
+
+User: "Update lại primitive component của date picker … corner radius nó không giống với tokens trong figma" and
+"Update lại Breadcrumbs từ figma"; then "đọc kỹ file đừng chụp ảnh thôi" (read the Figma data, not screenshots).
+
+Figma data read (live file, `use_figma` read-only) vs code — the token values were already equal; the component used
+them wrong:
+
+| Figma node | Figma | Code before | Now |
+| --- | --- | --- | --- |
+| Item 455:33517 Container | Action/Small (Medium 32), Action/XSmall (Small 24) on every state | one layer; range ends drew a `radial-gradient` circle in every radius mode | two layers: button = In-Range strip, label span = Container on the Action radius |
+| Item root, range ends | strip fill In-Range/Default, outer corners Action radius | same (strip) | same, via `--zen-date-picker-day-radius-start/-end` |
+| Item In-Range-Hover | Container fill Color/Background/Inverse/Solid/Default over the square strip | whole square In-Range/Hover | Container pill on Inverse/Solid/Default |
+| Item Size=Small | 24×24, Action/XSmall, Event 2px above the bottom | `data-size="small"` had no CSS (32px) | 24px, Action/XSmall, dot at 2px |
+| Event-List 510:36577 | 4×4, Corner-Radius/Rounded | `50%` | Rounded token |
+| Calendar-Table 460:34664 | each 224×32 Row clips at Corner-Radius/XSmall | whole grid clipped at XSmall | strip cells round XSmall at column 1 / 7 (`nth-child(7n+1)`, `7n`) |
+| Header 458:34317 Date-Container | Small at rest, Base on Hover/Focused, padding 0 (Focused 0/12) | Small on hover, 4px side padding | Base on hover and focus-visible, padding 0 |
+| Calendar 478:30561 Select-Month-Year | wheel columns: no radius; rows fade 1 / 0.25 / 0.1 | wheel XSmall; 1 / 0.4 / 0.2 | no radius; 1 / 0.25 / 0.1 (a Figma change since the 09-27 capture) |
+| Breadcrumbs 4031:20194 | 140×20, Hover-Base bleeds −4 / −8 outside | 28px (list padded 4px top/bottom) | 20px; checked that no parent clips the plate or ring on the 6 pages that use it (1512 and 390) |
+
+Hash check of the stored contracts against live: Item, Header, Calendar-Table and Breadcrumbs/Item differ only in
+resolved token hex values; the other differences were hidden nodes that `use_figma` skips
+(`figma.skipInvisibleInstanceChildren` is true there; set false before extracting) and a 1px Button label width.
+Contracts written with verified digests: `breadcrumbs.json` (all 3 entries equal to live, incl. the hidden Dash the
+morning capture missed), `datepicker-sidebar.json` Action entry and the Calendar / Single-Calendar Select-Month-Year
+variants (built from the stored spec + the read values, hash-equal to live); Sidebar entries untouched.
+
+Verified in the browser by computed styles (no screenshots needed): range ends 1000 / 12 / 8 / 2px and row-edge strip
+4 / 4 / 2 / 2px across Rounded / Smooth / Standard / Luxury; month button 8px → 12px on hover, padding 0; wheel 0px,
+opacity 0.1 / 0.25 / 1 / 0.25 / 0.1; Breadcrumbs 20px. Style guard, TypeScript, guidelines build/check clean.
+Backlog: the `use_figma` hidden-node flag, the rest of `datepicker-sidebar.json`, DatePicker parts with no code
+(Time-Picker, mobile, multi-dot events) and px sizing; one designer question (In-Range-Hover colour).
+
+## Dark alpha steps (session "Add audit check for text overflowing its box", tier XS)
+
+- Third `Global Colors.json`: 69 Dark Alpha values at steps 1–9 changed (step 1 of 18 ramps; Golden, Mint, Orange,
+  Yellow 2–8; some of Cyan, Sky, Teal, Blue, Grass, Tomato 2–9; step 3 only in Golden, Mint, Orange, Yellow).
+  Gray-Alpha and Light are unchanged; the 192 VT/Chat/Ananas variables in the export stay out.
+- Most old values were near-opaque dark colours (alpha F5 at steps 4–8), the new ones bright hues at low alpha. In use
+  (Dark Subtle fills at step 3, Subtle borders at step 5 → Avatar, Badge, DockIcon, InlineMessage, Progress ring) they
+  land within 12/255 of the old look on the canvas #0F0F0F and up to 21/255 lighter on #191919.
+- Merge 69 lines, manifest note, `tokens:build` + `tokens:check` clean. Dark computed: warning InlineMessage
+  rgba(255,129,0,0.12), orange Subtle DockIcon rgba(255,80,0,0.153). `npm run qa`: **PASS**, 16 pages, 0 errors,
+  warnings unchanged (`.qa/reports/2026-09-29T11-57-27-fbc81114.md`).
+
+## Process audit batch A follow-up: less to read (session "Tối ưu quy trình")
+
+- User approved "Đợt 1". Most of batch A was already in commits 95b1f8c / f635c83 (tiers, ledger reset, Stop hook, Scope-lock wording); only the reading load was left.
+- `HANDOFF.md` 532 → 55 lines. Text moved unchanged (checked line by line) to `HANDOFF-details.md` (state, gate, house rules) and `BACKLOG.md` (Open items + Backlog). Every "one Backlog line in HANDOFF.md" instruction (AGENTS.md, 3 skills, 3 QA docs, `run.mjs`, `post-edit.mjs`) now points at `BACKLOG.md`.
+- `AGENTS.md`: new "Reading discipline" section (Grep + slice, no whole-file Read of big files, no sub-agents for XS/S).
+- `Zen-CodeBase/.claude/settings.json`: `permissions.deny` Read for `node_modules`, `dist*`, `storybook-static`, `package-lock.json`, the context zip. `.qa` and `.platform-shots` stay readable (contact sheets live there).
+- Checked: `node --check` on the two edited tools, `npm run usage:selftest` (151 rules), relative links in HANDOFF.md. No UI file touched, so no `npm run qa`.
+
+## Process audit batch C1–C2: Figma re-sync kit (session "Tối ưu quy trình")
+
+- User approved "Đợt 2", Figma kit first; the gate speed-up (B) waits. New folder only (`tools/figma-kit/`), no existing file edited, so nothing collides with the owner of `tools/figma-contract` / `tools/qa`.
+- `figma-call.mjs lock | code hashes | status | code fetch | patch`, `lib.mjs`, `digest-norm.js`, generated `contracts.lock.json` (92 sets, 2,179 variants), `selftest.mjs` (13 checks on copies of the real contracts and a mock Figma document), README.
+- Digest is mode-independent (bound paints drop the resolved colour) and order-independent; `patch` keeps each contract's exact JSON layout (two layouts exist: JS compact and Python default).
+- Checked against the live file (Breadcrumbs, 3 sets): 1 of 3 matched at first. Cause: `use_figma` skips children of invisible instances, the desktop console does not. Fixed in `digest-norm.js` (`figma.skipInvisibleInstanceChildren = false`); afterwards 3/3 match the lock. The same divergence hits any `use_figma` extract or hash made with the bare extractor.
+- Not done: gate speed (B), `check.mjs` flags, suites for the 69 uncovered sets, other sets not yet hashed live (89 of 92), commit (`index.lock` cannot be removed from the VM).
+
+## Figma kit: why 60/89 sets differed (diagnosis)
+- Causes found and neutralised in kit v2 (`digest-norm.js`, lock rebuilt, selftest 13/13): HTML-escaped set descriptions, old typography bindings on styled text, hidden layers inside instances (captured inconsistently).
+- Live check of 12 sets: 8 match, 4 differ for real (Popover/Default, Badge XSmall, Input Small + XLarge + several states). The hash is transitive (nested instances), so a few master edits fan out to many sets.
+- Not run: the remaining ~36 previously differing sets with v2. Nothing committed (git index.lock not removable from the VM).

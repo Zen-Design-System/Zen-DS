@@ -37,7 +37,7 @@ Deliver the changed files, checks performed, and unresolved evidence gaps. Never
   state and verify those interactions in the browser. Disabled is the sole
   exception: expose it as a boolean toggle because it cannot be reached
   through normal interaction. Never expose runtime states as a picker.
-- Record decisions, verified measurements, and unresolved Figma rows of this task in `docs/platform-json-audit.md`. Do not rely on conversation memory for future runs. A reusable new rule for this workflow/skill: write one Backlog line (priority + pointer) in `docs/context/HANDOFF.md`; do it only if it is in the approved task.
+- Record decisions, verified measurements, and unresolved Figma rows of this task in `docs/platform-json-audit.md`. Do not rely on conversation memory for future runs. A reusable new rule for this workflow/skill: write one Backlog line (priority + pointer) in `docs/context/BACKLOG.md`; do it only if it is in the approved task.
 
 ## Variant completeness gate
 

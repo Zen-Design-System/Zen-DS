@@ -3,7 +3,7 @@
 This repo is the Zen Design System: React 19 components generated from the Zen Figma library, the token/icon
 pipelines, and the Codebase Platform (the docs site in `src/platform`). Two kinds of work happen here.
 
-**New session? Read [`docs/context/HANDOFF.md`](docs/context/HANDOFF.md) first** (current state, open items, owners),
+**New session? Read [`docs/context/HANDOFF.md`](docs/context/HANDOFF.md) first** (state in short, gate, owners; work items are in [`docs/context/BACKLOG.md`](docs/context/BACKLOG.md)),
 then [`CHANGELOG.md`](CHANGELOG.md).
 
 ## A. Building UI with Zen (examples, templates, apps)
@@ -104,16 +104,26 @@ reporting work as done.
 | `docs/` | Guidelines, API, getting started, architecture notes, session logs (`docs/context/`) |
 | `examples/consumer-smoke` | Template app used by `verify:package` |
 
+## Reading discipline (saves tokens)
+
+Sessions pay for every line they read, again on every later turn. Find with Grep, then read a slice (`offset`/`limit`);
+never `Read` a whole large file. The big ones: `src/platform/PlatformShowcases.tsx` (5,000 lines), `PlatformExamples.tsx`,
+`Input.tsx`, `src/styles/tokens.css`, `src/tokens/generated.ts`, `src/icons/generated/*`, `docs/figma-contracts/*.json`
+(0.7–2 MB) and the long `docs/context/session-log-*.md`. Slice a contract with a script (`node -e` / `jq` on one set or
+variant), or let `node tools/figma-contract/run-all.mjs` compare it. `dist*`, `storybook-static`, `node_modules` and
+`package-lock.json` are denied in `.claude/settings.json`. Use no sub-agents for tier XS/S work: a token or copy change is
+`npm run tokens:build`, the contract binding check and a scoped `npm run qa`, run in this session.
+
 ## Working alongside other sessions
 
 Several Claude sessions often edit this folder at once. Re-read a file right before writing it, make targeted edits
 (never rewrite a whole shared file), and generate new files before switching imports to them, so the shared dev server
 never breaks. Log what you did in `docs/context/session-log-<date>.md` (length by tier, §C), add a user-facing line
-to `CHANGELOG.md` (Unreleased), and update `docs/context/HANDOFF.md` when the current state or open items change.
+to `CHANGELOG.md` (Unreleased), and update `docs/context/HANDOFF.md` when the current state changes (`BACKLOG.md` when open items change).
 
 **Scope lock (the user's rule since 2026-09-29).** Do only the task the user approved. Nothing new starts without the
 user's explicit approval: no new session, no task chip, no new harness rule or audit check, no fix to a component or
 tool you happened to find. Append each bug or follow-up as one line under "## Backlog" in
-`docs/context/HANDOFF.md` (priority + pointer), mention it in your report, and stop there: the Backlog is summarised
+`docs/context/BACKLOG.md` (priority + pointer), mention it in your report, and stop there: the Backlog is summarised
 as a proposal for the next working block, and the user approves what gets done. Another session cannot approve scope
 on the user's behalf. If a finding blocks your approved task, stop and ask your user.

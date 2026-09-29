@@ -184,7 +184,7 @@ Các bước:
    disclosure, combobox…), nút bấm không có tác dụng (dead click), không có phản hồi hover.
 4. **Độ phủ example:** mỗi trang đủ state, edge case, mobile, bàn phím/a11y, kết hợp. ⚠ chỉ hiện cho trang có nguồn
    example mà session đã sửa; các trang khác gộp thành một dòng "N pages with known coverage gaps (Backlog)". Thiếu
-   example: ghi một dòng Backlog (mức ưu tiên + chỗ trỏ) vào `docs/context/HANDOFF.md`; chỉ thêm example khi việc đó
+   example: ghi một dòng Backlog (mức ưu tiên + chỗ trỏ) vào `docs/context/BACKLOG.md`; chỉ thêm example khi việc đó
    nằm trong task đã được duyệt.
 5. **Ảnh chụp:** contact sheet 1512 và 390 cho từng trang.
 
@@ -198,7 +198,7 @@ Lỗi có từ trước nằm trong `tools/style-guard/baseline.json`, `tools/pl
 `tools/platform-audit/behaviour-baseline.json` (cảnh báo `contrast` và `targets` nay cũng có baseline). Chúng được liệt
 kê riêng và không làm hỏng cổng; lỗi **mới** thì có. Chỉ triage ⚠ **mới**; ⚠ có từ trước là nợ: ghi vào Backlog (Scope
 lock), không sửa trong task này. Khi chạm vào dòng hoặc example còn nợ: ghi một dòng Backlog (mức ưu tiên + chỗ trỏ)
-vào `docs/context/HANDOFF.md`; chỉ sửa rồi cập nhật baseline (`npm run style:check -- --baseline-update`,
+vào `docs/context/BACKLOG.md`; chỉ sửa rồi cập nhật baseline (`npm run style:check -- --baseline-update`,
 `node tools/platform-audit/audit.mjs --pages=<trang> --quality --density --baseline-update`) khi việc đó nằm trong task
 đã được duyệt. Nợ chỉ được giảm. Khi thêm một check mới, ghi nợ ban đầu bằng `--baseline-update=<kind>`: chỉ kind đó
 được ghi, lỗi hiện có của các kind khác (có thể là việc đang làm dở của session khác) không bị nhận thành nợ.
@@ -254,7 +254,7 @@ không có gì thay đổi, lượt vẫn kết thúc (không lặp vô hạn) v
 
 ## 7. Lỗi có thể lặp lại
 
-Một loại lỗi có thể lặp lại: ghi một dòng Backlog (mức ưu tiên + chỗ trỏ) vào `docs/context/HANDOFF.md`; chỉ làm khi
+Một loại lỗi có thể lặp lại: ghi một dòng Backlog (mức ưu tiên + chỗ trỏ) vào `docs/context/BACKLOG.md`; chỉ làm khi
 việc đó nằm trong task đã được duyệt. Khi được duyệt, rule đặt ở: token → style-guard
 (`tools/style-guard/check-styles.mjs` + fixture `bad.*`/`good.*`, `npm run style:selftest`); cách dùng component →
 usage-guard; thứ chỉ thấy khi render → `tools/platform-audit/quality-checks.mjs` hoặc `behaviour.mjs`; kèm một dòng
