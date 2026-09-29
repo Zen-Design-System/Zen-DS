@@ -27,7 +27,7 @@ jobs:
       - name: Generated sources are committed and up to date
         run: |
           npm run tokens:build && npm run styles:build && npm run icons:build
-          git diff --exit-code -- src/styles src/tokens src/icons
+          git diff --exit-code -- src/styles src/tokens src/icons platforms
       - run: npm run tokens:check
       - run: npm run styles:check
       - run: npm run icons:check

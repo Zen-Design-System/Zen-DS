@@ -66,7 +66,7 @@
     "preview": "vite preview",
     "storybook": "npm run tokens:build && npm run styles:build && npm run icons:build && storybook dev -p 6006",
     "build-storybook": "npm run tokens:build && npm run styles:build && npm run icons:build && storybook build",
-    "tokens:build": "node scripts/build-tokens.mjs",
+    "tokens:build": "node scripts/build-tokens.mjs && node scripts/build-native-tokens.mjs",
     "tokens:check": "node scripts/check-token-coverage.mjs",
     "styles:build": "node scripts/build-text-styles.mjs && node scripts/build-style-manifest.mjs",
     "styles:check": "node scripts/check-text-styles.mjs && node scripts/check-style-manifest.mjs",
@@ -88,7 +88,9 @@
     "style:selftest": "node tools/style-guard/selftest.mjs",
     "qa": "node tools/qa/run.mjs",
     "qa:quick": "node tools/qa/run.mjs --quick",
-    "ship": "node tools/ship/ship.mjs"
+    "ship": "node tools/ship/ship.mjs",
+    "tokens:native": "node scripts/build-native-tokens.mjs",
+    "tokens:native:check": "node scripts/build-native-tokens.mjs --check"
   },
   "peerDependencies": {
     "react": "^19.0.0",

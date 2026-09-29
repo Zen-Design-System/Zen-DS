@@ -1,0 +1,6044 @@
+[
+ {
+  "name": "Badge/Spacing/Small/Gap",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 0
+ },
+ {
+  "name": "Badge/Spacing/Small/Gap",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 0
+ },
+ {
+  "name": "Badge/Spacing/Small/Gap",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 0
+ },
+ {
+  "name": "Badge/Spacing/Small/Gap",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 0
+ },
+ {
+  "name": "Badge/Spacing/Small/Text-Wrapper-Padding",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Badge/Spacing/Small/Text-Wrapper-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Badge/Spacing/Small/Text-Wrapper-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Badge/Spacing/Small/Text-Wrapper-Padding",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Button-Accent/Background/Default",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FF66D4"
+ },
+ {
+  "name": "Button-Accent/Background/Default",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FF66D4"
+ },
+ {
+  "name": "Button-Accent/Background/Default",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FAFAFA"
+ },
+ {
+  "name": "Button-Accent/Background/Default",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FF66D4"
+ },
+ {
+  "name": "Button-Accent/Background/Hover",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#E952C2"
+ },
+ {
+  "name": "Button-Accent/Background/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FF91DD"
+ },
+ {
+  "name": "Button-Accent/Background/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#D2D2D2"
+ },
+ {
+  "name": "Button-Accent/Background/Hover",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#E952C2"
+ },
+ {
+  "name": "Button-Accent/Background/Pressed",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#95197B"
+ },
+ {
+  "name": "Button-Accent/Background/Pressed",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FFD6F1"
+ },
+ {
+  "name": "Button-Accent/Background/Pressed",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#9E9E9E"
+ },
+ {
+  "name": "Button-Accent/Background/Pressed",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#95197B"
+ },
+ {
+  "name": "Button-Primary/Background/Default",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#111111"
+ },
+ {
+  "name": "Button-Primary/Background/Default",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FAFAFA"
+ },
+ {
+  "name": "Button-Primary/Background/Default",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FF66D4"
+ },
+ {
+  "name": "Button-Primary/Background/Default",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#111111"
+ },
+ {
+  "name": "Button-Primary/Background/Hover",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#4F4F4F"
+ },
+ {
+  "name": "Button-Primary/Background/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#D2D2D2"
+ },
+ {
+  "name": "Button-Primary/Background/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FF91DD"
+ },
+ {
+  "name": "Button-Primary/Background/Hover",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#4F4F4F"
+ },
+ {
+  "name": "Button-Primary/Background/Pressed",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#828282"
+ },
+ {
+  "name": "Button-Primary/Background/Pressed",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#9E9E9E"
+ },
+ {
+  "name": "Button-Primary/Background/Pressed",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFD6F1"
+ },
+ {
+  "name": "Button-Primary/Background/Pressed",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#828282"
+ },
+ {
+  "name": "Button-Primary/Content/Default",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FAFAFA"
+ },
+ {
+  "name": "Button-Primary/Content/Default",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#111111"
+ },
+ {
+  "name": "Button-Primary/Content/Default",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF"
+ },
+ {
+  "name": "Button-Primary/Content/Default",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FAFAFA"
+ },
+ {
+  "name": "Button-Primary/Content/Pressed",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FAFAFA"
+ },
+ {
+  "name": "Button-Primary/Content/Pressed",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#111111"
+ },
+ {
+  "name": "Button-Primary/Content/Pressed",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#000000DB"
+ },
+ {
+  "name": "Button-Primary/Content/Pressed",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FAFAFA"
+ },
+ {
+  "name": "Button-Tertiary/Background/Pressed",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#02020213"
+ },
+ {
+  "name": "Button-Tertiary/Background/Pressed",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FEFEFE12"
+ },
+ {
+  "name": "Button-Tertiary/Background/Pressed",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FEFEFE12"
+ },
+ {
+  "name": "Button-Tertiary/Background/Pressed",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#02020213"
+ },
+ {
+  "name": "Button/Size/XLarge",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 56
+ },
+ {
+  "name": "Button/Size/XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 56
+ },
+ {
+  "name": "Button/Size/XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 56
+ },
+ {
+  "name": "Button/Size/XLarge",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 64
+ },
+ {
+  "name": "Button/Spacing/Small/Text-Wrapper-Padding",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Button/Spacing/Small/Text-Wrapper-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Button/Spacing/Small/Text-Wrapper-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Button/Spacing/Small/Text-Wrapper-Padding",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Card-padding-medium",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Card-padding-medium",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Card-padding-medium",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Card-padding-medium",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Card-padding-small",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Card-padding-small",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Card-padding-small",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Card-padding-small",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Checkbox/Background/Seclected/Default",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#111111"
+ },
+ {
+  "name": "Checkbox/Background/Seclected/Default",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FAFAFA"
+ },
+ {
+  "name": "Checkbox/Background/Seclected/Default",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FF66D4"
+ },
+ {
+  "name": "Checkbox/Background/Seclected/Default",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#111111"
+ },
+ {
+  "name": "Checkbox/Background/Unselected/Default",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#05050508"
+ },
+ {
+  "name": "Checkbox/Background/Unselected/Default",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF0D"
+ },
+ {
+  "name": "Checkbox/Background/Unselected/Default",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF0D"
+ },
+ {
+  "name": "Checkbox/Background/Unselected/Default",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#05050508"
+ },
+ {
+  "name": "Checkbox/Background/Unselected/Hover",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#02020213"
+ },
+ {
+  "name": "Checkbox/Background/Unselected/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FEFEFE12"
+ },
+ {
+  "name": "Checkbox/Background/Unselected/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FEFEFE12"
+ },
+ {
+  "name": "Checkbox/Background/Unselected/Hover",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#02020213"
+ },
+ {
+  "name": "Checkbox/Border/Hover",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#01010124"
+ },
+ {
+  "name": "Checkbox/Border/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FEFEFE2A"
+ },
+ {
+  "name": "Checkbox/Border/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FEFEFE2A"
+ },
+ {
+  "name": "Checkbox/Border/Hover",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#01010124"
+ },
+ {
+  "name": "Checkbox/Icon-Check/Default",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FAFAFA"
+ },
+ {
+  "name": "Checkbox/Icon-Check/Default",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#111111"
+ },
+ {
+  "name": "Checkbox/Icon-Check/Default",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF"
+ },
+ {
+  "name": "Checkbox/Icon-Check/Default",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FAFAFA"
+ },
+ {
+  "name": "Chip-Primary/Background/Unselected/Hover",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#05050508"
+ },
+ {
+  "name": "Chip-Primary/Background/Unselected/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF0D"
+ },
+ {
+  "name": "Chip-Primary/Background/Unselected/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF0D"
+ },
+ {
+  "name": "Chip-Primary/Background/Unselected/Hover",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#05050508"
+ },
+ {
+  "name": "Chip-Secondary/Background/Unselected/Default",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FFFFFF"
+ },
+ {
+  "name": "Chip-Secondary/Background/Unselected/Default",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#1B1B1B"
+ },
+ {
+  "name": "Chip-Secondary/Background/Unselected/Default",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#1B1B1B"
+ },
+ {
+  "name": "Chip-Secondary/Background/Unselected/Default",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF"
+ },
+ {
+  "name": "Chip-Secondary/Border/Weigth-Active",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Chip-Secondary/Border/Weigth-Active",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Chip-Secondary/Border/Weigth-Active",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Chip-Secondary/Border/Weigth-Active",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 3
+ },
+ {
+  "name": "Color/Background/Active/Accent/Subtle",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FF00931A"
+ },
+ {
+  "name": "Color/Background/Active/Accent/Subtle",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FF46C125"
+ },
+ {
+  "name": "Color/Background/Active/Accent/Subtle",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FF46C125"
+ },
+ {
+  "name": "Color/Background/Active/Accent/Subtle",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FF00931A"
+ },
+ {
+  "name": "Color/Background/Info/Flat/Hover",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#056DFF0C"
+ },
+ {
+  "name": "Color/Background/Info/Flat/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#0F75FE16"
+ },
+ {
+  "name": "Color/Background/Info/Flat/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#0F75FE16"
+ },
+ {
+  "name": "Color/Background/Info/Flat/Hover",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#056DFF0C"
+ },
+ {
+  "name": "Color/Background/Liquid-Glass/Black-Overlay/Hover",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#1F1F1F80"
+ },
+ {
+  "name": "Color/Background/Liquid-Glass/Black-Overlay/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#1F1F1F80"
+ },
+ {
+  "name": "Color/Background/Liquid-Glass/Black-Overlay/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#1F1F1F80"
+ },
+ {
+  "name": "Color/Background/Liquid-Glass/Black-Overlay/Hover",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#1F1F1F80"
+ },
+ {
+  "name": "Color/Background/Neutral/Subtle/Hover",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#02020215"
+ },
+ {
+  "name": "Color/Background/Neutral/Subtle/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF18"
+ },
+ {
+  "name": "Color/Background/Neutral/Subtle/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF18"
+ },
+ {
+  "name": "Color/Background/Neutral/Subtle/Hover",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#02020215"
+ },
+ {
+  "name": "Color/Background/Support/Brand/Solid",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FF66D4"
+ },
+ {
+  "name": "Color/Background/Support/Brand/Solid",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FF66D4"
+ },
+ {
+  "name": "Color/Background/Support/Brand/Solid",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FF66D4"
+ },
+ {
+  "name": "Color/Background/Support/Brand/Solid",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FF66D4"
+ },
+ {
+  "name": "Color/Background/Support/Crimson/Solid",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#E94E75"
+ },
+ {
+  "name": "Color/Background/Support/Crimson/Solid",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#E94E75"
+ },
+ {
+  "name": "Color/Background/Support/Crimson/Solid",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#E94E75"
+ },
+ {
+  "name": "Color/Background/Support/Crimson/Solid",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#E94E75"
+ },
+ {
+  "name": "Color/Background/Support/Neutral/Pale",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#05050508"
+ },
+ {
+  "name": "Color/Background/Support/Neutral/Pale",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF0D"
+ },
+ {
+  "name": "Color/Background/Support/Neutral/Pale",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF0D"
+ },
+ {
+  "name": "Color/Background/Support/Neutral/Pale",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#05050508"
+ },
+ {
+  "name": "Color/Border/Neutral/Pale/Pressed",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#0101011D"
+ },
+ {
+  "name": "Color/Border/Neutral/Pale/Pressed",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF1F"
+ },
+ {
+  "name": "Color/Border/Neutral/Pale/Pressed",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF1F"
+ },
+ {
+  "name": "Color/Border/Neutral/Pale/Pressed",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#0101011D"
+ },
+ {
+  "name": "Color/Border/Overlay/Solid/Pressed",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#9E9E9E"
+ },
+ {
+  "name": "Color/Border/Overlay/Solid/Pressed",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#9E9E9E"
+ },
+ {
+  "name": "Color/Border/Overlay/Solid/Pressed",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#9E9E9E"
+ },
+ {
+  "name": "Color/Border/Overlay/Solid/Pressed",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#9E9E9E"
+ },
+ {
+  "name": "Color/Border/Support/Golden/Subtle",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#D990007A"
+ },
+ {
+  "name": "Color/Border/Support/Golden/Subtle",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#493300F5"
+ },
+ {
+  "name": "Color/Border/Support/Golden/Subtle",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#493300F5"
+ },
+ {
+  "name": "Color/Border/Support/Golden/Subtle",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#D990007A"
+ },
+ {
+  "name": "Color/Border/Support/Purple/Subtle",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#9001FF3E"
+ },
+ {
+  "name": "Color/Border/Support/Purple/Subtle",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#BB5CFF53"
+ },
+ {
+  "name": "Color/Border/Support/Purple/Subtle",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#BB5CFF53"
+ },
+ {
+  "name": "Color/Border/Support/Purple/Subtle",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#9001FF3E"
+ },
+ {
+  "name": "Color/Content/Neutral/Strongest",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#111111"
+ },
+ {
+  "name": "Color/Content/Neutral/Strongest",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FAFAFA"
+ },
+ {
+  "name": "Color/Content/Neutral/Strongest",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FAFAFA"
+ },
+ {
+  "name": "Color/Content/Neutral/Strongest",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#111111"
+ },
+ {
+  "name": "Color/Content/Support/Pink/Strongest",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#570041"
+ },
+ {
+  "name": "Color/Content/Support/Pink/Strongest",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FFEBF6"
+ },
+ {
+  "name": "Color/Content/Support/Pink/Strongest",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFEBF6"
+ },
+ {
+  "name": "Color/Content/Support/Pink/Strongest",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#570041"
+ },
+ {
+  "name": "Container/Border",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#02020213"
+ },
+ {
+  "name": "Container/Border",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FEFEFE12"
+ },
+ {
+  "name": "Container/Border",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FEFEFE12"
+ },
+ {
+  "name": "Container/Border",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#02020213"
+ },
+ {
+  "name": "Corner-Radius/3XLarge",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 28
+ },
+ {
+  "name": "Corner-Radius/3XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 28
+ },
+ {
+  "name": "Corner-Radius/3XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 28
+ },
+ {
+  "name": "Corner-Radius/3XLarge",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Corner-Radius/Action/Focus-Medium",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Action/Focus-Medium",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Action/Focus-Medium",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 18
+ },
+ {
+  "name": "Corner-Radius/Action/Focus-Medium",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Corner-Radius/Action/Focus-XLarge",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Action/Focus-XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Action/Focus-XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 22
+ },
+ {
+  "name": "Corner-Radius/Action/Focus-XLarge",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Corner-Radius/Action/Focus-XSmall",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Action/Focus-XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Action/Focus-XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Action/Focus-XSmall",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Corner-Radius/Action/Medium",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Action/Medium",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Action/Medium",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Corner-Radius/Action/Medium",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Corner-Radius/Action/XSmall",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Action/XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Action/XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Action/XSmall",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Corner-Radius/Base",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Corner-Radius/Base",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Corner-Radius/Base",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Corner-Radius/Base",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Corner-Radius/Giant",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Corner-Radius/Giant",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Corner-Radius/Giant",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Corner-Radius/Giant",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Corner-Radius/Input/Medium",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Corner-Radius/Input/Medium",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Corner-Radius/Input/Medium",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Corner-Radius/Input/Medium",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Corner-Radius/Input/XLarge",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Corner-Radius/Input/XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Corner-Radius/Input/XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Corner-Radius/Input/XLarge",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Corner-Radius/Rounded",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Rounded",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Rounded",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Rounded",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 1000
+ },
+ {
+  "name": "Corner-Radius/Small",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Corner-Radius/Small",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Corner-Radius/Small",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Corner-Radius/Small",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Corner-Radius/XGiant",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 36
+ },
+ {
+  "name": "Corner-Radius/XGiant",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 36
+ },
+ {
+  "name": "Corner-Radius/XGiant",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 36
+ },
+ {
+  "name": "Corner-Radius/XGiant",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Dark/Brand/4",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#471D3A"
+ },
+ {
+  "name": "Dark/Brand/4",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#471D3A"
+ },
+ {
+  "name": "Dark/Brand/4",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#471D3A"
+ },
+ {
+  "name": "Dark/Brand/4",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#471D3A"
+ },
+ {
+  "name": "Dark/Brown/1",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#110F0E"
+ },
+ {
+  "name": "Dark/Brown/1",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#110F0E"
+ },
+ {
+  "name": "Dark/Brown/1",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#110F0E"
+ },
+ {
+  "name": "Dark/Brown/1",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#110F0E"
+ },
+ {
+  "name": "Dark/Crimson/1",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#140E0F"
+ },
+ {
+  "name": "Dark/Crimson/1",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#140E0F"
+ },
+ {
+  "name": "Dark/Crimson/1",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#140E0F"
+ },
+ {
+  "name": "Dark/Crimson/1",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#140E0F"
+ },
+ {
+  "name": "Dark/Cyan-Alpha/5",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#003D4FF5"
+ },
+ {
+  "name": "Dark/Cyan-Alpha/5",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#003D4FF5"
+ },
+ {
+  "name": "Dark/Cyan-Alpha/5",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#003D4FF5"
+ },
+ {
+  "name": "Dark/Cyan-Alpha/5",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#003D4FF5"
+ },
+ {
+  "name": "Dark/Glass-Default",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#262626B2"
+ },
+ {
+  "name": "Dark/Glass-Default",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#262626B2"
+ },
+ {
+  "name": "Dark/Glass-Default",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#262626B2"
+ },
+ {
+  "name": "Dark/Glass-Default",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#262626B2"
+ },
+ {
+  "name": "Dark/Gray-Alpha/5",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FFFFFF1F"
+ },
+ {
+  "name": "Dark/Gray-Alpha/5",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF1F"
+ },
+ {
+  "name": "Dark/Gray-Alpha/5",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF1F"
+ },
+ {
+  "name": "Dark/Gray-Alpha/5",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF1F"
+ },
+ {
+  "name": "Dark/Info/7",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#00448B"
+ },
+ {
+  "name": "Dark/Info/7",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#00448B"
+ },
+ {
+  "name": "Dark/Info/7",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#00448B"
+ },
+ {
+  "name": "Dark/Info/7",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#00448B"
+ },
+ {
+  "name": "Dark/Negative-Alpha/10",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FF6B45F5"
+ },
+ {
+  "name": "Dark/Negative-Alpha/10",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FF6B45F5"
+ },
+ {
+  "name": "Dark/Negative-Alpha/10",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FF6B45F5"
+ },
+ {
+  "name": "Dark/Negative-Alpha/10",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FF6B45F5"
+ },
+ {
+  "name": "Dark/Neutral/10",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#9E9E9E"
+ },
+ {
+  "name": "Dark/Neutral/10",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#9E9E9E"
+ },
+ {
+  "name": "Dark/Neutral/10",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#9E9E9E"
+ },
+ {
+  "name": "Dark/Neutral/10",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#9E9E9E"
+ },
+ {
+  "name": "Dark/Positive-Alpha/4",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#3FFF5A25"
+ },
+ {
+  "name": "Dark/Positive-Alpha/4",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#3FFF5A25"
+ },
+ {
+  "name": "Dark/Positive-Alpha/4",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#3FFF5A25"
+ },
+ {
+  "name": "Dark/Positive-Alpha/4",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#3FFF5A25"
+ },
+ {
+  "name": "Dark/Purple/9",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#9141C3"
+ },
+ {
+  "name": "Dark/Purple/9",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#9141C3"
+ },
+ {
+  "name": "Dark/Purple/9",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#9141C3"
+ },
+ {
+  "name": "Dark/Purple/9",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#9141C3"
+ },
+ {
+  "name": "Dark/Warning/1",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#120F0C"
+ },
+ {
+  "name": "Dark/Warning/1",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#120F0C"
+ },
+ {
+  "name": "Dark/Warning/1",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#120F0C"
+ },
+ {
+  "name": "Dark/Warning/1",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#120F0C"
+ },
+ {
+  "name": "Dark/Yellow/9",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FFBA1A"
+ },
+ {
+  "name": "Dark/Yellow/9",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FFBA1A"
+ },
+ {
+  "name": "Dark/Yellow/9",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFBA1A"
+ },
+ {
+  "name": "Dark/Yellow/9",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FFBA1A"
+ },
+ {
+  "name": "Darkmode",
+  "context": {},
+  "type": "BOOLEAN",
+  "expected": false
+ },
+ {
+  "name": "Darkmode",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "BOOLEAN",
+  "expected": true
+ },
+ {
+  "name": "Darkmode",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "BOOLEAN",
+  "expected": true
+ },
+ {
+  "name": "Darkmode",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "BOOLEAN",
+  "expected": false
+ },
+ {
+  "name": "Date-Picker-Item/Background/Seclected-In-Range/Hover",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#02020215"
+ },
+ {
+  "name": "Date-Picker-Item/Background/Seclected-In-Range/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF18"
+ },
+ {
+  "name": "Date-Picker-Item/Background/Seclected-In-Range/Hover",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FE4BC73C"
+ },
+ {
+  "name": "Date-Picker-Item/Background/Seclected-In-Range/Hover",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#02020215"
+ },
+ {
+  "name": "Date-Picker-Item/Content/Selected",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FAFAFA"
+ },
+ {
+  "name": "Date-Picker-Item/Content/Selected",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#111111"
+ },
+ {
+  "name": "Date-Picker-Item/Content/Selected",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF"
+ },
+ {
+  "name": "Date-Picker-Item/Content/Selected",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FAFAFA"
+ },
+ {
+  "name": "Element-Size/Popular/Base",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Element-Size/Popular/Base",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Element-Size/Popular/Base",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Element-Size/Popular/Base",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Emphasis/Border-Weight/Active/Primary",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Emphasis/Border-Weight/Active/Primary",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Emphasis/Border-Weight/Active/Primary",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Emphasis/Border-Weight/Active/Primary",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 3
+ },
+ {
+  "name": "Emphasis/Border-Weight/Active/Secondary",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 1
+ },
+ {
+  "name": "Emphasis/Border-Weight/Active/Secondary",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 1
+ },
+ {
+  "name": "Emphasis/Border-Weight/Active/Secondary",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 1
+ },
+ {
+  "name": "Emphasis/Border-Weight/Active/Secondary",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Emphasis/Font-Weight/Bold",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 600
+ },
+ {
+  "name": "Emphasis/Font-Weight/Bold",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 600
+ },
+ {
+  "name": "Emphasis/Font-Weight/Bold",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 600
+ },
+ {
+  "name": "Emphasis/Font-Weight/Bold",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 700
+ },
+ {
+  "name": "Emphasis/Font-Weight/Medium",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 500
+ },
+ {
+  "name": "Emphasis/Font-Weight/Medium",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 500
+ },
+ {
+  "name": "Emphasis/Font-Weight/Medium",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 500
+ },
+ {
+  "name": "Emphasis/Font-Weight/Medium",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 550
+ },
+ {
+  "name": "Emphasis/Font-Weight/Regular",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 400
+ },
+ {
+  "name": "Emphasis/Font-Weight/Regular",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 400
+ },
+ {
+  "name": "Emphasis/Font-Weight/Regular",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 400
+ },
+ {
+  "name": "Emphasis/Font-Weight/Regular",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 450
+ },
+ {
+  "name": "Emphasis/Font-Weight/Semi-Bold",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 550
+ },
+ {
+  "name": "Emphasis/Font-Weight/Semi-Bold",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 550
+ },
+ {
+  "name": "Emphasis/Font-Weight/Semi-Bold",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 550
+ },
+ {
+  "name": "Emphasis/Font-Weight/Semi-Bold",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 650
+ },
+ {
+  "name": "Gutter",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Gutter",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Gutter",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Gutter",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Input/Spacing/Small/Horizontal-Padding",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Input/Spacing/Small/Horizontal-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Input/Spacing/Small/Horizontal-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Input/Spacing/Small/Horizontal-Padding",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Light/Brand/1",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FFFBFD"
+ },
+ {
+  "name": "Light/Brand/1",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FFFBFD"
+ },
+ {
+  "name": "Light/Brand/1",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFBFD"
+ },
+ {
+  "name": "Light/Brand/1",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FFFBFD"
+ },
+ {
+  "name": "Light/Golden-Alpha/5",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#D990007A"
+ },
+ {
+  "name": "Light/Golden-Alpha/5",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#D990007A"
+ },
+ {
+  "name": "Light/Golden-Alpha/5",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#D990007A"
+ },
+ {
+  "name": "Light/Golden-Alpha/5",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#D990007A"
+ },
+ {
+  "name": "Light/Indigo-Alpha/5",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#0135FF3F"
+ },
+ {
+  "name": "Light/Indigo-Alpha/5",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#0135FF3F"
+ },
+ {
+  "name": "Light/Indigo-Alpha/5",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#0135FF3F"
+ },
+ {
+  "name": "Light/Indigo-Alpha/5",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#0135FF3F"
+ },
+ {
+  "name": "Light/Info/4",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#C7DFFF"
+ },
+ {
+  "name": "Light/Info/4",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#C7DFFF"
+ },
+ {
+  "name": "Light/Info/4",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#C7DFFF"
+ },
+ {
+  "name": "Light/Info/4",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#C7DFFF"
+ },
+ {
+  "name": "Light/Mint/9",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#04CDA1"
+ },
+ {
+  "name": "Light/Mint/9",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#04CDA1"
+ },
+ {
+  "name": "Light/Mint/9",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#04CDA1"
+ },
+ {
+  "name": "Light/Mint/9",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#04CDA1"
+ },
+ {
+  "name": "Light/Negative-Alpha/7",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FF330078"
+ },
+ {
+  "name": "Light/Negative-Alpha/7",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FF330078"
+ },
+ {
+  "name": "Light/Negative-Alpha/7",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FF330078"
+ },
+ {
+  "name": "Light/Negative-Alpha/7",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FF330078"
+ },
+ {
+  "name": "Light/Neutral/7",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#D0D0D0"
+ },
+ {
+  "name": "Light/Neutral/7",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#D0D0D0"
+ },
+ {
+  "name": "Light/Neutral/7",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#D0D0D0"
+ },
+ {
+  "name": "Light/Neutral/7",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#D0D0D0"
+ },
+ {
+  "name": "Light/Orange/1",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FFFCF9"
+ },
+ {
+  "name": "Light/Orange/1",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FFFCF9"
+ },
+ {
+  "name": "Light/Orange/1",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFCF9"
+ },
+ {
+  "name": "Light/Orange/1",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FFFCF9"
+ },
+ {
+  "name": "Light/Plum/9",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#BB4ABF"
+ },
+ {
+  "name": "Light/Plum/9",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#BB4ABF"
+ },
+ {
+  "name": "Light/Plum/9",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#BB4ABF"
+ },
+ {
+  "name": "Light/Plum/9",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#BB4ABF"
+ },
+ {
+  "name": "Light/Positive-Alpha/1",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#05B80507"
+ },
+ {
+  "name": "Light/Positive-Alpha/1",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#05B80507"
+ },
+ {
+  "name": "Light/Positive-Alpha/1",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#05B80507"
+ },
+ {
+  "name": "Light/Positive-Alpha/1",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#05B80507"
+ },
+ {
+  "name": "Light/Tomato/1",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FFFCFA"
+ },
+ {
+  "name": "Light/Tomato/1",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FFFCFA"
+ },
+ {
+  "name": "Light/Tomato/1",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFCFA"
+ },
+ {
+  "name": "Light/Tomato/1",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FFFCFA"
+ },
+ {
+  "name": "Margin-Comfortable",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Margin-Comfortable",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Margin-Comfortable",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Margin-Comfortable",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Margin-Compact",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Margin-Compact",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Margin-Compact",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Margin-Compact",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Modal-Padding",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Modal-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Modal-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Modal-Padding",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Modal-Radius",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 36
+ },
+ {
+  "name": "Modal-Radius",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 36
+ },
+ {
+  "name": "Modal-Radius",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 36
+ },
+ {
+  "name": "Modal-Radius",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Navigation-Action/Icon/Spacing/Vertical-Padding",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 10
+ },
+ {
+  "name": "Navigation-Action/Icon/Spacing/Vertical-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 10
+ },
+ {
+  "name": "Navigation-Action/Icon/Spacing/Vertical-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 10
+ },
+ {
+  "name": "Navigation-Action/Icon/Spacing/Vertical-Padding",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 10
+ },
+ {
+  "name": "Navigation-Action/Margin",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Navigation-Action/Margin",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Navigation-Action/Margin",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Navigation-Action/Margin",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Overlay/White/10",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FFFFFF78"
+ },
+ {
+  "name": "Overlay/White/10",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF78"
+ },
+ {
+  "name": "Overlay/White/10",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF78"
+ },
+ {
+  "name": "Overlay/White/10",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF78"
+ },
+ {
+  "name": "Segmented-Item-Secondary/Background/Unselected/Default",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FFFFFF00"
+ },
+ {
+  "name": "Segmented-Item-Secondary/Background/Unselected/Default",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF00"
+ },
+ {
+  "name": "Segmented-Item-Secondary/Background/Unselected/Default",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF00"
+ },
+ {
+  "name": "Segmented-Item-Secondary/Background/Unselected/Default",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF00"
+ },
+ {
+  "name": "Segmented/Spacing/Small/Text-Wrapper-Padding",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Segmented/Spacing/Small/Text-Wrapper-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Segmented/Spacing/Small/Text-Wrapper-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Segmented/Spacing/Small/Text-Wrapper-Padding",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Spacing/Gap/2XGiant",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 144
+ },
+ {
+  "name": "Spacing/Gap/2XGiant",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 144
+ },
+ {
+  "name": "Spacing/Gap/2XGiant",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 144
+ },
+ {
+  "name": "Spacing/Gap/2XGiant",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 144
+ },
+ {
+  "name": "Spacing/Gap/2XLarge",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 40
+ },
+ {
+  "name": "Spacing/Gap/2XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 40
+ },
+ {
+  "name": "Spacing/Gap/2XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 40
+ },
+ {
+  "name": "Spacing/Gap/2XLarge",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 40
+ },
+ {
+  "name": "Spacing/Gap/2XSmall",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Spacing/Gap/2XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Spacing/Gap/2XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Spacing/Gap/2XSmall",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Spacing/Gap/3XLarge",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 48
+ },
+ {
+  "name": "Spacing/Gap/3XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 48
+ },
+ {
+  "name": "Spacing/Gap/3XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 48
+ },
+ {
+  "name": "Spacing/Gap/3XLarge",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 48
+ },
+ {
+  "name": "Spacing/Gap/3XSmall",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Spacing/Gap/3XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Spacing/Gap/3XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Spacing/Gap/3XSmall",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Spacing/Gap/Giant",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 64
+ },
+ {
+  "name": "Spacing/Gap/Giant",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 64
+ },
+ {
+  "name": "Spacing/Gap/Giant",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 64
+ },
+ {
+  "name": "Spacing/Gap/Giant",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 64
+ },
+ {
+  "name": "Spacing/Gap/Large",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Spacing/Gap/Large",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Spacing/Gap/Large",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Spacing/Gap/Large",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Spacing/Gap/Medium",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Spacing/Gap/Medium",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Spacing/Gap/Medium",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Spacing/Gap/Medium",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Spacing/Gap/Small",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Spacing/Gap/Small",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Spacing/Gap/Small",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Spacing/Gap/Small",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Spacing/Gap/XGiant",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 88
+ },
+ {
+  "name": "Spacing/Gap/XGiant",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 88
+ },
+ {
+  "name": "Spacing/Gap/XGiant",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 88
+ },
+ {
+  "name": "Spacing/Gap/XGiant",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 88
+ },
+ {
+  "name": "Spacing/Gap/XLarge",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Spacing/Gap/XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Spacing/Gap/XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Spacing/Gap/XLarge",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Spacing/Gap/XSmall",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Spacing/Gap/XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Spacing/Gap/XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Spacing/Gap/XSmall",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Spacing/Padding/2XLarge",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Spacing/Padding/2XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Spacing/Padding/2XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Spacing/Padding/2XLarge",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "Spacing/Padding/2XSmall",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Spacing/Padding/2XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Spacing/Padding/2XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Spacing/Padding/2XSmall",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Spacing/Padding/3XLarge",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 40
+ },
+ {
+  "name": "Spacing/Padding/3XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 40
+ },
+ {
+  "name": "Spacing/Padding/3XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 40
+ },
+ {
+  "name": "Spacing/Padding/3XLarge",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 40
+ },
+ {
+  "name": "Spacing/Padding/3XSmall",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Spacing/Padding/3XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Spacing/Padding/3XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Spacing/Padding/3XSmall",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "Spacing/Padding/4XLarge",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 48
+ },
+ {
+  "name": "Spacing/Padding/4XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 48
+ },
+ {
+  "name": "Spacing/Padding/4XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 48
+ },
+ {
+  "name": "Spacing/Padding/4XLarge",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 48
+ },
+ {
+  "name": "Spacing/Padding/Large",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Spacing/Padding/Large",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Spacing/Padding/Large",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Spacing/Padding/Large",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Spacing/Padding/Medium",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Spacing/Padding/Medium",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Spacing/Padding/Medium",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Spacing/Padding/Medium",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Spacing/Padding/Small",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Spacing/Padding/Small",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Spacing/Padding/Small",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Spacing/Padding/Small",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Spacing/Padding/XLarge",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Spacing/Padding/XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Spacing/Padding/XLarge",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Spacing/Padding/XLarge",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Spacing/Padding/XSmall",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Spacing/Padding/XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Spacing/Padding/XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Spacing/Padding/XSmall",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "Tab-Item/Spacing/Medium/Horizontal-Padding",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 0
+ },
+ {
+  "name": "Tab-Item/Spacing/Medium/Horizontal-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 0
+ },
+ {
+  "name": "Tab-Item/Spacing/Medium/Horizontal-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 0
+ },
+ {
+  "name": "Tab-Item/Spacing/Medium/Horizontal-Padding",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 0
+ },
+ {
+  "name": "Tab/Content/Default",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#0000007D"
+ },
+ {
+  "name": "Tab/Content/Default",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF98"
+ },
+ {
+  "name": "Tab/Content/Default",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF98"
+ },
+ {
+  "name": "Tab/Content/Default",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#0000007D"
+ },
+ {
+  "name": "Tag/Size/Small",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Tag/Size/Small",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Tag/Size/Small",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Tag/Size/Small",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Tag/Spacing/Medium/Minimum-Padding",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Tag/Spacing/Medium/Minimum-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Tag/Spacing/Medium/Minimum-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Tag/Spacing/Medium/Minimum-Padding",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 4
+ },
+ {
+  "name": "Text-Area/Spacing/Medium/Vertical-Padding",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Text-Area/Spacing/Medium/Vertical-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Text-Area/Spacing/Medium/Vertical-Padding",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Text-Area/Spacing/Medium/Vertical-Padding",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Toggle/Dot/Background/Unselected-Default",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FFFFFF"
+ },
+ {
+  "name": "Toggle/Dot/Background/Unselected-Default",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FCFCFC"
+ },
+ {
+  "name": "Toggle/Dot/Background/Unselected-Default",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FCFCFC"
+ },
+ {
+  "name": "Toggle/Dot/Background/Unselected-Default",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF"
+ },
+ {
+  "name": "Typography/Font-Family/Button",
+  "context": {},
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Button",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Button",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Button",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Dev",
+  "context": {},
+  "type": "STRING",
+  "expected": "JetBrains Mono"
+ },
+ {
+  "name": "Typography/Font-Family/Dev",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "STRING",
+  "expected": "JetBrains Mono"
+ },
+ {
+  "name": "Typography/Font-Family/Dev",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "STRING",
+  "expected": "JetBrains Mono"
+ },
+ {
+  "name": "Typography/Font-Family/Dev",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "STRING",
+  "expected": "JetBrains Mono"
+ },
+ {
+  "name": "Typography/Font-Family/Display",
+  "context": {},
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Display",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Display",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Display",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Heading",
+  "context": {},
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Heading",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Heading",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Heading",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Sans",
+  "context": {},
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Sans",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Sans",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Font-Family/Sans",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "STRING",
+  "expected": "Inter"
+ },
+ {
+  "name": "Typography/Line-Height/ALL-CAPS-S",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Typography/Line-Height/ALL-CAPS-S",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Typography/Line-Height/ALL-CAPS-S",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Typography/Line-Height/ALL-CAPS-S",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Typography/Line-Height/Body-Extra",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Typography/Line-Height/Body-Extra",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Typography/Line-Height/Body-Extra",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Typography/Line-Height/Body-Extra",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Typography/Line-Height/Body-Small",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Typography/Line-Height/Body-Small",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Typography/Line-Height/Body-Small",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Typography/Line-Height/Body-Small",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "Typography/Line-Height/Button-Label-M",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Typography/Line-Height/Button-Label-M",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Typography/Line-Height/Button-Label-M",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Typography/Line-Height/Button-Label-M",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 20
+ },
+ {
+  "name": "Typography/Line-Height/Button-Label-XL",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Typography/Line-Height/Button-Label-XL",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Typography/Line-Height/Button-Label-XL",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Typography/Line-Height/Button-Label-XL",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Typography/Line-Height/Button-Label-XS",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Typography/Line-Height/Button-Label-XS",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Typography/Line-Height/Button-Label-XS",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Typography/Line-Height/Button-Label-XS",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Typography/Line-Height/Display-1",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 52
+ },
+ {
+  "name": "Typography/Line-Height/Display-1",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 52
+ },
+ {
+  "name": "Typography/Line-Height/Display-1",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 52
+ },
+ {
+  "name": "Typography/Line-Height/Display-1",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 52
+ },
+ {
+  "name": "Typography/Line-Height/Display-3",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 44
+ },
+ {
+  "name": "Typography/Line-Height/Display-3",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 44
+ },
+ {
+  "name": "Typography/Line-Height/Display-3",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 44
+ },
+ {
+  "name": "Typography/Line-Height/Display-3",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 44
+ },
+ {
+  "name": "Typography/Line-Height/Display-Extra-2",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 60
+ },
+ {
+  "name": "Typography/Line-Height/Display-Extra-2",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 60
+ },
+ {
+  "name": "Typography/Line-Height/Display-Extra-2",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 60
+ },
+ {
+  "name": "Typography/Line-Height/Display-Extra-2",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 60
+ },
+ {
+  "name": "Typography/Line-Height/Heading-1",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 36
+ },
+ {
+  "name": "Typography/Line-Height/Heading-1",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 36
+ },
+ {
+  "name": "Typography/Line-Height/Heading-1",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 36
+ },
+ {
+  "name": "Typography/Line-Height/Heading-1",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 36
+ },
+ {
+  "name": "Typography/Line-Height/Label-Small",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Typography/Line-Height/Label-Small",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Typography/Line-Height/Label-Small",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Typography/Line-Height/Label-Small",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Typography/Line-Height/Subheading",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Typography/Line-Height/Subheading",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Typography/Line-Height/Subheading",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Typography/Line-Height/Subheading",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "Viewport-Height",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 982
+ },
+ {
+  "name": "Viewport-Height",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 982
+ },
+ {
+  "name": "Viewport-Height",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 982
+ },
+ {
+  "name": "Viewport-Height",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 844
+ },
+ {
+  "name": "Viewport-Width",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 1512
+ },
+ {
+  "name": "Viewport-Width",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 1512
+ },
+ {
+  "name": "Viewport-Width",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 1512
+ },
+ {
+  "name": "Viewport-Width",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 390
+ },
+ {
+  "name": "dm-100",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 100
+ },
+ {
+  "name": "dm-100",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 100
+ },
+ {
+  "name": "dm-100",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 100
+ },
+ {
+  "name": "dm-100",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 100
+ },
+ {
+  "name": "dm-112",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 112
+ },
+ {
+  "name": "dm-112",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 112
+ },
+ {
+  "name": "dm-112",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 112
+ },
+ {
+  "name": "dm-112",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 112
+ },
+ {
+  "name": "dm-144",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 144
+ },
+ {
+  "name": "dm-144",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 144
+ },
+ {
+  "name": "dm-144",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 144
+ },
+ {
+  "name": "dm-144",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 144
+ },
+ {
+  "name": "dm-16",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "dm-16",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "dm-16",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "dm-16",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
+  "name": "dm-184",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 184
+ },
+ {
+  "name": "dm-184",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 184
+ },
+ {
+  "name": "dm-184",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 184
+ },
+ {
+  "name": "dm-184",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 184
+ },
+ {
+  "name": "dm-2",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "dm-2",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "dm-2",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "dm-2",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 2
+ },
+ {
+  "name": "dm-24",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "dm-24",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "dm-24",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "dm-24",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 24
+ },
+ {
+  "name": "dm-240",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 240
+ },
+ {
+  "name": "dm-240",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 240
+ },
+ {
+  "name": "dm-240",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 240
+ },
+ {
+  "name": "dm-240",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 240
+ },
+ {
+  "name": "dm-32",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "dm-32",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "dm-32",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "dm-32",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 32
+ },
+ {
+  "name": "dm-40",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 40
+ },
+ {
+  "name": "dm-40",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 40
+ },
+ {
+  "name": "dm-40",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 40
+ },
+ {
+  "name": "dm-40",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 40
+ },
+ {
+  "name": "dm-48",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 48
+ },
+ {
+  "name": "dm-48",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 48
+ },
+ {
+  "name": "dm-48",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 48
+ },
+ {
+  "name": "dm-48",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 48
+ },
+ {
+  "name": "dm-56",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 56
+ },
+ {
+  "name": "dm-56",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 56
+ },
+ {
+  "name": "dm-56",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 56
+ },
+ {
+  "name": "dm-56",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 56
+ },
+ {
+  "name": "dm-68",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 68
+ },
+ {
+  "name": "dm-68",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 68
+ },
+ {
+  "name": "dm-68",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 68
+ },
+ {
+  "name": "dm-68",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 68
+ },
+ {
+  "name": "dm-72",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 72
+ },
+ {
+  "name": "dm-72",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 72
+ },
+ {
+  "name": "dm-72",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 72
+ },
+ {
+  "name": "dm-72",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 72
+ },
+ {
+  "name": "dm-76",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 76
+ },
+ {
+  "name": "dm-76",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 76
+ },
+ {
+  "name": "dm-76",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 76
+ },
+ {
+  "name": "dm-76",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 76
+ },
+ {
+  "name": "dm-8",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "dm-8",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "dm-8",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "dm-8",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 8
+ },
+ {
+  "name": "dm-88",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 88
+ },
+ {
+  "name": "dm-88",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 88
+ },
+ {
+  "name": "dm-88",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 88
+ },
+ {
+  "name": "dm-88",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 88
+ }
+]

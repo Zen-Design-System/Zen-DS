@@ -1,0 +1,17 @@
+# Zen design tokens for Flutter. Data and names are generated (npm run tokens:native).
+name: zen_tokens
+description: Zen design system tokens resolved by mode, generated from the Figma variables.
+version: 0.4.0
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
