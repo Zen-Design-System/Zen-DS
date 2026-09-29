@@ -557,3 +557,134 @@ The user approved batch A of `process-audit-2026-09-29.md`, then chose to stop t
   (`.qa/reports/2026-09-29T06-22-45-a4b8c773.md`), running marker cleared, required sheets recorded.
 - Follow-ups (seed contrast/targets, Read hook for exact review, token builds via Bash, live Figma drift in 9 Chip and
   Popover sets, gate details): HANDOFF Backlog, "Process (2026-09-29)".
+
+## App Shell (session "App Shell kiểm tra lại")
+
+The user asked to re-check all of App Shell, to research patterns first, and to use the Figma HR-Platform page. They
+approved groups A (fixes + Figma), B (HR pattern), C (slots) and D (4 templates). They declined Sidebar edits (those go
+to the Backlog) and chose a rail toggle that is on by default whenever the shell has a top bar. New components
+(AppShellAction, AppShellAccount), so the manifest and the definition of done follow tier L. The QA run is scoped
+(`npm run qa`): the process owner confirmed that nothing here reaches other pages, since the label keys are additive.
+An `--all` run was stopped after its static gates and Vitest suite had passed.
+
+**Research:** a subagent read the official docs of Carbon UI Shell, Material 3 (drawer, rail, window classes),
+Atlassian navigation system, Polaris Frame (archived repo), Primer PageLayout/PageHeader, Fluent 2 Nav, SAP Fiori Shell
+Bar, Apple HIG sidebars and SLDS global header. Consensus applied here:
+- the toggle sits at the top bar's leading edge;
+- the overlay nav is modal (inert page, Escape, scrim, Close);
+- choosing a page closes it and moves focus to the content;
+- one skip link;
+- a labelled nav;
+- utilities trail the top bar with the account last;
+- the app owns persistence of the collapsed state.
+
+**Figma manifest (◇ Master-Layout 1128:29541, 7 nodes)**
+
+| Node | Axes / slots | Code |
+| --- | --- | --- |
+| Patterns/Pages/Density-Medium 4122:41886 (1 variant) | Content, Floating-Actions, Floating-Item, Side-Panel, Sidebar | children · floatingAction · aside · sidebar |
+| Header/Dashboard 4122:34662 | Sections slot | Navigation → AppShell top bar; Main → PageHeader; Control-Bar → page toolbar (Search + Chip, not shell) |
+| Primitives/Dashboard/Header 4122:33402 (4 types) | Type, 5 slots | Center-Slots deferred (hidden by default, unused on HR); Custom not applicable |
+| Header/Action-Item 12280:19532 (4 variants) | Theme Tertiary/Flat × Noti-type Dot/Number, Notification | AppShellAction appearance / dot / count |
+| Primitives/Notification-Dot 4116:21789 (6 variants) | Style Dot/Number × Theme Default/Active/Accent | AppShellAction tone (internal part, Backlog: one primitive) |
+| Patterns/Sidebar/Density-Medium 6040:67524 (4 variants) | Expand × Shadow | Expand = Sidebar collapsed via the shell; Shadow=No deferred (designer question) |
+| .Pattern-Canvas 4263:28000 | frame | not applicable |
+
+HR-Platform (1128:29542) has 11 pages in light and 11 in dark. Every page is a Patterns/Pages instance. The Navigation
+section:
+- padding: Margin-Comfortable on top and on both sides, Padding/XSmall at the bottom; a 40px row;
+- leading: icon-layout-left and Breadcrumbs Small, 8px apart;
+- trailing: a Badge (Medium, Neutral, Subtle, icon-package-solid), Action-Items, and an Avatar (Medium), 12px apart.
+
+**Spec card:**
+- **Top bar:** padding Margin-Comfortable / Margin-Comfortable / Padding-XSmall; row height Button/Size/Medium.
+- **Gaps:** Gap/Medium between leading and trailing, Gap/XSmall between the toggle and the content, Gap/Small between
+  actions.
+- **Toggle:** Button/Icon-Flat Medium Primary in an Element-Size/Popular/Base wrapper (−10 bleed). Icon layout-left or
+  layout-right, or menu-01 in the drawer.
+- **Action-Item:** Icon-Main Medium Tertiary.
+  - Dot: 8px, Background/Negative, Positive or Accent Solid, with a 2px Border/Inverse ring, at (30, 2).
+  - Number: Badge/Size/2XSmall high, Label/Small/Medium text, Content/On-Colors (On-Accent on accent), at (28, 0).
+  - Flat variant: the dot sits at (14, −2) and the number at (12, −4) of the 20px wrapper.
+- **Floating:** Margin-Comfortable from the right and bottom edges; local shadow 0 12 28 and 0 4 8 −4, Neutral/Base.
+- **Drawer (APG dialog modal):** focus goes to `aria-current` (else the panel); Tab is trapped; Escape, scrim and
+  Close all close it; a page choice sends focus to `<main>`. The Close button is Icon-Main Tertiary Medium, centred on
+  the Sidebar header (Padding/XSmall + (Global-Control-Bar − 40) / 2).
+
+**Found before the fix:**
+- no navigation landmark (Sidebar `<aside>`, Backlog P1);
+- the drawer closed on a section title or its "+";
+- a rail stayed a rail inside the drawer;
+- the skip link rewrote `location.hash`;
+- the sticky header (z 20) painted over the docs topbar, confirmed with `elementFromPoint`;
+- the top bar was 64px and centred (Figma: 72px);
+- the Admin and Flat examples at 390 left a 16px main area (6 baselined `fit` findings);
+- no exit animation;
+- no inert background;
+- instruction text inside the example UIs;
+- guideline and JSDoc cited "Codebase Platform shell" instead of Master-Layout;
+- no App Shell harness rules and no tests.
+
+**Changes:**
+- **`AppShell.tsx` / `app-shell.css` (rewritten):**
+  - Layout follows the shell's own width (ResizeObserver; provider or viewport before the first measure).
+  - `isolation: isolate`; a banner row with a measured `--zen-app-shell-banner-height`; `--zen-app-shell-height`.
+  - Top bar per the spec, stacked when it is under 744px.
+  - Rail state via cloneElement on a direct `<Sidebar>`. A Sidebar with its own `onCollapsedChange` keeps its control.
+  - The drawer uses the shared `useModal` plus `usePresence`, is inert behind, has a Close button, and renders as a
+    sibling of the shell (no portal), so a `contain: layout` preview frame holds it.
+  - `aside`: SidePanel cloned to `type="modal"` when narrow; the docked width is forced to its Figma width.
+  - `AppShellAction`, `AppShellAccount`, `useAppShell`.
+- **Labels (en and vi):** `closeNavigation`, `withUnread(label, count?)`, `accountOf(name)`.
+- **Platform:**
+  - `appLayer/shell.tsx`: new playground (layout, canvas, top bar, collapsed, notifications, banner, side panel,
+    floating); 7 examples; lists in a Card `pe-list-card`; no instruction text.
+  - `shell.css` / `templates.css`: frames are `contain: layout` size containers with an inner scroller.
+  - `templates.tsx`: same frame; the template descriptions keep their baseline prefixes.
+- **Templates:**
+  - Dashboard: Search, notifications (count) and the account menu.
+  - Admin list, Detail and Settings: Breadcrumbs, a notification dot and the account menu.
+  - Detail drops the PageHeader Back.
+  - Collapsed mark: a square Avatar (the Sidebar's collapsed logo slot is 28px).
+- **Harness:** 4 rules with fixtures (`bad.tsx`, `good.tsx`, `consumer/App.tsx`). The guideline entry is rewritten;
+  `tagsFor` covers AppShellAction and AppShellAccount.
+- **Tests:** `tests/interaction/app-shell.test.tsx`, 11 tests. Storybook: Responsive, CollapsedRail, Drawer,
+  WithBanner.
+
+**Verified in the browser before the gate:**
+- the toggle collapses 260 → 84 with aria-expanded and aria-controls;
+- the notification count clears, the docked panel is 360px wide, and picking a notification navigates;
+- the drawer focuses the current row, makes the shell inert, keeps a section title click open, and sends focus to
+  the menu button on Escape or Close and to `<main>` after a page choice;
+- the skip link leaves the URL unchanged;
+- screenshots at 1512 and 390, plus the open drawer, the docked panel and the collapsed HR state.
+
+**UX review (zen-ux-reviewer) and fixes:**
+- The top bar, rail, drawer and templates match Figma HR.
+- Fixed:
+  - P1: the floating action covered the last row. The end of main now keeps its height + 2 × Margin-Comfortable.
+  - P2: a docked panel squeezed main to 442px, and 55px in the playground (the ✗ fit error). The aside now docks only
+    while main keeps 744px; otherwise it opens as the modal SidePanel.
+  - P2: the rail gutter was 32 against 24 expanded. The shell now drops the collapsed Sidebar's right inset.
+  - P2: the header stacked by width. It now stacks when the content's one-line width does not fit beside the toggle
+    and the actions.
+  - The top-bar Search is capped at 400px (Center-Slots). The Admin search is global and jumps to Members.
+  - The drawer panel gives up width before the Close button does.
+  - Every shell example uses one rhythm (Stack xl). A page without a top bar starts at Margin-Comfortable.
+  - Banner amounts are right-aligned. The Dashboard placeholder is shorter.
+  - The playground hides Layout below 1024px, where a Sidebar beside a phone-width page leaves it no room.
+- Backlog: wordmark in dark mode, rail counters, PageHeader wrap order, Dashboard card titles, and the probe clicking
+  during a transition. The dead-click ⚠ was reproduced with a script and is a probe timing issue.
+- Designer: an open state for Action-Item.
+
+Backlog lines are in HANDOFF under "From the App Shell rework"; designer questions are under Open items.
+
+## Process: token fast path, label scoping, narrower tier L (session "Đánh giá Zen DS hiện tại (fork)")
+
+- Asked by the user after "QA tốn 45 phút": the App Shell peer ran `--all` on my wrong tier-L advice (AppShell is a
+  library component, not the platform chrome); corrected by message, the peer switched to a scoped run.
+- `tools/qa`: token-only changes skip behaviour, smoke and tsc and require only the consumer components' sheets
+  (yesterday's token diff: 7 pages, 138 s instead of 256 s); `_shared/labels.ts` edits map to the components that read
+  the keys (the peer's 3 keys → app-shell); only `_shared` logic triggers every suite and the full Vitest run.
+- Docs: AGENTS.md §C (XS/S/L rows), zen-build-qa, build-qa-process.md; new `skills/zen-token-sync`; memory
+  `zen-proportional-process`.

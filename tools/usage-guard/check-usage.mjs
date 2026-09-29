@@ -509,6 +509,27 @@ export const rules = [
   { id: "page-header/one-primary", components: ["PageHeader"], severity: "error", allow: "page-header-primary", guideline: "docs/guidelines/page-header.md",
     summary: "PageHeader actions hold at most one Primary button (the page's main action), after the Tertiary ones.",
     check: ({ attrs }) => { const actions = expr(attrs, "actions") ?? ""; const primaries = (actions.match(/level="primary"/g) ?? []).length; return primaries > 1 ? `has ${primaries} Primary buttons in actions — keep one Primary; the rest are Tertiary.` : null; } },
+  // App Shell (2026-09-29, researched against Carbon, Material 3, Atlassian, Polaris and the Figma HR-Platform pattern).
+  { id: "app-shell/primary-in-top-bar", components: ["AppShell"], severity: "warn", allow: "top-bar-primary", guideline: "docs/guidelines/app-shell.md",
+    summary: "The top bar (header, headerActions) holds utilities: Breadcrumbs or a Search, a plan Badge, AppShellAction buttons and the account menu. A Primary or Accent page action belongs in the PageHeader actions.",
+    check: ({ attrs, src, end }) => {
+      if (inCodeSample(src, end)) return null;
+      const topBar = [expr(attrs, "header"), expr(attrs, "headerActions")].filter(Boolean).join(" ");
+      const main = openingTags(topBar, "Button").find((a) => /level=(?:"|\{\s*")(primary|accent)"/.test(a) && !/appearance="(flat|overlay)"/.test(a));
+      return main ? `puts a ${/accent/.test(main) ? "Accent" : "Primary"} Button in the top bar — page actions go in the PageHeader's actions; the top bar keeps search, notifications and the account menu.` : null;
+    } },
+  { id: "app-shell/nested", components: ["AppShell"], severity: "error", allow: "nested-shell", guideline: "docs/guidelines/app-shell.md",
+    summary: "One AppShell per screen: a shell inside another shell repeats the navigation, the top bar and <main>.",
+    check: ({ children, src, end }) => !inCodeSample(src, end) && openingTags(children ?? "", "AppShell").length > 0 && "renders another AppShell inside — one shell per screen; put the inner page straight into this shell's children." },
+  { id: "app-shell/breadcrumbs-once", components: ["AppShell"], severity: "warn", allow: "breadcrumbs-twice", guideline: "docs/guidelines/app-shell.md",
+    summary: "Breadcrumbs appear once: in the top bar (header, the HR-Platform pattern) or in the PageHeader, never both.",
+    check: ({ attrs, children, src, end }) => {
+      if (inCodeSample(src, end) || !/<Breadcrumbs\b/.test(expr(attrs, "header") ?? "")) return null;
+      return openingTags(children ?? "", "PageHeader").some((a) => has(a, "breadcrumbs")) && "shows Breadcrumbs in the top bar and again in the PageHeader — keep the top bar's and drop the PageHeader's breadcrumbs.";
+    } },
+  { id: "app-shell/forced-layout", components: ["AppShell"], consumerOnly: true, severity: "warn", allow: "forced-layout", guideline: "docs/guidelines/app-shell.md",
+    summary: "An app lets AppShell pick its layout from its own width (auto: the drawer under 1024px); layout=\"sidebar\" or \"drawer\" is for previews and tests. (App mode only.)",
+    check: ({ attrs }) => { const layout = literal(attrs, "layout"); return layout === "sidebar" || layout === "drawer" ? `forces layout="${layout}" — leave it on auto so narrow screens get the drawer and wide ones the Sidebar.` : null; } },
   { id: "toast/needs-title", components: ["Toast"], severity: "error", allow: "toast-title", guideline: "docs/guidelines/toast.md",
     summary: "A toast states its outcome in a title.",
     check: ({ attrs }) => !present(attrs, "title") && "has no title." },

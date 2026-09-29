@@ -1,7 +1,14 @@
-/* App Shell / Page Header pages (platform only). The frame gives the shell a box instead of the whole viewport. */
+/* App Shell / Page Header pages (platform only). The frame gives the shell a box instead of the whole viewport: it is a
+   size container, so the shell and its sticky Sidebar and side panel fill the frame (100cqh) in the demo and in full
+   screen, and layout containment (contain: layout) makes it the box the fixed navigation drawer covers. The inner box scrolls, so the
+   drawer stays over the visible frame however far the page inside has scrolled. */
 .pash-preview { align-items: stretch; }
-.pash-frame { width: 100%; overflow: auto; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-large, 16px); }
-.pash-frame > .zen-app-shell { min-height: 100%; }
-.pash-frame .zen-app-shell__sidebar { height: auto; max-height: 100%; }
-.pash-page { padding-block: var(--zen-spacing-padding-large, 20px); }
+.pash-frame { width: 100%; overflow: hidden; contain: layout; container-type: size; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-large, 16px); }
+.pash-frame__scroll { height: 100%; overflow: auto; }
+.pash-frame__scroll > .zen-app-shell { --zen-app-shell-height: 100cqh; }
+/* Figma HR-Platform rhythm under the 72px top bar: the Main header section's Spacing/Padding/Small above the title, the
+   Body's Margin-Comfortable at the end of the page. */
+.pash-page { padding-block: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px); }
+/* Without a top bar the page starts Margin-Comfortable from the top, level with the Sidebar's inset surface. */
+.zen-app-shell:not(:has(.zen-app-shell__header)) .pash-page { padding-top: var(--zen-margin-comfortable, 24px); }
 .pash-page-header-stage { width: 100%; }

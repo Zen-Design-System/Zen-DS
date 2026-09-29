@@ -46,6 +46,12 @@ export const Bad = () => <>
   <Popover items={items} label="Assignee" onSelect={pick} />
   {/* expect: page-header/one-primary — also expect: button/one-primary (the two Primaries are siblings) */}
   <PageHeader title="Members" actions={<><Button level="primary" onClick={exportCsv}>Export</Button><Button level="primary" onClick={invite}>Invite member</Button></>} />
+  {/* expect: app-shell/primary-in-top-bar */}
+  <AppShell sidebar={nav} headerActions={<Button level="primary" onClick={invite}>Invite member</Button>}><Container>{page}</Container></AppShell>
+  {/* expect: app-shell/nested */}
+  <AppShell sidebar={nav}><AppShell sidebar={nav}><Container>{page}</Container></AppShell></AppShell>
+  {/* expect: app-shell/breadcrumbs-once */}
+  <AppShell sidebar={nav} header={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />}><PageHeader title="Invoices" breadcrumbs={<Breadcrumbs items={crumbs} onNavigate={go} />} /></AppShell>
   {/* expect: form/actions-order */}
   <FormActions><Button level="primary" type="submit">Save changes</Button><Button level="tertiary" onClick={cancel}>Cancel</Button></FormActions>
   {/* expect: form/submit-button */}

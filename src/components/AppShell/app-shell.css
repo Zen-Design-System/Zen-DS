@@ -1,27 +1,109 @@
-/* AppShell: navigation + sticky top bar + main; a drawer below 1024px. Background layers follow
-   docs/guidelines/background-layers.md: the page is Canvas, the drawer scrim is the Overlay background. */
-/* position: relative anchors the skip link (VisuallyHidden focusable) to the shell's top-start corner. */
-.zen-app-shell { --zen-app-shell-canvas: var(--zen-color-background-canvas-default, #f7f7f7); position: relative; display: flex; min-height: 100dvh; min-width: 0; }
+/* AppShell (Figma ◇ Master-Layout Patterns/Pages/Density-Medium 4122:41886, as used by ◆ HR-Platform 1128:29542).
+   Layers follow docs/guidelines/background-layers.md: the page is Canvas, the drawer scrim is the Overlay background.
+   position: relative anchors the skip link (VisuallyHidden focusable) to the shell's top-start corner; isolation keeps
+   the sticky layers (z-index 20–30) inside the shell, so they never paint over the host page's own sticky chrome.
+   --zen-app-shell-height is the height the shell fills and its sticky columns span: the viewport by default; a shell
+   inside a scrolling frame sets it to that frame (e.g. 100cqh of a size container). */
+.zen-app-shell { --zen-app-shell-canvas: var(--zen-color-background-canvas-default, #f7f7f7); --zen-app-shell-top: var(--zen-app-shell-banner-height, 0px); position: relative; isolation: isolate; display: flex; min-width: 0; min-height: var(--zen-app-shell-height, 100dvh); flex-direction: column; }
 /* zen-allow-canvas-layer: AppShell is the page frame; it paints Canvas (default, alt or flat) like ZenProvider. */
 .zen-app-shell { background: var(--zen-app-shell-canvas); }
 .zen-app-shell[data-canvas="alt"] { --zen-app-shell-canvas: var(--zen-color-background-canvas-alt, #fff); }
 .zen-app-shell[data-canvas="flat"] { --zen-app-shell-canvas: var(--zen-color-background-canvas-flat); }
 
-.zen-app-shell__sidebar { position: sticky; top: 0; display: flex; height: 100dvh; flex: 0 0 auto; }
+/* Banner: a full-width strip (AlertBanner) above everything. It stays while the page scrolls; the Sidebar, top bar and
+   aside stick under it (AppShell measures it into --zen-app-shell-banner-height). */
+.zen-app-shell__banner { position: sticky; z-index: 30; top: 0; flex: 0 0 auto; }
+.zen-app-shell__frame { display: flex; min-width: 0; flex: 1 1 auto; }
+.zen-app-shell__sidebar { position: sticky; top: var(--zen-app-shell-top); display: flex; height: calc(var(--zen-app-shell-height, 100dvh) - var(--zen-app-shell-top)); flex: 0 0 auto; }
 .zen-app-shell__sidebar > * { height: 100%; }
+/* The collapsed Basic Sidebar keeps an 8px inset on both sides; the shell drops the right one, so the page stays
+   Margin-Comfortable from the rail as from the expanded Sidebar (Figma HR-Platform rail: 8px inset on the left only). */
+.zen-app-shell__sidebar:has(> .zen-sidebar[data-variant="basic"][data-collapsed="true"]) { margin-inline-end: calc(-1 * var(--zen-spacing-padding-xsmall, 8px)); }
 .zen-app-shell__column { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; }
-/* zen-allow-canvas-layer: the sticky top bar continues the page Canvas so content scrolls under it. */
-.zen-app-shell__header { position: sticky; z-index: 20; top: 0; display: flex; min-height: 64px; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-margin-comfortable, 24px); background: var(--zen-app-shell-canvas); }
-.zen-app-shell__header-content { display: flex; min-width: 0; flex: 1 1 auto; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
-.zen-app-shell__header-actions { display: flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.zen-app-shell__main { min-width: 0; flex: 1 1 auto; outline: none; }
-.zen-app-shell__footer { position: sticky; z-index: 20; bottom: 0; }
 
+/* Top bar = Figma Primitives/Dashboard/Header Type=Navigation (4122:33400) as in HR-Platform: Margin-Comfortable top
+   and sides, Spacing/Padding/XSmall bottom and a Button/Size/Medium row (72px on desktop). Leading (toggle + content)
+   and trailing are Spacing/Gap/Medium apart; the toggle sits Spacing/Gap/XSmall before the content (the Breadcrumbs);
+   the actions are Spacing/Gap/Small apart. */
+/* zen-allow-canvas-layer: the sticky top bar continues the page Canvas so content scrolls under it. */
+.zen-app-shell__header { position: sticky; z-index: 20; top: var(--zen-app-shell-top); display: flex; min-width: 0; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-xsmall, 8px); background: var(--zen-app-shell-canvas); }
+.zen-app-shell__header-leading { display: flex; min-width: 0; min-height: var(--zen-button-size-medium, 40px); flex: 1 1 auto; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-app-shell__header-content { display: flex; min-width: 0; flex: 1 1 auto; align-items: center; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-app-shell__header-actions { display: flex; min-width: 0; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+/* Toggle = Figma's flat header action: a Button/Icon-Flat Medium (40px) centred in an Element-Size/Popular/Base (20px)
+   wrapper, so the glyph lines up like the 20px icon-layout-left in Figma while the hit area stays 40px. */
+.zen-app-shell__toggle { --zen-app-shell-toggle-bleed: calc((var(--zen-element-size-popular-base, 20px) - var(--zen-button-size-medium, 40px)) / 2); display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; align-items: center; justify-content: center; }
+.zen-app-shell__toggle > .zen-button { flex: 0 0 auto; margin: var(--zen-app-shell-toggle-bleed); }
+/* A top-bar Search keeps to Figma's 400px Center-Slots (4233:3210) instead of stretching across a wide screen. */
+.zen-app-shell__header:not([data-stacked="true"]) .zen-app-shell__header-content > .zen-search { max-width: 400px; }
+/* When the content does not fit on one row beside the toggle and the actions (a phone, or a column squeezed by the
+   Sidebar and a docked panel), it takes a row of its own under them instead of being squeezed between them. */
+.zen-app-shell__header[data-stacked="true"] { flex-wrap: wrap; row-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-app-shell__header[data-stacked="true"] .zen-app-shell__header-leading { display: contents; }
+/* The row keeps the Button/Size/Medium height the leading group gave it, even with the toggle alone. */
+.zen-app-shell__header[data-stacked="true"] .zen-app-shell__toggle { height: var(--zen-button-size-medium, 40px); }
+.zen-app-shell__header[data-stacked="true"] .zen-app-shell__header-content { order: 3; flex-basis: 100%; }
+.zen-app-shell__header[data-stacked="true"] .zen-app-shell__header-actions { margin-inline-start: auto; }
+.zen-app-shell__main { min-width: 0; flex: 1 1 auto; outline: none; }
+/* With a floating action, the end of the page keeps its height and a Margin-Comfortable above and below it free, so
+   the last row can scroll clear of the button. */
+.zen-app-shell[data-floating="true"] .zen-app-shell__main { padding-block-end: calc(var(--zen-app-shell-floating-height, 0px) + 2 * var(--zen-margin-comfortable, 24px)); }
+
+/* Aside = the Figma Side-Panel of Patterns/Pages (Type=Standard): a full-height column docked right of the page. */
+.zen-app-shell__aside { position: sticky; top: var(--zen-app-shell-top); display: flex; height: calc(var(--zen-app-shell-height, 100dvh) - var(--zen-app-shell-top)); flex: 0 0 auto; }
+.zen-app-shell__aside:empty { display: none; }
+.zen-app-shell__aside > * { height: 100%; }
+/* A docked SidePanel keeps its Figma width (Default 440 · Small 360): its own min(width, 100%) would resolve against
+   this auto-sized column and shrink to its content. */
+.zen-app-shell__aside > .zen-side-panel { width: var(--zen-side-panel-width, 440px); }
+/* Narrow shells: content other than a SidePanel stacks under the page. */
+.zen-app-shell__aside[data-stacked="true"] { position: static; height: auto; }
+.zen-app-shell__aside[data-stacked="true"] > * { width: 100%; height: auto; }
+
+/* Bottom: the sticky footer, with the floating action riding above it (Figma Floating-Actions 6040:72809:
+   Margin-Comfortable from the page's right and bottom edges). */
+.zen-app-shell__bottom { position: sticky; z-index: 20; bottom: 0; }
+/* zen-allow-raw-shadow: Figma Floating-Actions (6040:72809) carries a local effect, not an Effect style: 0 12 28 and
+   0 4 8 −4 in Color/Shadow/Neutral/Base. drop-shadow takes half the blur (a standard deviation) and follows the button's shape. */
+.zen-app-shell__floating { position: absolute; right: var(--zen-margin-comfortable, 24px); bottom: calc(100% + var(--zen-margin-comfortable, 24px)); display: flex; filter: drop-shadow(0 12px 14px var(--zen-color-shadow-neutral-base, rgb(0 0 0 / 8%))) drop-shadow(0 4px 4px var(--zen-color-shadow-neutral-base, rgb(0 0 0 / 8%))); }
+
+/* Drawer: a modal dialog over the Overlay scrim; the Sidebar keeps its own 8px inset and floating surface, and the Close
+   button sits beside it, centred on the Sidebar header (Spacing/Padding/XSmall + half of Global-Control-Bar/Size − 40). */
 .zen-app-shell__overlay { position: fixed; z-index: 1000; inset: 0; }
+.zen-app-shell__overlay[data-state="closing"] { pointer-events: none; }
 .zen-app-shell__scrim { position: absolute; inset: 0; background: var(--zen-color-background-overlay); animation: zen-motion-scrim-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease) both; }
-.zen-app-shell__drawer { position: absolute; inset: 0 auto 0 0; display: flex; max-width: calc(100vw - 48px); animation: zen-app-shell-drawer-in var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, ease-out) both; }
-.zen-app-shell__drawer > * { height: 100%; }
+.zen-app-shell__overlay[data-state="closing"] .zen-app-shell__scrim { animation: zen-motion-scrim-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; }
+.zen-app-shell__drawer { position: absolute; inset: 0 auto 0 0; display: flex; max-width: 100%; align-items: flex-start; outline: none; }
+.zen-app-shell__drawer-panel { display: flex; min-width: 0; max-width: calc(100% - var(--zen-button-size-medium, 40px) - 2 * var(--zen-spacing-padding-xsmall, 8px)); height: 100%; animation: zen-app-shell-drawer-in var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, ease-out) both; }
+/* A shell narrower than the Sidebar plus the Close column: the Sidebar gives up width, never the Close button. */
+.zen-app-shell__drawer-panel > * { max-width: 100%; height: 100%; }
+.zen-app-shell__drawer[data-state="closing"] .zen-app-shell__drawer-panel { animation: zen-app-shell-drawer-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; }
+.zen-app-shell__drawer-close { --zen-app-shell-close-top: calc(var(--zen-spacing-padding-xsmall, 8px) + (var(--zen-global-control-bar-size, 68px) - var(--zen-button-size-medium, 40px)) / 2); display: flex; flex: 0 0 auto; padding: var(--zen-app-shell-close-top) var(--zen-spacing-padding-xsmall, 8px); animation: zen-motion-fade-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease) both; }
+.zen-app-shell__drawer[data-state="closing"] .zen-app-shell__drawer-close { animation: zen-motion-fade-out 160ms var(--zen-motion-ease-exit, ease-in) both; }
 @keyframes zen-app-shell-drawer-in { from { transform: translateX(-100%); } }
+@keyframes zen-app-shell-drawer-out { to { transform: translateX(-100%); } }
+
+/* AppShellAction = Figma Primitives/Dashboard/Header/Action-Item (12280:19532) with Primitives/Notification-Dot (4116:21789). */
+.zen-app-shell-action { position: relative; display: inline-flex; flex: 0 0 auto; }
+/* Flat: a Button/Icon-Flat Medium in an Element-Size/Popular/Base wrapper (Figma: 20×20 with the button at −10, −10). */
+.zen-app-shell-action[data-appearance="flat"] { --zen-app-shell-action-bleed: calc((var(--zen-element-size-popular-base, 20px) - var(--zen-button-size-medium, 40px)) / 2); width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; }
+.zen-app-shell-action[data-appearance="flat"] > .zen-button { flex: 0 0 auto; margin: var(--zen-app-shell-action-bleed); }
+.zen-app-shell-action__notification { --zen-app-shell-notification: var(--zen-color-background-negative-solid-default, #e5532e); --zen-app-shell-notification-content: var(--zen-color-content-on-colors, #fff); position: absolute; box-sizing: border-box; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-app-shell-notification); box-shadow: 0 0 0 2px var(--zen-color-border-inverse, #fff); color: var(--zen-app-shell-notification-content); pointer-events: none; }
+.zen-app-shell-action__notification[data-tone="active"] { --zen-app-shell-notification: var(--zen-color-background-positive-solid-default); }
+.zen-app-shell-action__notification[data-tone="accent"] { --zen-app-shell-notification: var(--zen-color-background-accent-solid-default); --zen-app-shell-notification-content: var(--zen-color-content-on-accent-default); }
+/* Tertiary (40px button): Dot 8×8 at Figma (30, 2); Number Badge/Size/2XSmall high at (28, 0), growing to the left. */
+.zen-app-shell-action__notification[data-style="dot"] { top: 2px; right: 2px; width: 8px; height: 8px; }
+.zen-app-shell-action__notification[data-style="number"] { top: 0; right: 0; display: inline-flex; height: var(--zen-badge-size-2-xsmall, 12px); min-width: var(--zen-badge-size-2-xsmall, 12px); align-items: center; justify-content: center; padding: 0 var(--zen-badge-spacing-small-text-wrapper-padding, 4px); white-space: nowrap; }
+/* Flat: on the 20px glyph (Figma: dot at 14, −2 and number at 12, −4 of the wrapper). */
+.zen-app-shell-action[data-appearance="flat"] .zen-app-shell-action__notification[data-style="dot"] { top: -2px; right: -2px; }
+.zen-app-shell-action[data-appearance="flat"] .zen-app-shell-action__notification[data-style="number"] { top: -4px; right: -4px; }
+
+/* AppShellAccount: Figma Avatar/Single Circle Medium as a button. */
+.zen-app-shell-account { display: inline-flex; flex: 0 0 auto; padding: 0; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: transparent; cursor: pointer; }
+/* zen-allow-focus-ring: the replacement ring is the Avatar's own focus ring (Avatar focus: 3px Border/Active/Accent/Solid). */
+.zen-app-shell-account:focus-visible { outline: none; }
+
+/* Reduced motion: after every animated rule, so it wins over them. */
 @media (prefers-reduced-motion: reduce) {
-  .zen-app-shell__scrim, .zen-app-shell__drawer { animation: none; }
+  .zen-app-shell__scrim, .zen-app-shell__drawer-panel, .zen-app-shell__drawer-close { animation: none !important; }
 }

@@ -30,10 +30,10 @@ type TemplateDef = { id: string; title: string; description: string; Component: 
  * file itself (`?raw`), so it can never drift from what renders. They ship in the package as source to copy.
  */
 export const templates: TemplateDef[] = [
-  { id: "admin-list", title: "Admin list (Team members)", description: "AppShell + PageHeader, Search and multi-select filter chips, a sortable Table with row-action Menus, an invite ModalForm (useFormState), a confirm Dialog and toasts.", Component: AdminListTemplate, source: adminListSource, file: "src/templates/AdminListTemplate.tsx" },
-  { id: "detail", title: "Detail page (Invoice)", description: "AppShell + PageHeader with Back, a status Badge, one Primary and a More Menu; Tabs; a main column (line items Table + DescriptionList totals) next to an aside (Grid \"2fr 1fr\"); a Record-payment ModalForm and a Void Dialog.", Component: DetailTemplate, source: detailSource, file: "src/templates/DetailTemplate.tsx" },
-  { id: "dashboard", title: "Dashboard", description: "AppShell + PageHeader, metric cards, a chart, recent activity and a table.", Component: DashboardTemplate, source: dashboardSource, file: "src/templates/DashboardTemplate.tsx" },
-  { id: "settings-form", title: "Settings form", description: "AppShell + PageHeader, a validated Form (useFormState) with a checkbox fieldset and sticky-safe actions, and an instant Toggle outside the Form.", Component: SettingsFormTemplate, source: settingsFormSource, file: "src/templates/SettingsFormTemplate.tsx" },
+  { id: "admin-list", title: "Admin list (Team members)", description: "AppShell + PageHeader, Search and multi-select filter chips, a sortable Table with row-action Menus, an invite ModalForm (useFormState), a confirm Dialog and toasts; Breadcrumbs, notifications and the account menu in the top bar.", Component: AdminListTemplate, source: adminListSource, file: "src/templates/AdminListTemplate.tsx" },
+  { id: "detail", title: "Detail page (Invoice)", description: "AppShell + PageHeader with a status Badge, one Primary and a More Menu, and Breadcrumbs back to the list in the top bar; Tabs; a main column (line items Table + DescriptionList totals) next to an aside (Grid \"2fr 1fr\"); a Record-payment ModalForm and a Void Dialog.", Component: DetailTemplate, source: detailSource, file: "src/templates/DetailTemplate.tsx" },
+  { id: "dashboard", title: "Dashboard", description: "AppShell + PageHeader, metric cards, a chart, recent activity and a table; a Search, notifications and the account menu in the top bar.", Component: DashboardTemplate, source: dashboardSource, file: "src/templates/DashboardTemplate.tsx" },
+  { id: "settings-form", title: "Settings form", description: "AppShell + PageHeader, a validated Form (useFormState) with a checkbox fieldset and sticky-safe actions, and an instant Toggle outside the Form; Breadcrumbs in the top bar.", Component: SettingsFormTemplate, source: settingsFormSource, file: "src/templates/SettingsFormTemplate.tsx" },
   { id: "sign-in", title: "Sign in", description: "A centred sign-in card: validated Form, a Forgot-password Link, SSO, and legal links in the caption.", Component: SignInTemplate, source: signInSource, file: "src/templates/SignInTemplate.tsx" },
   { id: "mobile-list", title: "Mobile list with filters", description: "Phone list: Search, filter chips that open Action BottomSheets, status badges and an empty state.", Component: MobileListTemplate, source: mobileListSource, file: "src/templates/MobileListTemplate.tsx", mobile: true },
   { id: "mobile-detail", title: "Mobile detail (Order)", description: "Phone detail screen: sticky TopNavigation with Back, a vertical Stepper, a List with Thumbnails, DescriptionList totals and details, and a sticky ActionBar whose Get help opens an Action BottomSheet.", Component: MobileDetailTemplate, source: mobileDetailSource, file: "src/templates/MobileDetailTemplate.tsx", mobile: true },
@@ -56,7 +56,7 @@ function TemplateFrame({ template }: { template: TemplateDef }) {
   return template.mobile ? (
     <PlatformPhone className="patpl-phone" label={template.title}><ZenProvider typography="mobile" density="comfortable" paint={false} breakpoint="mobile"><Component /></ZenProvider></PlatformPhone>
   ) : (
-    <div className="patpl-frame"><ZenProvider paint portal={false} syncDocument={false} breakpoint="auto" className="patpl-app"><Component /></ZenProvider></div>
+    <div className="patpl-frame"><div className="patpl-frame__scroll"><ZenProvider paint portal={false} syncDocument={false} breakpoint="auto" className="patpl-app"><Component /></ZenProvider></div></div>
   );
 }
 

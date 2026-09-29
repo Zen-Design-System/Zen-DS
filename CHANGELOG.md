@@ -65,6 +65,22 @@ removed.
 - **Docs platform:** Segmented has a phone example, "Period switch on a phone". Its four periods (This week · This
   month · This quarter · This year) are wider than the 390px screen, so the default Secondary Segmented keeps its full
   labels and scrolls sideways; an empty week shows an EmptyState. The page now has 4 examples, with states and mobile.
+- **App Shell, the Figma HR-Platform pattern (◇ Master-Layout):**
+  - Collapse to the icon rail from a toggle at the start of the top bar. It shows whenever the shell has a top bar
+    (`sidebarToggle={false}` hides it); `sidebarCollapsed` / `defaultSidebarCollapsed` / `onSidebarCollapsedChange`
+    hold the state. A Sidebar with its own `onCollapsedChange` keeps its header control instead.
+  - `AppShellAction`: a top-bar icon action with an unread dot or count (99+), read out as “Notifications, 12 new”.
+    `AppShellAccount`: the avatar button that opens the account Menu.
+  - New slots:
+    - `banner`: a full-width AlertBanner that stays in view.
+    - `aside`: a docked SidePanel. It docks only while the page keeps at least 744px beside it; otherwise it opens as
+      the modal panel.
+    - `floatingAction`: one floating button bottom-right. The end of the page keeps room for it, so it never covers
+      the last row.
+  - `useAppShell()` gives your own controls the layout, the rail state and the drawer.
+- **Docs platform:** the App Shell page has a new playground and 7 examples: HR workspace, Admin app, Collapsed rail,
+  Drawer in a narrow shell, Banner, Flat canvas and Phone app. The four desktop templates use the new top bar:
+  Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
 - Overlays (Dialog, ModalForm, SidePanel, BottomSheet) no longer move focus back to their first field when the parent
@@ -145,6 +161,14 @@ removed.
   drops (`onCancel`; new `range` / `defaultRange`, harness `date-picker/actions-need-apply`); RichTextField keeps its
   own undo history, so Undo / Redo are disabled with nothing to undo or redo and never undo another field; the quote
   of a deleted Chat message is plain text.
+- **AppShell:**
+  - Clicking a Sidebar section title or its "+" no longer closes the navigation drawer; picking a page does, and
+    focus moves to the page instead of back to the menu button.
+  - The drawer always shows the whole Sidebar, never its rail or collapse control. It gains a Close button, the page
+    behind it is inert, and it animates out.
+  - The skip link no longer changes the URL, so hash routers keep working.
+  - The sticky top bar no longer paints over the host page's own sticky header (the docs topbar showed it).
+  - In a narrow frame the examples no longer squeeze the page to a few pixels next to the Sidebar.
 
 ### Changed
 - **Typography and colour from the 2026-09-28 Figma variables:** Dashboard and Mobile text styles have new sizes, line
@@ -173,13 +197,28 @@ removed.
     XSmall between its tags and the input, and draws its underline inside the cell.
   - Segmented Medium badges get Spacing/Padding/3XSmall on each side.
   - Breadcrumbs: 4px between an item and its chevron, 8px between items (was 0 and 2).
+- **AppShell:**
+  - The top bar follows Figma Header Type=Navigation: 72px on desktop (Margin-Comfortable above, Spacing/Padding/XSmall
+    below), 8px between the toggle and the Breadcrumbs, and 12px between actions. It was 64px, centred.
+  - The header content (Breadcrumbs, Search) takes a row of its own when it does not fit beside the toggle and the
+    actions. A top-bar Search stops at 400px (Figma Center-Slots).
+  - A collapsed rail keeps the same 24px gutter to the page as the expanded Sidebar.
+  - `layout="auto"` follows the shell's own width instead of the viewport, so a shell in a split view, iframe or preview
+    frame gets the drawer when it is narrower than 1024px.
+  - The drawer renders next to the shell instead of in the portal: fixed to the viewport in an app, or to a preview
+    frame that sets `contain: layout`.
+  - A shell inside a scrolling frame can fill it by setting `--zen-app-shell-height`.
+  - Templates Detail and Settings put Breadcrumbs in the top bar; the Detail page drops its PageHeader Back.
 
 ### Quality
 - **Proportional process (2026-09-29):** a tier table (XS/S/M/L) in AGENTS.md decides how much planning, QA and
   logging a change gets. `npm run qa` now checks only what changed since the session's last pass (token edits → the
   pages that use them), with `--only=` and `--keep-going`; static gates run only for what you edited and stop the run
   early on a ✗; the Stop hook asks for at most 12 new contact sheets and lets a turn end while a run is still going.
-  `figma-console-extract.js` works in `use_figma` as is and adds `__HASHES(ids)`.
+  `figma-console-extract.js` works in `use_figma` as is and adds `__HASHES(ids)`. A token-only change takes a fast
+  path (tokens:check, the consumers' Figma suites, contrast and fit on the consumer pages; no behaviour, smoke or
+  TypeScript): 7 pages in 138 s instead of 256 s. New label keys check only the components that read them, and
+  `--all` is reserved for changes every page renders.
 - Browser tests (Vitest, Chromium): every component renders in light and dark with an axe baseline that only
   shrinks; size spellings render identically; interaction tests for Menu, Dialog, Tooltip, useToast, Table,
   Pagination, Accordion, Form and ZenProvider. CI workflow for every gate. Pixel-level visual diff tool for the
@@ -218,6 +257,14 @@ removed.
   `--density` it also runs at Comfortable. The 24 findings already on the platform are baselined. `audit.mjs` also
   gains `--baseline-update=<kinds>` (seed one kind without touching the others) and `--css=<file>` (re-create a fixed
   bug to prove that a check catches it).
+- App Shell harness rules:
+  - `app-shell/primary-in-top-bar`: a Primary or Accent Button in `header` / `headerActions`.
+  - `app-shell/nested`: an AppShell inside another.
+  - `app-shell/breadcrumbs-once`: Breadcrumbs both in the top bar and in the PageHeader.
+  - `app-shell/forced-layout`: apps only, `layout="sidebar" | "drawer"`.
+  - Interaction tests in `tests/interaction/app-shell.test.tsx` (11) cover the rail toggle, the drawer (focus, Tab,
+    Escape, Close, section title, choosing a page), the shell width, the skip link, the count in the accessible name
+    (en/vi), the account Menu and `useAppShell`.
 
 ## [0.3.0] — Unreleased
 

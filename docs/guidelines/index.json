@@ -3187,25 +3187,34 @@
       "title": "App Shell",
       "file": "docs/guidelines/app-shell.md",
       "apiFile": "docs/api/app-shell.json",
-      "figma": "Codebase Platform shell (Sidebar + topbar + content) and the Breakpoint & Grids variables",
-      "import": "import { AppShell } from \"@zen/design-system\";",
-      "purpose": "The frame of a web app: Sidebar navigation, a sticky top bar and the main content with a skip link. From 1024px the Sidebar sits beside the content; below, it becomes a drawer opened from the top bar's menu button.",
+      "figma": "◇ Master-Layout: Patterns/Pages/Density-Medium (4122:41886), Header/Dashboard (4122:34662) with Primitives/Dashboard/Header Type=Navigation (4122:33400), Header/Action-Item (12280:19532) + Notification-Dot (4116:21789), Patterns/Sidebar (6040:67524); as used on ◆ HR-Platform (1128:29542)",
+      "import": "import { AppShell, AppShellAction, AppShellAccount } from \"@zen/design-system\";",
+      "purpose": "The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcrumbs or a Search, then actions and the account menu), the page, and an optional banner, docked side panel and floating action, with a skip link. When the shell is 1024px or wider the Sidebar sits beside the page and the top-bar toggle collapses it to its icon rail; narrower, it opens as a modal drawer from the menu button.",
       "use": [
-        "Every signed-in web app screen (dashboards, admin, settings).",
-        "Apps that must work from phone to desktop with one navigation."
+        "Every signed-in web app screen (dashboards, admin, HR and settings).",
+        "Apps that must work from phone to desktop with one navigation.",
+        "Top-bar icon actions with an unread dot or count → AppShellAction; the account menu → Menu with an AppShellAccount trigger."
       ],
       "avoid": [
         "Phone-only apps → TopNavigation + BottomNavigation inside ZenProvider typography=\"mobile\".",
         "Marketing pages → Container + your own header.",
-        "A modal flow → Dialog or SidePanel."
+        "A modal flow → Dialog or SidePanel type=\"modal\".",
+        "Page actions (Submit, Export, New) → the PageHeader actions, not the top bar."
       ],
       "props": {
         "AppShell": [
           "sidebar?: ReactNode",
           "header?: ReactNode",
           "headerActions?: ReactNode",
+          "banner?: ReactNode",
+          "aside?: ReactNode",
+          "floatingAction?: ReactNode",
           "footer?: ReactNode",
           "canvas?: default|alt|flat = default",
+          "sidebarCollapsed?: boolean",
+          "defaultSidebarCollapsed?: boolean",
+          "onSidebarCollapsedChange?: (collapsed: boolean) => void",
+          "sidebarToggle?: boolean = true",
           "navOpen?: boolean",
           "defaultNavOpen?: boolean = false",
           "onNavOpenChange?: (open: boolean) => void",
@@ -3213,20 +3222,43 @@
           "mainId?: string",
           "layout?: auto|sidebar|drawer = auto",
           "children?: ReactNode"
+        ],
+        "AppShellAction": [
+          "icon: IconName|ReactNode",
+          "aria-label: string",
+          "count?: number",
+          "dot?: boolean = false",
+          "tone?: default|active|accent = default",
+          "appearance?: tertiary|flat = tertiary",
+          "tooltip?: ReactNode|false"
+        ],
+        "AppShellAccount": [
+          "name: string",
+          "src?: string",
+          "theme?: Exclude<AvatarTheme, photo> = neutral"
         ]
       },
       "do": [
         "Put one AppShell at the root of each signed-in screen, inside ZenProvider.",
-        "Give the page a Container with a PageHeader as its first child.",
-        "Keep the top bar light: Search, notifications and the account menu; page actions belong in the PageHeader.",
-        "Let layout follow the breakpoint; force layout only for previews and tests."
+        "Lead the top bar with Breadcrumbs (master={false}; the toggle comes first) or a Search, and keep its right side to utilities in this order: a plan Badge, AppShellAction buttons, the account menu last.",
+        "Give the page a Container with a PageHeader as its first child; page actions (one Primary) go in the PageHeader.",
+        "Show unread items on the action itself (AppShellAction count or dot) so the count is also in its accessible name.",
+        "Store the rail state from onSidebarCollapsedChange so the Sidebar opens the way people left it.",
+        "Let layout follow the shell's width; force it only for previews and tests."
       ],
       "dont": [
-        "Don't build your own sidebar + main flex layout.",
-        "Don't put primary page actions in the top bar.",
-        "Don't nest AppShells."
+        "Don't build your own sidebar + main flex layout or your own drawer.",
+        "Don't put primary page actions in the top bar (harness: app-shell/primary-in-top-bar).",
+        "Don't nest AppShells (harness: app-shell/nested).",
+        "Don't repeat the Breadcrumbs in the PageHeader when the top bar shows them (harness: app-shell/breadcrumbs-once).",
+        "Don't force layout in an app (harness: app-shell/forced-layout).",
+        "Don't hand-build a bell with a red dot; use AppShellAction."
       ],
       "rules": [
+        "app-shell/primary-in-top-bar",
+        "app-shell/nested",
+        "app-shell/breadcrumbs-once",
+        "app-shell/forced-layout",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]

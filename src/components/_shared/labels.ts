@@ -89,9 +89,15 @@ export type ZenLabels = {
   workspaceNavigation: string;
   navigation: string;
   openNavigation: string;
+  /** The close button of the AppShell navigation drawer. */
+  closeNavigation: string;
   skipToContent: string;
   expandSidebar: string;
   collapseSidebar: string;
+  /** Accessible name of a top-bar action with unread items: "Notifications, 12 new" (no count: "Notifications, new"). */
+  withUnread: (label: string, count?: number) => string;
+  /** Accessible name of the AppShell account button: "Account: Ava Chen". */
+  accountOf: (name: string) => string;
   workspace: string;
   switchWorkspace: string;
   subMenu: string;
@@ -292,9 +298,12 @@ const en: ZenLabels = {
   workspaceNavigation: "Workspace navigation",
   navigation: "Navigation",
   openNavigation: "Open navigation",
+  closeNavigation: "Close navigation",
   skipToContent: "Skip to content",
   expandSidebar: "Expand sidebar",
   collapseSidebar: "Collapse sidebar",
+  withUnread: (label, count) => (count ? `${label}, ${count} new` : `${label}, new`),
+  accountOf: (name) => `Account: ${name}`,
   workspace: "Workspace",
   switchWorkspace: "Switch workspace",
   subMenu: "Sub menu",
@@ -465,9 +474,12 @@ const vi: ZenLabels = {
   workspaceNavigation: "Điều hướng không gian làm việc",
   navigation: "Điều hướng",
   openNavigation: "Mở điều hướng",
+  closeNavigation: "Đóng điều hướng",
   skipToContent: "Bỏ qua, tới nội dung",
   expandSidebar: "Mở rộng thanh bên",
   collapseSidebar: "Thu gọn thanh bên",
+  withUnread: (label, count) => (count ? `${label}, ${count} mục mới` : `${label}, có mục mới`),
+  accountOf: (name) => `Tài khoản: ${name}`,
   workspace: "Không gian làm việc",
   switchWorkspace: "Đổi không gian làm việc",
   subMenu: "Menu con",

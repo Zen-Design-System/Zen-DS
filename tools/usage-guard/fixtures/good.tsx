@@ -162,6 +162,10 @@ export const Good = () => <>
   <Menu trigger={<Button level="tertiary" size="sm">Actions</Button>} items={[{ id: "rename", label: "Rename" }, { id: "archive", label: "Archive" }]} onSelect={run} />
   <Breadcrumbs items={[{ id: "files", label: "Files", href: "/files" }, { id: "brand", label: "Brand refresh" }]} />
   <Sidebar sections={[{ items: [{ id: "home", label: "Home", icon: "icon-home-03-line" }] }]} onItemClick={go} footer={<button type="button" onClick={openHelp}>Help</button>} />
+  <AppShell sidebar={nav} header={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />}
+    headerActions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={openInbox} /><Menu align="end" trigger={<AppShellAccount name="Ava Chen" />} items={accountItems} onSelect={runAccountAction} /></>}>
+    <Container><PageHeader title="Invoices" actions={<Button level="primary" onClick={createInvoice}>New invoice</Button>} /></Container>
+  </AppShell>
   <Form onSubmit={save}><Button level="primary" type="submit">Save profile</Button></Form>
   <Button level="primary" disabled>Publish</Button>
   {`<Button level="primary">Save</Button>`}

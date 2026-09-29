@@ -9976,7 +9976,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Left navigation, usually <Sidebar>. Below 1024px it moves into a drawer opened from the header's menu button.",
+          "description": "Left navigation, usually <Sidebar>. When the shell is 1024px or wider it sits beside the content, expanded or\ncollapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button.",
           "deprecated": null
         },
         {
@@ -9984,7 +9984,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Top bar content on the left (it grows): search, breadcrumbs. On small screens the drawer's menu button comes first.",
+          "description": "Top bar content after the toggle (it grows): Breadcrumbs (Figma HR-Platform) or a Search.",
           "deprecated": null
         },
         {
@@ -9992,7 +9992,31 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Top bar actions on the right: notifications, help, the account menu.",
+          "description": "Top bar actions on the right, in this order: a plan Badge, AppShellAction buttons (notifications, settings, help),\nthen the account menu (`<Menu trigger={<AppShellAccount … />}>`). Page actions belong in the PageHeader.",
+          "deprecated": null
+        },
+        {
+          "name": "banner",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "A full-width message strip above the whole shell, usually <AlertBanner> (trial ending, maintenance, offline). It stays in view while the page scrolls.",
+          "deprecated": null
+        },
+        {
+          "name": "aside",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "A right panel docked beside the content (Figma Side-Panel), usually <SidePanel type=\"standard\">. It docks while the\npage keeps at least a Tablet width (744px) beside it; otherwise a SidePanel opens as the modal panel and other\ncontent stacks under the page.",
+          "deprecated": null
+        },
+        {
+          "name": "floatingAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it.",
           "deprecated": null
         },
         {
@@ -10000,7 +10024,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "A sticky bar at the bottom of the main column, e.g. BottomNavigation on phones.",
+          "description": "A sticky bar at the bottom of the main column, e.g. an ActionBar.",
           "deprecated": null
         },
         {
@@ -10012,11 +10036,43 @@
           "deprecated": null
         },
         {
+          "name": "sidebarCollapsed",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Sidebar rail state when controlled; pair it with `onSidebarCollapsedChange`.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultSidebarCollapsed",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded.",
+          "deprecated": null
+        },
+        {
+          "name": "onSidebarCollapsedChange",
+          "type": "(collapsed: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called when the toggle (or `useAppShell().setSidebarCollapsed`) collapses or expands the Sidebar. Store it (e.g. localStorage) to keep the choice between visits.",
+          "deprecated": null
+        },
+        {
+          "name": "sidebarToggle",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "The collapse toggle at the start of the top bar (Figma HR-Platform: icon-layout-left before the Breadcrumbs).\nDefault true: shown when the shell has a top bar (`header` or `headerActions`) and a Sidebar that can collapse.\nA Sidebar with its own `onCollapsedChange` keeps its header control instead.",
+          "deprecated": null
+        },
+        {
           "name": "navOpen",
           "type": "boolean",
           "required": false,
           "default": null,
-          "description": "Drawer state when controlled (small screens).",
+          "description": "Drawer state when controlled (narrow shells).",
           "deprecated": null
         },
         {
@@ -10040,7 +10096,7 @@
           "type": "string",
           "required": false,
           "default": null,
-          "description": "Accessible name of the navigation drawer and its menu button's target. Default: the locale's “Navigation”.",
+          "description": "Accessible name of the navigation drawer. Default: the locale's “Navigation”.",
           "deprecated": null
         },
         {
@@ -10056,7 +10112,7 @@
           "type": "\"auto\" | \"sidebar\" | \"drawer\"",
           "required": false,
           "default": "\"auto\"",
-          "description": "Force the layout; by default it follows ZenProvider's breakpoint (tablet and mobile use the drawer).",
+          "description": "Force the layout. By default (`auto`) the shell's own width decides: narrower than 1024px uses the drawer. Force it only for previews and tests.",
           "deprecated": null
         },
         {
@@ -10065,6 +10121,106 @@
           "required": false,
           "default": null,
           "description": "The page.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "AppShellAction",
+      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
+      "props": [
+        {
+          "name": "icon",
+          "type": "IconName | ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Leading-Icon: an icon name (`\"icon-bell-01-line\"`) or a node.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "The action's name (“Notifications”): its accessible name, with the unread count added, and its 1s tooltip.",
+          "deprecated": null
+        },
+        {
+          "name": "count",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Figma Noti-type=Number: the unread count on a badge. 0 hides it; above 99 it reads \"99+\" (the accessible name keeps the exact number).",
+          "deprecated": null
+        },
+        {
+          "name": "dot",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Noti-type=Dot: something new without a count. Hidden while a count shows.",
+          "deprecated": null
+        },
+        {
+          "name": "tone",
+          "type": "\"default\" | \"active\" | \"accent\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "Figma Notification-Dot Theme: `default` Negative (needs attention) · `active` Positive · `accent`.",
+          "deprecated": null
+        },
+        {
+          "name": "appearance",
+          "type": "\"tertiary\" | \"flat\"",
+          "required": false,
+          "default": "\"tertiary\"",
+          "description": "Figma Theme: `tertiary` (Button/Icon-Main Medium Tertiary, 40px) · `flat` (Button/Icon-Flat Medium Primary: a 20px glyph with a 40px hit area).",
+          "deprecated": null
+        },
+        {
+          "name": "tooltip",
+          "type": "ReactNode | false",
+          "required": false,
+          "default": null,
+          "description": "Tooltip text. Default: `aria-label` (without the count).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "AppShellAccount",
+      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
+      "props": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "The signed-in person's name: the accessible name (“Account: Ava Chen”), the tooltip and the initials without a photo.",
+          "deprecated": null
+        },
+        {
+          "name": "src",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Photo URL (Figma Avatar/Single Theme=Photo).",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "Exclude<AvatarTheme, \"photo\">",
+          "required": false,
+          "default": "\"neutral\"",
+          "description": "Initials colour without a photo. Default neutral.",
+          "deprecated": null
+        },
+        {
+          "name": "type",
+          "type": "unknown",
+          "required": false,
+          "default": "\"button\"",
+          "description": "",
           "deprecated": null
         }
       ]

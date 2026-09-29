@@ -7,8 +7,12 @@
 import { useState } from "react";
 import {
   AppShell,
+  AppShellAccount,
+  AppShellAction,
+  Avatar,
   Badge,
   Box,
+  Breadcrumbs,
   Button,
   Container,
   DescriptionList,
@@ -36,6 +40,7 @@ import {
   useFormState,
   useToast,
   type IconName,
+  type MenuEntry,
   type SidebarSection,
 } from "@zen/design-system";
 
@@ -60,6 +65,13 @@ const history: Activity[] = [
   { id: "sent", title: `Sent to ${billingEmail}`, when: "1 Sep 2026, 09:05", icon: "icon-send-01-line" },
   { id: "created", title: "Created by Ava Chen", when: "1 Sep 2026, 08:52", icon: "icon-receipt-line" },
 ];
+/** The account menu at the end of the top bar (Figma HR-Platform): replace the handlers with your routes. */
+const accountItems: MenuEntry[] = [
+  { id: "profile", label: "Profile", icon: "icon-user-circle-line" },
+  { id: "preferences", label: "Preferences", icon: "icon-settings-01-line" },
+  { type: "separator" },
+  { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line" },
+];
 const nav: SidebarSection[] = [{ items: [
   { id: "home", label: "Home", icon: <Icon name="icon-home-03-line" /> },
   { id: "invoices", label: "Invoices", icon: <Icon name="icon-receipt-line" /> },
@@ -72,6 +84,7 @@ export function DetailTemplate() {
   const { toast } = useToast();
   const [tab, setTab] = useState("overview");
   const [navId, setNavId] = useState("invoices");
+  const [unseen, setUnseen] = useState(true);
   const [paid, setPaid] = useState(0);
   const [voided, setVoided] = useState(false);
   const [paying, setPaying] = useState(false);
@@ -104,11 +117,17 @@ export function DetailTemplate() {
   const recordPayment = () => { payment.reset({ amount: balance.toFixed(2), method: "bank", note: "" }); setPaying(true); };
 
   return (
-    <AppShell sidebar={<Sidebar logo={<Text as="span" textStyle="Heading/4">Acme</Text>} sections={nav} selectedId={navId} onItemClick={(item) => setNavId(item.id)} />}>
+    <AppShell
+      sidebar={<Sidebar logo={<Text as="span" textStyle="Heading/4">Acme</Text>} logoCollapsed={<Avatar shape="square" size="xs" theme="indigo" background="subtle" alt="Acme" />} sections={nav} selectedId={navId} onItemClick={(item) => setNavId(item.id)} />}
+      header={<Breadcrumbs master={false} items={[{ id: "invoices", label: "Invoices" }, { id: "inv-0142", label: "INV-0142" }]} onNavigate={(_item, event) => { event.preventDefault(); toast({ title: "Back to Invoices" }); /* your router: navigate("/invoices") */ }} />}
+      headerActions={<>
+        <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot={unseen} onClick={() => { setUnseen(false); toast({ title: unseen ? "Northwind viewed INV-0142" : "No new notifications" }); }} />
+        <Menu align="end" trigger={<AppShellAccount name="Ava Chen" />} items={accountItems} onSelect={(item) => toast({ title: item.id === "sign-out" ? "Signed out" : `${item.label} opened` })} />
+      </>}
+    >
       <Container>
         <Stack gap="lg" paddingY="lg">
           <PageHeader
-            back={{ label: "Invoices", onClick: () => toast({ title: "Back to Invoices" }) /* your router: navigate("/invoices") */ }}
             title="Invoice INV-0142"
             meta={<Badge size="small" theme={status.theme} background="subtle">{status.label}</Badge>}
             description={`Northwind Traders · ${money(total)} · due 15 Sep 2026`}

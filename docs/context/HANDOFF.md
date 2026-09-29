@@ -62,8 +62,15 @@ Last updated: 2026-09-29.
 - **Figma parity update (2026-09-29):** Checkbox, Radio Button, Toggle, the Chat text bubbles, Search/Popover, the Table
   cell primitives, Segmented and Breadcrumbs were re-read from the live file and updated where the code differed
   (session log 2026-09-29, "Figma parity update"). Their fresh captures are in `docs/figma-contracts/`.
-- **Harness:** 146 usage rules. The newest is `date-picker/actions-need-apply` (2026-09-29): a DatePicker with
-  `showActions` and no `onApply`. Before it, `interaction/action-without-handler` (repo only: examples, playgrounds,
+- **App Shell (2026-09-29, session "App Shell kiểm tra lại"):** reworked after research (Carbon, Material 3,
+  Atlassian, Polaris, Primer, Fluent, SAP Fiori, Apple HIG) to the Figma ◇ Master-Layout pattern as used on ◆
+  HR-Platform (1128:29542): 72px top bar with a rail toggle before the Breadcrumbs, `AppShellAction` (dot / count),
+  `AppShellAccount`, `banner` / `aside` / `floatingAction` slots, `useAppShell()`, layout by the shell's own width,
+  drawer fixes. The 4 desktop templates use the new top bar. Sidebar files were left untouched (user decision): its
+  `<aside>` landmark and context wiring are in the Backlog. Log: `session-log-2026-09-29.md`, "App Shell".
+- **Harness:** 150 usage rules. The newest are the four App Shell rules (2026-09-29): `app-shell/primary-in-top-bar`,
+  `app-shell/nested`, `app-shell/breadcrumbs-once` and `app-shell/forced-layout` (apps only). Before them,
+  `date-picker/actions-need-apply` (2026-09-29): a DatePicker with `showActions` and no `onApply`. Before it, `interaction/action-without-handler` (repo only: examples, playgrounds,
   templates): an action passed with no handler at all. Before that, four came from the behaviour probes:
   `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `focus/state-parity` and
   `focus/selected-fill-only`. The interaction rules report 0 warnings in examples; `npm run usage:check` shows 3, all
@@ -175,13 +182,24 @@ The full list is in `docs/component-usage-rules.md`. The ones most often forgott
     empty frame.
   - **Chip S3:** the selected Secondary chip keeps a Subtle border at the Secondary weight on a faint tint (selection
     contrast about 1.15–1.3:1), unlike "Selected → Color/Border/Active/*". Should S3 switch?
-- Density tokens that no component uses yet:
+- For the designer (App Shell, 2026-09-29; code keeps its current behaviour until answered):
+  - **Rail width:** the HR-Platform rail (Patterns/Density/Comfortable/Sidebar/No) is 80px wide, with a 72px surface and
+    an 8px inset on the left only. The Side-Bar/Master/Basic Expand=No master is 84px, with a 68px surface and an 8px
+    inset on both sides. Code follows the master.
+  - **Sidebar pattern Shadow=No** (6040:67524): a Surface/Default sidebar without Shadow/Bottom/Level-1. No Sidebar
+    `background` gives it today.
+  - **No spec for narrow shells:** Figma draws the top bar and the drawer on desktop only. Code puts the top-bar
+    content on its own row under 744px and adds a Close button beside the drawer (APG modal dialog).
+  - **Floating-Actions** (6040:72809) uses a local effect (0 12 28 and 0 4 8 −4, Neutral/Base), not an Effect style.
+  - **Action-Item has no open state:** when Notifications opens its panel (`aria-expanded="true"`) the button looks the
+    same. Should it take a selected or pressed look?
+- Density tokens that no component uses yet (Badge 2xsmall is now the AppShellAction count; `global-control-bar`
+  places the drawer's Close button):
   - Tag small
   - Segmented xsmall
-  - Badge 2xsmall
   - `sidebar-small-width`
-  - `global-control-bar`
-  - `dashboard-header`
+  - `dashboard-header` (80/88): the HR-Platform top bar measures 72 (24 + 40 + 8); ask the designer which one the
+    dashboard header should use.
   - `navigation-action-margin`
 - Deliberately fixed sizes, which do not follow density:
   - Mobile Top/Bottom Nav, Bottom Sheet and the Chat mobile composer
@@ -248,8 +266,14 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   gets done; the approved items run as one planned batch, with fewer sessions that each own a set of files.
 - Items that need a decision from the user or the designer stay under "Open items"; this list holds work.
 
+- **P1 · Typography outline / content hierarchy review (2026-09-29)**, waiting for the user's decisions:
+  `docs/context/typography-hierarchy-review-2026-09-29.md` (8 decisions, ~30 verdicts; the phone child screen has no
+  h1, h2 renders in 6 styles, the enforcement misses missing h1s and errors on valid group headers).
 - **Process (2026-09-29):** batch A of `docs/context/process-audit-2026-09-29.md` is done (tiers in AGENTS.md §C,
-  consumer-scoped QA, ledger/Stop-hook fixes, scoped static gates, Scope-lock wording, a `use_figma`-safe extractor).
+  consumer-scoped QA, ledger/Stop-hook fixes, scoped static gates, Scope-lock wording, a `use_figma`-safe extractor),
+  then a token fast path, label-key scoping and a narrower tier L (`--all` only for every-page changes; library
+  components like AppShell stay scoped). Token sync: `skills/zen-token-sync` (the claude.ai `zen-ds-token-sync` skill is
+  out of date: point it at the repo skill).
   The user chose to work with it for a few days; batches B (parallel gate), C (Figma kit, suites, live tokens) and
   D (lighter docs) wait here until needed. Batch A follow-ups:
   - **P2 · Seed the contrast/targets baseline:** `node tools/platform-audit/audit.mjs --quality --viewports=1512,390
@@ -378,3 +402,41 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     - Toggle: the platform showcases still pass the deprecated `selected` / `onSelectedChange`
       (`PlatformShowcases.tsx:557–559`); its JSDoc does not cite the node ids; Figma renamed the Caption prop to
       Subtext (a `subtext` alias would be new API).
+
+- **From the App Shell rework of 2026-09-29** (session "App Shell kiểm tra lại"; session log 2026-09-29, "App Shell"):
+  - **P1 · Sidebar landmark:** Sidebar renders `<aside aria-label="Main navigation">` (a complementary landmark), so an
+    AppShell page has no navigation landmark (`Sidebar.tsx:380, 399`). Make it `<nav>`. The user deferred Sidebar edits
+    on 2026-09-29.
+  - **P2 · Sidebar reads the shell:** AppShell passes the rail state and the drawer's expanded state to a direct
+    `<Sidebar>` with `cloneElement`. A wrapped Sidebar needs `useAppShell()` by hand. Letting Sidebar read an AppShell
+    context would cover both.
+  - **P2 · Rail group dividers:** the HR-Platform rail puts a Divider between groups. The collapsed Sidebar only hides
+    section titles, so its groups run together.
+  - **P3 · Sidebar headers from HR-Platform:** a workspace/account switcher header (square Avatar, name, email,
+    chevron-selector) and a drill-in module header (Back chevron + Heading/4 "Time Off").
+  - **P3 · Keyboard shortcut for the rail toggle:** Atlassian has an opt-in Ctrl+[ and Apple HIG asks for one. Needs a
+    decision (it must not clash with ⌘B / Ctrl+B bold in editors).
+  - **P3 · Notification-Dot as one primitive** (Figma 4116:21789): Sidebar items, TopNavigation actions and
+    AppShellAction each draw their own dot today.
+  - **P3 · Harness for dead top-bar actions:** `icon-button/needs-action` and `interaction/action-without-handler` do
+    not look at AppShellAction or AppShellAccount yet.
+  - **P3 · Aside in a narrow preview:** a SidePanel in `aside` becomes SidePanel's own portalled modal, so in a docs
+    preview frame it covers the page rather than the frame. The drawer stays in the frame.
+  - **From the UX review of the same session:**
+    - **P2 · The platform wordmark is invisible in dark mode:** `figmaSidebarBrand` in `PlatformSidebarBrand.tsx` draws
+      the Zen logo as an `<img>` with a hard-coded #111. It sits on the dark Sidebar in every Sidebar and App Shell
+      example. Use an inline SVG in currentColor.
+    - **P3 · Rail counters:** a collapsed Sidebar hides an item's counter ("Approvals 3") without showing a Dot. This is
+      a Sidebar change.
+    - **P3 · PageHeader when its actions wrap:** the order becomes title → buttons → description, so the description is
+      split from its title. Example cards force `breakpoint="desktop"`, so at 390 they never show the mobile order
+      (Primary first).
+    - **P3 · Dashboard template:** the "Recent activity" title sits outside its card while "Revenue"'s sits inside, so
+      the two columns start at different heights.
+    - **P3 · Behaviour probe clicks during a layout transition:** the probe clicks the next control about 25ms after
+      the previous one. After "Collapse sidebar" the page is still sliding (Sidebar width transition, 160ms), so the
+      first Breadcrumb is missed and reported as a dead click. Reproduced: it works after 400ms. This gives 2 ⚠ on
+      templates@1512 (Admin list "Home", Detail "Invoices"). Fix in `behaviour.mjs`: wait for running transitions
+      before `pointAt`. Owner: "Quy trình kiểm tra Component build".
+    - **P3 · Example coverage (qa step ④):** `app-shell` has no "states" example (a loading shell, an offline
+      banner, an empty notifications panel); `page-header` still lacks states, edge cases and mobile (pre-existing).

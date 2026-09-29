@@ -22,6 +22,8 @@ export function App() {
       <div style={{ display: "flex", gap: 8 }}><ZenButton level="primary" onClick={() => undefined}>Save changes</ZenButton></div>
       {/* expect: text/use-text */}
       <h2>Team members</h2>
+      {/* expect: app-shell/forced-layout */}
+      <Zen.AppShell layout="sidebar"><Zen.Text>Page</Zen.Text></Zen.AppShell>
       {/* zen-allow-secondary: toolbar toggle that stays pressed */}
       <ZenButton level="secondary">Bold</ZenButton>
     </main>

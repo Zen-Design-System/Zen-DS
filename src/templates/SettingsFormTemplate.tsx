@@ -6,7 +6,11 @@
 import { useState } from "react";
 import {
   AppShell,
+  AppShellAccount,
+  AppShellAction,
+  Avatar,
   Box,
+  Breadcrumbs,
   Button,
   Checkbox,
   Container,
@@ -18,6 +22,7 @@ import {
   Icon,
   InlineMessage,
   InputField,
+  Menu,
   PageHeader,
   SelectField,
   Sidebar,
@@ -27,10 +32,18 @@ import {
   Toggle,
   useFormState,
   useToast,
+  type MenuEntry,
   type SidebarSection,
 } from "@zen/design-system";
 
 /* ── Sample data: replace with your own ─────────────────────────────── */
+/** The account menu at the end of the top bar (Figma HR-Platform): replace the handlers with your routes. */
+const accountItems: MenuEntry[] = [
+  { id: "profile", label: "Profile", icon: "icon-user-circle-line" },
+  { id: "preferences", label: "Preferences", icon: "icon-settings-01-line" },
+  { type: "separator" },
+  { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line" },
+];
 const sections = (active: string): SidebarSection[] => [
   { label: "Settings", items: [
     { id: "profile", label: "Profile", icon: <Icon name="icon-user-line" />, active: active === "profile" },
@@ -51,6 +64,7 @@ export function SettingsFormTemplate() {
   // Instant settings live outside the Form: a Toggle applies at once (Toggle guideline).
   const [digest, setDigest] = useState(true);
   const [page, setPage] = useState("profile");
+  const [unseen, setUnseen] = useState(true);
   const form = useFormState({
     initialValues: { name: "Ava Chen", email: "ava@zen.studio", timezone: "Asia/Ho_Chi_Minh", bio: "", releases: true, tips: false },
     validate: (values) => ({
@@ -65,7 +79,14 @@ export function SettingsFormTemplate() {
   });
 
   return (
-    <AppShell sidebar={<Sidebar logo={<Text as="span" textStyle="Heading/4">Acme</Text>} sections={sections(page)} onItemClick={(item) => setPage(item.id)} />}>
+    <AppShell
+      sidebar={<Sidebar logo={<Text as="span" textStyle="Heading/4">Acme</Text>} logoCollapsed={<Avatar shape="square" size="xs" theme="indigo" background="subtle" alt="Acme" />} sections={sections(page)} onItemClick={(item) => setPage(item.id)} />}
+      header={<Breadcrumbs master={false} items={[{ id: "settings", label: "Settings" }, { id: "profile", label: "Profile" }]} onNavigate={(item, event) => { event.preventDefault(); setPage(item.id === "settings" ? "profile" : item.id); /* your router: navigate(item.href) */ }} />}
+      headerActions={<>
+        <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot={unseen} onClick={() => { setUnseen(false); toast({ title: unseen ? "Your weekly digest is ready" : "No new notifications" }); }} />
+        <Menu align="end" trigger={<AppShellAccount name={form.values.name || "Ava Chen"} />} items={accountItems} onSelect={(item) => toast({ title: item.id === "sign-out" ? "Signed out" : `${item.label} opened` })} />
+      </>}
+    >
       <Container maxWidth="md">
         <Stack gap="xl" paddingY="lg">
           <PageHeader title="Profile" description="How you appear to your team and how we reach you." />

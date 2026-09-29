@@ -6,9 +6,12 @@
 import { useMemo, useState } from "react";
 import {
   AppShell,
+  AppShellAccount,
+  AppShellAction,
   Avatar,
   Badge,
   BadgeCounter,
+  Breadcrumbs,
   Button,
   Chip,
   Container,
@@ -37,6 +40,7 @@ import {
   plural,
   useFormState,
   useToast,
+  type MenuEntry,
   type SidebarSection,
   type TableSort,
 } from "@zen/design-system";
@@ -53,6 +57,13 @@ const seed: Member[] = [
 const roles = ["Owner", "Admin", "Member"] as const;
 const statuses = ["Active", "Invited", "Suspended"] as const;
 const statusTheme = { Active: "green", Invited: "blue", Suspended: "neutral" } as const;
+/** The account menu at the end of the top bar (Figma HR-Platform): replace the handlers with your routes. */
+const accountItems: MenuEntry[] = [
+  { id: "profile", label: "Profile", icon: "icon-user-circle-line" },
+  { id: "preferences", label: "Preferences", icon: "icon-settings-01-line" },
+  { type: "separator" },
+  { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line" },
+];
 const nav: SidebarSection[] = [{ items: [
   { id: "home", label: "Home", icon: <Icon name="icon-home-03-line" /> },
   { id: "members", label: "Members", icon: <Icon name="icon-users-line" /> },
@@ -71,6 +82,7 @@ export function AdminListTemplate() {
   const [sort, setSort] = useState<TableSort | null>({ columnId: "name", direction: "asc" });
   const [page, setPage] = useState(1);
   const [navId, setNavId] = useState("members");
+  const [unseen, setUnseen] = useState(true);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [removing, setRemoving] = useState<Member | null>(null);
 
@@ -111,8 +123,12 @@ export function AdminListTemplate() {
 
   return (
     <AppShell
-      sidebar={<Sidebar logo={<Text as="span" textStyle="Heading/4">Acme</Text>} sections={nav} selectedId={navId} onItemClick={(item) => { setNavId(item.id); setPage(1); }} />}
-      headerActions={<IconButton aria-label="Notifications" icon={<Icon name="icon-bell-01-line" />} onClick={() => toast({ title: "No new notifications" })} />}
+      sidebar={<Sidebar logo={<Text as="span" textStyle="Heading/4">Acme</Text>} logoCollapsed={<Avatar shape="square" size="xs" theme="indigo" background="subtle" alt="Acme" />} sections={nav} selectedId={navId} onItemClick={(item) => { setNavId(item.id); setPage(1); }} />}
+      header={<Breadcrumbs master={false} items={[{ id: "home", label: "Home" }, { id: "members", label: "Team members" }]} onNavigate={(item, event) => { event.preventDefault(); setNavId(item.id); /* your router: navigate(item.href) */ }} />}
+      headerActions={<>
+        <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot={unseen} onClick={() => { setUnseen(false); toast({ title: unseen ? "Duy Le accepted the invite" : "No new notifications" }); }} />
+        <Menu align="end" trigger={<AppShellAccount name="Ava Chen" />} items={accountItems} onSelect={(item) => toast({ title: item.id === "sign-out" ? "Signed out" : `${item.label} opened` })} />
+      </>}
     >
       <Container>
         <Stack gap="lg" paddingY="lg">

@@ -78,7 +78,7 @@ pass `paint={false}` so it doesn't paint Canvas.
 
 ## Building screens
 
-- Page frame: `AppShell` (Sidebar, a sticky top bar with `header` / `headerActions`, a drawer below 1024px) around a
+- Page frame: `AppShell` (Sidebar with a rail toggle, a sticky top bar with `header` / `headerActions`, a drawer when the shell is under 1024px) around a
   `Container` whose first child is a `PageHeader`.
 - Arrangement: `Stack` and `Grid` with the spacing scale (`gap="md"`, `columns={{ mobile: 1, desktop: 2 }}`, or
   `columns={{ mobile: 1, desktop: "2fr 1fr" }}` for a main column and an aside); `Box` for plain panels, `Card` for

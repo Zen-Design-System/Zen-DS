@@ -5,17 +5,20 @@
 import { useState } from "react";
 import {
   AppShell,
+  AppShellAccount,
+  AppShellAction,
+  Avatar,
   Button,
   ChartCard,
   Container,
   Grid,
   Heading,
   Icon,
-  IconButton,
   LineChart,
   InputField,
   List,
   ListItem,
+  Menu,
   MetricCard,
   ModalForm,
   PageHeader,
@@ -27,6 +30,7 @@ import {
   TableTrend,
   Text,
   useToast,
+  type MenuEntry,
   type SidebarSection,
 } from "@zen/design-system";
 
@@ -48,6 +52,13 @@ const projects = [
   { id: "app", name: "Mobile app", owner: "Bao Nguyen", visits: "9.1K", delta: "+3%", up: true },
   { id: "docs", name: "Docs platform", owner: "Chi Tran", visits: "4.7K", delta: "−2%", up: false },
 ];
+/** The account menu at the end of the top bar (Figma HR-Platform): replace the handlers with your routes. */
+const accountItems: MenuEntry[] = [
+  { id: "profile", label: "Profile", icon: "icon-user-circle-line" },
+  { id: "preferences", label: "Preferences", icon: "icon-settings-01-line" },
+  { type: "separator" },
+  { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line" },
+];
 const sections = (active: string): SidebarSection[] => [
   { items: [
     { id: "dashboard", label: "Dashboard", icon: <Icon name="icon-home-03-line" />, active: active === "dashboard" },
@@ -59,6 +70,7 @@ const sections = (active: string): SidebarSection[] => [
 export function DashboardTemplate() {
   const { toast } = useToast();
   const [page, setPage] = useState("dashboard");
+  const [unread, setUnread] = useState(3);
   const [range, setRange] = useState<keyof typeof ranges>("Monthly");
   // New project: a one-field form; the project lands on top of Top projects.
   const [rows, setRows] = useState(projects);
@@ -72,9 +84,12 @@ export function DashboardTemplate() {
   };
   return (
     <AppShell
-      sidebar={<Sidebar logo={<Text as="span" textStyle="Heading/4">Acme</Text>} sections={sections(page)} onItemClick={(item) => setPage(item.id)} />}
-      header={<Search aria-label="Search" placeholder="Search projects and customers" />}
-      headerActions={<IconButton aria-label="Notifications" icon={<Icon name="icon-bell-01-line" />} onClick={() => toast({ title: "No new notifications" })} />}
+      sidebar={<Sidebar logo={<Text as="span" textStyle="Heading/4">Acme</Text>} logoCollapsed={<Avatar shape="square" size="xs" theme="indigo" background="subtle" alt="Acme" />} sections={sections(page)} onItemClick={(item) => setPage(item.id)} />}
+      header={<Search aria-label="Search" placeholder="Search projects" />}
+      headerActions={<>
+        <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={() => { setUnread(0); toast({ title: unread ? "Northwind paid INV-0142" : "No new notifications" }); }} />
+        <Menu align="end" trigger={<AppShellAccount name="Ava Chen" />} items={accountItems} onSelect={(item) => toast({ title: item.id === "sign-out" ? "Signed out" : `${item.label} opened` })} />
+      </>}
     >
       <Container>
         <Stack gap="xl" paddingY="lg">
