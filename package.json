@@ -87,7 +87,8 @@
     "style:check": "node tools/style-guard/check-styles.mjs",
     "style:selftest": "node tools/style-guard/selftest.mjs",
     "qa": "node tools/qa/run.mjs",
-    "qa:quick": "node tools/qa/run.mjs --quick"
+    "qa:quick": "node tools/qa/run.mjs --quick",
+    "ship": "node tools/ship/ship.mjs"
   },
   "peerDependencies": {
     "react": "^19.0.0",

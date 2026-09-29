@@ -114,6 +114,9 @@ variant), or let `node tools/figma-contract/run-all.mjs` compare it. `dist*`, `s
 `package-lock.json` are denied in `.claude/settings.json`. Use no sub-agents for tier XS/S work: a token or copy change is
 `npm run tokens:build`, the contract binding check and a scoped `npm run qa`, run in this session.
 
+## Shipping
+`npm run ship` pushes the current branch and opens the pull request (see `tools/ship/README.md`). Merging stays a human step.
+
 ## Working alongside other sessions
 
 Several Claude sessions often edit this folder at once. Re-read a file right before writing it, make targeted edits
