@@ -779,3 +779,8 @@ Backlog: the `use_figma` hidden-node flag, the rest of `datepicker-sidebar.json`
 - Causes found and neutralised in kit v2 (`digest-norm.js`, lock rebuilt, selftest 13/13): HTML-escaped set descriptions, old typography bindings on styled text, hidden layers inside instances (captured inconsistently).
 - Live check of 12 sets: 8 match, 4 differ for real (Popover/Default, Badge XSmall, Input Small + XLarge + several states). The hash is transitive (nested instances), so a few master edits fan out to many sets.
 - Not run: the remaining ~36 previously differing sets with v2. Nothing committed (git index.lock not removable from the VM).
+
+## Build gate in parallel + npm run ship
+- `npm run ship` (tools/ship): gate for a small branch, push, PR link/API. Pushed `claude/zen-ds-0.4.0` by hand (token needed Contents + Workflows write).
+- tools/qa/run.mjs: tsc, contract suites and Vitest run concurrently; audit, dark audit and behaviour run concurrently, each split over ZEN_QA_SHARDS (default 2) processes for 6+ pages, reports merged back. `--serial` restores the old order. Mechanics tested with mocks; the real speed-up is NOT measured yet (browser gates cannot run in the VM): compare `npm run qa -- --serial` with `npm run qa` on the Mac.
+- Old reports show the time is the browser steps (~35-50 s per page, three steps in sequence), e.g. 16 pages = 808 s.
