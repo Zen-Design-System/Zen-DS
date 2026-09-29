@@ -50,8 +50,11 @@ const modes = suite.modes ?? [
 ];
 
 // ---------- build harness ----------
-const outDir = path.join(repo, "tools/figma-contract/.out");
+// One folder per run: the gate runs several suites at once, and a shared harness.js / index.html let a suite load
+// another suite's cases (or a half-written bundle). --keep leaves the folder for debugging.
+const outDir = path.join(repo, "tools/figma-contract/.out", `${path.basename(suitePath, ".mjs")}-${process.pid}`);
 fs.mkdirSync(outDir, { recursive: true });
+if (!("keep" in args)) process.on("exit", () => fs.rmSync(outDir, { recursive: true, force: true }));
 await esbuild.build({
   entryPoints: [path.join(here, "harness.tsx")],
   bundle: true,

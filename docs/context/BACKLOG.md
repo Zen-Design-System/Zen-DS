@@ -186,6 +186,10 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   - Run the static gates concurrently in `tools/qa/run.mjs`.
   - Optionally audit a `vite build` preview on its own port, so other sessions' HMR never breaks a run.
   - Expected: 3–4× faster; `qa --all` from ~45 to ~12–15 min.
+  - **Done 2026-09-30 (was P1, approved by the user):** concurrent contract suites overwrote the shared
+    `tools/figma-contract/.out/harness.js` (18 of 23 failed on a token change). Each run now builds in its own folder,
+    the gate runs 4 suites at a time (`ZEN_QA_SUITES`, 1 under `--serial`), and a token sync takes the fast path without
+    `--files`. Log: `session-log-2026-09-30.md`.
 - **P1 · Session setup.** Give each parallel session its own file area, and a worktree when two sessions touch the same
   files. Commit from one place, at agreed stable points. 8 of 32 QA runs on 28/9 failed, most of them because another
   session was mid-edit.

@@ -13,7 +13,7 @@
  *   npm run qa -- --quick             fast loop while building: static gates + audit at 1512 (never counts as a pass)
  *   npm run qa -- --serial            run the steps one after another (default: tsc, contract suites and Vitest run side by side,
  *                                     and audit + dark audit + behaviour run side by side, split over ZEN_QA_SHARDS=2 processes
- *                                     per job when 6+ pages are rendered)
+ *                                     per job when 6+ pages are rendered; the contract suites run ZEN_QA_SUITES=4 at a time)
  *   npm run qa -- --tokens-base=HEAD~1  diff the token files against another ref (default HEAD) for the token scope
  *
  * ① Static     tsc · style-guard (spacing/radius/type/colour/shadow tokens) · usage-guard · guidelines (stale docs of
@@ -131,8 +131,9 @@ if (!files.length && !aux.length && !pages.size) {
 const P = [...pages];
 // Token fast path: only token values changed (no scale token, no other UI file). Consumers pick the new values up by
 // themselves, so behaviour, smoke clicks and TypeScript cannot change; what can is contrast (colours) and fit, overflow
-// and concentric corners (sizes). Figma suites of the consumers and tokens:check still run.
-const TOKEN_ONLY = !ALL && !QUICK && Boolean(tokens && !tokens.error && tokens.changed.length && !tokens.scale.length) && uiFiles.length > 0 && uiFiles.every((f) => TOKEN_STYLE_FILES.includes(f));
+// and concentric corners (sizes). Figma suites of the consumers and tokens:check still run. `npm run tokens:build`
+// writes tokens.css through a script, which the edit ledger never records: an edited token source counts as well.
+const TOKEN_ONLY = !ALL && !QUICK && Boolean(tokens && !tokens.error && tokens.changed.length && !tokens.scale.length) && uiFiles.every((f) => TOKEN_STYLE_FILES.includes(f)) && (uiFiles.length > 0 || auxHas(/^(tokens\/source|src\/tokens)\//));
 const TOKEN_SIZES = TOKEN_ONLY && [...tokens.changed, ...tokens.aliases].some((n) => /radius|spacing|size|padding|gap|margin|width|height|weight|--zen-dm-/.test(n));
 if (TOKEN_ONLY) notes.push(`token fast path: only token values changed — contrast${TOKEN_SIZES ? " + fit/overflow/corners (sizes changed, Comfortable too)" : ""} on the consumer pages; no behaviour probes, smoke clicks or TypeScript`);
 // _shared logic (scale, icon, context…) reaches every component; the label dictionary does not.
@@ -162,6 +163,10 @@ const run = (cmd, args, timeoutMs = 600000) => { const r = spawnSync(cmd, args, 
 const SERIAL = flag("serial") || process.env.ZEN_QA_SERIAL === "1";
 const runAsync = (cmd, args, timeoutMs = 600000) => new Promise((resolve) => { const t0 = Date.now(); const c = spawn(cmd, args, { cwd: root, env: { ...process.env, FORCE_COLOR: "0" } }); let out = ""; const timer = setTimeout(() => c.kill("SIGKILL"), timeoutMs); c.stdout.on("data", (d) => { out += d; }); c.stderr.on("data", (d) => { out += d; }); c.on("error", (e) => { clearTimeout(timer); resolve({ code: 2, out: String(e), ms: Date.now() - t0 }); }); c.on("close", (code) => { clearTimeout(timer); resolve({ code: code ?? 1, out, ms: Date.now() - t0 }); }); });
 const launch = (cmd, args, timeoutMs) => { let p = null; const go = () => (p ??= runAsync(cmd, args, timeoutMs)); if (!SERIAL) go(); return go; };
+// fn over items, at most `limit` at a time, results in input order. Each contract suite starts its own browser, so the
+// scoped contract step runs ZEN_QA_SUITES (default 4) of them at once, one by one under --serial.
+const pooled = async (items, limit, fn) => { const out = new Array(items.length); let next = 0; await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => { while (next < items.length) { const i = next++; out[i] = await fn(items[i]); } })); return out; };
+const SUITE_LIMIT = SERIAL ? 1 : Math.max(1, Number(process.env.ZEN_QA_SUITES ?? 4) || 4);
 // The pages of a runtime job are independent (reports are keyed by page@width), so a run of 6+ pages is also split in
 // ZEN_QA_SHARDS (default 2) processes per job and the part reports are merged back into the one file the gate reads.
 const mergeReports = (reps) => { const m = { ...reps[0], pages: {} }; for (const r of reps) { Object.assign(m.pages, r.pages ?? {}); for (const k of ["baselined", "current"]) if (r[k]) m[k] = { ...(m[k] ?? {}), ...r[k] }; } return m; };
@@ -271,7 +276,7 @@ addJob(async () => {
     if (!suites.length && !interactions) step("static", "Figma contracts", "skip", inScope.size ? `no contract suite covers ${[...inScope].join(", ")}` : "no component files in scope");
     else {
       const items = []; let failed = 0;
-      const results = await Promise.all(suites.map((s) => runAsync(process.execPath, [path.join(root, "tools/figma-contract/check.mjs"), path.join(root, s.file)], 300000)));
+      const results = await pooled(suites, SUITE_LIMIT, (s) => runAsync(process.execPath, [path.join(root, "tools/figma-contract/check.mjs"), path.join(root, s.file)], 300000));
       for (const [i, s] of suites.entries()) {
         const r = results[i];
         const summary = r.out.trim().split("\n").at(-1) ?? s.file;

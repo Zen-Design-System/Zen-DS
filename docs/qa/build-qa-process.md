@@ -130,7 +130,7 @@ Khi Figma thật sự dùng một giá trị ngoài scale: ưu tiên gắn vào 
 
 `npm run qa:quick` cho phản hồi runtime nhanh (cổng tĩnh + audit 1512 có check chất lượng) trong lúc lặp.
 
-Mặc định cổng chạy **song song**: tsc, contract suite và Vitest chạy cùng lúc; audit, dark audit và behaviour cũng chạy cùng lúc và mỗi job tách 2 tiến trình khi có từ 6 trang (đổi bằng `ZEN_QA_SHARDS=1..3`). Kết quả và báo cáo giữ nguyên; mỗi bước audit in thêm thời gian chạy. Nếu nghi một check phụ thuộc thời gian bị chập chờn khi chạy song song, chạy lại với `npm run qa -- --serial` để so.
+Mặc định cổng chạy **song song**: tsc, contract suite và Vitest chạy cùng lúc; audit, dark audit và behaviour cũng chạy cùng lúc và mỗi job tách 2 tiến trình khi có từ 6 trang (đổi bằng `ZEN_QA_SHARDS=1..3`). Các contract suite chạy tối đa 4 suite một lúc (`ZEN_QA_SUITES`), mỗi suite build harness trong thư mục riêng `tools/figma-contract/.out/<suite>-<pid>`. Thay đổi chỉ về token tự đi đường tắt, kể cả khi `tokens.css` được `npm run tokens:build` ghi (không cần `--files`). Kết quả và báo cáo giữ nguyên; mỗi bước audit in thêm thời gian chạy. Nếu nghi một check phụ thuộc thời gian bị chập chờn khi chạy song song, chạy lại với `npm run qa -- --serial` để so.
 
 ## 3. Cổng QA: `npm run qa`
 

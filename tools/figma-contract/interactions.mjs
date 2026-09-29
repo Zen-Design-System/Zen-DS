@@ -15,8 +15,10 @@ const globalRoot = execFileSync("npm", ["root", "-g"]).toString().trim();
 const load = (names) => { for (const n of names) { try { return createRequire(path.join(repo, "x.js"))(n); } catch { /* next */ } } throw new Error(names.join(", ")); };
 const esbuild = load(["esbuild", path.join(globalRoot, "esbuild"), path.join(globalRoot, "tsx/node_modules/esbuild")]);
 const { chromium } = load(["playwright", "@playwright/test", path.join(globalRoot, "playwright")]);
-const out = path.join(here, ".out");
+// One folder per run, so a contract suite running beside it never overwrites its harness (see check.mjs).
+const out = path.join(here, ".out", `interactions-${process.pid}`);
 fs.mkdirSync(out, { recursive: true });
+process.on("exit", () => fs.rmSync(out, { recursive: true, force: true }));
 await esbuild.build({ entryPoints: [path.join(here, "harness.tsx")], bundle: true, outfile: path.join(out, "harness.js"), loader: { ".svg": "dataurl", ".woff": "dataurl", ".woff2": "dataurl", ".otf": "dataurl" }, jsx: "automatic", define: { "process.env.NODE_ENV": '"development"' }, logLevel: "error" });
 fs.writeFileSync(path.join(out, "interactions.html"), `<!doctype html><html data-brand="zen" data-theme="light" data-component-theme="neutral-s1"><head><meta charset="utf-8"><link rel="stylesheet" href="harness.css"></head><body><div id="root"></div><script>window.__CASES=[{id:"i",kind:"interactive",props:{}}]</script><script src="harness.js"></script></body></html>`);
 

@@ -247,6 +247,10 @@ removed (four unused colour ramps were, see Removed).
   `--all` is reserved for changes every page renders.
 - Browser tests (Vitest, Chromium): every component renders in light and dark with an axe baseline that only
   shrinks; size spellings render identically; interaction tests for Menu, Dialog, Tooltip, useToast, Table,
+- **Gate: parallel contract suites (2026-09-30):** every contract run builds its harness in its own folder
+  (`tools/figma-contract/.out/<suite>-<pid>`); a shared one let concurrent suites load each other's cases, and 18 of 23
+  failed on a token change. The gate runs 4 suites at a time (`ZEN_QA_SUITES`, one by one under `--serial`), and a
+  token sync takes the fast path by itself: `tokens.css` written by `npm run tokens:build` no longer needs `--files`.
   Pagination, Accordion, Form and ZenProvider. CI workflow for every gate. Pixel-level visual diff tool for the
   docs platform.
 - **Build-QA gate** (`npm run qa`; skill `skills/zen-build-qa`; `docs/qa/build-qa-process.md`): one command after
