@@ -53,7 +53,9 @@ Last updated: 2026-09-29.
   the user's 2026-09-29 exports were applied: Component Theme S4 Chip-Secondary selected background → Surface/Default,
   selected border → Border/Active/Neutral/Solid, active border weight → Primary; `Corner-Radius/Input/Small` → 12 / 12 /
   8 / 2. S3 keeps Active/Neutral/Subtle by the user's decision; the live file was set to the same value (read at
-  02:55), so repo and Figma agree. Log: `session-log-2026-09-29.md`, "Token update from the user's exports".
+  02:55), so repo and Figma agree. Log: `session-log-2026-09-29.md`, "Token update from the user's exports". Later
+  the same day the user's `Global Colors.json` moved step 3 of every Light and Dark ramp and its Alpha twin (79 values,
+  no names changed; log "Global Colors step 3").
 - **Parity:** every Figma component is built; 49 guideline slugs.
 - **Figma contract:** `node tools/figma-contract/run-all.mjs` runs 23 suites + 25 interactions, all green: Checkbox,
   Radio, Chip, Popover, all six Button sets (every size, plus the Smooth radius mode) and Input/Heading. The review

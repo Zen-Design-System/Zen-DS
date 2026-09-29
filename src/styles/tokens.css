@@ -3,7 +3,7 @@
 :root {
   --zen-light-tomato-1: #FFFCFA;
   --zen-light-tomato-2: #FFF5F2;
-  --zen-light-tomato-3: #FFEBE6;
+  --zen-light-tomato-3: #FFE7E1;
   --zen-light-tomato-4: #FFD3C7;
   --zen-light-tomato-5: #FFC0AF;
   --zen-light-tomato-6: #FFAE99;
@@ -15,7 +15,7 @@
   --zen-light-tomato-12: #580300;
   --zen-light-tomato-alpha-1: #FF690505;
   --zen-light-tomato-alpha-2: #FF3B000D;
-  --zen-light-tomato-alpha-3: #FF350219;
+  --zen-light-tomato-alpha-3: #FF34011E;
   --zen-light-tomato-alpha-4: #FF370038;
   --zen-light-tomato-alpha-5: #FF360050;
   --zen-light-tomato-alpha-6: #FF350066;
@@ -27,7 +27,7 @@
   --zen-light-tomato-alpha-12: #580300;
   --zen-light-crimson-1: #FFFBFC;
   --zen-light-crimson-2: #FFF5F6;
-  --zen-light-crimson-3: #FFEAEC;
+  --zen-light-crimson-3: #FFE6E9;
   --zen-light-crimson-4: #FFD2D7;
   --zen-light-crimson-5: #FFBDC6;
   --zen-light-crimson-6: #FFABB8;
@@ -39,7 +39,7 @@
   --zen-light-crimson-12: #590023;
   --zen-light-crimson-alpha-1: #FF054404;
   --zen-light-crimson-alpha-2: #FF051E0A;
-  --zen-light-crimson-alpha-3: #FF021A15;
+  --zen-light-crimson-alpha-3: #FF022119;
   --zen-light-crimson-alpha-4: #FF011D2D;
   --zen-light-crimson-alpha-5: #FF002342;
   --zen-light-crimson-alpha-6: #FF002854;
@@ -51,7 +51,7 @@
   --zen-light-crimson-alpha-12: #590023;
   --zen-light-pink-1: #FFFBFD;
   --zen-light-pink-2: #FFF4F9;
-  --zen-light-pink-3: #FFEAF4;
+  --zen-light-pink-3: #FFE5F2;
   --zen-light-pink-4: #FFD0E8;
   --zen-light-pink-5: #FFBADF;
   --zen-light-pink-6: #FFA7D9;
@@ -63,7 +63,7 @@
   --zen-light-pink-12: #570041;
   --zen-light-pink-alpha-1: #FF058204;
   --zen-light-pink-alpha-2: #FF05770B;
-  --zen-light-pink-alpha-3: #FF027A15;
+  --zen-light-pink-alpha-3: #FF00801A;
   --zen-light-pink-alpha-4: #FF01832F;
   --zen-light-pink-alpha-5: #FF008945;
   --zen-light-pink-alpha-6: #FF019158;
@@ -75,7 +75,7 @@
   --zen-light-pink-alpha-12: #570041;
   --zen-light-plum-1: #FFFBFF;
   --zen-light-plum-2: #FFF4FE;
-  --zen-light-plum-3: #FFE9FE;
+  --zen-light-plum-3: #FFE4FD;
   --zen-light-plum-4: #FCCFFB;
   --zen-light-plum-5: #F7BBF6;
   --zen-light-plum-6: #F5A8F5;
@@ -87,7 +87,7 @@
   --zen-light-plum-12: #46004E;
   --zen-light-plum-alpha-1: #FF05FF04;
   --zen-light-plum-alpha-2: #FF05E80B;
-  --zen-light-plum-alpha-3: #FF02F416;
+  --zen-light-plum-alpha-3: #FF00EC1B;
   --zen-light-plum-alpha-4: #EF01EA30;
   --zen-light-plum-alpha-5: #E100DD44;
   --zen-light-plum-alpha-6: #E201E257;
@@ -99,7 +99,7 @@
   --zen-light-plum-alpha-12: #46004E;
   --zen-light-purple-1: #FEFBFF;
   --zen-light-purple-2: #FBF5FF;
-  --zen-light-purple-3: #F7EBFF;
+  --zen-light-purple-3: #F5E7FF;
   --zen-light-purple-4: #EDD4FF;
   --zen-light-purple-5: #E4C1FF;
   --zen-light-purple-6: #DDB1FF;
@@ -111,7 +111,7 @@
   --zen-light-purple-12: #360057;
   --zen-light-purple-alpha-1: #C105FF04;
   --zen-light-purple-alpha-2: #9B05FF0A;
-  --zen-light-purple-alpha-3: #9A02FF14;
+  --zen-light-purple-alpha-3: #9602FF18;
   --zen-light-purple-alpha-4: #9401FF2B;
   --zen-light-purple-alpha-5: #9001FF3E;
   --zen-light-purple-alpha-6: #9000FF4E;
@@ -123,7 +123,7 @@
   --zen-light-purple-alpha-12: #360057;
   --zen-light-violet-1: #FCFCFF;
   --zen-light-violet-2: #F7F6FF;
-  --zen-light-violet-3: #EFEDFF;
+  --zen-light-violet-3: #ECEAFF;
   --zen-light-violet-4: #DDD9FF;
   --zen-light-violet-5: #CEC9FF;
   --zen-light-violet-6: #C2BAFF;
@@ -135,7 +135,7 @@
   --zen-light-violet-12: #27006E;
   --zen-light-violet-alpha-1: #0505FF03;
   --zen-light-violet-alpha-2: #2105FF09;
-  --zen-light-violet-alpha-3: #1E01FF12;
+  --zen-light-violet-alpha-3: #1A02FF15;
   --zen-light-violet-alpha-4: #1C02FF26;
   --zen-light-violet-alpha-5: #1800FF36;
   --zen-light-violet-alpha-6: #1E00FF45;
@@ -147,7 +147,7 @@
   --zen-light-violet-alpha-12: #27006E;
   --zen-light-indigo-1: #FCFCFF;
   --zen-light-indigo-2: #F5F7FF;
-  --zen-light-indigo-3: #EAEFFF;
+  --zen-light-indigo-3: #E6ECFF;
   --zen-light-indigo-4: #D3DCFF;
   --zen-light-indigo-5: #C0CDFF;
   --zen-light-indigo-6: #AFC0FF;
@@ -159,7 +159,7 @@
   --zen-light-indigo-12: #0F0075;
   --zen-light-indigo-alpha-1: #0505FF03;
   --zen-light-indigo-alpha-2: #0537FF0A;
-  --zen-light-indigo-alpha-3: #023EFF15;
+  --zen-light-indigo-alpha-3: #023FFF19;
   --zen-light-indigo-alpha-4: #0135FF2C;
   --zen-light-indigo-alpha-5: #0135FF3F;
   --zen-light-indigo-alpha-6: #0036FF50;
@@ -171,7 +171,7 @@
   --zen-light-indigo-alpha-12: #0F0075;
   --zen-light-cyan-1: #F9FDFF;
   --zen-light-cyan-2: #EBFAFF;
-  --zen-light-cyan-3: #D8F4FF;
+  --zen-light-cyan-3: #D5F1FB;
   --zen-light-cyan-4: #BAE4F4;
   --zen-light-cyan-5: #9DD7EE;
   --zen-light-cyan-6: #7FCDEA;
@@ -183,7 +183,7 @@
   --zen-light-cyan-12: #00374A;
   --zen-light-cyan-alpha-1: #05ACFF06;
   --zen-light-cyan-alpha-2: #02C0FF14;
-  --zen-light-cyan-alpha-3: #00B7FF27;
+  --zen-light-cyan-alpha-3: #00AAE72A;
   --zen-light-cyan-alpha-4: #009BD645;
   --zen-light-cyan-alpha-5: #0097D362;
   --zen-light-cyan-alpha-6: #009BD580;
@@ -195,7 +195,7 @@
   --zen-light-cyan-alpha-12: #00374A;
   --zen-light-teal-1: #F7FDFB;
   --zen-light-teal-2: #EBFBF7;
-  --zen-light-teal-3: #D8F5EE;
+  --zen-light-teal-3: #D6F2EB;
   --zen-light-teal-4: #BBE6DC;
   --zen-light-teal-5: #9EDACD;
   --zen-light-teal-6: #81D1C1;
@@ -207,7 +207,7 @@
   --zen-light-teal-12: #003932;
   --zen-light-teal-alpha-1: #05C18208;
   --zen-light-teal-alpha-2: #02CC9A14;
-  --zen-light-teal-alpha-3: #00BE9027;
+  --zen-light-teal-alpha-3: #00AE8329;
   --zen-light-teal-alpha-4: #00A17C44;
   --zen-light-teal-alpha-5: #009E7C61;
   --zen-light-teal-alpha-6: #00A2827E;
@@ -219,7 +219,7 @@
   --zen-light-teal-alpha-12: #003932;
   --zen-light-grass-1: #F8FDF8;
   --zen-light-grass-2: #EEFBED;
-  --zen-light-grass-3: #DDF5DE;
+  --zen-light-grass-3: #DBF3DB;
   --zen-light-grass-4: #C2E6C3;
   --zen-light-grass-5: #A9DBAC;
   --zen-light-grass-6: #90D296;
@@ -231,7 +231,7 @@
   --zen-light-grass-12: #003914;
   --zen-light-grass-alpha-1: #05B80507;
   --zen-light-grass-alpha-2: #10C70112;
-  --zen-light-grass-alpha-3: #01B40922;
+  --zen-light-grass-alpha-3: #01AA0124;
   --zen-light-grass-alpha-4: #0197053D;
   --zen-light-grass-alpha-5: #01940956;
   --zen-light-grass-alpha-6: #00980E6F;
@@ -243,7 +243,7 @@
   --zen-light-grass-alpha-12: #003914;
   --zen-light-orange-1: #FFFCF9;
   --zen-light-orange-2: #FFF5EE;
-  --zen-light-orange-3: #FFECDE;
+  --zen-light-orange-3: #FFE8D8;
   --zen-light-orange-4: #FFD5B5;
   --zen-light-orange-5: #FFC295;
   --zen-light-orange-6: #FFB175;
@@ -255,7 +255,7 @@
   --zen-light-orange-12: #542B0A;
   --zen-light-orange-alpha-1: #FF820506;
   --zen-light-orange-alpha-2: #FF6A0111;
-  --zen-light-orange-alpha-3: #FF6D0121;
+  --zen-light-orange-alpha-3: #FF690027;
   --zen-light-orange-alpha-4: #FF6F014A;
   --zen-light-orange-alpha-5: #FF6C006A;
   --zen-light-orange-alpha-6: #FF6F008A;
@@ -267,7 +267,7 @@
   --zen-light-orange-alpha-12: #4D2200F5;
   --zen-light-brown-1: #FFFCF9;
   --zen-light-brown-2: #FFF5EE;
-  --zen-light-brown-3: #FFECDE;
+  --zen-light-brown-3: #FFE8D8;
   --zen-light-brown-4: #F3D8C3;
   --zen-light-brown-5: #EBC8AC;
   --zen-light-brown-6: #E4BA99;
@@ -279,7 +279,7 @@
   --zen-light-brown-12: #422301;
   --zen-light-brown-alpha-1: #FF820506;
   --zen-light-brown-alpha-2: #FF6A0111;
-  --zen-light-brown-alpha-3: #FF6D0121;
+  --zen-light-brown-alpha-3: #FF690027;
   --zen-light-brown-alpha-4: #CC5A013C;
   --zen-light-brown-alpha-5: #C2560053;
   --zen-light-brown-alpha-6: #BC530066;
@@ -291,7 +291,7 @@
   --zen-light-brown-alpha-12: #412200FE;
   --zen-light-sky-1: #F7FDFF;
   --zen-light-sky-2: #EAFAFE;
-  --zen-light-sky-3: #D8F4FB;
+  --zen-light-sky-3: #D6F1F8;
   --zen-light-sky-4: #BBE4F0;
   --zen-light-sky-5: #9FD7E7;
   --zen-light-sky-6: #82CDE2;
@@ -303,7 +303,7 @@
   --zen-light-sky-12: #004151;
   --zen-light-sky-alpha-1: #05C1FF08;
   --zen-light-sky-alpha-2: #02C3F315;
-  --zen-light-sky-alpha-3: #00B7E527;
+  --zen-light-sky-alpha-3: #00A8D429;
   --zen-light-sky-alpha-4: #009AC744;
   --zen-light-sky-alpha-5: #0095BF60;
   --zen-light-sky-alpha-6: #0099C47D;
@@ -315,7 +315,7 @@
   --zen-light-sky-alpha-12: #004151;
   --zen-light-mint-1: #F8FEFB;
   --zen-light-mint-2: #E9FBF3;
-  --zen-light-mint-3: #D6F6E8;
+  --zen-light-mint-3: #D4F3E6;
   --zen-light-mint-4: #B7E7D4;
   --zen-light-mint-5: #98DCC3;
   --zen-light-mint-6: #78D3B4;
@@ -327,7 +327,7 @@
   --zen-light-mint-12: #004033;
   --zen-light-mint-alpha-1: #05DB7007;
   --zen-light-mint-alpha-2: #02D17516;
-  --zen-light-mint-alpha-3: #00C77029;
+  --zen-light-mint-alpha-3: #01B86B2B;
   --zen-light-mint-alpha-4: #01AA6748;
   --zen-light-mint-alpha-5: #00A86A67;
   --zen-light-mint-alpha-6: #00AC7187;
@@ -339,7 +339,7 @@
   --zen-light-mint-alpha-12: #004033;
   --zen-light-yellow-1: #FFFCF7;
   --zen-light-yellow-2: #FFF6E8;
-  --zen-light-yellow-3: #FFEDD0;
+  --zen-light-yellow-3: #FFEAC7;
   --zen-light-yellow-4: #FFD796;
   --zen-light-yellow-5: #F9C66E;
   --zen-light-yellow-6: #EDBA5E;
@@ -351,7 +351,7 @@
   --zen-light-yellow-12: #45371B;
   --zen-light-yellow-alpha-1: #FFA10508;
   --zen-light-yellow-alpha-2: #FF9C0217;
-  --zen-light-yellow-alpha-3: #FF9E012F;
+  --zen-light-yellow-alpha-3: #FFA00038;
   --zen-light-yellow-alpha-4: #FF9E0069;
   --zen-light-yellow-alpha-5: #F49B0091;
   --zen-light-yellow-alpha-6: #E39200A1;
@@ -363,7 +363,7 @@
   --zen-light-yellow-alpha-12: #2F2000E4;
   --zen-light-bronze-1: #FFFCFA;
   --zen-light-bronze-2: #FFF5F1;
-  --zen-light-bronze-3: #FFEBE2;
+  --zen-light-bronze-3: #FFE8DE;
   --zen-light-bronze-4: #FFD4C3;
   --zen-light-bronze-5: #FBC2AC;
   --zen-light-bronze-6: #FAB195;
@@ -375,7 +375,7 @@
   --zen-light-bronze-12: #571400;
   --zen-light-bronze-alpha-1: #FF690505;
   --zen-light-bronze-alpha-2: #FF49000E;
-  --zen-light-bronze-alpha-3: #FF50011D;
+  --zen-light-bronze-alpha-3: #FF4E0121;
   --zen-light-bronze-alpha-4: #FF49013C;
   --zen-light-bronze-alpha-5: #F3440053;
   --zen-light-bronze-alpha-6: #F344006A;
@@ -387,7 +387,7 @@
   --zen-light-bronze-alpha-12: #571400;
   --zen-light-golden-1: #FFFCF7;
   --zen-light-golden-2: #FFF6E7;
-  --zen-light-golden-3: #FFEDCD;
+  --zen-light-golden-3: #FFEAC2;
   --zen-light-golden-4: #F6DAA6;
   --zen-light-golden-5: #EDCA85;
   --zen-light-golden-6: #E1BD77;
@@ -399,7 +399,7 @@
   --zen-light-golden-12: #423822;
   --zen-light-golden-alpha-1: #FFA10508;
   --zen-light-golden-alpha-2: #FFA00218;
-  --zen-light-golden-alpha-3: #FFA40132;
+  --zen-light-golden-alpha-3: #FFA8013D;
   --zen-light-golden-alpha-4: #E5950159;
   --zen-light-golden-alpha-5: #D990007A;
   --zen-light-golden-alpha-6: #C7830088;
@@ -411,7 +411,7 @@
   --zen-light-golden-alpha-12: #251900DD;
   --zen-light-gray-1: #FCFCFC;
   --zen-light-gray-2: #F7F7F7;
-  --zen-light-gray-3: #EFEFEF;
+  --zen-light-gray-3: #ECECEC;
   --zen-light-gray-4: #EAEAEA;
   --zen-light-gray-5: #E2E2E2;
   --zen-light-gray-6: #DBDBDB;
@@ -423,7 +423,7 @@
   --zen-light-gray-12: #111111;
   --zen-light-gray-alpha-1: #05050503;
   --zen-light-gray-alpha-2: #05050508;
-  --zen-light-gray-alpha-3: #01010110;
+  --zen-light-gray-alpha-3: #02020213;
   --zen-light-gray-alpha-4: #02020215;
   --zen-light-gray-alpha-5: #0101011D;
   --zen-light-gray-alpha-6: #01010124;
@@ -435,7 +435,7 @@
   --zen-light-gray-alpha-12: #000000EE;
   --zen-light-blue-1: #FAFCFF;
   --zen-light-blue-2: #F3F8FF;
-  --zen-light-blue-3: #E6F0FF;
+  --zen-light-blue-3: #E1EDFF;
   --zen-light-blue-4: #C7DFFF;
   --zen-light-blue-5: #AFD1FF;
   --zen-light-blue-6: #98C5FF;
@@ -447,7 +447,7 @@
   --zen-light-blue-12: #002B56;
   --zen-light-blue-alpha-1: #0569FF05;
   --zen-light-blue-alpha-2: #056DFF0C;
-  --zen-light-blue-alpha-3: #0267FF19;
+  --zen-light-blue-alpha-3: #0166FF1E;
   --zen-light-blue-alpha-4: #006EFF38;
   --zen-light-blue-alpha-5: #006DFF50;
   --zen-light-blue-alpha-6: #006FFF67;
@@ -459,7 +459,7 @@
   --zen-light-blue-alpha-12: #002B56;
   --zen-dark-tomato-1: #140E0D;
   --zen-dark-tomato-2: #221410;
-  --zen-dark-tomato-3: #321811;
+  --zen-dark-tomato-3: #341912;
   --zen-dark-tomato-4: #492015;
   --zen-dark-tomato-5: #5E2314;
   --zen-dark-tomato-6: #72220E;
@@ -471,7 +471,7 @@
   --zen-dark-tomato-12: #FFEBE6;
   --zen-dark-tomato-alpha-1: #34080022;
   --zen-dark-tomato-alpha-2: #FD4D1B14;
-  --zen-dark-tomato-alpha-3: #FE4E1D24;
+  --zen-dark-tomato-alpha-3: #FE502228;
   --zen-dark-tomato-alpha-4: #FF55283E;
   --zen-dark-tomato-alpha-5: #FE4C1E54;
   --zen-dark-tomato-alpha-6: #FF3D0D69;
@@ -483,7 +483,7 @@
   --zen-dark-tomato-alpha-12: #FFF4EFF5;
   --zen-dark-crimson-1: #140E0F;
   --zen-dark-crimson-2: #221315;
-  --zen-dark-crimson-3: #32171B;
+  --zen-dark-crimson-3: #34181D;
   --zen-dark-crimson-4: #4A1E27;
   --zen-dark-crimson-5: #5F202E;
   --zen-dark-crimson-6: #721E34;
@@ -495,7 +495,7 @@
   --zen-dark-crimson-12: #FFEBEE;
   --zen-dark-crimson-alpha-1: #5A000F11;
   --zen-dark-crimson-alpha-2: #FD415A14;
-  --zen-dark-crimson-alpha-3: #FF466125;
+  --zen-dark-crimson-alpha-3: #FE496928;
   --zen-dark-crimson-alpha-4: #FF4C713F;
   --zen-dark-crimson-alpha-5: #FF426C55;
   --zen-dark-crimson-alpha-6: #FF34696A;
@@ -507,7 +507,7 @@
   --zen-dark-crimson-alpha-12: #FFF4F7F5;
   --zen-dark-pink-1: #130E11;
   --zen-dark-pink-2: #21131A;
-  --zen-dark-pink-3: #311625;
+  --zen-dark-pink-3: #321827;
   --zen-dark-pink-4: #471D36;
   --zen-dark-pink-5: #5B1F44;
   --zen-dark-pink-6: #6E1D51;
@@ -519,7 +519,7 @@
   --zen-dark-pink-12: #FFEBF6;
   --zen-dark-pink-alpha-1: #4B002D11;
   --zen-dark-pink-alpha-2: #FF44A213;
-  --zen-dark-pink-alpha-3: #FE40AA24;
+  --zen-dark-pink-alpha-3: #FF4DB325;
   --zen-dark-pink-alpha-4: #FE4BB63C;
   --zen-dark-pink-alpha-5: #FF41B651;
   --zen-dark-pink-alpha-6: #FF33B764;
@@ -531,7 +531,7 @@
   --zen-dark-pink-alpha-12: #FFF4FFF5;
   --zen-dark-plum-1: #120E12;
   --zen-dark-plum-2: #1E131E;
-  --zen-dark-plum-3: #2C182C;
+  --zen-dark-plum-3: #2E192D;
   --zen-dark-plum-4: #402040;
   --zen-dark-plum-5: #512452;
   --zen-dark-plum-6: #622464;
@@ -543,7 +543,7 @@
   --zen-dark-plum-12: #FEE5FF;
   --zen-dark-plum-alpha-1: #3C003C11;
   --zen-dark-plum-alpha-2: #FD4EFD10;
-  --zen-dark-plum-alpha-3: #FF59FF1F;
+  --zen-dark-plum-alpha-3: #FD5CF621;
   --zen-dark-plum-alpha-4: #FE62FE34;
   --zen-dark-plum-alpha-5: #FB5BFF48;
   --zen-dark-plum-alpha-6: #F94AFE5B;
@@ -567,7 +567,7 @@
   --zen-dark-purple-12: #F2E6FF;
   --zen-dark-purple-alpha-1: #2D004B11;
   --zen-dark-purple-alpha-2: #AF52FF13;
-  --zen-dark-purple-alpha-3: #B85CFE24;
+  --zen-dark-purple-alpha-3: #BA61FF25;
   --zen-dark-purple-alpha-4: #BE64FE3C;
   --zen-dark-purple-alpha-5: #BB5CFF53;
   --zen-dark-purple-alpha-6: #BA51FE69;
@@ -579,7 +579,7 @@
   --zen-dark-purple-alpha-12: #FCEFFFF5;
   --zen-dark-violet-1: #100F14;
   --zen-dark-violet-2: #171624;
-  --zen-dark-violet-3: #201B36;
+  --zen-dark-violet-3: #211D37;
   --zen-dark-violet-4: #2D264F;
   --zen-dark-violet-5: #382C68;
   --zen-dark-violet-6: #413080;
@@ -591,7 +591,7 @@
   --zen-dark-violet-12: #EBEBFF;
   --zen-dark-violet-alpha-1: #3F0FFD05;
   --zen-dark-violet-alpha-2: #6A5FFE16;
-  --zen-dark-violet-alpha-3: #7759FE2A;
+  --zen-dark-violet-alpha-3: #7B63FF2B;
   --zen-dark-violet-alpha-4: #7F65FF44;
   --zen-dark-violet-alpha-5: #7E5DFF5F;
   --zen-dark-violet-alpha-6: #7A56FF77;
@@ -603,7 +603,7 @@
   --zen-dark-violet-alpha-12: #F4F4FFF5;
   --zen-dark-indigo-1: #0E0F15;
   --zen-dark-indigo-2: #121625;
-  --zen-dark-indigo-3: #171D39;
+  --zen-dark-indigo-3: #191E3B;
   --zen-dark-indigo-4: #202855;
   --zen-dark-indigo-5: #262F70;
   --zen-dark-indigo-6: #2A348A;
@@ -615,7 +615,7 @@
   --zen-dark-indigo-12: #E4EBFF;
   --zen-dark-indigo-alpha-1: #000F6911;
   --zen-dark-indigo-alpha-2: #305BFE17;
-  --zen-dark-indigo-alpha-3: #3D5FFF2D;
+  --zen-dark-indigo-alpha-3: #4561FE2F;
   --zen-dark-indigo-alpha-4: #4965FF4A;
   --zen-dark-indigo-alpha-5: #485EFF67;
   --zen-dark-indigo-alpha-6: #4457FF83;
@@ -639,7 +639,7 @@
   --zen-dark-cyan-12: #E3F6FF;
   --zen-dark-cyan-alpha-1: #00162522;
   --zen-dark-cyan-alpha-2: #00A4E011;
-  --zen-dark-cyan-alpha-3: #009DD122;
+  --zen-dark-cyan-alpha-3: #06C0FE1D;
   --zen-dark-cyan-alpha-4: #04BFFE30;
   --zen-dark-cyan-alpha-5: #003D4FF5;
   --zen-dark-cyan-alpha-6: #00455AF5;
@@ -663,7 +663,7 @@
   --zen-dark-teal-12: #CAFFF5;
   --zen-dark-teal-alpha-1: #00160F22;
   --zen-dark-teal-alpha-2: #00A47711;
-  --zen-dark-teal-alpha-3: #03FDCD15;
+  --zen-dark-teal-alpha-3: #0FFED016;
   --zen-dark-teal-alpha-4: #01FED424;
   --zen-dark-teal-alpha-5: #003F37F5;
   --zen-dark-teal-alpha-6: #00493FF5;
@@ -687,7 +687,7 @@
   --zen-dark-grass-12: #D1FFD8;
   --zen-dark-grass-alpha-1: #00160022;
   --zen-dark-grass-alpha-2: #27FD270B;
-  --zen-dark-grass-alpha-3: #33FD4B15;
+  --zen-dark-grass-alpha-3: #3CFE5316;
   --zen-dark-grass-alpha-4: #3FFF5A25;
   --zen-dark-grass-alpha-5: #29FF4732;
   --zen-dark-grass-alpha-6: #00892277;
@@ -723,7 +723,7 @@
   --zen-dark-orange-alpha-12: #FFF2E3F5;
   --zen-dark-brown-1: #110F0E;
   --zen-dark-brown-2: #1D1611;
-  --zen-dark-brown-3: #291C12;
+  --zen-dark-brown-3: #2A1E14;
   --zen-dark-brown-4: #3B2819;
   --zen-dark-brown-5: #4A301B;
   --zen-dark-brown-6: #56371B;
@@ -735,7 +735,7 @@
   --zen-dark-brown-12: #FFE8D4;
   --zen-dark-brown-alpha-1: #2D0F0011;
   --zen-dark-brown-alpha-2: #FC86310F;
-  --zen-dark-brown-alpha-3: #FE862B1C;
+  --zen-dark-brown-alpha-3: #FE943B1D;
   --zen-dark-brown-alpha-4: #FE97452F;
   --zen-dark-brown-alpha-5: #FF95403F;
   --zen-dark-brown-alpha-6: #FF96384B;
@@ -747,7 +747,7 @@
   --zen-dark-brown-alpha-12: #FFF1DCF5;
   --zen-dark-sky-1: #0D1011;
   --zen-dark-sky-2: #0F191C;
-  --zen-dark-sky-3: #0E2227;
+  --zen-dark-sky-3: #0F2329;
   --zen-dark-sky-4: #0E3038;
   --zen-dark-sky-5: #023B48;
   --zen-dark-sky-6: #004453;
@@ -759,7 +759,7 @@
   --zen-dark-sky-12: #EBFAFF;
   --zen-dark-sky-alpha-1: #00161E22;
   --zen-dark-sky-alpha-2: #0FC5FB0E;
-  --zen-dark-sky-alpha-3: #05CDFF1A;
+  --zen-dark-sky-alpha-3: #0FC6FE1C;
   --zen-dark-sky-alpha-4: #09D0FF2C;
   --zen-dark-sky-alpha-5: #004251DD;
   --zen-dark-sky-alpha-6: #004656F5;
@@ -771,7 +771,7 @@
   --zen-dark-sky-alpha-12: #F4FFFFF5;
   --zen-dark-mint-1: #0C100F;
   --zen-dark-mint-2: #0D1915;
-  --zen-dark-mint-3: #0A231B;
+  --zen-dark-mint-3: #0C251C;
   --zen-dark-mint-4: #063326;
   --zen-dark-mint-5: #003E2E;
   --zen-dark-mint-6: #004736;
@@ -783,7 +783,7 @@
   --zen-dark-mint-12: #DAFFF2;
   --zen-dark-mint-alpha-1: #00140F33;
   --zen-dark-mint-alpha-2: #005A3C22;
-  --zen-dark-mint-alpha-3: #004B3355;
+  --zen-dark-mint-alpha-3: #007D5033;
   --zen-dark-mint-alpha-4: #004B3599;
   --zen-dark-mint-alpha-5: #00402FF5;
   --zen-dark-mint-alpha-6: #004938F5;
@@ -831,7 +831,7 @@
   --zen-dark-bronze-12: #FFEDE7;
   --zen-dark-bronze-alpha-1: #25080022;
   --zen-dark-bronze-alpha-2: #FE692D11;
-  --zen-dark-bronze-alpha-3: #FE6F3020;
+  --zen-dark-bronze-alpha-3: #FD733521;
   --zen-dark-bronze-alpha-4: #FE723E36;
   --zen-dark-bronze-alpha-5: #FF6D3549;
   --zen-dark-bronze-alpha-6: #FF65285C;
@@ -903,7 +903,7 @@
   --zen-dark-blue-12: #E5F1FF;
   --zen-dark-blue-alpha-1: #000F2833;
   --zen-dark-blue-alpha-2: #0F75FE16;
-  --zen-dark-blue-alpha-3: #0F7AFE29;
+  --zen-dark-blue-alpha-3: #157DFE2A;
   --zen-dark-blue-alpha-4: #167CFF44;
   --zen-dark-blue-alpha-5: #0779FF5E;
   --zen-dark-blue-alpha-6: #003F83F5;
@@ -915,7 +915,7 @@
   --zen-dark-blue-alpha-12: #EEFBFFF5;
   --zen-light-zen-1: #FFFBFD;
   --zen-light-zen-2: #FFF4FA;
-  --zen-light-zen-3: #FFE9F6;
+  --zen-light-zen-3: #FFE5F4;
   --zen-light-zen-4: #FFD0ED;
   --zen-light-zen-5: #FFB9E6;
   --zen-light-zen-6: #FFA6E1;
@@ -927,7 +927,7 @@
   --zen-light-zen-12: #5E004E;
   --zen-light-zen-alpha-1: #FF058204;
   --zen-light-zen-alpha-2: #FF058D0B;
-  --zen-light-zen-alpha-3: #FF029816;
+  --zen-light-zen-alpha-3: #FF00931A;
   --zen-light-zen-alpha-4: #FF019E2F;
   --zen-light-zen-alpha-5: #FF00A446;
   --zen-light-zen-alpha-6: #FF01A959;
@@ -951,7 +951,7 @@
   --zen-dark-zen-12: #FFEFFA;
   --zen-dark-zen-alpha-1: #4B002D11;
   --zen-dark-zen-alpha-2: #FF37BC13;
-  --zen-dark-zen-alpha-3: #FE40BF24;
+  --zen-dark-zen-alpha-3: #FF46C125;
   --zen-dark-zen-alpha-4: #FE4BC73C;
   --zen-dark-zen-alpha-5: #FF3EC951;
   --zen-dark-zen-alpha-6: #FF2DC765;
@@ -963,7 +963,7 @@
   --zen-dark-zen-alpha-12: #FFF8FFF5;
   --zen-light-vt-1: #FFFBFB;
   --zen-light-vt-2: #FFF5F3;
-  --zen-light-vt-3: #FFEBE8;
+  --zen-light-vt-3: #FFE7E3;
   --zen-light-vt-4: #FFD3CD;
   --zen-light-vt-5: #FFBFB8;
   --zen-light-vt-6: #FFADA5;
@@ -975,7 +975,7 @@
   --zen-light-vt-12: #54000A;
   --zen-light-vt-alpha-1: #FF050504;
   --zen-light-vt-alpha-2: #FF2F050C;
-  --zen-light-vt-alpha-3: #FF230217;
+  --zen-light-vt-alpha-3: #FF25001C;
   --zen-light-vt-alpha-4: #FF200132;
   --zen-light-vt-alpha-5: #FF1A0147;
   --zen-light-vt-alpha-6: #FF17005A;
@@ -987,7 +987,7 @@
   --zen-light-vt-alpha-12: #54000A;
   --zen-dark-vt-1: #150E0D;
   --zen-dark-vt-2: #241210;
-  --zen-dark-vt-3: #371512;
+  --zen-dark-vt-3: #381614;
   --zen-dark-vt-4: #501A18;
   --zen-dark-vt-5: #681818;
   --zen-dark-vt-6: #7E0C15;
@@ -999,7 +999,7 @@
   --zen-dark-vt-12: #FFE8E6;
   --zen-dark-vt-alpha-1: #3C080022;
   --zen-dark-vt-alpha-2: #FE311A16;
-  --zen-dark-vt-alpha-3: #FF33212B;
+  --zen-dark-vt-alpha-3: #FF382C2C;
   --zen-dark-vt-alpha-4: #FE383045;
   --zen-dark-vt-alpha-5: #FF27275F;
   --zen-dark-vt-alpha-6: #FF091C76;
@@ -1011,7 +1011,7 @@
   --zen-dark-vt-alpha-12: #FFF1EFF5;
   --zen-light-chat-1: #FBFBFF;
   --zen-light-chat-2: #F7F6FF;
-  --zen-light-chat-3: #EFEDFF;
+  --zen-light-chat-3: #ECEAFF;
   --zen-light-chat-4: #DCD9FF;
   --zen-light-chat-5: #CEC8FF;
   --zen-light-chat-6: #C1BBFF;
@@ -1023,7 +1023,7 @@
   --zen-light-chat-12: #26006C;
   --zen-light-chat-alpha-1: #0505FF04;
   --zen-light-chat-alpha-2: #2105FF09;
-  --zen-light-chat-alpha-3: #1E01FF12;
+  --zen-light-chat-alpha-3: #1A02FF15;
   --zen-light-chat-alpha-4: #1602FF26;
   --zen-light-chat-alpha-5: #1C00FF37;
   --zen-light-chat-alpha-6: #1700FF44;
@@ -1035,7 +1035,7 @@
   --zen-light-chat-alpha-12: #26006C;
   --zen-dark-chat-1: #100F14;
   --zen-dark-chat-2: #171524;
-  --zen-dark-chat-3: #1F1B37;
+  --zen-dark-chat-3: #211D38;
   --zen-dark-chat-4: #2D2552;
   --zen-dark-chat-5: #382B6B;
   --zen-dark-chat-6: #422E84;
@@ -1047,7 +1047,7 @@
   --zen-dark-chat-12: #EAEAFF;
   --zen-dark-chat-alpha-1: #3F0FFD05;
   --zen-dark-chat-alpha-2: #6A53FE16;
-  --zen-dark-chat-alpha-3: #6F57FF2B;
+  --zen-dark-chat-alpha-3: #7861FF2C;
   --zen-dark-chat-alpha-4: #7A5EFE47;
   --zen-dark-chat-alpha-5: #7A58FF62;
   --zen-dark-chat-alpha-6: #784FFF7C;
@@ -1059,7 +1059,7 @@
   --zen-dark-chat-alpha-12: #F3F3FFF5;
   --zen-light-brand-ananas-1: #FEFCF1;
   --zen-light-brand-ananas-2: #FEF9D4;
-  --zen-light-brand-ananas-3: #FEF19D;
+  --zen-light-brand-ananas-3: #FBEE9A;
   --zen-light-brand-ananas-4: #EBDF8A;
   --zen-light-brand-ananas-5: #E0D05C;
   --zen-light-brand-ananas-6: #D5C44A;
@@ -1071,7 +1071,7 @@
   --zen-light-brand-ananas-12: #3D3B17;
   --zen-light-brand-ananas-alpha-1: #EDC8000E;
   --zen-light-brand-ananas-alpha-2: #F9DB012B;
-  --zen-light-brand-ananas-alpha-3: #FCDB0062;
+  --zen-light-brand-ananas-alpha-3: #F5D40165;
   --zen-light-brand-ananas-alpha-4: #D3B90075;
   --zen-light-brand-ananas-alpha-5: #CFB600A3;
   --zen-light-brand-ananas-alpha-6: #C4AC00B5;
@@ -1083,7 +1083,7 @@
   --zen-light-brand-ananas-alpha-12: #2A2800E8;
   --zen-dark-brand-ananas-1: #10100B;
   --zen-dark-brand-ananas-2: #1A1704;
-  --zen-dark-brand-ananas-3: #241F00;
+  --zen-dark-brand-ananas-3: #262000;
   --zen-dark-brand-ananas-4: #332C00;
   --zen-dark-brand-ananas-5: #3D3600;
   --zen-dark-brand-ananas-6: #463F00;
@@ -1095,7 +1095,7 @@
   --zen-dark-brand-ananas-12: #F1EEC2;
   --zen-dark-brand-ananas-alpha-1: #13130044;
   --zen-dark-brand-ananas-alpha-2: #1E1A00BB;
-  --zen-dark-brand-ananas-alpha-3: #252000F5;
+  --zen-dark-brand-ananas-alpha-3: #272100F5;
   --zen-dark-brand-ananas-alpha-4: #352D00F5;
   --zen-dark-brand-ananas-alpha-5: #3F3800F5;
   --zen-dark-brand-ananas-alpha-6: #484100F5;
@@ -1107,7 +1107,7 @@
   --zen-dark-brand-ananas-alpha-12: #FFFCCDF0;
   --zen-light-neutral-ananas-1: #FAFDFB;
   --zen-light-neutral-ananas-2: #F5F8F6;
-  --zen-light-neutral-ananas-3: #ECF0EE;
+  --zen-light-neutral-ananas-3: #E9EDEB;
   --zen-light-neutral-ananas-4: #E6EBE8;
   --zen-light-neutral-ananas-5: #DEE4E0;
   --zen-light-neutral-ananas-6: #D5DDD8;
@@ -1119,7 +1119,7 @@
   --zen-light-neutral-ananas-12: #0F1310;
   --zen-light-neutral-ananas-alpha-1: #059B3705;
   --zen-light-neutral-ananas-alpha-2: #05501E0A;
-  --zen-light-neutral-ananas-alpha-3: #02371C13;
+  --zen-light-neutral-ananas-alpha-3: #02301916;
   --zen-light-neutral-ananas-alpha-4: #023F1719;
   --zen-light-neutral-ananas-alpha-5: #01371121;
   --zen-light-neutral-ananas-alpha-6: #0031132A;

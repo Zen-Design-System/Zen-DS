@@ -698,3 +698,11 @@ Backlog lines are in HANDOFF under "From the App Shell rework"; designer questio
   TopNavigation h1; the quality/audit/harness checks; Accordion headingLevel and EmptyState in ChartCard; Menu/Popover/
   Select group labels. New outline-* warnings are opt-in (`audit.mjs --outline`) until seeded.
 - QA: see the report linked in HANDOFF; follow-ups in the HANDOFF Backlog ("Typography outline / content hierarchy").
+
+## Global Colors step 3 (session "Add audit check for text overflowing its box", tier XS)
+
+- The user's `~/Desktop/Global Colors.json` (mode Zen) vs `tokens/source/figma/global-colors.json`: the same 1,152 names in the same order. 79 values differ, all at step 3: every Light/Dark ramp and its Alpha twin (a few Dark solids are unchanged; only their Alpha moved). Light step 3 is ~2.5 % luminance darker, Dark ~0.1 % lighter.
+- Applied with a format-preserving merge (79 lines); manifest note appended. `tokens:build` + `tokens:check`: 2,368 tokens, 0 missing aliases or cycles. No CSS edit: 86 aliases (Subtle/Pale fills and borders, pressed, carved, disabled border) carry the new values.
+- `npm run qa -- --files=src/styles/tokens.css,…` took the token fast path over 52 consumer pages. Figma contracts 23/23, related Vitest 10/10 and tokens/styles:check pass. Contrast warnings: 74 before and 74 after (identical). The 12 contact sheets the gate asked for look right.
+- The gate's only ✗ is 2 `[outline]` errors on form › "Mobile checkout" ("Contact" h4 under h1). They come from the fork's in-progress outline work (audit.mjs, form.tsx), not from colours; the fork was told. The first run was stopped by a peer's `pkill`, and the re-run is `.qa/reports/2026-09-29T09-23-41-fbc81114.md`.
+- The fork then fixed the outline. `--only=form,templates,visually-hidden` covered form plus the two pages whose appLayer CSS the token scope could not map. It **PASS**es: 0 errors, 0 new warnings (`.qa/reports/2026-09-29T09-47-02-fbc81114.md`), and the form sheets were reviewed.

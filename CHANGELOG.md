@@ -192,6 +192,9 @@ removed.
   like Neutral - S1: a Surface fill with its shadow, and the solid active border at the Primary active weight (it was a
   Subtle fill with a thin Subtle border, no shadow). Small input fields match Medium ones: `Corner-Radius/Input/Small`
   is 12 / 12 / 8 / 2 px in Rounded / Smooth / Standard / Luxury (was 8 / 8 / 4 / 2).
+- **Global Colors step 3 (2026-09-29 Figma export):** step 3 of every colour ramp and its Alpha twin moved (79 values;
+  no token added, removed or renamed). It is a little darker in Light and a little lighter in Dark, so the Subtle
+  fills, Pale borders, pressed states and disabled borders built on it read slightly stronger.
 - **Matched to the live Figma file (2026-09-29):**
   - Checkbox, Radio Button, Toggle and Table cell captions use Caption/Regular 11/16 (was Body/Small/Regular 12/16).
   - Toggle tracks size from the dot plus Spacing/Padding/3XSmall on each side.
