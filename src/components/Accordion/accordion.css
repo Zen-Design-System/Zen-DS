@@ -33,6 +33,8 @@
 /* Theme=Box: Support/Neutral/Pale surface, padding on every side, Corner-Radius Large (XLarge: 2XLarge). */
 .zen-accordion[data-tone="box"] { padding: var(--zen-accordion-padding); border-radius: var(--zen-accordion-radius); background: var(--zen-color-background-support-neutral-pale, rgb(5 5 5 / 3%)); }
 
+/* APG: the header button sits in an h{n}. The heading only carries the level; the title span keeps the size's text style. */
+.zen-accordion__heading { margin: 0; font: inherit; }
 .zen-accordion__trigger {
   display: flex;
   width: 100%;

@@ -6,7 +6,7 @@
     {
       "name": "Text",
       "file": "src/components/Text/Text.tsx",
-      "description": "Figma text styles with Zen's content colours. Paragraphs, labels and inline copy; titles use <Heading>.\n\n  <Text>Invite people to collaborate on this project.</Text>\n  <Text textStyle=\"Body/Small/Regular\" tone=\"base\">Updated 2 min ago</Text>",
+      "description": "Figma text styles with Zen's content colours. Paragraphs, labels and inline copy; titles use <Heading>. Meta in\nBody/Small takes tone \"base\"; Caption is always tone \"light\".\n\n  <Text>Invite people to collaborate on this project.</Text>\n  <Text textStyle=\"Body/Small/Regular\" tone=\"base\">Updated 2 min ago</Text>",
       "deprecated": null,
       "extends": "Omit<HTMLAttributes<HTMLElement>, \"color\">",
       "props": [
@@ -71,7 +71,7 @@
     {
       "name": "Heading",
       "file": "src/components/Text/Text.tsx",
-      "description": "A real heading (h1–h6) in a Figma text style. The level follows the page outline; the look can differ:\n\n  <Heading level={2} textStyle=\"Heading/Subheading\">Team members</Heading>",
+      "description": "A real heading (h1–h6) in a Figma text style. The level follows the page outline; the default look follows the\nladder, and textStyle sets it by the kind of content. A page title (h1, Heading/1), a section (h2, Heading/4 by\ndefault) and a card title right under the page title (h2, always Heading/Subheading):\n\n  <Heading level={1}>Billing</Heading>\n  <Heading level={2}>Invoices</Heading>\n  <Heading level={2} textStyle=\"Heading/Subheading\">Current plan</Heading>",
       "deprecated": null,
       "extends": "Omit<HTMLAttributes<HTMLHeadingElement>, \"color\">",
       "props": [
@@ -80,7 +80,7 @@
           "type": "(typeof headingLevels)[number]",
           "required": false,
           "default": "2",
-          "description": "Document level (h1–h6): pick it from the page outline, not from the size. Default 2.",
+          "description": "Document level (h1–h6): pick it from the page outline, not from the size. Step down one level at a time (h1 → h2\n → h3); going back up may jump (h4 → h2). Default 2.",
           "deprecated": null
         },
         {
@@ -88,7 +88,7 @@
           "type": "keyof typeof typographyStyles",
           "required": false,
           "default": null,
-          "description": "Visual style; defaults to the level's style (1 → Heading/1 … 4 → Heading/4, 5 → Heading/Subheading). An h1 — the\n page title — always stays Heading/1 (harness: heading/h1-is-heading-1); lower levels may take another style.",
+          "description": "Visual style; defaults to the level's ladder style (1 Heading/1 · 2 Heading/4 · 3 Heading/Subheading · 4\n Body/Extra/Bold · 5–6 Body/Base/Bold). A content h1 (the page title shown large) stays Heading/1 (harness:\n heading/h1-is-heading-1). Set textStyle when the kind of content asks for it: a card title is always\n Heading/Subheading, whatever its level; a list group header (a kicker) is Body/Small/Bold in tone \"base\".",
           "deprecated": null
         },
         {

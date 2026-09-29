@@ -49,7 +49,7 @@ export type MenuItemData = {
 };
 /** A line between groups of items. */
 export type MenuSeparatorData = { type: "separator"; id?: string };
-/** Items under a small heading (“Share”, “Danger zone”). */
+/** Items under a small label (“Share”, “Danger zone”). The label names the group; it is not a heading. */
 export type MenuGroupData = { type: "group"; id?: string; label: string; items: Array<MenuItemData | MenuSeparatorData> };
 /** An entry of `items`: an item, `{ type: "separator" }` or `{ type: "group", label, items }`. */
 export type MenuEntry = MenuItemData | MenuSeparatorData | MenuGroupData;
@@ -443,7 +443,8 @@ export function MenuSeparator({ className }: { /** Extra class on the line. */ c
 }
 
 export interface MenuGroupProps {
-  /** Small heading above the items (“Share”, “Move to”); it names the group for screen readers. */
+  /** Small label above the items (“Share”, “Move to”); it names the group for screen readers (aria-labelledby). It is a
+   *  label, not a heading, so a menu never adds to the page outline. */
   label: string;
   /** MenuItem and MenuSeparator elements. */
   children: ReactNode;
@@ -451,7 +452,8 @@ export interface MenuGroupProps {
   className?: string;
 }
 
-/** Items under a heading (role=group, labelled by the heading). */
+/** Items under a label (Figma .Primitives/Popover/Label): role=group, named by the label through aria-labelledby (APG
+ *  menu). The label is a plain element, never a heading (h1–h6 or role=heading). */
 export function MenuGroup({ label, children, className }: MenuGroupProps) {
   const labelId = `zen-menu-group-${idFrom(useId())}`;
   return (

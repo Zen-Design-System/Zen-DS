@@ -735,7 +735,7 @@ export const examples: ExampleMap = {
   <Heading level={3} textStyle="Body/Base/Bold">{doc.title}</Heading>
   <Text textStyle="Body/Small/Regular" tone="light">{doc.meta}</Text>
 </Card>` },
-    { title: "Groups, shortcuts and disabled items", description: "Group headings and a separator structure a longer menu; shortcuts sit on the right. Paste stays disabled, with a caption saying why, until something is copied. A long label ends in “…”; Delete is last, in Negative.", render: () => <StatesMenuExample />, code: `<Menu trigger={<Button level="tertiary" size="sm" endIcon={<Icon name="icon-chevron-down-line" />}>Edit</Button>}
+    { title: "Groups, shortcuts and disabled items", description: "Group labels (not headings) and a separator structure a longer menu; shortcuts sit on the right. Paste stays disabled, with a caption saying why, until something is copied. A long label ends in “…”; Delete is last, in Negative.", render: () => <StatesMenuExample />, code: `<Menu trigger={<Button level="tertiary" size="sm" endIcon={<Icon name="icon-chevron-down-line" />}>Edit</Button>}
   items={[
     { type: "group", label: "Clipboard", items: [
       { id: "cut", label: "Cut", icon: "icon-scissors-line", shortcut: "⌘X" },

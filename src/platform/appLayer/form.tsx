@@ -387,11 +387,11 @@ function CheckoutExample() {
           <Form form={checkout} gap="none" aria-label="Checkout">
             <Stack gap="xl" padding="lg">
               <Stack gap="md">
-                <Heading level={4} textStyle="Heading/Subheading">Contact</Heading>
+                <Heading level={2} textStyle="Heading/4">Contact</Heading>
                 <InputField label="Email" type="email" autoComplete="email" inputMode="email" placeholder="name@example.com" helpText="For the receipt and delivery updates." {...checkout.field("email")} />
               </Stack>
               <Stack gap="md">
-                <Heading level={4} textStyle="Heading/Subheading">Shipping address</Heading>
+                <Heading level={2} textStyle="Heading/4">Shipping address</Heading>
                 <InputField label="Full name" autoComplete="shipping name" {...checkout.field("name")} />
                 <InputField label="Street address" autoComplete="shipping street-address" placeholder="12 Nguyen Hue, District 1" {...checkout.field("address")} />
                 <Grid columns={2} gap="sm">

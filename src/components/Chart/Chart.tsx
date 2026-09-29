@@ -1,5 +1,6 @@
 import { useId, useMemo, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import { Card, type CardSurface } from "../Card";
+import { EmptyStateCardContext } from "../EmptyState/EmptyState";
 import { IconButton } from "../Button";
 import { Icon } from "../Icon";
 import { Segmented, type SegmentedOption } from "../Segmented";
@@ -167,8 +168,9 @@ export function StackBarChart({ data, series, format = defaultFormat, height = 2
 export interface ChartCardProps {
   /** Figma Header Label (Heading/Subheading). */
   title: ReactNode;
-  /** Heading level of the title in the page outline (default 3: a card inside an h2 section). Use 2 when the card sits
-   *  directly under the page title. The look stays Heading/Subheading — the level follows the outline, not the size. */
+  /** Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2
+   *  when the card sits directly under the page h1). The look stays Heading/Subheading — the level follows the outline,
+   *  not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title. */
   headingLevel?: 2 | 3 | 4;
   /** Figma Header trailing Button/Icon-Main XSmall Tertiary (chevron): opens the full report. */
   onOpen?: () => void;
@@ -179,6 +181,7 @@ export interface ChartCardProps {
   range?: string;
   onRangeChange?: (id: string) => void;
   surface?: CardSurface;
+  /** The chart, or an EmptyState before there is data (keep the card title; the Empty State is set one level below it). */
   children: ReactNode;
   className?: string;
 }
@@ -196,7 +199,7 @@ export function ChartCard({ title, headingLevel = 3, onOpen, openLabel: openLabe
           {onOpen ? <IconButton appearance="main" level="tertiary" size="2xs" aria-label={openLabel} onClick={onOpen} icon={<Icon name="icon-chevron-right-line-small" />} /> : null}
         </div>
         {ranges?.length ? <Segmented options={ranges} value={range} onValueChange={onRangeChange} aria-label={t.range} /> : null}
-        {children}
+        <EmptyStateCardContext.Provider value={headingLevel}>{children}</EmptyStateCardContext.Provider>
       </div>
     </Card>
   );

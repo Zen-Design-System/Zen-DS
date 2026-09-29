@@ -22,6 +22,14 @@ const titleStyle: Record<AccordionSizeKey, TypographyStyleName> = {
 
 export interface AccordionProps {
   title: ReactNode;
+  /**
+   * Heading level around the header button (WAI-ARIA APG Accordion: `<h{n}><button>`), default 3. Take it from where
+   * the accordion sits: one level below the nearest heading above (2 directly under the page h1, 3 under an h2
+   * section, 4 inside an h3 card). Only the tag changes; the look follows `size`. Pick the size so the title is never
+   * larger than the heading it sits under: Medium (Heading/Subheading) and Large (Heading/4) fit under an h2 section;
+   * XLarge (Heading/3) only directly under the page h1.
+   */
+  headingLevel?: 2 | 3 | 4 | 5 | 6;
   /** Content slot (Figma .Primitives/Accordion/Content/Text is Body/Base/Regular, Neutral/Base). */
   children?: ReactNode;
   /** Short (sm, md…) or Figma (small, medium…) spelling. */
@@ -37,11 +45,12 @@ export interface AccordionProps {
 
 /**
  * Figma Accordion/Text (239:16847): Size XLarge/Large/Medium × Theme Divider/Box × Expanded.
- * The whole header row is the toggle button; the chevron turns 180° when expanded and the panel
- * height animates open (disabled for reduced motion).
+ * The whole header row is the toggle button, wrapped in an `h{headingLevel}` so the outline lists every section;
+ * the chevron turns 180° when expanded and the panel height animates open (disabled for reduced motion).
  */
-export function Accordion({ title, children, size: sizeProp = "md", theme = "divider", expanded, defaultExpanded = false, onExpandedChange, className }: AccordionProps) {
+export function Accordion({ title, headingLevel = 3, children, size: sizeProp = "md", theme = "divider", expanded, defaultExpanded = false, onExpandedChange, className }: AccordionProps) {
   const size = scaleKey(sizeProp, accordionSizes);
+  const Heading = `h${headingLevel}` as "h2" | "h3" | "h4" | "h5" | "h6";
   const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
   const isExpanded = expanded ?? internalExpanded;
   const id = useId();
@@ -53,10 +62,12 @@ export function Accordion({ title, children, size: sizeProp = "md", theme = "div
   };
   return (
     <div className={["zen-accordion", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} data-expanded={isExpanded ? "true" : "false"}>
-      <button id={triggerId} type="button" className="zen-accordion__trigger" aria-expanded={isExpanded} aria-controls={panelId} onClick={toggle}>
-        <span className={`zen-accordion__title ${typographyStyles[titleStyle[size]]}`}>{title}</span>
-        <span className="zen-accordion__icon" aria-hidden="true"><Icon name="icon-chevron-down-line" decorative /></span>
-      </button>
+      <Heading className="zen-accordion__heading">
+        <button id={triggerId} type="button" className="zen-accordion__trigger" aria-expanded={isExpanded} aria-controls={panelId} onClick={toggle}>
+          <span className={`zen-accordion__title ${typographyStyles[titleStyle[size]]}`}>{title}</span>
+          <span className="zen-accordion__icon" aria-hidden="true"><Icon name="icon-chevron-down-line" decorative /></span>
+        </button>
+      </Heading>
       <div id={panelId} className="zen-accordion__panel" role="region" aria-labelledby={triggerId} inert={!isExpanded || undefined}>
         <div className="zen-accordion__panel-inner">
           <div className={`zen-accordion__content ${typographyStyles["Body/Base/Regular"]}`}>{children}</div>

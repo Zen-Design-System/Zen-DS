@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from "react";
+import { useId, type ReactElement, type ReactNode } from "react";
 import type { IconName } from "../Icon";
 import { usePresence } from "../Motion";
 import { useIconTooltip } from "../Tooltip";
@@ -24,7 +24,7 @@ export const topNavigationTypes = ["default", "alt", "default-blurring", "alt-bl
 export type TopNavigationType = (typeof topNavigationTypes)[number];
 /** Figma Margin: Comfortable (20px sides) · Compact (16px sides). */
 export type TopNavigationMargin = "comfortable" | "compact";
-/** Figma .Primitives/Heading-Text/Basic Type for the expanded heading: H1 · H2 · H3. */
+/** The screen title's heading level; for the large title it is also Figma .Primitives/Heading-Text/Basic Type H1 · H2 · H3. */
 export type TopNavigationHeading = "h1" | "h2" | "h3";
 
 export interface TopNavigationAction {
@@ -44,7 +44,8 @@ export interface TopNavigationProps {
   /**
    * Figma Heading-Text Type=Sub with Subheading / Leading (◆ Social conversation header): with either set, the bar title
    * becomes a left-aligned identity — a 48px `titleLeading` visual (Avatar / ChatAvatarGroup), gap 12, the title in
-   * Body/Extra/Bold over the subtitle in Caption/Regular (Neutral/Light), gap 2.
+   * Body/Extra/Bold over the subtitle in Caption/Regular (Neutral/Light), gap 2. The identity title is the screen's
+   * heading like any bar title; with `onTitleClick` the heading wraps the identity button.
    */
   subtitle?: ReactNode;
   titleLeading?: ReactNode;
@@ -53,10 +54,25 @@ export interface TopNavigationProps {
   titleLabel?: string;
   /** Figma Nav-Action/Icon-Main with a trailing icon: the trailing actions share one Tertiary pill (e.g. audio + video call). */
   trailingGroup?: boolean;
-  /** Figma Top-Heading-Text (Type=Sub, Body/Extra/Bold), centred in the navigator bar. Shown when collapsed or when there is no large title. */
+  /**
+   * Figma Top-Heading-Text (Type=Sub, Body/Extra/Bold), centred in the navigator bar. Shown when collapsed or when there
+   * is no large title, and then it is the screen's heading (`headingLevel`, h1 by default) in its bar style — a compact
+   * or pushed screen's h1 is its bar title, so content headings start at h2. While the large title shows, the bar copy
+   * is aria-hidden.
+   */
   title?: ReactNode;
-  /** Figma Expand-Heading (Heading/1–3) under the navigator bar. */
+  /**
+   * Figma Expand-Heading (Heading/1–3) under the navigator bar: a tab root's large title. While expanded it is the
+   * screen's heading (h1 · Heading/1 by default); once `collapsed` it leaves and the bar title (`title`, else this text)
+   * becomes the heading, so the screen keeps exactly one h1 before and after scrolling.
+   */
   largeTitle?: ReactNode;
+  /**
+   * Level of the screen title — the large title while it shows, else the bar title. Default h1: the title names the
+   * screen (match `document.title` to it). Use h2 / h3 only for a navigation stack nested inside another screen that
+   * already has its h1. The large title's style follows the level (h1 Heading/1 · h2 Heading/2 · h3 Heading/3); the
+   * bar title stays Body/Extra/Bold at every level.
+   */
   headingLevel?: TopNavigationHeading;
   /** Figma Top-Leading: an action (usually Back) or a visual (e.g. an Avatar). */
   leading?: TopNavigationAction | ReactNode;
@@ -103,13 +119,18 @@ export function TopNavigationActionButton({ action, variant, className, state }:
  * Figma Top-Navigation/Mobile (12014:45167, page ❖ Top-Navigations): a 64px navigator bar (Top-Leading 44px action ·
  * centred Sub heading · Top-Trailing) over an optional 64px Expand-Heading (H1–H3 + one action) and a Control-Bar slot.
  * The OS status bar is not part of the component; leave room for it with `env(safe-area-inset-top)`.
+ * Outline: the screen always exposes exactly one title heading (`headingLevel`, h1 by default) — the large title
+ * (Heading/1) while it shows, otherwise the bar title in its own Body/Extra/Bold style; never both.
  */
 export function TopNavigation({ type = "default", margin = "comfortable", subtitle, titleLeading, onTitleClick, titleLabel, trailingGroup = false, title, largeTitle, headingLevel = "h1", leading, trailing = [], largeTitleAction, controlBar, searchAction, collapsed = false, sticky = false, "aria-label": ariaLabel, className }: TopNavigationProps) {
   const t = useZenLabels();
+  const titleId = useId();
   const variant = actionStyleFor(type);
   const identity = Boolean(subtitle || titleLeading);
   const showLarge = Boolean(largeTitle) && !collapsed;
   const barTitle = title ?? (collapsed ? largeTitle : undefined);
+  // One title heading at all times: the large title while it shows, else the bar title (the copy under a large title is aria-hidden).
+  const barIsTitle = Boolean(barTitle) && !showLarge;
   const Heading = headingLevel;
   const headingStyle = headingLevel === "h1" ? "Heading/1" : headingLevel === "h2" ? "Heading/2" : "Heading/3";
   const progressive = PROGRESSIVE_TYPES.has(type);
@@ -125,20 +146,27 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
           {isAction(leading) ? <TopNavigationActionButton action={leading} variant={variant} /> : leading}
         </div>
         {identity ? (() => {
+          // A heading cannot sit inside a button (its children are presentational), so a clickable identity is wrapped
+          // by the heading; a static one makes its title line the heading.
+          const IdentityText = onTitleClick ? "span" : "div";
+          const IdentityTitle = !onTitleClick && barIsTitle ? Heading : "span";
           const content = (
             <>
               {titleLeading ? <span className="zen-top-nav__identity-leading">{titleLeading}</span> : null}
-              <span className="zen-top-nav__identity-text">
-                <span className={`zen-top-nav__identity-title ${typographyStyles["Body/Extra/Bold"]}`}>{barTitle}</span>
+              <IdentityText className="zen-top-nav__identity-text">
+                <IdentityTitle id={titleId} className={`zen-top-nav__identity-title ${typographyStyles["Body/Extra/Bold"]}`}>{barTitle}</IdentityTitle>
                 {subtitle ? <span className={`zen-top-nav__identity-subtitle ${typographyStyles["Caption/Regular"]}`}>{subtitle}</span> : null}
-              </span>
+              </IdentityText>
             </>
           );
-          return onTitleClick
-            ? <button type="button" className="zen-top-nav__identity" onClick={onTitleClick} aria-label={titleLabel}>{content}</button>
-            : <div className="zen-top-nav__identity">{content}</div>;
+          if (!onTitleClick) return <div className="zen-top-nav__identity">{content}</div>;
+          const button = <button type="button" className="zen-top-nav__identity" onClick={onTitleClick} aria-label={titleLabel}>{content}</button>;
+          // The heading is named by the title alone, not by the button's longer label ("Ava Chen, active now. Open details").
+          return barIsTitle ? <Heading className="zen-top-nav__identity-heading" aria-labelledby={titleId}>{button}</Heading> : button;
         })() : (
-          <div className={`zen-top-nav__title ${typographyStyles["Body/Extra/Bold"]}`} data-visible={barTitle && (!largeTitle || collapsed) ? "true" : "false"} aria-hidden={barTitle && (!largeTitle || collapsed) ? undefined : true}>
+          // One element that stays mounted, so it can fade in as the large title folds away; it takes the heading role
+          // (role=heading + aria-level, as React Navigation does) only while it is the screen's title.
+          <div className={`zen-top-nav__title ${typographyStyles["Body/Extra/Bold"]}`} data-visible={barIsTitle ? "true" : "false"} role={barIsTitle ? "heading" : undefined} aria-level={barIsTitle ? Number(headingLevel.slice(1)) : undefined} aria-hidden={barIsTitle ? undefined : true}>
             {barTitle}
           </div>
         )}

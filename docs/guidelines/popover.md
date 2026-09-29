@@ -35,7 +35,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children" | "onSelect">`.
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `open` | `boolean` | `false` | Whether the surface is shown. Default false: pass `open` (controlled, with `onOpenChange`) to show it. |
-| `label` | `ReactNode` | — | Semantic group heading for the options (for example `Component Size`), not the current selection. It also names the option list. |
+| `label` | `ReactNode` | — | Label above the options (Figma .Primitives/Popover/Label, for example `Component Size`), not the current selection. It names the option list (aria-labelledby); it is a label, not a heading, so a popover never adds to the page outline. |
 | `aria-label` | `string` | — | Accessible name of the option list (role=listbox) when there is no visible `label`, e.g. "Sort by". |
 | `aria-labelledby` | `string` | — | id of the element that names the option list (role=listbox); wins over `label` and `aria-label`. |
 | `search` | `boolean` | `false` |  |
@@ -99,7 +99,7 @@ Also accepts `Omit<PopoverProps, "label" | "search">`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `label` | `ReactNode` | — | Heading above the options. Default: the locale's "Select an option or create one". |
+| `label` | `ReactNode` | — | Label above the options (names the option list; not a heading). Default: the locale's "Select an option or create one". |
 | `createLabel` | `ReactNode` | — | Text of the create row, before the Badge with the typed value. Default: the locale's "Create". |
 | `onCreate` | `(value: string) => void` | — |  |
 | `items` | _HTML attribute_ | `[]` |  |

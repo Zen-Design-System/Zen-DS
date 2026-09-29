@@ -1,7 +1,8 @@
 /**
  * Template: phone detail screen (an order). Copy it into your app and replace the sample data and handlers.
  * Render it inside <ZenProvider typography="mobile" density="comfortable">. Uses only @zen/design-system components.
- * Mobile patterns: a sticky compact TopNavigation with a Back chevron, a vertical Stepper for progress, a List with
+ * Mobile patterns: a sticky compact TopNavigation with a Back chevron (its title is the screen's h1; sections are h2
+ * Heading/4), a vertical Stepper for progress, a List with
  * Thumbnails, DescriptionLists for the totals and details, and an ActionBar footer (Large, Primary on top) whose
  * "Get help" opens an Action BottomSheet.
  */
@@ -19,7 +20,6 @@ import {
   Text,
   Thumbnail,
   TopNavigation,
-  VisuallyHidden,
   plural,
   useToast,
   type BottomSheetItem,
@@ -59,17 +59,18 @@ export function MobileDetailTemplate() {
 
   return (
     <Stack gap="none">
-      {/* Detail screens have Back: a left chevron, labelled "Back" (it is icon-only). */}
+      {/* Detail screens have Back: a left chevron, labelled "Back" (it is icon-only). The compact bar title is the
+          screen's h1 (it keeps the bar style, Body/Extra/Bold), so the content starts at h2. Your router also sets
+          document.title to it: "Order #1042 · Your app". */}
       <TopNavigation type="compact" sticky title="Order #1042"
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => toast({ title: "Back to Orders" }) /* your router: navigate(-1) */ }}
         trailing={[{ icon: "icon-share-01-line", label: "Share order", onClick: () => toast({ title: "Order link copied" }) }]} />
-      {/* The compact bar title is not a heading: the screen still needs its h1 for screen readers. */}
-      <VisuallyHidden as="h1">Order #1042</VisuallyHidden>
 
       <Stack gap="xl" padding="md">
         <Stack gap="md">
           <Stack gap="2xs">
-            <Heading level={2} textStyle="Heading/3">Arriving Friday</Heading>
+            {/* A key status line is text in the Strongest tone, not a heading. */}
+            <Text textStyle="Body/Extra/Bold">Arriving Friday</Text>
             <Text tone="base">Shipped with GHN · tracking GHN-88213</Text>
           </Stack>
           <Stepper orientation="vertical" aria-label="Delivery progress" current={2} steps={steps} />

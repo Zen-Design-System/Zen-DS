@@ -63,11 +63,15 @@ Whether you need a card, and for which elements, follows your tier (`AGENTS.md` 
 - **Typography.** Always a Figma text style: `<Text textStyle>` / `<Heading level textStyle>` or `.zen-type-*`, or the
   complete token set of one style (size + line height + tracking from the same style, weight from
   `--zen-emphasis-font-weight-*`). Never a raw size, a half style (size only), or a calc of a text token.
-- **Content hierarchy.** h1 = Heading/1 = the page title, once. Desktop sections h2 Heading/4; card and widget titles h3
-  Heading/Subheading; row titles Body/Base/Medium; meta Body/Small or Caption in a lighter tone; values (Display/4,
-  Heading/2) are never headings; overlay titles are h2 (never Heading/1). Titles are Strongest. Emphasise with weight or
-  tone, never by resizing; pick heading levels from the outline, not from the size. A title and its description must
-  not look the same. Keep one example to 3–5 text styles.
+- **Content hierarchy.** Exactly one h1 per page or screen, present at all times, naming it (= `document.title`): Heading/1
+  where the title is shown large (PageHeader, phone large title); a compact app bar title is the h1 in its bar style
+  (Body/Extra/Bold). Sections h2 Heading/4 (a table that is its own section too); card and widget titles one level below
+  the nearest heading, always Heading/Subheading; row titles Body/Base/Bold (unread = dot or Badge + hidden "Unread");
+  list group headers one level down, Body/Small/Bold, Base tone (kicker); meta Body/Small in Base, Caption in Light;
+  values (Display/4, Heading/2) are never headings; overlay titles h2 (h1 accepted), never Heading/1. Levels step down
+  one at a time, may jump back up (h4 → h2). Titles are Strongest (except kickers). Emphasise with weight, quiet with
+  tone, never resize; a heading is never larger than the one it sits under in one content area. A title and its
+  description must not look the same. Keep one example to 3–5 text styles.
 - **Density.** A slot that holds a token-sized child (icon, avatar, thumbnail, checkbox mark) is sized with the same token
   or a calc of it, or Comfortable overflows it.
 - **Composition.** Use the DS component for the pattern (List/ListItem, Card, Table, Divider, DockIcon, EmptyState,

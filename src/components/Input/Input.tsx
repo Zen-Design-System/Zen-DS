@@ -138,7 +138,7 @@ export interface InputLeadingTrailingProps {
   options?: InputLeadingTrailingOption[];
   value?: string;
   onValueChange?: (value: string, option: InputLeadingTrailingOption) => void;
-  /** Popover/Label heading, e.g. "Country code". Also the button's accessible name prefix. */
+  /** Popover/Label above the options, e.g. "Country code" (a label, not a heading). Also the button's accessible name prefix. */
   popoverLabel?: string;
   /** Open the picker towards the start (leading) or end (trailing) of the field. */
   align?: "start" | "end";
@@ -413,7 +413,7 @@ export type SelectFieldProps = CommonFieldProps & Omit<SelectHTMLAttributes<HTML
   onFocus?: FocusEventHandler<HTMLSelectElement>;
   /** Focus left the field — the trigger and its option list — as on a native select. The event targets the native select. */
   onBlur?: FocusEventHandler<HTMLSelectElement>;
-  /** Popover/Label heading above the options (names the group, not the value). */
+  /** Popover/Label above the options: it names the option list, not the value (a label, not a heading). */
   popoverLabel?: ReactNode;
   /** Adds the Popover Search row; options are filtered by the query. */
   popoverSearch?: boolean;
@@ -555,7 +555,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
         id={`${id}-popover`}
         open={open && !isDisabled}
         label={popoverLabel}
-        // Without a heading, the option list is named like the field: its label, or the field's own aria-label.
+        // Without a Popover label, the option list is named like the field: its label, or the field's own aria-label.
         aria-labelledby={popoverLabel ? undefined : label ? `${id}-label` : selectProps["aria-labelledby"]}
         aria-label={popoverLabel || label ? undefined : selectProps["aria-label"]}
         search={popoverSearch}
@@ -679,7 +679,7 @@ export interface AutocompleteFieldProps {
   disabled?: boolean;
   /** Text of the Add button. Default: the locale's "Add Item". */
   addLabel?: ReactNode;
-  /** Heading of the option list. Default: the locale's "Search and select". */
+  /** Label above the option list (it names the list; not a heading). Default: the locale's "Search and select". */
   popoverLabel?: ReactNode;
   /** Placeholder of the Search row. Default: the locale's "Search". */
   searchPlaceholder?: string;

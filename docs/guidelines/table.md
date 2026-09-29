@@ -126,7 +126,7 @@ type TableSortDirection = "asc" | "desc"
 | Backspace / Delete | Clear the focused editable cell |
 
 ## ✅ Do
-- Name the table (caption or aria-label; harness: table/needs-name).
+- Name the table (aria-labelledby pointing at its section heading, a caption, or aria-label; harness: table/needs-name).
 - Right-align numbers and amounts; keep text left.
 - Give each row one primary text (bold) and at most one caption.
 - Put row actions in the last column (TableActions) as Button/Icon-Flat Medium (IconButton appearance="flat" level="primary"; a ⋯ Menu trigger for several) and bulk actions above the table (harness: table/actions-flat).
@@ -137,7 +137,7 @@ type TableSortDirection = "asc" | "desc"
 - Use select for closed sets and tags for open sets; lock rows that can't change with edit.disabled.
 - Offer onOpen when the full record needs a detail view.
 - Let clickable content inside an editable cell (Tag onClick, links, buttons) keep its own action — clicking the cell around it edits. Leave room (padding, gaps) so the edit target stays easy to hit.
-- Title a table with Heading/4: pass it as `caption` (rendered as Heading/4), or place a Heading/4 directly above the table (harness: table/title-heading-4).
+- A table that is its own section gets an h2 in Heading/4 directly above it (<Heading level={2} id>), and the Table points to it with aria-labelledby. Use `caption` (rendered in Heading/4) only to name a table that already sits under a section heading: a caption is not a heading and is missing from the headings list (harness: table/title-heading-4).
 - Build cells from the cell primitives at their Figma sizes: Badge Medium (not Small) in Badge/Trend cells, media sized by Subtext (Avatar XSmall → Small and Icon base → lg and Dock Icon XSmall → Small when a caption is on) (harness: table/media-size-by-subtext), Avatar/Stack Small for groups.
 
 ## ❌ Don't
@@ -147,7 +147,7 @@ type TableSortDirection = "asc" | "desc"
 - Don't make every cell editable — it turns the table into a spreadsheet and invites accidental edits.
 - Don't commit on every keystroke; the editor saves on Enter, Tab, Escape (valid values) or clicking another cell.
 - Don't hide the saved result: show the new value immediately and confirm or undo in a Toast when the change is significant.
-- Don't title a table with a Body/…/Bold label; it reads as a row label, not a section title. Use Heading/4.
+- Don't title a table with a Body/…/Bold label (it reads as a row label) or with a Text styled Heading/4 (a paragraph, not a heading); use a Heading level 2 in Heading/4.
 
 ## Accessibility
 - Native table semantics: th scope=col, aria-sort on sortable headers, sort buttons, labelled row checkboxes; the wrapper scrolls horizontally on small screens.
@@ -162,7 +162,7 @@ type TableSortDirection = "asc" | "desc"
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `table/actions-flat` | warn | Row actions in TableActions are Button/Icon-Flat Medium (IconButton appearance="flat" level="primary"), so rows don't fill with outlined buttons. | `zen-allow-table-action-style: <reason>` |
-| `table/title-heading-4` | warn | A table's title is Heading/4 — via the Table `caption` or a Heading/4 Text or Heading directly above the <Table>. | `zen-allow-table-title: <reason>` |
+| `table/title-heading-4` | warn | A table that is its own section is titled by a <Heading level={2} textStyle="Heading/4"> right above it (the Table points to it with aria-labelledby); <Table caption> only names a table that already sits under a section heading. A <Text> title above a table is a paragraph, not a heading. | `zen-allow-table-title: <reason>` |
 | `table/needs-name` | error | A Table is named by a caption or aria-label. | `zen-allow-table-name: <reason>` |
 | `table/interaction-needs-handler` | warn | Selectable tables need onSelectionChange; sortable columns need onSortChange. | `zen-allow-table-handler: <reason>` |
 | `table/media-size-by-subtext` | warn | TableMedia follows the Figma cell primitives: with a caption (Subtext=Yes) Avatar/Photo is Small 32px and a basic Icon lg 28px; without one Avatar is XSmall 24px and Icon base 20px; Dock Icon follows Avatar (XSmall 24px → Small 32px with a caption). | `zen-allow-table-media-size: <reason>` |

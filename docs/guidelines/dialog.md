@@ -17,6 +17,7 @@ Interrupt to confirm a decision or deliver critical information.
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
+| Title | `title · headingLevel` | h2 by default (h1 also accepted); the style follows Figma per overlay: Dialog Heading/3, ModalForm Heading/2, never Heading/1 |
 | Actions direction | `actionsDirection` | horizontal (default) · vertical — full-width Primary → Secondary → Tertiary; Mobile is always vertical |
 | Modal/Forms | `<ModalForm layout title description side top closeButton onSubmit …actions>` | Layout basic 440 · 1-3 876 (240px side) · half-half 876 · 3-4 767 · big 960; onSubmit makes Enter / primary submit |
 | Theme | `theme` | default · info · positive · warning · negative |
@@ -131,6 +132,7 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 
 ## Content
 - Title ≤ 1 line; description states the consequence.
+- Title the overlay through its title prop: an h2 by default (h1 is also accepted), in the overlay's own Figma style, never Heading/1. It is compared only with headings inside the overlay, not with the page behind.
 
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |

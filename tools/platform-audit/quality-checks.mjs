@@ -9,11 +9,15 @@
  *              preview); example markup (non-`zen-*` elements) with padding, gap or corner radius off the token scale, or
  *              a colour that is no --zen-color-* token in the current theme and modes
  *   roles      (warn)  example markup that paints text with a background/border token, a fill with a content token…
- *   hierarchy  (error) content hierarchy (Typography › Content hierarchy): an h1 that is not Heading/1, a heading smaller
- *              than the body text it introduces, an overlay title that is not an h2 or is Heading/1
+ *   hierarchy  (error) content hierarchy (Typography › Content hierarchy, review 2026-09-29): a content h1 that is not
+ *              Heading/1 (the TopNavigation bar title and overlay titles are exempt), an h2/h3 in a Heading/* style
+ *              smaller than the body text right under it, an overlay title styled Heading/1 (h1 or h2 are both fine)
  *   rhythm     (warn)  a title and the text under it that look identical (flat hierarchy), a title not in the
- *              Strongest tone, a Heading/* styled line that is not a heading (and not a value), more than six text styles
- *              in one example, nested corners that are not concentric (outer = inner + inset), list rows padded twice
+ *              Strongest tone (tone read from the token that paints it; a Body/Small/Bold group header may be Base), any
+ *              other heading smaller than the body text right under it (Body/Small/Bold group headers are kickers and
+ *              exempt), an overlay title below h2, a Heading/* styled line that is not a heading (and not a value), more
+ *              than seven text styles in one example (the .pth-outline readout not counted), nested corners that are not
+ *              concentric (outer = inner + inset), list rows padded twice
  *   density    (error) (densitySnapshot, compared by audit.mjs) Zen elements whose in-flow content outgrows them once
  *              Component Size is Comfortable
  *   fit        (error) (textFit) text wider than its own box with no ellipsis and no scroll: it runs into what sits next
@@ -89,6 +93,48 @@ export function qualityChecks({ scopeSel }) {
     return { fs, lh, ls, fw, ff, name: exact?.name ?? null, weightOk: t.weights.has(fw) || hits.some((x) => x.fw === fw), familyOk: t.families.has(ff) };
   };
   const toneOf = (el, t) => { const c = normColour(getComputedStyle(el).color); return c ? (t.colours.get(c) ?? []) : []; };
+  // Tone by token name. Several tokens share one colour (content-neutral-base = content-on-white-overlay-base in Light),
+  // so the rgba alone cannot name the tone. The name comes from what paints the text: an inline var(), or the last
+  // stylesheet rule matching the element (or the ancestor it inherits from) whose --zen-color-content-* token resolves to
+  // the text's colour. null when nothing names it (callers fall back to toneOf).
+  const colourRules = (() => {
+    const index = new Map(); let order = 0;
+    const walk = (rules, active) => {
+      for (const r of rules) {
+        if (r instanceof CSSMediaRule) { walk(r.cssRules, active && matchMedia(r.media.mediaText).matches); continue; }
+        const token = active && r.selectorText ? r.style?.getPropertyValue("color").match(/var\(\s*--zen-color-(content-[\w-]+)/)?.[1] : null;
+        if (token) for (const part of r.selectorText.split(/,(?![^(]*\))/)) {
+          const sel = part.trim(); const subject = sel.split(/\s*[>+~]\s*|\s+/).pop() ?? "";
+          const key = /\(/.test(sel) ? "*" : subject.match(/\.([\w-]+)/)?.[1] ?? "*"; // rules indexed by a class of the subject
+          (index.get(key) ?? index.set(key, []).get(key)).push({ sel, name: token, order: order++ });
+        }
+        if (r.cssRules?.length) walk(r.cssRules, active);
+      }
+    };
+    for (const sheet of document.styleSheets) { try { walk(sheet.cssRules, true); } catch { /* cross-origin */ } }
+    return index;
+  })();
+  const tones = new Map();
+  const toneName = (el) => {
+    if (tones.has(el)) return tones.get(el);
+    const target = normColour(getComputedStyle(el).color); let found = null;
+    for (let a = el; a && target; a = a.parentElement) {
+      const cs = getComputedStyle(a);
+      const paints = (name) => normColour(cs.getPropertyValue(`--zen-color-${name}`).trim()) === target;
+      const inline = a.style?.color?.match(/var\(\s*--zen-color-(content-[\w-]+)/)?.[1];
+      if (inline) { found = paints(inline) ? inline : null; break; }
+      const hits = [...(colourRules.get("*") ?? []), ...[...a.classList].flatMap((c) => colourRules.get(c) ?? [])].filter((r) => { try { return a.matches(r.sel); } catch { return false; } });
+      if (!hits.length) { if (a.style?.color && a.style.color !== "inherit") break; continue; } // inherits: climb
+      found = hits.filter((r) => paints(r.name)).sort((x, y) => y.order - x.order)[0]?.name ?? null;
+      break;
+    }
+    tones.set(el, found);
+    return found;
+  };
+  const HEADING = "h1, h2, h3, h4, h5, h6, [role='heading']";
+  const OVERLAY = "[role='dialog'], [role='alertdialog'], .zen-side-panel, .zen-bottom-sheet";
+  // The TopNavigation compact bar title is the screen's h1 in its bar style (decision 1), a layer of its own.
+  const barTitle = (h) => Boolean(h.closest(".zen-top-nav__bar") || h.matches(".zen-top-nav__title"));
   const nearestStyles = (fs, t) => [...new Map(t.styles.map((x) => [`${x.fs}/${x.lh}`, x])).values()].sort((a, b) => Math.abs(a.fs - fs) - Math.abs(b.fs - fs)).slice(0, 2).map((x) => `${x.name} ${x.fs}/${x.lh}`).join(" or ");
   const CONTROL = "button, a[href], input, textarea, select, [role='button'], [role='tab'], [role='option'], [role='menuitem'], [role='switch'], [role='checkbox'], [role='radio'], label, .zen-chip, .zen-badge, .zen-tag, .zen-avatar, .zen-dock-icon, .zen-tooltip, .zen-button, .zen-segmented, .zen-badge-counter, .zen-file-icon";
   const NUMERIC = /^[\s\d$€£¥₫%.,+\-−×/:()kKmMbB]+$/;
@@ -116,20 +162,38 @@ export function qualityChecks({ scopeSel }) {
 
     /* ── hierarchy ─────────────────────────────────────────────────────────────────────────────────────────────── */
     const content = blocks.filter((b) => !b.control);
-    const bodySizes = content.filter((b) => !b.level && b.st.name && /^body-(base|extra|small)/.test(b.st.name)).map((b) => b.st.fs);
-    const bodyMode = bodySizes.length ? bodySizes.sort((a, b) => bodySizes.filter((x) => x === b).length - bodySizes.filter((x) => x === a).length)[0] : null;
-    for (const b of content.filter((x) => x.level)) {
+    const judged = new Set();
+    content.forEach((b, i) => {
+      if (!b.level || judged.has(b.heading)) return; // one verdict per heading, from its first text
+      judged.add(b.heading);
       const where = `${label(b.el)}: "${b.text.slice(0, 24)}" (h${b.level})`;
-      if (b.level === 1 && b.st.name && b.st.name !== "heading-1") push("hierarchy", `${where} is ${b.st.name} — an h1 is the page title and always Heading/1`);
-      if (bodyMode && b.st.fs + 0.5 < bodyMode && b.heading.contains(b.el)) push("hierarchy", `${where} is ${b.st.fs}px, smaller than the ${bodyMode}px body text — a heading never reads below its content (use a lower level or emphasis instead)`);
-      const overlay = b.el.closest("[role='dialog'], [role='alertdialog'], .zen-side-panel, .zen-bottom-sheet");
-      if (overlay && overlay.querySelector("h1, h2, h3, h4, h5, h6, [role='heading']") === b.heading && (b.level !== 2 || b.st.name === "heading-1")) push("hierarchy", `${where} titles an overlay — overlay titles are h2 and never Heading/1`);
-      if (b.tone.length && !b.tone.some((n) => /^content-.*-strongest$|^content-on-|^content-inverse/.test(n)) && b.tone.some((n) => /^content-neutral-(base|light)$/.test(n))) push("rhythm", `${where} is in a ${b.tone.find((n) => /^content-neutral/.test(n))} tone — titles use Strongest; lower the level, not the colour`);
-    }
-    // Flat hierarchy: a title and the next text block look the same.
+      const overlay = b.el.closest(OVERLAY);
+      const overlayTitle = Boolean(overlay) && overlay.querySelector(HEADING) === b.heading;
+      const bar = barTitle(b.heading);
+      const kicker = b.st.name === "body-small-bold"; // a list group header: a kicker label (decision 4)
+      // A content h1 is the title shown large; the compact bar title and overlay titles are their own layers.
+      if (b.level === 1 && b.st.name && b.st.name !== "heading-1" && !bar && !overlayTitle) push("hierarchy", `${where} is ${b.st.name} — a content h1 is the page title shown large and uses Heading/1 (only the TopNavigation bar title keeps its bar style)`);
+      // Overlay titles: h2 by default, h1 accepted (decision 5a); the component's own style, never Heading/1 (5b).
+      if (overlayTitle && b.st.name === "heading-1") push("hierarchy", `${where} titles an overlay in Heading/1 — overlay titles keep the component's style (Dialog, Bottom Sheet, Side Panel Heading/3 · ModalForm Heading/2), never Heading/1`);
+      else if (overlayTitle && b.level > 2) push("rhythm", `${where} titles an overlay — overlay titles are h2 by default (h1 is accepted)`);
+      // Smaller than the text right under it: an error for an h2/h3 in a Heading/* style, a warning otherwise. Kickers
+      // (Body/Small/Bold group headers) and the bar title are exempt.
+      const next = kicker || bar ? null : content.slice(i + 1).find((x) => !x.level);
+      if (next?.st.name && /^body-/.test(next.st.name) && b.st.fs + 0.5 < next.st.fs) {
+        const error = /^heading-/.test(b.st.name ?? "") && (b.level === 2 || b.level === 3);
+        push(error ? "hierarchy" : "rhythm", `${where} is ${b.st.fs}px, smaller than the ${next.st.fs}px text under it ("${next.text.slice(0, 20)}") — a heading never reads below its content (use a lower level or emphasis instead)`);
+      }
+      // Titles use Strongest; a kicker may use Base. The tone is the token that paints the text, not an rgba lookalike.
+      const tone = toneName(b.el);
+      if (tone) {
+        if (kicker ? tone === "content-neutral-light" : /^content-neutral-(base|light)$/.test(tone)) push("rhythm", kicker ? `${where} is a Body/Small/Bold group header in ${tone} — group headers (kickers) use the Base tone` : `${where} is in a ${tone} tone — titles use Strongest; lower the level, not the colour`);
+      } else if (!kicker && b.tone.length && !b.tone.some((n) => /^content-.*-strongest$|^content-on-|^content-inverse/.test(n)) && b.tone.some((n) => /^content-neutral-(base|light)$/.test(n))) push("rhythm", `${where} is in a ${b.tone.find((n) => /^content-neutral/.test(n))} tone — titles use Strongest; lower the level, not the colour`);
+    });
+    // Flat hierarchy: a title and the next text block look the same. The bar title is compared only within its own layer
+    // (the app bar), so the content under it (a Body/Extra/Bold status line) is not its description.
     for (let i = 0; i < content.length - 1; i++) {
       const a = content[i], b = content[i + 1];
-      if (!a.level || b.level || !a.st.name || !b.st.name) continue;
+      if (!a.level || b.level || !a.st.name || !b.st.name || barTitle(a.heading)) continue;
       if (a.st.name === b.st.name && a.st.fw === b.st.fw && a.tone.join() === b.tone.join() && b.top > a.top) push("rhythm", `${label(a.el)}: title "${a.text.slice(0, 20)}" and "${b.text.slice(0, 20)}" share ${a.st.name}/${a.st.fw} in the same tone — the title does not stand out (use the title style, or Base tone / a smaller style for the description)`);
     }
     // Visual headings: a Heading/* or Subheading line that is not a heading and not a value.
@@ -138,7 +202,8 @@ export function qualityChecks({ scopeSel }) {
       if (b.el.closest(".zen-top-nav, .zen-sidebar, .zen-bottom-nav, [class*='logo'], [class*='brand'], .zen-metric, .zen-stat")) continue;
       push("rhythm", `${label(b.el)}: "${b.text.slice(0, 24)}" is styled ${b.st.name} but is not a heading — titles are <Heading level> so the outline matches what people see`);
     }
-    const distinct = new Set(content.map((b) => b.st.name).filter(Boolean));
+    // The Outline readout (.pth-outline, Typography › Content hierarchy) is platform annotation, not the example.
+    const distinct = new Set(content.filter((b) => !b.el.closest(".pth-outline")).map((b) => b.st.name).filter(Boolean));
     if (distinct.size > 7) push("rhythm", `${label(region)}: ${distinct.size} text styles in one example (${[...distinct].join(", ")}) — a calm hierarchy uses 3–5 (a full page up to ~7)`);
 
     /* ── example markup: spacing, radius, colour on the token scale ──────────────────────────────────────────── */

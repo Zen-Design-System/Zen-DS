@@ -71,11 +71,11 @@ A Divider between groups of items (role=separator).
 | `className` | `string` | — | Extra class on the line. |
 
 ### MenuGroup
-Items under a heading (role=group, labelled by the heading).
+Items under a label (Figma .Primitives/Popover/Label): role=group, named by the label through aria-labelledby (APG menu). The label is a plain element, never a heading (h1–h6 or role=heading).
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `label` (required) | `string` | — | Small heading above the items (“Share”, “Move to”); it names the group for screen readers. |
+| `label` (required) | `string` | — | Small label above the items (“Share”, “Move to”); it names the group for screen readers (aria-labelledby). It is a label, not a heading, so a menu never adds to the page outline. |
 | `children` (required) | `ReactNode` | — | MenuItem and MenuSeparator elements. |
 | `className` | `string` | — | Extra class on the group. |
 

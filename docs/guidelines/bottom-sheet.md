@@ -21,7 +21,7 @@ A surface that slides up from the bottom for supplementary content, a short task
 | --- | --- | --- |
 | Type | `type` | modal (contents + Actions footer) · action (Sheet-Actions items) |
 | Size | `size` | flex (hugs content) · max (full height minus the top gap) |
-| Header | `title · search` | Heading/3 + 44px Tertiary close; optional Search slot |
+| Header | `title · search` | title h2 in Heading/3 (never Heading/1) + 44px Tertiary close; optional Search slot |
 | Items | `items[] {id, label, icon, trailing, destructive} · selectedId · onSelect · keepOpen` | 48px rows (24px icon, 12px gap), Single-Selected = Accent/Subtle + check |
 | Actions | `primaryAction · secondaryAction · actionsDirection` | Large buttons; horizontal (Tertiary · Primary, equal widths) or vertical (Primary over Tertiary, each at its own 48px height) |
 | Dismiss | `dismissible · inline` | scrim, Escape and drag-down; inline anchors to a positioned container |
@@ -91,6 +91,7 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 
 ## Content
 - Title names the task or the object ("Share", "Sort by", "Rename project").
+- Headings inside the sheet start one level below its h2 title (h3).
 
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |

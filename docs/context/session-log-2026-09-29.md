@@ -688,3 +688,13 @@ Backlog lines are in HANDOFF under "From the App Shell rework"; designer questio
   the keys (the peer's 3 keys → app-shell); only `_shared` logic triggers every suite and the full Vitest run.
 - Docs: AGENTS.md §C (XS/S/L rows), zen-build-qa, build-qa-process.md; new `skills/zen-token-sync`; memory
   `zen-proportional-process`.
+
+## Typography outline (session "Đánh giá Zen DS hiện tại (fork)")
+
+- Research first (the user asked whether other systems had been studied: they had not): 6 read-only agents, evidence
+  and verdicts in `docs/context/typography-hierarchy-review-2026-09-29.md`. The user approved every recommendation.
+- Implemented by 5 agents on disjoint files (the reviewer step was skipped at the user's request for speed): Text
+  defaults and docs/guidelines/templates; the Typography page ladder and phone examples, PlatformPhone in Mobile mode,
+  TopNavigation h1; the quality/audit/harness checks; Accordion headingLevel and EmptyState in ChartCard; Menu/Popover/
+  Select group labels. New outline-* warnings are opt-in (`audit.mjs --outline`) until seeded.
+- QA: see the report linked in HANDOFF; follow-ups in the HANDOFF Backlog ("Typography outline / content hierarchy").

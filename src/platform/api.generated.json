@@ -733,7 +733,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Popover/Label heading above the options (names the group, not the value).",
+          "description": "Popover/Label above the options: it names the option list, not the value (a label, not a heading).",
           "deprecated": null
         },
         {
@@ -1165,7 +1165,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Heading of the option list. Default: the locale's \"Search and select\".",
+          "description": "Label above the option list (it names the list; not a heading). Default: the locale's \"Search and select\".",
           "deprecated": null
         },
         {
@@ -1525,7 +1525,7 @@
           "type": "string",
           "required": false,
           "default": null,
-          "description": "Popover/Label heading, e.g. \"Country code\". Also the button's accessible name prefix.",
+          "description": "Popover/Label above the options, e.g. \"Country code\" (a label, not a heading). Also the button's accessible name prefix.",
           "deprecated": null
         },
         {
@@ -2943,7 +2943,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Semantic group heading for the options (for example `Component Size`), not the current selection. It also names the option list.",
+          "description": "Label above the options (Figma .Primitives/Popover/Label, for example `Component Size`), not the current selection. It names\n the option list (aria-labelledby); it is a label, not a heading, so a popover never adds to the page outline.",
           "deprecated": null
         },
         {
@@ -3232,7 +3232,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Heading above the options. Default: the locale's \"Select an option or create one\".",
+          "description": "Label above the options (names the option list; not a heading). Default: the locale's \"Select an option or create one\".",
           "deprecated": null
         },
         {
@@ -5310,6 +5310,14 @@
           "deprecated": null
         },
         {
+          "name": "headingLevel",
+          "type": "2 | 3 | 4 | 5 | 6",
+          "required": false,
+          "default": "3",
+          "description": "Heading level around the header button (WAI-ARIA APG Accordion: `<h{n}><button>`), default 3. Take it from where\nthe accordion sits: one level below the nearest heading above (2 directly under the page h1, 3 under an h2\nsection, 4 inside an h3 card). Only the tag changes; the look follows `size`. Pick the size so the title is never\nlarger than the heading it sits under: Medium (Heading/Subheading) and Large (Heading/4) fit under an h2 section;\nXLarge (Heading/3) only directly under the page h1.",
+          "deprecated": null
+        },
+        {
           "name": "children",
           "type": "ReactNode",
           "required": false,
@@ -5788,15 +5796,15 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "Figma Title (Heading/4).",
+          "description": "Figma Title (Heading/4 stand-alone; Body/Extra/Bold inside a titled card or at level 4 and deeper).",
           "deprecated": null
         },
         {
           "name": "headingLevel",
           "type": "2 | 3 | 4 | 5 | 6",
           "required": false,
-          "default": "3",
-          "description": "Heading level of the title (default 3 → `<h3>`); only the tag changes, the text style stays Heading/4.",
+          "default": null,
+          "description": "Heading level of the title, from where the Empty State sits: one level below the nearest heading above. Default 3,\nor one below the card title inside a ChartCard (set for you). Stand-alone at level 2 or 3 the title keeps the Figma\nHeading/4. At level 4 and deeper, and always inside a ChartCard, it uses Body/Extra/Bold so it is never larger than\nthe card title (Heading/Subheading) it sits under. In a Card you title yourself, pass the level below your title\n(4 under the usual h3 card title).",
           "deprecated": null
         },
         {
@@ -7558,7 +7566,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Heading-Text Type=Sub with Subheading / Leading (◆ Social conversation header): with either set, the bar title\nbecomes a left-aligned identity — a 48px `titleLeading` visual (Avatar / ChatAvatarGroup), gap 12, the title in\nBody/Extra/Bold over the subtitle in Caption/Regular (Neutral/Light), gap 2.",
+          "description": "Figma Heading-Text Type=Sub with Subheading / Leading (◆ Social conversation header): with either set, the bar title\nbecomes a left-aligned identity — a 48px `titleLeading` visual (Avatar / ChatAvatarGroup), gap 12, the title in\nBody/Extra/Bold over the subtitle in Caption/Regular (Neutral/Light), gap 2. The identity title is the screen's\nheading like any bar title; with `onTitleClick` the heading wraps the identity button.",
           "deprecated": null
         },
         {
@@ -7598,7 +7606,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Top-Heading-Text (Type=Sub, Body/Extra/Bold), centred in the navigator bar. Shown when collapsed or when there is no large title.",
+          "description": "Figma Top-Heading-Text (Type=Sub, Body/Extra/Bold), centred in the navigator bar. Shown when collapsed or when there\nis no large title, and then it is the screen's heading (`headingLevel`, h1 by default) in its bar style — a compact\nor pushed screen's h1 is its bar title, so content headings start at h2. While the large title shows, the bar copy\nis aria-hidden.",
           "deprecated": null
         },
         {
@@ -7606,7 +7614,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Expand-Heading (Heading/1–3) under the navigator bar.",
+          "description": "Figma Expand-Heading (Heading/1–3) under the navigator bar: a tab root's large title. While expanded it is the\nscreen's heading (h1 · Heading/1 by default); once `collapsed` it leaves and the bar title (`title`, else this text)\nbecomes the heading, so the screen keeps exactly one h1 before and after scrolling.",
           "deprecated": null
         },
         {
@@ -7614,7 +7622,7 @@
           "type": "\"h1\" | \"h2\" | \"h3\"",
           "required": false,
           "default": "\"h1\"",
-          "description": "",
+          "description": "Level of the screen title — the large title while it shows, else the bar title. Default h1: the title names the\nscreen (match `document.title` to it). Use h2 / h3 only for a navigation stack nested inside another screen that\nalready has its h1. The large title's style follows the level (h1 Heading/1 · h2 Heading/2 · h3 Heading/3); the\nbar title stays Body/Extra/Bold at every level.",
           "deprecated": null
         },
         {
@@ -9290,7 +9298,7 @@
           "type": "2 | 3 | 4",
           "required": false,
           "default": "3",
-          "description": "Heading level of the title in the page outline (default 3: a card inside an h2 section). Use 2 when the card sits\n directly under the page title. The look stays Heading/Subheading — the level follows the outline, not the size.",
+          "description": "Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2\n when the card sits directly under the page h1). The look stays Heading/Subheading — the level follows the outline,\n not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title.",
           "deprecated": null
         },
         {
@@ -9346,7 +9354,7 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "The chart, or an EmptyState before there is data (keep the card title; the Empty State is set one level below it).",
           "deprecated": null
         },
         {
@@ -9920,7 +9928,7 @@
           "type": "(typeof headingLevels)[number]",
           "required": false,
           "default": "2",
-          "description": "Document level (h1–h6): pick it from the page outline, not from the size. Default 2.",
+          "description": "Document level (h1–h6): pick it from the page outline, not from the size. Step down one level at a time (h1 → h2\n → h3); going back up may jump (h4 → h2). Default 2.",
           "deprecated": null
         },
         {
@@ -9928,7 +9936,7 @@
           "type": "keyof typeof typographyStyles",
           "required": false,
           "default": null,
-          "description": "Visual style; defaults to the level's style (1 → Heading/1 … 4 → Heading/4, 5 → Heading/Subheading). An h1 — the\n page title — always stays Heading/1 (harness: heading/h1-is-heading-1); lower levels may take another style.",
+          "description": "Visual style; defaults to the level's ladder style (1 Heading/1 · 2 Heading/4 · 3 Heading/Subheading · 4\n Body/Extra/Bold · 5–6 Body/Base/Bold). A content h1 (the page title shown large) stays Heading/1 (harness:\n heading/h1-is-heading-1). Set textStyle when the kind of content asks for it: a card title is always\n Heading/Subheading, whatever its level; a list group header (a kicker) is Body/Small/Bold in tone \"base\".",
           "deprecated": null
         },
         {
@@ -10558,7 +10566,7 @@
           "type": "string",
           "required": true,
           "default": null,
-          "description": "Small heading above the items (“Share”, “Move to”); it names the group for screen readers.",
+          "description": "Small label above the items (“Share”, “Move to”); it names the group for screen readers (aria-labelledby). It is a\n label, not a heading, so a menu never adds to the page outline.",
           "deprecated": null
         },
         {

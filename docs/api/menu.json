@@ -193,7 +193,7 @@
     {
       "name": "MenuGroup",
       "file": "src/components/Menu/Menu.tsx",
-      "description": "Items under a heading (role=group, labelled by the heading).",
+      "description": "Items under a label (Figma .Primitives/Popover/Label): role=group, named by the label through aria-labelledby (APG\n menu). The label is a plain element, never a heading (h1–h6 or role=heading).",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -202,7 +202,7 @@
           "type": "string",
           "required": true,
           "default": null,
-          "description": "Small heading above the items (“Share”, “Move to”); it names the group for screen readers.",
+          "description": "Small label above the items (“Share”, “Move to”); it names the group for screen readers (aria-labelledby). It is a\n label, not a heading, so a menu never adds to the page outline.",
           "deprecated": null
         },
         {

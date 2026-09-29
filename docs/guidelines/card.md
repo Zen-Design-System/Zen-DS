@@ -84,6 +84,7 @@ interface CardSubAction { label: string; icon?: IconName | ReactElement; onClick
 
 ## Content
 - Title first, then one line of meta.
+- Title a card with a Heading one level below the nearest heading above it (h3 under a section h2; h2 when the card sits right under the page title), always textStyle="Heading/Subheading": the style follows the kind of content, not the level.
 
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |

@@ -22,7 +22,7 @@ Copy in the Figma text styles and Zen content colours. Heading renders a real h1
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Text style | `textStyle` | any of the 36 Figma styles: Body/Base/Regular (Text default), Body/Small/Regular, Caption/Regular, Heading/1–4, Heading/Subheading, Display/1–4… |
-| Level | `level (Heading)` | 1–6 → h1–h6; default style per level: 1 Heading/1 · 2 Heading/2 · 3 Heading/3 · 4 Heading/4 · 5 Subheading · 6 Body/Base/Bold |
+| Level | `level (Heading)` | 1–6 → h1–h6; the default style per level follows the Content hierarchy ladder: 1 Heading/1 · 2 Heading/4 · 3 Heading/Subheading · 4 Body/Extra/Bold · 5–6 Body/Base/Bold |
 | Color/Content | `tone` | strongest (default) · base · light (aliases primary · secondary · tertiary) · accent · info · positive · negative · warning · inverse · on-colors · disabled · inherit |
 | — | `as · truncate · align` | Text element (p default, span inline, label…) · true = one line with ellipsis, n = clamp to n lines · start/center/end |
 
@@ -30,7 +30,7 @@ Copy in the Figma text styles and Zen content colours. Heading renders a real h1
 Generated from the TypeScript source; full JSON in `docs/api/text.json`.
 
 ### Text
-Figma text styles with Zen's content colours. Paragraphs, labels and inline copy; titles use `<Heading>`. `<Text>`Invite people to collaborate on this project.`</Text>` <Text textStyle="Body/Small/Regular" tone="base">Updated 2 min ago`</Text>`
+Figma text styles with Zen's content colours. Paragraphs, labels and inline copy; titles use `<Heading>`. Meta in Body/Small takes tone "base"; Caption is always tone "light". `<Text>`Invite people to collaborate on this project.`</Text>` <Text textStyle="Body/Small/Regular" tone="base">Updated 2 min ago`</Text>`
 
 Also accepts `Omit<HTMLAttributes<HTMLElement>, "color">`.
 
@@ -45,35 +45,40 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "color">`.
 | `children` | `ReactNode` | — |  |
 
 ### Heading
-A real heading (h1–h6) in a Figma text style. The level follows the page outline; the look can differ: <Heading level={2} textStyle="Heading/Subheading">Team members`</Heading>`
+A real heading (h1–h6) in a Figma text style. The level follows the page outline; the default look follows the ladder, and textStyle sets it by the kind of content. A page title (h1, Heading/1), a section (h2, Heading/4 by default) and a card title right under the page title (h2, always Heading/Subheading): <Heading level={1}>Billing`</Heading>` <Heading level={2}>Invoices`</Heading>` <Heading level={2} textStyle="Heading/Subheading">Current plan`</Heading>`
 
 Also accepts `Omit<HTMLAttributes<HTMLHeadingElement>, "color">`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `level` | `(typeof headingLevels)[number]` | `2` | Document level (h1–h6): pick it from the page outline, not from the size. Default 2. |
-| `textStyle` | `keyof typeof typographyStyles` | — | Visual style; defaults to the level's style (1 → Heading/1 … 4 → Heading/4, 5 → Heading/Subheading). An h1 — the page title — always stays Heading/1 (harness: heading/h1-is-heading-1); lower levels may take another style. |
+| `level` | `(typeof headingLevels)[number]` | `2` | Document level (h1–h6): pick it from the page outline, not from the size. Step down one level at a time (h1 → h2 → h3); going back up may jump (h4 → h2). Default 2. |
+| `textStyle` | `keyof typeof typographyStyles` | — | Visual style; defaults to the level's ladder style (1 Heading/1 · 2 Heading/4 · 3 Heading/Subheading · 4 Body/Extra/Bold · 5–6 Body/Base/Bold). A content h1 (the page title shown large) stays Heading/1 (harness: heading/h1-is-heading-1). Set textStyle when the kind of content asks for it: a card title is always Heading/Subheading, whatever its level; a list group header (a kicker) is Body/Small/Bold in tone "base". |
 | `tone` | `"strongest" \| "base" \| "light" \| "primary" \| "secondary" \| "tertiary" \| "accent" \| "info" \| "positive" \| "negative" \| "warning" \| "inverse" \| "on-colors" \| "disabled" \| "inherit"` | `"strongest"` |  |
 | `truncate` | `boolean \| number` | — |  |
 | `align` | `"start" \| "center" \| "end"` | — |  |
 | `children` | `ReactNode` | — |  |
 
 ## ✅ Do
-- Use exactly one h1 per page (the page title) and keep it Heading/1, like the Figma Master-Layout page title (harness: heading/h1-is-heading-1); nest h2/h3 by the outline, then choose their look with textStyle.
-- Follow the content hierarchy on the Typography page: master and child page titles h1 Heading/1, sections h2 Heading/4, card and widget titles h3 Heading/Subheading; on a phone the master screen's large title is the h1 and a child screen's compact bar title names it, so its content starts at h2 (audit: outline).
-- Emphasise inside a level with weight (Regular → Medium → Bold) and tone, not a bigger style.
-- Use tone="base" for secondary copy and "light" only for tertiary meta (timestamps, hints).
+- Give every page or screen exactly one h1, present at all times, that names it and matches document.title (plus the app name). Where the title is shown large (PageHeader, a phone large title) it is Heading/1, like the Figma Master-Layout page title (harness: heading/h1-is-heading-1); a compact app bar title is the screen's h1 and keeps its bar style (Body/Extra/Bold).
+- Follow the content hierarchy on the Typography page: page titles h1 Heading/1; sections (a group of cards, a table, a list) h2 Heading/4; card and widget titles one level below the nearest heading above (h3 under a section, h2 right under the page title), always Heading/Subheading; a page title inside a tab (PageHeader headingLevel 2) h2 Heading/2; list group headers one level below the nearest heading above, Body/Small/Bold in tone "base" (a kicker label); overlay titles h2 by default (h1 also accepted), never Heading/1. On a phone the master screen's large title and a child screen's compact bar title are the h1, so content starts at h2 (audit: outline).
+- Step down one level at a time (h1 → h2 → h3); going back up may jump (h4 → h2). Every page or screen starts at h1; a component's headings take their level from where it is placed (headingLevel); fixed regions (Sidebar, Drawer) keep their level on every page.
+- Give the same kind of content the same style on a page, whatever its level, and mark up content that looks subordinate one level deeper.
+- Separate a section from the cards under it with spacing and containment (the card surface), not with a bigger style.
+- Emphasise inside a level with weight (Regular → Medium → Bold) and quiet secondary text with tone (light → base). Sizes stay as they are (a Zen rule; Apple also allows size). When weight carries a state (unread, new), say it in text too.
+- Use tone="base" for secondary copy and Body/Small meta, and "light" only for tertiary meta (timestamps, hints); Caption is always "light".
 - Use Text as="span" inside a line of other text or a flex row; the default p is a block.
 - Pluralise counts with plural(): "1 member", "12 members" (harness: copy/plural-count).
 
 ## ❌ Don't
-- Don't pick a heading level for its size; set textStyle instead — except the h1, which is always Heading/1.
-- Don't make a value (metric, price, count) a heading, and don't let a heading look larger than the heading it sits under.
+- Don't pick a heading level for its size; set textStyle instead. A content h1 (the page title shown large) stays Heading/1.
+- Don't make a value (metric, price, count) a heading.
+- Don't let a heading look larger than the heading it sits under inside one content area (the page body, a card, an overlay); an app bar title and an overlay title are compared only within their own layer.
 - Don't colour body text with a colour family's Light token or a raw hex; use tone.
 - Don't truncate essential information without another way to read it (a tooltip or detail view).
 
 ## Accessibility
 - Heading levels form the page outline screen readers navigate by; don't skip levels going down.
+- Set document.title to each page's or screen's h1 text, then the app name (WCAG 2.4.2); single-page apps update it on every view.
 - Truncated text stays in the DOM, so assistive tech still reads it in full.
 - Colour alone never carries meaning: pair a tone with an icon or wording.
 
@@ -84,8 +89,9 @@ Also accepts `Omit<HTMLAttributes<HTMLHeadingElement>, "color">`.
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
-| `heading/h1-is-heading-1` | error | An h1 is the page title and always uses Heading/1, as in the Figma Master-Layout: no other textStyle on a level 1 Heading, a Text rendered as h1 or a raw h1. | `zen-allow-h1-style: <reason>` |
-| `table/title-heading-4` | warn | A table's title is Heading/4 — via the Table `caption` or a Heading/4 Text or Heading directly above the <Table>. | `zen-allow-table-title: <reason>` |
+| `heading/h1-is-heading-1` | error | Exactly one h1 names each page or screen. A content h1 (the title shown large: PageHeader, a phone large title, a level 1 Heading, a Text rendered as h1 or a raw h1) uses Heading/1. Only the TopNavigation compact bar title (.zen-top-nav__title) is the screen's h1 in its bar style (Body/Extra/Bold). | `zen-allow-h1-style: <reason>` |
+| `heading/title-not-light` | warn | Page, section and card titles (h1–h3) never take the Light tone: titles are Strongest, and only a Body/Small/Bold list group header (a kicker) uses Base. Lower the level, not the colour. | `zen-allow-title-light: <reason>` |
+| `table/title-heading-4` | warn | A table that is its own section is titled by a <Heading level={2} textStyle="Heading/4"> right above it (the Table points to it with aria-labelledby); <Table caption> only names a table that already sits under a section heading. A <Text> title above a table is a paragraph, not a heading. | `zen-allow-table-title: <reason>` |
 | `text/use-text` | warn | Headings and paragraphs are <Heading level> and <Text>: raw h1–h6/p keep the browser margins and no Zen text style. (App mode only.) | `zen-allow-raw-text: <reason>` |
 | `copy/plural-count` | warn | Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`. | `zen-allow-plural: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |

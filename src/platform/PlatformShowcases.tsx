@@ -4137,7 +4137,8 @@ function CardPricingExample() {
   );
 }
 
-/** List Item · grouped sections: a heading per group, each group its own List (named by the heading). */
+/** List Item · grouped sections: a group header per group (a kicker heading one level below the heading above: h4 under
+ *  the card's h3 here, h2 under a page h1; Body/Small/Bold, base tone), each group its own List (named after it). */
 function ListItemGroupedExample() {
   const uid = useId().replace(/:/g, "");
   const groups = [
@@ -4149,7 +4150,7 @@ function ListItemGroupedExample() {
     <div className="pe-list-groups">
       {groups.map((group) => (
         <section key={group.title} className="pe-list-group" aria-labelledby={`${uid}-${group.title}`}>
-          <h3 id={`${uid}-${group.title}`} className={`pe-list-group__title ${typographyStyles["Body/Small/Bold"]}`}>{group.title}</h3>
+          <Heading level={4} id={`${uid}-${group.title}`} textStyle="Body/Small/Bold" tone="base" className="pe-list-group__title">{group.title}</Heading>
           <Card theme="border" spacing="small" className="pe-list-card">
             <List aria-label={group.title}>
               {group.items.map(([title, caption, icon]) => <ListItem key={title} title={title} caption={caption} href="#settings" leading={<DockIcon icon={icon} theme="pale" size="small" />} trailing={<Icon name="icon-chevron-right-line-small" size="base" decorative />} />)}
@@ -4939,8 +4940,9 @@ const dismiss = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id
   <Text as="span">brand-kit.zip</Text>
   <ProgressBar value={72} theme="accent" label="72%" />
 </ListItem>` },
-    { title: "Grouped sections", description: "Long settings split into groups: each group has a visible heading and its own List named after it, so screen readers announce “Account, list, 2 items”.", render: () => <ListItemGroupedExample />, code: `<section aria-labelledby="account">
-  <Heading level={3} id="account" textStyle="Body/Small/Bold">Account</Heading>
+    { title: "Grouped sections", description: "Long settings split into groups. Each group header is a kicker: a heading one level below the heading above (h2 under the page's h1; h4 here, under this card's h3) in Body/Small/Bold and the Base tone. Each group has its own List named after it, so screen readers announce “Account, list, 2 items”.", render: () => <ListItemGroupedExample />, code: `<section aria-labelledby="account">
+  {/* One level below the heading above: h2 under the page's h1 (h4 in this card, under its h3). */}
+  <Heading level={2} id="account" textStyle="Body/Small/Bold" tone="base">Account</Heading>
   <Card theme="border" spacing="small">
     <List aria-label="Account">
       <ListItem title="Profile" caption="Name, photo, bio" href="/settings/profile"

@@ -15,6 +15,8 @@ import type { AppLayerPage, AppLayerPageMeta, ExampleMap } from "./types";
 
 const styleNames = Object.keys(typographyStyles) as TypographyStyleName[];
 const playgroundTones = textTones.filter((tone) => !["primary", "secondary", "tertiary"].includes(tone));
+/** The Heading default per level (the Content hierarchy ladder, as in Text.tsx): the code omits textStyle when it matches. */
+const headingDefault: Record<HeadingLevel, TypographyStyleName> = { 1: "Heading/1", 2: "Heading/4", 3: "Heading/Subheading", 4: "Body/Extra/Bold", 5: "Body/Base/Bold", 6: "Body/Base/Bold" };
 
 function TextPlayground() {
   const [heading, setHeading] = useState(false);
@@ -23,14 +25,14 @@ function TextPlayground() {
   const [tone, setTone] = useState<TextTone>("strongest");
   const [truncate, setTruncate] = useState(false);
   const copy = heading ? "Quarterly planning" : "Plan the quarter with your team: goals, owners and dates in one place, so everyone knows what ships next and why it matters.";
-  const styleProp = heading ? (textStyle.startsWith("Heading/") || textStyle.startsWith("Display") ? ` textStyle="${textStyle}"` : "") : textStyle === "Body/Base/Regular" ? "" : ` textStyle="${textStyle}"`;
+  const styleProp = (heading ? textStyle === headingDefault[level] : textStyle === "Body/Base/Regular") ? "" : ` textStyle="${textStyle}"`;
   const toneProp = tone === "strongest" ? "" : ` tone="${tone}"`;
   return (
     <Panel
       title="Text"
       controls={<>
-        <PlaygroundToggle label="Heading" selected={heading} onChange={(on) => { setHeading(on); setTextStyle(on ? "Heading/2" : "Body/Base/Regular"); }} />
-        {heading ? <PlaygroundFilterChip label="Level" value={String(level)} onChange={(value) => setLevel(Number(value || 2) as HeadingLevel)} options={["1", "2", "3", "4", "5", "6"].map((id) => option(id, `h${id}`))} /> : null}
+        <PlaygroundToggle label="Heading" selected={heading} onChange={(on) => { setHeading(on); setTextStyle(on ? headingDefault[level] : "Body/Base/Regular"); }} />
+        {heading ? <PlaygroundFilterChip label="Level" value={String(level)} onChange={(value) => { const next = Number(value || 2) as HeadingLevel; setLevel(next); setTextStyle(headingDefault[next]); }} options={["1", "2", "3", "4", "5", "6"].map((id) => option(id, `h${id}`))} /> : null}
         <PlaygroundFilterChip label="Text style" value={textStyle} onChange={(value) => setTextStyle((String(value) || "Body/Base/Regular") as TypographyStyleName)} options={styleNames.map((id) => option(id))} />
         <PlaygroundFilterChip label="Tone" value={tone} onChange={(value) => setTone((String(value) || "strongest") as TextTone)} options={playgroundTones.map((id) => option(id))} />
         <PlaygroundToggle label="Truncate" selected={truncate} onChange={setTruncate} />
@@ -58,11 +60,11 @@ function PageOutlineExample() {
         <Text tone="base">Plan, payment method and invoices for Zen Studio.</Text>
       </Stack>
       <Stack gap="xs">
-        <Heading level={2} textStyle="Heading/Subheading">Current plan</Heading>
+        <Heading level={2} textStyle="Heading/4">Current plan</Heading>
         <Text>Team · $12 per member per month · renews on 1 November 2026.</Text>
       </Stack>
       <Stack gap="xs">
-        <Heading level={2} textStyle="Heading/Subheading">Payment method</Heading>
+        <Heading level={2} textStyle="Heading/4">Payment method</Heading>
         <Text>Visa ending 4242, expires 08/2028.</Text>
       </Stack>
     </Stack>
@@ -148,16 +150,22 @@ function MobileTypographyExample() {
       </ZenProvider>
     );
   }
+  // Child screen: the compact bar title "Order #1042" is the screen's h1 (Body/Extra/Bold), so content starts at h2.
   return (
     <ZenProvider typography="mobile" paint={false} portal={false} breakpoint="mobile">
       <PlatformPhone header={<TopNavigation type="default" title="Order #1042" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go('[data-order="#1042"] .zen-list-item__wrapper', () => setAtOrders(true)) }} />}>
         {screen.anchor}
         <Stack gap="lg" padding="lg">
           <Stack gap="2xs">
-            <Heading level={1}>Arriving Thursday</Heading>
+            {/* A key status line is text, not a heading. */}
+            <Text textStyle="Body/Extra/Bold">Arriving Thursday</Text>
             <Text tone="base">Your order left the warehouse this morning.</Text>
           </Stack>
-          <Text textStyle="Body/Small/Regular" tone="light">Typography mode: mobile. The same styles resize for phones.</Text>
+          <Stack gap="xs">
+            <Heading level={2} textStyle="Heading/4">Delivery address</Heading>
+            <Text>Ava Chen, 12 Nguyen Hue, District 1, Ho Chi Minh City</Text>
+          </Stack>
+          <Text textStyle="Body/Small/Regular" tone="base">Typography mode: mobile. The same styles resize for phones.</Text>
         </Stack>
       </PlatformPhone>
     </ZenProvider>
@@ -176,13 +184,13 @@ export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = {
 
 export const examples: ExampleMap = {
   text: [
-    { title: "Page outline", description: "One h1 per page, h2 for sections; the look comes from textStyle, not from the level.", render: () => <PageOutlineExample />, code: `<Stack gap="lg">
+    { title: "Page outline", description: "One h1 per page (the page title, Heading/1) and h2 Heading/4 for its sections. The level comes from the outline; the look comes from the kind of content, never from a bigger size.", render: () => <PageOutlineExample />, code: `<Stack gap="lg">
   <Stack gap="2xs">
     <Heading level={1}>Billing</Heading>
     <Text tone="base">Plan, payment method and invoices for Zen Studio.</Text>
   </Stack>
   <Stack gap="xs">
-    <Heading level={2} textStyle="Heading/Subheading">Current plan</Heading>
+    <Heading level={2} textStyle="Heading/4">Current plan</Heading>
     <Text>Team · $12 per member per month · renews on 1 November 2026.</Text>
   </Stack>
 </Stack>` },
@@ -200,9 +208,19 @@ export const examples: ExampleMap = {
     { title: "Counts with plural()", description: "plural(count, “file”) writes “1 file” and “2 files”, never “1 files”.", render: () => <PluralExample />, code: `<Text textStyle="Body/Extra/Medium" aria-live="polite">
   {plural(count, "file")} selected · {plural(count * 3, "page")}
 </Text>` },
-    { title: "Mobile typography", description: "ZenProvider typography “mobile” resizes every text style for phones; the components don't change.", wide: true, render: () => <MobileTypographyExample />, code: `<ZenProvider typography="mobile">
-  <Heading level={1}>Arriving Thursday</Heading>
-  <Text tone="base">Your order left the warehouse this morning.</Text>
+    { title: "Mobile typography", description: "ZenProvider typography “mobile” resizes every text style for phones; the components don't change. On a child screen the compact bar title is the h1, so sections start at h2.", wide: true, render: () => <MobileTypographyExample />, code: `<ZenProvider typography="mobile">
+  {/* The compact bar title is the screen's h1. */}
+  <TopNavigation title="Order #1042" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />
+  <Stack gap="lg" padding="lg">
+    <Stack gap="2xs">
+      <Text textStyle="Body/Extra/Bold">Arriving Thursday</Text>
+      <Text tone="base">Your order left the warehouse this morning.</Text>
+    </Stack>
+    <Stack gap="xs">
+      <Heading level={2} textStyle="Heading/4">Delivery address</Heading>
+      <Text>Ava Chen, 12 Nguyen Hue, District 1, Ho Chi Minh City</Text>
+    </Stack>
+  </Stack>
 </ZenProvider>` },
   ],
 };

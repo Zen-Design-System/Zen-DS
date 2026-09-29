@@ -411,6 +411,12 @@ const openingTags = (src, tag) => [...(src ?? "").matchAll(new RegExp(`<${tag}\\
 const levelOf = (attrs) => literal(topLevel(attrs), "level") ?? expr(attrs, "level")?.replace(/["'`\s]/g, "");
 // The level set inside an ActionBar action object ({ label, level: "danger" }), if any.
 const actionLevel = (object) => object?.match(/\blevel\s*:\s*["'`]([\w-]+)["'`]/)?.[1];
+// <Heading level>: 2 when omitted (the component default); undefined when the level is computed (level={depth}).
+const headingLevelOf = (attrs) => { const v = value(attrs, "level")?.replace(/["'`\s]/g, ""); return v === undefined ? 2 : /^[1-6]$/.test(v) ? Number(v) : undefined; };
+// The Heading defaults follow the content ladder (typography review 2026-09-29, decision 7).
+const HEADING_DEFAULT_STYLE = { 1: "Heading/1", 2: "Heading/4", 3: "Heading/Subheading", 4: "Body/Extra/Bold", 5: "Body/Base/Bold", 6: "Body/Base/Bold" };
+// Text styles that read as a title (a <Text> in one of them right above a Table is a visual title, not a heading).
+const TITLE_STYLE = /^(Heading|Display)\/|\/(Bold|Semi-?Bold)$/;
 export const rules = [
   { id: "button/secondary-justified", components: ["Button", "IconButton"], severity: "error", allow: "secondary", guideline: "docs/guidelines/button.md",
     summary: "Secondary is a rare highlight; default to Primary (main CTA) or Tertiary.",
@@ -670,16 +676,40 @@ export const rules = [
     summary: "Theme=Emoji needs the emoji prop (otherwise a placeholder face renders).",
     check: ({ attrs }) => literal(attrs, "theme") === "emoji" && !present(attrs, "emoji") && "is theme emoji without an emoji." },
   { id: "heading/h1-is-heading-1", components: ["Heading", "Text", "h1"], severity: "error", allow: "h1-style", guideline: "docs/guidelines/text.md",
-    summary: "An h1 is the page title and always uses Heading/1, as in the Figma Master-Layout: no other textStyle on a level 1 Heading, a Text rendered as h1 or a raw h1.",
+    summary: "Exactly one h1 names each page or screen. A content h1 (the title shown large: PageHeader, a phone large title, a level 1 Heading, a Text rendered as h1 or a raw h1) uses Heading/1. Only the TopNavigation compact bar title (.zen-top-nav__title) is the screen's h1 in its bar style (Body/Extra/Bold).",
     check: ({ tag, attrs }) => {
-      if (tag === "h1") { const n = attrs.match(/Heading\/(\d)|zen-type-heading-(\d)/); const level = n && (n[1] ?? n[2]); return level && level !== "1" && `uses Heading/${level} — an h1 is Heading/1.`; }
-      const h1 = tag === "Heading" ? /\blevel=(\{1\}|"1")/.test(attrs) : literal(attrs, "as") === "h1";
-      const style = h1 ? literal(attrs, "textStyle") : undefined;
-      return style && style !== "Heading/1" && `is an h1 styled "${style}" — an h1 is Heading/1; drop textStyle, or use level 2 for a section title.`;
+      // The compact app bar title is the screen's h1 and keeps its bar style (D1, typography review 2026-09-29).
+      if (/\bzen-top-nav__title\b/.test(attrs)) return null;
+      if (tag === "h1") {
+        const n = attrs.match(/typographyStyles\[\s*["'`]([^"'`]+)["'`]\s*\]|zen-type-([\w-]+)/); const style = n && (n[1] ?? n[2]);
+        return style && !/^(Heading\/1|heading-1)$/.test(style) && `uses ${style} — a content h1 is Heading/1 (only the TopNavigation bar title keeps its bar style).`;
+      }
+      const h1 = tag === "Heading" ? headingLevelOf(attrs) === 1 : literal(attrs, "as") === "h1";
+      if (!h1) return null;
+      // <Text as="h1"> without textStyle renders its default, Body/Base/Regular.
+      const style = literal(attrs, "textStyle");
+      if (!style && tag === "Text" && !has(topLevel(attrs), "textStyle") && !opaque(attrs)) return "renders an h1 in Text's default Body/Base/Regular — a content h1 is Heading/1: use <Heading level={1}>.";
+      return style && style !== "Heading/1" && `is an h1 styled "${style}" — a content h1 is Heading/1; drop textStyle, or use level 2 for a section title.`;
+    } },
+  { id: "heading/title-not-light", components: ["Heading", "Text"], severity: "warn", allow: "title-light", guideline: "docs/guidelines/text.md",
+    summary: "Page, section and card titles (h1–h3) never take the Light tone: titles are Strongest, and only a Body/Small/Bold list group header (a kicker) uses Base. Lower the level, not the colour.",
+    check: ({ tag, attrs }) => {
+      const tone = value(attrs, "tone")?.replace(/["'`\s]/g, "");
+      if (!/^(light|tertiary)$/.test(tone ?? "")) return null;
+      const level = tag === "Heading" ? headingLevelOf(attrs) : Number(literal(attrs, "as")?.match(/^h([1-6])$/)?.[1]);
+      return level >= 1 && level <= 3 && `is an h${level} in the ${tone} tone — titles use Strongest (a Body/Small/Bold group header may use Base); lower the level, not the colour.`;
     } },
   { id: "table/title-heading-4", components: ["Text", "Heading"], severity: "warn", allow: "table-title", guideline: "docs/guidelines/table.md",
-    summary: "A table's title is Heading/4 — via the Table `caption` or a Heading/4 Text or Heading directly above the <Table>.",
-    check: ({ attrs, src, end }) => { const style = literal(attrs, "textStyle") ?? literal(attrs, "style"); if (!style || style === "Heading/4") return null; return nextSibling(src, end)?.tag === "Table" && `titles the table below with "${style}" — table titles are Heading/4 (or pass the title as <Table caption>).`; } },
+    summary: "A table that is its own section is titled by a <Heading level={2} textStyle=\"Heading/4\"> right above it (the Table points to it with aria-labelledby); <Table caption> only names a table that already sits under a section heading. A <Text> title above a table is a paragraph, not a heading.",
+    check: ({ tag, attrs, src, end }) => {
+      if (nextSibling(src, end)?.tag !== "Table") return null;
+      const style = literal(attrs, "textStyle");
+      if (tag === "Text") return Boolean(style) && TITLE_STYLE.test(style) && `is a paragraph styled "${style}" titling the table below — use <Heading level={2} textStyle="Heading/4"> (Table aria-labelledby → its id), or <Table caption> under a section heading.`;
+      const level = headingLevelOf(attrs);
+      if (level === 1) return null; // the page title right above a table names the page, not the table
+      const resolved = style ?? HEADING_DEFAULT_STYLE[level];
+      return Boolean(resolved) && resolved !== "Heading/4" && `titles the table below with "${resolved}" — a table section title is <Heading level={2} textStyle="Heading/4"> (or pass the title as <Table caption> under a section heading).`;
+    } },
   { id: "table/needs-name", components: ["Table"], severity: "error", allow: "table-name", guideline: "docs/guidelines/table.md",
     summary: "A Table is named by a caption or aria-label.",
     check: ({ attrs }) => !present(attrs, "caption") && !named(attrs) && "has neither caption nor aria-label." },

@@ -182,6 +182,10 @@ The full list is in `docs/component-usage-rules.md`. The ones most often forgott
     empty frame.
   - **Chip S3:** the selected Secondary chip keeps a Subtle border at the Secondary weight on a faint tint (selection
     contrast about 1.15–1.3:1), unlike "Selected → Color/Border/Active/*". Should S3 switch?
+  - **Typography (2026-09-29 review, decision 6):** Display/4 values (32/36/40) are larger than the Heading/1 page title
+    (28/32/36) in every mode, so card grids of values outrank the title. Keep, or limit Display/4 to one hero value per
+    view (Heading/2–3 in grids)? Related: the AiChat greeting (h2 in Heading/1), the MetricWidget large value
+    (Heading/1) and the ModalForm title (Heading/2, 25px next to a 28px page h1) blur "Heading/1 = the page title".
 - For the designer (App Shell, 2026-09-29; code keeps its current behaviour until answered):
   - **Rail width:** the HR-Platform rail (Patterns/Density/Comfortable/Sidebar/No) is 80px wide, with a 72px surface and
     an 8px inset on the left only. The Side-Bar/Master/Basic Expand=No master is 84px, with a 68px surface and an 8px
@@ -266,7 +270,27 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   gets done; the approved items run as one planned batch, with fewer sessions that each own a set of files.
 - Items that need a decision from the user or the designer stay under "Open items"; this list holds work.
 
-- **P1 · Typography outline / content hierarchy review (2026-09-29)**, waiting for the user's decisions:
+- **Typography outline / content hierarchy (2026-09-29):** the user approved every recommendation ("theo đề xuất");
+  implemented the same day (session log, "Typography outline"). Follow-ups:
+  - **P2 · Screens without an h1:** Bottom Navigation "Floating + action" and "Glass over media" (no TopNavigation),
+    Templates "Empty & error states" (outline starts at the EmptyState h3), Form "Mobile checkout" (bar h1 → h4
+    sections, should be h2).
+  - **P2 · EmptyState in a Card you title yourself:** with headingLevel 3 under an h2 Subheading title it still renders
+    Heading/4 (20px > 18px); only ChartCard passes its level down. Needs a smaller style or description-only.
+  - **P2 · Seed and switch on the outline warnings:** `audit.mjs --outline` (outline-h1/start/card/siblings) is opt-in
+    until seeded: `--quality --outline --baseline-update=outline-h1,outline-start,outline-card,outline-siblings` over
+    all pages; then drop the flag. Also re-seed `rhythm` (its messages changed).
+  - **P2 · Gate page mapping:** `PlatformPhone.tsx`, `PlatformTypographyHierarchy.tsx` and
+    `PlatformMobileShowcases.tsx` edits map to no page ("pass --pages"), and a pass then clears them although their
+    pages were not rendered. Map PlatformPhone → pages with phone frames, the hierarchy file → typography, mobile
+    showcases → the edited examples' pages.
+  - **P3 · Typography "Emphasis inside a level":** clicking a row that is already read does nothing (behaviour
+    deadclick ⚠); let the row toggle read/unread or say so in the caption.
+  - **P3:** the docs platform's own outline on the Typography page (h2 Heading/3 sections, example h1s under h3 card
+    titles); ExampleCard should expose `data-screen`; a durable selftest for the quality/outline runtime checks; the
+    redundant `ZenProvider typography="mobile"` wrappers around PlatformPhone; the Typography topbar chip no longer
+    reaches phone frames (they default to Mobile); TopNavigation stories for the heading behaviour; the Text
+    "Headings" story could label each level's default style. Review:
   `docs/context/typography-hierarchy-review-2026-09-29.md` (8 decisions, ~30 verdicts; the phone child screen has no
   h1, h2 renders in 6 styles, the enforcement misses missing h1s and errors on valid group headers).
 - **Process (2026-09-29):** batch A of `docs/context/process-audit-2026-09-29.md` is done (tiers in AGENTS.md §C,
@@ -290,7 +314,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   - **P3 · Gate details:** baseline JSON notes and their generators (`check-styles.mjs:353`, `audit.mjs:483`) still say
     "fix these when you touch them" (Scope lock wording); token scope follows importers one level (a Button token →
     23 pages); token scope reads CSS only, not inline `var()` in TSX; `foundations.css` maps to the representative set;
-    a reused pid can keep a stale "running" marker alive for up to 6 h; mixed stale guidelines (own + another
+    a reused pid can keep a stale "running" marker alive for up to 6 h; `--only` runs that each render part of an edit's pages never clear it (one run must cover them all, so plain `npm run qa` is simpler); edits made by scripts through Bash are often not recorded; mixed stale guidelines (own + another
     session's) fail instead of rebuilding.
 - **P1 · Faster QA.** Owner: "Quy trình kiểm tra Component build". On 28/9, 32 QA runs audited 419 pages one at a
   time, about 5 hours of browser time on an 11-core Mac.

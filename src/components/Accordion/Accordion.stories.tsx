@@ -5,9 +5,9 @@ const meta = {
   title: "Components/Accordion",
   component: Accordion,
   tags: ["autodocs"],
-  parameters: { layout: "padded", docs: { description: { component: "Figma Accordion/Text (239:16847): Size Medium/Large/XLarge × Theme Divider/Box × Expanded. The header row toggles the panel; the chevron turns 180° and the height animates." } } },
-  args: { title: "Where can I see a breakdown of my seats?", children: "You can manage your full seats, viewer seats and pending invites from Settings → Members.", size: "medium", theme: "divider", defaultExpanded: true },
-  argTypes: { size: { control: "inline-radio", options: accordionSizes }, theme: { control: "inline-radio", options: accordionThemes } },
+  parameters: { layout: "padded", docs: { description: { component: "Figma Accordion/Text (239:16847): Size Medium/Large/XLarge × Theme Divider/Box × Expanded. The header row toggles the panel inside an h{headingLevel} (APG Accordion; level from placement, default 3); the chevron turns 180° and the height animates." } } },
+  args: { title: "Where can I see a breakdown of my seats?", children: "You can manage your full seats, viewer seats and pending invites from Settings → Members.", size: "medium", theme: "divider", headingLevel: 3, defaultExpanded: true },
+  argTypes: { size: { control: "inline-radio", options: accordionSizes }, theme: { control: "inline-radio", options: accordionThemes }, headingLevel: { control: "inline-radio", options: [2, 3, 4, 5, 6] } },
   decorators: [(Story) => <div style={{ maxWidth: 643 }}><Story /></div>],
 } satisfies Meta<typeof Accordion>;
 

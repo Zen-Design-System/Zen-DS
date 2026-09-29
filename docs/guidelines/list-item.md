@@ -75,7 +75,8 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onClick">`.
 - Let the title truncate on one line; keep the caption short (it may wrap to a second line).
 - Mark the current row with selected (Active/Neutral/Subtle), not a custom fill.
 - Let the row inset follow the layout: full-bleed lists on a page keep 24px, lists inside a Modal, Side Panel or Card line up with the container's content (inset auto → none) and the hover fill bleeds into its padding. Set inset only when the layout needs something else.
-- Split long settings into groups: a visible heading per group and one List per group named after it (aria-label or aria-labelledby).
+- Split long settings into groups: a visible group header per group and one List per group named after it (aria-label or aria-labelledby). The header is a Heading one level below the nearest heading above (h2 on a screen whose h1 is the title), Body/Small/Bold in tone "base": a kicker label, not a Strongest title.
+- Keep the row title in its Body/Base/Bold (Figma Info-Content Title) on read and unread rows alike. Mark unread with a dot or Badge plus a visually hidden "Unread" (WCAG 1.3.1); the caption may go Strongest.
 - In a bordered Card, derive the container from the row's hover fill (Corner-Radius/Large): card padding Padding/2XSmall (4) top and bottom, row inset Padding/Small + Padding/2XSmall (16), card radius Corner-Radius/XLarge (= Large + 4). The fill then sits 4 from every edge with concentric corners in every radius mode.
 
 ## ❌ Don't
@@ -86,6 +87,8 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onClick">`.
 - Don't override .zen-list-item padding for spacing — use <List inset> or --zen-list-inset on the container (harness: list-item/inset-not-padding).
 - Don't use a list for data users compare across columns.
 - Don't hand-build rows (a div with a Text and a Badge or Button); use ListItem so padding, hit area and focus are consistent.
+- Don't make a row title a heading, and don't signal unread by weight alone.
+- Don't make group labels inside a Menu, Popover, Select or Listbox headings; they are labels.
 
 ## Accessibility
 - A clickable row is one `<button>`/`<a>` covering the row with a visible focus ring; selected rows expose aria-pressed / aria-current.

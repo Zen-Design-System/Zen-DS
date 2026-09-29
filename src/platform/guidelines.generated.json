@@ -2244,6 +2244,11 @@
     ],
     "api": [
       [
+        "Title",
+        "title · headingLevel",
+        "h2 by default (h1 also accepted); the style follows Figma per overlay: Dialog Heading/3, ModalForm Heading/2, never Heading/1"
+      ],
+      [
         "Actions direction",
         "actionsDirection",
         "horizontal (default) · vertical — full-width Primary → Secondary → Tertiary; Mobile is always vertical"
@@ -2315,7 +2320,8 @@
       "Motion: enters with the emphasized curve (Slow 280ms) and exits faster (Base/160–200ms, exit curve); while closing it is inert and focus has already returned to the opener; prefers-reduced-motion removes the animation and the exit delay."
     ],
     "content": [
-      "Title ≤ 1 line; description states the consequence."
+      "Title ≤ 1 line; description states the consequence.",
+      "Title the overlay through its title prop: an h2 by default (h1 is also accepted), in the overlay's own Figma style, never Heading/1. It is compared only with headings inside the overlay, not with the page behind."
     ],
     "refs": [
       [
@@ -3080,7 +3086,12 @@
       [
         "Title / Caption",
         "title / children",
-        "Heading/4 · Body/Base/Regular (Content/Neutral/Light)"
+        "Heading/4 stand-alone (Body/Extra/Bold inside a titled card or at level 4 and deeper) · Body/Base/Regular (Content/Neutral/Light)"
+      ],
+      [
+        "Level",
+        "headingLevel",
+        "one level below the nearest heading above; default 3, or one below the card title inside a ChartCard (set for you)"
       ],
       [
         "Illustration",
@@ -3107,7 +3118,8 @@
       "Don't use more than two actions."
     ],
     "a11y": [
-      "The title is a heading (h3) so the state is discoverable; the illustration is aria-hidden."
+      "The title is a heading so the state is discoverable: h3 by default; pass headingLevel one below the nearest heading above (in a Card you title yourself, one below your card title). The illustration is aria-hidden.",
+      "Inside a titled card the title is never larger than the card title it sits under."
     ],
     "content": [
       "Title: what is empty. Caption: why, or what will appear here. Action: what to do."
@@ -3482,7 +3494,8 @@
       "Keep reading order: title first, then meta."
     ],
     "content": [
-      "Title first, then one line of meta."
+      "Title first, then one line of meta.",
+      "Title a card with a Heading one level below the nearest heading above it (h3 under a section h2; h2 when the card sits right under the page title), always textStyle=\"Heading/Subheading\": the style follows the kind of content, not the level."
     ],
     "refs": [
       [
@@ -3666,7 +3679,8 @@
       "Let the title truncate on one line; keep the caption short (it may wrap to a second line).",
       "Mark the current row with selected (Active/Neutral/Subtle), not a custom fill.",
       "Let the row inset follow the layout: full-bleed lists on a page keep 24px, lists inside a Modal, Side Panel or Card line up with the container's content (inset auto → none) and the hover fill bleeds into its padding. Set inset only when the layout needs something else.",
-      "Split long settings into groups: a visible heading per group and one List per group named after it (aria-label or aria-labelledby).",
+      "Split long settings into groups: a visible group header per group and one List per group named after it (aria-label or aria-labelledby). The header is a Heading one level below the nearest heading above (h2 on a screen whose h1 is the title), Body/Small/Bold in tone \"base\": a kicker label, not a Strongest title.",
+      "Keep the row title in its Body/Base/Bold (Figma Info-Content Title) on read and unread rows alike. Mark unread with a dot or Badge plus a visually hidden \"Unread\" (WCAG 1.3.1); the caption may go Strongest.",
       "In a bordered Card, derive the container from the row's hover fill (Corner-Radius/Large): card padding Padding/2XSmall (4) top and bottom, row inset Padding/Small + Padding/2XSmall (16), card radius Corner-Radius/XLarge (= Large + 4). The fill then sits 4 from every edge with concentric corners in every radius mode."
     ],
     "dont": [
@@ -3676,7 +3690,9 @@
       "Don't mix leading sizes in one list — row heights stop lining up.",
       "Don't override .zen-list-item padding for spacing — use <List inset> or --zen-list-inset on the container (harness: list-item/inset-not-padding).",
       "Don't use a list for data users compare across columns.",
-      "Don't hand-build rows (a div with a Text and a Badge or Button); use ListItem so padding, hit area and focus are consistent."
+      "Don't hand-build rows (a div with a Text and a Badge or Button); use ListItem so padding, hit area and focus are consistent.",
+      "Don't make a row title a heading, and don't signal unread by weight alone.",
+      "Don't make group labels inside a Menu, Popover, Select or Listbox headings; they are labels."
     ],
     "a11y": [
       "A clickable row is one <button>/<a> covering the row with a visible focus ring; selected rows expose aria-pressed / aria-current.",
@@ -3826,7 +3842,7 @@
       ]
     ],
     "do": [
-      "Name the table (caption or aria-label; harness: table/needs-name).",
+      "Name the table (aria-labelledby pointing at its section heading, a caption, or aria-label; harness: table/needs-name).",
       "Right-align numbers and amounts; keep text left.",
       "Give each row one primary text (bold) and at most one caption.",
       "Put row actions in the last column (TableActions) as Button/Icon-Flat Medium (IconButton appearance=\"flat\" level=\"primary\"; a ⋯ Menu trigger for several) and bulk actions above the table (harness: table/actions-flat).",
@@ -3837,7 +3853,7 @@
       "Use select for closed sets and tags for open sets; lock rows that can't change with edit.disabled.",
       "Offer onOpen when the full record needs a detail view.",
       "Let clickable content inside an editable cell (Tag onClick, links, buttons) keep its own action — clicking the cell around it edits. Leave room (padding, gaps) so the edit target stays easy to hit.",
-      "Title a table with Heading/4: pass it as `caption` (rendered as Heading/4), or place a Heading/4 directly above the table (harness: table/title-heading-4).",
+      "A table that is its own section gets an h2 in Heading/4 directly above it (<Heading level={2} id>), and the Table points to it with aria-labelledby. Use `caption` (rendered in Heading/4) only to name a table that already sits under a section heading: a caption is not a heading and is missing from the headings list (harness: table/title-heading-4).",
       "Build cells from the cell primitives at their Figma sizes: Badge Medium (not Small) in Badge/Trend cells, media sized by Subtext (Avatar XSmall → Small and Icon base → lg and Dock Icon XSmall → Small when a caption is on) (harness: table/media-size-by-subtext), Avatar/Stack Small for groups."
     ],
     "dont": [
@@ -3847,7 +3863,7 @@
       "Don't make every cell editable — it turns the table into a spreadsheet and invites accidental edits.",
       "Don't commit on every keystroke; the editor saves on Enter, Tab, Escape (valid values) or clicking another cell.",
       "Don't hide the saved result: show the new value immediately and confirm or undo in a Toast when the change is significant.",
-      "Don't title a table with a Body/…/Bold label; it reads as a row label, not a section title. Use Heading/4."
+      "Don't title a table with a Body/…/Bold label (it reads as a row label) or with a Text styled Heading/4 (a paragraph, not a heading); use a Heading level 2 in Heading/4."
     ],
     "a11y": [
       "Native table semantics: th scope=col, aria-sort on sortable headers, sort buttons, labelled row checkboxes; the wrapper scrolls horizontally on small screens.",
@@ -3883,7 +3899,7 @@
       {
         "id": "table/title-heading-4",
         "severity": "warn",
-        "summary": "A table's title is Heading/4 — via the Table `caption` or a Heading/4 Text or Heading directly above the <Table>.",
+        "summary": "A table that is its own section is titled by a <Heading level={2} textStyle=\"Heading/4\"> right above it (the Table points to it with aria-labelledby); <Table caption> only names a table that already sits under a section heading. A <Text> title above a table is a paragraph, not a heading.",
         "allow": "table-title"
       },
       {
@@ -4393,8 +4409,8 @@
       ],
       [
         "Header",
-        "title · description · icon",
-        "Heading/3 + close; caption Body/Base/Regular; modal icon 44px"
+        "title · headingLevel · description · icon",
+        "title (h2 by default, h1 also accepted) in Heading/3, or Heading/4 under the 44px icon in the modal type, never Heading/1; a close button; caption Body/Base/Regular"
       ],
       [
         "Contents",
@@ -4434,7 +4450,8 @@
       "Motion: enters with the emphasized curve (Slow 280ms) and exits faster (Base/160–200ms, exit curve); while closing it is inert and focus has already returned to the opener; prefers-reduced-motion removes the animation and the exit delay."
     ],
     "content": [
-      "Title names the object or task (\"Edit project\", \"Filters\")."
+      "Title names the object or task (\"Edit project\", \"Filters\").",
+      "Headings inside the panel start one level below its title (h3 under the default h2 title)."
     ],
     "refs": [
       [
@@ -4722,7 +4739,7 @@
     "keyboard": [],
     "do": [
       "Pick the family first (neutral vs colour), then the level by role: Primary → Strongest, Secondary → Base, Tertiary (neutral only) → Light.",
-      "Keep titles and headings at Strongest in neutral families.",
+      "Keep titles and headings at Strongest in neutral families; a list group header in Body/Small/Bold (a kicker label) stays Base.",
       "On a colour's Subtle background, set the text to Strongest (title) or Base (body) of the same colour and the icon to Light.",
       "Use colour Light sparingly for the one thing that must pop (status icon, delta, inline hint).",
       "In Lights-group components (Warning Badge/Alert, Accent text), keep the text at Base or Strongest and put the Light level on the icon only."
@@ -4942,7 +4959,7 @@
       [
         "Titles",
         "title · largeTitle · headingLevel",
-        "Sub (Body/Extra/Bold, centred) · Heading/1–3 expand heading"
+        "Sub (Body/Extra/Bold, centred) · expand heading (h1 Heading/1; Heading/2–3 at h2/h3). Exactly one of them is the screen's heading, h1 by default: the large title while it shows, else the bar title in its bar style. h2/h3 only for a stack nested in a screen that has its h1"
       ],
       [
         "Actions",
@@ -4987,7 +5004,9 @@
     ],
     "do": [
       "Match the type to the page Canvas: Default on Surface, Alt on an Alt canvas, Compact on dense detail screens, an overlay type only on media.",
-      "Use a large title on root screens and collapse it into the bar when the content scrolls.",
+      "Use a large title on root screens (tab roots use largeTitle) and collapse it into the bar when the content scrolls.",
+      "Let the title be the screen's h1 and start the content headings at h2: the large title (Heading/1) on a root screen, the compact bar title (Body/Extra/Bold) on a child screen and once the large title collapses. Don't add a second, hidden h1.",
+      "Set document.title to the screen title, then the app name, on every screen (WCAG 2.4.2).",
       "Give every icon-only action a label; put a dot on the action (not the title) for unread states.",
       "Keep at most two trailing actions (harness: top-navigation/max-two-trailing).",
       "Draw Back with a left chevron (icon-chevron-left-line-medium, label \"Back\") on mobile and tablet (harness: navigation/back-chevron).",
@@ -5004,7 +5023,7 @@
       "Don't keep two other trailing actions next to a searchAction; while collapsed the Search takes a slot (harness: top-navigation/max-two-trailing)."
     ],
     "a11y": [
-      "Rendered as a <header>; the large title is a real heading (h1–h3) and the collapsed bar title is aria-hidden until the large title scrolls away.",
+      "Rendered as a <header>. The screen always exposes exactly one title heading (headingLevel, h1 by default): the large title while it shows, otherwise the bar title; while the large title shows, the bar copy is aria-hidden.",
       "Nav-Actions are 44px buttons named by `label`; the Noti dot is decorative, so say it in the label (\"Notifications, 3 new\")."
     ],
     "content": [
@@ -5204,7 +5223,7 @@
       [
         "Header",
         "title · search",
-        "Heading/3 + 44px Tertiary close; optional Search slot"
+        "title h2 in Heading/3 (never Heading/1) + 44px Tertiary close; optional Search slot"
       ],
       [
         "Items",
@@ -5257,7 +5276,8 @@
       "Motion: slides up with the emphasized curve and down with the exit curve; reduced motion removes the slide; the grabber is decorative, so Escape and the close button are always available."
     ],
     "content": [
-      "Title names the task or the object (\"Share\", \"Sort by\", \"Rename project\")."
+      "Title names the task or the object (\"Share\", \"Sort by\", \"Rename project\").",
+      "Headings inside the sheet start one level below its h2 title (h3)."
     ],
     "refs": [
       [
@@ -5688,7 +5708,7 @@
       [
         "Card",
         "ChartCard title · headingLevel · onOpen · ranges · range · onRangeChange",
-        "Card Flat Medium: Heading/Subheading + chevron, Segmented; headingLevel 3 by default, 2 when the card sits directly under the page title"
+        "Card Flat Medium: Heading/Subheading + chevron, Segmented; headingLevel is one below the nearest heading above: 3 by default (under a section h2), 2 when the card sits directly under the page title; the style stays Heading/Subheading"
       ],
       [
         "Interaction",
@@ -5726,7 +5746,8 @@
       "Stack-bar legends label every colour; the summary lists each series' value for the active column."
     ],
     "content": [
-      "Title names the measure (\"Expense Trends\", \"Budget Allocation\"); axis labels are short (Q1, Jan, W1)."
+      "Title names the measure (\"Expense Trends\", \"Budget Allocation\"); axis labels are short (Q1, Jan, W1).",
+      "Before there is data, keep the card title and put an EmptyState in the card: it takes the next heading level in Body/Extra/Bold, so it never outranks or outsizes the card title."
     ],
     "refs": [
       [
@@ -5898,7 +5919,7 @@
       [
         "Level",
         "level (Heading)",
-        "1–6 → h1–h6; default style per level: 1 Heading/1 · 2 Heading/2 · 3 Heading/3 · 4 Heading/4 · 5 Subheading · 6 Body/Base/Bold"
+        "1–6 → h1–h6; the default style per level follows the Content hierarchy ladder: 1 Heading/1 · 2 Heading/4 · 3 Heading/Subheading · 4 Body/Extra/Bold · 5–6 Body/Base/Bold"
       ],
       [
         "Color/Content",
@@ -5913,21 +5934,26 @@
     ],
     "keyboard": [],
     "do": [
-      "Use exactly one h1 per page (the page title) and keep it Heading/1, like the Figma Master-Layout page title (harness: heading/h1-is-heading-1); nest h2/h3 by the outline, then choose their look with textStyle.",
-      "Follow the content hierarchy on the Typography page: master and child page titles h1 Heading/1, sections h2 Heading/4, card and widget titles h3 Heading/Subheading; on a phone the master screen's large title is the h1 and a child screen's compact bar title names it, so its content starts at h2 (audit: outline).",
-      "Emphasise inside a level with weight (Regular → Medium → Bold) and tone, not a bigger style.",
-      "Use tone=\"base\" for secondary copy and \"light\" only for tertiary meta (timestamps, hints).",
+      "Give every page or screen exactly one h1, present at all times, that names it and matches document.title (plus the app name). Where the title is shown large (PageHeader, a phone large title) it is Heading/1, like the Figma Master-Layout page title (harness: heading/h1-is-heading-1); a compact app bar title is the screen's h1 and keeps its bar style (Body/Extra/Bold).",
+      "Follow the content hierarchy on the Typography page: page titles h1 Heading/1; sections (a group of cards, a table, a list) h2 Heading/4; card and widget titles one level below the nearest heading above (h3 under a section, h2 right under the page title), always Heading/Subheading; a page title inside a tab (PageHeader headingLevel 2) h2 Heading/2; list group headers one level below the nearest heading above, Body/Small/Bold in tone \"base\" (a kicker label); overlay titles h2 by default (h1 also accepted), never Heading/1. On a phone the master screen's large title and a child screen's compact bar title are the h1, so content starts at h2 (audit: outline).",
+      "Step down one level at a time (h1 → h2 → h3); going back up may jump (h4 → h2). Every page or screen starts at h1; a component's headings take their level from where it is placed (headingLevel); fixed regions (Sidebar, Drawer) keep their level on every page.",
+      "Give the same kind of content the same style on a page, whatever its level, and mark up content that looks subordinate one level deeper.",
+      "Separate a section from the cards under it with spacing and containment (the card surface), not with a bigger style.",
+      "Emphasise inside a level with weight (Regular → Medium → Bold) and quiet secondary text with tone (light → base). Sizes stay as they are (a Zen rule; Apple also allows size). When weight carries a state (unread, new), say it in text too.",
+      "Use tone=\"base\" for secondary copy and Body/Small meta, and \"light\" only for tertiary meta (timestamps, hints); Caption is always \"light\".",
       "Use Text as=\"span\" inside a line of other text or a flex row; the default p is a block.",
       "Pluralise counts with plural(): \"1 member\", \"12 members\" (harness: copy/plural-count)."
     ],
     "dont": [
-      "Don't pick a heading level for its size; set textStyle instead — except the h1, which is always Heading/1.",
-      "Don't make a value (metric, price, count) a heading, and don't let a heading look larger than the heading it sits under.",
+      "Don't pick a heading level for its size; set textStyle instead. A content h1 (the page title shown large) stays Heading/1.",
+      "Don't make a value (metric, price, count) a heading.",
+      "Don't let a heading look larger than the heading it sits under inside one content area (the page body, a card, an overlay); an app bar title and an overlay title are compared only within their own layer.",
       "Don't colour body text with a colour family's Light token or a raw hex; use tone.",
       "Don't truncate essential information without another way to read it (a tooltip or detail view)."
     ],
     "a11y": [
       "Heading levels form the page outline screen readers navigate by; don't skip levels going down.",
+      "Set document.title to each page's or screen's h1 text, then the app name (WCAG 2.4.2); single-page apps update it on every view.",
       "Truncated text stays in the DOM, so assistive tech still reads it in full.",
       "Colour alone never carries meaning: pair a tone with an icon or wording."
     ],
@@ -5954,13 +5980,19 @@
       {
         "id": "heading/h1-is-heading-1",
         "severity": "error",
-        "summary": "An h1 is the page title and always uses Heading/1, as in the Figma Master-Layout: no other textStyle on a level 1 Heading, a Text rendered as h1 or a raw h1.",
+        "summary": "Exactly one h1 names each page or screen. A content h1 (the title shown large: PageHeader, a phone large title, a level 1 Heading, a Text rendered as h1 or a raw h1) uses Heading/1. Only the TopNavigation compact bar title (.zen-top-nav__title) is the screen's h1 in its bar style (Body/Extra/Bold).",
         "allow": "h1-style"
+      },
+      {
+        "id": "heading/title-not-light",
+        "severity": "warn",
+        "summary": "Page, section and card titles (h1–h3) never take the Light tone: titles are Strongest, and only a Body/Small/Bold list group header (a kicker) uses Base. Lower the level, not the colour.",
+        "allow": "title-light"
       },
       {
         "id": "table/title-heading-4",
         "severity": "warn",
-        "summary": "A table's title is Heading/4 — via the Table `caption` or a Heading/4 Text or Heading directly above the <Table>.",
+        "summary": "A table that is its own section is titled by a <Heading level={2} textStyle=\"Heading/4\"> right above it (the Table points to it with aria-labelledby); <Table caption> only names a table that already sits under a section heading. A <Text> title above a table is a paragraph, not a heading.",
         "allow": "table-title"
       },
       {
@@ -6168,7 +6200,7 @@
       [
         "Title",
         "title · headingLevel",
-        "h1 = Heading/1 by default (Figma Master-Layout); headingLevel 2 = Heading/2 — the style follows the level"
+        "h1 = Heading/1 by default (Figma Master-Layout); headingLevel 2 = Heading/2 for a page title inside a tab or an embedded view under the app's h1 (the ladder row \"Page title inside a tab\")"
       ],
       [
         "Above",
@@ -6189,6 +6221,8 @@
     "keyboard": [],
     "do": [
       "Use exactly one PageHeader (one h1) per page.",
+      "Set document.title to the title, then the app name (\"Invoices · Acme\"), whenever the page changes (WCAG 2.4.2).",
+      "Start the page's sections at h2 Heading/4; a card right under the PageHeader takes an h2 in Heading/Subheading.",
       "Order actions Tertiary first, Primary last, and keep one Primary (harness: page-header/one-primary).",
       "Name Back after the destination (\"Projects\"), with the chevron icon; it is visible text (an icon-only TopNavigation Back is labelled \"Back\").",
       "Keep the description to one or two sentences."
@@ -6199,7 +6233,7 @@
       "Don't repeat the title in the description."
     ],
     "a11y": [
-      "The title is a real h1 (headingLevel 2 only when the page already has an h1).",
+      "The title is a real h1 (headingLevel 2 only for a page title inside a tab, when the page already has an h1).",
       "Back is a button named after its destination; the chevron is decorative."
     ],
     "content": [

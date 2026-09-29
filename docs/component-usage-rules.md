@@ -122,8 +122,12 @@ The three levels map to the three text roles:
 | Level | Role | Use for |
 |---|---|---|
 | `…-strongest` | Primary | titles, headings, main content, values, primary icons |
-| `…-base` | Secondary | body copy, descriptions, secondary icons |
-| `…-light` | Tertiary | captions, meta, helper text, timestamps, quiet icons |
+| `…-base` | Secondary | body copy, descriptions, Body/Small meta, list group headers (Body/Small/Bold kickers), secondary icons |
+| `…-light` | Tertiary | Caption text (always Light), helper text, timestamps, quiet icons |
+
+Titles and headings are Strongest, with one exception: a list group header is a kicker label in Body/Small/Bold and
+the Base tone, one heading level below the nearest heading above. Group labels inside a Menu, Popover, Select or
+Listbox are labels, not headings. Emphasise with weight; use tone to quiet secondary text, never a bigger size.
 
 ### Colour families: Accent, Info, Positive, Negative, Warning, Support/*
 - `…-strongest` and `…-base` are **regular text**: the Primary and Secondary levels, placed on the same colour's **Subtle** background (subtle Badge, Tag, Alert, callout).
@@ -166,8 +170,10 @@ Harness rules:
 - `content/lights-no-light-text` (error)
 - `content/title-is-strongest` (warn)
 - `content/colour-light-is-highlight` (warn)
+- `heading/title-not-light` (warn): h1–h3 titles never take Light; only a Body/Small/Bold group header uses Base.
 
-Details are in `docs/guidelines/content-colors.md`.
+Details are in `docs/guidelines/content-colors.md`. The heading ladder (levels, styles, the h1 rule) is on the
+platform's Typography › Content hierarchy page and in `docs/guidelines/text.md`.
 
 ## 8. Background layers: Canvas → Surface → other colours → Container → Popover
 

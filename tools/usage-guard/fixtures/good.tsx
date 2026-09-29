@@ -90,8 +90,13 @@ export const Good = () => <>
   <div style={{ display: "flex", flexDirection: "column" }}><Button level="tertiary" size="sm" style={{ alignSelf: "flex-start" }} onClick={simulate}>Simulate an upload</Button></div>
   <div className="pe-stack"><Button level="primary" size="sm" style={{ justifySelf: "start" }} onClick={reserve}>Reserve</Button></div>
   <div style={{ display: "flex", gap: 8 }}><Button level="tertiary" size="sm" onClick={cancel}>Cancel</Button></div>
-  <Text style="Heading/4">Invoices</Text>
-  <Table aria-label="Invoices" columns={[]} rows={[]} getRowId={(r) => r.id} />
+  {/* A table that is its own section: an h2 Heading/4 above it, and the Table points to it. */}
+  <Heading level={2} textStyle="Heading/4" id="invoices-title">Invoices</Heading>
+  <Table aria-labelledby="invoices-title" columns={[]} rows={[]} getRowId={(r) => r.id} />
+  {/* The Heading default for level 2 is Heading/4 (decision 7); a description paragraph above a table is not a title. */}
+  <Heading level={2} id="payments-title">Payments</Heading>
+  <Text tone="base">Payments from the last 30 days.</Text>
+  <Table aria-labelledby="payments-title" columns={[]} rows={[]} getRowId={(r) => r.id} />
   <TopNavigation title="Files" trailing={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-dots-horizontal-line", label: "More", onClick: openMore }]} />
   <BottomNavigation value="a" onValueChange={go} items={[{ id: "a", label: "Home", icon: "icon-home-smile-line" }, { id: "b", label: "Search", icon: "icon-search-medium-line" }, { id: "c", label: "Me", icon: "icon-user-line" }]} />
   <BottomSheet open={open} onOpenChange={setOpen} type="action" title="Share" items={shareItems} onSelect={share} />
@@ -140,7 +145,10 @@ export const Good = () => <>
   <VisuallyHidden as="a" href="#main" focusable>Skip to main content</VisuallyHidden>
   <VisuallyHidden>Actions</VisuallyHidden>
   <Heading level={1}>Billing</Heading>
-  <Heading level={2} textStyle="Heading/Subheading">Current plan</Heading>
+  <Heading level={2} textStyle="Heading/4">Current plan</Heading>
+  {/* The compact app bar title is the screen's h1 in its bar style; a list group header (kicker) may use Base. */}
+  <Text as="h1" textStyle="Body/Extra/Bold" className="zen-top-nav__title">Order #1042</Text>
+  <Heading level={2} textStyle="Body/Small/Bold" tone="base">Pinned</Heading>
   <DescriptionList items={[{ term: "Subtotal", description: "$311.90" }, { term: "Total", description: "$321.90", emphasis: true }]} />
   <EmptyState title="No members match" illustration={false} secondaryAction={{ label: "Clear filters", onClick: reset }} />
   <TableActions><IconButton onClick={act} appearance="flat" level="primary" aria-label="Actions for Ava" icon={<Icon name="icon-dots-horizontal-line" />} /></TableActions>

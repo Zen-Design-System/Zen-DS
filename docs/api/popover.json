@@ -23,7 +23,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Semantic group heading for the options (for example `Component Size`), not the current selection. It also names the option list.",
+          "description": "Label above the options (Figma .Primitives/Popover/Label, for example `Component Size`), not the current selection. It names\n the option list (aria-labelledby); it is a label, not a heading, so a popover never adds to the page outline.",
           "deprecated": null
         },
         {
@@ -330,7 +330,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Heading above the options. Default: the locale's \"Select an option or create one\".",
+          "description": "Label above the options (names the option list; not a heading). Default: the locale's \"Select an option or create one\".",
           "deprecated": null
         },
         {

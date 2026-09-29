@@ -153,7 +153,7 @@
           "type": "2 | 3 | 4",
           "required": false,
           "default": "3",
-          "description": "Heading level of the title in the page outline (default 3: a card inside an h2 section). Use 2 when the card sits\n directly under the page title. The look stays Heading/Subheading — the level follows the outline, not the size.",
+          "description": "Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2\n when the card sits directly under the page h1). The look stays Heading/Subheading — the level follows the outline,\n not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title.",
           "deprecated": null
         },
         {
@@ -209,7 +209,7 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "The chart, or an EmptyState before there is data (keep the card title; the Empty State is set one level below it).",
           "deprecated": null
         },
         {

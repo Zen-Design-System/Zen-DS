@@ -89,11 +89,13 @@ export function SettingsFormTemplate() {
     >
       <Container maxWidth="md">
         <Stack gap="xl" paddingY="lg">
+          {/* The page's h1 (Heading/1). Your router also sets document.title to it: "Profile · Acme". */}
           <PageHeader title="Profile" description="How you appear to your team and how we reach you." />
 
           <Box surface="surface" border="pale" radius="xl" padding="xl">
             <Form form={form}>
               <Stack gap="md">
+                {/* A card title is always Heading/Subheading; it is an h2 because the card sits right under the h1. */}
                 <Heading level={2} textStyle="Heading/Subheading">Personal details</Heading>
                 <Grid columns={{ mobile: 1, tablet: 2, desktop: 2 }} gap="md">
                   <InputField label="Full name" autoComplete="name" {...form.field("name")} />

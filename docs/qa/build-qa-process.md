@@ -69,10 +69,16 @@ quả "chưa chuẩn" đến từ việc bỏ qua bước này. Có cần spec c
 - Luôn là một text style Figma: `<Text textStyle>` / `<Heading level textStyle>` hoặc `.zen-type-*`, hoặc **đủ bộ**
   token của một style (size + line height + tracking cùng một style, weight từ `--zen-emphasis-font-weight-*`). Không
   set font-size thô, không lấy nửa style, không `calc()` từ token chữ.
-- h1 = Heading/1 = tiêu đề trang, chỉ một lần. Section desktop: h2 Heading/4. Tiêu đề card/widget: h3
-  Heading/Subheading. Tiêu đề hàng: Body/Base/Medium. Meta: Body/Small hoặc Caption, tone nhạt hơn. Con số (Display/4,
-  Heading/2) không phải heading. Tiêu đề overlay là h2, không bao giờ Heading/1.
-- Tiêu đề dùng Strongest. Nhấn mạnh bằng weight hoặc tone, **không đổi cỡ chữ**. Cấp heading chọn theo outline.
+- Mỗi trang hoặc màn hình có đúng một h1, luôn hiện diện, gọi tên trang và khớp `document.title`. Tiêu đề hiển thị lớn
+  (PageHeader, large title trên phone) là Heading/1; tiêu đề compact trên app bar là h1 và giữ style của thanh
+  (Body/Extra/Bold). Section: h2 Heading/4 (kể cả bảng là một section riêng). Tiêu đề card/widget: thấp hơn heading gần
+  nhất một cấp, luôn Heading/Subheading. Tiêu đề hàng: Body/Base/Bold; unread thêm dot hoặc Badge kèm chữ "Unread" ẩn.
+  Header nhóm của list: thấp hơn một cấp, Body/Small/Bold, tone Base (kicker). Meta Body/Small tone Base, Caption tone
+  Light. Con số (Display/4, Heading/2) không phải heading. Tiêu đề overlay mặc định h2 (chấp nhận h1), không bao giờ
+  Heading/1.
+- Tiêu đề dùng Strongest (trừ kicker). Nhấn mạnh bằng weight, làm dịu bằng tone, **không đổi cỡ chữ**. Cấp heading chọn
+  theo outline: đi xuống từng cấp, đi lên được nhảy (h4 → h2); trong một vùng nội dung, heading không to hơn heading
+  chứa nó.
 - Tiêu đề và mô tả ngay dưới không được trông giống nhau. Một example nên có 3–5 text style.
 
 <a id="density"></a>
@@ -168,7 +174,7 @@ Các bước:
    | --- | --- | --- |
    | `scale` | lỗi | chữ không khớp text style Zen nào (size/line height/tracking/weight/family), ở bất kỳ đâu trong preview; markup example có padding, gap, radius hoặc màu ngoài token của mode hiện tại |
    | `roles` | cảnh báo | markup example dùng token sai role (token background làm màu chữ…) |
-   | `hierarchy` | lỗi | h1 không phải Heading/1; heading nhỏ hơn body bên dưới; tiêu đề overlay không phải h2 hoặc là Heading/1 |
+   | `hierarchy` | lỗi | h1 nội dung không phải Heading/1 (thanh tiêu đề TopNavigation được miễn); heading họ Heading/* nhỏ hơn đoạn chữ ngay bên dưới (nhãn nhóm Body/Small/Bold được miễn); tiêu đề overlay dùng Heading/1 (h1 hay h2 đều được) |
    | `rhythm` | cảnh báo | tiêu đề và mô tả giống hệt nhau; tiêu đề không Strongest; dòng mang style Heading mà không phải heading (và không phải con số); quá 7 text style trong một example; góc lồng nhau không đồng tâm; hàng list bị inset hai lần |
    | `density` | lỗi | phần tử Zen bị nội dung tràn ra khi chuyển Comfortable, và lỗi overflow/size/edge mới ở Comfortable |
    | `fit` | lỗi | chữ rộng hơn box của chính nó (label, nút, dòng chữ) mà không có ellipsis, không cuộn: chữ đè sang phần tử bên cạnh hoặc bị cắt ngang, kể cả khi tổ tiên có `overflow: hidden` (check `overflow` bỏ qua vùng đó). Chạy ở Compact và, với `--density`, ở Comfortable. Không báo: vùng cuộn, chữ có ellipsis, mép mờ (mask), chữ chỉ cho screen reader, `data-audit-skip-quality`. Sửa: cho item giữ bề rộng (`flex-shrink: 0`, `min-width: auto`), cho xuống dòng, ellipsis, hoặc cho hàng cuộn ngang |

@@ -21,7 +21,7 @@ Show details, filters or an edit form next to the page without leaving it.
 | --- | --- | --- |
 | Type | `type` | modal (floating over a scrim, focus trapped) · standard (docked, non-modal) |
 | Size | `size` | default 440 · small 360 |
-| Header | `title · description · icon` | Heading/3 + close; caption Body/Base/Regular; modal icon 44px |
+| Header | `title · headingLevel · description · icon` | title (h2 by default, h1 also accepted) in Heading/3, or Heading/4 under the 44px icon in the modal type, never Heading/1; a close button; caption Body/Base/Regular |
 | Contents | `children` | children stretch to the panel width |
 | Actions | `primaryAction · secondaryAction` | Modal/Actions: Tertiary + Primary, right-aligned |
 
@@ -83,6 +83,7 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 
 ## Content
 - Title names the object or task ("Edit project", "Filters").
+- Headings inside the panel start one level below its title (h3 under the default h2 title).
 
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |

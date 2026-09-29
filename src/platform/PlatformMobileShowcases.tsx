@@ -18,7 +18,7 @@ import { ChartCard, LineChart, StackBarChart } from "../components/Chart";
 import { MetricCard } from "../components/MetricWidget";
 import { EmptyState } from "../components/EmptyState";
 import { Thumbnail } from "../components/Image";
-import { plural } from "../components/Text";
+import { Heading, plural } from "../components/Text";
 import { InlineMessage } from "../components/InlineMessage";
 import { SidePanel } from "../components/SidePanel";
 import { Table, TableText } from "../components/Table";
@@ -153,16 +153,16 @@ function TopNavProfileExample() {
   const [setting, setSetting] = useState<string | null>(null);
   const close = (open: boolean) => { if (!open) setSheet(null); };
   return (
-    <PlatformPhone canvas="alt" label="Profile home" header={<TopNavigation type="alt" largeTitle="Good morning, Ava" headingLevel="h2" leading={<Avatar size="medium" theme="photo" background="subtle" src={mobilePeople.ava.src} alt="Ava Chen" />}
+    <PlatformPhone canvas="alt" label="Profile home" header={<TopNavigation type="alt" largeTitle="Good morning, Ava" leading={<Avatar size="medium" theme="photo" background="subtle" src={mobilePeople.ava.src} alt="Ava Chen" />}
       trailing={[{ icon: "icon-bell-01-line", label: seen ? "Notifications" : "Notifications, 3 new", dot: !seen, onClick: () => { setSheet("notifications"); setSeen(true); } }, { icon: "icon-settings-01-line", label: "Settings", onClick: () => setSheet("settings") }]} />}>
       <div className="pe-stack" style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px) var(--zen-spacing-padding-xlarge, 24px)", gap: "var(--zen-spacing-gap-large, 24px)" }}>
         <MetricCard label="Tasks due today" value="7" icon="icon-check-circle-line" size="large" trend={{ direction: "positive", label: "2 fewer than yesterday" }} />
         <section className="pe-stack" aria-label="Today">
-          <strong className={`pe-text pe-text--strongest ${typographyStyles["Body/Small/Bold"]}`}>Today</strong>
+          <Heading level={2} textStyle="Body/Small/Bold" tone="base">Today</Heading>
           <Card spacing="small" className="pe-list-card"><TaskList /></Card>
         </section>
         <section className="pe-stack" aria-label="Recent photos">
-          <strong className={`pe-text pe-text--strongest ${typographyStyles["Body/Small/Bold"]}`}>Recent photos</strong>
+          <Heading level={2} textStyle="Body/Small/Bold" tone="base">Recent photos</Heading>
           <PhotoFeed />
         </section>
       </div>
@@ -742,7 +742,7 @@ function ChartEmptyExample() {
     <ChartCard title="Weekly sign-ups">
       {connected
         ? <LineChart aria-label="Weekly sign-ups" data={[["W1", 12], ["W2", 19], ["W3", 15], ["W4", 23]].map(([label, value]) => ({ label: String(label), value: Number(value) }))} format={(v) => `${v}`} height={220} />
-        : <EmptyState illustration={false} title="No data yet" primaryAction={{ label: "Connect analytics", onClick: () => setConnected(true) }}>Sign-ups appear here after the first day of tracking.</EmptyState>}
+        : <EmptyState illustration={false} headingLevel={4} title="No data yet" primaryAction={{ label: "Connect analytics", onClick: () => setConnected(true) }}>Sign-ups appear here after the first day of tracking.</EmptyState>}
     </ChartCard>
   );
 }
@@ -812,7 +812,7 @@ export const mobileExamples: Partial<Record<PlatformPage, ExampleDef[]>> = {
   <InputField label="To" value={to} onValueChange={setTo} data-autofocus="" />
   <TextAreaField label="Message" value={text} onValueChange={setText} />
 </BottomSheet>` },
-    { title: "Home with avatar", description: "Alt background on an Alt canvas; a visual leading slot (Avatar) and a notification dot on the trailing action. The bell opens the notifications and clears the dot; Settings opens a settings sheet.", render: () => <TopNavProfileExample />, code: `<TopNavigation type="alt" headingLevel="h2" largeTitle="Good morning, Ava"
+    { title: "Home with avatar", description: "A tab root: the large title is the screen's h1 (Heading/1) and the group labels under it are h2. Alt background on an Alt canvas; a visual leading slot (Avatar) and a notification dot on the trailing action. The bell opens the notifications and clears the dot; Settings opens a settings sheet.", render: () => <TopNavProfileExample />, code: `<TopNavigation type="alt" largeTitle="Good morning, Ava"
   leading={<Avatar size="medium" theme="photo" src={ava} alt="Ava Chen" />}
   trailing={[
     { icon: "icon-bell-01-line", label: seen ? "Notifications" : "Notifications, 3 new", dot: !seen, onClick: () => { setSheet("notifications"); setSeen(true); } },
@@ -942,9 +942,9 @@ const { label, series, data } = budgetViews[view];
   <StackBarChart key={view} aria-label={\`Budget by \${label.toLowerCase()} and quarter\`} series={series} data={data} format={money} />
 </ChartCard>` },
     { title: "Inline trend", description: "A bare LineChart inside a page section with a status Badge.", render: () => <ChartInlineExample />, code: `<LineChart aria-label="Storage used over six months, in GB" data={storage} format={(v) => \`\${v} GB\`} height={180} />` },
-    { title: "No data yet", description: "Before there is data the card keeps its title and shows an Empty State with the action that produces data — never an empty grid.", render: () => <ChartEmptyExample />, code: `<ChartCard title="Weekly sign-ups">
+    { title: "No data yet", description: "Before there is data the card keeps its title and shows an Empty State with the action that produces data — never an empty grid. The Empty State title sits one level below the card title (h4 under the h3).", render: () => <ChartEmptyExample />, code: `<ChartCard title="Weekly sign-ups">
   {points.length ? <LineChart aria-label="Weekly sign-ups" data={points} />
-    : <EmptyState illustration={false} title="No data yet" primaryAction={{ label: "Connect analytics", onClick: connect }}>…</EmptyState>}
+    : <EmptyState illustration={false} headingLevel={4} title="No data yet" primaryAction={{ label: "Connect analytics", onClick: connect }}>…</EmptyState>}
 </ChartCard>` },
   ],
 };

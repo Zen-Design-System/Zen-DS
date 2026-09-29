@@ -312,7 +312,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Popover/Label heading above the options (names the group, not the value).",
+          "description": "Popover/Label above the options: it names the option list, not the value (a label, not a heading).",
           "deprecated": null
         },
         {
@@ -756,7 +756,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Heading of the option list. Default: the locale's \"Search and select\".",
+          "description": "Label above the option list (it names the list; not a heading). Default: the locale's \"Search and select\".",
           "deprecated": null
         },
         {
@@ -1128,7 +1128,7 @@
           "type": "string",
           "required": false,
           "default": null,
-          "description": "Popover/Label heading, e.g. \"Country code\". Also the button's accessible name prefix.",
+          "description": "Popover/Label above the options, e.g. \"Country code\" (a label, not a heading). Also the button's accessible name prefix.",
           "deprecated": null
         },
         {

@@ -36,7 +36,8 @@ function truncateStyle(truncate: TextProps["truncate"], style: CSSProperties | u
 }
 
 /**
- * Figma text styles with Zen's content colours. Paragraphs, labels and inline copy; titles use <Heading>.
+ * Figma text styles with Zen's content colours. Paragraphs, labels and inline copy; titles use <Heading>. Meta in
+ * Body/Small takes tone "base"; Caption is always tone "light".
  *
  *   <Text>Invite people to collaborate on this project.</Text>
  *   <Text textStyle="Body/Small/Regular" tone="base">Updated 2 min ago</Text>
@@ -64,21 +65,28 @@ export const Text = forwardRef<HTMLElement, TextProps>(function Text(
 export const headingLevels = [1, 2, 3, 4, 5, 6] as const;
 export type HeadingLevel = (typeof headingLevels)[number];
 
-/** Default Figma style per heading level (dashboard/popular/mobile typography modes resize them). */
+/**
+ * Default Figma style per heading level, following the Typography › Content hierarchy ladder: h1 page title Heading/1,
+ * h2 section Heading/4, h3 card or widget title Heading/Subheading, then Body/Extra/Bold and Body/Base/Bold. The
+ * dashboard/popular/mobile typography modes resize the styles; the mapping never changes a font size.
+ */
 const headingStyleByLevel: Record<HeadingLevel, TypographyStyleName> = {
   1: "Heading/1",
-  2: "Heading/2",
-  3: "Heading/3",
-  4: "Heading/4",
-  5: "Heading/Subheading",
+  2: "Heading/4",
+  3: "Heading/Subheading",
+  4: "Body/Extra/Bold",
+  5: "Body/Base/Bold",
   6: "Body/Base/Bold",
 };
 
 export interface HeadingProps extends Omit<HTMLAttributes<HTMLHeadingElement>, "color"> {
-  /** Document level (h1–h6): pick it from the page outline, not from the size. Default 2. */
+  /** Document level (h1–h6): pick it from the page outline, not from the size. Step down one level at a time (h1 → h2
+   *  → h3); going back up may jump (h4 → h2). Default 2. */
   level?: HeadingLevel;
-  /** Visual style; defaults to the level's style (1 → Heading/1 … 4 → Heading/4, 5 → Heading/Subheading). An h1 — the
-   *  page title — always stays Heading/1 (harness: heading/h1-is-heading-1); lower levels may take another style. */
+  /** Visual style; defaults to the level's ladder style (1 Heading/1 · 2 Heading/4 · 3 Heading/Subheading · 4
+   *  Body/Extra/Bold · 5–6 Body/Base/Bold). A content h1 (the page title shown large) stays Heading/1 (harness:
+   *  heading/h1-is-heading-1). Set textStyle when the kind of content asks for it: a card title is always
+   *  Heading/Subheading, whatever its level; a list group header (a kicker) is Body/Small/Bold in tone "base". */
   textStyle?: TypographyStyleName;
   tone?: TextTone;
   truncate?: boolean | number;
@@ -87,9 +95,13 @@ export interface HeadingProps extends Omit<HTMLAttributes<HTMLHeadingElement>, "
 }
 
 /**
- * A real heading (h1–h6) in a Figma text style. The level follows the page outline; the look can differ:
+ * A real heading (h1–h6) in a Figma text style. The level follows the page outline; the default look follows the
+ * ladder, and textStyle sets it by the kind of content. A page title (h1, Heading/1), a section (h2, Heading/4 by
+ * default) and a card title right under the page title (h2, always Heading/Subheading):
  *
- *   <Heading level={2} textStyle="Heading/Subheading">Team members</Heading>
+ *   <Heading level={1}>Billing</Heading>
+ *   <Heading level={2}>Invoices</Heading>
+ *   <Heading level={2} textStyle="Heading/Subheading">Current plan</Heading>
  */
 export const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(function Heading(
   { level = 2, textStyle, tone = "strongest", truncate, align, className, style, children, ...rest },

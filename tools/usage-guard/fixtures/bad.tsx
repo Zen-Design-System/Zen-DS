@@ -179,7 +179,14 @@ export const Bad = () => <>
   {/* expect: button/small-full-width */}
   <div className="pe-stack"><Button level="primary" size="sm" style={{ alignSelf: "flex-start" }} onClick={reserve}>Reserve</Button></div>
   {/* expect: table/title-heading-4 */}
-  <Text style="Body/Base/Bold">Invoices</Text>
+  <Text textStyle="Body/Base/Bold">Invoices</Text>
+  <Table aria-label="Invoices" columns={[]} rows={[]} getRowId={(r) => r.id} />
+  {/* A paragraph styled like a section title is still not a heading (not in the outline). */}
+  {/* expect: table/title-heading-4 */}
+  <Text textStyle="Heading/4">Invoices</Text>
+  <Table aria-label="Invoices" columns={[]} rows={[]} getRowId={(r) => r.id} />
+  {/* expect: table/title-heading-4 */}
+  <Heading level={2} textStyle="Heading/Subheading">Invoices</Heading>
   <Table aria-label="Invoices" columns={[]} rows={[]} getRowId={(r) => r.id} />
   {/* expect: top-navigation/max-two-trailing */}
   <TopNavigation title="Files" trailing={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, { icon: "icon-trash-line", label: "Delete", onClick: remove }]} />
@@ -253,6 +260,15 @@ export const Bad = () => <>
   <VisuallyHidden as="a" href="#main">Skip to main content</VisuallyHidden>
   {/* expect: heading/h1-is-heading-1 */}
   <Heading level={1} textStyle="Heading/3">Billing</Heading>
+  {/* A content h1 in a bar style: only the TopNavigation bar title (.zen-top-nav__title) keeps Body/Extra/Bold. */}
+  {/* expect: heading/h1-is-heading-1 */}
+  <h1 className={typographyStyles["Body/Extra/Bold"]}>Order #1042</h1>
+  {/* expect: heading/h1-is-heading-1 */}
+  <Text as="h1">Billing</Text>
+  {/* expect: heading/title-not-light */}
+  <Heading level={2} tone="light">Recent activity</Heading>
+  {/* expect: heading/title-not-light */}
+  <Heading tone="tertiary">Recent activity</Heading>
   {/* expect: description-list/one-emphasis */}
   <DescriptionList items={[{ term: "Subtotal", description: "$311.90", emphasis: true }, { term: "Total", description: "$321.90", emphasis: true }]} />
   {/* expect: icon/unknown-name */}

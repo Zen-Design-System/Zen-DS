@@ -6,7 +6,7 @@
     {
       "name": "TopNavigation",
       "file": "src/components/TopNavigation/TopNavigation.tsx",
-      "description": "Figma Top-Navigation/Mobile (12014:45167, page ❖ Top-Navigations): a 64px navigator bar (Top-Leading 44px action ·\ncentred Sub heading · Top-Trailing) over an optional 64px Expand-Heading (H1–H3 + one action) and a Control-Bar slot.\nThe OS status bar is not part of the component; leave room for it with `env(safe-area-inset-top)`.",
+      "description": "Figma Top-Navigation/Mobile (12014:45167, page ❖ Top-Navigations): a 64px navigator bar (Top-Leading 44px action ·\ncentred Sub heading · Top-Trailing) over an optional 64px Expand-Heading (H1–H3 + one action) and a Control-Bar slot.\nThe OS status bar is not part of the component; leave room for it with `env(safe-area-inset-top)`.\nOutline: the screen always exposes exactly one title heading (`headingLevel`, h1 by default) — the large title\n(Heading/1) while it shows, otherwise the bar title in its own Body/Extra/Bold style; never both.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -31,7 +31,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Heading-Text Type=Sub with Subheading / Leading (◆ Social conversation header): with either set, the bar title\nbecomes a left-aligned identity — a 48px `titleLeading` visual (Avatar / ChatAvatarGroup), gap 12, the title in\nBody/Extra/Bold over the subtitle in Caption/Regular (Neutral/Light), gap 2.",
+          "description": "Figma Heading-Text Type=Sub with Subheading / Leading (◆ Social conversation header): with either set, the bar title\nbecomes a left-aligned identity — a 48px `titleLeading` visual (Avatar / ChatAvatarGroup), gap 12, the title in\nBody/Extra/Bold over the subtitle in Caption/Regular (Neutral/Light), gap 2. The identity title is the screen's\nheading like any bar title; with `onTitleClick` the heading wraps the identity button.",
           "deprecated": null
         },
         {
@@ -71,7 +71,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Top-Heading-Text (Type=Sub, Body/Extra/Bold), centred in the navigator bar. Shown when collapsed or when there is no large title.",
+          "description": "Figma Top-Heading-Text (Type=Sub, Body/Extra/Bold), centred in the navigator bar. Shown when collapsed or when there\nis no large title, and then it is the screen's heading (`headingLevel`, h1 by default) in its bar style — a compact\nor pushed screen's h1 is its bar title, so content headings start at h2. While the large title shows, the bar copy\nis aria-hidden.",
           "deprecated": null
         },
         {
@@ -79,7 +79,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Expand-Heading (Heading/1–3) under the navigator bar.",
+          "description": "Figma Expand-Heading (Heading/1–3) under the navigator bar: a tab root's large title. While expanded it is the\nscreen's heading (h1 · Heading/1 by default); once `collapsed` it leaves and the bar title (`title`, else this text)\nbecomes the heading, so the screen keeps exactly one h1 before and after scrolling.",
           "deprecated": null
         },
         {
@@ -87,7 +87,7 @@
           "type": "\"h1\" | \"h2\" | \"h3\"",
           "required": false,
           "default": "\"h1\"",
-          "description": "",
+          "description": "Level of the screen title — the large title while it shows, else the bar title. Default h1: the title names the\nscreen (match `document.title` to it). Use h2 / h3 only for a navigation stack nested inside another screen that\nalready has its h1. The large title's style follows the level (h1 Heading/1 · h2 Heading/2 · h3 Heading/3); the\nbar title stays Body/Extra/Bold at every level.",
           "deprecated": null
         },
         {

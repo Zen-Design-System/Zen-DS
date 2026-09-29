@@ -21,7 +21,7 @@ Show how a value changes over time (Line) or how parts make up a total (Stack ba
 | --- | --- | --- |
 | Line | `LineChart data[] {label, value} · format · height` | Accent/Solid 2px line, Accent area, dashed Pale grid |
 | Stack bar | `StackBarChart data[] {label, values} · series[] {id, label, color} · showLegend` | Figma palette: Sector Primary, Secondary, Cyan, Violet, Yellow… |
-| Card | `ChartCard title · headingLevel · onOpen · ranges · range · onRangeChange` | Card Flat Medium: Heading/Subheading + chevron, Segmented; headingLevel 3 by default, 2 when the card sits directly under the page title |
+| Card | `ChartCard title · headingLevel · onOpen · ranges · range · onRangeChange` | Card Flat Medium: Heading/Subheading + chevron, Segmented; headingLevel is one below the nearest heading above: 3 by default (under a section h2), 2 when the card sits directly under the page title; the style stays Heading/Subheading |
 | Interaction | `initialIndex` | ←/→ Home/End move the active point; the Tooltip shows its value |
 
 ## Props
@@ -59,14 +59,14 @@ Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) �
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `title` (required) | `ReactNode` | — | Figma Header Label (Heading/Subheading). |
-| `headingLevel` | `2 \| 3 \| 4` | `3` | Heading level of the title in the page outline (default 3: a card inside an h2 section). Use 2 when the card sits directly under the page title. The look stays Heading/Subheading — the level follows the outline, not the size. |
+| `headingLevel` | `2 \| 3 \| 4` | `3` | Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2 when the card sits directly under the page h1). The look stays Heading/Subheading — the level follows the outline, not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title. |
 | `onOpen` | `() => void` | — | Figma Header trailing Button/Icon-Main XSmall Tertiary (chevron): opens the full report. |
 | `openLabel` | `string` | — | Accessible name of the open button. Default: the locale's “Open report”. |
 | `ranges` | `SegmentedOption[]` | — | Figma Segmented (Secondary) range switch. |
 | `range` | `string` | — |  |
 | `onRangeChange` | `(id: string) => void` | — |  |
 | `surface` | `"default" \| "alt"` | — |  |
-| `children` (required) | `ReactNode` | — |  |
+| `children` (required) | `ReactNode` | — | The chart, or an EmptyState before there is data (keep the card title; the Empty State is set one level below it). |
 | `className` | `string` | — |  |
 
 ### Types
@@ -104,6 +104,7 @@ type SegmentedState = "default" | "hover" | "focused" | "disabled"
 
 ## Content
 - Title names the measure ("Expense Trends", "Budget Allocation"); axis labels are short (Q1, Jan, W1).
+- Before there is data, keep the card title and put an EmptyState in the card: it takes the next heading level in Body/Extra/Bold, so it never outranks or outsizes the card title.
 
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |

@@ -46,7 +46,7 @@ function WithLastAction(args: Story["args"]) {
 
 export const Playground: Story = { render: (args) => <WithLastAction {...args} /> };
 
-/** Group headings and shortcuts for a longer menu. */
+/** Group labels (not headings) and shortcuts for a longer menu. */
 export const Groups: Story = {
   args: {
     trigger: <Button level="tertiary" size="sm" endIcon={<Icon name="icon-chevron-down-line" />}>Edit</Button>,

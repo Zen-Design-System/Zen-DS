@@ -125,7 +125,8 @@ export const PopoverItem = forwardRef<HTMLButtonElement, PopoverItemProps>(funct
 export interface PopoverProps extends Omit<HTMLAttributes<HTMLDivElement>, "children" | "onSelect"> {
   /** Whether the surface is shown. Default false: pass `open` (controlled, with `onOpenChange`) to show it. */
   open?: boolean;
-  /** Semantic group heading for the options (for example `Component Size`), not the current selection. It also names the option list. */
+  /** Label above the options (Figma .Primitives/Popover/Label, for example `Component Size`), not the current selection. It names
+   *  the option list (aria-labelledby); it is a label, not a heading, so a popover never adds to the page outline. */
   label?: ReactNode;
   /** Accessible name of the option list (role=listbox) when there is no visible `label`, e.g. "Sort by". */
   "aria-label"?: string;
@@ -273,7 +274,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
     if (next === -1) root.querySelector<HTMLElement>(".zen-popover__search input")?.focus();
     else options[next].focus();
   };
-  // The heading names the listbox, so it always gets an id (from the popover's own id, else a generated one).
+  // The label (not a heading) names the listbox, so it always gets an id (from the popover's own id, else a generated one).
   const labelId = `${divProps.id ?? `zen-popover-${generatedId.replace(/:/g, "")}`}-label`;
   return (
     <div
@@ -360,7 +361,7 @@ export type PopoverBulkActionProps = PopoverBunkActionProps;
  * with the Manual-Add-New item — "Create" followed by an Accent Badge that shows the typed
  * value. Options are filtered by the query; the create row appears only for a new value. */
 export interface PopoverManualAddNewProps extends Omit<PopoverProps, "label" | "search"> {
-  /** Heading above the options. Default: the locale's "Select an option or create one". */
+  /** Label above the options (names the option list; not a heading). Default: the locale's "Select an option or create one". */
   label?: ReactNode;
   /** Text of the create row, before the Badge with the typed value. Default: the locale's "Create". */
   createLabel?: ReactNode;

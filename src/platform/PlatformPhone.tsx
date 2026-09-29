@@ -31,12 +31,17 @@ const Battery = () => <svg width="28" height="13" viewBox="0 0 28 13" aria-hidde
  *   Bottom Navigation, Bottom Sheet and the Chat composer pad by them, so their own background runs under the status bar
  *   and the indicator instead of leaving a separate strip.
  * - It is the positioned container that `inline` overlays (BottomSheet) anchor to.
+ * - Its content renders in the Mobile typography mode (`data-typography="mobile"`, what `<ZenProvider typography="mobile">`
+ *   sets), whatever the platform's Typography chip says: a phone screen is shown at phone sizes (Heading/1 32, bar title
+ *   18, body 16). Pass `typography` to preview another mode on purpose.
  */
-export function PlatformPhone({ children, device = "iphone", canvas = "default", statusBar = "dark", homeIndicator, maxHeight, headerOverlay = false, label = "Phone preview", header, footer, className }: {
+export function PlatformPhone({ children, device = "iphone", canvas = "default", typography = "mobile", statusBar = "dark", homeIndicator, maxHeight, headerOverlay = false, label = "Phone preview", header, footer, className }: {
   children?: ReactNode;
   device?: PlatformDevice;
   /** default = Surface/Default · canvas = Canvas/Default (e.g. a Business chat) · alt · flat · media. */
   canvas?: "default" | "canvas" | "alt" | "flat" | "media";
+  /** Typography Configuration mode of the screen. Default mobile: phone examples show the phone type sizes. */
+  typography?: "mobile" | "popular" | "dashboard";
   /** Status bar tone: dark content on light screens, light content on media. */
   statusBar?: "dark" | "light";
   /** Home indicator tone; follows what sits under it (defaults to `statusBar`). iOS adapts it to the content below, e.g. dark over a light floating bar on a media screen. */
@@ -89,7 +94,7 @@ export function PlatformPhone({ children, device = "iphone", canvas = "default",
   const vars = { width: spec.width, height: spec.height, borderRadius: spec.radius, transform: scale < 1 ? `scale(${scale})` : undefined, "--zen-safe-area-top": `${spec.top}px`, "--zen-safe-area-bottom": `${spec.bottom}px`, "--platform-phone-header-height": `${headerHeight}px` } as CSSProperties;
   return (
     <div ref={fitRef} className="platform-phone-fit" style={{ width: spec.width * scale, height: spec.height * scale }}>
-      <div className={["platform-phone", className].filter(Boolean).join(" ")} data-device={device} data-canvas={canvas} data-footer={footer ? "true" : undefined} data-header-overlay={headerOverlay && header ? "true" : undefined} data-zen-overlay-root="" style={vars} role="group" aria-label={`${label} (${spec.label}, ${spec.width}×${spec.height})`}>
+      <div className={["platform-phone", className].filter(Boolean).join(" ")} data-device={device} data-canvas={canvas} data-typography={typography} data-footer={footer ? "true" : undefined} data-header-overlay={headerOverlay && header ? "true" : undefined} data-zen-overlay-root="" style={vars} role="group" aria-label={`${label} (${spec.label}, ${spec.width}×${spec.height})`}>
         {header ? <div ref={headerRef} className="platform-phone__header">{header}</div> : null}
         <div className="platform-phone__screen">{children}</div>
         {footer ? <div className="platform-phone__footer">{footer}</div> : null}

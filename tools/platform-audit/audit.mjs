@@ -12,8 +12,12 @@
  *   surfaces    a Surface/Default box whose backdrop is a Canvas/Alt page (the same colour) without a closed border (§11)
  *   sizes       a fixed-size visual (Avatar, Dock Icon, Icon) rendered off its declared size or out of square — stretched by a layout rule
  *   edges       text closer than 8px (sides) / 4px (top, bottom) to the inner edge of the box that visibly holds it — missing padding
- *   outline     heading outline per example (Typography › Content hierarchy): more than one h1, a skipped level going down
- *               (h1 → h3), or a heading larger than the heading it sits under
+ *   outline     heading outline per example (Typography › Content hierarchy): more than one h1 on a page (each phone frame is
+ *               its own screen), a skipped level going down (h1 → h3), or a heading larger than the heading it sits under
+ *               (inside one layer: the TopNavigation bar title, overlays and Sidebar/Drawer compare only within themselves)
+ *   outline-*   (warn, opt-in with --outline until seeded) page-like regions (screen:true examples, phone frames) without exactly one h1 (outline-h1) or whose
+ *               outline does not start at it (outline-start); a heading inside a card larger than the card's title
+ *               (outline-card); same-level sibling headings of one kind in different styles (outline-siblings)
  *   device      chat pieces that do not match their frame: a desktop ChatThread / ChatComposer in the phone, a mobile one in
  *               a desktop window (.pe-chat-desktop), chat examples outside any device frame, or the mobile hold on desktop
  *   typography  preview, guideline Do/Don't or portalled-overlay text (Dialog, Side Panel, Toast…) resolving the shell's Zen-Platform typography
@@ -25,9 +29,11 @@
  * Build-QA checks (opt-in; tools/platform-audit/quality-checks.mjs, run by `npm run qa`):
  *   scale       (--quality) text that is no Zen text style; example markup with padding / gap / radius / colour off the tokens
  *   roles       (--quality, warn) example markup using a token in the wrong role (background token as text colour…)
- *   hierarchy   (--quality) h1 ≠ Heading/1, a heading smaller than its body text, overlay titles that are not h2
- *   rhythm      (--quality, warn) flat title/description, title not Strongest, visual headings, > 6 text styles,
- *               non-concentric nested corners, list rows inset twice
+ *   hierarchy   (--quality) a content h1 ≠ Heading/1 (bar title and overlay titles exempt), an h2/h3 Heading/* smaller than
+ *               the body text under it, an overlay title styled Heading/1
+ *   rhythm      (--quality, warn) flat title/description, title not Strongest, other headings smaller than their body
+ *               text (group headers exempt), visual headings, > 7 text styles, non-concentric nested corners, list rows
+ *               inset twice
  *   density     (--density) Zen elements outgrown by their content, and new overflow/size/edge errors, at Comfortable
  *   fit         (--quality) text wider than its own box with no ellipsis and no scroll: it runs into its neighbours or is
  *               cut off, even inside an `overflow: hidden` ancestor (which `overflow` skips). With --density also at
@@ -65,7 +71,10 @@ const QUALITY = Boolean(arg("quality", false));
 const DENSITY = Boolean(arg("density", false));
 const BASELINE_FILE = path.join(root, "tools/platform-audit/quality-baseline.json");
 const BASELINE_UPDATE = arg("baseline-update", false); // true, or a comma list of kinds to rewrite
-const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "density", "fit", "contrast", "targets"]; // contrast + targets stay warnings; baselined so only NEW ones are listed
+// The outline-* warnings (2026-09-29) are opt-in until their baseline is seeded: --outline turns them on.
+const OUTLINE = arg("outline", false);
+const OUTLINE_KINDS = ["outline-h1", "outline-start", "outline-card", "outline-siblings"];
+const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "density", "fit", "contrast", "targets", "outline-h1", "outline-start", "outline-card", "outline-siblings"]; // contrast, targets and outline-* stay warnings; baselined so only NEW ones are listed
 const CSS = arg("css", null) ? fs.readFileSync(path.resolve(String(arg("css"))), "utf8") : null;
 if (CSS && BASELINE_UPDATE) { console.error("--css cannot be combined with --baseline-update: the injected CSS is not the page's real state."); process.exit(2); }
 const baseline = arg("no-baseline", false) ? {} : (() => { try { return JSON.parse(fs.readFileSync(BASELINE_FILE, "utf8")).keys ?? {}; } catch { return {}; } })();
@@ -86,7 +95,7 @@ const IGNORED_CONSOLE = /\[vite\]|Download the React DevTools|favicon|ResizeObse
 
 /** In-page checks, scoped to `scopeSel` (defaults to the whole platform). Runs in the browser. */
 function pageChecks({ scopeSel, mobile }) {
-  const out = { overflow: [], images: [], names: [], ids: [], nesting: [], targets: [], contrast: [], surfaces: [], edges: [], sizes: [], typography: [], device: [], outline: [] };
+  const out = { overflow: [], images: [], names: [], ids: [], nesting: [], targets: [], contrast: [], surfaces: [], edges: [], sizes: [], typography: [], device: [], outline: [], "outline-h1": [], "outline-start": [], "outline-card": [], "outline-siblings": [] };
   const scope = scopeSel ? document.querySelector(scopeSel) : document;
   if (!scope) return out;
   const visible = (el) => { const r = el.getBoundingClientRect(); const s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none" && !el.closest("[aria-hidden='true'], [inert], .zen-visually-hidden:not(:focus-within)"); };
@@ -284,22 +293,93 @@ function pageChecks({ scopeSel, mobile }) {
   for (const el of scope.querySelectorAll('.zen-chat-thread[data-device="desktop"] [data-holdable="true"]')) {
     if (visible(el)) { out.device.push(`${label(el)}: a desktop message uses the mobile hold (Hover toolbar + right-click menu instead)`); break; }
   }
-  // Outline: each example / playground preview reads as one page — at most one h1, levels step down one at a time, and a
-  // heading is never visually larger than the heading it sits under.
+  // Outline (Typography › Content hierarchy, review 2026-09-29). Each example / playground preview is read as pages: every
+  // phone frame is one screen, the rest of the region one more. Errors (outline): more than one h1 on a page (overlay
+  // titles not counted), a skipped level going down (h1 → h3; going back up may jump), a heading visually larger than the
+  // heading it sits under — compared inside one layer only: the TopNavigation bar title, an overlay and a fixed region
+  // (Sidebar, Drawer, Bottom Navigation) are layers of their own. Warnings: outline-h1 a page-like region (a screen:true
+  // example, i.e. a card with Full screen, or a phone frame) without exactly one h1 (a visually hidden h1 and the bar-title
+  // h1 count); outline-start its outline not starting at h1; outline-card a heading inside a card larger than the card's
+  // title; outline-siblings same-level siblings of one kind (sections, card titles, group headers) under one parent in
+  // different styles.
+  const HEADING = "h1, h2, h3, h4, h5, h6, [role='heading']";
+  const OVERLAY = "[role='dialog']:not(.pe-card), [role='alertdialog'], .zen-side-panel, .zen-bottom-sheet";
+  const FIXED = ".zen-sidebar, .zen-drawer, .zen-bottom-nav";
+  const CARD = ".zen-card, .zen-chart-card, .zen-metric-card";
+  const levelOf = (h) => Number(h.getAttribute("aria-level")) || (/^H[1-6]$/.test(h.tagName) ? Number(h.tagName[1]) : 2);
+  // In the outline (what a screen reader lists): visually hidden headings count, aria-hidden / display:none ones do not.
+  const inOutline = (h) => { const s = getComputedStyle(h); return s.display !== "none" && s.visibility !== "hidden" && !h.closest("[aria-hidden='true'], [inert], [hidden], .pth-outline"); };
+  const isBar = (h) => Boolean(h.closest(".zen-top-nav__bar") || h.matches(".zen-top-nav__title"));
+  const layerOf = (h) => (isBar(h) ? "bar" : h.closest(`${OVERLAY}, ${FIXED}`) ?? "page");
+  const headText = (h) => h.textContent.trim().replace(/\s+/g, " ").slice(0, 24);
+  const typeOf = (h) => {
+    let el = h; const w = document.createTreeWalker(h, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) if (n.textContent.trim()) { el = n.parentElement; break; }
+    const s = getComputedStyle(el); const size = parseFloat(s.fontSize);
+    const cls = [el, ...(el === h ? [] : [h])].map((x) => (typeof x.className === "string" ? x.className : "").match(/zen-type-([\w-]+)/)?.[1]).find(Boolean);
+    return { size, key: `${size}/${s.fontWeight}`, name: cls ?? `${size}px/${s.fontWeight}` };
+  };
+  const ids = new Map(); const idOf = (el) => ids.get(el) ?? ids.set(el, ids.size + 1).get(el);
+  const note = (kind, msg) => { if (!out[kind].includes(msg)) out[kind].push(msg); };
+  const screenCard = (region) => { const card = region.closest(".pe-card"); return Boolean(card && (card.matches("[data-screen='true']") || [...card.querySelectorAll(".pe-card__actions button")].some((b) => /full screen/i.test(b.textContent)))); };
   for (const region of scope.querySelectorAll(".pe-card__stage, .platform-example-panel .platform-example-row, .platform-example-panel .platform-mobile-preview")) {
-    const heads = [...region.querySelectorAll("h1, h2, h3, h4, h5, h6")].filter((h) => visible(h) && !h.closest(".pth-outline"));
-    if (!heads.length) continue;
-    const h1s = heads.filter((h) => h.tagName === "H1").length;
-    if (h1s > 1) out.outline.push(`${label(region)}: ${h1s} h1 in one example — one page title per page`);
-    const stack = [];
-    for (const h of heads) {
-      const level = Number(h.tagName[1]), size = parseFloat(getComputedStyle(h).fontSize);
-      const prev = stack[stack.length - 1];
-      if (prev && level > prev.level + 1) out.outline.push(`${label(region)}: "${h.textContent.trim().slice(0, 24)}" is h${level} right under h${prev.level} — don't skip a level`);
-      while (stack.length && stack[stack.length - 1].level >= level) stack.pop();
-      const parent = stack[stack.length - 1];
-      if (parent && size > parent.size + 0.5) out.outline.push(`${label(region)}: "${h.textContent.trim().slice(0, 24)}" (h${level}, ${size}px) is larger than its h${parent.level} "${parent.text}" (${parent.size}px)`);
-      stack.push({ level, size, text: h.textContent.trim().slice(0, 24) });
+    const phones = [...region.querySelectorAll(".platform-phone")];
+    const pages = [
+      ...phones.map((p) => ({ root: p, name: `${label(region)} › ${(p.getAttribute("aria-label") ?? "phone").replace(/\s*\(.*\)$/, "")}`, pageLike: true, skip: [] })),
+      { root: region, name: label(region), pageLike: !phones.length && screenCard(region), skip: phones },
+    ];
+    for (const pg of pages) {
+      const all = [...pg.root.querySelectorAll(HEADING)].filter((h) => inOutline(h) && !pg.skip.some((p) => p.contains(h)));
+      const heads = all.filter(visible);
+      if (!heads.length && !pg.pageLike) continue;
+      const titles = (list) => list.filter((h) => levelOf(h) === 1 && !h.closest(OVERLAY));
+      const h1s = titles(heads).length;
+      if (h1s > 1) note("outline", `${pg.name}: ${h1s} h1 on one ${pg.root === region ? "page" : "screen"} — one page title per page`);
+      const stack = [];
+      for (const h of heads) {
+        const level = levelOf(h), size = parseFloat(getComputedStyle(h).fontSize), layer = layerOf(h);
+        const prev = stack[stack.length - 1];
+        if (prev && level > prev.level + 1) note("outline", `${pg.name}: "${headText(h)}" is h${level} right under h${prev.level} — don't skip a level`);
+        while (stack.length && stack[stack.length - 1].level >= level) stack.pop();
+        const parent = stack[stack.length - 1];
+        if (parent && parent.layer === layer && size > parent.size + 0.5) note("outline", `${pg.name}: "${headText(h)}" (h${level}, ${size}px) is larger than its h${parent.level} "${parent.text}" (${parent.size}px)`);
+        stack.push({ level, size, layer, text: headText(h) });
+      }
+      // outline-h1 / outline-start: a page or screen names itself with exactly one h1, and its outline starts there.
+      if (pg.pageLike) {
+        const named = titles(all);
+        const first = all.find((h) => !h.closest(`${OVERLAY}, ${FIXED}`));
+        if (!named.length) note("outline-h1", `${pg.name}: no h1 — a page or screen exposes exactly one h1 that names it (PageHeader or TopNavigation large title in Heading/1; a compact bar title is the h1 in its bar style)${first ? `; the outline starts at h${levelOf(first)} "${headText(first)}"` : ""}`);
+        else if (named.length > 1 && h1s <= 1) note("outline-h1", `${pg.name}: ${named.length} h1 (${named.map((h) => `"${headText(h)}"`).join(", ")}) — exactly one h1 per page or screen, visually hidden ones included`);
+        if (first && levelOf(first) !== 1) note("outline-start", `${pg.name}: the outline starts at h${levelOf(first)} "${headText(first)}" — a page or screen starts at its h1 title and steps down from it`);
+      }
+      // outline-card: inside a card nothing outranks the card's own title (EmptyState h3 Heading/4 in a ChartCard h3 Subheading).
+      for (const card of pg.root.querySelectorAll(CARD)) {
+        const inCard = heads.filter((h) => card.contains(h) && layerOf(h) === "page");
+        const title = inCard[0]; if (!title) continue;
+        const ts = typeOf(title);
+        const over = inCard.slice(1).find((h) => typeOf(h).size > ts.size + 0.5);
+        if (over) note("outline-card", `${pg.name}: "${headText(over)}" (h${levelOf(over)}, ${typeOf(over).name} ${typeOf(over).size}px) is larger than its card's title "${headText(title)}" (h${levelOf(title)}, ${ts.name} ${ts.size}px) — inside a card nothing outranks the card title: one level below it in a smaller style, or let the title name it`);
+      }
+      // outline-siblings: same level, same parent, same kind of content → one style.
+      const groups = new Map(); const path = [];
+      for (const h of heads) {
+        const level = levelOf(h), layer = layerOf(h);
+        while (path.length && path[path.length - 1].level >= level) path.pop();
+        const parent = path[path.length - 1]?.el ?? null;
+        path.push({ level, el: h });
+        if (layer === "bar" || (layer !== "page" && layer.matches(FIXED))) continue;
+        const t = typeOf(h); const card = h.closest(CARD);
+        const kind = t.name === "body-small-bold" ? "group header" : card ? (heads.find((x) => card.contains(x)) === h ? "card title" : "card heading") : "section title";
+        const key = `${parent ? idOf(parent) : 0}|${layer === "page" ? "page" : idOf(layer)}|${level}|${kind}|${kind === "card heading" ? idOf(card) : ""}`;
+        (groups.get(key) ?? groups.set(key, []).get(key)).push({ h, t, kind, level, parent });
+      }
+      for (const list of groups.values()) {
+        const styles = [...new Map(list.map((x) => [x.t.key, x])).values()];
+        if (styles.length < 2) continue;
+        const [a, b] = styles;
+        note("outline-siblings", `${pg.name}: sibling h${a.level} ${a.kind}s${a.parent ? ` under "${headText(a.parent)}"` : ""} use ${styles.length} styles — "${headText(a.h)}" ${a.t.name}, "${headText(b.h)}" ${b.t.name}; the same kind of content takes one style${a.kind === "section title" ? " (section titles: Heading/4)" : a.kind === "card title" ? " (card titles: Heading/Subheading)" : ""}`);
+      }
     }
   }
   for (const [holder, { el, font, n }] of leaks) out.typography.push(`${label(el)}: ${describe(holder)} renders ${n} text node(s) in the platform typography (e.g. ${describe(el)}, ${font}) — its container needs the preview data-typography`);
@@ -307,7 +387,7 @@ function pageChecks({ scopeSel, mobile }) {
 }
 
 const sum = (r) => Object.values(r).reduce((n, list) => n + list.length, 0);
-const SEVERITY = { errors: "error", overflow: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", density: "error", fit: "error" };
+const SEVERITY = { errors: "error", overflow: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", density: "error", fit: "error" };
 
 async function run() {
   const browser = await chromium.launch();
@@ -438,6 +518,7 @@ async function run() {
       const key = `${id}@${width}${DARK ? "-dark" : ""}`;
       // Baseline: pre-existing Build-QA findings (quality-baseline.json) are reported apart and do not fail the run.
       let known = 0;
+      if (!OUTLINE) for (const kind of OUTLINE_KINDS) if (entry[kind]) entry[kind] = [];
       for (const kind of BASELINED) {
         if (!entry[kind]) continue;
         const seen = new Map(); const fresh = [];

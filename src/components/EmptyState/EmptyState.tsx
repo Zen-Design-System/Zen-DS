@@ -1,8 +1,8 @@
-import type { HTMLAttributes, ReactElement, ReactNode, Ref } from "react";
+import { createContext, useContext, type HTMLAttributes, type ReactElement, type ReactNode, type Ref } from "react";
 import { Button, type ButtonLevel } from "../Button";
 import type { IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
-import { typographyStyles } from "../../tokens/typography.generated";
+import { typographyStyles, type TypographyStyleName } from "../../tokens/typography.generated";
 import "./empty-state.css";
 import "../Icon/core";
 
@@ -17,9 +17,15 @@ export interface EmptyStateAction {
 export interface EmptyStateProps extends Omit<HTMLAttributes<HTMLElement>, "title"> {
   /** The root `<section>`. */
   ref?: Ref<HTMLElement>;
-  /** Figma Title (Heading/4). */
+  /** Figma Title (Heading/4 stand-alone; Body/Extra/Bold inside a titled card or at level 4 and deeper). */
   title: ReactNode;
-  /** Heading level of the title (default 3 → `<h3>`); only the tag changes, the text style stays Heading/4. */
+  /**
+   * Heading level of the title, from where the Empty State sits: one level below the nearest heading above. Default 3,
+   * or one below the card title inside a ChartCard (set for you). Stand-alone at level 2 or 3 the title keeps the Figma
+   * Heading/4. At level 4 and deeper, and always inside a ChartCard, it uses Body/Extra/Bold so it is never larger than
+   * the card title (Heading/Subheading) it sits under. In a Card you title yourself, pass the level below your title
+   * (4 under the usual h3 card title).
+   */
   headingLevel?: 2 | 3 | 4 | 5 | 6;
   /** Figma Caption (Body/Base/Regular, Content/Neutral/Light). */
   children?: ReactNode;
@@ -52,20 +58,33 @@ export function EmptyStateIllustration({ icon = "icon-user-circle-line" }: { ico
   );
 }
 
+type EmptyStateHeadingLevel = NonNullable<EmptyStateProps["headingLevel"]>;
+
+/**
+ * Provided by a titled card (ChartCard) around its content, with the level of the card title. An Empty State inside
+ * takes the next level and the Body/Extra/Bold title style. Internal: not exported from the package.
+ */
+export const EmptyStateCardContext = createContext<EmptyStateHeadingLevel | undefined>(undefined);
+
 /**
  * Figma Empty-State (6085:25796): 320px centred column — illustration (240), gap XSmall, then the content wrapper
  * (gap XLarge) of Title + Caption (gap 4) and the CTAs (full-width Primary + Tertiary, gap Small); padding-bottom 4XLarge.
+ * Inside a ChartCard the title sits one level below the card title in Body/Extra/Bold, so it never outranks or
+ * outsizes the card title (see `headingLevel`).
  */
-export function EmptyState({ ref, title, headingLevel = 3, children, illustration = true, icon, primaryAction, secondaryAction, className, ...rest }: EmptyStateProps) {
+export function EmptyState({ ref, title, headingLevel, children, illustration = true, icon, primaryAction, secondaryAction, className, ...rest }: EmptyStateProps) {
+  const cardLevel = useContext(EmptyStateCardContext);
   const art = illustration === true ? <EmptyStateIllustration icon={icon} /> : illustration || null;
   const hasActions = Boolean(primaryAction || secondaryAction);
-  const Heading = `h${headingLevel}` as "h2" | "h3" | "h4" | "h5" | "h6";
+  const level = headingLevel ?? (cardLevel === undefined ? 3 : (Math.min(cardLevel + 1, 6) as EmptyStateHeadingLevel));
+  const titleStyle: TypographyStyleName = cardLevel !== undefined || level >= 4 ? "Body/Extra/Bold" : "Heading/4";
+  const Heading = `h${level}` as "h2" | "h3" | "h4" | "h5" | "h6";
   return (
     <section {...rest} ref={ref} className={["zen-empty-state", className].filter(Boolean).join(" ")}>
       {art}
       <div className="zen-empty-state__body">
         <div className="zen-empty-state__content">
-          <Heading className={`zen-empty-state__title ${typographyStyles["Heading/4"]}`}>{title}</Heading>
+          <Heading className={`zen-empty-state__title ${typographyStyles[titleStyle]}`}>{title}</Heading>
           {children ? <p className={`zen-empty-state__caption ${typographyStyles["Body/Base/Regular"]}`}>{children}</p> : null}
         </div>
         {hasActions ? (

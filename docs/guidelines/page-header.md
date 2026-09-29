@@ -18,7 +18,7 @@ The top of an app page: breadcrumbs or Back, the h1 title with its meta and acti
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Title | `title · headingLevel` | h1 = Heading/1 by default (Figma Master-Layout); headingLevel 2 = Heading/2 — the style follows the level |
+| Title | `title · headingLevel` | h1 = Heading/1 by default (Figma Master-Layout); headingLevel 2 = Heading/2 for a page title inside a tab or an embedded view under the app's h1 (the ladder row "Page title inside a tab") |
 | Above | `breadcrumbs · eyebrow · back` | Breadcrumbs for nested pages; a short eyebrow; Back = { label, onClick } with the chevron |
 | Beside | `meta · actions` | status Badge / BadgeCounter; Tertiary buttons then at most one Primary |
 | Below | `description · tabs` | one or two sentences; Tabs for the page's sections |
@@ -52,6 +52,8 @@ interface PageHeaderBack { label: string; onClick: () => void; }
 
 ## ✅ Do
 - Use exactly one PageHeader (one h1) per page.
+- Set document.title to the title, then the app name ("Invoices · Acme"), whenever the page changes (WCAG 2.4.2).
+- Start the page's sections at h2 Heading/4; a card right under the PageHeader takes an h2 in Heading/Subheading.
 - Order actions Tertiary first, Primary last, and keep one Primary (harness: page-header/one-primary).
 - Name Back after the destination ("Projects"), with the chevron icon; it is visible text (an icon-only TopNavigation Back is labelled "Back").
 - Keep the description to one or two sentences.
@@ -62,7 +64,7 @@ interface PageHeaderBack { label: string; onClick: () => void; }
 - Don't repeat the title in the description.
 
 ## Accessibility
-- The title is a real h1 (headingLevel 2 only when the page already has an h1).
+- The title is a real h1 (headingLevel 2 only for a page title inside a tab, when the page already has an h1).
 - Back is a button named after its destination; the chevron is decorative.
 
 ## Content

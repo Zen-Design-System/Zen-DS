@@ -6,7 +6,7 @@
     {
       "name": "EmptyState",
       "file": "src/components/EmptyState/EmptyState.tsx",
-      "description": "Figma Empty-State (6085:25796): 320px centred column — illustration (240), gap XSmall, then the content wrapper\n(gap XLarge) of Title + Caption (gap 4) and the CTAs (full-width Primary + Tertiary, gap Small); padding-bottom 4XLarge.",
+      "description": "Figma Empty-State (6085:25796): 320px centred column — illustration (240), gap XSmall, then the content wrapper\n(gap XLarge) of Title + Caption (gap 4) and the CTAs (full-width Primary + Tertiary, gap Small); padding-bottom 4XLarge.\nInside a ChartCard the title sits one level below the card title in Body/Extra/Bold, so it never outranks or\noutsizes the card title (see `headingLevel`).",
       "deprecated": null,
       "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">",
       "props": [
@@ -23,15 +23,15 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "Figma Title (Heading/4).",
+          "description": "Figma Title (Heading/4 stand-alone; Body/Extra/Bold inside a titled card or at level 4 and deeper).",
           "deprecated": null
         },
         {
           "name": "headingLevel",
           "type": "2 | 3 | 4 | 5 | 6",
           "required": false,
-          "default": "3",
-          "description": "Heading level of the title (default 3 → `<h3>`); only the tag changes, the text style stays Heading/4.",
+          "default": null,
+          "description": "Heading level of the title, from where the Empty State sits: one level below the nearest heading above. Default 3,\nor one below the card title inside a ChartCard (set for you). Stand-alone at level 2 or 3 the title keeps the Figma\nHeading/4. At level 4 and deeper, and always inside a ChartCard, it uses Body/Extra/Bold so it is never larger than\nthe card title (Heading/Subheading) it sits under. In a Card you title yourself, pass the level below your title\n(4 under the usual h3 card title).",
           "deprecated": null
         },
         {

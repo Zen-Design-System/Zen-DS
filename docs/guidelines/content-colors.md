@@ -27,7 +27,7 @@ Text and icon colours share the Color/Content tokens, but the level depends on t
 
 ## ✅ Do
 - Pick the family first (neutral vs colour), then the level by role: Primary → Strongest, Secondary → Base, Tertiary (neutral only) → Light.
-- Keep titles and headings at Strongest in neutral families.
+- Keep titles and headings at Strongest in neutral families; a list group header in Body/Small/Bold (a kicker label) stays Base.
 - On a colour's Subtle background, set the text to Strongest (title) or Base (body) of the same colour and the icon to Light.
 - Use colour Light sparingly for the one thing that must pop (status icon, delta, inline hint).
 - In Lights-group components (Warning Badge/Alert, Accent text), keep the text at Base or Strongest and put the Light level on the icon only.

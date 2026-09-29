@@ -21,7 +21,7 @@ The mobile app bar: where you are (title), how to go back (leading) and the one 
 | --- | --- | --- |
 | Type | `type` | default · alt · default-blurring · alt-blurring · liquid-glass · default-overlay · liquid-overlay · compact · compact-alt · compact-overlay |
 | Margin | `margin` | comfortable (20) · compact (16) |
-| Titles | `title · largeTitle · headingLevel` | Sub (Body/Extra/Bold, centred) · Heading/1–3 expand heading |
+| Titles | `title · largeTitle · headingLevel` | Sub (Body/Extra/Bold, centred) · expand heading (h1 Heading/1; Heading/2–3 at h2/h3). Exactly one of them is the screen's heading, h1 by default: the large title while it shows, else the bar title in its bar style. h2/h3 only for a stack nested in a screen that has its h1 |
 | Actions | `leading · trailing[] · largeTitleAction` | 44px Nav-Action: Tertiary · Flat (compact) · Liquid Glass; dot = Noti |
 | Control bar | `controlBar` | Search / Segmented / Tabs slot (48px) |
 | Collapse | `collapsed · sticky` | fold the large title into the bar on scroll |
@@ -33,20 +33,20 @@ The mobile app bar: where you are (title), how to go back (leading) and the one 
 Generated from the TypeScript source; full JSON in `docs/api/top-navigation.json`.
 
 ### TopNavigation
-Figma Top-Navigation/Mobile (12014:45167, page ❖ Top-Navigations): a 64px navigator bar (Top-Leading 44px action · centred Sub heading · Top-Trailing) over an optional 64px Expand-Heading (H1–H3 + one action) and a Control-Bar slot. The OS status bar is not part of the component; leave room for it with `env(safe-area-inset-top)`.
+Figma Top-Navigation/Mobile (12014:45167, page ❖ Top-Navigations): a 64px navigator bar (Top-Leading 44px action · centred Sub heading · Top-Trailing) over an optional 64px Expand-Heading (H1–H3 + one action) and a Control-Bar slot. The OS status bar is not part of the component; leave room for it with `env(safe-area-inset-top)`. Outline: the screen always exposes exactly one title heading (`headingLevel`, h1 by default) — the large title (Heading/1) while it shows, otherwise the bar title in its own Body/Extra/Bold style; never both.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `type` | `"default" \| "alt" \| "default-blurring" \| "alt-blurring" \| "liquid-glass" \| "default-overlay" \| "liquid-overlay" \| "compact" \| "compact-alt" \| "compact-overlay"` | `"default"` |  |
 | `margin` | `"comfortable" \| "compact"` | `"comfortable"` |  |
-| `subtitle` | `ReactNode` | — | Figma Heading-Text Type=Sub with Subheading / Leading (◆ Social conversation header): with either set, the bar title becomes a left-aligned identity — a 48px `titleLeading` visual (Avatar / ChatAvatarGroup), gap 12, the title in Body/Extra/Bold over the subtitle in Caption/Regular (Neutral/Light), gap 2. |
+| `subtitle` | `ReactNode` | — | Figma Heading-Text Type=Sub with Subheading / Leading (◆ Social conversation header): with either set, the bar title becomes a left-aligned identity — a 48px `titleLeading` visual (Avatar / ChatAvatarGroup), gap 12, the title in Body/Extra/Bold over the subtitle in Caption/Regular (Neutral/Light), gap 2. The identity title is the screen's heading like any bar title; with `onTitleClick` the heading wraps the identity button. |
 | `titleLeading` | `ReactNode` | — |  |
 | `onTitleClick` | `() => void` | — | Makes the identity a button (open the profile / group info). |
 | `titleLabel` | `string` | — |  |
 | `trailingGroup` | `boolean` | `false` | Figma Nav-Action/Icon-Main with a trailing icon: the trailing actions share one Tertiary pill (e.g. audio + video call). |
-| `title` | `ReactNode` | — | Figma Top-Heading-Text (Type=Sub, Body/Extra/Bold), centred in the navigator bar. Shown when collapsed or when there is no large title. |
-| `largeTitle` | `ReactNode` | — | Figma Expand-Heading (Heading/1–3) under the navigator bar. |
-| `headingLevel` | `"h1" \| "h2" \| "h3"` | `"h1"` |  |
+| `title` | `ReactNode` | — | Figma Top-Heading-Text (Type=Sub, Body/Extra/Bold), centred in the navigator bar. Shown when collapsed or when there is no large title, and then it is the screen's heading (`headingLevel`, h1 by default) in its bar style — a compact or pushed screen's h1 is its bar title, so content headings start at h2. While the large title shows, the bar copy is aria-hidden. |
+| `largeTitle` | `ReactNode` | — | Figma Expand-Heading (Heading/1–3) under the navigator bar: a tab root's large title. While expanded it is the screen's heading (h1 · Heading/1 by default); once `collapsed` it leaves and the bar title (`title`, else this text) becomes the heading, so the screen keeps exactly one h1 before and after scrolling. |
+| `headingLevel` | `"h1" \| "h2" \| "h3"` | `"h1"` | Level of the screen title — the large title while it shows, else the bar title. Default h1: the title names the screen (match `document.title` to it). Use h2 / h3 only for a navigation stack nested inside another screen that already has its h1. The large title's style follows the level (h1 Heading/1 · h2 Heading/2 · h3 Heading/3); the bar title stays Body/Extra/Bold at every level. |
 | `leading` | `TopNavigationAction \| ReactNode` | — | Figma Top-Leading: an action (usually Back) or a visual (e.g. an Avatar). |
 | `trailing` | `TopNavigationAction[]` | `[]` | Figma Top-Trailing: up to two actions. |
 | `largeTitleAction` | `TopNavigationAction` | — | Figma Expand-Trailing: one action beside the large title. |
@@ -82,7 +82,9 @@ interface TopNavigationAction { icon: IconName | ReactElement; label: string; on
 
 ## ✅ Do
 - Match the type to the page Canvas: Default on Surface, Alt on an Alt canvas, Compact on dense detail screens, an overlay type only on media.
-- Use a large title on root screens and collapse it into the bar when the content scrolls.
+- Use a large title on root screens (tab roots use largeTitle) and collapse it into the bar when the content scrolls.
+- Let the title be the screen's h1 and start the content headings at h2: the large title (Heading/1) on a root screen, the compact bar title (Body/Extra/Bold) on a child screen and once the large title collapses. Don't add a second, hidden h1.
+- Set document.title to the screen title, then the app name, on every screen (WCAG 2.4.2).
 - Give every icon-only action a label; put a dot on the action (not the title) for unread states.
 - Keep at most two trailing actions (harness: top-navigation/max-two-trailing).
 - Draw Back with a left chevron (icon-chevron-left-line-medium, label "Back") on mobile and tablet (harness: navigation/back-chevron).
@@ -99,7 +101,7 @@ interface TopNavigationAction { icon: IconName | ReactElement; label: string; on
 - Don't keep two other trailing actions next to a searchAction; while collapsed the Search takes a slot (harness: top-navigation/max-two-trailing).
 
 ## Accessibility
-- Rendered as a `<header>`; the large title is a real heading (h1–h3) and the collapsed bar title is aria-hidden until the large title scrolls away.
+- Rendered as a `<header>`. The screen always exposes exactly one title heading (headingLevel, h1 by default): the large title while it shows, otherwise the bar title; while the large title shows, the bar copy is aria-hidden.
 - Nav-Actions are 44px buttons named by `label`; the Noti dot is decorative, so say it in the label ("Notifications, 3 new").
 
 ## Content

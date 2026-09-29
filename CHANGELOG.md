@@ -171,6 +171,12 @@ removed.
   - In a narrow frame the examples no longer squeeze the page to a few pixels next to the Sidebar.
 
 ### Changed
+- **Content hierarchy (2026-09-29, researched against 15+ design systems and WCAG):** every page and phone screen keeps
+  exactly one h1 (a compact TopNavigation bar title is the h1 in its bar style, also while collapsing);
+  `<Heading level>` defaults follow the ladder (2 → Heading/4, 3 → Subheading, 4 → Body/Extra/Bold); Accordion takes
+  `headingLevel` (its triggers sit inside headings); an EmptyState inside a ChartCard steps below the card title; group
+  labels in Menu, Popover and Select are labels, not headings; phone examples render in the Mobile typography mode. The
+  hierarchy checks accept list-group kickers and h1/h2 overlay titles and no longer flag the TopNavigation bar h1.
 - **Typography and colour from the 2026-09-28 Figma variables:** Dashboard and Mobile text styles have new sizes, line
   heights and tracking (Dashboard: Heading/1 28/36, Heading/3 22/28, Display/1 45/52, Caption 11/16, Label/Small 9;
   button labels are no longer tracked tighter); Popular is unchanged. In Light mode `Color/Content/Neutral/Base` text

@@ -36,7 +36,7 @@ Trước khi thêm example mới, kiểm tra trùng lặp: hai example cùng d�
   - `active` đánh dấu gói hiện tại; Badge Accent Subtle đánh dấu gói được đề xuất.
   - Mỗi card có một CTA `md` ghim ở đáy. Nhãn nói rõ việc sẽ xảy ra: "Upgrade to Pro" / "Switch to Starter" / "Manage plan".
   - Chu kỳ thanh toán chọn bằng Segmented Secondary.
-- **Danh sách chia nhóm**: mỗi nhóm là một `<section aria-labelledby>`, có heading (Body/Small/Bold, Strongest) và một `List` riêng được đặt tên.
+- **Danh sách chia nhóm**: mỗi nhóm là một `<section aria-labelledby>`, có header nhóm và một `List` riêng được đặt tên. Header nhóm là heading thấp hơn heading gần nhất phía trên một cấp (`h2` trên màn có `h1` là tiêu đề), Body/Small/Bold, tone **Base**: đây là nhãn kicker, không phải tiêu đề Strongest. Nhãn nhóm bên trong Menu, Popover, Select và Listbox là label, không phải heading.
 - **Thẻ số liệu**: MetricCard dùng nhiều theme DockIcon, và giá trị luôn được định dạng sẵn ("$1,680.68", "2.1%").
 - **Filter trên desktop**: Chip Advanced + Popover. Khi có nhiều filter, dùng "All filters" (Chip Advanced, `aria-haspopup="dialog"`) mở SidePanel. Không dùng Button.
 
@@ -111,10 +111,10 @@ Quy tắc layout:
 
 - Class của example dùng tiền tố `pe-`. **Grep `src/platform/platform.css` trước khi đặt tên**, vì class trùng sẽ thừa hưởng style lạ. Ví dụ `.pe-summary` đã có sẵn nên bảng tổng tiền chuyển sang `.pe-order-summary`.
 - Chỉ dùng token `--zen-*`; giá trị thô chỉ làm fallback trong `var()`.
-- Tiêu đề dùng màu Strongest (harness `content/title-is-strongest`).
+- Tiêu đề dùng màu Strongest (harness `content/title-is-strongest`). Ngoại lệ: header nhóm của list (Body/Small/Bold, kicker) dùng Base. Meta Body/Small dùng Base; Caption luôn dùng Light.
 - Typography của example luôn là typography của preview (Dashboard mặc định, theo chip Typography), **kể cả overlay**. Dialog, Side Panel, Toast, Tooltip và Popover đi qua `ZenPortal` vào `.official-portal-root`. Vùng này mang `data-typography` của preview, nên không bị font Zen-Platform (TASA Explorer) của khung platform lọt vào. Không `createPortal` ra ngoài vùng preview hay portal root, và không tự đặt font-family hay letter-spacing trong example. Audit `typography` sẽ bắt lỗi này.
 
-- Phân cấp nội dung theo Typography › Content hierarchy. Trang Master/Child (desktop) dùng `PageHeader` với `h1` Heading/1; section dùng `h2` Heading/4; tiêu đề card dùng `h3` Heading/Subheading. Màn Master trên phone dùng `largeTitle` làm `h1`; màn Child dùng `TopNavigation type="compact"`, nội dung bắt đầu từ `h2`. Con số không phải heading. Nhấn mạnh bằng độ đậm và tone, không tăng cỡ chữ. Cấp heading chọn theo outline, không theo kích thước; audit `outline` sẽ bắt lỗi.
+- Phân cấp nội dung theo Typography › Content hierarchy. Mỗi trang hoặc màn hình có đúng một `h1` luôn hiện diện, gọi tên trang và khớp `document.title`. Trang Master/Child (desktop) dùng `PageHeader` với `h1` Heading/1. Section dùng `h2` Heading/4. Tiêu đề card thấp hơn heading gần nhất phía trên một cấp (`h3` dưới section, `h2` ngay dưới tiêu đề trang) và luôn là Heading/Subheading. Màn Master trên phone dùng `largeTitle` làm `h1` (Heading/1). Ở màn Child, tiêu đề compact trên thanh `TopNavigation` chính là `h1` và giữ style của thanh (Body/Extra/Bold), nên nội dung bắt đầu từ `h2`. Con số không phải heading. Nhấn mạnh bằng độ đậm, làm dịu bằng tone, không đổi cỡ chữ. Cấp heading chọn theo outline, không theo kích thước: đi xuống từng cấp một, đi lên được nhảy (`h4` → `h2`). Audit `outline` sẽ bắt lỗi.
 
 ## 8. Code sample
 

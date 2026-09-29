@@ -58,7 +58,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [AI Chat](ai-chat.md) | `ai-chat/no-actions-while-streaming`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Chart](chart.md) | `chart/stack-needs-legend`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Layout (Stack, Grid, Box, Container)](layout.md) | `box/border-matches-action`, `layout/use-stack`, `interaction/no-noop-handler` |
-| [Text & Heading](text.md) | `heading/h1-is-heading-1`, `table/title-heading-4`, `text/use-text`, `copy/plural-count`, `interaction/no-noop-handler` |
+| [Text & Heading](text.md) | `heading/h1-is-heading-1`, `heading/title-not-light`, `table/title-heading-4`, `text/use-text`, `copy/plural-count`, `interaction/no-noop-handler` |
 | [App Shell](app-shell.md) | `app-shell/primary-in-top-bar`, `app-shell/nested`, `app-shell/breadcrumbs-once`, `app-shell/forced-layout`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Page Header](page-header.md) | `page-header/one-primary`, `interaction/no-noop-handler` |
 | [Form](form.md) | `form/actions-order`, `form/submit-button`, `form/toggle-outside-form`, `form-fieldset/needs-legend`, `form-fieldset/radio-kind`, `interaction/no-noop-handler` |

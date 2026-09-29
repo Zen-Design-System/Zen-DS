@@ -83,7 +83,7 @@ Also accepts `Omit<SelectHTMLAttributes<HTMLSelectElement>, "size">`.
 | `placeholder` | `string` | — | Shown (Content/Placeholder) while no option is selected, e.g. "Choose a role". With a placeholder and no `value` / `defaultValue`, nothing is preselected; without one the first option is selected, like a native select. |
 | `onFocus` | `FocusEventHandler<HTMLSelectElement>` | — | Focus entered the field (its trigger or option list) from outside. The event targets the native select (name, value). |
 | `onBlur` | `FocusEventHandler<HTMLSelectElement>` | — | Focus left the field — the trigger and its option list — as on a native select. The event targets the native select. |
-| `popoverLabel` | `ReactNode` | — | Popover/Label heading above the options (names the group, not the value). |
+| `popoverLabel` | `ReactNode` | — | Popover/Label above the options: it names the option list, not the value (a label, not a heading). |
 | `popoverSearch` | `boolean` | `false` | Adds the Popover Search row; options are filtered by the query. |
 | `popoverSearchPlaceholder` | `string` | — |  |
 | `readOnly` | `boolean` | `false` | Figma State=Read-Only: shows the value, keeps the chevron, never opens. |
@@ -156,7 +156,7 @@ Figma Input/Autocomplete-Field (1241:5616): Label, a wrapping Tag list (gap 4, T
 | `readOnly` | `boolean` | `false` | Figma State=View-Only: tags without Remove and no Add button. |
 | `disabled` | `boolean` | `false` |  |
 | `addLabel` | `ReactNode` | — | Text of the Add button. Default: the locale's "Add Item". |
-| `popoverLabel` | `ReactNode` | — | Heading of the option list. Default: the locale's "Search and select". |
+| `popoverLabel` | `ReactNode` | — | Label above the option list (it names the list; not a heading). Default: the locale's "Search and select". |
 | `searchPlaceholder` | `string` | — | Placeholder of the Search row. Default: the locale's "Search". |
 | `onCreate` | `(label: string) => string \| void` | — | Figma Popover/Manual-Add-New: create a value that isn't in `options`. Add the new option to `options` and return its id; the field then selects it as a Tag. |
 | `createLabel` | `ReactNode` | — |  |
@@ -222,7 +222,7 @@ Slot-compatible implementation of `.Primitives/Input/Leading-Trailing`. Three be
 | `options` | `InputLeadingTrailingOption[]` | — | Makes a labelled slot a picker: clicking it opens a Popover with these options (e.g. country code, unit, currency). |
 | `value` | `string` | — |  |
 | `onValueChange` | `(value: string, option: InputLeadingTrailingOption) => void` | — |  |
-| `popoverLabel` | `string` | — | Popover/Label heading, e.g. "Country code". Also the button's accessible name prefix. |
+| `popoverLabel` | `string` | — | Popover/Label above the options, e.g. "Country code" (a label, not a heading). Also the button's accessible name prefix. |
 | `align` | `"start" \| "end"` | `"end"` | Open the picker towards the start (leading) or end (trailing) of the field. |
 | `disabled` | `boolean` | `false` |  |
 | `interactive` | `boolean` | — | Whether the slot is clickable. Defaults to `true` for a labelled slot with `options` (picker) or any slot with `onClick` (action); otherwise `false` (decorative: a click focuses the field). Set it explicitly per use case. |
