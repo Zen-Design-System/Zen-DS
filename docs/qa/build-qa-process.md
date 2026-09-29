@@ -142,7 +142,12 @@ Phạm vi được tính như sau:
 - **Token** (`src/styles/tokens.css`, `tokens/source/**`, `src/tokens/**`): gate so custom property đã đổi với git
   HEAD, thêm mọi biến `--zen-*` alias tới chúng, tìm CSS component và platform đọc các tên đó, rồi kiểm các trang của
   những file ấy. Gate in ra danh sách trang consumer, hoặc báo không tìm thấy consumer và quay về bộ trang đại diện.
-  Gate chỉ nhắc `--all` với nguồn typography/spacing scale, `src/components/_shared` và shell platform.
+  Khi chỉ có giá trị token đổi, gate đi đường tắt: tokens:check, suite Figma của component dùng token, contrast (thêm
+  fit, tràn chữ, bo góc và Comfortable khi đổi kích thước) trên các trang dùng token; bỏ behaviour, smoke click và
+  TypeScript; chỉ bắt xem ảnh của trang component dùng token trực tiếp.
+- **Key ngôn ngữ** (`_shared/labels.ts`): chỉ kiểm trang của component đọc key vừa thêm hoặc đổi, không cần `--all`.
+- Gate chỉ nhắc `--all` với nguồn typography/spacing scale, logic `_shared` (scale, icon, context) và khung của chính
+  trang docs. Component thư viện như AppShell không phải khung trang docs.
 
 Các bước:
 

@@ -38,7 +38,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
-  INTERACTION_FOLDERS, REPRESENTATIVE, TOKEN_STYLE_FILES, allPages, auxKind, contractSuites, dirtyFiles, guidelineOwners,
+  INTERACTION_FOLDERS, LABELS_FILE, REPRESENTATIVE, TOKEN_STYLE_FILES, allPages, auxKind, contractSuites, dirtyFiles, guidelineOwners,
   guidelineSlugOf, isExampleSource, markPassed, pagesForEdit, pendingAux, pendingEdits, primaryPages, readLedger, sha1File,
   sheetsToReview, tokenScope, uiKind, writeLedger,
 } from "./lib.mjs";
@@ -126,6 +126,14 @@ if (!files.length && !aux.length && !pages.size) {
   process.exit(0);
 }
 const P = [...pages];
+// Token fast path: only token values changed (no scale token, no other UI file). Consumers pick the new values up by
+// themselves, so behaviour, smoke clicks and TypeScript cannot change; what can is contrast (colours) and fit, overflow
+// and concentric corners (sizes). Figma suites of the consumers and tokens:check still run.
+const TOKEN_ONLY = !ALL && !QUICK && Boolean(tokens && !tokens.error && tokens.changed.length && !tokens.scale.length) && uiFiles.length > 0 && uiFiles.every((f) => TOKEN_STYLE_FILES.includes(f));
+const TOKEN_SIZES = TOKEN_ONLY && [...tokens.changed, ...tokens.aliases].some((n) => /radius|spacing|size|padding|gap|margin|width|height|weight|--zen-dm-/.test(n));
+if (TOKEN_ONLY) notes.push(`token fast path: only token values changed — contrast${TOKEN_SIZES ? " + fit/overflow/corners (sizes changed, Comfortable too)" : ""} on the consumer pages; no behaviour probes, smoke clicks or TypeScript`);
+// _shared logic (scale, icon, context…) reaches every component; the label dictionary does not.
+const SHARED_LOGIC = files.some((f) => /^src\/components\/_shared\//.test(f) && f !== LABELS_FILE);
 say(`Zen Build-QA gate${QUICK ? " (quick)" : ""} — ${SESSION ? `session ${SESSION.slice(0, 8)}` : "manual"} · ${uiFiles.length} UI file(s)${aux.length ? ` · ${aux.length} tool/test/token file(s)` : ""} · pages: ${P.join(", ") || "(none)"}`);
 for (const n of notes) say(`  note: ${n}`);
 
@@ -153,7 +161,8 @@ const BACKLOG = "write one Backlog line (priority + pointer) in docs/context/HAN
 
 /* ── ① static ───────────────────────────────────────────────────────────────────────────────────────────────────── */
 say("\n① Static gates");
-{
+if (TOKEN_ONLY) step("static", "TypeScript", "skip", "token-only change");
+else {
   const r = run("npx", ["tsc", "--noEmit", "-p", "."]);
   step("static", "TypeScript", r.code === 0 ? "pass" : "fail", r.code === 0 ? "" : "type errors", r.code === 0 ? [] : tail(r.out, /error TS/));
 }
@@ -222,7 +231,7 @@ for (const [name, script, dir] of [["Usage-guard self-test", "tools/usage-guard/
 // the contract tooling, _shared or --all is in play.
 {
   const inScope = new Set([...compFolders, ...(tokens?.folders ?? [])]);
-  const everything = ALL || auxHas(/^tools\/figma-contract\//) || inScope.has("_shared");
+  const everything = ALL || auxHas(/^tools\/figma-contract\//) || SHARED_LOGIC;
   if (QUICK) step("static", "Figma contracts", "skip", "quick run");
   else if (everything) {
     const r = run(process.execPath, ["tools/figma-contract/run-all.mjs"], 900000);
@@ -250,7 +259,7 @@ if (!QUICK && fs.existsSync(path.join(root, "node_modules/.bin/vitest"))) {
   const hint = "npm test fails (after a deliberate a11y fix: ZEN_UPDATE_AXE=1 npm test -- tests/smoke)";
   const failRe = /FAIL|×|AssertionError|expected|Error:/;
   const counted = (out) => out.replace(/\x1b\[[0-9;]*m/g, "").match(/Test Files\s+([^\n]*)/)?.[1]?.trim() ?? "";
-  const full = ALL || auxHas(/^tests\//) || compFolders.has("_shared");
+  const full = ALL || auxHas(/^tests\//) || SHARED_LOGIC;
   const related = [...new Set([...files.filter((f) => /^src\/components\//.test(f)), ...(tokens?.consumers ?? []).map((c) => c.file).filter((f) => /^src\/components\//.test(f))])];
   if (full) {
     const r = run("npx", ["vitest", "run", "--reporter=dot"], 900000);
@@ -291,11 +300,13 @@ if (failFast) {
   say("\n② Runtime audit");
   const main = path.join(runDir, "audit.json");
   const args = ["tools/platform-audit/audit.mjs", `--url=${BASE}`, `--pages=${P.join(",")}`, `--out=${main}`, "--quality"];
-  if (QUICK) args.push("--viewports=1512", "--no-playground"); else args.push("--viewports=1512,390", "--smoke", "--density");
+  if (QUICK) args.push("--viewports=1512", "--no-playground");
+  else if (TOKEN_ONLY) args.push("--viewports=1512,390", ...(TOKEN_SIZES ? ["--density"] : []));
+  else args.push("--viewports=1512,390", "--smoke", "--density");
   const r = run(process.execPath, args, 1800000);
   const report = readAudit(main);
   if (!report) step("runtime", "Platform audit", "fail", `audit crashed (exit ${r.code})`, tail(r.out, /./).slice(-12));
-  else { const { errs, warns } = auditItems(report); const known = Object.values(report.baselined ?? {}).flatMap((k) => Object.values(k)).flat().length; step("runtime", `Platform audit ${QUICK ? "1512" : "1512 + 390 · smoke · quality · density"}`, errs.length ? "fail" : warns.length ? "warn" : "pass", `${errs.length} error(s), ${warns.length} new warning(s)${known ? `, ${known} baseline` : ""}`, [...errs, ...warns.map((w) => `⚠ ${w}`)]); }
+  else { const { errs, warns } = auditItems(report); const known = Object.values(report.baselined ?? {}).flatMap((k) => Object.values(k)).flat().length; step("runtime", `Platform audit ${QUICK ? "1512" : TOKEN_ONLY ? `1512 + 390 · quality${TOKEN_SIZES ? " · density" : ""} (token fast path)` : "1512 + 390 · smoke · quality · density"}`, errs.length ? "fail" : warns.length ? "warn" : "pass", `${errs.length} error(s), ${warns.length} new warning(s)${known ? `, ${known} baseline` : ""}`, [...errs, ...warns.map((w) => `⚠ ${w}`)]); }
   if (!QUICK) {
     const dark = path.join(runDir, "audit-dark.json");
     const d = run(process.execPath, ["tools/platform-audit/audit.mjs", `--url=${BASE}`, `--pages=${P.join(",")}`, "--viewports=1512", "--dark", "--no-playground", "--quality", `--out=${dark}`], 1800000);
@@ -305,7 +316,8 @@ if (failFast) {
 
     say("\n③ Behaviour");
     const script = path.join(root, "tools/platform-audit/behaviour.mjs");
-    if (!fs.existsSync(script)) step("behaviour", "Behaviour probes", "skip", "tools/platform-audit/behaviour.mjs is not installed yet");
+    if (TOKEN_ONLY) step("behaviour", "Behaviour probes", "skip", "token-only change: focus, keyboard and click behaviour cannot change");
+    else if (!fs.existsSync(script)) step("behaviour", "Behaviour probes", "skip", "tools/platform-audit/behaviour.mjs is not installed yet");
     else {
       const out = path.join(runDir, "behaviour.json");
       const b = run(process.execPath, [script, `--url=${BASE}`, `--pages=${P.join(",")}`, `--out=${out}`], 1800000);
@@ -369,6 +381,8 @@ if (!QUICK && serverUp && P.length && !failFast) {
   }
   // What the Stop hook will ask for: sheets whose content is new to this session, own pages first, 390 first, ≤ 12.
   review = sheetsToReview(root, SESSION ? readLedger(root, SESSION) : { reviewed: [] }, { sheets });
+  // Token fast path: the consumer components' own pages are the ones to look at; pages that only import them are optional.
+  if (TOKEN_ONLY) { const own = review.required.filter((s) => s.primary); if (own.length) { review.optional = [...review.required.filter((s) => !s.primary), ...review.optional]; review.required = own; } }
   const rest = [...review.optional, ...review.overwritten];
   step("visual", review.required.length ? `Contact sheets: open these ${review.required.length} (new content; own pages first, 390 before 1512)` : "Contact sheets", sheets.length ? "pass" : "warn",
     `${sheets.length} image(s)${rest.length ? ` · ${rest.length} optional` : ""}${review.unchanged.length ? ` · ${review.unchanged.length} unchanged since you reviewed them (not needed)` : ""}`,

@@ -63,6 +63,28 @@ export const TOKEN_STYLE_FILES = ["src/styles/tokens.css", "src/styles/style-eff
 /** Typography sources: text styles render on every page (tier L, --all before delivering). */
 const TYPOGRAPHY_STYLE = /^src\/styles\/(typography|fonts)\.css$/;
 const ALL_NOTE = "run with --all before delivering (tier L)";
+/** The built-in label dictionary: a key edit reaches only the components that read those keys. */
+export const LABELS_FILE = "src/components/_shared/labels.ts";
+/** Keys added or changed in the label dictionary: from the edited snippets, else from `git diff HEAD` (read-only). */
+export function labelKeys(root, snippets = []) {
+  let text = snippets.join("\n");
+  if (!text.trim()) {
+    const r = spawnSync("git", ["diff", "-U0", "--no-color", "HEAD", "--", LABELS_FILE], { cwd: root, encoding: "utf8", timeout: 30000 });
+    text = (r.stdout ?? "").split("\n").filter((l) => /^[+-](?![+-])/.test(l)).map((l) => l.slice(1)).join("\n");
+  }
+  return [...new Set([...text.matchAll(/^\s*([A-Za-z_]\w*)\??\s*:/gm)].map((m) => m[1]))];
+}
+/** Component folders (outside _shared) whose source names one of `keys`. */
+export function labelUsers(root, keys) {
+  if (!keys.length) return [];
+  const re = new RegExp(`\\b(${keys.join("|")})\\b`); const dir = path.join(root, "src/components"); const out = new Set();
+  for (const f of fs.readdirSync(dir, { recursive: true })) {
+    const p = String(f).split(path.sep).join("/");
+    if (!/\.tsx?$/.test(p) || p.startsWith("_shared/") || /\.stories\./.test(p)) continue;
+    if (re.test(fs.readFileSync(path.join(dir, p), "utf8"))) out.add(p.split("/")[0]);
+  }
+  return [...out];
+}
 
 /** Nearest `  key: [` of an examples map above `index` (the map key is the page id). */
 function mapKeyBefore(src, index) {
@@ -104,6 +126,13 @@ export function pagesForEdit(root, rel, snippets = [], pages = allPages(root)) {
   const out = new Set(); const notes = [];
   const kind = uiKind(rel); if (!kind) return { pages: [], notes };
   const comp = rel.match(/^src\/components\/([^/]+)\//)?.[1];
+  if (rel === LABELS_FILE) {
+    // New or re-worded built-in text: only the components that read those keys render differently.
+    const keys = labelKeys(root, snippets); const users = labelUsers(root, keys);
+    for (const c of users) { const p = folderPage(c); if (pages.includes(p)) out.add(p); }
+    notes.push(keys.length ? `labels.ts: ${keys.length} key(s) (${keys.slice(0, 6).join(", ")}${keys.length > 6 ? ", …" : ""}) read by ${users.join(", ") || "no component yet"}` : "labels.ts: could not tell which keys changed — pass --pages");
+    return { pages: [...out], notes };
+  }
   if (comp) {
     const page = folderPage(comp);
     if (pages.includes(page)) out.add(page);

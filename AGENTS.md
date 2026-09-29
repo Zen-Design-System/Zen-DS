@@ -48,10 +48,10 @@ with the QA loop below.
 
 | Tier | The change | What it needs |
 | --- | --- | --- |
-| **XS** | a token value, copy, or one CSS value | No spec card. QA = the consumer pages (automatic for tokens). Review only the sheets the gate asks for. One CHANGELOG line if user-facing; session log ≤ 10 lines. |
-| **S** | one component or example | Spec card for the changed elements only. Scoped `npm run qa`. Session log ≤ 30 lines. |
+| **XS** | a token value, copy, or one CSS value | No spec card. `npm run qa`: a token-only change takes the fast path by itself (tokens:check, the consumers' Figma suites, contrast — plus fit/overflow/corners when sizes changed — on the consumer pages; no behaviour, smoke or TypeScript). Review only the sheets the gate asks for. One CHANGELOG line if user-facing; session log ≤ 10 lines. |
+| **S** | one component or example, new label keys | Spec card for the changed elements only. Scoped `npm run qa` (label keys → the components that read them). Session log ≤ 30 lines. |
 | **M** | a Figma re-sync, or a variant set across 1–3 components | Evidence table + contract re-capture + the component's suites + scoped `npm run qa`. |
-| **L** | a new component, typography or spacing scale, platform shell, `src/components/_shared` | Full recipe (definition of done, §B), 3-level manifest, `npm run qa -- --all`. |
+| **L** | a new component, or a change every page renders: typography or spacing scale, the docs platform's own chrome (`PlatformApp.tsx`, the `platform.css` shell), global CSS, `_shared` logic (`scale.ts`, `icon.tsx`, `zen-context.ts`) | Full recipe (definition of done, §B) and 3-level manifest for a new component, whose QA stays scoped to its pages. `npm run qa -- --all` only for the every-page changes. Library components such as AppShell are not the platform chrome. |
 
 Parallel agents: only for M/L, one agent per 3 or fewer components, one reviewer; never multi-agent audits for XS/S.
 

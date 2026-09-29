@@ -102,8 +102,12 @@ What the scope means:
 - **Tokens** (`src/styles/tokens.css`, `tokens/source/**`, `src/tokens/**`): the gate diffs the changed custom
   properties against git HEAD, adds every `--zen-*` var that aliases them, finds the component and platform CSS that
   reads those names and checks those files' pages. It prints the consumer pages, or says none was found and falls back
-  to the representative set. It asks for `--all` only for typography/spacing-scale sources, `src/components/_shared`
-  and the platform shell.
+  to the representative set. When token values are the only change, it takes the fast path: tokens:check, the
+  consumers' Figma suites, contrast (plus fit, overflow, corners and Comfortable when sizes changed) on the consumer
+  pages; no behaviour probes, smoke clicks or TypeScript; only the consumer components' own sheets are required.
+- **Label keys** (`_shared/labels.ts`): the pages of the components that read the added or changed keys, no `--all`.
+- It asks for `--all` only for typography/spacing-scale sources, `_shared` logic (scale, icon, context) and the
+  docs platform's own chrome. A library component such as AppShell is not the platform chrome.
 - **Static gates** follow the change: harness self-tests only when `tools/usage-guard/**` or `tools/style-guard/**`
   changed; Figma contract suites only for the components you edited (all of them when `tools/figma-contract/**`
   changed); Vitest runs the tests related to the edited files (the full suite for `tests/**` or `_shared` edits, or
