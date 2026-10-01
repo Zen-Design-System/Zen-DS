@@ -28,7 +28,7 @@
   cursor: pointer;
   backdrop-filter: var(--zen-style-shadow-action-tertiary-backdrop-filter);
   white-space: nowrap;
-  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), border-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), box-shadow var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease);
 }
 
 /* A dropdown owns the Popover positioning context without changing the

@@ -33,7 +33,10 @@ with the QA loop below.
      clean case in `fixtures/good.tsx`.
   6. Props docs are generated from your TypeScript types and JSDoc (`scripts/build-api.mjs`): document every prop.
 - **CSS:** colours, spacing and radii only through `--zen-*` tokens (raw values only as `var()` fallbacks); a removed
-  focus outline needs a replacement ring; every animation has a `prefers-reduced-motion` fallback.
+  focus outline needs a replacement ring. Motion takes its durations and curves from `--zen-motion-*`
+  (`tokens/source/motion.json`, code-owned); distances and scale steps are multiplied by `--zen-motion-movement`, which
+  reduced motion sets to 0 (fades and colour changes stay), and anything else that moves has a `prefers-reduced-motion`
+  fallback. Harness: `motion/token-only`, `motion/reduced-motion`, `motion/no-layout-animation`.
 - **Deliberate exceptions** to a harness rule carry `zen-allow-<allow>: <reason>` in a comment right above.
 - **API conventions** (what AI agents guess): `size` accepts the short and long spelling via `scaleKey()`;
   value controls expose `value`/`defaultValue`/`onValueChange`, boolean controls `checked`/`defaultChecked`/

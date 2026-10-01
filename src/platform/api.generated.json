@@ -5804,7 +5804,15 @@
           "type": "2 | 3 | 4 | 5 | 6",
           "required": false,
           "default": null,
-          "description": "Heading level of the title, from where the Empty State sits: one level below the nearest heading above. Default 3,\nor one below the card title inside a ChartCard (set for you). Stand-alone at level 2 or 3 the title keeps the Figma\nHeading/4. At level 4 and deeper, and always inside a ChartCard, it uses Body/Extra/Bold so it is never larger than\nthe card title (Heading/Subheading) it sits under. In a Card you title yourself, pass the level below your title\n(4 under the usual h3 card title).",
+          "description": "Heading level of the title, from where the Empty State sits: one level below the nearest heading above. Default 3,\nor one below the card title inside a ChartCard (set for you). Stand-alone at level 2 or 3 the title keeps the Figma\nHeading/4. At level 4 and deeper, and always inside a ChartCard, it uses Body/Extra/Bold so it is never larger than\nthe card title (Heading/Subheading) it sits under. In a Card you title yourself, pass the level below your title\n(4 under the usual h3 card title) and `compactTitle`.",
+          "deprecated": null
+        },
+        {
+          "name": "compactTitle",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "For a Card you title yourself: the title uses Body/Extra/Bold, as inside a ChartCard, so it never outsizes the card\ntitle above it — also when that title is an h2 in Subheading and this one an h3. Default false.",
           "deprecated": null
         },
         {

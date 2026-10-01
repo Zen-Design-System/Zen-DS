@@ -187,8 +187,8 @@
 .zen-chat-hold__bubble > * { max-width: 100%; }
 .zen-chat-hold__menu.zen-popover { position: static; top: auto; left: auto; width: 240px; min-width: 240px; }
 .zen-chat-hold__danger, .zen-chat-hold__menu .zen-icon.zen-chat-hold__danger { color: var(--zen-color-content-negative-light, #e5532e); }
-@keyframes zen-chat-hold-in { from { opacity: 0; transform: scale(.96); } }
-@media (prefers-reduced-motion: reduce) { .zen-chat-hold, .zen-chat-hold__stack { animation: none; } .zen-chat-message__content[data-holding="true"] { transform: none; } }
+@keyframes zen-chat-hold-in { from { opacity: 0; transform: scale(calc(1 - .04 * var(--zen-motion-movement, 1))); } }
+@media (prefers-reduced-motion: reduce) { .zen-chat-hold, .zen-chat-hold__stack { animation-duration: var(--zen-motion-duration-fast, 120ms); } .zen-chat-message__content[data-holding="true"] { transform: none; } }
 /* Contained layer (device frame): the root's other children blur instead of relying on backdrop-filter. */
 .zen-chat-hold[data-contained="true"] { -webkit-backdrop-filter: none; backdrop-filter: none; }
 [data-zen-holding="true"] > :not(.zen-chat-hold) { filter: blur(24px); }

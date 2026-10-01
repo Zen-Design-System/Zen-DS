@@ -79,7 +79,7 @@
     {
       "name": "AiChatField",
       "file": "src/components/AiChat/AiChat.tsx",
-      "description": "Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt Body/Extra/Medium · model · mic · Primary\n40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and\nSend (arrow-up) once there is text. Enter sends, Shift+Enter adds a line.",
+      "description": "Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt Body/Extra/Medium · model · mic · Primary\n40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and\nSend (arrow-up) once there is text. Enter sends, Shift+Enter adds a line. The whole field is the prompt's hit area: a\nclick or tap anywhere outside its buttons puts the caret in the prompt.",
       "deprecated": null,
       "extends": null,
       "props": [

@@ -44,6 +44,7 @@
 .zen-chat-composer-reply__preview .zen-dock-icon { transform: scale(.67); margin: calc(-1 * var(--zen-spacing-gap-2-xsmall, 4px)); }
 
 /* Jump-to-original: the target message flashes once. */
+/* zen-allow-motion-token: a one-shot 1.6s highlight, a component constant like the Skeleton pulse (motion review 2026-10-01). */
 .zen-chat-message[data-flash="true"] .zen-chat-message__content > :first-child { animation: zen-chat-reply-flash 1.6s var(--zen-motion-ease-standard, ease); }
 @keyframes zen-chat-reply-flash { 0%, 30% { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-subtle, rgb(255 1 158 / 18%)); } 100% { box-shadow: 0 0 0 3px transparent; } }
 @media (prefers-reduced-motion: reduce) { .zen-chat-message[data-flash="true"] .zen-chat-message__content > :first-child { animation: none; box-shadow: 0 0 0 3px var(--zen-color-focus-accent-subtle, rgb(255 1 158 / 18%)); } }

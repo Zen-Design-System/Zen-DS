@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type KeyboardEvent, type ReactElement, type ReactNode } from "react";
+import { useRef, useState, type FormEvent, type KeyboardEvent, type MouseEvent, type ReactElement, type ReactNode } from "react";
 import { IconButton } from "../Button";
 import { Chip } from "../Chip";
 import { Icon, type IconName } from "../Icon";
@@ -35,7 +35,8 @@ export interface AiChatFieldProps {
 /**
  * Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt Body/Extra/Medium · model · mic · Primary
  * 40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and
- * Send (arrow-up) once there is text. Enter sends, Shift+Enter adds a line.
+ * Send (arrow-up) once there is text. Enter sends, Shift+Enter adds a line. The whole field is the prompt's hit area: a
+ * click or tap anywhere outside its buttons puts the caret in the prompt.
  */
 export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle = "default", model, onModelClick, onAttach, onVoice, busy = false, onStop, disabled = false, defaultValue = "", className }: AiChatFieldProps) {
   const t = useZenLabels();
@@ -45,14 +46,26 @@ export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle
   const long = text.length > 48 || text.includes("\n");
   const submit = (event?: FormEvent) => { event?.preventDefault(); if (!typing || busy) return; onSubmit(text.trim()); setText(""); };
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); submit(); } };
+  // The whole field is the prompt's hit area: a click or tap on the padding, the placeholder or the gaps between the
+  // controls types into the prompt (caret at the end); the buttons keep their own action. Keyboard users reach the
+  // prompt with Tab as before.
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const onControl = (target: EventTarget) => target instanceof Element && Boolean(target.closest("button, a, input, select, textarea, [role='button']"));
+  const keepCaret = (event: MouseEvent<HTMLFormElement>) => { if (!disabled && !onControl(event.target)) event.preventDefault(); };
+  const focusPrompt = (event: MouseEvent<HTMLFormElement>) => {
+    const input = inputRef.current;
+    if (disabled || !input || onControl(event.target) || document.activeElement === input) return;
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  };
   const primary = busy
     ? <IconButton appearance="main" level="primary" size="md" aria-label={t.stopGenerating} onClick={onStop} icon={<Icon name="icon-stop-solid" />} />
     : typing
       ? <IconButton appearance="main" level="primary" size="md" type="submit" aria-label={t.send} disabled={disabled} icon={<Icon name="icon-arrow-up-line" />} />
       : <IconButton appearance="main" level="primary" size="md" aria-label={t.startVoiceMode} disabled={disabled} onClick={onVoice} icon={<Icon name="icon-recording-02-line" />} />;
   return (
-    <form className={["zen-ai-field", className].filter(Boolean).join(" ")} data-style={fieldStyle} data-long={long ? "true" : undefined} onSubmit={submit}>
-      <textarea className={`zen-ai-field__input ${typographyStyles["Body/Extra/Medium"]}`} rows={1} value={text} aria-label={placeholder} disabled={disabled} onChange={(event) => setText(event.target.value)} onKeyDown={onKeyDown} />
+    <form className={["zen-ai-field", className].filter(Boolean).join(" ")} data-style={fieldStyle} data-long={long ? "true" : undefined} onSubmit={submit} onMouseDown={keepCaret} onClick={focusPrompt}>
+      <textarea ref={inputRef} className={`zen-ai-field__input ${typographyStyles["Body/Extra/Medium"]}`} rows={1} value={text} aria-label={placeholder} disabled={disabled} onChange={(event) => setText(event.target.value)} onKeyDown={onKeyDown} />
       {/* Figma Text (trunc): one line with an ellipsis — a textarea placeholder can only clip, so it is drawn here. */}
       {text ? null : <span className={`zen-ai-field__placeholder ${typographyStyles["Body/Extra/Medium"]}`} aria-hidden="true">{placeholder}</span>}
       <div className="zen-ai-field__leading">

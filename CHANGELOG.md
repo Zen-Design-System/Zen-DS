@@ -19,6 +19,13 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- **Motion tokens (2026-10-01):** `--zen-motion-duration-xfast/fast/base/slow` (80/120/200/280ms), `--zen-motion-ease-
+  standard/emphasized/exit/linear` and `--zen-motion-movement` now ship in `tokens.css` from a code-owned source,
+  `tokens/source/motion.json` (Figma variables cannot hold easing curves; the Figma file mirrors the durations in a
+  Motion collection). `motionTokens` and `motionRules` are exported from `src/tokens/generated.ts`, and Design Tokens has
+  a Motion section. Rules: exit is one step shorter than enter; animate transform, opacity and colours, not layout.
+- **EmptyState `compactTitle` (2026-10-01):** in a Card you title yourself, the title uses Body/Extra/Bold like inside a
+  ChartCard, so it never outsizes the card title (also when the card title is an h2 in Subheading).
 - **Language:** `<ZenProvider locale="vi">` translates every built-in label of every component (close/dismiss,
   pagination, search and pickers, rich-text toolbar, chat, uploads, screen-reader names) and date formats; built in:
   `en`, `vi`. `labels={{ … }}` overrides single strings; `useZenLabels()`, `useZenLocale()`, `zenLabels`.
@@ -83,6 +90,14 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Liquid Glass blurs again in the docs' phone frames (2026-10-01):** the frame clipped its header and footer with
+  `clip-path`, which made them backdrop roots, so every `backdrop-filter` inside (glass pills and buttons, the progressive
+  blur) saw only the bar and nothing behind it. The blur layers round their own corners instead. Apps: never put
+  `clip-path`, `mask`, `filter` or `opacity` on an ancestor of a glass element inside the bar.
+- **Screens name themselves with one h1 (2026-09-30):** the Empty & error states template has a page title (PageHeader
+  "Projects", h1) with its Empty States one level below (h2, still Heading/4), and its not-found state reads "Project
+  not found". Bottom Navigation "Floating + action" shows a compact TopNavigation with the tab name; "Glass over media"
+  names its full-bleed screen with a visually hidden h1.
 - Overlays (Dialog, ModalForm, SidePanel, BottomSheet) no longer move focus back to their first field when the parent
   re-renders with an inline `onOpenChange` handler: the focus trap re-ran on every render, so typing in a second
   field of a controlled form jumped to the first one.
@@ -171,6 +186,24 @@ removed (four unused colour ramps were, see Removed).
   - In a narrow frame the examples no longer squeeze the page to a few pixels next to the Sidebar.
 
 ### Changed
+- **Reduced motion keeps fades (2026-10-01):** under `prefers-reduced-motion` the movement factor is 0 instead of every
+  duration: dialogs, sheets, side panels, the drawer, toasts and menus crossfade instead of sliding, colour and hover
+  changes still fade, and the Toggle thumb, Accordion, Progress and the Sidebar width jump. WCAG 2.3.3 covers movement,
+  not fades.
+- **Popover, Menu and tooltip motion (2026-10-01):** every floating Popover surface (Menu, the Select dropdown, Chip
+  filters, Table editors, the Sidebar flyout) fades in with a 4px slide from its anchor at Base Emphasized and fades out
+  at Fast; tooltips fade out at XFast (Escape still hides them at once). Durations and curves across 22 components now
+  come from the motion tokens: Dialog exits in 200ms (was 160), the standard SidePanel in 120ms.
+- **Liquid Glass and Top Navigation gradients matched to Figma (2026-10-01):** glass follows the two Figma effect
+  styles. Liquid-Glass/Normal (TopNavigation glass actions, AiChatField Liquid Glass) blurs 2px and Glass-Floating (Bottom
+  Navigation floating-glass pill and action) 4px: Figma frost ÷ 2, where they were 12, 24 and 8px with an extra saturate.
+  A light rim stands for the GLASS light (−45°), and the dark glass actions get their Liquid-Glass shadow. The gradient
+  Top Navigation types (Bluring, Liquid Glass, Overlays) paint at 80% like Figma: the overlays are black 40% (was 50%) and
+  Compact-Overlay 48% (was 60%).
+- **AiChatField: the whole field is the hit area (2026-10-01):** a click or tap anywhere outside its buttons puts the caret
+  in the prompt. The model switch is a 36px pill as in the live Figma (Button/Spacing/Small padding 8, Corner-Radius/
+  Action/Small, Neutral/Flat fill with hover and pressed), so a press next to its label opens the model menu; it was the
+  bare label. Liquid Glass keeps its glass shadow when focused.
 - **Content hierarchy (2026-09-29, researched against 15+ design systems and WCAG):** every page and phone screen keeps
   exactly one h1 (a compact TopNavigation bar title is the h1 in its bar style, also while collapsing);
   `<Heading level>` defaults follow the ladder (2 → Heading/4, 3 → Subheading, 4 → Body/Extra/Bold); Accordion takes
@@ -237,6 +270,16 @@ removed (four unused colour ramps were, see Removed).
   used them. Global Colors now has 960 variables and the library 2,176.
 
 ### Quality
+- **Motion rules (2026-10-01):** `motion/token-only` (raw durations or curves; endless loops exempt),
+  `motion/no-layout-animation` (width, height, top/left, margin, flex-basis) and `motion/reduced-motion`, which now also
+  covers transitions that move and accepts `--zen-motion-movement` or fade-only keyframes as the fallback. The platform
+  audit, the behaviour probes and the browser tests (`tests/setup.ts`) freeze animations, since reduced motion no longer
+  zeroes them (axe sampled a fading Popover); the interaction harness waits for the Select list's exit fade.
+- **Outline warnings on by default (2026-09-30):** `audit.mjs --quality` now reports outline-h1, outline-start,
+  outline-card and outline-siblings (`--no-outline` turns them off); the baseline holds the screens that still lack an h1
+  (Chat desktop, Sidebar shells, Side Panel "Docked inspector"), and `rhythm` was re-seeded after its messages changed.
+  The gate maps edits in `PlatformPhone.tsx` (every page with a phone frame), `PlatformTypographyHierarchy.tsx`
+  (Typography) and helpers in `PlatformMobileShowcases.tsx` (through the examples that use them) to their pages.
 - **Proportional process (2026-09-29):** a tier table (XS/S/M/L) in AGENTS.md decides how much planning, QA and
   logging a change gets. `npm run qa` now checks only what changed since the session's last pass (token edits → the
   pages that use them), with `--only=` and `--keep-going`; static gates run only for what you edited and stop the run

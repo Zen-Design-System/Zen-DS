@@ -1,4 +1,4 @@
-/* Generated from the 11 Figma JSON exports. Do not edit directly. */
+/* Generated from the 11 Figma JSON exports and the code-owned motion tokens. Do not edit directly. */
 /* Global Colors / Zen */
 :root {
   --zen-light-tomato-1: #FFFCFA;
@@ -3819,4 +3819,22 @@
   --zen-typography-line-height-display-extra-3: 66px;
   --zen-typography-letter-spacing-display-extra-3: -2.319999933242798px;
   --zen-typography-letter-spacing-body-code: 0px;
+}
+
+/* Motion (code-owned, tokens/source/motion.json) */
+:root {
+  --zen-motion-duration-xfast: 80ms;
+  --zen-motion-duration-fast: 120ms;
+  --zen-motion-duration-base: 200ms;
+  --zen-motion-duration-slow: 280ms;
+  --zen-motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --zen-motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --zen-motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --zen-motion-ease-linear: linear;
+  --zen-motion-movement: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --zen-motion-movement: 0;
+  }
 }

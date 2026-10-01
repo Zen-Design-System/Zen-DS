@@ -71,11 +71,11 @@
   .zen-dialog__actions .zen-modal-actions__main { flex-direction: column-reverse; align-items: stretch; }
   .zen-dialog__actions .zen-button { width: 100%; }
 }
-@keyframes zen-dialog-in { from { opacity: 0; transform: translateY(12px) scale(.96); } to { opacity: 1; transform: none; } }
-@keyframes zen-dialog-out { to { opacity: 0; transform: translateY(6px) scale(.98); } }
-/* Exit (usePresence holds data-state="closing" for 160ms): faster, accelerating, and inert. */
-.zen-dialog-overlay[data-state="closing"] { animation: zen-motion-scrim-out 160ms var(--zen-motion-ease-exit, ease-in) both; pointer-events: none; }
-:is(.zen-dialog, .zen-modal-form)[data-state="closing"] { animation: zen-dialog-out 160ms var(--zen-motion-ease-exit, ease-in) both; }
+@keyframes zen-dialog-in { from { opacity: 0; transform: translateY(calc(12px * var(--zen-motion-movement, 1))) scale(calc(1 - .04 * var(--zen-motion-movement, 1))); } to { opacity: 1; transform: none; } }
+@keyframes zen-dialog-out { to { opacity: 0; transform: translateY(calc(6px * var(--zen-motion-movement, 1))) scale(calc(1 - .02 * var(--zen-motion-movement, 1))); } }
+/* Exit (usePresence holds data-state="closing" for 200ms): one step shorter than the enter, accelerating, and inert. */
+.zen-dialog-overlay[data-state="closing"] { animation: zen-motion-scrim-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; pointer-events: none; }
+:is(.zen-dialog, .zen-modal-form)[data-state="closing"] { animation: zen-dialog-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; }
 /* Reduced motion: see the end of the file (it must come after every animated rule, incl. .zen-modal-form). */
 
 /* Figma Modal/Forms (841:17182). Container: radius Modal-Radius, Background/Container, 1px inside Container/Border,
@@ -128,8 +128,9 @@
   .zen-modal-form__footer .zen-button { width: 100%; }
 }
 
-/* Reduced motion wins over every enter/exit animation above (ModalForm declares its own animation later in the file). */
+/* Reduced motion: the dialog crossfades at Fast (its slide and scale are multiplied by --zen-motion-movement, 0 here); the
+   scrim keeps its colour fade. Declared after ModalForm's own animation so it wins. */
 @media (prefers-reduced-motion: reduce) {
-  :is(.zen-dialog-overlay, .zen-dialog, .zen-modal-form),
-  :is(.zen-dialog-overlay, .zen-dialog, .zen-modal-form)[data-state="closing"] { animation: none; }
+  :is(.zen-dialog, .zen-modal-form),
+  :is(.zen-dialog, .zen-modal-form)[data-state="closing"] { animation-duration: var(--zen-motion-duration-fast, 120ms); }
 }

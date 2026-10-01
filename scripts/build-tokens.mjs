@@ -128,8 +128,31 @@ for (const collection of collections) {
   });
 }
 
+// Code-owned motion tokens (tokens/source/motion.json): Figma variables cannot hold easing curves, so they live in
+// code and stay out of the Figma catalog. Movement (distances, scale steps) is a factor that reduced motion sets to 0.
+const motionSource = JSON.parse(fs.readFileSync(path.join(root, "tokens/source/motion.json"), "utf8")).Motion;
+const motionValue = (token, value) => {
+  if (token.type === "DURATION") return `${value}ms`;
+  if (token.type === "EASING") return value.join(",") === "0,0,1,1" ? "linear" : `cubic-bezier(${value.join(", ")})`;
+  if (token.type === "FACTOR") return String(value);
+  throw new Error(`Unsupported motion token type for ${token.name}: ${token.type}`);
+};
+const reduced = motionSource.tokens.filter((token) => token.reducedMotion !== undefined);
+cssBlocks.push(
+  "/* Motion (code-owned, tokens/source/motion.json) */",
+  ":root {",
+  ...motionSource.tokens.map((token) => `  ${cssName(token.name)}: ${motionValue(token, token.value)};`),
+  "}",
+  "@media (prefers-reduced-motion: reduce) {",
+  "  :root {",
+  ...reduced.map((token) => `    ${cssName(token.name)}: ${motionValue(token, token.reducedMotion)};`),
+  "  }",
+  "}",
+  "",
+);
+
 const css = [
-  "/* Generated from the 11 Figma JSON exports. Do not edit directly. */",
+  "/* Generated from the 11 Figma JSON exports and the code-owned motion tokens. Do not edit directly. */",
   ...cssBlocks,
 ].join("\n");
 
@@ -152,7 +175,13 @@ const ts = [
   "",
   `export const tokenCollections = ${JSON.stringify(collectionContract, null, 2)} as const;`,
   "",
+  "/** Code-owned motion tokens (tokens/source/motion.json): CSS reference, value and when to use each. */",
+  `export const motionTokens = ${JSON.stringify(Object.fromEntries(motionSource.tokens.map((token) => [token.name, { css: `var(${cssName(token.name)})`, type: token.type, value: motionValue(token, token.value), ...(token.reducedMotion !== undefined ? { reducedMotion: motionValue(token, token.reducedMotion) } : {}), use: token.use }])), null, 2)} as const;`,
+  "",
+  `export const motionRules = ${JSON.stringify(motionSource.rules, null, 2)} as const;`,
+  "",
   "export type TokenName = keyof typeof tokens;",
+  "export type MotionTokenName = keyof typeof motionTokens;",
   "export type TokenCollectionName = keyof typeof tokenCollections;",
   "",
 ].join("\n");

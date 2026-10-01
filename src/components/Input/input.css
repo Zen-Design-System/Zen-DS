@@ -51,7 +51,7 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
   background: transparent;
   color: var(--zen-color-content-neutral-strongest, #111);
   overflow: hidden;
-  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), border-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), box-shadow var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease);
 }
 
 .zen-input-field--popover-open .zen-input__control { overflow: visible; z-index: 4; }

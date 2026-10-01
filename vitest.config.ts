@@ -16,8 +16,8 @@ export default defineConfig({
     browser: {
       enabled: true,
       headless: true,
-      // Reduced motion: every Zen animation has a prefers-reduced-motion fallback, so overlays and fades settle at once
-      // and axe never samples a colour mid-transition.
+      // Reduced motion: overlays leave at once (usePresence) and move no distance; tests/setup.ts also freezes every fade,
+      // which reduced motion keeps, so axe never samples a colour mid-transition.
       provider: playwright({ contextOptions: { reducedMotion: "reduce" } }),
       instances: [{ browser: "chromium", viewport: { width: 1280, height: 900 } }],
       screenshotFailures: false,

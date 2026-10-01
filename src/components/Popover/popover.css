@@ -1,3 +1,14 @@
+/* Motion (tokens/source/motion.json): a floating surface fades in with a 4px slide away from its anchor and a 2% scale
+   (Base, Emphasized), and fades out one step faster when its owner keeps it mounted with data-state="closing" (Menu, the
+   SelectField dropdown). The slide and scale are multiplied by --zen-motion-movement, so reduced motion only fades.
+   Inline surfaces (Bunk-Action bars) do not animate. */
+.zen-popover:not(.zen-popover--bunk-action) {
+  --zen-motion-from-y: -1;
+  transform-origin: top center;
+  animation: zen-motion-pop-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-emphasized, ease-out) both;
+}
+.zen-popover:not(.zen-popover--bunk-action)[data-side="top"] { --zen-motion-from-y: 1; transform-origin: bottom center; }
+.zen-popover:not(.zen-popover--bunk-action)[data-state="closing"] { animation: zen-motion-pop-out var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-exit, ease-in) both; pointer-events: none; }
 .zen-popover {
   position: absolute;
   z-index: 30;

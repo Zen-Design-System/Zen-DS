@@ -2862,8 +2862,20 @@
       {
         "id": "motion/reduced-motion",
         "severity": "warn",
-        "summary": "Every animation has a prefers-reduced-motion fallback in the same file.",
+        "summary": "Every animation, and every transition that moves (transform, translate, scale, rotate), has a reduced-motion fallback in the same file: a prefers-reduced-motion block, or distances multiplied by --zen-motion-movement (0 under reduced motion). Fades and colour changes need none.",
         "allow": "motion"
+      },
+      {
+        "id": "motion/token-only",
+        "severity": "warn",
+        "summary": "Transitions and animations take their duration and curve from the motion tokens (--zen-motion-duration-xfast/fast/base/slow, --zen-motion-ease-standard/emphasized/exit/linear); endless loops (infinite) are exempt.",
+        "allow": "motion-token"
+      },
+      {
+        "id": "motion/no-layout-animation",
+        "severity": "warn",
+        "summary": "Animate transform, opacity and colours; expand and collapse with grid-template-rows. Animating width, height, top/left or margin re-lays out the page every frame.",
+        "allow": "motion-layout"
       },
       {
         "id": "interaction/no-noop-handler",
@@ -3094,6 +3106,11 @@
         "one level below the nearest heading above; default 3, or one below the card title inside a ChartCard (set for you)"
       ],
       [
+        "Compact title",
+        "compactTitle",
+        "Body/Extra/Bold title for a Card you title yourself, as ChartCard does for you"
+      ],
+      [
         "Illustration",
         "illustration · icon",
         "placeholder with a centre icon; a node replaces it; false hides it"
@@ -3118,7 +3135,7 @@
       "Don't use more than two actions."
     ],
     "a11y": [
-      "The title is a heading so the state is discoverable: h3 by default; pass headingLevel one below the nearest heading above (in a Card you title yourself, one below your card title). The illustration is aria-hidden.",
+      "The title is a heading so the state is discoverable: h3 by default; pass headingLevel one below the nearest heading above (in a Card you title yourself, one below your card title, with compactTitle). The illustration is aria-hidden.",
       "Inside a titled card the title is never larger than the card title it sits under."
     ],
     "content": [

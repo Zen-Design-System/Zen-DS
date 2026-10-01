@@ -63,7 +63,7 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
     return () => document.removeEventListener("keydown", onKey);
   }, [open, modal, onOpenChange]);
   // Stay mounted while the exit animation plays; focus return / scroll unlock already ran when `open` went false.
-  const { mounted, phase } = usePresence(open, modal ? 200 : 160);
+  const { mounted, phase } = usePresence(open, modal ? 200 : 120);
   if (!mounted) return null;
   const closing = phase === "closing";
   const Title = `h${headingLevel}` as const;

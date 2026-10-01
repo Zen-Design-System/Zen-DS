@@ -124,8 +124,7 @@ textarea.zen-table-editor__input { display: block; width: 100%; height: 20px; mi
 /* zen-allow-raw-spacing: 56px is the Open button's hug width in Figma (1603:18563, Button/Main XSmall Tertiary "Open",
    absolute 12px from the right); Figma lets it cover the content, the cell keeps the content clear of it. */
 .zen-table__cell[data-open="true"] { position: relative; padding-right: calc(var(--zen-spacing-padding-medium, 16px) + 56px); }
-.zen-table__open { position: absolute; top: 50%; right: var(--zen-spacing-padding-small, 12px); opacity: 0; translate: 0 -50%; pointer-events: none; transition: opacity 120ms ease; }
+.zen-table__open { position: absolute; top: 50%; right: var(--zen-spacing-padding-small, 12px); opacity: 0; translate: 0 -50%; pointer-events: none; transition: opacity var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); }
 /* Shown on row hover or keyboard focus inside the row — not for the quiet focus a cell keeps after an edit ends. */
 .zen-table__row:hover .zen-table__open,
 .zen-table__row:has(:focus-visible:not([data-quiet="true"])) .zen-table__open { opacity: 1; pointer-events: auto; }
-@media (prefers-reduced-motion: reduce) { .zen-table__open { transition: none; } }

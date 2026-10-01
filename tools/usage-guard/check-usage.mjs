@@ -329,6 +329,31 @@ const dropsFocus = ({ selector, body, src }) => {
   return ![...src.matchAll(/([^{}]+)\{([^{}]*)\}/g)].some((r) => r[1].includes(`.${base}`) && focusSel.test(r[1]) && /box-shadow|border\s*:|outline\s*:\s*[1-9]|background/.test(r[2]));
 };
 // Focus that looks like the state it starts from (focus/state-parity, focus/selected-fill-only).
+/** Motion (tokens/source/motion.json): the first raw duration or easing in a transition/animation declaration (var()
+ *  fallbacks excluded), skipping endless loops and zero durations. */
+const MOTION_DECL = /(?:^|[;{\s])(transition|transition-duration|transition-timing-function|animation|animation-duration|animation-timing-function)\s*:([^;]*)/g;
+const rawMotion = (body) => {
+  for (const m of body.matchAll(MOTION_DECL)) {
+    const value = m[2]; if (/\binfinite\b/.test(value) || /^\s*none\s*$/.test(value)) continue;
+    const bare = value.replace(/\bvar\((?:[^()]|\([^()]*\))*\)/g, " ");
+    const dur = bare.match(/(?<![\w.-])(\d*\.?\d+)(ms|s)\b/); if (dur && Number(dur[1]) !== 0) return { kind: "duration", value: dur[0] };
+    const ease = bare.match(/\b(ease(?:-in-out|-in|-out)?|linear|cubic-bezier\([^)]*\)|steps\([^)]*\))(?![\w-])/); if (ease) return { kind: "easing", value: ease[0] };
+  }
+  return null;
+};
+/** An animation that only fades (opacity / colour), so reduced motion may keep it: the shared zen-motion fade and scrim
+ *  keyframes, or keyframes in this file that touch nothing but opacity and colours. */
+const FADE_PROPS = /^(opacity|color|background-color|border-color|outline-color|box-shadow|fill|stroke)$/;
+const fadeOnly = ({ body, src }) => {
+  const names = [...body.matchAll(/(?:^|[;{\s])animation(?:-name)?\s*:\s*([\w-]+)/g)].map((m) => m[1]);
+  return names.length > 0 && names.every((name) => {
+    if (/^zen-motion-(fade|scrim)-(in|out)$/.test(name)) return true;
+    const kf = src.match(new RegExp(`@keyframes\\s+${name}\\s*\\{((?:[^{}]|\\{[^{}]*\\})*)\\}`));
+    if (!kf) return false;
+    const props = [...kf[1].matchAll(/([a-z-]+)\s*:/g)].map((p) => p[1]);
+    return props.length > 0 && props.every((p) => FADE_PROPS.test(p));
+  });
+};
 /** A selector list split at its top-level commas. */
 const selectorParts = (selector) => { const out = []; let depth = 0, cur = ""; for (const ch of selector) { if (ch === "(") depth += 1; if (ch === ")") depth -= 1; if (ch === "," && depth === 0) { out.push(cur.trim()); cur = ""; } else cur += ch; } if (cur.trim()) out.push(cur.trim()); return out; };
 const FOCUS_PSEUDO = /:focus(-visible|-within)?\b(?!-)/;
@@ -862,8 +887,27 @@ export const rules = [
     summary: "Removing the outline on focus requires a replacement ring (Focus/Accent) on the same element.",
     check: (css) => dropsFocus(css) && "removes the focus outline and nothing in this file draws a replacement ring — keyboard users lose their place." },
   { id: "motion/reduced-motion", css: true, components: [], severity: "warn", allow: "motion", guideline: "docs/guidelines/skeleton.md",
-    summary: "Every animation has a prefers-reduced-motion fallback in the same file.",
-    check: (css) => /(^|[;{\s])animation(-name)?\s*:\s*(?!none)/.test(css.body) && !/prefers-reduced-motion/.test(css.src) && "animates without a prefers-reduced-motion: reduce fallback in this file." },
+    summary: "Every animation, and every transition that moves (transform, translate, scale, rotate), has a reduced-motion fallback in the same file: a prefers-reduced-motion block, or distances multiplied by --zen-motion-movement (0 under reduced motion). Fades and colour changes need none.",
+    check: (css) => {
+      if (/prefers-reduced-motion|--zen-motion-movement/.test(css.src)) return null;
+      const animates = /(^|[;{\s])animation(-name)?\s*:\s*(?!none)/.test(css.body) && !fadeOnly(css);
+      const moves = /(^|[;{\s])transition(-property)?\s*:[^;]*\b(transform|translate|scale|rotate|all)\b/.test(css.body);
+      return (animates || moves) && `${animates ? "animates" : "transitions movement"} without a reduced-motion fallback in this file — add @media (prefers-reduced-motion: reduce) or scale the distance by var(--zen-motion-movement).`;
+    } },
+  { id: "motion/token-only", css: true, components: [], severity: "warn", allow: "motion-token", guideline: "docs/guidelines/skeleton.md",
+    summary: "Transitions and animations take their duration and curve from the motion tokens (--zen-motion-duration-xfast/fast/base/slow, --zen-motion-ease-standard/emphasized/exit/linear); endless loops (infinite) are exempt.",
+    check: (css) => {
+      if (/src\/(platform|styles)\//.test(css.file)) return null;
+      const raw = rawMotion(css.body);
+      return raw && `uses a raw ${raw.kind} \`${raw.value}\` — use a --zen-motion-${raw.kind === "duration" ? "duration-*" : "ease-*"} token (tokens/source/motion.json).`;
+    } },
+  { id: "motion/no-layout-animation", css: true, components: [], severity: "warn", allow: "motion-layout", guideline: "docs/guidelines/skeleton.md",
+    summary: "Animate transform, opacity and colours; expand and collapse with grid-template-rows. Animating width, height, top/left or margin re-lays out the page every frame.",
+    check: (css) => {
+      const m = css.body.match(/(?:^|[;{\s])transition(?:-property)?\s*:([^;]*)/);
+      const prop = m && m[1].match(/\b(width|height|max-height|min-height|top|left|right|bottom|margin(?:-[a-z]+)?|flex-basis)\b/);
+      return prop && `transitions \`${prop[1]}\`, a layout property — animate transform (scale/translate) or grid-template-rows instead.`;
+    } },
   { id: "progress/needs-label", components: ["ProgressBar", "ProgressCircle"], severity: "error", allow: "progress-label", guideline: "docs/guidelines/progress.md",
     summary: "Progress needs a visible label or an aria-label.",
     check: ({ attrs }) => !present(attrs, "label") && !named(attrs) && "has neither label nor aria-label." },

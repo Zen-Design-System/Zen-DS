@@ -33,7 +33,7 @@
   font: inherit;
   text-align: center;
   cursor: pointer;
-  transition: background-color 120ms ease, box-shadow 120ms ease;
+  transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), box-shadow var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease);
 }
 .zen-dropzone:hover { background: var(--zen-color-background-neutral-pale-hover); }
 .zen-dropzone[data-state="dragover"] { background: var(--zen-color-background-neutral-pale-hover); }
@@ -84,4 +84,3 @@
 .zen-upload-file__type { flex: 0 0 auto; }
 .zen-upload-file__photo { width: var(--zen-image-size-small, 32px); height: var(--zen-image-size-small, 32px); flex: 0 0 auto; border-radius: var(--zen-corner-radius-small, 8px); }
 .zen-upload-file__photo { object-fit: cover; }
-@media (prefers-reduced-motion: reduce) { .zen-dropzone { transition: none; } }

@@ -21,6 +21,7 @@ Explains why a screen or region has nothing to show and what the user can do nex
 | --- | --- | --- |
 | Title / Caption | `title / children` | Heading/4 stand-alone (Body/Extra/Bold inside a titled card or at level 4 and deeper) · Body/Base/Regular (Content/Neutral/Light) |
 | Level | `headingLevel` | one level below the nearest heading above; default 3, or one below the card title inside a ChartCard (set for you) |
+| Compact title | `compactTitle` | Body/Extra/Bold title for a Card you title yourself, as ChartCard does for you |
 | Illustration | `illustration · icon` | placeholder with a centre icon; a node replaces it; false hides it |
 | CTAs | `primaryAction / secondaryAction` | full-width Button/Main Medium Primary + Tertiary |
 
@@ -36,7 +37,8 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | --- | --- | --- | --- |
 | `ref` | `Ref<HTMLElement>` | — | The root `<section>`. |
 | `title` (required) | `ReactNode` | — | Figma Title (Heading/4 stand-alone; Body/Extra/Bold inside a titled card or at level 4 and deeper). |
-| `headingLevel` | `2 \| 3 \| 4 \| 5 \| 6` | — | Heading level of the title, from where the Empty State sits: one level below the nearest heading above. Default 3, or one below the card title inside a ChartCard (set for you). Stand-alone at level 2 or 3 the title keeps the Figma Heading/4. At level 4 and deeper, and always inside a ChartCard, it uses Body/Extra/Bold so it is never larger than the card title (Heading/Subheading) it sits under. In a Card you title yourself, pass the level below your title (4 under the usual h3 card title). |
+| `headingLevel` | `2 \| 3 \| 4 \| 5 \| 6` | — | Heading level of the title, from where the Empty State sits: one level below the nearest heading above. Default 3, or one below the card title inside a ChartCard (set for you). Stand-alone at level 2 or 3 the title keeps the Figma Heading/4. At level 4 and deeper, and always inside a ChartCard, it uses Body/Extra/Bold so it is never larger than the card title (Heading/Subheading) it sits under. In a Card you title yourself, pass the level below your title (4 under the usual h3 card title) and `compactTitle`. |
+| `compactTitle` | `boolean` | `false` | For a Card you title yourself: the title uses Body/Extra/Bold, as inside a ChartCard, so it never outsizes the card title above it — also when that title is an h2 in Subheading and this one an h3. Default false. |
 | `children` | `ReactNode` | — | Figma Caption (Body/Base/Regular, Content/Neutral/Light). |
 | `illustration` | `boolean \| ReactNode` | `true` | Figma Illustration: `true` renders the placeholder with `icon`; pass a node for your own art; `false` hides it. |
 | `icon` | `IconName \| ReactElement` | — | Icon at the centre of the placeholder illustration: an icon name or an icon element. |
@@ -72,7 +74,7 @@ interface EmptyStateAction { label: ReactNode; onClick?: () => void; level?: But
 - Don't use more than two actions.
 
 ## Accessibility
-- The title is a heading so the state is discoverable: h3 by default; pass headingLevel one below the nearest heading above (in a Card you title yourself, one below your card title). The illustration is aria-hidden.
+- The title is a heading so the state is discoverable: h3 by default; pass headingLevel one below the nearest heading above (in a Card you title yourself, one below your card title, with compactTitle). The illustration is aria-hidden.
 - Inside a titled card the title is never larger than the card title it sits under.
 
 ## Content

@@ -31,7 +31,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Alert Banner](alert-banner.md) | `alert-banner/small-no-action`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Accordion](accordion.md) | `accordion/no-nested`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Pagination](pagination.md) | `pagination/worth-paging`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
-| [Skeleton](skeleton.md) | `motion/reduced-motion`, `interaction/no-noop-handler` |
+| [Skeleton](skeleton.md) | `motion/reduced-motion`, `motion/token-only`, `motion/no-layout-animation`, `interaction/no-noop-handler` |
 | [Divider](divider.md) | `divider/no-double`, `interaction/no-noop-handler` |
 | [Inline Message](inline-message.md) | `inline-message/needs-content`, `inline-message/custom-needs-visual`, `api/deprecated-prop`, `copy/plural-count`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Empty State](empty-state.md) | `empty-state/needs-title`, `empty-state/action-label`, `empty-state/way-out-tertiary`, `icon/unknown-name`, `copy/plural-count`, `interaction/no-noop-handler`, `interaction/action-without-handler` |

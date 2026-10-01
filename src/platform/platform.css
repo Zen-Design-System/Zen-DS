@@ -386,6 +386,9 @@
 .platform-token-links > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px); margin-top: var(--zen-spacing-gap-small, 12px); }
 .platform-token-links button { display: flex; align-items: center; justify-content: space-between; padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px); border-radius: var(--platform-inset-radius); background: var(--platform-inset-background); font-size: var(--zen-typography-font-size-body-base, 14px); line-height: var(--zen-typography-line-height-body-base, 20px); letter-spacing: var(--zen-typography-letter-spacing-body-base, -0.14px); text-align: left; }
 .platform-token-links button:hover { background: color-mix(in srgb, var(--official-accent) 18%, transparent); }
+/* Design Tokens › Motion (code-owned tokens): same surface as the collection links. */
+.foundation-motion { display: grid; gap: var(--zen-spacing-gap-small, 12px); margin: var(--zen-spacing-gap-large, 24px) 0 0; padding: var(--platform-surface-padding); border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
+.foundation-motion__rules { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding-left: var(--zen-spacing-padding-large, 20px); }
 .platform-token-links span { color: var(--official-muted); font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-small, 0px); }
 
 @media (max-width: 1100px) {
@@ -1144,13 +1147,13 @@
 @media (max-width: 480px) { .pe-photo-page { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* Device corners clip the bars' blur. With GPU compositing, masked backdrop-filter layers (the Bottom/Top Navigation
-   progressive blur) ignore the phone's rounded overflow clip and paint as rectangles over the bezel corners. Clip the
-   footer / header to the device radius and round the blur layers themselves (backdrop-filter respects its own radius). */
+   progressive blur) ignore the phone's rounded overflow clip and paint as rectangles over the bezel corners, so the blur
+   layers round themselves (backdrop-filter respects its own radius). Never clip-path / mask / filter / opacity the
+   header or footer: any of them makes it a backdrop root, and every backdrop-filter inside (Liquid Glass pills and
+   buttons, the progressive blur) then sees only the bar itself, not the screen behind it — the glass stops blurring. */
 /* zen-allow-raw-radius: device corner radii (iPhone 55, iPad 18) — hardware, not the Corner Radius scale. */
 .platform-phone { --platform-phone-radius: 55px; }
 .platform-phone[data-device="ipad"] { --platform-phone-radius: 18px; }
-.platform-phone > .platform-phone__footer { clip-path: inset(-100vh 0 0 0 round 0 0 var(--platform-phone-radius) var(--platform-phone-radius)); }
-.platform-phone > .platform-phone__header { clip-path: inset(0 0 -100vh 0 round var(--platform-phone-radius) var(--platform-phone-radius) 0 0); }
 .platform-phone .zen-bottom-nav__progressive > i { border-radius: 0 0 var(--platform-phone-radius) var(--platform-phone-radius); }
 .platform-phone > .platform-phone__header .zen-top-nav__progressive > i { border-radius: var(--platform-phone-radius) var(--platform-phone-radius) 0 0; }
 

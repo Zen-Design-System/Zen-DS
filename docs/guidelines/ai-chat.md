@@ -40,7 +40,7 @@ Figma AI/Chat-Bubble (4218:1270): You = a Neutral/Subtle bubble (radius 24, padd
 | `className` | `string` | — |  |
 
 ### AiChatField
-Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt Body/Extra/Medium · model · mic · Primary 40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and Send (arrow-up) once there is text. Enter sends, Shift+Enter adds a line.
+Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt Body/Extra/Medium · model · mic · Primary 40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and Send (arrow-up) once there is text. Enter sends, Shift+Enter adds a line. The whole field is the prompt's hit area: a click or tap anywhere outside its buttons puts the caret in the prompt.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |

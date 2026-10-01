@@ -13,7 +13,7 @@
 
 /* Input: one radio per star, gap 3XSmall. */
 .zen-rating { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
-.zen-rating__star { position: relative; display: inline-flex; color: var(--zen-rating-off); cursor: pointer; transition: color 100ms ease, transform 100ms ease; }
+.zen-rating__star { position: relative; display: inline-flex; color: var(--zen-rating-off); cursor: pointer; transition: color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), transform var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); }
 .zen-rating__star[data-filled="true"] { color: var(--zen-rating-on); }
 .zen-rating__star > .zen-icon { width: var(--zen-rating-star); height: var(--zen-rating-star); }
 .zen-rating__star input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: inherit; }
@@ -57,4 +57,4 @@
 .zen-nps-scale { display: inline-flex; max-width: 100%; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-nps-scale__numbers { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-nps-scale__labels { display: flex; justify-content: space-between; gap: var(--zen-spacing-gap-medium, 16px); color: var(--zen-color-content-neutral-strongest, #111); }
-@media (prefers-reduced-motion: reduce) { .zen-rating__star { transition: none; } .zen-rating__star:hover { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .zen-rating__star { transition-property: color; } .zen-rating__star:hover { transform: none; } }

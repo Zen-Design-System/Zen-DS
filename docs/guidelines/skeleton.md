@@ -79,7 +79,9 @@ Also accepts `SkeletonBaseProps`.
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
-| `motion/reduced-motion` | warn | Every animation has a prefers-reduced-motion fallback in the same file. | `zen-allow-motion: <reason>` |
+| `motion/reduced-motion` | warn | Every animation, and every transition that moves (transform, translate, scale, rotate), has a reduced-motion fallback in the same file: a prefers-reduced-motion block, or distances multiplied by --zen-motion-movement (0 under reduced motion). Fades and colour changes need none. | `zen-allow-motion: <reason>` |
+| `motion/token-only` | warn | Transitions and animations take their duration and curve from the motion tokens (--zen-motion-duration-xfast/fast/base/slow, --zen-motion-ease-standard/emphasized/exit/linear); endless loops (infinite) are exempt. | `zen-allow-motion-token: <reason>` |
+| `motion/no-layout-animation` | warn | Animate transform, opacity and colours; expand and collapse with grid-template-rows. Animating width, height, top/left or margin re-lays out the page every frame. | `zen-allow-motion-layout: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 
 ## References

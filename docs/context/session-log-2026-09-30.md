@@ -22,3 +22,20 @@
   edited, since `tokens:build` writes `tokens.css` through a script.
 - Verified with a manual run, `--files=tokens/source/figma/global-colors.json` only: the fast-path note appears and
   the contract step passes 23/23 suites + interactions (it failed 18/23 before).
+
+## Typography outline P2 follow-ups (same session, tier S, approved by the user: "tiếp tục")
+
+- Inventory first: `audit.mjs --quality --outline` over all 61 pages (122 runs): 0 errors, 12 screens without an h1
+  (outline-h1) and 6 whose outline does not start at h1; outline-card and outline-siblings 0. Form "Mobile checkout"
+  was already fixed.
+- Fixed: Bottom Navigation "Floating + action" (compact TopNavigation with the tab name, as the playground does),
+  "Glass over media" (visually hidden h1: a full-bleed media screen); Templates "Empty & error states" (PageHeader
+  "Projects" h1, Empty States h2, "Project not found"). The first longer description spilled out of the Templates
+  list caption at 390 (`fit`), so it keeps its old length. The other 9 screens (Chat desktop, Sidebar shells, Side
+  Panel "Docked inspector") are baselined debt, listed in BACKLOG.
+- `audit.mjs`: outline-* on by default (`--no-outline`); outline-* and rhythm re-seeded (popover, action-bar and input
+  held for the "Component library review và fixes" session, seeded later).
+- `tools/qa/lib.mjs`: `pagesAt` follows a helper through the functions that use it (3 levels), and an exported
+  component used in other files maps to their pages (a foundation or app-layer file counts as its own pages).
+  PlatformPhone → 18 pages, PlatformTypographyHierarchy → typography, ProjectList → bottom-navigation.
+- EmptyState in a self-titled Card: no example does it (outline-card 0); left as an API question for the user.

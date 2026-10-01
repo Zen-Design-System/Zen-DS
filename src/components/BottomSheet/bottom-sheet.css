@@ -96,6 +96,8 @@
 @keyframes zen-bottom-sheet-in { from { transform: translateY(100%); } }
 @keyframes zen-bottom-sheet-out { to { transform: translateY(100%); } }
 @media (prefers-reduced-motion: reduce) {
-  .zen-bottom-sheet-overlay, .zen-bottom-sheet-overlay[data-state="closing"], .zen-bottom-sheet, .zen-bottom-sheet[data-state="closing"] { animation: none; }
+  /* The sheet crossfades instead of sliding up; the scrim keeps its colour fade. */
+  .zen-bottom-sheet { animation-name: zen-motion-fade-in; animation-duration: var(--zen-motion-duration-fast, 120ms); }
+  .zen-bottom-sheet[data-state="closing"] { animation-name: zen-motion-fade-out; animation-duration: var(--zen-motion-duration-fast, 120ms); }
   .zen-bottom-sheet:not([data-dragging="true"]) { transition: none; }
 }

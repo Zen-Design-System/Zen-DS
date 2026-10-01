@@ -46,6 +46,7 @@ import { FoundationOverview } from "../foundations/FoundationOverview";
 import { IconGallery } from "../foundations/IconGallery";
 import { TextStylesGallery } from "../foundations/TextStylesGallery";
 import { TokenCollectionPage } from "../foundations/TokenCollectionPage";
+import { MotionTokens } from "../foundations/MotionTokens";
 import { collections } from "../foundations/collections";
 import { PlatformPageTemplate, PlatformTypographyContext } from "./PlatformTemplate";
 import { PlatformCode } from "./PlatformCode";
@@ -502,6 +503,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
           <p className="foundation-eyebrow">Collections</p>
           <div>{collections.map((collection) => <button key={collection.slug} onClick={() => onCollectionClick?.(collection.slug)} type="button">{collection.name}<span>{collection.variableCount.toLocaleString("en-US")} vars</span></button>)}</div>
         </section>
+        <MotionTokens />
         <ComponentGuidelines page="design-tokens" title="Border usage" />
         <ComponentGuidelines page="design-tokens" slug="content-colors" title="Content colour usage" />
       </PlatformPageTemplate>

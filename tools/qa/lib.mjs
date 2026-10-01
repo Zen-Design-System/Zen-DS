@@ -57,7 +57,7 @@ export const folderPage = (folder) => FOLDER_PAGE[folder] ?? kebab(folder);
 /** Components that most pages render: a change there is checked on a representative set of pages too. */
 export const CORE = new Set(["_shared", "Portal", "Motion", "Provider", "Icon", "Text", "Button", "Popover", "Layout", "Tooltip", "Input", "ListItem"]);
 export const REPRESENTATIVE = ["button", "card", "dialog", "popover", "list-item", "chat", "templates"];
-const FOUNDATION_PAGE = { FoundationOverview: "overviews", TokenCollectionPage: "design-tokens", TokenTableView: "design-tokens", TextStylesGallery: "typography", IconGallery: "iconography" };
+const FOUNDATION_PAGE = { FoundationOverview: "overviews", TokenCollectionPage: "design-tokens", TokenTableView: "design-tokens", TextStylesGallery: "typography", PlatformTypographyHierarchy: "typography", IconGallery: "iconography" };
 /** Custom properties generated from Figma variables / effect styles: an edit is a token value change (scoped by consumers). */
 export const TOKEN_STYLE_FILES = ["src/styles/tokens.css", "src/styles/style-effects.css"];
 /** Typography sources: text styles render on every page (tier L, --all before delivering). */
@@ -92,19 +92,55 @@ function mapKeyBefore(src, index) {
   const hits = [...head.matchAll(/\n {2}"?([a-z][\w-]*)"?:\s*\[/g)];
   return hits.length ? hits[hits.length - 1][1] : null;
 }
-/** Page ids for a position in a platform source file (an example function, an examples-map entry, a playground branch). */
-export function pagesAt(src, index, pages) {
+/** The top-level function or arrow component that encloses `index`. */
+function enclosingFn(src, index) {
+  const fn = [...src.slice(0, index).matchAll(/\n(?:export )?(?:function (\w+)|const (\w+)\s*=\s*(?:\([^)]*\)|\w+)\s*=>)/g)].pop();
+  return fn?.[1] ?? fn?.[2] ?? null;
+}
+/** Where `name` is rendered or called in `src` (its own `function name(` excluded). */
+function usesOf(src, name) {
+  return [...src.matchAll(new RegExp(`<${name}\\b|\\b${name}\\(`, "g"))].map((m) => m.index).filter((i) => !/function\s+$/.test(src.slice(Math.max(0, i - 12), i)));
+}
+/** Page ids for a position in a platform source file (an example function, an examples-map entry, a playground branch).
+ *  A helper is followed through the functions that use it (a list inside an example inside the map), up to 3 levels. */
+export function pagesAt(src, index, pages, depth = 0, seen = new Set()) {
   const out = new Set();
   const inPlayground = [...src.slice(0, index).matchAll(/page === "([\w-]+)"/g)].pop();
   const mapStart = src.search(/\n(export )?const \w*[eE]xamples\w*\s*(:[^=]+)?=\s*\{/);
   if (mapStart >= 0 && index > mapStart) { const k = mapKeyBefore(src, index); if (k && pages.includes(k)) out.add(k); }
   else {
-    const fn = [...src.slice(0, index).matchAll(/\n(?:export )?(?:function (\w+)|const (\w+)\s*=\s*(?:\([^)]*\)|\w+)\s*=>)/g)].pop();
-    const name = fn?.[1] ?? fn?.[2];
-    if (name && mapStart >= 0) for (const use of src.slice(mapStart).matchAll(new RegExp(`<${name}\\b|\\b${name}\\(`, "g"))) { const k = mapKeyBefore(src, mapStart + use.index); if (k && pages.includes(k)) out.add(k); }
+    const name = enclosingFn(src, index);
+    if (name && depth < 3 && !seen.has(name)) {
+      seen.add(name);
+      for (const at of usesOf(src, name)) pagesAt(src, at, pages, depth + 1, seen).forEach((p) => out.add(p));
+    }
     if (!out.size && inPlayground && pages.includes(inPlayground[1])) out.add(inPlayground[1]);
   }
   return [...out];
+}
+/** The pages an app-layer module owns (its `export const pages = { id: {…} }` map). */
+function appLayerPages(src, pages) {
+  const i = src.search(/\nexport const pages\b[^=]*=\s*\{/);
+  if (i < 0) return [];
+  return [...src.slice(i, src.indexOf("\n};", i)).matchAll(/\n {2}"?([a-z][\w-]*)"?:\s*\{/g)].map((m) => m[1]).filter((p) => pages.includes(p));
+}
+/** Pages that render an exported platform component or helper from another file (PlatformPhone, ChartReportPanel…).
+ *  A use that cannot be placed in a file counts for the file's own page(s): a foundation page, or an app-layer module. */
+function pagesUsingExport(root, rel, name, pages) {
+  const out = new Set();
+  const dir = path.join(root, "src/platform");
+  for (const f of fs.readdirSync(dir, { recursive: true }).map(String).filter((f) => f.endsWith(".tsx") && path.join("src/platform", f) !== rel)) {
+    const s = fs.readFileSync(path.join(dir, f), "utf8");
+    const uses = s.includes(name) ? usesOf(s, name) : [];
+    if (!uses.length) continue;
+    const found = new Set(uses.flatMap((at) => pagesAt(s, at, pages)));
+    if (!found.size) {
+      const own = FOUNDATION_PAGE[path.basename(f, ".tsx")];
+      (own ? [own] : f.startsWith("appLayer/") ? appLayerPages(s, pages) : []).forEach((p) => found.add(p));
+    }
+    found.forEach((p) => out.add(p));
+  }
+  return out;
 }
 /** Pages whose examples use any of these platform classes (pe-/pg-/platform-/official-); every platform TSX is read once. */
 function pagesForClasses(root, classes, pages) {
@@ -165,13 +201,14 @@ export function pagesForEdit(root, rel, snippets = [], pages = allPages(root)) {
   if (/PlatformApp\.tsx$/.test(rel)) { ["overviews", "button", "chat"].forEach((p) => out.add(p)); notes.push(`platform shell changed: check navigation, the drawer at ≤1024 and deep links; ${ALL_NOTE}`); }
   else for (const snip of snippets.filter((s) => s && s.length > 8)) {
     const at = src.indexOf(snip.slice(0, 400)); if (at < 0) continue;
-    pagesAt(src, at, pages).forEach((p) => out.add(p));
+    const found = pagesAt(src, at, pages);
+    found.forEach((p) => out.add(p));
+    // An exported component or helper rendered from other files (PlatformPhone → every page with a phone frame).
+    const name = found.length ? null : enclosingFn(src, at);
+    if (name && new RegExp(`\\nexport (?:function|const) ${name}\\b`).test(src)) pagesUsingExport(root, rel, name, pages).forEach((p) => out.add(p));
   }
   // An app-layer module owns a `pages` map: when the edit cannot be placed, check every page the module owns.
-  if (!out.size && /^src\/platform\/appLayer\//.test(rel)) {
-    const i = src.search(/\nexport const pages\b[^=]*=\s*\{/);
-    if (i >= 0) for (const m of src.slice(i, src.indexOf("\n};", i)).matchAll(/\n {2}"?([a-z][\w-]*)"?:\s*\{/g)) if (pages.includes(m[1])) out.add(m[1]);
-  }
+  if (!out.size && /^src\/platform\/appLayer\//.test(rel)) appLayerPages(src, pages).forEach((p) => out.add(p));
   if (!out.size) notes.push(`${rel}: could not tell which pages the edit renders on — pass --pages`);
   return { pages: [...out], notes };
 }

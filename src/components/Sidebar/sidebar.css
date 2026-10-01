@@ -1,4 +1,5 @@
 .zen-sidebar {
+/* zen-allow-motion-layout: the rail collapse animates width until P2-5 (motion review) moves it to transform. */
   --zen-sidebar-width: var(--zen-sidebar-default-width, 260px);
   --zen-sidebar-item-padding: var(--zen-spacing-padding-small, 12px);
   --zen-sidebar-item-gap: var(--zen-spacing-gap-small, 12px);
@@ -12,7 +13,7 @@
   box-sizing: border-box;
   gap: var(--zen-spacing-gap-2-xsmall, 4px);
   padding: var(--zen-spacing-padding-xsmall, 8px) 0 var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px);
-  transition: width 160ms ease, flex-basis 160ms ease;
+  transition: width var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease), flex-basis var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease);
 }
 
 .zen-sidebar__surface,
@@ -108,7 +109,7 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar__counter { flex: 0 0 auto; }
 .zen-sidebar__item[data-tone="accent"][data-selected="true"] .zen-sidebar__counter { background: var(--zen-color-background-inverse-solid-default, #fff); }
 .zen-sidebar__notification-dot { position: absolute; top: 8px; left: 26px; width: 8px; height: 8px; box-sizing: border-box; border: 2px solid var(--zen-color-border-inverse, #fff); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-negative-solid-default, #e5532e); }
-.zen-sidebar__item-dropdown { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; color: inherit; transition: transform 160ms ease; }
+.zen-sidebar__item-dropdown { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; color: inherit; transition: transform var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease); }
 .zen-sidebar__item-dropdown[data-open="true"] { transform: rotate(180deg); }
 .zen-sidebar__trailing-action { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; }
 
@@ -229,7 +230,7 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
   background: var(--zen-color-background-popover-default);
   box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
   backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
-  animation: zen-sidebar-submenu-in 160ms ease-out;
+  animation: zen-sidebar-submenu-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-emphasized, ease-out);
 }
 .zen-sidebar[data-variant="small-density"] .zen-sidebar__submenu,
 .zen-sidebar[data-variant="workspace"] .zen-sidebar__submenu { border-radius: var(--zen-corner-radius-2-xlarge, 24px); box-shadow: none; backdrop-filter: blur(40px); }
@@ -238,8 +239,9 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 /* Figma Side-Bar/Sub Item-List uses Density=Medium items (12px padding/gap) even beside a Small-Density master. */
 .zen-sidebar__submenu { --zen-sidebar-item-padding: var(--zen-spacing-padding-small, 12px); --zen-sidebar-item-gap: var(--zen-spacing-gap-small, 12px); }
 .zen-sidebar__submenu .zen-sidebar__item { min-height: 44px; }
-@keyframes zen-sidebar-submenu-in { from { opacity: 0; translate: -4px 0; } }
-@media (prefers-reduced-motion: reduce) { .zen-sidebar__submenu { animation: none; } }
+@keyframes zen-sidebar-submenu-in { from { opacity: 0; translate: calc(-4px * var(--zen-motion-movement, 1)) 0; } }
+/* Reduced motion: the submenu crossfades (its slide is scaled by --zen-motion-movement); width and the chevron jump. */
+@media (prefers-reduced-motion: reduce) { .zen-sidebar, .zen-sidebar__item-dropdown { transition: none; } .zen-sidebar__submenu { animation-duration: var(--zen-motion-duration-fast, 120ms); } }
 .zen-sidebar__sub-content { display: flex; min-height: 0; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); }
 .zen-sidebar__sub-search > * { width: 100%; }
 .zen-sidebar__sub-items { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
@@ -248,8 +250,7 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar[data-variant="workspace"] .zen-sidebar__workspace-main { box-shadow: none; backdrop-filter: blur(40px); }
 
 /* Collapsed rail: item label shown as a Tooltip (Default/Medium) to the right of the item. */
-.zen-sidebar__rail-tooltip { position: fixed; z-index: 1000; translate: 0 -50%; animation: zen-tooltip-in .12s ease-out; }
-@media (prefers-reduced-motion: reduce) { .zen-sidebar__rail-tooltip { animation: none; } }
+.zen-sidebar__rail-tooltip { position: fixed; z-index: 1000; translate: 0 -50%; animation: zen-tooltip-in var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); }
 
 /* Figma Workspace (4233:5946): 40px avatar tile, 1px Border/Inverse, Corner-Radius/Base. The active workspace shows
    the Focus-Ring: 3px Border/Active/Accent/Solid at −4px around the tile, Corner-Radius/Large — no fill change. */
@@ -260,7 +261,7 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar__workspace-items .zen-sidebar__item-icon { width: var(--zen-image-size-medium, 40px); height: var(--zen-image-size-medium, 40px); flex: 0 0 var(--zen-image-size-medium, 40px); }
 /* Figma Focus-Ring: 48×48 rect (4px out), radius Large, 3px OUTSIDE stroke → the ring spans 4–7px outside the avatar.
    zen-allow-raw-radius: the border box is the stroke's outer edge, so its radius is Corner-Radius/Large + the 3px stroke. */
-.zen-sidebar__workspace-items .zen-sidebar__item::after { position: absolute; inset: -7px; box-sizing: border-box; border: 3px solid transparent; border-radius: calc(var(--zen-corner-radius-large, 16px) + 3px); content: ""; pointer-events: none; transition: border-color 120ms ease; }
+.zen-sidebar__workspace-items .zen-sidebar__item::after { position: absolute; inset: -7px; box-sizing: border-box; border: 3px solid transparent; border-radius: calc(var(--zen-corner-radius-large, 16px) + 3px); content: ""; pointer-events: none; transition: border-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); }
 .zen-sidebar__workspace-items .zen-sidebar__item[data-selected="true"]::after { border-color: var(--zen-color-border-active-accent-solid, #ff66d4); }
 .zen-sidebar__workspace-items .zen-sidebar__item:not([data-selected="true"]):hover::after { border-color: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
 .zen-sidebar__workspace-items .zen-sidebar__item:focus-visible { outline: 0; }

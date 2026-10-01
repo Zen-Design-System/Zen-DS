@@ -9,7 +9,8 @@ const prefersReducedMotion = () => typeof window !== "undefined" && window.match
  * Keeps an overlay mounted while its exit animation plays.
  * `open` true → mounted, phase "open" (CSS runs the enter keyframes on mount).
  * `open` false → phase "closing" for `exitMs` (CSS runs the exit keyframes on data-state="closing"), then unmounts.
- * Reduced motion skips the wait.
+ * `exitMs` matches the exit animation's duration token. Reduced motion skips the wait: the surface fades in without moving
+ * (tokens.css sets --zen-motion-movement to 0) and leaves at once. An animationend-driven exit is a later step.
  */
 export function usePresence(open: boolean, exitMs = 200): { mounted: boolean; phase: PresencePhase } {
   const [mounted, setMounted] = useState(open);

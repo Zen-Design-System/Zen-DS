@@ -135,18 +135,15 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 
 - **Typography outline / content hierarchy (2026-09-29):** the user approved every recommendation ("theo đề xuất");
   implemented the same day (session log, "Typography outline"). Follow-ups:
-  - **P2 · Screens without an h1:** Bottom Navigation "Floating + action" and "Glass over media" (no TopNavigation),
-    Templates "Empty & error states" (outline starts at the EmptyState h3), Form "Mobile checkout" (bar h1 → h4
-    sections, should be h2).
-  - **P2 · EmptyState in a Card you title yourself:** with headingLevel 3 under an h2 Subheading title it still renders
-    Heading/4 (20px > 18px); only ChartCard passes its level down. Needs a smaller style or description-only.
-  - **P2 · Seed and switch on the outline warnings:** `audit.mjs --outline` (outline-h1/start/card/siblings) is opt-in
-    until seeded: `--quality --outline --baseline-update=outline-h1,outline-start,outline-card,outline-siblings` over
-    all pages; then drop the flag. Also re-seed `rhythm` (its messages changed).
-  - **P2 · Gate page mapping:** `PlatformPhone.tsx`, `PlatformTypographyHierarchy.tsx` and
-    `PlatformMobileShowcases.tsx` edits map to no page ("pass --pages"), and a pass then clears them although their
-    pages were not rendered. Map PlatformPhone → pages with phone frames, the hierarchy file → typography, mobile
-    showcases → the edited examples' pages.
+  - **Done 2026-09-30:** the Bottom Navigation and Templates screens have their h1 (Form "Mobile checkout" was already
+    fixed); outline-* warnings run by default with their baseline seeded, `rhythm` re-seeded; the gate maps
+    `PlatformPhone.tsx`, `PlatformTypographyHierarchy.tsx` and `PlatformMobileShowcases.tsx` helpers to their pages.
+    Log: `session-log-2026-09-30.md`.
+  - **P2 · Screens still without an h1 (baselined debt, found by the default-on outline check):** Chat "Desktop
+    messenger", "Desktop support (Business)", "Desktop group media", "Reply to any message" (Messenger starts at h3
+    "Messages"); Side Panel "Docked inspector". (Sidebar shells fixed 2026-09-30: PageHeader h1 + h2 sections.)
+  - **Done 2026-10-01 (user chose option A):** EmptyState `compactTitle` gives a Card you title yourself the ChartCard
+    title style (Body/Extra/Bold).
   - **P3 · Typography "Emphasis inside a level":** clicking a row that is already read does nothing (behaviour
     deadclick ⚠); let the row toggle read/unread or say so in the caption.
   - **P3:** the docs platform's own outline on the Typography page (h2 Heading/3 sections, example h1s under h3 card
@@ -156,6 +153,14 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     "Headings" story could label each level's default style. Review:
   `docs/context/typography-hierarchy-review-2026-09-29.md` (8 decisions, ~30 verdicts; the phone child screen has no
   h1, h2 renders in 6 styles, the enforcement misses missing h1s and errors on valid group headers).
+- **Motion (2026-10-01):** P1 is done (tokens in the pipeline, reduced motion keeps fades, Popover/Menu/tooltip
+  enter and exit, raw values swept, motion rules). The user's decisions: reduced motion = movement off (1A), code-owned
+  tokens + Figma Motion collection (2A), productive only, no spring (3A), colour-only press feedback (4A), the Segmented
+  Primary label flips at the midpoint (5A). Review: `docs/context/motion-transitions-review-2026-10-01.md`. Next:
+  - **P2:** sliding Tabs indicator and Segmented thumb (label colour flips mid-slide); Checkbox/Radio/Toggle
+    micro-motion; usePresence driven by animationend (then reduced motion can fade out too); Sidebar collapse with
+    transform instead of width; Accordion content fade; Progress with scaleX. Each needs the full gate.
+  - **P3:** shared add/remove motion for list rows; Toast stacking (design decision); View Transitions on the platform.
 - **Process (2026-09-29):** batch A of `docs/context/process-audit-2026-09-29.md` is done (tiers in AGENTS.md §C,
   consumer-scoped QA, ledger/Stop-hook fixes, scoped static gates, Scope-lock wording, a `use_figma`-safe extractor),
   then a token fast path, label-key scoping and a narrower tier L (`--all` only for every-page changes; library

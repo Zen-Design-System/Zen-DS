@@ -66,7 +66,7 @@
 .zen-slider[data-size="small"] .zen-slider__thumb { right: 0; }
 /* Small: the 16px dot floats over the 10px rail and ends flush with the fill (1px from the rail at both ends). */
 .zen-slider[data-size="small"] .zen-slider__fill { --zen-slider-fill-min: var(--zen-slider-dot); }
-.zen-slider__knob { display: block; box-sizing: border-box; width: var(--zen-slider-knob); height: var(--zen-slider-knob); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-slider-knob-fill); transition: background-color 120ms ease, box-shadow 120ms ease; }
+.zen-slider__knob { display: block; box-sizing: border-box; width: var(--zen-slider-knob); height: var(--zen-slider-knob); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-slider-knob-fill); transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), box-shadow var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); }
 /* zen-allow-raw-shadow: Slide-Dot (6455:2135) uses local drop shadows, not an Effect style, with colours bound to
    Color/Shadow/*. Small (6455:2131): 0 2 4 Neutral/Base + 0 2 8 −4 Neutral/Strongest. Medium Thumb (6455:2141): 0 0 4 Neutral/Strong. */
 .zen-slider[data-size="small"] .zen-slider__knob { box-shadow: 0 2px 4px var(--zen-color-shadow-neutral-base), 0 2px 8px -4px var(--zen-color-shadow-neutral-strongest); }
@@ -83,4 +83,3 @@
 .zen-slider__input:focus-visible + .zen-slider__rail .zen-slider__thumb { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
 
 .zen-slider__limits { display: flex; justify-content: space-between; color: var(--zen-color-content-neutral-strongest, #111); }
-@media (prefers-reduced-motion: reduce) { .zen-slider__knob { transition: none; } }

@@ -1549,6 +1549,8 @@
       ],
       "rules": [
         "motion/reduced-motion",
+        "motion/token-only",
+        "motion/no-layout-animation",
         "interaction/no-noop-handler"
       ]
     },
@@ -1673,6 +1675,7 @@
           "ref?: Ref<HTMLElement>",
           "title: ReactNode",
           "headingLevel?: 2|3|4|5|6",
+          "compactTitle?: boolean = false",
           "children?: ReactNode",
           "illustration?: boolean|ReactNode = true",
           "icon?: IconName|ReactElement",

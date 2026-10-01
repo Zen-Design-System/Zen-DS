@@ -9,6 +9,7 @@ import { renderIcon } from "../_shared/icon";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import { useAnchoredPosition } from "./useAnchoredPosition";
+import { usePresence } from "../Motion";
 import "./popover.css";
 import "../Icon/core";
 
@@ -197,6 +198,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
   const rootRef = useRef<HTMLDivElement | null>(null);
   // Attach 4px below the trigger / input box, flipping above it near the bottom of the viewport.
   // Inside an Input the box is the enclosing control (SelectField, field pickers); otherwise the trigger.
+  const presence = usePresence(open, 120);
   const placement = useAnchoredPosition(rootRef, open, {
     align,
     anchor: () => rootRef.current?.parentElement?.closest<HTMLElement>(".zen-input__control") ?? anchorRef?.current,
@@ -238,7 +240,9 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [open, onOpenChange, anchorRef]);
-  if (!open) return null;
+  // Closing keeps the surface for its Fast exit fade (popover.css), inert so it takes no clicks or focus meanwhile.
+  if (!presence.mounted) return null;
+  const closing = presence.phase === "closing";
   const resolvedSearchValue = onSearchChange ? searchValue : internalSearchValue;
   const handleSearchChange = (value: string) => {
     setInternalSearchValue(value);
@@ -287,6 +291,8 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
       className={["zen-popover", className].filter(Boolean).join(" ")}
       style={{ ...placement.style, ...divProps.style }}
       data-side={placement.side}
+      data-state={closing ? "closing" : undefined}
+      inert={closing || undefined}
       data-search={search ? "true" : "false"}
       data-scroll-bar={scrollBar ? "true" : "false"}
       onKeyDown={handleKeyDown}

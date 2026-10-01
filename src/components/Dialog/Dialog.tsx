@@ -137,7 +137,7 @@ export function Dialog({ open: openProp, isOpen, onOpenChange: onOpenChangeProp,
   const panelRef = useRef<HTMLDivElement>(null);
   useModal(open, panelRef, dismissible, onOpenChange, "input:not(:disabled), select:not(:disabled), textarea:not(:disabled), .zen-modal-actions [data-action='primary']");
   // Stay mounted for the exit animation; useModal already restored focus/scroll when `open` went false.
-  const { mounted, phase } = usePresence(open, 160);
+  const { mounted, phase } = usePresence(open, 200);
   if (!mounted || typeof document === "undefined") return null;
   const closing = phase === "closing";
   const iconNode = icon === false ? null : icon === true ? <Icon name={themeIcon[theme]} decorative /> : renderIcon(icon);
@@ -199,7 +199,7 @@ export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangePr
   const id = useId().replace(/:/g, "");
   const panelRef = useRef<HTMLDivElement>(null);
   useModal(open, panelRef, dismissible, onOpenChange, "input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [contenteditable='true'], .zen-modal-actions [data-action='primary']");
-  const { mounted, phase } = usePresence(open, 160);
+  const { mounted, phase } = usePresence(open, 200);
   if (!mounted || typeof document === "undefined") return null;
   const closing = phase === "closing";
   const hasSide = side !== undefined && side !== null && layout !== "basic" && layout !== "big";

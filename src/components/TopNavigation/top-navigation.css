@@ -18,20 +18,21 @@
 .zen-top-nav[data-margin="compact"] { --zen-top-nav-side: var(--zen-spacing-padding-medium, 16px); }
 .zen-top-nav[data-sticky="true"] { position: sticky; top: 0; }
 
-/* Backgrounds (Figma Type). */
+/* Backgrounds (Figma Type). The gradient types paint their fill at 80% (Figma gradient paint opacity 0.8, 12014:45358 …
+   12053:56882): the opaque stop is 80% of its token, so the bar stays a little see-through over the blur. */
 .zen-top-nav:is([data-type="alt"], [data-type="compact-alt"]) { background: var(--zen-color-background-surface-alt, #f7f7f7); }
 .zen-top-nav[data-type="default-blurring"] {
   --zen-top-nav-blur: 5px;
-  background: linear-gradient(180deg, var(--zen-color-background-surface-default, #fff) 50%, var(--zen-color-background-surface-default-bluring-end, rgb(255 255 255 / 0%)) 100%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-surface-default, #fff) 80%, transparent) 50%, var(--zen-color-background-surface-default-bluring-end, rgb(255 255 255 / 0%)) 100%);
 }
 .zen-top-nav:is([data-type="alt-blurring"], [data-type="liquid-glass"]) {
-  background: linear-gradient(180deg, var(--zen-color-background-surface-alt, #f7f7f7) 0%, var(--zen-color-background-surface-alt-bluring-end, rgb(247 247 247 / 0%)) 100%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-surface-alt, #f7f7f7) 80%, transparent) 0%, var(--zen-color-background-surface-alt-bluring-end, rgb(247 247 247 / 0%)) 100%);
 }
 .zen-top-nav:is([data-type="default-overlay"], [data-type="liquid-overlay"], [data-type="compact-overlay"]) {
   --zen-top-nav-content: var(--zen-color-content-on-black-overlay-strongest, #fff);
-  background: linear-gradient(180deg, var(--zen-color-background-black-overlay-hover, rgb(0 0 0 / 50%)) 0%, transparent 100%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-black-overlay-hover, rgb(0 0 0 / 50%)) 80%, transparent) 0%, transparent 100%);
 }
-.zen-top-nav[data-type="compact-overlay"] { background: linear-gradient(180deg, var(--zen-color-background-black-overlay-pressed, rgb(0 0 0 / 60%)) 0%, transparent 100%); }
+.zen-top-nav[data-type="compact-overlay"] { background: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-black-overlay-pressed, rgb(0 0 0 / 60%)) 80%, transparent) 0%, transparent 100%); }
 
 /* Progressive background blur (Figma blurType=PROGRESSIVE, start radius at the top → 0 at the bottom). CSS has one
    backdrop-filter per element, so five stacked layers each blur the backdrop and are masked to a band that ends
@@ -106,9 +107,16 @@
    Icon-Size slot with the Navigation-Action/Size button at −10px). */
 .zen-top-nav__action[data-style="flat"] { margin: calc((var(--zen-navigation-mobile-top-icon-size, 24px) - var(--zen-navigation-action-size, 44px)) / 2); background: transparent; box-shadow: none; }
 .zen-top-nav__action[data-style="flat"]:hover:not(:disabled) { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
-.zen-top-nav__action[data-style="glass"] { background: var(--zen-color-background-liquid-glass-normal-default, rgb(255 255 255 / 70%)); box-shadow: var(--zen-style-liquid-glass-normal-shadow, 0 4px 16px rgb(0 0 0 / 8%)); backdrop-filter: blur(12px); }
+/* Effect style Liquid-Glass/Normal on both (Figma GLASS frost 4 → blur 2px, light −45° → a lit top-left rim and a fainter
+   bottom-right one; refraction and dispersion have no CSS equivalent) plus its 0 4 24 −8 shadow. */
+.zen-top-nav__action:is([data-style="glass"], [data-style="glass-dark"]) {
+  box-shadow: inset 1px 1px 0 0 var(--zen-color-background-liquid-glass-white-overlay-pressed, rgb(255 255 255 / 70%)), inset -1px -1px 0 0 var(--zen-color-background-liquid-glass-white-overlay-default, rgb(255 255 255 / 40%)), var(--zen-style-liquid-glass-normal-shadow, 0 4px 24px -8px rgb(0 0 0 / 16%));
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.zen-top-nav__action[data-style="glass"] { background: var(--zen-color-background-liquid-glass-normal-default, rgb(255 255 255 / 70%)); }
 .zen-top-nav__action[data-style="glass"]:hover:not(:disabled) { background: var(--zen-color-background-liquid-glass-normal-hover, rgb(255 255 255 / 80%)); }
-.zen-top-nav__action[data-style="glass-dark"] { background: var(--zen-color-background-liquid-glass-black-overlay-default, rgb(0 0 0 / 30%)); box-shadow: none; backdrop-filter: blur(12px); }
+.zen-top-nav__action[data-style="glass-dark"] { background: var(--zen-color-background-liquid-glass-black-overlay-default, rgb(0 0 0 / 30%)); }
 .zen-top-nav__action[data-style="glass-dark"]:hover:not(:disabled) { background: var(--zen-color-background-liquid-glass-black-overlay-hover, rgb(0 0 0 / 40%)); }
 .zen-top-nav__dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-negative-solid-default, #e5532e); box-shadow: 0 0 0 2px var(--zen-color-border-inverse, #fff); }
 .zen-top-nav__action[data-style="flat"] .zen-top-nav__dot { top: 8px; right: 8px; }
@@ -117,9 +125,9 @@
 /* searchAction: the Search control bar folds into a trailing Search action while collapsed (and back). */
 .zen-top-nav__search { animation: zen-top-nav-search-in var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-emphasized, ease-out) both; }
 .zen-top-nav__search[data-state="closing"] { animation: zen-top-nav-search-out var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-exit, ease-in) both; pointer-events: none; }
-@keyframes zen-top-nav-search-in { from { opacity: 0; transform: scale(0.8); } }
-@keyframes zen-top-nav-search-out { to { opacity: 0; transform: scale(0.8); } }
-@media (prefers-reduced-motion: reduce) { .zen-top-nav__search, .zen-top-nav__search[data-state="closing"] { animation: none; } }
+@keyframes zen-top-nav-search-in { from { opacity: 0; transform: scale(calc(1 - 0.2 * var(--zen-motion-movement, 1))); } }
+@keyframes zen-top-nav-search-out { to { opacity: 0; transform: scale(calc(1 - 0.2 * var(--zen-motion-movement, 1))); } }
+/* Reduced motion: the Search control crossfades (its scale step is multiplied by --zen-motion-movement, 0 there). */
 
 /* Identity title (Figma ◆ Social conversation header: Heading-Text Type=Sub + Leading + Subheading). The bar switches to
    leading · identity (fills, left-aligned) · trailing; the identity keeps the Heading-Text padding 8/4. */

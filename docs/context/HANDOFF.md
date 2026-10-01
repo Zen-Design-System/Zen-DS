@@ -25,7 +25,9 @@ Last updated: 2026-09-29.
 - **Library:** every Figma component is built (60 folders in `src/index.ts`, 49 guideline slugs). API vocabulary,
   labels (en/vi), `data-tone` variants and the harness are described in `HANDOFF-details.md` ("Vibe-code readiness").
 - **Tokens:** synced from the user's exports; the latest are the 2026-09-29 Global Colors moves. The VT, Chat and Ananas
-  ramps were removed from the repo but still exist in Figma: a future sync must drop them again.
+  ramps were removed from the repo but still exist in Figma: a future sync must drop them again. Motion tokens are
+  code-owned (`tokens/source/motion.json`, 2026-10-01); the Figma "Motion" collection only mirrors the durations, so a
+  variables sync ignores it.
 - **Figma parity:** `node tools/figma-contract/run-all.mjs` (23 suites + 25 interactions). Captures live in
   `docs/figma-contracts/`: slice them with a script, never `Read` a whole file (0.7–2 MB each).
 - **Harness:** 150 usage rules (`npm run usage:rules`). The style-guard baseline is empty, so every style finding is new.

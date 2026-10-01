@@ -29,7 +29,7 @@
 .zen-card[data-tone="shadow"][data-active="true"] { box-shadow: inset 0 0 0 2px var(--zen-card-border-active, #111), var(--zen-style-shadow-bottom-level-1-shadow); }
 
 /* Clickable cards are actionable containers: Border theme steps up to Neutral/Subtle with hover/pressed (§6). */
-.zen-card[data-interactive="true"] { cursor: pointer; transition: box-shadow 120ms ease, background-color 120ms ease; }
+.zen-card[data-interactive="true"] { cursor: pointer; transition: box-shadow var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); }
 .zen-card[data-interactive="true"][data-tone="border"]:not([data-active="true"]) { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
 .zen-card[data-interactive="true"][data-tone="border"]:not([data-active="true"]):hover { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-hover, rgb(1 1 1 / 16%)); }
 .zen-card[data-interactive="true"]:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
@@ -38,6 +38,5 @@
 /* Sub-Action: a 20px anchor at the padding corner holding the 32px Small icon button, so it overhangs 6px. */
 .zen-card__sub-action { position: absolute; top: var(--zen-card-padding); right: var(--zen-card-padding); display: flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; }
 .zen-card:has(.zen-card__sub-action) > .zen-card__content { padding-inline-end: calc(var(--zen-element-size-popular-base, 20px) + var(--zen-spacing-gap-xsmall, 8px)); }
-@media (prefers-reduced-motion: reduce) { .zen-card[data-interactive="true"] { transition: none; } }
 /* Choice controls in a card span its width (the Toggle switch sits on the right edge). */
 .zen-card__content > :is(.zen-toggle, .zen-checkbox, .zen-radio-button) { width: 100%; }

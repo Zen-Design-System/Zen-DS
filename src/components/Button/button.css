@@ -35,7 +35,7 @@
   text-align: center;
   text-decoration: none;
   touch-action: manipulation;
-  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease, color 120ms ease;
+  transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), border-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), box-shadow var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease);
   user-select: none;
   white-space: nowrap;
 }
@@ -422,8 +422,4 @@
 .zen-button[data-level="danger-secondary"] { --zen-button-background: var(--zen-color-background-negative-subtle-default, rgb(229 83 46 / 10%)); --zen-button-background-hover: var(--zen-color-background-negative-subtle-hover, rgb(229 83 46 / 16%)); --zen-button-background-pressed: var(--zen-color-background-negative-subtle-pressed, rgb(229 83 46 / 22%)); --zen-button-content: var(--zen-color-content-negative-light, #d03e19); --zen-button-content-hover: var(--zen-color-content-negative-light, #d03e19); --zen-button-content-pressed: var(--zen-color-content-negative-base, #941b00); --zen-button-background-disabled: var(--zen-color-background-subtle-disabled); --zen-button-shadow: 0 0 #0000; }
 .zen-button[data-level="positive-secondary"] { --zen-button-background: var(--zen-color-background-positive-subtle-default, rgb(63 171 83 / 10%)); --zen-button-background-hover: var(--zen-color-background-positive-subtle-hover, rgb(63 171 83 / 16%)); --zen-button-background-pressed: var(--zen-color-background-positive-subtle-pressed, rgb(63 171 83 / 22%)); --zen-button-content: var(--zen-color-content-positive-light, #16845b); --zen-button-content-hover: var(--zen-color-content-positive-light, #16845b); --zen-button-content-pressed: var(--zen-color-content-positive-base, #006425); --zen-button-background-disabled: var(--zen-color-background-subtle-disabled); --zen-button-shadow: 0 0 #0000; }
 
-@media (prefers-reduced-motion: reduce) {
-  .zen-button {
-    transition: none;
-  }
-}
+/* Colour-only transitions stay under reduced motion (WCAG 2.3.3 covers movement, not colour). */

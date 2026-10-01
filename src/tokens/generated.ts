@@ -2274,5 +2274,71 @@ export const tokenCollections = {
   }
 } as const;
 
+/** Code-owned motion tokens (tokens/source/motion.json): CSS reference, value and when to use each. */
+export const motionTokens = {
+  "Motion/Duration/Xfast": {
+    "css": "var(--zen-motion-duration-xfast)",
+    "type": "DURATION",
+    "value": "80ms",
+    "use": "Press and release, a check or dot appearing, tooltip and small overlay exit."
+  },
+  "Motion/Duration/Fast": {
+    "css": "var(--zen-motion-duration-fast)",
+    "type": "DURATION",
+    "value": "120ms",
+    "use": "Hover, colour and opacity state changes, tooltip enter."
+  },
+  "Motion/Duration/Base": {
+    "css": "var(--zen-motion-duration-base)",
+    "type": "DURATION",
+    "value": "200ms",
+    "use": "Small movement (indicators, toggle thumb, chevrons), popover and menu enter, large overlay exit."
+  },
+  "Motion/Duration/Slow": {
+    "css": "var(--zen-motion-duration-slow)",
+    "type": "DURATION",
+    "value": "280ms",
+    "use": "Large surfaces entering: dialog, sheets, side panel, drawer, toast, accordion expand."
+  },
+  "Motion/Ease/Standard": {
+    "css": "var(--zen-motion-ease-standard)",
+    "type": "EASING",
+    "value": "cubic-bezier(0.2, 0, 0, 1)",
+    "use": "On-screen movement and state changes."
+  },
+  "Motion/Ease/Emphasized": {
+    "css": "var(--zen-motion-ease-emphasized)",
+    "type": "EASING",
+    "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+    "use": "Surfaces entering the screen."
+  },
+  "Motion/Ease/Exit": {
+    "css": "var(--zen-motion-ease-exit)",
+    "type": "EASING",
+    "value": "cubic-bezier(0.4, 0, 1, 1)",
+    "use": "Surfaces leaving the screen."
+  },
+  "Motion/Ease/Linear": {
+    "css": "var(--zen-motion-ease-linear)",
+    "type": "EASING",
+    "value": "linear",
+    "use": "Progress, loops and opacity-only crossfades."
+  },
+  "Motion/Movement": {
+    "css": "var(--zen-motion-movement)",
+    "type": "FACTOR",
+    "value": "1",
+    "reducedMotion": "0",
+    "use": "Multiplies every animated distance, scale step and rotation. 0 under prefers-reduced-motion: surfaces crossfade instead of moving, colour and opacity still change (WCAG 2.3.3 covers motion, not fades)."
+  }
+} as const;
+
+export const motionRules = [
+  "Exit is one step shorter than enter: slow → base, base → fast, fast → xfast.",
+  "Animate transform, opacity and colours; expand and collapse with grid-template-rows. Never width, height, top, left or margin.",
+  "Productive by default: emphasized only for surfaces entering the screen, exit for surfaces leaving it."
+] as const;
+
 export type TokenName = keyof typeof tokens;
+export type MotionTokenName = keyof typeof motionTokens;
 export type TokenCollectionName = keyof typeof tokenCollections;

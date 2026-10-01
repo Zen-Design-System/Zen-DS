@@ -58,7 +58,7 @@
   flex: 0 0 auto;
   padding-block: var(--zen-accordion-icon-inset);
   color: var(--zen-color-content-neutral-strongest, #111);
-  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease);
 }
 .zen-accordion__icon > .zen-icon { width: var(--zen-accordion-icon); height: var(--zen-accordion-icon); }
 .zen-accordion[data-expanded="true"] .zen-accordion__icon { transform: rotate(180deg); }
@@ -67,14 +67,14 @@
 .zen-accordion__panel {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: grid-template-rows var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-standard, ease);
 }
 .zen-accordion[data-expanded="true"] .zen-accordion__panel { grid-template-rows: 1fr; }
 .zen-accordion__panel-inner { min-height: 0; overflow: hidden; }
 /* Clip only while collapsed or animating: once open, content may paint outside the panel — hover halos
    (Checkbox/Radio −8px), focus rings (−4px) and shadows must not be cut. The 240ms animation keeps the clip
    for the duration of the height transition, then releases it. */
-.zen-accordion[data-expanded="true"] .zen-accordion__panel-inner { overflow: visible; animation: zen-accordion-clip 240ms; }
+.zen-accordion[data-expanded="true"] .zen-accordion__panel-inner { overflow: visible; animation: zen-accordion-clip var(--zen-motion-duration-slow, 280ms); }
 @keyframes zen-accordion-clip { from, to { overflow: hidden; } }
 .zen-accordion__content {
   padding-top: var(--zen-accordion-gap);

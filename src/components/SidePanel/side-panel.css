@@ -45,13 +45,19 @@
    curve). Standard nudges 16px + fades. data-state="closing" is held by usePresence for the exit duration. */
 @keyframes zen-side-panel-slide-in { from { transform: translateX(calc(100% + var(--zen-spacing-padding-xsmall, 8px))); } }
 @keyframes zen-side-panel-slide-out { to { transform: translateX(calc(100% + var(--zen-spacing-padding-xsmall, 8px))); } }
-@keyframes zen-side-panel-nudge-in { from { opacity: 0; transform: translateX(16px); } }
-@keyframes zen-side-panel-nudge-out { to { opacity: 0; transform: translateX(16px); } }
+@keyframes zen-side-panel-nudge-in { from { opacity: 0; transform: translateX(calc(16px * var(--zen-motion-movement, 1))); } }
+@keyframes zen-side-panel-nudge-out { to { opacity: 0; transform: translateX(calc(16px * var(--zen-motion-movement, 1))); } }
 .zen-side-panel-overlay[data-state="closing"] { animation: zen-motion-scrim-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; pointer-events: none; }
 .zen-side-panel[data-type="modal"][data-state="closing"] { animation: zen-side-panel-slide-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; }
 .zen-side-panel[data-type="standard"] { animation: zen-side-panel-nudge-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-emphasized, ease-out) both; }
-.zen-side-panel[data-type="standard"][data-state="closing"] { animation: zen-side-panel-nudge-out 160ms var(--zen-motion-ease-exit, ease-in) both; }
-@media (prefers-reduced-motion: reduce) { .zen-side-panel-overlay, .zen-side-panel { animation: none !important; } }
+.zen-side-panel[data-type="standard"][data-state="closing"] { animation: zen-side-panel-nudge-out var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-exit, ease-in) both; }
+/* Reduced motion: the modal panel crossfades instead of sliding, the standard one fades at Fast (its nudge is scaled by
+   --zen-motion-movement); the scrim keeps its colour fade. */
+@media (prefers-reduced-motion: reduce) {
+  .zen-side-panel { animation-duration: var(--zen-motion-duration-fast, 120ms) !important; }
+  .zen-side-panel[data-type="modal"] { animation-name: zen-motion-fade-in !important; }
+  .zen-side-panel[data-type="modal"][data-state="closing"] { animation-name: zen-motion-fade-out !important; }
+}
 @media (max-width: 480px) { .zen-side-panel[data-type="modal"] { width: 100%; } }
 /* The Contents slot is a form/detail column: direct children span its width. */
 .zen-side-panel__body { --zen-list-inset: 0px; }

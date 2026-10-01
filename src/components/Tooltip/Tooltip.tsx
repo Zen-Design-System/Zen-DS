@@ -1,5 +1,6 @@
 import { cloneElement, createContext, isValidElement, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type FocusEvent, type HTMLAttributes, type PointerEvent, type ReactElement, type ReactNode } from "react";
 import { ZenPortal } from "../Portal";
+import { usePresence } from "../Motion";
 import { scaleKey } from "../_shared/scale";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./tooltip.css";
@@ -67,10 +68,14 @@ export function Tooltip({ content, children, color = "default", size: sizeProp =
   const clear = () => window.clearTimeout(timer.current);
   const show = (wait: number) => { clear(); if (wait <= 0) setInternalOpen(true); else timer.current = window.setTimeout(() => setInternalOpen(true), wait); };
   const hide = () => { clear(); setInternalOpen((was) => { if (was) lastTooltipClosedAt = Date.now(); return false; }); };
+  // Hiding fades out at XFast (tooltip.css); Escape dismisses at once.
+  const presence = usePresence(open, 80);
+  const [escaped, setEscaped] = useState(false);
+  if (open && escaped) setEscaped(false);
   useEffect(() => clear, []);
   useEffect(() => {
     if (!open) return undefined;
-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") hide(); };
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") { setEscaped(true); hide(); } };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
@@ -87,7 +92,7 @@ export function Tooltip({ content, children, color = "default", size: sizeProp =
       onPointerDown={hide}
     >
       <InsideTooltipContext.Provider value={true}>{trigger}</InsideTooltipContext.Provider>
-      {open ? <TooltipSurface id={id} role="tooltip" color={color} size={size} className="zen-tooltip--floating" data-placement={placement}>{content}</TooltipSurface> : null}
+      {presence.mounted && !(escaped && !open) ? <TooltipSurface id={id} role="tooltip" color={color} size={size} className="zen-tooltip--floating" data-placement={placement} data-state={open ? undefined : "closing"}>{content}</TooltipSurface> : null}
     </span>
   );
 }
@@ -108,10 +113,16 @@ export function useIconTooltip(label: ReactNode | false | undefined, { placement
   const clear = () => window.clearTimeout(timer.current);
   const open = (el: HTMLElement, wait: number) => { clear(); if (wait <= 0) setAnchor(el); else timer.current = window.setTimeout(() => setAnchor(el), wait); };
   const close = () => { clear(); setAnchor((was) => { if (was) lastTooltipClosedAt = Date.now(); return null; }); };
+  // Hiding fades out at XFast from the last anchor (tooltip.css); Escape dismisses at once.
+  const presence = usePresence(Boolean(anchor), 80);
+  const lastAnchor = useRef<HTMLElement | null>(null);
+  if (anchor) lastAnchor.current = anchor;
+  const [escaped, setEscaped] = useState(false);
+  if (anchor && escaped) setEscaped(false);
   useEffect(() => clear, []);
   useEffect(() => {
     if (!anchor) return undefined;
-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") close(); };
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") { setEscaped(true); close(); } };
     document.addEventListener("keydown", onKey);
     window.addEventListener("scroll", close, true);
     return () => { document.removeEventListener("keydown", onKey); window.removeEventListener("scroll", close, true); };
@@ -133,11 +144,12 @@ export function useIconTooltip(label: ReactNode | false | undefined, { placement
     });
     return merged;
   };
-  const tooltip = enabled && anchor ? <IconTooltipLayer anchor={anchor} placement={placement}>{label}</IconTooltipLayer> : null;
+  const shown = anchor ?? lastAnchor.current;
+  const tooltip = enabled && presence.mounted && shown && !(escaped && !anchor) ? <IconTooltipLayer anchor={shown} placement={placement} closing={!anchor}>{label}</IconTooltipLayer> : null;
   return { bind, tooltip };
 }
 
-function IconTooltipLayer({ anchor, placement, children }: { anchor: HTMLElement; placement: "top" | "bottom"; children: ReactNode }) {
+function IconTooltipLayer({ anchor, placement, closing = false, children }: { anchor: HTMLElement; placement: "top" | "bottom"; closing?: boolean; children: ReactNode }) {
   const layer = useRef<HTMLSpanElement>(null);
   const [position, setPosition] = useState<{ top: number; left: number; side: "top" | "bottom" } | null>(null);
   useLayoutEffect(() => {
@@ -153,7 +165,7 @@ function IconTooltipLayer({ anchor, placement, children }: { anchor: HTMLElement
   }, [anchor, placement]);
   return (
     <ZenPortal>
-      <span ref={layer} className="zen-tooltip-layer" data-placement={position?.side} style={position ? { top: position.top, left: position.left } : { top: 0, left: 0, visibility: "hidden" }}>
+      <span ref={layer} className="zen-tooltip-layer" data-placement={position?.side} data-state={closing ? "closing" : undefined} style={position ? { top: position.top, left: position.left } : { top: 0, left: 0, visibility: "hidden" }}>
         <TooltipSurface role="tooltip">{children}</TooltipSurface>
       </span>
     </ZenPortal>

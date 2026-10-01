@@ -51,3 +51,10 @@ body { background: var(--zen-color-background-surface-default); }
 .x-option.is-selected { background: var(--zen-color-background-active-neutral-subtle); }
 /* expect: focus/selected-fill-only */
 .x-option:hover, .x-option:focus-visible { background: var(--zen-color-background-neutral-flat-hover); }
+/* Motion (tokens/source/motion.json, 2026-10-01). */
+/* expect: motion/token-only */
+.chip-x { transition: background-color 120ms ease; }
+/* expect: motion/no-layout-animation */
+.rail-x { transition: width var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease); }
+/* expect: motion/reduced-motion */
+.thumb-x { transition: transform var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease); }

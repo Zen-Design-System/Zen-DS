@@ -63,3 +63,7 @@
 .x-option.is-selected { background: var(--zen-color-background-active-neutral-subtle); }
 .x-option:hover, .x-option:focus-visible { background: var(--zen-color-background-neutral-flat-hover); }
 .x-option:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid); outline-offset: -3px; }
+/* Motion tokens: a colour transition, a shared fade and a loop (loops keep their own constant). */
+.chip-ok { transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); }
+.toast-ok { animation: zen-motion-fade-in var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease) both; }
+.pulse-ok { animation: zen-skeleton-pulse 1.6s ease-in-out infinite; }

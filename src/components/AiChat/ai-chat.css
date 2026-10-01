@@ -15,11 +15,23 @@
   border-radius: var(--zen-corner-radius-giant, 32px);
   background: var(--zen-input-background-default, rgb(5 5 5 / 3%));
   box-shadow: var(--zen-style-effect-input-shadow, none);
+  /* The whole field is the prompt's hit area (AiChatField focuses it on a press outside the buttons). */
+  cursor: text;
 }
 .zen-ai-field:focus-within { background: var(--zen-input-background-focused, #fff); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)), var(--zen-style-effect-input-shadow, none); }
 .zen-ai-field[data-style="surface"] { background: var(--zen-color-background-surface-default, #fff); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow, 0 1px 3px rgb(0 0 0 / 10%)); }
-.zen-ai-field[data-style="liquid-glass"] { background: var(--zen-color-background-liquid-glass-normal-default, rgb(255 255 255 / 70%)); box-shadow: var(--zen-style-liquid-glass-normal-shadow, 0 4px 16px rgb(0 0 0 / 8%)); backdrop-filter: blur(24px); }
-.zen-ai-field[data-style]:focus-within:not([data-style="default"]) { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)), var(--zen-style-shadow-bottom-level-1-shadow, 0 1px 3px rgb(0 0 0 / 10%)); }
+/* Liquid Glass (12077:5298): effect style Liquid-Glass/Normal — GLASS frost 4 → blur 2px, light −45° → a lit top-left rim
+   and a fainter bottom-right one (refraction and dispersion have no CSS equivalent), plus its 0 4 24 −8 shadow. */
+.zen-ai-field[data-style="liquid-glass"] {
+  --zen-ai-field-glass: inset 1px 1px 0 0 var(--zen-color-background-liquid-glass-white-overlay-pressed, rgb(255 255 255 / 70%)), inset -1px -1px 0 0 var(--zen-color-background-liquid-glass-white-overlay-default, rgb(255 255 255 / 40%)), var(--zen-style-liquid-glass-normal-shadow, 0 4px 24px -8px rgb(0 0 0 / 16%));
+  background: var(--zen-color-background-liquid-glass-normal-default, rgb(255 255 255 / 70%));
+  box-shadow: var(--zen-ai-field-glass);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+/* Focus keeps each style's own elevation and adds the 1px ring that replaces the prompt's removed outline. */
+.zen-ai-field[data-style="surface"]:focus-within { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)), var(--zen-style-shadow-bottom-level-1-shadow, 0 1px 3px rgb(0 0 0 / 10%)); }
+.zen-ai-field[data-style="liquid-glass"]:focus-within { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)), var(--zen-ai-field-glass); }
 .zen-ai-field[data-long="true"] { grid-template-areas: "input input input" "leading . trailing"; }
 /* Long-Typing: the prompt sits in a padded Content box (12 + the 2px text inset) 16px above the Control-Bar. */
 .zen-ai-field[data-long="true"] .zen-ai-field__input { padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-small, 12px) calc(var(--zen-spacing-padding-small, 12px) + var(--zen-spacing-padding-3-xsmall, 2px)); }
@@ -28,10 +40,13 @@
 .zen-ai-field__input { width: 100%; max-height: 200px; min-height: 24px; box-sizing: border-box; grid-area: input; padding: 0 0 0 var(--zen-spacing-padding-3-xsmall, 2px); border: 0; background: transparent; color: var(--zen-color-content-neutral-strongest, #111); field-sizing: content; outline: 0; resize: none; }
 /* The placeholder is one truncated line (Figma Text trunc), laid over the empty textarea so a narrow field never grows a row for it. */
 .zen-ai-field__placeholder { overflow: hidden; min-width: 0; grid-area: input; padding-left: var(--zen-spacing-padding-3-xsmall, 2px); color: var(--zen-color-content-placeholder, rgb(0 0 0 / 27%)); pointer-events: none; text-overflow: ellipsis; white-space: nowrap; }
-/* Figma AI Model (12074:16777): label (Body/Base/Medium) + 20px chevron, gap Spacing/Gap/2XSmall, no padding. */
-.zen-ai-field__model { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0; border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: transparent; color: var(--zen-color-content-neutral-strongest, #111); cursor: pointer; white-space: nowrap; }
+/* Figma AI Model (live 2026-10-01, in 12074:16884): a 36px pill — Button/Spacing/Small padding (8 / 8), Corner-Radius/
+   Action/Small, Neutral/Flat fill — around the label (Body/Base/Medium) + 20px chevron (gap Spacing/Gap/2XSmall). The
+   pill is the hit area, so a press next to the label opens the model menu instead of typing into the prompt. */
+.zen-ai-field__model { display: inline-flex; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-button-spacing-small-vertical-padding, 8px) var(--zen-button-spacing-small-horizontal-padding, 8px); border: 0; border-radius: var(--zen-corner-radius-action-small, 1000px); background: var(--zen-color-background-neutral-flat-default, transparent); color: var(--zen-color-content-neutral-strongest, #111); cursor: pointer; white-space: nowrap; }
 .zen-ai-field__model .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
 .zen-ai-field__model:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+.zen-ai-field__model:active { background: var(--zen-color-background-neutral-flat-pressed, rgb(1 1 1 / 9%)); }
 .zen-ai-field__model:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 2px; }
 @media (max-width: 480px) { .zen-ai-field__model { display: none; } }
 

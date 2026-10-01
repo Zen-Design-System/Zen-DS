@@ -77,8 +77,15 @@
 .zen-bottom-nav__pill { position: relative; min-width: 0; flex: 1; padding: var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-surface-glass, rgb(255 255 255 / 60%)); box-shadow: var(--zen-style-effect-popover-shadow-unclipped, 0 8px 24px rgb(0 0 0 / 8%)); backdrop-filter: var(--zen-style-effect-popover-backdrop-filter, blur(20px)); }
 /* Figma 0.5px gradient glass border, drawn as a masked ring. */
 .zen-bottom-nav__pill::before, .zen-bottom-nav__fab::before { position: absolute; inset: 0; padding: 0.5px; border-radius: inherit; background: var(--zen-style-gradients-border-glass-white-overlay-fill, linear-gradient(180deg, rgb(255 255 255 / 16%), rgb(255 255 255 / 4%), rgb(255 255 255 / 16%))); content: ""; pointer-events: none; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
-/* Floating-Glass (9017:42257): Liquid-Glass/Normal fill + Glass-Floating shadows + a GLASS effect (≈ 8px backdrop blur); no stroke. */
-.zen-bottom-nav[data-type="floating-glass"] .zen-bottom-nav__pill { background: var(--zen-color-background-liquid-glass-normal-default, rgb(255 255 255 / 70%)); box-shadow: var(--zen-style-glass-floating-shadow-unclipped, var(--zen-style-glass-floating-shadow, 0 8px 24px -12px rgb(0 0 0 / 8%))); backdrop-filter: blur(8px) saturate(1.4); }
+/* Floating-Glass (9017:42257): Liquid-Glass/Normal fill + Glass-Floating shadows + a GLASS effect, no stroke. GLASS frost 8
+   → blur 4px (Figma blur ≈ 2 × CSS); its light (−45°, 0.8) → a lit top-left rim and a fainter bottom-right one. Refraction,
+   depth and dispersion have no CSS equivalent. The pill and the action share the recipe. */
+.zen-bottom-nav[data-type="floating-glass"] :is(.zen-bottom-nav__pill, .zen-bottom-nav__fab[data-tone="default"]) {
+  background: var(--zen-color-background-liquid-glass-normal-default, rgb(255 255 255 / 70%));
+  box-shadow: inset 1px 1px 0 0 var(--zen-color-background-liquid-glass-white-overlay-pressed, rgb(255 255 255 / 70%)), inset -1px -1px 0 0 var(--zen-color-background-liquid-glass-white-overlay-default, rgb(255 255 255 / 40%)), var(--zen-style-glass-floating-shadow-unclipped, var(--zen-style-glass-floating-shadow, 0 8px 24px -12px rgb(0 0 0 / 8%)));
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
 .zen-bottom-nav[data-type="floating-glass"] :is(.zen-bottom-nav__pill, .zen-bottom-nav__fab)::before { display: none; }
 /* On glass every icon stays Content/Neutral/Strongest (Figma 9018:43881); only the selected fill changes. */
 .zen-bottom-nav[data-type="floating-glass"] { --zen-bottom-nav-idle: var(--zen-color-content-neutral-strongest, #111); }
@@ -93,7 +100,6 @@
 /* Floating action: 64px circle (Theme Default = Surface + popover effect; Primary/Accent = solid; Glass on Floating-Glass). */
 .zen-bottom-nav__fab { position: relative; display: inline-flex; width: 64px; height: 64px; flex: 0 0 64px; align-items: center; justify-content: center; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-surface-default, #fff); box-shadow: var(--zen-style-effect-popover-shadow-unclipped, 0 8px 24px rgb(0 0 0 / 8%)); color: var(--zen-color-content-neutral-strongest, #111); cursor: pointer; }
 .zen-bottom-nav__fab:hover { background: var(--zen-color-background-surface-hover, #f7f7f7); }
-.zen-bottom-nav[data-type="floating-glass"] .zen-bottom-nav__fab[data-tone="default"] { background: var(--zen-color-background-liquid-glass-normal-default, rgb(255 255 255 / 70%)); box-shadow: var(--zen-style-glass-floating-shadow-unclipped, var(--zen-style-glass-floating-shadow, 0 8px 24px -12px rgb(0 0 0 / 8%))); backdrop-filter: blur(8px) saturate(1.4); }
 .zen-bottom-nav__fab[data-tone="primary"] { background: var(--zen-button-primary-background-default, #111); color: var(--zen-button-primary-content-default, #fafafa); }
 .zen-bottom-nav__fab[data-tone="primary"]:hover { background: var(--zen-button-primary-background-hover, #333); }
 .zen-bottom-nav__fab[data-tone="accent"] { background: var(--zen-button-accent-background-default, #ff66d4); color: var(--zen-button-accent-content-default, #fff); }

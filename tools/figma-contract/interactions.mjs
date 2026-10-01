@@ -95,6 +95,8 @@ check("select: Enter picks the option", (await page.textContent("#fruit-value"))
 check("select: focus returns to the trigger", (await active()).startsWith("button#fruit-trigger"), await active());
 await page.click("#fruit-trigger");
 await page.mouse.click(5, 5);
+// The list fades out (Fast, popover.css) before it unmounts: wait for it to go.
+await page.waitForSelector("#fruit-popover", { state: "detached", timeout: 1000 }).catch(() => undefined);
 check("select: pointer down outside closes", (await page.$("#fruit-popover")) === null);
 
 check("no runtime errors", errors.length === 0, errors.join(" | "));

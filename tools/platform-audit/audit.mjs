@@ -15,7 +15,7 @@
  *   outline     heading outline per example (Typography › Content hierarchy): more than one h1 on a page (each phone frame is
  *               its own screen), a skipped level going down (h1 → h3), or a heading larger than the heading it sits under
  *               (inside one layer: the TopNavigation bar title, overlays and Sidebar/Drawer compare only within themselves)
- *   outline-*   (warn, opt-in with --outline until seeded) page-like regions (screen:true examples, phone frames) without exactly one h1 (outline-h1) or whose
+ *   outline-*   (--quality, warn; --no-outline turns them off) page-like regions (screen:true examples, phone frames) without exactly one h1 (outline-h1) or whose
  *               outline does not start at it (outline-start); a heading inside a card larger than the card's title
  *               (outline-card); same-level sibling headings of one kind in different styles (outline-siblings)
  *   device      chat pieces that do not match their frame: a desktop ChatThread / ChatComposer in the phone, a mobile one in
@@ -70,9 +70,19 @@ const OUT = arg("out", null);
 const QUALITY = Boolean(arg("quality", false));
 const DENSITY = Boolean(arg("density", false));
 const BASELINE_FILE = path.join(root, "tools/platform-audit/quality-baseline.json");
+// Motion (2026-10-01): reduced motion keeps fades (tokens/source/motion.json sets only the movement to 0), so every
+// animation and transition is frozen at its end state: the checks read final colours, sizes and positions.
+const FREEZE_MOTION = "*, *::before, *::after { animation-duration: 0s !important; animation-delay: 0s !important; transition-duration: 0s !important; transition-delay: 0s !important; }";
+// The freeze stylesheet goes in on every document load (an init script), so a Vite HMR full reload from another session
+// cannot drop it mid-check.
+const freezeMotionInit = (css) => {
+  const add = () => { if (document.getElementById("zen-freeze-motion")) return; const s = document.createElement("style"); s.id = "zen-freeze-motion"; s.textContent = css; (document.head ?? document.documentElement).appendChild(s); };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", add, { once: true }); else add();
+};
 const BASELINE_UPDATE = arg("baseline-update", false); // true, or a comma list of kinds to rewrite
-// The outline-* warnings (2026-09-29) are opt-in until their baseline is seeded: --outline turns them on.
-const OUTLINE = arg("outline", false);
+// The outline-* warnings (2026-09-29) run by default since their baseline was seeded (2026-09-30); --no-outline turns
+// them off. --outline is still accepted.
+const OUTLINE = !arg("no-outline", false);
 const OUTLINE_KINDS = ["outline-h1", "outline-start", "outline-card", "outline-siblings"];
 const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "density", "fit", "contrast", "targets", "outline-h1", "outline-start", "outline-card", "outline-siblings"]; // contrast, targets and outline-* stay warnings; baselined so only NEW ones are listed
 const CSS = arg("css", null) ? fs.readFileSync(path.resolve(String(arg("css"))), "utf8") : null;
@@ -395,6 +405,7 @@ async function run() {
   for (const width of VIEWPORTS) {
     const mobile = width < 768;
     const context = await browser.newContext({ viewport: { width, height: mobile ? 844 : 1000 }, reducedMotion: "reduce", deviceScaleFactor: 1 });
+    await context.addInitScript(freezeMotionInit, FREEZE_MOTION);
     const page = await context.newPage();
     let errors = [];
     page.on("pageerror", (e) => errors.push(e.message.split("\n")[0]));
@@ -407,6 +418,7 @@ async function run() {
       await page.goto(`${BASE}/?page=${id}`, { waitUntil: "networkidle" }).catch(() => undefined);
       if (DARK) await page.getByRole("button", { name: "Dark mode" }).first().click().catch(() => undefined);
       if (CSS) await page.addStyleTag({ content: CSS }).catch(() => undefined);
+      await page.addStyleTag({ content: FREEZE_MOTION }).catch(() => undefined);
       await page.waitForTimeout(500);
       await page.evaluate(() => document.getAnimations().forEach((a) => a.finish())).catch(() => undefined);
       const base = await page.evaluate(pageChecks, { scopeSel: ".official-platform", mobile });
@@ -489,6 +501,8 @@ async function run() {
             const opened = await page.evaluate(pageChecks, { scopeSel: null, mobile }).catch(() => null);
             const layout = opened ? [...opened.sizes.map((n) => `size ${n}`), ...opened.edges.map((n) => `edge ${n}`), ...opened.typography.map((n) => `type ${n}`), ...opened.device.map((n) => `device ${n}`)] : [];
             // Layer: an open floating Popover stays on top even while the pointer hovers what sits around it.
+            // Finish the popover's enter animation first: sampled mid-slide, its edge points miss it (2026-10-01).
+            await page.evaluate(() => document.getAnimations().forEach((a) => a.finish())).catch(() => undefined);
             const floating = await page.evaluate(() => [...document.querySelectorAll(".zen-popover")].map((el) => ({ cs: getComputedStyle(el), r: el.getBoundingClientRect() }))
               .filter(({ cs, r }) => ["absolute", "fixed"].includes(cs.position) && r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight)
               .map(({ r }) => ({ x: r.left, y: r.top, w: r.width, h: r.height }))).catch(() => []);

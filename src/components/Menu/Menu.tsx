@@ -24,6 +24,7 @@ import { Divider } from "../Divider";
 import { Icon, type IconName } from "../Icon";
 import { PopoverItem, useExclusivePopover } from "../Popover";
 import { ZenPortal } from "../Portal";
+import { usePresence } from "../Motion";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./menu.css";
 
@@ -201,6 +202,8 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
   }, [controlled]);
 
   const placement = useMenuPlacement(surfaceRef, triggerRef, open, align);
+  // Closing keeps the surface for its Fast exit fade (popover.css), inert so it takes no clicks or focus meanwhile.
+  const presence = usePresence(open, 120);
   // One popover at a time: opening this menu closes another object's popover or menu, and the other way round.
   useExclusivePopover(open, () => setOpen(false), surfaceRef, triggerRef);
 
@@ -359,9 +362,10 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
 
   // Inside a device frame (`[data-zen-overlay-root]`, e.g. a phone preview) the menu opens in that frame, like the Chat
   // hold menu: it scales with the frame and stays on its screen. Elsewhere it goes to the page's overlay portal.
-  const overlayRoot = open ? triggerRef.current?.closest<HTMLElement>("[data-zen-overlay-root]") ?? null : null;
-  const surface = open ? (
-    <div ref={surfaceRef} className={["zen-popover", "zen-menu", className].filter(Boolean).join(" ")} style={placement.style} data-side={placement.side}>
+  const overlayRoot = presence.mounted ? triggerRef.current?.closest<HTMLElement>("[data-zen-overlay-root]") ?? null : null;
+  const closing = presence.phase === "closing";
+  const surface = presence.mounted ? (
+    <div ref={surfaceRef} className={["zen-popover", "zen-menu", className].filter(Boolean).join(" ")} style={placement.style} data-side={placement.side} data-state={closing ? "closing" : undefined} inert={closing || undefined}>
       <div
         ref={listRef}
         id={menuId}

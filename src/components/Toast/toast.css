@@ -75,10 +75,13 @@
 .zen-toast-stack[data-placement^="top"] .zen-toast-stack__clip > .zen-toast { --zen-toast-enter-y: -16px; }
 @keyframes zen-toast-row-in { from { grid-template-rows: 0fr; } }
 @keyframes zen-toast-row-out { to { grid-template-rows: 0fr; } }
-@keyframes zen-toast-in { from { opacity: 0; transform: translateY(var(--zen-toast-enter-y, 16px)) scale(.96); } }
-@keyframes zen-toast-out { to { opacity: 0; transform: scale(.96); } }
+@keyframes zen-toast-in { from { opacity: 0; transform: translateY(calc(var(--zen-toast-enter-y, 16px) * var(--zen-motion-movement, 1))) scale(calc(1 - .04 * var(--zen-motion-movement, 1))); } }
+@keyframes zen-toast-out { to { opacity: 0; transform: scale(calc(1 - .04 * var(--zen-motion-movement, 1))); } }
 @media (prefers-reduced-motion: reduce) {
-  .zen-toast-stack__item, .zen-toast-stack__clip > .zen-toast, .zen-toast-stack__item[data-state="closing"], .zen-toast-stack__item[data-state="closing"] .zen-toast { animation: none; }
+  /* Rows open and close at once (no height animation); the toast itself crossfades at Fast (its slide is scaled by
+     --zen-motion-movement). */
+  .zen-toast-stack__item, .zen-toast-stack__item[data-state="closing"] { animation: none; }
+  .zen-toast-stack__clip > .zen-toast, .zen-toast-stack__item[data-state="closing"] .zen-toast { animation-duration: var(--zen-motion-duration-fast, 120ms); }
 }
 /* Hit area ≥ 24×24 (WCAG 2.5.8) around the Figma-sized glyph: an invisible, centred layer; the visual size is unchanged. */
 .zen-toast__close { position: relative; }

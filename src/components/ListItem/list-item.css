@@ -19,7 +19,7 @@
 }
 /* Interactive-Background: 12px outside the row content (Figma: inset 12px of a 24px row margin), Corner-Radius/Large.
    With inset none it bleeds 12px into the container's own padding. */
-.zen-list-item::before { position: absolute; z-index: 0; inset: 0 calc(var(--zen-list-inset, var(--zen-margin-comfortable, 24px)) - var(--zen-spacing-padding-small, 12px)); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-list-item-background); content: ""; transition: background-color 120ms ease; pointer-events: none; }
+.zen-list-item::before { position: absolute; z-index: 0; inset: 0 calc(var(--zen-list-inset, var(--zen-margin-comfortable, 24px)) - var(--zen-spacing-padding-small, 12px)); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-list-item-background); content: ""; transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); pointer-events: none; }
 .zen-list-item[data-interactive="true"]:hover { --zen-list-item-background: var(--zen-color-background-neutral-flat-hover); }
 .zen-list-item[data-interactive="true"]:has(.zen-list-item__wrapper:active) { --zen-list-item-background: var(--zen-color-background-neutral-flat-pressed); }
 .zen-list-item[data-selected="true"] { --zen-list-item-background: var(--zen-color-background-active-neutral-subtle); }
@@ -52,4 +52,3 @@
 .zen-list-item__title { overflow: hidden; color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
 .zen-list-item__caption { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-list-item__trailing { position: relative; z-index: 1; display: inline-flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
-@media (prefers-reduced-motion: reduce) { .zen-list-item::before { transition: none; } }

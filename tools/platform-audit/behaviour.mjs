@@ -55,6 +55,15 @@ import { createRequire } from "node:module";
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const require = createRequire(path.join(root, "package.json"));
 const { chromium } = require("playwright");
+// Motion (2026-10-01): reduced motion keeps fades (tokens/source/motion.json sets only the movement to 0), so every
+// animation and transition is frozen at its end state: the probes read final states, not a fade in progress.
+const FREEZE_MOTION = "*, *::before, *::after { animation-duration: 0s !important; animation-delay: 0s !important; transition-duration: 0s !important; transition-delay: 0s !important; }";
+// The freeze stylesheet goes in on every document load (an init script), so a Vite HMR full reload from another session
+// cannot drop it mid-check.
+const freezeMotionInit = (css) => {
+  const add = () => { if (document.getElementById("zen-freeze-motion")) return; const s = document.createElement("style"); s.id = "zen-freeze-motion"; s.textContent = css; (document.head ?? document.documentElement).appendChild(s); };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", add, { once: true }); else add();
+};
 
 const arg = (name, fallback) => { const hit = process.argv.find((a) => a === `--${name}` || a.startsWith(`--${name}=`)); if (!hit) return fallback; return hit.includes("=") ? hit.slice(hit.indexOf("=") + 1) : true; };
 const BASE = String(arg("url", "http://localhost:5173")).replace(/\/$/, "");
@@ -672,6 +681,7 @@ async function load(S) {
   const { page } = S;
   S.loading = true;
   await page.goto(S.url, { waitUntil: "networkidle", timeout: 30000 }).catch(() => undefined);
+  await page.addStyleTag({ content: FREEZE_MOTION }).catch(() => undefined);
   S.loading = false;
   await page.waitForTimeout(400);
   await page.mouse.move(PARK.x, PARK.y).catch(() => undefined);
@@ -1088,6 +1098,7 @@ async function run() {
     for (const width of VIEWPORTS) {
       const mobile = width < 768;
       const context = await browser.newContext({ viewport: { width, height: mobile ? 844 : 1000 }, reducedMotion: "reduce", deviceScaleFactor: 1 });
+      await context.addInitScript(freezeMotionInit, FREEZE_MOTION);
       await context.addInitScript(installHelpers);
       for (const id of PAGES) {
         const t0 = Date.now();

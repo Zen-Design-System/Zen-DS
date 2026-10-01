@@ -12,7 +12,8 @@
 .zen-progress-bar[data-status="warning"] { --zen-progress-fill: var(--zen-color-background-warning-solid-default); }
 .zen-progress-bar[data-status="negative"] { --zen-progress-fill: var(--zen-color-background-negative-solid-default); }
 .zen-progress-bar__track { position: relative; height: 8px; min-width: 0; flex: 1 1 auto; overflow: hidden; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-subtle-default); }
-.zen-progress-bar__fill { position: absolute; inset: 0 auto 0 0; background: var(--zen-progress-fill); transition: width .3s ease; }
+/* zen-allow-motion-layout: the fill animates width until scaleX() (P2-8 in the motion review). */
+.zen-progress-bar__fill { position: absolute; inset: 0 auto 0 0; background: var(--zen-progress-fill); transition: width var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-standard, ease); }
 .zen-progress-bar__label { flex: 0 0 auto; color: var(--zen-color-content-neutral-strongest); font-variant-numeric: tabular-nums; }
 
 .zen-progress-circle {
