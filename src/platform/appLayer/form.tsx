@@ -192,7 +192,7 @@ function SignUpExample() {
   return (
     <Box surface="surface" border="pale" radius="xl" padding="xl">
       <Form form={form} aria-labelledby={titleId}>
-        <Stack gap="3xs">
+        <Stack gap="xs">
           <Heading level={4} id={titleId} textStyle="Heading/3">Create your account</Heading>
           <Text tone="base">Free for teams of up to 5 people.</Text>
         </Stack>
@@ -258,7 +258,7 @@ function SettingsExample() {
     <Grid minColumnWidth={400} gap="lg">
       <Box surface="surface" border="pale" radius="xl" padding="xl" className="pef-panel">
         <Form form={profile} aria-labelledby={profileTitle}>
-          <Stack gap="3xs">
+          <Stack gap="xs">
             <Heading level={4} id={profileTitle} textStyle="Heading/Subheading">Profile</Heading>
             <Text textStyle="Body/Small/Regular" tone="base">Shown to everyone in your workspace.</Text>
           </Stack>
@@ -276,7 +276,7 @@ function SettingsExample() {
       </Box>
       <Box surface="surface" border="pale" radius="xl" padding="xl" className="pef-panel" as="section" aria-labelledby={notificationsTitle}>
         <Stack gap="lg">
-          <Stack gap="3xs">
+          <Stack gap="xs">
             <Heading level={4} id={notificationsTitle} textStyle="Heading/Subheading">Notifications</Heading>
             <Text textStyle="Body/Small/Regular" tone="base">Switches apply right away; there is nothing to save.</Text>
           </Stack>
@@ -327,7 +327,7 @@ function InviteDialogExample() {
   return (
     <Stack gap="md">
       <Stack direction="row" justify="between" align="center" wrap gap="sm">
-        <Stack gap="3xs">
+        <Stack gap="2xs">
           <Text textStyle="Body/Base/Bold">Design workspace</Text>
           <Text textStyle="Body/Small/Regular" tone="base">{plural(people.length, "person", "people")}</Text>
         </Stack>

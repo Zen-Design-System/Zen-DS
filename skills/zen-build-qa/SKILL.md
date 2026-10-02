@@ -127,6 +127,7 @@ It prints ✗ / ⚠ per step and writes `.qa/reports/<stamp>.md`. Read the repor
 | style-guard / usage-guard ✗ | the CSS/TSX line; tokens and components as in §1 |
 | `scale` (runtime) | text without a Zen text style, example markup off the spacing/radius/colour tokens |
 | `hierarchy` / `rhythm` | heading level and style, title vs description, visual headings, concentric corners, double inset |
+| `ladder` (warn) | spacing ladder (usage rules §13): a Stack/Grid/markup gap off 2xs·xs·sm·md·lg·xl, or peer groups whose own gap is wider than the gap between them — pick the step by the relationship |
 | `density` | wrapper sized in px around a token-sized child |
 | `fit` | text wider than its own box, no ellipsis, no scroll (it runs into its neighbours even under `overflow: hidden`): let the item keep its width (`flex-shrink: 0` / `min-width: auto`), wrap, ellipsize, or scroll the row |
 | `edges`, `sizes`, `overflow`, `surfaces`, `outline`, `typography` | see `docs/qa/platform-audit.md` |

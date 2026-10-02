@@ -559,7 +559,7 @@ function AbCartExample() {
         </div>
         {!placed && rows.length ? (
           <ActionBar direction="horizontal"
-            summary={<Stack gap="3xs"><Text textStyle="Body/Small/Regular" tone="base">{plural(count, "print")}</Text><Text textStyle="Body/Base/Bold" role="status">Total {money(total)}</Text></Stack>}
+            summary={<Stack gap="2xs"><Text textStyle="Body/Small/Regular" tone="base">{plural(count, "print")}</Text><Text textStyle="Body/Base/Bold" role="status">Total {money(total)}</Text></Stack>}
             primaryAction={{ label: "Check out", onClick: () => setPlaced(true) }} />
         ) : null}
       </div>
@@ -749,7 +749,7 @@ function ImageFeedExample() {
             <Card key={post.id} as="article" spacing="small" className="pac-feed__card">
               <Image src={post.photo.src} alt={post.photo.alt} ratio="4:3" radius="none" />
               <div className="pac-feed__meta">
-                <Stack gap="3xs">
+                <Stack gap="2xs">
                   <Text as="span" textStyle="Body/Base/Medium">{post.photo.alt}</Text>
                   <Text as="span" textStyle="Body/Small/Regular" tone="light">{post.author} · {post.when}</Text>
                 </Stack>
@@ -1041,7 +1041,7 @@ export const examples: ExampleMap = {
   secondaryAction={{ label: "Save draft", onClick: saveDraft }} />` },
     { title: "Cart with a total", description: "The bar carries the running total; remove every print and the bar goes away with the cart, replaced by an Empty State that restores it.", render: () => <AbCartExample />, code: `{lines.length ? (
   <ActionBar direction="horizontal"
-    summary={<Stack gap="3xs"><Text textStyle="Body/Small/Regular" tone="base">{plural(count, "print")}</Text><Text textStyle="Body/Base/Bold" role="status">Total {money(total)}</Text></Stack>}
+    summary={<Stack gap="2xs"><Text textStyle="Body/Small/Regular" tone="base">{plural(count, "print")}</Text><Text textStyle="Body/Base/Bold" role="status">Total {money(total)}</Text></Stack>}
     primaryAction={{ label: "Check out", onClick: checkOut }} />
 ) : <EmptyState illustration={false} title="Your cart is empty" primaryAction={{ label: "Add sample prints", onClick: restore }} />}` },
   ],

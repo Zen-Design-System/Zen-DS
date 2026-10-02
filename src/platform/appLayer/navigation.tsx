@@ -172,7 +172,7 @@ function RouterLinksExample() {
           <List aria-label="Activity">
             {activity.map((item) => (
               <ListItem key={item.id} title={item.title} leading={<Avatar size="medium" alt="" {...avatarOf(item.person)} />}>
-                <Stack gap="3xs">
+                <Stack gap="2xs">
                   <Text as="span">{item.person.name} {item.verb} <Link as={DemoRouterLink} to={item.path}>{item.title}</Link></Text>
                   <Text as="span" textStyle="Body/Small/Regular" tone="light">{item.time}</Text>
                 </Stack>
@@ -312,7 +312,7 @@ ${entries.map((entry) => entryCode(entry, "    ")).join("\n")}
         <Box surface="surface" border="pale" radius="lg" padding="sm">
           <Stack direction="row" gap="sm" align="center">
             <FileIcon format="pdf" size={32} />
-            <Stack gap="3xs" style={{ flex: 1, minWidth: 0 }}>
+            <Stack gap="2xs" style={{ flex: 1, minWidth: 0 }}>
               <Text textStyle="Body/Base/Medium" truncate>Q4 roadmap.pdf</Text>
               <Text textStyle="Body/Small/Regular" tone="light">2.4 MB · Edited 2 hours ago</Text>
             </Stack>
@@ -516,7 +516,7 @@ function KeyboardMenuExample() {
           { id: "export", label: "Export as PDF", icon: "icon-download-01-line" },
         ]}
       />
-      <Stack as="ol" gap="3xs" className="pan-log" aria-label="Keyboard log" aria-live="polite">
+      <Stack as="ol" gap="2xs" className="pan-log" aria-label="Keyboard log" aria-live="polite">
         {log.length ? log.map((entry, index) => <Text as="li" key={`${index}-${entry}`} textStyle="Body/Small/Regular" tone={index === log.length - 1 ? "strongest" : "light"}>{entry}</Text>)
           : <Text as="li" textStyle="Body/Small/Regular" tone="light">Tab to Share, then press ↓ or Enter.</Text>}
       </Stack>

@@ -250,6 +250,14 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   216px tall at 390. `audit.mjs --pages=popover --viewports=390 --smoke` reports "Create a label #0: layer
   official-topbar__controls paints over the open popover" in every run. Its session ("Zen Plugin Neutral color
   contrast") has ended.
+- **P3 · Docs chrome off the spacing ladder (found 2026-10-02, needs a decision, tier L):** the docs shell's own
+  layout in `platform.css` keeps gaps outside the ladder. The ladder pass covered templates, the app layer and
+  playgrounds only.
+  - Off-ladder gaps: `.official-page` and `.official-overview__content` giant 64; `.official-intro`,
+    `.platform-page-template__body` and `.platform-component-sections` 3xl 48; `.pg` 2xl 40; topbar breadcrumbs and
+    `.pg-refs` 3xs 2.
+  - Raw values: `.official-cover__body` / `.platform-page-hero__main` 30px; `.platform-phone__levels` 7px (device chrome).
+  - Every page renders these, so `npm run qa -- --all` is needed.
 - **P3 · Phone List inset:** Chip "Mobile filter row" and Button "Mobile footer CTA" keep List at its default inset
   (Margin/Comfortable 24px) while the rest of the screen sits on Margin/Compact (20px), so rows start 4px right of the
   chips and the Back chevron. `List inset="compact"` lines them up (as in the new Segmented phone example).

@@ -186,6 +186,12 @@ removed (four unused colour ramps were, see Removed).
   - In a narrow frame the examples no longer squeeze the page to a few pixels next to the Sidebar.
 
 ### Changed
+- **App layer, templates and playgrounds follow the spacing ladder (2026-10-02, user request):** every gap a page picks
+  is one of 2xs · xs · sm · md · lg · xl (usage rules §13).
+  - Two lines of one item (name + meta, count + total, file + size) are `2xs`; a section or card heading with its
+    description is `xs`. Both were `3xs` (2px) in 18 places.
+  - HR Home's page stack is `xl` with `sm` block padding like the other HR pages (it was `3xl`).
+  - Playground property rows are `md` apart, the step for stacked fields (they were 4px).
 - **Reduced motion keeps fades (2026-10-01):** under `prefers-reduced-motion` the movement factor is 0 instead of every
   duration: dialogs, sheets, side panels, the drawer, toasts and menus crossfade instead of sliding, colour and hover
   changes still fade, and the Toggle thumb, Accordion, Progress and the Sidebar width jump. WCAG 2.3.3 covers movement,
@@ -270,6 +276,10 @@ removed (four unused colour ramps were, see Removed).
   used them. Global Colors now has 960 variables and the library 2,176.
 
 ### Quality
+- **Spacing ladder check (2026-10-02):** `audit.mjs --quality` (so `npm run qa`) warns `ladder` when a rendered
+  gap is not one of the ladder's six steps, or when peer groups laid out alike are wider apart inside than between
+  each other. It reads Stack, Grid and example markup; components keep their own gaps. All 61 pages pass it at 1512
+  and 390 (0 findings).
 - **Audit tools read phones and dialogs right (2026-10-02):** target and edge checks measure controls in a scaled docs
   phone at their app size (no false positives at 390). The density snapshot skips inert content such as a collapsed
   Accordion panel. The dialog check presses Escape a second time when the first one only closed a popup inside the

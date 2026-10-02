@@ -29,7 +29,7 @@
  */
 
 export function qualityChecks({ scopeSel }) {
-  const out = { scale: [], roles: [], hierarchy: [], rhythm: [] };
+  const out = { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [] };
   const scope = scopeSel ? document.querySelector(scopeSel) : document;
   if (!scope) return out;
   const REGION = ".pe-card__stage, .platform-example-panel .platform-example-row, .official-portal-root > *";
@@ -55,6 +55,9 @@ export function qualityChecks({ scopeSel }) {
   const normColour = (c) => { if (!c) return null; canvas.fillStyle = "#010203"; canvas.fillStyle = c; const v = canvas.fillStyle; return v === "#010203" && !/^#010203$/i.test(c.trim()) ? null : v; };
   const MODE = "[data-theme], [data-density], [data-radius], [data-typography], [data-emphasis], [data-breakpoint], [data-component-theme]";
   const scopes = new Map();
+  // The spacing ladder (usage rules §13): name → Gap token suffix, resolved per mode scope like the other tokens.
+  const LADDER = [["2xs", "2-xsmall"], ["xs", "xsmall"], ["sm", "small"], ["md", "medium"], ["lg", "large"], ["xl", "xlarge"]];
+  const ladders = new Map();
   const modeScope = (el) => el.closest(MODE) ?? document.documentElement;
   const tokensFor = (el) => {
     const host = modeScope(el);
@@ -278,6 +281,43 @@ export function qualityChecks({ scopeSel }) {
       const hs = getComputedStyle(host), rs = getComputedStyle(row);
       const outerPad = row.getBoundingClientRect().left - host.getBoundingClientRect().left - px(hs.borderLeftWidth);
       if (outerPad >= 12 && px(rs.paddingLeft) >= 12) { push("rhythm", `${label(row)}: list rows in ${describe(host)} are inset twice (${Math.round(outerPad)}px container + ${px(rs.paddingLeft)}px row) — let <List inset> own the inset and pad the container with Padding/2XSmall`); break; }
+    }
+
+    /* ── spacing ladder (usage rules §13): the gap between elements is picked by their relationship from one ladder,
+       2xs · xs · sm · md · lg · xl (Gap tokens of this density), and a group's own gap is never wider than the gap
+       that separates it from its siblings. Only the gaps a page author picks are read: Stack, Grid and example markup
+       (components own their inner gaps, from Figma). A group that paints its own surface is grouped by its frame. */
+    const authored = (el) => (el.classList.contains("zen-stack") || el.classList.contains("zen-grid") || !isInternal(el)) && !isFrame(el) && !el.closest("svg, .zen-chart__svg, [data-audit-skip-quality]");
+    const flow = (el) => [...el.children].filter((k) => visible(k) && !["absolute", "fixed"].includes(getComputedStyle(k).position));
+    const layoutOf = (el) => {
+      const s = getComputedStyle(el); const kids = flow(el);
+      if (kids.length < 2 || !/(flex|grid)$/.test(s.display)) return null;
+      // An axis counts when two items sit side by side on it (one ends before the other starts), not when centred items
+      // of different heights merely start at different offsets.
+      const rs = kids.map((k) => k.getBoundingClientRect());
+      const apart = (a, b) => rs.some((p) => rs.some((q) => q[a] >= p[b] - 1 && q !== p));
+      const gap = { h: apart("left", "right") ? px(s.columnGap) : 0, v: apart("top", "bottom") ? px(s.rowGap) : 0 };
+      if (/flex$/.test(s.display) && s.flexWrap === "nowrap") gap[s.flexDirection.startsWith("row") ? "v" : "h"] = 0;  // no cross-axis gap
+      const kind = /grid$/.test(s.display) ? "grid" : s.flexDirection.startsWith("row") ? "row" : "column";
+      return { gap, kind };
+    };
+    // The first words inside, so a finding can be found in the source.
+    const hint = (el) => { const t = (el.textContent ?? "").trim().replace(/\s+/g, " "); return t ? ` ("${t.slice(0, 32)}${t.length > 32 ? "…" : ""}")` : ""; };
+    const ladderOf = (el) => { const host = modeScope(el); if (!ladders.has(host)) { const cs = getComputedStyle(host); ladders.set(host, LADDER.map(([, k]) => px(cs.getPropertyValue(`--zen-spacing-gap-${k}`)))); } return ladders.get(host); };
+    for (const el of region.querySelectorAll("*")) {
+      if (!authored(el)) continue;
+      const L = layoutOf(el); if (!L) continue;
+      const steps = ladderOf(el); const where = `${label(el)}: ${describe(el)}${hint(el)}`;
+      const off = ["v", "h"].map((a) => L.gap[a]).find((g) => g > 1 && !steps.some((x) => Math.abs(x - g) <= 1));
+      if (off !== undefined) push("ladder", `${where} has gap ${off}px — not a spacing-ladder step (${LADDER.map(([n], i) => `${n} ${steps[i]}`).join(" · ")} px here; usage rules §13)`);
+      // Only peer groups are compared: two or more sibling groups laid out alike (a heading or toolbar above one group is
+      // a label → content relationship, which the ladder spaces closer than the group's own sections).
+      const groups = flow(el).filter((kid) => authored(kid) && !paints(kid)).map((kid) => ({ kid, K: layoutOf(kid) })).filter((g) => g.K);
+      for (const { kid, K } of groups) {
+        if (groups.filter((g) => g.K.kind === K.kind).length < 2) continue;
+        const axis = ["v", "h"].find((a) => L.gap[a] > 0 && K.gap[a] > L.gap[a] + 1);
+        if (axis) push("ladder", `${where} spaces its groups ${L.gap[axis]}px apart but ${describe(kid)}${hint(kid)} spaces its own items ${K.gap[axis]}px (${axis === "v" ? "vertical" : "horizontal"}) — the gap between groups is at least one step wider than inside them (usage rules §13)`);
+      }
     }
   }
   return out;

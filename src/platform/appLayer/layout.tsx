@@ -79,7 +79,7 @@ function PageHeaderRowExample() {
   return (
     <Stack gap="lg">
       <Stack direction="row" justify="between" align="center" wrap gap="sm">
-        <Stack gap="3xs">
+        <Stack gap="xs">
           <Heading level={3} textStyle="Heading/3">Team members</Heading>
           <Text tone="base">{plural(12 + invites, "member")} · Design workspace</Text>
         </Stack>

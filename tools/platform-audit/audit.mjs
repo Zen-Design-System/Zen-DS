@@ -34,6 +34,8 @@
  *   rhythm      (--quality, warn) flat title/description, title not Strongest, other headings smaller than their body
  *               text (group headers exempt), visual headings, > 7 text styles, non-concentric nested corners, list rows
  *               inset twice
+ *   ladder      (--quality, warn) the spacing ladder (usage rules §13): a Stack / Grid / example-markup gap that is no
+ *               2xs·xs·sm·md·lg·xl step, or a group whose own gap is wider than the gap between it and its siblings
  *   density     (--density) Zen elements outgrown by their content, and new overflow/size/edge errors, at Comfortable
  *   fit         (--quality) text wider than its own box with no ellipsis and no scroll: it runs into its neighbours or is
  *               cut off, even inside an `overflow: hidden` ancestor (which `overflow` skips). With --density also at
@@ -84,7 +86,7 @@ const BASELINE_UPDATE = arg("baseline-update", false); // true, or a comma list 
 // them off. --outline is still accepted.
 const OUTLINE = !arg("no-outline", false);
 const OUTLINE_KINDS = ["outline-h1", "outline-start", "outline-card", "outline-siblings"];
-const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "density", "fit", "contrast", "targets", "outline-h1", "outline-start", "outline-card", "outline-siblings"]; // contrast, targets and outline-* stay warnings; baselined so only NEW ones are listed
+const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "ladder", "density", "fit", "contrast", "targets", "outline-h1", "outline-start", "outline-card", "outline-siblings"]; // contrast, targets and outline-* stay warnings; baselined so only NEW ones are listed
 const CSS = arg("css", null) ? fs.readFileSync(path.resolve(String(arg("css"))), "utf8") : null;
 if (CSS && BASELINE_UPDATE) { console.error("--css cannot be combined with --baseline-update: the injected CSS is not the page's real state."); process.exit(2); }
 const baseline = arg("no-baseline", false) ? {} : (() => { try { return JSON.parse(fs.readFileSync(BASELINE_FILE, "utf8")).keys ?? {}; } catch { return {}; } })();
@@ -400,7 +402,7 @@ function pageChecks({ scopeSel, mobile }) {
 }
 
 const sum = (r) => Object.values(r).reduce((n, list) => n + list.length, 0);
-const SEVERITY = { errors: "error", overflow: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", density: "error", fit: "error" };
+const SEVERITY = { errors: "error", overflow: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", ladder: "warn", density: "error", fit: "error" };
 
 async function run() {
   const browser = await chromium.launch();
@@ -429,13 +431,13 @@ async function run() {
       if (docOverflow) base.overflow.unshift("document scrolls horizontally");
       const entry = { ...base, errors: [...errors], playground: [], smoke: [] };
       // Build-QA: token scale, text styles, content hierarchy, rhythm (quality-checks.mjs). Playground and smoke add theirs below.
-      const addQuality = (q, prefix = "") => { for (const kind of ["scale", "roles", "hierarchy", "rhythm", "fit"]) for (const item of q?.[kind] ?? []) { const msg = `${prefix}${item}`; if (!entry[kind].includes(msg) && !entry[kind].includes(item)) entry[kind].push(msg); } };
+      const addQuality = (q, prefix = "") => { for (const kind of ["scale", "roles", "hierarchy", "rhythm", "ladder", "fit"]) for (const item of q?.[kind] ?? []) { const msg = `${prefix}${item}`; if (!entry[kind].includes(msg) && !entry[kind].includes(item)) entry[kind].push(msg); } };
       // One scope's quality kinds: qualityChecks (text styles, tokens, hierarchy, rhythm) and textFit (text wider than its box).
       const quality = async (scopeSel, crash = false) => ({
         ...await page.evaluate(qualityChecks, { scopeSel }).catch((e) => (crash ? { scale: [`quality checks crashed: ${e.message.split("\n")[0]}`] } : null)),
         ...await page.evaluate(textFit, { scopeSel }).catch((e) => (crash ? { fit: [`text-fit check crashed: ${e.message.split("\n")[0]}`] } : null)),
       });
-      if (QUALITY || DENSITY) Object.assign(entry, { scale: [], roles: [], hierarchy: [], rhythm: [], density: [], fit: [] });
+      if (QUALITY || DENSITY) Object.assign(entry, { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [], density: [], fit: [] });
       if (QUALITY) addQuality(await quality(".official-platform", true));
       if (DENSITY) {
         // Component Size: compare every Zen box Compact vs Comfortable; content that outgrows its box only in Comfortable is a
