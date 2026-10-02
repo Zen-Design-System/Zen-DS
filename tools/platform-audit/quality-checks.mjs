@@ -292,7 +292,8 @@ export function densitySnapshot() {
       const cls = typeof el.className === "string" ? el.className.split(/\s+/).filter((c) => c.startsWith("zen-") && !c.startsWith("zen-type")).slice(0, 2).join(".") : "";
       if (!cls) return;
       const cs = getComputedStyle(el); const r = el.getBoundingClientRect();
-      if (!r.width || cs.display === "contents" || cs.display === "inline" || ["auto", "scroll"].includes(cs.overflowY) || ["auto", "scroll"].includes(cs.overflowX) || el.closest("[data-audit-skip-quality]")) return;
+      // Inert content (a collapsed Accordion panel) is not on screen: it keeps its size while its box collapses.
+      if (!r.width || cs.display === "contents" || cs.display === "inline" || ["auto", "scroll"].includes(cs.overflowY) || ["auto", "scroll"].includes(cs.overflowX) || el.closest("[data-audit-skip-quality], [inert]")) return;
       let over = 0, kid = "";
       for (const k of el.children) {
         const ks = getComputedStyle(k); if (["absolute", "fixed"].includes(ks.position) || ks.display === "none") continue;

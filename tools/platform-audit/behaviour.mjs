@@ -630,6 +630,13 @@ function installHelpers() {
     return { modal, hasClose, desc: describe(d) };
   };
   B.dialogFocus = () => { const d = B.reg.get("dlg"); const a = document.activeElement; return { inside: !!d && !!a && (a === d || d.contains(a)) }; };
+  /** A popup is open inside the dialog, so an Escape now closes that popup first: a control with aria-expanded="true",
+   *  or a floating dialog/listbox/menu nested in it (a DateField calendar is a role=dialog popover inside the field). */
+  B.dialogInnerPopup = () => {
+    const d = B.reg.get("dlg"); if (!d) return false;
+    if ([...d.querySelectorAll("[aria-expanded='true']")].some((el) => B.rendered(el))) return true;
+    return [...d.querySelectorAll("[role='dialog'], [role='listbox'], [role='menu']")].some((el) => B.rendered(el) && ["absolute", "fixed"].includes(getComputedStyle(el).position));
+  };
   B.dialogStep = () => {
     const d = B.reg.get("dlg"); const a = document.activeElement;
     const inside = !!d && !!a && (a === d || d.contains(a));
@@ -950,9 +957,17 @@ async function dialogFlow(S, region, trigger, dlg) {
       }
     }
   }
+  // Tab may have left focus on a control whose popup is open (a DateField calendar, a Select list): the first Escape is
+  // that popup's (APG), focus goes back to its trigger inside the dialog, and only a second Escape closes the dialog.
+  const inner = await ev(page, () => window.__bhv.dialogInnerPopup());
   await page.keyboard.press("Escape"); await settle(page, 250);
-  const after = await ev(page, (k) => window.__bhv.dialogClosed(k), trigger.key);
+  let after = await ev(page, (k) => window.__bhv.dialogClosed(k), trigger.key);
   if (!after) return;
+  if (!after.closed && inner && (await ev(page, () => window.__bhv.dialogFocus()))?.inside) {
+    await page.keyboard.press("Escape"); await settle(page, 250);
+    after = await ev(page, (k) => window.__bhv.dialogClosed(k), trigger.key);
+    if (!after) return;
+  }
   if (!after.closed) add("apg", dlg.hasClose ? "error" : "warn", card, dlg.hasClose ? `${trigger.desc} opens a dialog that Escape does not close` : `${trigger.desc} opens a dialog that Escape does not close (no close button: intentionally non-dismissable?)`);
   else if (!after.returned) add("apg", "error", card, `${trigger.desc}: focus does not return to it after its dialog closes`);
 }

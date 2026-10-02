@@ -238,9 +238,18 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   (repo: `Mode 1`, no effect on CSS).
 - **P3 · Badge-Counter parity:** the 2026-09-29 Chip/Trailing capture shows the Small badge's Text-Wrapper with
   Spacing/Padding/3XSmall side padding. There is no Badge contract suite yet to check the component.
-- **P3 · `targets` audit reads scaled phone previews:** at a 390 viewport PlatformPhone is scaled to ~0.63, so a 32px
-  control measures 20px (a 24px reaction pill 15px). The "Small targets" debt above and the 4 new Segmented ⚠ are
-  likely all this; measure in device px (divide by the frame's scale). Owner: "Quy trình kiểm tra Component build".
+- **Done 2026-10-02 · Audit tools** (user-approved): targets use the layout size and edges divide by the frame's
+  scale (`audit.mjs`), so a 32px control in a 0.63 phone counts as 32px (chat@390: 3 targets → 0); the density
+  snapshot skips `[inert]` content (collapsed Accordion panels); `behaviour.mjs` presses Escape again when the first one
+  closed a popup inside the dialog; `shoot.mjs --timeout= --wait-until=` for a busy machine.
+- **P2 · DateField a11y (found 2026-10-02):** the field opens its calendar (a role=dialog popover) without exposing
+  `aria-expanded` / `aria-haspopup="dialog"` on the field, so assistive tech is not told a popup is open (APG date
+  picker dialog). Owner: the inputs session.
+- **P2 · Docs topbar at 390 covers popovers (found 2026-10-02):** the uncommitted topbar change (settings chips wrap
+  instead of scrolling, CHANGELOG "Docs topbar settings chips work again below 1024px") makes the sticky topbar
+  216px tall at 390. `audit.mjs --pages=popover --viewports=390 --smoke` reports "Create a label #0: layer
+  official-topbar__controls paints over the open popover" in every run. Its session ("Zen Plugin Neutral color
+  contrast") has ended.
 - **P3 · Phone List inset:** Chip "Mobile filter row" and Button "Mobile footer CTA" keep List at its default inset
   (Margin/Comfortable 24px) while the rest of the screen sits on Margin/Compact (20px), so rows start 4px right of the
   chips and the Back chevron. `List inset="compact"` lines them up (as in the new Segmented phone example).

@@ -156,7 +156,8 @@ function pageChecks({ scopeSel, mobile }) {
   if (mobile) {
     // Effective hit box = the element plus any absolutely positioned ::before/::after layer (hit-area expanders).
     const hitBox = (el) => {
-      const r = el.getBoundingClientRect(); let w = r.width, h = r.height;
+      // Layout size, not the painted one: a docs phone frame is scaled down to fit (≈0.63 at 390), the app is not.
+      const r = el.getBoundingClientRect(); let w = el.offsetWidth ?? r.width, h = el.offsetHeight ?? r.height;
       for (const pseudo of ["::before", "::after"]) {
         const ps = getComputedStyle(el, pseudo);
         if (ps.content === "none" || ps.position !== "absolute" || ps.pointerEvents === "none") continue;
@@ -252,9 +253,11 @@ function pageChecks({ scopeSel, mobile }) {
     // Screen-reader-only text (a 1×1 clipped status line) is not on screen, so it has no padding to check.
     if (srOnly(el)) continue;
     const box = boxOf(el); if (!box || box.closest(CONTROL) || seenEdge.has(box)) continue;
-    const br = box.getBoundingClientRect(); if (br.width < 60 || br.height < 24) continue;
+    // k: how much a scaled docs phone frame shrinks what it paints; gaps are judged at the app's own size.
+    const br = box.getBoundingClientRect(); const k = box.offsetWidth ? br.width / box.offsetWidth : 1;
+    if (br.width / k < 60 || br.height / k < 24) continue;
     const bs = getComputedStyle(box);
-    const inner = { left: br.left + parseFloat(bs.borderLeftWidth), right: br.right - parseFloat(bs.borderRightWidth), top: br.top + parseFloat(bs.borderTopWidth), bottom: br.bottom - parseFloat(bs.borderBottomWidth) };
+    const inner = { left: br.left + k * parseFloat(bs.borderLeftWidth), right: br.right - k * parseFloat(bs.borderRightWidth), top: br.top + k * parseFloat(bs.borderTopWidth), bottom: br.bottom - k * parseFloat(bs.borderBottomWidth) };
     const range = document.createRange(); range.selectNodeContents(n); const full = range.getBoundingClientRect(); if (!full.width || !full.height) continue;
     // Only the visible part counts: truncated text (overflow hidden + ellipsis) is clipped by its own box, not the card's edge.
     const tr = { left: full.left, right: full.right, top: full.top, bottom: full.bottom };
@@ -263,7 +266,7 @@ function pageChecks({ scopeSel, mobile }) {
       if (["hidden", "clip"].includes(cs.overflowX)) { tr.left = Math.max(tr.left, cr.left); tr.right = Math.min(tr.right, cr.right); }
       if (["hidden", "clip"].includes(cs.overflowY)) { tr.top = Math.max(tr.top, cr.top); tr.bottom = Math.min(tr.bottom, cr.bottom); }
     }
-    const gaps = { left: tr.left - inner.left, right: inner.right - tr.right, top: tr.top - inner.top, bottom: inner.bottom - tr.bottom };
+    const gaps = { left: (tr.left - inner.left) / k, right: (inner.right - tr.right) / k, top: (tr.top - inner.top) / k, bottom: (inner.bottom - tr.bottom) / k };
     const tight = Object.entries(gaps).filter(([side, gap]) => gap > -1 && gap < (side === "left" || side === "right" ? 7.5 : 3.5));
     if (tight.length) { seenEdge.add(box); out.edges.push(`${label(el)}: "${n.textContent.trim().slice(0, 24)}" ${tight.map(([side, gap]) => `${side} ${Math.round(gap)}px`).join(", ")} inside ${describe(box)}`); }
   }

@@ -270,6 +270,10 @@ removed (four unused colour ramps were, see Removed).
   used them. Global Colors now has 960 variables and the library 2,176.
 
 ### Quality
+- **Audit tools read phones and dialogs right (2026-10-02):** target and edge checks measure controls in a scaled docs
+  phone at their app size (no false positives at 390). The density snapshot skips inert content such as a collapsed
+  Accordion panel. The dialog check presses Escape a second time when the first one only closed a popup inside the
+  dialog (a DateField calendar). `shoot.mjs` takes `--timeout=` and `--wait-until=` for a busy machine.
 - **Motion rules (2026-10-01):** `motion/token-only` (raw durations or curves; endless loops exempt),
   `motion/no-layout-animation` (width, height, top/left, margin, flex-basis) and `motion/reduced-motion`, which now also
   covers transitions that move and accepts `--zen-motion-movement` or fade-only keyframes as the fallback. The platform

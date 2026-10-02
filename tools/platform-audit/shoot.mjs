@@ -4,6 +4,7 @@
  * example instead of trusting the DOM checks alone (audit.mjs finds overflow and a11y issues, not a squashed button).
  *
  *   node tools/platform-audit/shoot.mjs <page> [--title="Card title"] [--click="Button name"]… [--width=1512] [--dark] [--out=dir]
+ *                                         [--timeout=30000] [--wait-until=load|domcontentloaded]   (page load, for a busy machine)
  *     one card:   --title picks the example card by its heading; each --click presses a button inside it first (e.g. open a sheet)
  *     whole page: without --title every example card is shot, plus a contact sheet (all cards side by side) → <page>-<width>.png
  *   node tools/platform-audit/shoot.mjs --compose=out.png "Label=a.png" "Label=b.png"   side-by-side sheet (e.g. Figma vs platform)
@@ -25,6 +26,9 @@ const positional = argv.filter((a) => !a.startsWith("--"));
 const BASE = (opt("url")[0] ?? "http://localhost:5173").replace(/\/$/, "");
 const WIDTH = Number(opt("width")[0] ?? 1512);
 const OUT = path.resolve(opt("out")[0] ?? path.join(root, ".platform-shots"));
+const TIMEOUT = Number(opt("timeout")[0] ?? 30000);
+const WAIT_UNTIL = opt("wait-until")[0] ?? "load";
+if (!["load", "domcontentloaded", "networkidle", "commit"].includes(WAIT_UNTIL)) { console.error(`--wait-until=${WAIT_UNTIL}: use load, domcontentloaded, networkidle or commit`); process.exit(2); }
 const slug = (s) => s.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -50,7 +54,8 @@ try {
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
     page.on("console", (m) => { if (m.type() === "error" && !/\[vite\]|hmr/i.test(m.text())) errors.push(m.text()); });
-    await page.goto(`${BASE}/?page=${pageId}`);
+    // On a loaded machine (several gates at once) 'load' can miss Playwright's 30s default: --timeout / --wait-until.
+    await page.goto(`${BASE}/?page=${pageId}`, { timeout: TIMEOUT, waitUntil: WAIT_UNTIL });
     await page.waitForTimeout(900);
     // A card taller than the viewport is captured while scrolling, so the sticky platform chrome (topbar, sidebar, TOC)
     // would be stamped over the middle of it. Pin that chrome in place; example content keeps its own sticky elements.
