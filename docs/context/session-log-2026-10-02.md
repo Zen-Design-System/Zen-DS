@@ -36,3 +36,32 @@
   `gap="3xs"` itself) and their platform.css rules. List `inset` values were kept as set.
 - **Left for a decision:** the docs chrome off-ladder gaps (BACKLOG P3, tier L).
 - **Backups:** `backups/spacing-ladder-tools-20261002-0845.tar.gz`, `backups/spacing-ladder-ui-20261002-0846.tar.gz`.
+
+## Popover item icon alignment on phones (session "Add audit check for text overflowing its box", tier S, user report)
+
+- Report: in the Chat hold menu on a phone, the icons sit higher than the labels.
+- Measured in the "Hold to react" example (390, scale 0.78): the 20px icon was centred 2px above the 40px row. The label
+  line is 24px in the Mobile type scale, and `.zen-popover__item[data-tone=icon|photo-small] .zen-popover__item-leading`
+  aligns the leading to the top (Figma counter-axis MIN, which is right for wrapped labels).
+- Fix (`popover.css`): `margin-block-start: max(0px, (line-height-body-base − leading size) / 2)`, using the Icon or
+  Photo-Small leading token. Result: icon and label offset 0 at Compact (20px icon) and Comfortable (24px icon).
+- Icon size question (user): the leading is bound to Element-Size/Popular/Base in Figma
+  (`.Primitives/Popover/Item/Content` Theme=Icon) and to `--zen-element-size-popular-base` in code. The icon fills it:
+  20 Compact, 24 Comfortable, measured.
+- Checks: style guard and usage guard clean; all Popover Figma suites match; 25/25 interactions.
+- Backup: `backups/popover-leading-align-20261002-1753.tar.gz`.
+- QA: static, Vitest (22), dark, behaviour ✓; S4 probe: field stroke rgba(1,1,1,.114) inset, composer focus ring intact.
+  Smoke ✗ "zen-chat-message paints over the open popover" on varying chat examples: flaky (chat alone clean 3/3) and
+  reproduced with the edits removed (A/B) → pre-existing, in BACKLOG.
+
+## comboFlow knows the Date Picker Combobox (same session, tier S, user: "Duyệt sửa và commit hết")
+
+- The inputs session made DateField an APG Date Picker Combobox. comboFlow only knew listbox combos, so the gate
+  reported "combobox does not open a listbox" four times (date-picker › Due date, Date of birth; input › Start and Due
+  date).
+- `behaviour.mjs`: `popupState(key, want)` takes any role (`[role='<want>']`) and reports `activeInPopup`. comboFlow
+  routes aria-haspopup dialog|grid to the picker branch: the dialog must open, focus must land inside it, Escape must
+  close it, and focus must come back to the field (an error for pickers; still a warning for listboxes).
+- date-picker and input APG runs are clean; the listbox comboboxes are unchanged.
+- An adversarial review workflow (3 reviewers, 2 skeptics per finding) checked this and the popover alignment fix
+  before the commit. Backup: `backups/combo-dialog-20261002-1820.tar.gz`.

@@ -90,6 +90,11 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Popover icons line up with their label on phones (2026-10-02, user report):** Icon and Photo-Small items keep the
+  leading at the top, as Figma does, and now centre it on the label's first line. In the Mobile and Marketing type
+  scales the Body/Base line is 24px around a 20px icon, so icons sat 2px above the text (the Chat hold menu, Menu,
+  Select). The offset is computed from the tokens, `--zen-typography-line-height-body-base` and
+  `--zen-element-size-popular-base`, so it is 2px at Compact and 0 at Comfortable; Dashboard is unchanged.
 - **Liquid Glass blurs again in the docs' phone frames (2026-10-01):** the frame clipped its header and footer with
   `clip-path`, which made them backdrop roots, so every `backdrop-filter` inside (glass pills and buttons, the progressive
   blur) saw only the bar and nothing behind it. The blur layers round their own corners instead. Apps: never put
@@ -284,6 +289,8 @@ removed (four unused colour ramps were, see Removed).
   phone at their app size (no false positives at 390). The density snapshot skips inert content such as a collapsed
   Accordion panel. The dialog check presses Escape a second time when the first one only closed a popup inside the
   dialog (a DateField calendar). `shoot.mjs` takes `--timeout=` and `--wait-until=` for a busy machine.
+  The combobox check knows the APG Date Picker Combobox (`aria-haspopup="dialog"` or `"grid"`). It expects a calendar
+  dialog, focus inside it, and focus back on the field after Escape, not a listbox.
 - **Motion rules (2026-10-01):** `motion/token-only` (raw durations or curves; endless loops exempt),
   `motion/no-layout-animation` (width, height, top/left, margin, flex-basis) and `motion/reduced-motion`, which now also
   covers transitions that move and accepts `--zen-motion-movement` or fade-only keyframes as the fallback. The platform

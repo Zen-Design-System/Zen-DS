@@ -505,7 +505,7 @@ function installHelpers() {
     const controlled = (el.getAttribute("aria-controls") ?? "").split(/\s+/).filter(Boolean).map((id) => document.getElementById(id)).filter((p) => p && live(p));
     const fresh = [...document.querySelectorAll(POPUP)].filter((p) => live(p) && !B.popBefore?.has(p) && !p.closest(TOOLTIP));
     const candidates = [...controlled, ...fresh];
-    const roleSel = want === "menu" ? "[role='menu']" : want === "listbox" ? "[role='listbox']" : null;
+    const roleSel = want ? `[role='${want}']` : null;  // menu · listbox · dialog · grid (a Date Picker Combobox's calendar)
     const popup = roleSel ? candidates.map((p) => (p.matches(roleSel) ? p : p.querySelector(roleSel))).find((p) => p && live(p)) ?? null : candidates[0] ?? null;
     const other = popup ? null : candidates[0] ?? null;
     const a = document.activeElement;
@@ -515,6 +515,7 @@ function installHelpers() {
       other: !!other,
       otherRole: other ? other.getAttribute("role") ?? other.querySelector("[role='menu'], [role='listbox'], [role='dialog'], [role='grid'], [role='toolbar']")?.getAttribute("role") ?? "popup without a role" : "",
       activeIsItem: !!a && !!popup && popup.contains(a) && /^menuitem/.test(a.getAttribute("role") ?? ""),
+      activeInPopup: !!a && !!popup && popup.contains(a),
       enabledItems: popup ? [...popup.querySelectorAll("[role^='menuitem'], [role='option']")].filter((i) => !disabled(i)).length : 0,
       activeOnTrigger: !!a && (a === el || el.contains(a)),
       // Focus thrown out of the example into platform chrome (not into a popup or an overlay layer).
@@ -884,7 +885,11 @@ async function popoverFlow(S, card, it) {
 }
 async function comboFlow(S, card, it) {
   const { page, add } = S;
-  const state = () => ev(page, (k) => window.__bhv.popupState(k, "listbox"), it.key);
+  // aria-haspopup="dialog" or "grid": an APG Date Picker Combobox. ArrowDown opens a calendar (a role=dialog popover, or
+  // a grid) and moves focus into it; Escape closes it with focus back on the field. Every other combobox opens a listbox.
+  const want = /^(dialog|grid)$/.test(it.hp) ? it.hp : "listbox";
+  const picker = want !== "listbox";
+  const state = () => ev(page, ({ k, w }) => window.__bhv.popupState(k, w), { k: it.key, w: want });
   await ev(page, () => window.__bhv.popupSnap());
   if (!(await ev(page, (k) => window.__bhv.focusKey(k), it.key))?.focused) return;
   await settle(page, 100);
@@ -899,14 +904,15 @@ async function comboFlow(S, card, it) {
   }
   if (!s) return;
   if (!s.open) {
-    add("apg", "error", card, s.other || s.expanded === "true" ? `${it.desc}: combobox opens a popup that is not a role=listbox` : `${it.desc}: combobox does not open a listbox with ArrowDown or Enter`);
+    add("apg", "error", card, s.other || s.expanded === "true" ? `${it.desc}: combobox opens a popup that is not a role=${want} (aria-haspopup="${it.hp || "listbox"}")` : `${it.desc}: combobox does not open ${picker ? `its ${want}` : "a listbox"} with ArrowDown or Enter`);
     return;
   }
+  if (picker && !s.activeInPopup) add("apg", "error", card, `${it.desc}: opening its ${want} leaves focus outside it (the Date Picker Combobox moves focus into the calendar)`);
   await page.keyboard.press("Escape"); await settle(page, 180);
   s = await state();
   if (!s) return;
-  if (s.open) add("apg", "error", card, `${it.desc}: Escape does not close the listbox`);
-  else if (!s.activeOnTrigger) add("apg", "warn", card, `${it.desc}: focus does not return to the combobox after Escape`);
+  if (s.open) add("apg", "error", card, `${it.desc}: Escape does not close the ${want}`);
+  else if (!s.activeOnTrigger) add("apg", picker ? "error" : "warn", card, `${it.desc}: focus does not return to the combobox after Escape`);
 }
 async function disclosureFlow(S, card, it) {
   const { page, add } = S;

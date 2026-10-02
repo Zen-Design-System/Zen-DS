@@ -242,9 +242,9 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   scale (`audit.mjs`), so a 32px control in a 0.63 phone counts as 32px (chat@390: 3 targets → 0); the density
   snapshot skips `[inert]` content (collapsed Accordion panels); `behaviour.mjs` presses Escape again when the first one
   closed a popup inside the dialog; `shoot.mjs --timeout= --wait-until=` for a busy machine.
-- **P2 · DateField a11y (found 2026-10-02):** the field opens its calendar (a role=dialog popover) without exposing
-  `aria-expanded` / `aria-haspopup="dialog"` on the field, so assistive tech is not told a popup is open (APG date
-  picker dialog). Owner: the inputs session.
+- **Done 2026-10-02 · DateField a11y:** the inputs session made the field an APG Date Picker Combobox (role=combobox,
+  aria-haspopup="dialog", aria-expanded). `behaviour.mjs` comboFlow now checks that pattern: ArrowDown opens the
+  calendar dialog, focus moves into it, and Escape closes it and returns focus to the field.
 - **P2 · Docs topbar at 390 covers popovers (found 2026-10-02):** the uncommitted topbar change (settings chips wrap
   instead of scrolling, CHANGELOG "Docs topbar settings chips work again below 1024px") makes the sticky topbar
   216px tall at 390. `audit.mjs --pages=popover --viewports=390 --smoke` reports "Create a label #0: layer

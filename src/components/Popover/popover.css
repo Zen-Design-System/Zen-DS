@@ -97,6 +97,11 @@
 /* Content primitive: Icon and Photo Small align MIN (the 20px leading sits on the first line of a wrapped label or caption);
    Avatar, Photo Big and Dock Icon centre (Figma counter-axis CENTER). */
 .zen-popover__item:is([data-tone="icon"], [data-tone="photo-small"]) .zen-popover__item-leading { align-self: flex-start; }
+/* …centred on that first line: a type scale whose Body/Base line is taller than the leading (Mobile and Marketing, 24px
+   line around a 20px icon) drops it by half the difference, so the icon no longer sits 2px above the label. A
+   leading-only item has no line to centre on and keeps the plain centring. */
+.zen-popover__item[data-tone="icon"]:has(> .zen-popover__item-content) .zen-popover__item-leading { margin-block-start: max(0px, calc((var(--zen-typography-line-height-body-base, 20px) - var(--zen-element-size-popular-base, 20px)) / 2)); }
+.zen-popover__item[data-tone="photo-small"]:has(> .zen-popover__item-content) .zen-popover__item-leading { margin-block-start: max(0px, calc((var(--zen-typography-line-height-body-base, 20px) - var(--zen-image-size-2-xsmall, 20px)) / 2)); }
 .zen-popover__item-content--badge { display: flex; flex: 1 1 auto; }
 .zen-popover__item-content { display: grid; min-width: 0; flex: 1; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 /* Label / Subtext: one line each, long text ends in "…" (Zen rule, 2026-09-27 — overrides Figma's auto-height).
