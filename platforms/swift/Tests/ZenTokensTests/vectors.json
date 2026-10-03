@@ -214,7 +214,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#9E9E9E"
+  "expected": "#9F9F9F"
  },
  {
   "name": "Button-Accent/Background/Pressed",
@@ -243,7 +243,7 @@
   "name": "Button-Primary/Background/Default",
   "context": {},
   "type": "COLOR",
-  "expected": "#111111"
+  "expected": "#121212"
  },
  {
   "name": "Button-Primary/Background/Default",
@@ -285,7 +285,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#111111"
+  "expected": "#121212"
  },
  {
   "name": "Button-Primary/Background/Hover",
@@ -339,7 +339,7 @@
   "name": "Button-Primary/Background/Pressed",
   "context": {},
   "type": "COLOR",
-  "expected": "#828282"
+  "expected": "#838383"
  },
  {
   "name": "Button-Primary/Background/Pressed",
@@ -347,7 +347,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#9E9E9E"
+  "expected": "#9F9F9F"
  },
  {
   "name": "Button-Primary/Background/Pressed",
@@ -368,7 +368,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#9E9E9E"
+  "expected": "#9F9F9F"
  },
  {
   "name": "Button-Primary/Background/Pressed",
@@ -381,7 +381,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#828282"
+  "expected": "#838383"
  },
  {
   "name": "Button-Primary/Content/Default",
@@ -395,7 +395,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#111111"
+  "expected": "#121212"
  },
  {
   "name": "Button-Primary/Content/Default",
@@ -416,7 +416,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#111111"
+  "expected": "#121212"
  },
  {
   "name": "Button-Primary/Content/Default",
@@ -443,7 +443,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#111111"
+  "expected": "#121212"
  },
  {
   "name": "Button-Primary/Content/Pressed",
@@ -464,7 +464,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#111111"
+  "expected": "#121212"
  },
  {
   "name": "Button-Primary/Content/Pressed",
@@ -491,7 +491,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#FEFEFE12"
+  "expected": "#FDFDFD11"
  },
  {
   "name": "Button-Tertiary/Background/Pressed",
@@ -502,7 +502,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FEFEFE12"
+  "expected": "#FDFDFD11"
  },
  {
   "name": "Button-Tertiary/Background/Pressed",
@@ -512,7 +512,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#FEFEFE12"
+  "expected": "#FDFDFD11"
  },
  {
   "name": "Button-Tertiary/Background/Pressed",
@@ -723,7 +723,7 @@
   "name": "Checkbox/Background/Seclected/Default",
   "context": {},
   "type": "COLOR",
-  "expected": "#111111"
+  "expected": "#121212"
  },
  {
   "name": "Checkbox/Background/Seclected/Default",
@@ -765,7 +765,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#111111"
+  "expected": "#121212"
  },
  {
   "name": "Checkbox/Background/Unselected/Default",
@@ -779,7 +779,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#FBFBFB08"
+  "expected": "#FDFDFD09"
  },
  {
   "name": "Checkbox/Background/Unselected/Default",
@@ -790,7 +790,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FBFBFB08"
+  "expected": "#FDFDFD09"
  },
  {
   "name": "Checkbox/Background/Unselected/Default",
@@ -800,7 +800,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#FBFBFB08"
+  "expected": "#FDFDFD09"
  },
  {
   "name": "Checkbox/Background/Unselected/Default",
@@ -827,7 +827,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#FEFEFE12"
+  "expected": "#FDFDFD11"
  },
  {
   "name": "Checkbox/Background/Unselected/Hover",
@@ -838,7 +838,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FEFEFE12"
+  "expected": "#FDFDFD11"
  },
  {
   "name": "Checkbox/Background/Unselected/Hover",
@@ -848,7 +848,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#FEFEFE12"
+  "expected": "#FDFDFD11"
  },
  {
   "name": "Checkbox/Background/Unselected/Hover",
@@ -867,7 +867,7 @@
   "name": "Checkbox/Border/Hover",
   "context": {},
   "type": "COLOR",
-  "expected": "#01010124"
+  "expected": "#00000028"
  },
  {
   "name": "Checkbox/Border/Hover",
@@ -909,7 +909,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#01010124"
+  "expected": "#00000028"
  },
  {
   "name": "Checkbox/Icon-Check/Default",
@@ -923,7 +923,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#111111"
+  "expected": "#121212"
  },
  {
   "name": "Checkbox/Icon-Check/Default",
@@ -944,7 +944,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#111111"
+  "expected": "#121212"
  },
  {
   "name": "Checkbox/Icon-Check/Default",
@@ -971,7 +971,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#FBFBFB08"
+  "expected": "#FDFDFD09"
  },
  {
   "name": "Chip-Primary/Background/Unselected/Hover",
@@ -982,7 +982,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FBFBFB08"
+  "expected": "#FDFDFD09"
  },
  {
   "name": "Chip-Primary/Background/Unselected/Hover",
@@ -992,7 +992,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#FBFBFB08"
+  "expected": "#FDFDFD09"
  },
  {
   "name": "Chip-Primary/Background/Unselected/Hover",
@@ -1019,7 +1019,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#191919"
+  "expected": "#1A1A1A"
  },
  {
   "name": "Chip-Secondary/Background/Unselected/Default",
@@ -1030,7 +1030,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#191919"
+  "expected": "#1A1A1A"
  },
  {
   "name": "Chip-Secondary/Background/Unselected/Default",
@@ -1040,7 +1040,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#191919"
+  "expected": "#1A1A1A"
  },
  {
   "name": "Chip-Secondary/Background/Unselected/Default",
@@ -1163,7 +1163,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#0670FD16"
+  "expected": "#1270FD16"
  },
  {
   "name": "Color/Background/Info/Flat/Hover",
@@ -1174,7 +1174,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#0670FD16"
+  "expected": "#1270FD16"
  },
  {
   "name": "Color/Background/Info/Flat/Hover",
@@ -1184,7 +1184,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#0670FD16"
+  "expected": "#1270FD16"
  },
  {
   "name": "Color/Background/Info/Flat/Hover",
@@ -1251,7 +1251,7 @@
   "name": "Color/Background/Neutral/Subtle/Hover",
   "context": {},
   "type": "COLOR",
-  "expected": "#02020215"
+  "expected": "#0000001A"
  },
  {
   "name": "Color/Background/Neutral/Subtle/Hover",
@@ -1259,7 +1259,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#FFFFFF18"
+  "expected": "#FDFDFD1A"
  },
  {
   "name": "Color/Background/Neutral/Subtle/Hover",
@@ -1270,7 +1270,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FFFFFF18"
+  "expected": "#FDFDFD1A"
  },
  {
   "name": "Color/Background/Neutral/Subtle/Hover",
@@ -1280,7 +1280,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#FFFFFF18"
+  "expected": "#FDFDFD1A"
  },
  {
   "name": "Color/Background/Neutral/Subtle/Hover",
@@ -1293,7 +1293,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#02020215"
+  "expected": "#0000001A"
  },
  {
   "name": "Color/Background/Support/Brand/Solid",
@@ -1403,7 +1403,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#FBFBFB08"
+  "expected": "#FDFDFD09"
  },
  {
   "name": "Color/Background/Support/Neutral/Pale",
@@ -1414,7 +1414,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FBFBFB08"
+  "expected": "#FDFDFD09"
  },
  {
   "name": "Color/Background/Support/Neutral/Pale",
@@ -1424,7 +1424,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#FBFBFB08"
+  "expected": "#FDFDFD09"
  },
  {
   "name": "Color/Background/Support/Neutral/Pale",
@@ -1443,7 +1443,7 @@
   "name": "Color/Border/Neutral/Pale/Pressed",
   "context": {},
   "type": "COLOR",
-  "expected": "#0101011D"
+  "expected": "#01010121"
  },
  {
   "name": "Color/Border/Neutral/Pale/Pressed",
@@ -1451,7 +1451,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#FDFDFD1E"
+  "expected": "#FFFFFF21"
  },
  {
   "name": "Color/Border/Neutral/Pale/Pressed",
@@ -1462,7 +1462,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FDFDFD1E"
+  "expected": "#FFFFFF21"
  },
  {
   "name": "Color/Border/Neutral/Pale/Pressed",
@@ -1472,7 +1472,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#FDFDFD1E"
+  "expected": "#FFFFFF21"
  },
  {
   "name": "Color/Border/Neutral/Pale/Pressed",
@@ -1485,13 +1485,13 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#0101011D"
+  "expected": "#01010121"
  },
  {
   "name": "Color/Border/Overlay/Solid/Pressed",
   "context": {},
   "type": "COLOR",
-  "expected": "#9E9E9E"
+  "expected": "#9F9F9F"
  },
  {
   "name": "Color/Border/Overlay/Solid/Pressed",
@@ -1499,7 +1499,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#9E9E9E"
+  "expected": "#9F9F9F"
  },
  {
   "name": "Color/Border/Overlay/Solid/Pressed",
@@ -1510,7 +1510,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#9E9E9E"
+  "expected": "#9F9F9F"
  },
  {
   "name": "Color/Border/Overlay/Solid/Pressed",
@@ -1520,7 +1520,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#9E9E9E"
+  "expected": "#9F9F9F"
  },
  {
   "name": "Color/Border/Overlay/Solid/Pressed",
@@ -1533,7 +1533,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#9E9E9E"
+  "expected": "#9F9F9F"
  },
  {
   "name": "Color/Border/Support/Golden/Subtle",
@@ -1547,7 +1547,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#FFA9003A"
+  "expected": "#FFA30037"
  },
  {
   "name": "Color/Border/Support/Golden/Subtle",
@@ -1558,7 +1558,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FFA9003A"
+  "expected": "#FFA30037"
  },
  {
   "name": "Color/Border/Support/Golden/Subtle",
@@ -1568,7 +1568,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#FFA9003A"
+  "expected": "#FFA30037"
  },
  {
   "name": "Color/Border/Support/Golden/Subtle",
@@ -1595,7 +1595,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#BD5DFF52"
+  "expected": "#BA56FE4F"
  },
  {
   "name": "Color/Border/Support/Purple/Subtle",
@@ -1606,7 +1606,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#BD5DFF52"
+  "expected": "#BA56FE4F"
  },
  {
   "name": "Color/Border/Support/Purple/Subtle",
@@ -1616,7 +1616,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#BD5DFF52"
+  "expected": "#BA56FE4F"
  },
  {
   "name": "Color/Border/Support/Purple/Subtle",
@@ -1635,7 +1635,7 @@
   "name": "Color/Content/Neutral/Strongest",
   "context": {},
   "type": "COLOR",
-  "expected": "#111111"
+  "expected": "#121212"
  },
  {
   "name": "Color/Content/Neutral/Strongest",
@@ -1677,7 +1677,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#111111"
+  "expected": "#121212"
  },
  {
   "name": "Color/Content/Support/Pink/Strongest",
@@ -1739,7 +1739,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#FEFEFE12"
+  "expected": "#FDFDFD11"
  },
  {
   "name": "Container/Border",
@@ -1750,7 +1750,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FEFEFE12"
+  "expected": "#FDFDFD11"
  },
  {
   "name": "Container/Border",
@@ -1760,7 +1760,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#FEFEFE12"
+  "expected": "#FDFDFD11"
  },
  {
   "name": "Container/Border",
@@ -2403,7 +2403,7 @@
   "name": "Dark/Brand/4",
   "context": {},
   "type": "COLOR",
-  "expected": "#491E3B"
+  "expected": "#471C3A"
  },
  {
   "name": "Dark/Brand/4",
@@ -2411,7 +2411,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#491E3B"
+  "expected": "#471C3A"
  },
  {
   "name": "Dark/Brand/4",
@@ -2422,7 +2422,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#491E3B"
+  "expected": "#471C3A"
  },
  {
   "name": "Dark/Brand/4",
@@ -2432,7 +2432,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#491E3B"
+  "expected": "#471C3A"
  },
  {
   "name": "Dark/Brand/4",
@@ -2445,7 +2445,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#491E3B"
+  "expected": "#471C3A"
  },
  {
   "name": "Dark/Brown/1",
@@ -2547,7 +2547,7 @@
   "name": "Dark/Cyan-Alpha/5",
   "context": {},
   "type": "COLOR",
-  "expected": "#00CCFF3A"
+  "expected": "#00D1FF35"
  },
  {
   "name": "Dark/Cyan-Alpha/5",
@@ -2555,7 +2555,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#00CCFF3A"
+  "expected": "#00D1FF35"
  },
  {
   "name": "Dark/Cyan-Alpha/5",
@@ -2566,7 +2566,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#00CCFF3A"
+  "expected": "#00D1FF35"
  },
  {
   "name": "Dark/Cyan-Alpha/5",
@@ -2576,7 +2576,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#00CCFF3A"
+  "expected": "#00D1FF35"
  },
  {
   "name": "Dark/Cyan-Alpha/5",
@@ -2589,7 +2589,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#00CCFF3A"
+  "expected": "#00D1FF35"
  },
  {
   "name": "Dark/Glass-Default",
@@ -2643,7 +2643,7 @@
   "name": "Dark/Gray-Alpha/5",
   "context": {},
   "type": "COLOR",
-  "expected": "#FDFDFD1E"
+  "expected": "#FFFFFF21"
  },
  {
   "name": "Dark/Gray-Alpha/5",
@@ -2651,7 +2651,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#FDFDFD1E"
+  "expected": "#FFFFFF21"
  },
  {
   "name": "Dark/Gray-Alpha/5",
@@ -2662,7 +2662,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FDFDFD1E"
+  "expected": "#FFFFFF21"
  },
  {
   "name": "Dark/Gray-Alpha/5",
@@ -2672,7 +2672,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#FDFDFD1E"
+  "expected": "#FFFFFF21"
  },
  {
   "name": "Dark/Gray-Alpha/5",
@@ -2685,13 +2685,13 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#FDFDFD1E"
+  "expected": "#FFFFFF21"
  },
  {
   "name": "Dark/Info/7",
   "context": {},
   "type": "COLOR",
-  "expected": "#00458D"
+  "expected": "#00438B"
  },
  {
   "name": "Dark/Info/7",
@@ -2699,7 +2699,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#00458D"
+  "expected": "#00438B"
  },
  {
   "name": "Dark/Info/7",
@@ -2710,7 +2710,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#00458D"
+  "expected": "#00438B"
  },
  {
   "name": "Dark/Info/7",
@@ -2720,7 +2720,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#00458D"
+  "expected": "#00438B"
  },
  {
   "name": "Dark/Info/7",
@@ -2733,7 +2733,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#00458D"
+  "expected": "#00438B"
  },
  {
   "name": "Dark/Negative-Alpha/10",
@@ -2787,7 +2787,7 @@
   "name": "Dark/Neutral/10",
   "context": {},
   "type": "COLOR",
-  "expected": "#9E9E9E"
+  "expected": "#9F9F9F"
  },
  {
   "name": "Dark/Neutral/10",
@@ -2795,7 +2795,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#9E9E9E"
+  "expected": "#9F9F9F"
  },
  {
   "name": "Dark/Neutral/10",
@@ -2806,7 +2806,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#9E9E9E"
+  "expected": "#9F9F9F"
  },
  {
   "name": "Dark/Neutral/10",
@@ -2816,7 +2816,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#9E9E9E"
+  "expected": "#9F9F9F"
  },
  {
   "name": "Dark/Neutral/10",
@@ -2829,13 +2829,13 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#9E9E9E"
+  "expected": "#9F9F9F"
  },
  {
   "name": "Dark/Positive-Alpha/4",
   "context": {},
   "type": "COLOR",
-  "expected": "#3DFE5224"
+  "expected": "#31FF4721"
  },
  {
   "name": "Dark/Positive-Alpha/4",
@@ -2843,7 +2843,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#3DFE5224"
+  "expected": "#31FF4721"
  },
  {
   "name": "Dark/Positive-Alpha/4",
@@ -2854,7 +2854,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#3DFE5224"
+  "expected": "#31FF4721"
  },
  {
   "name": "Dark/Positive-Alpha/4",
@@ -2864,7 +2864,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#3DFE5224"
+  "expected": "#31FF4721"
  },
  {
   "name": "Dark/Positive-Alpha/4",
@@ -2877,7 +2877,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#3DFE5224"
+  "expected": "#31FF4721"
  },
  {
   "name": "Dark/Purple/9",
@@ -3075,7 +3075,7 @@
   "name": "Date-Picker-Item/Background/Seclected-In-Range/Hover",
   "context": {},
   "type": "COLOR",
-  "expected": "#02020215"
+  "expected": "#0000001A"
  },
  {
   "name": "Date-Picker-Item/Background/Seclected-In-Range/Hover",
@@ -3083,7 +3083,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#FFFFFF18"
+  "expected": "#FDFDFD1A"
  },
  {
   "name": "Date-Picker-Item/Background/Seclected-In-Range/Hover",
@@ -3094,7 +3094,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FE46C23B"
+  "expected": "#FF3FC539"
  },
  {
   "name": "Date-Picker-Item/Background/Seclected-In-Range/Hover",
@@ -3104,7 +3104,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#FFFFFF18"
+  "expected": "#FDFDFD1A"
  },
  {
   "name": "Date-Picker-Item/Background/Seclected-In-Range/Hover",
@@ -3117,7 +3117,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#02020215"
+  "expected": "#0000001A"
  },
  {
   "name": "Date-Picker-Item/Content/Selected",
@@ -3131,7 +3131,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#111111"
+  "expected": "#121212"
  },
  {
   "name": "Date-Picker-Item/Content/Selected",
@@ -3152,7 +3152,7 @@
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#111111"
+  "expected": "#121212"
  },
  {
   "name": "Date-Picker-Item/Content/Selected",
@@ -5667,7 +5667,7 @@
   "name": "Tab/Content/Default",
   "context": {},
   "type": "COLOR",
-  "expected": "#0000007D"
+  "expected": "#0000007C"
  },
  {
   "name": "Tab/Content/Default",
@@ -5709,7 +5709,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#0000007D"
+  "expected": "#0000007C"
  },
  {
   "name": "Tag/Size/Small",

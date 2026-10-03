@@ -1737,7 +1737,7 @@
         "name": "Light/Orange/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#F39A54"
+          "Zen": "#F39A55"
         }
       },
       {
@@ -1821,7 +1821,7 @@
         "name": "Light/Orange-Alpha/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#ED6800AB"
+          "Zen": "#ED6800AA"
         }
       },
       {
@@ -1898,7 +1898,7 @@
         "name": "Light/Brown/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#DEAF88"
+          "Zen": "#DFAE88"
         }
       },
       {
@@ -2885,21 +2885,21 @@
         "name": "Light/Gray/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#EAEAEA"
+          "Zen": "#E5E5E5"
         }
       },
       {
         "name": "Light/Gray/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#E2E2E2"
+          "Zen": "#DEDEDE"
         }
       },
       {
         "name": "Light/Gray/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#DBDBDB"
+          "Zen": "#D7D7D7"
         }
       },
       {
@@ -2927,7 +2927,7 @@
         "name": "Light/Gray/10",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#828282"
+          "Zen": "#838383"
         }
       },
       {
@@ -2941,7 +2941,7 @@
         "name": "Light/Gray/12",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#111111"
+          "Zen": "#121212"
         }
       },
       {
@@ -2969,21 +2969,21 @@
         "name": "Light/Gray-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#02020215"
+          "Zen": "#0000001A"
         }
       },
       {
         "name": "Light/Gray-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#0101011D"
+          "Zen": "#01010121"
         }
       },
       {
         "name": "Light/Gray-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#01010124"
+          "Zen": "#00000028"
         }
       },
       {
@@ -3011,7 +3011,7 @@
         "name": "Light/Gray-Alpha/10",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#0000007D"
+          "Zen": "#0000007C"
         }
       },
       {
@@ -3025,7 +3025,7 @@
         "name": "Light/Gray-Alpha/12",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#000000EE"
+          "Zen": "#000000ED"
         }
       },
       {
@@ -3207,7 +3207,7 @@
         "name": "Dark/Tomato/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#241612"
+          "Zen": "#251713"
         }
       },
       {
@@ -3221,28 +3221,28 @@
         "name": "Dark/Tomato/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#4B2217"
+          "Zen": "#492016"
         }
       },
       {
         "name": "Dark/Tomato/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#602516"
+          "Zen": "#5C2213"
         }
       },
       {
         "name": "Dark/Tomato/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#742410"
+          "Zen": "#71210D"
         }
       },
       {
         "name": "Dark/Tomato/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#872000"
+          "Zen": "#851D00"
         }
       },
       {
@@ -3291,7 +3291,7 @@
         "name": "Dark/Tomato-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF471213"
+          "Zen": "#FD501E15"
         }
       },
       {
@@ -3305,42 +3305,42 @@
         "name": "Dark/Tomato-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF55283E"
+          "Zen": "#FE4E233B"
         }
       },
       {
         "name": "Dark/Tomato-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FE4C1E54"
+          "Zen": "#FE451550"
         }
       },
       {
         "name": "Dark/Tomato-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF3D0D69"
+          "Zen": "#FF370666"
         }
       },
       {
         "name": "Dark/Tomato-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF2E007D"
+          "Zen": "#FF29007B"
         }
       },
       {
         "name": "Dark/Tomato-Alpha/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF350088"
+          "Zen": "#FF360088"
         }
       },
       {
         "name": "Dark/Tomato-Alpha/9",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF5B32E4"
+          "Zen": "#FF5B31E3"
         }
       },
       {
@@ -3375,7 +3375,7 @@
         "name": "Dark/Crimson/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#241517"
+          "Zen": "#261618"
         }
       },
       {
@@ -3389,28 +3389,28 @@
         "name": "Dark/Crimson/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#4B2028"
+          "Zen": "#491E26"
         }
       },
       {
         "name": "Dark/Crimson/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#602230"
+          "Zen": "#5D1F2D"
         }
       },
       {
         "name": "Dark/Crimson/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#742036"
+          "Zen": "#711D33"
         }
       },
       {
         "name": "Dark/Crimson/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#88183A"
+          "Zen": "#861539"
         }
       },
       {
@@ -3459,7 +3459,7 @@
         "name": "Dark/Crimson-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF395413"
+          "Zen": "#FD415916"
         }
       },
       {
@@ -3473,35 +3473,35 @@
         "name": "Dark/Crimson-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF4C6D3D"
+          "Zen": "#FE46683B"
         }
       },
       {
         "name": "Dark/Crimson-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF426C55"
+          "Zen": "#FF3B6751"
         }
       },
       {
         "name": "Dark/Crimson-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF34696A"
+          "Zen": "#FF2D6466"
         }
       },
       {
         "name": "Dark/Crimson-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF1E627F"
+          "Zen": "#FF18627D"
         }
       },
       {
         "name": "Dark/Crimson-Alpha/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF276988"
+          "Zen": "#FF286889"
         }
       },
       {
@@ -3515,14 +3515,14 @@
         "name": "Dark/Crimson-Alpha/10",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF668CF5"
+          "Zen": "#FF658CF5"
         }
       },
       {
         "name": "Dark/Crimson-Alpha/11",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFDBE2F5"
+          "Zen": "#FFDBE1F5"
         }
       },
       {
@@ -3543,7 +3543,7 @@
         "name": "Dark/Pink/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#23151D"
+          "Zen": "#24161D"
         }
       },
       {
@@ -3557,28 +3557,28 @@
         "name": "Dark/Pink/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#491F38"
+          "Zen": "#471D36"
         }
       },
       {
         "name": "Dark/Pink/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#5D2146"
+          "Zen": "#591E43"
         }
       },
       {
         "name": "Dark/Pink/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#6F1F53"
+          "Zen": "#6C1C50"
         }
       },
       {
         "name": "Dark/Pink/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#82175F"
+          "Zen": "#80145D"
         }
       },
       {
@@ -3627,7 +3627,7 @@
         "name": "Dark/Pink-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FE3CAB12"
+          "Zen": "#FF47A313"
         }
       },
       {
@@ -3641,42 +3641,42 @@
         "name": "Dark/Pink-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FE4BB63C"
+          "Zen": "#FF43B339"
         }
       },
       {
         "name": "Dark/Pink-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF41B651"
+          "Zen": "#FF3AB54D"
         }
       },
       {
         "name": "Dark/Pink-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF33B764"
+          "Zen": "#FF2CB561"
         }
       },
       {
         "name": "Dark/Pink-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF1DB579"
+          "Zen": "#FF16B377"
         }
       },
       {
         "name": "Dark/Pink-Alpha/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF27B882"
+          "Zen": "#FF28B882"
         }
       },
       {
         "name": "Dark/Pink-Alpha/9",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF5BC3E7"
+          "Zen": "#FF5BC3E6"
         }
       },
       {
@@ -3711,7 +3711,7 @@
         "name": "Dark/Plum/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#211621"
+          "Zen": "#221621"
         }
       },
       {
@@ -3725,28 +3725,28 @@
         "name": "Dark/Plum/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#422243"
+          "Zen": "#402040"
         }
       },
       {
         "name": "Dark/Plum/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#532654"
+          "Zen": "#502351"
         }
       },
       {
         "name": "Dark/Plum/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#632666"
+          "Zen": "#602363"
         }
       },
       {
         "name": "Dark/Plum/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#732377"
+          "Zen": "#722075"
         }
       },
       {
@@ -3795,7 +3795,7 @@
         "name": "Dark/Plum-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FC51FC10"
+          "Zen": "#FD4DEF11"
         }
       },
       {
@@ -3809,28 +3809,28 @@
         "name": "Dark/Plum-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FA5FFF35"
+          "Zen": "#FE5AFE32"
         }
       },
       {
         "name": "Dark/Plum-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FB5BFF48"
+          "Zen": "#FB52FF44"
         }
       },
       {
         "name": "Dark/Plum-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#F64AFF5B"
+          "Zen": "#F644FF57"
         }
       },
       {
         "name": "Dark/Plum-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#F53AFF6D"
+          "Zen": "#F833FF6B"
         }
       },
       {
@@ -3851,7 +3851,7 @@
         "name": "Dark/Plum-Alpha/10",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FA70FFD1"
+          "Zen": "#FA6FFFD0"
         }
       },
       {
@@ -3879,7 +3879,7 @@
         "name": "Dark/Purple/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#1E1723"
+          "Zen": "#1E1724"
         }
       },
       {
@@ -3893,28 +3893,28 @@
         "name": "Dark/Purple/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#3A2549"
+          "Zen": "#382347"
         }
       },
       {
         "name": "Dark/Purple/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#492A5E"
+          "Zen": "#46275B"
         }
       },
       {
         "name": "Dark/Purple/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#562C73"
+          "Zen": "#542970"
         }
       },
       {
         "name": "Dark/Purple/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#642B87"
+          "Zen": "#622986"
         }
       },
       {
@@ -3963,7 +3963,7 @@
         "name": "Dark/Purple-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#B957FE12"
+          "Zen": "#B054FF13"
         }
       },
       {
@@ -3977,35 +3977,35 @@
         "name": "Dark/Purple-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#BE64FE3C"
+          "Zen": "#BC5EFF39"
         }
       },
       {
         "name": "Dark/Purple-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#BD5DFF52"
+          "Zen": "#BA56FE4F"
         }
       },
       {
         "name": "Dark/Purple-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#B851FF69"
+          "Zen": "#B84CFF65"
         }
       },
       {
         "name": "Dark/Purple-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#B845FF7E"
+          "Zen": "#B541FF7D"
         }
       },
       {
         "name": "Dark/Purple-Alpha/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#B94BFF88"
+          "Zen": "#B94CFF88"
         }
       },
       {
@@ -4019,7 +4019,7 @@
         "name": "Dark/Purple-Alpha/10",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#C063FFD6"
+          "Zen": "#BF62FFD5"
         }
       },
       {
@@ -4033,7 +4033,7 @@
         "name": "Dark/Purple-Alpha/12",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FCEFFFF5"
+          "Zen": "#FBEFFFF5"
         }
       },
       {
@@ -4047,7 +4047,7 @@
         "name": "Dark/Violet/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#1A1826"
+          "Zen": "#1A1827"
         }
       },
       {
@@ -4061,28 +4061,28 @@
         "name": "Dark/Violet/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#2F2751"
+          "Zen": "#2D264F"
         }
       },
       {
         "name": "Dark/Violet/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#392E69"
+          "Zen": "#372B66"
         }
       },
       {
         "name": "Dark/Violet/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#433182"
+          "Zen": "#402F7E"
         }
       },
       {
         "name": "Dark/Violet/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#4C329A"
+          "Zen": "#4A3198"
         }
       },
       {
@@ -4131,7 +4131,7 @@
         "name": "Dark/Violet-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#7059FD16"
+          "Zen": "#6C55FE17"
         }
       },
       {
@@ -4145,42 +4145,42 @@
         "name": "Dark/Violet-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#7F61FF44"
+          "Zen": "#7B60FE42"
         }
       },
       {
         "name": "Dark/Violet-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#7C5EFE5E"
+          "Zen": "#7A58FF5B"
         }
       },
       {
         "name": "Dark/Violet-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#7A54FF79"
+          "Zen": "#7752FF74"
         }
       },
       {
         "name": "Dark/Violet-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#764BFF92"
+          "Zen": "#7549FF90"
         }
       },
       {
         "name": "Dark/Violet-Alpha/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#7950FF9C"
+          "Zen": "#7851FF9D"
         }
       },
       {
         "name": "Dark/Violet-Alpha/9",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#835DFFE6"
+          "Zen": "#825DFFE5"
         }
       },
       {
@@ -4194,7 +4194,7 @@
         "name": "Dark/Violet-Alpha/11",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#E3E0FFF5"
+          "Zen": "#E2E0FFF5"
         }
       },
       {
@@ -4215,7 +4215,7 @@
         "name": "Dark/Indigo/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#151928"
+          "Zen": "#161929"
         }
       },
       {
@@ -4229,28 +4229,28 @@
         "name": "Dark/Indigo/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#222A57"
+          "Zen": "#202855"
         }
       },
       {
         "name": "Dark/Indigo/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#283172"
+          "Zen": "#252E6E"
         }
       },
       {
         "name": "Dark/Indigo/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#2B368C"
+          "Zen": "#293389"
         }
       },
       {
         "name": "Dark/Indigo/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#2F37A8"
+          "Zen": "#2E35A6"
         }
       },
       {
@@ -4299,7 +4299,7 @@
         "name": "Dark/Indigo-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#325DFF18"
+          "Zen": "#3B59FD19"
         }
       },
       {
@@ -4313,35 +4313,35 @@
         "name": "Dark/Indigo-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#4965FF4A"
+          "Zen": "#4360FF48"
         }
       },
       {
         "name": "Dark/Indigo-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#485EFF67"
+          "Zen": "#435AFF63"
         }
       },
       {
         "name": "Dark/Indigo-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#4457FF83"
+          "Zen": "#4054FF80"
         }
       },
       {
         "name": "Dark/Indigo-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#404BFFA1"
+          "Zen": "#3F4AFF9F"
         }
       },
       {
         "name": "Dark/Indigo-Alpha/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#4352FFAB"
+          "Zen": "#4352FFAC"
         }
       },
       {
@@ -4362,7 +4362,7 @@
         "name": "Dark/Indigo-Alpha/11",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#D6E3FFF5"
+          "Zen": "#D6E2FFF5"
         }
       },
       {
@@ -4383,7 +4383,7 @@
         "name": "Dark/Cyan/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#101B1F"
+          "Zen": "#111C20"
         }
       },
       {
@@ -4397,28 +4397,28 @@
         "name": "Dark/Cyan/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#0E323E"
+          "Zen": "#0C303C"
         }
       },
       {
         "name": "Dark/Cyan/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#023C4E"
+          "Zen": "#003A4B"
         }
       },
       {
         "name": "Dark/Cyan/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00455A"
+          "Zen": "#004356"
         }
       },
       {
         "name": "Dark/Cyan/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#004D62"
+          "Zen": "#004B61"
         }
       },
       {
@@ -4467,7 +4467,7 @@
         "name": "Dark/Cyan-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00DAFF0B"
+          "Zen": "#01B9FB0F"
         }
       },
       {
@@ -4481,28 +4481,28 @@
         "name": "Dark/Cyan-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00C4FF2E"
+          "Zen": "#00C6FF2B"
         }
       },
       {
         "name": "Dark/Cyan-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00CCFF3A"
+          "Zen": "#00D1FF35"
         }
       },
       {
         "name": "Dark/Cyan-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00C7FF48"
+          "Zen": "#00CEFF42"
         }
       },
       {
         "name": "Dark/Cyan-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00CBFF51"
+          "Zen": "#00C7FF50"
         }
       },
       {
@@ -4516,14 +4516,14 @@
         "name": "Dark/Cyan-Alpha/9",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#11CBFFD8"
+          "Zen": "#10CBFFD7"
         }
       },
       {
         "name": "Dark/Cyan-Alpha/10",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#3ACFFFED"
+          "Zen": "#3ACEFFED"
         }
       },
       {
@@ -4551,7 +4551,7 @@
         "name": "Dark/Teal/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#111C19"
+          "Zen": "#121C1A"
         }
       },
       {
@@ -4565,35 +4565,35 @@
         "name": "Dark/Teal/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#0F332D"
+          "Zen": "#0D312B"
         }
       },
       {
         "name": "Dark/Teal/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#023F36"
+          "Zen": "#003C34"
         }
       },
       {
         "name": "Dark/Teal/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00473D"
+          "Zen": "#00453C"
         }
       },
       {
         "name": "Dark/Teal/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#005046"
+          "Zen": "#004E44"
         }
       },
       {
         "name": "Dark/Teal/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00564B"
+          "Zen": "#00574C"
         }
       },
       {
@@ -4635,7 +4635,7 @@
         "name": "Dark/Teal-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00FBB50B"
+          "Zen": "#12FBCC0B"
         }
       },
       {
@@ -4649,28 +4649,28 @@
         "name": "Dark/Teal-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#01FED424"
+          "Zen": "#00FFD421"
         }
       },
       {
         "name": "Dark/Teal-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00FFD62F"
+          "Zen": "#00FFD92C"
         }
       },
       {
         "name": "Dark/Teal-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00FFD93A"
+          "Zen": "#00FFDB35"
         }
       },
       {
         "name": "Dark/Teal-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00FFDD42"
+          "Zen": "#00FFDC3F"
         }
       },
       {
@@ -4684,7 +4684,7 @@
         "name": "Dark/Teal-Alpha/9",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00FFE1AC"
+          "Zen": "#00FFE0AB"
         }
       },
       {
@@ -4698,14 +4698,14 @@
         "name": "Dark/Teal-Alpha/11",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#9BFFEEF5"
+          "Zen": "#9AFFEEF5"
         }
       },
       {
         "name": "Dark/Teal-Alpha/12",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#D2FFFFF5"
+          "Zen": "#D2FFFEF5"
         }
       },
       {
@@ -4719,7 +4719,7 @@
         "name": "Dark/Grass/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#131C13"
+          "Zen": "#131C14"
         }
       },
       {
@@ -4733,28 +4733,28 @@
         "name": "Dark/Grass/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#18331B"
+          "Zen": "#163119"
         }
       },
       {
         "name": "Dark/Grass/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#16401C"
+          "Zen": "#123D19"
         }
       },
       {
         "name": "Dark/Grass/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#0B4A1A"
+          "Zen": "#074717"
         }
       },
       {
         "name": "Dark/Grass/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#005318"
+          "Zen": "#005017"
         }
       },
       {
@@ -4803,7 +4803,7 @@
         "name": "Dark/Grass-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#29FB290B"
+          "Zen": "#29FB410B"
         }
       },
       {
@@ -4817,28 +4817,28 @@
         "name": "Dark/Grass-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#3DFE5224"
+          "Zen": "#31FF4721"
         }
       },
       {
         "name": "Dark/Grass-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#27FE4532"
+          "Zen": "#12FE382E"
         }
       },
       {
         "name": "Dark/Grass-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00FF353C"
+          "Zen": "#00FF2939"
         }
       },
       {
         "name": "Dark/Grass-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00FF2844"
+          "Zen": "#00FF2641"
         }
       },
       {
@@ -4852,7 +4852,7 @@
         "name": "Dark/Grass-Alpha/9",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#59FF78A6"
+          "Zen": "#58FF77A5"
         }
       },
       {
@@ -4887,7 +4887,7 @@
         "name": "Dark/Orange/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#24170C"
+          "Zen": "#25170D"
         }
       },
       {
@@ -4901,28 +4901,28 @@
         "name": "Dark/Orange/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#4A2300"
+          "Zen": "#482100"
         }
       },
       {
         "name": "Dark/Orange/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#592B00"
+          "Zen": "#542900"
         }
       },
       {
         "name": "Dark/Orange/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#643200"
+          "Zen": "#613000"
         }
       },
       {
         "name": "Dark/Orange/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#6F3700"
+          "Zen": "#6D3600"
         }
       },
       {
@@ -4971,7 +4971,7 @@
         "name": "Dark/Orange-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF590012"
+          "Zen": "#FF560013"
         }
       },
       {
@@ -4985,28 +4985,28 @@
         "name": "Dark/Orange-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF5C003B"
+          "Zen": "#FF560039"
         }
       },
       {
         "name": "Dark/Orange-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF67004B"
+          "Zen": "#FF660046"
         }
       },
       {
         "name": "Dark/Orange-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF6E0059"
+          "Zen": "#FF6C0055"
         }
       },
       {
         "name": "Dark/Orange-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF710064"
+          "Zen": "#FF700061"
         }
       },
       {
@@ -5027,7 +5027,7 @@
         "name": "Dark/Orange-Alpha/10",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF9B3BF5"
+          "Zen": "#FF9A3BF5"
         }
       },
       {
@@ -5041,7 +5041,7 @@
         "name": "Dark/Orange-Alpha/12",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFF2E3F5"
+          "Zen": "#FFF2E2F5"
         }
       },
       {
@@ -5055,7 +5055,7 @@
         "name": "Dark/Brown/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#1E1813"
+          "Zen": "#1F1914"
         }
       },
       {
@@ -5069,28 +5069,28 @@
         "name": "Dark/Brown/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#3C2A1B"
+          "Zen": "#3A2819"
         }
       },
       {
         "name": "Dark/Brown/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#4B321D"
+          "Zen": "#482F1A"
         }
       },
       {
         "name": "Dark/Brown/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#58381D"
+          "Zen": "#55361A"
         }
       },
       {
         "name": "Dark/Brown/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#643E1B"
+          "Zen": "#623C19"
         }
       },
       {
@@ -5139,7 +5139,7 @@
         "name": "Dark/Brown-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FD88260D"
+          "Zen": "#FE91360E"
         }
       },
       {
@@ -5153,28 +5153,28 @@
         "name": "Dark/Brown-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FE99452D"
+          "Zen": "#FF943B2B"
         }
       },
       {
         "name": "Dark/Brown-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF97403D"
+          "Zen": "#FF91353A"
         }
       },
       {
         "name": "Dark/Brown-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FE92374B"
+          "Zen": "#FF912E48"
         }
       },
       {
         "name": "Dark/Brown-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF912C58"
+          "Zen": "#FF8E2756"
         }
       },
       {
@@ -5188,14 +5188,14 @@
         "name": "Dark/Brown-Alpha/9",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFA35399"
+          "Zen": "#FFA35298"
         }
       },
       {
         "name": "Dark/Brown-Alpha/10",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFAC66AD"
+          "Zen": "#FFAC65AC"
         }
       },
       {
@@ -5223,7 +5223,7 @@
         "name": "Dark/Sky/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#111B1E"
+          "Zen": "#111C1E"
         }
       },
       {
@@ -5237,28 +5237,28 @@
         "name": "Dark/Sky/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#10323B"
+          "Zen": "#0D3038"
         }
       },
       {
         "name": "Dark/Sky/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#043D49"
+          "Zen": "#013A47"
         }
       },
       {
         "name": "Dark/Sky/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#004654"
+          "Zen": "#004351"
         }
       },
       {
         "name": "Dark/Sky/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#004D5E"
+          "Zen": "#004C5B"
         }
       },
       {
@@ -5307,7 +5307,7 @@
         "name": "Dark/Sky-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00C2FD0D"
+          "Zen": "#00D6FD0D"
         }
       },
       {
@@ -5321,28 +5321,28 @@
         "name": "Dark/Sky-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#06CBFF2C"
+          "Zen": "#00DAFF26"
         }
       },
       {
         "name": "Dark/Sky-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00E0FF35"
+          "Zen": "#00E7FF30"
         }
       },
       {
         "name": "Dark/Sky-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00E0FF40"
+          "Zen": "#00E3FF3C"
         }
       },
       {
         "name": "Dark/Sky-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00D8FF4C"
+          "Zen": "#00DEFF49"
         }
       },
       {
@@ -5356,7 +5356,7 @@
         "name": "Dark/Sky-Alpha/9",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#52DDFFEE"
+          "Zen": "#51DDFFEE"
         }
       },
       {
@@ -5405,21 +5405,21 @@
         "name": "Dark/Mint/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#083428"
+          "Zen": "#063226"
         }
       },
       {
         "name": "Dark/Mint/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00402F"
+          "Zen": "#003D2D"
         }
       },
       {
         "name": "Dark/Mint/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#004736"
+          "Zen": "#004634"
         }
       },
       {
@@ -5475,7 +5475,7 @@
         "name": "Dark/Mint-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00FFA50A"
+          "Zen": "#00FFA40A"
         }
       },
       {
@@ -5489,35 +5489,35 @@
         "name": "Dark/Mint-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00FFB123"
+          "Zen": "#00FFAD21"
         }
       },
       {
         "name": "Dark/Mint-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00FFAC30"
+          "Zen": "#00FFAB2D"
         }
       },
       {
         "name": "Dark/Mint-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00FFBA3A"
+          "Zen": "#00FFB137"
         }
       },
       {
         "name": "Dark/Mint-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00FFBA41"
+          "Zen": "#00FFB940"
         }
       },
       {
         "name": "Dark/Mint-Alpha/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00FFBC4B"
+          "Zen": "#00FFBB4A"
         }
       },
       {
@@ -5531,21 +5531,21 @@
         "name": "Dark/Mint-Alpha/10",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#3DFFCBE0"
+          "Zen": "#3CFFCBDF"
         }
       },
       {
         "name": "Dark/Mint-Alpha/11",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#94FFE4F5"
+          "Zen": "#94FFE3F5"
         }
       },
       {
         "name": "Dark/Mint-Alpha/12",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#E3FFFCF5"
+          "Zen": "#E2FFFBF5"
         }
       },
       {
@@ -5559,7 +5559,7 @@
         "name": "Dark/Yellow/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#211808"
+          "Zen": "#221909"
         }
       },
       {
@@ -5573,28 +5573,28 @@
         "name": "Dark/Yellow/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#3F2A00"
+          "Zen": "#3D2800"
         }
       },
       {
         "name": "Dark/Yellow/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#4B3300"
+          "Zen": "#483000"
         }
       },
       {
         "name": "Dark/Yellow/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#553B00"
+          "Zen": "#523800"
         }
       },
       {
         "name": "Dark/Yellow/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#5E4100"
+          "Zen": "#5C3F00"
         }
       },
       {
@@ -5643,7 +5643,7 @@
         "name": "Dark/Yellow-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF7B000F"
+          "Zen": "#FF830010"
         }
       },
       {
@@ -5657,28 +5657,28 @@
         "name": "Dark/Yellow-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF95002F"
+          "Zen": "#FF8F002D"
         }
       },
       {
         "name": "Dark/Yellow-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF9E003C"
+          "Zen": "#FF990039"
         }
       },
       {
         "name": "Dark/Yellow-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFA60047"
+          "Zen": "#FFA20043"
         }
       },
       {
         "name": "Dark/Yellow-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFA70050"
+          "Zen": "#FFA5004E"
         }
       },
       {
@@ -5692,7 +5692,7 @@
         "name": "Dark/Yellow-Alpha/9",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFC11BF5"
+          "Zen": "#FFC11AF5"
         }
       },
       {
@@ -5727,7 +5727,7 @@
         "name": "Dark/Bronze/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#211712"
+          "Zen": "#221713"
         }
       },
       {
@@ -5741,28 +5741,28 @@
         "name": "Dark/Bronze/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#44261B"
+          "Zen": "#422419"
         }
       },
       {
         "name": "Dark/Bronze/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#562C1C"
+          "Zen": "#532919"
         }
       },
       {
         "name": "Dark/Bronze/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#663019"
+          "Zen": "#632D16"
         }
       },
       {
         "name": "Dark/Bronze/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#773112"
+          "Zen": "#753011"
         }
       },
       {
@@ -5811,7 +5811,7 @@
         "name": "Dark/Bronze-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FC601210"
+          "Zen": "#FD5C2111"
         }
       },
       {
@@ -5825,42 +5825,42 @@
         "name": "Dark/Bronze-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FE723E36"
+          "Zen": "#FE6B3434"
         }
       },
       {
         "name": "Dark/Bronze-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF6D3549"
+          "Zen": "#FE662B46"
         }
       },
       {
         "name": "Dark/Bronze-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF67265B"
+          "Zen": "#FF611E57"
         }
       },
       {
         "name": "Dark/Bronze-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF5B126D"
+          "Zen": "#FF5A106B"
         }
       },
       {
         "name": "Dark/Bronze-Alpha/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF612076"
+          "Zen": "#FF621F75"
         }
       },
       {
         "name": "Dark/Bronze-Alpha/9",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF8657DA"
+          "Zen": "#FF8656DA"
         }
       },
       {
@@ -5895,7 +5895,7 @@
         "name": "Dark/Golden/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#1F180C"
+          "Zen": "#20190D"
         }
       },
       {
@@ -5909,28 +5909,28 @@
         "name": "Dark/Golden/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#3E2A00"
+          "Zen": "#3B2900"
         }
       },
       {
         "name": "Dark/Golden/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#493400"
+          "Zen": "#463100"
         }
       },
       {
         "name": "Dark/Golden/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#533B00"
+          "Zen": "#503900"
         }
       },
       {
         "name": "Dark/Golden/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#5C4200"
+          "Zen": "#5A4100"
         }
       },
       {
@@ -5979,7 +5979,7 @@
         "name": "Dark/Golden-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF8C000C"
+          "Zen": "#FF96000E"
         }
       },
       {
@@ -5993,28 +5993,28 @@
         "name": "Dark/Golden-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF97002E"
+          "Zen": "#FF9C002B"
         }
       },
       {
         "name": "Dark/Golden-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFA9003A"
+          "Zen": "#FFA30037"
         }
       },
       {
         "name": "Dark/Golden-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFAB0044"
+          "Zen": "#FFAA0041"
         }
       },
       {
         "name": "Dark/Golden-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFB0004F"
+          "Zen": "#FFB0004C"
         }
       },
       {
@@ -6028,7 +6028,7 @@
         "name": "Dark/Golden-Alpha/9",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFC235C6"
+          "Zen": "#FFC234C5"
         }
       },
       {
@@ -6042,7 +6042,7 @@
         "name": "Dark/Golden-Alpha/11",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFD375F5"
+          "Zen": "#FFD375F4"
         }
       },
       {
@@ -6063,7 +6063,7 @@
         "name": "Dark/Gray/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#191919"
+          "Zen": "#1A1A1A"
         }
       },
       {
@@ -6077,49 +6077,49 @@
         "name": "Dark/Gray/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#262626"
+          "Zen": "#2A2A2A"
         }
       },
       {
         "name": "Dark/Gray/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#2E2E2E"
+          "Zen": "#313131"
         }
       },
       {
         "name": "Dark/Gray/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#363636"
+          "Zen": "#373737"
         }
       },
       {
         "name": "Dark/Gray/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#454545"
+          "Zen": "#464646"
         }
       },
       {
         "name": "Dark/Gray/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#636363"
+          "Zen": "#646464"
         }
       },
       {
         "name": "Dark/Gray/9",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#929292"
+          "Zen": "#939393"
         }
       },
       {
         "name": "Dark/Gray/10",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#9E9E9E"
+          "Zen": "#9F9F9F"
         }
       },
       {
@@ -6147,28 +6147,28 @@
         "name": "Dark/Gray-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FBFBFB08"
+          "Zen": "#FDFDFD09"
         }
       },
       {
         "name": "Dark/Gray-Alpha/3",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FEFEFE12"
+          "Zen": "#FDFDFD11"
         }
       },
       {
         "name": "Dark/Gray-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFFFFF18"
+          "Zen": "#FDFDFD1A"
         }
       },
       {
         "name": "Dark/Gray-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FDFDFD1E"
+          "Zen": "#FFFFFF21"
         }
       },
       {
@@ -6182,14 +6182,14 @@
         "name": "Dark/Gray-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFFFFF39"
+          "Zen": "#FEFEFE38"
         }
       },
       {
         "name": "Dark/Gray-Alpha/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFFFFF59"
+          "Zen": "#FFFFFF58"
         }
       },
       {
@@ -6217,7 +6217,7 @@
         "name": "Dark/Gray-Alpha/12",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFFFFFF4"
+          "Zen": "#FFFFFFF5"
         }
       },
       {
@@ -6231,7 +6231,7 @@
         "name": "Dark/Blue/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#111A26"
+          "Zen": "#121A26"
         }
       },
       {
@@ -6245,28 +6245,28 @@
         "name": "Dark/Blue/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#132E51"
+          "Zen": "#112C4E"
         }
       },
       {
         "name": "Dark/Blue/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#0E3768"
+          "Zen": "#0B3466"
         }
       },
       {
         "name": "Dark/Blue/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#003E80"
+          "Zen": "#003B7C"
         }
       },
       {
         "name": "Dark/Blue/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#00458D"
+          "Zen": "#00438B"
         }
       },
       {
@@ -6315,7 +6315,7 @@
         "name": "Dark/Blue-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#0670FD16"
+          "Zen": "#1270FD16"
         }
       },
       {
@@ -6329,35 +6329,35 @@
         "name": "Dark/Blue-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#167CFF44"
+          "Zen": "#0E78FE41"
         }
       },
       {
         "name": "Dark/Blue-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#0779FF5E"
+          "Zen": "#0072FF5A"
         }
       },
       {
         "name": "Dark/Blue-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#0073FF74"
+          "Zen": "#0071FF6E"
         }
       },
       {
         "name": "Dark/Blue-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#0076FF82"
+          "Zen": "#0074FF80"
         }
       },
       {
         "name": "Dark/Blue-Alpha/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#007AFF8D"
+          "Zen": "#0079FF8E"
         }
       },
       {
@@ -6371,7 +6371,7 @@
         "name": "Dark/Blue-Alpha/10",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#4CA1FFF5"
+          "Zen": "#4BA1FFF5"
         }
       },
       {
@@ -6385,7 +6385,7 @@
         "name": "Dark/Blue-Alpha/12",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#EEFBFFF5"
+          "Zen": "#EEFAFFF5"
         }
       },
       {
@@ -6567,7 +6567,7 @@
         "name": "Dark/Zen/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#24151F"
+          "Zen": "#24161F"
         }
       },
       {
@@ -6581,28 +6581,28 @@
         "name": "Dark/Zen/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#491E3B"
+          "Zen": "#471C3A"
         }
       },
       {
         "name": "Dark/Zen/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#5D204B"
+          "Zen": "#591D48"
         }
       },
       {
         "name": "Dark/Zen/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#6F1D5A"
+          "Zen": "#6D1957"
         }
       },
       {
         "name": "Dark/Zen/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#821268"
+          "Zen": "#800F66"
         }
       },
       {
@@ -6651,7 +6651,7 @@
         "name": "Dark/Zen-Alpha/2",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF39BD13"
+          "Zen": "#FF47BD13"
         }
       },
       {
@@ -6665,35 +6665,35 @@
         "name": "Dark/Zen-Alpha/4",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FE46C23B"
+          "Zen": "#FF3FC539"
         }
       },
       {
         "name": "Dark/Zen-Alpha/5",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF3EC651"
+          "Zen": "#FF37C64D"
         }
       },
       {
         "name": "Dark/Zen-Alpha/6",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF2EC964"
+          "Zen": "#FF24C662"
         }
       },
       {
         "name": "Dark/Zen-Alpha/7",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF12C879"
+          "Zen": "#FF0CC777"
         }
       },
       {
         "name": "Dark/Zen-Alpha/8",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF1FCA82"
+          "Zen": "#FF20CA82"
         }
       },
       {
@@ -6707,7 +6707,7 @@
         "name": "Dark/Zen-Alpha/10",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FF96E6F5"
+          "Zen": "#FF96E5F5"
         }
       },
       {

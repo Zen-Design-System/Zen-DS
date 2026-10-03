@@ -3063,7 +3063,7 @@
       "name": "Light/Orange/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#F39A54"
+        "Zen": "#F39A55"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -3207,7 +3207,7 @@
       "name": "Light/Orange-Alpha/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#ED6800AB"
+        "Zen": "#ED6800AA"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -3339,7 +3339,7 @@
       "name": "Light/Brown/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#DEAF88"
+        "Zen": "#DFAE88"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5031,7 +5031,7 @@
       "name": "Light/Gray/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#EAEAEA"
+        "Zen": "#E5E5E5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5043,7 +5043,7 @@
       "name": "Light/Gray/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#E2E2E2"
+        "Zen": "#DEDEDE"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5055,7 +5055,7 @@
       "name": "Light/Gray/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#DBDBDB"
+        "Zen": "#D7D7D7"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5103,7 +5103,7 @@
       "name": "Light/Gray/10",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#828282"
+        "Zen": "#838383"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5127,7 +5127,7 @@
       "name": "Light/Gray/12",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#111111"
+        "Zen": "#121212"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5175,7 +5175,7 @@
       "name": "Light/Gray-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#02020215"
+        "Zen": "#0000001A"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5187,7 +5187,7 @@
       "name": "Light/Gray-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#0101011D"
+        "Zen": "#01010121"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5199,7 +5199,7 @@
       "name": "Light/Gray-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#01010124"
+        "Zen": "#00000028"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5247,7 +5247,7 @@
       "name": "Light/Gray-Alpha/10",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#0000007D"
+        "Zen": "#0000007C"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5271,7 +5271,7 @@
       "name": "Light/Gray-Alpha/12",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#000000EE"
+        "Zen": "#000000ED"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5583,7 +5583,7 @@
       "name": "Dark/Tomato/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#241612"
+        "Zen": "#251713"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5607,7 +5607,7 @@
       "name": "Dark/Tomato/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#4B2217"
+        "Zen": "#492016"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5619,7 +5619,7 @@
       "name": "Dark/Tomato/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#602516"
+        "Zen": "#5C2213"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5631,7 +5631,7 @@
       "name": "Dark/Tomato/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#742410"
+        "Zen": "#71210D"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5643,7 +5643,7 @@
       "name": "Dark/Tomato/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#872000"
+        "Zen": "#851D00"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5727,7 +5727,7 @@
       "name": "Dark/Tomato-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF471213"
+        "Zen": "#FD501E15"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5751,7 +5751,7 @@
       "name": "Dark/Tomato-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF55283E"
+        "Zen": "#FE4E233B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5763,7 +5763,7 @@
       "name": "Dark/Tomato-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FE4C1E54"
+        "Zen": "#FE451550"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5775,7 +5775,7 @@
       "name": "Dark/Tomato-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF3D0D69"
+        "Zen": "#FF370666"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5787,7 +5787,7 @@
       "name": "Dark/Tomato-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF2E007D"
+        "Zen": "#FF29007B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5799,7 +5799,7 @@
       "name": "Dark/Tomato-Alpha/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF350088"
+        "Zen": "#FF360088"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5811,7 +5811,7 @@
       "name": "Dark/Tomato-Alpha/9",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF5B32E4"
+        "Zen": "#FF5B31E3"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5871,7 +5871,7 @@
       "name": "Dark/Crimson/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#241517"
+        "Zen": "#261618"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5895,7 +5895,7 @@
       "name": "Dark/Crimson/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#4B2028"
+        "Zen": "#491E26"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5907,7 +5907,7 @@
       "name": "Dark/Crimson/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#602230"
+        "Zen": "#5D1F2D"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5919,7 +5919,7 @@
       "name": "Dark/Crimson/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#742036"
+        "Zen": "#711D33"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -5931,7 +5931,7 @@
       "name": "Dark/Crimson/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#88183A"
+        "Zen": "#861539"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6015,7 +6015,7 @@
       "name": "Dark/Crimson-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF395413"
+        "Zen": "#FD415916"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6039,7 +6039,7 @@
       "name": "Dark/Crimson-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF4C6D3D"
+        "Zen": "#FE46683B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6051,7 +6051,7 @@
       "name": "Dark/Crimson-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF426C55"
+        "Zen": "#FF3B6751"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6063,7 +6063,7 @@
       "name": "Dark/Crimson-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF34696A"
+        "Zen": "#FF2D6466"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6075,7 +6075,7 @@
       "name": "Dark/Crimson-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF1E627F"
+        "Zen": "#FF18627D"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6087,7 +6087,7 @@
       "name": "Dark/Crimson-Alpha/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF276988"
+        "Zen": "#FF286889"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6111,7 +6111,7 @@
       "name": "Dark/Crimson-Alpha/10",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF668CF5"
+        "Zen": "#FF658CF5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6123,7 +6123,7 @@
       "name": "Dark/Crimson-Alpha/11",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFDBE2F5"
+        "Zen": "#FFDBE1F5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6159,7 +6159,7 @@
       "name": "Dark/Pink/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#23151D"
+        "Zen": "#24161D"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6183,7 +6183,7 @@
       "name": "Dark/Pink/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#491F38"
+        "Zen": "#471D36"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6195,7 +6195,7 @@
       "name": "Dark/Pink/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#5D2146"
+        "Zen": "#591E43"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6207,7 +6207,7 @@
       "name": "Dark/Pink/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#6F1F53"
+        "Zen": "#6C1C50"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6219,7 +6219,7 @@
       "name": "Dark/Pink/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#82175F"
+        "Zen": "#80145D"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6303,7 +6303,7 @@
       "name": "Dark/Pink-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FE3CAB12"
+        "Zen": "#FF47A313"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6327,7 +6327,7 @@
       "name": "Dark/Pink-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FE4BB63C"
+        "Zen": "#FF43B339"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6339,7 +6339,7 @@
       "name": "Dark/Pink-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF41B651"
+        "Zen": "#FF3AB54D"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6351,7 +6351,7 @@
       "name": "Dark/Pink-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF33B764"
+        "Zen": "#FF2CB561"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6363,7 +6363,7 @@
       "name": "Dark/Pink-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF1DB579"
+        "Zen": "#FF16B377"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6375,7 +6375,7 @@
       "name": "Dark/Pink-Alpha/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF27B882"
+        "Zen": "#FF28B882"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6387,7 +6387,7 @@
       "name": "Dark/Pink-Alpha/9",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF5BC3E7"
+        "Zen": "#FF5BC3E6"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6447,7 +6447,7 @@
       "name": "Dark/Plum/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#211621"
+        "Zen": "#221621"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6471,7 +6471,7 @@
       "name": "Dark/Plum/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#422243"
+        "Zen": "#402040"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6483,7 +6483,7 @@
       "name": "Dark/Plum/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#532654"
+        "Zen": "#502351"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6495,7 +6495,7 @@
       "name": "Dark/Plum/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#632666"
+        "Zen": "#602363"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6507,7 +6507,7 @@
       "name": "Dark/Plum/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#732377"
+        "Zen": "#722075"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6591,7 +6591,7 @@
       "name": "Dark/Plum-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FC51FC10"
+        "Zen": "#FD4DEF11"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6615,7 +6615,7 @@
       "name": "Dark/Plum-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FA5FFF35"
+        "Zen": "#FE5AFE32"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6627,7 +6627,7 @@
       "name": "Dark/Plum-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FB5BFF48"
+        "Zen": "#FB52FF44"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6639,7 +6639,7 @@
       "name": "Dark/Plum-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#F64AFF5B"
+        "Zen": "#F644FF57"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6651,7 +6651,7 @@
       "name": "Dark/Plum-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#F53AFF6D"
+        "Zen": "#F833FF6B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6687,7 +6687,7 @@
       "name": "Dark/Plum-Alpha/10",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FA70FFD1"
+        "Zen": "#FA6FFFD0"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6735,7 +6735,7 @@
       "name": "Dark/Purple/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#1E1723"
+        "Zen": "#1E1724"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6759,7 +6759,7 @@
       "name": "Dark/Purple/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#3A2549"
+        "Zen": "#382347"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6771,7 +6771,7 @@
       "name": "Dark/Purple/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#492A5E"
+        "Zen": "#46275B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6783,7 +6783,7 @@
       "name": "Dark/Purple/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#562C73"
+        "Zen": "#542970"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6795,7 +6795,7 @@
       "name": "Dark/Purple/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#642B87"
+        "Zen": "#622986"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6879,7 +6879,7 @@
       "name": "Dark/Purple-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#B957FE12"
+        "Zen": "#B054FF13"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6903,7 +6903,7 @@
       "name": "Dark/Purple-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#BE64FE3C"
+        "Zen": "#BC5EFF39"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6915,7 +6915,7 @@
       "name": "Dark/Purple-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#BD5DFF52"
+        "Zen": "#BA56FE4F"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6927,7 +6927,7 @@
       "name": "Dark/Purple-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#B851FF69"
+        "Zen": "#B84CFF65"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6939,7 +6939,7 @@
       "name": "Dark/Purple-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#B845FF7E"
+        "Zen": "#B541FF7D"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6951,7 +6951,7 @@
       "name": "Dark/Purple-Alpha/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#B94BFF88"
+        "Zen": "#B94CFF88"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6975,7 +6975,7 @@
       "name": "Dark/Purple-Alpha/10",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#C063FFD6"
+        "Zen": "#BF62FFD5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -6999,7 +6999,7 @@
       "name": "Dark/Purple-Alpha/12",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FCEFFFF5"
+        "Zen": "#FBEFFFF5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7023,7 +7023,7 @@
       "name": "Dark/Violet/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#1A1826"
+        "Zen": "#1A1827"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7047,7 +7047,7 @@
       "name": "Dark/Violet/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#2F2751"
+        "Zen": "#2D264F"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7059,7 +7059,7 @@
       "name": "Dark/Violet/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#392E69"
+        "Zen": "#372B66"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7071,7 +7071,7 @@
       "name": "Dark/Violet/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#433182"
+        "Zen": "#402F7E"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7083,7 +7083,7 @@
       "name": "Dark/Violet/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#4C329A"
+        "Zen": "#4A3198"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7167,7 +7167,7 @@
       "name": "Dark/Violet-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#7059FD16"
+        "Zen": "#6C55FE17"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7191,7 +7191,7 @@
       "name": "Dark/Violet-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#7F61FF44"
+        "Zen": "#7B60FE42"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7203,7 +7203,7 @@
       "name": "Dark/Violet-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#7C5EFE5E"
+        "Zen": "#7A58FF5B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7215,7 +7215,7 @@
       "name": "Dark/Violet-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#7A54FF79"
+        "Zen": "#7752FF74"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7227,7 +7227,7 @@
       "name": "Dark/Violet-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#764BFF92"
+        "Zen": "#7549FF90"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7239,7 +7239,7 @@
       "name": "Dark/Violet-Alpha/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#7950FF9C"
+        "Zen": "#7851FF9D"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7251,7 +7251,7 @@
       "name": "Dark/Violet-Alpha/9",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#835DFFE6"
+        "Zen": "#825DFFE5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7275,7 +7275,7 @@
       "name": "Dark/Violet-Alpha/11",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#E3E0FFF5"
+        "Zen": "#E2E0FFF5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7311,7 +7311,7 @@
       "name": "Dark/Indigo/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#151928"
+        "Zen": "#161929"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7335,7 +7335,7 @@
       "name": "Dark/Indigo/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#222A57"
+        "Zen": "#202855"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7347,7 +7347,7 @@
       "name": "Dark/Indigo/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#283172"
+        "Zen": "#252E6E"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7359,7 +7359,7 @@
       "name": "Dark/Indigo/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#2B368C"
+        "Zen": "#293389"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7371,7 +7371,7 @@
       "name": "Dark/Indigo/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#2F37A8"
+        "Zen": "#2E35A6"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7455,7 +7455,7 @@
       "name": "Dark/Indigo-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#325DFF18"
+        "Zen": "#3B59FD19"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7479,7 +7479,7 @@
       "name": "Dark/Indigo-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#4965FF4A"
+        "Zen": "#4360FF48"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7491,7 +7491,7 @@
       "name": "Dark/Indigo-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#485EFF67"
+        "Zen": "#435AFF63"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7503,7 +7503,7 @@
       "name": "Dark/Indigo-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#4457FF83"
+        "Zen": "#4054FF80"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7515,7 +7515,7 @@
       "name": "Dark/Indigo-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#404BFFA1"
+        "Zen": "#3F4AFF9F"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7527,7 +7527,7 @@
       "name": "Dark/Indigo-Alpha/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#4352FFAB"
+        "Zen": "#4352FFAC"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7563,7 +7563,7 @@
       "name": "Dark/Indigo-Alpha/11",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#D6E3FFF5"
+        "Zen": "#D6E2FFF5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7599,7 +7599,7 @@
       "name": "Dark/Cyan/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#101B1F"
+        "Zen": "#111C20"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7623,7 +7623,7 @@
       "name": "Dark/Cyan/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#0E323E"
+        "Zen": "#0C303C"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7635,7 +7635,7 @@
       "name": "Dark/Cyan/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#023C4E"
+        "Zen": "#003A4B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7647,7 +7647,7 @@
       "name": "Dark/Cyan/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00455A"
+        "Zen": "#004356"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7659,7 +7659,7 @@
       "name": "Dark/Cyan/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#004D62"
+        "Zen": "#004B61"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7743,7 +7743,7 @@
       "name": "Dark/Cyan-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00DAFF0B"
+        "Zen": "#01B9FB0F"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7767,7 +7767,7 @@
       "name": "Dark/Cyan-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00C4FF2E"
+        "Zen": "#00C6FF2B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7779,7 +7779,7 @@
       "name": "Dark/Cyan-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00CCFF3A"
+        "Zen": "#00D1FF35"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7791,7 +7791,7 @@
       "name": "Dark/Cyan-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00C7FF48"
+        "Zen": "#00CEFF42"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7803,7 +7803,7 @@
       "name": "Dark/Cyan-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00CBFF51"
+        "Zen": "#00C7FF50"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7827,7 +7827,7 @@
       "name": "Dark/Cyan-Alpha/9",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#11CBFFD8"
+        "Zen": "#10CBFFD7"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7839,7 +7839,7 @@
       "name": "Dark/Cyan-Alpha/10",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#3ACFFFED"
+        "Zen": "#3ACEFFED"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7887,7 +7887,7 @@
       "name": "Dark/Teal/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#111C19"
+        "Zen": "#121C1A"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7911,7 +7911,7 @@
       "name": "Dark/Teal/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#0F332D"
+        "Zen": "#0D312B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7923,7 +7923,7 @@
       "name": "Dark/Teal/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#023F36"
+        "Zen": "#003C34"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7935,7 +7935,7 @@
       "name": "Dark/Teal/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00473D"
+        "Zen": "#00453C"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7947,7 +7947,7 @@
       "name": "Dark/Teal/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#005046"
+        "Zen": "#004E44"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -7959,7 +7959,7 @@
       "name": "Dark/Teal/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00564B"
+        "Zen": "#00574C"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8031,7 +8031,7 @@
       "name": "Dark/Teal-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00FBB50B"
+        "Zen": "#12FBCC0B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8055,7 +8055,7 @@
       "name": "Dark/Teal-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#01FED424"
+        "Zen": "#00FFD421"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8067,7 +8067,7 @@
       "name": "Dark/Teal-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00FFD62F"
+        "Zen": "#00FFD92C"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8079,7 +8079,7 @@
       "name": "Dark/Teal-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00FFD93A"
+        "Zen": "#00FFDB35"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8091,7 +8091,7 @@
       "name": "Dark/Teal-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00FFDD42"
+        "Zen": "#00FFDC3F"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8115,7 +8115,7 @@
       "name": "Dark/Teal-Alpha/9",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00FFE1AC"
+        "Zen": "#00FFE0AB"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8139,7 +8139,7 @@
       "name": "Dark/Teal-Alpha/11",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#9BFFEEF5"
+        "Zen": "#9AFFEEF5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8151,7 +8151,7 @@
       "name": "Dark/Teal-Alpha/12",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#D2FFFFF5"
+        "Zen": "#D2FFFEF5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8175,7 +8175,7 @@
       "name": "Dark/Grass/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#131C13"
+        "Zen": "#131C14"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8199,7 +8199,7 @@
       "name": "Dark/Grass/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#18331B"
+        "Zen": "#163119"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8211,7 +8211,7 @@
       "name": "Dark/Grass/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#16401C"
+        "Zen": "#123D19"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8223,7 +8223,7 @@
       "name": "Dark/Grass/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#0B4A1A"
+        "Zen": "#074717"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8235,7 +8235,7 @@
       "name": "Dark/Grass/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#005318"
+        "Zen": "#005017"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8319,7 +8319,7 @@
       "name": "Dark/Grass-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#29FB290B"
+        "Zen": "#29FB410B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8343,7 +8343,7 @@
       "name": "Dark/Grass-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#3DFE5224"
+        "Zen": "#31FF4721"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8355,7 +8355,7 @@
       "name": "Dark/Grass-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#27FE4532"
+        "Zen": "#12FE382E"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8367,7 +8367,7 @@
       "name": "Dark/Grass-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00FF353C"
+        "Zen": "#00FF2939"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8379,7 +8379,7 @@
       "name": "Dark/Grass-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00FF2844"
+        "Zen": "#00FF2641"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8403,7 +8403,7 @@
       "name": "Dark/Grass-Alpha/9",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#59FF78A6"
+        "Zen": "#58FF77A5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8463,7 +8463,7 @@
       "name": "Dark/Orange/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#24170C"
+        "Zen": "#25170D"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8487,7 +8487,7 @@
       "name": "Dark/Orange/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#4A2300"
+        "Zen": "#482100"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8499,7 +8499,7 @@
       "name": "Dark/Orange/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#592B00"
+        "Zen": "#542900"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8511,7 +8511,7 @@
       "name": "Dark/Orange/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#643200"
+        "Zen": "#613000"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8523,7 +8523,7 @@
       "name": "Dark/Orange/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#6F3700"
+        "Zen": "#6D3600"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8607,7 +8607,7 @@
       "name": "Dark/Orange-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF590012"
+        "Zen": "#FF560013"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8631,7 +8631,7 @@
       "name": "Dark/Orange-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF5C003B"
+        "Zen": "#FF560039"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8643,7 +8643,7 @@
       "name": "Dark/Orange-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF67004B"
+        "Zen": "#FF660046"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8655,7 +8655,7 @@
       "name": "Dark/Orange-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF6E0059"
+        "Zen": "#FF6C0055"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8667,7 +8667,7 @@
       "name": "Dark/Orange-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF710064"
+        "Zen": "#FF700061"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8703,7 +8703,7 @@
       "name": "Dark/Orange-Alpha/10",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF9B3BF5"
+        "Zen": "#FF9A3BF5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8727,7 +8727,7 @@
       "name": "Dark/Orange-Alpha/12",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFF2E3F5"
+        "Zen": "#FFF2E2F5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8751,7 +8751,7 @@
       "name": "Dark/Brown/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#1E1813"
+        "Zen": "#1F1914"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8775,7 +8775,7 @@
       "name": "Dark/Brown/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#3C2A1B"
+        "Zen": "#3A2819"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8787,7 +8787,7 @@
       "name": "Dark/Brown/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#4B321D"
+        "Zen": "#482F1A"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8799,7 +8799,7 @@
       "name": "Dark/Brown/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#58381D"
+        "Zen": "#55361A"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8811,7 +8811,7 @@
       "name": "Dark/Brown/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#643E1B"
+        "Zen": "#623C19"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8895,7 +8895,7 @@
       "name": "Dark/Brown-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FD88260D"
+        "Zen": "#FE91360E"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8919,7 +8919,7 @@
       "name": "Dark/Brown-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FE99452D"
+        "Zen": "#FF943B2B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8931,7 +8931,7 @@
       "name": "Dark/Brown-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF97403D"
+        "Zen": "#FF91353A"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8943,7 +8943,7 @@
       "name": "Dark/Brown-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FE92374B"
+        "Zen": "#FF912E48"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8955,7 +8955,7 @@
       "name": "Dark/Brown-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF912C58"
+        "Zen": "#FF8E2756"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8979,7 +8979,7 @@
       "name": "Dark/Brown-Alpha/9",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFA35399"
+        "Zen": "#FFA35298"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -8991,7 +8991,7 @@
       "name": "Dark/Brown-Alpha/10",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFAC66AD"
+        "Zen": "#FFAC65AC"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9039,7 +9039,7 @@
       "name": "Dark/Sky/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#111B1E"
+        "Zen": "#111C1E"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9063,7 +9063,7 @@
       "name": "Dark/Sky/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#10323B"
+        "Zen": "#0D3038"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9075,7 +9075,7 @@
       "name": "Dark/Sky/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#043D49"
+        "Zen": "#013A47"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9087,7 +9087,7 @@
       "name": "Dark/Sky/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#004654"
+        "Zen": "#004351"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9099,7 +9099,7 @@
       "name": "Dark/Sky/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#004D5E"
+        "Zen": "#004C5B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9183,7 +9183,7 @@
       "name": "Dark/Sky-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00C2FD0D"
+        "Zen": "#00D6FD0D"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9207,7 +9207,7 @@
       "name": "Dark/Sky-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#06CBFF2C"
+        "Zen": "#00DAFF26"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9219,7 +9219,7 @@
       "name": "Dark/Sky-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00E0FF35"
+        "Zen": "#00E7FF30"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9231,7 +9231,7 @@
       "name": "Dark/Sky-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00E0FF40"
+        "Zen": "#00E3FF3C"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9243,7 +9243,7 @@
       "name": "Dark/Sky-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00D8FF4C"
+        "Zen": "#00DEFF49"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9267,7 +9267,7 @@
       "name": "Dark/Sky-Alpha/9",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#52DDFFEE"
+        "Zen": "#51DDFFEE"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9351,7 +9351,7 @@
       "name": "Dark/Mint/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#083428"
+        "Zen": "#063226"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9363,7 +9363,7 @@
       "name": "Dark/Mint/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00402F"
+        "Zen": "#003D2D"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9375,7 +9375,7 @@
       "name": "Dark/Mint/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#004736"
+        "Zen": "#004634"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9471,7 +9471,7 @@
       "name": "Dark/Mint-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00FFA50A"
+        "Zen": "#00FFA40A"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9495,7 +9495,7 @@
       "name": "Dark/Mint-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00FFB123"
+        "Zen": "#00FFAD21"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9507,7 +9507,7 @@
       "name": "Dark/Mint-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00FFAC30"
+        "Zen": "#00FFAB2D"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9519,7 +9519,7 @@
       "name": "Dark/Mint-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00FFBA3A"
+        "Zen": "#00FFB137"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9531,7 +9531,7 @@
       "name": "Dark/Mint-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00FFBA41"
+        "Zen": "#00FFB940"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9543,7 +9543,7 @@
       "name": "Dark/Mint-Alpha/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00FFBC4B"
+        "Zen": "#00FFBB4A"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9567,7 +9567,7 @@
       "name": "Dark/Mint-Alpha/10",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#3DFFCBE0"
+        "Zen": "#3CFFCBDF"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9579,7 +9579,7 @@
       "name": "Dark/Mint-Alpha/11",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#94FFE4F5"
+        "Zen": "#94FFE3F5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9591,7 +9591,7 @@
       "name": "Dark/Mint-Alpha/12",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#E3FFFCF5"
+        "Zen": "#E2FFFBF5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9615,7 +9615,7 @@
       "name": "Dark/Yellow/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#211808"
+        "Zen": "#221909"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9639,7 +9639,7 @@
       "name": "Dark/Yellow/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#3F2A00"
+        "Zen": "#3D2800"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9651,7 +9651,7 @@
       "name": "Dark/Yellow/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#4B3300"
+        "Zen": "#483000"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9663,7 +9663,7 @@
       "name": "Dark/Yellow/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#553B00"
+        "Zen": "#523800"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9675,7 +9675,7 @@
       "name": "Dark/Yellow/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#5E4100"
+        "Zen": "#5C3F00"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9759,7 +9759,7 @@
       "name": "Dark/Yellow-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF7B000F"
+        "Zen": "#FF830010"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9783,7 +9783,7 @@
       "name": "Dark/Yellow-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF95002F"
+        "Zen": "#FF8F002D"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9795,7 +9795,7 @@
       "name": "Dark/Yellow-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF9E003C"
+        "Zen": "#FF990039"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9807,7 +9807,7 @@
       "name": "Dark/Yellow-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFA60047"
+        "Zen": "#FFA20043"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9819,7 +9819,7 @@
       "name": "Dark/Yellow-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFA70050"
+        "Zen": "#FFA5004E"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9843,7 +9843,7 @@
       "name": "Dark/Yellow-Alpha/9",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFC11BF5"
+        "Zen": "#FFC11AF5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9903,7 +9903,7 @@
       "name": "Dark/Bronze/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#211712"
+        "Zen": "#221713"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9927,7 +9927,7 @@
       "name": "Dark/Bronze/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#44261B"
+        "Zen": "#422419"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9939,7 +9939,7 @@
       "name": "Dark/Bronze/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#562C1C"
+        "Zen": "#532919"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9951,7 +9951,7 @@
       "name": "Dark/Bronze/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#663019"
+        "Zen": "#632D16"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -9963,7 +9963,7 @@
       "name": "Dark/Bronze/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#773112"
+        "Zen": "#753011"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10047,7 +10047,7 @@
       "name": "Dark/Bronze-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FC601210"
+        "Zen": "#FD5C2111"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10071,7 +10071,7 @@
       "name": "Dark/Bronze-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FE723E36"
+        "Zen": "#FE6B3434"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10083,7 +10083,7 @@
       "name": "Dark/Bronze-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF6D3549"
+        "Zen": "#FE662B46"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10095,7 +10095,7 @@
       "name": "Dark/Bronze-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF67265B"
+        "Zen": "#FF611E57"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10107,7 +10107,7 @@
       "name": "Dark/Bronze-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF5B126D"
+        "Zen": "#FF5A106B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10119,7 +10119,7 @@
       "name": "Dark/Bronze-Alpha/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF612076"
+        "Zen": "#FF621F75"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10131,7 +10131,7 @@
       "name": "Dark/Bronze-Alpha/9",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF8657DA"
+        "Zen": "#FF8656DA"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10191,7 +10191,7 @@
       "name": "Dark/Golden/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#1F180C"
+        "Zen": "#20190D"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10215,7 +10215,7 @@
       "name": "Dark/Golden/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#3E2A00"
+        "Zen": "#3B2900"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10227,7 +10227,7 @@
       "name": "Dark/Golden/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#493400"
+        "Zen": "#463100"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10239,7 +10239,7 @@
       "name": "Dark/Golden/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#533B00"
+        "Zen": "#503900"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10251,7 +10251,7 @@
       "name": "Dark/Golden/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#5C4200"
+        "Zen": "#5A4100"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10335,7 +10335,7 @@
       "name": "Dark/Golden-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF8C000C"
+        "Zen": "#FF96000E"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10359,7 +10359,7 @@
       "name": "Dark/Golden-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF97002E"
+        "Zen": "#FF9C002B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10371,7 +10371,7 @@
       "name": "Dark/Golden-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFA9003A"
+        "Zen": "#FFA30037"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10383,7 +10383,7 @@
       "name": "Dark/Golden-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFAB0044"
+        "Zen": "#FFAA0041"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10395,7 +10395,7 @@
       "name": "Dark/Golden-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFB0004F"
+        "Zen": "#FFB0004C"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10419,7 +10419,7 @@
       "name": "Dark/Golden-Alpha/9",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFC235C6"
+        "Zen": "#FFC234C5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10443,7 +10443,7 @@
       "name": "Dark/Golden-Alpha/11",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFD375F5"
+        "Zen": "#FFD375F4"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10479,7 +10479,7 @@
       "name": "Dark/Gray/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#191919"
+        "Zen": "#1A1A1A"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10503,7 +10503,7 @@
       "name": "Dark/Gray/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#262626"
+        "Zen": "#2A2A2A"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10515,7 +10515,7 @@
       "name": "Dark/Gray/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#2E2E2E"
+        "Zen": "#313131"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10527,7 +10527,7 @@
       "name": "Dark/Gray/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#363636"
+        "Zen": "#373737"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10539,7 +10539,7 @@
       "name": "Dark/Gray/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#454545"
+        "Zen": "#464646"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10551,7 +10551,7 @@
       "name": "Dark/Gray/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#636363"
+        "Zen": "#646464"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10563,7 +10563,7 @@
       "name": "Dark/Gray/9",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#929292"
+        "Zen": "#939393"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10575,7 +10575,7 @@
       "name": "Dark/Gray/10",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#9E9E9E"
+        "Zen": "#9F9F9F"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10623,7 +10623,7 @@
       "name": "Dark/Gray-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FBFBFB08"
+        "Zen": "#FDFDFD09"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10635,7 +10635,7 @@
       "name": "Dark/Gray-Alpha/3",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FEFEFE12"
+        "Zen": "#FDFDFD11"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10647,7 +10647,7 @@
       "name": "Dark/Gray-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFFFFF18"
+        "Zen": "#FDFDFD1A"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10659,7 +10659,7 @@
       "name": "Dark/Gray-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FDFDFD1E"
+        "Zen": "#FFFFFF21"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10683,7 +10683,7 @@
       "name": "Dark/Gray-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFFFFF39"
+        "Zen": "#FEFEFE38"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10695,7 +10695,7 @@
       "name": "Dark/Gray-Alpha/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFFFFF59"
+        "Zen": "#FFFFFF58"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10743,7 +10743,7 @@
       "name": "Dark/Gray-Alpha/12",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFFFFFF4"
+        "Zen": "#FFFFFFF5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10767,7 +10767,7 @@
       "name": "Dark/Blue/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#111A26"
+        "Zen": "#121A26"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10791,7 +10791,7 @@
       "name": "Dark/Blue/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#132E51"
+        "Zen": "#112C4E"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10803,7 +10803,7 @@
       "name": "Dark/Blue/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#0E3768"
+        "Zen": "#0B3466"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10815,7 +10815,7 @@
       "name": "Dark/Blue/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#003E80"
+        "Zen": "#003B7C"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10827,7 +10827,7 @@
       "name": "Dark/Blue/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#00458D"
+        "Zen": "#00438B"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10911,7 +10911,7 @@
       "name": "Dark/Blue-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#0670FD16"
+        "Zen": "#1270FD16"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10935,7 +10935,7 @@
       "name": "Dark/Blue-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#167CFF44"
+        "Zen": "#0E78FE41"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10947,7 +10947,7 @@
       "name": "Dark/Blue-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#0779FF5E"
+        "Zen": "#0072FF5A"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10959,7 +10959,7 @@
       "name": "Dark/Blue-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#0073FF74"
+        "Zen": "#0071FF6E"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10971,7 +10971,7 @@
       "name": "Dark/Blue-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#0076FF82"
+        "Zen": "#0074FF80"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -10983,7 +10983,7 @@
       "name": "Dark/Blue-Alpha/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#007AFF8D"
+        "Zen": "#0079FF8E"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -11007,7 +11007,7 @@
       "name": "Dark/Blue-Alpha/10",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#4CA1FFF5"
+        "Zen": "#4BA1FFF5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -11031,7 +11031,7 @@
       "name": "Dark/Blue-Alpha/12",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#EEFBFFF5"
+        "Zen": "#EEFAFFF5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -11343,7 +11343,7 @@
       "name": "Dark/Zen/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#24151F"
+        "Zen": "#24161F"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -11367,7 +11367,7 @@
       "name": "Dark/Zen/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#491E3B"
+        "Zen": "#471C3A"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -11379,7 +11379,7 @@
       "name": "Dark/Zen/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#5D204B"
+        "Zen": "#591D48"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -11391,7 +11391,7 @@
       "name": "Dark/Zen/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#6F1D5A"
+        "Zen": "#6D1957"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -11403,7 +11403,7 @@
       "name": "Dark/Zen/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#821268"
+        "Zen": "#800F66"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -11487,7 +11487,7 @@
       "name": "Dark/Zen-Alpha/2",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF39BD13"
+        "Zen": "#FF47BD13"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -11511,7 +11511,7 @@
       "name": "Dark/Zen-Alpha/4",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FE46C23B"
+        "Zen": "#FF3FC539"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -11523,7 +11523,7 @@
       "name": "Dark/Zen-Alpha/5",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF3EC651"
+        "Zen": "#FF37C64D"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -11535,7 +11535,7 @@
       "name": "Dark/Zen-Alpha/6",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF2EC964"
+        "Zen": "#FF24C662"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -11547,7 +11547,7 @@
       "name": "Dark/Zen-Alpha/7",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF12C879"
+        "Zen": "#FF0CC777"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -11559,7 +11559,7 @@
       "name": "Dark/Zen-Alpha/8",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF1FCA82"
+        "Zen": "#FF20CA82"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",
@@ -11583,7 +11583,7 @@
       "name": "Dark/Zen-Alpha/10",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FF96E6F5"
+        "Zen": "#FF96E5F5"
       },
       "collectionSlug": "global-colors",
       "collectionName": "Global Colors",

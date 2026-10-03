@@ -236,6 +236,12 @@ removed (four unused colour ramps were, see Removed).
   like Neutral - S1: a Surface fill with its shadow, and the solid active border at the Primary active weight (it was a
   Subtle fill with a thin Subtle border, no shadow). Small input fields match Medium ones: `Corner-Radius/Input/Small`
   is 12 / 12 / 8 / 2 px in Rounded / Smooth / Standard / Luxury (was 8 / 8 / 4 / 2).
+- **Global Colors from the Zen Plugin's new ramp algorithm (2026-10-03 Figma export):** 258 values moved (109 solid,
+  149 Alpha); no token added, removed or renamed. Light Neutral steps 4–6 are spread evenly between steps 3 and 7
+  (Gray/4 #E5E5E5, Gray/5 #DEDEDE, Gray/6 #D7D7D7), so the Neutral Subtle border, hover and pressed fills and the
+  disabled solid read slightly stronger. In Dark, step 2 is a little lighter (Surface and Canvas/Alt #1A1A1A, was
+  #191919), Neutral steps 4–5 are spread evenly (Gray/4 #2A2A2A) and the accent steps 4–7 a little darker (Support
+  Soft fills, Subtle borders). One-step rounding changes on Light Gray/10 and 12, Orange/8, Brown/7 and Dark Gray/6–10.
 - **Global Colors step 3 (2026-09-29 Figma export):** step 3 of every colour ramp and its Alpha twin moved (79 values;
   no token added, removed or renamed). It is a little darker in Light and a little lighter in Dark, so the Subtle
   fills, Pale borders, pressed states and disabled borders built on it read slightly stronger.
