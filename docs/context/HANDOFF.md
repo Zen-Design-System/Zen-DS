@@ -121,8 +121,12 @@ Last updated: 2026-10-06.
   `builder/proto/Player.tsx` (Play = `presenting: "play:<screen>"`, P, `?play=`, R, Esc), `proto/PrototypePanel.tsx`
   (Inspector tab "prototype": Flow + Interactions via setProp / removeProp), `proto/ProtoLinks.tsx` (arrows),
   `usePageTree.ts`; Interact tool runs proto on the canvas; Overlay frame is a `data-zen-overlay-root`; E2E B-14…B-18;
-  baseline 98 works / 1 broken (ST-02). Next: M4 (production build without the dev server, chunk budget, Link folder
-  by hand).
+  baseline 98 works / 1 broken (ST-02). M4 done 2026-10-06: `npm run studio:build-check` (`tools/studio/e2e/build-check.mjs`:
+  vite build + preview, the builder flow incl. Link folder through an OPFS folder, engine chunk size, parser only in
+  it); `tools/studio/source-helpers.mjs` holds UNIT / pathTo / piece / importEdits (detach.mjs re-exports them and
+  calls jsx-source `registerDetach`), so the browser engine has no detach recipes: 150 → 135 KB gzip, over the
+  spec's 130 (a warning; the user decides). **GĐ2 is complete.** Next: GĐ3 (library search and insert) needs its own
+  spec and the user's OK.
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers

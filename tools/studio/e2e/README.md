@@ -19,6 +19,17 @@ server up.
 `src/platform/studio/**`, `src/platform/examples/e2e/**` or `tools/studio/**`. With `--quick` it runs only the
 shell, select and inspector groups.
 
+## The production build (builder pages without the dev server)
+
+`npm run studio:build-check` (about 1 minute) builds the platform into `node_modules/.cache/zen-studio/build-check/dist`,
+serves it with `vite preview` (no Studio plugin, no `/__zen-studio` API) on 5290–5299 and drives a builder page through
+New page, Assets insert, an Inspector edit and ⌘Z, a reload, Add screen + Navigate to + Play, then Link folder, Move to
+Trash, Restore and a reload, with the folder picker answering an Origin Private File System folder (a real File System
+Access handle). It also measures the edit engine's lazy chunk against its budget (130 KB gzip; over it is a warning,
+`--strict-budget` fails) and checks that a component page never requests it. Report and a Play screenshot:
+`.qa/studio-e2e/build-check-<stamp>.{json,png}`. It is not part of `npm run qa`; run it after changes to the builder,
+the engine modules or the build config.
+
 ## How it stays out of everyone's way
 
 - **Its own Vite server.** It starts one on 5190–5199 (`lib/server.mjs`) with `vite.studio.config.ts` and its own

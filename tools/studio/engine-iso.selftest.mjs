@@ -20,11 +20,26 @@ const check = (label, actual, expected) => {
 };
 
 /** The engine's modules (what the browser bundle imports). */
-export const ENGINE = ["jsx-source", "slots", "arrange", "items", "detach", "data-source", "shared-code", "posix", "sha1", "dialect"];
+export const ENGINE = ["jsx-source", "slots", "arrange", "items", "source-helpers", "detach", "data-source", "shared-code", "posix", "sha1", "dialect"];
 for (const name of ENGINE) {
   const text = fs.readFileSync(path.join(here, `${name}.mjs`), "utf8");
   const node = [...text.matchAll(/^\s*import\s[^;]*?from\s+["']((?:node:)?[a-z_]+)["']/gm)].map((match) => match[1]).filter((spec) => spec.startsWith("node:") || ["fs", "path", "crypto", "os", "url", "child_process"].includes(spec));
   check(`${name}.mjs imports no Node module`, node, []);
+}
+
+// The browser engine's static import graph (GĐ2 M4): detach.mjs stays out of it (no Detach on builder pages; its recipes
+// would add ~20 KB gzip to the lazy chunk), so op "detach" only runs where detach.mjs is imported (the dev server).
+{
+  const seen = new Set();
+  const visit = (name) => {
+    if (seen.has(name)) return;
+    seen.add(name);
+    const text = fs.readFileSync(path.join(here, `${name}.mjs`), "utf8");
+    for (const match of text.matchAll(/^\s*(?:import|export)\s[^;]*?from\s+["']\.\/([\w-]+)\.mjs["']/gm)) visit(match[1]);
+  };
+  visit("browser-engine");
+  check("browser-engine.mjs does not reach detach.mjs", seen.has("detach"), false);
+  check("browser-engine.mjs reaches the shared helpers", seen.has("source-helpers"), true);
 }
 
 for (const text of ["", "abc", "a".repeat(55), "a".repeat(56), "a".repeat(64), "Tiếng Việt 🎉  ", fs.readFileSync(path.join(here, "jsx-source.mjs"), "utf8")]) {

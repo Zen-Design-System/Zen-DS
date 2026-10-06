@@ -68,7 +68,7 @@ import { posix } from "./posix.mjs";
 import { parseExpression } from "@babel/parser";
 import { CHROME_MARK, EditError, applyEdits, changedRange, chromeFunctions, collapseJsxText, describeAttr, describeAttrsIn, findElement, formatAttr, insideAny, isAnnotatedFile, jsxName, parseLoc, parseSource, sha1, snippetLiterals, staticString, walk } from "./jsx-source.mjs";
 import { isPlaygroundFile } from "./shared-code.mjs";
-import { UNIT, pathTo, piece } from "./detach.mjs";
+import { UNIT, pathTo, piece } from "./source-helpers.mjs";
 import { manyPlan, moveToPlan, pasteCodePlan } from "./arrange.mjs";
 import { ITEM_OPS, itemPlan } from "./items.mjs";
 

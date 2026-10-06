@@ -170,6 +170,14 @@ removed (four unused colour ramps were, see Removed).
     Screen: navigate, overlays (opened inside the device), toasts, links, Back, R to restart, Esc to leave. The
     Interact tool (I) runs the actions on the canvas too: navigate and open zoom to their frame.
   - An Overlay frame on the canvas now keeps its Dialog's scrim inside the frame (it covered the whole board).
+- **Zen Studio builder, M4: checked on a production build (2026-10-06, GĐ2):**
+  - The deployed docs (no dev server) make, edit, reload, prototype and play builder pages, and Link folder… keeps them
+    in a folder. `npm run studio:build-check` builds the platform, serves it with `vite preview` and drives that whole
+    flow in Chromium.
+  - The edit engine loads only when a builder page opens: a component page never requests it. Its lazy chunk went from
+    150 to 135 KB gzip: builder pages have no Detach, so the browser engine leaves the detach recipes out. The helpers
+    the edit ops share moved to `tools/studio/source-helpers.mjs`, and `detach.mjs` registers op "detach" when it
+    loads. The budget in the spec is 130 KB; the check warns above it.
 - **Zen Studio: shared demo code can be restructured, after a question (2026-10-06, GĐ1 WP-B2):**
   - Removing, duplicating, moving, inserting, pasting, dragging or wrapping layers whose code lives in shared demo files
     (PlatformDemoActions.tsx, chatDemo.tsx, PlatformChat…) used to be greyed out ("shared beyond this example").

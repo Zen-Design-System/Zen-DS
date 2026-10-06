@@ -424,3 +424,23 @@ Spec §3 2d, §5 M3. M2 committed and pushed first (1931c2b).
 - E2E B-14…B-18 (add frames, navigate + arrow + ⌘Z, Play navigate / Back / R / Esc, overlay Dialog Cancel, ?play=). A
   helper hang found on the way: `selectedName` read an h2 the Prototype tab does not have (no timeout); selectStack now
   opens the Design tab and the read has a 1 s timeout. Gate PASS (98 works / 1 broken, ST-02).
+
+## Studio builder GĐ2 · M4: production build check, engine chunk (session "Studio builder tool planning", tier M)
+
+Spec §5 M4, §7. M3 committed and pushed first (f06513b).
+- Measured the lazy engine chunk on a manifest build: 150.3 KB gzip (parser 76.9, engine code 75.9); the parser is only
+  in it (never in the main or Studio chunks). Builder pages have no Detach, yet `applyOps` pulled detach.mjs's recipes:
+  `tools/studio/source-helpers.mjs` now holds UNIT, PACKAGE, FUNCTION_TYPES, COMPONENT_FOLDER, refuse, lineStartOf,
+  indentAt, pathTo, piece and importEdits (+ rebuildImport, newImport, declaredNames, relModule, byCodePoint) moved
+  verbatim; detach.mjs imports them, re-exports UNIT / importEdits / pathTo / piece, and ends with
+  `registerDetach(detachEdits)` (jsx-source.mjs keeps it in a module variable; op "detach" without it is refused
+  "forbidden"). jsx-source, slots, arrange, data-source import the helpers directly. Chunk 135.0 KB gzip.
+  engine-iso.selftest 36 → 39 (source-helpers listed; browser-engine's static graph must not reach detach.mjs).
+- `tools/studio/e2e/build-check.mjs` + `npm run studio:build-check`: vite build (manifest) into
+  node_modules/.cache/zen-studio/build-check/dist, vite preview on 5290–5299, Playwright with `?ui=studio`; steps: engine
+  size vs 130 KB (warning, --strict-budget fails), parser only in the engine chunk, component page without the engine
+  request, New page (engine loads), Assets insert, Inspector edit + ⌘Z, reload, Add screen + Navigate to + Play, Link
+  folder (showDirectoryPicker answers an OPFS folder), Move to Trash + Restore through it, reload reconnects, no page
+  errors. 12/12. Report + Play screenshot in .qa/studio-e2e/build-check-<stamp>.{json,png}. Not in `npm run qa`.
+- Gate PASS (98 works / 1 broken, ST-02; the dev-server Detach rows still pass). Backlog: budget decision (P2), real
+  folder permission prompt by hand (P3, replaces the M2 line).

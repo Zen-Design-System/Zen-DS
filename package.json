@@ -94,6 +94,7 @@
     "layout:selftest": "node src/components/Layout/position.selftest.mjs && node src/components/Layout/effects.selftest.mjs",
     "studio:selftest": "node tools/studio/selftest.mjs && node tools/studio/data-source.selftest.mjs && node tools/studio/shared-code.selftest.mjs && node tools/studio/engine-iso.selftest.mjs && node tools/studio/dialect.selftest.mjs && node tools/studio/builder.selftest.mjs && node tools/studio/pages-folder.selftest.mjs && node src/platform/studio/builder/store/pageModel.selftest.mjs && node tools/studio/figma-props-build.mjs --check && node src/platform/studio/appearance/appearanceModel.selftest.mjs && node src/platform/studio/inspector/controls/scale.selftest.mjs && node src/platform/studio/inspector/layoutModel.selftest.mjs && node src/platform/studio/select/gridTracks.selftest.mjs && node tools/studio/e2e/selftest.mjs",
     "studio:e2e": "node tools/studio/e2e/run.mjs",
+    "studio:build-check": "node tools/studio/e2e/build-check.mjs",
     "qa": "node tools/qa/run.mjs",
     "qa:quick": "node tools/qa/run.mjs --quick",
     "ship": "node tools/ship/ship.mjs",

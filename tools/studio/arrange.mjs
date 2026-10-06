@@ -28,7 +28,7 @@
 import cloning from "../../src/platform/studio/cloning.json" with { type: "json" };
 import { parseExpression } from "@babel/parser";
 import { applyEdits, applyOps, findElement, jsxName, parseLoc, parseSource } from "./jsx-source.mjs";
-import { pathTo, piece } from "./detach.mjs";
+import { pathTo, piece } from "./source-helpers.mjs";
 
 /** Self-closing elements a layer can be dropped into (they open: `<Stack />` → `<Stack>…</Stack>`). */
 const OPENABLE = new Set(["Stack", "Grid", "Box", "Container", "Card", "Form", "FormFieldset", "FormActions"]);

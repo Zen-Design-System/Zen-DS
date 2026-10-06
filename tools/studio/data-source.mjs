@@ -17,7 +17,7 @@
 // state that the component changes (useState read directly: that is setStateInit's, keep-behaviour rule), values that
 // are not literals at their source.
 import { findElement, jsxName, parseLoc, parseSource } from "./jsx-source.mjs";
-import { pathTo } from "./detach.mjs";
+import { pathTo } from "./source-helpers.mjs";
 
 const FUNCTION_TYPES = new Set(["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression", "ObjectMethod", "ClassMethod"]);
 const MAP_METHODS = new Set(["map", "flatMap"]);

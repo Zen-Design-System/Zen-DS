@@ -24,7 +24,7 @@ import { posix } from "./posix.mjs";
 import { parse, parseExpression } from "@babel/parser";
 import MagicString from "magic-string";
 import cloning from "../../src/platform/studio/cloning.json" with { type: "json" };
-import { UNIT, detachEdits, importEdits, pathTo, piece } from "./detach.mjs";
+import { UNIT, importEdits, pathTo, piece } from "./source-helpers.mjs";
 import { SLOT_OPS, applySlotOp, isSharedFile, sharedRefusal } from "./slots.mjs";
 
 const BOM = "\uFEFF";
@@ -1542,7 +1542,14 @@ export function applyOps(code, loc, name, ops, { snippets = true, typographyKeys
  * imports the output needs. `detached.loc` is the new root element's opening tag in the new text (the detached
  * branch of a `.map` row conditional). The hand-written example snippets are not rewritten (`snippet` says so).
  */
+/** detach.mjs detachEdits, registered when detach.mjs loads (the browser engine leaves it out: no Detach on builder pages). */
+let detachEdits = null;
+export function registerDetach(edits) {
+  detachEdits = edits;
+}
+
 function applyDetach(code, bom, text, ast, element, ops, { snippets, keys, file, eol, componentCss }) {
+  if (!detachEdits) return fail("forbidden", "Detach is not available here (the detach recipes are not loaded)");
   if (ops.length !== 1) return fail("invalid", "detach cannot be combined with other ops");
   const op = ops[0];
   if (op.measured !== undefined && (op.measured === null || typeof op.measured !== "object" || Array.isArray(op.measured))) return fail("invalid", "detach `measured` must be an object of token keys");
