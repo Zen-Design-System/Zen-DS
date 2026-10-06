@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-10-05.
+Last updated: 2026-10-06.
 
 ## Read order
 
@@ -111,8 +111,13 @@ Last updated: 2026-10-05.
   `browser-engine.mjs`; client `src/platform/studio/builder/` = engine.ts, localApi.ts (api.ts routes "local:" files),
   store/pageStore.ts (IndexedDB), render/renderPage.tsx (no eval, data-zen-src + data-zen-name), proto/runtime.tsx,
   BuilderBoard.tsx, NewPageDialog.tsx; store `localPage` + `pageKey(…, localPage)`; LOCAL_SERVER in useStudioServer;
-  palette `builder` → proto.toast; E2E group `builder` B-01…B-06; baseline 86 works / 1 broken). Next: M2 (PageStore
-  revisions/Trash/Export/Import, the dev-server folder `.zen-studio/pages/`, Link folder).
+  palette `builder` → proto.toast; E2E group `builder` B-01…B-06). M2 done 2026-10-06: `tools/studio/pages-folder.mjs`
+  + plugin GET /pages, POST /pages/write|trash (`.zen-studio/pages/`, trash moves to `.zen-studio/trash/`,
+  `ZEN_STUDIO_PAGES_DIR` for the E2E server); client `builder/store/pageModel.ts` (pure: sync plan, revisions, Trash),
+  pageStore v2 (IndexedDB v2: revisions, settings, trashedAt, mirror sync), `store/mirrors.ts` (dev folder or File
+  System Access Link folder), `builder/MyPages.tsx` (row + section menus, Rename / Version history / Trash dialogs,
+  Import / Export); E2E B-07…B-13; baseline 93 works / 1 broken (ST-02). Next: M3 (Prototype + Play), then M4 (build
+  without the dev server, chunk budget; Link folder is checked there).
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers

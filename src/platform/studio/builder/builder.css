@@ -15,3 +15,22 @@
 /* Pages panel: the "My pages" kicker with its New page button (shell/PagesPanel.tsx). */
 .studio-pages__kicker-row { display: flex; min-width: 0; align-items: center; justify-content: space-between; padding-inline-end: var(--zen-spacing-padding-2-xsmall, 4px); }
 .studio-pages__kicker-row > .studio-pages__kicker { min-width: 0; flex: 1 1 auto; }
+
+/* My pages (MyPages.tsx): where the pages are kept, and each row's actions (shown on hover, focus and the open page). */
+.studio-pages__storage { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0 var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-2-xsmall, 4px); }
+.studio-pages__storage-text { min-width: 0; flex: 1 1 auto; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-pages__item { position: relative; }
+.studio-pages__item > .studio-pages__row { padding-inline-end: calc(var(--zen-spacing-padding-xsmall, 8px) + var(--zen-icon-size-md, 20px) + var(--zen-spacing-gap-2-xsmall, 4px)); }
+.studio-pages__actions { position: absolute; top: 50%; right: var(--zen-spacing-padding-2-xsmall, 4px); display: flex; opacity: 0; transform: translateY(-50%); }
+.studio-pages__item:hover > .studio-pages__actions,
+.studio-pages__item:focus-within > .studio-pages__actions,
+.studio-pages__item:has(> .studio-pages__row[aria-current="page"]) > .studio-pages__actions,
+.studio-pages__actions:has([aria-expanded="true"]) { opacity: 1; }
+@media (hover: none) { .studio-pages__actions { opacity: 1; } }
+
+/* Version history and Trash lists inside their Dialogs. */
+.studio-page-list { display: flex; max-height: 360px; flex-direction: column; margin: 0; padding: 0; overflow: auto; list-style: none; }
+.studio-page-list__row { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) 0; border-bottom: 1px solid var(--zen-color-border-neutral-subtle-default); }
+.studio-page-list__row:last-child { border-bottom: 0; }
+.studio-page-list__text { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; }
+.studio-page-list__text > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

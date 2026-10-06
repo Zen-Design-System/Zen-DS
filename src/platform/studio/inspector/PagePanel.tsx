@@ -11,7 +11,7 @@ import { useStudio } from "../store";
 import { focusFrame, frameIcon, useFrames } from "./frames";
 import { InspectorItem, InspectorSection } from "./Section";
 
-import { pagesPersist, usePage } from "../builder/store/pageStore";
+import { pagesPersist, usePage, useStorage } from "../builder/store/pageStore";
 /*
  * Inspector with nothing selected (spec §6): the page, a one-line summary of the canvas preview modes (the toolbar
  * Modes popover is the one place to change them) and the frames on the board.
@@ -49,7 +49,9 @@ export function PagePanel() {
     return () => { alive = false; };
   }, [page]);
   // A builder page (Studio builder GĐ2) names itself.
-  const description = localPage ? (pagesPersist() ? "A page you made, saved in this browser as you edit." : "A page you made. This browser cannot keep it: export it before closing.") : pageDescriptions[page] ?? purpose;
+  const storage = useStorage();
+  const kept = storage.kind === "mirror" ? `saved in this browser and in ${storage.mirror === "dev" ? storage.label : `the folder “${storage.label}”`} as you edit.` : "saved in this browser as you edit.";
+  const description = localPage ? (pagesPersist() ? `A page you made, ${kept}` : "A page you made. This browser cannot keep it: export it before closing.") : pageDescriptions[page] ?? purpose;
   const summary = previewModeDefinitions.map((mode) => previewValueLabel(mode.key, preview[mode.key])).join(" · ");
 
   return (

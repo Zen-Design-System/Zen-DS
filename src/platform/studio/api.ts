@@ -204,6 +204,22 @@ export const studioApi = {
     return { ok: false, code: code === "forbidden" ? code : "invalid", error };
   },
   /** Drops the drafts of `files` (all when omitted), or only a frame's changes (`frame`): the rest reads from disk again. */
+  /** Builder pages in the dev server's .zen-studio/pages/ (GET /pages); null without a server or token. */
+  async pages(): Promise<{ dir: string; pages: Array<{ id: string; text: string; mtime: number }> } | null> {
+    const reply = await authorized<{ ok?: unknown; dir?: unknown; pages?: unknown }>("/pages");
+    if (!reply || reply.status !== 200 || reply.body?.ok === false || !Array.isArray(reply.body?.pages)) return null;
+    const pages = (reply.body.pages as Array<{ id?: unknown; text?: unknown; mtime?: unknown }>).flatMap((row) => (isText(row?.id) && typeof row.text === "string" ? [{ id: row.id, text: row.text, mtime: typeof row.mtime === "number" ? row.mtime : 0 }] : []));
+    return { dir: typeof reply.body.dir === "string" ? reply.body.dir : ".zen-studio/pages", pages };
+  },
+  /** POST /pages/write or /pages/trash; rejects with a StudioApiError when refused. */
+  async pageWrite(action: "write" | "trash", id: string, text?: string): Promise<void> {
+    const reply = await post<{ ok?: unknown }>(`/pages/${action}`, action === "write" ? { id, text } : { id });
+    if (!reply) throw new StudioApiError("invalid", NO_SERVER);
+    if (reply.status !== 200 || reply.body?.ok === false) {
+      const { code, error } = errorOf(reply.body, `Page ${action} refused`);
+      throw new StudioApiError(code, error);
+    }
+  },
   async discard(files?: string[], frame?: { locs: string[] }): Promise<DiscardResult> {
     const reply = await post<{ ok?: unknown; discarded?: unknown; partial?: unknown }>("/discard", frame ? { frame } : files ? { files } : {});
     if (!reply) return { ok: false, code: "invalid", error: NO_SERVER };

@@ -13,3 +13,6 @@ tools/figma-contract/.out/
 
 # Build-QA gate: per-session ledgers, run artefacts and reports (tools/qa)
 .qa/
+
+# Zen Studio builder pages on the dev server (tools/studio/pages-folder.mjs): private to each machine
+/.zen-studio/

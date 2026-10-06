@@ -1,7 +1,7 @@
 # Studio Builder GĐ2: trang do người dùng tạo (spec, 2026-10-06)
 
 **Trạng thái: user duyệt 2026-10-06** (Q1 thư mục riêng gitignored · Q2 `mock.items.map` · Q3 trang trắng + device ·
-Q4 giao theo mốc M1→M4). GĐ2 của `docs/research/studio-builder-plan-2026-10-05.md`. GĐ0–GĐ1 đã xong
+Q4 giao theo mốc M1→M4). **Tiến độ:** M1 xong 2026-10-06; M2 xong 2026-10-06 (E2E B-07…B-13). GĐ2 của `docs/research/studio-builder-plan-2026-10-05.md`. GĐ0–GĐ1 đã xong
 (E2E 80/81; dòng còn hỏng ST-02 thuộc GĐ3). Spec này chốt những gì plan để ngỏ, và cú pháp mà hai spec đi cùng
 (`studio-builder-export-2026-10-05.md` §3, `studio-agent-spec-2026-10-05.md` A2/A5) chờ GĐ2 quyết.
 

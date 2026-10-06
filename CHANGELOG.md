@@ -146,6 +146,19 @@ removed (four unused colour ramps were, see Removed).
   items that keep state wait for the prototype milestone and say so. A page is a real TSX file in a small dialect
   (`*.zen.tsx`: Zen components, literal props, `mock` data lists, `proto.*` actions), run by the same edit engine as the
   dev server, now loadable in the browser (no Node imports). The toolbar reads "My pages › <title>".
+- **Zen Studio builder, M2: manage your pages (2026-10-06, GĐ2):**
+  - Each page under My pages has a menu: Rename…, Duplicate, Export file (`<id>.zen.tsx`, byte for byte), Version
+    history… (the last 50 versions; one is kept before each burst of edits, a rename, a restore or an import) and
+    Move to Trash.
+  - The section's menu: Import pages… (one or more `.zen.tsx` files; an invalid file is refused with its line), Trash
+    (Restore, Delete forever; pages are deleted for good after 30 days), Sync with the folder, Link folder….
+  - On the dev server the pages are also kept in the repo's gitignored `.zen-studio/pages/` (the source of truth; a
+    page moved to the Trash goes to `.zen-studio/trash/`, nothing is deleted on disk). A change made in the folder
+    reaches the Studio on the next sync; when both changed, the folder wins and the browser's text stays in Version
+    history.
+  - On a build without the dev server, Link folder… keeps a copy in a folder you pick (Chromium); after a reload,
+    Reconnect gives the browser access again.
+  - Under My pages a line says where the pages are kept.
 - **Zen Studio: shared demo code can be restructured, after a question (2026-10-06, GĐ1 WP-B2):**
   - Removing, duplicating, moving, inserting, pasting, dragging or wrapping layers whose code lives in shared demo files
     (PlatformDemoActions.tsx, chatDemo.tsx, PlatformChat…) used to be greyed out ("shared beyond this example").

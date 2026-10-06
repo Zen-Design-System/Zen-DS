@@ -7,7 +7,9 @@ import { notifySourceUpdate } from "../select/picker";
 import { loadEngine, zenComponents } from "./engine";
 import { DEVICE_WIDTH, ProtoContext, type PageDevice, type ProtoActions } from "./proto/runtime";
 import { renderFrame, type PageNode, type PageTree } from "./render/renderPage";
-import { pageFile, pagesPersist, usePage } from "./store/pageStore";
+import { Button } from "../../../components/Button";
+import { useStudio } from "../store";
+import { pageFile, pagesPersist, restorePage, usePage, useStorage, useTrash } from "./store/pageStore";
 import "./builder.css";
 
 /*
@@ -32,8 +34,17 @@ function frameOf(node: PageNode): { id: string; label: string; width: number } {
   return { id: `screen:${id}${typeof state === "string" ? `:${state}` : ""}`, label: title, width: DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop };
 }
 
+/** The board's kicker: where the page is kept. */
+function whereKept(storage: ReturnType<typeof useStorage>): string {
+  if (storage.kind === "mirror") return storage.mirror === "dev" ? `My page · kept in ${storage.label}` : `My page · kept in the folder “${storage.label}”`;
+  return pagesPersist() ? "My page · saved in this browser" : "My page · this browser cannot keep pages: export it before closing";
+}
+
 export function BuilderBoard({ id }: { id: string }) {
   const page = usePage(id);
+  const storage = useStorage();
+  const inTrash = useTrash().some((item) => item.id === id);
+  const admin = useStudio((state) => state.role === "admin");
   const [tree, setTree] = useState<PageTree | null>(null);
   const text = page?.text;
   useEffect(() => {
@@ -60,7 +71,13 @@ export function BuilderBoard({ id }: { id: string }) {
   if (!page) {
     return (
       <div className="studio-board studio-builder-board" data-page={`local:${id}`}>
-        <header className="studio-board__title"><Heading level={1} textStyle="Heading/1">Page not found</Heading><Text tone="base">This browser has no page "{id}".</Text></header>
+        {inTrash ? (
+          <header className="studio-board__title">
+            <Heading level={1} textStyle="Heading/1">This page is in the Trash</Heading>
+            <Text tone="base">{`${id}.zen.tsx stays in the Trash for 30 days.`}</Text>
+            <Button appearance="main" level="primary" size="md" disabled={!admin} onClick={() => void restorePage(id)}>Restore page</Button>
+          </header>
+        ) : <header className="studio-board__title"><Heading level={1} textStyle="Heading/1">Page not found</Heading><Text tone="base">This browser has no page "{id}".</Text></header>}
       </div>
     );
   }
@@ -68,7 +85,7 @@ export function BuilderBoard({ id }: { id: string }) {
     <ProtoContext value={inertProto}>
       <div className="studio-board studio-builder-board" data-page={`local:${id}`}>
         <header className="studio-board__title">
-          <Text as="p" textStyle="Body/Small/Medium" tone="base">{pagesPersist() ? "My page · saved in this browser" : "My page · this browser cannot keep pages: export it before closing"}</Text>
+          <Text as="p" textStyle="Body/Small/Medium" tone="base">{whereKept(storage)}</Text>
           <Heading level={1} textStyle="Heading/1">{page.title}</Heading>
         </header>
         {tree?.errors.length ? (

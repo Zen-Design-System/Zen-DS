@@ -30,6 +30,7 @@ import { selectedPartStore } from "./select/parts";
 import { SlotConfirm } from "./slots/SlotConfirm";
 import { SharedConfirm } from "./shell/SharedConfirm";
 import { BuilderBoard } from "./builder/BuilderBoard";
+import { startPageMirror } from "./builder/store/mirrors";
 import { cachedPage } from "./builder/store/pageStore";
 import { ChromePortalContext, ChromeScope, useChromeAttributes } from "./shell/ChromeScope";
 import { previewAttributes } from "./shell/modes";
@@ -100,6 +101,8 @@ function useRouting() {
   const collection = useStudio((state) => state.collection);
   const localPage = useStudio((state) => state.localPage);
   const first = useRef(true);
+  // Builder pages: connect the folder that keeps their copy (the dev server's .zen-studio/pages/, or a linked folder).
+  useEffect(() => { void startPageMirror(); }, []);
   useEffect(() => {
     const url = new URL(window.location.href);
     // A builder page kept in this browser: ?page=local:<id> (Studio builder GĐ2).

@@ -1,5 +1,8 @@
 // Builder rows (Studio builder GĐ2 M1, spec docs/research/studio-builder-pages-spec-2026-10-06.md): a page made in the
 // Studio and kept in the browser (IndexedDB), edited with the same tools as example code. Each row makes its own page.
+import fs from "node:fs";
+import path from "node:path";
+import { pagesDirOf } from "../lib/server.mjs";
 import { inspectorRow, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { pickOption } from "./inspector.mjs";
 
@@ -71,6 +74,39 @@ async function insertAsset(page, label) {
   await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill(label);
   await page.locator(".studio-assets__row", { hasText: new RegExp(`^${label}`) }).first().click();
 }
+
+
+/* ── M2: the dev server's pages folder, page actions, Trash, history, Export / Import ── */
+
+/** The page's file in this server's pages folder (null when absent). */
+const folderText = (ctx, id) => {
+  try {
+    return fs.readFileSync(path.join(ctx.root, pagesDirOf(ctx.server.port), `${id}.zen.tsx`), "utf8");
+  } catch {
+    return null;
+  }
+};
+
+/** The page's row under My pages. */
+const mineRow = (page, name) => page.locator('[data-section="mine"] .studio-pages__item').filter({ has: page.getByRole("button", { name, exact: true }) });
+
+/** Chooses one of a page's actions (its row's menu). */
+async function pageAction(page, name, action) {
+  await showLeftTab(page, "pages");
+  const row = mineRow(page, name);
+  await row.hover();
+  await row.getByRole("button", { name: `${name} actions` }).click();
+  await page.getByRole("menuitem", { name: action }).click();
+}
+
+/** Chooses one of the My pages options. */
+async function mineOption(page, action) {
+  await showLeftTab(page, "pages");
+  await page.getByRole("button", { name: "My pages options" }).click();
+  await page.getByRole("menuitem", { name: action }).click();
+}
+
+const listed = async (page, name) => (await mineRow(page, name).count()) > 0;
 
 export const rows = [
   {
@@ -148,6 +184,119 @@ export const rows = [
       if ((await pageText(page, id)) !== before) throw new Error("the page changed");
       if ((await inspectorRow(page, "gap").count()) === 0) throw new Error("the Stack is no longer selected");
       return "Tabs refused; nothing written";
+    },
+  },
+  {
+    id: "B-07", feature: "Dev server: a page and its edits are kept in the pages folder (.zen-studio/pages)", wp: "GĐ2 M2",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      await until(async () => folderText(ctx, id) === (await pageText(page, id)), { message: "the new page in the folder" });
+      await selectStack(page, id);
+      await insertAsset(page, "Badge");
+      await until(async () => /<Badge/.test(folderText(ctx, id) ?? ""), { message: "the Badge in the folder's file" });
+      if (folderText(ctx, id) !== (await pageText(page, id))) throw new Error("the folder and the browser differ");
+      if (!/Kept in/.test(await page.locator('[data-storage="mirror"]').innerText())) throw new Error("the panel does not say the folder keeps the pages");
+      return `${id}.zen.tsx written, same text as the browser`;
+    },
+  },
+  {
+    id: "B-08", feature: "Rename a page from its row's menu (header title, list, folder)", wp: "GĐ2 M2",
+    async run(ctx) {
+      const { page, id, name } = await newPage(ctx);
+      const renamed = `${name} renamed`;
+      await pageAction(page, name, /^Rename/);
+      const dialog = page.getByRole("dialog", { name: "Rename page" });
+      await dialog.getByLabel("Title").fill(renamed);
+      await dialog.getByRole("button", { name: "Rename" }).click();
+      await until(async () => (await pageText(page, id))?.startsWith(`// @zen-page {"format":1,"title":${JSON.stringify(renamed)}}`), { message: "the header renamed" });
+      await until(async () => listed(page, renamed), { message: "the new name under My pages" });
+      await until(async () => (folderText(ctx, id) ?? "").includes(JSON.stringify(renamed)), { message: "the folder's file renamed" });
+      return "renamed in the header, the list and the folder";
+    },
+  },
+  {
+    id: "B-09", feature: "Duplicate a page: a copy opens under a new id", wp: "GĐ2 M2",
+    async run(ctx) {
+      const { page, id, name } = await newPage(ctx);
+      await pageAction(page, name, /^Duplicate/);
+      await until(async () => decodeURIComponent(page.url()).includes(`page=local:${id}-copy`), { message: "the copy opened" });
+      const copy = await pageText(page, `${id}-copy`);
+      if (!copy?.includes(JSON.stringify(`${name} copy`))) throw new Error("the copy's header is not renamed");
+      if (!(await listed(page, `${name} copy`))) throw new Error("the copy is not listed");
+      return `${id}-copy opened`;
+    },
+  },
+  {
+    id: "B-10", feature: "Export a page, Import the file: the same text byte for byte", wp: "GĐ2 M2",
+    async run(ctx) {
+      const { page, id, name } = await newPage(ctx);
+      await selectStack(page, id);
+      await insertAsset(page, "Badge");
+      await until(async () => /<Badge/.test((await pageText(page, id)) ?? ""), { message: "a Badge" });
+      const downloading = page.waitForEvent("download");
+      await pageAction(page, name, /^Export file/);
+      const download = await downloading;
+      if (download.suggestedFilename() !== `${id}.zen.tsx`) throw new Error(`file named ${download.suggestedFilename()}`);
+      const exported = fs.readFileSync(await download.path(), "utf8");
+      if (exported !== (await pageText(page, id))) throw new Error("the exported file differs from the page");
+      const copyId = `${id}-imported`;
+      await page.locator('[data-e2e="import-pages"]').setInputFiles({ name: `${copyId}.zen.tsx`, mimeType: "text/plain", buffer: Buffer.from(exported, "utf8") });
+      await until(async () => (await pageText(page, copyId)) !== null, { message: "the imported page stored" });
+      if ((await pageText(page, copyId)) !== exported) throw new Error("the imported text differs from the file");
+      await until(async () => decodeURIComponent(page.url()).includes(`page=local:${copyId}`), { message: "the imported page opened" });
+      await page.locator('[data-e2e="import-pages"]').setInputFiles({ name: "broken.zen.tsx", mimeType: "text/plain", buffer: Buffer.from("export default 1;\n") });
+      await until(async () => /Not imported: broken\.zen\.tsx/.test(await statusText(page)), { message: "an invalid file refused" });
+      return `${exported.length} bytes out and back in; an invalid file refused`;
+    },
+  },
+  {
+    id: "B-11", feature: "Move to Trash and Restore (the folder's file goes to its trash and comes back)", wp: "GĐ2 M2",
+    async run(ctx) {
+      const { page, id, name } = await newPage(ctx);
+      await until(async () => folderText(ctx, id) !== null, { message: "the page in the folder" });
+      await pageAction(page, name, /^Move to Trash/);
+      await until(async () => !(await listed(page, name)), { message: "gone from My pages" });
+      await until(async () => folderText(ctx, id) === null, { message: "gone from the folder" });
+      const trashDir = path.join(ctx.root, pagesDirOf(ctx.server.port), "..", "trash");
+      if (!fs.readdirSync(trashDir).some((file) => file.startsWith(`${id}-`))) throw new Error("not in the folder's trash");
+      if (decodeURIComponent(page.url()).includes(`local:${id}`)) throw new Error("the trashed page is still open");
+      await mineOption(page, /^Trash/);
+      const dialog = page.getByRole("dialog", { name: "Trash" });
+      await dialog.locator(".studio-page-list__row", { hasText: name }).getByRole("button", { name: "Restore" }).click();
+      await until(async () => listed(page, name), { message: "back under My pages" });
+      await until(async () => folderText(ctx, id) !== null, { message: "back in the folder" });
+      await dialog.getByRole("button", { name: "Close" }).click();
+      return "trashed (file kept in trash/), restored";
+    },
+  },
+  {
+    id: "B-12", feature: "Version history: restore the text from before the edits", wp: "GĐ2 M2",
+    async run(ctx) {
+      const { page, id, name } = await newPage(ctx);
+      const before = await pageText(page, id);
+      await selectStack(page, id);
+      await insertAsset(page, "Badge");
+      await until(async () => /<Badge/.test((await pageText(page, id)) ?? ""), { message: "a Badge" });
+      await pageAction(page, name, /^Version history/);
+      const dialog = page.getByRole("dialog", { name: "Version history" });
+      await dialog.getByRole("button", { name: "Restore" }).first().click();
+      await until(async () => (await pageText(page, id)) === before, { message: "the text from before the Badge" });
+      await until(async () => (await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Badge"]`).count()) === 0, { message: "the Badge gone from the canvas" });
+      return "restored the first version";
+    },
+  },
+  {
+    id: "B-13", feature: "A change made in the folder reaches the Studio (Sync with the folder)", wp: "GĐ2 M2",
+    async run(ctx) {
+      const { page, id, name } = await newPage(ctx);
+      await until(async () => folderText(ctx, id) !== null, { message: "the page in the folder" });
+      const changed = `${name} from disk`;
+      const file = path.join(ctx.root, pagesDirOf(ctx.server.port), `${id}.zen.tsx`);
+      fs.writeFileSync(file, folderText(ctx, id).replace(JSON.stringify(name), JSON.stringify(changed)));
+      await mineOption(page, /^Sync with the folder/);
+      await until(async () => listed(page, changed), { message: "the folder's title under My pages" });
+      if ((await pageText(page, id)) !== fs.readFileSync(file, "utf8")) throw new Error("the browser copy differs from the folder");
+      return "folder edit synced into the browser";
     },
   },
 ];

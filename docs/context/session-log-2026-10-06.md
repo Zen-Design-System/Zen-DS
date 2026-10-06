@@ -374,3 +374,30 @@ device, Q4 per milestone). Backups `backups/studio-gd2-m1-*`.
   gates; picker nameOf data-zen-name (local only) + notifySourceUpdate; sourceDrafts skips local locs; PagesPanel My
   pages; PagePanel / Inspector footer / Toolbar crumbs local-aware; palette `builder` + `builderCode`; Assets codeOf.
 - E2E group `builder` B-01…B-06; baseline 86 works / 1 broken. `npm run qa` PASS.
+
+## Studio builder GĐ2 · M2: manage pages, folder mirrors (session "Studio builder tool planning", tier L)
+
+Spec `docs/research/studio-builder-pages-spec-2026-10-06.md` §3 2c, §5 M2. Cloud container; Studio code is committed
+(10b1b91), so git holds the originals (no tarball backup).
+- Server: `tools/studio/pages-folder.mjs` (list / read / write / trash; id regex, no links, 2 MB, validateDialect
+  before a write, atomic write, trash = move to `.zen-studio/trash/<id>-<stamp>.zen.tsx`; selftest 9). Plugin routes
+  GET /pages (token), POST /pages/write + /pages/trash (admin + token); any request path containing `/.zen-studio/`
+  is refused (the folder is never served as a file, `/@fs/` included). `ZEN_STUDIO_PAGES_DIR` moves the folder (the E2E
+  server uses `node_modules/.cache/zen-studio/e2e-pages-<port>/pages`, emptied before and after). `.gitignore`
+  `/.zen-studio/`.
+- Client pure rules `builder/store/pageModel.ts` (header title rewrite, slug, id from a file name, cyrb53 hash,
+  revision and Trash rules, `planSync`; selftest 32). `pageStore.ts` v2: IndexedDB version 2 with stores `revisions`
+  (index page, 50 per page, one per 2-minute burst of edits or per rename/restore/import/folder change) and
+  `settings`; `trashedAt` (30 days, purged on first list), rename / duplicate / import / trash / restore /
+  deleteForever; a mirror interface with per-page ordered writes and `syncMirror` (folder wins a conflict, the
+  browser's text kept as a revision; a page gone from the folder goes to the Trash; sync records name their mirror so a
+  new folder gets pushed rather than trashed). `store/mirrors.ts`: dev mirror (api.ts `pages()` / `pageWrite()`) or a
+  File System Access folder (handle in IndexedDB, Reconnect after a reload), `startPageMirror()` from StudioApp.
+- UI `builder/MyPages.tsx`: My pages header (New page, options menu: Import, Trash, Sync, Link/Unlink folder), storage
+  line, row menu (Rename, Duplicate, Export file, Version history, Move to Trash), Rename / Version history / Trash
+  dialogs; changes need Admin. PagesPanel uses it (its ↑/↓ handler now ignores keys from menus and dialogs, which bubble
+  through React portals). BuilderBoard says where the page is kept and offers Restore for a trashed page.
+- Bug found by B-10 and fixed: the import handler read the input's live FileList after clearing it.
+- E2E group `builder` B-07…B-13 (folder file, rename, duplicate, export → import byte for byte + invalid file refused,
+  Trash → restore with the folder's trash, version history restore, a folder edit synced). Not covered by E2E: Link
+  folder (File System Access has no headless picker; M4 checks the build).

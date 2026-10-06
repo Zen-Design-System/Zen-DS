@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { IconButton } from "../../../components/Button";
 import { EmptyState } from "../../../components/EmptyState";
 import { Icon } from "../../../components/Icon";
 import { Search } from "../../../components/Search";
 import { plural, Text } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { useStudio } from "../store";
+import { MyPageRow, MyPagesHeader } from "../builder/MyPages";
 import { NewPageDialog } from "../builder/NewPageDialog";
 import { usePages } from "../builder/store/pageStore";
 import { filterSections, navigate, openLocalPage, pageSections, type PageNavItem } from "./navigation";
@@ -16,7 +16,7 @@ export const PAGE_SEARCH_ID = "studio-page-search";
 const ROW = ".studio-pages__row";
 
 /**
- * The Pages tab of the left panel: search (⌘/Ctrl+K), My pages (builder pages kept in this browser, + New page), Get started, Foundation (token collections nested under Design
+ * The Pages tab of the left panel: search (⌘/Ctrl+K), My pages (builder pages: New page, options, each page's actions; MyPages.tsx), Get started, Foundation (token collections nested under Design
  * Tokens), Components A–Z. Compact rows like the Layers tab; ↑/↓, Home and End move between pages (one Tab stop).
  */
 export function PagesPanel() {
@@ -47,6 +47,8 @@ export function PagesPanel() {
 
   const moveFocus = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+    // Only from a row: keys in a page's menu or dialog (portals that bubble here through React) stay theirs.
+    if (!(event.target as HTMLElement).matches?.(ROW)) return;
     const all = Array.from(scrollRef.current?.querySelectorAll<HTMLElement>(ROW) ?? []);
     if (!all.length) return;
     event.preventDefault();
@@ -104,23 +106,10 @@ export function PagesPanel() {
         {/* Builder pages kept in this browser (Studio builder GĐ2), first: the pages people make. */}
         {!searching || mine.length ? (
           <div className="studio-pages__section" data-section="mine">
-            <div className="studio-pages__kicker-row">
-              <Text as="p" id="studio-pages-mine" textStyle="Caption/Medium" tone="base" className="studio-pages__kicker">My pages</Text>
-              <IconButton icon="icon-plus-line" aria-label="New page" appearance="flat" level="primary" size="xs" onClick={() => setCreating(true)} />
-            </div>
+            <MyPagesHeader onNew={() => setCreating(true)} />
             {mine.length ? (
               <ul className="studio-pages__list" aria-labelledby="studio-pages-mine">
-                {mine.map((item) => {
-                  const current = item.id === localPage;
-                  return (
-                    <li key={item.id}>
-                      <button type="button" className="studio-pages__row" aria-current={current ? "page" : undefined} tabIndex={item === mineStop ? 0 : -1} onClick={() => openLocalPage(item.id)}>
-                        <Icon name="icon-file-code-line" size="sm" decorative />
-                        <span className={`studio-pages__name ${typographyStyles[current ? "Body/Small/Bold" : "Body/Small/Medium"]}`}>{item.title}</span>
-                      </button>
-                    </li>
-                  );
-                })}
+                {mine.map((item) => <MyPageRow key={item.id} item={item} current={item.id === localPage} tabIndex={item === mineStop ? 0 : -1} />)}
               </ul>
             ) : null}
           </div>

@@ -26,7 +26,7 @@ export function NewPageDialog({ open, onOpenChange }: { open: boolean; onOpenCha
     const name = title.trim();
     if (!name) { setError("Give the page a title"); return; }
     const [engine, id] = await Promise.all([loadEngine(), freeId(name)]);
-    await putPage(id, engine.newPageText({ title: name, device }), name);
+    await putPage(id, engine.newPageText({ title: name, device }), { title: name });
     setTitle("");
     setError(null);
     onOpenChange(false);

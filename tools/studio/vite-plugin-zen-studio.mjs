@@ -15,6 +15,8 @@
 // { frame: { locs } } write or drop only that frame's changes (frame-scope.mjs), the rest stays the draft.
 // The pure parts (parse, describe, apply ops, detach recipes, draft bookkeeping and rebase) live in jsx-source.mjs,
 // detach.mjs and drafts.mjs; `node tools/studio/selftest.mjs` tests them.
+// Builder pages (2026-10-06, GĐ2 M2): GET /pages, POST /pages/write, POST /pages/trash keep the pages made in the
+// Studio in the gitignored `.zen-studio/pages/` (pages-folder.mjs: id regex, no links, 2 MB, dialect check first).
 import { execFile } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import fs from "node:fs";
@@ -28,6 +30,8 @@ import { importersOf } from "./shared-code.mjs";
 import { annotate, applyOps, describeElement, isAnnotatedFile, parseSource, sha1 } from "./jsx-source.mjs";
 import { SLOT_OPS, describeSlots, requiredFromApi, withSlots } from "./slots.mjs";
 import { componentModulesFrom } from "./component-modules.mjs";
+import { validateDialect } from "./dialect.mjs";
+import { PAGES_DIR, PagesError, pagesFolder } from "./pages-folder.mjs";
 
 const PREFIX = "/__zen-studio";
 const ROLE_HEADER = "x-zen-studio-role";
@@ -41,7 +45,7 @@ const HARNESS_TIMEOUT = 60_000;
 /** The drafts of each dev server persist here (relative to the root), as drafts-<port>.json. */
 const DRAFTS_DIR = "node_modules/.cache/zen-studio";
 const STATUS = { forbidden: 403, "not-found": 404, stale: 409, invalid: 400, confirm: 409 };
-const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/drafts", "/frame-drafts", "/save", "/discard"]);
+const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/drafts", "/frame-drafts", "/save", "/discard", "/pages", "/pages/write", "/pages/trash"]);
 /** A frame request names at most this many frames and locs (a page renders a few thousand elements). */
 const MAX_FRAMES = 200;
 const MAX_LOCS = 50_000;
@@ -125,6 +129,8 @@ export function zenStudio() {
         server.watcher.on("add", onDisk);
       }
       server.middlewares.use((req, res, next) => {
+        // The builder pages folder is read through GET /pages only (token), never served as a file (/@fs/ included).
+        if (/\/\.zen-studio(?:\/|$)/.test(safeDecode(req.url ?? ""))) return send(res, 403, { ok: false, code: "forbidden", error: "Builder pages are read through /__zen-studio/pages" });
         if (!req.url?.startsWith(`${PREFIX}/`)) return next();
         handle(req, res).catch((error) => send(res, 500, { ok: false, code: "invalid", error: String(error?.message ?? error) }));
       });
@@ -221,6 +227,17 @@ export function zenStudio() {
         // The harness runs outside the write queue: edits can go on while it checks the saved files.
         const harness = await runHarness(saved.map((entry) => entry.file));
         return send(res, 200, { ok: true, saved, conflicts, harness });
+      }
+      if (route === "GET /pages") {
+        // Builder pages in .zen-studio/pages/ (the browser keeps its copy in IndexedDB and syncs with these).
+        checkToken(req);
+        return send(res, 200, { ok: true, dir: pages().dir, pages: await pagesCall(() => pages().list()) });
+      }
+      if (route === "POST /pages/write" || route === "POST /pages/trash") {
+        checkWriteHeaders(req);
+        const body = await readJson(req);
+        const result = await exclusive(() => pagesCall(() => (route === "POST /pages/write" ? pages().write(body.id, body.text) : pages().trash(body.id))));
+        return send(res, 200, { ok: true, ...result });
       }
       if (ROUTES.has(url.pathname.slice(PREFIX.length))) throw new HttpError("invalid", `${req.method} is not allowed here`, 405);
       throw new HttpError("not-found", `Unknown endpoint ${url.pathname}`);
@@ -876,6 +893,25 @@ export function zenStudio() {
     return typographyCache;
   }
 
+  let pagesCache = null;
+  /** The builder pages folder (pages-folder.mjs); a write must be a valid page with this library's components. */
+  function pages() {
+    // ZEN_STUDIO_PAGES_DIR (relative to the root): the Studio E2E server keeps its pages apart from the real ones.
+    pagesCache ??= pagesFolder(root, {
+      dir: process.env.ZEN_STUDIO_PAGES_DIR || PAGES_DIR,
+      validate: (text) => validateDialect(text, { components: new Set([...slotData().componentModules.keys()].filter((name) => /^[A-Z]/.test(name))) }),
+    });
+    return pagesCache;
+  }
+  async function pagesCall(task) {
+    try {
+      return await task();
+    } catch (error) {
+      if (error instanceof PagesError) throw new HttpError(error.code, error.message);
+      throw error;
+    }
+  }
+
   let slotCache = null;
   /**
    * What the slot ops need from the repo, read once per server start: every value src/components/*\/index.ts exports →
@@ -938,6 +974,14 @@ function exclusive(task, gone = () => false) {
 }
 
 const firstLine = (text) => String(text ?? "").split(/\r?\n/).find((line) => line.trim())?.trim() ?? null;
+
+const safeDecode = (value) => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
 
 /** The request was addressed to this machine by a loopback name (localhost, *.localhost, 127.x.x.x, [::1]). */
 function loopbackHost(req) {
