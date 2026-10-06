@@ -44,9 +44,9 @@ export const headerActions: { icon: IconName; label: string }[] = [{ icon: "icon
 
 const scripts: Record<string, string[]> = {
   ava: ["Did you get the brand files?", "The PDF is the latest one — colours, type and lockups are all updated.", "Yes! Reviewing now, looks great.", "The icon stroke went from 1.5 to 1.75 for the small sizes.", "Makes sense. I'll update the Figma library this afternoon.", "Perfect, ping me when it's published."],
-  bao: ["Merged the token PR 🎉", "Nice! Did the dark theme snapshots pass?", "All green after the last fix.", "Great, I'll cut the release notes."],
+  bao: ["Merged the token PR 🎉", "Nice! Did the dark theme snapshots pass?", "All green after the last fix.", "Great, I'll cut the release notes.", "Perfect, tag me when they're up."],
   chi: ["Standup moved to 10:30 tomorrow.", "Thanks for the heads-up!", "Can you bring the usability findings?", "Sure, I'll share the top five."],
-  duy: ["Can you review the icons?", "On it — anything specific?", "Mostly the 16px set, some look blurry.", "I'll check pixel snapping."],
+  duy: ["Can you review the icons?", "On it — anything specific?", "Mostly the 16px set, some look blurry.", "I'll check pixel snapping.", "Thanks! The bell and calendar icons are the worst."],
   emi: ["Lunch at 12?", "Sounds good, the usual place?", "Yes, see you there."],
 };
 
@@ -54,7 +54,7 @@ const scripts: Record<string, string[]> = {
 /** Desktop Hover: every message gets the hover toolbar (React · Reply/Share · More) from the same chatHoldActions the
  *  mobile hold menu uses; reactions and the last action are kept per example so the toolbar does something visible. */
 function useDesktopActions() {
-  const demo = useChatDemo("Hover a message for React · Reply · More.");
+  const demo = useChatDemo();
   const act = (id: string, side: ChatSide, kind: "text" | "photo" | "file" | "call" = "text", extra: { text?: string; author?: string; reply?: Partial<Omit<ChatReplyTarget, "id">>; reactions?: ChatReaction[] } = {}) => demo.act(id, side, { kind, ...extra });
   return { ...demo, act };
 }
@@ -81,7 +81,8 @@ function ChatDesktopMessengerExample() {
         </div>
         <List aria-label="Conversations">
           {visible.map((id) => { const i = ids.indexOf(id); const last = threads[id][threads[id].length - 1]; return (
-            <ChatConversationItem key={id} person={people[i]} preview={last.side === "you" ? `You: ${last.text}` : last.text} time={i === 0 ? "now" : `${i * 12}m`} unread={!read.includes(id)} online={i % 2 === 0} selected={active === id} onClick={() => open(id)} />
+            // Only a thread whose last message came from the other person can be unread; "You: …" rows are always read.
+            <ChatConversationItem key={id} person={people[i]} preview={last.side === "you" ? `You: ${last.text}` : last.text} time={i === 0 ? "now" : `${i * 12}m`} unread={last.side === "others" && !read.includes(id)} online={i % 2 === 0} selected={active === id} onClick={() => open(id)} />
           ); })}
         </List>
       </aside>
@@ -183,7 +184,7 @@ function ChatReplyExample() {
     { id: "m8", side: "others", text: "Never mind, found it.", replyTo: { id: "gone", author: "Bao Nguyen", kind: "deleted" } },
   ]);
   const [replying, setReplying] = useState<ChatReplyTarget | undefined>(originals.r1);
-  const demo = useChatDemo("Hover a message: Reply fills the composer, and the sent quote jumps back to the original.");
+  const demo = useChatDemo();
   const authorOf = (m: Msg) => m.id === "r2" || m.id === "r4" ? mobilePeople.bao : mobilePeople.chi;
   const targetOf = (m: Msg): ChatReplyTarget => originals[m.id] ?? { id: m.id, author: m.side === "you" ? "You" : authorOf(m).name, fromYou: m.side === "you", kind: "text", text: m.text };
   return (

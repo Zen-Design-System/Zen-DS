@@ -8,7 +8,7 @@ Switch between related panels of content at the same level.
 
 ## Use it for
 - Settings pages, detail views with sections (Indicator).
-- Compact switches inside cards (Subtle, small).
+- Compact switches inside cards (Subtle; still medium unless the card is genuinely narrow).
 
 ## Use something else for
 - Filtering → Chip.
@@ -88,6 +88,7 @@ type TabOption = { id: string; label?: ReactNode; icon?: IconName | ReactNode; b
 | Tab | Move into the active panel |
 
 ## ✅ Do
+- Use size medium (the default) on desktop and on phones; small only inside a genuinely narrow component space (a dense card header or table toolbar), never just to save room on a page.
 - Give the tablist an aria-label and pair each tab with a TabPanel.
 - Keep 2–7 tabs with short labels.
 - Show counts with badges; hide at zero.

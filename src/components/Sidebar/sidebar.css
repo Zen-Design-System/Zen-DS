@@ -1,6 +1,6 @@
-.zen-sidebar {
 /* zen-allow-motion-layout: the rail collapse animates width until P2-5 (motion review) moves it to transform. */
-  --zen-sidebar-width: var(--zen-sidebar-default-width, 260px);
+.zen-sidebar {
+  --zen-sidebar-width: var(--zen-sidebar-default-width, 240px);
   --zen-sidebar-item-padding: var(--zen-spacing-padding-small, 12px);
   --zen-sidebar-item-gap: var(--zen-spacing-gap-small, 12px);
   /* Collapse (5974:20597): a Button/Size/Small inside an Element-Size/Popular/Base Wrapper, so it bleeds (20 − 32) / 2 = −6px. */
@@ -34,6 +34,10 @@
 /* The workspace avatar rail always sits on Surface/Default (never Alt), so the avatar tiles and their Border/Inverse ring read clearly. */
 .zen-sidebar[data-background="flat"] .zen-sidebar__surface,
 .zen-sidebar[data-background="flat"] .zen-sidebar__workspace-main { background: var(--zen-color-background-surface-flat, transparent); box-shadow: none; }
+/* divider: on a Canvas/Alt page an Alt or Flat Sidebar is separated from the page by a Pale line on its inner edge,
+   the full height of the block (inside the Sidebar, so it moves and collapses with it). */
+.zen-sidebar[data-divider="true"] { position: relative; }
+.zen-sidebar[data-divider="true"]::after { position: absolute; top: 0; bottom: 0; inset-inline-end: 0; width: 1px; background: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); content: ""; pointer-events: none; }
 .zen-sidebar[data-background="inverse"] .zen-sidebar__surface,
 .zen-sidebar[data-background="inverse"] .zen-sidebar__workspace-main { background: var(--zen-color-background-inverse-solid-default, #111); color: var(--zen-color-content-inverse-strongest, #fff); }
 
@@ -170,10 +174,18 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section-item { display: none; }
 .zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__footer { align-items: center; padding: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__footer-content > button { width: calc(var(--zen-element-size-popular-base, 20px) + 2 * var(--zen-spacing-padding-xsmall, 8px)); justify-content: center; gap: 0; padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
-.zen-sidebar[data-variant="small-density"][data-collapsed="true"] .zen-sidebar__footer-content > button > span:not(.zen-icon) { display: none; }
 
-/* Figma Side-Bar/Master/Basic collapsed: 84px including the 8px outer inset. */
-.zen-sidebar[data-variant="basic"][data-collapsed="true"] { width: 84px; flex-basis: 84px; }
+/* Figma Side-Bar/Master/Basic Expand=No (4081:15233): the panel HUGs its header — Margin-Compact on both sides of the
+   collapsed logo — so the rail is 84px with the 28px default logo and 88px (72px panel) with a 32px Avatar logo, as in
+   the HR-Platform rail. A custom `brand` is contained so it never widens the rail. */
+.zen-sidebar[data-variant="basic"][data-collapsed="true"] { width: max-content; min-width: 84px; flex-basis: auto; }
+.zen-sidebar[data-variant="basic"][data-collapsed="true"] .zen-sidebar__header > :not(.zen-sidebar__default-brand) { contain: inline-size; }
+/* A custom `brand` without `logoCollapsed` keeps only its first element (the mark) in the rail, always centred: as a
+   one-item flex row it centres even when the mark is wider than the contained box (it overflows equally on both
+   sides). The rest (the name) is hidden visually only, like the footer labels below, so it stays in the a11y tree. */
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__header > :not(.zen-sidebar__default-brand) { position: relative; display: flex; flex-direction: row; align-items: center; justify-content: center; }
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__header > :not(.zen-sidebar__default-brand) > :not(:first-child) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.zen-sidebar[data-variant="basic"][data-collapsed="true"] .zen-sidebar__default-brand-collapsed { width: auto; min-width: 28px; height: auto; min-height: 28px; flex: 0 0 auto; }
 .zen-sidebar[data-variant="basic"][data-collapsed="true"] { padding-right: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-sidebar[data-variant="basic"][data-collapsed="true"] .zen-sidebar__header { flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-margin-compact, 20px); }
 /* Figma Header-Content (collapsed): logo 28 + collapse wrapper 20, 16px apart. */
@@ -193,7 +205,11 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section { gap: 0; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__footer { padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__footer-content > button { justify-content: center; gap: 0; padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
-.zen-sidebar[data-collapsed="true"] .zen-sidebar__footer-content > button > span:not(.zen-icon) { display: none; }
+/* The rail hides the footer buttons' label span visually only: it stays in the accessibility tree, so an app's
+   <button><Icon /><span>Label</span></button> keeps its name (display: none would leave an unnamed button), and
+   Sidebar.tsx shows that name as the rail tooltip. A 1px clipped box out of the flow, like VisuallyHidden. */
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__footer-content > button { position: relative; }
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__footer-content > button > span:not(.zen-icon) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* Figma Side-Bar/Master/Workspace: workspace rail + 260px child panel. */
 /* Workspace rail = the 40px (Compact) / 48px (Comfortable) avatar tile + 14px each side; the panel keeps its 272px. */
@@ -218,7 +234,7 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
   bottom: var(--zen-spacing-padding-xsmall, 8px);
   left: calc(100% + var(--zen-spacing-padding-xsmall, 8px));
   display: flex;
-  width: var(--zen-sidebar-default-width, 260px);
+  width: var(--zen-sidebar-default-width, 240px);
   box-sizing: border-box;
   flex-direction: column;
   padding: var(--zen-spacing-padding-xsmall, 8px);

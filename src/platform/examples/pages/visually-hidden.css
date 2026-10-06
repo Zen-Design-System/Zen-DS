@@ -1,0 +1,41 @@
+/* Visually Hidden examples (src/platform/examples/pages/visually-hidden.tsx). Tokens only; class prefix .px-visually-hidden-. */
+
+/* The client portal is the positioned box its skip link's pill attaches to (top-start corner, above the header). */
+.px-visually-hidden-site { position: relative; }
+
+/* The portal header sits on the page Canvas like the page itself; a Pale line separates it from the content. */
+.px-visually-hidden-header { border-block-end: 1px solid var(--zen-color-border-neutral-pale-default, rgb(0 0 0 / 6%)); }
+
+/* The skip link's target: focus lands here so the next Tab continues inside the content. It is not a control, so it
+   draws no ring of its own (the skip link that moved focus here had one), like AppShell's own main. */
+/* zen-allow-focus-ring: the main landmark is a programmatic focus target (tabIndex -1), never a Tab stop or a control. */
+.px-visually-hidden-main:focus { outline: none; }
+
+/* A request card's name and dates take the room between the Avatar and the status Badge. */
+.px-visually-hidden-grow { flex: 1 1 auto; min-width: 0; }
+
+/* The portal header: brand · navigation · account in one row; in a narrow window (a phone) the navigation takes a row
+   of its own under the brand and the account. */
+.px-visually-hidden-site { container-type: inline-size; }
+.px-visually-hidden-bar {
+  display: grid;
+  grid-template-areas: "brand nav account";
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  column-gap: var(--zen-spacing-gap-large, 24px);
+  row-gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding-block: var(--zen-spacing-padding-small, 12px);
+}
+.px-visually-hidden-brand { grid-area: brand; }
+.px-visually-hidden-nav { grid-area: nav; justify-self: center; }
+.px-visually-hidden-account { grid-area: account; }
+@container (max-width: 640px) {
+  .px-visually-hidden-bar { grid-template-areas: "brand account" "nav nav"; grid-template-columns: 1fr auto; }
+  .px-visually-hidden-nav { justify-self: start; }
+}
+
+/* File names are the rows' names: on a narrow screen the table scrolls sideways before a name is cut short. */
+.px-visually-hidden-files { --zen-table-fill-min-width: 18rem; }
+
+/* A thread comment's meta line: the name and its time are pieces of one inline item (Gap/2XSmall), on one baseline. */
+.px-visually-hidden-comment-meta { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--zen-spacing-gap-2-xsmall, 4px); }

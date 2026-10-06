@@ -1,0 +1,22 @@
+/* Skeleton examples. A placeholder that sits in a text slot (a ListItem title, a Metric value, a table cell, a
+   description value) stays on the text's line, so the slot keeps the height of the text that replaces it and the
+   content swaps in without a jump. The doubled class outranks the component's own display and width. */
+.px-skeleton-inline.px-skeleton-inline { display: inline-flex; max-width: 100%; vertical-align: middle; }
+
+/* Placeholder widths, in characters of the text they stand for. */
+.px-skeleton-short.px-skeleton-short { width: 6ch; }
+.px-skeleton-medium.px-skeleton-medium { width: 11ch; }
+.px-skeleton-long.px-skeleton-long { width: 18ch; }
+
+/* The list's title and the end-of-list line, which take focus after a retry or the last page, (tabIndex -1) keep the
+   focus ring, drawn like ListItem's on a pseudo-element with room around the text instead of flush on it. */
+.px-skeleton-focus-target { position: relative; }
+.px-skeleton-focus-target:focus { outline: none; }
+.px-skeleton-focus-target:focus-visible::after {
+  position: absolute;
+  inset: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)) calc(-1 * var(--zen-spacing-padding-xsmall, 8px));
+  border-radius: var(--zen-corner-radius-small, 8px);
+  box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #ff66d4);
+  content: "";
+  pointer-events: none;
+}

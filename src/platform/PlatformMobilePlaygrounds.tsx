@@ -1,14 +1,17 @@
 import { useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { AlertBanner } from "../components/AlertBanner";
 import { Button } from "../components/Button";
 import { Search } from "../components/Search";
 import { Segmented } from "../components/Segmented";
 import { List, ListItem } from "../components/ListItem";
-import { Avatar } from "../components/Avatar";
+import { DockIcon } from "../components/DockIcon";
+import { Box } from "../components/Layout";
+import { EmptyState } from "../components/EmptyState";
 import { InputField } from "../components/Input";
 import { PlatformChatHeader } from "./PlatformChatHeader";
 import { TopNavigation, topNavigationTypes, type TopNavigationHeading, type TopNavigationMargin, type TopNavigationType } from "../components/TopNavigation";
 import { BottomNavigation, type BottomNavigationSelection, type BottomNavigationTheme, type BottomNavigationType } from "../components/BottomNavigation";
-import { BottomSheet, type BottomSheetSize, type BottomSheetType } from "../components/BottomSheet";
+import { BottomSheet, type BottomSheetItem, type BottomSheetSize, type BottomSheetType } from "../components/BottomSheet";
 import { ChatComposer, ChatFile, ChatMessage, ChatThread, ChatDateDivider, type ChatDomain, type ChatReplyTarget } from "../components/Chat";
 import { AiChatBlock, AiChatBubble, AiChatField, AiChatThread, type AiChatFieldStyle } from "../components/AiChat";
 import { ChartCard, LineChart, StackBarChart } from "../components/Chart";
@@ -20,7 +23,8 @@ import { headerActions, ThreadHeader } from "./PlatformChatDesktopShowcases";
 import { PlatformTypographyContext } from "./PlatformTemplate";
 import { bottomNavItems, budgetSeries, mobilePeople } from "./PlatformMobileData";
 import { PlatformPhoneMedia, platformMedia } from "./PlatformMedia";
-import { ComponentPreview, PlaygroundFilterChip, PlaygroundToggle } from "./PlatformExamples";
+// From the leaf, not PlatformExamples (which imports these playgrounds): that cycle made Vite reload the whole page.
+import { ComponentPreview, PlaygroundControls, PlaygroundFilterChip, PlaygroundSlot, PlaygroundToggle } from "./appLayer/playgroundParts";
 import { ChartReportPanel } from "./PlatformMobileShowcases";
 
 /* Playgrounds for the mobile / conversation / data-viz batch (Top & Bottom Navigation, Bottom Sheet, Chat, AI Chat, Chart). */
@@ -30,7 +34,7 @@ function Panel({ title, controls, children, code }: { title: string; controls: R
   return (
     <ComponentPreview className="platform-example-panel platform-example-panel--stack">
       <h2 className="platform-main-component__title">{title}</h2>
-      <div className="platform-playground-controls" aria-label={`${title} playground controls`}>{controls}</div>
+      <PlaygroundControls aria-label={`${title} playground controls`}>{controls}</PlaygroundControls>
       <div data-typography={previewTypography} className="platform-example-row platform-mobile-preview">{children}</div>
       <PlatformCode code={code} />
     </ComponentPreview>
@@ -39,20 +43,50 @@ function Panel({ title, controls, children, code }: { title: string; controls: R
 
 const option = (id: string, label = id) => ({ id, label });
 
-function ScreenList({ extra = [] }: { extra?: string[] }) {
+/** Long enough to scroll under a floating (blurring / glass / overlay) header. */
+const projects = ["Zen website", "Brand refresh", "Mobile app", "Docs platform", "Design tokens", "Icon library", "Marketing site", "Onboarding flow", "Help center", "Release notes", "Pricing page", "Analytics", "Email templates", "Partner portal"]
+  .map((title, index) => ({ title, pages: (index * 7) % 23 + 3, days: index + 1, theme: (["brown", "indigo", "green", "orange", "teal", "purple"] as const)[index % 6] }));
+type Project = (typeof projects)[number];
+type ProjectSort = "recent" | "name" | "pages";
+const projectOrder: Record<ProjectSort, (a: Project, b: Project) => number> = {
+  recent: (a, b) => a.days - b.days,
+  name: (a, b) => a.title.localeCompare(b.title),
+  pages: (a, b) => b.pages - a.pages,
+};
+const sortItems: BottomSheetItem[] = [
+  { id: "recent", label: "Most recent", icon: "icon-clock-line" },
+  { id: "name", label: "Name", icon: "icon-type-01-line" },
+  { id: "pages", label: "Most pages", icon: "icon-layers-three-01-line" },
+];
+
+function ScreenList({ extra = [], query = "", sort = "recent", onClearQuery }: { extra?: string[]; query?: string; sort?: ProjectSort; onClearQuery?: () => void }) {
   // Opening a project selects it (the rows are never locked, even in a playground). A project created from the header
-  // (extra, newest first) lands on top, opened.
+  // (extra, newest first) lands on top, opened. The header's Search filters the rows by name; a Sort sheet orders them.
   const [open, setOpen] = useState<string | null>(null);
   const newest = extra[0];
   useEffect(() => { if (newest) setOpen(newest); }, [newest]);
+  const q = query.trim().toLowerCase();
+  const created = extra.filter((title) => title.toLowerCase().includes(q));
+  const rows = projects.filter((project) => project.title.toLowerCase().includes(q)).sort(projectOrder[sort]);
+  if (!created.length && !rows.length) {
+    return (
+      <EmptyState illustration={false} headingLevel={2} title={`No projects match “${query.trim()}”`}
+        secondaryAction={onClearQuery ? { label: "Clear search", onClick: onClearQuery } : undefined}>
+        Try another name, such as Zen website.
+      </EmptyState>
+    );
+  }
+  // List-Item rows have no padding: the screen margin (lg, 20px) insets them and leaves room for the selected fill
+  // (12px outside the content); Padding/Small above keeps the first fill off the header.
   return (
-    <List aria-label="Recent projects">
-      {extra.map((title) => <ListItem key={title} title={title} caption="Created just now" leading={<Avatar size="medium" shape="square" theme="teal" alt={title} />} selected={open === title} onClick={() => setOpen(title)} />)}
-      {/* Long enough to scroll under a floating (blurring / glass / overlay) header. */}
-      {["Zen website", "Brand refresh", "Mobile app", "Docs platform", "Design tokens", "Icon library", "Marketing site", "Onboarding flow", "Help center", "Release notes", "Pricing page", "Analytics", "Email templates", "Partner portal"].map((title, index) => (
-        <ListItem key={title} title={title} caption={`${(index * 7) % 23 + 3} pages · updated ${index + 1}d ago`} leading={<Avatar size="medium" shape="square" theme={(["brown", "indigo", "green", "orange", "teal", "purple"] as const)[index % 6]} alt={title} />} selected={open === title} onClick={() => setOpen(title)} />
-      ))}
-    </List>
+    <Box paddingX="lg" paddingY="xs">
+      <List aria-label="Recent projects">
+        {created.map((title) => <ListItem key={title} title={title} caption="Created just now" leading={<DockIcon icon="icon-folder-line" theme="teal" background="subtle" />} selected={open === title} onClick={() => setOpen(title)} />)}
+        {rows.map((project) => (
+          <ListItem key={project.title} title={project.title} caption={`${project.pages} pages · updated ${project.days}d ago`} leading={<DockIcon icon="icon-folder-line" theme={project.theme} background="subtle" />} selected={open === project.title} onClick={() => setOpen(project.title)} />
+        ))}
+      </List>
+    </Box>
   );
 }
 
@@ -60,40 +94,73 @@ export function TopNavigationPlayground() {
   const [type, setType] = useState<string | undefined>("default");
   const [margin, setMargin] = useState<string | undefined>("comfortable");
   const [level, setLevel] = useState<string | undefined>("h1");
-  const [collapsed, setCollapsed] = useState(false);
+  // On scroll: the bar follows the phone screen (scrollRef); Expanded / Collapsed pin it by hand (collapsed).
+  const [collapse, setCollapse] = useState<string | undefined>("scroll");
+  const screenRef = useRef<HTMLDivElement>(null);
   const [control, setControl] = useState(false);
+  // Back makes this a pushed screen (the bar row sits above the large title); without it, it is a root, where the bar
+  // row folds into the large-title row (Figma Top-bar=false). Banner pins a status under the bar.
+  const [back, setBack] = useState(false);
+  const [banner, setBanner] = useState(false);
+  // Grouped trailing: a second trailing action (More) shares one pill with Notifications (`group`, Figma Nav-Action
+  // Trailing-Icon).
+  const [grouped, setGrouped] = useState(false);
+  const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
   const [dot, setDot] = useState(true);
   // Every action does something: Back reports where it goes, the bell clears its dot, + adds a project on top.
   const [note, setNote] = useState<string | null>(null);
   const [created, setCreated] = useState<string[]>([]);
   const t = (type ?? "default") as TopNavigationType;
   const overlay = t.endsWith("overlay");
+  // The compact types draw Flat actions, which never share a pill (Figma's Icon-Flat has no trailing icon): no Grouped
+  // trailing control there.
+  const flat = t.startsWith("compact");
+  const pair = grouped && !flat;
+  /** The Search action: back to the top, then into the field once the bar no longer folds it away (inert). */
+  const openSearch = () => {
+    if (collapse === "collapsed") setCollapse("expanded");
+    screenRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    const started = performance.now();
+    const focusWhenBack = () => {
+      const field = searchRef.current;
+      if (field && !field.closest("[inert]")) field.focus({ preventScroll: true });
+      else if (performance.now() - started < 1500) requestAnimationFrame(focusWhenBack);
+    };
+    requestAnimationFrame(focusWhenBack);
+  };
   return (
     <Panel title="Top Navigation / Mobile"
       controls={<>
         <PlaygroundFilterChip label="Type" value={type} onChange={(v) => setType(String(v) || undefined)} options={topNavigationTypes.map((id) => option(id))} />
         <PlaygroundFilterChip label="Margin" value={margin} onChange={(v) => setMargin(String(v) || undefined)} options={[option("comfortable", "Comfortable (20)"), option("compact", "Compact (16)")]} />
         <PlaygroundFilterChip label="Heading" value={level} onChange={(v) => setLevel(String(v) || undefined)} options={["h1", "h2", "h3"].map((id) => option(id, id.toUpperCase()))} />
-        <PlaygroundToggle label="Collapsed" selected={collapsed} onChange={setCollapsed} />
-        <PlaygroundToggle label="Control bar" selected={control} onChange={setControl} />
+        <PlaygroundFilterChip label="Collapse" value={collapse} onChange={(v) => setCollapse(String(v) || undefined)} options={[option("scroll", "On scroll"), option("expanded", "Expanded"), option("collapsed", "Collapsed")]} />
+        <PlaygroundToggle label="Control bar" selected={control} onChange={(on) => { setControl(on); if (!on) setQuery(""); }} />
         <PlaygroundToggle label="Noti dot" selected={dot} onChange={setDot} />
+        <PlaygroundToggle label="Back" selected={back} onChange={setBack} />
+        <PlaygroundToggle label="Banner" selected={banner} onChange={setBanner} />
+        {flat ? null : <PlaygroundToggle label="Grouped trailing" selected={grouped} onChange={setGrouped} />}
       </>}
       code={`import { TopNavigation } from "@zen/design-system";
 
 <TopNavigation${t !== "default" ? `\n  type="${t}"` : ""}${margin === "compact" ? `\n  margin="compact"` : ""}
   title="Projects"
-  largeTitle="Projects"${level !== "h1" ? `\n  headingLevel="${level}"` : ""}${collapsed ? "\n  collapsed" : ""}
-  leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }}
-  trailing={[{ icon: "icon-bell-01-line", label: "Notifications"${dot ? ", dot: true" : ""}, onClick: openNotifications }]}
-  largeTitleAction={{ icon: "icon-plus-line", label: "New project", onClick: createProject }}${control ? `\n  controlBar={<Search placeholder="Search projects" />}\n  searchAction={{ label: "Search projects", onClick: expandAndFocusSearch }}` : ""}
+  largeTitle="Projects"${level !== "h1" ? `\n  headingLevel="${level}"` : ""}${collapse === "collapsed" ? "\n  collapsed" : collapse === "expanded" ? "\n  collapsed={false}" : "\n  scrollRef={screenRef}"}${back ? `\n  leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: goBack }}` : ""}
+  trailing={[{ icon: "icon-bell-01-line", label: "Notifications"${dot ? ", dot: true" : ""}${pair ? `, group: "alerts"` : ""}, onClick: openNotifications }${pair ? `,\n    { icon: "icon-dots-horizontal-line", label: "More", group: "alerts", onClick: openProjectOptions }` : ""}]}
+  largeTitleAction={{ icon: "icon-plus-line", label: "New project", onClick: createProject }}${banner ? `\n  banner={<AlertBanner size="small" theme="negative">You're offline. Showing projects from 10:12 am.</AlertBanner>}` : ""}${control ? `\n  controlBar={<Search placeholder="Search projects" value={query} onValueChange={setQuery} />}\n  searchAction={{ label: "Search projects", onClick: scrollUpAndFocusSearch }}` : ""}
 />`}>
-      <PlatformPhone canvas={overlay ? "media" : t.includes("alt") || t === "liquid-glass" ? "alt" : "default"} statusBar={overlay ? "light" : "dark"} headerOverlay={t.includes("blurring") || t === "liquid-glass" || overlay}
-        header={<TopNavigation type={t} margin={(margin ?? "comfortable") as TopNavigationMargin} headingLevel={(level ?? "h1") as TopNavigationHeading} collapsed={collapsed}
-          title="Projects" largeTitle="Projects" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => setNote("Back returns to the previous screen.") }}
-          trailing={[{ icon: "icon-bell-01-line", label: "Notifications", dot, onClick: () => { setDot(false); setNote("Notifications opened; the dot clears."); } }]}
-          largeTitleAction={{ icon: "icon-plus-line", label: "New project", onClick: () => { setCreated((list) => [`New project ${list.length + 1}`, ...list]); setNote(null); } }} controlBar={control ? <Search placeholder="Search projects" /> : undefined}
-          searchAction={control ? { label: "Search projects", onClick: () => setCollapsed(false) } : undefined} />}>
-        {overlay ? <PlatformPhoneMedia photo={platformMedia.mountainRoad} /> : <ScreenList extra={created} />}
+      <PlatformPhone canvas={overlay ? "media" : t.includes("alt") || t === "liquid-glass" ? "alt" : "default"} statusBar={overlay ? "light" : "dark"} headerOverlay={collapse === "scroll" || t.includes("blurring") || t === "liquid-glass" || overlay} screenRef={screenRef}
+        header={<TopNavigation type={t} margin={(margin ?? "comfortable") as TopNavigationMargin} headingLevel={(level ?? "h1") as TopNavigationHeading}
+          scrollRef={collapse === "scroll" ? screenRef : undefined} collapsed={collapse === "scroll" ? undefined : collapse === "collapsed"}
+          title="Projects" largeTitle="Projects" leading={back ? { icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => setNote("Back returns to the previous screen.") } : undefined}
+          banner={banner ? <AlertBanner size="small" theme="negative">You're offline. Showing projects from 10:12 am.</AlertBanner> : undefined}
+          trailing={pair
+            ? [{ icon: "icon-bell-01-line", label: "Notifications", dot, group: "alerts", onClick: () => { setDot(false); setNote("Notifications opened; the dot clears."); } }, { icon: "icon-dots-horizontal-line", label: "More", group: "alerts", onClick: () => setNote("Project options opened.") }]
+            : [{ icon: "icon-bell-01-line", label: "Notifications", dot, onClick: () => { setDot(false); setNote("Notifications opened; the dot clears."); } }]}
+          largeTitleAction={{ icon: "icon-plus-line", label: "New project", onClick: () => { setCreated((list) => [`New project ${list.length + 1}`, ...list]); setNote(null); } }} controlBar={control ? <Search ref={searchRef} placeholder="Search projects" value={query} onValueChange={setQuery} /> : undefined}
+          searchAction={control ? { label: "Search projects", onClick: openSearch } : undefined} />}>
+        {overlay ? <PlatformPhoneMedia photo={platformMedia.mountainRoad} /> : <ScreenList extra={created} query={query} onClearQuery={() => { setQuery(""); searchRef.current?.focus(); }} />}
       </PlatformPhone>
       {note ? <p className={`pe-text pe-text--light ${typographyStyles["Body/Small/Regular"]}`} role="status">{note}</p> : null}
     </Panel>
@@ -111,6 +178,11 @@ export function BottomNavigationPlayground() {
   const [sheet, setSheet] = useState(false);
   const [draft, setDraft] = useState<string | null>(null);
   const t = (type ?? "default") as BottomNavigationType;
+  // Each tab is a root: its label is the large title, which folds as the list scrolls. Tapping the current tab again
+  // scrolls back to the top, so the large title opens again.
+  const screenRef = useRef<HTMLDivElement>(null);
+  const tabLabel = bottomNavItems.find((i) => i.id === value)?.label;
+  const pickTab = (id: string) => { if (id === value) screenRef.current?.scrollTo({ top: 0, behavior: "smooth" }); setValue(id); };
   return (
     <Panel title="Bottom Navigation / Mobile"
       controls={<>
@@ -130,10 +202,10 @@ export function BottomNavigationPlayground() {
     { id: "profile", label: "Profile", icon: "icon-user-circle-line" },
   ]}
   value={tab}
-  onValueChange={setTab}${action ? `\n  action={{ icon: "icon-plus-line", label: "New post", onClick: compose }}` : ""}
+  onValueChange={(id) => { if (id === tab) scrollToTop(); setTab(id); }}${action ? `\n  action={{ icon: "icon-plus-line", label: "New post", onClick: compose }}` : ""}
 />`}>
-      <PlatformPhone header={<TopNavigation type="compact" title={bottomNavItems.find((i) => i.id === value)?.label} />}
-        footer={<BottomNavigation type={t} theme={(theme ?? "neutral") as BottomNavigationTheme} selection={(selection ?? "surface") as BottomNavigationSelection} showLabels={labels} items={bottomNavItems} value={value} onValueChange={setValue} action={action ? { icon: "icon-plus-line", label: "New post", onClick: () => setSheet(true) } : undefined} />}>
+      <PlatformPhone headerOverlay screenRef={screenRef} header={<TopNavigation title={tabLabel} largeTitle={tabLabel} scrollRef={screenRef} />}
+        footer={<BottomNavigation type={t} theme={(theme ?? "neutral") as BottomNavigationTheme} selection={(selection ?? "surface") as BottomNavigationSelection} showLabels={labels} items={bottomNavItems} value={value} onValueChange={pickTab} action={action ? { icon: "icon-plus-line", label: "New post", onClick: () => setSheet(true) } : undefined} />}>
         <ScreenList />
         <BottomSheet inline open={sheet} onOpenChange={setSheet} type="action" title="Create" items={[{ id: "post", label: "Post", icon: "icon-edit-02-line" }, { id: "photo", label: "Photo", icon: "icon-camera-line" }, { id: "event", label: "Event", icon: "icon-calendar-line" }]} onSelect={(item) => setDraft(String(item.label))} />
       </PlatformPhone>
@@ -148,12 +220,17 @@ export function BottomSheetPlayground() {
   const [search, setSearch] = useState(false);
   const [vertical, setVertical] = useState(false);
   const [open, setOpen] = useState(false);
-  const [sort, setSort] = useState("recent");
+  const [sort, setSort] = useState<ProjectSort>("recent");
+  // The sheet's Search narrows its options; closing the sheet clears it.
+  const [query, setQuery] = useState("");
+  const openChange = (next: boolean) => { setOpen(next); if (!next) setQuery(""); };
   const t = (type ?? "modal") as BottomSheetType;
+  // The backdrop is the Projects root: its large title folds as the list scrolls under it.
+  const screenRef = useRef<HTMLDivElement>(null);
   return (
     <Panel title="Bottom Sheet"
       controls={<>
-        <PlaygroundFilterChip label="Type" value={type} onChange={(v) => { setType(String(v) || undefined); setOpen(false); }} options={[option("modal", "Modal"), option("action", "Action")]} />
+        <PlaygroundFilterChip label="Type" value={type} onChange={(v) => { setType(String(v) || undefined); openChange(false); }} options={[option("modal", "Modal"), option("action", "Action")]} />
         <PlaygroundFilterChip label="Size" value={size} onChange={(v) => setSize(String(v) || undefined)} options={[option("flex", "Flex"), option("max", "Max-Fixed")]} />
         <PlaygroundToggle label="Search" selected={search} onChange={setSearch} />
         {t === "modal" ? <PlaygroundToggle label="Vertical actions" selected={vertical} onChange={setVertical} /> : null}
@@ -163,29 +240,29 @@ export function BottomSheetPlayground() {
 <BottomSheet
   open={open}
   onOpenChange={setOpen}${t === "action" ? `\n  type="action"` : ""}${size === "max" ? `\n  size="max"` : ""}
-  title="${t === "action" ? "Sort by" : "Rename project"}"${search ? `\n  search={<Search placeholder="Search" />}` : ""}${t === "action" ? `
+  title="${t === "action" ? "Sort by" : "New project"}"${search ? `\n  search={<Search placeholder="Search" />}` : ""}${t === "action" ? `
   items={[
     { id: "recent", label: "Most recent", icon: "icon-clock-line" },
     { id: "name", label: "Name", icon: "icon-type-01-line" },
-    { id: "size", label: "File size", icon: "icon-database-01-line" },
+    { id: "pages", label: "Most pages", icon: "icon-layers-three-01-line" },
   ]}
   selectedId={sort}
   onSelect={(item) => setSort(item.id)}
 />` : `${vertical ? `\n  actionsDirection="vertical"` : ""}
-  primaryAction={{ label: "Save", onClick: save }}
+  primaryAction={{ label: "Create", onClick: create }}
   secondaryAction={{ label: "Cancel" }}
 >
-  <InputField label="Project name" defaultValue="Zen website" />
+  {/* Contents slot: your own content */}
 </BottomSheet>`}`}>
-      <PlatformPhone header={<TopNavigation type="compact" title="Zen website" trailing={[{ icon: "icon-dots-horizontal-line", label: "More", onClick: () => setOpen(true) }]} />}>
-        <div style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px)" }}><Button appearance="main" level="primary" size="lg" onClick={() => setOpen(true)}>{t === "action" ? "Sort files" : "Rename project"}</Button></div>
-        <ScreenList />
-        <BottomSheet inline open={open} onOpenChange={setOpen} type={t} size={(size ?? "flex") as BottomSheetSize} title={t === "action" ? "Sort by" : "Rename project"}
-          search={search ? <Search placeholder="Search" /> : undefined} actionsDirection={vertical ? "vertical" : "horizontal"}
-          items={[{ id: "recent", label: "Most recent", icon: "icon-clock-line" }, { id: "name", label: "Name", icon: "icon-type-01-line" }, { id: "size", label: "File size", icon: "icon-database-01-line" }]}
-          selectedId={sort} onSelect={(item) => setSort(item.id)}
-          primaryAction={{ label: "Save", onClick: () => setOpen(false) }} secondaryAction={{ label: "Cancel" }}>
-          <InputField label="Project name" defaultValue="Zen website" />
+      <PlatformPhone headerOverlay screenRef={screenRef} header={<TopNavigation title="Projects" largeTitle="Projects" scrollRef={screenRef} topBar={false} />}>
+        <div style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px)" }}><Button appearance="main" level="primary" size="lg" onClick={() => setOpen(true)}>{t === "action" ? "Sort projects" : "New project"}</Button></div>
+        <ScreenList sort={sort} />
+        <BottomSheet inline open={open} onOpenChange={openChange} type={t} size={(size ?? "flex") as BottomSheetSize} title={t === "action" ? "Sort by" : "New project"}
+          search={search ? <Search placeholder="Search" value={query} onValueChange={setQuery} /> : undefined} actionsDirection={vertical ? "vertical" : "horizontal"}
+          items={sortItems.filter((item) => String(item.label).toLowerCase().includes(query.trim().toLowerCase()))}
+          selectedId={sort} onSelect={(item) => setSort(item.id as ProjectSort)}
+          primaryAction={{ label: "Create", onClick: () => openChange(false) }} secondaryAction={{ label: "Cancel" }}>
+          <PlaygroundSlot name="Contents slot" />
         </BottomSheet>
       </PlatformPhone>
     </Panel>
@@ -255,7 +332,7 @@ export function ChatPlayground() {
           ? <div className="pe-chat-desktop pe-chat-desktop--single" data-domain={d}><section className="pe-chat-desktop__main" aria-label="Chat with Ava Chen"><ThreadHeader person={mobilePeople.ava} status="Active 2h ago" actions={headerActions} onAction={(label) => demo.say(`${label} · Ava Chen…`)} />{thread}{composer}</section></div>
           : <PlatformPhone canvas={d === "business" ? "canvas" : "default"} header={<PlatformChatHeader title="Ava Chen" subtitle="Active 2h ago" person={mobilePeople.ava} onAction={demo.headerAction} />} footer={composer}>{thread}</PlatformPhone>}
         {/* Desktop has no hold: the same actions sit in the Hover toolbar (right-click opens its More menu). */}
-        <ChatDemoNote note={device === "desktop" && demo.note.startsWith("Hold (or right-click)") ? "Hover a message for React · Reply · More, or right-click it." : demo.note} />
+        <ChatDemoNote note={demo.note} />
       </div>
     </Panel>
   );
@@ -364,6 +441,8 @@ export function ChartPlayground() {
   const reportTotal = kind === "stack"
     ? budget.reduce((sum, b) => sum + Object.values(b.values).reduce((all, v) => all + v, 0), 0) * 1000
     : quarters[range].reduce((sum, [, value]) => sum + value, 0);
+  // Only the line chart follows a range; the budget stack is always by quarter, so it shows no range switch.
+  const ranges = kind === "line" ? Object.keys(quarters).map((id) => ({ id, label: id })) : undefined;
   const chart = kind === "stack"
     ? <StackBarChart aria-label="Budget allocation by quarter" data={budget.map((b) => ({ ...b, values: Object.fromEntries(Object.entries(b.values).map(([k, v]) => [k, v * 1000])) }))} series={budgetSeries} format={money} />
     : <LineChart aria-label={`Expense trends, ${range.toLowerCase()}`} data={quarters[range].map(([label, value]) => ({ label, value }))} format={money} />;
@@ -377,19 +456,19 @@ export function ChartPlayground() {
 
 ${inCard ? `<ChartCard
   title="${kind === "stack" ? "Budget Allocation" : "Expense Trends"}"
-  onOpen={openReport}
+  onOpen={openReport}${kind === "stack" ? "" : `
   ranges={[{ id: "Quarterly", label: "Quarterly" }, { id: "Monthly", label: "Monthly" }, { id: "Weekly", label: "Weekly" }]}
   range={range}
-  onRangeChange={setRange}
+  onRangeChange={setRange}`}
 >
   ` : ""}${kind === "stack" ? `<StackBarChart aria-label="Budget allocation by quarter" data={quarters} series={departments} format={money} />` : `<LineChart aria-label="Expense trends" data={points} format={money} />`}${inCard ? "\n</ChartCard>" : ""}`}>
       <div className="platform-chart-preview">
         {inCard ? (
-          <ChartCard title={kind === "stack" ? "Budget Allocation" : "Expense Trends"} onOpen={() => setReport(true)} ranges={Object.keys(quarters).map((id) => ({ id, label: id }))} range={range} onRangeChange={(id) => setRange(id as keyof typeof quarters)}>
+          <ChartCard title={kind === "stack" ? "Budget Allocation" : "Expense Trends"} onOpen={() => setReport(true)} ranges={ranges} range={range} onRangeChange={(id) => setRange(id as keyof typeof quarters)}>
             {chart}
           </ChartCard>
         ) : (
-          <div className="platform-chart-preview__bare"><span className={typographyStyles["Heading/Subheading"]}>{kind === "stack" ? "Budget Allocation" : "Expense Trends"}</span><Segmented options={Object.keys(quarters).map((id) => ({ id, label: id }))} value={range} onChange={(id) => setRange(id as keyof typeof quarters)} aria-label="Range" />{chart}</div>
+          <div className="platform-chart-preview__bare"><span className={typographyStyles["Heading/Subheading"]}>{kind === "stack" ? "Budget Allocation" : "Expense Trends"}</span>{ranges ? <Segmented options={ranges} value={range} onChange={(id) => setRange(id as keyof typeof quarters)} aria-label="Range" /> : null}{chart}</div>
         )}
         <ChartReportPanel open={report} onOpenChange={setReport} title={kind === "stack" ? "Budget allocation report" : "Expense trends report"}
           description={kind === "stack" ? "This year's budget by department." : `${range} expenses.`} head={kind === "stack" ? ["Department", "Year total"] : ["Period", "Expenses"]} rows={reportRows} total={["Total", usd(reportTotal)]} />

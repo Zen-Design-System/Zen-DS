@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef, useState, type ChangeEvent, type InputHTMLAttributes, type MouseEvent, type ReactNode } from "react";
+import { forwardRef, useEffect, useRef, useState, type ButtonHTMLAttributes, type ChangeEvent, type InputHTMLAttributes, type MouseEvent, type ReactNode } from "react";
 import { Icon, type IconName } from "../Icon";
 import { useIconTooltip } from "../Tooltip";
 import { InputField, InputLeadingTrailing, type InputLeadingTrailingOption } from "../Input";
@@ -22,11 +22,10 @@ export type SearchTheme = (typeof searchThemes)[number];
 export type SearchState = (typeof searchStates)[number];
 export type SearchVariant = (typeof searchVariants)[number];
 
-/** Search has no Disabled state (like every Zen input); hide or omit it instead. */
-export interface SearchProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "size" | "disabled"> {
-  /** `popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, and a 1px
-   * Input/Border stroke in every state with no focus ring, so the border shows only in component
-   * themes with a visible input border (Neutral S4). `size` is ignored. */
+export interface SearchProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "size"> {
+  /** `popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, no focus ring. Its border is
+   * Input/Border/Default (Hover: Input/Border/Hover), visible only in outlined component themes (Neutral S4, S6);
+   * Focused/Typing use Input/Border/Popover-Search, visible only in Neutral S7. `size` is ignored. */
   variant?: SearchVariant;
   /** Short (sm, md…) or Figma (small, medium…) spelling. */
   size?: SearchSize;
@@ -52,12 +51,22 @@ export interface SearchProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
   filterInteractive?: boolean;
   /** Action for the filter affordance (e.g. open a filter panel or your own menu). */
   onFilterClick?: (event: MouseEvent<HTMLButtonElement>) => void;
+  /** `aria-haspopup` of the filter affordance when `onFilterClick` opens your own surface: `"dialog"` for a Bottom Sheet,
+   *  Side Panel or Modal, `"menu"` or `"listbox"` for a menu or Popover list. Filter-Dropdown with `filterOptions`
+   *  manages its own listbox and ignores it. (`aria-haspopup` on Search itself goes to the input.) */
+  filterHasPopup?: ButtonHTMLAttributes<HTMLButtonElement>["aria-haspopup"];
+  /** `aria-expanded` of that filter affordance: whether the surface it opens is open now. Pair it with `filterHasPopup`. */
+  filterExpanded?: boolean;
   /** Filter-Dropdown picker: options open the shared Popover and replace `filterLabel` with the selected label. */
   filterOptions?: InputLeadingTrailingOption[];
   filterValue?: string;
   onFilterChange?: (value: string, option: InputLeadingTrailingOption) => void;
   /** Accessible name / Popover heading for the filter affordance. Default: the locale's "Filter". */
   filterActionLabel?: string;
+  /** Search/Default is a `.Primitives/Input/Field-Only` instance, so Disabled is Field-Only State=Disabled
+   * (Input/Border/Disabled, Content/Disabled text) with its Leading/Trailing at Active=No. The clear button and the
+   * shortcut hint are hidden and the filter is locked. Use it when searching is unavailable for a reason the page shows. */
+  disabled?: boolean;
   /** Keyboard shortcut key shown as `⌘K` in the trailing slot (Figma Side-Bar Small-Density search); pressing
    * ⌘/Ctrl + key focuses the field. Hidden while the field has a value (the clear button takes the slot). */
   shortcut?: string;
@@ -79,12 +88,15 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
     filterLabel: filterLabelProp,
     filterInteractive = true,
     onFilterClick,
+    filterHasPopup,
+    filterExpanded,
     filterOptions,
     filterValue,
     onFilterChange,
     filterActionLabel: filterActionLabelProp,
     shortcut,
     onClear,
+    disabled = false,
     className,
     placeholder: placeholderProp,
     value,
@@ -106,7 +118,7 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
     else if (ref) ref.current = node;
   };
   useEffect(() => {
-    if (!shortcut) return undefined;
+    if (!shortcut || disabled) return undefined;
     const onKey = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === shortcut.toLowerCase()) {
         event.preventDefault();
@@ -115,7 +127,7 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [shortcut]);
+  }, [shortcut, disabled]);
   const controlled = value !== undefined;
   const [internalValue, setInternalValue] = useState(() => String(defaultValue ?? ""));
   const resolvedState = state;
@@ -128,6 +140,9 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
     onValueChange?.(event.target.value);
   };
   const handleClear = () => {
+    // The clear button unmounts once the field is empty: keep focus in the field instead of letting it fall to <body>.
+    // Focus moves first, so an onClear that sends focus elsewhere still wins.
+    innerRef.current?.focus();
     if (!controlled) setInternalValue("");
     onClear?.();
     if (controlled && onChange) {
@@ -135,8 +150,9 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
     }
     onValueChange?.("");
   };
-  const clearTip = useIconTooltip(clearable && hasValue ? t.clearSearch : false);
-  const clearContent = clearable && hasValue ? (
+  const showClear = clearable && hasValue && !disabled;
+  const clearTip = useIconTooltip(showClear ? t.clearSearch : false);
+  const clearContent = showClear ? (
     <button className="zen-search__clear" type="button" aria-label={t.clearSearch} {...clearTip.bind({ onClick: handleClear })}>
       <Icon name="icon-x-circle-solid" size={size === "medium" ? "base" : "sm"} decorative />
       {clearTip.tooltip}
@@ -144,13 +160,13 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
   ) : null;
   // Filter affordances reuse Input's Leading/Trailing primitive, so they click, hover and focus like Input slots.
   const themeTrailing = theme === "filter-icon"
-    ? <InputLeadingTrailing size={size} icon={<Icon name="icon-settings-03-line" decorative />} interactive={filterInteractive} onClick={onFilterClick} aria-label={filterActionLabel} />
+    ? <InputLeadingTrailing size={size} icon={<Icon name="icon-settings-03-line" decorative />} interactive={filterInteractive} onClick={onFilterClick} aria-label={filterActionLabel} aria-haspopup={filterHasPopup} aria-expanded={filterExpanded} />
     : theme === "filter-dropdown"
       ? <InputLeadingTrailing size={size} label={filterLabel} dropdown interactive={filterInteractive} onClick={onFilterClick}
-          options={filterOptions} value={filterValue} onValueChange={onFilterChange} popoverLabel={filterActionLabel}
+          options={filterOptions} value={filterValue} onValueChange={onFilterChange} popoverLabel={filterActionLabel} aria-haspopup={filterHasPopup} aria-expanded={filterExpanded}
           aria-label={filterOptions?.length ? undefined : `${filterActionLabel}: ${typeof filterLabel === "string" ? filterLabel : ""}`.replace(/: $/, "")} />
       : null;
-  const shortcutContent = shortcut && !hasValue ? (
+  const shortcutContent = shortcut && !hasValue && !disabled ? (
     <span className="zen-search__shortcut" aria-hidden="true"><Icon name="icon-command-line" decorative /><span>{shortcut.toUpperCase()}</span></span>
   ) : null;
   const trailingContent = renderIcon(trailing, { size: "sm" }) ?? (clearContent || themeTrailing || shortcutContent ? (
@@ -164,7 +180,8 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
       onChange={handleChange}
       ref={setRef}
       type="search"
-      aria-keyshortcuts={shortcut ? `Meta+${shortcut.toUpperCase()} Control+${shortcut.toUpperCase()}` : inputProps["aria-keyshortcuts"]}
+      disabled={disabled}
+      aria-keyshortcuts={shortcut && !disabled ? `Meta+${shortcut.toUpperCase()} Control+${shortcut.toUpperCase()}` : inputProps["aria-keyshortcuts"]}
       className={["zen-search", variant === "popover" ? "zen-search--popover" : "", className].filter(Boolean).join(" ")}
       size={size}
       state={resolvedState}

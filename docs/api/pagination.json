@@ -6,7 +6,7 @@
     {
       "name": "Pagination",
       "file": "src/components/Pagination/Pagination.tsx",
-      "description": "Figma Pagination (774:29083). Button/Icon-Main XSmall Tertiary ‹ › (icon-chevron-*-line-small) around the\ncontent, Spacing/Gap/Medium between groups; Pages gap Spacing/Gap/2XSmall; Inline/Manually navigator gap XSmall.",
+      "description": "Figma Pagination (774:29083). Button/Icon-Main XSmall Tertiary ‹ › (icon-chevron-*-line-small) around the\ncontent, Spacing/Gap/Medium between groups; Pages gap Spacing/Gap/2XSmall; Inline/Manually navigator gap XSmall.\nThe arrows follow `size` (Figma draws XSmall only): XSmall items (24, Select-Item/Size/Small) keep Icon-Main XSmall\n(Button/Size/XSmall), Small items (32, Select-Item/Size/Medium) take Icon-Main Small (Button/Size/Small), so the\narrows always match the items in both densities.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -87,7 +87,7 @@
           "type": "\"xs\" | \"sm\" | \"xsmall\" | \"small\"",
           "required": false,
           "default": "\"xs\"",
-          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "description": "Page items and the ‹ › arrows: xs = 24px (Figma) · sm = 32px. Short (xs, sm) or Figma (xsmall, small) spelling.",
           "deprecated": null
         },
         {

@@ -104,12 +104,16 @@ const TABLET_MIN_WIDTH = 744;
 const SIDE_PANEL_DEFAULT_WIDTH = 440;
 const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-/** An element's border-box size on one axis, kept current by a ResizeObserver: 0 without the element; a hidden element keeps the last size. */
+/**
+ * An element's border-box size on one axis in CSS px, kept current by a ResizeObserver: 0 without the element; a hidden
+ * element keeps the last size. The layout size (offsetWidth), not the rendered one: inside a scaled preview (a CSS
+ * transform, such as a zoomed design canvas) the shell still lays out at its own width and must pick the same layout.
+ */
 function useElementSize(element: HTMLElement | null, axis: "width" | "height"): number {
   const [size, setSize] = useState(0);
   useIsomorphicLayoutEffect(() => {
     if (!element) { setSize(0); return undefined; }
-    const read = () => { const rect = element.getBoundingClientRect(); const value = Math.round(axis === "width" ? rect.width : rect.height); if (value > 0) setSize(value); };
+    const read = () => { const value = axis === "width" ? element.offsetWidth : element.offsetHeight; if (value > 0) setSize(value); };
     read();
     if (typeof ResizeObserver === "undefined") return undefined;
     const observer = new ResizeObserver(read);
@@ -139,12 +143,14 @@ function useStackedHeader(header: HTMLElement | null, content: HTMLElement | nul
     const room = header.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
     if (room <= 0) return;
     const leadingGap = content.parentElement ? parseFloat(getComputedStyle(content.parentElement).columnGap) || 0 : 0;
-    const toggleWidth = toggle?.getBoundingClientRect().width ?? 0;
-    const actionsWidth = actions?.getBoundingClientRect().width ?? 0;
+    // Rendered widths ÷ the scale the top bar is drawn at (a CSS transform around the shell): CSS px, as `room` is.
+    const scale = header.offsetWidth > 0 ? header.getBoundingClientRect().width / header.offsetWidth || 1 : 1;
+    const toggleWidth = (toggle?.getBoundingClientRect().width ?? 0) / scale;
+    const actionsWidth = (actions?.getBoundingClientRect().width ?? 0) / scale;
     // The content's one-line width: measured at max-content for a moment (no paint happens in between).
     const { flex, width } = content.style;
     content.style.flex = "none"; content.style.width = "max-content";
-    const natural = content.getBoundingClientRect().width;
+    const natural = content.getBoundingClientRect().width / scale;
     content.style.flex = flex; content.style.width = width;
     const needed = natural + (toggleWidth ? toggleWidth + leadingGap : 0) + (actionsWidth ? actionsWidth + (parseFloat(style.columnGap) || 0) : 0);
     setStacked(needed > room + 0.5);

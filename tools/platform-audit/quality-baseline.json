@@ -1,7 +1,7 @@
 {
-  "generated": "2026-09-29T19:15:54.034Z",
+  "generated": "2026-10-03T08:38:58.513Z",
   "note": "Pre-existing Build-QA findings (audit.mjs --quality/--density). New findings fail; fix these when you touch the page, then re-run with --baseline-update.",
-  "total": 95,
+  "total": 97,
   "keys": {
     "sidebar@1512|scale|Variant=small-density: Patterns/Sidebar: \"Kaiz\" (span.zen-sidebar__default-brand-product) is 10/13.3333 — no Zen text style; nearest caption-bold 11/16 or label-small-bold 9/12": 1,
     "sidebar@390|scale|Variant=small-density: Patterns/Sidebar: \"Kaiz\" (span.zen-sidebar__default-brand-product) is 10/13.3333 — no Zen text style; nearest caption-bold 11/16 or label-small-bold 9/12": 1,
@@ -97,6 +97,8 @@
     "sidebar@1512-dark|outline-start|Collapsed rail + flyout: the outline starts at h4 \"Inbox\" — a page or screen starts at its h1 title and steps down from it": 1,
     "menu@1512-dark|rhythm|Composed items: title \"My files\" and \"Launch plan.docx\" share body-base-bold/600 in the same tone — the title does not stand out (use the title style, or Base tone / a smaller style for the description)": 1,
     "description-list@1512-dark|rhythm|Long values, one row, narrow: title \"Balance\" and \"Available credit\" share body-base-bold/600 in the same tone — the title does not stand out (use the title style, or Base tone / a smaller style for the description)": 1,
-    "templates@1512-dark|rhythm|Dashboard: 9 text styles in one example (heading-4, body-small-medium, heading-1, body-base-regular, display-4, heading-subheading, body-base-bold, body-small-regular, caption-regular) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1
+    "templates@1512-dark|rhythm|Dashboard: 9 text styles in one example (heading-4, body-small-medium, heading-1, body-base-regular, display-4, heading-subheading, body-base-bold, body-small-regular, caption-regular) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "card@1512|rhythm|Spacing=small: Card: div.zen-card top-left corner 16px vs inner div.platform-slot 12px + inset 16px — nested corners are concentric (outer = inner + inset = 28px)": 1,
+    "card@390|rhythm|Spacing=small: Card: div.zen-card top-left corner 16px vs inner div.platform-slot 12px + inset 16px — nested corners are concentric (outer = inner + inset = 28px)": 1
   }
 }

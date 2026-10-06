@@ -1,0 +1,22 @@
+/* Tooltip examples (pages/tooltip.tsx). Tokens only. */
+.px-tooltip-fill { width: 100%; min-width: 0; box-sizing: border-box; }
+
+/* Photo review: the zoom level keeps its width so the buttons don't shift; the viewer scrolls when zoomed in. */
+.px-tooltip-zoom { min-width: 5ch; text-align: center; font-variant-numeric: tabular-nums; }
+.px-tooltip-viewer {
+  height: 240px;
+  overflow: auto;
+  border-radius: var(--zen-corner-radius-large);
+  background: var(--zen-color-background-surface-alt);
+}
+
+/* Payment link: the field takes the row, the copy button keeps its size. */
+.px-tooltip-grow { flex: 1 1 auto; min-width: 0; }
+
+/* Long file names: the tooltip anchor is as wide as the row allows; the link inside it ends in an ellipsis. */
+.px-tooltip-name { max-width: 100%; min-width: 0; align-self: flex-start; }
+.px-tooltip-name__link { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Brand film: the video carries the radius itself, so nothing clips the tooltips above the controls. The controls are a
+   Stack pinned with position="absolute" (Center / Bottom, insetBottom="sm"). */
+.px-tooltip-film__video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--zen-corner-radius-large); background: var(--zen-color-background-surface-alt); }

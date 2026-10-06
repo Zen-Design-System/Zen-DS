@@ -23,7 +23,7 @@ Switch between 2–5 mutually exclusive views or sections of the same content.
 | Value | `value / defaultValue / onValueChange(id)` | controlled or not (onChange is the deprecated alias) |
 | Item | `options[] {id, label, leading, badge, disabled}` | icon, label or both; Badge-Counter |
 | Disabled | `disabled` | whole control |
-| Icon-only item | `options[] {id, label: null, "aria-label", leading}` | the option's aria-label names the segment |
+| Icon-only item | `options[] {id, label: null, "aria-label", leading}` | the option's aria-label names the segment and shows as its name tooltip after 1s of hover (at once on keyboard focus), like IconButton |
 | Full width | `fullWidth` | fills the container; items share it equally and labels ellipsize (automatic inside a Top Navigation control bar) |
 | Overflow | `—` | code only (the Figma container hugs and clips): in a container narrower than its options, e.g. a phone, the control scrolls sideways like Tabs; items keep their width and the selected segment scrolls into view |
 
@@ -31,6 +31,8 @@ Switch between 2–5 mutually exclusive views or sections of the same content.
 Generated from the TypeScript source; full JSON in `docs/api/segmented.json`.
 
 ### Segmented
+Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a Neutral/Subtle pill track (Spacing/Padding/ 2XSmall) of toggle segments, Secondary (default) or Primary, Small or Medium. An icon-only segment (Item Label=false: `label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.
+
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `options` | `SegmentedOption[]` | — |  |
@@ -47,6 +49,8 @@ Generated from the TypeScript source; full JSON in `docs/api/segmented.json`.
 | `aria-label` | `string` | — | Names the group (default "Segmented control", from the locale's labels). |
 
 ### SegmentedItem
+One `Primitives/Segmented/Item` (1204:11690). Without a visible label, its `aria-label` shows as the 1s name tooltip.
+
 Also accepts `ButtonHTMLAttributes<HTMLButtonElement>`.
 
 | Prop | Type | Default | Description |
@@ -73,6 +77,7 @@ type SegmentedState = "default" | "hover" | "focused" | "disabled"
 | Enter / Space | Select the focused segment |
 
 ## ✅ Do
+- Use size medium (the default) on desktop and on phones; small only inside a genuinely narrow component space (a dense card header or table toolbar), never just to save room on a page.
 - Keep the default level (Secondary), the most common case; set level="primary" only when the switch needs extra emphasis (e.g. a billing-period toggle).
 - Name the control with aria-label.
 - Keep labels to one or two words; icon-only items still need a label for assistive tech.
@@ -81,17 +86,18 @@ type SegmentedState = "default" | "hover" | "focused" | "disabled"
 - Keep 2–5 options (harness: segmented/option-count).
 - Name icon-only segments with "aria-label" on the option and mark the icon decorative (harness: segmented/icon-only-needs-name).
 - On mobile, stretch a Segmented to its container (fullWidth) in a Top Navigation control bar, a Bottom Sheet or a narrow panel, so the items share the width equally (harness: segmented/control-bar-full-width).
-- Elsewhere on a phone, keep the full labels and let a Segmented that outgrows the width scroll sideways; it does so on its own, like Tabs, and keeps the selected segment in view. Use fullWidth only when every label fits its equal share.
+- On a phone, use a Segmented only when every label fits its equal share (fullWidth). When the options are wider than the screen (four periods, long labels), switch to a single-choice row of Normal Chips (Medium, the pressed one Primary) that scrolls sideways, not a sliding Segmented.
 
 ## ❌ Don't
 - Don't use Segmented as a filter.
-- Don't abbreviate labels or shrink the text to squeeze a Segmented onto a phone; past 5 options or long labels, switch to Tabs or SelectField.
+- Don't abbreviate labels or shrink the text to squeeze a Segmented onto a phone, and don't let it slide sideways there; use a Chip row instead (or Tabs / SelectField past 5 options).
 - Don't mix icon-only and labelled items in one control.
 - Don't add a hover or pressed state to the selected segment; it suggests the choice can be undone by clicking it again.
 
 ## Accessibility
 - A labelled group of toggle buttons (aria-pressed); Tab moves between segments, Enter/Space selects.
 - When the control scrolls, focusing a segment brings it into view; no scrollbar is drawn, as in Tabs.
+- Icon-only segments show their name as a tooltip after 1s of hover and at once on keyboard focus (Zen icon-only rule).
 
 ## Content
 - Nouns for sections, no verbs.

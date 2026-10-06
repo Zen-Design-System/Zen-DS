@@ -11,10 +11,10 @@ import { Menu } from "../components/Menu";
 import { Checkbox, type CheckboxSide } from "../components/Checkbox";
 import { RadioButton, type RadioSide } from "../components/RadioButton";
 import { Badge, BadgeCounter, badgeThemes, type BadgeBackground, type BadgeSize, type BadgeTheme } from "../components/Badge";
-import { Toggle, ToggleButton, type ToggleSize, type ToggleTheme } from "../components/Toggle";
+import { Toggle, type ToggleSize, type ToggleTheme } from "../components/Toggle";
 import type { PopoverItemData } from "../components/Popover";
 import { Tag, type TagTheme } from "../components/Tag";
-import { DatePicker } from "../components/DatePicker";
+import { DatePicker, type DatePickerDevice, type DatePickerTime } from "../components/DatePicker";
 import { Tooltip, tooltipColors, type TooltipColor, type TooltipPlacement, type TooltipSize } from "../components/Tooltip";
 import { Tabs, TabPanel, type TabSize, type TabVariant } from "../components/Tabs";
 import { Breadcrumbs, type BreadcrumbEmphasis } from "../components/Breadcrumbs";
@@ -28,7 +28,7 @@ import { Stepper, type StepperOrientation } from "../components/Stepper";
 import { Slider, sliderSizes, sliderThemes, type SliderSize, type SliderTheme } from "../components/Slider";
 import { Card, cardSpacings, cardThemes, type CardSpacing, type CardTheme } from "../components/Card";
 import { DockIcon, dockIconSizes, dockIconThemes, type DockIconBackground, type DockIconSize, type DockIconTheme } from "../components/DockIcon";
-import { List, ListItem, type ListInset } from "../components/ListItem";
+import { List, ListBox, ListItem, listBoxThemes, type ListBoxTheme } from "../components/ListItem";
 import { Table, TableActions, TableBadges, TableMedia, TableTags, TableText, TableTrend, type TableSort } from "../components/Table";
 import { VisuallyHidden } from "../components/VisuallyHidden";
 import { NpsScale, OpinionScale, Rating, RatingDisplay, ratingSizes, ratingThemes, type RatingSize, type RatingTheme } from "../components/Rating";
@@ -57,7 +57,11 @@ import { figmaSidebarBrand } from "./PlatformSidebarBrand";
 import { appLayerPages } from "./PlatformAppLayer";
 import { TypographyHierarchyRules } from "./PlatformTypographyHierarchy";
 import type { AppLayerPage } from "./appLayer/types";
-import { ComponentExamples, PopoverBulkSelectionDemo, popoverContentKinds, popoverContentSet, type PopoverContentKind } from "./PlatformShowcases";
+import { useStudioBridge } from "./studio/bridge";
+import { ComponentPreview, PlaygroundControls, PlaygroundFilterChip, PlaygroundSlot, PlaygroundToggle } from "./appLayer/playgroundParts";
+export { ComponentPreview, PlaygroundControls, PlaygroundFilterChip, PlaygroundSlot, PlaygroundToggle } from "./appLayer/playgroundParts";
+import { ComponentExamples, PopoverBulkSelectionDemo } from "./PlatformShowcases";
+import { popoverContentKinds, popoverContentSet, type PopoverContentKind } from "./PlatformPopoverContent";
 
 const samplePhoto = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#d9c7b8"/><circle cx="16" cy="13" r="6" fill="#8f735f"/><rect x="6" y="21" width="20" height="14" rx="7" fill="#8f735f"/></svg>');
 
@@ -67,8 +71,12 @@ export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typ
  * Figma Component-Page-Template (Codebase Platform 14260:96953): the content column (Playground, Examples,
  * Keyboard, API, Guidelines) with the sticky "On this page" bookmarks beside it.
  */
+// zen-studio-chrome: docs chrome, not a selectable layer in Zen Studio (tools/studio skips its JSX).
 function ExamplePage({ eyebrow, title, description, titleLines, page, children }: { eyebrow: string; title: string; description: string; titleLines?: string[]; page?: PlatformPage; children: ReactNode }) {
   const contentRef = useRef<HTMLDivElement>(null);
+  const studio = useStudioBridge();
+  // Zen Studio (the canvas tool) lays a component page out as frames: playground, examples, docs.
+  if (studio && page) return <>{studio.renderComponentPage({ page, eyebrow, title, description, playground: children })}</>;
   return (
     <PlatformPageTemplate title={title} eyebrow={eyebrow} titleLines={titleLines} description={description}>
       {page ? (
@@ -88,11 +96,6 @@ function ExamplePage({ eyebrow, title, description, titleLines, page, children }
   );
 }
 
-/** Keep component previews on the same Figma token mode as the platform shell. */
-export function ComponentPreview({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`platform-component-preview ${className}`.trim()}>{children}</div>;
-}
-
 /** Only production field compositions are selectable in the platform page.
  * Figma primitive owners remain nested implementation details, not previews. */
 const inputPlaygroundKinds = ["text", "field-only", "textarea", "select", "date", "autocomplete", "number-left", "number-center", "richtext", "heading", "conditions", "label", "help-text"] as const;
@@ -103,72 +106,6 @@ const passwordRules = [
   { label: "Contains a digit (0-9)", test: (value: string) => /\d/.test(value) },
   { label: "Contains a special character", test: (value: string) => /[^A-Za-z0-9]/.test(value) },
 ];
-
-type PlaygroundOption = { id: string; label: string };
-
-/** Platform composition for choosing one documented axis without rendering a
- * wall of variants. Single-value axes use the Figma Input/Select-Field owner;
- * multiple-choice axes reuse the production Advanced Chip + Popover owners. */
-export function PlaygroundFilterChip({
-  label,
-  value,
-  options,
-  onChange,
-  multiple = false,
-}: {
-  label: string;
-  value: string | string[] | undefined;
-  options: PlaygroundOption[];
-  onChange: (value: string | string[]) => void;
-  multiple?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const selectedIds = Array.isArray(value) ? value : value ? [value] : [];
-  const selected = selectedIds.length > 0;
-  const selectedLabel = options.find((option) => option.id === selectedIds[0])?.label;
-  const displayLabel = multiple ? label : selectedLabel ?? label;
-  if (!multiple) {
-    return <div className="platform-property-row" data-kind="select">
-      <span className="platform-property-row__label">{label}</span>
-      <SelectField
-        aria-label={label}
-        className="platform-property-row__control"
-        size="small"
-        value={selectedIds[0] ?? options[0]?.id ?? ""}
-        onChange={(event) => onChange(event.target.value)}
-        options={options.map((option) => ({ value: option.id, label: option.label }))}
-      />
-    </div>;
-  }
-  return <div className="platform-property-row" data-kind="select">
-    <span className="platform-property-row__label">{label}</span>
-    <span className="platform-property-row__chip">
-      <Chip
-        variant="advanced"
-        size="small"
-        selectionMode="multiple"
-        selectionCount={selectedIds.length}
-        select={selected}
-        dropdown
-        popoverOpen={open}
-        onPopoverOpenChange={setOpen}
-        popoverMultiple
-        popoverItems={options.map((option) => ({ ...option, selected: selectedIds.includes(option.id) }))}
-        onPopoverSelect={(option) => onChange(selectedIds.includes(option.id) ? selectedIds.filter((id) => id !== option.id) : [...selectedIds, option.id])}
-        onClearSelection={selected ? () => { setOpen(false); onChange([]); } : undefined}
-      >
-        {displayLabel}
-      </Chip>
-    </span>
-  </div>;
-}
-
-export function PlaygroundToggle({ label, selected, onChange }: { label: string; selected: boolean; onChange: (selected: boolean) => void }) {
-  return <div className="platform-property-row" data-kind="boolean">
-    <span className="platform-property-row__label">{label}</span>
-    <ToggleButton aria-label={label} selected={selected} onSelectedChange={onChange} size="medium" />
-  </div>;
-}
 
 function ButtonSetPlayground({ title, appearance, iconOnly, levels, sizes }: { title: string; appearance: ButtonAppearance; iconOnly?: boolean; levels: readonly ButtonLevel[]; sizes: readonly ButtonSize[] }) {
   const previewTypography = useContext(PlatformTypographyContext);
@@ -210,13 +147,13 @@ import { Icon } from "@zen/design-system";
     <section className="platform-component-section" aria-labelledby={headingId}>
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title" id={headingId}>{title}</h2>
-        <div className="platform-playground-controls" aria-label={`${title} playground controls`}>
+        <PlaygroundControls aria-label={`${title} playground controls`}>
           <PlaygroundFilterChip label="Level" value={level} onChange={(value) => setLevel(String(value) as ButtonLevel)} options={levels.map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Size" value={size} onChange={(value) => setSize(String(value) as ButtonSize)} options={sizes.map((id) => ({ id, label: id.toUpperCase() }))} />
           <PlaygroundToggle label="Disabled" selected={disabled} onChange={setDisabled} />
           {!iconOnly ? <PlaygroundToggle label="Leading Icon" selected={leading} onChange={setLeading} /> : null}
           {!iconOnly ? <PlaygroundToggle label="Trailing Icon" selected={trailing} onChange={setTrailing} /> : null}
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className={`platform-example-row${appearance === "overlay" ? " platform-example-row--overlay" : ""}`}>
           {iconOnly ? (
             // zen-allow-no-action: the playground specimen is the component being configured, not an action.
@@ -252,8 +189,9 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [inputKind, setInputKind] = useState<string | undefined>("text");
   const [inputSize, setInputSize] = useState<string | undefined>("medium");
   const [conditionsPassword, setConditionsPassword] = useState("Zen2026");
-  // Zen inputs, Search included, have no Disabled state (inputs use Read-only).
+  // Read-only and Disabled are exclusive; Disabled only on the kinds Figma gives State=Disabled (Field-Only 374:103464).
   const [inputReadOnly, setInputReadOnly] = useState(false);
+  const [inputDisabled, setInputDisabled] = useState(false);
   const [inputHeadingSize, setInputHeadingSize] = useState<string | undefined>("h2");
   const [inputHeadingMultiline, setInputHeadingMultiline] = useState(false);
   const [inputRichBar, setInputRichBar] = useState(true);
@@ -283,6 +221,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [searchIcon, setSearchIcon] = useState<string | undefined>("yes");
   const [searchValue, setSearchValue] = useState("");
   const [searchFilterClickable, setSearchFilterClickable] = useState(true);
+  const [searchDisabled, setSearchDisabled] = useState(false);
   const [searchFilter, setSearchFilter] = useState("all");
   const [segmentedLevel, setSegmentedLevel] = useState<string | undefined>("secondary");
   const [segmentedFull, setSegmentedFull] = useState(false);
@@ -332,7 +271,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [sidebarSelected, setSidebarSelected] = useState("dashboard");
   const [sidebarNewProjects, setSidebarNewProjects] = useState<string[]>([]);
   const [sidebarNewWorkspaces, setSidebarNewWorkspaces] = useState<string[]>([]);
-  const [popoverOpen, setPopoverOpen] = useState(true);
+  const [popoverOpen, setPopoverOpen] = useState(false);
   const [popoverTrigger, setPopoverTrigger] = useState<string | undefined>("chip");
   const [popoverBulkHistory, setPopoverBulkHistory] = useState(true);
   const [popoverBulkDelete, setPopoverBulkDelete] = useState(true);
@@ -344,6 +283,32 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [popoverCaption, setPopoverCaption] = useState(false);
   const [popoverCreateOn, setPopoverCreateOn] = useState(false);
   const [popoverCreated, setPopoverCreated] = useState<string[]>([]);
+  // The playground's surface opens by itself the first time its trigger is in view with room below it (opened at page
+  // load it would sit over the intro and move on the way down). A press on the playground controls leaves it open, and
+  // every control change opens it, so each change shows on the open surface.
+  const popoverStageRef = useRef<HTMLDivElement>(null);
+  const popoverControlPress = useRef(false);
+  useEffect(() => {
+    setPopoverOpen(false);
+    const stage = popoverStageRef.current;
+    if (page !== "popover" || !stage || typeof IntersectionObserver === "undefined") return undefined;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      observer.disconnect();
+      setPopoverOpen(true);
+    }, { rootMargin: "0px 0px -300px 0px" });
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, [page]);
+  const holdPopoverOpen = () => {
+    popoverControlPress.current = true;
+    requestAnimationFrame(() => { popoverControlPress.current = false; });
+  };
+  const changePopoverOpen = (open: boolean) => {
+    if (!open && popoverControlPress.current) return;
+    setPopoverOpen(open);
+    if (!open) setPopoverSearch("");
+  };
   const [tagTheme, setTagTheme] = useState<string | undefined>("text-only");
   const [tagRemove, setTagRemove] = useState(true);
   const [tagRemoved, setTagRemoved] = useState(false);
@@ -353,8 +318,11 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [dateCalendar, setDateCalendar] = useState<string | undefined>("single");
   const [dateActions, setDateActions] = useState<string | undefined>("none");
   const [datePast, setDatePast] = useState(false);
+  const [dateDevice, setDateDevice] = useState<string | undefined>("desktop");
   const [dateValue, setDateValue] = useState<Date | null>(null);
   const [dateRange, setDateRange] = useState<{ start: Date; end: Date | null } | null>(null);
+  const [dateTimeOn, setDateTimeOn] = useState(false);
+  const [dateTime, setDateTime] = useState<DatePickerTime | null>(null);
   const [tooltipColor, setTooltipColor] = useState<string | undefined>("default");
   const [tooltipSize, setTooltipSize] = useState<string | undefined>("medium");
   const [tooltipPlacement, setTooltipPlacement] = useState<string | undefined>("top");
@@ -435,8 +403,9 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [listLeading, setListLeading] = useState(true);
   const [listCaption, setListCaption] = useState(true);
   const [listTrailing, setListTrailing] = useState(true);
-  const [listInset, setListInset] = useState<string | undefined>(undefined);
+  const [listInteractive, setListInteractive] = useState(true);
   const [listSelected, setListSelected] = useState("ava");
+  const [listBoxTheme, setListBoxTheme] = useState<ListBoxTheme>("flat");
   const [tableSelectable, setTableSelectable] = useState(true);
   const [tableSelected, setTableSelected] = useState<string[]>(["zen-web"]);
   const [tableSort, setTableSort] = useState<TableSort | null>({ columnId: "name", direction: "asc" });
@@ -484,7 +453,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [formClose, setFormClose] = useState(true);
   const [dialogIcon, setDialogIcon] = useState(true);
   const [dialogDescription, setDialogDescription] = useState(true);
-  const [dialogCustom, setDialogCustom] = useState(false);
+  const [dialogCustom, setDialogCustom] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogResult, setDialogResult] = useState("");
   if (page === "design-tokens") {
@@ -513,7 +482,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
     return <PlatformPageTemplate title="Typography" eyebrow="Foundations" description="Composite typography contracts exported from Figma and connected to Typography and Emphasis variables."><TextStylesGallery embedded sampleTypography={previewTypography} /><PlatformSection id="hierarchy" label="Content hierarchy"><TypographyHierarchyRules /></PlatformSection><PlatformSection id="examples" label="Examples"><ComponentExamples page="typography" /></PlatformSection></PlatformPageTemplate>;
   }
   if (page === "iconography") {
-    return <PlatformPageTemplate title="Iconography" eyebrow="Foundations" description="SVG icons are generated from one source folder and rendered through one component."><IconGallery embedded /><ComponentGuidelines page="iconography" /><ComponentGuidelines page="iconography" slug="file-icon" title="File icon usage" /></PlatformPageTemplate>;
+    return <PlatformPageTemplate title="Iconography" eyebrow="Foundations" description="SVG icons are generated from one source folder and rendered through one component."><IconGallery embedded /><ComponentGuidelines page="iconography" /><ComponentGuidelines page="iconography" slug="file-icon" title="File icon usage" /><ComponentGuidelines page="iconography" slug="flag" title="Flag usage" /></PlatformPageTemplate>;
   }
 
   if (page === "button") {
@@ -586,14 +555,14 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
       <ExamplePage page="chip" eyebrow="Components / Chip" title="Chip/Pill" description="Normal, Advanced and Number-only variants mapped from the Figma Chip/Pill page.">
         <ComponentPreview className="platform-example-panel platform-example-panel--stack">
           <h2 className="platform-main-component__title">Chip/Pill</h2>
-          <div className="platform-playground-controls" aria-label="Chip playground controls">
+          <PlaygroundControls aria-label="Chip playground controls">
             <PlaygroundFilterChip label="Variant" value={chipVariant} onChange={(value) => setChipVariant(String(value) || undefined)} options={["advanced", "normal", "number-only"].map((id) => ({ id, label: id }))} />
             <PlaygroundFilterChip label="Size" value={resolvedChipSize} onChange={(value) => setChipSize(String(value) || undefined)} options={allowedChipSizes.map((id) => ({ id, label: id }))} />
             {resolvedChipVariant === "normal" ? <PlaygroundFilterChip label="Level" value={chipLevel} onChange={(value) => setChipLevel(String(value) || undefined)} options={["primary", "secondary"].map((id) => ({ id, label: id }))} /> : null}
             {resolvedChipVariant === "advanced" ? <PlaygroundToggle label="Multiple" selected={chipMultiple} onChange={(on) => { setChipMultiple(on); if (!on) setChipSelected((current) => current.slice(0, 1)); }} /> : null}
             {resolvedChipVariant !== "number-only" ? <PlaygroundFilterChip label="Theme" value={chipThemes} multiple onChange={(value) => setChipThemes(Array.isArray(value) ? value : [value])} options={["text-only", "leading-icon", "leading-photo"].map((id) => ({ id, label: id }))} /> : null}
             <PlaygroundToggle label="Disabled" selected={chipDisabled} onChange={setChipDisabled} />
-          </div>
+          </PlaygroundControls>
           <div data-typography={previewTypography} className="platform-example-row">
             {resolvedChipVariant === "number-only" ? (
               <Chip variant="number-only" size={resolvedChipSize} value={chipSelected.length || 3} state={resolvedChipState} />
@@ -648,14 +617,14 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
       <ExamplePage page="sidebar" eyebrow="Components / Sidebar" title="Patterns/Sidebar" titleLines={["Patterns/", "Sidebar"]} description="One shared Sidebar preview with the Figma Basic, Small-Density and Workspace variants selectable from the playground.">
         <ComponentPreview className="platform-example-panel platform-example-panel--stack">
           <h2 className="platform-main-component__title">Patterns/Sidebar</h2>
-            <div className="platform-playground-controls" aria-label="Sidebar playground controls">
+            <PlaygroundControls aria-label="Sidebar playground controls">
               <PlaygroundFilterChip label="Variant" value={sidebarVariant} onChange={(value) => setSidebarVariant(String(value) || undefined)} options={["basic", "small-density", "workspace"].map((id) => ({ id, label: id }))} />
               {resolvedSidebarVariant !== "workspace" ? <PlaygroundToggle label="Expand" selected={!sidebarCollapsed} onChange={(selected) => setSidebarCollapsed(!selected)} /> : null}
               <PlaygroundFilterChip label="Canvas" value={sidebarCanvas} onChange={(value) => { setSidebarCanvas(String(value) || undefined); setSidebarBackground(undefined); }} options={["default", "alt", "flat"].map((id) => ({ id, label: id }))} />
               <PlaygroundFilterChip label={resolvedSidebarVariant === "workspace" ? "Master Background" : "Background"} value={sidebarBackground} onChange={(value) => setSidebarBackground(String(value) || undefined)} options={["default", "alt", "flat", "inverse"].map((id) => ({ id, label: id }))} />
               {resolvedSidebarVariant === "workspace" ? <PlaygroundToggle label="Workspace Bar" selected={sidebarWorkspaceBar} onChange={setSidebarWorkspaceBar} /> : null}
               <PlaygroundToggle label="Sub Menu" selected={sidebarSubMenu} onChange={setSidebarSubMenu} />
-          </div>
+          </PlaygroundControls>
           <div data-typography={previewTypography} className="platform-example-row platform-sidebar-stage" data-canvas={resolvedSidebarCanvas}>
             <Sidebar
               variant={resolvedSidebarVariant}
@@ -718,7 +687,10 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   if (page === "input") {
     const resolvedInputKind = inputKind ?? "text";
     const resolvedInputSize = (inputSize ?? "medium") as Exclude<InputSize, "sm" | "md" | "lg" | "xl">;
-    const resolvedInputState: InputState = inputReadOnly ? "read-only" : "default";
+    // Figma State=Disabled exists on Text, Field-Only, Select, Date, Number and Text-Area; Label has its own toggle.
+    const inputSupportsDisabled = ["text", "field-only", "textarea", "textarea-primitive", "select", "date", "number-center", "number-left"].includes(resolvedInputKind);
+    const inputDisabledOn = inputDisabled && inputSupportsDisabled;
+    const resolvedInputState: InputState = inputDisabledOn ? "disabled" : inputReadOnly ? "read-only" : "default";
     // Read-only shows a committed value, never a placeholder.
     const ro = <T,>(sample: T) => (inputReadOnly ? sample : undefined);
     // Only plain text fields own the Leading-Trailing slots; select/date/number keep their built-in affordances.
@@ -744,7 +716,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
       helpTheme: resolvedHelpTheme,
       helpIcon: inputHelpIcon,
       ...(inputHelpLimit && inputSupportsCount ? { characterLimit: true as const, maxLength: 100 } : {}),
-      error: inputError && !inputReadOnly ? "This field is required" : undefined,
+      error: inputError && !inputReadOnly && !inputDisabledOn ? "This field is required" : undefined,
       size: resolvedInputSize,
       state: resolvedInputState,
     };
@@ -806,7 +778,8 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
       resolvedInputKind !== "field-only" && inputHelp && resolvedHelpTheme !== "neutral" ? `helpTheme="${resolvedHelpTheme}"` : "",
       resolvedInputKind !== "field-only" && inputHelp && !inputHelpIcon ? "helpIcon={false}" : "",
       inputHelpLimit && inputSupportsCount ? "maxLength={100}\n  characterLimit" : "",
-      resolvedInputKind !== "field-only" && inputError && !inputReadOnly ? `error="This field is required"` : "",
+      resolvedInputKind !== "field-only" && inputError && !inputReadOnly && !inputDisabledOn ? `error="This field is required"` : "",
+      inputDisabledOn ? "disabled" : "",
       inputReadOnly ? "readOnly" : "",
       showLeading ? (inputLeadingClickable
         ? `leading={<InputLeadingTrailing ${inputLeadingLabel ? `label="User"` : `icon={<Icon name="icon-user-circle-line" decorative />} interactive`} popoverLabel="Account type" align="start"\n    options={accountTypes} value={account} onValueChange={setAccount} />}`
@@ -884,7 +857,7 @@ const rules = [
       <ExamplePage page="input" eyebrow="Components / Input" title="Input" description="Production field compositions from the Figma Input page, with leading/trailing slots and native interaction states.">
         <ComponentPreview className="platform-example-panel platform-example-panel--stack">
           <h2 className="platform-main-component__title">Input</h2>
-          <div className="platform-playground-controls" aria-label="Input playground controls">
+          <PlaygroundControls aria-label="Input playground controls">
             <PlaygroundFilterChip label="Type" value={inputKind} onChange={(value) => setInputKind(String(value) || undefined)} options={inputPlaygroundKinds.map((id) => ({ id, label: id }))} />
             {isHeadingKind
               ? <PlaygroundFilterChip label="Heading Size" value={inputHeadingSize} onChange={(value) => setInputHeadingSize(String(value) || undefined)} options={headingInputSizes.map((id) => ({ id, label: id.toUpperCase() }))} />
@@ -911,10 +884,11 @@ const rules = [
               {inputTrailing ? <PlaygroundToggle label="Trailing Clickable" selected={inputTrailingClickable} onChange={setInputTrailingClickable} /> : null}
             </> : null}
             {resolvedInputKind === "richtext" ? <PlaygroundToggle label="Control Bar" selected={inputRichBar} onChange={setInputRichBar} /> : null}
-            {resolvedInputKind !== "field-only" && resolvedInputKind !== "conditions" && !isHeadingKind ? <PlaygroundToggle label="Error" selected={inputError} onChange={setInputError} /> : null}
+            {resolvedInputKind !== "field-only" && resolvedInputKind !== "conditions" && !isHeadingKind && !inputDisabledOn ? <PlaygroundToggle label="Error" selected={inputError} onChange={setInputError} /> : null}
             {isHeadingKind ? <PlaygroundToggle label="Multi-line" selected={inputHeadingMultiline} onChange={setInputHeadingMultiline} /> : null}
-            {resolvedInputKind !== "conditions" ? <PlaygroundToggle label="Read-only" selected={inputReadOnly} onChange={setInputReadOnly} /> : null}
-          </div>
+            {inputSupportsDisabled ? <PlaygroundToggle label="Disabled" selected={inputDisabled} onChange={(on) => { setInputDisabled(on); if (on) setInputReadOnly(false); }} /> : null}
+            {resolvedInputKind !== "conditions" ? <PlaygroundToggle label="Read-only" selected={inputReadOnly} onChange={(on) => { setInputReadOnly(on); if (on) setInputDisabled(false); }} /> : null}
+          </PlaygroundControls>
           <div data-typography={previewTypography} className="platform-input-preview">{inputPreview}</div>
           <PlatformCode code={resolvedInputKind === "conditions" ? conditionsCode : inputCode} />
         </ComponentPreview>
@@ -934,15 +908,16 @@ const rules = [
       <ExamplePage page="search" eyebrow="Components / Search" title="Search" description="Search/Default and Search/Popover with default, filter-icon and filter-dropdown themes, mapped from the Figma Search page.">
         <ComponentPreview className="platform-example-panel platform-example-panel--stack">
           <h2 className="platform-main-component__title">Search</h2>
-          <div className="platform-playground-controls" aria-label="Search playground controls">
+          <PlaygroundControls aria-label="Search playground controls">
             <PlaygroundFilterChip label="Variant" value={searchVariant} onChange={(value) => setSearchVariant(String(value) || undefined)} options={["default", "popover"].map((id) => ({ id, label: id }))} />
             <PlaygroundFilterChip label="Theme" value={searchTheme} onChange={(value) => setSearchTheme(String(value) || undefined)} options={["default", "filter-icon", "filter-dropdown"].map((id) => ({ id, label: id }))} />
             {isPopoverSearch ? null : <PlaygroundFilterChip label="Size" value={searchSize} onChange={(value) => setSearchSize(String(value) || undefined)} options={["small", "medium"].map((id) => ({ id, label: id }))} />}
             <PlaygroundToggle label="Icon Search" selected={searchIcon !== "no"} onChange={(selected) => setSearchIcon(selected ? "yes" : "no")} />
             {hasSearchFilter ? <PlaygroundToggle label="Filter Clickable" selected={searchFilterClickable} onChange={setSearchFilterClickable} /> : null}
-          </div>
+            <PlaygroundToggle label="Disabled" selected={searchDisabled} onChange={setSearchDisabled} />
+          </PlaygroundControls>
           <div data-typography={previewTypography} className="platform-example-row platform-search-row">
-            <Search variant={resolvedSearchVariant} theme={resolvedSearchTheme} size={resolvedSearchSize} iconSearch={resolvedSearchIcon} placeholder="Search components" value={searchValue} onChange={(event) => setSearchValue(event.target.value)}
+            <Search variant={resolvedSearchVariant} theme={resolvedSearchTheme} size={resolvedSearchSize} iconSearch={resolvedSearchIcon} disabled={searchDisabled} placeholder="Search components" value={searchValue} onChange={(event) => setSearchValue(event.target.value)}
               filterLabel="All" filterInteractive={searchFilterClickable} filterOptions={resolvedSearchTheme === "filter-dropdown" ? searchFilterOptions : undefined} filterValue={searchFilter} onFilterChange={setSearchFilter} />
           </div>
           <PlatformCode code={`import { Search } from "@zen/design-system";
@@ -957,7 +932,8 @@ const rules = [
   filterValue={scope}
   onFilterChange={setScope}` : `
   filterLabel="All"`) : ""}${resolvedSearchTheme === "filter-icon" && searchFilterClickable ? `
-  onFilterClick={openFilters}` : ""}
+  onFilterClick={openFilters}` : ""}${searchDisabled ? `
+  disabled` : ""}
   placeholder="Search components"
   value={query}
   onChange={(event) => setQuery(event.target.value)}
@@ -980,7 +956,7 @@ const rules = [
     return <ExamplePage page="segmented" eyebrow="Components / Segmented" title="Segmented" description="Mutually exclusive options using the Figma Segmented container and item primitives.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Segmented</h2>
-        <div className="platform-playground-controls" aria-label="Segmented playground controls">
+        <PlaygroundControls aria-label="Segmented playground controls">
           <PlaygroundFilterChip label="Level" value={segmentedLevel} onChange={(value) => setSegmentedLevel(String(value) || undefined)} options={["secondary", "primary"].map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Size" value={segmentedSize} onChange={(value) => setSegmentedSize(String(value) || undefined)} options={["small", "medium"].map((id) => ({ id, label: id }))} />
           <PlaygroundToggle label="Icon" selected={segmentedIcon} onChange={setSegmentedIcon} />
@@ -988,7 +964,7 @@ const rules = [
           <PlaygroundToggle label="Badge" selected={segmentedBadge} onChange={setSegmentedBadge} />
           <PlaygroundToggle label="Disabled" selected={segmentedDisabled} onChange={setSegmentedDisabled} />
           <PlaygroundToggle label="Full width" selected={segmentedFull} onChange={setSegmentedFull} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row" style={segmentedFull ? { display: "block" } : undefined}><Segmented aria-label="Section" fullWidth={segmentedFull} level={resolvedLevel} size={resolvedSize} disabled={segmentedDisabled} value={segmentedValue} onChange={setSegmentedValue} options={segmentedOptions} /></div>
         <PlatformCode code={`import { Segmented } from "@zen/design-system";
 
@@ -1016,14 +992,14 @@ const rules = [
     return <ExamplePage page="toggle" eyebrow="Components / Toggle" title="Toggle" description="Toggle/Button and Toggle/Content are composed into the complete Figma Toggle set with Size, State, Select and Theme axes.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Toggle</h2>
-        <div className="platform-playground-controls" aria-label="Toggle playground controls">
+        <PlaygroundControls aria-label="Toggle playground controls">
           <PlaygroundFilterChip label="Size" value={toggleSize} onChange={(value) => setToggleSize(String(value) || undefined)} options={["small", "medium", "large"].map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Theme" value={toggleTheme} onChange={(value) => setToggleTheme(String(value) || undefined)} options={["text-first", "toggle-first"].map((id) => ({ id, label: id }))} />
           <PlaygroundToggle label="Selected" selected={toggleSelected} onChange={setToggleSelected} />
           <PlaygroundToggle label="Caption" selected={toggleCaption} onChange={setToggleCaption} />
           <PlaygroundToggle label="Bold" selected={toggleBold} onChange={setToggleBold} />
           <PlaygroundToggle label="Disabled" selected={toggleDisabled} onChange={setToggleDisabled} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row"><Toggle size={resolvedSize} disabled={toggleDisabled} theme={resolvedTheme} selected={toggleSelected} onSelectedChange={setToggleSelected} label="Enable notifications" caption={toggleCaption ? "Receive updates for this workspace." : undefined} bold={toggleBold} /></div>
         <PlatformCode code={`import { Toggle } from "@zen/design-system";
 
@@ -1051,7 +1027,7 @@ const rules = [
     return <ExamplePage page="avatar" eyebrow="Components / Avatar" title="Avatar" description="Avatar/Single and Avatar/Stack use the size, theme, shape, background and status axes from Figma.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Avatar</h2>
-        <div className="platform-playground-controls" aria-label="Avatar playground controls">
+        <PlaygroundControls aria-label="Avatar playground controls">
           <PlaygroundFilterChip label="Size" value={avatarSize} onChange={(value) => setAvatarSize(String(value) || undefined)} options={["2xsmall", "xsmall", "small", "medium", "large", "xlarge", "2xlarge", "3xlarge"].map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Theme" value={avatarTheme} onChange={(value) => setAvatarTheme(String(value) || undefined)} options={avatarThemes.map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Shape" value={avatarShape} onChange={(value) => setAvatarShape(String(value) || undefined)} options={["circle", "square"].map((id) => ({ id, label: id }))} />
@@ -1059,7 +1035,7 @@ const rules = [
           <PlaygroundToggle label="Status" selected={avatarStatus === "yes"} onChange={(selected) => setAvatarStatus(selected ? "yes" : "no")} />
           <PlaygroundToggle label="Focus" selected={avatarFocus} onChange={setAvatarFocus} />
           <PlaygroundFilterChip label="Stack Count" value={avatarStackCount} onChange={(value) => setAvatarStackCount(String(value) || undefined)} options={["1", "2", "3", "4", "5"].map((id) => ({ id, label: id }))} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-avatar-preview">
           {resolvedTheme === "photo"
             ? <Avatar size={resolvedSize} theme="photo" shape={resolvedShape} background={resolvedBackground} src={samplePhoto} alt="Zen Design" status={avatarStatus === "yes"} focus={avatarFocus} />
@@ -1088,14 +1064,14 @@ const rules = [
     return <ExamplePage page="checkbox" eyebrow="Components / Checkbox" title="Checkbox" description="Checkbox/Text with left or right mark, caption, selection and interaction states.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Checkbox</h2>
-        <div className="platform-playground-controls" aria-label="Checkbox playground controls">
+        <PlaygroundControls aria-label="Checkbox playground controls">
           <PlaygroundFilterChip label="Side" value={checkboxSide} onChange={(value) => setCheckboxSide(String(value) || undefined)} options={["left", "right"].map((id) => ({ id, label: id }))} />
           <PlaygroundToggle label="Selected" selected={checkboxChecked} onChange={setCheckboxChecked} />
           <PlaygroundToggle label="Indeterminate" selected={checkboxIndeterminate} onChange={setCheckboxIndeterminate} />
           <PlaygroundToggle label="Caption" selected={checkboxCaption} onChange={setCheckboxCaption} />
           <PlaygroundToggle label="Bold" selected={checkboxBold} onChange={setCheckboxBold} />
           <PlaygroundToggle label="Disabled" selected={checkboxDisabled} onChange={setCheckboxDisabled} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row"><Checkbox checked={checkboxChecked || checkboxIndeterminate} indeterminate={checkboxIndeterminate} onChange={(next) => { setCheckboxChecked(next); setCheckboxIndeterminate(false); }} disabled={checkboxDisabled} checkSide={resolvedSide} label="Include source maps" caption={checkboxCaption ? "Useful for debugging production builds." : undefined} bold={checkboxBold} /></div>
         <PlatformCode code={`import { Checkbox } from "@zen/design-system";
 
@@ -1123,12 +1099,12 @@ const rules = [
     return <ExamplePage page="radio-button" eyebrow="Components / Radio Button" title="Radio Button" description="Radio-Button/Text with mutually exclusive selection, side and state axes from Figma.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Radio Button</h2>
-        <div className="platform-playground-controls" aria-label="Radio playground controls">
+        <PlaygroundControls aria-label="Radio playground controls">
           <PlaygroundFilterChip label="Side" value={radioSide} onChange={(value) => setRadioSide(String(value) || undefined)} options={["left", "right"].map((id) => ({ id, label: id }))} />
           <PlaygroundToggle label="Caption" selected={radioCaption} onChange={setRadioCaption} />
           <PlaygroundToggle label="Bold" selected={radioBold} onChange={setRadioBold} />
           <PlaygroundToggle label="Disabled" selected={radioDisabled} onChange={setRadioDisabled} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row"><div className="platform-radio-group" role="radiogroup" aria-label="Token source">
           {radioOptions.map((option) => <RadioButton key={option.id} name="radio-preview" value={option.id} checked={radioValue === option.id} onChange={() => setRadioValue(option.id)} disabled={radioDisabled} radioSide={resolvedSide} label={option.label} caption={radioCaption ? option.caption : undefined} bold={radioBold} />)}
         </div></div>
@@ -1163,14 +1139,14 @@ const rules = [
     return <ExamplePage page="badge" eyebrow="Components / Badge" title="Badge" description="Badge and Badge-Counter for compact status, category and count communication.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Badge</h2>
-        <div className="platform-playground-controls" aria-label="Badge playground controls">
+        <PlaygroundControls aria-label="Badge playground controls">
           <PlaygroundFilterChip label="Size" value={badgeSize} onChange={(value) => setBadgeSize(String(value) || undefined)} options={["xsmall", "small", "medium"].map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Theme" value={badgeTheme} onChange={(value) => setBadgeTheme(String(value) || undefined)} options={badgeThemes.map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Background" value={badgeBackground} onChange={(value) => setBadgeBackground(String(value) || undefined)} options={["solid", "subtle"].map((id) => ({ id, label: id }))} />
           <PlaygroundToggle label="Leading Icon" selected={badgeLeading === "yes"} onChange={(selected) => setBadgeLeading(selected ? "yes" : "no")} />
           <PlaygroundToggle label="Remove" selected={badgeRemove === "yes"} onChange={(selected) => { setBadgeRemove(selected ? "yes" : "no"); setBadgeRemoved(false); }} />
           <PlaygroundFilterChip label="Counter" value={badgeCount} onChange={(value) => setBadgeCount(String(value) || undefined)} options={["1", "7", "42", "99+"].map((id) => ({ id, label: id }))} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row">
           {badgeRemoved
             ? <Button appearance="main" level="tertiary" size="sm" onClick={() => setBadgeRemoved(false)}>Restore badge</Button>
@@ -1211,17 +1187,17 @@ import { Icon } from "@zen/design-system";` : ""}
     return <ExamplePage page="popover" eyebrow="Components / Popover" title="Popover" description="The shared Popover surface and Item primitive used by Select, Chip advanced and other dropdown compositions.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Popover</h2>
-        <div className="platform-playground-controls" aria-label="Popover playground controls">
-          <PlaygroundFilterChip label="Trigger" value={popoverTrigger} onChange={(value) => { setPopoverTrigger(String(value) || undefined); setPopoverOpen(false); if (value === "select") setPopoverContent("text-only"); }} options={[{ id: "chip", label: "Chip" }, { id: "select", label: "Select Input" }, { id: "bulk", label: "Bulk-Action (selection)" }]} />
+        <PlaygroundControls aria-label="Popover playground controls" onPointerDownCapture={holdPopoverOpen}>
+          <PlaygroundFilterChip label="Trigger" value={popoverTrigger} onChange={(value) => { setPopoverTrigger(String(value) || undefined); setPopoverSearch(""); setPopoverOpen(true); if (value === "select") setPopoverContent("text-only"); }} options={[{ id: "chip", label: "Chip" }, { id: "select", label: "Select Input" }, { id: "bulk", label: "Bulk-Action (selection)" }]} />
           {popoverTrigger === "bulk" ? <><PlaygroundToggle label="History group" selected={popoverBulkHistory} onChange={setPopoverBulkHistory} /><PlaygroundToggle label="Delete" selected={popoverBulkDelete} onChange={setPopoverBulkDelete} /></> : <>
           {popoverTrigger !== "select" ? <PlaygroundFilterChip label="Content" value={popoverContent} onChange={(value) => { const kind = (String(value) || "icon") as PopoverContentKind; setPopoverContent(kind); setPopoverCreated([]); setPopoverSelected(popoverContentSet(kind, false).items[0].id); setPopoverSearch(""); setPopoverOpen(true); }} options={popoverContentKinds.map((id) => ({ id, label: id }))} /> : null}
-          {popoverKind !== "badge" ? <PlaygroundToggle label="Caption" selected={popoverCaption} onChange={setPopoverCaption} /> : null}
+          {popoverKind !== "badge" ? <PlaygroundToggle label="Caption" selected={popoverCaption} onChange={(on) => { setPopoverCaption(on); setPopoverOpen(true); }} /> : null}
           {popoverTrigger !== "select" ? <PlaygroundToggle label="Manual-Add-New" selected={popoverCreateOn} onChange={(on) => { setPopoverCreateOn(on); setPopoverSearch(""); setPopoverOpen(true); }} /> : null}
-          <PlaygroundToggle label="Label" selected={popoverLabelOn} onChange={setPopoverLabelOn} />
-          <PlaygroundToggle label="Search" selected={popoverSearchOn} onChange={(on) => { setPopoverSearchOn(on); if (!on) setPopoverSearch(""); }} />
+          <PlaygroundToggle label="Label" selected={popoverLabelOn} onChange={(on) => { setPopoverLabelOn(on); setPopoverOpen(true); }} />
+          <PlaygroundToggle label="Search" selected={popoverSearchOn} onChange={(on) => { setPopoverSearchOn(on); if (!on) setPopoverSearch(""); setPopoverOpen(true); }} />
           </>}
-        </div>
-        <div data-typography={previewTypography} className="platform-example-row platform-popover-preview">
+        </PlaygroundControls>
+        <div ref={popoverStageRef} data-typography={previewTypography} className="platform-example-row platform-popover-preview">
           {popoverTrigger === "bulk" ? <PopoverBulkSelectionDemo history={popoverBulkHistory} destructive={popoverBulkDelete} /> : popoverTrigger === "select" ? (
             <SelectField
               className="platform-popover-select"
@@ -1232,6 +1208,8 @@ import { Icon } from "@zen/design-system";` : ""}
               options={popoverItems.map((item) => ({ value: item.id, label: String(item.label) }))}
               popoverLabel={popoverLabelOn ? popoverSet.title : undefined}
               popoverSearch={popoverSearchOn}
+              popoverOpen={popoverOpen}
+              onPopoverOpenChange={changePopoverOpen}
             />
           ) : (
             <Chip
@@ -1241,7 +1219,7 @@ import { Icon } from "@zen/design-system";` : ""}
               photoSrc={popoverChipPhoto}
               dropdown
               popoverOpen={popoverOpen}
-              onPopoverOpenChange={(open) => { setPopoverOpen(open); if (!open) setPopoverSearch(""); }}
+              onPopoverOpenChange={changePopoverOpen}
               popoverLabel={popoverLabelOn ? popoverSet.title : undefined}
               popoverSearch={popoverSearchOn || popoverCreateOn}
               popoverSearchValue={popoverSearch}
@@ -1321,12 +1299,12 @@ ${popoverChipLeading ? `  leading={selected.leading}
     return <ExamplePage page="tag" eyebrow="Components / Tag" title="Tag" description="Tag shows a chosen value inside fields such as Autocomplete, with icon or photo, error and removable variants from Figma.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Tag</h2>
-        <div className="platform-playground-controls" aria-label="Tag playground controls">
+        <PlaygroundControls aria-label="Tag playground controls">
           <PlaygroundFilterChip label="Theme" value={tagTheme} onChange={(value) => setTagTheme(String(value) || undefined)} options={["text-only", "leading-icon", "leading-photo"].map((id) => ({ id, label: id }))} />
           <PlaygroundToggle label="Remove" selected={tagRemove} onChange={(on) => { setTagRemove(on); setTagRemoved(false); }} />
           <PlaygroundToggle label="Error" selected={tagError} onChange={setTagError} />
           <PlaygroundToggle label="Disabled" selected={tagDisabled} onChange={setTagDisabled} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row">
           {tagRemoved
             ? <Button appearance="main" level="tertiary" size="sm" onClick={() => setTagRemoved(false)}>Restore tag</Button>
@@ -1346,25 +1324,31 @@ import { Icon } from "@zen/design-system";` : ""}
 
   if (page === "date-picker") {
     const resolvedMode = (dateMode ?? "single") as "single" | "range";
+    const resolvedCalendar = (dateCalendar ?? "single") as "single" | "dual";
+    const resolvedDevice = (dateDevice ?? "desktop") as DatePickerDevice;
     const today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
     const fmt = (date: Date) => date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-    const summary = resolvedMode === "range"
-      ? dateRange ? `${fmt(dateRange.start)} → ${dateRange.end ? fmt(dateRange.end) : "…"}` : "Pick a start date, then an end date."
-      : dateValue ? fmt(dateValue) : "Pick a date.";
+    const clock = (value: string | null) => (value ? new Date(`2000-01-01T${value}`).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "…");
+    const timeText = dateTimeOn && dateTime ? (dateTime.fromAllDay && (resolvedCalendar === "single" || dateTime.toAllDay) ? "All day" : `${dateTime.fromAllDay ? "All day" : clock(dateTime.from)} – ${dateTime.toAllDay ? "All day" : clock(dateTime.to)}`) : "";
+    const dateText = resolvedMode === "range"
+      ? dateRange ? `${fmt(dateRange.start)} → ${dateRange.end ? fmt(dateRange.end) : "…"}` : ""
+      : dateValue ? fmt(dateValue) : "";
+    const summary = [dateText, timeText].filter(Boolean).join(" · ");
     const actions = dateActions === "none" ? undefined : dateActions as "single" | "dual";
-    const resolvedCalendar = (dateCalendar ?? "single") as "single" | "dual";
     return <ExamplePage page="date-picker" eyebrow="Components / Date Picker" title="Date Picker" description="Date-Picker/Single-Calendar and Dual-Calendar with single or range selection, disabled dates and optional actions. Click the month and year of a single calendar to pick them directly.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Date Picker</h2>
-        <div className="platform-playground-controls" aria-label="Date Picker playground controls">
+        <PlaygroundControls aria-label="Date Picker playground controls">
           <PlaygroundFilterChip label="Calendar" value={dateCalendar} onChange={(value) => { setDateCalendar(String(value) || undefined); setDateValue(null); setDateRange(null); }} options={[{ id: "single", label: "Single" }, { id: "dual", label: "Dual" }]} />
           <PlaygroundFilterChip label="Selection" value={dateMode} onChange={(value) => { setDateMode(String(value) || undefined); setDateValue(null); setDateRange(null); }} options={["single", "range"].map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Actions" value={dateActions} onChange={(value) => setDateActions(String(value) || undefined)} options={["none", "single", "dual"].map((id) => ({ id, label: id }))} />
+          <PlaygroundFilterChip label="Device" value={dateDevice} onChange={(value) => setDateDevice(String(value) || undefined)} options={[{ id: "desktop", label: "Desktop" }, { id: "mobile", label: "Mobile" }]} />
+          <PlaygroundToggle label="Time picker" selected={dateTimeOn} onChange={(on) => { setDateTimeOn(on); setDateTime(null); }} />
           <PlaygroundToggle label="Disable Past Dates" selected={datePast} onChange={setDatePast} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-date-picker-preview">
           {/* With actions a pick is a draft: the summary shows what Submit applied, and Cancel returns the calendar to it. */}
-          <div className="platform-date-picker-inline"><DatePicker key={`${resolvedCalendar}-${resolvedMode}`} calendar={resolvedCalendar} selectionMode={resolvedMode} value={resolvedMode === "single" ? dateValue : undefined} onValueChange={resolvedMode === "single" && !actions ? setDateValue : undefined} onRangeChange={actions ? undefined : setDateRange} onApply={actions ? (date, range) => { if (resolvedMode === "range") setDateRange(range); else setDateValue(date); } : undefined} minDate={datePast ? today : undefined} showActions={Boolean(actions)} action={actions} /></div>
+          <div className="platform-date-picker-inline" data-device={resolvedDevice}><DatePicker key={`${resolvedCalendar}-${resolvedMode}`} device={resolvedDevice} calendar={resolvedCalendar} selectionMode={resolvedMode} value={resolvedMode === "single" ? dateValue : undefined} onValueChange={resolvedMode === "single" && !actions ? setDateValue : undefined} onRangeChange={actions ? undefined : setDateRange} onApply={actions ? (date, range, time) => { if (resolvedMode === "range") setDateRange(range); else setDateValue(date); if (time) setDateTime(time); } : undefined} minDate={datePast ? today : undefined} showActions={Boolean(actions)} action={actions} timePicker={dateTimeOn} onTimeChange={actions ? undefined : setDateTime} /></div>
           <p className={`platform-date-picker-summary ${typographyStyles["Body/Base/Medium"]}`} aria-live="polite">{summary}</p>
         </div>
         <PlatformCode code={`import { DatePicker } from "@zen/design-system";
@@ -1372,8 +1356,10 @@ import { Icon } from "@zen/design-system";` : ""}
 <DatePicker
 ${[
   ...(resolvedCalendar === "dual" ? [`calendar="dual"`] : []),
+  ...(resolvedDevice === "mobile" ? [`device="mobile" // automatic for an inline calendar at the mobile breakpoint`] : []),
   ...(resolvedMode === "range" ? [`selectionMode="range"`, actions ? "onApply={(_, range) => setRange(range)}" : "onRangeChange={setRange}"] : ["value={date}", actions ? "onApply={(picked) => setDate(picked)}" : "onValueChange={setDate}"]),
   ...(datePast ? ["minDate={today}"] : []),
+  ...(dateTimeOn ? ["timePicker", actions ? "// onApply's third argument is the time: { from, to, fromAllDay, toAllDay }" : "onTimeChange={setTime} // { from: \"09:30\", to: \"17:00\", fromAllDay, toAllDay }"] : []),
   ...(actions ? ["showActions", `action="${actions}"`] : []),
 ].map((line) => `  ${line}`).join("\n")}
 />
@@ -1392,12 +1378,12 @@ ${actions ? `
     return <ExamplePage page="tooltip" eyebrow="Components / Tooltip" title="Tooltip" description="A short, non-interactive label that appears on hover (after a delay) or keyboard focus, and closes with Escape.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Tooltip</h2>
-        <div className="platform-playground-controls" aria-label="Tooltip playground controls">
+        <PlaygroundControls aria-label="Tooltip playground controls">
           <PlaygroundFilterChip label="Color" value={tooltipColor} onChange={(value) => setTooltipColor(String(value) || undefined)} options={tooltipColors.map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Size" value={tooltipSize} onChange={(value) => setTooltipSize(String(value) || undefined)} options={["medium", "small"].map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Placement" value={tooltipPlacement} onChange={(value) => setTooltipPlacement(String(value) || undefined)} options={["top", "bottom", "left", "right"].map((id) => ({ id, label: id }))} />
           <PlaygroundToggle label="Always Show" selected={tooltipPinned} onChange={setTooltipPinned} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className={`platform-example-row platform-tooltip-preview${color === "white-overlay" || color === "black-overlay" ? " platform-example-row--overlay" : ""}`}>
           {/* Clicking Duplicate confirms it in the tooltip for 1.5s (the copy-feedback pattern). */}
           <Tooltip content={tooltipDuplicated ? "Layer duplicated" : "Duplicate layer"} color={color} size={size} placement={placement} open={tooltipPinned || tooltipDuplicated ? true : undefined}>
@@ -1428,14 +1414,14 @@ ${actions ? `
     return <ExamplePage page="tabs" eyebrow="Components / Tabs" title="Tabs" description="Tab-Bar with Indicator and Subtle styles. Arrow keys move between tabs, Home/End jump, disabled tabs are skipped.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Tabs</h2>
-        <div className="platform-playground-controls" aria-label="Tabs playground controls">
+        <PlaygroundControls aria-label="Tabs playground controls">
           <PlaygroundFilterChip label="Style" value={tabsVariant} onChange={(value) => setTabsVariant(String(value) || undefined)} options={["indicator", "subtle"].map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Size" value={tabsSize} onChange={(value) => setTabsSize(String(value) || undefined)} options={["medium", "small"].map((id) => ({ id, label: id }))} />
           <PlaygroundToggle label="Icon" selected={tabsIcon} onChange={setTabsIcon} />
           <PlaygroundToggle label="Label" selected={tabsLabel} onChange={setTabsLabel} />
           <PlaygroundToggle label="Badge" selected={tabsBadge} onChange={setTabsBadge} />
           <PlaygroundToggle label="Disabled Tab" selected={tabsDisabled} onChange={(on) => { setTabsDisabled(on); if (on && tabsValue === "billing") setTabsValue("overview"); }} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-tabs-preview">
           <Tabs idPrefix="pg-tabs" aria-label="Project sections" variant={variant} size={size} value={tabsValue} onChange={setTabsValue} items={tabItems} />
           {tabItems.map((item) => <TabPanel key={item.id} idPrefix="pg-tabs" id={item.id} hidden={tabsValue !== item.id}><p className={`platform-tabs-panel ${typographyStyles["Body/Base/Regular"]}`}>{panelText[item.id]}</p></TabPanel>)}
@@ -1467,15 +1453,15 @@ ${actions ? `
     return <ExamplePage page="breadcrumbs" eyebrow="Components / Breadcrumbs" title="Breadcrumbs" description="Shows where the current page sits in the hierarchy. The last item is the current page; long paths can collapse the middle.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Breadcrumbs</h2>
-        <div className="platform-playground-controls" aria-label="Breadcrumbs playground controls">
+        <PlaygroundControls aria-label="Breadcrumbs playground controls">
           <PlaygroundFilterChip label="Emphasis" value={crumbEmphasis} onChange={(value) => setCrumbEmphasis(String(value) || undefined)} options={["default", "medium"].map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Depth" value={crumbDepth} onChange={(value) => setCrumbDepth(String(value) || undefined)} options={["2", "3", "4", "5", "6"].map((id) => ({ id, label: id }))} />
           <PlaygroundToggle label="Master Icon" selected={crumbMaster} onChange={setCrumbMaster} />
           <PlaygroundToggle label="Collapse (max 3)" selected={crumbCollapse} onChange={setCrumbCollapse} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-breadcrumbs-preview">
           <Breadcrumbs key={`${crumbCollapse}-${crumbDepth}`} items={items} emphasis={emphasis} master={crumbMaster} maxItems={crumbCollapse ? 3 : undefined} onNavigate={(item, event) => { event.preventDefault(); setCrumbLast(String(item.label)); }} />
-          <p className={`platform-date-picker-summary ${typographyStyles["Body/Small/Regular"]}`} aria-live="polite">{crumbLast ? `Navigated to “${crumbLast}”` : "Click a breadcrumb"}</p>
+          <p className={`platform-date-picker-summary ${typographyStyles["Body/Small/Regular"]}`} aria-live="polite">{crumbLast ? `Navigated to “${crumbLast}”` : ""}</p>
         </div>
         <PlatformCode code={`import { Breadcrumbs } from "@zen/design-system";
 
@@ -1499,14 +1485,14 @@ ${actions ? `
     return <ExamplePage page="progress" eyebrow="Components / Progress" title="Progress" description="Progress-Bar for linear tasks and Progress-Circle for compact status. Theme=Status colours the bar by how far along it is.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Progress</h2>
-        <div className="platform-playground-controls" aria-label="Progress playground controls">
+        <PlaygroundControls aria-label="Progress playground controls">
           <PlaygroundFilterChip label="Type" value={progressType} onChange={(value) => setProgressType(String(value) || undefined)} options={["bar", "circle"].map((id) => ({ id, label: id }))} />
           {isBar
             ? <PlaygroundFilterChip label="Theme" value={progressBarTheme} onChange={(value) => setProgressBarTheme(String(value) || undefined)} options={["neutral", "accent", "status"].map((id) => ({ id, label: id }))} />
             : <PlaygroundFilterChip label="Theme" value={progressCircleTheme} onChange={(value) => setProgressCircleTheme(String(value) || undefined)} options={progressCircleThemes.map((id) => ({ id, label: id }))} />}
           <PlaygroundFilterChip label="Progress" value={String(progressValue)} onChange={(value) => setProgressValue(Number(value))} options={[["0", "None · 0%"], ["20", "Low · 20%"], ["40", "Medium · 40%"], ["80", "Good · 80%"], ["100", "Done · 100%"]].map(([id, label]) => ({ id, label }))} />
           <PlaygroundToggle label="Label" selected={progressLabel} onChange={setProgressLabel} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-progress-preview">
           {isBar ? <ProgressBar value={progressValue} theme={barTheme} label={progressLabel ? true : undefined} aria-label="Upload progress" /> : <ProgressCircle value={progressValue} theme={circleTheme} label={progressLabel ? true : undefined} aria-label="Task progress" />}
           <div className="pe-row">
@@ -1538,13 +1524,13 @@ ${actions ? `
     return <ExamplePage page="accordion" eyebrow="Components / Accordion" title="Accordion" description="Accordion/Text in three sizes with a Divider or Box theme. The whole header row toggles the panel; the chevron turns and the height animates.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Accordion</h2>
-        <div className="platform-playground-controls" aria-label="Accordion playground controls">
+        <PlaygroundControls aria-label="Accordion playground controls">
           <PlaygroundFilterChip label="Size" value={accordionSize} onChange={(value) => setAccordionSize(String(value) || undefined)} options={[["medium", "Medium"], ["large", "Large"], ["xlarge", "XLarge"]].map(([id, label]) => ({ id, label }))} />
           <PlaygroundFilterChip label="Theme" value={accordionTheme} onChange={(value) => setAccordionTheme(String(value) || undefined)} options={[["divider", "Divider"], ["box", "Box"]].map(([id, label]) => ({ id, label }))} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-accordion-preview">
           <div className="platform-accordion-stack" data-tone={theme}>
-            {faqs.map((faq) => <Accordion key={faq.id} size={size} theme={theme} title={faq.title} expanded={accordionOpen === faq.id} onExpandedChange={(open) => setAccordionOpen(open ? faq.id : "")}>{faq.body}</Accordion>)}
+            {faqs.map((faq) => <Accordion key={faq.id} size={size} theme={theme} title={faq.title} expanded={accordionOpen === faq.id} onExpandedChange={(open) => setAccordionOpen(open ? faq.id : "")}><PlaygroundSlot name="Content slot" /></Accordion>)}
           </div>
         </div>
         <PlatformCode code={`import { Accordion } from "@zen/design-system";
@@ -1556,7 +1542,7 @@ ${actions ? `
   expanded={open}
   onExpandedChange={setOpen}
 >
-  You can manage your full seats from Settings → Members.
+  {/* Content slot: your own content */}
 </Accordion>`} />
       </ComponentPreview>
     </ExamplePage>;
@@ -1569,13 +1555,13 @@ ${actions ? `
     return <ExamplePage page="alert-banner" eyebrow="Components / Alert Banner" title="Alert Banner" description="A full-width Solid strip for page-level messages in five themes and two sizes, with an optional action (Medium) and a dismiss control.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Alert Banner</h2>
-        <div className="platform-playground-controls" aria-label="Alert Banner playground controls">
+        <PlaygroundControls aria-label="Alert Banner playground controls">
           <PlaygroundFilterChip label="Theme" value={alertTheme} onChange={(value) => { setAlertTheme(String(value) || undefined); setAlertDismissed(false); }} options={alertBannerThemes.map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Size" value={alertSize} onChange={(value) => setAlertSize(String(value) || undefined)} options={[["medium", "Medium"], ["small", "Small"]].map(([id, label]) => ({ id, label }))} />
           <PlaygroundToggle label="Leading" selected={alertLeading} onChange={setAlertLeading} />
           {size === "medium" ? <PlaygroundToggle label="Action" selected={alertAction} onChange={setAlertAction} /> : null}
           <PlaygroundToggle label="Close" selected={alertClose} onChange={setAlertClose} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-banner-preview">
           {alertDismissed
             ? <Button appearance="main" level="tertiary" size="sm" onClick={() => setAlertDismissed(false)}>Show banner again</Button>
@@ -1604,10 +1590,10 @@ ${actions ? `
     return <ExamplePage page="pagination" eyebrow="Components / Pagination" title="Pagination" description="Numbered pagination (Primary / Secondary) and compact result navigators (Inline with a page-size Chip, Manually with a page-size Input).">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Pagination</h2>
-        <div className="platform-playground-controls" aria-label="Pagination playground controls">
+        <PlaygroundControls aria-label="Pagination playground controls">
           <PlaygroundFilterChip label="Theme" value={paginationTheme} onChange={(value) => { setPaginationTheme(String(value) || undefined); setPaginationPage(1); }} options={[["primary", "Primary"], ["secondary", "Secondary"], ["inline", "Inline"], ["manually", "Manually"]].map(([id, label]) => ({ id, label }))} />
           {compact ? null : <PlaygroundFilterChip label="Item Size" value={paginationSize} onChange={(value) => setPaginationSize(String(value) || undefined)} options={[["xsmall", "XSmall · 24"], ["small", "Small · 32"]].map(([id, label]) => ({ id, label }))} />}
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row">
           {/* Pagination always pages real content: the orders on the current page (48 per page for the numbered themes). */}
           <div className="pe-stack" style={{ width: "100%", gap: "var(--zen-spacing-gap-small, 12px)" }}>
@@ -1650,14 +1636,14 @@ ${actions ? `
     return <ExamplePage page="skeleton" eyebrow="Components / Skeleton" title="Skeleton" description="Loading placeholders for body text, headings and shapes. They pulse while content loads (static when reduced motion is on).">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Skeleton</h2>
-        <div className="platform-playground-controls" aria-label="Skeleton playground controls">
+        <PlaygroundControls aria-label="Skeleton playground controls">
           <PlaygroundFilterChip label="Type" value={skeletonType} onChange={(value) => setSkeletonType(String(value) || undefined)} options={[["text", "Body Text"], ["heading", "Heading Text"], ["shape", "Shape"]].map(([id, label]) => ({ id, label }))} />
           {type === "text" ? <PlaygroundFilterChip label="Lines" value={skeletonLines} onChange={(value) => setSkeletonLines(String(value) || undefined)} options={["1", "2", "3", "5"].map((id) => ({ id, label: id }))} /> : null}
           {type === "heading" ? <PlaygroundFilterChip label="Size" value={skeletonHeading} onChange={(value) => setSkeletonHeading(String(value) || undefined)} options={[["large", "Large"], ["medium", "Medium"], ["small", "Small"]].map(([id, label]) => ({ id, label }))} /> : null}
           {type === "shape" ? <PlaygroundFilterChip label="Shape" value={skeletonShape} onChange={(value) => setSkeletonShape(String(value) || undefined)} options={skeletonShapes.map((id) => ({ id, label: id }))} /> : null}
           {type === "shape" ? <PlaygroundFilterChip label="Size" value={skeletonShapeSize} onChange={(value) => setSkeletonShapeSize(String(value) || undefined)} options={[...skeletonShapeSizes].reverse().map((id) => ({ id, label: id }))} /> : null}
           <PlaygroundToggle label="Animated" selected={skeletonAnimated} onChange={setSkeletonAnimated} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-skeleton-preview" aria-busy="true" aria-label="Loading">
           {type === "text" ? <div className="platform-skeleton-text"><SkeletonText lines={lines} animated={skeletonAnimated} /></div> : null}
           {type === "heading" ? <SkeletonHeading size={headingSize} animated={skeletonAnimated} /> : null}
@@ -1687,13 +1673,13 @@ ${code}`} />
     return <ExamplePage page="rating" eyebrow="Components / Rating" title="Rating" description="Star input and display (5 sizes × Default/Neutral/Accent), an emoji Opinion scale and an NPS number scale.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Rating</h2>
-        <div className="platform-playground-controls" aria-label="Rating playground controls">
+        <PlaygroundControls aria-label="Rating playground controls">
           <PlaygroundFilterChip label="Type" value={ratingType} onChange={(value) => setRatingType(String(value) || undefined)} options={[["star", "Star input"], ["display", "Display"], ["opinion", "Opinion scale"], ["nps", "NPS scale"]].map(([id, label]) => ({ id, label }))} />
           {type === "star" || type === "display" ? <>
             <PlaygroundFilterChip label="Size" value={ratingSize} onChange={(value) => setRatingSize(String(value) || undefined)} options={ratingSizes.map((id) => ({ id, label: id }))} />
             <PlaygroundFilterChip label="Theme" value={ratingTheme} onChange={(value) => setRatingTheme(String(value) || undefined)} options={ratingThemes.map((id) => ({ id, label: id }))} />
           </> : null}
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-rating-preview">
           {preview}
           {type === "star" ? <span className={`platform-rating-readout ${typographyStyles["Body/Small/Regular"]}`}>{ratingValue} / 5</span> : null}
@@ -1711,9 +1697,9 @@ ${code}`} />
     return <ExamplePage page="color-selector" eyebrow="Components / Color Selector" title="Color Selector" description="Round colour swatches with a check when selected, a hover ring and a keyboard focus halo; one radio per swatch.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Color Selector</h2>
-        <div className="platform-playground-controls" aria-label="Color selector playground controls">
+        <PlaygroundControls aria-label="Color selector playground controls">
           <PlaygroundFilterChip label="Selected" value={colorValue} onChange={(value) => setColorValue(String(value))} options={colors.map((color) => ({ id: color.value, label: color.label }))} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-color-preview">
           <ColorSelector aria-label="Label colour" colors={colors} value={colorValue} onChange={setColorValue} />
           <span className={`platform-color-readout ${typographyStyles["Body/Small/Regular"]}`}>{picked?.label}</span>
@@ -1742,16 +1728,16 @@ ${code}`} />
     return <ExamplePage page="metric" eyebrow="Components / Metric Widget" title="Metric Widget" description="Metric-Inline (icon, label, number, trend) in five sizes, and Metric-Card — the XLarge metric on a Shadow Card with a ⋮ Sub-Action.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Metric Widget</h2>
-        <div className="platform-playground-controls" aria-label="Metric playground controls">
+        <PlaygroundControls aria-label="Metric playground controls">
           <PlaygroundFilterChip label="Size" value={metricSize} onChange={(value) => setMetricSize(String(value) || undefined)} options={metricSizes.map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Trend" value={metricTrend} onChange={(value) => setMetricTrend(String(value) || undefined)} options={["positive", "negative", "normal"].map((id) => ({ id, label: id }))} />
           <PlaygroundToggle label="Dock Icon" selected={metricIcon} onChange={setMetricIcon} />
           {metricIcon ? <PlaygroundFilterChip label="Icon theme" value={metricIconTheme} onChange={(value) => setMetricIconTheme(String(value) || undefined)} options={dockIconThemes.filter((id) => !["emoji", "on-color", "inverse", "surface"].includes(id)).map((id) => ({ id, label: id }))} /> : null}
           {metricIcon ? <PlaygroundToggle label="Solid icon" selected={metricIconSolid} onChange={setMetricIconSolid} /> : null}
           <PlaygroundToggle label="Card" selected={metricCard} onChange={setMetricCard} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-metric-preview">
-          {metricCard ? <MetricCard {...props} subAction={{ label: "Metric actions", icon: "icon-dots-vertical-line", onClick: () => logAction("Metric actions", "subAction.onClick") }} /> : <Metric {...props} />}
+          {metricCard ? <MetricCard theme="flat" {...props} subAction={{ label: "Metric actions", icon: "icon-dots-vertical-line", onClick: () => logAction("Metric actions", "subAction.onClick") }} /> : <Metric {...props} />}
         </div>
         {actionNote}
         <PlatformCode code={`import { ${metricCard ? "MetricCard" : "Metric"} } from "@zen/design-system";
@@ -1795,13 +1781,13 @@ ${code}`} />
     return <ExamplePage page="uploader" eyebrow="Components / Uploader" title="Uploader" description="File-Upload with a Drag & Drop field or a Choose File button, help text, and File-Items that show uploading, uploaded, replaceable and error states.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Uploader</h2>
-        <div className="platform-playground-controls" aria-label="Uploader playground controls">
+        <PlaygroundControls aria-label="Uploader playground controls">
           <PlaygroundFilterChip label="Type" value={uploadType} onChange={(value) => setUploadType(String(value) || undefined)} options={[["dropzone", "Drag & Drop"], ["button", "Browse Button"]].map(([id, label]) => ({ id, label }))} />
           <PlaygroundFilterChip label="Thumbnail" value={uploadThumb} onChange={(value) => setUploadThumb(String(value) || undefined)} options={["none", "file"].map((id) => ({ id, label: id }))} />
           {type === "dropzone" ? <PlaygroundToggle label="Extended" selected={uploadExtended} onChange={setUploadExtended} /> : null}
           <PlaygroundToggle label="Multiple" selected={uploadMultiple} onChange={(on) => { setUploadMultiple(on); if (!on) setUploadFiles((current) => current.slice(0, 1)); }} />
           <PlaygroundToggle label="Field Error" selected={uploadError} onChange={setUploadError} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-uploader-preview">
           <FileUpload label="Attachments" type={type} caption="JPG, PNG or PDF. Max size of 2 MB" helpText="Up to 5 files." error={uploadError ? "Only JPG, PNG or PDF files are allowed." : undefined} multiple={uploadMultiple} extended={uploadExtended} thumbnail={thumbnail}
             files={uploadFiles}
@@ -1830,22 +1816,16 @@ ${code}`} />
   if (page === "side-panel") {
     const type = (panelType ?? "modal") as SidePanelType;
     const size = (panelSize ?? "default") as SidePanelSize;
-    const body = (
-      <>
-        <InputField label="Project name" defaultValue="Zen website" />
-        <SelectField label="Owner" defaultValue="ava" options={[{ label: "Ava Chen", value: "ava" }, { label: "Bao Nguyen", value: "bao" }]} />
-        <TextAreaField label="Notes" placeholder="Anything the team should know" />
-      </>
-    );
+    const body = <PlaygroundSlot name="Content slot" className="platform-slot--tall" />;
     const panel = <SidePanel open={panelOpen} onOpenChange={setPanelOpen} type={type} size={size} icon={type === "modal" ? "icon-info-circle-solid" : undefined} title="Edit project" description={panelDescription ? "Changes apply to everyone in the workspace." : undefined} primaryAction={{ label: "Save changes", onClick: () => setPanelOpen(false) }} secondaryAction={{ label: "Cancel" }}>{body}</SidePanel>;
     return <ExamplePage page="side-panel" eyebrow="Components / Side Panel" title="Side Panel" description="A panel on the right edge: Standard docks beside the page (non-modal); Modal floats over a scrim and traps focus. Header, Contents slot and Modal/Actions footer.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Side Panel</h2>
-        <div className="platform-playground-controls" aria-label="Side panel playground controls">
+        <PlaygroundControls aria-label="Side panel playground controls">
           <PlaygroundFilterChip label="Type" value={panelType} onChange={(value) => { setPanelType(String(value) || undefined); setPanelOpen(false); }} options={["modal", "standard"].map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Size" value={panelSize} onChange={(value) => setPanelSize(String(value) || undefined)} options={[["default", "Default (440)"], ["small", "Small (360)"]].map(([id, label]) => ({ id, label }))} />
           <PlaygroundToggle label="Caption" selected={panelDescription} onChange={setPanelDescription} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-side-panel-preview" data-type={type}>
           {type === "standard" ? (
             <div className="platform-side-panel-shell">
@@ -1875,7 +1855,7 @@ ${code}`} />
   primaryAction={{ label: "Save changes", onClick: save }}
   secondaryAction={{ label: "Cancel" }}
 >
-  <InputField label="Project name" … />
+  {/* Content slot: your own content */}
 </SidePanel>`} />
       </ComponentPreview>
     </ExamplePage>;
@@ -1887,19 +1867,15 @@ ${code}`} />
     return <ExamplePage page="card" eyebrow="Components / Card" title="Card" description="A Content slot on five surfaces — Shadow, Flat, Pale, Border and Semi-Pale — in two paddings, with an Active (selected) state and a top-right Sub-Action.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Card</h2>
-        <div className="platform-playground-controls" aria-label="Card playground controls">
+        <PlaygroundControls aria-label="Card playground controls">
           <PlaygroundFilterChip label="Theme" value={cardTheme} onChange={(value) => setCardTheme(String(value) || undefined)} options={cardThemes.map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Spacing" value={cardSpacing} onChange={(value) => setCardSpacing(String(value) || undefined)} options={cardSpacings.map((id) => ({ id, label: id }))} />
           <PlaygroundToggle label="Active" selected={cardActive} onChange={setCardActive} />
           <PlaygroundToggle label="Sub-Action" selected={cardSubAction} onChange={setCardSubAction} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-card-preview" data-tone={theme}>
           <Card theme={theme} spacing={spacing} active={cardActive} subAction={cardSubAction ? { label: "More actions", onClick: () => logAction("More actions", "subAction.onClick") } : undefined}>
-            <div className="platform-card-demo">
-              <DockIcon icon="icon-colors-line" theme="accent" background="subtle" />
-              <span className={typographyStyles["Body/Base/Bold"]}>Design tokens</span>
-              <span className={`platform-card-demo__caption ${typographyStyles["Body/Small/Regular"]}`}>1,240 variables across 6 collections.</span>
-            </div>
+            <PlaygroundSlot name="Content slot" />
           </Card>
         </div>
         {actionNote}
@@ -1907,8 +1883,7 @@ ${code}`} />
 
 <Card${theme !== "shadow" ? ` theme="${theme}"` : ""}${spacing !== "medium" ? ` spacing="${spacing}"` : ""}${cardActive ? " active" : ""}${cardSubAction ? `
   subAction={{ label: "More actions", onClick: openMenu }}` : ""}>
-  <DockIcon icon="icon-colors-line" theme="accent" background="subtle" />
-  <Text>Design tokens</Text>
+  {/* Content slot: your own content */}
 </Card>`} />
       </ComponentPreview>
     </ExamplePage>;
@@ -1921,11 +1896,11 @@ ${code}`} />
     return <ExamplePage page="dock-icon" eyebrow="Components / Dock Icon" title="Dock Icon" description="Round icon tiles in five sizes and 22 themes — Solid or Subtle — for apps, categories and file types in lists, tables and cards.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Dock Icon</h2>
-        <div className="platform-playground-controls" aria-label="Dock icon playground controls">
+        <PlaygroundControls aria-label="Dock icon playground controls">
           <PlaygroundFilterChip label="Theme" value={dockTheme} onChange={(value) => setDockTheme(String(value) || undefined)} options={dockIconThemes.map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Size" value={dockSize} onChange={(value) => setDockSize(String(value) || undefined)} options={dockIconSizes.map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Background" value={dockBackground} onChange={(value) => setDockBackground(String(value) || undefined)} options={["solid", "subtle"].map((id) => ({ id, label: id }))} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-dock-preview" data-tone={theme}>
           {dockIconSizes.map((s) => <DockIcon key={s} icon="icon-colors-line" emoji="🎨" theme={theme} size={s} background={background} label={s === size ? "Design tokens" : undefined} className={s === size ? "platform-dock-preview__current" : undefined} />)}
         </div>
@@ -1942,40 +1917,46 @@ ${code}`} />
       { id: "bao", name: "Bao Nguyen", role: "Frontend Engineer", initials: "BN", theme: "green" as const },
       { id: "chi", name: "Chi Tran", role: "Design Ops", initials: "CT", theme: "orange" as const },
     ];
-    return <ExamplePage page="list-item" eyebrow="Components / List Item" title="List Item" description="List-Item rows with Leading (avatar or dock icon), Title + Caption, and Trailing actions; Hover, Pressed and Selected come from real interaction.">
+    return <ExamplePage page="list-item" eyebrow="Components / List Item" title="List Item" description="List-Item rows with Leading (avatar or dock icon), Title + Caption, and Trailing actions. Every row pads Small (12px) above and below and nothing at the sides, so the container insets it; interactive rows (onClick or href) show Hover, Pressed and Selected on a fill 12px past the row sideways. List Box holds a list of rows with an optional header and footer.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">List Item</h2>
-        <div className="platform-playground-controls" aria-label="List item playground controls">
+        <PlaygroundControls aria-label="List item playground controls">
           <PlaygroundToggle label="Leading" selected={listLeading} onChange={setListLeading} />
           <PlaygroundToggle label="Caption" selected={listCaption} onChange={setListCaption} />
           <PlaygroundToggle label="Trailing" selected={listTrailing} onChange={setListTrailing} />
-          <PlaygroundFilterChip label="Inset" value={listInset} onChange={(value) => setListInset(String(value) || undefined)} options={["auto", "comfortable", "compact", "none"].map((id) => ({ id, label: id }))} />
-        </div>
+          <PlaygroundToggle label="Interactive" selected={listInteractive} onChange={setListInteractive} />
+          <PlaygroundFilterChip label="Box theme" value={listBoxTheme} onChange={(value) => setListBoxTheme((String(value) || "flat") as ListBoxTheme)} options={listBoxThemes.map((id) => ({ id, label: id[0].toUpperCase() + id.slice(1) }))} />
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-list-preview">
-          <List aria-label="Team" inset={(listInset ?? "auto") as ListInset}>
-            {people.map((person) => (
-              <ListItem key={person.id} title={person.name} caption={listCaption ? person.role : undefined} selected={listSelected === person.id} onClick={() => setListSelected(person.id)}
-                leading={listLeading ? <Avatar size="medium" theme={person.theme} alt="">{person.initials}</Avatar> : undefined}
-                trailing={listTrailing ? <IconButton appearance="flat" level="primary" size="md" aria-label={`Message ${person.name}`} icon={<Icon name="icon-message-chat-circle-line" />} onClick={() => logAction(`Message ${person.name}`)} /> : undefined} />
-            ))}
-          </List>
+          <ListBox theme={listBoxTheme}>
+            <List aria-label="Team">
+              {people.map((person) => (
+                <ListItem key={person.id} title={person.name} caption={listCaption ? person.role : undefined}
+                  {...(listInteractive ? { selected: listSelected === person.id, onClick: () => setListSelected(person.id) } : {})}
+                  leading={listLeading ? <Avatar size="medium" theme={person.theme} alt="">{person.initials}</Avatar> : undefined}
+                  trailing={listTrailing ? <IconButton appearance="flat" level="primary" size="md" aria-label={`Message ${person.name}`} icon={<Icon name="icon-message-chat-circle-line" />} onClick={() => logAction(`Message ${person.name}`)} /> : undefined} />
+              ))}
+            </List>
+          </ListBox>
         </div>
         {actionNote}
-        <PlatformCode code={`import { List, ListItem } from "@zen/design-system";
+        <PlatformCode code={`import { List, ListBox, ListItem } from "@zen/design-system";
 
-<List aria-label="Team"${listInset && listInset !== "auto" ? ` inset="${listInset}"` : ""}>
+<ListBox${listBoxTheme === "flat" ? "" : ` theme="${listBoxTheme}"`}>
+<List aria-label="Team">
   {people.map((person) => (
     <ListItem
       key={person.id}
       title={person.name}${listCaption ? `
-      caption={person.role}` : ""}
+      caption={person.role}` : ""}${listInteractive ? `
       selected={selected === person.id}
-      onClick={() => setSelected(person.id)}${listLeading ? `
+      onClick={() => setSelected(person.id)}` : ""}${listLeading ? `
       leading={<Avatar size="medium" theme={person.theme} alt="">{person.initials}</Avatar>}` : ""}${listTrailing ? `
       trailing={<IconButton appearance="flat" level="primary" size="md" aria-label={\`Message \${person.name}\`} icon={<Icon name="icon-message-chat-circle-line" />} onClick={() => message(person)} />}` : ""}
     />
   ))}
-</List>`} />
+</List>
+</ListBox>`} />
       </ComponentPreview>
     </ExamplePage>;
   }
@@ -2000,11 +1981,11 @@ ${code}`} />
       return <ExamplePage page="table" eyebrow="Components / Table" title="Table" description="Header and data rows built from Table/Cell/Header and Table/Cell/Default: sortable headers, row selection, right-aligned numbers, cell primitives and in-place editable cells.">
         <ComponentPreview className="platform-example-panel platform-example-panel--stack">
           <h2 className="platform-main-component__title">Table · Editable cells</h2>
-          <div className="platform-playground-controls" aria-label="Table playground controls">
+          <PlaygroundControls aria-label="Table playground controls">
             <PlaygroundFilterChip label="Mode" value={tableMode} onChange={(value) => setTableMode(String(value) || undefined)} options={[{ id: "display", label: "display" }, { id: "editable", label: "editable" }]} />
             <PlaygroundToggle label="Open Button" selected={tableOpenButton} onChange={setTableOpenButton} />
             <PlaygroundToggle label="Lock Archived Row" selected={tableLockRow} onChange={setTableLockRow} />
-          </div>
+          </PlaygroundControls>
           <div data-typography={previewTypography} className="platform-example-row platform-table-preview platform-table-preview--editable">
             <Table aria-label="Project budgets" rows={tableBudget} getRowId={(row) => row.id}
               columns={[
@@ -2018,7 +1999,7 @@ ${code}`} />
                 { id: "budget", header: "Budget", align: "right", cell: (row) => <TableText>{money(row.budget)}</TableText>,
                   edit: { type: "number", value: (row) => row.budget, placeholder: "0", "aria-label": "Budget", disabled: locked, validate: (value) => Number(value.replace(/,/g, "")) < 0 ? "Budget can't be negative" : undefined, onCommit: (row, value) => updateRow(row, { budget: value || "0" }, `${row.name} budget → ${money(value)}`) } },
               ]} />
-            <p className={`platform-date-picker-summary ${typographyStyles["Body/Small/Regular"]}`} aria-live="polite">{tableEditLog || "Click a cell to edit (or select it with the arrows and just type). Enter saves, Tab moves on, Escape leaves and keeps the value."}</p>
+            <p className={`platform-date-picker-summary ${typographyStyles["Body/Small/Regular"]}`} aria-live="polite">{tableEditLog}</p>
           </div>
           <PlatformCode code={`import { Table, TableText } from "@zen/design-system";
 
@@ -2043,11 +2024,11 @@ ${code}`} />
     return <ExamplePage page="table" eyebrow="Components / Table" title="Table" description="Header and data rows built from Table/Cell/Header and Table/Cell/Default: sortable headers, row selection, right-aligned numbers and cell primitives (media, text, trend, actions).">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Table</h2>
-        <div className="platform-playground-controls" aria-label="Table playground controls">
+        <PlaygroundControls aria-label="Table playground controls">
           <PlaygroundFilterChip label="Mode" value={tableMode} onChange={(value) => setTableMode(String(value) || undefined)} options={[{ id: "display", label: "display" }, { id: "editable", label: "editable" }]} />
           <PlaygroundToggle label="Selectable" selected={tableSelectable} onChange={setTableSelectable} />
           <PlaygroundToggle label="Empty" selected={tableEmpty} onChange={setTableEmpty} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-table-preview">
           <Table aria-label="Projects" rows={rows} getRowId={(row) => row.id} selectable={tableSelectable} selectedIds={tableSelected} onSelectionChange={setTableSelected} sort={tableSort} onSortChange={setTableSort}
             empty={<EmptyState title="No projects yet" illustration={false} primaryAction={{ label: "Create project", onClick: () => logAction("Create project", "primaryAction.onClick") }}>Projects you create show up here.</EmptyState>}
@@ -2056,7 +2037,7 @@ ${code}`} />
               { id: "status", header: "Status", cell: (row) => <Badge size="medium" theme={row.status === "Live" ? "green" : row.status === "Blocked" ? "red" : "yellow"} background="subtle">{row.status}</Badge> },
               { id: "progress", header: "Progress", width: "20%", cell: (row) => <ProgressBar value={row.progress} theme="accent" aria-label={`${row.name} progress`} /> },
               { id: "trend", header: "Traffic", cell: (row) => <TableTrend trend={row.trend}>{row.delta}</TableTrend> },
-              { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: (row) => <TableActions><IconButton appearance="flat" level="primary" size="sm" aria-label={`Open ${row.name}`} icon={<Icon name="icon-dots-horizontal-line" />} onClick={() => logAction(`Open ${row.name}`)} /></TableActions> },
+              { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: (row) => <TableActions><IconButton appearance="flat" level="primary" size="md" aria-label={`Open ${row.name}`} icon={<Icon name="icon-dots-horizontal-line" />} onClick={() => logAction(`Open ${row.name}`)} /></TableActions> },
             ]} />
         </div>
         {actionNote}
@@ -2092,11 +2073,11 @@ ${code}`} />
     return <ExamplePage page="divider" eyebrow="Components / Divider" title="Divider" description="A 1px line that separates content. Default (Pale) is the everyday rule; Medium and High add emphasis, and dashed lines step up to Subtle.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Divider</h2>
-        <div className="platform-playground-controls" aria-label="Divider playground controls">
+        <PlaygroundControls aria-label="Divider playground controls">
           <PlaygroundFilterChip label="Color" value={dividerColor} onChange={(value) => setDividerColor(String(value) || undefined)} options={dividerColors.map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Orientation" value={dividerOrientation} onChange={(value) => setDividerOrientation(String(value) || undefined)} options={["horizontal", "vertical"].map((id) => ({ id, label: id }))} />
           <PlaygroundToggle label="Dashed" selected={dividerDashed} onChange={setDividerDashed} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-divider-preview" data-orientation={orientation}>
           <span className={typographyStyles["Body/Base/Regular"]}>Profile</span>
           <Divider color={color} orientation={orientation} dashed={dividerDashed} />
@@ -2122,13 +2103,13 @@ ${code}`} />
     return <ExamplePage page="inline-message" eyebrow="Components / Inline Message" title="Inline Message" description="A Subtle-surface message inside the content it describes: six themes with title, caption, one action and a close control.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Inline Message</h2>
-        <div className="platform-playground-controls" aria-label="Inline message playground controls">
+        <PlaygroundControls aria-label="Inline message playground controls">
           <PlaygroundFilterChip label="Theme" value={inlineTheme} onChange={(value) => { setInlineTheme(String(value) || undefined); setInlineDismissed(false); }} options={inlineMessageThemes.map((id) => ({ id, label: id }))} />
           <PlaygroundToggle label="Title" selected={inlineTitle} onChange={setInlineTitle} />
           <PlaygroundToggle label="Caption" selected={inlineCaption} onChange={setInlineCaption} />
           <PlaygroundToggle label="Action" selected={inlineAction} onChange={setInlineAction} />
           <PlaygroundToggle label="Close" selected={inlineClose} onChange={setInlineClose} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-inline-message-preview">
           {inlineDismissed
             ? <Button appearance="main" level="tertiary" size="sm" onClick={() => setInlineDismissed(false)}>Show message again</Button>
@@ -2153,12 +2134,12 @@ ${code}`} />
     return <ExamplePage page="empty-state" eyebrow="Components / Empty State" title="Empty State" description="Illustration, title, caption and up to two full-width actions for screens with nothing to show yet.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Empty State</h2>
-        <div className="platform-playground-controls" aria-label="Empty state playground controls">
+        <PlaygroundControls aria-label="Empty state playground controls">
           <PlaygroundToggle label="Illustration" selected={emptyIllustration} onChange={setEmptyIllustration} />
           <PlaygroundToggle label="Caption" selected={emptyCaption} onChange={setEmptyCaption} />
           <PlaygroundToggle label="Primary CTA" selected={emptyPrimary} onChange={setEmptyPrimary} />
           <PlaygroundToggle label="Secondary CTA" selected={emptySecondary} onChange={setEmptySecondary} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-empty-state-preview">
           <EmptyState title="No projects yet" illustration={emptyIllustration} icon="icon-folder-line" primaryAction={emptyPrimary ? { label: "Create project", onClick: () => logAction("Create project", "primaryAction.onClick") } : undefined} secondaryAction={emptySecondary ? { label: "Import from Figma", onClick: () => logAction("Import from Figma", "secondaryAction.onClick") } : undefined}>{emptyCaption ? "Projects you create or join will show up here." : undefined}</EmptyState>
         </div>
@@ -2189,12 +2170,12 @@ ${code}`} />
     return <ExamplePage page="stepper" eyebrow="Components / Stepper" title="Stepper" description="Stepper-Bar in horizontal and vertical layouts: Passed, Focused, Default and Error steps with a title and caption.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Stepper</h2>
-        <div className="platform-playground-controls" aria-label="Stepper playground controls">
+        <PlaygroundControls aria-label="Stepper playground controls">
           <PlaygroundFilterChip label="Orientation" value={stepperOrientation} onChange={(value) => setStepperOrientation(String(value) || undefined)} options={["horizontal", "vertical"].map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Current Step" value={String(stepperCurrent)} onChange={(value) => setStepperCurrent(Number(value) || 0)} options={steps.map((step, index) => ({ id: String(index), label: `${index + 1} · ${step.title}` }))} />
           <PlaygroundToggle label="Caption" selected={stepperCaption} onChange={setStepperCaption} />
           <PlaygroundToggle label="Error on Workspace" selected={stepperError} onChange={setStepperError} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-stepper-preview" data-orientation={orientation}>
           <Stepper aria-label="Sign-up progress" orientation={orientation} steps={steps} current={stepperCurrent} onStepClick={(_, index) => setStepperCurrent(index)} />
         </div>
@@ -2219,13 +2200,13 @@ ${steps.map((step) => `    { id: "${step.id}", title: "${step.title}"${step.capt
     return <ExamplePage page="slider" eyebrow="Components / Slider" title="Slider" description="Slider/Horizontal in Neutral, Accent and White themes and three sizes, with a leading icon and min/max labels. A native range input keeps keyboard and screen-reader support.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Slider</h2>
-        <div className="platform-playground-controls" aria-label="Slider playground controls">
+        <PlaygroundControls aria-label="Slider playground controls">
           <PlaygroundFilterChip label="Theme" value={sliderTheme} onChange={(value) => setSliderTheme(String(value) || undefined)} options={sliderThemes.map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Size" value={sliderSize} onChange={(value) => setSliderSize(String(value) || undefined)} options={sliderSizes.map((id) => ({ id, label: id }))} />
           {size !== "small" ? <PlaygroundToggle label="Icon" selected={sliderIcon} onChange={setSliderIcon} /> : null}
           <PlaygroundToggle label="Value Labels" selected={sliderLimits} onChange={setSliderLimits} />
           <PlaygroundToggle label="Disabled" selected={sliderDisabled} onChange={setSliderDisabled} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-slider-preview" data-tone={theme}>
           <Slider aria-label="Volume" theme={theme} size={size} value={sliderValue} onChange={setSliderValue} icon={sliderIcon ? "icon-volume-max-solid" : false} showLimits={sliderLimits} disabled={sliderDisabled} valueText={(value) => `${value}%`} />
           <span className={`platform-slider-readout ${typographyStyles["Body/Small/Regular"]}`}>{sliderValue}%</span>
@@ -2254,12 +2235,12 @@ ${steps.map((step) => `    { id: "${step.id}", title: "${step.title}"${step.capt
     return <ExamplePage page="toast" eyebrow="Components / Toast Message" title="Toast Message" description="Toast-Message in six types with title, caption, one action and a close control, on the Popover effect surface.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Toast Message</h2>
-        <div className="platform-playground-controls" aria-label="Toast playground controls">
+        <PlaygroundControls aria-label="Toast playground controls">
           <PlaygroundFilterChip label="Type" value={toastType} onChange={(value) => { setToastType(String(value) || undefined); setToastDismissed(false); }} options={toastTypes.map((id) => ({ id, label: id }))} />
           <PlaygroundToggle label="Caption" selected={toastCaption} onChange={setToastCaption} />
           <PlaygroundToggle label="Action" selected={toastAction} onChange={setToastAction} />
           <PlaygroundToggle label="Close" selected={toastClose} onChange={setToastClose} />
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-banner-preview">
           {toastDismissed
             ? <Button appearance="main" level="tertiary" size="sm" onClick={() => setToastDismissed(false)}>Show toast again</Button>
@@ -2294,22 +2275,12 @@ ${steps.map((step) => `    { id: "${step.id}", title: "${step.title}"${step.capt
       tertiaryAction: count === 3 ? { label: isForm ? "Save draft" : "Learn more", onClick: () => close(isForm ? "Saved as draft" : "Learn more") } : undefined,
       actionsDirection: direction,
     };
-    const formSideContent = (
-      <div className="platform-modal-side">
-        <span className="platform-modal-side__icon" aria-hidden="true"><Icon name="icon-folder-plus-line" /></span>
-        <p className={typographyStyles["Body/Base/Bold"]}>New project</p>
-        <ul className={typographyStyles["Body/Small/Regular"]}>
-          <li>Projects group files, tokens and tasks.</li>
-          <li>Owners can invite members later.</li>
-          <li>Private projects stay hidden from search.</li>
-        </ul>
-      </div>
-    );
+    const formSideContent = <PlaygroundSlot name="Side-Content slot" className="platform-slot--fill" />;
     const actionsCode = `  primaryAction={{ label: "${actionProps.primaryAction.label}"${!isForm && theme === "negative" ? `, level: "danger"` : ""}${isForm ? "" : ", onClick: confirm"} }}${count >= 2 ? `
   secondaryAction={{ label: "Cancel" }}` : ""}${count === 3 ? `
   tertiaryAction={{ label: "${isForm ? "Save draft" : "Learn more"}", onClick: ${isForm ? "saveDraft" : "openDocs"} }}` : ""}${direction === "vertical" ? `
   actionsDirection="vertical"` : ""}`;
-    const code = isForm ? `import { Button, InputField, ModalForm, SelectField, TextAreaField } from "@zen/design-system";
+    const code = isForm ? `import { Button, ModalForm } from "@zen/design-system";
 
 <Button onClick={() => setOpen(true)}>New project</Button>
 <ModalForm
@@ -2318,14 +2289,12 @@ ${steps.map((step) => `    { id: "${step.id}", title: "${step.title}"${step.capt
   layout="${layout}"` : ""}
   title="Create a project"${dialogDescription ? `
   description="Projects group files, tokens and tasks for one team."` : ""}${layoutHasSide && formSide ? `
-  side={<ProjectTips />}` : ""}${formClose ? "" : `
+  side={<SideContent />} // Side-Content slot` : ""}${formClose ? "" : `
   closeButton={false}`}
   onSubmit={createProject}
 ${actionsCode}
 >
-  <InputField label="Project name" required />
-  <SelectField label="Owner" options={people} />
-  <TextAreaField label="Description" labelOptional rows={3} />
+  {/* Main-Contents slot: your form fields */}
 </ModalForm>` : `import { Button, Dialog } from "@zen/design-system";
 
 <Button onClick={() => setOpen(true)}>Open dialog</Button>
@@ -2338,12 +2307,12 @@ ${actionsCode}
   description="Review the summary below before you continue."` : ""}
 ${actionsCode}
 >${dialogCustom ? `
-  <InputField label="Project name" />
+  {/* Custom slot: your own content */}
 ` : ""}</Dialog>`;
     return <ExamplePage page="dialog" eyebrow="Components / Modal & Dialog" title="Dialog" description="Modal/Dialog and Modal/Forms with themed icon, heading, caption and up to three actions in a horizontal or vertical direction. Focus is trapped while open and returns to the trigger; Escape or the overlay closes it.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">{isForm ? "Modal/Forms" : "Modal/Dialog"}</h2>
-        <div className="platform-playground-controls" aria-label="Dialog playground controls">
+        <PlaygroundControls aria-label="Dialog playground controls">
           <PlaygroundFilterChip label="Type" value={dialogKind} onChange={(value) => setDialogKind(String(value) || undefined)} options={[{ id: "dialog", label: "dialog" }, { id: "form", label: "form" }]} />
           {isForm
             ? <PlaygroundFilterChip label="Layout" value={formLayout} onChange={(value) => setFormLayout(String(value) || undefined)} options={modalFormLayouts.map((id) => ({ id, label: id }))} />
@@ -2356,10 +2325,10 @@ ${actionsCode}
             {layoutHasSide ? <PlaygroundToggle label="Side Content" selected={formSide} onChange={setFormSide} /> : null}
             <PlaygroundToggle label="Close" selected={formClose} onChange={setFormClose} />
           </> : <PlaygroundToggle label="Custom Slot" selected={dialogCustom} onChange={setDialogCustom} />}
-        </div>
+        </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-dialog-preview">
           <Button appearance="main" level={!isForm && theme === "negative" ? "danger" : "primary"} size="md" onClick={() => { setDialogResult(""); setDialogOpen(true); }}>{isForm ? "New project" : "Open dialog"}</Button>
-          <p className={`platform-date-picker-summary ${typographyStyles["Body/Small/Regular"]}`} aria-live="polite">{dialogResult || "Try Tab, Shift+Tab and Escape while it is open."}</p>
+          <p className={`platform-date-picker-summary ${typographyStyles["Body/Small/Regular"]}`} aria-live="polite">{dialogResult}</p>
           {isForm ? (
             <ModalForm
               open={dialogOpen}
@@ -2372,9 +2341,7 @@ ${actionsCode}
               onSubmit={(event) => { const name = new FormData(event.currentTarget).get("project") || "Untitled"; close(`Created “${name}”`); }}
               {...actionProps}
             >
-              <InputField name="project" label="Project name" placeholder="Website redesign" required />
-              <SelectField label="Owner" options={[{ label: "Ava Chen", value: "ava" }, { label: "Bao Nguyen", value: "bao" }, { label: "Chi Tran", value: "chi" }]} />
-              <TextAreaField label="Description" labelOptional rows={3} placeholder="What is this project about?" />
+              <PlaygroundSlot name="Main-Contents slot" className="platform-slot--tall" />
             </ModalForm>
           ) : (
             <Dialog
@@ -2386,7 +2353,7 @@ ${actionsCode}
               description={dialogDescription ? "Everything in Zen contains Auto Layout. Review the summary below before you continue." : undefined}
               {...actionProps}
             >
-              {dialogCustom ? <InputField label="Project name" placeholder="Type the project name to confirm" /> : null}
+              {dialogCustom ? <PlaygroundSlot name="Custom slot" /> : null}
             </Dialog>
           )}
         </div>
@@ -2434,8 +2401,4 @@ createRoot(document.getElementById("root")!).render(
   }
 
   return <ExamplePage eyebrow="Components" title="Component" description="Select a component from the sidebar."><div /></ExamplePage>;
-}
-
-export function isPlatformComponentPage(page: PlatformPage) {
-  return page !== "overviews";
 }

@@ -11,7 +11,8 @@ export type ActionBarDirection = (typeof actionBarDirections)[number];
 export const actionBarSurfaces = ["default", "alt", "none"] as const;
 export type ActionBarSurface = (typeof actionBarSurfaces)[number];
 
-/** A button the ActionBar renders itself (Large when vertical, Medium when horizontal), in the right order. */
+/** A button the ActionBar renders itself (Large when vertical or on a phone-width horizontal bar, Medium on a wider horizontal
+ * bar), in the right order. */
 export interface ActionBarAction {
   /** Button label: a verb that names the outcome ("Add to cart", "Save changes"), never "OK" or "Submit". */
   label: ReactNode;
@@ -36,9 +37,11 @@ export interface ActionBarProps extends HTMLAttributes<HTMLDivElement> {
    */
   position?: ActionBarPosition;
   /**
-   * vertical (default, phones and narrow panels): full-width stacked buttons, Primary on top. horizontal (desktop): the
-   * summary at the start, buttons hug their labels at the end, Tertiary then Primary; when the bar itself is narrower
-   * than 480px the summary takes its own row and the buttons split the next one (the Bottom-Sheet dual footer).
+   * vertical (default): full-width stacked Large buttons, Primary on top; the phone footer for one main action.
+   * horizontal: Tertiary then Primary side by side. On a bar 480px or wider (desktop) the summary sits at the start and
+   * Medium buttons hug their labels at the end; on a narrower bar (a phone, a narrow panel) the summary takes its own row
+   * and Large buttons split the next one equally (the Figma Bottom-Sheet dual footer), for two peer actions such as
+   * Clear all · Show results.
    */
   direction?: ActionBarDirection;
   /**
@@ -68,8 +71,9 @@ function actionButton(action: ActionBarAction, fallbackLevel: ButtonLevel, size:
 }
 
 /**
- * The footer bar that holds a screen's main actions: the mobile footer CTA (Large, full width, Primary on top) and the
- * sticky action row of desktop detail and edit pages (Tertiary · Primary at the end). Surface/Default with a
+ * The footer bar that holds a screen's main actions: the mobile footer CTA (Large, full width, Primary on top), the phone
+ * dual footer (Large Tertiary · Primary side by side) and the sticky action row of desktop detail and edit pages
+ * (Tertiary · Primary at the end). Surface/Default with a
  * Border/Neutral/Pale top rule, padding Spacing/Padding/Small × Margin/Comfortable, and a bottom padding that clears the
  * device safe area (`--zen-safe-area-bottom`, else `env(safe-area-inset-bottom)`).
  *
@@ -109,7 +113,8 @@ export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function Act
     return () => observer.disconnect();
   }, [direction]);
 
-  const size = direction === "vertical" ? "lg" : "md";
+  // Phone-width bars keep the Large touch size in both directions; only a wide horizontal bar uses Medium.
+  const size = direction === "vertical" || narrow ? "lg" : "md";
   const primary = primaryAction ? actionButton(primaryAction, "primary", size) : null;
   const secondary = secondaryAction ? actionButton(secondaryAction, "tertiary", size) : null;
   const named = Boolean(rest["aria-label"] || rest["aria-labelledby"]);

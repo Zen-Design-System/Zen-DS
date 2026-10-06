@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><g transform="translate(-496 -40)"><g clip-path="url(#peru-clip9_1340_4450)">
+<path d="M508 64C514.627 64 520 58.6274 520 52C520 45.3726 514.627 40 508 40C501.373 40 496 45.3726 496 52C496 58.6274 501.373 64 508 64Z" fill="#F0F0F0"/>
+<g>
+<path d="M520 52C520 46.8405 516.743 42.4419 512.174 40.7465V63.2537C516.743 61.5581 520 57.1596 520 52Z" fill="#D80027"/>
+<path d="M496 52C496 57.1596 499.257 61.5581 503.826 63.2537V40.7465C499.257 42.4419 496 46.8405 496 52Z" fill="#D80027"/>
+</g>
+</g></g><defs><clipPath id="peru-clip9_1340_4450">
+<rect width="24" height="24" fill="white" transform="translate(496 40)"/>
+</clipPath></defs></svg>

@@ -19,10 +19,11 @@ import {
   type Ref,
   type RefObject,
 } from "react";
-import { createPortal } from "react-dom";
+import { createPortal, flushSync } from "react-dom";
 import { Divider } from "../Divider";
 import { Icon, type IconName } from "../Icon";
 import { PopoverItem, useExclusivePopover } from "../Popover";
+import { resolveAnchoredAlign, resolveAnchoredSide } from "../Popover/useAnchoredPosition";
 import { ZenPortal } from "../Portal";
 import { usePresence } from "../Motion";
 import { typographyStyles } from "../../tokens/typography.generated";
@@ -103,7 +104,8 @@ const MENU_MARGIN = 8; // room kept to the edge of the visible area
  * Places the absolutely positioned surface against the trigger: 4px below it, or above when there is less room below;
  * lined up with its start edge, or its end edge when the start would overflow (and the other way round for `end`).
  * Like useAnchoredPosition, plus a container that is scaled (a device frame with `transform: scale()`): offsets are
- * computed in the container's own, unscaled pixels and its `--zen-safe-area-top/-bottom` are kept clear.
+ * computed in the container's own, unscaled pixels and its `--zen-safe-area-top/-bottom` are kept clear. While open it
+ * keeps the side and edge it took until they would cut it off (resolveAnchoredSide), and re-measures in the same frame.
  */
 function useMenuPlacement(surfaceRef: RefObject<HTMLElement | null>, triggerRef: RefObject<HTMLElement | null>, open: boolean, align: "start" | "end") {
   const [placement, setPlacement] = useState<MenuPlacement>({ side: "bottom" });
@@ -111,6 +113,8 @@ function useMenuPlacement(surfaceRef: RefObject<HTMLElement | null>, triggerRef:
     if (!open) return undefined;
     const surface = surfaceRef.current;
     if (!surface) return undefined;
+    let lastSide: MenuPlacement["side"] | null = null;
+    let lastEnd: boolean | null = null;
     const update = () => {
       const trigger = triggerRef.current;
       const container = surface.offsetParent as HTMLElement | null;
@@ -138,29 +142,36 @@ function useMenuPlacement(surfaceRef: RefObject<HTMLElement | null>, triggerRef:
       const margin = MENU_MARGIN * scale;
       const below = bounds.bottom - box.bottom - gap - margin;
       const above = box.top - bounds.top - gap - margin;
-      const side = below >= height || below >= above ? "bottom" : "top";
+      const side = resolveAnchoredSide(lastSide, below, above, height);
       const fitsStart = box.left + width <= bounds.right - margin;
       const fitsEnd = box.right - width >= bounds.left + margin;
-      const end = align === "end" ? fitsEnd || !fitsStart : !fitsStart && fitsEnd;
+      const end = resolveAnchoredAlign(lastEnd === null ? null : lastEnd ? "end" : "start", align, fitsStart, fitsEnd) === "end";
+      lastSide = side;
+      lastEnd = end;
       const x = (value: number) => (value - originX) / scale;
       const y = (value: number) => (value - originY) / scale;
+      // Fits on neither edge of its trigger (a wide menu near a phone's edge): shifted into the bounds, `margin` from each
+      // side, as Popover's clampAnchoredLeft does; it opened at x −51 on a 390px window before (2026-10-02).
+      const shifted = !fitsStart && !fitsEnd ? Math.max(bounds.left + margin, Math.min(box.left, bounds.right - margin - width)) : null;
       const style: CSSProperties = {
         top: side === "bottom" ? y(box.bottom + gap) : "auto",
         bottom: side === "top" ? containerHeight - y(box.top - gap) : "auto",
-        left: end ? "auto" : x(box.left),
-        right: end ? containerWidth - x(box.right) : "auto",
+        left: shifted !== null ? x(shifted) : end ? "auto" : x(box.left),
+        right: shifted !== null ? "auto" : end ? containerWidth - x(box.right) : "auto",
       };
       setPlacement((current) => (current.side === side && current.style?.top === style.top && current.style?.bottom === style.bottom && current.style?.left === style.left && current.style?.right === style.right ? current : { side, style }));
     };
     update();
-    const observer = new ResizeObserver(update);
+    // Outside React's own events: flush before the frame paints so the portalled menu never trails its trigger.
+    const sync = () => flushSync(update);
+    const observer = new ResizeObserver(sync);
     observer.observe(surface);
-    window.addEventListener("resize", update);
-    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", sync);
+    window.addEventListener("scroll", sync, true);
     return () => {
       observer.disconnect();
-      window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", sync);
+      window.removeEventListener("scroll", sync, true);
     };
   }, [open, align, surfaceRef, triggerRef]);
   return placement;

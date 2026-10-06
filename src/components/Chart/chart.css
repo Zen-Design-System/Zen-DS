@@ -36,7 +36,7 @@
 .zen-chart__stack { display: flex; width: min(100%, 40px); flex-direction: column-reverse; overflow: hidden; border-radius: var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0; }
 .zen-chart__segment { display: block; min-height: 2px; flex-basis: 0; }
 .zen-chart__column:not([data-active="true"]) .zen-chart__stack { opacity: .88; }
-.zen-chart__legend { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-2-xsmall, 4px) var(--zen-spacing-gap-xsmall, 8px); margin: var(--zen-spacing-gap-medium, 16px) 0 0; padding: 0; list-style: none; color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-chart__legend { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--zen-spacing-gap-2-xsmall, 4px) var(--zen-spacing-gap-xsmall, 8px); margin: var(--zen-spacing-gap-medium, 16px) 0 0; padding: 0; list-style: none; color: var(--zen-color-content-neutral-strongest, #111); }
 /* Legend item (6643:73387): a 12px dot, Spacing/Gap/2XSmall before its label. */
 .zen-chart__legend li { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-chart__swatch { width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); border-radius: var(--zen-corner-radius-rounded, 1000px); }
@@ -45,6 +45,5 @@
 .zen-chart-card__body { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-chart-card__header { display: flex; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
 .zen-chart-card__title { min-width: 0; flex: 1; margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
-.zen-chart-card .zen-segmented { width: 100%; }
 @media (prefers-reduced-motion: no-preference) { .zen-chart__x, .zen-chart__sector::before { transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), border-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
 .zen-chart__visual > .zen-chart__bars { inset: 0; }

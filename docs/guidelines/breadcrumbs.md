@@ -31,7 +31,7 @@ Figma Breadcrumbs (4031:20161): Item-List with chevron separators (icon-chevron-
 | `items` (required) | `BreadcrumbItemData[]` | — |  |
 | `emphasis` | `"default" \| "medium"` | `"default"` |  |
 | `master` | `boolean` | `true` | Show the first item as the Master level (with icon). Default true. |
-| `maxItems` | `number` | — | Collapse middle items behind an ellipsis button when there are more than this many. |
+| `maxItems` | `number` | — | Collapse middle items behind an ellipsis button when there are more than this many. Activating the ellipsis shows them all and moves focus to the first crumb it revealed. |
 | `onNavigate` | `(item: BreadcrumbItemData, event: MouseEvent) => void` | — | Called for every non-current item; call `event.preventDefault()` for client-side routing. |
 | `aria-label` | `string` | — | Names the navigation landmark (default "Breadcrumb", from the locale's labels). |
 | `className` | `string` | — |  |
@@ -75,6 +75,7 @@ type BreadcrumbItemData = { id: string; label: ReactNode; href?: string; icon?: 
 
 ## Accessibility
 - nav aria-label="Breadcrumb" + ordered list; aria-current=page.
+- Activating “…” (Show N more) reveals the hidden crumbs and moves focus to the first crumb it revealed, so keyboard users continue down the trail.
 
 ## Content
 - Short page names.

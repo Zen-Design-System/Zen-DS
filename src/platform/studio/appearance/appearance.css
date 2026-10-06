@@ -1,0 +1,25 @@
+/* Appearance and Effects sections (AppearanceSection.tsx). */
+.studio-effect { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-effect__style { min-width: 0; flex: 1 1 auto; justify-content: flex-start; }
+.studio-effect[data-hidden="true"] .studio-effect__style { opacity: 0.48; }
+/* The swatch paints the style itself (the Box rules in src/components/Layout/effects.css, keyed the same way). */
+.studio-effect__swatch {
+  display: inline-block;
+  width: var(--zen-element-size-popular-small, 16px);
+  height: var(--zen-element-size-popular-small, 16px);
+  flex: none;
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: var(--zen-color-background-surface-default, #fff);
+  outline: 1px solid var(--zen-color-border-neutral-pale, rgb(0 0 0 / 6%));
+}
+.studio-effect__swatch[data-effect="shadow-bottom-level-1"] { box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
+.studio-effect__swatch[data-effect="shadow-bottom-level-2"] { box-shadow: var(--zen-style-shadow-bottom-level-2-shadow); }
+.studio-effect__swatch[data-effect="shadow-bottom-level-3"] { box-shadow: var(--zen-style-shadow-bottom-level-3-shadow); }
+.studio-effect__swatch[data-effect="shadow-bottom-level-4"] { box-shadow: var(--zen-style-shadow-bottom-level-4-shadow); }
+.studio-effect__swatch[data-effect="shadow-top-level-1"] { box-shadow: var(--zen-style-shadow-top-level-1-shadow); }
+.studio-effect__swatch[data-effect="shadow-top-level-2"] { box-shadow: var(--zen-style-shadow-top-level-2-shadow); }
+.studio-effect__swatch[data-effect="shadow-top-level-3"] { box-shadow: var(--zen-style-shadow-top-level-3-shadow); }
+.studio-effect__swatch[data-effect="shadow-top-level-4"] { box-shadow: var(--zen-style-shadow-top-level-4-shadow); }
+.studio-effect__swatch[data-effect="effect-overlay"] { background: var(--zen-color-background-neutral-subtle-default, rgb(0 0 0 / 6%)); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
+.studio-effect__warning { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-warning-base, #8a5a00); }
+.studio-effect__warning > span { min-width: 0; flex: 1 1 auto; }

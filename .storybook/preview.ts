@@ -39,7 +39,7 @@ const preview: Preview = {
       defaultValue: "neutral-s1",
       toolbar: {
         icon: "paintbrush",
-        items: ["neutral-s1", "brand-s1", "neutral-s2", "brand-s2", "neutral-s3", "neutral-s4"],
+        items: ["neutral-s1", "brand-s1", "neutral-s2", "brand-s2", "neutral-s3", "neutral-s4", "neutral-s5", "neutral-s6", "neutral-s7"],
       },
     },
     typography: {
@@ -66,6 +66,14 @@ const preview: Preview = {
         items: ["medium", "strong", "light"],
       },
     },
+    contrast: {
+      description: "Contrast (Global Colors mode Zen-High-Contrast)",
+      defaultValue: "standard",
+      toolbar: {
+        icon: "contrast",
+        items: ["standard", "high"],
+      },
+    },
   },
   decorators: [
     (Story, context) => {
@@ -75,6 +83,7 @@ const preview: Preview = {
       document.documentElement.dataset.typography = context.globals.typography;
       document.documentElement.dataset.radius = context.globals.radius;
       document.documentElement.dataset.emphasis = context.globals.emphasis;
+      document.documentElement.dataset.contrast = context.globals.contrast;
       return Story();
     },
   ],

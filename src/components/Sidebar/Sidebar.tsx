@@ -28,6 +28,8 @@ export type SidebarItem = {
   selected?: boolean;
   disabled?: boolean;
   state?: SidebarItemState;
+  /** Figma Menu-Item Theme: `neutral` (the default at every level, Figma's default; the selected row is
+   *  Active/Neutral/Subtle) or `accent` (Active/Accent/Subtle with Accent/Strongest text). */
   theme?: SidebarItemTheme;
   dropdown?: boolean;
   indent?: boolean;
@@ -55,11 +57,14 @@ export interface SidebarProps {
   /** Controlled collapse callback used by the Figma Basic/Small-Density header control. Without it the control is
    * not rendered. Ignored by `variant="workspace"`, which has no collapsed state. */
   onCollapsedChange?: (collapsed: boolean) => void;
-  /** Replaces the whole header, including the collapse control. Prefer `logo` / `productName`, which keep it. */
+  /** Replaces the whole header, including the collapse control. Prefer `logo` / `productName`, which keep it. In the
+   * collapsed rail `logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its
+   * mark), centred, and hides the rest visually. */
   brand?: ReactNode;
   /** Header logo while expanded (Figma LOGO / Union). Sized to the header height (24px; 20px in Small-Density). */
   logo?: ReactNode;
-  /** Mark shown in the collapsed rail instead of `logo` (Figma collapsed Logo, 28px; 20px in Small-Density). */
+  /** Mark shown centred in the collapsed rail instead of `logo` or a custom `brand` (Figma collapsed Logo, 28px; 20px
+   * in Small-Density). */
   logoCollapsed?: ReactNode;
   /** Small product label after the logo (Figma: the product badge beside the wordmark). */
   productName?: ReactNode;
@@ -77,7 +82,12 @@ export interface SidebarProps {
   search?: ReactNode;
   onItemClick?: (item: SidebarItem) => void;
   className?: string;
+  /** Default = Surface with a shadow (a Canvas/Default page; cards on the page take the same shadow, no border). Alt
+   *  (Surface/Alt) and Flat are the only choices on a Canvas/Alt (white) page, where cards are bordered. */
   background?: SidebarBackground;
+  /** A Pale divider on the Sidebar's inner edge, the full height of the block: separates an Alt or Flat Sidebar from the
+   *  page on a Canvas/Alt (white) page. Not with the default Sidebar, whose shadow already separates it. */
+  divider?: boolean;
   workspaceBrand?: ReactNode;
   workspaceItems?: SidebarItem[];
   workspaceFooter?: ReactNode;
@@ -138,7 +148,9 @@ function WorkspaceHeader({ items, onSelect, action }: { items: SidebarItem[]; on
   return (
     <div className="zen-sidebar__workspace-title">
       <span className="zen-sidebar__workspace-switcher">
-        <button ref={anchorRef} type="button" className="zen-sidebar__workspace-trigger" aria-haspopup="listbox" aria-expanded={open} disabled={items.length < 2} onClick={() => setOpen((next) => !next)}>
+        <button ref={anchorRef} type="button" className="zen-sidebar__workspace-trigger" aria-haspopup="listbox" aria-expanded={open} disabled={items.length < 2} onClick={() => setOpen((next) => !next)}
+          // APG listbox button: Down / Up Arrow open the list as Enter and Space do; focus lands on the current workspace.
+          onKeyDown={(event) => { if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); setOpen(true); } }}>
           <span className={`zen-sidebar__workspace-name ${typographyStyles["Heading/4"]}`}>{current?.label ?? t.workspace}</span>
           <Icon name="icon-chevron-down-line" size="base" decorative />
         </button>
@@ -157,13 +169,13 @@ function WorkspaceHeader({ items, onSelect, action }: { items: SidebarItem[]; on
  * sidebar surface's overflow clipping cannot cut it off. Hover shows after TOOLTIP_HOVER_DELAY (1s, same as every icon tooltip),
  * keyboard focus (focus-visible) shows immediately, Escape/press dismisses. */
 function useRailTooltip(enabled: boolean, delay = TOOLTIP_HOVER_DELAY) {
-  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
+  const [position, setPosition] = useState<{ top: number; left: number; label?: string } | null>(null);
   const timer = useRef<number | undefined>(undefined);
   const clear = () => window.clearTimeout(timer.current);
   const hide = () => { clear(); setPosition(null); };
-  const show = (target: HTMLElement, wait: number) => {
+  const show = (target: HTMLElement, wait: number, label?: string) => {
     clear();
-    const place = () => { const rect = target.getBoundingClientRect(); setPosition({ top: rect.top + rect.height / 2, left: rect.right + 8 }); };
+    const place = () => { const rect = target.getBoundingClientRect(); setPosition({ top: rect.top + rect.height / 2, left: rect.right + 8, label }); };
     if (wait <= 0) place(); else timer.current = window.setTimeout(place, wait);
   };
   useEffect(() => clear, []);
@@ -182,7 +194,41 @@ function useRailTooltip(enabled: boolean, delay = TOOLTIP_HOVER_DELAY) {
     onFocus: (event: FocusEvent<HTMLElement>) => { if (event.currentTarget.matches(":focus-visible")) show(event.currentTarget, 0); },
     onBlur: hide,
   } : {};
-  return { position: enabled ? position : null, triggerProps };
+  return { position: enabled ? position : null, triggerProps, show, hide };
+}
+
+/** Collapsed rail footer: the footer's buttons are the app's own markup (`<button><Icon /><span>Label</span></button>`),
+ * so their rail tooltip is delegated from the footer. The label span stays in the accessibility tree (visually hidden in
+ * sidebar.css), so each button keeps its name; the tooltip shows that name after 1s hover and at once on keyboard focus,
+ * like the rail items. */
+function useRailFooterTooltip(enabled: boolean) {
+  const tooltip = useRailTooltip(enabled);
+  const current = useRef<HTMLElement | null>(null);
+  const buttonOf = (target: EventTarget | null) => (target instanceof Element ? target.closest<HTMLElement>(".zen-sidebar__footer-content > button:not(:disabled)") : null);
+  const nameOf = (button: HTMLElement) => button.getAttribute("aria-label")?.trim() || button.textContent?.trim() || "";
+  const footerProps = enabled ? {
+    onPointerOver: (event: PointerEvent<HTMLElement>) => {
+      const button = buttonOf(event.target);
+      if (event.pointerType === "touch" || !button || button === current.current) return;
+      current.current = button;
+      const name = nameOf(button);
+      if (name) tooltip.show(button, TOOLTIP_HOVER_DELAY, name);
+    },
+    onPointerOut: (event: PointerEvent<HTMLElement>) => {
+      const button = buttonOf(event.target);
+      if (!button || (event.relatedTarget instanceof Node && button.contains(event.relatedTarget))) return;
+      current.current = null;
+      tooltip.hide();
+    },
+    onPointerDown: tooltip.hide,
+    onFocus: (event: FocusEvent<HTMLElement>) => {
+      const button = buttonOf(event.target);
+      const name = button?.matches(":focus-visible") ? nameOf(button) : "";
+      if (button && name) tooltip.show(button, 0, name);
+    },
+    onBlur: tooltip.hide,
+  } : {};
+  return { position: tooltip.position, footerProps };
 }
 
 /** Sidebar-level navigation settings (`selectedId`, `linkAs`), shared with the item rows of the panel and its flyout. */
@@ -223,7 +269,9 @@ function SidebarItemView({
   const hasChildren = Boolean(item.children?.length);
   const isOpen = openItems[item.id] ?? defaultExpanded(item, selectedId);
   const selected = selectedId !== undefined ? item.id === selectedId : (item.selected ?? item.active ?? false);
-  const theme = item.theme ?? (depth > 0 ? "accent" : "neutral");
+  // Figma's Theme defaults to Neutral for Master and Child rows alike (HR-Platform Time Off › Leave Types is grey);
+  // child rows were accent before 2026-10-05.
+  const theme = item.theme ?? "neutral";
   const state = item.disabled ? "disabled" : (item.state ?? "default");
   const tooltip = useRailTooltip(collapsed && !item.disabled);
   // An item with a destination is a link (the Sidebar's router link when given); everything else stays a button.
@@ -315,15 +363,23 @@ function SidebarPanel({ className, brand, brandSlots, sections, footer, search, 
   onItemClick?: (item: SidebarItem) => void;
 }) {
   const t = useZenLabels();
+  const footerTooltip = useRailFooterTooltip(collapsed && Boolean(footer));
   return (
     <div className={className}>
-      <div className="zen-sidebar__header">{brand ?? <DefaultSidebarBrand {...brandSlots} collapsed={collapsed} onCollapsedChange={onCollapsedChange} />}</div>
+      {/* A custom brand is the expanded header; the rail shows logoCollapsed in its place (no collapse control, as
+          the brand has none). */}
+      <div className="zen-sidebar__header">{brand && !(collapsed && brandSlots?.logoCollapsed)
+        ? brand
+        : <DefaultSidebarBrand {...brandSlots} collapsed={collapsed} onCollapsedChange={brand ? undefined : onCollapsedChange} />}</div>
       {search ? <div className="zen-sidebar__search">{collapsed
         // Figma collapsed rail: Search becomes Button/Icon-Main Small Tertiary; activating it expands the panel.
         ? <IconButton appearance="main" level="tertiary" size="sm" aria-label={t.search} icon={<Icon name="icon-search-medium-line" />} onClick={() => onCollapsedChange?.(false)} />
         : search}</div> : null}
       <div className="zen-sidebar__body"><ItemList sections={sections} collapsed={collapsed} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick} /></div>
-      {footer ? <><div className="zen-sidebar__divider" aria-hidden="true" /><div className="zen-sidebar__footer"><div className="zen-sidebar__footer-content">{footer}</div></div></> : null}
+      {footer ? <><div className="zen-sidebar__divider" aria-hidden="true" /><div className="zen-sidebar__footer"><div className="zen-sidebar__footer-content" {...footerTooltip.footerProps}>{footer}</div></div></> : null}
+      {footerTooltip.position ? (
+        <ZenPortal><TooltipSurface aria-hidden="true" className="zen-sidebar__rail-tooltip" style={{ top: footerTooltip.position.top, left: footerTooltip.position.left }}>{footerTooltip.position.label}</TooltipSurface></ZenPortal>
+      ) : null}
     </div>
   );
 }
@@ -356,7 +412,7 @@ function SidebarFlyout({ children, label, onClose, rootRef }: { children: ReactN
   return <div className="zen-sidebar__submenu" role="region" aria-label={label}>{children}</div>;
 }
 
-export function Sidebar({ variant: requestedVariant, density: requestedDensity, collapsed = false, onCollapsedChange, brand, logo, logoCollapsed, productName, "aria-label": ariaLabel, sections = [], selectedId, linkAs, footer, search, onItemClick, className, background = "default", workspaceBrand, workspaceItems = [], workspaceFooter, workspaceAction, headerAction, workspaceBar = true, subMenu, subMenuLabel: subMenuLabelProp, onSubMenuClose }: SidebarProps) {
+export function Sidebar({ variant: requestedVariant, density: requestedDensity, collapsed = false, onCollapsedChange, brand, logo, logoCollapsed, productName, "aria-label": ariaLabel, sections = [], selectedId, linkAs, footer, search, onItemClick, className, background = "default", divider = false, workspaceBrand, workspaceItems = [], workspaceFooter, workspaceAction, headerAction, workspaceBar = true, subMenu, subMenuLabel: subMenuLabelProp, onSubMenuClose }: SidebarProps) {
   const t = useZenLabels();
   const subMenuLabel = subMenuLabelProp ?? t.subMenu;
   const rootRef = useRef<HTMLElement>(null);
@@ -377,7 +433,7 @@ export function Sidebar({ variant: requestedVariant, density: requestedDensity, 
 
   if (variant === "workspace") {
     return (
-      <aside ref={rootRef} className={rootClassName} data-variant="workspace" data-background={background} data-collapsed="false" aria-label={ariaLabel ?? t.workspaceNavigation}>
+      <nav ref={rootRef} className={rootClassName} data-variant="workspace" data-background={background} data-divider={divider ? "true" : undefined} data-collapsed="false" aria-label={ariaLabel ?? t.workspaceNavigation}>
         {workspaceBar ? <div className="zen-sidebar__workspace-rail">
           <div className="zen-sidebar__workspace-header">{workspaceBrand ?? <span className="zen-sidebar__workspace-default-mark" aria-hidden="true"><Icon name="icon-zen" size="lg" /></span>}</div>
           <div className="zen-sidebar__workspace-body"><div className="zen-sidebar__workspace-items">
@@ -391,16 +447,16 @@ export function Sidebar({ variant: requestedVariant, density: requestedDensity, 
           <SidebarPanel className="zen-sidebar__workspace-main" brand={brand ?? (workspaceItems.length ? <WorkspaceHeader items={workspaceItems} onSelect={onItemClick} action={headerAction} /> : undefined)} sections={sections} footer={footer} search={search} collapsed={false} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick} />
           {flyout}
         </SidebarNavContext>
-      </aside>
+      </nav>
     );
   }
 
   return (
-    <aside ref={rootRef} className={rootClassName} data-variant={variant} data-background={background} data-collapsed={collapsed ? "true" : "false"} data-sidebar-density={requestedDensity ?? (variant === "small-density" ? "small" : "medium")} aria-label={ariaLabel ?? t.mainNavigation}>
+    <nav ref={rootRef} className={rootClassName} data-variant={variant} data-background={background} data-divider={divider ? "true" : undefined} data-collapsed={collapsed ? "true" : "false"} data-sidebar-density={requestedDensity ?? (variant === "small-density" ? "small" : "medium")} aria-label={ariaLabel ?? t.mainNavigation}>
       <SidebarNavContext value={nav}>
         <SidebarPanel className="zen-sidebar__surface" brand={brand} brandSlots={{ logo, logoCollapsed, productName }} sections={sections} footer={footer} search={search} collapsed={collapsed} onCollapsedChange={onCollapsedChange} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick} />
         {flyout}
       </SidebarNavContext>
-    </aside>
+    </nav>
   );
 }

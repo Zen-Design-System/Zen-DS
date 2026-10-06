@@ -8,8 +8,40 @@
       "file": "src/components/Image/Image.tsx",
       "description": "A responsive picture in a ratio frame: Skeleton while it loads, a neutral placeholder with an image icon when it\nfails (the alt text stays available to screen readers), and an optional figure caption. The frame is Neutral/Pale\nwith a 1px Border/Neutral/Pale inner hairline so light pictures keep their edge; radius from Corner-Radius.\n\n  <Image src={photo} alt=\"Snowy rooftops of the old town\" ratio=\"16:9\" caption=\"Old town, January\" />",
       "deprecated": null,
-      "extends": "Omit<ImgHTMLAttributes<HTMLImageElement>, \"src\" | \"alt\" | \"loading\" | \"width\" | \"height\" | \"children\" | \"className\" | \"style\" | \"placeholder\">",
+      "extends": "Omit<ImgHTMLAttributes<HTMLImageElement>, \"src\" | \"alt\" | \"loading\" | \"width\" | \"height\" | \"children\" | \"className\" | \"style\" | \"placeholder\">, CornerRadiusProps",
       "props": [
+        {
+          "name": "radiusTopLeft",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Top-left corner on the Corner-Radius tokens (Figma topLeftRadius; none · 2xs 2 · xs 4 · sm 8 · md 12 · lg 16 ·\nxl 20 · 2xl 24 · 3xl 28 · full), following the radius mode. A set corner wins over `radius`, as `paddingX` wins\nover `padding`; unset corners keep `radius`. Don't mix `full` with a finite corner (`radius=\"full\"\nradiusBottomRight=\"xs\"`): `full` is Corner-Radius/Rounded (1000px), so the browser scales every corner down to fit\nthe box and the small one renders square. Use a finite radius (a chat tail: `radius=\"xl\" radiusBottomRight=\"xs\"`);\n`full` mixes only with `none`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusTopRight",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Top-right corner on the Corner-Radius tokens (Figma topRightRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusBottomRight",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusBottomLeft",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`.",
+          "deprecated": null
+        },
         {
           "name": "src",
           "type": "string",
@@ -47,7 +79,7 @@
           "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
           "required": false,
           "default": "\"md\"",
-          "description": "Corner radius on the Zen scale (Corner-Radius): none · 2xs · xs · sm · md (default, 12) · lg · xl · 2xl · 3xl · full.",
+          "description": "Corner radius on the Zen scale (Corner-Radius): none · 2xs · xs · sm · md (default, 12) · lg · xl · 2xl · 3xl · full.\n`radiusTopLeft` … `radiusBottomLeft` override single corners (Figma per-corner radius, e.g. top media in a card:\n`radius=\"none\" radiusTopLeft=\"2xl\" radiusTopRight=\"2xl\"`); unset corners keep this radius (md by default).",
           "deprecated": null
         },
         {

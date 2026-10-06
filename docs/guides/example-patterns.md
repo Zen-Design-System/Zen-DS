@@ -21,6 +21,7 @@ Trước khi thêm example mới, kiểm tra trùng lặp: hai example cùng d�
 
 - **Khung máy**: dùng `PlatformPhone` với `header={<TopNavigation type="compact" …/>}` và `footer`.
   - Khung là màn hình thật 390×844 (iPhone 15) và thu nhỏ nguyên khối khi stage hẹp. `device` chọn máy khác; `maxHeight` giới hạn chiều cao; `height` đã deprecated.
+  - Khung luôn ở mode của app điện thoại (`<ZenProvider typography="mobile" density="comfortable">`): Typography **Mobile** và Component size **Comfortable**, bất kể chip Typography / Component size của docs hay Modes của canvas Studio (từ 2026-10-06). Chỉ **Present** của Zen Studio đổi được hai mode này (panel Modes, riêng cho lần Present đó, canvas giữ nguyên). Không truyền `typography` / `density` để bù cho bố cục; bố cục phải vừa ở Comfortable.
   - Status bar, Dynamic Island và home indicator do "OS" vẽ phía trên app. Component phải pad theo `--zen-safe-area-top/-bottom`, không tự chừa khoảng trống.
   - `BottomSheet inline` neo vào khung máy. Nút Back dùng chevron `icon-chevron-left-line-medium`, không dùng mũi tên (harness `navigation/back-chevron`).
 - **CTA ở footer**: nút `lg` full width, Primary ở trên, nhiều nhất một Tertiary bên dưới. Footer là `display:grid; gap:12px; padding:12px 20px 0`. Nút nhỏ (2xs–sm) không bao giờ full width.
@@ -32,23 +33,46 @@ Trước khi thêm example mới, kiểm tra trùng lặp: hai example cùng d�
 
 ## 3. Pattern desktop
 
-- **Bảng giá**: Card Border trong lưới `auto-fit, minmax(220px, 1fr)`.
+- **Một mood chung: Canvas/Default + Surface/Default phẳng** (user, 2026-10-06). Stage của example là Canvas/Default
+  (cả card `screen`); khối trên đó là Surface/Default **không border, không shadow**: Card `theme="flat"`, MetricCard
+  `theme="flat"`, ChartCard (mặc định flat), ListBox, `Box surface="surface"` không `border`. Thứ không phải khối
+  (Segmented + caption, form, Table §14) nằm thẳng trên canvas. Mẫu tham chiếu: Card › Workspace plan.
+  - Chỉ đổi khi có điều kiện: màn có Sidebar → elevation theo Sidebar; trang trắng (Canvas/Alt) hoặc màn điện thoại →
+    border Pale (Subtle nếu actionable) hoặc `surface="alt"` (§11); Surface nằm trong Surface (card trong card,
+    ListBox, Dialog, SidePanel) → border Pale; card bấm được → `theme="border"` (viền Subtle + hover là affordance);
+    card đang chọn → `selected`. Chi tiết: `docs/component-usage-rules.md` §16.
+- **Bảng giá**: Card Flat trong lưới `auto-fit, minmax(220px, 1fr)`.
   - `active` đánh dấu gói hiện tại; Badge Accent Subtle đánh dấu gói được đề xuất.
   - Mỗi card có một CTA `md` ghim ở đáy. Nhãn nói rõ việc sẽ xảy ra: "Upgrade to Pro" / "Switch to Starter" / "Manage plan".
   - Chu kỳ thanh toán chọn bằng Segmented Secondary.
-- **Danh sách chia nhóm**: mỗi nhóm là một `<section aria-labelledby>`, có header nhóm và một `List` riêng được đặt tên. Header nhóm là heading thấp hơn heading gần nhất phía trên một cấp (`h2` trên màn có `h1` là tiêu đề), Body/Small/Bold, tone **Base**: đây là nhãn kicker, không phải tiêu đề Strongest. Nhãn nhóm bên trong Menu, Popover, Select và Listbox là label, không phải heading.
+- **Danh sách chia nhóm**: mỗi nhóm là một `<section aria-labelledby>`, có header nhóm và một `List` riêng được đặt tên. Header nhóm là heading thấp hơn heading gần nhất phía trên một cấp (`h2` trên màn có `h1` là tiêu đề), Body/Small/Bold, tone **Light**: đây là nhãn kicker, không phải tiêu đề Strongest. Nhãn nhóm bên trong Menu, Popover, Select và Listbox là label, không phải heading.
 - **Thẻ số liệu**: MetricCard dùng nhiều theme DockIcon, và giá trị luôn được định dạng sẵn ("$1,680.68", "2.1%").
 - **Filter trên desktop**: Chip Advanced + Popover. Khi có nhiều filter, dùng "All filters" (Chip Advanced, `aria-haspopup="dialog"`) mở SidePanel. Không dùng Button.
 
 - Chat theo thiết bị. Example mobile đặt trong `PlatformPhone`, dùng `ChatThread`/`ChatComposer` mặc định (mobile), header `PlatformChatHeader` (TopNavigation) và nhấn giữ để react. Example desktop đặt trong cửa sổ `.pe-chat-desktop`, truyền `device="desktop"` cho cả thread lẫn composer, header dùng `ThreadHeader` (Button/Icon-Flat). Trên desktop không có lớp nhấn giữ: thanh Hover đảm nhận, và chuột phải hoặc Shift+F10 mở menu More. Playground chuyển Device thì phải đổi cả khung. Dòng Conversation-List (Figma 375px) là của mobile: đặt trong điện thoại, hoặc ở cột trái của messenger desktop. Audit `device` sẽ bắt lỗi này.
 - **Màn hình desktop có nút Full screen.** Example nào là cả một màn hình desktop thì khai báo `screen: true` trong định nghĩa example; header của card sẽ có thêm nút "Full screen".
   - Thuộc loại này: app shell có Sidebar, cửa sổ chat desktop, trang có PageHeader, template desktop, SidePanel docked.
-  - Khi mở toàn màn hình:
+  - **Tràn khung, không bỏ vào container** (user, 2026-09-30): card `screen` không inset và frame không có viền/bo góc
+    riêng; trang chạy sát mép card (góc card cắt nó) trên nền Canvas/Default của stage (2026-10-06), một đường Pale tách
+    với header card, cả khi Full screen. Trang không có shell riêng (vd. Layout) tự giữ lề trang Margin-Comfortable (`.pal-page`). Frame mới thì
+    thêm vào selector `.pe-card[data-screen="true"] :is(…)` trong platform.css.
+  - Khi mở toàn màn hình (**như web thật**, user 2026-09-30): chỉ còn trang — header card (tiêu đề, mô tả), nút Code và
+    code panel ẩn; trang phủ kín viewport không inset/khung; một nút nổi "Exit full screen" ở giữa phía trên (Esc cũng
+    thoát). Playground App Shell cũng có Full screen (`<Panel screen>` trong `appLayer/shared.tsx`), giữ nguyên các
+    property đang chọn. Hook và nút dùng chung: `src/platform/PlatformFullScreen.tsx`.
     - Card phủ kín viewport và nền phía sau bị `inert`.
     - Portal của platform vẫn hoạt động, nên Popover, flyout và dialog của example vẫn mở được.
     - Esc thoát, trừ khi đang có overlay mở hoặc focus đang ở trong ô nhập. Focus và vị trí scroll trở về như cũ.
   - Frame có cuộn bên trong (`.pe-shell--tall`, `.pe-chat-desktop`, `.patpl-frame`, `.pash-frame`, `.pe-panel-shell`) bỏ chiều cao demo và giãn theo khoảng trống còn lại. Frame mới cùng loại thì thêm vào selector `.pe-card[data-fullscreen="true"] :is(…)` trong platform.css.
   - Example mobile (trong `PlatformPhone`) và các thành phần lẻ thì không khai báo `screen`.
+
+- **Spacing theo quan hệ, một thang cho mọi nơi** (user, 2026-10-01): chọn `gap` theo quan hệ giữa các phần tử, cùng
+  quan hệ thì cùng bậc: `2xs` trong một item inline · `xs` một thứ và nhãn/mô tả của nó, hàng control của toolbar ·
+  `sm` nhóm nút hoặc lựa chọn · `md` các khối trong một bề mặt, field xếp chồng, toolbar → bảng, lưới card · `lg` cột
+  và nhóm trong một bề mặt · `xl` section của trang. Không đè padding/gap bên trong component. Chi tiết:
+  `docs/component-usage-rules.md` §13.
+- **Table không phải widget thì không bọc container** (user, 2026-10-01): bảng là nội dung trang hoặc một section nằm
+  thẳng trên nền trang, không Card/Box, không nền Surface. Chỉ bảng dạng widget dashboard mới vào Card (§14).
 
 ## 3b. Tương tác không bị khoá
 
@@ -111,7 +135,7 @@ Quy tắc layout:
 
 - Class của example dùng tiền tố `pe-`. **Grep `src/platform/platform.css` trước khi đặt tên**, vì class trùng sẽ thừa hưởng style lạ. Ví dụ `.pe-summary` đã có sẵn nên bảng tổng tiền chuyển sang `.pe-order-summary`.
 - Chỉ dùng token `--zen-*`; giá trị thô chỉ làm fallback trong `var()`.
-- Tiêu đề dùng màu Strongest (harness `content/title-is-strongest`). Ngoại lệ: header nhóm của list (Body/Small/Bold, kicker) dùng Base. Meta Body/Small dùng Base; Caption luôn dùng Light.
+- Tiêu đề dùng màu Strongest (harness `content/title-is-strongest`). Ngoại lệ: header nhóm của list (Body/Small/Bold, kicker) dùng Light (quyết định 2026-10-03, chuẩn 3:1 cho chữ đậm của Apple). Meta Body/Small dùng Base; Caption luôn dùng Light.
 - Typography của example luôn là typography của preview (Dashboard mặc định, theo chip Typography), **kể cả overlay**. Dialog, Side Panel, Toast, Tooltip và Popover đi qua `ZenPortal` vào `.official-portal-root`. Vùng này mang `data-typography` của preview, nên không bị font Zen-Platform (TASA Explorer) của khung platform lọt vào. Không `createPortal` ra ngoài vùng preview hay portal root, và không tự đặt font-family hay letter-spacing trong example. Audit `typography` sẽ bắt lỗi này.
 
 - Phân cấp nội dung theo Typography › Content hierarchy. Mỗi trang hoặc màn hình có đúng một `h1` luôn hiện diện, gọi tên trang và khớp `document.title`. Trang Master/Child (desktop) dùng `PageHeader` với `h1` Heading/1. Section dùng `h2` Heading/4. Tiêu đề card thấp hơn heading gần nhất phía trên một cấp (`h3` dưới section, `h2` ngay dưới tiêu đề trang) và luôn là Heading/Subheading. Màn Master trên phone dùng `largeTitle` làm `h1` (Heading/1). Ở màn Child, tiêu đề compact trên thanh `TopNavigation` chính là `h1` và giữ style của thanh (Body/Extra/Bold), nên nội dung bắt đầu từ `h2`. Con số không phải heading. Nhấn mạnh bằng độ đậm, làm dịu bằng tone, không đổi cỡ chữ. Cấp heading chọn theo outline, không theo kích thước: đi xuống từng cấp một, đi lên được nhảy (`h4` → `h2`). Audit `outline` sẽ bắt lỗi.

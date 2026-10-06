@@ -1,0 +1,17 @@
+/* List Item examples. */
+/* The search takes the room the chips leave in the toolbar row. */
+.px-list-item-search { flex: 1 1 auto; min-width: 0; }
+/* The people pane scrolls on its own, like a mail list. A scroller clips what hangs outside it, so the pane spans the
+   ListBox body's side padding (Card-padding-medium) and pads it back: the rows line up with the header and a clickable
+   row's fill (12px past the row sideways) stays inside the pane. */
+.px-list-item-pane {
+  max-block-size: 28rem;
+  overflow-y: auto;
+  box-sizing: border-box;
+  margin-inline: calc(-1 * var(--zen-card-padding-medium, 24px));
+  padding: 0 var(--zen-card-padding-medium, 24px);
+}
+/* On a phone Grid's `columns.mobile` stacks the split view. Between that and a wide card (a tablet, a narrow docs
+   window) the card can still be too narrow for two panes, so the split also reads its own width and stacks below 640px. */
+.px-list-item-scope { container-type: inline-size; }
+@container (max-width: 640px) { .zen-grid.px-list-item-split { grid-template-columns: minmax(0, 1fr); } }

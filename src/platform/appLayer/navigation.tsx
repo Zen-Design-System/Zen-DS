@@ -3,15 +3,20 @@ import { Avatar } from "../../components/Avatar";
 import { Badge, type BadgeTheme } from "../../components/Badge";
 import { Button, IconButton } from "../../components/Button";
 import { Card } from "../../components/Card";
+import { DescriptionList } from "../../components/DescriptionList";
 import { Dialog } from "../../components/Dialog";
+import { DockIcon } from "../../components/DockIcon";
 import { FileIcon, fileIconFormatOf } from "../../components/FileIcon";
-import { Icon } from "../../components/Icon";
+import { Icon, type IconName } from "../../components/Icon";
 import { InlineMessage } from "../../components/InlineMessage";
 import { InputField } from "../../components/Input";
 import { Box, Grid, Stack } from "../../components/Layout";
 import { Link, type LinkTone, type LinkUnderline } from "../../components/Link";
 import { List, ListItem } from "../../components/ListItem";
 import { Menu, MenuItem, type MenuEntry, type MenuItemData } from "../../components/Menu";
+import { MetricCard } from "../../components/MetricWidget";
+import { PageHeader } from "../../components/PageHeader";
+import { SidePanel } from "../../components/SidePanel";
 import { Sidebar, type SidebarSection } from "../../components/Sidebar";
 import { Table, TableActions, TableText } from "../../components/Table";
 import { Heading, Text, plural } from "../../components/Text";
@@ -21,7 +26,7 @@ import type { TypographyStyleName } from "../../tokens/typography.generated";
 import { PlatformPhone } from "../PlatformPhone";
 import { avatarOf, mobilePeople } from "../PlatformMobileData";
 import { figmaSidebarBrand } from "../PlatformSidebarBrand";
-import { Panel, PlaygroundFilterChip, PlaygroundToggle, option } from "./shared";
+import { Panel, PlaygroundFilterChip, PlaygroundToggle, keepOnHotUpdate, option } from "./shared";
 import type { AppLayerPage, AppLayerPageMeta, ExampleMap } from "./types";
 import "./navigation.css";
 
@@ -107,7 +112,7 @@ function LinkPlayground() {
           .
         </Text>
         <Text textStyle="Body/Small/Regular" tone="light" role="status">
-          {opened ? (external ? `Opened ${opened} in a new tab.` : `Navigated to ${opened} (in-app).`) : "Tab to the link and press Enter, or click it."}
+          {opened ? (external ? `Opened ${opened} in a new tab.` : `Navigated to ${opened} (in-app).`) : ""}
         </Text>
       </Stack>
     </Panel>
@@ -128,7 +133,7 @@ function RunningTextExample() {
             <Link as={DemoRouterLink} to="/settings/security/recovery-codes" underline="always">recovery codes</Link> or ask a{" "}
             <Link as={DemoRouterLink} to="/settings/members?role=admin" underline="always">workspace admin</Link> to reset it.
           </Text>
-          <Text textStyle="Body/Small/Regular" tone="light" role="status">{path ? `Navigated to ${path}` : "Links in a paragraph are always underlined."}</Text>
+          <Text textStyle="Body/Small/Regular" tone="light" role="status">{path ? `Navigated to ${path}` : ""}</Text>
         </Stack>
       </Card>
     </DemoNavigate>
@@ -144,7 +149,7 @@ function ExternalLinkExample() {
         <Link href={MDN_AUTHORIZATION} external underline="always" onClick={() => setOpened(true)}>Authorization header on MDN</Link>
       </InlineMessage>
       <Text textStyle="Body/Small/Regular" tone="light" role="status">
-        {opened ? "MDN opened in a new tab; this page kept its place." : "The icon and a hidden “(opens in a new tab)” say it leaves the app."}
+        {opened ? "MDN opened in a new tab; this page kept its place." : ""}
       </Text>
     </Stack>
   );
@@ -173,7 +178,7 @@ function RouterLinksExample() {
             {activity.map((item) => (
               <ListItem key={item.id} title={item.title} leading={<Avatar size="medium" alt="" {...avatarOf(item.person)} />}>
                 <Stack gap="2xs">
-                  <Text as="span">{item.person.name} {item.verb} <Link as={DemoRouterLink} to={item.path}>{item.title}</Link></Text>
+                  <Text as="span">{item.person.name} {item.verb} <Link as={DemoRouterLink} to={item.path} underline="always">{item.title}</Link></Text>
                   <Text as="span" textStyle="Body/Small/Regular" tone="light">{item.time}</Text>
                 </Stack>
               </ListItem>
@@ -199,7 +204,7 @@ function LegalLinksExample() {
           <Text as="span" textStyle="Body/Small/Regular"><Link as={DemoRouterLink} to="/status">Status</Link></Text>
           <Text as="span" textStyle="Body/Small/Regular"><Link as={DemoRouterLink} to="/changelog">Changelog</Link></Text>
         </Stack>
-        <Text textStyle="Body/Small/Regular" tone="base" role="status">{path ? `Navigated to ${path}` : "Inside the sentence the links take its colour and stay underlined."}</Text>
+        <Text textStyle="Body/Small/Regular" tone="base" role="status">{path ? `Navigated to ${path}` : ""}</Text>
       </Stack>
     </DemoNavigate>
   );
@@ -327,7 +332,7 @@ ${entries.map((entry) => entryCode(entry, "    ")).join("\n")}
             />
           </Stack>
         </Box>
-        <Text textStyle="Body/Small/Regular" tone="light" role="status">{last ? `Chose “${last}”.` : "Open the menu with a click, Enter, Space or ↓."}</Text>
+        <Text textStyle="Body/Small/Regular" tone="light" role="status">{last ? `Chose “${last}”.` : ""}</Text>
       </Stack>
     </Panel>
   );
@@ -335,12 +340,12 @@ ${entries.map((entry) => entryCode(entry, "    ")).join("\n")}
 
 /* ───────────── Menu: examples ───────────── */
 
-type Invoice = { id: string; number: string; customer: string; amount: number; due: string; status: "paid" | "open" | "overdue" };
+type Invoice = { id: string; number: string; customer: string; email: string; issued: string; amount: number; due: string; status: "paid" | "open" | "overdue" };
 const invoiceSeed: Invoice[] = [
-  { id: "1042", number: "INV-1042", customer: "Northwind Traders", amount: 1280, due: "12 Oct 2026", status: "open" },
-  { id: "1041", number: "INV-1041", customer: "Contoso Ltd.", amount: 4950.5, due: "3 Oct 2026", status: "overdue" },
-  { id: "1040", number: "INV-1040", customer: "Fabrikam Studio", amount: 760, due: "28 Sep 2026", status: "paid" },
-  { id: "1039", number: "INV-1039", customer: "Tailspin Toys", amount: 2310, due: "20 Sep 2026", status: "paid" },
+  { id: "1042", number: "INV-1042", customer: "Northwind Traders", email: "billing@northwind.example", issued: "12 Sep 2026", amount: 1280, due: "12 Oct 2026", status: "open" },
+  { id: "1041", number: "INV-1041", customer: "Contoso Ltd.", email: "ap@contoso.example", issued: "3 Sep 2026", amount: 4950.5, due: "3 Oct 2026", status: "overdue" },
+  { id: "1040", number: "INV-1040", customer: "Fabrikam Studio", email: "finance@fabrikam.example", issued: "29 Aug 2026", amount: 760, due: "28 Sep 2026", status: "paid" },
+  { id: "1039", number: "INV-1039", customer: "Tailspin Toys", email: "accounts@tailspin.example", issued: "21 Aug 2026", amount: 2310, due: "20 Sep 2026", status: "paid" },
 ];
 const money = (value: number) => value.toLocaleString("en-US", { style: "currency", currency: "USD" });
 const invoiceStatus: Record<Invoice["status"], { label: string; theme: BadgeTheme }> = { paid: { label: "Paid", theme: "green" }, open: { label: "Open", theme: "blue" }, overdue: { label: "Overdue", theme: "red" } };
@@ -349,12 +354,13 @@ function TableRowMenuExample() {
   const [rows, setRows] = useState(invoiceSeed);
   const [note, setNote] = useState<string>();
   const [pending, setPending] = useState<Invoice | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const opened = rows.find((row) => row.id === openId) ?? null;
   const run = (invoice: Invoice, action: string) => {
-    if (action === "view") setNote(`Opened ${invoice.number}.`);
-    else if (action === "download") setNote(`Downloading ${invoice.number}.pdf…`);
+    if (action === "download") setNote(`Downloading ${invoice.number}.pdf…`);
     else if (action === "duplicate") {
       const next = Math.max(...rows.map((row) => Number(row.id))) + 1;
-      setRows((current) => [{ ...invoice, id: String(next), number: `INV-${next}`, status: "open", due: "27 Oct 2026" }, ...current]);
+      setRows((current) => [{ ...invoice, id: String(next), number: `INV-${next}`, status: "open", issued: "30 Sep 2026", due: "30 Oct 2026" }, ...current]);
       setNote(`Created INV-${next} from ${invoice.number}.`);
     } else if (action === "paid") {
       setRows((current) => current.map((row) => (row.id === invoice.id ? { ...row, status: "paid" } : row)));
@@ -367,6 +373,7 @@ function TableRowMenuExample() {
         aria-label="Invoices"
         rows={rows}
         getRowId={(row) => row.id}
+        onRowClick={(row) => setOpenId(row.id)}
         columns={[
           { id: "number", header: "Invoice", cell: (row) => <TableText bold caption={<span className="pan-nowrap">Due {row.due}</span>}><span className="pan-nowrap">{row.number}</span></TableText> },
           { id: "customer", header: "Customer", cell: (row) => <TableText>{row.customer}</TableText> },
@@ -380,7 +387,6 @@ function TableRowMenuExample() {
                   align="end"
                   trigger={<IconButton appearance="flat" level="primary" size="md" aria-label={`Actions for ${row.number}`} icon={<Icon name="icon-dots-horizontal-line" />} />}
                   items={[
-                    { id: "view", label: "View invoice", icon: "icon-eye-line" },
                     { id: "download", label: "Download PDF", icon: "icon-download-01-line" },
                     { id: "duplicate", label: "Duplicate", icon: "icon-duplicate-line" },
                     { id: "paid", label: "Mark as paid", icon: "icon-check-circle-line", disabled: row.status === "paid" },
@@ -394,7 +400,32 @@ function TableRowMenuExample() {
           },
         ]}
       />
-      <Text textStyle="Body/Small/Regular" tone="light" role="status">{note ?? "Each row has its own menu; it opens above the table's scroll box."}</Text>
+      <Text textStyle="Body/Small/Regular" tone="light" role="status">{note ?? ""}</Text>
+      <SidePanel
+        open={opened !== null}
+        onOpenChange={(next) => { if (!next) setOpenId(null); }}
+        type="modal"
+        size="small"
+        title={opened?.number ?? ""}
+        description={opened?.customer}
+        primaryAction={opened && opened.status !== "paid"
+          ? { label: "Mark as paid", onClick: () => { run(opened, "paid"); setOpenId(null); } }
+          : { label: "Download PDF", onClick: () => { if (opened) run(opened, "download"); setOpenId(null); } }}
+        secondaryAction={{ label: "Close" }}
+      >
+        {opened ? (
+          <DescriptionList
+            divider
+            items={[
+              { term: "Status", description: <Badge size="small" theme={invoiceStatus[opened.status].theme} background="subtle">{invoiceStatus[opened.status].label}</Badge> },
+              { term: "Billing email", description: opened.email },
+              { term: "Issued", description: opened.issued },
+              { term: "Due", description: opened.due },
+              { term: "Amount", description: money(opened.amount), emphasis: true },
+            ]}
+          />
+        ) : null}
+      </SidePanel>
       <Dialog
         open={pending !== null}
         onOpenChange={(next) => { if (!next) setPending(null); }}
@@ -427,8 +458,8 @@ function CardMenuExample() {
   };
   const sorted = [...docs].sort((a, b) => Number(b.pinned) - Number(a.pinned));
   return (
-    <Stack gap="sm">
-      <Grid minColumnWidth={200} gap="sm">
+    <Stack gap="sm" className="pan-card-menu">
+      <Grid columns={3} gap="sm" className="pan-card-grid">
         {sorted.map((doc) => (
           <Card key={doc.id} as="article" theme="shadow" spacing="small"
             subAction={<Menu align="end"
@@ -442,7 +473,7 @@ function CardMenuExample() {
               ]}
               onSelect={(item) => act(doc, item.id)} />}>
             <Stack gap="xs">
-              <Heading level={3} textStyle="Body/Base/Bold" className="pan-card-title" truncate>{doc.title}</Heading>
+              <Heading level={3} textStyle="Body/Base/Bold" className="pan-card-title" truncate={2} title={doc.title}>{doc.title}</Heading>
               <Text textStyle="Body/Small/Regular" tone="light">{doc.meta}</Text>
               {doc.pinned ? <Badge size="small" theme="accent" background="subtle" leadingIcon={false}>Pinned</Badge> : null}
             </Stack>
@@ -450,7 +481,7 @@ function CardMenuExample() {
         ))}
       </Grid>
       <Stack direction="row" gap="sm" align="center">
-        <Text textStyle="Body/Small/Regular" tone="light" role="status">{note ?? `${plural(docs.length, "doc")} · open ⋯ on a card.`}</Text>
+        <Text textStyle="Body/Small/Regular" tone="light" role="status">{note ?? plural(docs.length, "doc")}</Text>
         {removed ? <Button level="tertiary" size="sm" onClick={() => { setDocs((current) => [...current, removed]); setNote(`Restored “${removed.title}”.`); setRemoved(null); }}>Undo</Button> : null}
       </Stack>
     </Stack>
@@ -488,7 +519,7 @@ function StatesMenuExample() {
         />
         <Text as="span" textStyle="Body/Small/Regular" tone="light">Selected: {layer}</Text>
       </Stack>
-      <Text textStyle="Body/Small/Regular" tone="light" role="status">{note ?? "Paste stays disabled until something is copied."}</Text>
+      <Text textStyle="Body/Small/Regular" tone="light" role="status">{note ?? ""}</Text>
     </Stack>
   );
 }
@@ -517,8 +548,7 @@ function KeyboardMenuExample() {
         ]}
       />
       <Stack as="ol" gap="2xs" className="pan-log" aria-label="Keyboard log" aria-live="polite">
-        {log.length ? log.map((entry, index) => <Text as="li" key={`${index}-${entry}`} textStyle="Body/Small/Regular" tone={index === log.length - 1 ? "strongest" : "light"}>{entry}</Text>)
-          : <Text as="li" textStyle="Body/Small/Regular" tone="light">Tab to Share, then press ↓ or Enter.</Text>}
+        {log.map((entry, index) => <Text as="li" key={`${index}-${entry}`} textStyle="Body/Small/Regular" tone={index === log.length - 1 ? "strongest" : "light"}>{entry}</Text>)}
       </Stack>
     </Stack>
   );
@@ -570,40 +600,138 @@ function MobileMenuExample() {
   };
   return (
     <PlatformPhone label="Files" header={<TopNavigation type="compact" title="Files" />}>
-      <List aria-label="Files">
-        {files.map((file) => (
-          <ListItem key={file.id} title={file.name} caption={`${file.size} · ${file.offline ? "Available offline" : `Edited ${file.edited}`}`}
-            leading={<FileIcon format={fileIconFormatOf(file.name)} size={36} />}
-            trailing={<Menu align="end"
-              trigger={<IconButton appearance="flat" level="primary" size="md" aria-label={`More actions for ${file.name}`} icon={<Icon name="icon-dots-horizontal-line" />} />}
-              items={[
-                { id: "share", label: "Share", icon: "icon-share-01-line" },
-                { id: "rename", label: "Rename", icon: "icon-edit-02-line" },
-                { id: "offline", label: file.offline ? "Remove offline copy" : "Make available offline", icon: file.offline ? "icon-cloud-off-line" : "icon-download-cloud-01-line" },
-                { type: "separator" },
-                { id: "delete", label: "Delete", icon: "icon-trash-line", danger: true },
-              ]}
-              onSelect={(item) => act(file, item.id)} />} />
-        ))}
-      </List>
-      <Box paddingX="lg" paddingY="sm"><Text textStyle="Body/Small/Regular" tone="light" role="status">{note ?? `${plural(files.length, "file")} · tap ⋯ for actions`}</Text></Box>
+      {/* Static rows (their only actions sit in the menu) take the screen's page margin. */}
+      <Box paddingX="lg" paddingY="sm">
+        <List aria-label="Files">
+          {files.map((file) => (
+            <ListItem key={file.id} title={file.name} caption={`${file.size} · ${file.offline ? "Available offline" : `Edited ${file.edited}`}`}
+              leading={<FileIcon format={fileIconFormatOf(file.name)} size={36} />}
+              trailing={<Menu align="end"
+                trigger={<IconButton appearance="flat" level="primary" size="md" aria-label={`More actions for ${file.name}`} icon={<Icon name="icon-dots-horizontal-line" />} />}
+                items={[
+                  { id: "share", label: "Share", icon: "icon-share-01-line" },
+                  { id: "rename", label: "Rename", icon: "icon-edit-02-line" },
+                  { id: "offline", label: file.offline ? "Remove offline copy" : "Make available offline", icon: file.offline ? "icon-cloud-off-line" : "icon-download-cloud-01-line" },
+                  { type: "separator" },
+                  { id: "delete", label: "Delete", icon: "icon-trash-line", danger: true },
+                ]}
+                onSelect={(item) => act(file, item.id)} />} />
+          ))}
+        </List>
+      </Box>
+      <Box paddingX="lg" paddingY="sm"><Text textStyle="Body/Small/Regular" tone="light" role="status">{note ?? plural(files.length, "file")}</Text></Box>
     </PlatformPhone>
   );
 }
 
 /* ───────────── Sidebar: links + selectedId ───────────── */
 
+type ShellProject = { id: string; path: string; name: string; icon: IconName; status: string; theme: BadgeTheme; owner: string; launch: string; tasks: number };
+const shellProjects: ShellProject[] = [
+  { id: "website", path: "/projects/website", name: "Website redesign", icon: "icon-browser-solid", status: "On track", theme: "green", owner: "Ava Chen", launch: "14 November 2026", tasks: 12 },
+  { id: "mobile", path: "/projects/mobile", name: "Mobile app", icon: "icon-mobile-solid", status: "In review", theme: "blue", owner: "Bao Nguyen", launch: "2 December 2026", tasks: 4 },
+];
 const shellPages: Record<string, { title: string; description: string }> = {
-  "/": { title: "Home", description: "What changed since you were last here." },
-  "/inbox": { title: "Inbox", description: "3 unread · 1 mention." },
-  "/projects": { title: "Projects", description: "2 active projects." },
-  "/projects/website": { title: "Website redesign", description: "Launch on 14 November · 12 open tasks." },
-  "/projects/mobile": { title: "Mobile app", description: "Beta in review · 4 open tasks." },
-  "/reports": { title: "Reports", description: "Weekly snapshot from the tracker." },
-  "/settings": { title: "Settings", description: "Workspace, members and billing." },
+  "/": { title: "Home", description: "Good morning, Ava. Here is what moved since yesterday." },
+  "/inbox": { title: "Inbox", description: "3 review requests are waiting for you." },
+  "/projects": { title: "Projects", description: "2 active projects in Zen Studio." },
+  "/reports": { title: "Reports", description: "This week in Zen Studio, updated every Monday at 9:00." },
+  "/settings": { title: "Settings", description: "Workspace, plan and billing for Zen Studio." },
 };
+const shellUpdates = [
+  { id: "u1", person: mobilePeople.duy, title: "Duy Le closed 3 tasks", caption: "Website redesign · 20 min ago", path: "/projects/website" },
+  { id: "u2", person: mobilePeople.chi, title: "Chi Tran shared the beta build", caption: "Mobile app · 2 hours ago", path: "/projects/mobile" },
+  { id: "u3", person: mobilePeople.ava, title: "Ava Chen moved the launch to 14 November", caption: "Website redesign · Yesterday", path: "/projects/website" },
+];
+const shellRequests = [
+  { id: "r1", person: mobilePeople.bao, title: "Review the homepage hero", caption: "Bao Nguyen · Website redesign · 10 min ago", path: "/projects/website" },
+  { id: "r2", person: mobilePeople.emi, title: "Approve the onboarding screens", caption: "Emi Sato · Mobile app · 1 hour ago", path: "/projects/mobile" },
+  { id: "r3", person: mobilePeople.chi, title: "Check the new colour tokens", caption: "Chi Tran · Website redesign · Yesterday", path: "/projects/website" },
+];
 const idOfPath = (path: string) => (path === "/" ? "home" : path.split("/").pop() ?? "home");
 const navIcon = (name: "icon-home-03-line" | "ic-inbox-01-line" | "icon-folder-line" | "icon-bar-chart-01-line" | "icon-settings-01-line") => <Icon name={name} size="base" decorative />;
+
+/** One route of the Sidebar example: a PageHeader and that page's own content. */
+function ShellRoute({ path, navigate }: { path: string; navigate: (path: string) => void }) {
+  const project = shellProjects.find((entry) => entry.path === path);
+  if (project) {
+    const other = shellProjects.find((entry) => entry.id !== project.id) ?? project;
+    return <>
+      <PageHeader back={{ label: "Projects", onClick: () => navigate("/projects") }} title={project.name}
+        meta={<Badge size="small" theme={project.theme} background="subtle">{project.status}</Badge>}
+        description={`Launch on ${project.launch} · ${plural(project.tasks, "open task")}.`} />
+      <Card theme="border">
+        <Stack gap="md">
+          <Heading level={2} textStyle="Heading/Subheading">Details</Heading>
+          <DescriptionList divider items={[
+            { term: "Owner", description: project.owner },
+            { term: "Launch", description: project.launch },
+            { term: "Open tasks", description: String(project.tasks) },
+          ]} />
+        </Stack>
+      </Card>
+      <Text tone="base">
+        Shares its design tokens with the <Link as={DemoRouterLink} to={other.path} underline="always">{other.name}</Link>;
+        review requests land in your <Link as={DemoRouterLink} to="/inbox" underline="always">Inbox</Link>.
+      </Text>
+    </>;
+  }
+  const page = shellPages[path] ?? shellPages["/"];
+  const header = <PageHeader title={page.title} description={page.description} />;
+  if (path === "/inbox") return <>
+    {header}
+    <Card theme="border" spacing="small" className="pe-list-card">
+      <List aria-label="Review requests">
+        {shellRequests.map((item) => <ListItem key={item.id} title={item.title} caption={item.caption} leading={<Avatar size="medium" alt="" {...avatarOf(item.person)} />} onClick={() => navigate(item.path)} />)}
+      </List>
+    </Card>
+  </>;
+  if (path === "/projects") return <>
+    {header}
+    <Card theme="border" spacing="small" className="pe-list-card">
+      <List aria-label="Projects">
+        {shellProjects.map((item) => (
+          <ListItem key={item.id} title={item.name} caption={`Launch on ${item.launch} · ${plural(item.tasks, "open task")}`}
+            leading={<DockIcon icon={item.icon} theme="neutral" background="subtle" />}
+            trailing={<Badge size="small" theme={item.theme} background="subtle">{item.status}</Badge>} onClick={() => navigate(item.path)} />
+        ))}
+      </List>
+    </Card>
+  </>;
+  if (path === "/reports") return <>
+    {header}
+    <Grid columns="repeat(auto-fit, minmax(min(100%, 180px), 1fr))" gap="md">
+      <MetricCard theme="border" label="Tasks done" value="38" icon="icon-check-done-line" trend={{ direction: "positive", label: "+6 vs. last week" }} />
+      <MetricCard theme="border" label="Open tasks" value="16" icon="icon-folder-line" trend={{ direction: "positive", label: "−3 vs. last week" }} />
+      <MetricCard theme="border" label="On time" value="92%" icon="icon-bar-chart-01-line" trend={{ direction: "negative", label: "−2% vs. last week" }} />
+    </Grid>
+  </>;
+  if (path === "/settings") return <>
+    {header}
+    <Card theme="border">
+      <Stack gap="md">
+        <Heading level={2} textStyle="Heading/Subheading">Workspace</Heading>
+        <DescriptionList divider items={[
+          { term: "Name", description: "Zen Studio" },
+          { term: "Plan", description: "Team · 12 seats" },
+          { term: "Billing email", description: "billing@zen.studio" },
+          { term: "Renews on", description: "1 November 2026" },
+        ]} />
+      </Stack>
+    </Card>
+  </>;
+  return <>
+    {header}
+    <Stack gap="sm">
+      <Heading level={2} textStyle="Heading/4">Recent activity</Heading>
+      <Card theme="border" spacing="small" className="pe-list-card">
+        <List aria-label="Recent activity">
+          {shellUpdates.map((item) => <ListItem key={item.id} title={item.title} caption={item.caption} leading={<Avatar size="medium" alt="" {...avatarOf(item.person)} />} onClick={() => navigate(item.path)} />)}
+        </List>
+      </Card>
+    </Stack>
+  </>;
+}
 
 function SidebarLinksExample() {
   const [path, setPath] = useState("/projects/website");
@@ -619,21 +747,12 @@ function SidebarLinksExample() {
     ] },
     { label: "Workspace", items: [{ id: "settings", label: "Settings", href: "/settings", icon: navIcon("icon-settings-01-line") }] },
   ];
-  const page = shellPages[path] ?? shellPages["/"];
   return (
     <DemoNavigate value={setPath}>
       <div className="pe-shell" data-canvas="default">
         <Sidebar variant="basic" background="default" {...figmaSidebarBrand} sections={sections} selectedId={idOfPath(path)} linkAs={DemoRouterLink} />
         <div className="pan-shell-page">
-          <Stack gap="2xs">
-            <Text textStyle="Body/Small/Regular" tone="light">{path}</Text>
-            <Heading level={1}>{page.title}</Heading>
-            <Text tone="base">{page.description}</Text>
-          </Stack>
-          <Text tone="base">
-            Jump to <Link as={DemoRouterLink} to="/projects/mobile" underline="always">Mobile app</Link> or{" "}
-            <Link as={DemoRouterLink} to="/inbox" underline="always">Inbox</Link>: the sidebar follows the route, and the Projects group opens for its child.
-          </Text>
+          <ShellRoute path={path} navigate={setPath} />
         </div>
       </div>
     </DemoNavigate>
@@ -642,7 +761,7 @@ function SidebarLinksExample() {
 
 /* ───────────── Pages ───────────── */
 
-export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = {
+export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = keepOnHotUpdate(import.meta.hot, "pages", {
   link: {
     label: "Link",
     eyebrow: "Components / Link",
@@ -657,9 +776,9 @@ export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = {
     description: "An action menu: a button opens a list of actions on the Popover surface. It follows the WAI-ARIA menu button pattern and floats above tables and cards that clip their overflow. To pick a value, use Select Field or a Chip instead.",
     playground: MenuPlayground,
   },
-};
+});
 
-export const examples: ExampleMap = {
+export const examples: ExampleMap = keepOnHotUpdate(import.meta.hot, "examples", {
   link: [
     { title: "Links in running text", description: "Inside a paragraph, links are underlined (underline=\"always\") so they never rely on colour alone. They take the paragraph's font; the router link keeps navigation in the app.", render: () => <RunningTextExample />, code: `import { Link as RouterLink } from "react-router-dom";
 
@@ -679,7 +798,7 @@ export const examples: ExampleMap = {
 <List aria-label="Activity">
   <ListItem title={title} leading={<Avatar size="medium" src={ava.src} alt="" />}>
     <Text as="span">
-      Ava Chen commented on <Link as={RouterLink} to="/issues/1042">{title}</Link>
+      Ava Chen commented on <Link as={RouterLink} to="/issues/1042" underline="always">{title}</Link>
     </Text>
     <Text as="span" textStyle="Body/Small/Regular" tone="light">2 min ago</Text>
   </ListItem>
@@ -705,13 +824,15 @@ export const examples: ExampleMap = {
 </PlatformPhone>` },
   ],
   menu: [
-    { title: "Row actions in a table", description: "Each row's ⋯ (Button/Icon-Flat Medium in TableActions) opens its own menu, named after the row. The menu renders in the overlay layer, so the table's scroll box never clips it. Delete asks first in a negative Dialog; focus returns to the row's button.", wide: true, render: () => <TableRowMenuExample />, code: `{ id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", width: "64px",
+    { title: "Row actions in a table", description: "The row itself opens the invoice (onRowClick, a Side Panel with its details); each row's ⋯ (Button/Icon-Flat Medium in TableActions) holds the other actions, named after the row. The menu renders in the overlay layer, so the table's scroll box never clips it. Delete asks first in a negative Dialog; focus returns to the row's button.", wide: true, render: () => <TableRowMenuExample />, code: `<Table aria-label="Invoices" rows={invoices} getRowId={(row) => row.id}
+  onRowClick={(row) => setOpenId(row.id)} // the whole row opens the invoice in a Side Panel
+  columns={[…columns,
+{ id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", width: "64px",
   cell: (row) => (
     <TableActions>
       <Menu align="end"
         trigger={<IconButton appearance="flat" level="primary" size="md" aria-label={\`Actions for \${row.number}\`} icon={<Icon name="icon-dots-horizontal-line" />} />}
         items={[
-          { id: "view", label: "View invoice", icon: "icon-eye-line" },
           { id: "download", label: "Download PDF", icon: "icon-download-01-line" },
           { id: "duplicate", label: "Duplicate", icon: "icon-duplicate-line" },
           { id: "paid", label: "Mark as paid", icon: "icon-check-circle-line", disabled: row.status === "paid" },
@@ -720,8 +841,13 @@ export const examples: ExampleMap = {
         ]}
         onSelect={(item) => run(row, item.id)} />
     </TableActions>
-  ) }` },
-    { title: "Card menu", description: "The Card's Sub-Action slot takes a Menu: a Small Flat ⋯ pinned to the top-right corner. Pin reorders the cards, Copy link writes to the clipboard, Delete offers Undo.", render: () => <CardMenuExample />, code: `<Card as="article" theme="shadow" spacing="small"
+  ) }]} />
+<SidePanel open={Boolean(opened)} onOpenChange={(next) => { if (!next) setOpenId(null); }} type="modal" size="small"
+  title={opened.number} description={opened.customer}
+  primaryAction={{ label: "Mark as paid", onClick: markPaid }} secondaryAction={{ label: "Close" }}>
+  <DescriptionList divider items={[{ term: "Due", description: opened.due }, { term: "Amount", description: money(opened.amount), emphasis: true }]} />
+</SidePanel>` },
+    { title: "Card menu", wide: true, description: "The Card's Sub-Action slot takes a Menu: a Small Flat ⋯ pinned to the top-right corner. Pin reorders the cards, Copy link writes to the clipboard, Delete offers Undo.", render: () => <CardMenuExample />, code: `<Card as="article" theme="shadow" spacing="small"
   subAction={<Menu align="end"
     trigger={<IconButton appearance="flat" level="primary" size="sm" aria-label={\`More actions for \${doc.title}\`} icon={<Icon name="icon-dots-horizontal-line" />} />}
     items={[
@@ -794,4 +920,4 @@ const SidebarLink = forwardRef(({ href, ...rest }, ref) => <RouterLink ref={ref}
   selectedId={routeId}   // e.g. "website" for /projects/website
   linkAs={SidebarLink} />` },
   ],
-};
+});

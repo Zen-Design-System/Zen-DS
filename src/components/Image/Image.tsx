@@ -2,7 +2,8 @@ import { forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState, 
 import { Icon } from "../Icon";
 import { SkeletonShape } from "../Skeleton";
 import { Text } from "../Text";
-import { normalizeScale, radiusValue, scaleTokenSuffix, type ZenCornerRadius, type ZenScale, type ZenScaleInput } from "../_shared/scale";
+import { normalizeScale, scaleTokenSuffix, type ZenCornerRadius, type ZenScale, type ZenScaleInput } from "../_shared/scale";
+import { cornerRadiusValue, type CornerRadiusProps } from "../_shared/corners";
 import "./image.css";
 import "../Icon/core";
 
@@ -61,7 +62,7 @@ function ImageMedia({ src, alt, loading, fit, status, imgRef, handleLoad, handle
   );
 }
 
-export interface ImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt" | "loading" | "width" | "height" | "children" | "className" | "style" | "placeholder"> {
+export interface ImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt" | "loading" | "width" | "height" | "children" | "className" | "style" | "placeholder">, CornerRadiusProps {
   /** Image URL. While it is undefined (the URL is still being fetched) the Skeleton shows. */
   src?: string;
   /**
@@ -76,7 +77,11 @@ export interface ImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "s
   ratio?: ImageRatio;
   /** cover (default): fills the frame and crops. contain: shows the whole picture on Neutral/Pale bars (logos, documents). */
   fit?: ImageFit;
-  /** Corner radius on the Zen scale (Corner-Radius): none · 2xs · xs · sm · md (default, 12) · lg · xl · 2xl · 3xl · full. */
+  /**
+   * Corner radius on the Zen scale (Corner-Radius): none · 2xs · xs · sm · md (default, 12) · lg · xl · 2xl · 3xl · full.
+   * `radiusTopLeft` … `radiusBottomLeft` override single corners (Figma per-corner radius, e.g. top media in a card:
+   * `radius="none" radiusTopLeft="2xl" radiusTopRight="2xl"`); unset corners keep this radius (md by default).
+   */
   radius?: ZenCornerRadius;
   /** Native loading: lazy (default) waits until the picture nears the viewport; eager for the first picture on screen. */
   loading?: "lazy" | "eager";
@@ -96,13 +101,13 @@ export interface ImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "s
  *   <Image src={photo} alt="Snowy rooftops of the old town" ratio="16:9" caption="Old town, January" />
  */
 export const Image = forwardRef<HTMLImageElement, ImageProps>(function Image(
-  { src, alt, ratio, fit = "cover", radius = "md", loading = "lazy", caption, className, style, onLoad, onError, ...imgProps },
+  { src, alt, ratio, fit = "cover", radius = "md", radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, loading = "lazy", caption, className, style, onLoad, onError, ...imgProps },
   ref,
 ) {
   const { imgRef, status, handleLoad, handleError } = useImageStatus(src, onLoad, onError);
   const setRef = useMergedRef(imgRef, ref);
   const Root = caption ? "figure" : "div";
-  const vars = { "--zen-image-ratio": ratioValue(ratio), "--zen-image-radius": radiusValue(radius) } as CSSProperties;
+  const vars = { "--zen-image-ratio": ratioValue(ratio), "--zen-image-radius": cornerRadiusValue(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft }) } as CSSProperties;
   return (
     <Root className={["zen-image", className].filter(Boolean).join(" ")} data-status={status} data-fit={fit} data-ratio={ratio === undefined ? undefined : "true"} style={{ ...vars, ...style }}>
       <div className="zen-image__frame">

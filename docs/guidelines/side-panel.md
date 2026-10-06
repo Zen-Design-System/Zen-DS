@@ -46,8 +46,8 @@ Also accepts `OverlayOpenProps`.
 | `size` | `"default" \| "small"` | `"default"` | Figma Size: Default 440 · Small 360. |
 | `icon` | `IconName \| ReactElement` | — | Modal only: the 44px heading icon, an icon name (Figma shows icon-info-circle-solid) or an element. |
 | `children` | `ReactNode` | — | Figma Contents slot. |
-| `primaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }` | — |  |
-| `secondaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }` | — |  |
+| `primaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
+| `secondaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
 | `dismissible` | `boolean` | `true` | Escape / scrim click close a modal panel (default true). |
 | `closeLabel` | `string` | — | Accessible name of the close button. Default: the locale's “Close panel”. |
 | `className` | `string` | — |  |

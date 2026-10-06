@@ -18,15 +18,15 @@ Move through a large, ordered result set one page at a time.
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Theme | `theme` | primary · secondary (numbered) · inline (page size + range) · manually (jump field + range) |
-| Size | `size` | xsmall (24) · small (32) items |
+| Size | `size` | sets both the page items and the ‹ › arrows: xsmall = 24 (Icon-Main XSmall, Figma) · small = 32 (Icon-Main Small) |
 | Pages | `page / onPageChange / pageCount` | ellipsis collapses the middle |
-| Range | `pageSize / total / pageSizeOptions / onPageSizeChange` | “1 - 50 of 100 results” |
+| Range | `pageSize / total / pageSizeOptions / onPageSizeChange` | “1–50 of 100 results” |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/pagination.json`.
 
 ### Pagination
-Figma Pagination (774:29083). Button/Icon-Main XSmall Tertiary ‹ › (icon-chevron-*-line-small) around the content, Spacing/Gap/Medium between groups; Pages gap Spacing/Gap/2XSmall; Inline/Manually navigator gap XSmall.
+Figma Pagination (774:29083). Button/Icon-Main XSmall Tertiary ‹ › (icon-chevron-*-line-small) around the content, Spacing/Gap/Medium between groups; Pages gap Spacing/Gap/2XSmall; Inline/Manually navigator gap XSmall. The arrows follow `size` (Figma draws XSmall only): XSmall items (24, Select-Item/Size/Small) keep Icon-Main XSmall (Button/Size/XSmall), Small items (32, Select-Item/Size/Medium) take Icon-Main Small (Button/Size/Small), so the arrows always match the items in both densities.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -39,7 +39,7 @@ Figma Pagination (774:29083). Button/Icon-Main XSmall Tertiary ‹ › (icon-che
 | `total` | `number` | `0` |  |
 | `pageSizeOptions` | `number[]` | `[10, 25, 50, 100]` |  |
 | `onPageSizeChange` | `(pageSize: number) => void` | — |  |
-| `size` | `"xs" \| "sm" \| "xsmall" \| "small"` | `"xs"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `size` | `"xs" \| "sm" \| "xsmall" \| "small"` | `"xs"` | Page items and the ‹ › arrows: xs = 24px (Figma) · sm = 32px. Short (xs, sm) or Figma (xsmall, small) spelling. |
 | `aria-label` | `string` | — | Accessible name of the navigation landmark. Default: the locale's “Pagination”. |
 | `className` | `string` | — |  |
 
@@ -81,7 +81,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 - Under 480px long ranges drop the optional page numbers and keep first · current · last with ellipses; the bar wraps instead of overflowing.
 
 ## Content
-- Range as “1 - 50 of 100 results”.
+- The Inline/Manually range reads “1–10 of 1,284 results”, with an en dash and the locale's thousands separator (vi “1–10 trên 1.284 kết quả”).
 
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |

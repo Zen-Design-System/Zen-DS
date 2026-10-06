@@ -881,8 +881,8 @@
         "name": "Color/Content/Placeholder",
         "type": "COLOR",
         "valuesByMode": {
-          "Light": "{Light/Neutral-Alpha/8}",
-          "Dark": "{Dark/Neutral-Alpha/8}"
+          "Light": "{Light/Neutral-Alpha/9}",
+          "Dark": "{Dark/Neutral-Alpha/9}"
         }
       },
       {
@@ -905,8 +905,8 @@
         "name": "Color/Content/On-Black-Overlay/Placeholder",
         "type": "COLOR",
         "valuesByMode": {
-          "Light": "{Dark/Neutral-Alpha/8}",
-          "Dark": "{Dark/Neutral-Alpha/8}"
+          "Light": "{Dark/Neutral-Alpha/9}",
+          "Dark": "{Dark/Neutral-Alpha/9}"
         }
       },
       {
@@ -2321,8 +2321,8 @@
         "name": "Color/Content/On-White-Overlay/Placeholder",
         "type": "COLOR",
         "valuesByMode": {
-          "Light": "{Light/Neutral-Alpha/8}",
-          "Dark": "{Light/Neutral-Alpha/8}"
+          "Light": "{Light/Neutral-Alpha/9}",
+          "Dark": "{Light/Neutral-Alpha/9}"
         }
       },
       {
@@ -3259,6 +3259,166 @@
         "valuesByMode": {
           "Light": "{White}",
           "Dark": "{Dark/Neutral/1}"
+        }
+      },
+      {
+        "name": "Color/Content/Support/Sky/Light",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Sky/10}",
+          "Dark": "{Dark/Sky/10}"
+        }
+      },
+      {
+        "name": "Color/Content/Support/Sky/Strongest",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Sky/12}",
+          "Dark": "{Dark/Sky/12}"
+        }
+      },
+      {
+        "name": "Color/Content/Support/Sky/Base",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Sky/11}",
+          "Dark": "{Dark/Sky/11}"
+        }
+      },
+      {
+        "name": "Color/Background/Support/Sky/Solid",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Sky/9}",
+          "Dark": "{Dark/Sky/9}"
+        }
+      },
+      {
+        "name": "Color/Background/Support/Sky/Subtle",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Sky-Alpha/3}",
+          "Dark": "{Dark/Sky-Alpha/3}"
+        }
+      },
+      {
+        "name": "Color/Border/Support/Sky/Solid",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Sky/9}",
+          "Dark": "{Dark/Sky/9}"
+        }
+      },
+      {
+        "name": "Color/Border/Support/Sky/Subtle",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Sky-Alpha/5}",
+          "Dark": "{Dark/Sky-Alpha/5}"
+        }
+      },
+      {
+        "name": "Color/Background/Support/Sky/Soft",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Sky/5}",
+          "Dark": "{Dark/Sky/5}"
+        }
+      },
+      {
+        "name": "Color/Background/Support/Sky/Deep",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Sky/12}",
+          "Dark": "{Dark/Sky/12}"
+        }
+      },
+      {
+        "name": "Color/Background/Support/Sky/Pale",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Sky-Alpha/2}",
+          "Dark": "{Dark/Sky-Alpha/2}"
+        }
+      },
+      {
+        "name": "Color/Content/Support/Mint/Light",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Mint/10}",
+          "Dark": "{Dark/Mint/10}"
+        }
+      },
+      {
+        "name": "Color/Content/Support/Mint/Strongest",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Mint/12}",
+          "Dark": "{Dark/Mint/12}"
+        }
+      },
+      {
+        "name": "Color/Content/Support/Mint/Base",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Mint/11}",
+          "Dark": "{Dark/Mint/11}"
+        }
+      },
+      {
+        "name": "Color/Background/Support/Mint/Solid",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Mint/9}",
+          "Dark": "{Dark/Mint/9}"
+        }
+      },
+      {
+        "name": "Color/Background/Support/Mint/Subtle",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Mint-Alpha/3}",
+          "Dark": "{Dark/Mint-Alpha/3}"
+        }
+      },
+      {
+        "name": "Color/Border/Support/Mint/Solid",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Mint/9}",
+          "Dark": "{Dark/Mint/9}"
+        }
+      },
+      {
+        "name": "Color/Border/Support/Mint/Subtle",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Mint-Alpha/5}",
+          "Dark": "{Dark/Mint-Alpha/5}"
+        }
+      },
+      {
+        "name": "Color/Background/Support/Mint/Soft",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Mint/5}",
+          "Dark": "{Dark/Mint/5}"
+        }
+      },
+      {
+        "name": "Color/Background/Support/Mint/Deep",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Mint/12}",
+          "Dark": "{Dark/Mint/12}"
+        }
+      },
+      {
+        "name": "Color/Background/Support/Mint/Pale",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Mint-Alpha/2}",
+          "Dark": "{Dark/Mint-Alpha/2}"
         }
       }
     ]

@@ -6,6 +6,9 @@
 //   zen-ds doctor   check the app's setup: package + React versions, styles.css imported, ZenProvider rendered,
 //                   ESLint plugin / MCP / AGENTS wired. Exit 1 when something required is missing.
 //   zen-ds check    same as `zen-usage` (the usage harness on ./src).
+//   zen-ds audit    load pages in Chromium and check what people see: overflow, names, contrast, the heading outline,
+//                   Zen text styles and tokens, text that does not fit, axe-core (when installed); screenshots at 1440 and
+//                   390 (tools/zen-audit/audit.mjs). Needs Playwright in the app.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -27,6 +30,8 @@ Build every screen from Zen components; do not hand-write buttons, inputs, menus
    \`node_modules/@zen/design-system/docs/guidelines/index.json\`; props for each are in \`docs/api/<slug>.json\`.
 3. Start screens from a template (\`get_template\` / \`node_modules/@zen/design-system/src/templates\`).
 4. After every change run \`npx zen-usage\` (or the MCP \`check_usage\` tool) and fix each ✗; \`npx zen-ds doctor\` checks the setup.
+5. Check the screens you changed as rendered: \`npx zen-ds audit http://localhost:5173/<route>\` (overflow, names, outline, Zen
+   text styles and tokens, text that does not fit; screenshots at 1440 and 390) and fix each ✗.
 ${AGENTS_MARKER}
 `;
 
@@ -95,7 +100,8 @@ export async function main(argv = process.argv.slice(2)) {
   if (command === "init") return init();
   if (command === "doctor") return doctor();
   if (command === "check") { const { main: usage } = await import("./usage-guard/cli.mjs"); return usage(rest); }
-  console.log("usage: zen-ds init | doctor | check [paths…]\n  init    add AGENTS.md / CLAUDE.md / .mcp.json entry points for AI agents\n  doctor  check the app's Zen setup\n  check   run the usage harness (same as zen-usage)");
+  if (command === "audit") { const { audit } = await import("./zen-audit/audit.mjs"); return audit(rest); }
+  console.log("usage: zen-ds init | doctor | check [paths…] | audit <url…>\n  init    add AGENTS.md / CLAUDE.md / .mcp.json entry points for AI agents\n  doctor  check the app's Zen setup\n  check   run the usage harness (same as zen-usage)\n  audit   check rendered pages in Chromium (overflow, names, outline, Zen tokens, fit, axe) + screenshots");
   return command ? 2 : 0;
 }
 

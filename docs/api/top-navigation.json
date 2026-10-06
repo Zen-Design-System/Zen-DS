@@ -6,7 +6,7 @@
     {
       "name": "TopNavigation",
       "file": "src/components/TopNavigation/TopNavigation.tsx",
-      "description": "Figma Top-Navigation/Mobile (12014:45167, page ❖ Top-Navigations): a 64px navigator bar (Top-Leading 44px action ·\ncentred Sub heading · Top-Trailing) over an optional 64px Expand-Heading (H1–H3 + one action) and a Control-Bar slot.\nThe OS status bar is not part of the component; leave room for it with `env(safe-area-inset-top)`.\nOutline: the screen always exposes exactly one title heading (`headingLevel`, h1 by default) — the large title\n(Heading/1) while it shows, otherwise the bar title in its own Body/Extra/Bold style; never both.",
+      "description": "",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -63,8 +63,8 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Figma Nav-Action/Icon-Main with a trailing icon: the trailing actions share one Tertiary pill (e.g. audio + video call).",
-          "deprecated": null
+          "description": "The first two trailing actions share one pill (see `TopNavigationAction.group`), when no action names a group.",
+          "deprecated": "Give the actions that share a pill the same `group` (e.g. `group: \"call\"` on both)."
         },
         {
           "name": "title",
@@ -103,15 +103,23 @@
           "type": "TopNavigationAction[]",
           "required": false,
           "default": "[]",
-          "description": "Figma Top-Trailing: up to two actions.",
+          "description": "Figma Top-Trailing: up to three actions (its Trailing-Slot takes 3); more are not drawn.",
           "deprecated": null
         },
         {
           "name": "largeTitleAction",
-          "type": "TopNavigationAction",
+          "type": "TopNavigationAction | TopNavigationAction[]",
           "required": false,
           "default": null,
-          "description": "Figma Expand-Trailing: one action beside the large title.",
+          "description": "Figma Expand-Trailing (Header-Trailing): one action, or a list of up to three, beside the large title. When the bar\nrow folds into the large-title row (a root, see `topBar`) they sit first in the trailing slot, so they stay in place\nand in reach once the title folds; the bar still draws three actions in all.",
+          "deprecated": null
+        },
+        {
+          "name": "topBar",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Top-bar: the navigator-bar row. By default a root (a large title and no `leading`) hides it while the large title\nshows, as Figma's root screens do (Top-bar=false): the trailing actions sit at the right of the large-title row, and\nonce the title folds the bar title shows in that same row, so the header keeps its height. `true` keeps the row\nabove the large title (the iOS layout); `false` hides it on any screen with a large title.",
           "deprecated": null
         },
         {
@@ -123,19 +131,35 @@
           "deprecated": null
         },
         {
+          "name": "banner",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "A status that must stay in view while the screen scrolls (offline, syncing, read-only): a Small AlertBanner pinned\nunder the bar and the control bar, edge to edge. It never scrolls away; with `scrollRef` it moves up with the fold,\nlike a pinned control bar. One banner at a time; the screen's content starts below it.",
+          "deprecated": null
+        },
+        {
           "name": "searchAction",
           "type": "{ onClick: () => void; label?: string; icon?: IconName | ReactElement }",
           "required": false,
           "default": null,
-          "description": "For a Search control bar: while `collapsed`, the bar folds away and this Search action appears at the start of the\ntrailing slot (top-right); it leaves again when the bar expands. Its `onClick` usually scrolls back up and focuses\nthe field. Counts toward the two trailing actions, so keep at most one other. `label` defaults to the locale's\n“Search”, `icon` to icon-search-medium-line (an icon name or an element).",
+          "description": "For a Search control bar: while `collapsed`, the bar folds away and this Search action appears at the start of the\ntrailing slot (top-right); it leaves again when the bar expands. Its `onClick` usually scrolls back up and focuses\nthe field. Counts toward the three trailing actions, so keep at most two others. `label` defaults to the locale's\n“Search”, `icon` to icon-search-medium-line (an icon name or an element).",
+          "deprecated": null
+        },
+        {
+          "name": "scrollRef",
+          "type": "RefObject<HTMLElement | null> | \"window\"",
+          "required": false,
+          "default": null,
+          "description": "Scroll-linked collapse (the iOS large-title behaviour): the element whose scroll moves the screen's content, or\n\"window\". The large title (and a Search Control-Bar with `searchAction`) slide up under the bar with the content,\n1:1, never jumping; the bar title fades in once the large title is covered; a scroll that stops half-way settles\nopen or closed; once content runs under the bar, the opaque types (default · alt · compact · compact-alt) get a\nBorder/Neutral/Pale rule under the bar. The header must overlay the scrolled content: `sticky` as the scroller's\nfirst child, or positioned over it. A `collapsed` value overrides it.",
           "deprecated": null
         },
         {
           "name": "collapsed",
           "type": "boolean",
           "required": false,
-          "default": "false",
-          "description": "Scrolled state: hides the large title and shows `title` (or the large title) in the navigator bar.",
+          "default": null,
+          "description": "Collapsed by hand: hides the large title and shows `title` (or the large title) in the navigator bar. Prefer\n `scrollRef`, which follows the scroll; with `collapsed` set, the scroll does not change it.",
           "deprecated": null
         },
         {
@@ -207,6 +231,6 @@
     }
   ],
   "types": {
-    "TopNavigationAction": "interface TopNavigationAction { icon: IconName | ReactElement; label: string; onClick?: () => void; dot?: boolean; disabled?: boolean; }"
+    "TopNavigationAction": "interface TopNavigationAction { icon: IconName | ReactElement; label: string; onClick?: () => void; dot?: boolean; disabled?: boolean; group?: string; }"
   }
 }

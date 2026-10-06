@@ -19,18 +19,19 @@ Interrupt to confirm a decision or deliver critical information.
 | --- | --- | --- |
 | Title | `title · headingLevel` | h2 by default (h1 also accepted); the style follows Figma per overlay: Dialog Heading/3, ModalForm Heading/2, never Heading/1 |
 | Actions direction | `actionsDirection` | horizontal (default) · vertical — full-width Primary → Secondary → Tertiary; Mobile is always vertical |
-| Modal/Forms | `<ModalForm layout title description side top closeButton onSubmit …actions>` | Layout basic 440 · 1-3 876 (240px side) · half-half 876 · 3-4 767 · big 960; onSubmit makes Enter / primary submit |
+| Modal/Forms | `<ModalForm layout title description side top closeButton onSubmit …actions>` | Layout basic 440 · 1-3 876 (240px side) · half-half 876 · 3-4 767 · big 960; onSubmit makes Enter / primary submit, may return a promise, and a blocked submit (fields left aria-invalid) focuses the first invalid field, as Form does |
 | Theme | `theme` | default · info · positive · warning · negative |
 | Icon | `icon` | themed 44px icon |
 | Actions | `primaryAction / secondaryAction / tertiaryAction` | Dual: Tertiary + Primary; Triple: tertiary action on the left |
 | Custom | `children` | slot between heading and actions |
 | Dismiss | `dismissible` | Escape + overlay click |
+| Device frame | `— (automatic)` | inside a [data-zen-overlay-root] frame (PlatformPhone, app device previews) Dialog and ModalForm open in that frame like Menu: the scrim fills the frame under its status bar, the panel keeps --zen-safe-area-top/-bottom clear, and the frame's width (not the viewport) picks Device=Mobile (≤ 480) / the stacked ModalForm (≤ 720) |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/dialog.json`.
 
 ### Dialog
-Figma Modal/Dialog (841:17177): Theme × Device. Desktop 440px, Heading/3; ≤ 480px viewport switches to the Mobile layout (Heading/4, stacked full-width actions). Focus is trapped while open and restored to the opener on close.
+Figma Modal/Dialog (841:17177): Theme × Device. Desktop 440px, Heading/3; ≤ 480px viewport switches to the Mobile layout (10153:7277: 350 of a 390 screen, so Padding/Large side margins; Heading/4, stacked full-width actions, at the bottom clear of the safe area). Focus is trapped while open and restored to the opener on close. Inside a device frame (`[data-zen-overlay-root]`, e.g. a phone preview) it opens in that frame, and the frame's width picks the Device (an unsaved-changes guard on a phone screen).
 
 Also accepts `OverlayOpenProps`.
 
@@ -45,16 +46,16 @@ Also accepts `OverlayOpenProps`.
 | `description` | `ReactNode` | — | Figma Caption (Body/Base/Regular, Neutral/Base). |
 | `theme` | `"default" \| "info" \| "positive" \| "warning" \| "negative"` | `"default"` |  |
 | `icon` | `boolean \| IconName \| ReactNode` | `true` | Figma Modal-Icon. Defaults to true (the theme's icon); `false` hides it; an icon name or a node replaces it. |
-| `primaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }` | — | Primary action (Level=Primary by default). |
-| `secondaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }` | — | Secondary action beside the primary (Level=Tertiary). |
-| `tertiaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }` | — | Third action, placed on the far left on desktop (Button=Triple). |
+| `primaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — | Primary action (Level=Primary by default). |
+| `secondaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — | Secondary action beside the primary (Level=Tertiary). |
+| `tertiaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — | Third action, placed on the far left on desktop (Button=Triple). |
 | `actionsDirection` | `"horizontal" \| "vertical"` | `"horizontal"` | Figma .Primitives/Modal/Actions `Direction`. Mobile (≤ 480px) is always vertical. |
 | `children` | `ReactNode` | — | Figma Custom slot, rendered between the heading and the actions. |
 | `dismissible` | `boolean` | `true` | Close when the overlay is clicked. Default true; set false for destructive confirmations in progress. |
 | `className` | `string` | — |  |
 
 ### ModalForm
-Figma Modal/Forms (841:17182): a Container (radius Modal-Radius, Background/Container, 1px Container/Border, Effect/Container) with Header (Heading/2 + caption), Body (Main-Contents) and Footer (Modal/Actions); the 1-3, Half-Half and 3-4 layouts add a Side-Content column 4px apart. Below 720px the side column stacks above the form.
+Figma Modal/Forms (841:17182): a Container (radius Modal-Radius, Background/Container, 1px Container/Border, Effect/Container) with Header (Heading/2 + caption), Body (Main-Contents) and Footer (Modal/Actions); the 1-3, Half-Half and 3-4 layouts add a Side-Content column 4px apart. Below 720px the side column stacks above the form. Inside a device frame (`[data-zen-overlay-root]`) it opens in that frame, like Dialog. With `onSubmit` it is a `<form noValidate>` that behaves like Form: a blocked submit focuses the first invalid field and announces the count.
 
 Also accepts `OverlayOpenProps`.
 
@@ -74,11 +75,13 @@ Also accepts `OverlayOpenProps`.
 | `closeButton` | `boolean` | `true` | Figma Close: the 32px Button/Icon-Flat in the top-right corner. |
 | `closeLabel` | `string` | — | Accessible name of the close button. Default: the locale's “Close”. |
 | `children` | `ReactNode` | — | Figma Main-Contents slot: the form fields (gap Medium). |
-| `primaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }` | — |  |
-| `secondaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }` | — |  |
-| `tertiaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }` | — |  |
+| `primaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
+| `secondaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
+| `tertiaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
 | `actionsDirection` | `"horizontal" \| "vertical"` | `"horizontal"` |  |
-| `onSubmit` | `(event: FormEvent<HTMLFormElement>) => void` | — | Wraps the modal in a `<form>`: Enter or the primary button submits; the primary action becomes type=submit. |
+| `onSubmit` | `(event: FormEvent<HTMLFormElement>) => unknown` | — | Wraps the modal in a <form noValidate>: Enter or the primary button submits; the primary action becomes type=submit. The handler may return a promise and ModalForm waits for it; then, if any field is invalid (aria-invalid, as Form reads it), focus moves to the first one and "N fields need attention" is announced, so a blocked submit lands on what needs fixing. |
+| `noValidate` | `boolean` | `true` | Skip the browser's own validation bubbles, as Form does: `required` fields don't block the submit, so `onSubmit` always runs and shows the errors under each field. Default true; only applies with `onSubmit`. |
+| `invalidMessage` | `(count: number) => string` | — | Screen-reader message after a blocked submit. Default: the locale's "1 field needs attention" / "3 fields need attention". |
 | `dismissible` | `boolean` | `true` |  |
 | `className` | `string` | — |  |
 
@@ -87,9 +90,9 @@ Figma .Primitives/Modal/Actions (694:9383): Direction × Button (Single · Dual 
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `primaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }` | — |  |
-| `secondaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }` | — |  |
-| `tertiaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }` | — |  |
+| `primaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
+| `secondaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
+| `tertiaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
 | `direction` | `"horizontal" \| "vertical"` | `"horizontal"` | Figma `Direction`: Horizontal = [Tertiary] … [Secondary][Primary]; Vertical = full-width Primary, Secondary, Tertiary. |
 | `onDefault` | `() => void` | — | Runs for an action without its own onClick (usually closes the modal). |
 | `submitPrimary` | `boolean` | `false` | Makes the primary button submit the surrounding `<form>`. |
@@ -105,7 +108,8 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 ## Keyboard
 | Keys | Action |
 | --- | --- |
-| Tab / Shift+Tab | Cycle focus inside the dialog |
+| (open) | Focus goes to the first field: a SelectField's trigger, or the checked radio of a RadioButton group or ColorSelector (where Tab lands); without a field, the primary action. DialogAction.autoFocus or data-autofocus starts on another control |
+| Tab / Shift+Tab | Cycle focus inside the dialog; a radio group is one Tab stop, so Shift+Tab from it wraps inside the modal |
 | Escape | Close (when dismissible) |
 | Enter | Submit a ModalForm |
 
@@ -113,11 +117,14 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 - Use ModalForm for 3–8 field create/edit flows; keep Dialog for confirmations.
 - Use actionsDirection="vertical" when the choices deserve equal weight or labels are long.
 - Phrase the title as the question ("Delete “Marketing site”?") and repeat the verb in the primary action.
-- Use theme negative + level danger for irreversible actions; give Cancel initial focus.
+- Use theme negative + level danger for irreversible actions; give Cancel initial focus with `secondaryAction={{ label: "Cancel", autoFocus: true }}` (otherwise the primary action takes it).
 - Require typing the name for high-impact deletes.
 - Keep one primary action; a third (tertiary) action sits on the left.
 - Return focus to the element that opened the dialog.
-- Overlays portal through ZenPortal: when light/dark and the other modes are set on an inner element instead of `<html>`, wrap the app in <ZenPortalProvider container={el}> with an element inside that scope, so Modal, Dialog and Side Panel follow the mode.
+- Overlays portal through ZenPortal: when light/dark and the other modes are set on an inner element instead of `<html>`, wrap the app in <ZenPortalProvider container={el}> with an element inside that scope, so Modal, Dialog and Side Panel follow the mode. Inside a [data-zen-overlay-root] device frame the frame wins (as for Menu).
+- On a phone screen, put the unsaved-changes guard Dialog inside the PlatformPhone (any [data-zen-overlay-root] frame): it opens in the frame, with no ZenPortalProvider layer.
+- On a phone (viewport ≤ 480px or a phone frame) Dialog uses Device=Mobile (10153:7277): 350 of 390, with 20px side margins (Padding/Large), at the bottom of the screen above the home indicator, Heading/4 title and stacked full-width actions.
+- With onSubmit, ModalForm is a <form noValidate> like Form. Validate in onSubmit and set each field's `error`; `required` alone never blocks the submit. A blocked submit focuses the first invalid field and announces "N fields need attention" (invalidMessage overrides the text).
 
 ## ❌ Don't
 - Don't stack dialogs.
@@ -125,9 +132,11 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 - Don't hide the only way out (always Escape or a cancel action).
 - Don't open a dialog from a dialog (harness: dialog/no-nested).
 - Don't open a dialog on page load without a user action.
+- Don't rely on the browser's required bubbles in a ModalForm. They are off by default; noValidate={false} only when you deliberately hand validation to the browser.
 
 ## Accessibility
 - role=dialog/alertdialog, aria-modal, labelled by the title; focus is trapped and restored to the opener.
+- Escape closes the innermost open thing: an open Select list, date picker, Menu or Popover inside the modal closes first (it calls preventDefault, or the focused control has aria-expanded="true" with aria-haspopup / role=combobox), the next Escape closes the modal. With a modal over a modal (an unsaved-changes guard over a ModalForm) only the topmost one answers Escape and traps Tab.
 - Motion: enters with the emphasized curve (Slow 280ms) and exits faster (Base/160–200ms, exit curve); while closing it is inert and focus has already returned to the opener; prefers-reduced-motion removes the animation and the exit delay.
 
 ## Content

@@ -49,12 +49,13 @@ Zen's tokens are Figma variables with several **modes**. `ZenProvider` writes ea
 | Prop | Attribute | Values (default first) | When to change it |
 | --- | --- | --- | --- |
 | `theme` | `data-theme` | `light` · `dark` · `system` | `system` follows the OS; a toggle sets `light`/`dark` |
-| `componentTheme` | `data-component-theme` | `neutral-s1` · `neutral-s2` · `neutral-s3` · `neutral-s4` · `brand-s1` · `brand-s2` | Brand-coloured component styling; `neutral-s4` is `neutral-s1` with outlined inputs (Surface fill, Subtle border) |
+| `componentTheme` | `data-component-theme` | `neutral-s1` · `neutral-s2` · `neutral-s3` · `neutral-s4` · `neutral-s5` · `neutral-s6` · `neutral-s7` · `brand-s1` · `brand-s2` | Brand-coloured component styling; `neutral-s4` is `neutral-s1` with outlined inputs (Surface fill, Subtle border); `neutral-s5` fills inputs with Neutral/Subtle and no border; `neutral-s6` is `neutral-s4` with filled Tertiary buttons and Secondary chips; `neutral-s7` is `neutral-s5` with a Pale focused field |
 | `density` | `data-density` | `compact` · `comfortable` | `comfortable` for touch-first or marketing layouts |
 | `radius` | `data-radius` | `rounded` · `smooth` · `standard` · `luxury` | Corner-radius personality |
 | `emphasis` | `data-emphasis` | `medium` · `strong` · `light` | Heavier (`strong`) or lighter (`light`) font weights and active strokes |
 | `breakpoint` | `data-breakpoint` | `auto` (root) · `desktop` · `tablet` · `mobile` | `auto`: < 744px mobile, < 1024px tablet. Drives page margin, gutter, modal and card padding |
 | `typography` | `data-typography` | `dashboard` · `popular` · `mobile` | `mobile` for phone apps, `popular` for marketing pages |
+| `contrast` | `data-contrast` | `standard` · `high` · `system` | `high` (Global Colors mode Zen-High-Contrast) raises Subtle control borders to 3:1 and placeholders and Light text to 4.5:1, keeping every step-9 colour; `system` follows the OS Increase Contrast setting |
 | `brand` | `data-brand` | `zen` | — |
 | `locale` | `lang` | any BCP 47 tag | Sets the content language and the built-in labels: `en` and `vi` are built in, other tags fall back to English (see Language) |
 

@@ -15,8 +15,6 @@
 .zen-bottom-sheet-overlay[data-state="closing"] { animation: zen-motion-scrim-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; }
 
 .zen-bottom-sheet {
-  /* Lists inside the sheet line up with its own padding. */
-  --zen-list-inset: 0px;
   display: flex;
   width: 100%;
   max-width: 560px;
@@ -45,6 +43,9 @@
 .zen-bottom-sheet__title { overflow: hidden; min-width: 0; flex: 1; margin: 0; padding: var(--zen-spacing-padding-medium, 16px) var(--zen-margin-compact, 20px); color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
 .zen-bottom-sheet__close { display: flex; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-margin-compact, 20px) var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-small, 12px); }
 
+/* Form mode (onSubmit): the <form> wraps body + footer and keeps the sheet's column, so the body still scrolls between
+   the fixed header and the footer. */
+.zen-bottom-sheet__form { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; margin: 0; }
 .zen-bottom-sheet__search { flex: 0 0 auto; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-margin-compact, 20px); }
 .zen-bottom-sheet__body { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); overflow: auto; overscroll-behavior: contain; padding: var(--zen-margin-compact, 20px); }
 .zen-bottom-sheet[data-type="action"] .zen-bottom-sheet__body { gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-2-xsmall, 4px); }

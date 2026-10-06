@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type DragEvent, type KeyboardEvent, type ReactNode } from "react";
+import { useId, useLayoutEffect, useRef, useState, type DragEvent, type KeyboardEvent, type ReactNode } from "react";
 import { Button, IconButton } from "../Button";
 import { FileIcon, fileIconFormatOf } from "../FileIcon";
 import { Icon } from "../Icon";
@@ -40,17 +40,58 @@ export interface UploaderFileItemProps {
   onRetry?: (file: UploaderFile) => void;
 }
 
+/** The control that takes focus in a file item: its Remove (or Cancel upload) button, else its last action. */
+const itemFocusTarget = (item: Element | undefined) =>
+  item?.querySelector<HTMLElement>(".zen-upload-file__remove") ?? item?.querySelector<HTMLElement>(".zen-upload-file__actions button:last-of-type") ?? null;
+
+/**
+ * Keeps keyboard focus in the list when a file item leaves it, so it never falls back to the page body. If focus was
+ * in the item, or its Remove button was pressed, focus moves to the Remove button of the item that takes its place (the
+ * next one), else the previous item's, else the field's upload button (the drop zone or Choose File). Runs in the layout
+ * cleanup, while the item is still in the DOM, and moves focus once React has committed the new list.
+ */
+function useFocusAfterRemoval() {
+  const itemRef = useRef<HTMLLIElement>(null);
+  const removeRequested = useRef(false);
+  useLayoutEffect(() => {
+    const item = itemRef.current;
+    return () => {
+      if (!item?.isConnected) return;
+      const focusWasInside = item.contains(item.ownerDocument.activeElement);
+      if (!focusWasInside && !removeRequested.current) return;
+      const list = item.parentElement;
+      const itemsOf = (parent: Element | null) => (parent ? Array.from(parent.children).filter((child) => child.classList.contains("zen-upload-file")) : []);
+      const index = itemsOf(list).indexOf(item);
+      const field = item.closest(".zen-file-upload");
+      queueMicrotask(() => {
+        // Still in the page (StrictMode re-runs effects, or the item only moved): nothing was removed.
+        if (item.isConnected) return;
+        const active = item.ownerDocument.activeElement;
+        if (active && active !== item.ownerDocument.body) return;
+        const items = list?.isConnected ? itemsOf(list) : [];
+        const target = itemFocusTarget(items[index]) ?? itemFocusTarget(items[index - 1])
+          ?? (field?.isConnected ? field.querySelector<HTMLElement>(".zen-dropzone, .zen-file-upload__button .zen-button") : null);
+        target?.focus();
+      });
+    };
+  }, []);
+  return { itemRef, requestRemove: () => { removeRequested.current = true; } };
+}
+
 /**
  * Figma Primitives/Uploader/File-Item (1581:22739): padding Medium, gap Small, Corner-Radius/Large.
  * Name Body/Base/Bold · details Caption/Regular Neutral/Light (gap XSmall, 4px dot) · 8px Neutral progress while uploading.
  * Alert switches to Negative/Subtle with the error as help text. Actions are 16px icons 12px apart (24px hit areas).
+ * When the item is removed while focus is in it (or right after its Remove button), focus moves to the next item's
+ * Remove button, else the previous item's, else the field's upload button, so keyboard users stay in the list.
  */
 export function UploaderFileItem({ file, thumbnail, theme = "default", onRemove, onReplace, onRetry }: UploaderFileItemProps) {
   const t = useZenLabels();
   const state = file.state ?? "uploaded";
   const kind = thumbnail ?? (file.previewUrl ? "photo" : "none");
+  const { itemRef, requestRemove } = useFocusAfterRemoval();
   return (
-    <li className="zen-upload-file" data-state={state} data-tone={theme}>
+    <li ref={itemRef} className="zen-upload-file" data-state={state} data-tone={theme}>
       <div className="zen-upload-file__row">
         {kind === "file" ? <FileIcon className="zen-upload-file__type" format={fileIconFormatOf(file.name)} size="xl" /> : null}
         {kind === "photo" && file.previewUrl ? <img className="zen-upload-file__photo" src={file.previewUrl} alt="" /> : null}
@@ -60,7 +101,7 @@ export function UploaderFileItem({ file, thumbnail, theme = "default", onRemove,
             <span className="zen-upload-file__actions">
               {state === "replaceable" && onReplace ? <IconButton appearance="flat" level="primary" size="2xs" aria-label={t.replaceFile(file.name)} onClick={() => onReplace(file)} icon={<Icon name="icon-refresh-ccw-02-line" />} /> : null}
               {state === "alert" && onRetry ? <IconButton appearance="flat" level="primary" size="2xs" aria-label={t.retryFile(file.name)} onClick={() => onRetry(file)} icon={<Icon name="icon-refresh-ccw-01-line" />} /> : null}
-              {onRemove ? <IconButton appearance="flat" level="primary" size="2xs" aria-label={state === "uploading" ? t.cancelUpload(file.name) : t.removeItem(file.name)} onClick={() => onRemove(file)} icon={<Icon name="icon-x-small-line" />} /> : null}
+              {onRemove ? <IconButton className="zen-upload-file__remove" appearance="flat" level="primary" size="2xs" aria-label={state === "uploading" ? t.cancelUpload(file.name) : t.removeItem(file.name)} onClick={() => { requestRemove(); onRemove(file); }} icon={<Icon name="icon-x-small-line" />} /> : null}
             </span>
           </div>
           <div className={`zen-upload-file__details ${typographyStyles["Caption/Regular"]}`}>
@@ -109,6 +150,8 @@ export interface FileUploadProps {
  * Figma Uploader/File-Upload (1581:22708): Label → Drag & Drop field (Primitives/Uploader/DragDrop-Field, Extended) or a
  * “Choose File” button → Help-Text → File-Item list (gap XSmall). The drop zone is a real button (Enter/Space open the
  * picker) that also accepts dropped files; Dragover shows the 2px dashed Focus/Neutral/Subtle stroke.
+ * Removing a file keeps focus in the field: the next file's Remove button, else the previous one's, else the upload
+ * button (also when a single-file field shows its drop zone or Choose File button again). Apps need no refocus code.
  */
 export function FileUpload({ label, helpText, error, type = "dropzone", text: textProp, caption, accept, multiple = false, onFilesAdd, files = [], thumbnail, onRemove, onReplace, onRetry, buttonLabel: buttonLabelProp, extended = true, className }: FileUploadProps) {
   const t = useZenLabels();

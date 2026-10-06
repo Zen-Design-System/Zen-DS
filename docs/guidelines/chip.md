@@ -40,7 +40,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | --- | --- | --- | --- |
 | `children` | `ReactNode` | — |  |
 | `variant` | `"advanced" \| "normal" \| "number-only"` | `"advanced"` | Component set: Advanced, Normal, or Number-only. |
-| `size` | `"xs" \| "sm" \| "md" \| "xsmall" \| "small" \| "medium"` | `"sm"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `size` | `"xs" \| "sm" \| "md" \| "xsmall" \| "small" \| "medium"` | `"md"` | Medium by default, on desktop and phones (a filter row lines up with Search and Buttons at 40px); small only inside a genuinely narrow component space. Short (sm, md…) or Figma (small, medium…) spelling. |
 | `level` | `"primary" \| "secondary"` | `"secondary"` |  |
 | `theme` | `"text-only" \| "leading-icon" \| "leading-photo"` | — |  |
 | `state` | `"default" \| "hover" \| "press" \| "focused" \| "placeholder" \| "disabled"` | `"default"` |  |
@@ -48,8 +48,8 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `select` | `boolean` | — | **Deprecated:** Use selected. Figma's Select property. Selected chips show the close affordance in Advanced. |
 | `dropdown` | `boolean` | — | Figma's Dropdown property. Advanced chips show a chevron when enabled. |
 | `selectionMode` | `"single" \| "multiple"` | — | Filter behavior: single keeps the dropdown affordance; multiple uses the Figma Chip/Trailing counter and changes to remove on hover. |
-| `selectionCount` | `number` | — | Number of selected options for a multiple filter. |
-| `counter` | `number \| string` | — |  |
+| `selectionCount` | `number` | — | Number of selected options for a multiple filter. Shown from 2 as the Chip/Trailing Badge-Counter; the chip is then named "Owner, 3 applied" (the locale's `appliedCount`). |
+| `counter` | `number \| string` | — | Figma Chip/Advanced Counter: a Badge-Counter after the label. The chip is then named "Filters, 2 applied" (the locale's `appliedCount`; a Normal chip reads "Unread, 4"), never the run-together "Filters2". |
 | `value` | `number \| string` | — | Alias used by the Number-only component set. |
 | `leading` | `IconName \| ReactNode` | — | Leading icon: an icon name (`"icon-grid-01-line"`) or a node. |
 | `photoSrc` | `string` | — | Leading-Photo theme: image rendered through the shared Avatar/Single (Photo, Subtle) primitive, sized per Figma (XSmall → 2XSmall 20, Small → XSmall 24, Medium → Small 32). |
@@ -69,13 +69,14 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `popoverScrollBar` | `boolean` | `true` |  |
 | `onPopoverCreate` | `(value: string) => void` | — | Figma Popover/Manual-Add-New: lets users create a value that isn't listed (labels, tags). The popover gets a Search row; a "Create" + Accent Badge row appears only for a new value, Enter creates it. |
 | `popoverCreateLabel` | `ReactNode` | — |  |
+| `popoverPortal` | `boolean` | `false` | Renders the Popover in the page's overlay layer (ZenPortal), anchored under the chip, instead of inside it: a chip in a row that scrolls sideways (`overflow-x: auto` clips both axes) or in any box that clips its overflow keeps a whole, visible menu. Light dismiss, Escape and focus return work the same. Leave it off inside a Dialog or Bottom Sheet. |
 | `type` | _HTML attribute_ | `"button"` |  |
 
 ### Types
 Object shapes the props above refer to.
 
 ```ts
-type BadgeTheme = "accent" | "neutral" | "yellow" | "orange" | "red" | "crimson" | "pink" | "plum" | "purple" | "violet" | "indigo" | "blue" | "cyan" | "teal" | "green" | "brown" | "inverse" | "on-color"
+type BadgeTheme = "accent" | "neutral" | "yellow" | "orange" | "red" | "crimson" | "pink" | "plum" | "purple" | "violet" | "indigo" | "blue" | "cyan" | "teal" | "green" | "brown" | "inverse" | "on-color" | "sky" | "mint" | "bronze" | "golden"
 type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?: ReactNode; leading?: IconName | ReactNode; trailing?: IconName | ReactNode; disabled?: boolean; selected?: boolean; photoSrc?: string; photoAlt?: string; badgeTheme?: BadgeTheme; theme?: "icon" | "text-only" | "photo-small" | "photo-big" | "avatar-small" | "avatar-big" | "dock-icon" | "badge"; function?: "default" | "manual-add-new"; }
 ```
 
@@ -88,6 +89,9 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 | Delete / Backspace | Clear the selection (when clearable) |
 
 ## ✅ Do
+- Pick the level by how many can be on (user rule 2026-10-04): a multi-select group of toggles is Secondary for every chip (Selected = the 2px dark outline), a single-select group is Primary for every chip (Selected = the dark fill). Never switch a chip's level when it is selected.
+- Put a group of chips in its own Stack (or chip row) with Spacing/Gap/XSmall (8px) between chips, never the gap of the form or fieldset around it.
+- Keep the medium size (the default) on desktop and phones, so a filter row lines up with Search and Buttons (40px); small only inside a genuinely narrow component space.
 - Use one Advanced chip per filter dimension (Status, Owner, Date).
 - Show a count with a Number-only chip and no handler: it renders as a static count (Figma: a compact indicator for counts). Give it onClick or selected only when pressing the number does something.
 - Show the chosen value as the chip label for single selection; show the counter for multiple.
@@ -95,10 +99,11 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 - Offer "Clear all" (Tertiary button) when two or more filters are active.
 - Keep Advanced chips' Popover open while toggling multiple options (popoverMultiple).
 - Show the count on multiple-selection chips (harness: chip/multiple-needs-count).
-- On a phone, keep filter chips in one horizontally scrolling row (no wrapping) and open choices in an Action Bottom Sheet instead of a Popover; show the result count with a plural label and offer Clear filters on an empty result.
+- On a phone, keep filter chips in one horizontally scrolling row (no wrapping) and open choices in a Bottom Sheet of List + ListItem rows (the picked one `selected`) instead of a Popover; show the result count with a plural label and offer Clear filters on an empty result.
 
 ## ❌ Don't
 - Don't use Secondary or any Button to open a filter list.
+- In a row that scrolls sideways on a wider screen (overflow-x: auto clips both axes), pass `popoverPortal` so the chip's menu opens in the overlay layer, whole and anchored under it; leave it off inside a Dialog or Bottom Sheet.
 - Don't use Segmented to filter data (Segmented switches views).
 - Don't give a Normal or Number-only chip popoverItems.
 - Don't wrap chips inside another button.
@@ -107,6 +112,7 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 - Chip is a `<button>`; the Popover is a listbox with role=option items. A Number-only chip without onClick or selected is a count: a `<span>`, out of the tab order, with no hover.
 - ↓ opens, Escape closes and returns focus, Delete/Backspace clears (aria-keyshortcuts).
 - Topic pills expose aria-pressed.
+- A shown count joins the chip's name after a comma: "Filters, 2 applied" (labels.appliedCount; vi "Bộ lọc, 2 mục đã áp dụng"), a Normal chip's counter "Unread, 4"; the badges are hidden from assistive tech. Pass aria-label only to give a different name.
 
 ## Content
 - Label the chip with the dimension ("Status") until a value is picked, then the value ("Done").
@@ -116,6 +122,7 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 | --- | --- | --- | --- |
 | `button/filter-is-chip` | error | Filter, sort and scope pickers are Chip (variant=advanced), never buttons. | `zen-allow-filter-button: <reason>` |
 | `chip/popover-needs-advanced` | error | Only Chip variant=advanced opens a Popover. | `zen-allow-chip-variant: <reason>` |
+| `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
 | `chip/multiple-needs-count` | warn | A multiple-selection Chip shows how many values are active with selectionCount. | `zen-allow-chip-count: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
 | `copy/plural-count` | warn | Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`. | `zen-allow-plural: <reason>` |

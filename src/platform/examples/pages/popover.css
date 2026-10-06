@@ -1,0 +1,11 @@
+/* Popover examples (pages/popover.tsx). Tokens only. */
+.px-popover-fill { width: 100%; box-sizing: border-box; }
+
+/* The Bulk-Action bar's row under the table: centred, and as tall as the bar (a Medium button and its 2XSmall padding)
+   even while nothing is selected, so rows don't jump when it appears. */
+.px-popover-bulk {
+  display: flex;
+  min-width: 0;
+  min-height: calc(var(--zen-button-size-medium, 40px) + 2 * var(--zen-spacing-padding-2-xsmall, 4px));
+  justify-content: center;
+}

@@ -5,7 +5,7 @@ import { typographyStyles, type TypographyStyleName } from "../../tokens/typogra
 import "./avatar.css";
 
 export const avatarSizes = ["2xsmall", "xsmall", "small", "medium", "large", "xlarge", "2xlarge", "3xlarge"] as const;
-export const avatarThemes = ["photo", "accent", "blue", "brown", "crimson", "cyan", "green", "indigo", "neutral", "orange", "pink", "plum", "purple", "red", "teal", "violet", "yellow"] as const;
+export const avatarThemes = ["photo", "accent", "blue", "brown", "crimson", "cyan", "green", "indigo", "neutral", "orange", "pink", "plum", "purple", "red", "teal", "violet", "yellow", "sky", "mint", "bronze", "golden"] as const;
 /** CSS / Figma key (the `data-size` value). */
 type AvatarSizeKey = (typeof avatarSizes)[number];
 /** Short (canonical) or long Figma spelling — both render the same. */
@@ -35,11 +35,17 @@ export interface AvatarProps {
   status?: boolean;
   focus?: boolean;
   src?: string;
+  /**
+   * The person's name. With `src` it is the photo's alt text; without it the initials avatar is named by it (`role="img"`,
+   * `aria-label`), so screen readers say "Ava Chen", not "AC" (an AvatarStack of initials reads names). `alt=""` makes the
+   * avatar decorative: use it only when the name is shown next to it.
+   */
   alt?: string;
   children?: ReactNode;
   className?: string;
 }
 
+/** Figma Avatar/Single (Medium 223:8784 … 3XLarge 223:8714): photo or initials on the theme fill, optional status dot. */
 export function Avatar({ size: sizeProp = "md", theme = "neutral", background = "solid", shape = "circle", status = false, focus = false, src, alt = "", children, className }: AvatarProps) {
   const t = useZenLabels();
   const size = scaleKey(sizeProp, avatarSizes);
@@ -51,12 +57,17 @@ export function Avatar({ size: sizeProp = "md", theme = "neutral", background = 
     const generated = alt.split(/\s+/).filter(Boolean).slice(0, limit).map((part) => Array.from(part)[0]).join("").toUpperCase();
     return generated || "?";
   }, [alt, children, size]);
+  // Initials (no src): a named avatar is one image called `alt` (its status joins the name, since an image's children are
+  // not read); alt="" hides the initials, as an empty alt hides a photo.
+  const name = alt.trim();
+  const named = !src && Boolean(name);
   return (
-    <span className={["zen-avatar", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} data-background={background} data-shape={shape} data-focus={focus ? "true" : "false"}>
+    <span className={["zen-avatar", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} data-background={background} data-shape={shape} data-focus={focus ? "true" : "false"}
+      role={named ? "img" : undefined} aria-label={named ? [name, status ? t.online : null].filter(Boolean).join(", ") : undefined}>
       <span className="zen-avatar__inner">
-        {src ? <img src={src} alt={alt} /> : <span className={`zen-avatar__initials ${typographyStyles[initialsStyle[size]]}`}>{initials}</span>}
+        {src ? <img src={src} alt={alt} /> : <span className={`zen-avatar__initials ${typographyStyles[initialsStyle[size]]}`} aria-hidden={named || !name ? true : undefined}>{initials}</span>}
       </span>
-      {status ? <span className="zen-avatar__status" aria-label={t.online} /> : null}
+      {status ? <span className="zen-avatar__status" aria-label={named ? undefined : t.online} /> : null}
     </span>
   );
 }
@@ -72,5 +83,5 @@ export function AvatarStack({ items, max = 5, showMore = false, size: sizeProp =
   const size = scaleKey(sizeProp, avatarSizes);
   const visible = items.slice(0, max);
   const remaining = items.length - visible.length;
-  return <span className="zen-avatar-stack" data-size={size}>{visible.map((item, index) => <Avatar key={`${item.alt ?? "avatar"}-${index}`} {...props} {...item} size={size} className="zen-avatar-stack__item" />)}{showMore && remaining > 0 ? <Avatar {...props} size={size} theme="neutral" background="subtle" className="zen-avatar-stack__item">+{remaining}</Avatar> : null}</span>;
+  return <span className="zen-avatar-stack" data-size={size}>{visible.map((item, index) => <Avatar key={`${item.alt ?? "avatar"}-${index}`} {...props} {...item} size={size} className="zen-avatar-stack__item" />)}{showMore && remaining > 0 ? <Avatar {...props} size={size} theme="neutral" background="subtle" alt={`+${remaining}`} className="zen-avatar-stack__item">+{remaining}</Avatar> : null}</span>;
 }

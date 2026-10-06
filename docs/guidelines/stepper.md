@@ -19,7 +19,7 @@ Shows progress through a multi-step, sequential process and where the user is in
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Orientation | `orientation` | horizontal · vertical |
+| Orientation | `orientation` | horizontal · vertical — vertical: the bar starts at its first marker and ends at its last (no hidden outer line space); each step's title + caption centres on its marker, middle steps keep Figma's 82px |
 | Steps | `steps[] {id, title, caption, icon, error}` | Title Body/Base/Bold · Caption Caption/Regular |
 | Current | `current` | earlier = Passed (check), current = Focused (ring), later = Default |
 | Error | `step.error` | State=Error: negative marker, ring and lines |

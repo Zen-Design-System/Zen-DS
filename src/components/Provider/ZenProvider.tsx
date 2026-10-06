@@ -10,13 +10,15 @@ import "./provider.css";
 
 /** Token mode axes (Figma variable modes). Each maps to a `data-*` attribute that tokens.css reads. */
 export const zenThemes = ["light", "dark", "system"] as const;
-export const zenComponentThemes = ["neutral-s1", "neutral-s2", "neutral-s3", "neutral-s4", "brand-s1", "brand-s2"] as const;
+export const zenComponentThemes = ["neutral-s1", "neutral-s2", "neutral-s3", "neutral-s4", "neutral-s5", "neutral-s6", "neutral-s7", "brand-s1", "brand-s2"] as const;
 export const zenDensities = ["compact", "comfortable"] as const;
 export const zenRadii = ["rounded", "smooth", "standard", "luxury"] as const;
 export const zenEmphases = ["medium", "strong", "light"] as const;
 export const zenBreakpoints = ["auto", "desktop", "tablet", "mobile"] as const;
 export const zenTypographies = ["dashboard", "popular", "mobile"] as const;
 export const zenBrands = ["zen"] as const;
+/** Contrast (Global Colors mode Zen-High-Contrast). `system` follows the OS Increase Contrast setting (prefers-contrast: more). */
+export const zenContrasts = ["standard", "high", "system"] as const;
 
 export type ZenTheme = (typeof zenThemes)[number];
 export type ZenComponentTheme = (typeof zenComponentThemes)[number];
@@ -26,6 +28,7 @@ export type ZenEmphasis = (typeof zenEmphases)[number];
 export type ZenBreakpoint = (typeof zenBreakpoints)[number];
 export type ZenTypography = (typeof zenTypographies)[number];
 export type ZenBrand = (typeof zenBrands)[number];
+export type ZenContrast = (typeof zenContrasts)[number];
 
 export interface ZenProviderProps extends Omit<HTMLAttributes<HTMLElement>, "style" | "className" | "children" | "id"> {
   /** Colour mode. `system` follows the OS (prefers-color-scheme). Unset: inherit (the page default is light). */
@@ -46,6 +49,12 @@ export interface ZenProviderProps extends Omit<HTMLAttributes<HTMLElement>, "sty
   /** Text-style scale. dashboard (default) for web apps, mobile for phone apps, popular for marketing pages. */
   typography?: ZenTypography;
   brand?: ZenBrand;
+  /**
+   * Contrast. `high` raises the borders of Checkbox, Radio and Subtle controls to 3:1 and placeholders, Light text and
+   * a colour's Light text to 4.5:1; step 9 of every colour, the backgrounds and the text on Solid fills stay.
+   * `system` follows the OS Increase Contrast setting. Unset: inherit (the page default is standard).
+   */
+  contrast?: ZenContrast;
   /**
    * BCP 47 language of the content: sets `lang`, date formats, and the built-in labels of every Zen component
    * (accessible names, "Close", "Next page", toolbar tooltips…). Built in: en, vi. Unknown languages fall back to en.
@@ -110,6 +119,7 @@ export function ZenProvider({
   breakpoint: requestedBreakpoint,
   typography,
   brand,
+  contrast,
   locale,
   labels,
   paint = true,
@@ -128,17 +138,21 @@ export function ZenProvider({
   const [portalRoot, setPortalRoot] = useState<HTMLDivElement | null>(null);
 
   const prefersDark = useMedia(theme === "system" ? "(prefers-color-scheme: dark)" : null);
+  const prefersMoreContrast = useMedia(contrast === "system" ? "(prefers-contrast: more)" : null);
   const isMobile = useMedia(breakpoint === "auto" ? "(max-width: 743.98px)" : null);
   const isTablet = useMedia(breakpoint === "auto" ? "(max-width: 1023.98px)" : null);
 
   const resolvedTheme = theme === "system" ? (prefersDark ? "dark" : "light") : theme;
+  const resolvedContrast = contrast === "system" ? (prefersMoreContrast ? "high" : "standard") : contrast;
   const resolvedBreakpoint = breakpoint === "auto"
     ? (isMobile ? "mobile" : isTablet ? "tablet" : isMobile === undefined ? undefined : "desktop")
     : breakpoint;
 
   const attributes = {
     "data-brand": brand,
-    "data-theme": resolvedTheme,
+    // The colour tokens resolve where a mode is declared, so a contrast scope re-declares the theme's colours too.
+    "data-theme": resolvedTheme ?? (resolvedContrast ? parent?.theme ?? "light" : undefined),
+    "data-contrast": resolvedContrast,
     "data-component-theme": componentTheme,
     "data-density": density,
     "data-radius": radius,
@@ -157,13 +171,14 @@ export function ZenProvider({
     ...(resolvedBreakpoint ? { breakpoint: resolvedBreakpoint } : {}),
     ...(typography ? { typography } : {}),
     ...(brand ? { brand } : {}),
+    ...(resolvedContrast ? { contrast: resolvedContrast } : {}),
     ...(locale ? { locale } : {}),
     // Labels follow the nearest locale; overrides stack from the outer providers inward.
     ...(locale || labels ? (() => {
       const labelOverrides = mergeOverrides(parent?.labelOverrides, labels);
       return { labelOverrides, labels: resolveZenLabels(locale ?? parent?.locale, labelOverrides) };
     })() : {}),
-  }), [parent, resolvedTheme, componentTheme, density, radius, emphasis, resolvedBreakpoint, typography, brand, locale, labels]);
+  }), [parent, resolvedTheme, componentTheme, density, radius, emphasis, resolvedBreakpoint, typography, brand, resolvedContrast, locale, labels]);
 
   const shouldSyncDocument = syncDocument ?? (parent === null && paint);
   const attributeKey = JSON.stringify(attributes);

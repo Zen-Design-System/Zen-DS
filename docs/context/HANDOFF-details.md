@@ -113,7 +113,7 @@ The full list is in `docs/component-usage-rules.md`. The ones most often forgott
   - Primary or Tertiary by default; Secondary is rare; Accent is for promotion only.
   - Filters are Chip Advanced, never Buttons.
   - Close and dismiss use Flat Primary.
-- **Inputs and Search:** there is no Disabled state; use Read-only.
+- **Inputs and Search:** Disabled is back (2026-09-30, Figma Field-Only State=Disabled) on Text, Select, Date, Number, Text-Area and Search; Autocomplete and Rich-Text stay Read-only only. A value people need to read or copy is Read-only.
 - **Surfaces:**
   - §9: no outer drop shadow on Subtle, Pale or Surface-Alt fills.
   - §11: Surface/Default on Canvas/Alt needs a closed border; a shadow does not count.

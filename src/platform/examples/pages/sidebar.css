@@ -1,0 +1,27 @@
+/* Sidebar examples: an app window of fixed height. It is a size container, so the AppShell inside fills it (100cqh),
+   its Sidebar sticks and scrolls its own menu, and the navigation drawer (below 1024px) covers the frame instead of
+   the docs page (layout containment holds the drawer's fixed position). */
+.px-sidebar-frame { height: clamp(520px, calc(100dvh - 120px), 760px); overflow: hidden; contain: layout; container-type: size; }
+.px-sidebar-frame__scroll { height: 100%; overflow: auto; overscroll-behavior: contain; }
+.px-sidebar-frame__scroll > .zen-app-shell { --zen-app-shell-height: 100cqh; }
+/* Full screen: the window takes the whole viewport. */
+.pe-card[data-fullscreen="true"] .pe-card__preview > .px-sidebar-frame { flex: 1 1 0; height: auto; min-height: 0; }
+
+/* The page beside the Sidebar: Container gives the side margin (Margin-Comfortable, narrower on a phone); the page adds
+   the same margin above and below, and under the drawer's top bar (below 1024px) it starts Padding/Small below the bar. */
+.px-sidebar-page { padding-block: var(--zen-margin-comfortable, 24px); }
+.zen-app-shell__header ~ .zen-app-shell__main .px-sidebar-page { padding-top: var(--zen-spacing-padding-small, 12px); }
+
+/* Rail-and-flyout shell: the page column beside the rail scrolls on its own. */
+.px-sidebar-main { min-width: 0; min-height: 0; flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; }
+/* A collapsed rail is narrow enough to stay beside the page on a phone-width card. */
+@media (max-width: 620px) {
+  .pe-shell.px-sidebar-rail-shell { flex-direction: row; }
+}
+
+/* Brand in the Sidebar's logo slot (fixed height: 24px, 20px in Small-Density): the mark is an image that takes the
+   slot's height, so it never grows past it at Comfortable density; the name sits beside it on one line. */
+.px-sidebar-brand { display: inline-flex; height: 100%; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); white-space: nowrap; }
+.px-sidebar-brand > img { display: block; height: 100%; aspect-ratio: 1; border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }
+/* The Small-Density rail mark: the size of the slot it sits in (Element/Popular/Base), at every density. */
+.px-sidebar-mark { display: block; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }

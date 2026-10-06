@@ -1,13 +1,13 @@
 /**
  * Interaction tests for AppShell (Figma ◇ Master-Layout, ◆ HR-Platform): the rail toggle, the navigation drawer (modal
  * dialog: focus, Tab, Escape, Close, choosing a page), the skip link, and the top-bar parts AppShellAction and
- * AppShellAccount. Real browser (Chromium).
+ * AppShellAccount, plus the Sidebar rail mark (always centred). Real browser (Chromium).
  */
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 import { userEvent } from "vitest/browser";
-import { AppShell, AppShellAccount, AppShellAction, Breadcrumbs, Menu, Sidebar, ZenProvider, useAppShell, type SidebarSection } from "../../src/index";
+import { AppShell, AppShellAccount, AppShellAction, Avatar, Breadcrumbs, Menu, Sidebar, Stack, Text, ZenProvider, useAppShell, type SidebarSection } from "../../src/index";
 
 const sections: SidebarSection[] = [
   { items: [{ id: "home", label: "Home", icon: "icon-home-03-line" }, { id: "members", label: "Members", icon: "icon-users-line" }] },
@@ -96,6 +96,12 @@ describe("AppShell drawer", () => {
     await expect.element(screen.getByRole("button", { name: "Open navigation" })).toBeVisible();
     expect(document.querySelector(".zen-app-shell")?.getAttribute("data-layout")).toBe("drawer");
   });
+
+  it("keeps its own width inside a scaled preview (a zoomed canvas draws 1440px at half size)", async () => {
+    const screen = await render(<div style={{ width: 1440, transform: "scale(0.5)", transformOrigin: "0 0" }}><Shell /></div>);
+    await expect.element(screen.getByRole("button", { name: "Collapse sidebar" })).toBeInTheDocument();
+    expect(document.querySelector(".zen-app-shell")?.getAttribute("data-layout")).toBe("sidebar");
+  });
 });
 
 describe("AppShell skip link", () => {
@@ -147,5 +153,58 @@ describe("useAppShell", () => {
     await button.click();
     await expect.element(screen.getByRole("button", { name: "Rail · sidebar" })).toBeVisible();
     expect(document.querySelector(".zen-sidebar")?.getAttribute("data-collapsed")).toBe("true");
+  });
+});
+
+describe("Sidebar workspace switcher", () => {
+  it("opens its list with ArrowDown, as with Enter (APG listbox button)", async () => {
+    const screen = await render(
+      <ZenProvider>
+        <Sidebar variant="workspace" aria-label="Workspaces" sections={sections}
+          workspaceItems={[{ id: "dizai", label: "Đìzai Studio", selected: true }, { id: "phin", label: "Phin & Co" }]} />
+      </ZenProvider>,
+    );
+    // The rail lists the workspace too; the header trigger is the one that pops up a listbox.
+    const trigger = () => document.querySelector<HTMLElement>(".zen-sidebar__workspace-trigger")!;
+    expect(trigger().getAttribute("aria-expanded")).toBe("false");
+    trigger().focus();
+    await userEvent.keyboard("{ArrowDown}");
+    await expect.poll(() => trigger().getAttribute("aria-expanded")).toBe("true");
+    await expect.element(screen.getByRole("option", { name: "Phin & Co" })).toBeInTheDocument();
+  });
+});
+
+describe("Sidebar rail mark", () => {
+  // The workspace brand of an HR-style module Sidebar: a 32px square mark, then the name.
+  const brand = (
+    <Stack direction="row" gap="xs" align="center" style={{ width: "100%" }}>
+      <Avatar size="small" shape="square" alt="">ĐS</Avatar>
+      <Text as="span" textStyle="Body/Base/Bold" truncate>Đìzai Studio</Text>
+    </Stack>
+  );
+  const offCentre = (mark: Element) => {
+    const surface = document.querySelector(".zen-sidebar__surface")!.getBoundingClientRect();
+    const box = mark.getBoundingClientRect();
+    return Math.abs(box.left + box.width / 2 - (surface.left + surface.width / 2));
+  };
+
+  it("shows logoCollapsed centred in place of a custom brand", async () => {
+    await render(<ZenProvider><Sidebar collapsed aria-label="Modules" brand={brand} logoCollapsed={<Avatar size="small" shape="square" alt="Đìzai Studio">ĐS</Avatar>} sections={sections} /></ZenProvider>);
+    const mark = document.querySelector(".zen-sidebar__default-brand-collapsed .zen-avatar")!;
+    expect(mark).toBeTruthy();
+    expect(document.querySelector(".zen-sidebar__header")?.textContent).not.toContain("Đìzai Studio");
+    expect(offCentre(mark)).toBeLessThan(0.5);
+  });
+
+  it("keeps a custom brand's first element centred and only hides the name visually", async () => {
+    const screen = await render(<ZenProvider><Sidebar collapsed aria-label="Modules" brand={brand} sections={sections} /></ZenProvider>);
+    expect(offCentre(document.querySelector(".zen-sidebar__header .zen-avatar")!)).toBeLessThan(0.5);
+    const name = screen.getByText("Đìzai Studio");
+    await expect.element(name).toBeInTheDocument();
+    expect(name.element().getBoundingClientRect().width).toBeLessThanOrEqual(1);
+    // Every visible rail item shares the mark's centre line (section titles are display: none in the rail).
+    const items = [...document.querySelectorAll(".zen-sidebar__body .zen-sidebar__item")].filter((item) => item.getBoundingClientRect().width > 0);
+    expect(items.length).toBeGreaterThan(0);
+    for (const item of items) expect(offCentre(item)).toBeLessThan(0.5);
   });
 });

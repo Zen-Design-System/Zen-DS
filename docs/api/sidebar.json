@@ -47,7 +47,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Replaces the whole header, including the collapse control. Prefer `logo` / `productName`, which keep it.",
+          "description": "Replaces the whole header, including the collapse control. Prefer `logo` / `productName`, which keep it. In the\ncollapsed rail `logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its\nmark), centred, and hides the rest visually.",
           "deprecated": null
         },
         {
@@ -63,7 +63,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Mark shown in the collapsed rail instead of `logo` (Figma collapsed Logo, 28px; 20px in Small-Density).",
+          "description": "Mark shown centred in the collapsed rail instead of `logo` or a custom `brand` (Figma collapsed Logo, 28px; 20px\nin Small-Density).",
           "deprecated": null
         },
         {
@@ -143,7 +143,15 @@
           "type": "\"default\" | \"alt\" | \"flat\" | \"inverse\"",
           "required": false,
           "default": "\"default\"",
-          "description": "",
+          "description": "Default = Surface with a shadow (a Canvas/Default page; cards on the page take the same shadow, no border). Alt\n (Surface/Alt) and Flat are the only choices on a Canvas/Alt (white) page, where cards are bordered.",
+          "deprecated": null
+        },
+        {
+          "name": "divider",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "A Pale divider on the Sidebar's inner edge, the full height of the block: separates an Alt or Flat Sidebar from the\n page on a Canvas/Alt (white) page. Not with the default Sidebar, whose shadow already separates it.",
           "deprecated": null
         },
         {

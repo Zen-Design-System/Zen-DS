@@ -31,12 +31,25 @@ const walk = (directory) => fs.readdirSync(directory, { withFileTypes: true }).f
 function collectLiterals(files) {
   const arrays = new Map();
   const aliases = new Map();
+  // Array bodies first, then resolved with their spreads (`["neutral", ...dockIconSupportColors, "emoji"]`), so a union
+  // built from another const array keeps every member.
+  const bodies = new Map();
   for (const file of files) {
     const source = fs.readFileSync(file, "utf8");
-    for (const match of source.matchAll(/(?:export\s+)?const\s+(\w+)\s*=\s*\[([^\]]*)\]\s*as\s+const/g)) {
-      const values = [...match[2].matchAll(/"([^"]*)"|'([^']*)'/g)].map((value) => value[1] ?? value[2]);
-      if (values.length) arrays.set(match[1], values);
-    }
+    for (const match of source.matchAll(/(?:export\s+)?const\s+(\w+)\s*=\s*\[([^\]]*)\]\s*as\s+const/g)) bodies.set(match[1], match[2]);
+  }
+  const resolve = (name, seen = new Set()) => {
+    if (arrays.has(name)) return arrays.get(name);
+    const body = bodies.get(name);
+    if (body === undefined || seen.has(name)) return [];
+    seen.add(name);
+    const values = [...body.matchAll(/"([^"]*)"|'([^']*)'|\.\.\.\s*(\w+)/g)].flatMap((token) => (token[3] ? resolve(token[3], seen) : [token[1] ?? token[2]]));
+    if (values.length) arrays.set(name, values);
+    return values;
+  };
+  for (const name of bodies.keys()) resolve(name);
+  for (const file of files) {
+    const source = fs.readFileSync(file, "utf8");
     for (const match of source.matchAll(/export\s+type\s+(\w+)\s*=\s*\(typeof\s+(\w+)\)\[number\]\s*;/g)) aliases.set(match[1], { array: match[2] });
     for (const match of source.matchAll(/export\s+type\s+(\w+)\s*=\s*((?:\s*\|?\s*"[^"]*")+)\s*;/g)) {
       const values = [...match[2].matchAll(/"([^"]*)"/g)].map((value) => value[1]);
@@ -104,7 +117,10 @@ function typeText(tsType, literals) {
   if (tsType.name === "union" && !tsType.raw && tsType.elements) text = tsType.elements.map((element) => typeText(element, literals)).join(" | ");
   text = String(text).replace(/\(typeof\s+(\w+)\)\[number\]/g, (whole, name) => {
     const values = literals.arrays.get(name);
-    return values && values.length <= MAX_EXPANDED_UNION ? union(values) : whole;
+    if (!values) return whole;
+    if (values.length <= MAX_EXPANDED_UNION) return union(values);
+    // A long string list (contentTones: 93 tones) reads as the type named after it (ContentTone).
+    return [...literals.aliases].find(([, alias]) => alias.array === name)?.[0] ?? whole;
   });
   const alias = literals.aliases.get(text.trim());
   if (alias) {

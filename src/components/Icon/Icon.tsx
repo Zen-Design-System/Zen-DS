@@ -1,6 +1,8 @@
 import { Suspense, use, useId, useMemo, type CSSProperties, type SVGAttributes } from "react";
 import type { IconDefinition, IconName } from "../../icons/generated/names";
+import { resolveContentTone, type ContentTone } from "../_shared/contentTone";
 import { getRegisteredIcon, loadIconBucket, warnUnknownIcon } from "./registry";
+import "../_shared/content-tone.css";
 import "./icon.css";
 
 export const iconSizes = ["2xs", "xs", "sm", "base", "md", "lg", "xl", "2xl", "3xl"] as const;
@@ -15,6 +17,11 @@ export type IconProps = Omit<SVGAttributes<SVGSVGElement>, "children" | "name"> 
   name: IconName;
   /** A token size (`2xs`…`3xl`, default `base` = 20px) or a px number. */
   size?: IconSize | number | string;
+  /**
+   * Colour: a Color/Content token by its path, as on Text ("light", "positive-base", "support-blue-light"). Default:
+   * the parent's colour (most icons sit in a component that colours them). Icons may use a colour family's Light level.
+   */
+  tone?: ContentTone;
   /** Accessible name; without it the icon is decorative (aria-hidden). */
   title?: string;
   decorative?: boolean;
@@ -53,6 +60,7 @@ function LazyIcon(props: IconProps) {
 function IconSvg({
   name,
   size = "base",
+  tone,
   title,
   decorative = !title,
   className,
@@ -79,6 +87,7 @@ function IconSvg({
       data-color-mode={icon?.colorMode}
       data-icon={name}
       data-size={sizeName}
+      data-tone={tone ? resolveContentTone(tone) : undefined}
       data-loading={icon ? undefined : "true"}
       viewBox={icon?.viewBox}
       role={decorative ? undefined : "img"}

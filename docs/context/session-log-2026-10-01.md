@@ -30,6 +30,56 @@ pages and asked for a one-line notice when this lands.
    Corner-Radius/Action/Small, Neutral/Flat); code had the bare label (padding 0, comment from the older capture), so a
    press beside it typed into the prompt. Now 133×36 like Figma; a click in its padding opens the model button.
 
+## Topbar Typography chip did nothing in narrow windows (session "Zen Plugin Neutral color contrast", tier XS)
+- Bug: below 1024px `.official-topbar__controls` was `overflow-x: auto` (so overflow-y auto too); every chip's Popover
+  renders inline and was clipped by that one-row scroll box. The chip opened (chevron up) but its menu was invisible.
+  Seen in the app's 367px browser pane; at 1512 the chip works, and a sweep of all 45 component pages showed previews
+  follow it (only phone frames stay Mobile, by design).
+- Fix (`platform.css`, ≤1024px): the trailing group is `display: contents`; the light/dark toggle stays on the
+  breadcrumb row and the controls take a full-width wrapping row. Checked at 367/800/1024/1512: menu visible, Mobile
+  applied (button label 14→16px); 800 and 1024 keep one chip row; pages without chips unchanged (72px bar).
+- QA: `npm run qa` ✓. With `--pages=button,typography`: 3 ✗ APG dialog-focus errors at button@1512 in other sessions'
+  examples (Page actions, Delete a file), under concurrent HMR reloads: not this change (≤1024px CSS); in BACKLOG.
+- Backup: `Zen-CodeBase/backups/zen-ds-before-topbar-chip-wrap-20261001-152248.tar.gz`.
+
+## Mobile behaviour, Top Navigation rules, UX interaction pass (session "Component library review và fixes", tier M)
+
+- **User asks (2026-10-01):**
+  - Make the mobile examples behave the same way, after a deep study of Top Navigation on phones.
+  - Use longer lists on phones.
+  - Tabs, Segmented and Chip default to medium.
+  - Re-check the UX interactions.
+  - Later: "Xử luôn G1 và G2".
+- **Research:** `docs/research/top-navigation-mobile-rules-2026-10-01.md`.
+  - Contents: a decision table, rules R1–R18, a length rule (≥ 1.5× the phone's height, about 14 rows) and an audit
+    of all 77 phones.
+  - Only 3 phones folded and only 9 of 43 lists could scroll.
+  - The examples session took R1–R18 into its brief §5b and is applying them to its rows.
+- **Component fixes:**
+  - **G1 (P1):** a TopNavigation fold that unmounts and remounts is measured again. The fold node is state, so
+    `useScrollFold` re-runs. Test: `tests/interaction/navigation.test.tsx`, which fails on the old code.
+  - **G2:** PlatformPhone sets `scroll-padding-top` = header − fold (`--platform-phone-header-pinned`). Probe: a focused
+    row ended at −10..50px under the bar before, and at 267px after. A guideline a11y line tells apps to do the same.
+  - **Chip** defaults to md.
+- **Playgrounds** (`PlatformMobilePlaygrounds.tsx`):
+  - Search filters, with an Empty State and Clear search.
+  - The Search action scrolls up and focuses the field.
+  - Sort orders the list.
+  - Bottom Navigation tabs are roots with a large title, and a re-tap scrolls to the top.
+  - The Bottom Sheet backdrop is a Projects root.
+  - The Chart range switch shows only on the line chart.
+- **Phone examples:**
+  - Typography › Master screen uses `scrollRef`.
+  - Typography › Child screen and Text › Mobile typography get a real 14-order root, shared data in
+    `src/platform/phoneOrders.ts`.
+- **Templates and App layer:** 4 agents ran the UX pass on 15 templates and the App layer pages; see CHANGELOG
+  "UX interaction pass". HrShell's Zen AI "+" and microphone now work.
+- **Backlog** (new group "From the UX interaction pass…"):
+  - P1: Escape in a ModalForm closes the form over an open Select or DatePicker.
+  - Decisions under Open items: PlatformPhone breakpoint tokens, G4, G6.
+- **Gate:** see the final run in HANDOFF. Backups: `backups/mobile-playgrounds-ux-20261001-1520.tar.gz`,
+  `backups/g1-g2-topnav-phone-20261001-1710.tar.gz`, `backups/hrshell-ai-field-20261001-1915.tar.gz`.
+
 ## Decisions applied: EmptyState compactTitle and motion P1 (session "Add audit check for text overflowing its box", tier L)
 
 User: "Làm như các khuyến nghị trước" (1A–5A, P1 as one batch, no refraction filter, EmptyState option A, commit once at

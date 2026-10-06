@@ -1,0 +1,19 @@
+/* Side Panel examples (src/platform/examples/pages/side-panel.tsx). Tokens only; class prefix .px-side-panel-. */
+
+/* Docked details: an app window of a fixed height. The page scrolls on its own; the Standard panel keeps the full
+   height beside it (its own Pale left edge separates them). In Full screen the window fills the viewport. */
+.px-side-panel-frame { display: flex; height: clamp(560px, calc(100dvh - 160px), 720px); overflow: hidden; background: var(--zen-color-background-canvas-default); }
+.px-side-panel-frame__page { min-width: 0; flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; }
+.pe-card[data-fullscreen="true"] .pe-card__preview > .px-side-panel-frame { flex: 1 1 0; height: auto; min-height: 0; }
+
+/* "Open a record" and "All filters" are desktop pages (screen cards): they paint the app's Canvas, as the docked Files
+   page does. */
+.px-side-panel-page { min-height: 100%; background: var(--zen-color-background-canvas-default); }
+
+/* Loading placeholders in the shape of the invoice details: DescriptionList rows (Body/Base line, a short term at the
+   start, the value at the end) under a kicker line (Body/Small). */
+.px-side-panel-skeleton-row { min-height: var(--zen-typography-line-height-body-base, 24px); }
+.px-side-panel-skeleton-kicker { min-height: var(--zen-typography-line-height-body-small, 20px); }
+.zen-skeleton-text.px-side-panel-skeleton-term { width: 30%; }
+.zen-skeleton-text.px-side-panel-skeleton-value { width: 35%; }
+.zen-skeleton-text.px-side-panel-skeleton-kicker-bar { width: 25%; }

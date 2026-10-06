@@ -22,17 +22,17 @@ Person-to-person messaging: a thread of bubbles (text, files, calls, photos) wit
 | Meta | `time · status · reactions[] · seenBy[]` | Social: time under the thread · Business: inside the bubble |
 | Content | `text · ChatFile · ChatCall · ChatPhotos` | Dock-Icon file/call cards (Neutral Subtle for Others files and answered calls, Red for missed); photo grid is a 260 (mobile) / 400 (desktop) square of radius-16 tiles, 1–4+ |
 | Reactions | `ChatReactions · ChatReactionPicker onMore · ChatEmojiPicker` | Status pill + the 48px Reaction-Bar (six 28px emojis + "+"); "+" always shows and opens the built-in emoji panel (search + 8-column grid), or your own picker via onMore; any emoji is a valid reaction (chatReactionGlyph) |
-| Composer | `ChatComposer onSend · placeholder ("Aa") · label · onEmoji · actions · quickAction · device` | Figma Chat-Control: plus · mic · photo flat Neutral/Strongest actions — Mobile Nav-Action 44px (icon 24), Desktop Button/Icon-Flat Medium 40px (icon 20) — only plus while typing; pill field (Input/Background/Default + Effect/Input, padding 10/0/10/14, Body/Base/Medium, Accent caret; Focused does not restyle the field) with the flat emoji action at its edge; the quick action becomes Send (same flat Strongest icon, not Accent); Enter sends, Shift+Enter new line |
-| List | `ChatConversationItem` | ListItem composition with 16px side padding (Figma List-Item 12/16): name · time, preview (Bold when unread) |
+| Composer | `ChatComposer onSend · placeholder ("Aa") · label · onEmoji · actions · quickAction · device` | Figma Chat-Control: plus · mic · photo flat Neutral/Strongest actions — Mobile Nav-Action 44px (icon 24), Desktop Button/Icon-Flat Medium 40px (icon 20) — only plus while typing; pill field (Input/Background/Default + Effect/Input, padding 10/0/10/14, Body/Base/Medium, Accent caret; Focused adds the standard Input focus ring (1px Focus/Neutral/Solid inside + 3px Border/Active/Neutral/Subtle outside) over Figma's Default field and Accent caret) with the flat emoji action at its edge; the quick action becomes Send (same flat Strongest icon, not Accent); Enter sends, Shift+Enter new line |
+| List | `ChatConversationItem` | ListItem composition with 16px side padding (Figma List-Item 0/16): name · time, preview (Bold when unread) |
 | Failed | `ChatMessage failed · onRetry` | Negative “Not delivered” line with a Retry button replaces the status |
 | Calls in the list | `ChatConversationItem call · callLabel · unread` | missed-audio · missed-video (Negative) · incoming · outgoing · ongoing (Positive); 40px avatar with initials fallback; 12px Positive unread dot |
 | Thread | `ChatThread device` | mobile · desktop: text bubbles cap at 220 / 516px; opens at the latest message and follows new ones |
 | Group avatar | `ChatConversationItem group` | 40px frame of two 28px avatars |
-| Business cards | `ChatFile · ChatCall · ChatPhotos in domain="business"` | radius 16, Bubble-Chat-Others-Business fill with a lift; `time` sits inside the card; calls have no Call back button (56 high); photos sit in a Surface card (padding 12, radius 24) with the time under the grid |
+| Business cards | `ChatFile · ChatCall · ChatPhotos in domain="business"` | radius 16, Bubble-Chat-Others-Business fill with a lift; `time` sits inside the card; a call without an action (answered, or still ringing) hugs its text: 12px below the last line, like a text bubble (62 high in the 20/16 type scale; Figma 56); photos sit in a Surface card (padding 12, radius 24) with the time under the grid |
 | Reaction pill | `reactions` | 24 high, 16px emojis, bottom-right corner, 16 below the bubble on both sides |
 | Time section | `ChatDateDivider` | 28 high (padding 8/0) |
 | Hold to react | `ChatMessage holdActions · onHoldAction · reaction · onReact · onMoreReactions · chatHoldActions` | long press (450ms) / right-click / Shift+F10: Overlay 25% + full-screen blur, Reaction-Bar 8 above the bubble, 240px Popover/Default menu 8 below (Figma Chat/Bubble/Focused) |
-| Call glyphs | `ChatCall type · state` | solid: phone-incoming / phone-outgoing / phone-x · video-in / video-out / video-recorder-x; Red Solid only for an incoming missed call; Small Secondary button: Call Back · Call Again · Call back |
+| Call glyphs | `ChatCall type · state` | solid: phone-incoming / phone-outgoing / phone-x · video-in / video-out / video-recorder-x; Red Solid only for an incoming missed call; Small action: Call back · Call again (Business: Call back · Send voice message on missed calls) |
 | Desktop hover | `ChatThread device="desktop" + holdActions / onReact` | Figma Hover: an Icon-Flat Small Secondary toolbar 8px beside the bubble — Text/File: React · Reply · More, Photo: Share · React · More, Call: More; React opens the Reaction picker, More lists the remaining chatHoldActions |
 | Avatar group | `ChatAvatarGroup size` | Large 48 (32px avatars, conversation header) · Medium 40 (28px) · Small 32 (20px) |
 | Reply | `ChatMessage id · replyTo · onJumpToReply · ChatComposer replyTo · onCancelReply` | Messenger rhythm: caption (12px inset) → 4 → quote (padding 8/12, text 8 above and below its visible part) with the reply bubble tucked 12px over it; a reply turn starts 16px below the previous message; composer bar: full width on top of the composer, hairline above, text at 16, ✕ aligned with the last action; pressing the quote jumps to the original and flashes it; the quote of a deleted message (kind "deleted") is plain text, since there is nothing to jump to |
@@ -48,7 +48,7 @@ Figma Chat/Conversation/Bubble (6349:64085): avatar (others) + bubble + reaction
 | --- | --- | --- | --- |
 | `side` (required) | `"you" \| "others"` | — |  |
 | `domain` | `"social" \| "business"` | `"social"` |  |
-| `author` | `ChatPerson` | — | Others: who sent it (the avatar and, when `showName`, the name above the bubble). |
+| `author` | `ChatPerson` | — | Others: who sent it (the avatar — the photo, or first + last name initials without `src` — and, when `showName`, the name above the bubble). |
 | `showName` | `boolean` | `false` | Show the author's name above the bubble (Figma Name; group chats). |
 | `continued` | `boolean` | `false` | Hide the avatar but keep its space (follow-up messages in a run). |
 | `time` | `ReactNode` | — | Business: inside the bubble (Caption/Regular). Social: under the bubble. |
@@ -81,12 +81,12 @@ Figma Chat-Control (6182:56819): Surface bar, padding 8, gap 8. Actions are flat
 | `quickAction` | `{ icon: IconName \| ReactElement; label: string; onClick?: () => void }` | — | Figma Trailing-Actions when the field is empty (a 👍 "Send a like" by default). While typing it becomes Send. `icon`: an icon name or an element. |
 | `device` | `"mobile" \| "desktop"` | `"mobile"` |  |
 | `disabled` | `boolean` | `false` |  |
-| `replyTo` | `ChatReplyTarget` | — | Replying to a message: a "Replying to …" bar above the field (× or Escape cancels). Attach it to what you send. |
+| `replyTo` | `ChatReplyTarget` | — | Replying to a message: a "Replying to …" bar above the field (× or Escape cancels). Attach it to what you send. Setting it (or switching to another message) moves focus into the field, so Reply leaves the caret ready to type; a composer that mounts with a reply already set does not take focus. |
 | `onCancelReply` | `() => void` | — |  |
 | `className` | `string` | — |  |
 
 ### ChatThread
-Opens at the latest message and stays pinned to the bottom when new messages arrive — unless the reader has scrolled up (more than 48px from the bottom), in which case their position is kept.
+Opens at the latest message and stays pinned to the bottom when new messages arrive — unless the reader has scrolled up (more than 48px from the bottom), in which case their position is kept. It pins again whenever the messages change size after the first layout (a ResizeObserver on the thread and its messages: web fonts settling, photos decoding, a reaction row appearing) and once `document.fonts.ready` resolves, so a thread never opens a few pixels above its last message.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -104,7 +104,7 @@ Figma Chat/Conversation-List/List-Item (7522:371057 · content 6331:34480), comp
 | `group` | `ChatPerson[]` | — | A group conversation shows two overlapping avatars (Figma Chat/Avatar-Group). |
 | `preview` | `ReactNode` | — | Last message (State=Text). Ignored when `call` is set. |
 | `call` | `"missed-audio" \| "missed-video" \| "incoming" \| "outgoing" \| "ongoing"` | — | Last activity was a call (State=Audio Missed Call · Video Missed Call · Audio In/Out-Call · Ongoing-Call). |
-| `callLabel` | `ReactNode` | — | Override the call label (the locale's "Missed Call", "Audio Call", "Ongoing Call…"). |
+| `callLabel` | `ReactNode` | — | Override the call label (the locale's "Missed call", "Audio call", "Ongoing call…"). |
 | `time` (required) | `ReactNode` | — |  |
 | `unread` | `boolean` | `false` |  |
 | `online` | `boolean` | `false` |  |
@@ -163,7 +163,7 @@ Figma Chat/Bubble/Text-You · Text-Others: padding 12 (+4 text inset), Body/Base
 | `children` (required) | `ReactNode` | — |  |
 
 ### ChatFile
-Figma Chat/Bubble/File (6182:57708): 220 wide, padding 12; a Small Dock-Icon by type (Doc blue · PDF red · Sheet green Solid, Others Neutral Subtle) + a 32px text column: name (Body/Base/Bold) and size (Body/Small/Regular). In a Business message the card is Bubble-Chat-Others-Business (radius 16) and the time sits beside the size.
+Figma Chat/Bubble/File (6182:57708): 220 wide, padding 12; a Small Dock-Icon by type (Doc blue · PDF red · Sheet green Solid, Others Neutral Subtle) + a 32px text column: name (Body/Base/Bold) and size (Body/Small/Regular). In a Business message the card is Bubble-Chat-Others-Business (radius 16) and the time sits beside the size. In the mobile (and Popular) type scale the text column hugs its 24 + 20 lines (min Image-Size/Small) instead of Figma's fixed 32px box, so they keep the 12px inset.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -175,7 +175,7 @@ Figma Chat/Bubble/File (6182:57708): 220 wide, padding 12; a Small Dock-Icon by 
 | `onOpen` | `() => void` | — |  |
 
 ### ChatCall
-Figma Chat/Bubble/Call (6349:59813): 220 wide, padding 8; a 40px row (padding 4, gap 8) of a Small Dock-Icon with the solid call glyph (Red Solid only for an incoming missed call, else Neutral Subtle) + title/duration, then a full-width Small action: Social = Button/Overlay Inverse; Business = Button/Flat Primary, on missed calls only (the card is Bubble-Chat-Others-Business, radius 16, and the time sits beside the duration). Never a Secondary button.
+Figma Chat/Bubble/Call (6349:59813): 220 wide, padding 8; a 40px row (padding 4, gap 8) of a Small Dock-Icon with the solid call glyph (Red Solid only for an incoming missed call, else Neutral Subtle) + title/duration, then a full-width Small action: Social = Button/Overlay Inverse; Business = Button/Flat Primary, on missed calls only (the card is Bubble-Chat-Others-Business, radius 16, and the time sits beside the duration). Never a Secondary button. Without an action (a ringing call, an answered Business call) the text column hugs its lines (min Image-Size/Small 32) instead of Figma's fixed 32px box, so the text keeps the 12px a text bubble keeps below its last line (Padding/XSmall 8 + the row's Padding/2XSmall 4) in every typography mode. With an action the 32px box stays in Figma's 20/16 scale and hugs in the mobile (and Popular) type scale, so the lines never spill toward the action.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -183,7 +183,7 @@ Figma Chat/Bubble/Call (6349:59813): 220 wide, padding 8; a 40px row (padding 4,
 | `type` | `"audio" \| "video"` | `"audio"` |  |
 | `state` | `"in-call" \| "in-missed" \| "out-call" \| "out-missed"` | `"in-call"` |  |
 | `detail` | `ReactNode` | — |  |
-| `actionLabel` | `string` | — | The action's text (the locale's Call back / Call Again / Send Voice by default). |
+| `actionLabel` | `string` | — | The action's text (the locale's Call back / Call again / Send voice message by default). |
 | `onAction` | `() => void` | — |  |
 
 ### ChatPhotos
@@ -242,7 +242,7 @@ Figma Chat/Avatar-Group (6340:46191): two overlapping photo avatars on the diago
 Object shapes the props above refer to.
 
 ```ts
-type AvatarTheme = "photo" | "accent" | "blue" | "brown" | "crimson" | "cyan" | "green" | "indigo" | "neutral" | "orange" | "pink" | "plum" | "purple" | "red" | "teal" | "violet" | "yellow"
+type AvatarTheme = "photo" | "accent" | "blue" | "brown" | "crimson" | "cyan" | "green" | "indigo" | "neutral" | "orange" | "pink" | "plum" | "purple" | "red" | "teal" | "violet" | "yellow" | "sky" | "mint" | "bronze" | "golden"
 type ChatFileKind = "doc" | "pdf" | "sheet" | "other"
 interface ChatHoldAction { id: string; label: string; icon: IconName | ReactElement; destructive?: boolean; }
 interface ChatPerson { name: string; src?: string; theme?: AvatarTheme }
@@ -267,12 +267,12 @@ interface ChatReplyTarget { id: string; author: string; fromYou?: boolean; kind:
 
 ## ✅ Do
 - Show the avatar once per run of messages (on the last one) and the name only in groups.
-- Pass `author` for every message from others (harness: chat/others-need-author).
+- Pass `author` for every message from others (harness: chat/others-need-author); for people without a photo pass `author={{ name }}`: message avatars show first + last name initials ('Nguyen Van Bao' → 'NB'), like the conversation list.
 - Match the device: in a phone use the Mobile pieces (ChatThread/ChatComposer device="mobile", hold to react, TopNavigation header); in a desktop window use device="desktop" (516px text, 400px photos, 40px Chat-Control, a Button/Icon-Flat thread header) where the hold layer is off and the Hover toolbar + right-click / Shift+F10 More menu take over (audit: device).
 - Put status ("Seen") under your last message only.
 - Use ChatFile for attachments so the file type colour and size are consistent.
 - Put Business conversations on Canvas/Default so the near-white Others bubble reads; Social threads sit on Surface.
-- Let ChatThread keep the latest message in view: it opens at the bottom and follows new messages unless the reader scrolled up.
+- Let ChatThread keep itself pinned to the latest message: it opens at the bottom and follows new messages, also after web fonts and photos settle, until the reader scrolls up. Don't add scroll-to-bottom effects or timers around it.
 - Keep a message that failed to send in the thread with failed + onRetry (Not delivered · Retry); Retry shows Sending… then the normal status.
 - Use call states in the conversation list (missed calls in Negative, ongoing in Positive) and a Bold title only for unread conversations.
 - On mobile, give every message hold-to-react: holdActions (chatHoldActions.others / .you / .call) and onReact; mark Delete destructive (harness: chat/hold-delete-destructive).
@@ -281,9 +281,11 @@ interface ChatReplyTarget { id: string; author: string; fromYou?: boolean; kind:
 - Use ChatAvatarGroup for group conversations: Medium (40px, 28px avatars) in lists, Small (32px, 20px avatars) in compact rows.
 - Use one action list for both inputs: the same holdActions drive the mobile hold menu and the desktop hover toolbar (its More menu).
 - Pick hold/hover actions with chatHoldActionsFor(kind, side): text & photos by side, files get Reply · Forward · Pin · Delete (Figma Focused/File), calls Call back · (Report) · Delete.
-- Reply: the Reply action sets the composer's replyTo (“Replying to …” bar, × / Escape cancel via onCancelReply — harness: chat/reply-cancellable); attach it to the sent message as replyTo and give every message an id so the quote can jump back. The quote previews the original by kind — text (2 lines), photo(s) with a thumbnail, file, call, voice, or “Message unavailable”.
+- Reply: the Reply action sets the composer's replyTo (“Replying to …” bar, × / Escape cancel via onCancelReply — harness: chat/reply-cancellable); attach it to the sent message as replyTo and give every message an id so the quote can jump back. The quote previews the original by kind — text (2 lines), photo(s) with a thumbnail, file, call, voice, or “Message unavailable”. The composer moves focus into its field when a reply is set or switched (not on mount), so apps add no focus code of their own.
 - Keep the Reaction-Bar "+": let it open the built-in emoji panel, or pass onMore only when you ship a fuller picker; never wire it to a placeholder.
 - Keep every interaction live wherever Chat is shown: each message can be held (mobile) / hovered (desktop) for its Figma action set and reactions, Reply fills the composer and the sent quote jumps back, cards open, calls call back, the composer's actions and send work — never a no-op handler (harness: chat/no-locked-interaction; platform examples use useChatDemo).
+- Make deleting a message undoable: remove it at once and show a Toast with Undo (title 'Message deleted'); don't ask first. Move focus to the next message, and on Undo back to the restored one. Platform examples get this from useChatDemo().
+- ChatFile and ChatCall keep Figma's 32px text box in the 20/16 (Dashboard) scale and hug their lines in the mobile (and Popular) type scale. Don't override their heights.
 - Pass `by` for every reaction so pressing the pill shows who reacted; the "You" row removes your own reaction (harness: chat/reactions-name-people).
 
 ## ❌ Don't
@@ -293,7 +295,7 @@ interface ChatReplyTarget { id: string; author: string; fromYou?: boolean; kind:
 - Don't pin the thread to the bottom with justify-content:flex-end — overflowing messages become unreachable; ChatThread uses margin-top:auto on its first child (harness: layout/scroll-anchor-flex-end).
 - Don't silently drop a message that failed to send.
 - Don't hide message actions behind a hover-only toolbar on mobile; a long press opens the reactions and menu, like the platform does.
-- Don't give the call card a Secondary button: Figma Chat/Bubble/Call uses Button/Overlay Inverse (Social: Call back · Call Back · Call Again) and Button/Flat Primary on missed calls only (Business: Call Back · Send Voice).
+- Don't give the call card a Secondary button: Figma Chat/Bubble/Call uses Button/Overlay Inverse (Social: Call back · Call again) and Button/Flat Primary on missed calls only (Business: Call back · Send voice message).
 
 ## Accessibility
 - The thread is role=log with aria-live=polite, so new messages are announced.

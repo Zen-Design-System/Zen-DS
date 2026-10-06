@@ -23,7 +23,11 @@ export interface TableColumn<T> {
   header: ReactNode;
   /** Figma Align: numbers, amounts and actions align right. */
   align?: TableAlign;
-  /** CSS width, e.g. "40%" or "120px". */
+  /**
+   * CSS width, e.g. "120px" or "40%". A fixed length is the column's fixed width, like a Figma FIXED cell: a narrow
+   * container scrolls the table sideways instead of squeezing the column and wrapping its values. A percentage stays
+   * a share of the table. Leave the main column (name, title) without a width so it fills the rest (Figma FILL).
+   */
   width?: string;
   /** Figma Type=Sort: the header becomes a sort button (chevron-selector-vertical). */
   sortable?: boolean;
@@ -82,6 +86,12 @@ export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, "chi
   onSortChange?: (sort: TableSort | null) => void;
   /** Rendered in a full-width row when `rows` is empty (e.g. an EmptyState). */
   empty?: ReactNode;
+  /**
+   * Rows that open something (a detail page, a Side Panel, a dialog): the whole row is the click target, keyboard focus
+   * reaches each row and Enter or Space opens it; buttons, links, checkboxes and fields inside the row keep their own
+   * clicks. For read-only rows — an editable table opens a row with its column's `onOpen` button instead.
+   */
+  onRowClick?: (row: T) => void;
   className?: string;
 }
 
@@ -282,7 +292,7 @@ function TableCellEditorView<T>({ editor, row, initial, align, onDone, onMove }:
  * Table/Cell/Default (Table/Cell/Size; padding Small × Medium; gap XSmall; 1px bottom Border/Neutral/Pale).
  * Cells use Table-Cell/Background Default · Hover (row hover) · Selected (checked rows).
  */
-export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowIdProp, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, "aria-describedby": ariaDescribedBy, caption, selectable = false, selectedIds = [], onSelectionChange, sort, onSortChange, empty, className, ...rest }: TableProps<T>) {
+export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowIdProp, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, "aria-describedby": ariaDescribedBy, caption, selectable = false, selectedIds = [], onSelectionChange, sort, onSortChange, empty, onRowClick, className, ...rest }: TableProps<T>) {
   const t = useZenLabels();
   const rows = rowsProp ?? data ?? [];
   // Without getRowId: each row's `id` field, else its position (one lookup table per render, not a search per row).
@@ -337,8 +347,10 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
   const toggle = (id: string) => onSelectionChange?.(selected.has(id) ? selectedIds.filter((x) => x !== id) : [...selectedIds, id]);
   const nextSort = (columnId: string): TableSort | null => sort?.columnId !== columnId ? { columnId, direction: "asc" } : sort.direction === "asc" ? { columnId, direction: "desc" } : null;
   const span = columns.length + (selectable ? 1 : 0);
+  // Figma FIXED/FILL model: once a column has a fixed width, the others fill and the table scrolls when it runs out of room.
+  const fixedColumns = columns.some((column) => fixedWidth(column.width));
   return (
-    <div {...rest} ref={setRoot} className={["zen-table", className].filter(Boolean).join(" ")}>
+    <div {...rest} ref={setRoot} className={["zen-table", className].filter(Boolean).join(" ")} data-fixed-columns={fixedColumns ? "true" : undefined}>
       {editableCols.length ? <VisuallyHidden id={hintId}>{t.editableCellHint}</VisuallyHidden> : null}
       <table className="zen-table__table" aria-label={caption ? undefined : ariaLabel} aria-labelledby={ariaLabelledBy} aria-describedby={ariaDescribedBy}>
         {/* Table titles are Heading/4. */}
@@ -364,7 +376,7 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
                 </>
               );
               return (
-                <th key={column.id} scope="col" className="zen-table__header" data-align={column.align ?? "left"} data-sorted={sorted ? "true" : undefined} aria-sort={sorted ? (sorted === "asc" ? "ascending" : "descending") : column.sortable ? "none" : undefined}>
+                <th key={column.id} scope="col" className="zen-table__header" style={fixedWidth(column.width)} data-fill={fixedColumns && !column.width ? "true" : undefined} data-align={column.align ?? "left"} data-sorted={sorted ? "true" : undefined} aria-sort={sorted ? (sorted === "asc" ? "ascending" : "descending") : column.sortable ? "none" : undefined}>
                   {column.sortable
                     ? <button type="button" className="zen-table__sort" onClick={() => onSortChange?.(nextSort(column.id))}>{label}</button>
                     : <span className="zen-table__head">{label}</span>}
@@ -379,7 +391,19 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
             const id = getRowId(row);
             const isSelected = selected.has(id);
             return (
-              <tr key={id} className="zen-table__row" data-selected={isSelected ? "true" : undefined} aria-selected={selectable ? isSelected : undefined}>
+              <tr key={id} className="zen-table__row" data-selected={isSelected ? "true" : undefined} aria-selected={selectable ? isSelected : undefined}
+                data-clickable={onRowClick ? "true" : undefined} tabIndex={onRowClick ? 0 : undefined}
+                // The row opens its item unless the click belongs to a control inside it, ends a text selection, or comes
+                // from a portal (a Menu, Popover or Dialog opened from the row bubbles through React but is not in the row).
+                onClick={onRowClick ? (event) => {
+                  if (!event.currentTarget.contains(event.target as Node) || ownsClick(event.target as Element, event.currentTarget) || window.getSelection()?.toString()) return;
+                  onRowClick(row);
+                } : undefined}
+                onKeyDown={onRowClick ? (event) => {
+                  if (event.target !== event.currentTarget || (event.key !== "Enter" && event.key !== " ")) return;
+                  event.preventDefault();
+                  onRowClick(row);
+                } : undefined}>
                 {selectable ? (
                   <td className="zen-table__cell zen-table__select">
                     <Checkbox className="zen-table__checkbox" label={<VisuallyHidden>{t.selectRow(index + 1)}</VisuallyHidden>} checked={isSelected} onCheckedChange={() => toggle(id)} />
@@ -433,6 +457,12 @@ const CELL_ACTION = "button, a[href], input, select, textarea, label, summary, [
 function ownsClick(target: Element, cell: Element) {
   const hit = target.closest(CELL_ACTION);
   return Boolean(hit && hit !== cell && cell.contains(hit));
+}
+
+/** A fixed column width (Figma FIXED cell) is also the header's min-width: auto table layout treats a <col> width only
+ *  as a hint and squeezes it in a narrow container, so dates and names would wrap instead of the table scrolling. */
+function fixedWidth(width: string | undefined) {
+  return width && !width.trim().endsWith("%") && width.trim() !== "auto" ? { minWidth: width } : undefined;
 }
 
 /** Figma Primitives/Table/Cell/Text-Cell (1603:3247): Label (Body/Base Regular or Bold, Strongest) + optional Subtext

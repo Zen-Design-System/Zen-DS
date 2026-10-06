@@ -1,0 +1,17 @@
+/* Toast examples (brief 2026-09-30). Tokens only; class prefix .px-toast-. */
+
+/* The example cards keep a card-sized measure; the width sits on the component, not on the grid row. */
+.px-toast-card { width: min(100%, 480px); }
+/* The title block takes the space left beside its button; the button hugs its label. */
+.px-toast-grow { min-width: 0; flex: 1 1 auto; }
+
+/* Phone: the app's own ToastStack floats just above the tab bar, inside the screen margin (Margin/Comfortable, 20 on a
+   phone), so its edges line up with the rows above it; the footer is its anchor. */
+.px-toast-phone-host {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  left: 0;
+  padding: 0 var(--zen-margin-comfortable, 20px) var(--zen-spacing-padding-xsmall, 8px);
+  pointer-events: none;
+}

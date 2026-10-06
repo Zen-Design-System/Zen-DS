@@ -22,8 +22,8 @@ Collect or show a quick quality judgement: stars, an emoji opinion, or an NPS sc
 | --- | --- | --- |
 | Rating | `value · onValueChange · max · size · theme · aria-label` | size xsmall 12 · small 16 · medium 20 · large 28 · xlarge 44; theme default (Yellow) · neutral · accent |
 | RatingDisplay | `value (decimals) · max · label` | filled row clipped over the Placeholder base |
-| OpinionScale | `scale 2 · 3 · 5 · value · onValueChange · labels` | Opinion item: Hover Neutral/Flat/Hover, Selected Active/Neutral/Subtle + Caption/Bold |
-| NpsScale | `scale 5 · 10 · lowLabel · highLabel` | Chip/Number-Only Small Secondary |
+| OpinionScale | `scale 2 · 3 · 5 · value · onValueChange · labels` | one row, faces share the width (Figma Fill); under ~96px per face the labels are visually hidden (still the radio names); Hover Neutral/Flat/Hover, Selected Active/Neutral/Subtle + Caption/Bold |
+| NpsScale | `scale 5 · 10 · lowLabel · highLabel` | Chip/Number-Only Small Secondary in one row: Figma width (392 / 212) or the container's; chips shrink as circles, ≥ 24px down to 264px for 0–10; end labels under the first and last chip |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/rating.json`.
@@ -58,7 +58,7 @@ Figma Rating-Display (9818:5582): a Rating=None base row with the filled row cli
 | `className` | `string` | — |  |
 
 ### OpinionScale
-Figma Rating/Opinion-Scale (1536:25762) of .Primitives/Rating/Opinion item: emoji (32) + Caption/Regular label, padding XSmall, gap 2XSmall, Corner-Radius/Base; Hover Neutral/Flat/Hover, Selected Active/Neutral/Subtle + Caption/Bold.
+Figma Rating/Opinion-Scale (1536:25762) of .Primitives/Rating/Opinion item: emoji (32) + Caption/Regular label, padding XSmall, gap 2XSmall, Corner-Radius/Base; Hover Neutral/Flat/Hover, Selected Active/Neutral/Subtle + Caption/Bold. Always one row (Figma: no wrap, items Fill): the scale fills its container and the faces share it equally. When an item gets narrower than its label needs (under 96px per face: 2 faces < 200px, 3 < 304px, 5 < 512px of scale width), the labels are visually hidden (they still name each radio) and the faces shrink, down to about 43px each for five faces in 246px, which keeps every target well above 24×24 (WCAG 2.5.8). A visible label never runs past two lines: longer custom `labels` are clamped with an ellipsis (Figma's item is 68px tall for one Caption line; two lines is the code limit), so the faces keep one height. Figma has no narrow or long-label variant; both are code-only.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -66,12 +66,12 @@ Figma Rating/Opinion-Scale (1536:25762) of .Primitives/Rating/Opinion item: emoj
 | `value` | `OpinionEmotion \| null` | — |  |
 | `onValueChange` | `(value: OpinionEmotion) => void` | — | Called with the chosen emotion. |
 | `onChange` | `(value: OpinionEmotion) => void` | — | **Deprecated:** Use onValueChange (same arguments).  |
-| `labels` | `Partial<Record<OpinionEmotion, ReactNode>>` | — | Override option labels (keep them short). |
+| `labels` | `Partial<Record<OpinionEmotion, ReactNode>>` | — | Override option labels. Keep them to one or two short words: a longer label is clamped to two lines (ellipsis), and its full text still names the radio. |
 | `aria-label` | `string` | — |  |
 | `className` | `string` | — |  |
 
 ### NpsScale
-Figma Rating/NPS-Scale (1536:26034): Chip/Number-Only Small Secondary buttons (gap 2XSmall) over two Caption/Regular end labels.
+Figma Rating/NPS-Scale (1536:26034): Chip/Number-Only Small Secondary buttons (gap 2XSmall) over two Caption/Regular end labels. One row (Figma: no wrap): the scale is as wide as Figma's (0–10: 11 × Chip/Size/Small + 10 × Gap/2XSmall, 392px) or its container, whichever is narrower. In a narrower container the chips shrink as equal circles; the gap closes only once a chip would drop under the 24×24 minimum target (WCAG 2.5.8), so 0–10 keeps 24px targets in one row down to 264px of width (318px: 25px chips with the 4px gap). The end labels sit under the first and the last chip, the high one aligned to the end. Below 264px, 11 chips cannot keep 24px targets in one row, so 0–10 falls back to two balanced rows, 0–5 over 6–10 (Gap/2XSmall both ways), at full Chip/Size/Small (6 × 32 + 5 × 4 = 212px; still ≥ 24px down to 164px). The low label moves above 0 and the high label stays under 10, so each end label sits next to its value. Code-only (Figma has no narrow variant). Two rows rather than swapping to `scale={5}`: NPS is defined on 0–10 (detractors 0–6, passives 7–8, promoters 9–10), so the component must not change the scale the app collects. 0–5 keeps 24px targets in one row down to 144px.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -103,6 +103,8 @@ type OpinionEmotion = "very-disappointed" | "😡" | "Very Disappointed" | "disa
 - Show the meaning of the current star value in words ("Great").
 - Use RatingDisplay with the review count next to it; never show an average without its sample size.
 - Follow a low score with an optional "what went wrong?" field.
+- OpinionScale: keep custom labels to one or two short words. Longer text is clamped to two lines with an ellipsis, and the full text still names the radio.
+- NpsScale: keep scale={10} for NPS: the detractor/passive/promoter split needs all 11 points. Under 264px of width it wraps into two rows (0–5 over 6–10) with the low label above 0 and the high label under 10, so don't switch to scale={5} to save space.
 
 ## ❌ Don't
 - Don't use the star input to display an average — use RatingDisplay.
@@ -114,6 +116,7 @@ type OpinionEmotion = "very-disappointed" | "😡" | "Very Disappointed" | "disa
 
 ## Content
 - NPS end labels describe the extremes ("Not likely" / "Very likely").
+- Keep OpinionScale labels short (one or two words): on narrow cards only the faces show, so the question (aria-label + visible heading) must carry the meaning.
 
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |

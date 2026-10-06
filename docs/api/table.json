@@ -115,6 +115,14 @@
           "deprecated": null
         },
         {
+          "name": "onRowClick",
+          "type": "(row: T) => void",
+          "required": false,
+          "default": null,
+          "description": "Rows that open something (a detail page, a Side Panel, a dialog): the whole row is the click target, keyboard focus\nreaches each row and Enter or Space opens it; buttons, links, checkboxes and fields inside the row keep their own\nclicks. For read-only rows — an editable table opens a row with its column's `onOpen` button instead.",
+          "deprecated": null
+        },
+        {
           "name": "className",
           "type": "string",
           "required": false,

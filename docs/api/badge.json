@@ -6,7 +6,7 @@
     {
       "name": "Badge",
       "file": "src/components/Badge/Badge.tsx",
-      "description": "",
+      "description": "Figma Badge (260:4825): Size × Theme × Background, a leading dot or icon, and an optional remove button.",
       "deprecated": null,
       "extends": "Omit<HTMLAttributes<HTMLSpanElement>, \"color\">",
       "props": [
@@ -36,7 +36,7 @@
         },
         {
           "name": "theme",
-          "type": "\"accent\" | \"neutral\" | \"yellow\" | \"orange\" | \"red\" | \"crimson\" | \"pink\" | \"plum\" | \"purple\" | \"violet\" | \"indigo\" | \"blue\" | \"cyan\" | \"teal\" | \"green\" | \"brown\" | \"inverse\" | \"on-color\"",
+          "type": "\"accent\" | \"neutral\" | \"yellow\" | \"orange\" | \"red\" | \"crimson\" | \"pink\" | \"plum\" | \"purple\" | \"violet\" | \"indigo\" | \"blue\" | \"cyan\" | \"teal\" | \"green\" | \"brown\" | \"inverse\" | \"on-color\" | \"sky\" | \"mint\" | \"bronze\" | \"golden\"",
           "required": false,
           "default": null,
           "description": "",
@@ -44,7 +44,7 @@
         },
         {
           "name": "color",
-          "type": "\"accent\" | \"neutral\" | \"yellow\" | \"orange\" | \"red\" | \"crimson\" | \"pink\" | \"plum\" | \"purple\" | \"violet\" | \"indigo\" | \"blue\" | \"cyan\" | \"teal\" | \"green\" | \"brown\" | \"inverse\" | \"on-color\"",
+          "type": "\"accent\" | \"neutral\" | \"yellow\" | \"orange\" | \"red\" | \"crimson\" | \"pink\" | \"plum\" | \"purple\" | \"violet\" | \"indigo\" | \"blue\" | \"cyan\" | \"teal\" | \"green\" | \"brown\" | \"inverse\" | \"on-color\" | \"sky\" | \"mint\" | \"bronze\" | \"golden\"",
           "required": false,
           "default": null,
           "description": "",
@@ -79,7 +79,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "",
+          "description": "Shows the remove button (icon-x-circle-solid), named \"Remove <label>\" from a text label (the locale's `removeItem`).",
           "deprecated": null
         },
         {
@@ -88,6 +88,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "removeLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Name of the remove button. Default: \"Remove\" and the badge text from the locale's labels (\"Remove Design\"); pass it\nwhen the label is not plain text (a node, an icon, a number) so the button still says what it removes.",
           "deprecated": null
         },
         {
@@ -105,7 +113,7 @@
       "file": "src/components/Badge/Badge.tsx",
       "description": "",
       "deprecated": null,
-      "extends": "Omit<BadgeProps, \"remove\" | \"onRemove\" | \"leading\">",
+      "extends": "Omit<BadgeProps, \"remove\" | \"onRemove\" | \"removeLabel\" | \"leading\">",
       "props": [
         {
           "name": "value",

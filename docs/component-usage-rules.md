@@ -38,11 +38,12 @@ Any control that chooses a filter, sort order, scope, status, owner or period is
 - Multiple choice: `selectionMode="multiple"`, `selectionCount`, `popoverMultiple`.
 - Segmented is for switching **views/sections** (grid ↔ list, Inbox ↔ Mentions), not for filtering data.
 
-## 3. Inputs: Read-only instead of Disabled
+## 3. Inputs: Read-only and Disabled
 
-- Text, Select, Date, Number, Text-Area, Autocomplete, Rich-Text and Heading inputs expose **Read-only** only. Read-only shows the committed value, drops the fill, and uses a 1px `Border/Neutral/Subtle` border with `Neutral/Strongest` text.
-- **Search** has no Disabled state either — hide or omit it instead.
-- Read-only Select and Date keep their chevron and calendar affordances but never open. Read-only Number hides its steppers.
+- **Read-only** is for a value people may read or copy but not change. It shows the committed value, drops the fill, and uses a 1px dashed `Border/Neutral/Subtle` border with `Neutral/Strongest` text. Every input has it.
+- **Disabled** (Figma `State=Disabled`, Field-Only 374:103464) exists on Text, Select, Date, Number and Text-Area, and on **Search**, which is a Field-Only instance. Use it only while something else blocks the field (a toggle, a plan, a permission, a running sync) and say why in the help text. It keeps the fill, uses `Input/Border/Disabled`, turns the label, value, placeholder and slot icons `Content/Disabled`, and locks Leading/Trailing pickers (Active=No). Number steppers are disabled; Search hides its clear button and shortcut hint.
+- Autocomplete, Rich-Text and Heading have no Disabled in Figma: use Read-only (harness: `input/no-disabled` on Autocomplete and Rich-Text).
+- Read-only and Disabled Select and Date keep their chevron and calendar affordances but never open. Read-only Number hides its steppers.
 
 ## 4. Popover items with a caption
 
@@ -116,22 +117,30 @@ This rule is about the **border of a closed container**: a stroke or inset ring 
 
 Text and icons share `Color/Content/*`. Choose the **family** first, then the **level** (Strongest · Base · Light) by role.
 
+In code, Text, Heading and Icon take the token as `tone`, spelled as its path: `Content/Support/Blue/Light` →
+`tone="support-blue-light"`, `Content/On-White-Overlay/Base` → `"on-white-overlay-base"`. Neutral drops its name
+(`strongest` · `base` · `light`), a single resting token drops `/Default` (`hyperlink`, `on-accent`). Every resting token
+has a tone; Hover, Pressed, Visited and Placeholder stay with the components that change state. Older names still work:
+`primary`/`secondary`/`tertiary`, `accent` = `accent-base` (also info, positive, negative, warning), `inverse` =
+`inverse-strongest`. An Icon without a tone keeps its parent's colour.
+
 ### Neutral families: Neutral, Inverse, On-Black-Overlay, On-White-Overlay
 The three levels map to the three text roles:
 
 | Level | Role | Use for |
 |---|---|---|
 | `…-strongest` | Primary | titles, headings, main content, values, primary icons |
-| `…-base` | Secondary | body copy, descriptions, Body/Small meta, list group headers (Body/Small/Bold kickers), secondary icons |
-| `…-light` | Tertiary | Caption text (always Light), helper text, timestamps, quiet icons |
+| `…-base` | Secondary | body copy, descriptions, Body/Small meta, secondary icons |
+| `…-light` | Tertiary | Caption text (always Light), helper text, timestamps, list group headers (Body/Small/Bold kickers), quiet icons |
 
 Titles and headings are Strongest, with one exception: a list group header is a kicker label in Body/Small/Bold and
-the Base tone, one heading level below the nearest heading above. Group labels inside a Menu, Popover, Select or
+the Light tone (user decision 2026-10-03: Light is 3.7:1 on Surface and Surface-Alt, above Apple's 3:1 for bold text;
+about 7:1 in dark mode), one heading level below the nearest heading above. Group labels inside a Menu, Popover, Select or
 Listbox are labels, not headings. Emphasise with weight; use tone to quiet secondary text, never a bigger size.
 
 ### Colour families: Accent, Info, Positive, Negative, Warning, Support/*
 - `…-strongest` and `…-base` are **regular text**: the Primary and Secondary levels, placed on the same colour's **Subtle** background (subtle Badge, Tag, Alert, callout).
-- `…-light` is a **highlight**: text or icons that must stand out, such as status icons, a success or error hint, a ± delta, or a highlighted keyword. Don't use it for body copy.
+- `…-light` is a **highlight**, used sparingly: short text or icons that must stand out, such as status icons, help or error text under a field, a condition ("Not delivered", "Expires in 5 days"), a ± delta, or a highlighted keyword. Don't use it for body copy. Only the Lights group below never takes Light for text.
 - Colour families have no Tertiary text role.
 
 ### Lights group: colours that reference Sky, Mint, Yellow or Zen
@@ -185,6 +194,8 @@ Every background belongs to one of five layers, bottom to top. Pick the token by
 3. **Other colours** are component fills (Neutral/Subtle, Support/*, Solid, states) on top of Surface or Canvas.
 4. **Container** is only for Modal/Dialog, Modal/Forms and Bottom-Sheet panels.
 5. **Popover** is the top layer: popovers, menus, tooltips, pickers, flyouts and toasts.
+
+When nothing picks the pairing, use Canvas/Default with flat Surface/Default boxes (no border, no shadow): §16.
 
 Harness (`npm run usage:check`): `layer/root-is-canvas`, `layer/canvas-is-page`, `layer/surface-flat-is-navigation`, `layer/container-is-modal`, `layer/popover-is-overlay`.
 
@@ -283,3 +294,101 @@ Harness (`npm run usage:check`):
 
 - `icon-button/tooltip` (warn) flags `tooltip={false}`; allow with `zen-allow-no-tooltip: <reason>`.
 - `button/icon-only-raw` (warn) flags a raw `<button>` whose only content is an `<Icon />` without `useIconTooltip`.
+
+## 13. Spacing between elements: one ladder, picked by the relationship
+
+User rule (2026-10-01): spacing between UI elements follows one logic everywhere, never "each place its own".
+Components own their inner padding and gap (Figma tokens); never override them. Between elements, the relationship
+picks the step, and the same relationship gets the same step on every screen:
+
+| Relationship | Stack / Grid `gap` | Token |
+| --- | --- | --- |
+| Pieces of one inline item: icon + text, a Badge beside a title, a cluster of Tags or Badges | `2xs` | Gap/2XSmall 4 |
+| A thing and its label or description (label → control, heading → supporting line, kicker → list); controls in one toolbar row (Chips, IconButtons, Search) | `xs` | Gap/XSmall 8 |
+| A group acting as one: text Buttons side by side, choices in a group | `sm` | Gap/Small 12 |
+| Blocks inside one surface (header → body → actions), stacked form fields, toolbar → table, cards in a grid | `md` | Gap/Medium 16 |
+| Columns of a layout, groups inside one surface | `lg` | Gap/Large 24 |
+| Sections of a page (Figma Master-Layout Body › Content) | `xl` | Gap/XLarge 32 |
+
+- Page and screen bodies use the margin tokens (Margin-Comfortable 24 on desktop, Margin-Compact 20 on phones) through
+  Container / AppShell; phone sections step down to `lg`.
+- A surface is a Card with `spacing` (small 16, medium 24); content inside keeps the surface's inset. A strip inside a
+  surface (toolbar, summary, footer) has `sm` block padding and the surface's horizontal inset.
+- The gap between groups is always at least one step larger than the gap inside them. Siblings are spaced by the
+  parent's gap, never by margins or px.
+- Checked by the audit's `ladder` warning (`audit.mjs --quality`, run by `npm run qa`). It reads the rendered gaps of
+  Stack, Grid and example markup and reports two things:
+  - a gap that is not one of the six steps of the current density (`3xs`, `2xl`, `3xl`, `giant`, padding tokens, px);
+  - peer groups laid out alike whose own gap is wider than the gap between them.
+  A heading or toolbar above one group is a label → content relationship and is not compared.
+
+## 14. A Table that is not a widget needs no container
+
+User rule (2026-10-01): a Table that is the page's content or a section of it (a list page, a section under its h2, a
+toolbar over a table) sits straight on the page background: no Card, Box or other container and no Surface fill.
+Only a table that is a widget (a dashboard tile with its own title and a few rows, beside other widgets) goes in a Card.
+
+User rule (2026-10-03): such a table also spans the page width, with no max width. A page whose content is (or holds a
+section that is) a non-widget Table uses `<Container maxWidth="full">`, not the default `lg` (1280 px), so the table
+fills the main area at every window width; the gutter stays. Widen the whole page's Container, not only the table
+section, so every block keeps the same left edge. Content that needs a readable width keeps its own cap (PageHeader
+description 72ch, EmptyState 320 px, toolbar Search 320 px). Widget tables, detail pages whose table sits in a Card
+beside an aside, forms (`sm`/`md`) and dashboards (`lg`) keep their width.
+
+## 15. Grouped lists read as groups
+
+User rule (2026-10-02): a screen with several groups of rows (settings, preferences, profile, account) is an inset
+grouped list, never thin kicker labels over one long run of rows on a single white surface.
+- Phone: the screen is Surface-Alt (`canvas="alt"`, TopNavigation `type="alt"`); each group is a white Surface block
+  with its kicker header above it, aligned with the row text. Kicker → block `xs`, group → group `lg`. No border or
+  shadow: white on Surface-Alt already separates them. The block never pads the rows (2026-10-06, Figma List-Item:
+  every row, Interactive=Yes or No, pads Padding/Small 12px above and below, none at the sides; a clickable row's fill
+  covers its height and hangs 12px past it sideways):
+  - each block is a `<ListBox>` (Figma Component/List-Box, 2026-10-06: one component for every device, only the tokens
+    change by mode): Corner-Radius/2XLarge 24px, body padding Card-padding-medium sideways (20px on a phone, 24px on
+    desktop) and List-Container-Vertical-Padding above and below (8px / 12px), rows Gap/3XSmall apart. The fill sits 8px
+    (phone) / 12px (desktop) from every edge, concentric with Interactive-List-Item-Radius (Large 16px on a phone, Base
+    12px on desktop); kicker `Box paddingX="lg"` on a phone (20px), `paddingX="xl"` on desktop (24px);
+  - blocks that are not List-Items (a DescriptionList, labelled Toggles) take a `<Card theme="flat">` (user rule
+    2026-10-06: ListBox is only for List-Item rows); its Card-padding-medium and 2XLarge corner match the ListBox, so
+    every group on the screen still shares one inset and one corner.
+  - on the Surface-Alt screen the ListBox stays `theme="flat"` (the default): white on Surface-Alt needs no frame.
+- Desktop: one Card per group (Heading/Subheading title) or a Heading/4 section over a bordered List.
+
+## 16. Default pairing: Canvas/Default + flat Surface/Default
+
+User rule (2026-10-06): when no rule below picks the pairing, an example sits on **Canvas/Default** and its containers
+are **Surface/Default with no border and no shadow**. Every example then shares one mood, so code copied from any of
+them looks like the same product, and an AI building a screen with no other brief starts here. Reference: Card ›
+Workspace plan (the pricing cards).
+
+- The example stage paints Canvas/Default (`.pe-card__stage` in platform.css), desktop `screen` cards included. A page
+  inside an example never paints its own white background.
+- Boxes on it: Card `theme="flat"`, MetricCard `theme="flat"`, ChartCard (flat by default), `ListBox` (flat by default), or a
+  `Box surface="surface"` without `border`. White on Canvas/Default separates the box in light and dark mode, so it
+  needs no frame.
+- What is not a box sits straight on the canvas: a Segmented and its caption, a form, a Table (§14), an EmptyState.
+
+Conditions that pick something else win over the default:
+
+| Condition | Pairing |
+| --- | --- |
+| A screen with a Sidebar (AppShell, templates) | Elevation follows the Sidebar: the default Sidebar on Canvas/Default takes Card `theme="shadow"` and ListBox `theme="shadow"`; a white Canvas/Alt with an Alt or Flat Sidebar takes bordered cards and ListBox `theme="border"` |
+| A white page: Canvas/Alt, or a phone screen (`PlatformPhone` paints Surface) | §11: a Pale border (Subtle when actionable; ListBox `theme="border"`) or `surface="alt"`; grouped lists on a Surface-Alt phone screen follow §15 (flat ListBox) |
+| A Surface box inside another Surface (a card in a card, in a ListBox, a Dialog, a SidePanel or a BottomSheet) | Same colour, so it takes the Pale border (§6; ListBox `theme="border"`), or a Surface-Alt / Pale fill |
+| A clickable card (`onClick`, choice tiles) | `theme="border"`: the Subtle stroke and its Hover/Pressed are the affordance (§6); Flat has no hover state |
+| The selected card | `selected` (2px Card/Border/Active) on whatever theme the card has |
+| An example whose subject is a Card theme or a white page | The theme it demonstrates |
+
+```tsx
+// ✅ no condition: grey canvas, white flat cards
+<Grid columns={{ mobile: 1, desktop: 3 }} gap="md">
+  <Card as="section" theme="flat" aria-labelledby={titleId}>…</Card>
+</Grid>
+// ❌ a frame or an elevation nothing asks for
+<Card theme="border">…</Card>          // on the stage: no white page, no Surface behind it
+<MetricCard theme="shadow" … />        // no Sidebar sets the screen's elevation
+```
+
+Not machine-checked yet; the brief (`docs/research/example-rebuild-brief-2026-09-30.md` §3) and
+`docs/guides/example-patterns.md` §3 repeat it for example authors.

@@ -1,0 +1,103 @@
+/* Zen Studio content slots (docs/research/studio-slots-spec-2026-10-03.md): the inspector's Slots section and Remove
+   action, the insert picker, the canvas slot outlines and the Layers slot rows. Tokens only. */
+
+/* ── Inspector: one block per slot (name · Modified · caption · add · more), its layers as compact rows ── */
+.studio-slots__slots { display: grid; min-width: 0; gap: var(--zen-spacing-gap-small, 12px); }
+.studio-slots__slot { display: grid; min-width: 0; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-slots__slot[data-flash="true"] { border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-info-subtle-default); box-shadow: 0 0 0 var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-color-background-info-subtle-default); }
+.studio-slots__slot { transition: background-color var(--zen-motion-duration-base) var(--zen-motion-ease-standard), box-shadow var(--zen-motion-duration-base) var(--zen-motion-ease-standard); }
+/* The head is one xs-button tall, so a slot with and without its add button lines up. */
+.studio-slots__head { display: flex; min-width: 0; min-height: var(--zen-button-size-xsmall, 24px); align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-slots__icon { display: inline-flex; flex: 0 0 auto; color: var(--zen-color-content-neutral-base); }
+/* Slot names are short Figma names ("Main-Contents"): the name keeps its width, the caption wraps to two lines at most. */
+.studio-slots__name { flex: 0 0 auto; color: var(--zen-color-content-neutral-strongest); white-space: nowrap; }
+.studio-slots__caption { display: -webkit-box; min-width: 0; flex: 1 1 0; overflow: hidden; color: var(--zen-color-content-neutral-base); overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.studio-slots__add { position: relative; display: flex; flex: 0 0 auto; margin-inline-start: auto; }
+/* Figma's "Modified" tag beside the slot name, and the slot's More actions trigger after the add button. */
+.studio-slots__modified { flex: 0 0 auto; }
+.studio-slots__head > .zen-button { flex: 0 0 auto; }
+.studio-slots__note { color: var(--zen-color-content-neutral-base); }
+
+/* A removable row: the row button fills, the trash button sits in a fixed trailing slot (an xs IconButton). */
+.studio-slots__item-wrap { align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-slots__item-wrap > .studio-inspector__item { width: auto; min-width: 0; flex: 1 1 auto; margin-inline-end: 0; }
+.studio-slots__item-wrap > .zen-button { flex: 0 0 auto; }
+/* Move up / down: shown while the row is hovered or holds focus (Tab still reaches them). */
+.studio-slots__moves { display: inline-flex; flex: 0 0 auto; gap: var(--zen-spacing-gap-3-xsmall, 2px); opacity: 0; transition: opacity var(--zen-motion-duration-base) var(--zen-motion-ease-standard); }
+.studio-slots__item-wrap:hover .studio-slots__moves, .studio-slots__item-wrap:focus-within .studio-slots__moves { opacity: 1; }
+/* Grouped rows (a `group` shared by rows next to each other, one pill on the canvas): a bracket on the leading edge
+   joins them, in the component hue (Support/Purple) like the nested instance icons. */
+.studio-slots__item-wrap[data-group] { position: relative; padding-inline-start: var(--zen-spacing-padding-xsmall, 8px); }
+.studio-slots__item-wrap[data-group]::before { position: absolute; top: 0; bottom: 0; left: 0; width: var(--zen-spacing-padding-2-xsmall, 4px); box-sizing: border-box; border-left: 2px solid var(--zen-color-border-support-purple-solid); content: ""; pointer-events: none; }
+.studio-slots__item-wrap[data-group="first"]::before { top: var(--zen-spacing-padding-2-xsmall, 4px); border-top: 2px solid var(--zen-color-border-support-purple-solid); border-top-left-radius: var(--zen-corner-radius-xsmall, 4px); }
+.studio-slots__item-wrap[data-group="last"]::before { bottom: var(--zen-spacing-padding-2-xsmall, 4px); border-bottom: 2px solid var(--zen-color-border-support-purple-solid); border-bottom-left-radius: var(--zen-corner-radius-xsmall, 4px); }
+/* Row drag: the dragged row dims; the row under the pointer shows the drop, a line at its edge or an outline on it. */
+.studio-slots__item-wrap[data-dragging] { opacity: 0.5; }
+.studio-slots__item-wrap[data-drop] { position: relative; }
+.studio-slots__item-wrap[data-drop]::after { position: absolute; right: 0; left: 0; content: ""; pointer-events: none; }
+.studio-slots__item-wrap[data-drop="before"]::after { top: -1px; height: 2px; border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-border-info-solid-default); }
+.studio-slots__item-wrap[data-drop="after"]::after { bottom: -1px; height: 2px; border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-border-info-solid-default); }
+.studio-slots__item-wrap[data-drop="onto"]::after { top: 0; bottom: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); box-shadow: inset 0 0 0 1px var(--zen-color-border-info-solid-default); }
+.studio-slots__item-wrap[data-item-index] > .studio-inspector__item { touch-action: none; }
+/* A read-only row (a `.map` row): why, under its name. */
+.studio-slots__item-wrap[data-reason] { flex-wrap: wrap; }
+.studio-slots__item-reason { min-width: 0; flex: 1 0 100%; padding-inline-start: calc(var(--zen-element-size-popular-small, 16px) + var(--zen-spacing-gap-xsmall, 8px)); color: var(--zen-color-content-neutral-base); }
+/* Read-only rows (text, content the source computes): the value, then why it is read-only. */
+.studio-slots__static { display: grid; min-width: 0; grid-template-columns: var(--zen-element-size-popular-small, 16px) minmax(0, 1fr); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); row-gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-block: var(--zen-spacing-padding-2-xsmall, 4px); }
+.studio-slots__static-icon { display: inline-flex; color: var(--zen-color-content-neutral-base); }
+.studio-slots__static-value { min-width: 0; overflow: hidden; color: var(--zen-color-content-neutral-strongest); text-overflow: ellipsis; white-space: nowrap; }
+.studio-slots__static-reason { grid-column: 2; min-width: 0; color: var(--zen-color-content-neutral-base); }
+.studio-slots__examples { justify-self: start; }
+
+/* ── Remove action (Design tab header, under Detach and laid out like it): full width, a caption box that keeps its
+   height (the usual caption holds its place, hidden while a reason shows over it, clamped to two lines) ── */
+.studio-slots__remove { display: grid; min-width: 0; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-slots__remove-button.zen-button { width: 100%; }
+.studio-slots__remove-caption { color: var(--zen-color-content-neutral-light); }
+.studio-slots__remove-caption-box { display: grid; min-width: 0; }
+.studio-slots__remove-caption-box > * { min-width: 0; grid-area: 1 / 1; }
+.studio-slots__remove-caption[data-hidden="true"] { visibility: hidden; }
+.studio-slots__remove-reason { display: -webkit-box; overflow: hidden; color: var(--zen-color-content-neutral-base); -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.studio-slots__nowrap { white-space: nowrap; }
+
+/* ── Insert picker: groups with a kicker title (like the text style list), the hidden items in one caption above them ── */
+.studio-slots__picker-group { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-slots__picker-kicker { padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px) 0; color: var(--zen-color-content-neutral-light); }
+/* In the popover's label (its padding), outside the option list. */
+.studio-slots__picker-note { color: var(--zen-color-content-neutral-base); }
+.studio-slots__picker-scope { display: contents; }
+
+/* ── Canvas: the selected instance's slots (dashed Border/Accent/Solid) with a name tag and a + chip at the end edge.
+   Above the selection overlay (z 10), below the frame chrome (20); only the chips take the pointer. ── */
+.studio-slots-layer { position: absolute; z-index: 11; inset: 0; overflow: clip; pointer-events: none; }
+.studio-slots__frame { position: absolute; inset: 0; }
+/* zen-allow-dashed-color: canvas chrome (a component's slot frame, Figma's dashed slot outline), not a content divider */
+.studio-slots__outline { position: absolute; top: 0; left: 0; box-sizing: border-box; outline: 1px dashed var(--zen-color-border-accent-solid-default); outline-offset: -1px; pointer-events: none; }
+/* A slot that renders nothing while empty: where its content would go, lightly filled. */
+.studio-slots__outline[data-ghost="true"] { background: var(--zen-color-background-accent-subtle-default); }
+/* Same pill as the selection's name tag, in the slot's accent: inside the outline's top-left corner; a tag longer than a
+   narrow slot runs past its right edge (as Figma's slot tag does) instead of being cut. */
+.studio-slots__tag {
+  position: absolute;
+  top: var(--zen-spacing-padding-3-xsmall, 2px);
+  left: var(--zen-spacing-padding-3-xsmall, 2px);
+  display: inline-flex;
+  max-width: max(calc(100% - 2 * var(--zen-spacing-padding-3-xsmall, 2px)), 240px);
+  padding: 0 var(--zen-spacing-padding-2-xsmall, 4px);
+  overflow: hidden;
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: var(--zen-color-background-accent-solid-pressed);
+  color: var(--zen-color-content-on-colors);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* A slot too small for its tag inside: the tag sits above it. */
+.studio-slots__tag[data-place="above"] { top: auto; bottom: calc(100% + var(--zen-spacing-padding-3-xsmall, 2px)); left: 0; max-width: max(100%, 200px); }
+/* A ghost just below its anchor (TopNavigation's empty Control-Slot): the tag goes under the strip, clear of the anchor. */
+.studio-slots__tag[data-place="below"] { top: calc(100% + var(--zen-spacing-padding-3-xsmall, 2px)); left: 0; max-width: max(100%, 200px); }
+.studio-slots__chip { position: absolute; top: 0; left: 0; display: flex; pointer-events: auto; translate: -50% -50%; }
+.studio-slots__anchor { position: absolute; top: 0; left: 0; pointer-events: none; }
+
+/* ── Layers: the slot row between a slot component and its content (dashed-frame icon, "Empty" meta) ── */
+.studio-layers__row[data-kind="slot"] { color: var(--zen-color-content-neutral-base); }
+.studio-layers__row[data-kind="slot"] .studio-layers__icon { color: var(--zen-color-content-accent-base); }

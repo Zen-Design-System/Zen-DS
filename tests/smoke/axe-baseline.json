@@ -1,7 +1,6 @@
 {
   "AiChatField": [
-    "color-contrast",
-    "color-contrast:dark"
+    "color-contrast"
   ],
   "ChatComposerReply": [
     "color-contrast"
@@ -26,16 +25,12 @@
     "color-contrast:dark"
   ],
   "InputContent": [
-    "color-contrast",
-    "color-contrast:dark"
+    "color-contrast"
   ],
   "InputHelpText": [
     "color-contrast"
   ],
   "LineChart": [
-    "color-contrast"
-  ],
-  "Link": [
     "color-contrast"
   ],
   "Metric": [

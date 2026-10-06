@@ -21,12 +21,17 @@
 .zen-dock-icon[data-size="small"] { --zen-dock-icon-size: var(--zen-image-size-small, 32px); --zen-dock-icon-glyph: var(--zen-element-size-popular-small, 16px); }
 .zen-dock-icon[data-size="large"] { --zen-dock-icon-size: var(--zen-image-size-xlarge, 56px); --zen-dock-icon-glyph: var(--zen-element-size-popular-large, 28px); }
 .zen-dock-icon[data-size="xlarge"] { --zen-dock-icon-size: var(--zen-image-size-2-xlarge, 80px); --zen-dock-icon-glyph: var(--zen-element-size-popular-2-xlarge, 44px); }
+/* Theme=Emoji has its own two sizes: Medium 40 with a Heading/1 (28) glyph, Large 48 with a Display/3 (36) glyph. */
+.zen-dock-icon[data-tone="emoji"][data-size="medium"] { --zen-dock-icon-glyph: var(--zen-typography-font-size-heading-1, 28px); }
+.zen-dock-icon[data-tone="emoji"][data-size="large"] { --zen-dock-icon-size: var(--zen-image-size-large, 48px); --zen-dock-icon-glyph: var(--zen-typography-font-size-display-3, 36px); }
 
 .zen-dock-icon[data-tone="neutral"][data-background="subtle"] { --zen-dock-icon-fill: var(--zen-color-background-neutral-subtle-default); --zen-dock-icon-content: var(--zen-color-content-neutral-base); }
 .zen-dock-icon[data-tone="accent"] { --zen-dock-icon-fill: var(--zen-color-background-accent-solid-default); --zen-dock-icon-content: var(--zen-color-content-on-accent-default); }
 .zen-dock-icon[data-tone="accent"][data-background="subtle"] { --zen-dock-icon-fill: var(--zen-color-background-accent-subtle-default); --zen-dock-icon-content: var(--zen-color-content-accent-light); }
 .zen-dock-icon[data-tone="blue"] { --zen-dock-icon-fill: var(--zen-color-background-support-blue-solid); --zen-dock-icon-content: var(--zen-color-content-on-colors); }
 .zen-dock-icon[data-tone="blue"][data-background="subtle"] { --zen-dock-icon-fill: var(--zen-color-background-support-blue-subtle); --zen-dock-icon-content: var(--zen-color-content-support-blue-light); }
+.zen-dock-icon[data-tone="bronze"] { --zen-dock-icon-fill: var(--zen-color-background-support-bronze-solid); --zen-dock-icon-content: var(--zen-color-content-on-colors); }
+.zen-dock-icon[data-tone="bronze"][data-background="subtle"] { --zen-dock-icon-fill: var(--zen-color-background-support-bronze-subtle); --zen-dock-icon-content: var(--zen-color-content-support-bronze-light); }
 .zen-dock-icon[data-tone="brown"] { --zen-dock-icon-fill: var(--zen-color-background-support-brown-solid); --zen-dock-icon-content: var(--zen-color-content-on-colors); }
 .zen-dock-icon[data-tone="brown"][data-background="subtle"] { --zen-dock-icon-fill: var(--zen-color-background-support-brown-subtle); --zen-dock-icon-content: var(--zen-color-content-support-brown-light); }
 .zen-dock-icon[data-tone="crimson"] { --zen-dock-icon-fill: var(--zen-color-background-support-crimson-solid); --zen-dock-icon-content: var(--zen-color-content-on-colors); }
@@ -39,6 +44,8 @@
 .zen-dock-icon[data-tone="green"][data-background="subtle"] { --zen-dock-icon-fill: var(--zen-color-background-support-green-subtle); --zen-dock-icon-content: var(--zen-color-content-support-green-light); }
 .zen-dock-icon[data-tone="indigo"] { --zen-dock-icon-fill: var(--zen-color-background-support-indigo-solid); --zen-dock-icon-content: var(--zen-color-content-on-colors); }
 .zen-dock-icon[data-tone="indigo"][data-background="subtle"] { --zen-dock-icon-fill: var(--zen-color-background-support-indigo-subtle); --zen-dock-icon-content: var(--zen-color-content-support-indigo-light); }
+.zen-dock-icon[data-tone="mint"] { --zen-dock-icon-fill: var(--zen-color-background-support-mint-solid); --zen-dock-icon-content: var(--zen-color-content-on-colors); }
+.zen-dock-icon[data-tone="mint"][data-background="subtle"] { --zen-dock-icon-fill: var(--zen-color-background-support-mint-subtle); --zen-dock-icon-content: var(--zen-color-content-support-mint-light); }
 .zen-dock-icon[data-tone="orange"] { --zen-dock-icon-fill: var(--zen-color-background-support-orange-solid); --zen-dock-icon-content: var(--zen-color-content-on-colors); }
 .zen-dock-icon[data-tone="orange"][data-background="subtle"] { --zen-dock-icon-fill: var(--zen-color-background-support-orange-subtle); --zen-dock-icon-content: var(--zen-color-content-support-orange-light); }
 .zen-dock-icon[data-tone="pink"] { --zen-dock-icon-fill: var(--zen-color-background-support-pink-solid); --zen-dock-icon-content: var(--zen-color-content-on-colors); }
@@ -49,6 +56,8 @@
 .zen-dock-icon[data-tone="purple"][data-background="subtle"] { --zen-dock-icon-fill: var(--zen-color-background-support-purple-subtle); --zen-dock-icon-content: var(--zen-color-content-support-purple-light); }
 .zen-dock-icon[data-tone="red"] { --zen-dock-icon-fill: var(--zen-color-background-support-red-solid); --zen-dock-icon-content: var(--zen-color-content-on-colors); }
 .zen-dock-icon[data-tone="red"][data-background="subtle"] { --zen-dock-icon-fill: var(--zen-color-background-support-red-subtle); --zen-dock-icon-content: var(--zen-color-content-support-red-light); }
+.zen-dock-icon[data-tone="sky"] { --zen-dock-icon-fill: var(--zen-color-background-support-sky-solid); --zen-dock-icon-content: var(--zen-color-content-on-colors); }
+.zen-dock-icon[data-tone="sky"][data-background="subtle"] { --zen-dock-icon-fill: var(--zen-color-background-support-sky-subtle); --zen-dock-icon-content: var(--zen-color-content-support-sky-light); }
 .zen-dock-icon[data-tone="teal"] { --zen-dock-icon-fill: var(--zen-color-background-support-teal-solid); --zen-dock-icon-content: var(--zen-color-content-on-colors); }
 .zen-dock-icon[data-tone="teal"][data-background="subtle"] { --zen-dock-icon-fill: var(--zen-color-background-support-teal-subtle); --zen-dock-icon-content: var(--zen-color-content-support-teal-light); }
 .zen-dock-icon[data-tone="violet"] { --zen-dock-icon-fill: var(--zen-color-background-support-violet-solid); --zen-dock-icon-content: var(--zen-color-content-on-colors); }

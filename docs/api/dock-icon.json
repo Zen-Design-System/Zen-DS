@@ -31,12 +31,12 @@
           "type": "\"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
           "required": false,
           "default": "\"md\"",
-          "description": "Figma Size: XSmall 24 · Small 32 · Medium 40 · Large 56 · XLarge 80 (Image-Size tokens). Short (sm, md…) or Figma (small, medium…) spelling.",
+          "description": "Figma Size: XSmall 24 · Small 32 · Medium 40 · Large 56 · XLarge 80 (Image-Size tokens); Theme=Emoji draws Medium 40 with a 28px glyph (Heading/1) and Large 48 with a 36px glyph (Display/3). Short (sm, md…) or Figma (small, medium…) spelling.",
           "deprecated": null
         },
         {
           "name": "theme",
-          "type": "\"neutral\" | \"accent\" | \"inverse\" | \"on-color\" | \"pale\" | \"surface\" | \"emoji\"",
+          "type": "DockIconTheme",
           "required": false,
           "default": "\"neutral\"",
           "description": "",
@@ -69,5 +69,7 @@
       ]
     }
   ],
-  "types": {}
+  "types": {
+    "DockIconTheme": "type DockIconTheme = (typeof dockIconThemes)[number]"
+  }
 }

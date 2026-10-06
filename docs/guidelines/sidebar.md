@@ -34,9 +34,9 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | `density` | `"medium" \| "small"` | — | Compatibility alias for the earlier component API. |
 | `collapsed` | `boolean` | `false` |  |
 | `onCollapsedChange` | `(collapsed: boolean) => void` | — | Controlled collapse callback used by the Figma Basic/Small-Density header control. Without it the control is not rendered. Ignored by `variant="workspace"`, which has no collapsed state. |
-| `brand` | `ReactNode` | — | Replaces the whole header, including the collapse control. Prefer `logo` / `productName`, which keep it. |
+| `brand` | `ReactNode` | — | Replaces the whole header, including the collapse control. Prefer `logo` / `productName`, which keep it. In the collapsed rail `logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its mark), centred, and hides the rest visually. |
 | `logo` | `ReactNode` | — | Header logo while expanded (Figma LOGO / Union). Sized to the header height (24px; 20px in Small-Density). |
-| `logoCollapsed` | `ReactNode` | — | Mark shown in the collapsed rail instead of `logo` (Figma collapsed Logo, 28px; 20px in Small-Density). |
+| `logoCollapsed` | `ReactNode` | — | Mark shown centred in the collapsed rail instead of `logo` or a custom `brand` (Figma collapsed Logo, 28px; 20px in Small-Density). |
 | `productName` | `ReactNode` | — | Small product label after the logo (Figma: the product badge beside the wordmark). |
 | `aria-label` | `string` | — | Accessible name of the navigation landmark. Default: the locale's “Main navigation” (“Workspace navigation” for the workspace variant). |
 | `sections` | `SidebarSection[]` | `[]` |  |
@@ -46,7 +46,8 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | `search` | `ReactNode` | — |  |
 | `onItemClick` | `(item: SidebarItem) => void` | — |  |
 | `className` | `string` | — |  |
-| `background` | `"default" \| "alt" \| "flat" \| "inverse"` | `"default"` |  |
+| `background` | `"default" \| "alt" \| "flat" \| "inverse"` | `"default"` | Default = Surface with a shadow (a Canvas/Default page; cards on the page take the same shadow, no border). Alt (Surface/Alt) and Flat are the only choices on a Canvas/Alt (white) page, where cards are bordered. |
+| `divider` | `boolean` | `false` | A Pale divider on the Sidebar's inner edge, the full height of the block: separates an Alt or Flat Sidebar from the page on a Canvas/Alt (white) page. Not with the default Sidebar, whose shadow already separates it. |
 | `workspaceBrand` | `ReactNode` | — |  |
 | `workspaceItems` | `SidebarItem[]` | `[]` |  |
 | `workspaceFooter` | `ReactNode` | — |  |
@@ -87,13 +88,16 @@ type SidebarSection = { label?: string; action?: ReactNode; items: SidebarItem[]
 | Escape | Close the sub-menu flyout |
 
 ## ✅ Do
+- One elevation per screen, set by the Sidebar: Canvas default (grey) + the default Sidebar (Surface + shadow) + Shadow cards with no border; Canvas alt (white) + a Surface-alt or Flat Sidebar (add divider for a full-height line inside the Sidebar) + bordered cards; Canvas flat + a Flat Sidebar + bordered cards. Never a shadowed Sidebar on a white Canvas.
 - Give destinations an href so rows are real links (open in a new tab, copy the address), and pass the current route's id as selectedId instead of remapping selected in sections.
 - Move selection with onItemClick; exactly one selected item.
 - Group items under short section titles.
 - Use counters for actionable counts; notification dots for "something new".
 - Keep labels to one or two words; icons are required on the top level so the collapsed rail still works.
 - Remember the collapsed state per user.
+- With a custom brand (workspace logo + name), pass its logo as logoCollapsed too: the collapsed rail shows that mark centred over the items, at the same rail width as a Sidebar that starts collapsed. Without it the rail keeps the brand's first element, centred, and hides the rest visually.
 - Put account, settings and help in the footer, not between destinations.
+- Write each footer action as `<button>`<Icon />`<span>`Label`</span>`</button>; the collapsed rail hides the span visually, names the button from it and adds the 1s tooltip, so no extra aria-label or Tooltip is needed.
 - Show the Workspace variant only when users belong to more than one workspace; mark exactly one workspace item selected so its Focus-Ring shows which one is active.
 - Fill a SidebarSubMenu flyout with a `<Search variant="popover">` and Master items.
 - Wire onSubMenuClose so Escape and an outside press close the flyout, and give it a subMenuLabel.
@@ -111,6 +115,7 @@ type SidebarSection = { label?: string; action?: ReactNode; items: SidebarItem[]
 
 ## Accessibility
 - aria-current=page on the selected item; collapsed items keep aria-label/title.
+- In the collapsed rail, footer buttons written as `<button>`<Icon />`<span>`Label`</span>`</button> keep their accessible name (the span is only visually hidden) and show it as the rail tooltip after 1s hover, at once on keyboard focus.
 
 ## Content
 - Nouns, one or two words.

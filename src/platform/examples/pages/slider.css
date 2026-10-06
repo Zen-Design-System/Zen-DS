@@ -1,0 +1,25 @@
+/* Slider examples (docs/research/example-rebuild-brief-2026-09-30.md). Tokens only; class prefix .px-slider-. */
+
+/* Cards in the two-column grid keep a readable width and sit in the middle of the stage. */
+.px-slider-card { width: 100%; max-width: 440px; margin-inline: auto; }
+
+/* Photo zoom: a round crop whose photo scales with the slider (--px-slider-zoom, 1–3). */
+.px-slider-crop { overflow: hidden; width: 160px; height: 160px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-pale-default); }
+.px-slider-crop > img { display: block; width: 100%; height: 100%; object-fit: cover; transform: scale(var(--px-slider-zoom, 1)); transition: transform var(--zen-motion-duration-xfast, 80ms) var(--zen-motion-ease-linear, linear); }
+@media (prefers-reduced-motion: reduce) { .px-slider-crop > img { transition: none; } }
+/* The readout keeps its width while the number changes. */
+.px-slider-value { min-width: 4ch; flex: none; font-variant-numeric: tabular-nums; text-align: end; }
+
+/* Sounds turned off: Toggle is 232px wide on its own (Figma); a setting row fills the card so the switch sits on its edge. */
+.zen-toggle.px-slider-fill { width: 100%; }
+
+/* Budget alert: the number field beside the slider is sized to three digits and a unit. */
+.px-slider-number { width: 112px; flex: none; }
+
+/* Volume on a video: a 16:9 player whose controls sit on a dark scrim along the bottom edge. The clip, the film layer
+   and the control bar's place are Box/Stack props (clip, position="absolute" + constraints); the frame, the film's fit
+   and the scrim stay here. */
+.px-slider-player { aspect-ratio: 16 / 9; background: var(--zen-color-background-inverse-solid-default, #111); }
+.px-slider-player__video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.px-slider-player__controls { background: linear-gradient(to top, var(--zen-color-background-black-overlay-default), transparent); }
+.px-slider-player__volume { max-width: 200px; }

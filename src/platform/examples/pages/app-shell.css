@@ -1,0 +1,32 @@
+/* App Shell examples: an app window of fixed height. It is a size container, so the AppShell inside fills it (100cqh),
+   its Sidebar and docked panel stick, and the navigation drawer (below 1024px) covers the window instead of the docs
+   page (layout containment holds the drawer's fixed position). */
+.px-app-shell-frame { height: clamp(560px, calc(100dvh - 120px), 760px); overflow: hidden; contain: layout; container-type: size; }
+.px-app-shell-frame__scroll { height: 100%; overflow: auto; overscroll-behavior: contain; }
+.px-app-shell-frame__scroll > .zen-app-shell { --zen-app-shell-height: 100cqh; }
+/* Full screen: the window takes the whole viewport. */
+.pe-card[data-fullscreen="true"] .pe-card__preview > .px-app-shell-frame { flex: 1 1 0; height: auto; min-height: 0; }
+
+/* A tablet-width browser window on the stage (the narrow-window example): the shell measures its own width, so it
+   switches to the drawer by itself. Static frame: Pale border; it clips the square app frame inside, so the window
+   reads as one closed shape with rounded corners. */
+.px-app-shell-window { width: min(100%, 744px); margin-inline: auto; overflow: clip; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-xlarge, 20px); }
+
+/* The page beside the Sidebar: Container keeps the page margin; under the top bar the page starts Padding/Small below
+   it and ends a page margin above the edge; without a top bar it starts a page margin from the top. */
+.px-app-shell-page { padding-block: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px); }
+.zen-app-shell:not(:has(.zen-app-shell__header)) .px-app-shell-page { padding-top: var(--zen-margin-comfortable, 24px); }
+
+/* Signed out: the window's own page, the message in its middle. */
+.px-app-shell-signed-out { height: 100%; background: var(--zen-color-background-canvas-default); }
+
+/* Brand in the Sidebar's logo slot (24px high; 20px in Small-Density): the mark fills the slot, the name sits beside it. */
+.px-app-shell-brand { display: inline-flex; height: 100%; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); white-space: nowrap; }
+.px-app-shell-brand > img { display: block; height: 100%; aspect-ratio: 1; border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }
+.px-app-shell-mark { display: block; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }
+
+/* A details card keeps a readable width, so each term stays near its value beside the Sidebar (full width on a phone). */
+.px-app-shell-details { width: min(100%, 440px); }
+
+/* An activity caption keeps "· when" and any date whole: it wraps before the dot, never after it or inside a time or date. */
+.px-app-shell-value { white-space: nowrap; }

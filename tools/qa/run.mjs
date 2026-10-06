@@ -10,6 +10,8 @@
  *                                     spacing scale, platform shell)
  *   npm run qa -- --since=90          add every UI file modified in the last 90 minutes (or --since=<ISO time>)
  *   npm run qa -- --keep-going        run the browser steps even when a static gate failed (default: skip them)
+ *   npm run qa -- --isolated          run the browser steps on a private dev server (port 5200+, no HMR, no Studio
+ *                                     drafts); used by itself when the shared server does not answer
  *   npm run qa -- --quick             fast loop while building: static gates + audit at 1512 (never counts as a pass)
  *   npm run qa -- --serial            run the steps one after another (default: tsc, contract suites and Vitest run side by side,
  *                                     and audit + dark audit + behaviour run side by side, split over ZEN_QA_SHARDS=2 processes
@@ -18,6 +20,8 @@
  *
  * ① Static     tsc · style-guard (spacing/radius/type/colour/shadow tokens) · usage-guard · guidelines (stale docs of
  *              your components are regenerated) · harness self-tests (when tools/usage-guard or tools/style-guard changed)
+ *              · Layout self-test (npm run layout:selftest, when src/components/Layout, _shared/corners.ts or scale.ts, or the
+ *              effect styles and token sources are in scope)
  *              · figma-contract suites of the components in scope · Vitest related to the edited files · tokens/styles
  *              checks (when styles changed). A static ✗ skips the browser steps unless --keep-going.
  * ② Runtime    audit --smoke --quality --density at 1512 + 390 (text styles, hierarchy, token scale, concentric
@@ -52,7 +56,11 @@ const argv = process.argv.slice(2);
 const opt = (name) => argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3);
 const flag = (name) => argv.includes(`--${name}`);
 const list = (v) => (v ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-const BASE = (opt("url") ?? "http://localhost:5173").replace(/\/$/, "");
+let BASE = (opt("url") ?? "http://localhost:5173").replace(/\/$/, "");
+// --isolated (or ZEN_QA_ISOLATED=1): the browser steps run on a private dev server (tools/qa/isolated-server.mjs) — no
+// HMR from other sessions, no Studio drafts. Also the fallback when the shared server does not answer (no --url given).
+const ISOLATED = flag("isolated") || process.env.ZEN_QA_ISOLATED === "1";
+let isolatedServer = null;
 const QUICK = flag("quick");
 const ALL = flag("all");
 const KEEP_GOING = flag("keep-going");
@@ -169,7 +177,7 @@ const pooled = async (items, limit, fn) => { const out = new Array(items.length)
 const SUITE_LIMIT = SERIAL ? 1 : Math.max(1, Number(process.env.ZEN_QA_SUITES ?? 4) || 4);
 // The pages of a runtime job are independent (reports are keyed by page@width), so a run of 6+ pages is also split in
 // ZEN_QA_SHARDS (default 2) processes per job and the part reports are merged back into the one file the gate reads.
-const mergeReports = (reps) => { const m = { ...reps[0], pages: {} }; for (const r of reps) { Object.assign(m.pages, r.pages ?? {}); for (const k of ["baselined", "current"]) if (r[k]) m[k] = { ...(m[k] ?? {}), ...r[k] }; } return m; };
+const mergeReports = (reps) => { const m = { ...reps[0], pages: {} }; for (const r of reps) { Object.assign(m.pages, r.pages ?? {}); for (const k of ["baselined", "current", "smokeStats"]) if (r[k]) m[k] = { ...(m[k] ?? {}), ...r[k] }; } return m; };
 const launchSharded = (cmd, baseArgs, pageList, finalOut, timeoutMs) => {
   const n = SERIAL ? 1 : Math.max(1, Math.min(Number(process.env.ZEN_QA_SHARDS ?? 2) || 1, Math.floor(pageList.length / 3)));
   const argsFor = (pages, out) => baseArgs.map((a) => (a.startsWith("--pages=") ? `--pages=${pages.join(",")}` : a.startsWith("--out=") ? `--out=${out}` : a));
@@ -230,6 +238,28 @@ for (const [name, script, dir] of [["Usage-guard self-test", "tools/usage-guard/
   if (!ALL && !aux.some((f) => f.startsWith(`${dir}/`))) { step("static", name, "skip", `no ${dir} edits since the last pass`); continue; }
   const r = run(process.execPath, [script]);
   step("static", name, r.code === 0 ? "pass" : "fail", "", r.code === 0 ? [] : tail(r.out, /✗/));
+}
+// Layout self-tests (npm run layout:selftest: position constraints, per-corner radius, Box effect gating): only when
+// what they read is in scope: src/components/Layout, _shared/corners.ts and scale.ts (the inset and radius token names),
+// and the generated effect styles with their token sources (a renamed or removed style must not drop a Box shadow on the
+// token fast path).
+{
+  const name = "Layout self-test (position · corners · effects)";
+  const layoutFile = (f) => f.startsWith("src/components/Layout/") || f === "src/components/_shared/corners.ts" || f === "src/components/_shared/scale.ts"
+    || f === "src/styles/style-effects.css" || /^(tokens\/source|src\/tokens)\//.test(f);
+  if (!ALL && ![...files, ...aux].some(layoutFile)) step("static", name, "skip", "no src/components/Layout, _shared/corners.ts or scale.ts, style-effects.css or token source edits since the last pass");
+  else {
+    const r = run("npm", ["run", "-s", "layout:selftest"]);
+    step("static", name, r.code === 0 ? "pass" : "fail", r.code === 0 ? "" : "npm run layout:selftest fails", r.code === 0 ? [] : tail(r.out, /./).slice(0, 20));
+  }
+}
+// Zen Studio self-tests (npm run studio:selftest: source ops, drafts, slots, arrange, items, the E2E fixtures): only when
+// Studio files are in scope (src/platform/studio, its E2E fixture, tools/studio).
+const studioInScope = ALL || [...files, ...aux].some((f) => uiKind(f) === "studio" || auxKind(f) === "studio");
+if (!studioInScope) step("static", "Studio self-tests", "skip", "no Zen Studio edits since the last pass");
+else {
+  const r = run("npm", ["run", "-s", "studio:selftest"]);
+  step("static", "Studio self-tests", r.code === 0 ? "pass" : "fail", r.code === 0 ? "" : "npm run studio:selftest fails", r.code === 0 ? [] : tail(r.out, /✗|fail/i).slice(0, 20));
 }
 // Guidelines + props docs (S5b): stale docs of components this session edited are regenerated; another session's stale
 // docs are a warning, not a failure.
@@ -319,7 +349,32 @@ await Promise.all(staticJobs);
 // Fail fast (S5e): a static ✗ already fails the run; the browser steps (minutes per page) wait for the fix.
 const staticFailed = steps.filter((s) => s.group === "static" && s.status === "fail");
 const failFast = staticFailed.length > 0 && !KEEP_GOING && P.length > 0;
-const serverUp = failFast ? false : await fetch(BASE, { signal: AbortSignal.timeout(4000) }).then((r) => r.ok).catch(() => false);
+let serverUp = failFast ? false : await fetch(BASE, { signal: AbortSignal.timeout(4000) }).then((r) => r.ok).catch(() => false);
+if (!failFast && P.length && !opt("url") && (ISOLATED || !serverUp)) {
+  const why = ISOLATED ? "--isolated" : `${BASE} does not answer`;
+  try {
+    const { startIsolatedServer } = await import(pathToFileURL(path.join(root, "tools/qa/isolated-server.mjs")).href);
+    isolatedServer = await startIsolatedServer(root);
+    BASE = isolatedServer.url;
+    serverUp = await fetch(BASE, { signal: AbortSignal.timeout(20000) }).then((r) => r.ok).catch(() => false);
+    say(`\n  Browser steps on a private dev server ${BASE} (${why}): no HMR from other sessions, no Studio drafts`);
+  } catch (error) {
+    say(`\n  Could not start the isolated dev server (${error.message}); using ${BASE}`);
+  }
+}
+// Zen Studio keeps admin edits as drafts on the dev server until someone saves them, and the server renders a drafted
+// file from its draft: the browser steps below then check that unsaved text, while the static gates read the disk.
+// List them, so a run never measures someone's unsaved edits without saying so.
+const studioDrafts = serverUp ? await (async () => {
+  try {
+    const ping = await fetch(`${BASE}/__zen-studio/ping`, { signal: AbortSignal.timeout(3000) }).then((r) => (r.ok ? r.json() : null));
+    if (!ping?.drafts || !ping.token) return [];
+    const reply = await fetch(`${BASE}/__zen-studio/drafts`, { headers: { "x-zen-studio-token": ping.token, "x-zen-studio-role": "viewer" }, signal: AbortSignal.timeout(3000) }).then((r) => (r.ok ? r.json() : null));
+    return Array.isArray(reply?.drafts) ? reply.drafts : [];
+  } catch {
+    return [];
+  }
+})() : [];
 const ERROR_KINDS = new Set(["errors", "overflow", "images", "names", "nesting", "surfaces", "edges", "sizes", "typography", "device", "outline", "playground", "smoke", "scale", "hierarchy", "density", "fit"]);
 const readAudit = (file) => { try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch { return null; } };
 const auditItems = (report) => { const errs = [], warns = []; for (const [key, entry] of Object.entries(report?.pages ?? {})) for (const [kind, items] of Object.entries(entry)) for (const item of items) (ERROR_KINDS.has(kind) ? errs : warns).push(`[${kind}] ${key}: ${item}`); return { errs, warns }; };
@@ -335,6 +390,10 @@ if (failFast) {
   step("runtime", "Dev server", "fail", `${BASE} does not answer — start it (preview_start "zen-platform", or npm run dev in Zen-DS) and re-run`);
 } else if (P.length) {
   say("\n② Runtime audit");
+  if (studioDrafts.length) {
+    const lines = studioDrafts.map((d) => `${d.file} (+${d.changedLines?.added ?? 0} −${d.changedLines?.removed ?? 0}${files.includes(d.file) ? ", a file you edited" : ""})`);
+    step("runtime", "Unsaved Zen Studio drafts", "warn", `${studioDrafts.length} file(s) on ${BASE} render from an unsaved Studio draft, not the disk: the browser checks and contact sheets show those drafts (Save or Discard them in the Studio toolbar's Unsaved list)`, lines);
+  }
   const main = path.join(runDir, "audit.json");
   const args = ["tools/platform-audit/audit.mjs", `--url=${BASE}`, `--pages=${P.join(",")}`, `--out=${main}`, "--quality"];
   if (QUICK) args.push("--viewports=1512", "--no-playground");
@@ -374,6 +433,20 @@ if (failFast) {
     }
   }
 }
+
+// Zen Studio E2E (tools/studio/e2e): drives the Studio UI on its own dev server (port 5190+, its own drafts), so it needs
+// neither 5173 nor a page. A row that worked in matrix.baseline.json and now fails is a regression (exit 1).
+if (studioInScope && !staticFailed.length) {
+  say("\n② Studio E2E");
+  const t0 = Date.now();
+  const r = run("npm", ["run", "-s", "studio:e2e", "--", ...(QUICK ? ["--only=shell,select,inspector"] : [])], 900000);
+  const summary = r.out.match(/(\d+) works · (\d+) broken/)?.[0] ?? "no summary";
+  const regressions = r.out.match(/✗ Regressions[^\n]*/)?.[0];
+  const fixed = r.out.match(/✓ Fixed since the baseline[^\n]*/)?.[0];
+  const report = r.out.match(/Report: (\S+)/)?.[1];
+  step("runtime", "Studio E2E (feature matrix)", r.code === 0 ? (fixed ? "warn" : "pass") : "fail",
+    `${summary}${report ? ` · ${report}` : ""} · ${Math.round((Date.now() - t0) / 1000)}s`, [regressions, fixed, r.code === 2 ? tail(r.out, /error|Error/).slice(0, 6).join(" | ") : ""].filter(Boolean));
+} else if (studioInScope) step("runtime", "Studio E2E (feature matrix)", "skip", "skipped because a static gate failed");
 
 /* ── ④ example coverage ─────────────────────────────────────────────────────────────────────────────────────────── */
 say("\n④ Example coverage");
@@ -484,5 +557,6 @@ if (warned.length) say(TRIAGE);
 process.exitCode = couldNotRun ? 2 : ok ? 0 : 1;
 } finally {
   clearRunning();
+  if (isolatedServer) await isolatedServer.close().catch(() => undefined);
 }
 process.exit(process.exitCode ?? 0);

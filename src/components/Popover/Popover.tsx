@@ -216,7 +216,9 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
     const target = root.querySelector<HTMLElement>(".zen-popover__search input")
       ?? root.querySelector<HTMLElement>(".zen-popover__item.is-selected:not(:disabled)")
       ?? root.querySelector<HTMLElement>(".zen-popover__item:not(:disabled)");
-    target?.focus();
+    // preventScroll: a portalled surface may not be placed yet, and focusing it scrolled the page away from its trigger
+    // (Sidebar › Switch workspace jumped 3250 → 602 and opened the list off-screen).
+    target?.focus({ preventScroll: true });
   }, [open, autoFocus]);
   // Light dismiss: a pointer-down outside the surface (and its trigger) closes it.
   useEffect(() => {
@@ -227,11 +229,15 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
       onOpenChange(false);
     };
     // Escape while focus is still on the trigger (the usual case after a mouse click) also closes it;
-    // Escape inside the surface is handled by handleKeyDown, which also restores focus.
+    // Escape inside the surface is handled by handleKeyDown, which also restores focus. Either way the key is used up
+    // (preventDefault + stopPropagation), so a Dialog or Side Panel around the trigger stays open.
     const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key !== "Escape" || event.defaultPrevented) return;
       const active = document.activeElement;
-      if (active && anchorRef?.current?.contains(active)) onOpenChange(false);
+      if (!active || !anchorRef?.current?.contains(active)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      onOpenChange(false);
     };
     document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("keydown", handleKeyDown);
@@ -257,7 +263,10 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
     onKeyDown?.(event);
     if (event.defaultPrevented) return;
     if (event.key === "Escape" && onOpenChange) {
+      // Closing itself uses the key up: preventDefault for document / window listeners (useModal) and stopPropagation for
+      // React and document ones (a DatePicker, Side Panel or Dialog around it), so no parent overlay closes as well.
       event.preventDefault();
+      event.stopPropagation();
       onOpenChange(false);
       // Return focus to the trigger (the anchor itself or its first focusable descendant).
       const anchor = anchorRef?.current;

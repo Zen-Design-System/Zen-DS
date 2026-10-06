@@ -166,8 +166,40 @@ const insideProp = (src, start, prop) => {
   for (let i = from + prop.length + 1; i < start; i++) { if (src[i] === "{") depth += 1; else if (src[i] === "}") depth -= 1; }
   return depth > 0;
 };
+/** The element at `start` sits inside an open <Card> (a widget): more `<Card` openings than `</Card>` closings before it
+ *  (a Card always has children, so it is never self-closing). */
+const insideCard = (src, start) => {
+  const before = src.slice(0, start);
+  return (before.match(/<Card[\s>]/g) ?? []).length > (before.match(/<\/Card>/g) ?? []).length;
+};
 /** A bare boolean or `{true}`: the state is pinned for the whole example. */
 const pinnedOn = (own, name) => own.get(name)?.bare === true || /^\s*true\s*$/.test(own.get(name)?.expr ?? "");
+/* Layout position, Box effects and per-corner radius (Studio Phase 2 spec 2026-10-03 §3.6; position.ts, effects.ts,
+   _shared/corners.ts). The rules read the element's own props only (topAttrs), so props of nested elements never count. */
+/** A prop's value when the source fixes it: "lg" for prop="lg" or prop={"lg"}, "true" for a bare prop, a number as text;
+ *  null for any other expression (a variable may hold anything); undefined when the prop is absent. */
+const fixedProp = (own, name) => {
+  const a = own.get(name); if (!a) return undefined;
+  if (a.bare) return "true";
+  if (a.literal !== undefined) return a.literal;
+  const e = a.expr.trim(), q = e.match(/^(["'`])([^"'`$]*)\1$/);
+  return q ? q[2] : /^-?\d+(\.\d+)?$/.test(e) ? e : null;
+};
+/** Figma "Ignore auto layout" (layoutPositioning ABSOLUTE) written in the source; a variable is not judged. */
+const isAbsolute = (own) => fixedProp(own, "position") === "absolute";
+const INSET_PROPS = ["insetTop", "insetRight", "insetBottom", "insetLeft"];
+const CORNER_PROPS = ["radiusTopLeft", "radiusTopRight", "radiusBottomRight", "radiusBottomLeft"];
+/** The edge each inset offsets and the constraints that read it (position.css). */
+const INSET_READ = {
+  insetLeft: { axis: "constraintX", fallback: "left", values: ["left", "right", "left-right", "center"], reads: ["left", "left-right"], fix: '"left" or "left-right"' },
+  insetRight: { axis: "constraintX", fallback: "left", values: ["left", "right", "left-right", "center"], reads: ["right", "left-right"], fix: '"right" or "left-right"' },
+  insetTop: { axis: "constraintY", fallback: "top", values: ["top", "bottom", "top-bottom", "center"], reads: ["top", "top-bottom"], fix: '"top" or "top-bottom"' },
+  insetBottom: { axis: "constraintY", fallback: "top", values: ["top", "bottom", "top-bottom", "center"], reads: ["bottom", "top-bottom"], fix: '"bottom" or "top-bottom"' },
+};
+/** The Figma drop-shadow effect styles Box takes (effects.ts boxEffectStyles); Effect/Overlay is the background blur. */
+const DROP_SHADOW_STYLE = /^Shadow\/(Bottom|Top)\/Level-[1-4]$/;
+/** Parents that are the frame of an absolute layer: position.css makes Stack, Grid and Box relative; Card already is. */
+const POSITION_FRAMES = new Set(["Stack", "Grid", "Box", "Card"]);
 
 /* ── rule registry ─────────────────────────────────────────────────── */
 // Each rule: id, components (JSX tag names), severity, allow (suppression token), guideline, summary, check(ctx) → message | null.
@@ -244,6 +276,18 @@ const ICON_NAMES = (() => {
   }
   return null;
 })();
+/** Every Flag name (the Figma Flag set's `Name` values, src/components/Flag/flagNames.ts or its build). */
+const FLAG_NAMES = (() => {
+  for (const [dir, ext] of [["src/components/Flag", "ts"], ["dist/components/Flag", "js"]]) {
+    try {
+      const src = fs.readFileSync(path.join(root, dir, `flagNames.${ext}`), "utf8");
+      return new Set(JSON.parse(src.slice(src.indexOf("["), src.indexOf("]") + 1)));
+    } catch { /* next */ }
+  }
+  return null;
+})();
+/** Emoji flags (two regional-indicator letters, e.g. 🇻🇳). */
+const EMOJI_FLAG = /[\u{1F1E6}-\u{1F1FF}]{2}/u;
 /** Words from other icon sets → Zen's (icon-close-line → icon-x-…, icon-gear-line → icon-settings-…). */
 const ICON_SYNONYMS = { close: ["x"], cross: ["x"], dismiss: ["x"], magnifier: ["search"], find: ["search"], bin: ["trash"], garbage: ["trash"], gear: ["settings"], cog: ["settings"], more: ["dots"], ellipsis: ["dots"], kebab: ["dots"], pencil: ["edit"], add: ["plus"], person: ["user"], profile: ["user"], account: ["user"], notification: ["bell"], back: ["chevron", "left"], forward: ["chevron", "right"], email: ["mail"], hamburger: ["menu"] };
 /** The closest icon names to a wrong one: most shared words, then shortest edit distance (icon-search-line → icon-search-medium-line). */
@@ -393,6 +437,8 @@ const lightsFamilies = (() => {
   } catch { return null; }
 })() ?? ["accent", "warning", "support-yellow"];
 const LIGHTS_FAMILY = lightsFamilies.join("|");
+// A Text/Heading/Icon `tone` written as a literal (tone="x" or tone={"x"}).
+const toneOf = (attrs) => value(attrs, "tone")?.replace(/^\{?\s*["'`]|["'`]\s*\}?$/g, "");
 const NEUTRAL_FAMILY = "neutral|inverse|on-black-overlay|on-white-overlay";
 const COLOUR_FAMILY = "accent|info|positive|negative|warning|support-[a-z]+";
 // Role words come from the element the rule styles (the last compound of each selector in a list).
@@ -483,9 +529,11 @@ export const rules = [
     summary: "An icon-only action is an IconButton (or uses useIconTooltip), so it gets the Zen tokens, focus ring and the 1s name tooltip — not a hand-built <button> with just an <Icon>.",
     // Icon-only = nothing but <Icon … /> inside (any other tag or {expression} may carry text, so it is not flagged).
     check: ({ attrs, children }) => /<Icon\b/.test(children) && !children.replace(/<Icon\b[^>]*\/>/g, "").trim() && !/useIconTooltip|\.bind\(/.test(attrs) && "is a raw icon-only <button> — use <IconButton aria-label=… icon={…} /> (tooltip built in) or spread useIconTooltip(label).bind() onto it." },
-  { id: "input/no-disabled", components: [...INPUTS, "Search"], severity: "error", allow: "disabled-input", guideline: "docs/guidelines/input.md",
-    summary: "Inputs (Search included) never use Disabled; fields use Read-only.",
-    check: ({ attrs }) => has(attrs, "disabled") && !/disabled=\{false\}/.test(attrs) && "is disabled — use readOnly." },
+  // Figma has State=Disabled on Text, Select, Date, Number and Text-Area (Field-Only 374:103464), and Search is a Field-Only
+  // instance; Autocomplete (1241:5616, View-Only) and Rich-Text (6385:17480, no states) have no Disabled.
+  { id: "input/no-disabled", components: ["AutocompleteField", "RichTextField"], severity: "error", allow: "disabled-input", guideline: "docs/guidelines/input.md",
+    summary: "Autocomplete and Rich-Text fields have no Disabled state in Figma; use Read-only.",
+    check: ({ attrs }) => has(attrs, "disabled") && !/disabled=\{false\}/.test(attrs) && "is disabled — Figma has no Disabled Autocomplete or Rich-Text field; use readOnly." },
   { id: "input/needs-label", components: INPUTS, severity: "error", allow: "unlabelled-input", guideline: "docs/guidelines/input.md",
     summary: "Every field has a visible label (or an aria-label when the context labels it).",
     check: ({ attrs }) => !present(attrs, "label") && !named(attrs) && "has neither label nor aria-label." },
@@ -510,6 +558,17 @@ export const rules = [
   { id: "avatar/needs-alt", components: ["Avatar"], severity: "error", allow: "avatar-alt", guideline: "docs/guidelines/avatar.md",
     summary: "Avatars need alt (the person's name; alt=\"\" only when the name is shown next to it).",
     check: ({ attrs }) => !present(attrs, "alt") && "has no alt." },
+  // Figma draws white initials on these Solid fills (kept as drawn), but they measure below 3:1: green 2.93, teal 2.70,
+  // orange 2.73, cyan 2.60 (yellow has its own dark text). A photo covers the fill, so only initials avatars are flagged.
+  { id: "avatar/solid-initials-contrast", components: ["Avatar"], severity: "warn", allow: "avatar-contrast", guideline: "docs/guidelines/avatar.md",
+    summary: "Initials on a Solid green, teal, orange or cyan Avatar fall below 3:1 contrast; use background=\"subtle\" or another theme (photos are fine).",
+    check: ({ attrs }) => {
+      const theme = literal(attrs, "theme");
+      if (!/^(green|teal|orange|cyan)$/.test(theme ?? "") || present(attrs, "src")) return null;
+      const background = value(attrs, "background");
+      if (background !== undefined && background !== "solid" && background !== "\"solid\"") return null;
+      return `shows white initials on Solid ${theme} (below 3:1 contrast) — use background="subtle" or a theme such as indigo, violet or purple.`;
+    } },
   { id: "tooltip/focusable-trigger", components: ["Tooltip"], severity: "error", allow: "tooltip-trigger", guideline: "docs/guidelines/tooltip.md",
     summary: "Tooltips wrap a focusable element so keyboard users can reach them.",
     check: ({ children }) => { const open = children.match(/<([A-Za-z]+)\b([^>]*)>/); const first = open?.[1]; const focusable = /tabIndex=(\{0\}|"0")|role="button"/.test(open?.[2] ?? ""); return first && !focusable && !FOCUSABLE_TRIGGERS.includes(first) && `wraps <${first}>, which is not focusable — wrap a Button/IconButton/link (or give it tabIndex={0} and a name).`; } },
@@ -537,6 +596,107 @@ export const rules = [
   { id: "box/border-matches-action", components: ["Box"], severity: "warn", allow: "box-border", guideline: "docs/guidelines/layout.md",
     summary: "A Box border follows the border rule: subtle only when the box is actionable (onClick, href, role=button), pale when it is static.",
     check: ({ attrs }) => { const border = literal(attrs, "border"); if (!border || opaque(attrs)) return null; const actionable = has(attrs, "onClick") || has(attrs, "href") || literal(attrs, "role") === "button"; if (border === "subtle" && !actionable) return 'is static but uses border="subtle" — static boxes use border="pale" (clickable tiles: Card).'; if (border === "pale" && actionable) return 'is clickable but uses border="pale" — actionable boxes use border="subtle", or use Card.'; return null; } },
+  // Position and constraints (Figma "Ignore auto layout" + Constraints; position.ts). Only fixed values are judged.
+  { id: "layout/constraint-needs-absolute", components: ["Stack", "Grid", "Box"], severity: "warn", allow: "constraint-in-flow", guideline: "docs/guidelines/layout.md",
+    summary: "constraintX, constraintY and insetTop/Right/Bottom/Left are read only with position=\"absolute\" (Figma: constraints apply once a layer ignores auto layout).",
+    check: ({ attrs }) => {
+      const own = topAttrs(attrs), set = ["constraintX", "constraintY", ...INSET_PROPS].filter((name) => own.has(name));
+      if (!set.length) return null;
+      const position = fixedProp(own, "position");
+      if (position === null || (position === undefined && opaque(attrs)) || position === "absolute") return null;
+      return `Constraints do nothing until the layer ignores auto layout. ${set.join(", ")} ${set.length === 1 ? "is" : "are"} read only with position="absolute"; add it, or drop ${set.length === 1 ? "the prop" : "them"}.`;
+    } },
+  { id: "layout/inset-not-read", components: ["Stack", "Grid", "Box"], severity: "warn", allow: "inset-not-read", guideline: "docs/guidelines/layout.md",
+    summary: "An inset offsets only an edge its constraint pins: insetLeft with left or left-right, insetRight with right or left-right, insetTop with top or top-bottom, insetBottom with bottom or top-bottom (center reads none).",
+    check: ({ attrs }) => {
+      const own = topAttrs(attrs); if (!isAbsolute(own)) return null;
+      const notes = [];
+      for (const inset of INSET_PROPS) {
+        if (!own.has(inset)) continue;
+        const { axis, fallback, values, reads, fix } = INSET_READ[inset];
+        const v = fixedProp(own, axis); if (v === null) continue;
+        const pinned = values.includes(v) ? v : fallback;
+        if (!reads.includes(pinned)) notes.push(`${inset} is ignored while ${pinned === "center" ? "centred" : `pinned ${pinned}`}; set ${axis}=${fix}.`);
+      }
+      return notes.join(" ") || null;
+    } },
+  { id: "layout/absolute-fill", components: ["Stack", "Grid", "Box"], severity: "error", allow: "absolute-fill", guideline: "docs/guidelines/layout.md",
+    summary: "An absolute layer has no Fill: stretch it by pinning both edges (constraintX=\"left-right\", constraintY=\"top-bottom\").",
+    check: ({ attrs }) => {
+      const own = topAttrs(attrs); if (!isAbsolute(own)) return null;
+      const fill = ["width", "height"].filter((name) => fixedProp(own, name) === "fill");
+      return fill.length > 0 && `Fill doesn't apply to an absolute layer; pin left-right / top-bottom (${fill.map((name) => `${name}="fill" → ${name === "width" ? 'constraintX="left-right"' : 'constraintY="top-bottom"'}`).join(", ")}).`;
+    } },
+  { id: "layout/stretch-ignores-size", components: ["Stack", "Grid", "Box"], severity: "warn", allow: "stretch-size", guideline: "docs/guidelines/layout.md",
+    summary: "A layer pinned left and right takes its width from the two insets, and one pinned top and bottom its height: width or height is ignored there.",
+    check: ({ attrs }) => {
+      const own = topAttrs(attrs); if (!isAbsolute(own)) return null;
+      const notes = [];
+      // width="fill" is layout/absolute-fill's finding.
+      if (fixedProp(own, "constraintX") === "left-right" && own.has("width") && fixedProp(own, "width") !== "fill") notes.push("Width is ignored while pinned left and right.");
+      if (fixedProp(own, "constraintY") === "top-bottom" && own.has("height") && fixedProp(own, "height") !== "fill") notes.push("Height is ignored while pinned top and bottom.");
+      return notes.join(" ") || null;
+    } },
+  { id: "layout/absolute-align-self", components: ["Stack", "Grid", "Box"], severity: "warn", allow: "absolute-align", guideline: "docs/guidelines/layout.md",
+    summary: "alignSelf (Figma: align in parent) places an in-flow child; an absolute layer is placed by its constraints.",
+    check: ({ attrs }) => { const own = topAttrs(attrs); return isAbsolute(own) && own.has("alignSelf") && "Align in parent does nothing on an absolute layer. Place it with constraintX/constraintY."; } },
+  { id: "layout/absolute-parent", components: ["Stack", "Grid", "Box"], severity: "warn", allow: "absolute-parent", guideline: "docs/guidelines/layout.md",
+    summary: "An absolute layer sits right inside a Stack, Grid, Box or Card, the frame its constraints measure from.",
+    check: ({ attrs, parent }) => {
+      if (!isAbsolute(topAttrs(attrs))) return null;
+      // No parent in this file (a component's root) or a fragment: the frame is decided where it is used.
+      const tag = parent()?.tag;
+      return Boolean(tag) && tag !== "Fragment" && !POSITION_FRAMES.has(tag) && `Measured from the nearest positioned ancestor, not <${tag}>; wrap the content in a Box.`;
+    } },
+  // Box effect style (Figma effect styles; effects.ts). The JSX twin of surface/no-shadow-on-tinted, which reads CSS
+  // rule bodies and cannot see a surface prop and an effect prop on one element.
+  { id: "box/effect-needs-surface", components: ["Box"], severity: "error", allow: "tinted-shadow", guideline: "docs/guidelines/layout.md",
+    summary: "A Shadow/Bottom|Top/Level-N effect style renders only on surface=\"surface\": never on Subtle, Pale or Surface-Alt (§9), and a box without a fill has nothing to cast it.",
+    check: ({ attrs }) => {
+      const own = topAttrs(attrs), effect = fixedProp(own, "effectStyle");
+      if (!effect || !DROP_SHADOW_STYLE.test(effect)) return null;
+      const surface = fixedProp(own, "surface");
+      if (surface === null || (surface === undefined && opaque(attrs)) || surface === "surface") return null;
+      return ["subtle", "pale", "surface-alt"].includes(surface) ? `No outer shadow on Subtle, Pale or Surface-Alt (§9). Drop effectStyle="${effect}" (a border or ring separates a tinted box).` : `A shadow needs surface="surface".`;
+    } },
+  { id: "box/blur-needs-tint", components: ["Box"], severity: "warn", allow: "blur-on-opaque", guideline: "docs/guidelines/layout.md",
+    summary: "Effect/Overlay (background blur) shows only through a translucent fill: surface=\"subtle\" or \"pale\".",
+    check: ({ attrs }) => {
+      const own = topAttrs(attrs); if (fixedProp(own, "effectStyle") !== "Effect/Overlay") return null;
+      const surface = fixedProp(own, "surface");
+      if (surface === null || (surface === undefined && opaque(attrs)) || ["subtle", "pale"].includes(surface)) return null;
+      return "Background blur does nothing behind an opaque fill. Use surface=\"subtle\" or \"pale\".";
+    } },
+  { id: "box/shadow-no-border", components: ["Box"], severity: "warn", allow: "elevation", guideline: "docs/guidelines/layout.md",
+    summary: "Elevation follows the Sidebar: a Box with a drop-shadow effect style takes no border (a bordered box takes no shadow).",
+    check: ({ attrs }) => {
+      const own = topAttrs(attrs), effect = fixedProp(own, "effectStyle"), border = fixedProp(own, "border");
+      return Boolean(effect && DROP_SHADOW_STYLE.test(effect)) && Boolean(border) && border !== "none" && "A shadowed surface takes no border (elevation follows the Sidebar). Keep the shadow or the border, not both.";
+    } },
+  // Per-corner radius (corners.ts): canonical form = radius, plus only the corners that differ from it.
+  { id: "radius/redundant-corners", components: ["Box", "Image"], severity: "warn", allow: "redundant-corners", guideline: "docs/guidelines/layout.md",
+    summary: "Write radius alone when the corners match, and set radiusTopLeft/TopRight/BottomRight/BottomLeft only where they differ from radius (Image's radius defaults to md).",
+    check: ({ tag, attrs }) => {
+      const own = topAttrs(attrs);
+      const corners = CORNER_PROPS.filter((name) => own.has(name)).map((name) => [name, fixedProp(own, name)]);
+      if (!corners.length) return null;
+      const written = fixedProp(own, "radius"); if (written === null) return null;
+      const radius = step(written ?? (tag === "Image" ? "md" : undefined));
+      const fixed = corners.filter(([, v]) => v !== null).map(([name, v]) => [name, step(v)]);
+      if (fixed.length === 4 && new Set(fixed.map(([, v]) => v)).size === 1) return `Use radius="${fixed[0][1]}": all four corners are the same.`;
+      if (written !== undefined && corners.length === 4) return `radius is overridden on every corner; drop radius="${written}" or keep it and set only the corners that differ.`;
+      const same = fixed.filter(([, v]) => radius !== undefined && v === radius).map(([name]) => name);
+      return same.length > 0 && `Use radius: ${same.join(", ")} ${same.length === 1 ? "repeats" : "repeat"} the radius ("${radius}"); set only the corners that differ.`;
+    } },
+  // full is Corner-Radius/Rounded (1000px): beside a finite corner, CSS overlap scaling shrinks every corner by the same
+  // factor, so the small one renders square (corners.ts). full mixes only with none, which is square by design.
+  { id: "radius/full-mixed", components: ["Box", "Image"], severity: "warn", allow: "full-mixed", guideline: "docs/guidelines/layout.md",
+    summary: "radius=\"full\" takes no finite corner (radiusTopLeft/TopRight/BottomRight/BottomLeft other than full or none): use one token for all corners, or a finite radius with corner overrides.",
+    check: ({ attrs }) => {
+      const own = topAttrs(attrs); if (fixedProp(own, "radius") !== "full") return null;
+      const finite = CORNER_PROPS.filter((name) => { const v = fixedProp(own, name); return typeof v === "string" && v !== "full" && v !== "none"; });
+      return finite.length > 0 && "radius=\"full\" with a finite corner renders that corner square (CSS shrinks every corner to fit the 1000px pill); use one token for all corners, or a finite radius with corner overrides.";
+    } },
   { id: "page-header/one-primary", components: ["PageHeader"], severity: "error", allow: "page-header-primary", guideline: "docs/guidelines/page-header.md",
     summary: "PageHeader actions hold at most one Primary button (the page's main action), after the Tertiary ones.",
     check: ({ attrs }) => { const actions = expr(attrs, "actions") ?? ""; const primaries = (actions.match(/level="primary"/g) ?? []).length; return primaries > 1 ? `has ${primaries} Primary buttons in actions — keep one Primary; the rest are Tertiary.` : null; } },
@@ -591,6 +751,13 @@ export const rules = [
       if (kind === "column" && (/alignSelf\s*:\s*["'](?!stretch)/.test(style) || cls.some((c) => layoutClasses.hugY.has(c)))) return null;
       return `is size "${size}" but ${own ? "is set to full width" : `stretches across its <${p.tag}> (${kind === "grid" ? "grid" : "flex column"})`} — use size="md" (or larger) for a full-width button, or keep it small and let it hug its label (${kind === "column" ? 'alignSelf: "flex-start"' : 'justifySelf: "start"'}, or put it in a row).`;
     } },
+  { id: "flag/unknown-name", components: ["Flag"], severity: "error", allow: "flag-name", guideline: "docs/guidelines/flag.md",
+    summary: "Flag names are the Figma Flag set's Name values (\"Vietnam\", \"United Kingdom\", \"United States\"); anything else renders an empty circle.",
+    check: ({ attrs }) => { if (!FLAG_NAMES) return null; const name = literal(attrs, "name"); if (name === undefined || name.includes("${") || FLAG_NAMES.has(name)) return null; const close = [...FLAG_NAMES].filter((n) => n.toLowerCase().includes(name.toLowerCase().slice(0, 4))).slice(0, 3); return `uses unknown flag "${name}"${close.length ? ` — did you mean ${close.map((n) => `"${n}"`).join(", ")}?` : " — see flagNames."}`; } },
+  { id: "flag/no-emoji-flag", components: ["DockIcon", "Text", "TableMedia", "TableText", "ListItem", "Badge", "Tag", "Chip", "Avatar"], severity: "warn", allow: "emoji-flag", guideline: "docs/guidelines/flag.md",
+    summary: "Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters.",
+    // Nested elements in props (media={<DockIcon …/>}) are checked on their own, so only this element's own text counts.
+    check: ({ attrs, children }) => (EMOJI_FLAG.test(attrs.replace(/\{\s*<[\s\S]*?\/>\s*\}/g, "")) || EMOJI_FLAG.test((children ?? "").replace(/<[\s\S]*?>/g, ""))) && "shows an emoji flag — use <Flag name=\"Vietnam\" /> (the Figma Flag set) next to the country name." },
   { id: "file-icon/not-an-action", components: ["Button", "IconButton"], severity: "error", allow: "file-icon-action", guideline: "docs/guidelines/file-icon.md",
     summary: "FileIcon identifies a file's type; it is never the icon of a button or action.",
     check: ({ attrs, children }) => (/<FileIcon\b/.test(children) || /<FileIcon\b/.test(value(attrs, "icon") ?? "") || /<FileIcon\b/.test(value(attrs, "startIcon") ?? "")) && "uses a FileIcon as a button icon — use a system Icon (icon-*-line) for actions; FileIcon sits next to the file name." },
@@ -640,11 +807,11 @@ export const rules = [
     summary: "A Sidebar with a subMenu flyout wires onSubMenuClose so Escape and outside presses close it.",
     check: ({ attrs }) => has(attrs, "subMenu") && !/subMenu=\{(null|undefined|false)\}/.test(attrs) && !present(attrs, "onSubMenuClose") && "has a subMenu flyout without onSubMenuClose — Escape and outside presses can't close it." },
   { id: "list-item/inset-not-padding", css: true, components: [], severity: "warn", allow: "list-inset", guideline: "docs/guidelines/list-item.md",
-    summary: "List rows take their horizontal inset from the layout (List inset / --zen-list-inset), never a padding override on .zen-list-item — a fixed padding double-indents rows inside Modals, Side Panels and Cards.",
-    check: (css) => !/ListItem\/list-item\.css$/.test(css.file ?? "") && /\.zen-list-item\b(?![_-])/.test(css.selector) && /(^|;)\s*padding(-inline|-left|-right|-inline-start|-inline-end)?\s*:/.test(css.body) && "overrides the row padding — set <List inset> or --zen-list-inset on the container instead." },
-  { id: "content/lights-no-light-text", css: true, components: [], severity: "error", allow: "lights-light-text", guideline: "docs/guidelines/content-colors.md",
-    summary: "Lights-group text (families referencing Sky, Mint, Yellow or Zen — today Accent, Warning, Support/Yellow) never uses the Light level — Base at most (Light fails contrast); Light stays for icons.",
-    check: (css) => { const d = textColourDecls(css.body).find((x) => new RegExp(`--zen-color-content-(${LIGHTS_FAMILY})-light`).test(x)); return d && `sets Lights-group text to Light in \`${d.slice(0, 70)}\` — use -base or -strongest (Light is allowed only for icons).`; } },
+    summary: "List rows keep the padding Figma sets inside List-Item (Padding/Small 12px above and below, none at the sides, for Interactive=Yes and No alike), never a padding override on .zen-list-item — the layout around the List decides where it sits (leave 12px around clickable rows for their fill).",
+    check: (css) => !/ListItem\/list-item\.css$/.test(css.file ?? "") && /\.zen-list-item\b(?![_-])/.test(css.selector.replace(/:(has|not)\((?:[^()]|\([^()]*\))*\)/g, "")) && /(^|;)\s*padding(-inline|-left|-right|-inline-start|-inline-end)?\s*:/.test(css.body) && "overrides the row padding — the row sets it (Padding/Small above and below, Figma List-Item); inset the List with the layout around it instead." },
+  { id: "content/lights-no-light-text", css: true, components: ["Text", "Heading"], severity: "error", allow: "lights-light-text", guideline: "docs/guidelines/content-colors.md",
+    summary: "Lights-group text (families referencing Sky, Mint, Yellow or Zen — today Accent, Warning, Support/Yellow) never uses the Light level — Base at most (Light fails contrast); Light stays for icons. Checks CSS colours and the Text/Heading `tone`.",
+    check: (css) => { if (css.attrs !== undefined) { const tone = toneOf(css.attrs); return new RegExp(`^(${LIGHTS_FAMILY})-light$`).test(tone ?? "") && `is tone="${tone}" — Lights-group text never takes Light (it fails contrast); use ${tone.replace(/-light$/, "-base")} or -strongest (Light is for icons).`; } const d = textColourDecls(css.body).find((x) => new RegExp(`--zen-color-content-(${LIGHTS_FAMILY})-light`).test(x)); return d && `sets Lights-group text to Light in \`${d.slice(0, 70)}\` — use -base or -strongest (Light is allowed only for icons).`; } },
   { id: "content/title-is-strongest", css: true, components: [], severity: "warn", allow: "title-level", guideline: "docs/guidelines/content-colors.md",
     summary: "Neutral-family titles and headings use Strongest (Primary level); Base is for secondary text and Light for tertiary text.",
     check: (css) => { if (!isTitleSel(css.selector)) return null; const d = textColourDecls(css.body).find((x) => new RegExp(`--zen-color-content-(${NEUTRAL_FAMILY})-(base|light)\\b`).test(x)); return d && `colours a title with \`${d.slice(0, 70)}\` — titles use the -strongest level.`; } },
@@ -717,23 +884,29 @@ export const rules = [
       return style && style !== "Heading/1" && `is an h1 styled "${style}" — a content h1 is Heading/1; drop textStyle, or use level 2 for a section title.`;
     } },
   { id: "heading/title-not-light", components: ["Heading", "Text"], severity: "warn", allow: "title-light", guideline: "docs/guidelines/text.md",
-    summary: "Page, section and card titles (h1–h3) never take the Light tone: titles are Strongest, and only a Body/Small/Bold list group header (a kicker) uses Base. Lower the level, not the colour.",
+    summary: "Page, section and card titles (h1–h3) never take the Light tone: titles are Strongest. Only a Body/Small/Bold list group header (a kicker) uses Light (user decision 2026-10-03, Apple's 3:1 for bold text). Lower the level, not the colour.",
     check: ({ tag, attrs }) => {
       const tone = value(attrs, "tone")?.replace(/["'`\s]/g, "");
       if (!/^(light|tertiary)$/.test(tone ?? "")) return null;
+      // A kicker (Body/Small/Bold group header) is the one heading that takes Light.
+      if (literal(attrs, "textStyle") === "Body/Small/Bold") return null;
       const level = tag === "Heading" ? headingLevelOf(attrs) : Number(literal(attrs, "as")?.match(/^h([1-6])$/)?.[1]);
-      return level >= 1 && level <= 3 && `is an h${level} in the ${tone} tone — titles use Strongest (a Body/Small/Bold group header may use Base); lower the level, not the colour.`;
+      return level >= 1 && level <= 3 && `is an h${level} in the ${tone} tone — titles use Strongest (only a Body/Small/Bold group header, a kicker, uses Light); lower the level, not the colour.`;
     } },
   { id: "table/title-heading-4", components: ["Text", "Heading"], severity: "warn", allow: "table-title", guideline: "docs/guidelines/table.md",
-    summary: "A table that is its own section is titled by a <Heading level={2} textStyle=\"Heading/4\"> right above it (the Table points to it with aria-labelledby); <Table caption> only names a table that already sits under a section heading. A <Text> title above a table is a paragraph, not a heading.",
-    check: ({ tag, attrs, src, end }) => {
+    summary: "A table that is its own page section is titled by a <Heading level={2} textStyle=\"Heading/4\"> right above it (the Table points to it with aria-labelledby); a table inside a widget Card is titled by the widget title, <Heading textStyle=\"Heading/Subheading\"> (every widget title is Subheading); <Table caption> only names a table that already sits under a section heading. A <Text> title above a table is a paragraph, not a heading.",
+    check: ({ tag, attrs, src, start, end }) => {
       if (nextSibling(src, end)?.tag !== "Table") return null;
+      // Widget titles are Heading/Subheading (user rule 2026-10-01); a page section above a bare table is Heading/4.
+      const want = insideCard(src, start) ? "Heading/Subheading" : "Heading/4";
       const style = literal(attrs, "textStyle");
-      if (tag === "Text") return Boolean(style) && TITLE_STYLE.test(style) && `is a paragraph styled "${style}" titling the table below — use <Heading level={2} textStyle="Heading/4"> (Table aria-labelledby → its id), or <Table caption> under a section heading.`;
+      if (tag === "Text") return Boolean(style) && TITLE_STYLE.test(style) && `is a paragraph styled "${style}" titling the table below — use <Heading textStyle="${want}"> (Table aria-labelledby → its id), or <Table caption> under a section heading.`;
       const level = headingLevelOf(attrs);
       if (level === 1) return null; // the page title right above a table names the page, not the table
       const resolved = style ?? HEADING_DEFAULT_STYLE[level];
-      return Boolean(resolved) && resolved !== "Heading/4" && `titles the table below with "${resolved}" — a table section title is <Heading level={2} textStyle="Heading/4"> (or pass the title as <Table caption> under a section heading).`;
+      return Boolean(resolved) && resolved !== want && (want === "Heading/Subheading"
+        ? `titles the table in this Card with "${resolved}" — a widget title is <Heading textStyle="Heading/Subheading">.`
+        : `titles the table below with "${resolved}" — a table section title is <Heading level={2} textStyle="Heading/4"> (or pass the title as <Table caption> under a section heading).`);
     } },
   { id: "table/needs-name", components: ["Table"], severity: "error", allow: "table-name", guideline: "docs/guidelines/table.md",
     summary: "A Table is named by a caption or aria-label.",
@@ -793,12 +966,24 @@ export const rules = [
   { id: "segmented/control-bar-full-width", components: ["TopNavigation", "BottomSheet"], severity: "warn", allow: "segmented-hug", guideline: "docs/guidelines/segmented.md",
     summary: "On mobile, a Segmented in a Top Navigation control bar or a Bottom Sheet spans the container with equal items (fullWidth).",
     check: ({ tag, attrs, children }) => { const where = tag === "TopNavigation" ? expr(attrs, "controlBar") ?? "" : children; const seg = [...where.matchAll(/<Segmented\b([^>]*)>/g)].find(([, a]) => !/\bfullWidth\b/.test(a)); return seg && `has a Segmented that hugs its labels — pass fullWidth so the items share the ${tag === "TopNavigation" ? "control bar" : "sheet"} width.`; } },
-  { id: "top-navigation/max-two-trailing", components: ["TopNavigation"], severity: "warn", allow: "nav-trailing", guideline: "docs/guidelines/top-navigation.md",
-    summary: "At most two trailing actions in a Top Navigation (a searchAction counts as one while collapsed); move the rest into a ⋯ Bottom Sheet.",
+  { id: "top-navigation/max-three-trailing", components: ["TopNavigation"], severity: "warn", allow: "nav-trailing", guideline: "docs/guidelines/top-navigation.md",
+    summary: "At most three trailing places in a Top Navigation, as Figma's Trailing-Slot takes (actions next to each other with the same `group` share one pill, one place; a searchAction counts as one while collapsed), and at most three large-title actions; move the rest into a ⋯ Bottom Sheet.",
     check: ({ attrs }) => {
-      const v = expr(attrs, "trailing"); if (!v || /\.map\(|\.\.\./.test(v)) return null;
-      const n = (v.match(/\{\s*icon\s*:/g) ?? []).length, search = has(attrs, "searchAction") ? 1 : 0;
-      return n + search > 2 && (search ? `has ${n} trailing actions plus searchAction — while collapsed the Search action takes a slot and the last action is hidden; keep one other trailing action.` : `has ${n} trailing actions — keep two and put the rest in a "More" Bottom Sheet.`);
+      // Places, not actions: a run of actions with the same literal `group` is one pill (Figma's dual Nav-Action).
+      const count = (name) => {
+        const v = expr(attrs, name);
+        if (!v || /\.map\(|\.\.\./.test(v)) return 0;
+        let places = 0, prev = null;
+        for (const item of v.split(/\{\s*icon\s*:/).slice(1)) {
+          const group = /\bgroup\s*:\s*["'`]([^"'`]+)["'`]/.exec(item)?.[1] ?? null;
+          if (!(group && group === prev)) places += 1;
+          prev = group;
+        }
+        return places;
+      };
+      const n = count("trailing"), title = count("largeTitleAction"), search = has(attrs, "searchAction") ? 1 : 0;
+      if (title > 3) return `has ${title} large-title actions — Header-Trailing shows three; put the rest in a "More" Bottom Sheet.`;
+      return n + search > 3 && (search ? `has ${n} trailing places plus searchAction — while collapsed the Search action takes a slot and the last one is hidden; keep two other trailing places.` : `has ${n} trailing places — keep three (a grouped pair is one) and put the rest in a "More" Bottom Sheet.`);
     } },
   { id: "top-navigation/search-folds-to-action", components: ["TopNavigation"], severity: "warn", allow: "nav-search-fold", guideline: "docs/guidelines/top-navigation.md",
     summary: "A collapsing Top Navigation whose control bar is a Search passes searchAction, so Search stays one tap away (top-right) while the bar is folded.",
@@ -1016,6 +1201,17 @@ export const rules = [
       if (literal(attrs, "direction") === "horizontal" || expr(attrs, "direction") !== undefined) return null;
       const small = openingTags(children, "Button").map((a) => literal(topLevel(a), "size")).find((size) => size && SMALL_BUTTON.test(size));
       return small && `stretches a size "${small}" Button across a vertical bar — use size="lg" (or primaryAction / secondaryAction, which size themselves).`;
+    } },
+  { id: "mobile/full-size-controls", components: ["PlatformPhone", "BottomSheet"], severity: "error", allow: "mobile-size", guideline: "docs/guidelines/toggle.md",
+    summary: "On phones components keep their full size: Toggle and ToggleButton are size large, inputs medium or larger; the small sizes are for dense desktop rows, tables and panels.",
+    check: ({ attrs, children }) => {
+      const src = `${attrs}\n${children}`;
+      const toggle = ["Toggle", "ToggleButton"].flatMap((tag) => openingTags(src, tag).map((a) => [tag, topLevel(a)]))
+        .find(([, a]) => expr(a, "size") === undefined && !/^(lg|large)$/.test(literal(a, "size") ?? ""));
+      if (toggle) return `has a ${toggle[0]} of size ${literal(toggle[1], "size") ?? "(default)"} on a phone — use size="lg".`;
+      const field = ["InputField", "TextAreaField", "SelectField", "DateField", "AutocompleteField", "NumberField", "HeadingField", "Search"]
+        .flatMap((tag) => openingTags(src, tag).map((a) => [tag, literal(topLevel(a), "size")])).find(([, size]) => /^(xs|xsmall|sm|small)$/.test(size ?? ""));
+      return field && `has a size "${field[1]}" ${field[0]} on a phone — inputs are medium or larger on phones.`;
     } },
   { id: "visually-hidden/focusable-shows", components: ["VisuallyHidden"], severity: "error", allow: "hidden-focus", guideline: "docs/guidelines/visually-hidden.md",
     summary: "Hidden content that takes keyboard focus (a skip link, a button) needs focusable, so it becomes visible while focused (WCAG 2.4.7).",

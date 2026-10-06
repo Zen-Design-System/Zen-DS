@@ -27,7 +27,7 @@ Token names are the Figma names (`Color/Background/Surface/Default`); the consta
 
 ## Parity
 
-`scripts/build-native-tokens.mjs` holds the reference resolver. It writes `platforms/tests/vectors.json` (its answers for 795 token × mode-context pairs) and copies it next to the Swift and Flutter tests, which assert their own resolver returns the same. `npm run tokens:native:check` fails when these files are stale or a token cannot be resolved in any of its collection's modes.
+`scripts/build-native-tokens.mjs` holds the reference resolver. It writes `platforms/tests/vectors.json` (its answers for 805 token × mode-context pairs) and copies it next to the Swift and Flutter tests, which assert their own resolver returns the same. `npm run tokens:native:check` fails when these files are stale or a token cannot be resolved in any of its collection's modes.
 
 Run the platform tests on a machine with the toolchain: `cd platforms/swift && swift test`, `cd platforms/flutter && flutter test`.
 

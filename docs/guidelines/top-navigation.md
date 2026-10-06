@@ -4,7 +4,7 @@
 **Figma:** Top-Navigation/Mobile (page ❖ Top-Navigations, 12014:45167)  
 **Import:** `import { TopNavigation } from "@zen/design-system";`
 
-The mobile app bar: where you are (title), how to go back (leading) and the one or two actions for this screen (trailing).
+The mobile app bar: where you are (title), how to go back (leading) and up to three actions for this screen (trailing).
 
 ## Use it for
 - The top of every mobile screen, with a large title on root screens and a compact title on detail screens.
@@ -14,7 +14,7 @@ The mobile app bar: where you are (title), how to go back (leading) and the one 
 ## Use something else for
 - Desktop app chrome → Sidebar + page header.
 - Switching between root sections → Bottom Navigation.
-- More than two trailing actions → move the rest into a ⋯ Bottom Sheet.
+- More than three trailing actions → move the rest into a ⋯ Bottom Sheet.
 
 ## Figma → React
 | Figma | Prop | Values / notes |
@@ -22,19 +22,17 @@ The mobile app bar: where you are (title), how to go back (leading) and the one 
 | Type | `type` | default · alt · default-blurring · alt-blurring · liquid-glass · default-overlay · liquid-overlay · compact · compact-alt · compact-overlay |
 | Margin | `margin` | comfortable (20) · compact (16) |
 | Titles | `title · largeTitle · headingLevel` | Sub (Body/Extra/Bold, centred) · expand heading (h1 Heading/1; Heading/2–3 at h2/h3). Exactly one of them is the screen's heading, h1 by default: the large title while it shows, else the bar title in its bar style. h2/h3 only for a stack nested in a screen that has its h1 |
-| Actions | `leading · trailing[] · largeTitleAction` | 44px Nav-Action: Tertiary · Flat (compact) · Liquid Glass; dot = Noti |
+| Actions | `leading · trailing[] · largeTitleAction (one or a list)` | 44px Nav-Action: Tertiary · Flat (compact) · Liquid Glass; dot = Noti. Top-Trailing and Header-Trailing take up to three each (Figma Trailing-Slot) |
 | Control bar | `controlBar` | Search / Segmented / Tabs slot (48px) |
-| Collapse | `collapsed · sticky` | fold the large title into the bar on scroll |
+| Collapse | `scrollRef · collapsed · sticky` | scrollRef (the scrolling element, or "window"): the large title and a folding Search slide under the bar with the content 1:1, the bar title fades in once the large title is covered, a scroll that stops half-way settles open or closed, and the opaque types get a Border/Neutral/Pale rule while content runs under the bar (iOS scroll-edge → standard appearance). The header must overlay the content: sticky first child of the scroller, or positioned over it. collapsed pins it by hand and overrides scrollRef |
 | Search fold | `searchAction { onClick, label?, icon? }` | with a Search controlBar: while collapsed the bar folds away and a Search action appears first in the trailing slot; it leaves when the bar expands |
 | Identity | `subtitle · titleLeading · onTitleClick · titleLabel` | Figma Heading-Text Sub with Leading + Subheading (◆ Social conversation header): a left-aligned 48px visual, title Body/Extra/Bold over a Caption/Regular Light subtitle, gap 2; onTitleClick makes it one button (profile / group info) |
-| Grouped trailing | `trailingGroup` | two trailing actions share one Tertiary pill (Nav-Action/Icon-Main with trailing icon, 92×44), e.g. audio + video call; each half keeps its own label and tooltip |
+| Grouped trailing | `trailing[].group` | actions next to each other with the same group share one pill (Figma Nav-Action with Trailing-Icon, 92×44, one of the three places) in the bar's action style: Tertiary, Liquid Glass, or Liquid Glass Black Overlay on the overlay types; e.g. audio + video call with group: "call"; each half keeps its own label and tooltip. Compact types keep their Flat actions apart. trailingGroup (first two) is deprecated |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/top-navigation.json`.
 
 ### TopNavigation
-Figma Top-Navigation/Mobile (12014:45167, page ❖ Top-Navigations): a 64px navigator bar (Top-Leading 44px action · centred Sub heading · Top-Trailing) over an optional 64px Expand-Heading (H1–H3 + one action) and a Control-Bar slot. The OS status bar is not part of the component; leave room for it with `env(safe-area-inset-top)`. Outline: the screen always exposes exactly one title heading (`headingLevel`, h1 by default) — the large title (Heading/1) while it shows, otherwise the bar title in its own Body/Extra/Bold style; never both.
-
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `type` | `"default" \| "alt" \| "default-blurring" \| "alt-blurring" \| "liquid-glass" \| "default-overlay" \| "liquid-overlay" \| "compact" \| "compact-alt" \| "compact-overlay"` | `"default"` |  |
@@ -43,16 +41,19 @@ Figma Top-Navigation/Mobile (12014:45167, page ❖ Top-Navigations): a 64px navi
 | `titleLeading` | `ReactNode` | — |  |
 | `onTitleClick` | `() => void` | — | Makes the identity a button (open the profile / group info). |
 | `titleLabel` | `string` | — |  |
-| `trailingGroup` | `boolean` | `false` | Figma Nav-Action/Icon-Main with a trailing icon: the trailing actions share one Tertiary pill (e.g. audio + video call). |
+| `trailingGroup` | `boolean` | `false` | **Deprecated:** Give the actions that share a pill the same `group` (e.g. `group: "call"` on both). The first two trailing actions share one pill (see `TopNavigationAction.group`), when no action names a group. |
 | `title` | `ReactNode` | — | Figma Top-Heading-Text (Type=Sub, Body/Extra/Bold), centred in the navigator bar. Shown when collapsed or when there is no large title, and then it is the screen's heading (`headingLevel`, h1 by default) in its bar style — a compact or pushed screen's h1 is its bar title, so content headings start at h2. While the large title shows, the bar copy is aria-hidden. |
 | `largeTitle` | `ReactNode` | — | Figma Expand-Heading (Heading/1–3) under the navigator bar: a tab root's large title. While expanded it is the screen's heading (h1 · Heading/1 by default); once `collapsed` it leaves and the bar title (`title`, else this text) becomes the heading, so the screen keeps exactly one h1 before and after scrolling. |
 | `headingLevel` | `"h1" \| "h2" \| "h3"` | `"h1"` | Level of the screen title — the large title while it shows, else the bar title. Default h1: the title names the screen (match `document.title` to it). Use h2 / h3 only for a navigation stack nested inside another screen that already has its h1. The large title's style follows the level (h1 Heading/1 · h2 Heading/2 · h3 Heading/3); the bar title stays Body/Extra/Bold at every level. |
 | `leading` | `TopNavigationAction \| ReactNode` | — | Figma Top-Leading: an action (usually Back) or a visual (e.g. an Avatar). |
-| `trailing` | `TopNavigationAction[]` | `[]` | Figma Top-Trailing: up to two actions. |
-| `largeTitleAction` | `TopNavigationAction` | — | Figma Expand-Trailing: one action beside the large title. |
+| `trailing` | `TopNavigationAction[]` | `[]` | Figma Top-Trailing: up to three actions (its Trailing-Slot takes 3); more are not drawn. |
+| `largeTitleAction` | `TopNavigationAction \| TopNavigationAction[]` | — | Figma Expand-Trailing (Header-Trailing): one action, or a list of up to three, beside the large title. When the bar row folds into the large-title row (a root, see `topBar`) they sit first in the trailing slot, so they stay in place and in reach once the title folds; the bar still draws three actions in all. |
+| `topBar` | `boolean` | — | Figma Top-bar: the navigator-bar row. By default a root (a large title and no `leading`) hides it while the large title shows, as Figma's root screens do (Top-bar=false): the trailing actions sit at the right of the large-title row, and once the title folds the bar title shows in that same row, so the header keeps its height. `true` keeps the row above the large title (the iOS layout); `false` hides it on any screen with a large title. |
 | `controlBar` | `ReactNode` | — | Figma Control-Bar slot (48px): a Search, Segmented or Tabs under the heading. |
-| `searchAction` | `{ onClick: () => void; label?: string; icon?: IconName \| ReactElement }` | — | For a Search control bar: while `collapsed`, the bar folds away and this Search action appears at the start of the trailing slot (top-right); it leaves again when the bar expands. Its `onClick` usually scrolls back up and focuses the field. Counts toward the two trailing actions, so keep at most one other. `label` defaults to the locale's “Search”, `icon` to icon-search-medium-line (an icon name or an element). |
-| `collapsed` | `boolean` | `false` | Scrolled state: hides the large title and shows `title` (or the large title) in the navigator bar. |
+| `banner` | `ReactNode` | — | A status that must stay in view while the screen scrolls (offline, syncing, read-only): a Small AlertBanner pinned under the bar and the control bar, edge to edge. It never scrolls away; with `scrollRef` it moves up with the fold, like a pinned control bar. One banner at a time; the screen's content starts below it. |
+| `searchAction` | `{ onClick: () => void; label?: string; icon?: IconName \| ReactElement }` | — | For a Search control bar: while `collapsed`, the bar folds away and this Search action appears at the start of the trailing slot (top-right); it leaves again when the bar expands. Its `onClick` usually scrolls back up and focuses the field. Counts toward the three trailing actions, so keep at most two others. `label` defaults to the locale's “Search”, `icon` to icon-search-medium-line (an icon name or an element). |
+| `scrollRef` | `RefObject<HTMLElement \| null> \| "window"` | — | Scroll-linked collapse (the iOS large-title behaviour): the element whose scroll moves the screen's content, or "window". The large title (and a Search Control-Bar with `searchAction`) slide up under the bar with the content, 1:1, never jumping; the bar title fades in once the large title is covered; a scroll that stops half-way settles open or closed; once content runs under the bar, the opaque types (default · alt · compact · compact-alt) get a Border/Neutral/Pale rule under the bar. The header must overlay the scrolled content: `sticky` as the scroller's first child, or positioned over it. A `collapsed` value overrides it. |
+| `collapsed` | `boolean` | — | Collapsed by hand: hides the large title and shows `title` (or the large title) in the navigator bar. Prefer `scrollRef`, which follows the scroll; with `collapsed` set, the scroll does not change it. |
 | `sticky` | `boolean` | `false` | Stick to the top of the scroll container. |
 | `aria-label` | `string` | — |  |
 | `className` | `string` | — |  |
@@ -71,7 +72,7 @@ Figma Nav-Action (Icon-Main Tertiary · Flat · Liquid-Glass): a 44px circle wit
 Object shapes the props above refer to.
 
 ```ts
-interface TopNavigationAction { icon: IconName | ReactElement; label: string; onClick?: () => void; dot?: boolean; disabled?: boolean; }
+interface TopNavigationAction { icon: IconName | ReactElement; label: string; onClick?: () => void; dot?: boolean; disabled?: boolean; group?: string; }
 ```
 
 ## Keyboard
@@ -82,11 +83,14 @@ interface TopNavigationAction { icon: IconName | ReactElement; label: string; on
 
 ## ✅ Do
 - Match the type to the page Canvas: Default on Surface, Alt on an Alt canvas, Compact on dense detail screens, an overlay type only on media.
-- Use a large title on root screens (tab roots use largeTitle) and collapse it into the bar when the content scrolls.
+- Use a large title only on top-level screens (tab roots); a pushed screen with Back uses the bar title alone.
+- On a root, keep the default: the bar row folds into the large-title row (Figma Top-bar=false), so the actions sit at the right of the large title and stay put when it folds; pass topBar only for a stack that keeps the bar above the large title.
+- Pin a status that must stay in view (offline, syncing, read-only) with banner, a Small AlertBanner: it sits under the bar and the control bar, edge to edge, and never scrolls away.
+- Let the large title follow the scroll with scrollRef instead of switching collapsed on a scrollTop threshold: it moves with the finger, never makes the content jump, and settles open or closed.
 - Let the title be the screen's h1 and start the content headings at h2: the large title (Heading/1) on a root screen, the compact bar title (Body/Extra/Bold) on a child screen and once the large title collapses. Don't add a second, hidden h1.
 - Set document.title to the screen title, then the app name, on every screen (WCAG 2.4.2).
 - Give every icon-only action a label; put a dot on the action (not the title) for unread states.
-- Keep at most two trailing actions (harness: top-navigation/max-two-trailing).
+- Keep at most three trailing actions, and three beside the large title, as Figma's Trailing-Slot takes (harness: top-navigation/max-three-trailing).
 - Draw Back with a left chevron (icon-chevron-left-line-medium, label "Back") on mobile and tablet (harness: navigation/back-chevron).
 - Keep the Figma rhythm: leading actions 16 apart, two flat trailing actions 20 apart; an H2 expand heading has 14px vertical padding.
 - Put a Segmented in the control bar with fullWidth; its items split the bar equally.
@@ -97,12 +101,16 @@ interface TopNavigationAction { icon: IconName | ReactElement; label: string; on
 - Don't mix action styles in one bar (a Tertiary back with Flat trailing actions).
 - Don't use an overlay type over plain surfaces; its white content needs imagery behind it.
 - Don't put primary form actions (Save) in the bar and again at the bottom of the screen.
+- Don't put a status banner in controlBar or let it scroll away with the content: it reports the whole screen, so it belongs in banner.
 - Don't use a left arrow (icon-arrow-left-*) for Back: on mobile and tablet the chevron is the platform back affordance, arrows mean moving content.
-- Don't keep two other trailing actions next to a searchAction; while collapsed the Search takes a slot (harness: top-navigation/max-two-trailing).
+- Don't keep three other trailing actions next to a searchAction; while collapsed the Search takes a slot (harness: top-navigation/max-three-trailing).
+- Don't remove the large title from the layout on scroll (collapsed from an onScroll threshold): the content jumps by the title's height and can flip the state back.
 
 ## Accessibility
 - Rendered as a `<header>`. The screen always exposes exactly one title heading (headingLevel, h1 by default): the large title while it shows, otherwise the bar title; while the large title shows, the bar copy is aria-hidden.
 - Nav-Actions are 44px buttons named by `label`; the Noti dot is decorative, so say it in the label ("Notifications, 3 new").
+- With scrollRef the parts under the bar are inert (a covered large-title action or folded Search takes no focus), and the settle scroll is instant under prefers-reduced-motion.
+- A header that overlays its scroller (sticky, or positioned over it) can hide a row the keyboard moves to: give the scroller scroll-padding-top equal to the part of the header that stays (the bar, the status-bar inset and a pinned control bar, without the fold), on `<html>` when scrollRef is "window" (WCAG 2.2 SC 2.4.11).
 
 ## Content
 - Titles are nouns ("Inbox", "Projects"); keep the collapsed title under ~24 characters.
@@ -112,8 +120,9 @@ interface TopNavigationAction { icon: IconName | ReactElement; label: string; on
 | --- | --- | --- | --- |
 | `navigation/back-chevron` | error | Back actions on mobile and tablet use a left chevron (icon-chevron-left-line-medium), never a left arrow. | `zen-allow-back-arrow: <reason>` |
 | `segmented/control-bar-full-width` | warn | On mobile, a Segmented in a Top Navigation control bar or a Bottom Sheet spans the container with equal items (fullWidth). | `zen-allow-segmented-hug: <reason>` |
-| `top-navigation/max-two-trailing` | warn | At most two trailing actions in a Top Navigation (a searchAction counts as one while collapsed); move the rest into a ⋯ Bottom Sheet. | `zen-allow-nav-trailing: <reason>` |
+| `top-navigation/max-three-trailing` | warn | At most three trailing places in a Top Navigation, as Figma's Trailing-Slot takes (actions next to each other with the same `group` share one pill, one place; a searchAction counts as one while collapsed), and at most three large-title actions; move the rest into a ⋯ Bottom Sheet. | `zen-allow-nav-trailing: <reason>` |
 | `top-navigation/search-folds-to-action` | warn | A collapsing Top Navigation whose control bar is a Search passes searchAction, so Search stays one tap away (top-right) while the bar is folded. | `zen-allow-nav-search-fold: <reason>` |
+| `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/action-without-handler` | warn | Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
 

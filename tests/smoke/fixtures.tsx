@@ -81,10 +81,12 @@ export const fixtures: Record<string, Fixture> = {
   ChatFile: { props: { name: "Q4 brief.pdf" } },
   UploaderFileItem: { props: { file: { id: "f1", name: "Q4 brief.pdf", size: "2.4 MB", state: "uploaded" } }, wrap: (el) => <ul>{el}</ul> },
   FileIcon: { props: { format: "pdf" } },
+  Flag: { props: { name: "Vietnam", label: "Vietnam" } },
   TopNavigationActionButton: { props: { action: { icon: "icon-search-medium-line", label: "Search" }, variant: "default" } },
   ZenPortalProvider: { skip: "context provider without UI; covered through ZenProvider and every overlay" },
   DatePickerHeader: { props: { month: new Date(2026, 8, 1) } },
   DatePickerMonthYear: { props: { month: new Date(2026, 8, 1) } },
+  DatePickerTimePicker: { props: { value: { from: "09:30", to: "10:00" }, onValueChange: () => undefined } },
 
   // Parts that only exist inside their container.
   ListItem: { props: { title: "Ava Nguyen" }, wrap: (el) => <ul>{el}</ul> },

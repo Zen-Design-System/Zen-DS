@@ -38,7 +38,7 @@ The current attached token source is `/Users/vuduong/Documents/Component Theme.j
 
 ## Token contract (2026-09-28)
 
-The repository contains 11 Figma collections and 2,176 variables:
+The repository contains 11 Figma collections and 2,179 variables:
 
 | Collection | Tokens | Runtime axis |
 | --- | ---: | --- |
@@ -46,13 +46,18 @@ The repository contains 11 Figma collections and 2,176 variables:
 | Global Dimensions | 33 | `:root` |
 | Base Colors (Project) | 329 | `data-brand` |
 | Mode Colors (Semantic) | 407 | `data-theme` |
-| Component Theme | 113 | `data-component-theme` |
-| Component Size | 194 | `data-density` |
+| Component Theme | 115 | `data-component-theme` |
+| Component Size | 195 | `data-density` |
 | Spacing | 22 | `:root` |
 | Corner Radius | 25 | `data-radius` |
 | Emphasis Level | 6 | `data-emphasis` |
 | Breakpoint & Grids | 9 | media-query contract |
 | Typography Configuration | 78 | `data-typography` |
+
+The 2026-10-03 export (`Component Theme.json`) adds two tokens: `Input/Border/Focus`, the Focused/Typing field border
+(Color/Focus/Neutral/Solid; Focus/Neutral/Subtle in Neutral-S7), and `Input/Border/Popover-Search`, the Focused/Typing
+border of Search/Popover (transparent; Focus/Neutral/Subtle in Neutral-S7). The export writes the transparent modes as
+`#NANNANNAN`; the repo stores `#FFFFFF00`.
 
 The 2026-09-28 export (`Zen-Variables.zip`: Global Colors, Component Theme, Emphasis Level, Typography Configuration)
 matches the checked-in source by token name and every mode value. It brought:

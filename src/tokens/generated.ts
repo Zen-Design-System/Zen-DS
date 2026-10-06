@@ -1,5 +1,6 @@
 /* Generated from the 11 Figma JSON exports. Do not edit directly. */
 export const tokens = {
+  "AI-Chat/Field/Corner-Radius": "var(--zen-ai-chat-field-corner-radius)",
   "Badge/Size/2XSmall": "var(--zen-badge-size-2-xsmall)",
   "Badge/Size/Medium": "var(--zen-badge-size-medium)",
   "Badge/Size/Small": "var(--zen-badge-size-small)",
@@ -259,6 +260,11 @@ export const tokens = {
   "Color/Background/Support/Indigo/Soft": "var(--zen-color-background-support-indigo-soft)",
   "Color/Background/Support/Indigo/Solid": "var(--zen-color-background-support-indigo-solid)",
   "Color/Background/Support/Indigo/Subtle": "var(--zen-color-background-support-indigo-subtle)",
+  "Color/Background/Support/Mint/Deep": "var(--zen-color-background-support-mint-deep)",
+  "Color/Background/Support/Mint/Pale": "var(--zen-color-background-support-mint-pale)",
+  "Color/Background/Support/Mint/Soft": "var(--zen-color-background-support-mint-soft)",
+  "Color/Background/Support/Mint/Solid": "var(--zen-color-background-support-mint-solid)",
+  "Color/Background/Support/Mint/Subtle": "var(--zen-color-background-support-mint-subtle)",
   "Color/Background/Support/Neutral/Deep": "var(--zen-color-background-support-neutral-deep)",
   "Color/Background/Support/Neutral/Pale": "var(--zen-color-background-support-neutral-pale)",
   "Color/Background/Support/Neutral/Soft": "var(--zen-color-background-support-neutral-soft)",
@@ -289,6 +295,11 @@ export const tokens = {
   "Color/Background/Support/Red/Soft": "var(--zen-color-background-support-red-soft)",
   "Color/Background/Support/Red/Solid": "var(--zen-color-background-support-red-solid)",
   "Color/Background/Support/Red/Subtle": "var(--zen-color-background-support-red-subtle)",
+  "Color/Background/Support/Sky/Deep": "var(--zen-color-background-support-sky-deep)",
+  "Color/Background/Support/Sky/Pale": "var(--zen-color-background-support-sky-pale)",
+  "Color/Background/Support/Sky/Soft": "var(--zen-color-background-support-sky-soft)",
+  "Color/Background/Support/Sky/Solid": "var(--zen-color-background-support-sky-solid)",
+  "Color/Background/Support/Sky/Subtle": "var(--zen-color-background-support-sky-subtle)",
   "Color/Background/Support/Teal/Deep": "var(--zen-color-background-support-teal-deep)",
   "Color/Background/Support/Teal/Pale": "var(--zen-color-background-support-teal-pale)",
   "Color/Background/Support/Teal/Soft": "var(--zen-color-background-support-teal-soft)",
@@ -398,6 +409,8 @@ export const tokens = {
   "Color/Border/Support/Green/Subtle": "var(--zen-color-border-support-green-subtle)",
   "Color/Border/Support/Indigo/Solid": "var(--zen-color-border-support-indigo-solid)",
   "Color/Border/Support/Indigo/Subtle": "var(--zen-color-border-support-indigo-subtle)",
+  "Color/Border/Support/Mint/Solid": "var(--zen-color-border-support-mint-solid)",
+  "Color/Border/Support/Mint/Subtle": "var(--zen-color-border-support-mint-subtle)",
   "Color/Border/Support/Neutral/Solid": "var(--zen-color-border-support-neutral-solid)",
   "Color/Border/Support/Neutral/Subtle": "var(--zen-color-border-support-neutral-subtle)",
   "Color/Border/Support/Orange/Solid": "var(--zen-color-border-support-orange-solid)",
@@ -410,6 +423,8 @@ export const tokens = {
   "Color/Border/Support/Purple/Subtle": "var(--zen-color-border-support-purple-subtle)",
   "Color/Border/Support/Red/Solid": "var(--zen-color-border-support-red-solid)",
   "Color/Border/Support/Red/Subtle": "var(--zen-color-border-support-red-subtle)",
+  "Color/Border/Support/Sky/Solid": "var(--zen-color-border-support-sky-solid)",
+  "Color/Border/Support/Sky/Subtle": "var(--zen-color-border-support-sky-subtle)",
   "Color/Border/Support/Teal/Solid": "var(--zen-color-border-support-teal-solid)",
   "Color/Border/Support/Teal/Subtle": "var(--zen-color-border-support-teal-subtle)",
   "Color/Border/Support/Violet/Solid": "var(--zen-color-border-support-violet-solid)",
@@ -485,6 +500,9 @@ export const tokens = {
   "Color/Content/Support/Indigo/Base": "var(--zen-color-content-support-indigo-base)",
   "Color/Content/Support/Indigo/Light": "var(--zen-color-content-support-indigo-light)",
   "Color/Content/Support/Indigo/Strongest": "var(--zen-color-content-support-indigo-strongest)",
+  "Color/Content/Support/Mint/Base": "var(--zen-color-content-support-mint-base)",
+  "Color/Content/Support/Mint/Light": "var(--zen-color-content-support-mint-light)",
+  "Color/Content/Support/Mint/Strongest": "var(--zen-color-content-support-mint-strongest)",
   "Color/Content/Support/Orange/Base": "var(--zen-color-content-support-orange-base)",
   "Color/Content/Support/Orange/Light": "var(--zen-color-content-support-orange-light)",
   "Color/Content/Support/Orange/Strongest": "var(--zen-color-content-support-orange-strongest)",
@@ -500,6 +518,9 @@ export const tokens = {
   "Color/Content/Support/Red/Base": "var(--zen-color-content-support-red-base)",
   "Color/Content/Support/Red/Light": "var(--zen-color-content-support-red-light)",
   "Color/Content/Support/Red/Strongest": "var(--zen-color-content-support-red-strongest)",
+  "Color/Content/Support/Sky/Base": "var(--zen-color-content-support-sky-base)",
+  "Color/Content/Support/Sky/Light": "var(--zen-color-content-support-sky-light)",
+  "Color/Content/Support/Sky/Strongest": "var(--zen-color-content-support-sky-strongest)",
   "Color/Content/Support/Teal/Base": "var(--zen-color-content-support-teal-base)",
   "Color/Content/Support/Teal/Light": "var(--zen-color-content-support-teal-light)",
   "Color/Content/Support/Teal/Strongest": "var(--zen-color-content-support-teal-strongest)",
@@ -1226,7 +1247,9 @@ export const tokens = {
   "Input/Background/Hover": "var(--zen-input-background-hover)",
   "Input/Border/Default": "var(--zen-input-border-default)",
   "Input/Border/Disabled": "var(--zen-input-border-disabled)",
+  "Input/Border/Focus": "var(--zen-input-border-focus)",
   "Input/Border/Hover": "var(--zen-input-border-hover)",
+  "Input/Border/Popover-Search": "var(--zen-input-border-popover-search)",
   "Input/Shadow/Base": "var(--zen-input-shadow-base)",
   "Input/Shadow/Strong": "var(--zen-input-shadow-strong)",
   "Input/Size/Heading-H1": "var(--zen-input-size-heading-h1)",
@@ -1252,6 +1275,7 @@ export const tokens = {
   "Input/Spacing/XLarge/Inside-Field-Gap": "var(--zen-input-spacing-xlarge-inside-field-gap)",
   "Input/Spacing/XLarge/Outside-Field-Gap": "var(--zen-input-spacing-xlarge-outside-field-gap)",
   "Input/Spacing/XLarge/Vertical-Padding": "var(--zen-input-spacing-xlarge-vertical-padding)",
+  "Interactive-List-Item-Radius": "var(--zen-interactive-list-item-radius)",
   "Light/Blue-Alpha/1": "var(--zen-light-blue-alpha-1)",
   "Light/Blue-Alpha/10": "var(--zen-light-blue-alpha-10)",
   "Light/Blue-Alpha/11": "var(--zen-light-blue-alpha-11)",
@@ -1883,6 +1907,7 @@ export const tokens = {
   "Light/Zen/7": "var(--zen-light-zen-7)",
   "Light/Zen/8": "var(--zen-light-zen-8)",
   "Light/Zen/9": "var(--zen-light-zen-9)",
+  "List-Container-Vertical-Padding": "var(--zen-list-container-vertical-padding)",
   "Margin-Comfortable": "var(--zen-margin-comfortable)",
   "Margin-Compact": "var(--zen-margin-compact)",
   "Modal-Padding": "var(--zen-modal-padding)",
@@ -2182,7 +2207,8 @@ export const tokenCollections = {
   "global-colors": {
     "name": "Global Colors",
     "modes": [
-      "Zen"
+      "Zen",
+      "Zen-High-Contrast"
     ],
     "variableCount": 960
   },
@@ -2206,7 +2232,7 @@ export const tokenCollections = {
       "Light",
       "Dark"
     ],
-    "variableCount": 407
+    "variableCount": 427
   },
   "component-colors-theme": {
     "name": "Component Theme",
@@ -2216,9 +2242,12 @@ export const tokenCollections = {
       "Neutral - S2",
       "Brand - S2",
       "Neutral - S3",
-      "Neutral - S4"
+      "Neutral - S4",
+      "Neutral - S5",
+      "Neutral - S6",
+      "Neutral - S7"
     ],
-    "variableCount": 113
+    "variableCount": 115
   },
   "component-size": {
     "name": "Component Size",
@@ -2226,7 +2255,7 @@ export const tokenCollections = {
       "Compact",
       "Comfortable"
     ],
-    "variableCount": 194
+    "variableCount": 195
   },
   "spacing": {
     "name": "Spacing",
@@ -2261,7 +2290,7 @@ export const tokenCollections = {
       "Tablet",
       "Mobile"
     ],
-    "variableCount": 9
+    "variableCount": 11
   },
   "typography-configuration": {
     "name": "Typography Configuration",

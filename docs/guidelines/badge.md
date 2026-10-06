@@ -22,12 +22,14 @@ Non-interactive status, category or count labels.
 | Theme | `theme` | semantic + support colours (18) |
 | Background | `background` | solid · subtle |
 | Leading-Icon | `leading / leadingIcon` | hidden on xsmall |
-| Remove | `remove / onRemove` | icon-x-circle-solid |
+| Remove | `remove / onRemove / removeLabel` | icon-x-circle-solid; removeLabel names the button when the label is not text |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/badge.json`.
 
 ### Badge
+Figma Badge (260:4825): Size × Theme × Background, a leading dot or icon, and an optional remove button.
+
 Also accepts `Omit<HTMLAttributes<HTMLSpanElement>, "color">`.
 
 | Prop | Type | Default | Description |
@@ -35,17 +37,18 @@ Also accepts `Omit<HTMLAttributes<HTMLSpanElement>, "color">`.
 | `ref` | `Ref<HTMLSpanElement>` | — | The root `<span>`. |
 | `children` | `ReactNode` | — |  |
 | `size` | `"xs" \| "sm" \| "md" \| "xsmall" \| "small" \| "medium"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
-| `theme` | `"accent" \| "neutral" \| "yellow" \| "orange" \| "red" \| "crimson" \| "pink" \| "plum" \| "purple" \| "violet" \| "indigo" \| "blue" \| "cyan" \| "teal" \| "green" \| "brown" \| "inverse" \| "on-color"` | — |  |
-| `color` | `"accent" \| "neutral" \| "yellow" \| "orange" \| "red" \| "crimson" \| "pink" \| "plum" \| "purple" \| "violet" \| "indigo" \| "blue" \| "cyan" \| "teal" \| "green" \| "brown" \| "inverse" \| "on-color"` | — | **Deprecated:** Use theme (same values).  |
+| `theme` | `"accent" \| "neutral" \| "yellow" \| "orange" \| "red" \| "crimson" \| "pink" \| "plum" \| "purple" \| "violet" \| "indigo" \| "blue" \| "cyan" \| "teal" \| "green" \| "brown" \| "inverse" \| "on-color" \| "sky" \| "mint" \| "bronze" \| "golden"` | — |  |
+| `color` | `"accent" \| "neutral" \| "yellow" \| "orange" \| "red" \| "crimson" \| "pink" \| "plum" \| "purple" \| "violet" \| "indigo" \| "blue" \| "cyan" \| "teal" \| "green" \| "brown" \| "inverse" \| "on-color" \| "sky" \| "mint" \| "bronze" \| "golden"` | — | **Deprecated:** Use theme (same values).  |
 | `background` | `"solid" \| "subtle"` | `"solid"` |  |
 | `leading` | `IconName \| ReactNode` | — | Leading icon: an icon name (`"icon-check-line"`) or a node; replaces the default dot. |
 | `leadingIcon` | `boolean` | `true` |  |
-| `remove` | `boolean` | `false` |  |
+| `remove` | `boolean` | `false` | Shows the remove button (icon-x-circle-solid), named "Remove `<label>`" from a text label (the locale's `removeItem`). |
 | `onRemove` | `() => void` | — |  |
+| `removeLabel` | `string` | — | Name of the remove button. Default: "Remove" and the badge text from the locale's labels ("Remove Design"); pass it when the label is not plain text (a node, an icon, a number) so the button still says what it removes. |
 | `className` | `string` | — |  |
 
 ### BadgeCounter
-Also accepts `Omit<BadgeProps, "remove" | "onRemove" | "leading">`.
+Also accepts `Omit<BadgeProps, "remove" | "onRemove" | "removeLabel" | "leading">`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -66,7 +69,7 @@ Also accepts `Omit<BadgeProps, "remove" | "onRemove" | "leading">`.
 - Don't show counters at zero.
 
 ## Accessibility
-- The remove button is labelled ("Remove `<label>`").
+- The remove button is named "Remove `<label>`" (vi "Xoá `<label>`") from a text label. Pass removeLabel when the label is an icon or other node; without it the button falls back to "Remove".
 
 ## Content
 - One or two words; no punctuation.
@@ -76,6 +79,7 @@ Also accepts `Omit<BadgeProps, "remove" | "onRemove" | "leading">`.
 | --- | --- | --- | --- |
 | `removable/needs-handler` | error | A remove affordance must be wired to onRemove. | `zen-allow-remove-handler: <reason>` |
 | `badge-counter/cap` | warn | Counters cap at 99+. | `zen-allow-counter-cap: <reason>` |
+| `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
 | `badge/count-uses-counter` | warn | A bare count (a number, or an expression like count / length / total / unread) is a Badge-Counter, not a Badge — BadgeCounter keeps the round pill and a min width equal to its height. | `zen-allow-badge-count: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
 | `copy/plural-count` | warn | Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`. | `zen-allow-plural: <reason>` |

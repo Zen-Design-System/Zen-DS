@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Button } from "../Button";
+import { InputField } from "../Input";
 import { BottomSheet } from "./BottomSheet";
 
 const meta = {
@@ -28,3 +29,19 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 export const Modal: Story = {};
 export const Action: Story = { args: { type: "action", title: "Sort by" } };
+/** onSubmit: body + footer become a <form>; Enter in the field or the primary action submits. */
+export const Form: Story = {
+  args: { title: "Rename project", primaryAction: { label: "Save name" }, secondaryAction: { label: "Cancel" } },
+  render: function Render(args) {
+    const [open, setOpen] = useState(false);
+    const [name, setName] = useState("Roadmap");
+    return (
+      <>
+        <Button level="primary" onClick={() => setOpen(true)}>Rename project</Button>
+        <BottomSheet {...args} open={open} onOpenChange={setOpen} onSubmit={() => setOpen(false)}>
+          <InputField label="Project name" value={name} onChange={(event) => setName(event.target.value)} />
+        </BottomSheet>
+      </>
+    );
+  },
+};

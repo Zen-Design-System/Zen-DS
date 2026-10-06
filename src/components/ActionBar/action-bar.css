@@ -33,9 +33,9 @@
 .zen-action-bar[data-direction="horizontal"] { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: var(--zen-spacing-gap-medium, 16px); row-gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-action-bar[data-direction="horizontal"] > .zen-action-bar__summary { flex: 1 1 12rem; }
 .zen-action-bar[data-direction="horizontal"] > .zen-action-bar__actions { display: flex; flex: 0 1 auto; flex-wrap: wrap; align-items: center; justify-content: flex-end; margin-inline-start: auto; }
-/* A horizontal bar narrower than 480px (a phone-width window or a panel): the summary takes the first row and the buttons
-   share the next one equally, Tertiary · Primary (Figma Bottom-Sheet dual footer). Labels too long for half the width
-   wrap to full-width rows; wrap-reverse keeps the Primary (last in the DOM) on top, as Dialog's vertical actions do. */
+/* A horizontal bar narrower than 480px (a phone-width window or a panel): the summary takes the first row and the Large
+   buttons share the next one equally, Tertiary · Primary (Figma Bottom-Sheet dual footer). Labels too long for half the
+   width wrap to full-width rows; wrap-reverse keeps the Primary (last in the DOM) on top, as Dialog's vertical actions do. */
 .zen-action-bar[data-direction="horizontal"][data-narrow="true"] { flex-direction: column; align-items: stretch; }
 .zen-action-bar[data-direction="horizontal"][data-narrow="true"] > .zen-action-bar__summary { flex: 0 0 auto; }
 .zen-action-bar[data-direction="horizontal"][data-narrow="true"] > .zen-action-bar__actions { flex-wrap: wrap-reverse; margin-inline-start: 0; }

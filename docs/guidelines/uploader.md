@@ -29,7 +29,7 @@ Let users add files by dropping or browsing, then track each file's upload.
 Generated from the TypeScript source; full JSON in `docs/api/uploader.json`.
 
 ### FileUpload
-Figma Uploader/File-Upload (1581:22708): Label → Drag & Drop field (Primitives/Uploader/DragDrop-Field, Extended) or a “Choose File” button → Help-Text → File-Item list (gap XSmall). The drop zone is a real button (Enter/Space open the picker) that also accepts dropped files; Dragover shows the 2px dashed Focus/Neutral/Subtle stroke.
+Figma Uploader/File-Upload (1581:22708): Label → Drag & Drop field (Primitives/Uploader/DragDrop-Field, Extended) or a “Choose File” button → Help-Text → File-Item list (gap XSmall). The drop zone is a real button (Enter/Space open the picker) that also accepts dropped files; Dragover shows the 2px dashed Focus/Neutral/Subtle stroke. Removing a file keeps focus in the field: the next file's Remove button, else the previous one's, else the upload button (also when a single-file field shows its drop zone or Choose File button again). Apps need no refocus code.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -52,7 +52,7 @@ Figma Uploader/File-Upload (1581:22708): Label → Drag & Drop field (Primitives
 | `className` | `string` | — |  |
 
 ### UploaderFileItem
-Figma Primitives/Uploader/File-Item (1581:22739): padding Medium, gap Small, Corner-Radius/Large. Name Body/Base/Bold · details Caption/Regular Neutral/Light (gap XSmall, 4px dot) · 8px Neutral progress while uploading. Alert switches to Negative/Subtle with the error as help text. Actions are 16px icons 12px apart (24px hit areas).
+Figma Primitives/Uploader/File-Item (1581:22739): padding Medium, gap Small, Corner-Radius/Large. Name Body/Base/Bold · details Caption/Regular Neutral/Light (gap XSmall, 4px dot) · 8px Neutral progress while uploading. Alert switches to Negative/Subtle with the error as help text. Actions are 16px icons 12px apart (24px hit areas). When the item is removed while focus is in it (or right after its Remove button), focus moves to the next item's Remove button, else the previous item's, else the field's upload button, so keyboard users stay in the list.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -94,6 +94,7 @@ type UploaderFileState = "uploading" | "uploaded" | "replaceable" | "alert"
 
 ## Accessibility
 - The drop zone is a real button (Enter/Space open the picker) that also accepts drops; errors use role=alert; icon buttons are labelled with the file name.
+- Removing a file keeps keyboard focus in the field: focus moves to the next file's Remove button, else the previous one's, else the upload button (drop zone or Choose File). Don't add your own refocus code.
 
 ## Content
 - Caption: "JPG, PNG or PDF. Max size of 2 MB"; errors say why and what to do.

@@ -44,7 +44,7 @@
         },
         {
           "name": "iconTheme",
-          "type": "\"neutral\" | \"accent\" | \"inverse\" | \"on-color\" | \"pale\" | \"surface\" | \"emoji\"",
+          "type": "DockIconTheme",
           "required": false,
           "default": "\"neutral\"",
           "description": "Dock-Icon Theme — colour-code the metric's category (Figma instance swap). Default Neutral.",
@@ -72,6 +72,30 @@
           "required": false,
           "default": "\"xl\"",
           "description": "Figma Size: XLarge/Large stack the icon above the text; Medium–XSmall put it on the left. Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "variant",
+          "type": "\"icon-highlight\" | \"title-highlight\"",
+          "required": false,
+          "default": "\"icon-highlight\"",
+          "description": "Figma Metric-Inline type. Icon-Highlight (default, 595:55188): the Dock-Icon leads, the label sits over the number.\nTitle-Highlight (7523:507049): the title on top (Heading/Subheading at XLarge–Medium, Caption above the number at\nSmall/XSmall), the number and trend under it, the Dock-Icon pinned to the bottom-right corner.",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: the title row's action (Figma Button/Icon-Main XSmall Tertiary, e.g. a chevron that opens the breakdown).",
+          "deprecated": null
+        },
+        {
+          "name": "iconSize",
+          "type": "\"md\" | \"lg\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": null,
+          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below.",
           "deprecated": null
         },
         {
@@ -125,7 +149,7 @@
         },
         {
           "name": "iconTheme",
-          "type": "\"neutral\" | \"accent\" | \"inverse\" | \"on-color\" | \"pale\" | \"surface\" | \"emoji\"",
+          "type": "DockIconTheme",
           "required": false,
           "default": null,
           "description": "Dock-Icon Theme — colour-code the metric's category (Figma instance swap). Default Neutral.",
@@ -153,6 +177,30 @@
           "required": false,
           "default": null,
           "description": "Figma Size: XLarge/Large stack the icon above the text; Medium–XSmall put it on the left. Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "variant",
+          "type": "\"icon-highlight\" | \"title-highlight\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Metric-Inline type. Icon-Highlight (default, 595:55188): the Dock-Icon leads, the label sits over the number.\nTitle-Highlight (7523:507049): the title on top (Heading/Subheading at XLarge–Medium, Caption above the number at\nSmall/XSmall), the number and trend under it, the Dock-Icon pinned to the bottom-right corner.",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: the title row's action (Figma Button/Icon-Main XSmall Tertiary, e.g. a chevron that opens the breakdown).",
+          "deprecated": null
+        },
+        {
+          "name": "iconSize",
+          "type": "\"md\" | \"lg\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": null,
+          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below.",
           "deprecated": null
         },
         {
@@ -209,6 +257,7 @@
   ],
   "types": {
     "CardSubAction": "interface CardSubAction { label: string; icon?: IconName | ReactElement; onClick?: () => void; }",
+    "DockIconTheme": "type DockIconTheme = (typeof dockIconThemes)[number]",
     "MetricTrendDirection": "type MetricTrendDirection = \"positive\" | \"negative\" | \"normal\""
   }
 }

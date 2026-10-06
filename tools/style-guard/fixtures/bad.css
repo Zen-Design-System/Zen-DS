@@ -31,3 +31,5 @@
 .pe-bad-n { box-shadow: 0 4px 12px var(--zen-color-shadow-neutral-default); }
 /* expect: size/slot-token */
 .pe-bad-icon { width: 24px; }
+/* expect: position/token */
+.pe-bad-o { position: absolute; left: 50%; translate: -50% 0; }

@@ -18,6 +18,8 @@ export function Bad() {
       <Text textStyle="Heading/4">Invoices</Text>
       {/* expect: type/raw-heading */}
       <h3>Recent activity</h3>
+      {/* expect: position/token */}
+      <div style={{ position: "absolute", top: 8, right: "var(--zen-spacing-padding-small)" }} />
     </div>
   );
 }

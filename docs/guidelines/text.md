@@ -9,7 +9,7 @@ Copy in the Figma text styles and Zen content colours. Heading renders a real h1
 ## Use it for
 - Page and section titles (Heading level + an optional textStyle).
 - Descriptions, captions, meta lines (Text tone="base" or "light").
-- Status text in a colour family (tone positive / negative / warning / info / accent).
+- Status text in a colour family (tone positive-base / negative-strongest / warning-base / info-base / accent-base), or a Support colour (support-blue-strongest).
 - Counts in copy: plural(n, "file").
 
 ## Use something else for
@@ -23,8 +23,9 @@ Copy in the Figma text styles and Zen content colours. Heading renders a real h1
 | --- | --- | --- |
 | Text style | `textStyle` | any of the 36 Figma styles: Body/Base/Regular (Text default), Body/Small/Regular, Caption/Regular, Heading/1–4, Heading/Subheading, Display/1–4… |
 | Level | `level (Heading)` | 1–6 → h1–h6; the default style per level follows the Content hierarchy ladder: 1 Heading/1 · 2 Heading/4 · 3 Heading/Subheading · 4 Body/Extra/Bold · 5–6 Body/Base/Bold |
-| Color/Content | `tone` | strongest (default) · base · light (aliases primary · secondary · tertiary) · accent · info · positive · negative · warning · inverse · on-colors · disabled · inherit |
+| Color/Content | `tone` | every resting Color/Content token by its path: strongest (default) · base · light (Neutral) · <family>-strongest|base|light for accent · info · positive · negative · warning · support-<colour> · inverse · on-black-overlay · on-white-overlay · on-colors · on-brights · on-accent · hyperlink · disabled · inherit; aliases primary · secondary · tertiary · accent (= accent-base) … inverse (= inverse-strongest) |
 | — | `as · truncate · align` | Text element (p default, span inline, label…) · true = one line with ellipsis, n = clamp to n lines · start/center/end |
+| Sizing (Figma resizing) | `width · minWidth · maxWidth · alignSelf` | as on Layout: "hug" · "fill" · a number (Fixed px); maxWidth caps a line length; alignSelf = the text's alignment in its Stack or Grid |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/text.json`.
@@ -32,31 +33,54 @@ Generated from the TypeScript source; full JSON in `docs/api/text.json`.
 ### Text
 Figma text styles with Zen's content colours. Paragraphs, labels and inline copy; titles use `<Heading>`. Meta in Body/Small takes tone "base"; Caption is always tone "light". `<Text>`Invite people to collaborate on this project.`</Text>` <Text textStyle="Body/Small/Regular" tone="base">Updated 2 min ago`</Text>`
 
-Also accepts `Omit<HTMLAttributes<HTMLElement>, "color">`.
+Also accepts `Omit<HTMLAttributes<HTMLElement>, "color">, LayoutSizingProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
+| `width` | `"hug" \| "fill" \| number` | — | Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width. `"hug"` (Hug contents): as wide as its content, never grows or stretches. `"fill"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding and may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full width. Fill children in a wrapping row need a `minWidth` to wrap. A number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box). (Container's `maxWidth` is a different prop: a token width, sm…full.) Prefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame). |
+| `minWidth` | `number` | — | Minimum width in px (Figma min width). Wins over fill's shrink-to-0. |
+| `maxWidth` | `number` | — | Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text. |
+| `alignSelf` | `"start" \| "center" \| "end" \| "stretch"` | — | This element's alignment inside its parent: start · center · end · stretch across a Stack's direction (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align` for this child. A `"fill"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth stops it. No effect outside a Stack or Grid. |
+| `height` | `"hug" \| "fill" \| number` | — | Vertical resizing, as in Figma auto layout. Unset keeps the element's usual height. `"hug"` (Hug contents): as tall as its content, never grows or stretches. `"fill"` (Fill container): in a column Stack it takes an equal share of the free height; it shrinks below its content only when the column has a height of its own (Fixed, Fill or maxHeight), else it keeps its content height (pass `minHeight={0}` for a scrolling child of a column sized from outside). In a row Stack it stretches to the row's height; in a Grid cell it fills the cell (over alignSelf); in a plain block it takes 100% (the parent needs a height). A number: Fixed height in px, which does not shrink in a column Stack. |
+| `minHeight` | `number` | — | Minimum height in px (Figma min height). Wins over fill's shrink-to-0. |
+| `maxHeight` | `number` | — | Maximum height in px (Figma max height). |
 | `textStyle` | `keyof typeof typographyStyles` | `"Body/Base/Regular"` | Figma text style, e.g. "Body/Base/Regular" (default), "Body/Small/Medium", "Caption/Regular", "Heading/4". |
-| `tone` | `"strongest" \| "base" \| "light" \| "primary" \| "secondary" \| "tertiary" \| "accent" \| "info" \| "positive" \| "negative" \| "warning" \| "inverse" \| "on-colors" \| "disabled" \| "inherit"` | `"strongest"` | Colour role. Default strongest (primary text). |
+| `tone` | `ContentTone` | `"strongest"` | Colour role: a Color/Content token by its path ("base", "support-blue-strongest"). Default strongest (primary text). |
 | `as` | `"p" \| "span" \| "div" \| "strong" \| "em" \| "small" \| "label" \| "li" \| "dt" \| "dd" \| "figcaption" \| "legend" \| "code" \| "time"` | `"p"` | Element to render. Default p (a block); use span inside a line, label for a form label. |
 | `truncate` | `boolean \| number` | — | true: one line with an ellipsis; a number: clamp to that many lines. The full text stays in the DOM. |
-| `align` | `"start" \| "center" \| "end"` | — |  |
+| `align` | `"start" \| "center" \| "end" \| "justify"` | — | Text alignment (Figma Alignment): "start" (left in LTR), "center", "end", or "justify" (both edges flush, Figma's Justified: only for long paragraphs in a wide column; in a narrow one it opens gaps between words). Unset keeps the parent's alignment. Inline text (as="span") aligns once it is a block or has a width. |
+| `verticalAlign` | `"top" \| "middle" \| "bottom"` | — | Vertical alignment inside the box (Figma Align top / middle / bottom). It shows only when the box is taller than its text: a Fixed or Fill `height` (Figma's Fixed size text box). Default top. |
 | `htmlFor` | `string` | — | For `as="label"`. |
 | `children` | `ReactNode` | — |  |
 
 ### Heading
 A real heading (h1–h6) in a Figma text style. The level follows the page outline; the default look follows the ladder, and textStyle sets it by the kind of content. A page title (h1, Heading/1), a section (h2, Heading/4 by default) and a card title right under the page title (h2, always Heading/Subheading): <Heading level={1}>Billing`</Heading>` <Heading level={2}>Invoices`</Heading>` <Heading level={2} textStyle="Heading/Subheading">Current plan`</Heading>`
 
-Also accepts `Omit<HTMLAttributes<HTMLHeadingElement>, "color">`.
+Also accepts `Omit<HTMLAttributes<HTMLHeadingElement>, "color">, LayoutSizingProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
+| `width` | `"hug" \| "fill" \| number` | — | Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width. `"hug"` (Hug contents): as wide as its content, never grows or stretches. `"fill"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding and may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full width. Fill children in a wrapping row need a `minWidth` to wrap. A number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box). (Container's `maxWidth` is a different prop: a token width, sm…full.) Prefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame). |
+| `minWidth` | `number` | — | Minimum width in px (Figma min width). Wins over fill's shrink-to-0. |
+| `maxWidth` | `number` | — | Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text. |
+| `alignSelf` | `"start" \| "center" \| "end" \| "stretch"` | — | This element's alignment inside its parent: start · center · end · stretch across a Stack's direction (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align` for this child. A `"fill"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth stops it. No effect outside a Stack or Grid. |
+| `height` | `"hug" \| "fill" \| number` | — | Vertical resizing, as in Figma auto layout. Unset keeps the element's usual height. `"hug"` (Hug contents): as tall as its content, never grows or stretches. `"fill"` (Fill container): in a column Stack it takes an equal share of the free height; it shrinks below its content only when the column has a height of its own (Fixed, Fill or maxHeight), else it keeps its content height (pass `minHeight={0}` for a scrolling child of a column sized from outside). In a row Stack it stretches to the row's height; in a Grid cell it fills the cell (over alignSelf); in a plain block it takes 100% (the parent needs a height). A number: Fixed height in px, which does not shrink in a column Stack. |
+| `minHeight` | `number` | — | Minimum height in px (Figma min height). Wins over fill's shrink-to-0. |
+| `maxHeight` | `number` | — | Maximum height in px (Figma max height). |
 | `level` | `(typeof headingLevels)[number]` | `2` | Document level (h1–h6): pick it from the page outline, not from the size. Step down one level at a time (h1 → h2 → h3); going back up may jump (h4 → h2). Default 2. |
-| `textStyle` | `keyof typeof typographyStyles` | — | Visual style; defaults to the level's ladder style (1 Heading/1 · 2 Heading/4 · 3 Heading/Subheading · 4 Body/Extra/Bold · 5–6 Body/Base/Bold). A content h1 (the page title shown large) stays Heading/1 (harness: heading/h1-is-heading-1). Set textStyle when the kind of content asks for it: a card title is always Heading/Subheading, whatever its level; a list group header (a kicker) is Body/Small/Bold in tone "base". |
-| `tone` | `"strongest" \| "base" \| "light" \| "primary" \| "secondary" \| "tertiary" \| "accent" \| "info" \| "positive" \| "negative" \| "warning" \| "inverse" \| "on-colors" \| "disabled" \| "inherit"` | `"strongest"` |  |
-| `truncate` | `boolean \| number` | — |  |
-| `align` | `"start" \| "center" \| "end"` | — |  |
+| `textStyle` | `keyof typeof typographyStyles` | — | Visual style; defaults to the level's ladder style (1 Heading/1 · 2 Heading/4 · 3 Heading/Subheading · 4 Body/Extra/Bold · 5–6 Body/Base/Bold). A content h1 (the page title shown large) stays Heading/1 (harness: heading/h1-is-heading-1). Set textStyle when the kind of content asks for it: a card title is always Heading/Subheading, whatever its level; a list group header (a kicker) is Body/Small/Bold in tone "light". |
+| `tone` | `ContentTone` | `"strongest"` | Colour role: a Color/Content token by its path, as on Text. Default strongest. |
+| `truncate` | `boolean \| number` | — | true: one line with an ellipsis; a number: clamp to that many lines. The full text stays in the DOM. |
+| `align` | `"start" \| "center" \| "end" \| "justify"` | — | Text alignment (Figma Alignment), as on Text: start · center · end · justify. Unset keeps the parent's alignment. |
+| `verticalAlign` | `"top" \| "middle" \| "bottom"` | — | Vertical alignment inside the box (Figma Align top / middle / bottom), as on Text: shows with a Fixed or Fill height. |
 | `children` | `ReactNode` | — |  |
+
+### Types
+Object shapes the props above refer to.
+
+```ts
+type ContentTone = (typeof contentTones)[number]
+```
 
 ## ✅ Do
 - Give every page or screen exactly one h1, present at all times, that names it and matches document.title (plus the app name). Where the title is shown large (PageHeader, a phone large title) it is Heading/1, like the Figma Master-Layout page title (harness: heading/h1-is-heading-1); a compact app bar title is the screen's h1 and keeps its bar style (Body/Extra/Bold).
@@ -89,9 +113,11 @@ Also accepts `Omit<HTMLAttributes<HTMLHeadingElement>, "color">`.
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
+| `content/lights-no-light-text` | error | Lights-group text (families referencing Sky, Mint, Yellow or Zen — today Accent, Warning, Support/Yellow) never uses the Light level — Base at most (Light fails contrast); Light stays for icons. Checks CSS colours and the Text/Heading `tone`. | `zen-allow-lights-light-text: <reason>` |
 | `heading/h1-is-heading-1` | error | Exactly one h1 names each page or screen. A content h1 (the title shown large: PageHeader, a phone large title, a level 1 Heading, a Text rendered as h1 or a raw h1) uses Heading/1. Only the TopNavigation compact bar title (.zen-top-nav__title) is the screen's h1 in its bar style (Body/Extra/Bold). | `zen-allow-h1-style: <reason>` |
-| `heading/title-not-light` | warn | Page, section and card titles (h1–h3) never take the Light tone: titles are Strongest, and only a Body/Small/Bold list group header (a kicker) uses Base. Lower the level, not the colour. | `zen-allow-title-light: <reason>` |
-| `table/title-heading-4` | warn | A table that is its own section is titled by a <Heading level={2} textStyle="Heading/4"> right above it (the Table points to it with aria-labelledby); <Table caption> only names a table that already sits under a section heading. A <Text> title above a table is a paragraph, not a heading. | `zen-allow-table-title: <reason>` |
+| `heading/title-not-light` | warn | Page, section and card titles (h1–h3) never take the Light tone: titles are Strongest. Only a Body/Small/Bold list group header (a kicker) uses Light (user decision 2026-10-03, Apple's 3:1 for bold text). Lower the level, not the colour. | `zen-allow-title-light: <reason>` |
+| `table/title-heading-4` | warn | A table that is its own page section is titled by a <Heading level={2} textStyle="Heading/4"> right above it (the Table points to it with aria-labelledby); a table inside a widget Card is titled by the widget title, <Heading textStyle="Heading/Subheading"> (every widget title is Subheading); <Table caption> only names a table that already sits under a section heading. A <Text> title above a table is a paragraph, not a heading. | `zen-allow-table-title: <reason>` |
 | `text/use-text` | warn | Headings and paragraphs are <Heading level> and <Text>: raw h1–h6/p keep the browser margins and no Zen text style. (App mode only.) | `zen-allow-raw-text: <reason>` |
 | `copy/plural-count` | warn | Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`. | `zen-allow-plural: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |

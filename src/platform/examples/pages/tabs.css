@@ -1,0 +1,9 @@
+/* Tabs examples. The desktop page (screen card) paints the Canvas; Container gives its side margin and the page adds the
+   same margin above and below. Cards in the grid keep a readable width and sit in the middle of the stage; the client card is
+   a narrow column so its six tabs overflow and scroll. */
+.px-tabs-page { padding-block: var(--zen-margin-comfortable, 24px); background: var(--zen-color-background-canvas-default); }
+.px-tabs-skeleton-text { flex: 1 1 auto; min-width: 0; }
+.px-tabs-invoice, .px-tabs-work { width: min(100%, 480px); margin-inline: auto; }
+.px-tabs-client { width: min(100%, 340px); margin-inline: auto; }
+/* A status Badge never shrinks or truncates beside a long title. */
+.px-tabs-status { flex: none; }

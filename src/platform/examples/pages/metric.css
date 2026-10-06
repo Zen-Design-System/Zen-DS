@@ -1,0 +1,4 @@
+/* Metric examples. Tokens only; class prefix .px-metric-. */
+
+/* The loading tile: the label placeholder stands for about 11 characters of the label it replaces. */
+.px-metric-skeleton-label.px-metric-skeleton-label { width: 11ch; }

@@ -23,6 +23,19 @@
 .zen-tag[data-tone="leading-photo"] { padding-left: var(--zen-tag-spacing-medium-minimum-padding, 4px); }
 .zen-tag:is(:hover, [data-state="hover"]):not([data-state="disabled"], [data-state="error"]) { --zen-tag-fill: var(--zen-tag-background-hover); --zen-tag-stroke: var(--zen-tag-border-hover); }
 .zen-tag[data-interactive] { cursor: pointer; outline: none; }
+/* Selected: a clickable Tag with aria-pressed="true" (a toggle filter). Figma Tag has no Selected state (State = Default ·
+   Hover · Focused · Error · Disabled; Tag/Content/Selected exists but no variant binds it and there is no Tag background
+   for it), so it borrows the default Chip's (Secondary) selected paint: Surface fill, Border/Active 2px, Content
+   Strongest. The shadow is dropped where that fill is tinted (house rule). Focused, Error and Disabled still win. */
+.zen-tag[data-interactive][aria-pressed="true"]:not([data-state="disabled"], [data-state="error"]) {
+  --zen-tag-fill: var(--zen-chip-secondary-background-seclected-default);
+  --zen-tag-stroke: var(--zen-chip-secondary-border-selected);
+  --zen-tag-stroke-width: var(--zen-chip-secondary-border-weigth-active, 2px);
+  --zen-tag-shadow: var(--zen-chip-secondary-background-seclected-default-shadow-off, var(--zen-style-shadow-action-tertiary-shadow, 0 1px 1px 0 rgba(0, 0, 0, 0.04)));
+  color: var(--zen-chip-secondary-content-selected);
+}
+.zen-tag[data-interactive][aria-pressed="true"]:is(:hover, [data-state="hover"]):not([data-state="disabled"], [data-state="error"]) { --zen-tag-fill: var(--zen-chip-secondary-background-seclected-hover); }
+.zen-tag[data-interactive][aria-pressed="true"]:not([data-state="disabled"], [data-state="error"]) .zen-tag__leading { color: var(--zen-chip-secondary-content-selected); }
 .zen-tag:is([data-state="focused"], [data-interactive]:focus-visible, :has(.zen-tag__remove:focus-visible)):not([data-state="disabled"]) { --zen-tag-stroke: var(--zen-color-focus-accent-solid, #ff66d4); --zen-tag-stroke-width: 2px; }
 /* House rule: Negative/Subtle fill → no drop shadow (Figma Tag State=Error still has Shadow/Action/Tertiary). */
 .zen-tag[data-state="error"] { --zen-tag-fill: var(--zen-color-background-negative-subtle-default); --zen-tag-stroke: var(--zen-color-border-negative-solid-default); --zen-tag-shadow: 0 0 #0000; }

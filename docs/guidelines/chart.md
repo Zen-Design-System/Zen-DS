@@ -21,7 +21,7 @@ Show how a value changes over time (Line) or how parts make up a total (Stack ba
 | --- | --- | --- |
 | Line | `LineChart data[] {label, value} · format · height` | Accent/Solid 2px line, Accent area, dashed Pale grid |
 | Stack bar | `StackBarChart data[] {label, values} · series[] {id, label, color} · showLegend` | Figma palette: Sector Primary, Secondary, Cyan, Violet, Yellow… |
-| Card | `ChartCard title · headingLevel · onOpen · ranges · range · onRangeChange` | Card Flat Medium: Heading/Subheading + chevron, Segmented; headingLevel is one below the nearest heading above: 3 by default (under a section h2), 2 when the card sits directly under the page title; the style stays Heading/Subheading |
+| Card | `ChartCard title · headingLevel · onOpen · ranges · range · onRangeChange · rangesFullWidth · theme` | Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): Heading/Subheading + chevron, Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card); headingLevel is one below the nearest heading above: 3 by default (under a section h2), 2 when the card sits directly under the page title; the style stays Heading/Subheading |
 | Interaction | `initialIndex` | ←/→ Home/End move the active point; the Tooltip shows its value |
 
 ## Props
@@ -65,6 +65,8 @@ Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) �
 | `ranges` | `SegmentedOption[]` | — | Figma Segmented (Secondary) range switch. |
 | `range` | `string` | — |  |
 | `onRangeChange` | `(id: string) => void` | — |  |
+| `rangesFullWidth` | `boolean` | `true` | The range switch fills the card and splits it into equal items (Figma Segmented FILL, default); `false` hugs its items, as on a wide card where a full-width switch would stretch far past its labels (Figma HUG). |
+| `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "semi-pale"` | `"flat"` | Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas next to other Shadow cards (metric cards on a dashboard). |
 | `surface` | `"default" \| "alt"` | — |  |
 | `children` (required) | `ReactNode` | — | The chart, or an EmptyState before there is data (keep the card title; the Empty State is set one level below it). |
 | `className` | `string` | — |  |

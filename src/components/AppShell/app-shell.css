@@ -14,7 +14,9 @@
    aside stick under it (AppShell measures it into --zen-app-shell-banner-height). */
 .zen-app-shell__banner { position: sticky; z-index: 30; top: 0; flex: 0 0 auto; }
 .zen-app-shell__frame { display: flex; min-width: 0; flex: 1 1 auto; }
-.zen-app-shell__sidebar { position: sticky; top: var(--zen-app-shell-top); display: flex; height: calc(var(--zen-app-shell-height, 100dvh) - var(--zen-app-shell-top)); flex: 0 0 auto; }
+/* The Sidebar is a layer above the page's sticky top bar (z 20): the bar paints the Canvas, and without this it would
+   cover the top of the Sidebar's shadow, leaving a half-height line that reads as a divider. The banner stays on top. */
+.zen-app-shell__sidebar { position: sticky; z-index: 21; top: var(--zen-app-shell-top); display: flex; height: calc(var(--zen-app-shell-height, 100dvh) - var(--zen-app-shell-top)); flex: 0 0 auto; }
 .zen-app-shell__sidebar > * { height: 100%; }
 /* The collapsed Basic Sidebar keeps an 8px inset on both sides; the shell drops the right one, so the page stays
    Margin-Comfortable from the rail as from the expanded Sidebar (Figma HR-Platform rail: 8px inset on the left only). */
@@ -23,11 +25,12 @@
 
 /* Top bar = Figma Primitives/Dashboard/Header Type=Navigation (4122:33400) as in HR-Platform: Margin-Comfortable top
    and sides, Spacing/Padding/XSmall bottom and a Button/Size/Medium row (72px on desktop). Leading (toggle + content)
-   and trailing are Spacing/Gap/Medium apart; the toggle sits Spacing/Gap/XSmall before the content (the Breadcrumbs);
-   the actions are Spacing/Gap/Small apart. */
+   and trailing are Spacing/Gap/Medium apart; the toggle sits Spacing/Gap/Medium before the Breadcrumbs and
+   Spacing/Gap/Large before a Search; the actions are Spacing/Gap/Small apart. */
 /* zen-allow-canvas-layer: the sticky top bar continues the page Canvas so content scrolls under it. */
 .zen-app-shell__header { position: sticky; z-index: 20; top: var(--zen-app-shell-top); display: flex; min-width: 0; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-xsmall, 8px); background: var(--zen-app-shell-canvas); }
-.zen-app-shell__header-leading { display: flex; min-width: 0; min-height: var(--zen-button-size-medium, 40px); flex: 1 1 auto; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-app-shell__header-leading { display: flex; min-width: 0; min-height: var(--zen-button-size-medium, 40px); flex: 1 1 auto; align-items: center; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-app-shell__header-leading:has(> .zen-app-shell__header-content > .zen-search) { gap: var(--zen-spacing-gap-large, 24px); }
 .zen-app-shell__header-content { display: flex; min-width: 0; flex: 1 1 auto; align-items: center; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-app-shell__header-actions { display: flex; min-width: 0; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
 /* Toggle = Figma's flat header action: a Button/Icon-Flat Medium (40px) centred in an Element-Size/Popular/Base (20px)

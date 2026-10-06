@@ -19,7 +19,7 @@ import { useToast } from "../../components/Toast";
 import { Toggle } from "../../components/Toggle";
 import { TopNavigation } from "../../components/TopNavigation";
 import { PlatformPhone } from "../PlatformPhone";
-import { Panel, PlaygroundFilterChip, PlaygroundToggle, option } from "./shared";
+import { Panel, PlaygroundFilterChip, PlaygroundToggle, keepOnHotUpdate, option } from "./shared";
 import type { AppLayerPage, AppLayerPageMeta, ExampleMap } from "./types";
 import "./form.css";
 
@@ -101,7 +101,7 @@ function FormPlayground() {
     </ZenProvider>
   ) : (
     <ZenProvider paint={false} portal={false} className="pef-stage">
-      <Box surface="surface" border="pale" radius="xl" padding={inset ? "none" : "xl"} className="pef-card">
+      <Box surface="surface" border="none" radius="xl" padding={inset ? "none" : "xl"} className="pef-card">
         {sticky ? <div className="pef-scroll">{formNode}</div> : formNode}
       </Box>
     </ZenProvider>
@@ -534,7 +534,7 @@ function CustomControlsExample() {
 
 /* ───────────── Page ───────────── */
 
-export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = {
+export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = keepOnHotUpdate(import.meta.hot, "pages", {
   form: {
     label: "Form",
     eyebrow: "Components / Form",
@@ -542,9 +542,9 @@ export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = {
     description: "Form, FormField, FormFieldset and FormActions with the useFormState hook: fields bind in one spread, errors show on blur and on submit, focus moves to the first invalid field, and the footer stacks on phones.",
     playground: FormPlayground,
   },
-};
+});
 
-export const examples: ExampleMap = {
+export const examples: ExampleMap = keepOnHotUpdate(import.meta.hot, "examples", {
   form: [
     { title: "Sign-up with inline validation", description: "Errors appear when you leave a field and on submit, and clear as you fix them. Submit it empty: focus jumps to the first invalid field. A valid submit shows a success toast.", render: () => <SignUpExample />, code: `const form = useFormState({
   initialValues: { name: "", email: "", password: "", role: "design", terms: false },
@@ -685,4 +685,4 @@ export const examples: ExampleMap = {
   </Form>
 </ZenProvider>` },
   ],
-};
+});

@@ -6,7 +6,7 @@
     {
       "name": "DescriptionList",
       "file": "src/components/DescriptionList/DescriptionList.tsx",
-      "description": "A semantic description list (dl) of term → description pairs: order summaries and receipts, profile details, specs\nand metadata. Typography comes from the Figma text styles (term Body/Small/Regular Base, value Body/Base/Medium\nStrongest, total Body/Base/Bold); rules use Border/Neutral/Pale, and the total's rule Border/Neutral/Solid (Divider High).\n\n  <DescriptionList items={[{ term: \"Subtotal\", description: \"$311.90\" }, { term: \"Total\", description: \"$321.90\", emphasis: true }]} />",
+      "description": "A semantic description list (dl) of term → description pairs: order summaries and receipts, profile details, specs\nand metadata. Figma: Description List (14859:79180, Layout × Divider, an Items slot) built from\n.Primitives/Description-List/Item (14859:78890, Layout × Emphasis × Divider, Term · Value · Action). Typography comes from the Figma text styles (term Body/Small/Regular Base, value Body/Base/Medium\nStrongest, total Body/Base/Bold); rules use Border/Neutral/Pale, and the total's rule Border/Neutral/Solid (Divider High).\n\n  <DescriptionList items={[{ term: \"Subtotal\", description: \"$311.90\" }, { term: \"Total\", description: \"$321.90\", emphasis: true }]} />",
       "deprecated": null,
       "extends": "Omit<HTMLAttributes<HTMLDListElement>, \"children\">",
       "props": [

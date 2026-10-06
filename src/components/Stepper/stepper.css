@@ -6,13 +6,10 @@
 .zen-stepper__hit { display: flex; width: 100%; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: transparent; color: inherit; font: inherit; text-align: center; }
 button.zen-stepper__hit { cursor: pointer; }
 button.zen-stepper__hit:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
-.zen-stepper[data-orientation="vertical"] .zen-stepper__hit { flex-direction: row; text-align: start; }
 
 /* Track: line · marker · line (gap XSmall). Lines are 2px; the outer lines of the first/last step stay invisible. */
 .zen-stepper__track { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.zen-stepper[data-orientation="vertical"] .zen-stepper__track { flex-direction: column; align-self: stretch; }
 .zen-stepper__line { --zen-stepper-line: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); flex: 1 1 0; height: 2px; background: var(--zen-stepper-line); }
-.zen-stepper[data-orientation="vertical"] .zen-stepper__line { width: 2px; height: auto; min-height: 21px; }
 .zen-stepper__step[data-position="first"] .zen-stepper__line[data-part="before"],
 .zen-stepper__step[data-position="last"] .zen-stepper__line[data-part="after"] { visibility: hidden; }
 .zen-stepper__step[data-state="focused"] .zen-stepper__line[data-part="before"],
@@ -20,11 +17,36 @@ button.zen-stepper__hit:focus-visible { outline: 3px solid var(--zen-color-focus
 .zen-stepper__step[data-state="error"] .zen-stepper__line { --zen-stepper-line: var(--zen-color-background-negative-solid-default, #d03e19); }
 
 .zen-stepper__contents { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
-.zen-stepper[data-orientation="vertical"] .zen-stepper__contents { flex: 1 1 auto; align-self: center; }
 .zen-stepper__title { color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-stepper__caption { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-stepper__step[data-state="error"] .zen-stepper__title { color: var(--zen-color-content-negative-base); }
 .zen-stepper__step[data-state="error"] .zen-stepper__caption { color: var(--zen-color-content-negative-strongest); }
+
+/* Vertical (Stepper-Bar/Vertical 1625:8656, Step-Vertical): Figma's row of [line · marker · line] beside the Contents,
+   which centre on the marker. A grid keeps that centring while the bar's outer lines take no room: Figma keeps the first
+   step's top line and the last step's bottom line as unfilled 21px frames (I1625:8673;4034:11448, I7042:22796;4034:11498),
+   so its bar starts 29px above the first marker; code drops them (code-only, user-approved 2026-10-02) so a vertical
+   stepper starts at its first marker and ends at its last. Rows: line · marker · line; the line rows share the free
+   height (1fr each) so the marker stays centred, and the Contents span all three (Figma Contents FILL, centred). A
+   middle step stays Figma's 82px (21 + 8 + 24 + 8 + 21). */
+.zen-stepper[data-orientation="vertical"] .zen-stepper__hit { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr); gap: 0 var(--zen-spacing-gap-xsmall, 8px); text-align: start; }
+.zen-stepper[data-orientation="vertical"] .zen-stepper__track { display: contents; }
+.zen-stepper[data-orientation="vertical"] .zen-stepper__line { grid-column: 1; justify-self: center; width: 2px; height: auto; min-height: 21px; }
+.zen-stepper[data-orientation="vertical"] .zen-stepper__line[data-part="before"] { grid-row: 1; margin-bottom: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-stepper[data-orientation="vertical"] .zen-stepper-item { grid-column: 1; grid-row: 2; justify-self: center; }
+.zen-stepper[data-orientation="vertical"] .zen-stepper__line[data-part="after"] { grid-row: 3; margin-top: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-stepper[data-orientation="vertical"] .zen-stepper__contents { grid-column: 2; grid-row: 1 / 4; align-self: center; }
+/* First step: no line above. Row 1 mirrors row 3, so it only holds what the Contents need to stay centred on the marker
+   (0 for a title, 7px for title + caption); the line below spans row 3 and a row of line (21) + gap (XSmall). */
+.zen-stepper[data-orientation="vertical"] .zen-stepper__step[data-position="first"] .zen-stepper__hit { grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr) minmax(calc(21px + var(--zen-spacing-gap-xsmall, 8px)), auto); }
+.zen-stepper[data-orientation="vertical"] .zen-stepper__step[data-position="first"] .zen-stepper__line[data-part="before"],
+.zen-stepper[data-orientation="vertical"] .zen-stepper__step[data-position="last"] .zen-stepper__line[data-part="after"] { display: none; }
+.zen-stepper[data-orientation="vertical"] .zen-stepper__step[data-position="first"] .zen-stepper__line[data-part="after"] { grid-row: 3 / 5; }
+/* Last step: the mirror — no line below. */
+.zen-stepper[data-orientation="vertical"] .zen-stepper__step[data-position="last"] .zen-stepper__hit { grid-template-rows: minmax(calc(21px + var(--zen-spacing-gap-xsmall, 8px)), auto) minmax(0, 1fr) auto minmax(0, 1fr); }
+.zen-stepper[data-orientation="vertical"] .zen-stepper__step[data-position="last"] .zen-stepper__line[data-part="before"] { grid-row: 1 / 3; }
+.zen-stepper[data-orientation="vertical"] .zen-stepper__step[data-position="last"] .zen-stepper-item { grid-row: 3; }
+.zen-stepper[data-orientation="vertical"] .zen-stepper__step[data-position="last"] .zen-stepper__contents { grid-row: 2 / 5; }
 
 /* Marker (.Primitives/Stepper/Item): Select-Item/Size/Small, Corner-Radius/Action/XSmall; the 36px Focus-Ring is a
    3px stroke 3px outside the marker. */

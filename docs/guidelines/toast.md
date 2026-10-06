@@ -20,7 +20,7 @@ Brief, non-blocking feedback about something the user just did or something the 
 | --- | --- | --- |
 | Type | `type` | neutral · subtle · info · positive · warning · negative |
 | Title / Caption | `title / children` | Body/Base/Bold + Body/Small/Regular |
-| Actions | `action` | one Small button: Overlay Inverse (neutral), Main Tertiary (subtle), Overlay White (colours) |
+| Actions | `action {label, onClick, keepOpen}` | one Small button: Overlay Inverse (neutral), Main Tertiary (subtle), Overlay White (colours); pressing it runs onClick, then dismisses the toast (keepOpen: true keeps it, e.g. when the action updates the toast in place) |
 | Close | `onClose` | dismiss control |
 | Icon | `icon` | type icon, or a custom node |
 | Stack | `ToastStack toasts · onDismiss · placement · duration · max · inline` | queue with auto-dismiss (paused on hover/focus), enter/exit + reflow motion, ZenPortal |
@@ -38,20 +38,20 @@ Figma Toast-Message (1579:13276): Corner-Radius/2XLarge surface with Effect/Popo
 | `title` | `ReactNode` | — | Figma Title (Body/Base/Bold). |
 | `children` | `ReactNode` | — | Figma Caption (Body/Small/Regular). |
 | `icon` | `boolean \| IconName \| ReactNode` | `true` | `true` (default) shows the type's icon, `false` hides it; an icon name or a node replaces it. |
-| `action` | `{ label: ReactNode; onClick?: () => void }` | — | Figma Actions: one Small button. |
+| `action` | `{ label: ReactNode; onClick?: () => void; keepOpen?: boolean }` | — | Figma Actions: one Small button. Pressing it runs `onClick`, then dismisses the toast through `onClose` (which useToast and ToastStack provide), so Undo or View never leaves a stale toast. `keepOpen: true` leaves it open, e.g. when the action updates this toast in place; calling dismiss(id) in `onClick` as well is harmless. |
 | `onClose` | `() => void` | — | Shows the close control (icon-x-small-line). |
 | `closeLabel` | `string` | — | Accessible name of the close control. Default: the locale's “Dismiss”. |
 | `className` | `string` | — |  |
 
 ### ToastStack
-Toast queue with motion: new toasts rise in (Slow, emphasized), leaving toasts fade/scale out while their row collapses (Base, exit curve) so the stack reflows smoothly. Portals through ZenPortal; aria-live is on each Toast.
+Toast queue with motion: a new toast rises in from the screen edge while its row opens (Slow, emphasized); a leaving toast fades and shrinks in place (Fast), then its row closes (Base) so the others slide over. Fixed stacks portal into a shared layer in the ZenPortal container; aria-live is on each Toast.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `toasts` (required) | `ToastItem[]` | — |  |
-| `onDismiss` (required) | `(id: ToastItem["id"]) => void` | — | Called when a toast times out or its close button is pressed; remove it from `toasts`. |
+| `onDismiss` (required) | `(id: ToastItem["id"]) => void` | — | Called when a toast times out, its close button is pressed or its action runs (unless `action.keepOpen`); remove it from `toasts`. It may be called again for an id already removed (an action that dismisses itself): ignore that. |
 | `placement` | `"bottom-center" \| "bottom-right" \| "top-center" \| "top-right"` | `"bottom-center"` |  |
-| `duration` | `number` | `5000` | Default auto-dismiss (ms). Toasts with an action get +3s. Timers pause while the stack is hovered or focused. |
+| `duration` | `number` | `5000` | Default auto-dismiss (ms). Toasts with an action get +3s. Each toast counts down from when it appears; timers pause while the stack is hovered or focused. |
 | `max` | `number` | `3` | Most toasts shown at once; older ones are dismissed. |
 | `inline` | `boolean` | `false` | Render in place (e.g. inside a demo card) instead of the fixed viewport layer. |
 | `closeLabel` | `string` | — | Accessible name of every toast's close button (a toast's own `closeLabel` wins). Default: the locale's “Dismiss”. |
@@ -84,6 +84,7 @@ interface ToastItem extends Omit<ToastProps, "onClose" | "className"> { id: stri
 - Show toasts with `const { toast } = useToast(); toast({ title: "Invite sent" })`; ZenProvider hosts the stack, so no ToastStack state is needed.
 - Keep it to one short title and at most one line of description.
 - Offer a single action, and prefer Undo for actions that change data.
+- Let the action close its toast: Undo/View runs onClick and then dismisses it, so onClick needs no dismiss(id) (calling it anyway is harmless); set action.keepOpen only when the action updates the toast in place.
 - Use Neutral for everyday confirmations (sent, saved, copied); reserve colours for status that matters (Positive when success is the news, e.g. a payment went through).
 - Auto-dismiss informational toasts (about 5s, longer with an action) and pause on hover/focus.
 - Show one toast at a time for the same event; replace, don't stack duplicates.

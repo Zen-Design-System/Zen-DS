@@ -27,6 +27,14 @@
           "deprecated": null
         },
         {
+          "name": "tone",
+          "type": "ContentTone",
+          "required": false,
+          "default": null,
+          "description": "Colour: a Color/Content token by its path, as on Text (\"light\", \"positive-base\", \"support-blue-light\"). Default:\nthe parent's colour (most icons sit in a component that colours them). Icons may use a colour family's Light level.",
+          "deprecated": null
+        },
+        {
           "name": "title",
           "type": "string",
           "required": false,
@@ -46,6 +54,7 @@
     }
   ],
   "types": {
+    "ContentTone": "type ContentTone = (typeof contentTones)[number]",
     "IconSize": "type IconSize = \"2xs\" | \"xs\" | \"sm\" | \"base\" | \"md\" | \"lg\" | \"xl\" | \"2xl\" | \"3xl\""
   }
 }

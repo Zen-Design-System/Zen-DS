@@ -4,7 +4,7 @@
 **Figma:** No Figma component: the Bottom-Sheet footer pattern (Large buttons, padding 12/20) on Surface/Default with a Border/Neutral/Pale top rule and the System/Bottom-Indicator safe area  
 **Import:** `import { ActionBar } from "@zen/design-system";`
 
-The footer bar that holds a screen's main actions: the mobile footer CTA (Large, full width, Primary on top) and the sticky action row of desktop detail and edit pages (Tertiary · Primary at the end).
+The footer bar that holds a screen's main actions: the mobile footer CTA (Large, full width, Primary on top), the phone dual footer (Large Tertiary · Primary side by side) and the sticky action row of desktop detail and edit pages (Tertiary · Primary at the end).
 
 ## Use it for
 - Phone screens whose main action must stay reachable while the content scrolls (Add to cart, Continue, Place order).
@@ -20,10 +20,10 @@ The footer bar that holds a screen's main actions: the mobile footer CTA (Large,
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Direction | `direction` | vertical (default, phones: Large full-width buttons, Primary on top) · horizontal (desktop: summary at the start, Tertiary · Primary at the end; under 480px the buttons split the row) |
+| Direction | `direction` | vertical (default: Large full-width buttons, Primary on top) · horizontal (Tertiary · Primary side by side: on a phone or any bar under 480px the summary takes its own row and two Large buttons split the next one, the Bottom-Sheet dual footer; on desktop the summary sits at the start and Medium buttons at the end) |
 | Position | `position` | sticky (default: pinned to the bottom of the scroll area, settles at the end) · fixed (viewport; an in-flow spacer keeps the end reachable) · static |
 | Surface | `surface` | default (Surface/Default + Pale top rule) · alt (Surface/Alt) · none; never a drop shadow |
-| Actions | `primaryAction · secondaryAction` | { label, onClick, level?, disabled?, startIcon?, type?, form? }: sized (lg vertical, md horizontal) and ordered for you |
+| Actions | `primaryAction · secondaryAction` | { label, onClick, level?, disabled?, startIcon?, type?, form? }: sized (lg vertical and on a phone-width horizontal bar, md on a wider horizontal bar) and ordered for you |
 | Custom actions | `children` | Buttons in visual order: Primary first when vertical, last when horizontal |
 | Summary | `summary` | a total, selection count or status line; wrap text that changes in role="status" |
 | System/Bottom-Indicator | `—` | bottom padding = max(Padding/Small, --zen-safe-area-bottom or env(safe-area-inset-bottom) + Padding/XSmall) |
@@ -32,14 +32,14 @@ The footer bar that holds a screen's main actions: the mobile footer CTA (Large,
 Generated from the TypeScript source; full JSON in `docs/api/action-bar.json`.
 
 ### ActionBar
-The footer bar that holds a screen's main actions: the mobile footer CTA (Large, full width, Primary on top) and the sticky action row of desktop detail and edit pages (Tertiary · Primary at the end). Surface/Default with a Border/Neutral/Pale top rule, padding Spacing/Padding/Small × Margin/Comfortable, and a bottom padding that clears the device safe area (`--zen-safe-area-bottom`, else `env(safe-area-inset-bottom)`). <ActionBar primaryAction={{ label: "Add to cart", onClick: add }} secondaryAction={{ label: "Save for later", onClick: save }} />
+The footer bar that holds a screen's main actions: the mobile footer CTA (Large, full width, Primary on top), the phone dual footer (Large Tertiary · Primary side by side) and the sticky action row of desktop detail and edit pages (Tertiary · Primary at the end). Surface/Default with a Border/Neutral/Pale top rule, padding Spacing/Padding/Small × Margin/Comfortable, and a bottom padding that clears the device safe area (`--zen-safe-area-bottom`, else `env(safe-area-inset-bottom)`). <ActionBar primaryAction={{ label: "Add to cart", onClick: add }} secondaryAction={{ label: "Save for later", onClick: save }} />
 
 Also accepts `HTMLAttributes<HTMLDivElement>`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `position` | `"sticky" \| "fixed" \| "static"` | `"sticky"` | sticky (default): stays at the bottom of the scrolling area while the content above scrolls, and settles at the end of it. fixed: pinned to the bottom of the viewport; an invisible spacer of the bar's height keeps the end of the page reachable. static: in the flow, e.g. the last row of a card. |
-| `direction` | `"vertical" \| "horizontal"` | `"vertical"` | vertical (default, phones and narrow panels): full-width stacked buttons, Primary on top. horizontal (desktop): the summary at the start, buttons hug their labels at the end, Tertiary then Primary; when the bar itself is narrower than 480px the summary takes its own row and the buttons split the next one (the Bottom-Sheet dual footer). |
+| `direction` | `"vertical" \| "horizontal"` | `"vertical"` | vertical (default): full-width stacked Large buttons, Primary on top; the phone footer for one main action. horizontal: Tertiary then Primary side by side. On a bar 480px or wider (desktop) the summary sits at the start and Medium buttons hug their labels at the end; on a narrower bar (a phone, a narrow panel) the summary takes its own row and Large buttons split the next one equally (the Figma Bottom-Sheet dual footer), for two peer actions such as Clear all · Show results. |
 | `surface` | `"default" \| "alt" \| "none"` | `"default"` | default: Surface/Default with a Pale (Border/Neutral/Pale) top rule. alt: Surface/Alt with the same rule. none: no fill and no rule, for a static bar inside a container that already has one. Never a drop shadow. |
 | `primaryAction` | `ActionBarAction` | — | The one main action (level primary). Rendered first (top) when vertical and last (end) when horizontal. |
 | `secondaryAction` | `ActionBarAction` | — | One alternative (level tertiary), next to the primary: below it when vertical, before it when horizontal. |
@@ -62,7 +62,7 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 
 ## ✅ Do
 - Hold one Primary, the screen's main action (harness: action-bar/one-primary).
-- On phones keep it vertical: Large full-width buttons, Primary on top, at most one Tertiary below (harness: action-bar/full-width-size, action-bar/primary-order).
+- On phones pick the direction by the actions: vertical when one main action leads (Add to cart, with Save for later below: Large full-width, Primary on top); horizontal when the two are a pair people choose between (Clear all · Show 6 prints, Decline · Accept: two Large buttons, Primary at the end) (harness: action-bar/full-width-size, action-bar/primary-order).
 - Prefer primaryAction / secondaryAction: they get the right size and order in both directions, so one set of actions serves phone and desktop.
 - Place a sticky bar as the last child of the scrolling content, inside the form it submits (type: "submit").
 - Say what the actions act on in the summary ("2 prints · $96.00", "3 unsaved changes") and announce changes with role="status".

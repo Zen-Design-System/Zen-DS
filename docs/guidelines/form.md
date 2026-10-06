@@ -13,7 +13,7 @@ Collect a set of values and submit them. Form is a <form noValidate> laid out as
 - The Cancel + submit footer of a page or card form → FormActions (it stacks on phones and can stick to the bottom).
 
 ## Use something else for
-- A 3–8 field create/edit flow in an overlay → ModalForm, with onSubmit={form.handleSubmit}.
+- A 3–8 field create/edit flow in an overlay → ModalForm (desktop) or BottomSheet (phone), with onSubmit={form.handleSubmit}.
 - Settings that apply at once → Toggle, outside any Form.
 - A single inline edit (rename a title) → HeadingField, saved on blur.
 - Filtering a list → Search and Chip filters; nothing to submit.
@@ -23,7 +23,7 @@ Collect a set of values and submit them. Form is a <form noValidate> laid out as
 | --- | --- | --- |
 | — | `useFormState({ initialValues, validate, onSubmit, focusOnError })` | returns values · errors · touched · isSubmitting · isValid · isDirty · submitCount · submitError · setValue · setError · setTouched · reset · handleSubmit · fieldError |
 | — | `form.field · selectField · dateField · numberField · checkboxField · toggleField · radioField(name, value) · autocompleteField · richTextField` | exactly the props each Zen field takes: <InputField label="Work email" {...form.field("email")} /> |
-| — | `<Form form={form} gap invalidMessage> · <Form onSubmit>` | gap lg between groups (default); a failed submit focuses the first invalid field and announces "N fields need attention" |
+| — | `<Form form={form} gap invalidMessage> · <Form onSubmit>` | gap lg between groups (default); a failed submit focuses the first invalid field (an AutocompleteField: its first Error tag's Remove button, else Add Item — never a valid tag) and announces "N fields need attention" |
 | .Primitives/Input Label + Help-Text | `<FormField label helpText error required optional labelTooltip labelAction>` | passes id, aria-labelledby, aria-describedby, aria-invalid and aria-required to its one child |
 | — | `<FormFieldset legend kind helpText error required optional direction gap hideLegend>` | kind: group · checkbox · radio (role=radiogroup) · toggle (rows md apart, full width) |
 | .Primitives/Modal/Actions (Button Dual) | `<FormActions align sticky inset>` | align end (default) · start · between; form < 480px or breakpoint mobile → full-width lg buttons, Primary on top; sticky → pinned bar, Pale top line, safe-area padding |

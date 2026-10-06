@@ -1,4 +1,4 @@
-import { createContext, isValidElement, useContext, useLayoutEffect, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactElement, type ReactNode } from "react";
+import { createContext, isValidElement, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactElement, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Avatar, type AvatarTheme } from "../Avatar";
 import { Badge } from "../Badge";
@@ -45,7 +45,7 @@ export interface ChatReaction {
 export interface ChatMessageProps {
   side: ChatSide;
   domain?: ChatDomain;
-  /** Others: who sent it (the avatar and, when `showName`, the name above the bubble). */
+  /** Others: who sent it (the avatar — the photo, or first + last name initials without `src` — and, when `showName`, the name above the bubble). */
   author?: ChatPerson;
   /** Show the author's name above the bubble (Figma Name; group chats). */
   showName?: boolean;
@@ -190,6 +190,15 @@ function ChatHoverActions({ kind, side, reaction, onReact, onMoreReactions, acti
   const [ownOpen, setOwnOpen] = useState<ChatHoverMenu>(null);
   // Opened with Enter / Space on its toolbar button (a click with detail 0): the list takes focus, as the bubble's does.
   const [fromKeys, setFromKeys] = useState(false);
+  // The Reaction-Bar takes focus once per opening (the chosen emoji, else the first). Popover merges refs with an inline
+  // callback, so this one is called again on every render: focusing each time pulled focus back from the emoji the reader
+  // had tabbed to (2026-10-02). Each opening mounts a new surface node, so focus only a node not seen before.
+  const pickerNode = useRef<HTMLDivElement | null>(null);
+  const focusPicker = useCallback((node: HTMLDivElement | null) => {
+    if (!node || node === pickerNode.current) return;
+    pickerNode.current = node;
+    node.querySelector<HTMLElement>(".zen-chat-picker__emoji[aria-pressed='true'], .zen-chat-picker__emoji")?.focus({ preventScroll: true });
+  }, []);
   const requested = openProp !== undefined ? openProp : ownOpen;
   const setOpen = (next: ChatHoverMenu) => { if (openProp === undefined) setOwnOpen(next); onOpenChange?.(next); };
   const has = (id: string) => actions.some((action) => action.id === id);
@@ -233,7 +242,7 @@ function ChatHoverActions({ kind, side, reaction, onReact, onMoreReactions, acti
         // Only the Figma Chat/Reaction-Bar shows: the Popover supplies anchoring and outside-click dismissal, its chrome is
         // stripped (zen-chat-message__hover-popover), exactly like the Reaction-Bar in the mobile hold layer.
         <ZenPortal><Popover open onOpenChange={(next) => { if (!next) close(reactRef); }} anchorRef={reactRef} align={side === "you" ? "end" : "start"} aria-label={t.react} className="zen-chat-message__hover-popover"
-          ref={(node) => { node?.querySelector<HTMLElement>(".zen-chat-picker__emoji[aria-pressed='true'], .zen-chat-picker__emoji")?.focus({ preventScroll: true }); }}
+          ref={focusPicker}
           onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setOpen(null); if (fromBubble && onReturnFocus) onReturnFocus(); else reactRef.current?.focus(); } }}>
           <ChatReactionPicker value={reaction} label={t.reactToMessage} onValueChange={(next) => { onReact?.(next); setOpen(null); reactRef.current?.focus(); }} onMore={onMoreReactions ? () => { setOpen(null); onMoreReactions(); } : undefined} />
         </Popover></ZenPortal>
@@ -290,7 +299,9 @@ export function ChatMessage({ side, domain = "social", author, showName = false,
     <div data-message-id={id} className={["zen-chat-message", className].filter(Boolean).join(" ")} data-side={side} data-domain={domain} data-reacted={reactions?.length ? "true" : undefined} data-continued={continued ? "true" : undefined} data-failed={failed ? "true" : undefined}>
       {side === "others" ? (
         <div className="zen-chat-message__avatar" aria-hidden={continued || undefined}>
-          {!continued && author ? <Avatar size="xsmall" theme={author.src ? "photo" : author.theme ?? "neutral"} background="subtle" src={author.src} alt={author.name} /> : null}
+          {/* No photo: two-letter initials (first + last name), as in the conversation list. Avatar keeps one letter for a
+              string at XSmall, so they are passed as an element (Caption/Medium fits two in the 24px circle). */}
+          {!continued && author ? <Avatar size="xsmall" theme={author.src ? "photo" : author.theme ?? "neutral"} background="subtle" src={author.src} alt={author.name}>{author.src ? null : <>{initialsOf(author.name)}</>}</Avatar> : null}
         </div>
       ) : null}
       <div className="zen-chat-message__stack">
@@ -459,7 +470,8 @@ function ChatCardFooter({ detail, time }: { detail?: ReactNode; time?: ReactNode
 /**
  * Figma Chat/Bubble/File (6182:57708): 220 wide, padding 12; a Small Dock-Icon by type (Doc blue · PDF red · Sheet green Solid,
  * Others Neutral Subtle) + a 32px text column: name (Body/Base/Bold) and size (Body/Small/Regular). In a Business message the
- * card is Bubble-Chat-Others-Business (radius 16) and the time sits beside the size.
+ * card is Bubble-Chat-Others-Business (radius 16) and the time sits beside the size. In the mobile (and Popular) type scale
+ * the text column hugs its 24 + 20 lines (min Image-Size/Small) instead of Figma's fixed 32px box, so they keep the 12px inset.
  */
 export function ChatFile({ side = "others", kind = "other", name, size, href, onOpen }: { side?: ChatSide; kind?: ChatFileKind; name: string; size?: ReactNode; href?: string; onOpen?: () => void }) {
   const { domain, time } = useContext(ChatMessageContext);
@@ -483,11 +495,12 @@ const callGlyph: Record<"audio" | "video", Record<ChatCallState, IconName>> = {
   audio: { "in-call": "icon-phone-incoming-solid", "out-call": "icon-phone-outgoing-solid", "in-missed": "icon-phone-x-solid", "out-missed": "icon-phone-x-solid" },
   video: { "in-call": "icon-video-in-solid", "out-call": "icon-video-out-solid", "in-missed": "icon-video-recorder-x-solid", "out-missed": "icon-video-recorder-x-solid" },
 };
-/** Figma copy: "Audio call" / "Missed audio call" (video alike); the button says Call Back (you missed it), Call Again (they missed yours) or Call back. */
+/** Figma copy: "Audio call" / "Missed audio call" (video alike); the button says Call back (a call, or one you missed — Figma's
+ * "Call Back") or Call again (they missed yours). Built-in labels are sentence case. */
 const callTitle = (t: ZenLabels, type: "audio" | "video", state: ChatCallState) =>
   state.endsWith("missed") ? (type === "audio" ? t.missedAudioCall : t.missedVideoCall) : type === "audio" ? t.audioCall : t.videoCall;
 const callAction = (t: ZenLabels): Record<ChatCallState, string> => ({ "in-call": t.callBack, "out-call": t.callBack, "in-missed": t.callBackMissed, "out-missed": t.callAgain });
-/** Business shows an action only on missed calls: Call Back (you missed it) · Send Voice (they missed yours). */
+/** Business shows an action only on missed calls: Call back (you missed it) · Send voice message (they missed yours). */
 const businessCallAction = (t: ZenLabels): Partial<Record<ChatCallState, string>> => ({ "in-missed": t.callBackMissed, "out-missed": t.sendVoice });
 
 /**
@@ -495,14 +508,19 @@ const businessCallAction = (t: ZenLabels): Partial<Record<ChatCallState, string>
  * solid call glyph (Red Solid only for an incoming missed call, else Neutral Subtle) + title/duration, then a full-width
  * Small action: Social = Button/Overlay Inverse; Business = Button/Flat Primary, on missed calls only (the card is
  * Bubble-Chat-Others-Business, radius 16, and the time sits beside the duration). Never a Secondary button.
+ * Without an action (a ringing call, an answered Business call) the text column hugs its lines (min Image-Size/Small 32)
+ * instead of Figma's fixed 32px box, so the text keeps the 12px a text bubble keeps below its last line (Padding/XSmall 8 +
+ * the row's Padding/2XSmall 4) in every typography mode. With an action the 32px box stays in Figma's 20/16 scale and hugs
+ * in the mobile (and Popular) type scale, so the lines never spill toward the action.
  */
-export function ChatCall({ side = "others", type = "audio", state = "in-call", detail, actionLabel, onAction }: { side?: ChatSide; type?: "audio" | "video"; state?: ChatCallState; detail?: ReactNode; /** The action's text (the locale's Call back / Call Again / Send Voice by default). */ actionLabel?: string; onAction?: () => void }) {
+export function ChatCall({ side = "others", type = "audio", state = "in-call", detail, actionLabel, onAction }: { side?: ChatSide; type?: "audio" | "video"; state?: ChatCallState; detail?: ReactNode; /** The action's text (the locale's Call back / Call again / Send voice message by default). */ actionLabel?: string; onAction?: () => void }) {
   const t = useZenLabels();
   const { domain, time } = useContext(ChatMessageContext);
   const alert = state === "in-missed";
   const action = domain === "business" ? businessCallAction(t)[state] : callAction(t)[state];
+  const showAction = Boolean(onAction) && (domain !== "business" || Boolean(action));
   return (
-    <div className="zen-chat-card zen-chat-call" data-side={side} data-domain={domain}>
+    <div className="zen-chat-card zen-chat-call" data-side={side} data-domain={domain} data-action={showAction ? "true" : undefined}>
       <div className="zen-chat-call__row">
         <DockIcon size="small" theme={alert ? "red" : "neutral"} background={alert ? "solid" : "subtle"} icon={callGlyph[type][state]} />
         <span className="zen-chat-file__text">
@@ -510,7 +528,7 @@ export function ChatCall({ side = "others", type = "audio", state = "in-call", d
           <ChatCardFooter detail={detail} time={time} />
         </span>
       </div>
-      {onAction && (domain !== "business" || action) ? (
+      {showAction ? (
         // zen-allow-small-full-width: Figma Chat/Bubble/Call — the Small action FILLs the 220px card (204px Social, 216px Business).
         <Button appearance={domain === "business" ? "flat" : "overlay"} level={domain === "business" ? "primary" : "inverse"} size="sm" className="zen-chat-call__action" onClick={onAction}>
           {actionLabel ?? action}
@@ -641,21 +659,88 @@ const scrollerOf = (el: HTMLElement) => {
 
 /**
  * Opens at the latest message and stays pinned to the bottom when new messages arrive — unless the reader has scrolled up
- * (more than 48px from the bottom), in which case their position is kept.
+ * (more than 48px from the bottom), in which case their position is kept. It pins again whenever the messages change size
+ * after the first layout (a ResizeObserver on the thread and its messages: web fonts settling, photos decoding, a reaction
+ * row appearing) and once `document.fonts.ready` resolves, so a thread never opens a few pixels above its last message.
  */
 export function ChatThread({ children, device = "mobile", "aria-label": ariaLabelProp, className }: { children: ReactNode; /** Figma Device: text caps at 220 (Mobile) / 516 (Desktop), photo grids at 260 / 400. */ device?: "mobile" | "desktop"; /** Accessible name of the thread; defaults to the locale's "Messages". */ "aria-label"?: string; className?: string }) {
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.messages;
   const ref = useRef<HTMLDivElement>(null);
   const pinned = useRef(true);
+  // The reader's last input and scroll position outlive the effect below, which re-runs whenever the messages change.
+  const inputAt = useRef(Number.NEGATIVE_INFINITY);
+  const lastTop = useRef(0);
+  // Whether the thread sat at its end at the last pin or scroll: an input unpins only a thread the reader had already left,
+  // not one a photo or reaction row has just grown a moment before it is re-pinned.
+  const atEnd = useRef(true);
+  // The reader's own new message brings the thread back to its end, wherever they had scrolled. Only a real append counts:
+  // the last message is one never seen before and the previous newest is now right above it, so older history loading,
+  // a removed last message or an Undo that puts one back keep the reader's place. Messages are told apart by their
+  // `id` (data-message-id), else by their text.
+  const newestKey = useRef<string | null>(null);
+  const seenKeys = useRef(new Set<string>());
   useLayoutEffect(() => {
     const el = ref.current;
-    const scroller = el && scrollerOf(el);
-    if (!scroller) return undefined;
-    if (pinned.current) scroller.scrollTop = scroller.scrollHeight;
-    const onScroll = () => { pinned.current = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 48; };
-    scroller.addEventListener("scroll", onScroll, { passive: true });
-    return () => scroller.removeEventListener("scroll", onScroll);
+    if (!el) return undefined;
+    // The element that scrolls can change after the first layout (the thread only overflows once the fonts load), so it is
+    // looked up again on every pin and the reader's position is tracked on whichever one it is.
+    let scroller: HTMLElement | null = null;
+    const inputs = ["wheel", "touchstart", "touchmove", "pointerdown", "keydown", "focusin"] as const;
+    // An input while the thread is away from its end (a click on an older message, Tab into it, a scrollbar drag) means the
+    // reader is there: unpin, so a re-render (a new message, a call card flipping) no longer snaps the thread, and an open
+    // message menu with it, to the bottom (2026-10-02).
+    const onInput = () => {
+      inputAt.current = performance.now();
+      if (!atEnd.current) pinned.current = false;
+    };
+    // Only the reader moving up (a scroll within a second of their wheel, touch, pointer, key or focus input) leaves the end.
+    // Text reflowing as the fonts load, photos decoding or scroll anchoring keeping a message in place move it with no
+    // input: those must not unpin the thread.
+    const onScroll = () => {
+      if (!scroller) return;
+      const top = scroller.scrollTop;
+      atEnd.current = scroller.scrollHeight - top - scroller.clientHeight < 48;
+      if (atEnd.current) pinned.current = true;
+      else if (top < lastTop.current && performance.now() - inputAt.current < 1000) pinned.current = false;
+      lastTop.current = top;
+    };
+    const listen = (node: HTMLElement | null, on: boolean) => {
+      if (!node) return;
+      const method = on ? "addEventListener" : "removeEventListener";
+      node[method]("scroll", onScroll, { passive: true });
+      inputs.forEach((name) => node[method](name, onInput, { passive: true }));
+    };
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => pin());
+    const pin = () => {
+      const next = scrollerOf(el);
+      if (next !== scroller) {
+        listen(scroller, false);
+        if (scroller && scroller !== el) observer?.unobserve(scroller);
+        scroller = next;
+        listen(scroller, true);
+        // A screen or panel that scrolls the thread can change size on its own (a composer growing under it).
+        if (scroller && scroller !== el) observer?.observe(scroller);
+      }
+      if (!scroller) return;
+      if (pinned.current) scroller.scrollTop = scroller.scrollHeight;
+      lastTop.current = scroller.scrollTop;
+      atEnd.current = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 48;
+    };
+    if (observer) [el, ...Array.from(el.children)].forEach((node) => observer.observe(node));
+    const messages = Array.from(el.querySelectorAll(":scope > .zen-chat-message"));
+    const keyOf = (message: Element) => message.getAttribute("data-message-id") ?? message.textContent ?? "";
+    const last = messages.at(-1);
+    if (last) {
+      const appended = newestKey.current !== null && messages.length > 1 && keyOf(messages[messages.length - 2]) === newestKey.current;
+      if (appended && !seenKeys.current.has(keyOf(last)) && last.getAttribute("data-side") === "you") pinned.current = true;
+      newestKey.current = keyOf(last);
+    }
+    messages.forEach((message) => seenKeys.current.add(keyOf(message)));
+    pin();
+    let live = true;
+    void document.fonts?.ready.then(() => { if (live) requestAnimationFrame(() => { if (live) pin(); }); });
+    return () => { live = false; observer?.disconnect(); listen(scroller, false); };
   }, [children]);
   return <ChatDeviceContext.Provider value={device}><div ref={ref} className={["zen-chat-thread", className].filter(Boolean).join(" ")} data-device={device} role="log" aria-label={ariaLabel} aria-live="polite">{children}</div></ChatDeviceContext.Provider>;
 }
@@ -674,7 +759,11 @@ export interface ChatComposerProps {
   quickAction?: { icon: IconName | ReactElement; label: string; onClick?: () => void };
   device?: "mobile" | "desktop";
   disabled?: boolean;
-  /** Replying to a message: a "Replying to …" bar above the field (× or Escape cancels). Attach it to what you send. */
+  /**
+   * Replying to a message: a "Replying to …" bar above the field (× or Escape cancels). Attach it to what you send.
+   * Setting it (or switching to another message) moves focus into the field, so Reply leaves the caret ready to type;
+   * a composer that mounts with a reply already set does not take focus.
+   */
   replyTo?: ChatReplyTarget;
   onCancelReply?: () => void;
   className?: string;
@@ -692,6 +781,17 @@ export function ChatComposer({ onSend, placeholder: placeholderProp, label: labe
   const label = labelProp ?? t.message;
   const quickAction = quickActionProp ?? { icon: "icon-thumbs-up-line" as IconName, label: t.sendLike };
   const [text, setText] = useState("");
+  const fieldRef = useRef<HTMLTextAreaElement>(null);
+  // Reply moves focus into the field. A passive effect on purpose: it runs after the unmount cleanups of the same commit,
+  // so it wins over the hold layer / More menu handing focus back to the message they were opened from.
+  const replyId = replyTo?.id;
+  const lastReplyId = useRef(replyId);
+  useEffect(() => {
+    const previous = lastReplyId.current;
+    lastReplyId.current = replyId;
+    if (replyId === undefined || replyId === previous || disabled) return;
+    fieldRef.current?.focus();
+  }, [replyId, disabled]);
   // Figma Chat-Control (both devices): plus · mic · photo; while typing only plus stays so the field can grow.
   const leading = actions ?? [{ icon: "icon-plus-circle-line" as IconName, label: t.addAttachment }, { icon: "icon-microphone-line" as IconName, label: t.recordVoice }, { icon: "icon-image-line" as IconName, label: t.sendPhoto }];
   const typing = text.trim().length > 0;
@@ -710,7 +810,7 @@ export function ChatComposer({ onSend, placeholder: placeholderProp, label: labe
         {(typing ? leading.slice(0, 1) : leading).map(action)}
       </div>
       <div className="zen-chat-composer__field">
-        <textarea aria-label={label} className={typographyStyles["Body/Base/Medium"]} rows={1} value={text} placeholder={placeholder} disabled={disabled} onChange={(event) => setText(event.target.value)} onKeyDown={onKeyDown} />
+        <textarea ref={fieldRef} aria-label={label} className={typographyStyles["Body/Base/Medium"]} rows={1} value={text} placeholder={placeholder} disabled={disabled} onChange={(event) => setText(event.target.value)} onKeyDown={onKeyDown} />
         {/* Figma: a flat emoji action sits inside the field's trailing edge. */}
         {action({ icon: "icon-face-smile-line", label: t.addEmoji, onClick: onEmoji })}
       </div>
@@ -736,7 +836,7 @@ export interface ChatConversationItemProps {
   preview?: ReactNode;
   /** Last activity was a call (State=Audio Missed Call · Video Missed Call · Audio In/Out-Call · Ongoing-Call). */
   call?: ChatConversationCall;
-  /** Override the call label (the locale's "Missed Call", "Audio Call", "Ongoing Call…"). */
+  /** Override the call label (the locale's "Missed call", "Audio call", "Ongoing call…"). */
   callLabel?: ReactNode;
   time: ReactNode;
   unread?: boolean;
@@ -745,8 +845,11 @@ export interface ChatConversationItemProps {
   onClick?: () => void;
 }
 
-/** Two-letter initials for people without a photo (the avatar is decorative next to the visible name). */
-const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => Array.from(part)[0]).join("").toUpperCase();
+/** Two-letter initials for people without a photo: first + last name ("Nguyen Van Bao" → "NB"); one word gives one letter. */
+const initialsOf = (name: string) => {
+  const words = name.split(/\s+/).filter(Boolean);
+  return (words.length > 1 ? [words[0], words[words.length - 1]] : words).map((part) => Array.from(part)[0]).join("").toUpperCase();
+};
 
 /** The preview's call icon, label (its ZenLabels key; `callLabel` overrides it) and tone. */
 const callMeta: Record<ChatConversationCall, { icon: IconName | null; label: "previewMissedCall" | "previewAudioCall" | "previewOngoingCall"; tone: "negative" | "positive" | "neutral" }> = {

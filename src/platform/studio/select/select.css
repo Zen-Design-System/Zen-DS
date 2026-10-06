@@ -1,0 +1,194 @@
+/* Zen Studio selection overlay and Layers panel (spec §5). Outlines live in canvas-viewport coordinates. */
+
+/* Above the world (z 1), below the frame chrome (20) and zoom controls (21) the canvas draws over it. */
+.studio-selection { position: absolute; z-index: 10; inset: 0; overflow: hidden; pointer-events: none; }
+/* A playground in its own full screen (App Shell) or a presented frame is used, not picked. */
+.studio-viewport:has(.studio-world [data-fullscreen="true"]) > .studio-selection { display: none; }
+.studio-selection__capture { position: absolute; inset: 0; cursor: default; pointer-events: auto; touch-action: none; }
+
+.studio-selection__outline,
+.studio-selection__padding,
+.studio-selection__gap,
+.studio-selection__free { position: absolute; top: 0; left: 0; box-sizing: border-box; pointer-events: none; }
+/* Selection is Info blue, like Figma, so it never competes with the examples' own accent (pink) colours. */
+.studio-selection__outline[data-kind="hover"] { box-shadow: inset 0 0 0 1px var(--zen-color-border-info-solid-default); }
+.studio-selection__outline[data-kind="selected"] { box-shadow: 0 0 0 2px var(--zen-color-border-info-solid-default); }
+.studio-selection__outline[data-kind="instance"] { box-shadow: inset 0 0 0 1px var(--zen-color-border-info-subtle-default); }
+.studio-selection__outline[data-kind="extra"] { box-shadow: 0 0 0 1px var(--zen-color-border-info-solid-default); }
+/* A selected part's owner: the component it belongs to, dashed (the context the deep select happens in). */
+/* zen-allow-dashed-color: selection chrome (the owner of a selected part), not a content divider — Info blue only. */
+.studio-selection__outline[data-kind="owner"] { outline: 1px dashed var(--zen-color-border-info-solid-default); outline-offset: 0; }
+.studio-selection__padding { background: var(--zen-color-background-info-subtle-default); }
+.studio-selection__gap { background: repeating-linear-gradient(-45deg, var(--zen-color-border-info-solid-default) 0 1px, transparent 1px 6px); opacity: .45; }
+/* A Grid column wider than its only item: free space no gap token sizes (Warning, so it never reads as a gap). */
+.studio-selection__free { background: var(--zen-color-background-warning-subtle-default); }
+
+/* Spacing on the canvas (SpacingLayer): an area under the pointer (or with its picker open) is tinted stronger and
+   named by a pill at its centre ("gap · md · 16"). The hit areas sit above the capture layer (z auto) and are the only
+   overlay parts that take the pointer; they are not tab stops (the inspector's Layout section is the keyboard path). */
+.studio-selection__padding[data-hover="true"] { background: var(--zen-color-background-info-subtle-pressed); box-shadow: inset 0 0 0 1px var(--zen-color-border-info-subtle-default); }
+.studio-selection__gap[data-hover="true"] { background-color: var(--zen-color-background-info-subtle-default); opacity: .9; }
+.studio-selection__free[data-hover="true"] { background: var(--zen-color-background-warning-subtle-pressed); box-shadow: inset 0 0 0 1px var(--zen-color-border-warning-subtle-default); }
+.studio-selection__spacing-hit { position: absolute; z-index: 1; top: 0; left: 0; box-sizing: border-box; cursor: default; pointer-events: auto; touch-action: none; }
+.studio-selection__spacing-hit[data-editable="true"] { cursor: pointer; }
+.studio-selection__spacing-anchor { position: absolute; top: 0; left: 0; pointer-events: none; }
+/* Same pill as the name tag (Info/Solid/Pressed + Content/Inverse/Strongest: 8.1:1 light, 14:1 dark). */
+.studio-selection__spacing-label {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: var(--zen-color-background-info-solid-pressed);
+  color: var(--zen-color-content-inverse-strongest);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* The spacing picker and the read-only note live in the chrome portal (chrome modes), placed at the clicked area. */
+.studio-spacing-scope { display: contents; }
+.studio-spacing__option { display: flex; min-width: 0; align-items: baseline; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-spacing__px { color: var(--zen-color-content-neutral-base); }
+.studio-spacing-note {
+  position: absolute;
+  z-index: 30;
+  display: grid;
+  width: max-content;
+  max-width: min(280px, calc(100vw - 32px));
+  box-sizing: border-box;
+  gap: var(--zen-spacing-gap-2-xsmall, 4px);
+  padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px);
+  outline: 1px solid var(--zen-popover-border);
+  border-radius: var(--zen-corner-radius-large);
+  background: var(--zen-popover-background);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+  color: var(--zen-color-content-neutral-strongest);
+}
+.studio-spacing-note p { margin: 0; overflow-wrap: anywhere; }
+.studio-spacing-note__hint { color: var(--zen-color-content-neutral-base); }
+
+/* Name tag: "Button  button.tsx:84" above the outline (below when there is no room). Small text on a saturated #0A85FF
+   read poorly (user, 2026-10-03), so the pill takes the deeper Info/Solid/Pressed (#004E98 light, #CAE2FF dark) with
+   Content/Inverse/Strongest text: 8.1:1 in light chrome, 14:1 in dark. The outline itself stays Info/Solid. */
+.studio-selection__tag {
+  position: absolute;
+  left: -2px;
+  display: inline-flex;
+  max-width: max(100%, 240px);
+  align-items: center;
+  gap: var(--zen-spacing-gap-2-xsmall, 4px);
+  padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px);
+  overflow: hidden;
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: var(--zen-color-background-info-solid-pressed);
+  color: var(--zen-color-content-inverse-strongest);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.studio-selection__tag[data-place="above"] { bottom: calc(100% + 4px); }
+.studio-selection__tag[data-place="below"] { top: calc(100% + 4px); }
+.studio-selection__outline[data-kind="hover"] > .studio-selection__tag { left: 0; }
+
+/* Resize handles (ResizeLayer): corner squares and edge strips on the selected outline, in the outline's Info blue.
+   They sit above the spacing hit areas (z 1) and labels (z 2), so a press on a strip resizes and the spacing areas keep
+   the pointer everywhere else. Pointer-only: the inspector's Layout section is the keyboard path. */
+.studio-resize__handle { position: absolute; z-index: 3; top: 0; left: 0; box-sizing: border-box; pointer-events: auto; touch-action: none; }
+.studio-resize__handle::after {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid var(--zen-color-border-info-solid-default);
+  background: var(--zen-color-background-surface-default);
+  content: "";
+}
+/* Corners: an 8px square centred in the 12px hit area, as in Figma. */
+.studio-resize__handle[data-kind="corner"]::after { inset: var(--zen-spacing-padding-3-xsmall, 2px); }
+/* Edges: a short bar at the middle of the strip, shorter on a short edge (hidden when there is no room for one). */
+.studio-resize__handle[data-kind="edge"]::after { top: 50%; left: 50%; border-radius: var(--zen-corner-radius-rounded, 1000px); translate: -50% -50%; }
+.studio-resize__handle:is([data-handle="e"], [data-handle="w"])::after { width: 4px; height: 16px; max-height: calc(100% - 4px); }
+.studio-resize__handle:is([data-handle="n"], [data-handle="s"])::after { width: 16px; max-width: calc(100% - 4px); height: 4px; }
+.studio-resize__handle[data-short="true"]::after { display: none; }
+.studio-resize__handle:hover::after { background: var(--zen-color-background-info-solid-default); }
+.studio-resize__handle:is([data-handle="e"], [data-handle="w"]),
+.studio-resize__cover:is([data-handle="e"], [data-handle="w"]) { cursor: ew-resize; }
+.studio-resize__handle:is([data-handle="n"], [data-handle="s"]),
+.studio-resize__cover:is([data-handle="n"], [data-handle="s"]) { cursor: ns-resize; }
+.studio-resize__handle:is([data-handle="nw"], [data-handle="se"]),
+.studio-resize__cover:is([data-handle="nw"], [data-handle="se"]) { cursor: nwse-resize; }
+.studio-resize__handle:is([data-handle="ne"], [data-handle="sw"]),
+.studio-resize__cover:is([data-handle="ne"], [data-handle="sw"]) { cursor: nesw-resize; }
+/* While dragging: the resize cursor everywhere (the handle holds the pointer capture), no hover underneath. */
+.studio-resize__cover { position: absolute; z-index: 4; inset: 0; pointer-events: auto; touch-action: none; }
+/* The size pill under the element ("320 × 120", "Hug · 312 × 40"): the name tag's pill (Info/Solid/Pressed +
+   Content/Inverse/Strongest), centred under the element, or inside its bottom when the canvas ends below it. */
+.studio-resize__pill {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: var(--zen-color-background-info-solid-pressed);
+  color: var(--zen-color-content-inverse-strongest);
+  white-space: nowrap;
+  pointer-events: none;
+  translate: -50% var(--zen-spacing-gap-xsmall, 8px);
+}
+.studio-resize__pill[data-place="inside"] { translate: -50% calc(-100% - var(--zen-spacing-gap-xsmall, 8px)); }
+
+/* ───────────── Layers panel ───────────── */
+
+.studio-layers { display: flex; height: 100%; min-height: 0; flex-direction: column; }
+.studio-layers__bar { display: flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); }
+.studio-layers__bar > .zen-search { flex: 1 1 auto; min-width: 0; }
+.studio-layers p { margin: 0; }
+.studio-layers__meta { display: flex; flex: 0 0 auto; min-width: 0; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0 var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-2-xsmall, 4px); color: var(--zen-color-content-neutral-base); }
+.studio-layers__meta > p { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-layers__show-all { display: inline-flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); cursor: pointer; }
+.studio-layers__tree { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-small, 12px); }
+.studio-layers__row {
+  display: flex;
+  min-width: 0;
+  height: 28px;
+  box-sizing: border-box;
+  align-items: center;
+  gap: var(--zen-spacing-gap-2-xsmall, 4px);
+  padding-right: var(--zen-spacing-padding-xsmall, 8px);
+  padding-left: calc(var(--zen-spacing-padding-2-xsmall, 4px) + var(--studio-depth, 0) * var(--zen-spacing-padding-small, 12px));
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  color: var(--zen-color-content-neutral-strongest);
+  cursor: default;
+  user-select: none;
+}
+/* Row states follow Zen's list rows (ListItem / Sidebar): Neutral/Flat hover and pressed, Active/Neutral/Subtle selected
+   with the text kept neutral, Neutral/Subtle/Hover on a selected row. */
+.studio-layers__row:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+.studio-layers__row:active { background: var(--zen-color-background-neutral-flat-pressed, rgb(1 1 1 / 9%)); }
+.studio-layers__row[aria-selected="true"] { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 11%)); }
+.studio-layers__row[aria-selected="true"]:hover { background: var(--zen-color-background-neutral-subtle-hover); }
+.studio-layers__row:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid); }
+.studio-layers__row[data-kind="frame"] { margin-top: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-layers__chevron { display: inline-flex; flex: 0 0 auto; width: 16px; height: 16px; align-items: center; justify-content: center; color: var(--zen-color-content-neutral-base); transition: transform var(--zen-motion-duration-fast) var(--zen-motion-ease-standard); }
+.studio-layers__chevron[data-open="true"] { transform: rotate(90deg); }
+.studio-layers__chevron[data-leaf="true"] { visibility: hidden; }
+.studio-layers__icon { display: inline-flex; flex: 0 0 auto; color: var(--zen-color-content-neutral-base); }
+.studio-layers__row[data-component="true"] .studio-layers__icon { color: var(--zen-color-content-support-purple-base); }
+.studio-layers__name { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-layers__count { flex: 0 0 auto; color: var(--zen-color-content-neutral-base); }
+/* A DOM part's class beside its tag; it gives way first when the row is narrow. */
+.studio-layers__hint { min-width: 0; flex: 1 1 0; overflow: hidden; color: var(--zen-color-content-neutral-base); text-align: end; text-overflow: ellipsis; white-space: nowrap; }
+/* With a hint the name keeps its width; the hint takes what is left (and truncates first). */
+.studio-layers__row:has(> .studio-layers__hint) > .studio-layers__name { flex: 0 1 auto; }
+.studio-layers__row[data-kind="panel"] { margin-top: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-layers__row[data-kind="panel"] .studio-layers__icon { color: var(--zen-color-content-neutral-strongest); }
+/* Parts are read-only: the folder and its rows in the base tone, components without the Layers hue. */
+.studio-layers__row[data-kind="parts"],
+.studio-layers__row[data-kind="part"] { color: var(--zen-color-content-neutral-base); }
+.studio-layers__row[data-kind="part"][data-component="true"] .studio-layers__icon { color: var(--zen-color-content-neutral-base); }
+.studio-layers__row[data-kind="part"][aria-selected="true"] { color: var(--zen-color-content-neutral-strongest); }
+.studio-layers__more { padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-base); }
+.studio-layers__empty { padding: var(--zen-spacing-padding-large, 20px) var(--zen-spacing-padding-small, 12px); }
+@media (prefers-reduced-motion: reduce) {
+  .studio-layers__chevron { transition: none; }
+}

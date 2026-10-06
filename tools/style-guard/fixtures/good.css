@@ -15,3 +15,5 @@
 .pe-good-separator { box-shadow: 0 -1px 0 0 var(--zen-color-border-neutral-pale-default); }
 .pe-good-g { padding-inline-end: calc(var(--zen-element-size-popular-base) + var(--zen-spacing-gap-xsmall)); }
 .pe-good-scope { --zen-typography-font-size-heading-1: 32px; --zen-spacing-gap-small: 12px; }
+.pe-good-media { position: absolute; inset: 0; }
+.pe-good-pin { position: absolute; right: var(--zen-spacing-padding-small); bottom: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)); top: auto; }

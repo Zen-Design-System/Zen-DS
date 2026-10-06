@@ -1,0 +1,70 @@
+/* Studio inspector composites (inspector/controls/): the alignment box v2, the Layout groups, the columns field.
+   Spec docs/research/studio-inspector-redesign-2026-10-03.md (Phases 3, 4, 6). Tokens only. */
+
+/* ── Alignment box: 3×3 targets of 24×20 on Background/Neutral/Pale (Figma's alignment control) ── */
+.studio-align-box { display: grid; flex: 0 0 auto; grid-template-columns: repeat(3, 24px); grid-template-rows: repeat(3, 20px); padding: var(--zen-spacing-padding-3-xsmall, 2px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-neutral-pale-default); }
+.studio-align-box__target { position: relative; display: grid; min-width: 0; min-height: 0; padding: var(--zen-spacing-padding-3-xsmall, 2px); place-items: center; border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: transparent; color: var(--zen-color-content-neutral-light); cursor: pointer; }
+.studio-align-box__target:hover:not(:disabled) { background: var(--zen-color-background-surface-hover); }
+.studio-align-box__target:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--zen-color-focus-neutral-solid); }
+.studio-align-box__target:disabled { cursor: default; }
+.studio-align-box__dot { width: 4px; height: 4px; grid-area: 1 / 1; border-radius: var(--zen-corner-radius-rounded, 999px); background: currentColor; }
+
+/* The bars: hidden until the target is chosen (Accent/Base), the effective default (Neutral/Base) or hovered (ghost). */
+.studio-align-box__bars { display: none; width: 100%; height: 100%; grid-area: 1 / 1; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-align-box__target[data-mark] .studio-align-box__dot,
+.studio-align-box__target:hover:not(:disabled) .studio-align-box__dot { display: none; }
+.studio-align-box__target[data-mark] .studio-align-box__bars,
+.studio-align-box__target:hover:not(:disabled) .studio-align-box__bars { display: flex; }
+.studio-align-box__target[data-mark="chosen"] { color: var(--zen-color-content-accent-base); }
+.studio-align-box__target[data-mark="default"] { color: var(--zen-color-content-neutral-base); }
+.studio-align-box__bars > span { border-radius: var(--zen-corner-radius-rounded, 999px); background: currentColor; }
+/* zen-allow-slot-size: the bars are drawn glyphs (Figma's alignment marks), not slots that hold content */
+.studio-align-box__bars[data-flow="row"] { flex-direction: row; }
+/* zen-allow-slot-size: unequal lengths, 2px thick, across the flow (vertical bars for a row) */
+.studio-align-box__bars[data-flow="row"] > span { width: 2px; height: 60%; }
+.studio-align-box__bars[data-flow="row"] > span:nth-child(2) { height: 85%; }
+.studio-align-box__bars[data-flow="row"] > span:nth-child(3) { height: 45%; }
+.studio-align-box__bars[data-flow="column"] { flex-direction: column; }
+/* zen-allow-slot-size: horizontal bars for a column */
+.studio-align-box__bars[data-flow="column"] > span { width: 60%; height: 2px; }
+.studio-align-box__bars[data-flow="column"] > span:nth-child(2) { width: 85%; }
+.studio-align-box__bars[data-flow="column"] > span:nth-child(3) { width: 45%; }
+/* Cross-axis position (align) and main-axis position (justify) inside the target. */
+.studio-align-box__bars[data-align="start"] { align-items: flex-start; }
+.studio-align-box__bars[data-align="center"] { align-items: center; }
+.studio-align-box__bars[data-align="end"] { align-items: flex-end; }
+.studio-align-box__bars[data-align="stretch"] { align-items: stretch; }
+.studio-align-box__bars[data-align="stretch"][data-flow="row"] > span { height: auto; }
+.studio-align-box__bars[data-align="stretch"][data-flow="column"] > span { width: auto; }
+.studio-align-box__bars[data-justify="start"] { justify-content: flex-start; }
+.studio-align-box__bars[data-justify="center"] { justify-content: center; }
+.studio-align-box__bars[data-justify="end"] { justify-content: flex-end; }
+.studio-align-box__bars[data-justify="spread"] { justify-content: space-between; }
+
+/* ── Layout groups: a label above, the controls, the fixed trailing slot (as the Size group) ── */
+.studio-layout-group { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-layout-group__label { color: var(--zen-color-content-neutral-base); }
+.studio-layout-group__row { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-layout-group__row[data-pair="true"] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); }
+.studio-layout-group__slot { display: inline-flex; width: var(--zen-button-size-xsmall, 24px); min-width: var(--zen-button-size-xsmall, 24px); align-items: center; justify-content: center; }
+/* Alignment box beside its right column (Gap, Cross axis), Figma UI3's arrangement. */
+.studio-layout-align { display: grid; min-width: 0; grid-template-columns: auto minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: start; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-layout-align__side { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* A field or segmented control fills its cell (the pair's half, or the row up to the slot). */
+.studio-layout-field { display: flex; min-width: 0; }
+.studio-layout-field > .studio-enum,
+.studio-layout-field > .zen-input-field,
+.studio-layout-field .zen-number-field { width: 100%; min-width: 0; }
+.studio-layout-seg { display: flex; width: 100%; min-width: 0; }
+.studio-layout-seg > .zen-segmented { width: 100%; min-width: 0; }
+.studio-layout-seg[data-default="true"] .zen-segmented__item[data-selected="true"]:not(:disabled) { color: var(--zen-color-content-neutral-base); }
+
+/* No-effect warning: the note and its Remove. */
+.studio-layout-warning { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-layout-warning__text { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
+.studio-layout-warning__text > .zen-icon { flex: 0 0 auto; }
+.studio-layout-warning > .zen-button { flex: 0 0 auto; }
+
+/* ── Columns (Grid): mode, then the field; a track list gets a proportional preview ── */
+.studio-columns__tracks { display: flex; min-width: 0; height: var(--zen-spacing-gap-xsmall, 8px); gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-columns__track { min-width: 0; border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-background-neutral-subtle-default); }

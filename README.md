@@ -5,7 +5,7 @@ React 19 + TypeScript components, design tokens and icons generated from the Zen
 
 - **Documented components** (Button, inputs, Table, Dialog, Sidebar, Chat, Chart, layout, text, app shell…), each with
   Do/Don't guidelines, generated props docs and machine-checked usage rules.
-- **Foundations:** 2,176 Figma variables in 7 mode axes (theme, component theme, density, radius, emphasis,
+- **Foundations:** 2,179 Figma variables in 7 mode axes (theme, component theme, density, radius, emphasis,
   breakpoint, typography), 36 text styles, 18 effect styles, 1,598 icons.
 - **AI-ready:** agents building apps start at [`AGENTS.consumer.md`](AGENTS.consumer.md) (shipped with the package);
   [`llms.txt`](llms.txt) indexes every doc. Agents working on the design system itself read `AGENTS.md` (repo only).

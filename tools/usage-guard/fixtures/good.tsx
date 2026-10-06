@@ -17,6 +17,9 @@ export const Good = () => <>
   <BadgeCounter value="99+" />
   <Avatar theme="photo" src={url} alt="Ava Chen" />
   <Avatar theme="blue" alt="">AC</Avatar>
+  <Avatar theme="green" background="subtle" alt="Ava Chen">AC</Avatar>
+  <Avatar theme="teal" background="solid" src={url} alt="Minh Tran" />
+  <Avatar theme="indigo" background="solid" alt="Bao Le">BL</Avatar>
   <Tooltip content="Duplicate"><IconButton onClick={act} aria-label="Duplicate" icon={<Icon name="icon-copy-line" />} /></Tooltip>
   {/* A plain alias of an icon that only comes in cuts is a valid name (draws icon-search-medium-line). */}
   <IconButton onClick={act} aria-label="Search" icon="icon-search-line" />
@@ -85,12 +88,19 @@ export const Good = () => <>
   <FileUpload label="Contract" accept="application/pdf" caption="PDF only. Max 2 MB" onFilesAdd={add} />
   <SidePanel open={open} onOpenChange={setOpen} title="Edit project" primaryAction={{ label: "Save changes" }} />
   <IconButton onClick={act} appearance="flat" level="primary" size="sm" aria-label="Close" icon={<Icon name="icon-x-small-line" />} />
+  <TableMedia media={<Flag name="Vietnam" />}>Vietnam</TableMedia>
+  <ListItem title="United Kingdom" caption="+44" leading={<Flag name="United Kingdom" size="lg" />} onClick={pick} />
   <ListItem title="brand.pdf" leading={<FileIcon format={fileIconFormatOf("brand.pdf")} size={36} />} trailing={<IconButton onClick={act} appearance="flat" level="primary" size="md" aria-label="Download brand.pdf" icon={<Icon name="icon-download-01-line" />} />} />
   <div style={{ display: "flex", flexDirection: "column" }}><Button level="primary" size="md" onClick={create}>Create project</Button></div>
   <div style={{ display: "flex", flexDirection: "column" }}><Button level="tertiary" size="sm" style={{ alignSelf: "flex-start" }} onClick={simulate}>Simulate an upload</Button></div>
   <div className="pe-stack"><Button level="primary" size="sm" style={{ justifySelf: "start" }} onClick={reserve}>Reserve</Button></div>
   <div style={{ display: "flex", gap: 8 }}><Button level="tertiary" size="sm" onClick={cancel}>Cancel</Button></div>
   {/* A table that is its own section: an h2 Heading/4 above it, and the Table points to it. */}
+  {/* A table inside a widget Card: the widget title is Heading/Subheading. */}
+  <Card>
+    <Heading level={2} textStyle="Heading/Subheading" id="claims-title">Recent claims</Heading>
+    <Table aria-labelledby="claims-title" columns={[]} rows={[]} getRowId={(r) => r.id} />
+  </Card>
   <Heading level={2} textStyle="Heading/4" id="invoices-title">Invoices</Heading>
   <Table aria-labelledby="invoices-title" columns={[]} rows={[]} getRowId={(r) => r.id} />
   {/* The Heading default for level 2 is Heading/4 (decision 7); a description paragraph above a table is not a title. */}
@@ -98,6 +108,10 @@ export const Good = () => <>
   <Text tone="base">Payments from the last 30 days.</Text>
   <Table aria-labelledby="payments-title" columns={[]} rows={[]} getRowId={(r) => r.id} />
   <TopNavigation title="Files" trailing={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-dots-horizontal-line", label: "More", onClick: openMore }]} />
+  {/* Figma's Trailing-Slot takes three: three trailing actions, and three beside the large title. */}
+  <TopNavigation title="Files" trailing={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, { icon: "icon-dots-horizontal-line", label: "More", onClick: openMore }]} />
+  <TopNavigation title="Ava Chen" trailing={[{ icon: "icon-phone-line", label: "Audio call", group: "call", onClick: callAudio }, { icon: "icon-video-recorder-line", label: "Video call", group: "call", onClick: callVideo }, { icon: "icon-star-01-line", label: "Favourite", onClick: favourite }, { icon: "icon-dots-horizontal-line", label: "More", onClick: openMore }]} />
+  <TopNavigation title="Files" largeTitle="Files" largeTitleAction={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, { icon: "icon-dots-horizontal-line", label: "More", onClick: openMore }]} />
   <BottomNavigation value="a" onValueChange={go} items={[{ id: "a", label: "Home", icon: "icon-home-smile-line" }, { id: "b", label: "Search", icon: "icon-search-medium-line" }, { id: "c", label: "Me", icon: "icon-user-line" }]} />
   <BottomSheet open={open} onOpenChange={setOpen} type="action" title="Share" items={shareItems} onSelect={share} />
   <ChatMessage side="others" author={{ name: "Ava Chen" }} {...demo.act("m1", "others")}>Hi there</ChatMessage>
@@ -140,6 +154,8 @@ export const Good = () => <>
   <Image src={photo} alt="White houses and a windmill by the sea" ratio="4:3" caption="Oia, Santorini" />
   <Thumbnail src={photo} alt="" size="sm" />
   <ActionBar primaryAction={{ label: "Add to cart", onClick: add }} secondaryAction={{ label: "Save for later", onClick: save }} />
+  <PlatformPhone label="Settings"><Toggle label="Sync over Wi-Fi only" size="lg" checked={wifi} onCheckedChange={setWifi} /><InputField label="Name" value={name} onValueChange={setName} /></PlatformPhone>
+  <BottomSheet open={open} onOpenChange={setOpen} title="Filters"><ToggleButton aria-label="In stock only" size="large" checked={inStock} onCheckedChange={setInStock} /><SelectField label="Sort" size="md" options={sorts} /></BottomSheet>
   <ActionBar><Button level="primary" size="lg" onClick={add}>Add to cart</Button><Button level="tertiary" size="lg" onClick={save}>Save for later</Button></ActionBar>
   <ActionBar direction="horizontal" summary={<Text textStyle="Body/Small/Regular" tone="base" role="status">3 unsaved changes</Text>}><Button level="tertiary" onClick={undo}>Undo changes</Button><Button level="primary" type="submit">Save changes</Button></ActionBar>
   <VisuallyHidden as="a" href="#main" focusable>Skip to main content</VisuallyHidden>
@@ -148,7 +164,7 @@ export const Good = () => <>
   <Heading level={2} textStyle="Heading/4">Current plan</Heading>
   {/* The compact app bar title is the screen's h1 in its bar style; a list group header (kicker) may use Base. */}
   <Text as="h1" textStyle="Body/Extra/Bold" className="zen-top-nav__title">Order #1042</Text>
-  <Heading level={2} textStyle="Body/Small/Bold" tone="base">Pinned</Heading>
+  <Heading level={2} textStyle="Body/Small/Bold" tone="light">Pinned</Heading>
   <DescriptionList items={[{ term: "Subtotal", description: "$311.90" }, { term: "Total", description: "$321.90", emphasis: true }]} />
   <EmptyState title="No members match" illustration={false} secondaryAction={{ label: "Clear filters", onClick: reset }} />
   <TableActions><IconButton onClick={act} appearance="flat" level="primary" aria-label="Actions for Ava" icon={<Icon name="icon-dots-horizontal-line" />} /></TableActions>
@@ -163,6 +179,9 @@ export const Good = () => <>
   {/* A pin (expanded only while pinned, uncontrolled otherwise) and a disabled preview are not frozen controls. */}
   <Accordion title="Shipping" expanded={pinned ? true : undefined}>Ships in 2 days.</Accordion>
   <Checkbox label="Remember me" checked={remember} disabled />
+  {/* Figma State=Disabled: Text, Select, Date, Number, Text-Area and Search (a Field-Only instance). */}
+  <InputField label="Custom domain" helpText="Turn on Custom domain to edit it." disabled />
+  <Search aria-label="Search members" disabled />
   {/* Every action does something: its own onClick or href, a submit, a Menu trigger, or a documented default (Dialog,
       ModalForm, SidePanel and BottomSheet actions without onClick close the overlay). */}
   <TopNavigation type="liquid-overlay" title="Site visit" leading={{ icon: "icon-x-medium-line", label: "Close viewer", onClick: close }} trailing={[{ icon: "icon-share-01-line", label: "Share", onClick: share }]} />
@@ -177,4 +196,26 @@ export const Good = () => <>
   <Form onSubmit={save}><Button level="primary" type="submit">Save profile</Button></Form>
   <Button level="primary" disabled>Publish</Button>
   {`<Button level="primary">Save</Button>`}
+  {/* Position, effect styles and per-corner radius: absolute layers pinned inside a Box, Card or Grid frame. */}
+  <Box surface="surface" radius="lg" clip>
+    <Box position="absolute" constraintX="left-right" constraintY="top-bottom">Background media</Box>
+    <Box position="absolute" constraintX="right" constraintY="top" insetRight="sm" insetTop="sm">Close</Box>
+    <Stack position="absolute" constraintX="left-right" constraintY="bottom" insetLeft="sm" insetRight="sm" insetBottom="sm" height={48}>Caption</Stack>
+    <Box padding="md">Content after the media</Box>
+  </Box>
+  <Card theme="border"><Box position="absolute" constraintX="center" constraintY="center" width={200}>Centred</Box></Card>
+  <Grid columns={2}><Box position={layerPosition} constraintX="right" insetRight="sm">Toggled by state</Box></Grid>
+  <Box surface="surface" effectStyle="Shadow/Bottom/Level-1" padding="lg">Elevated panel</Box>
+  <Box surface="pale" effectStyle="Effect/Overlay" padding="md">Frosted bar</Box>
+  <Box surface="surface" radius="xl" radiusBottomRight="xs">Chat tail</Box>
+  <Image src={photo} alt="Harbour at dusk" radiusBottomLeft="none" radiusBottomRight="none" />
+  <Box radiusTopLeft="3xl" radiusTopRight="3xl">Sheet top</Box>
+  <Box surface="surface" radius="full" padding="xs">Pill</Box>
+  <Image src={photo} alt="Harbour at dusk" radius="full" />
+  <Box surface="surface" radius="full" radiusBottomLeft="none">Pill with a square corner</Box>
+  <Box surface="surface" radius="lg" radiusTopLeft="xs" radiusBottomRight="xs">Finite radius with corners</Box>
+  <Text tone="support-blue-strongest">Your files sync across every device you sign in on.</Text>
+  <Text textStyle="Body/Small/Bold" tone="positive-light">Saved</Text>
+  <Text textStyle="Body/Small/Regular" tone="negative-light">Enter an email address like name@company.com.</Text>
+  <Icon name="icon-check-circle-line" tone="accent-light" />
 </>;

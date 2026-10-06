@@ -65,7 +65,7 @@ export interface PaginationProps {
   total?: number;
   pageSizeOptions?: number[];
   onPageSizeChange?: (pageSize: number) => void;
-  /** Short (sm, md…) or Figma (small, medium…) spelling. */
+  /** Page items and the ‹ › arrows: xs = 24px (Figma) · sm = 32px. Short (xs, sm) or Figma (xsmall, small) spelling. */
   size?: PaginationItemSize;
   /** Accessible name of the navigation landmark. Default: the locale's “Pagination”. */
   "aria-label"?: string;
@@ -75,6 +75,9 @@ export interface PaginationProps {
 /**
  * Figma Pagination (774:29083). Button/Icon-Main XSmall Tertiary ‹ › (icon-chevron-*-line-small) around the
  * content, Spacing/Gap/Medium between groups; Pages gap Spacing/Gap/2XSmall; Inline/Manually navigator gap XSmall.
+ * The arrows follow `size` (Figma draws XSmall only): XSmall items (24, Select-Item/Size/Small) keep Icon-Main XSmall
+ * (Button/Size/XSmall), Small items (32, Select-Item/Size/Medium) take Icon-Main Small (Button/Size/Small), so the
+ * arrows always match the items in both densities.
  */
 export function Pagination({ page, onValueChange, onPageChange, theme = "primary", pageCount, pageSize = 50, total = 0, pageSizeOptions = [10, 25, 50, 100], onPageSizeChange, size: sizeProp = "xs", "aria-label": ariaLabelProp, className }: PaginationProps) {
   const t = useZenLabels();
@@ -84,8 +87,9 @@ export function Pagination({ page, onValueChange, onPageChange, theme = "primary
   const pages = Math.max(1, compact ? Math.ceil(total / Math.max(1, pageSize)) : pageCount ?? 1);
   const current = Math.min(Math.max(1, page), pages);
   const go = (next: number) => { if (next >= 1 && next <= pages && next !== current) { onValueChange?.(next); onPageChange?.(next); } };
-  const previous = <IconButton appearance="main" level="tertiary" size="xs" aria-label={t.previousPage} disabled={current <= 1} onClick={() => go(current - 1)} icon={<Icon name="icon-chevron-left-line-small" />} />;
-  const next = <IconButton appearance="main" level="tertiary" size="xs" aria-label={t.nextPage} disabled={current >= pages} onClick={() => go(current + 1)} icon={<Icon name="icon-chevron-right-line-small" />} />;
+  const arrowSize = size === "small" ? "sm" : "xs";
+  const previous = <IconButton appearance="main" level="tertiary" size={arrowSize} aria-label={t.previousPage} disabled={current <= 1} onClick={() => go(current - 1)} icon={<Icon name="icon-chevron-left-line-small" />} />;
+  const next = <IconButton appearance="main" level="tertiary" size={arrowSize} aria-label={t.nextPage} disabled={current >= pages} onClick={() => go(current + 1)} icon={<Icon name="icon-chevron-right-line-small" />} />;
 
   if (!compact) {
     const level: PaginationLevel = theme === "secondary" ? "secondary" : "primary";

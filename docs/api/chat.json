@@ -31,7 +31,7 @@
           "type": "ChatPerson",
           "required": false,
           "default": null,
-          "description": "Others: who sent it (the avatar and, when `showName`, the name above the bubble).",
+          "description": "Others: who sent it (the avatar — the photo, or first + last name initials without `src` — and, when `showName`, the name above the bubble).",
           "deprecated": null
         },
         {
@@ -256,7 +256,7 @@
           "type": "ChatReplyTarget",
           "required": false,
           "default": null,
-          "description": "Replying to a message: a \"Replying to …\" bar above the field (× or Escape cancels). Attach it to what you send.",
+          "description": "Replying to a message: a \"Replying to …\" bar above the field (× or Escape cancels). Attach it to what you send.\nSetting it (or switching to another message) moves focus into the field, so Reply leaves the caret ready to type;\na composer that mounts with a reply already set does not take focus.",
           "deprecated": null
         },
         {
@@ -280,7 +280,7 @@
     {
       "name": "ChatThread",
       "file": "src/components/Chat/Chat.tsx",
-      "description": "Opens at the latest message and stays pinned to the bottom when new messages arrive — unless the reader has scrolled up\n(more than 48px from the bottom), in which case their position is kept.",
+      "description": "Opens at the latest message and stays pinned to the bottom when new messages arrive — unless the reader has scrolled up\n(more than 48px from the bottom), in which case their position is kept. It pins again whenever the messages change size\nafter the first layout (a ResizeObserver on the thread and its messages: web fonts settling, photos decoding, a reaction\nrow appearing) and once `document.fonts.ready` resolves, so a thread never opens a few pixels above its last message.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -362,7 +362,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Override the call label (the locale's \"Missed Call\", \"Audio Call\", \"Ongoing Call…\").",
+          "description": "Override the call label (the locale's \"Missed call\", \"Audio call\", \"Ongoing call…\").",
           "deprecated": null
         },
         {
@@ -639,7 +639,7 @@
     {
       "name": "ChatFile",
       "file": "src/components/Chat/Chat.tsx",
-      "description": "Figma Chat/Bubble/File (6182:57708): 220 wide, padding 12; a Small Dock-Icon by type (Doc blue · PDF red · Sheet green Solid,\nOthers Neutral Subtle) + a 32px text column: name (Body/Base/Bold) and size (Body/Small/Regular). In a Business message the\ncard is Bubble-Chat-Others-Business (radius 16) and the time sits beside the size.",
+      "description": "Figma Chat/Bubble/File (6182:57708): 220 wide, padding 12; a Small Dock-Icon by type (Doc blue · PDF red · Sheet green Solid,\nOthers Neutral Subtle) + a 32px text column: name (Body/Base/Bold) and size (Body/Small/Regular). In a Business message the\ncard is Bubble-Chat-Others-Business (radius 16) and the time sits beside the size. In the mobile (and Popular) type scale\nthe text column hugs its 24 + 20 lines (min Image-Size/Small) instead of Figma's fixed 32px box, so they keep the 12px inset.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -696,7 +696,7 @@
     {
       "name": "ChatCall",
       "file": "src/components/Chat/Chat.tsx",
-      "description": "Figma Chat/Bubble/Call (6349:59813): 220 wide, padding 8; a 40px row (padding 4, gap 8) of a Small Dock-Icon with the\nsolid call glyph (Red Solid only for an incoming missed call, else Neutral Subtle) + title/duration, then a full-width\nSmall action: Social = Button/Overlay Inverse; Business = Button/Flat Primary, on missed calls only (the card is\nBubble-Chat-Others-Business, radius 16, and the time sits beside the duration). Never a Secondary button.",
+      "description": "Figma Chat/Bubble/Call (6349:59813): 220 wide, padding 8; a 40px row (padding 4, gap 8) of a Small Dock-Icon with the\nsolid call glyph (Red Solid only for an incoming missed call, else Neutral Subtle) + title/duration, then a full-width\nSmall action: Social = Button/Overlay Inverse; Business = Button/Flat Primary, on missed calls only (the card is\nBubble-Chat-Others-Business, radius 16, and the time sits beside the duration). Never a Secondary button.\nWithout an action (a ringing call, an answered Business call) the text column hugs its lines (min Image-Size/Small 32)\ninstead of Figma's fixed 32px box, so the text keeps the 12px a text bubble keeps below its last line (Padding/XSmall 8 +\nthe row's Padding/2XSmall 4) in every typography mode. With an action the 32px box stays in Figma's 20/16 scale and hugs\nin the mobile (and Popular) type scale, so the lines never spill toward the action.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -737,7 +737,7 @@
           "type": "string",
           "required": false,
           "default": null,
-          "description": "The action's text (the locale's Call back / Call Again / Send Voice by default).",
+          "description": "The action's text (the locale's Call back / Call again / Send voice message by default).",
           "deprecated": null
         },
         {
@@ -950,7 +950,7 @@
     }
   ],
   "types": {
-    "AvatarTheme": "type AvatarTheme = \"photo\" | \"accent\" | \"blue\" | \"brown\" | \"crimson\" | \"cyan\" | \"green\" | \"indigo\" | \"neutral\" | \"orange\" | \"pink\" | \"plum\" | \"purple\" | \"red\" | \"teal\" | \"violet\" | \"yellow\"",
+    "AvatarTheme": "type AvatarTheme = \"photo\" | \"accent\" | \"blue\" | \"brown\" | \"crimson\" | \"cyan\" | \"green\" | \"indigo\" | \"neutral\" | \"orange\" | \"pink\" | \"plum\" | \"purple\" | \"red\" | \"teal\" | \"violet\" | \"yellow\" | \"sky\" | \"mint\" | \"bronze\" | \"golden\"",
     "ChatFileKind": "type ChatFileKind = \"doc\" | \"pdf\" | \"sheet\" | \"other\"",
     "ChatHoldAction": "interface ChatHoldAction { id: string; label: string; icon: IconName | ReactElement; destructive?: boolean; }",
     "ChatPerson": "interface ChatPerson { name: string; src?: string; theme?: AvatarTheme }",

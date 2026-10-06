@@ -1,9 +1,9 @@
-import { useId, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactElement, type ReactNode } from "react";
+import { useId, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent, type ReactElement, type ReactNode } from "react";
 import { usePresence } from "../Motion";
 import { ZenPortal } from "../Portal";
 import { Button } from "../Button";
 import { type DialogAction } from "../Dialog";
-import { useModal } from "../Dialog/Dialog";
+import { modalFieldSelector, useModal } from "../Dialog/Dialog";
 import { Icon, type IconName } from "../Icon";
 import { TopNavigationActionButton } from "../TopNavigation";
 import { renderIcon } from "../_shared/icon";
@@ -35,7 +35,7 @@ export interface BottomSheetProps extends OverlayOpenProps {
   title: ReactNode;
   type?: BottomSheetType;
   size?: BottomSheetSize;
-  /** Figma Search slot (a Search, under the header). */
+  /** Figma Search slot (a Search, under the header). The Search takes focus when the sheet opens (`data-autofocus` elsewhere wins). */
   search?: ReactNode;
   /** Action type: Figma Items slot. */
   items?: BottomSheetItem[];
@@ -50,6 +50,15 @@ export interface BottomSheetProps extends OverlayOpenProps {
   secondaryAction?: DialogAction;
   /** Figma .Primitives/Bottom-Sheet/Actions Direction. */
   actionsDirection?: "horizontal" | "vertical";
+  /**
+   * Modal type: makes the sheet a form (same contract as ModalForm `onSubmit`). The body and the Actions footer are
+   * wrapped in a `<form>`: Enter in a field submits it and the primary action becomes `type="submit"`, so it submits
+   * instead of closing (its `onClick`, if any, still runs first). The default is prevented; close the sheet from the
+   * handler when the submit succeeds. Pass `form.handleSubmit` from useFormState so a failed submit focuses the first
+   * invalid field. Don't nest a `<Form>` in the children. The Search slot stays outside the form. The first field (the
+   * Search, when there is one) takes focus when the sheet opens; put `data-autofocus` on another control to start there.
+   */
+  onSubmit?: (event: FormEvent<HTMLFormElement>) => void;
   /** Scrim tap, Escape and drag-down dismiss (default true). */
   dismissible?: boolean;
   /** Render inside the nearest positioned ancestor instead of the viewport (device previews, embedded demos). */
@@ -64,8 +73,10 @@ export interface BottomSheetProps extends OverlayOpenProps {
  * Overlay scrim. Top-Indicator (40×5 Neutral/Subtle grabber) · Header-Bar (Heading/3 + 44px Tertiary close) · Search ·
  * Body (Modal: padding 20, gap 16 · Action: padding 4, 48px items) · Footer (Large buttons, padding 12/20).
  * Focus is trapped (shared Dialog `useModal`), Escape/scrim/drag-down close, and the sheet slides up/down with `usePresence`.
+ * Initial focus: `data-autofocus`, else the Search or first field of a form sheet, else the sheet itself.
+ * Modal + `onSubmit`: body and footer become a `<form>` (Form rule: Enter submits; the primary action is the submit button).
  */
-export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, type = "modal", size = "flex", search, items = [], selectedId, onSelect, keepOpen = false, children, primaryAction, secondaryAction, actionsDirection = "horizontal", dismissible = true, inline = false, closeLabel: closeLabelProp, className }: BottomSheetProps) {
+export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, type = "modal", size = "flex", search, items = [], selectedId, onSelect, keepOpen = false, children, primaryAction, secondaryAction, actionsDirection = "horizontal", onSubmit, dismissible = true, inline = false, closeLabel: closeLabelProp, className }: BottomSheetProps) {
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
   const closeLabel = closeLabelProp ?? t.close;
@@ -73,9 +84,12 @@ export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChange
   const panelRef = useRef<HTMLDivElement>(null);
   const drag =useRef<{ y: number; id: number } | null>(null);
   const [offset, setOffset] = useState(0);
-  // Initial focus lands on the sheet itself (announced by its title), not on Close: a pointer-opened sheet shows no
-  // stray focus ring and Tab still reaches Close first. `data-autofocus` inside the content overrides it.
-  useModal(open, panelRef, dismissible, onOpenChange, "[data-autofocus]");
+  // Initial focus: `data-autofocus` inside the sheet wins. A form sheet (Modal + onSubmit) or a sheet with a Search slot
+  // starts on its first field, the Search first when there is one (as ModalForm starts on its first field), so typing
+  // can begin at once. Any other sheet focuses itself (announced by its title), not Close: a pointer-opened sheet shows
+  // no stray focus ring and Tab still reaches Close first.
+  const startsOnField = (type === "modal" && Boolean(onSubmit)) || Boolean(search);
+  useModal(open, panelRef, dismissible, onOpenChange, startsOnField ? modalFieldSelector : "[data-autofocus]");
   const { mounted, phase } = usePresence(open, 200);
   if (!mounted || typeof document === "undefined") return null;
   const closing = phase === "closing";
@@ -96,18 +110,45 @@ export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChange
   };
 
   const hasActions = type === "modal" && (primaryAction || secondaryAction);
+  // Form mode (Modal type + onSubmit), as in ModalForm: the primary submits the <form> instead of closing the sheet.
+  const isForm = type === "modal" && Boolean(onSubmit);
   const actionButtons = hasActions ? (
     <div className="zen-bottom-sheet__actions" data-direction={actionsDirection} data-count={primaryAction && secondaryAction ? 2 : 1}>
       {[actionsDirection === "vertical" ? primaryAction : secondaryAction, actionsDirection === "vertical" ? secondaryAction : primaryAction].map((action, index) => {
         if (!action) return null;
         const isPrimary = action === primaryAction;
+        const submits = isPrimary && isForm;
         return (
           <Button key={index} appearance="main" level={action.level ?? (isPrimary ? "primary" : "tertiary")} size="lg" disabled={action.disabled} data-autofocus={action.autoFocus ? "" : undefined}
-            onClick={() => (action.onClick ? action.onClick() : onOpenChange(false))}>{action.label}</Button>
+            type={submits ? "submit" : "button"}
+            onClick={submits && !action.onClick ? undefined : () => (action.onClick ? action.onClick() : onOpenChange(false))}>{action.label}</Button>
         );
       })}
     </div>
   ) : null;
+  const body = (
+    <div className="zen-bottom-sheet__body">
+      {type === "action" ? (
+        <ul className="zen-bottom-sheet__items" role="list">
+          {items.map((item) => {
+            const selected = item.id === selectedId;
+            return (
+              <li key={item.id}>
+                <button type="button" className="zen-bottom-sheet__item" data-selected={selected ? "true" : undefined} data-destructive={item.destructive ? "true" : undefined} aria-pressed={selectedId !== undefined ? selected : undefined} disabled={item.disabled}
+                  onClick={() => { onSelect?.(item); if (!keepOpen) onOpenChange(false); }}>
+                  {item.icon ? renderIcon(item.icon) : null}
+                  <span className={`zen-bottom-sheet__item-label ${typographyStyles["Body/Base/Medium"]}`}>{item.label}</span>
+                  {item.trailing ? <span className="zen-bottom-sheet__item-trailing">{item.trailing}</span> : null}
+                  {selected ? <Icon className="zen-bottom-sheet__check" name="icon-check-line" decorative /> : null}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : children}
+    </div>
+  );
+  const footer = actionButtons ? <div className="zen-bottom-sheet__footer">{actionButtons}</div> : null;
 
   const sheet = (
     <div
@@ -133,27 +174,9 @@ export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChange
         </div>
       </div>
       {search ? <div className="zen-bottom-sheet__search">{search}</div> : null}
-      <div className="zen-bottom-sheet__body">
-        {type === "action" ? (
-          <ul className="zen-bottom-sheet__items" role="list">
-            {items.map((item) => {
-              const selected = item.id === selectedId;
-              return (
-                <li key={item.id}>
-                  <button type="button" className="zen-bottom-sheet__item" data-selected={selected ? "true" : undefined} data-destructive={item.destructive ? "true" : undefined} aria-pressed={selectedId !== undefined ? selected : undefined} disabled={item.disabled}
-                    onClick={() => { onSelect?.(item); if (!keepOpen) onOpenChange(false); }}>
-                    {item.icon ? renderIcon(item.icon) : null}
-                    <span className={`zen-bottom-sheet__item-label ${typographyStyles["Body/Base/Medium"]}`}>{item.label}</span>
-                    {item.trailing ? <span className="zen-bottom-sheet__item-trailing">{item.trailing}</span> : null}
-                    {selected ? <Icon className="zen-bottom-sheet__check" name="icon-check-line" decorative /> : null}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        ) : children}
-      </div>
-      {actionButtons ? <div className="zen-bottom-sheet__footer">{actionButtons}</div> : null}
+      {isForm && onSubmit ? (
+        <form className="zen-bottom-sheet__form" onSubmit={(event) => { event.preventDefault(); onSubmit(event); }}>{body}{footer}</form>
+      ) : <>{body}{footer}</>}
     </div>
   );
   const overlay = (

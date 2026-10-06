@@ -1,0 +1,31 @@
+/* Table examples (src/platform/examples/pages/table.tsx). Tokens only; class prefix .px-table-. */
+
+/* The title row of the invoices keeps the height of the Bulk-Action bar, so the table doesn't move when rows are checked. */
+.px-table-bulk-row { min-height: calc(var(--zen-button-size-medium, 40px) + 2 * var(--zen-spacing-padding-2-xsmall, 4px)); }
+
+/* The search takes a readable width and lets the filter chips sit beside it or wrap under it. */
+.px-table-search { flex: 1 1 220px; max-width: 320px; }
+
+/* A loading placeholder sits on the text line of its cell, so the row keeps the height of the text that replaces it.
+   The doubled class outranks the component's own display and width. Widths are in characters of the text. */
+.px-table-skeleton.px-table-skeleton { display: inline-flex; max-width: 100%; vertical-align: middle; }
+.px-table-skeleton--short.px-table-skeleton--short { width: 8ch; }
+.px-table-skeleton--long.px-table-skeleton--long { width: 20ch; }
+
+/* Progress cells: the percentage takes the width of "100%", so every bar in the column ends at the same x. */
+.px-table-progress .zen-progress-bar__label { min-width: 4.5ch; text-align: end; }
+
+/* Task titles are the row's name: on a narrow screen the table scrolls sideways before a title breaks into three lines. */
+.px-table-titles { --zen-table-fill-min-width: 18rem; }
+
+/* A table with fixed columns scrolls sideways on a narrow screen, and its empty row spans every column. The scroll box
+   is the size container, so the Empty State's wrapper takes the visible width and stays in view while the row scrolls. */
+.px-table-keep-empty { container-type: inline-size; }
+.px-table-empty-view {
+  position: sticky;
+  inset-inline-start: var(--zen-spacing-padding-medium, 16px);
+  width: calc(100cqi - 2 * var(--zen-spacing-padding-medium, 16px));
+}
+
+/* The Bulk-Action bar keeps its icons on one line; on a narrow stage it moves under the count instead of folding. */
+.px-table-bulk-bar { flex: none; }

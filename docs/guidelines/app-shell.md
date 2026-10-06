@@ -93,11 +93,12 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 Object shapes the props above refer to.
 
 ```ts
-type AvatarTheme = "photo" | "accent" | "blue" | "brown" | "crimson" | "cyan" | "green" | "indigo" | "neutral" | "orange" | "pink" | "plum" | "purple" | "red" | "teal" | "violet" | "yellow"
+type AvatarTheme = "photo" | "accent" | "blue" | "brown" | "crimson" | "cyan" | "green" | "indigo" | "neutral" | "orange" | "pink" | "plum" | "purple" | "red" | "teal" | "violet" | "yellow" | "sky" | "mint" | "bronze" | "golden"
 ```
 
 ## ✅ Do
 - Put one AppShell at the root of each signed-in screen, inside ZenProvider.
+- One elevation per screen, set by the Sidebar: Canvas default (grey) + the default Sidebar (Surface + shadow) + Shadow cards with no border; Canvas alt (white) + a Surface-alt or Flat Sidebar (add divider for a full-height line inside the Sidebar) + bordered cards; Canvas flat + a Flat Sidebar + bordered cards. Never a shadowed Sidebar on a white Canvas.
 - Lead the top bar with Breadcrumbs (master={false}; the toggle comes first) or a Search, and keep its right side to utilities in this order: a plan Badge, AppShellAction buttons, the account menu last.
 - Give the page a Container with a PageHeader as its first child; page actions (one Primary) go in the PageHeader.
 - Show unread items on the action itself (AppShellAction count or dot) so the count is also in its accessible name.

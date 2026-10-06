@@ -1,6 +1,8 @@
 /* Who reacted (ChatReactors.tsx): the panel content shared by the mobile Bottom Sheet and the desktop Popover. */
 .zen-chat-reactors { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.zen-chat-reactors .zen-list { --zen-list-inset: 0px; }
+.zen-chat-reactors .zen-list { --zen-list-inset: 0px; gap: 0; }
+/* Who reacted: only your own row may be clickable (tap to remove), so the list mixes Interactive=Yes and No rows. Every
+   row keeps the List-Item box (Padding/Small above and below, no inset), so avatars, names and emoji stay on one rhythm. */
 /* With emoji tabs the list sits in their tab panel; like the list itself, the panel may shrink so long names truncate. */
 .zen-chat-reactors__panel { min-width: 0; }
 .zen-chat-reactors__emoji { display: inline-flex; width: var(--zen-element-size-popular-medium, 24px); height: var(--zen-element-size-popular-medium, 24px); align-items: center; justify-content: center; color: var(--zen-color-content-neutral-strongest, #111); font-size: var(--zen-typography-font-size-heading-4, 20px); line-height: 1; }

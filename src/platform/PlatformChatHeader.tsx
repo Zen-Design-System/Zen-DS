@@ -25,6 +25,6 @@ export function PlatformChatHeader({ title, subtitle, person, group, online = fa
     <TopNavigation margin="compact" title={title} subtitle={subtitle ?? (online ? "Active now" : undefined)} titleLeading={leading}
       onTitleClick={onAction(`Open ${title} details`)} titleLabel={`${title}${subtitle ? `, ${subtitle}` : online ? ", active now" : ""}. Open details`}
       leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: onAction("Back to conversations") }}
-      trailingGroup trailing={[{ icon: "icon-phone-line", label: "Audio call", onClick: onAction(`Calling ${title}`) }, { icon: "icon-video-recorder-line", label: "Video call", onClick: onAction(`Starting a video call with ${title}`) }]} />
+      trailing={[{ icon: "icon-phone-line", label: "Audio call", group: "call", onClick: onAction(`Calling ${title}`) }, { icon: "icon-video-recorder-line", label: "Video call", group: "call", onClick: onAction(`Starting a video call with ${title}`) }]} />
   );
 }

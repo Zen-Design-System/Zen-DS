@@ -6,7 +6,7 @@
     {
       "name": "Segmented",
       "file": "src/components/Segmented/Segmented.tsx",
-      "description": "",
+      "description": "Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a Neutral/Subtle pill track (Spacing/Padding/\n2XSmall) of toggle segments, Secondary (default) or Primary, Small or Medium. An icon-only segment (Item Label=false:\n`label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -111,7 +111,7 @@
     {
       "name": "SegmentedItem",
       "file": "src/components/Segmented/Segmented.tsx",
-      "description": "",
+      "description": "One `Primitives/Segmented/Item` (1204:11690). Without a visible label, its `aria-label` shows as the 1s name tooltip.",
       "deprecated": null,
       "extends": "ButtonHTMLAttributes<HTMLButtonElement>",
       "props": [

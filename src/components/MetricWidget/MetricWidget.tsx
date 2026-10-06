@@ -43,6 +43,16 @@ export interface MetricProps {
   iconEmoji?: ReactNode;
   /** Figma Size: XLarge/Large stack the icon above the text; Medium–XSmall put it on the left. Short (sm, md…) or Figma (small, medium…) spelling. */
   size?: MetricSize;
+  /**
+   * Figma Metric-Inline type. Icon-Highlight (default, 595:55188): the Dock-Icon leads, the label sits over the number.
+   * Title-Highlight (7523:507049): the title on top (Heading/Subheading at XLarge–Medium, Caption above the number at
+   * Small/XSmall), the number and trend under it, the Dock-Icon pinned to the bottom-right corner.
+   */
+  variant?: "icon-highlight" | "title-highlight";
+  /** Title-Highlight, XLarge–Medium: the title row's action (Figma Button/Icon-Main XSmall Tertiary, e.g. a chevron that opens the breakdown). */
+  action?: ReactNode;
+  /** Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below. */
+  iconSize?: "md" | "lg" | "medium" | "large";
   className?: string;
 }
 
@@ -50,9 +60,29 @@ export interface MetricProps {
  * Figma Primitives/Metric/Metric-Inline/Icon-Highlight (595:55188): Dock-Icon + Contents (gap 2XSmall) of
  * Label (Neutral/Light) over the Metric-Number (Neutral/Strongest), then the trend.
  */
-export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconTheme = "neutral", iconBackground = "subtle", iconEmoji, size: sizeProp = "xl", className }: MetricProps) {
+export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconTheme = "neutral", iconBackground = "subtle", iconEmoji, size: sizeProp = "xl", variant = "icon-highlight", action, iconSize, className }: MetricProps) {
   const size = scaleKey(sizeProp, metricSizes);
   const stacked = size === "xlarge" || size === "large";
+  if (variant === "title-highlight") {
+    // Figma Title-Highlight: a title row at XLarge–Medium, the Caption label inside the content at Small/XSmall.
+    const titled = size === "xlarge" || size === "large" || size === "medium";
+    const dock = iconSize ? (iconSize === "lg" || iconSize === "large" ? "large" : "medium") : stacked ? "large" : "medium";
+    const mark = iconEmoji ? <DockIcon className="zen-metric__icon" theme="emoji" emoji={iconEmoji} background={iconBackground} size={dock} />
+      : icon ? <DockIcon className="zen-metric__icon" icon={icon} theme={iconTheme} background={iconBackground} size={dock} /> : null;
+    return (
+      <div className={["zen-metric", className].filter(Boolean).join(" ")} data-size={size} data-variant="title-highlight" data-icon={mark ? dock : undefined}>
+        <div className="zen-metric__contents">
+          {titled ? <div className="zen-metric__header"><span className={`zen-metric__title ${typographyStyles["Heading/Subheading"]}`}>{label}</span>{action}</div> : null}
+          <div className="zen-metric__content">
+            {titled ? null : <span className={`zen-metric__label ${typographyStyles["Caption/Regular"]}`}>{label}</span>}
+            <span className={`zen-metric__value ${typographyStyles[valueStyle[size]]}`}>{value}</span>
+            {trend ? <MetricTrend trend={trend.direction}>{trend.label}</MetricTrend> : null}
+          </div>
+        </div>
+        {mark}
+      </div>
+    );
+  }
   return (
     <div className={["zen-metric", className].filter(Boolean).join(" ")} data-size={size} data-layout={stacked ? "stacked" : "inline"}>
       {iconEmoji ? <DockIcon theme="emoji" emoji={iconEmoji} background={iconBackground} size={stacked ? "large" : "medium"} />

@@ -17,7 +17,7 @@
  *              other heading smaller than the body text right under it (Body/Small/Bold group headers are kickers and
  *              exempt), an overlay title below h2, a Heading/* styled line that is not a heading (and not a value), more
  *              than seven text styles in one example (the .pth-outline readout not counted), nested corners that are not
- *              concentric (outer = inner + inset), list rows padded twice
+ *              concentric (outer = inner + inset, each corner on its own; the Luxury radius mode is skipped), list rows padded twice
  *   density    (error) (densitySnapshot, compared by audit.mjs) Zen elements whose in-flow content outgrows them once
  *              Component Size is Comfortable
  *   fit        (error) (textFit) text wider than its own box with no ellipsis and no scroll: it runs into what sits next
@@ -28,11 +28,12 @@
  * Opt out one element (with a reason in code) by `data-audit-skip-quality`.
  */
 
-export function qualityChecks({ scopeSel }) {
+export function qualityChecks({ scopeSel, regionSel }) {
   const out = { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [] };
   const scope = scopeSel ? document.querySelector(scopeSel) : document;
   if (!scope) return out;
-  const REGION = ".pe-card__stage, .platform-example-panel .platform-example-row, .official-portal-root > *";
+  // `regionSel`: what counts as product UI — the docs' example stages by default; an app audit (zen-ds audit) passes "body".
+  const REGION = regionSel ?? ".pe-card__stage, .platform-example-panel .platform-example-row, .official-portal-root > *";
   const regions = [...(scope.matches?.(REGION) ? [scope] : []), ...scope.querySelectorAll(REGION)]
     .filter((r) => !r.closest(".platform-guideline-visual__dont, [data-verdict='dont']"));
   const visible = (el) => { const r = el.getBoundingClientRect(); const s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none" && parseFloat(s.opacity) > 0.05 && !el.closest("[aria-hidden='true'], [inert], .zen-visually-hidden:not(:focus-within), [data-audit-skip-quality]"); };
@@ -186,10 +187,11 @@ export function qualityChecks({ scopeSel }) {
         const error = /^heading-/.test(b.st.name ?? "") && (b.level === 2 || b.level === 3);
         push(error ? "hierarchy" : "rhythm", `${where} is ${b.st.fs}px, smaller than the ${next.st.fs}px text under it ("${next.text.slice(0, 20)}") — a heading never reads below its content (use a lower level or emphasis instead)`);
       }
-      // Titles use Strongest; a kicker may use Base. The tone is the token that paints the text, not an rgba lookalike.
+      // Titles use Strongest; a kicker uses Light (user decision 2026-10-03). The tone is the token that paints the text, not
+      // an rgba lookalike.
       const tone = toneName(b.el);
       if (tone) {
-        if (kicker ? tone === "content-neutral-light" : /^content-neutral-(base|light)$/.test(tone)) push("rhythm", kicker ? `${where} is a Body/Small/Bold group header in ${tone} — group headers (kickers) use the Base tone` : `${where} is in a ${tone} tone — titles use Strongest; lower the level, not the colour`);
+        if (kicker ? tone === "content-neutral-base" : /^content-neutral-(base|light)$/.test(tone)) push("rhythm", kicker ? `${where} is a Body/Small/Bold group header in ${tone} — group headers (kickers) use the Light tone` : `${where} is in a ${tone} tone — titles use Strongest; lower the level, not the colour`);
       } else if (!kicker && b.tone.length && !b.tone.some((n) => /^content-.*-strongest$|^content-on-|^content-inverse/.test(n)) && b.tone.some((n) => /^content-neutral-(base|light)$/.test(n))) push("rhythm", `${where} is in a ${b.tone.find((n) => /^content-neutral/.test(n))} tone — titles use Strongest; lower the level, not the colour`);
     });
     // Flat hierarchy: a title and the next text block look the same. The bar title is compared only within its own layer
@@ -252,27 +254,54 @@ export function qualityChecks({ scopeSel }) {
 
     /* ── concentric corners and double insets (any element, internals included) ─────────────────────────────── */
     const paints = (el) => { const s = getComputedStyle(el); const bgc = s.backgroundColor; return (bgc && !/rgba\(0, 0, 0, 0\)|transparent/.test(bgc)) || s.backgroundImage !== "none" || ["Top", "Right", "Bottom", "Left"].every((k) => px(s[`border${k}Width`]) >= 0.5 && s[`border${k}Style`] !== "none") || /(^|,)\s*(rgba?\([^)]*\)\s*)?(inset\s+)?0px 0px 0px [\d.]+px/.test(s.boxShadow); };
-    const radiusOf = (el) => px(getComputedStyle(el).borderTopLeftRadius);
+    // Per corner (Studio Phase 2, 2026-10-03: Box and Image take radiusTopLeft/TopRight/BottomRight/BottomLeft): each corner
+    // of the outer box is compared with the same corner of a child inset uniformly near it. A child qualifies for a corner
+    // when it sits at one distance from that corner's two edges and spans one of those edges (a top strip qualifies for
+    // both top corners, a side strip for its two corners, a uniformly inset child for all four). Until 2026-10-03 only the
+    // top-left corner of a child spanning the top edge was read; that case keeps its message, so its baseline entries still
+    // match, and wins when an outer box has several findings. The Luxury radius mode is skipped: every step there is 2px,
+    // so outer = inner + inset cannot hold on tokens.
+    const CORNERS = [
+      { key: "TopLeft", name: "top-left", sides: ["left", "top"], spans: ["right", "bottom"] },
+      { key: "TopRight", name: "top-right", sides: ["right", "top"], spans: ["left", "bottom"] },
+      { key: "BottomRight", name: "bottom-right", sides: ["right", "bottom"], spans: ["left", "top"] },
+      { key: "BottomLeft", name: "bottom-left", sides: ["left", "bottom"], spans: ["right", "top"] },
+    ];
+    const cornerRadius = (s, key) => px(s[`border${key}Radius`]);
+    const pill = (r, rect) => r >= 999 || r >= Math.min(rect.width, rect.height) / 2 - 0.5;
     for (const outer of region.querySelectorAll("*")) {
-      if (!visible(outer) || !paints(outer)) continue;
-      const R = radiusOf(outer); const or = outer.getBoundingClientRect();
-      if (R <= 0 || R >= 999 || R >= Math.min(or.width, or.height) / 2 - 0.5 || or.width < 60 || or.height < 40) continue;
-      const os = getComputedStyle(outer);
+      if (!visible(outer) || !paints(outer) || outer.closest("[data-radius='luxury']")) continue;
+      const os = getComputedStyle(outer); const or = outer.getBoundingClientRect();
+      if (or.width < 60 || or.height < 40) continue;
+      const Rs = Object.fromEntries(CORNERS.map(({ key }) => [key, cornerRadius(os, key)]));
+      if (CORNERS.every(({ key }) => Rs[key] <= 0 || pill(Rs[key], or))) continue;
       const inner = { left: or.left + px(os.borderLeftWidth), top: or.top + px(os.borderTopWidth), right: or.right - px(os.borderRightWidth), bottom: or.bottom - px(os.borderBottomWidth) };
       const kids = [...outer.querySelectorAll(":scope > *, :scope > * > *, :scope > * > * > *")];
+      let legacy = null, other = null;
       for (const kid of kids) {
+        if (legacy) break;
         if (!visible(kid)) continue;
         const interactive = kid.matches("button, a[href], [role='button'], [role='option'], [role='menuitem'], .zen-list-item, .zen-card");
         if (!(paints(kid) || interactive)) continue;
-        const r = radiusOf(kid); const kr = kid.getBoundingClientRect();
-        if (r <= 0 || r >= 999 || r >= Math.min(kr.width, kr.height) / 2 - 0.5) continue;
-        const d = [kr.left - inner.left, kr.top - inner.top, inner.right - kr.right];
-        const dd = Math.min(...d);
-        if (dd < 0 || Math.max(...d) - dd > 1.5 || dd > 16) continue;          // not uniformly inset near the corner
-        if (dd === 0 && ["hidden", "clip"].includes(os.overflowX)) continue;   // clipped by the outer corner
-        const want = r + dd;
-        if (Math.abs(R - want) > 1.5 && (dd > 0 || R < r)) { push("rhythm", `${label(outer)}: ${describe(outer)} corner ${R}px vs inner ${describe(kid)} ${r}px + inset ${Math.round(dd)}px — nested corners are concentric (outer = inner + inset = ${Math.round(want)}px)`); break; }
+        const ks = getComputedStyle(kid); const kr = kid.getBoundingClientRect();
+        const gap = { left: kr.left - inner.left, top: kr.top - inner.top, right: inner.right - kr.right, bottom: inner.bottom - kr.bottom };
+        for (const corner of CORNERS) {
+          const R = Rs[corner.key], r = cornerRadius(ks, corner.key);
+          if (R <= 0 || pill(R, or) || r <= 0 || pill(r, kr)) continue;
+          // Uniform along the corner's two edges and one spanned edge (the old check: left, top and right for top-left).
+          const uniform = corner.spans.map((span) => [...corner.sides, span].map((side) => gap[side])).find((d) => Math.min(...d) >= 0 && Math.max(...d) - Math.min(...d) <= 1.5 && Math.min(...d) <= 16);
+          if (!uniform) continue;                                                    // not uniformly inset near the corner
+          const dd = Math.min(...uniform);
+          if (dd === 0 && ["hidden", "clip"].includes(os.overflowX)) continue;     // clipped by the outer corner
+          const want = r + dd;
+          if (!(Math.abs(R - want) > 1.5 && (dd > 0 || R < r))) continue;
+          const old = corner.key === "TopLeft" && Math.max(gap.left, gap.top, gap.right) - Math.min(gap.left, gap.top, gap.right) <= 1.5;
+          const message = `${label(outer)}: ${describe(outer)} ${old ? "" : `${corner.name} `}corner ${R}px vs inner ${describe(kid)} ${r}px + inset ${Math.round(dd)}px — nested corners are concentric (outer = inner + inset = ${Math.round(want)}px)`;
+          if (old) { legacy = message; break; }
+          other ??= message;
+        }
       }
+      if (legacy ?? other) push("rhythm", legacy ?? other);
     }
     for (const row of region.querySelectorAll(".zen-list-item")) {
       let host = row.parentElement;
@@ -357,11 +386,12 @@ export function densitySnapshot() {
  *
  * Returns { fit, where }. `where[i]` is the stable part of `fit[i]`: audit.mjs matches it across densities.
  */
-export function textFit({ scopeSel }) {
+export function textFit({ scopeSel, regionSel }) {
   const out = { fit: [], where: [] };
   const scope = scopeSel ? document.querySelector(scopeSel) : document;
   if (!scope) return out;
-  const REGION = ".pe-card__stage, .platform-example-panel .platform-example-row, .official-portal-root > *";
+  // `regionSel`: what counts as product UI — the docs' example stages by default; an app audit (zen-ds audit) passes "body".
+  const REGION = regionSel ?? ".pe-card__stage, .platform-example-panel .platform-example-row, .official-portal-root > *";
   const regions = [...(scope.matches?.(REGION) ? [scope] : []), ...scope.querySelectorAll(REGION)]
     .filter((r) => !r.closest(".platform-guideline-visual__dont, [data-verdict='dont']"));
   const label = (el) => (el.closest("[data-audit-label]")?.getAttribute("data-audit-label") ?? el.closest(".pe-card")?.querySelector("h3")?.textContent ?? el.closest(".platform-example-panel")?.querySelector("h2")?.textContent ?? (el.closest(".official-portal-root") ? "overlay" : "page")).trim().slice(0, 40);

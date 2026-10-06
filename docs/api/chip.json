@@ -30,8 +30,8 @@
           "name": "size",
           "type": "\"xs\" | \"sm\" | \"md\" | \"xsmall\" | \"small\" | \"medium\"",
           "required": false,
-          "default": "\"sm\"",
-          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "default": "\"md\"",
+          "description": "Medium by default, on desktop and phones (a filter row lines up with Search and Buttons at 40px); small only inside a\n genuinely narrow component space. Short (sm, md…) or Figma (small, medium…) spelling.",
           "deprecated": null
         },
         {
@@ -95,7 +95,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "Number of selected options for a multiple filter.",
+          "description": "Number of selected options for a multiple filter. Shown from 2 as the Chip/Trailing Badge-Counter; the chip is\n then named \"Owner, 3 applied\" (the locale's `appliedCount`).",
           "deprecated": null
         },
         {
@@ -103,7 +103,7 @@
           "type": "number | string",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Figma Chip/Advanced Counter: a Badge-Counter after the label. The chip is then named \"Filters, 2 applied\" (the\n locale's `appliedCount`; a Normal chip reads \"Unread, 4\"), never the run-together \"Filters2\".",
           "deprecated": null
         },
         {
@@ -259,6 +259,14 @@
           "deprecated": null
         },
         {
+          "name": "popoverPortal",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Renders the Popover in the page's overlay layer (ZenPortal), anchored under the chip, instead of inside it: a chip in\na row that scrolls sideways (`overflow-x: auto` clips both axes) or in any box that clips its overflow keeps a whole,\nvisible menu. Light dismiss, Escape and focus return work the same. Leave it off inside a Dialog or Bottom Sheet.",
+          "deprecated": null
+        },
+        {
           "name": "type",
           "type": "unknown",
           "required": false,
@@ -270,7 +278,7 @@
     }
   ],
   "types": {
-    "BadgeTheme": "type BadgeTheme = \"accent\" | \"neutral\" | \"yellow\" | \"orange\" | \"red\" | \"crimson\" | \"pink\" | \"plum\" | \"purple\" | \"violet\" | \"indigo\" | \"blue\" | \"cyan\" | \"teal\" | \"green\" | \"brown\" | \"inverse\" | \"on-color\"",
+    "BadgeTheme": "type BadgeTheme = \"accent\" | \"neutral\" | \"yellow\" | \"orange\" | \"red\" | \"crimson\" | \"pink\" | \"plum\" | \"purple\" | \"violet\" | \"indigo\" | \"blue\" | \"cyan\" | \"teal\" | \"green\" | \"brown\" | \"inverse\" | \"on-color\" | \"sky\" | \"mint\" | \"bronze\" | \"golden\"",
     "PopoverItemData": "type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?: ReactNode; leading?: IconName | ReactNode; trailing?: IconName | ReactNode; disabled?: boolean; selected?: boolean; photoSrc?: string; photoAlt?: string; badgeTheme?: BadgeTheme; theme?: \"icon\" | \"text-only\" | \"photo-small\" | \"photo-big\" | \"avatar-small\" | \"avatar-big\" | \"dock-icon\" | \"badge\"; function?: \"default\" | \"manual-add-new\"; }"
   }
 }

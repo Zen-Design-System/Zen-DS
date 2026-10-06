@@ -82,4 +82,44 @@ export const bottomNavItems: BottomNavigationItem[] = [
   { id: "profile", label: "Profile", icon: "icon-user-circle-line", selectedIcon: "icon-user-circle-solid" },
 ];
 
+/* Notes app (Bottom Navigation › Floating + action): its own destinations and content, apart from the photo feed. */
+export const notesNavItems: BottomNavigationItem[] = [
+  { id: "notes", label: "Notes", icon: "icon-book-open-line", selectedIcon: "icon-book-open-solid" },
+  { id: "folders", label: "Folders", icon: "icon-folder-line", selectedIcon: "icon-folder-solid" },
+  { id: "shared", label: "Shared", icon: "icon-users-line", selectedIcon: "icon-users-solid" },
+];
+
+export type MobileNoteKind = "note" | "checklist" | "voice" | "scan";
+export type MobileNote = { id: string; title: string; caption: string; kind: MobileNoteKind; folder: string; pinned?: boolean };
+export const mobileNotes: MobileNote[] = [
+  { id: "n1", title: "Q4 planning", caption: "Edited 10 min ago", kind: "note", folder: "Work", pinned: true },
+  { id: "n2", title: "Launch checklist", caption: "6 of 9 done", kind: "checklist", folder: "Work", pinned: true },
+  { id: "n3", title: "Standup, 29 September", caption: "Voice memo · 2:14", kind: "voice", folder: "Work" },
+  { id: "n4", title: "Team lunch receipt", caption: "Scanned yesterday", kind: "scan", folder: "Personal" },
+  { id: "n5", title: "Interview questions", caption: "Edited yesterday", kind: "note", folder: "Work" },
+  { id: "n6", title: "Groceries", caption: "3 of 8 done", kind: "checklist", folder: "Personal" },
+  { id: "n7", title: "Ideas for the offsite", caption: "Edited Monday", kind: "note", folder: "Work" },
+  { id: "n8", title: "Sprint retro whiteboard", caption: "Scanned Friday", kind: "scan", folder: "Work" },
+  { id: "n9", title: "Client call, Acme", caption: "Voice memo · 12:40", kind: "voice", folder: "Work" },
+  { id: "n10", title: "Packing list, Da Lat", caption: "0 of 14 done", kind: "checklist", folder: "Travel" },
+  { id: "n11", title: "Books to read", caption: "Edited 2 weeks ago", kind: "note", folder: "Personal" },
+  { id: "n12", title: "Flight and hotel details", caption: "Edited 3 weeks ago", kind: "note", folder: "Travel" },
+];
+
+export const sharedNotes = [
+  { id: "s1", title: "Brand refresh brief", person: mobilePeople.bao, when: "Today" },
+  { id: "s2", title: "Offsite agenda", person: mobilePeople.chi, when: "Yesterday" },
+  { id: "s3", title: "Hiring plan 2027", person: mobilePeople.duy, when: "Monday" },
+  { id: "s4", title: "Recipe: phở bò", person: mobilePeople.gia, when: "Sunday" },
+  { id: "s5", title: "Design critique notes", person: mobilePeople.emi, when: "Friday" },
+  { id: "s6", title: "Trip budget", person: mobilePeople.hana, when: "Thursday" },
+];
+
+/* Media app (Bottom Navigation › Glass over media): every destination is full-bleed imagery. */
+export const mediaNavItems: BottomNavigationItem[] = [
+  { id: "home", label: "Home", icon: "icon-home-smile-line", selectedIcon: "icon-home-smile-solid" },
+  { id: "explore", label: "Explore", icon: "icon-compass-line", selectedIcon: "icon-compass-solid" },
+  { id: "saved", label: "Saved", icon: "icon-bookmark-line", selectedIcon: "icon-bookmark-solid" },
+];
+
 export const budgetSeries = [{ id: "dev", label: "Development" }, { id: "research", label: "Research" }, { id: "marketing", label: "Marketing" }, { id: "finance", label: "Finance" }, { id: "hr", label: "HR" }];

@@ -1,0 +1,108 @@
+/* Zen Studio direct editing on the canvas (docs/research/studio-figma-editing-plan-2026-10-03.md). The layer lives in
+   canvas-viewport coordinates above the selection outlines (10) and below the frame chrome (20). */
+.studio-edit { position: absolute; z-index: 15; inset: 0; overflow: hidden; pointer-events: none; }
+
+/* The in-place text editor: the font, size, colour and wrap width come from the edited text (TextEditor.tsx); its box
+   is scaled by the canvas zoom, so the 1px ring is divided by it. */
+.studio-edit__text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: content-box;
+  min-width: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  box-shadow: 0 0 0 calc(1px / var(--studio-edit-zoom, 1)) var(--zen-color-border-info-solid-default);
+  caret-color: var(--zen-color-border-info-solid-default);
+  cursor: text;
+  pointer-events: auto;
+  transform-origin: 0 0;
+  user-select: text;
+}
+.studio-edit__text::selection { background: var(--zen-color-background-info-subtle-pressed); }
+
+/* The rendered text under the editor keeps its place and takes every keystroke (live reflow), but is not drawn. */
+:is(.studio-world, .studio-portal-root) [data-studio-text-editing] { -webkit-text-fill-color: transparent !important; }
+
+/* "Edits all N places" above a text that a .map renders several times: the selection tag's pill. */
+.studio-edit__hint {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: var(--zen-color-background-info-solid-pressed);
+  color: var(--zen-color-content-inverse-strongest);
+  white-space: nowrap;
+  pointer-events: none;
+  translate: 0 calc(-100% - var(--zen-spacing-gap-2-xsmall, 4px));
+}
+
+/* Drag in auto layout (DragLayer.tsx): the container it lands in, the insertion line, the pointer pill. */
+.studio-drag__into,
+.studio-drag__line { position: absolute; top: 0; left: 0; box-sizing: border-box; pointer-events: none; }
+.studio-drag__into { box-shadow: inset 0 0 0 1px var(--zen-color-border-info-solid-default); }
+.studio-drag__line { border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-border-info-solid-default); }
+.studio-drag__label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: var(--zen-color-background-info-solid-pressed);
+  color: var(--zen-color-content-inverse-strongest);
+  white-space: nowrap;
+  pointer-events: none;
+  translate: var(--zen-spacing-gap-small, 12px) var(--zen-spacing-gap-small, 12px);
+}
+.studio-drag__label[data-tone="negative"] { background: var(--zen-color-background-negative-solid-default); }
+/* While a layer is dragged the whole canvas shows the grabbing hand. */
+.studio-viewport[data-studio-dragging],
+.studio-viewport[data-studio-dragging] * { cursor: grabbing !important; }
+
+/* ⌥ measure (MeasureLayer.tsx): Negative (red) like Figma's redlines; the pill is the selection tag's, in red. */
+.studio-measure__target,
+.studio-measure__line { position: absolute; top: 0; left: 0; box-sizing: border-box; pointer-events: none; }
+.studio-measure__target { box-shadow: inset 0 0 0 1px var(--zen-color-border-negative-solid-default); }
+.studio-measure__line { background: var(--zen-color-border-negative-solid-default); }
+.studio-measure__label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: var(--zen-color-background-negative-solid-default);
+  color: var(--zen-color-content-inverse-strongest);
+  white-space: nowrap;
+  pointer-events: none;
+}
+/* Centred under a horizontal line, beside a vertical one. */
+.studio-measure__label[data-axis="x"] { translate: -50% var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-measure__label[data-axis="y"] { translate: var(--zen-spacing-gap-2-xsmall, 4px) -50%; }
+
+/* Layers drag and drop (edit/layersDrag.ts): the line between rows, the row it goes into, why it cannot land. */
+.studio-layers__tree[data-dropping] { position: relative; }
+.studio-layers-drop { position: absolute; z-index: 2; top: 0; left: 0; box-sizing: border-box; pointer-events: none; }
+.studio-layers-drop:is([data-mode="before"], [data-mode="after"]) { height: 2px; border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-border-info-solid-default); }
+.studio-layers-drop[data-mode="into"] { border-radius: var(--zen-corner-radius-small, 6px); box-shadow: inset 0 0 0 2px var(--zen-color-border-info-solid-default); }
+.studio-layers-drop[data-mode="refused"] {
+  padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: var(--zen-color-background-negative-solid-default);
+  color: var(--zen-color-content-inverse-strongest);
+  white-space: nowrap;
+}
+
+/* Marquee selection (MarqueeLayer.tsx): Info, like the selection outlines. */
+.studio-marquee {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--zen-color-border-info-solid-default);
+  background: var(--zen-color-background-info-subtle-default);
+  pointer-events: none;
+}

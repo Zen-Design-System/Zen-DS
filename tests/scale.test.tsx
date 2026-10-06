@@ -53,7 +53,9 @@ describe("size props: short and long spellings render the same", () => {
       }
       const html = async (value: string) => {
         const element = createElement(Component, { ...base, [prop]: value });
-        const screen = await render(<>{fixture.wrap ? fixture.wrap(element) : element}</>);
+        // The test compares static DOM: no pointer events reach it, so a hover preview (Rating fills the stars under a
+        // pointer that an earlier test left on the page) never makes one render differ from the other.
+        const screen = await render(<div style={{ pointerEvents: "none" }}>{fixture.wrap ? fixture.wrap(element) : element}</div>);
         const out = normalise(screen.container.innerHTML);
         await screen.unmount();
         return out;

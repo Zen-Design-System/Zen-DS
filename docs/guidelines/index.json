@@ -113,7 +113,7 @@
         "Chip": [
           "children?: ReactNode",
           "variant?: advanced|normal|number-only = advanced",
-          "size?: xs|sm|md|xsmall|small|medium = sm",
+          "size?: xs|sm|md|xsmall|small|medium = md",
           "level?: primary|secondary = secondary",
           "theme?: text-only|leading-icon|leading-photo",
           "state?: default|hover|press|focused|placeholder|disabled = default",
@@ -141,10 +141,14 @@
           "popoverSearchPlaceholder?: string",
           "popoverScrollBar?: boolean = true",
           "onPopoverCreate?: (value: string) => void",
-          "popoverCreateLabel?: ReactNode"
+          "popoverCreateLabel?: ReactNode",
+          "popoverPortal?: boolean = false"
         ]
       },
       "do": [
+        "Pick the level by how many can be on (user rule 2026-10-04): a multi-select group of toggles is Secondary for every chip (Selected = the 2px dark outline), a single-select group is Primary for every chip (Selected = the dark fill). Never switch a chip's level when it is selected.",
+        "Put a group of chips in its own Stack (or chip row) with Spacing/Gap/XSmall (8px) between chips, never the gap of the form or fieldset around it.",
+        "Keep the medium size (the default) on desktop and phones, so a filter row lines up with Search and Buttons (40px); small only inside a genuinely narrow component space.",
         "Use one Advanced chip per filter dimension (Status, Owner, Date).",
         "Show a count with a Number-only chip and no handler: it renders as a static count (Figma: a compact indicator for counts). Give it onClick or selected only when pressing the number does something.",
         "Show the chosen value as the chip label for single selection; show the counter for multiple.",
@@ -152,10 +156,11 @@
         "Offer \"Clear all\" (Tertiary button) when two or more filters are active.",
         "Keep Advanced chips' Popover open while toggling multiple options (popoverMultiple).",
         "Show the count on multiple-selection chips (harness: chip/multiple-needs-count).",
-        "On a phone, keep filter chips in one horizontally scrolling row (no wrapping) and open choices in an Action Bottom Sheet instead of a Popover; show the result count with a plural label and offer Clear filters on an empty result."
+        "On a phone, keep filter chips in one horizontally scrolling row (no wrapping) and open choices in a Bottom Sheet of List + ListItem rows (the picked one `selected`) instead of a Popover; show the result count with a plural label and offer Clear filters on an empty result."
       ],
       "dont": [
         "Don't use Secondary or any Button to open a filter list.",
+        "In a row that scrolls sideways on a wider screen (overflow-x: auto clips both axes), pass `popoverPortal` so the chip's menu opens in the overlay layer, whole and anchored under it; leave it off inside a Dialog or Bottom Sheet.",
         "Don't use Segmented to filter data (Segmented switches views).",
         "Don't give a Normal or Number-only chip popoverItems.",
         "Don't wrap chips inside another button."
@@ -163,6 +168,7 @@
       "rules": [
         "button/filter-is-chip",
         "chip/popover-needs-advanced",
+        "flag/no-emoji-flag",
         "chip/multiple-needs-count",
         "api/deprecated-prop",
         "copy/plural-count",
@@ -233,6 +239,8 @@
           "popoverLabel?: ReactNode",
           "popoverSearch?: boolean = false",
           "popoverSearchPlaceholder?: string",
+          "popoverOpen?: boolean",
+          "onPopoverOpenChange?: (open: boolean) => void",
           "readOnly?: boolean = false"
         ],
         "DateField": [
@@ -254,7 +262,10 @@
           "onValueChange?: (value: string) => void",
           "datePicker?: boolean = true",
           "datePickerActions?: boolean = false",
-          "onDateChange?: (date: Date|null) => void"
+          "onDateChange?: (date: Date|null) => void",
+          "minDate?: Date",
+          "maxDate?: Date",
+          "today?: Date"
         ],
         "NumberField": [
           "align?: left|center = left",
@@ -314,8 +325,14 @@
         "Always render a visible label; use aria-label only when the context already labels the field (e.g. a Share link row).",
         "Validate on blur or submit, then show error text that says how to fix it.",
         "Use Read-only for values the user may see but not change.",
+        "Read-only fields stay focusable (to read, select and copy) and show the Focused 3px ring around the dashed Read-Only border, whose dashes take Color/Focus/Neutral/Solid while focused.",
+        "Use Disabled for a field that is unavailable until something else changes (a toggle, a plan, a permission), and say why in the help text.",
         "Use helpTheme=\"warning\" for a soft caution and \"positive\" to confirm a check passed; reserve Negative for `error`.",
         "Make a labelled Leading/Trailing slot a picker (options) for units, country codes or account types, or an action (onClick) such as show password; set interactive={false} when it is purely informative.",
+        "Escape closes only an open SelectField list, DateField calendar, Leading/Trailing picker or AutocompleteField list and returns focus to its trigger; a Dialog, ModalForm or Side Panel around the field stays open. On a closed field, Escape goes to that overlay.",
+        "DateField opens its calendar when a person tabs to or clicks the field, never on a script's focus (a blocked submit's focusFirstInvalidField, a Dialog's or BottomSheet's first focus), so an error focus never covers the form with the calendar.",
+        "A typed date outside minDate / maxDate stays in the DateField, reaches onValueChange and marks the input aria-invalid (Form and ModalForm count it and focus it after a blocked submit), but the field shows no message of its own: validate it and pass `error` that names the allowed range (\"Pick a date from 1 October\").",
+        "AutocompleteField: with onCreate, Create appears only for a value that is not an option yet; typing an option that is already a Tag lists it as selected (disabled) instead.",
         "Clamp NumberField with min/max; steppers disable at the bounds.",
         "Keep help text to one line; move long guidance to InputConditions or docs.",
         "Show requirement rules (passwords, handles) as InputConditions under the field: Default before typing, then Success/Wrong live as the value changes.",
@@ -325,11 +342,12 @@
         "HeadingField: set multiline when a title can run past one line, so it wraps instead of scrolling out of view."
       ],
       "dont": [
-        "Don't use Disabled on inputs; Zen inputs have Read-only only.",
+        "Don't disable a field whose value people need to read or copy; use Read-only (disabled text is faint, skipped by Tab and not submitted).",
+        "Don't use Disabled on AutocompleteField or RichTextField: Figma gives them Read-only only (harness: input/no-disabled).",
         "Don't use placeholder text as the label.",
         "Don't show an error before the user has interacted with the field.",
         "Don't make an icon-only Leading/Trailing slot clickable without an aria-label; decorative slots pass clicks to the field.",
-        "Don't open a Date/Select popover on a read-only field.",
+        "Don't open a Date/Select popover on a read-only or disabled field.",
         "Don't repeat the label as placeholder; show an example or the format (harness: input/placeholder-not-label).",
         "Don't use RichTextField for plain notes (→ TextAreaField) or single-line input (→ InputField).",
         "Don't wire onChange on RichTextField; it reports content through onValueChange (harness: richtext/value-not-onchange)."
@@ -352,7 +370,7 @@
       "apiFile": "docs/api/search.json",
       "figma": "Search (page 846:37480)",
       "import": "import { Search } from \"@zen/design-system\";",
-      "purpose": "Find or filter content by typing. Like every Zen input it has no Disabled state.",
+      "purpose": "Find or filter content by typing.",
       "use": [
         "Filtering a visible list or table as the user types.",
         "Global/entity search with results below."
@@ -377,10 +395,13 @@
           "filterLabel?: ReactNode",
           "filterInteractive?: boolean = true",
           "onFilterClick?: (event: MouseEvent<HTMLButtonElement>) => void",
+          "filterHasPopup?: ButtonHTMLAttributes<HTMLButtonElement>[aria-haspopup]",
+          "filterExpanded?: boolean",
           "filterOptions?: InputLeadingTrailingOption[]",
           "filterValue?: string",
           "onFilterChange?: (value: string, option: InputLeadingTrailingOption) => void",
           "filterActionLabel?: string",
+          "disabled?: boolean = false",
           "shortcut?: string",
           "onClear?: () => void"
         ]
@@ -392,17 +413,17 @@
         "Pair Search with Chip filters in table toolbars. Search fills its container, so give it a Grid column: columns={{ mobile: 1, desktop: \"minmax(0, 320px) 1fr\" }} with the chips in the second cell.",
         "Debounce remote search (~250ms) and keep the query when results refresh.",
         "Show the result count in an aria-live region (\"12 results\").",
+        "When the filter opens a Bottom Sheet, panel or Popover, pass filterHasPopup (\"dialog\", \"menu\", \"listbox\") and filterExpanded={open}; aria-expanded on Search itself lands on the input.",
         "When nothing matches, show an EmptyState that echoes the query and offers “Clear search” (illustration={false} in narrow panels such as sidebars and pickers)."
       ],
       "dont": [
         "Don't hide search behind an icon on desktop when search is a primary task.",
         "Don't clear the query when results update.",
-        "Don't use Disabled; hide Search or keep it Read-only when it is unavailable.",
+        "Don't disable Search because there is nothing to find yet; keep it with an empty state, or hide it where search never applies. Disable it only while something blocks searching (a bulk edit, a sync), and say why.",
         "Don't trigger search only on Enter for small, local lists; filter as the user types.",
         "Don't use a vague placeholder (\"Type here…\")."
       ],
       "rules": [
-        "input/no-disabled",
         "search/needs-name",
         "interaction/no-noop-handler"
       ]
@@ -441,6 +462,7 @@
         ]
       },
       "do": [
+        "Use size medium (the default) on desktop and on phones; small only inside a genuinely narrow component space (a dense card header or table toolbar), never just to save room on a page.",
         "Keep the default level (Secondary), the most common case; set level=\"primary\" only when the switch needs extra emphasis (e.g. a billing-period toggle).",
         "Name the control with aria-label.",
         "Keep labels to one or two words; icon-only items still need a label for assistive tech.",
@@ -449,11 +471,11 @@
         "Keep 2–5 options (harness: segmented/option-count).",
         "Name icon-only segments with \"aria-label\" on the option and mark the icon decorative (harness: segmented/icon-only-needs-name).",
         "On mobile, stretch a Segmented to its container (fullWidth) in a Top Navigation control bar, a Bottom Sheet or a narrow panel, so the items share the width equally (harness: segmented/control-bar-full-width).",
-        "Elsewhere on a phone, keep the full labels and let a Segmented that outgrows the width scroll sideways; it does so on its own, like Tabs, and keeps the selected segment in view. Use fullWidth only when every label fits its equal share."
+        "On a phone, use a Segmented only when every label fits its equal share (fullWidth). When the options are wider than the screen (four periods, long labels), switch to a single-choice row of Normal Chips (Medium, the pressed one Primary) that scrolls sideways, not a sliding Segmented."
       ],
       "dont": [
         "Don't use Segmented as a filter.",
-        "Don't abbreviate labels or shrink the text to squeeze a Segmented onto a phone; past 5 options or long labels, switch to Tabs or SelectField.",
+        "Don't abbreviate labels or shrink the text to squeeze a Segmented onto a phone, and don't let it slide sideways there; use a Chip row instead (or Tabs / SelectField past 5 options).",
         "Don't mix icon-only and labelled items in one control.",
         "Don't add a hover or pressed state to the selected segment; it suggests the choice can be undone by clicking it again."
       ],
@@ -500,6 +522,7 @@
       },
       "do": [
         "Apply the change immediately; no confirm button.",
+        "On phones use size large: components keep their full size on mobile, the smaller sizes are for dense desktop rows, tables and panels (harness: mobile/full-size-controls).",
         "Use a master toggle to disable dependent toggles, and explain in its caption.",
         "Label the setting, not the state (\"Email notifications\", not \"On\")."
       ],
@@ -513,6 +536,7 @@
         "choice/needs-label",
         "toggle/label-names-setting",
         "api/deprecated-prop",
+        "mobile/full-size-controls",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -644,13 +668,14 @@
           "ref?: Ref<HTMLSpanElement>",
           "children?: ReactNode",
           "size?: xs|sm|md|xsmall|small|medium = md",
-          "theme?: accent|neutral|yellow|orange|red|crimson|pink|plum|purple|violet|indigo|blue|cyan|teal|green|brown|inverse|on-color",
-          "color?: accent|neutral|yellow|orange|red|crimson|pink|plum|purple|violet|indigo|blue|cyan|teal|green|brown|inverse|on-color (deprecated)",
+          "theme?: accent|neutral|yellow|orange|red|crimson|pink|plum|purple|violet|indigo|blue|cyan|teal|green|brown|inverse|on-color|sky|mint|bronze|golden",
+          "color?: accent|neutral|yellow|orange|red|crimson|pink|plum|purple|violet|indigo|blue|cyan|teal|green|brown|inverse|on-color|sky|mint|bronze|golden (deprecated)",
           "background?: solid|subtle = solid",
           "leading?: IconName|ReactNode",
           "leadingIcon?: boolean = true",
           "remove?: boolean = false",
           "onRemove?: () => void",
+          "removeLabel?: string",
           "className?: string"
         ],
         "BadgeCounter": [
@@ -673,6 +698,7 @@
       "rules": [
         "removable/needs-handler",
         "badge-counter/cap",
+        "flag/no-emoji-flag",
         "badge/count-uses-counter",
         "api/deprecated-prop",
         "copy/plural-count",
@@ -719,6 +745,7 @@
       ],
       "rules": [
         "removable/needs-handler",
+        "flag/no-emoji-flag",
         "copy/plural-count",
         "interaction/no-noop-handler"
       ]
@@ -741,7 +768,7 @@
       "props": {
         "Avatar": [
           "size?: 2xs|xs|sm|md|lg|xl|2xl|3xl|2xsmall|xsmall|small|medium|large|xlarge|2xlarge|3xlarge = md",
-          "theme?: photo|accent|blue|brown|crimson|cyan|green|indigo|neutral|orange|pink|plum|purple|red|teal|violet|yellow = neutral",
+          "theme?: photo|accent|blue|brown|crimson|cyan|green|indigo|neutral|orange|pink|plum|purple|red|teal|violet|yellow|sky|mint|bronze|golden = neutral",
           "background?: solid|subtle = solid",
           "shape?: circle|square = circle",
           "status?: boolean = false",
@@ -765,10 +792,13 @@
       ],
       "dont": [
         "Don't show more than 5 avatars in a stack; summarise the rest in text.",
-        "Don't use status without a text equivalent nearby (\"Online\")."
+        "Don't use status without a text equivalent nearby (\"Online\").",
+        "Don't put initials on a Solid green, teal, orange or cyan avatar: the white initials measure 2.6–2.9:1. Use background=\"subtle\" or a theme such as indigo, violet or purple; photos are fine (harness: avatar/solid-initials-contrast)."
       ],
       "rules": [
         "avatar/needs-alt",
+        "avatar/solid-initials-contrast",
+        "flag/no-emoji-flag",
         "interaction/no-noop-handler"
       ]
     },
@@ -872,6 +902,7 @@
           "onItemClick?: (item: SidebarItem) => void",
           "className?: string",
           "background?: default|alt|flat|inverse = default",
+          "divider?: boolean = false",
           "workspaceBrand?: ReactNode",
           "workspaceItems?: SidebarItem[] = []",
           "workspaceFooter?: ReactNode",
@@ -884,13 +915,16 @@
         ]
       },
       "do": [
+        "One elevation per screen, set by the Sidebar: Canvas default (grey) + the default Sidebar (Surface + shadow) + Shadow cards with no border; Canvas alt (white) + a Surface-alt or Flat Sidebar (add divider for a full-height line inside the Sidebar) + bordered cards; Canvas flat + a Flat Sidebar + bordered cards. Never a shadowed Sidebar on a white Canvas.",
         "Give destinations an href so rows are real links (open in a new tab, copy the address), and pass the current route's id as selectedId instead of remapping selected in sections.",
         "Move selection with onItemClick; exactly one selected item.",
         "Group items under short section titles.",
         "Use counters for actionable counts; notification dots for \"something new\".",
         "Keep labels to one or two words; icons are required on the top level so the collapsed rail still works.",
         "Remember the collapsed state per user.",
+        "With a custom brand (workspace logo + name), pass its logo as logoCollapsed too: the collapsed rail shows that mark centred over the items, at the same rail width as a Sidebar that starts collapsed. Without it the rail keeps the brand's first element, centred, and hides the rest visually.",
         "Put account, settings and help in the footer, not between destinations.",
+        "Write each footer action as <button><Icon /><span>Label</span></button>; the collapsed rail hides the span visually, names the button from it and adds the 1s tooltip, so no extra aria-label or Tooltip is needed.",
         "Show the Workspace variant only when users belong to more than one workspace; mark exactly one workspace item selected so its Focus-Ring shows which one is active.",
         "Fill a SidebarSubMenu flyout with a `<Search variant=\"popover\">` and Master items.",
         "Wire onSubMenuClose so Escape and an outside press close the flyout, and give it a subMenuLabel.",
@@ -919,11 +953,12 @@
       "file": "docs/guidelines/date-picker.md",
       "apiFile": "docs/api/date-picker.json",
       "figma": "Date-Picker/Single-Calendar (page 453:32817)",
-      "import": "import { DatePicker, DateField, DatePickerItem, DatePickerHeader, DatePickerAction, DatePickerMonthYear } from \"@zen/design-system\";",
+      "import": "import { DatePicker, DateField, DatePickerItem, DatePickerHeader, DatePickerAction, DatePickerMonthYear, DatePickerTimePicker } from \"@zen/design-system\";",
       "purpose": "Pick a date or a date range. DatePicker is the calendar panel itself and is visible by default (open defaults to true), like an inline calendar; DateField is the input that opens it in a popover.",
       "use": [
         "DateField in forms (the field owns the popover); inline DatePicker for booking-style range selection.",
-        "A DatePicker anchored to your own trigger: pass open, onClose and anchorRef."
+        "A DatePicker anchored to your own trigger: pass open, onClose and anchorRef.",
+        "Inline (no onClose / onOpenChange / anchorRef) the calendar has no surface of its own (no popover fill, border, padding or shadow, as Figma's in-place calendar): place it in a Card or panel."
       ],
       "avoid": [
         "Known far-past dates (birthdays) → typed DateField without calendar-first UX."
@@ -940,7 +975,7 @@
           "onChange?: (date: Date|null) => void (deprecated)",
           "onRangeChange?: (range: DatePickerRange) => void",
           "onMonthChange?: (month: Date) => void",
-          "onApply?: (value: Date|null, range: DatePickerRange|null) => void",
+          "onApply?: (value: Date|null, range: DatePickerRange|null, time?: DatePickerTime) => void",
           "onCancel?: () => void",
           "onClose?: () => void",
           "onOpenChange?: (open: boolean) => void",
@@ -949,8 +984,16 @@
           "action?: single|dual = dual",
           "selectionMode?: single|range = single",
           "calendar?: single|dual = single",
+          "device?: desktop|mobile",
+          "timePicker?: boolean = false",
+          "time?: DatePickerTime",
+          "defaultTime?: DatePickerTime = { from: null, to: null, fromAllDay: false, toAllDay: false }",
+          "onTimeChange?: (time: DatePickerTime) => void",
           "minDate?: Date",
           "maxDate?: Date",
+          "today?: Date",
+          "aria-label?: string",
+          "aria-labelledby?: string",
           "className?: string"
         ],
         "DateField": [
@@ -972,11 +1015,16 @@
           "onValueChange?: (value: string) => void",
           "datePicker?: boolean = true",
           "datePickerActions?: boolean = false",
-          "onDateChange?: (date: Date|null) => void"
+          "onDateChange?: (date: Date|null) => void",
+          "minDate?: Date",
+          "maxDate?: Date",
+          "today?: Date"
         ]
       },
       "do": [
-        "Disable impossible dates (past check-in) with minDate.",
+        "On a phone, put the calendar in the screen or a Bottom Sheet inline: at the mobile breakpoint it takes the Figma mobile primitives by itself and fills the width; pass device=\"mobile\" only to force them (a popover, a narrow preview).",
+        "Disable impossible dates (past check-in) with minDate / maxDate (earlier or later days disabled); in a DateField a typed date outside them is kept and marked aria-invalid, so pair the range with an `error` message.",
+        "Pass `today` (your app's date: a server, business or demo date) when it is not the device's; the Today ring and the month the calendar opens on follow it. DateField forwards `today`, `minDate` and `maxDate` to its calendar.",
         "Show the chosen range and its consequence (nights, price) next to the calendar.",
         "Let users type the date in the DateField; the calendar is a shortcut, not the only input.",
         "Use calendar=\"dual\" for ranges longer than a few days; single for one date.",
@@ -992,7 +1040,6 @@
         "Don't pass `month` without `onMonthChange`: Previous / Next and the month-year wheel stop working. To open on another month, keep it in state: `month={month} onMonthChange={setMonth}` (harness: interaction/controlled-needs-handler)."
       ],
       "rules": [
-        "input/no-disabled",
         "input/needs-label",
         "input/placeholder-not-label",
         "api/deprecated-prop",
@@ -1061,7 +1108,7 @@
       "purpose": "Switch between related panels of content at the same level.",
       "use": [
         "Settings pages, detail views with sections (Indicator).",
-        "Compact switches inside cards (Subtle, small)."
+        "Compact switches inside cards (Subtle; still medium unless the card is genuinely narrow)."
       ],
       "avoid": [
         "Filtering → Chip.",
@@ -1084,6 +1131,7 @@
         ]
       },
       "do": [
+        "Use size medium (the default) on desktop and on phones; small only inside a genuinely narrow component space (a dense card header or table toolbar), never just to save room on a page.",
         "Give the tablist an aria-label and pair each tab with a TabPanel.",
         "Keep 2–7 tabs with short labels.",
         "Show counts with badges; hide at zero.",
@@ -1226,9 +1274,9 @@
           "description?: ReactNode",
           "theme?: default|info|positive|warning|negative = default",
           "icon?: boolean|IconName|ReactNode = true",
-          "primaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
-          "secondaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
-          "tertiaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "primaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body fo…",
+          "secondaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body fo…",
+          "tertiaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body fo…",
           "actionsDirection?: horizontal|vertical = horizontal",
           "children?: ReactNode",
           "dismissible?: boolean = true",
@@ -1249,11 +1297,13 @@
           "closeButton?: boolean = true",
           "closeLabel?: string",
           "children?: ReactNode",
-          "primaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
-          "secondaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
-          "tertiaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "primaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body fo…",
+          "secondaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body fo…",
+          "tertiaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body fo…",
           "actionsDirection?: horizontal|vertical = horizontal",
-          "onSubmit?: (event: FormEvent<HTMLFormElement>) => void",
+          "onSubmit?: (event: FormEvent<HTMLFormElement>) => unknown",
+          "noValidate?: boolean = true",
+          "invalidMessage?: (count: number) => string",
           "dismissible?: boolean = true",
           "className?: string"
         ]
@@ -1262,18 +1312,22 @@
         "Use ModalForm for 3–8 field create/edit flows; keep Dialog for confirmations.",
         "Use actionsDirection=\"vertical\" when the choices deserve equal weight or labels are long.",
         "Phrase the title as the question (\"Delete “Marketing site”?\") and repeat the verb in the primary action.",
-        "Use theme negative + level danger for irreversible actions; give Cancel initial focus.",
+        "Use theme negative + level danger for irreversible actions; give Cancel initial focus with `secondaryAction={{ label: \"Cancel\", autoFocus: true }}` (otherwise the primary action takes it).",
         "Require typing the name for high-impact deletes.",
         "Keep one primary action; a third (tertiary) action sits on the left.",
         "Return focus to the element that opened the dialog.",
-        "Overlays portal through ZenPortal: when light/dark and the other modes are set on an inner element instead of <html>, wrap the app in <ZenPortalProvider container={el}> with an element inside that scope, so Modal, Dialog and Side Panel follow the mode."
+        "Overlays portal through ZenPortal: when light/dark and the other modes are set on an inner element instead of <html>, wrap the app in <ZenPortalProvider container={el}> with an element inside that scope, so Modal, Dialog and Side Panel follow the mode. Inside a [data-zen-overlay-root] device frame the frame wins (as for Menu).",
+        "On a phone screen, put the unsaved-changes guard Dialog inside the PlatformPhone (any [data-zen-overlay-root] frame): it opens in the frame, with no ZenPortalProvider layer.",
+        "On a phone (viewport ≤ 480px or a phone frame) Dialog uses Device=Mobile (10153:7277): 350 of 390, with 20px side margins (Padding/Large), at the bottom of the screen above the home indicator, Heading/4 title and stacked full-width actions.",
+        "With onSubmit, ModalForm is a <form noValidate> like Form. Validate in onSubmit and set each field's `error`; `required` alone never blocks the submit. A blocked submit focuses the first invalid field and announces \"N fields need attention\" (invalidMessage overrides the text)."
       ],
       "dont": [
         "Don't stack dialogs.",
         "Don't use a dialog for information the user can ignore.",
         "Don't hide the only way out (always Escape or a cancel action).",
         "Don't open a dialog from a dialog (harness: dialog/no-nested).",
-        "Don't open a dialog on page load without a user action."
+        "Don't open a dialog on page load without a user action.",
+        "Don't rely on the browser's required bubbles in a ModalForm. They are off by default; noValidate={false} only when you deliberately hand validation to the browser."
       ],
       "rules": [
         "dialog/needs-title",
@@ -1308,7 +1362,7 @@
           "title?: ReactNode",
           "children?: ReactNode",
           "icon?: boolean|IconName|ReactNode = true",
-          "action?: { label: ReactNode; onClick?: () => void }",
+          "action?: { label: ReactNode; onClick?: () => void; keepOpen?: boolean }",
           "onClose?: () => void",
           "closeLabel?: string",
           "className?: string"
@@ -1334,6 +1388,7 @@
         "Show toasts with `const { toast } = useToast(); toast({ title: \"Invite sent\" })`; ZenProvider hosts the stack, so no ToastStack state is needed.",
         "Keep it to one short title and at most one line of description.",
         "Offer a single action, and prefer Undo for actions that change data.",
+        "Let the action close its toast: Undo/View runs onClick and then dismisses it, so onClick needs no dismiss(id) (calling it anyway is harmless); set action.keepOpen only when the action updates the toast in place.",
         "Use Neutral for everyday confirmations (sent, saved, copied); reserve colours for status that matters (Positive when success is the news, e.g. a payment went through).",
         "Auto-dismiss informational toasts (about 5s, longer with an action) and pause on hover/focus.",
         "Show one toast at a time for the same event; replace, don't stack duplicates.",
@@ -1426,6 +1481,7 @@
           "children?: ReactNode",
           "size?: md|lg|xl|medium|large|xlarge = md",
           "theme?: divider|box = divider",
+          "contentWidth?: title|full = title",
           "expanded?: boolean",
           "defaultExpanded?: boolean = false",
           "onExpandedChange?: (expanded: boolean) => void",
@@ -1435,13 +1491,15 @@
       "do": [
         "Write titles users can scan, such as questions or clear topics.",
         "Use one theme per list: Divider for long lists, Box for a few standalone items.",
-        "Open the item that matches the user's context (e.g. from a deep link)."
+        "Open the item that matches the user's context (e.g. from a deep link).",
+        "Give rows with end-aligned values (a receipt, specs) contentWidth=\"full\", so the values line up with the box edge; text keeps the default column."
       ],
       "dont": [
         "Don't hide critical or primary information inside a collapsed item.",
         "Don't nest accordions inside accordions.",
         "Don't put the only call to action inside a collapsed panel.",
-        "Don't nest (harness: accordion/no-nested)."
+        "Don't nest (harness: accordion/no-nested).",
+        "Don't add a separate expand button or an onClick on the wrapper; the whole header row already toggles the section."
       ],
       "rules": [
         "accordion/no-nested",
@@ -1823,7 +1881,7 @@
       "purpose": "A surface that groups related content about one subject — a project, a stat, a choice — and can be selected or opened as a whole.",
       "use": [
         "Grids of objects users scan and pick (projects, templates, plans).",
-        "KPI / stat tiles (Shadow or Flat).",
+        "KPI / stat tiles (Flat by default; Shadow beside a shadowed Sidebar).",
         "A selectable option with rich content (Active marks the choice).",
         "Framing a List or a group of settings (Border)."
       ],
@@ -1850,12 +1908,15 @@
         ]
       },
       "do": [
-        "Use one theme per grid; Shadow on the canvas, Border inside another surface, Pale/Semi-Pale on imagery.",
+        "Use one theme per grid. With nothing else deciding (examples, a page with no Sidebar), Flat on Canvas/Default: no border, no shadow (usage rules §16). Shadow when the screen's Sidebar casts one, Border on a white page, inside another surface or on a clickable card, Pale/Semi-Pale on imagery.",
+        "Match the screen's elevation to its Sidebar: the default Sidebar (Surface + shadow) on the grey Canvas takes Shadow cards with no border; a white Canvas takes a Surface-alt or Flat Sidebar (optionally with divider) and Border cards. Never a shadowed Sidebar on a white Canvas.",
+        "Title a widget card with Heading/Subheading (heading level from the outline); page sections outside cards use Heading/4.",
         "Make the whole card clickable when it opens one thing, and name it with aria-label when the content doesn't start with a title.",
         "Use Active for the selected card in a single-choice grid, together with aria-pressed or a radio inside.",
         "Put secondary card actions in the Sub-Action menu.",
-        "Pick surface from the page Canvas: default on Canvas/Default, alt on a white Canvas/Alt page (or set --zen-card-surface once on the page scope).",
-        "Pricing plans: Border cards in an auto-fit grid; Active marks the current plan, an Accent Badge marks the recommended one, and each card ends with one md CTA pinned to the bottom whose label says what happens (Upgrade to Pro · Switch · Manage plan)."
+        "Card shadow = Box effectStyle=\"Shadow/Bottom/Level-1\": a static elevated panel may be a Box with that style; a clickable or selectable panel is a Card.",
+        "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Flat cards only, which is what a Canvas/Alt page takes anyway.",
+        "Pricing plans: Flat cards in an auto-fit grid; Active marks the current plan, an Accent Badge marks the recommended one, and each card ends with one md CTA pinned to the bottom whose label says what happens (Upgrade to Pro · Switch · Manage plan)."
       ],
       "dont": [
         "Don't put buttons, links or inputs inside a clickable card (harness: card/clickable-no-nested-controls).",
@@ -1894,7 +1955,7 @@
           "icon?: IconName = icon-star-93-solid",
           "emoji?: ReactNode",
           "size?: xs|sm|md|lg|xl|xsmall|small|medium|large|xlarge = md",
-          "theme?: neutral|accent|inverse|on-color|pale|surface|emoji = neutral",
+          "theme?: DockIconTheme = neutral",
           "background?: solid|subtle = solid",
           "label?: string",
           "className?: string"
@@ -1912,6 +1973,7 @@
         "Don't use it for people — that's an Avatar."
       ],
       "rules": [
+        "flag/no-emoji-flag",
         "dock-icon/emoji-needs-glyph",
         "icon/unknown-name",
         "interaction/no-noop-handler"
@@ -1922,8 +1984,8 @@
       "title": "List Item",
       "file": "docs/guidelines/list-item.md",
       "apiFile": "docs/api/list-item.json",
-      "figma": "List-Item (4080:11700) + .Primitives/List-Item/Mobile/* (page 4080:4632)",
-      "import": "import { List, ListItem } from \"@zen/design-system\";",
+      "figma": "List-Item (4080:11700) + Component/List-Box (14922:75297) + .Primitives/List-Item/Mobile/* (page 4080:4632)",
+      "import": "import { List, ListItem, ListBox } from \"@zen/design-system\";",
       "purpose": "One row of a vertical list: a leading visual, a title with an optional caption, and a trailing slot for actions or a passive chevron / value.",
       "use": [
         "People, messages, files and settings lists.",
@@ -1940,13 +2002,14 @@
         "List": [
           "ref?: Ref<HTMLUListElement>",
           "children: ReactNode",
-          "inset?: auto|comfortable|compact|none = auto",
+          "inset?: auto|comfortable|compact|none = auto (deprecated)",
           "aria-label?: string",
           "className?: string"
         ],
         "ListItem": [
           "ref?: Ref<HTMLElement>",
           "title: ReactNode",
+          "titleLines?: 1|2 = 1",
           "caption?: ReactNode",
           "leading?: IconName|ReactNode",
           "trailing?: ReactNode",
@@ -1956,35 +2019,52 @@
           "href?: string",
           "as?: li|div = li",
           "className?: string"
+        ],
+        "ListBox": [
+          "ref?: Ref<HTMLElement>",
+          "header?: ReactNode",
+          "children: ReactNode",
+          "footer?: ReactNode",
+          "theme?: flat|shadow|pale|border = flat",
+          "as?: div|section = div",
+          "className?: string"
         ]
       },
       "do": [
         "Wrap rows in <List aria-label> so the group is named.",
+        "Put a box of List-Item rows in <ListBox> (header and footer optional) instead of a Box or Card you pad yourself: its Card-padding-medium and 2XLarge corners are right on every device. Content that is not rows (a DescriptionList, labelled Toggles, a form) goes in a Card.",
+        "Pick the ListBox theme by where it sits (usage rules §16): flat (default) on Canvas/Default and on a Surface-Alt phone screen; shadow beside a default Sidebar (elevation follows the Sidebar); border on a white page (Canvas/Alt, a white phone screen) or inside another Surface (a Card, Dialog, SidePanel, BottomSheet).",
         "Make the whole row the target (onClick / href) when it opens one thing; for drill-down add a passive chevron.",
         "Put quick actions in the trailing slot as Button/Icon-Flat Medium (IconButton appearance=\"flat\" size=\"md\") with an aria-label. They work on clickable rows too — Figma keeps the trailing action in Hover, Pressed and Selected — and stay separate targets that don't open the row.",
         "Keep to one or two trailing actions; move the rest into a More (…) menu.",
-        "Let the title truncate on one line; keep the caption short (it may wrap to a second line).",
+        "Use titleLines={2} when the title must be read in full (long task, document or file names in a narrow list); keep the default one line in dense lists where the caption carries the detail. Keep the caption short (it may wrap to a second line).",
         "Mark the current row with selected (Active/Neutral/Subtle), not a custom fill.",
-        "Let the row inset follow the layout: full-bleed lists on a page keep 24px, lists inside a Modal, Side Panel or Card line up with the container's content (inset auto → none) and the hover fill bleeds into its padding. Set inset only when the layout needs something else.",
-        "Split long settings into groups: a visible group header per group and one List per group named after it (aria-label or aria-labelledby). The header is a Heading one level below the nearest heading above (h2 on a screen whose h1 is the title), Body/Small/Bold in tone \"base\": a kicker label, not a Strongest title.",
+        "Pick the Figma case by what the row does: Interactive (onClick or href) when the whole row opens, selects or navigates; static (neither) when it only shows information, even with trailing buttons. Both pad Padding/Small (12px) above and below and nothing at the sides; Interactive only adds the fill and its states.",
+        "Give every list its side inset from the container: a ListBox (Card-padding-medium), or the page margin on a full-bleed phone screen (Box paddingX=\"lg\" paddingY=\"xs\"). Leave at least 12px beside clickable rows so the fill is not clipped.",
+        "Split long settings into groups: a visible group header per group and one List per group named after it (aria-label or aria-labelledby). The header is a Heading one level below the nearest heading above (h2 on a screen whose h1 is the title), Body/Small/Bold in tone \"light\" (Content/Neutral/Light, 3.7:1 — Apple's 3:1 for bold text): a kicker label, not a Strongest title.",
         "Keep the row title in its Body/Base/Bold (Figma Info-Content Title) on read and unread rows alike. Mark unread with a dot or Badge plus a visually hidden \"Unread\" (WCAG 1.3.1); the caption may go Strongest.",
-        "In a bordered Card, derive the container from the row's hover fill (Corner-Radius/Large): card padding Padding/2XSmall (4) top and bottom, row inset Padding/Small + Padding/2XSmall (16), card radius Corner-Radius/XLarge (= Large + 4). The fill then sits 4 from every edge with concentric corners in every radius mode."
+        "A kicker above a ListBox lines up with the row text: Box paddingX=\"xl\" (24px) on desktop, paddingX=\"lg\" (20px) on a phone, xs (8px) above the box."
       ],
       "dont": [
         "Don't make only the chevron or a trailing button the way to open the row — the whole row is the target.",
         "Don't put a Toggle or Checkbox on a clickable row: the row click and the switch compete. Make the row flip the switch, or keep the row static (harness: list-item/clickable-row-toggle).",
         "Don't use Small or text buttons in the trailing slot; trailing actions are Medium icon buttons (harness: list-item/trailing-button-medium).",
         "Don't mix leading sizes in one list — row heights stop lining up.",
-        "Don't override .zen-list-item padding for spacing — use <List inset> or --zen-list-inset on the container (harness: list-item/inset-not-padding).",
+        "Don't pad the rows — no padding on .zen-list-item, no <List inset> (deprecated); inset the List with its container (harness: list-item/inset-not-padding).",
+        "Don't put a list of clickable rows flush against an edge or a clipping scroller: its fill hangs 12px outside the content; leave Padding/Small (12px) or more around it.",
+        "Don't give a static row an onClick just to get hover, and don't mark a static row selected.",
         "Don't use a list for data users compare across columns.",
         "Don't hand-build rows (a div with a Text and a Badge or Button); use ListItem so padding, hit area and focus are consistent.",
         "Don't make a row title a heading, and don't signal unread by weight alone.",
-        "Don't make group labels inside a Menu, Popover, Select or Listbox headings; they are labels."
+        "Don't make group labels inside a Menu, Popover, Select or Listbox headings; they are labels.",
+        "Don't put content that is not List-Item rows (a DescriptionList, Toggles, a form) in a ListBox — use a Card. Don't frame a ListBox on Canvas/Default with border or shadow when no condition asks for it, and never give a ListBox on Surface-Alt or a Pale fill a drop shadow (§9)."
       ],
       "rules": [
+        "flag/no-emoji-flag",
         "list-item/inset-not-padding",
         "list-item/clickable-row-toggle",
         "list-item/trailing-button-medium",
+        "api/deprecated-prop",
         "copy/plural-count",
         "interaction/no-noop-handler"
       ]
@@ -2024,11 +2104,13 @@
           "sort?: TableSort|null",
           "onSortChange?: (sort: TableSort|null) => void",
           "empty?: ReactNode",
+          "onRowClick?: (row: T) => void",
           "className?: string"
         ]
       },
       "do": [
         "Name the table (aria-labelledby pointing at its section heading, a caption, or aria-label; harness: table/needs-name).",
+        "Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4).",
         "Right-align numbers and amounts; keep text left.",
         "Give each row one primary text (bold) and at most one caption.",
         "Put row actions in the last column (TableActions) as Button/Icon-Flat Medium (IconButton appearance=\"flat\" level=\"primary\"; a ⋯ Menu trigger for several) and bulk actions above the table (harness: table/actions-flat).",
@@ -2037,13 +2119,15 @@
         "Wire onCommit to save, and validate numbers and required text; the error stays in the cell until fixed (harness: table/editor-needs-commit, table/editor-number-validate).",
         "Right-align number editors like the numbers they edit (harness: table/editor-number-right).",
         "Use select for closed sets and tags for open sets; lock rows that can't change with edit.disabled.",
-        "Offer onOpen when the full record needs a detail view.",
+        "Offer onOpen when the full record of an editable row needs a detail view; a read-only table that opens records uses onRowClick, so the whole row is the click target.",
         "Let clickable content inside an editable cell (Tag onClick, links, buttons) keep its own action — clicking the cell around it edits. Leave room (padding, gaps) so the edit target stays easy to hit.",
+        "A table that is the page content or a section of it sits straight on the page: no Card, Box or other container and no Surface fill, and it spans the page width with no max: wrap that page in <Container maxWidth=\"full\"> (not the default lg 1280). Only a table that is a widget (a dashboard tile with its own title and a few rows beside other widgets) goes in a Card.",
         "A table that is its own section gets an h2 in Heading/4 directly above it (<Heading level={2} id>), and the Table points to it with aria-labelledby. Use `caption` (rendered in Heading/4) only to name a table that already sits under a section heading: a caption is not a heading and is missing from the headings list (harness: table/title-heading-4).",
         "Build cells from the cell primitives at their Figma sizes: Badge Medium (not Small) in Badge/Trend cells, media sized by Subtext (Avatar XSmall → Small and Icon base → lg and Dock Icon XSmall → Small when a caption is on) (harness: table/media-size-by-subtext), Avatar/Stack Small for groups."
       ],
       "dont": [
         "Don't make selectable or sortable tables without handlers (harness: table/interaction-needs-handler).",
+        "Don't open a read-only row from a small icon or the hover Open button: use onRowClick (a passive chevron at the end may show that rows open).",
         "Don't wrap long text in every cell; truncate and show the full value on the detail view.",
         "Don't use colour alone for status — use a Badge with text.",
         "Don't make every cell editable — it turns the table into a spreadsheet and invites accidental edits.",
@@ -2130,7 +2214,9 @@
         "Ask one clear question as the aria-label and visible heading (harness: rating/needs-name).",
         "Show the meaning of the current star value in words (\"Great\").",
         "Use RatingDisplay with the review count next to it; never show an average without its sample size.",
-        "Follow a low score with an optional \"what went wrong?\" field."
+        "Follow a low score with an optional \"what went wrong?\" field.",
+        "OpinionScale: keep custom labels to one or two short words. Longer text is clamped to two lines with an ellipsis, and the full text still names the radio.",
+        "NpsScale: keep scale={10} for NPS: the detractor/passive/promoter split needs all 11 points. Under 264px of width it wraps into two rows (0–5 over 6–10) with the low label above 0 and the high label under 10, so don't switch to scale={5} to save space."
       ],
       "dont": [
         "Don't use the star input to display an average — use RatingDisplay.",
@@ -2214,10 +2300,13 @@
           "value: ReactNode",
           "trend?: { direction: MetricTrendDirection; label: ReactNode }",
           "icon?: IconName|false = icon-home-02-solid",
-          "iconTheme?: neutral|accent|inverse|on-color|pale|surface|emoji = neutral",
+          "iconTheme?: DockIconTheme = neutral",
           "iconBackground?: solid|subtle = subtle",
           "iconEmoji?: ReactNode",
           "size?: xs|sm|md|lg|xl|xsmall|small|medium|large|xlarge = xl",
+          "variant?: icon-highlight|title-highlight = icon-highlight",
+          "action?: ReactNode",
+          "iconSize?: md|lg|medium|large",
           "className?: string"
         ],
         "MetricCard": [
@@ -2225,10 +2314,13 @@
           "value: ReactNode",
           "trend?: { direction: MetricTrendDirection; label: ReactNode }",
           "icon?: IconName|false",
-          "iconTheme?: neutral|accent|inverse|on-color|pale|surface|emoji",
+          "iconTheme?: DockIconTheme",
           "iconBackground?: solid|subtle",
           "iconEmoji?: ReactNode",
           "size?: xs|sm|md|lg|xl|xsmall|small|medium|large|xlarge",
+          "variant?: icon-highlight|title-highlight",
+          "action?: ReactNode",
+          "iconSize?: md|lg|medium|large",
           "className?: string",
           "theme?: shadow|flat|pale|border|semi-pale = shadow",
           "subAction?: CardSubAction|ReactNode"
@@ -2357,8 +2449,8 @@
           "size?: default|small = default",
           "icon?: IconName|ReactElement",
           "children?: ReactNode",
-          "primaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
-          "secondaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "primaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body fo…",
+          "secondaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body fo…",
           "dismissible?: boolean = true",
           "closeLabel?: string",
           "className?: string"
@@ -2445,6 +2537,7 @@
         "Keep Subtle, Pale and Surface-Alt surfaces flat: separate them with a 0 0 0 1px ring or an inset effect, never a drop shadow (§9); guard component shadows with var(<background token>-shadow-off, <shadow>).",
         "Start every page with Canvas; choose default (most designs) or alt (white page).",
         "Place cards on the page with Surface; match default/alt to the page style.",
+        "When nothing picks the pairing (examples, a page with no Sidebar), use Canvas/Default with flat Surface/Default boxes — no border, no shadow (Card and MetricCard theme=\"flat\", ChartCard, ListBox); border or shadow only when a condition asks for it (usage rules §16).",
         "On a canvas-flat page, give top and bottom navigation surface-flat so both modes stay seamless.",
         "Only raise a box to Container or Popover when it actually floats above the page (modal, sheet, overlay)."
       ],
@@ -2477,7 +2570,7 @@
       "use": [
         "Neutral families — Neutral, Inverse, On-Black-Overlay, On-White-Overlay: Strongest = Primary (titles, main content, values, primary icons); Base = Secondary (body copy, descriptions, secondary icons); Light = Tertiary (captions, meta, helper text, timestamps, quiet icons).",
         "Colour families — Accent, Info, Positive, Negative, Warning and every Support/* colour: Strongest and Base are regular text, the Primary and Secondary levels, placed on that colour's Subtle background (subtle Badge, Tag, Alert, callout).",
-        "Colour Light: text or icons that must stand out as a highlight — status icons, a success/error hint, a positive or negative delta, a highlighted keyword.",
+        "Colour Light, sparingly: short text or icons that must stand out — status icons, help or error text under a field, a condition (\"Not delivered\", \"Expires in 5 days\"), a positive or negative delta, a highlighted keyword. Only the Lights group never takes Light for text.",
         "Lights group — every family whose tokens reference the Sky, Mint, Yellow or Zen scales (similar low contrast); today Accent (Zen), Warning (Yellow) and Support/Yellow: text is Base at most (Strongest or Base); Light is only for icons. The harness derives the group from tokens.css."
       ],
       "avoid": [
@@ -2487,7 +2580,7 @@
       ],
       "do": [
         "Pick the family first (neutral vs colour), then the level by role: Primary → Strongest, Secondary → Base, Tertiary (neutral only) → Light.",
-        "Keep titles and headings at Strongest in neutral families; a list group header in Body/Small/Bold (a kicker label) stays Base.",
+        "Keep titles and headings at Strongest in neutral families; a list group header in Body/Small/Bold (a kicker label) takes Light.",
         "On a colour's Subtle background, set the text to Strongest (title) or Base (body) of the same colour and the icon to Light.",
         "Use colour Light sparingly for the one thing that must pop (status icon, delta, inline hint).",
         "In Lights-group components (Warning Badge/Alert, Accent text), keep the text at Base or Strongest and put the Light level on the icon only."
@@ -2545,6 +2638,49 @@
       ]
     },
     {
+      "slug": "flag",
+      "title": "Flag",
+      "file": "docs/guidelines/flag.md",
+      "apiFile": "docs/api/flag.json",
+      "figma": "Flag (7063:63834, 🍑 Iconography)",
+      "import": "import { Flag } from \"@zen/design-system\";",
+      "purpose": "A round country or region flag that helps people spot a country next to its name.",
+      "use": [
+        "Locale and language pickers.",
+        "Phone number country codes.",
+        "Country fields in addresses and shipping.",
+        "Country rows in tables and lists (holiday calendars, regional reports)."
+      ],
+      "avoid": [
+        "The only label of a country → always show the name or ISO code next to it.",
+        "Decoration or political symbolism without a function.",
+        "Languages that are not tied to one country → the language name alone."
+      ],
+      "props": {
+        "Flag": [
+          "name: FlagName",
+          "size?: sm|md|lg|small|medium|large = md",
+          "label?: string"
+        ]
+      },
+      "do": [
+        "Put the country name or code next to the flag (Figma: flags alone are inaccessible).",
+        "Use the Figma Name exactly (harness: flag/unknown-name).",
+        "Match the size of the other leading visuals in the list (Avatar Cell 24 in tables, 32 in list rows).",
+        "Keep the round shape; never stretch or crop it."
+      ],
+      "dont": [
+        "Don't use emoji flags — they differ per OS and Windows shows letters (harness: flag/no-emoji-flag).",
+        "Don't use a flag as the only label of a button or option.",
+        "Don't recolour or outline flags."
+      ],
+      "rules": [
+        "flag/unknown-name",
+        "flag/no-emoji-flag",
+        "interaction/no-noop-handler"
+      ]
+    },
+    {
       "slug": "icon",
       "title": "Icon",
       "file": "docs/guidelines/icon.md",
@@ -2562,6 +2698,7 @@
         "Icon": [
           "name: IconName",
           "size?: IconSize|number|string",
+          "tone?: ContentTone",
           "title?: string",
           "decorative?: boolean"
         ]
@@ -2592,7 +2729,7 @@
       "apiFile": "docs/api/top-navigation.json",
       "figma": "Top-Navigation/Mobile (page ❖ Top-Navigations, 12014:45167)",
       "import": "import { TopNavigation, TopNavigationActionButton } from \"@zen/design-system\";",
-      "purpose": "The mobile app bar: where you are (title), how to go back (leading) and the one or two actions for this screen (trailing).",
+      "purpose": "The mobile app bar: where you are (title), how to go back (leading) and up to three actions for this screen (trailing).",
       "use": [
         "The top of every mobile screen, with a large title on root screens and a compact title on detail screens.",
         "A Search, Segmented or Tabs that filters the screen (controlBar).",
@@ -2601,7 +2738,7 @@
       "avoid": [
         "Desktop app chrome → Sidebar + page header.",
         "Switching between root sections → Bottom Navigation.",
-        "More than two trailing actions → move the rest into a ⋯ Bottom Sheet."
+        "More than three trailing actions → move the rest into a ⋯ Bottom Sheet."
       ],
       "props": {
         "TopNavigation": [
@@ -2611,16 +2748,19 @@
           "titleLeading?: ReactNode",
           "onTitleClick?: () => void",
           "titleLabel?: string",
-          "trailingGroup?: boolean = false",
+          "trailingGroup?: boolean = false (deprecated)",
           "title?: ReactNode",
           "largeTitle?: ReactNode",
           "headingLevel?: h1|h2|h3 = h1",
           "leading?: TopNavigationAction|ReactNode",
           "trailing?: TopNavigationAction[] = []",
-          "largeTitleAction?: TopNavigationAction",
+          "largeTitleAction?: TopNavigationAction|TopNavigationAction[]",
+          "topBar?: boolean",
           "controlBar?: ReactNode",
+          "banner?: ReactNode",
           "searchAction?: { onClick: () => void; label?: string; icon?: IconName|ReactElement }",
-          "collapsed?: boolean = false",
+          "scrollRef?: RefObject<HTMLElement|null>|window",
+          "collapsed?: boolean",
           "sticky?: boolean = false",
           "aria-label?: string",
           "className?: string"
@@ -2628,11 +2768,14 @@
       },
       "do": [
         "Match the type to the page Canvas: Default on Surface, Alt on an Alt canvas, Compact on dense detail screens, an overlay type only on media.",
-        "Use a large title on root screens (tab roots use largeTitle) and collapse it into the bar when the content scrolls.",
+        "Use a large title only on top-level screens (tab roots); a pushed screen with Back uses the bar title alone.",
+        "On a root, keep the default: the bar row folds into the large-title row (Figma Top-bar=false), so the actions sit at the right of the large title and stay put when it folds; pass topBar only for a stack that keeps the bar above the large title.",
+        "Pin a status that must stay in view (offline, syncing, read-only) with banner, a Small AlertBanner: it sits under the bar and the control bar, edge to edge, and never scrolls away.",
+        "Let the large title follow the scroll with scrollRef instead of switching collapsed on a scrollTop threshold: it moves with the finger, never makes the content jump, and settles open or closed.",
         "Let the title be the screen's h1 and start the content headings at h2: the large title (Heading/1) on a root screen, the compact bar title (Body/Extra/Bold) on a child screen and once the large title collapses. Don't add a second, hidden h1.",
         "Set document.title to the screen title, then the app name, on every screen (WCAG 2.4.2).",
         "Give every icon-only action a label; put a dot on the action (not the title) for unread states.",
-        "Keep at most two trailing actions (harness: top-navigation/max-two-trailing).",
+        "Keep at most three trailing actions, and three beside the large title, as Figma's Trailing-Slot takes (harness: top-navigation/max-three-trailing).",
         "Draw Back with a left chevron (icon-chevron-left-line-medium, label \"Back\") on mobile and tablet (harness: navigation/back-chevron).",
         "Keep the Figma rhythm: leading actions 16 apart, two flat trailing actions 20 apart; an H2 expand heading has 14px vertical padding.",
         "Put a Segmented in the control bar with fullWidth; its items split the bar equally.",
@@ -2643,14 +2786,17 @@
         "Don't mix action styles in one bar (a Tertiary back with Flat trailing actions).",
         "Don't use an overlay type over plain surfaces; its white content needs imagery behind it.",
         "Don't put primary form actions (Save) in the bar and again at the bottom of the screen.",
+        "Don't put a status banner in controlBar or let it scroll away with the content: it reports the whole screen, so it belongs in banner.",
         "Don't use a left arrow (icon-arrow-left-*) for Back: on mobile and tablet the chevron is the platform back affordance, arrows mean moving content.",
-        "Don't keep two other trailing actions next to a searchAction; while collapsed the Search takes a slot (harness: top-navigation/max-two-trailing)."
+        "Don't keep three other trailing actions next to a searchAction; while collapsed the Search takes a slot (harness: top-navigation/max-three-trailing).",
+        "Don't remove the large title from the layout on scroll (collapsed from an onScroll threshold): the content jumps by the title's height and can flip the state back."
       ],
       "rules": [
         "navigation/back-chevron",
         "segmented/control-bar-full-width",
-        "top-navigation/max-two-trailing",
+        "top-navigation/max-three-trailing",
         "top-navigation/search-folds-to-action",
+        "api/deprecated-prop",
         "interaction/no-noop-handler",
         "interaction/action-without-handler"
       ]
@@ -2719,7 +2865,7 @@
       "use": [
         "Contextual actions for the current screen or item (type=\"action\").",
         "A short form or filters (Modal).",
-        "Picking one option from a list (Action with selectedId)."
+        "Picking one option from a list (Sort by, Deliver to): a List of ListItems in the sheet body."
       ],
       "avoid": [
         "Destructive confirmations → Dialog.",
@@ -2741,9 +2887,10 @@
           "onSelect?: (item: BottomSheetItem) => void",
           "keepOpen?: boolean = false",
           "children?: ReactNode",
-          "primaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
-          "secondaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "primaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body fo…",
+          "secondaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body fo…",
           "actionsDirection?: horizontal|vertical = horizontal",
+          "onSubmit?: (event: FormEvent<HTMLFormElement>) => void",
           "dismissible?: boolean = true",
           "inline?: boolean = false",
           "closeLabel?: string",
@@ -2753,19 +2900,23 @@
       "do": [
         "Keep one task per sheet and one primary action.",
         "Let the user drag, tap the scrim or press Escape to dismiss.",
-        "Use Action type with `selectedId` for single choice; the sheet closes on select unless `keepOpen`.",
+        "For a single choice, fill the sheet with List + ListItem: the picked row is `selected` (Active/Neutral/Subtle) with a trailing check, and picking closes the sheet. The Action type's `selectedId` row (Accent/Subtle) is Figma's state, not the house pattern for choices (user, 2026-09-30).",
         "Lists inside the sheet use List/ListItem (the sheet sets --zen-list-inset: 0).",
-        "For long reading content (terms, release notes) use size=\"max\" with vertical actions: the body scrolls under the fixed header and the footer stays reachable."
+        "For long reading content (terms, release notes) use size=\"max\" with vertical actions: the body scrolls under the fixed header and the footer stays reachable.",
+        "A sheet with fields is a form: pass onSubmit so Enter submits and the primary action is the submit button; close the sheet from the handler once the save succeeds.",
+        "Let a form sheet (onSubmit) start on its first field. Add data-autofocus only to start on a different control, never on the first field (redundant)."
       ],
       "dont": [
         "Don't give an Action sheet no items (harness: bottom-sheet/action-needs-items).",
         "Don't stack a sheet on a sheet; replace the content instead.",
-        "Don't put destructive actions first; mark them `destructive` and keep them last."
+        "Don't put destructive actions first; mark them `destructive` and keep them last.",
+        "Don't nest a <Form> inside a BottomSheet that has onSubmit, and don't submit from primaryAction.onClick; pass form.handleSubmit to onSubmit instead."
       ],
       "rules": [
         "segmented/control-bar-full-width",
         "bottom-sheet/action-needs-items",
         "api/deprecated-prop",
+        "mobile/full-size-controls",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler",
         "interaction/action-without-handler"
@@ -2873,12 +3024,12 @@
       },
       "do": [
         "Show the avatar once per run of messages (on the last one) and the name only in groups.",
-        "Pass `author` for every message from others (harness: chat/others-need-author).",
+        "Pass `author` for every message from others (harness: chat/others-need-author); for people without a photo pass `author={{ name }}`: message avatars show first + last name initials ('Nguyen Van Bao' → 'NB'), like the conversation list.",
         "Match the device: in a phone use the Mobile pieces (ChatThread/ChatComposer device=\"mobile\", hold to react, TopNavigation header); in a desktop window use device=\"desktop\" (516px text, 400px photos, 40px Chat-Control, a Button/Icon-Flat thread header) where the hold layer is off and the Hover toolbar + right-click / Shift+F10 More menu take over (audit: device).",
         "Put status (\"Seen\") under your last message only.",
         "Use ChatFile for attachments so the file type colour and size are consistent.",
         "Put Business conversations on Canvas/Default so the near-white Others bubble reads; Social threads sit on Surface.",
-        "Let ChatThread keep the latest message in view: it opens at the bottom and follows new messages unless the reader scrolled up.",
+        "Let ChatThread keep itself pinned to the latest message: it opens at the bottom and follows new messages, also after web fonts and photos settle, until the reader scrolls up. Don't add scroll-to-bottom effects or timers around it.",
         "Keep a message that failed to send in the thread with failed + onRetry (Not delivered · Retry); Retry shows Sending… then the normal status.",
         "Use call states in the conversation list (missed calls in Negative, ongoing in Positive) and a Bold title only for unread conversations.",
         "On mobile, give every message hold-to-react: holdActions (chatHoldActions.others / .you / .call) and onReact; mark Delete destructive (harness: chat/hold-delete-destructive).",
@@ -2887,9 +3038,11 @@
         "Use ChatAvatarGroup for group conversations: Medium (40px, 28px avatars) in lists, Small (32px, 20px avatars) in compact rows.",
         "Use one action list for both inputs: the same holdActions drive the mobile hold menu and the desktop hover toolbar (its More menu).",
         "Pick hold/hover actions with chatHoldActionsFor(kind, side): text & photos by side, files get Reply · Forward · Pin · Delete (Figma Focused/File), calls Call back · (Report) · Delete.",
-        "Reply: the Reply action sets the composer's replyTo (“Replying to …” bar, × / Escape cancel via onCancelReply — harness: chat/reply-cancellable); attach it to the sent message as replyTo and give every message an id so the quote can jump back. The quote previews the original by kind — text (2 lines), photo(s) with a thumbnail, file, call, voice, or “Message unavailable”.",
+        "Reply: the Reply action sets the composer's replyTo (“Replying to …” bar, × / Escape cancel via onCancelReply — harness: chat/reply-cancellable); attach it to the sent message as replyTo and give every message an id so the quote can jump back. The quote previews the original by kind — text (2 lines), photo(s) with a thumbnail, file, call, voice, or “Message unavailable”. The composer moves focus into its field when a reply is set or switched (not on mount), so apps add no focus code of their own.",
         "Keep the Reaction-Bar \"+\": let it open the built-in emoji panel, or pass onMore only when you ship a fuller picker; never wire it to a placeholder.",
         "Keep every interaction live wherever Chat is shown: each message can be held (mobile) / hovered (desktop) for its Figma action set and reactions, Reply fills the composer and the sent quote jumps back, cards open, calls call back, the composer's actions and send work — never a no-op handler (harness: chat/no-locked-interaction; platform examples use useChatDemo).",
+        "Make deleting a message undoable: remove it at once and show a Toast with Undo (title 'Message deleted'); don't ask first. Move focus to the next message, and on Undo back to the restored one. Platform examples get this from useChatDemo().",
+        "ChatFile and ChatCall keep Figma's 32px text box in the 20/16 (Dashboard) scale and hug their lines in the mobile (and Popular) type scale. Don't override their heights.",
         "Pass `by` for every reaction so pressing the pill shows who reacted; the \"You\" row removes your own reaction (harness: chat/reactions-name-people)."
       ],
       "dont": [
@@ -2899,7 +3052,7 @@
         "Don't pin the thread to the bottom with justify-content:flex-end — overflowing messages become unreachable; ChatThread uses margin-top:auto on its first child (harness: layout/scroll-anchor-flex-end).",
         "Don't silently drop a message that failed to send.",
         "Don't hide message actions behind a hover-only toolbar on mobile; a long press opens the reactions and menu, like the platform does.",
-        "Don't give the call card a Secondary button: Figma Chat/Bubble/Call uses Button/Overlay Inverse (Social: Call back · Call Back · Call Again) and Button/Flat Primary on missed calls only (Business: Call Back · Send Voice)."
+        "Don't give the call card a Secondary button: Figma Chat/Bubble/Call uses Button/Overlay Inverse (Social: Call back · Call again) and Button/Flat Primary on missed calls only (Business: Call back · Send voice message)."
       ],
       "rules": [
         "chat/reply-cancellable",
@@ -3026,6 +3179,8 @@
           "ranges?: SegmentedOption[]",
           "range?: string",
           "onRangeChange?: (id: string) => void",
+          "rangesFullWidth?: boolean = true",
+          "theme?: shadow|flat|pale|border|semi-pale = flat",
           "surface?: default|alt",
           "children: ReactNode",
           "className?: string"
@@ -3071,11 +3226,26 @@
       ],
       "props": {
         "Stack": [
+          "width?: hug|fill|number",
+          "minWidth?: number",
+          "maxWidth?: number",
+          "alignSelf?: start|center|end|stretch",
+          "height?: hug|fill|number",
+          "minHeight?: number",
+          "maxHeight?: number",
+          "position?: static|absolute",
+          "constraintX?: left|right|left-right|center",
+          "constraintY?: top|bottom|top-bottom|center",
+          "insetTop?: none|ZenScaleInput|4xl",
+          "insetRight?: none|ZenScaleInput|4xl",
+          "insetBottom?: none|ZenScaleInput|4xl",
+          "insetLeft?: none|ZenScaleInput|4xl",
           "direction?: column|row = column",
           "gap?: none|ZenScaleInput|giant|xgiant|2xgiant = md",
           "align?: start|center|end|stretch|baseline",
           "justify?: start|center|end|between|around",
           "wrap?: boolean = false",
+          "fillChildren?: boolean = false",
           "padding?: none|ZenScaleInput|4xl",
           "paddingX?: none|ZenScaleInput|4xl",
           "paddingY?: none|ZenScaleInput|4xl",
@@ -3083,6 +3253,20 @@
           "children?: ReactNode"
         ],
         "Grid": [
+          "width?: hug|fill|number",
+          "minWidth?: number",
+          "maxWidth?: number",
+          "alignSelf?: start|center|end|stretch",
+          "height?: hug|fill|number",
+          "minHeight?: number",
+          "maxHeight?: number",
+          "position?: static|absolute",
+          "constraintX?: left|right|left-right|center",
+          "constraintY?: top|bottom|top-bottom|center",
+          "insetTop?: none|ZenScaleInput|4xl",
+          "insetRight?: none|ZenScaleInput|4xl",
+          "insetBottom?: none|ZenScaleInput|4xl",
+          "insetLeft?: none|ZenScaleInput|4xl",
           "columns?: GridTracks|{ mobile?: GridTracks; tablet?: GridTracks; desktop?: GridTracks }",
           "minColumnWidth?: number|string = 240",
           "gap?: none|ZenScaleInput|giant|xgiant|2xgiant = md",
@@ -3094,6 +3278,26 @@
           "children?: ReactNode"
         ],
         "Box": [
+          "width?: hug|fill|number",
+          "minWidth?: number",
+          "maxWidth?: number",
+          "alignSelf?: start|center|end|stretch",
+          "height?: hug|fill|number",
+          "minHeight?: number",
+          "maxHeight?: number",
+          "position?: static|absolute",
+          "constraintX?: left|right|left-right|center",
+          "constraintY?: top|bottom|top-bottom|center",
+          "insetTop?: none|ZenScaleInput|4xl",
+          "insetRight?: none|ZenScaleInput|4xl",
+          "insetBottom?: none|ZenScaleInput|4xl",
+          "insetLeft?: none|ZenScaleInput|4xl",
+          "effectStyle?: Shadow/Bottom/Level-1|Shadow/Bottom/Level-2|Shadow/Bottom/Level-3|Shadow/Bottom/Level-4|Shadow/Top/Level-1|Shadow/Top/Level-2|Shadow/Top/Level-3|Shadow/Top/Level-4|Effect/Overlay",
+          "clip?: boolean",
+          "radiusTopLeft?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
+          "radiusTopRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
+          "radiusBottomRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
+          "radiusBottomLeft?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "padding?: none|ZenScaleInput|4xl",
           "paddingX?: none|ZenScaleInput|4xl",
           "paddingY?: none|ZenScaleInput|4xl",
@@ -3111,21 +3315,45 @@
         ]
       },
       "do": [
-        "Build page structure with Stack and Grid; keep spacing on the token scale (gap md between fields, lg between sections).",
+        "Build page structure with Stack and Grid and pick the gap by the relationship, the same step everywhere (docs/component-usage-rules.md §13): 2xs inside one inline item, xs a thing and its label or a toolbar row, sm a group of Buttons or choices, md blocks inside one surface and stacked form fields, lg columns and groups inside a surface, xl page sections (Figma Master-Layout).",
+        "Step up one level at least between groups: the gap between groups is always larger than the gap inside them.",
         "Use Stack direction=\"row\" with justify=\"between\" for a title + actions row.",
         "Use Grid minColumnWidth for card grids so they reflow from phone to desktop.",
         "Put a main column next to an aside with Grid columns={{ mobile: 1, desktop: \"2fr 1fr\" }} align=\"start\"; on phones the aside moves under the main column.",
         "Put page content in a Container so its margin follows the breakpoint.",
-        "Give a Box a surface only when it really is a separate layer; a Surface box on a white (Alt) canvas needs border=\"pale\"."
+        "Give a Box a surface only when it really is a separate layer; a Surface box on a white (Alt) canvas needs border=\"pale\".",
+        "Size like Figma auto layout: Hug for content-sized pieces, Fill for what takes the rest of a row or the full width (a main column; a Search next to buttons goes in a Box width=\"fill\", since Search has no sizing props), maxWidth to cap a Fill line of text; use Fixed (a number) only for widths that really are fixed, such as a side column or a preview frame.",
+        "Pin a media overlay with position=\"absolute\" and a constraint on token insets: a corner action on a photo is constraintX=\"right\" insetRight=\"sm\" constraintY=\"top\" insetTop=\"sm\"; a caption bar is constraintX=\"left-right\" constraintY=\"bottom\".",
+        "Put background media first and the content after it: the media is absolute (left-right × top-bottom), and the later in-flow content paints above it (Figma auto layout \"Last on top\").",
+        "Lift a Surface panel on Canvas/Default with effectStyle=\"Shadow/Bottom/Level-1\" and no border: elevation follows the Sidebar, and it is the Card shadow.",
+        "Round only the top corners of top media to the container radius (radiusTopLeft and radiusTopRight), or clip the container; write radius plus only the corners that differ."
       ],
       "dont": [
         "Don't write display:flex / gap: 13px CSS for layout; use Stack/Grid and the scale.",
+        "Don't fix widths and heights in px to make a layout look right at one screen size; Hug and Fill reflow, Fixed does not (and a Fixed child never shrinks in a row).",
+        "Don't space the same relationship differently on different screens, or override a component's own padding or gap.",
         "Don't make a Box clickable; clickable tiles are Card (or a Box with border=\"subtle\" and role=\"button\") (harness: box/border-matches-action).",
         "Don't paint Canvas, Flat or Container on a Box: Canvas is the page, Flat is navigation, Container is modals and sheets.",
-        "Don't nest Containers."
+        "Don't nest Containers.",
+        "Don't use position=\"absolute\" for what gap, justify or alignSelf can do: an absolute layer leaves the flow and no longer reflows with its siblings.",
+        "Don't place status dots, badges or Card sub-actions by hand with absolute layers; they are component props (Avatar status, BadgeCounter, Card subAction).",
+        "Don't put a shadow on a tinted fill (Subtle, Pale, Surface-Alt) or on a Canvas/Alt page; there a closed border separates the box.",
+        "Don't write style={{ top }} or raw top/right/bottom/left/inset CSS in examples and templates; pin the layer with position, constraints and token insets (style-guard: position/token).",
+        "Don't mix radius=\"full\" with a finite corner (radius=\"full\" radiusBottomRight=\"xs\"): full is 1000px, so the browser scales every corner down to fit and the small corner renders square. Use a finite radius (radius=\"xl\" radiusBottomRight=\"xs\"); full mixes only with none (harness: radius/full-mixed)."
       ],
       "rules": [
         "box/border-matches-action",
+        "layout/constraint-needs-absolute",
+        "layout/inset-not-read",
+        "layout/absolute-fill",
+        "layout/stretch-ignores-size",
+        "layout/absolute-align-self",
+        "layout/absolute-parent",
+        "box/effect-needs-surface",
+        "box/blur-needs-tint",
+        "box/shadow-no-border",
+        "radius/redundant-corners",
+        "radius/full-mixed",
         "layout/use-stack",
         "interaction/no-noop-handler"
       ]
@@ -3141,7 +3369,7 @@
       "use": [
         "Page and section titles (Heading level + an optional textStyle).",
         "Descriptions, captions, meta lines (Text tone=\"base\" or \"light\").",
-        "Status text in a colour family (tone positive / negative / warning / info / accent).",
+        "Status text in a colour family (tone positive-base / negative-strongest / warning-base / info-base / accent-base), or a Support colour (support-blue-strongest).",
         "Counts in copy: plural(n, \"file\")."
       ],
       "avoid": [
@@ -3152,20 +3380,36 @@
       ],
       "props": {
         "Text": [
+          "width?: hug|fill|number",
+          "minWidth?: number",
+          "maxWidth?: number",
+          "alignSelf?: start|center|end|stretch",
+          "height?: hug|fill|number",
+          "minHeight?: number",
+          "maxHeight?: number",
           "textStyle?: keyof typeof typographyStyles = Body/Base/Regular",
-          "tone?: strongest|base|light|primary|secondary|tertiary|accent|info|positive|negative|warning|inverse|on-colors|disabled|inherit = strongest",
+          "tone?: ContentTone = strongest",
           "as?: p|span|div|strong|em|small|label|li|dt|dd|figcaption|legend|code|time = p",
           "truncate?: boolean|number",
-          "align?: start|center|end",
+          "align?: start|center|end|justify",
+          "verticalAlign?: top|middle|bottom",
           "htmlFor?: string",
           "children?: ReactNode"
         ],
         "Heading": [
+          "width?: hug|fill|number",
+          "minWidth?: number",
+          "maxWidth?: number",
+          "alignSelf?: start|center|end|stretch",
+          "height?: hug|fill|number",
+          "minHeight?: number",
+          "maxHeight?: number",
           "level?: (typeof headingLevels)[number] = 2",
           "textStyle?: keyof typeof typographyStyles",
-          "tone?: strongest|base|light|primary|secondary|tertiary|accent|info|positive|negative|warning|inverse|on-colors|disabled|inherit = strongest",
+          "tone?: ContentTone = strongest",
           "truncate?: boolean|number",
-          "align?: start|center|end",
+          "align?: start|center|end|justify",
+          "verticalAlign?: top|middle|bottom",
           "children?: ReactNode"
         ]
       },
@@ -3188,6 +3432,8 @@
         "Don't truncate essential information without another way to read it (a tooltip or detail view)."
       ],
       "rules": [
+        "flag/no-emoji-flag",
+        "content/lights-no-light-text",
         "heading/h1-is-heading-1",
         "heading/title-not-light",
         "table/title-heading-4",
@@ -3254,6 +3500,7 @@
       },
       "do": [
         "Put one AppShell at the root of each signed-in screen, inside ZenProvider.",
+        "One elevation per screen, set by the Sidebar: Canvas default (grey) + the default Sidebar (Surface + shadow) + Shadow cards with no border; Canvas alt (white) + a Surface-alt or Flat Sidebar (add divider for a full-height line inside the Sidebar) + bordered cards; Canvas flat + a Flat Sidebar + bordered cards. Never a shadowed Sidebar on a white Canvas.",
         "Lead the top bar with Breadcrumbs (master={false}; the toggle comes first) or a Search, and keep its right side to utilities in this order: a plan Badge, AppShellAction buttons, the account menu last.",
         "Give the page a Container with a PageHeader as its first child; page actions (one Primary) go in the PageHeader.",
         "Show unread items on the action itself (AppShellAction count or dot) so the count is also in its accessible name.",
@@ -3340,7 +3587,7 @@
         "The Cancel + submit footer of a page or card form → FormActions (it stacks on phones and can stick to the bottom)."
       ],
       "avoid": [
-        "A 3–8 field create/edit flow in an overlay → ModalForm, with onSubmit={form.handleSubmit}.",
+        "A 3–8 field create/edit flow in an overlay → ModalForm (desktop) or BottomSheet (phone), with onSubmit={form.handleSubmit}.",
         "Settings that apply at once → Toggle, outside any Form.",
         "A single inline edit (rename a title) → HeadingField, saved on blur.",
         "Filtering a list → Search and Chip filters; nothing to submit."
@@ -3554,13 +3801,14 @@
       "title": "ZenProvider (app root)",
       "file": "docs/guidelines/provider.md",
       "apiFile": "docs/api/provider.json",
-      "figma": "Variable modes: Theme, Component Theme, Density, Radius, Emphasis, Breakpoint & Grids, Typography Configuration",
+      "figma": "Variable modes: Theme, Component Theme, Density, Radius, Emphasis, Breakpoint & Grids, Typography Configuration, Global Colors (Zen-High-Contrast)",
       "import": "import { ZenProvider, ZenPortalProvider } from \"@zen/design-system\";",
       "purpose": "The root of every Zen UI. It sets the token modes (data-theme, data-density…), paints the page Canvas and text colour, and hosts the portal that overlays render into, so dialogs, toasts and menus follow the same modes.",
       "use": [
         "Wrapping the whole app once, right under React's root.",
         "Switching a region to another mode (a dark hero, a mobile preview) with a nested provider.",
-        "Following the OS colour scheme with theme=\"system\"."
+        "Following the OS colour scheme with theme=\"system\".",
+        "Following the OS Increase Contrast setting with contrast=\"system\"."
       ],
       "avoid": [
         "Styling a single component differently → its own props (level, size, theme).",
@@ -3570,13 +3818,14 @@
       "props": {
         "ZenProvider": [
           "theme?: light|dark|system",
-          "componentTheme?: neutral-s1|neutral-s2|neutral-s3|neutral-s4|brand-s1|brand-s2",
+          "componentTheme?: neutral-s1|neutral-s2|neutral-s3|neutral-s4|neutral-s5|neutral-s6|neutral-s7|brand-s1|brand-s2",
           "density?: compact|comfortable",
           "radius?: rounded|smooth|standard|luxury",
           "emphasis?: medium|strong|light",
           "breakpoint?: auto|desktop|tablet|mobile",
           "typography?: dashboard|popular|mobile",
           "brand?: zen",
+          "contrast?: standard|high|system",
           "locale?: string",
           "labels?: Partial<Omit<ZenLabels, richText|holdActions|opinion>> & { richText?: Partial<ZenLabels[richText]>; holdActions?: Partial<ZenLabels[holdActions]>; opinion?: Partial<ZenLabels[opinion]>; }",
           "paint?: boolean = true",
@@ -3616,7 +3865,7 @@
       "title": "Description List",
       "file": "docs/guidelines/description-list.md",
       "apiFile": "docs/api/description-list.json",
-      "figma": "No Figma component: Text styles (term Body/Small/Regular Base, value Body/Base/Medium, total Body/Base/Bold) + Divider rules (Default between rows, High above the total)",
+      "figma": "Description List (14859:79180) + .Primitives/Description-List/Item (14859:78890), page ❖ Description List (14857:3)",
       "import": "import { DescriptionList, DescriptionItem } from \"@zen/design-system\";",
       "purpose": "Shows read-only term → value pairs in a semantic dl: order summaries and receipts, contact and profile details, specs and metadata.",
       "use": [
@@ -3647,6 +3896,7 @@
         ]
       },
       "do": [
+        "Keep one end edge (user, 2026-10-04 / 10-06): every row ends on the list's end edge. A row action sits Gap/XSmall (8px) after its own value and takes room only in its row, as an iOS value cell with an accessory and Figma's Item (Content · Action): a row without an action keeps its value on the edge, so Copy on one DNS value next to Type and Host is fine. A Flat icon action lines its icon, not its 32px box, up with the edge. Amounts that add up to a total take no row actions (they must share one edge with the total): a one-off action there (remove a discount) is a removable Badge beside the term.",
         "Use inline for short values (amounts, dates, statuses) and layout=\"stacked\" for long ones (addresses, emails, notes).",
         "Format every value for people: currency with its symbol, dates written out (\"2 October 2026\"), IDs as users see them.",
         "Close a calculation with one emphasis row, the total; the rows above it stay regular (harness: description-list/one-emphasis).",
@@ -3673,7 +3923,7 @@
       "apiFile": "docs/api/action-bar.json",
       "figma": "No Figma component: the Bottom-Sheet footer pattern (Large buttons, padding 12/20) on Surface/Default with a Border/Neutral/Pale top rule and the System/Bottom-Indicator safe area",
       "import": "import { ActionBar } from \"@zen/design-system\";",
-      "purpose": "The footer bar that holds a screen's main actions: the mobile footer CTA (Large, full width, Primary on top) and the sticky action row of desktop detail and edit pages (Tertiary · Primary at the end).",
+      "purpose": "The footer bar that holds a screen's main actions: the mobile footer CTA (Large, full width, Primary on top), the phone dual footer (Large Tertiary · Primary side by side) and the sticky action row of desktop detail and edit pages (Tertiary · Primary at the end).",
       "use": [
         "Phone screens whose main action must stay reachable while the content scrolls (Add to cart, Continue, Place order).",
         "Desktop edit and detail pages: Save changes / Undo changes next to an unsaved-changes status.",
@@ -3698,7 +3948,7 @@
       },
       "do": [
         "Hold one Primary, the screen's main action (harness: action-bar/one-primary).",
-        "On phones keep it vertical: Large full-width buttons, Primary on top, at most one Tertiary below (harness: action-bar/full-width-size, action-bar/primary-order).",
+        "On phones pick the direction by the actions: vertical when one main action leads (Add to cart, with Save for later below: Large full-width, Primary on top); horizontal when the two are a pair people choose between (Clear all · Show 6 prints, Decline · Accept: two Large buttons, Primary at the end) (harness: action-bar/full-width-size, action-bar/primary-order).",
         "Prefer primaryAction / secondaryAction: they get the right size and order in both directions, so one set of actions serves phone and desktop.",
         "Place a sticky bar as the last child of the scrolling content, inside the form it submits (type: \"submit\").",
         "Say what the actions act on in the summary (\"2 prints · $96.00\", \"3 unsaved changes\") and announce changes with role=\"status\".",
@@ -3741,6 +3991,10 @@
       ],
       "props": {
         "Image": [
+          "radiusTopLeft?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
+          "radiusTopRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
+          "radiusBottomRight?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
+          "radiusBottomLeft?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "src?: string",
           "alt: string",
           "ratio?: ImageRatioName|number",
@@ -3778,6 +4032,8 @@
         "Don't put text over a picture without a scrim or an overlay type that keeps it readable."
       ],
       "rules": [
+        "radius/redundant-corners",
+        "radius/full-mixed",
         "image/needs-alt",
         "image/alt-describes",
         "interaction/no-noop-handler"

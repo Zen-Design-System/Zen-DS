@@ -86,6 +86,14 @@
 .zen-avatar[data-tone="brown"][data-background="subtle"] { --zen-avatar-fill: var(--zen-color-background-support-brown-subtle); --zen-avatar-content: var(--zen-color-content-support-brown-strongest); }
 .zen-avatar[data-tone="yellow"][data-background="solid"] { --zen-avatar-fill: var(--zen-color-background-support-yellow-solid); --zen-avatar-content: var(--zen-color-content-on-brights); }
 .zen-avatar[data-tone="yellow"][data-background="subtle"] { --zen-avatar-fill: var(--zen-color-background-support-yellow-subtle); --zen-avatar-content: var(--zen-color-content-support-yellow-strongest); }
+.zen-avatar[data-tone="sky"][data-background="solid"] { --zen-avatar-fill: var(--zen-color-background-support-sky-solid); --zen-avatar-content: var(--zen-color-content-on-brights); }
+.zen-avatar[data-tone="sky"][data-background="subtle"] { --zen-avatar-fill: var(--zen-color-background-support-sky-subtle); --zen-avatar-content: var(--zen-color-content-support-sky-strongest); }
+.zen-avatar[data-tone="mint"][data-background="solid"] { --zen-avatar-fill: var(--zen-color-background-support-mint-solid); --zen-avatar-content: var(--zen-color-content-on-brights); }
+.zen-avatar[data-tone="mint"][data-background="subtle"] { --zen-avatar-fill: var(--zen-color-background-support-mint-subtle); --zen-avatar-content: var(--zen-color-content-support-mint-strongest); }
+.zen-avatar[data-tone="bronze"][data-background="solid"] { --zen-avatar-fill: var(--zen-color-background-support-bronze-solid); --zen-avatar-content: var(--zen-color-content-on-colors); }
+.zen-avatar[data-tone="bronze"][data-background="subtle"] { --zen-avatar-fill: var(--zen-color-background-support-bronze-subtle); --zen-avatar-content: var(--zen-color-content-support-bronze-strongest); }
+.zen-avatar[data-tone="golden"][data-background="solid"] { --zen-avatar-fill: var(--zen-color-background-support-golden-solid); --zen-avatar-content: var(--zen-color-content-on-colors); }
+.zen-avatar[data-tone="golden"][data-background="subtle"] { --zen-avatar-fill: var(--zen-color-background-support-golden-subtle); --zen-avatar-content: var(--zen-color-content-support-golden-strongest); }
 
 /* Effect/Overlay (Figma background blur 100 → CSS 50px, Figma Dev Mode conversion). */
 .zen-avatar__inner { backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }

@@ -7,9 +7,12 @@
  *   names       interactive elements without an accessible name
  *   ids         duplicate ids (breaks aria-labelledby / label[for])
  *   nesting     interactive elements nested inside buttons / links
- *   targets     (mobile) pointer targets smaller than 24×24 (WCAG 2.5.8)
+ *   targets     (mobile) pointer targets smaller than 24×24 whose 24px circle meets another target (WCAG 2.5.8 with its
+ *               spacing exception)
  *   contrast    visible text below 3:1 against its composited background (placeholders/disabled skipped)
- *   surfaces    a Surface/Default box whose backdrop is a Canvas/Alt page (the same colour) without a closed border (§11)
+ *   surfaces    a Surface/Default box whose backdrop is a Canvas/Alt page (the same colour) without a closed border (§11), or a
+ *               container drop shadow (Shadow/Bottom|Top/Level-N: Card, Sidebar, Box effectStyle) cast on a Canvas/Alt page
+ *   elevation   (warn) more than one Shadow/Bottom|Top/Level-N elevation level on one screen (an example region; each phone frame)
  *   sizes       a fixed-size visual (Avatar, Dock Icon, Icon) rendered off its declared size or out of square — stretched by a layout rule
  *   edges       text closer than 8px (sides) / 4px (top, bottom) to the inner edge of the box that visibly holds it — missing padding
  *   outline     heading outline per example (Typography › Content hierarchy): more than one h1 on a page (each phone frame is
@@ -24,7 +27,9 @@
  *               (TASA Explorer, looser heading tracking) instead of the preview's data-typography (Dashboard by default)
  *   playground  every Select option and Toggle in each playground, one axis at a time, re-running the checks
  *   smoke       (--smoke) clicks every button inside every example card once, then Escape; when the click opens a floating
- *               Popover it also hovers just beside and below it and fails if anything (e.g. a neighbouring message) paints over it
+ *               Popover it also hovers just beside and below it and fails if anything (e.g. a neighbouring message) paints over it,
+ *               sampled at the popover's current position (it may move with its anchor while the pointer moves) and on its
+ *               on-screen part, with the pointer kept inside the viewport; report.smokeStats counts what could not be sampled
  *
  * Build-QA checks (opt-in; tools/platform-audit/quality-checks.mjs, run by `npm run qa`):
  *   scale       (--quality) text that is no Zen text style; example markup with padding / gap / radius / colour off the tokens
@@ -40,7 +45,7 @@
  *   fit         (--quality) text wider than its own box with no ellipsis and no scroll: it runs into its neighbours or is
  *               cut off, even inside an `overflow: hidden` ancestor (which `overflow` skips). With --density also at
  *               Comfortable ("at Comfortable: …")
- * These six are compared with tools/platform-audit/quality-baseline.json: pre-existing findings are listed as baseline and
+ * These six (and elevation, contrast, targets, outline-*; never surfaces) are compared with tools/platform-audit/quality-baseline.json: pre-existing findings are listed as baseline and
  * do not fail the run; `--baseline-update` rewrites the entries of the pages and viewports in this run, and
  * `--baseline-update=fit` (a comma list of kinds) only those kinds — seed a new check without accepting the other kinds'
  * current findings (a peer's work in progress) as debt.
@@ -86,7 +91,7 @@ const BASELINE_UPDATE = arg("baseline-update", false); // true, or a comma list 
 // them off. --outline is still accepted.
 const OUTLINE = !arg("no-outline", false);
 const OUTLINE_KINDS = ["outline-h1", "outline-start", "outline-card", "outline-siblings"];
-const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "ladder", "density", "fit", "contrast", "targets", "outline-h1", "outline-start", "outline-card", "outline-siblings"]; // contrast, targets and outline-* stay warnings; baselined so only NEW ones are listed
+const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "ladder", "density", "fit", "contrast", "targets", "outline-h1", "outline-start", "outline-card", "outline-siblings", "elevation"]; // contrast, targets, outline-* and elevation stay warnings; baselined so only NEW ones are listed. surfaces (§11 border, shadow on Canvas/Alt) is never baselined: it found no existing debt, and --baseline-update must not accept it
 const CSS = arg("css", null) ? fs.readFileSync(path.resolve(String(arg("css"))), "utf8") : null;
 if (CSS && BASELINE_UPDATE) { console.error("--css cannot be combined with --baseline-update: the injected CSS is not the page's real state."); process.exit(2); }
 const baseline = arg("no-baseline", false) ? {} : (() => { try { return JSON.parse(fs.readFileSync(BASELINE_FILE, "utf8")).keys ?? {}; } catch { return {}; } })();
@@ -107,7 +112,7 @@ const IGNORED_CONSOLE = /\[vite\]|Download the React DevTools|favicon|ResizeObse
 
 /** In-page checks, scoped to `scopeSel` (defaults to the whole platform). Runs in the browser. */
 function pageChecks({ scopeSel, mobile }) {
-  const out = { overflow: [], images: [], names: [], ids: [], nesting: [], targets: [], contrast: [], surfaces: [], edges: [], sizes: [], typography: [], device: [], outline: [], "outline-h1": [], "outline-start": [], "outline-card": [], "outline-siblings": [] };
+  const out = { overflow: [], images: [], names: [], ids: [], nesting: [], targets: [], contrast: [], surfaces: [], edges: [], sizes: [], typography: [], device: [], outline: [], "outline-h1": [], "outline-start": [], "outline-card": [], "outline-siblings": [], elevation: [] };
   const scope = scopeSel ? document.querySelector(scopeSel) : document;
   if (!scope) return out;
   const visible = (el) => { const r = el.getBoundingClientRect(); const s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none" && !el.closest("[aria-hidden='true'], [inert], .zen-visually-hidden:not(:focus-within)"); };
@@ -167,13 +172,27 @@ function pageChecks({ scopeSel, mobile }) {
       }
       return { w, h };
     };
+    const targets = [];
     for (const el of scope.querySelectorAll("button, a[href], [role='button'], input[type='checkbox'], input[type='radio']")) {
       if (!visible(el)) continue;
       // The whole field wrapper is the click target for Select/Date triggers; native inputs under custom marks are hidden.
       if (el.matches(".zen-select__trigger, .zen-input__native") || parseFloat(getComputedStyle(el).opacity) === 0 || getComputedStyle(el).pointerEvents === "none" || el.matches(":disabled")) continue;
       const r = el.getBoundingClientRect(); if (r.width <= 2 || r.height <= 2) continue;
       const { w, h } = hitBox(el);
-      if ((w < 24 || h < 24) && !el.closest("p, li > a:only-child") && getComputedStyle(el).display !== "inline") out.targets.push(`${label(el)}: ${describe(el)} ${Math.round(w)}×${Math.round(h)}`);
+      const scale = el.offsetWidth ? r.width / el.offsetWidth : 1;
+      const small = (w < 24 || h < 24) && !el.closest("p, li > a:only-child") && getComputedStyle(el).display !== "inline";
+      // The painted hit box: the element grown to its hit-area layer, around its centre.
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2, hw = Math.max(r.width, w * scale) / 2, hh = Math.max(r.height, h * scale) / 2;
+      targets.push({ el, w, h, scale, small, cx, cy, box: { left: cx - hw, right: cx + hw, top: cy - hh, bottom: cy + hh } });
+    }
+    // WCAG 2.5.8 spacing exception: an undersized target passes when a 24px circle centred on it meets no other target
+    // and no other undersized target's circle.
+    const meets = (cx, cy, radius, box) => Math.hypot(Math.max(box.left - cx, 0, cx - box.right), Math.max(box.top - cy, 0, cy - box.bottom)) < radius;
+    for (const t of targets) {
+      if (!t.small) continue;
+      const radius = 12 * t.scale;
+      const crowded = targets.some((o) => o !== t && !o.el.contains(t.el) && !t.el.contains(o.el) && (o.small ? Math.hypot(o.cx - t.cx, o.cy - t.cy) < radius + 12 * o.scale : meets(t.cx, t.cy, radius, o.box)));
+      if (crowded) out.targets.push(`${label(t.el)}: ${describe(t.el)} ${Math.round(t.w)}×${Math.round(t.h)}`);
     }
   }
   // Contrast (text < 3:1 on its composited background).
@@ -198,13 +217,17 @@ function pageChecks({ scopeSel, mobile }) {
   // Surfaces (§11): Canvas/Alt and Surface/Default are the same colour, so a Surface/Default box whose backdrop is a Canvas/Alt
   // page needs a closed border (all four sides, an outline or a 0 0 0 Npx ring, on the box or its ::before/::after). A shadow
   // alone does not count. Painters are read from the loaded stylesheets, so the check follows the tokens, not class names.
-  const painters = { canvas: [], surface: [] };
+  const painters = { canvas: [], surface: [], shellCanvas: [], elevation: [] };
   const collect = (rules) => {
     for (const rule of rules) {
       if (rule.selectorText) {
         const t = rule.style?.cssText ?? "";
         if (/background(-color)?\s*:[^;]*--zen-color-background-canvas-alt\b/.test(t)) painters.canvas.push(rule.selectorText);
         if (/background(-color)?\s*:[^;]*--zen-color-background-surface-default\b/.test(t)) painters.surface.push(rule.selectorText);
+        // Elevation (below): AppShell paints its canvas through --zen-app-shell-canvas, which data-canvas="alt" points at Canvas/Alt.
+        if (/background(-color)?\s*:[^;]*--zen-app-shell-canvas\b/.test(t)) painters.shellCanvas.push(rule.selectorText);
+        const level = t.match(/(?:^|[;{\s])box-shadow\s*:[^;]*--zen-style-shadow-(bottom|top)-level-(\d)-shadow\b/);
+        if (level) painters.elevation.push({ sel: rule.selectorText, dir: level[1], level: Number(level[2]) });
       }
       if (rule.cssRules?.length) collect(rule.cssRules);
     }
@@ -231,6 +254,47 @@ function pageChecks({ scopeSel, mobile }) {
       const hc = parse(getComputedStyle(host).backgroundColor);
       if (Math.abs(hc.r - own.r) + Math.abs(hc.g - own.g) + Math.abs(hc.b - own.b) > 3) continue;
       if (!framed(el)) out.surfaces.push(`${label(el)}: ${describe(el)} on ${describe(host)} has no border`);
+    }
+  }
+  // Elevation (approved 2026-10-03, Studio Phase 2 spec §3.6). Container elevation = the Shadow/Bottom|Top/Level-N effect
+  // styles (Card, Sidebar, Box effectStyle), read from the stylesheets like the painters above; the computed box-shadow
+  // decides whether one is drawn (a rule gated off or overridden casts none). Floating layers (dialogs, sheets, menus,
+  // popovers) are layers of their own, and Don't illustrations and [data-audit-skip-elevation] are skipped.
+  //   surfaces   (error) a shadow whose backdrop is a Canvas/Alt page: a white page takes bordered cards and no shadow (§11,
+  //              elevation follows the Sidebar)
+  //   elevation  (warn)  more than one elevation level on one screen (an example region; each phone frame is its own screen)
+  const FLOATING = "[role='dialog']:not(.pe-card), [role='alertdialog'], [role='menu'], [role='listbox'], [role='tooltip'], .zen-side-panel, .zen-bottom-sheet, .zen-toast";
+  const castsShadow = (shadow) => shadow !== "none" && shadow.split(/,(?![^()]*\))/).some((layer) => {
+    if (/\binset\b/.test(layer) || (parse(layer)?.a ?? 1) === 0) return false;
+    const lengths = layer.replace(/rgba?\([^)]*\)/g, "").match(/-?[\d.]+px/g)?.map(parseFloat) ?? [];
+    return lengths.length >= 3 && lengths.slice(0, 3).some((n) => n !== 0); // 0 0 0 Npx is a ring, not elevation
+  });
+  const elevated = new Map(); // element → its highest Shadow/*/Level-N painter
+  for (const p of painters.elevation) {
+    let hits; try { hits = scope.querySelectorAll(p.sel); } catch { continue; }
+    for (const el of hits) if (!elevated.has(el) || elevated.get(el).level < p.level) elevated.set(el, p);
+  }
+  // Controls (a selected Bottom Navigation pill) carry state, not elevation.
+  const casting = [...elevated].filter(([el]) => el.closest(".pe-card__stage, .platform-example-panel, .platform-guideline-visual") && visible(el)
+    && !el.matches("button, a[href], input, [role='tab'], [role='option'], [role='menuitem'], .zen-bottom-nav__item")
+    && !el.closest(`${FLOATING}, .platform-guideline-visual__dont, [data-verdict='dont'], [data-audit-skip-elevation]`) && castsShadow(getComputedStyle(el).boxShadow));
+  const onCanvasAlt = (host) => matchesAny(host, painters.canvas) || (Boolean(host.closest("[data-canvas='alt']")) && matchesAny(host, painters.shellCanvas));
+  for (const [el, p] of casting) {
+    let host = el.parentElement;
+    for (; host; host = host.parentElement) { const c = parse(getComputedStyle(host).backgroundColor); if (c && c.a > 0) break; }
+    if (host && onCanvasAlt(host)) out.surfaces.push(`${label(el)}: ${describe(el)} casts Shadow/${p.dir === "top" ? "Top" : "Bottom"}/Level-${p.level} on ${describe(host)}, a Canvas/Alt page — a white page takes bordered cards and no shadow (elevation follows the Sidebar)`);
+  }
+  for (const region of scope.querySelectorAll(".pe-card__stage, .platform-example-panel .platform-example-row, .platform-example-panel .platform-mobile-preview")) {
+    if (region.closest(".platform-guideline-visual__dont, [data-verdict='dont']")) continue;
+    const phones = [...region.querySelectorAll(".platform-phone")];
+    const screens = [...phones.map((p) => ({ root: p, name: `${label(region)} › ${(p.getAttribute("aria-label") ?? "phone").replace(/\s*\(.*\)$/, "")}`, skip: [] })), { root: region, name: label(region), skip: phones }];
+    for (const s of screens) {
+      const byLevel = new Map();
+      for (const [el, p] of casting) if (s.root.contains(el) && !s.skip.some((phone) => phone.contains(el))) (byLevel.get(p.level) ?? byLevel.set(p.level, []).get(p.level)).push(el);
+      if (byLevel.size < 2) continue;
+      const parts = [...byLevel].sort((a, b) => a[0] - b[0]).map(([level, els]) => `Level-${level} × ${els.length} (${describe(els[0])})`);
+      const msg = `${s.name}: ${byLevel.size} elevation levels on one screen — ${parts.join(", ")}; keep one level, the Sidebar's Level-1 (Shadow/Top at that level for bottom-pinned bars)`;
+      if (!out.elevation.includes(msg)) out.elevation.push(msg);
     }
   }
   // Edges: text keeps ≥ 8px (left/right) and ≥ 4px (top/bottom) from the inner edge of the box that visibly holds it — the nearest
@@ -402,7 +466,7 @@ function pageChecks({ scopeSel, mobile }) {
 }
 
 const sum = (r) => Object.values(r).reduce((n, list) => n + list.length, 0);
-const SEVERITY = { errors: "error", overflow: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", ladder: "warn", density: "error", fit: "error" };
+const SEVERITY = { errors: "error", overflow: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", elevation: "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", ladder: "warn", density: "error", fit: "error" };
 
 async function run() {
   const browser = await chromium.launch();
@@ -492,6 +556,9 @@ async function run() {
         }
       }
 
+      // How much the smoke layer check really covered (report.smokeStats, information only): popovers sampled, skipped
+      // because they closed or collapsed before a sample, and open but off-screen (never sampled).
+      const smokeStats = SMOKE ? { checked: 0, skipped: 0, offscreen: 0 } : null;
       if (SMOKE) {
         const cards = page.locator(".pe-card");
         for (let c = 0; c < await cards.count(); c++) {
@@ -500,6 +567,32 @@ async function run() {
           const n = Math.min(await buttons.count(), 14);
           for (let b = 0; b < n; b++) {
             errors = [];
+            // A hover-revealed button (a chat message's toolbar: opacity 0 and pointer-events none until its row is hovered) is
+            // clicked with the pointer on its row, as a user would; it used to time out, so whether a run opened its menu was luck.
+            // Only a button that cannot take the click itself counts (its own pointer-events, which inherits, or an opacity-0
+            // ancestor), not one inside a pointer-events:none layout wrapper (the Top Navigation bar). The row is centred and the
+            // pointer goes only where the row is the top element (the docs' sticky bar can cover it). Bounded: a button an earlier
+            // click removed must not wait Playwright's 30s default.
+            const row = b < await buttons.count() ? await buttons.nth(b).evaluate((button) => {
+              const chain = [];
+              for (let node = button; node && !node.classList.contains("pe-card__stage"); node = node.parentElement) chain.push(node);
+              // A popover or sheet fading out is closing, not waiting for a hover.
+              if (chain.some((node) => node.matches(".zen-popover, [data-state='closing'], [inert]"))) return null;
+              // The element that hides it: the nearest opacity-0 ancestor, else the outermost of the pointer-events:none run
+              // the button inherits from. Its parent is the row to hover.
+              let source = chain.find((node) => getComputedStyle(node).opacity === "0");
+              if (!source && getComputedStyle(button).pointerEvents === "none") for (const node of chain) { if (getComputedStyle(node).pointerEvents !== "none") break; source = node; }
+              const host = source?.parentElement;
+              if (!host) return null;
+              host.scrollIntoView({ block: "center" });
+              const r = host.getBoundingClientRect();
+              for (const [fx, fy] of [[0.5, 0.5], [0.25, 0.5], [0.75, 0.5], [0.5, 0.25], [0.5, 0.75]]) {
+                const x = r.left + r.width * fx; const y = r.top + r.height * fy;
+                if (host.contains(document.elementFromPoint(x, y))) return { x, y };
+              }
+              return null;
+            }, undefined, { timeout: 800 }).catch(() => null) : null;
+            if (row) { await page.mouse.move(row.x, row.y).catch(() => undefined); await page.waitForTimeout(80); }
             await buttons.nth(b).click({ timeout: 800, trial: false }).catch(() => undefined);
             await page.waitForTimeout(80);
             // What a click opens (dialogs, side panels, sheets, popovers) is only on screen now: check its sizes, edges and typography too.
@@ -508,23 +601,59 @@ async function run() {
             // Layer: an open floating Popover stays on top even while the pointer hovers what sits around it.
             // Finish the popover's enter animation first: sampled mid-slide, its edge points miss it (2026-10-01).
             await page.evaluate(() => document.getAnimations().forEach((a) => a.finish())).catch(() => undefined);
-            const floating = await page.evaluate(() => [...document.querySelectorAll(".zen-popover")].map((el) => ({ cs: getComputedStyle(el), r: el.getBoundingClientRect() }))
-              .filter(({ cs, r }) => ["absolute", "fixed"].includes(cs.position) && r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight)
-              .map(({ r }) => ({ x: r.left, y: r.top, w: r.width, h: r.height }))).catch(() => []);
-            for (const r of floating.slice(0, 1)) {
-              for (const [mx, my] of [[r.x - 6, r.y + r.h / 2], [r.x + r.w / 2, r.y + r.h + 6]]) {
+            // Follow ONE tagged popover and measure it in the same task as the hit tests (2026-10-02): demo timers (a chat call
+            // flipping to "No answer") re-pin a thread mid-check, and the portalled popover rightly moves with its anchor (or
+            // with the page, through scroll anchoring). Points from a rect read before the mouse moved then landed on the
+            // messages that slid in, a false "paints over". A popover that closed meanwhile is skipped; a closing one is never picked.
+            const picked = await page.evaluate(() => {
+              document.querySelectorAll("[data-audit-popover]").forEach((el) => el.removeAttribute("data-audit-popover"));
+              const open = [...document.querySelectorAll(".zen-popover:not([data-state='closing'])")].filter((p) => { const r = p.getBoundingClientRect(); return ["absolute", "fixed"].includes(getComputedStyle(p).position) && r.width > 0 && r.height > 0; });
+              const el = open.find((p) => { const r = p.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth; });
+              if (!el) return open.length ? "offscreen" : "none";
+              el.setAttribute("data-audit-popover", "");
+              return "picked";
+            }).catch(() => "none");
+            if (picked === "offscreen") smokeStats.offscreen += 1;
+            if (picked === "picked") {
+              let sampled = false;
+              for (const side of ["left", "below"]) {
+                const box = await page.evaluate(() => { const el = document.querySelector("[data-audit-popover]"); if (!el) return null; const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height, vw: innerWidth, vh: innerHeight }; }).catch(() => null);
+                if (!box) break;
+                // The pointer rests just outside the popover and inside the viewport (a spot off the page hovers nothing): the
+                // opposite side when the usual one is off-screen; a side with no room outside a near-full-width popover is skipped.
+                const clampX = (x) => Math.min(Math.max(x, 1), box.vw - 2); const clampY = (y) => Math.min(Math.max(y, 1), box.vh - 2);
+                const [mx, my] = side === "left"
+                  ? [clampX(box.x - 6 >= 1 ? box.x - 6 : box.x + box.w + 6), clampY(box.y + box.h / 2)]
+                  : [clampX(box.x + box.w / 2), clampY(box.y + box.h + 6 <= box.vh - 2 ? box.y + box.h + 6 : box.y - 6)];
+                if (mx >= box.x && mx <= box.x + box.w && my >= box.y && my <= box.y + box.h) continue;
                 await page.mouse.move(mx, my).catch(() => undefined); await page.waitForTimeout(60);
-                const over = await page.evaluate((box) => {
-                  for (const [fx, fy] of [[0.5, 0.5], [0.15, 0.85], [0.85, 0.85], [0.5, 0.95]]) {
-                    const hit = document.elementFromPoint(box.x + box.w * fx, box.y + box.h * fy);
-                    // Toasts (z-index 1100) are the top notification layer by design, above menus and dialogs; a toast left by
-                    // an earlier smoke click may overlap the popover near the bottom of small viewports.
-                    if (hit && !hit.closest(".zen-popover, .zen-tooltip, [role='tooltip'], .zen-toast-stack")) return typeof hit.className === "string" && hit.className.trim() ? hit.className.trim().split(/\s+/).slice(0, 2).join(".") : hit.tagName.toLowerCase();
+                const res = await page.evaluate((points) => {
+                  const el = document.querySelector("[data-audit-popover]");
+                  if (!el || el.dataset.state === "closing") return { skipped: true };
+                  // Sample the part of the popover that is on screen (a menu running below the fold kept 3 of 4 points off it).
+                  const r = el.getBoundingClientRect();
+                  const left = Math.max(r.left, 0); const top = Math.max(r.top, 0); const right = Math.min(r.right, innerWidth); const bottom = Math.min(r.bottom, innerHeight);
+                  if (right - left < 1 || bottom - top < 1) return { skipped: true };
+                  // Toasts (z-index 1100) are the top notification layer by design, above menus and dialogs. One left by an
+                  // earlier smoke click is hidden while sampling, so it cannot blind the check to what lies under it.
+                  const toasts = [...document.querySelectorAll(".zen-toast-stack")].map((t) => [t, t.style.visibility]);
+                  toasts.forEach(([t]) => { t.style.visibility = "hidden"; });
+                  try {
+                    for (const [fx, fy] of points) {
+                      const hit = document.elementFromPoint(left + (right - left) * fx, top + (bottom - top) * fy);
+                      if (hit && !hit.closest(".zen-popover, .zen-tooltip, [role='tooltip'], .zen-toast-stack")) return { over: typeof hit.className === "string" && hit.className.trim() ? hit.className.trim().split(/\s+/).slice(0, 2).join(".") : hit.tagName.toLowerCase() };
+                    }
+                  } finally {
+                    toasts.forEach(([t, visibility]) => { t.style.visibility = visibility; });
                   }
-                  return null;
-                }, r).catch(() => null);
-                if (over) { layout.push(`layer ${over} paints over the open popover`); break; }
+                  return {};
+                }, [[0.5, 0.5], [0.15, 0.85], [0.85, 0.85], [0.5, 0.95]]).catch(() => ({ skipped: true }));
+                if (res.skipped) break;
+                sampled = true;
+                if (res.over) { layout.push(`layer ${res.over} paints over the open popover`); break; }
               }
+              smokeStats[sampled ? "checked" : "skipped"] += 1;
+              await page.evaluate(() => document.querySelector("[data-audit-popover]")?.removeAttribute("data-audit-popover")).catch(() => undefined);
             }
             // Overlays opened by the click (dialogs, sheets, menus) get the text-style and hierarchy checks too.
             if (QUALITY) addQuality(await quality(".official-portal-root"), `${title} → opened: `);
@@ -545,6 +674,7 @@ async function run() {
         entry[kind] = fresh;
       }
       report.pages[key] = entry;
+      if (smokeStats) (report.smokeStats ??= {})[key] = smokeStats;
       const n = sum(entry);
       console.log(`${n ? "✗" : "✓"} ${key.padEnd(30)} ${n ? Object.entries(entry).filter(([, l]) => l.length).map(([k, l]) => `${k}:${l.length}`).join(" ") : "clean"}${known ? ` (+${known} baseline)` : ""}`);
       break;
@@ -569,6 +699,8 @@ async function run() {
     }
   }
   console.log("\n" + (lines.join("\n") || "No findings."));
+  // Information only: what the smoke layer check could not sample (closed or collapsed before a sample, or off-screen).
+  if (report.smokeStats) { const t = Object.values(report.smokeStats).reduce((a, s) => ({ checked: a.checked + s.checked, skipped: a.skipped + s.skipped, offscreen: a.offscreen + s.offscreen }), { checked: 0, skipped: 0, offscreen: 0 }); console.log(`Smoke layer check: ${t.checked} popover(s) sampled, ${t.skipped} skipped (closed or collapsed first), ${t.offscreen} open off-screen (report.smokeStats).`); }
   const knownTotal = Object.values(report.baselined ?? {}).flatMap((kinds) => Object.values(kinds)).flat().length;
   if (knownTotal) console.log(`\n${knownTotal} pre-existing Build-QA finding(s) are in tools/platform-audit/quality-baseline.json (listed in --out under "baselined").`);
   if (BASELINE_UPDATE && (QUALITY || DENSITY)) {

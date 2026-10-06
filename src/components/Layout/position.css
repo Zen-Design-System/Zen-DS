@@ -1,0 +1,32 @@
+/* Figma "Ignore auto layout" + constraints (position.ts; spec docs/research/studio-position-effects-radius-spec-2026-10-03.md §3.1).
+   Only primitives carrying data-position="absolute" are touched, so ActionBar (action-bar.css) and Stepper (stepper.css)
+   data-position values never match. Offsets come from the element's own --zen-layout-inset-* (Spacing/Padding tokens). */
+
+/* The JSX parent is the frame. The whole selector sits in :where() (0 specificity: :has() would otherwise add its
+   argument's), so a parent's own sticky, fixed or absolute position wins. Card is already relative (card.css). */
+:where(:is(.zen-stack, .zen-grid, .zen-box):has(> :is(.zen-stack, .zen-grid, .zen-box)[data-position="absolute"])) { position: relative; }
+/* Layer order (Figma auto layout "Last on top"): an in-flow sibling written AFTER an absolute layer paints above it.
+   Earlier siblings already paint below it; 0 specificity, so a sibling's own position wins. */
+:where(:is(.zen-stack, .zen-grid, .zen-box)[data-position="absolute"] ~ :not([data-position="absolute"])) { position: relative; }
+
+:is(.zen-stack, .zen-grid, .zen-box)[data-position="absolute"] { position: absolute; }
+/* (0,4,0) beats the column stretch (layout.css .zen-stack[data-direction="column"] > *) and alignSelf / row fill, all
+   (0,3,0). auto = CSS 2.1 absolute sizing: the layer hugs its content unless both edges of an axis are pinned. */
+:is(.zen-stack, .zen-grid, .zen-box)[data-position="absolute"][data-constraint-x][data-constraint-y] { align-self: auto; justify-self: auto; }
+
+/* Horizontal constraint. left-right beats a Fixed or Hug width (layout.css data-w rules, 0,2,0). */
+:is(.zen-stack, .zen-grid, .zen-box)[data-position="absolute"][data-constraint-x="left"] { left: var(--zen-layout-inset-left); }
+:is(.zen-stack, .zen-grid, .zen-box)[data-position="absolute"][data-constraint-x="right"] { right: var(--zen-layout-inset-right); }
+:is(.zen-stack, .zen-grid, .zen-box)[data-position="absolute"][data-constraint-x="left-right"] { right: var(--zen-layout-inset-right); left: var(--zen-layout-inset-left); width: auto; }
+/* Centre without transform: a transform would create a stacking context and a containing block for fixed descendants. */
+:is(.zen-stack, .zen-grid, .zen-box)[data-position="absolute"][data-constraint-x="center"] { right: 0; left: 0; margin-inline: auto; }
+/* A centred layer hugs its content between its 0 offsets (layout.css's parent sizing rules skip absolute layers). */
+:is(.zen-stack, .zen-grid, .zen-box)[data-position="absolute"][data-constraint-x="center"]:not([data-w="fixed"]) { width: fit-content; }
+
+/* Vertical constraint. */
+:is(.zen-stack, .zen-grid, .zen-box)[data-position="absolute"][data-constraint-y="top"] { top: var(--zen-layout-inset-top); }
+:is(.zen-stack, .zen-grid, .zen-box)[data-position="absolute"][data-constraint-y="bottom"] { bottom: var(--zen-layout-inset-bottom); }
+:is(.zen-stack, .zen-grid, .zen-box)[data-position="absolute"][data-constraint-y="top-bottom"] { top: var(--zen-layout-inset-top); bottom: var(--zen-layout-inset-bottom); height: auto; }
+:is(.zen-stack, .zen-grid, .zen-box)[data-position="absolute"][data-constraint-y="center"] { top: 0; bottom: 0; margin-block: auto; }
+/* As above. Block-axis fit-content is already relied on by layout.css (data-h="hug"). */
+:is(.zen-stack, .zen-grid, .zen-box)[data-position="absolute"][data-constraint-y="center"]:not([data-h="fixed"]) { height: fit-content; }

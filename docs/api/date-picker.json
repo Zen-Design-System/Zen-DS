@@ -1,12 +1,12 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "date-picker",
-  "import": "import { DatePicker, DateField, DatePickerItem, DatePickerHeader, DatePickerAction, DatePickerMonthYear } from \"@zen/design-system\";",
+  "import": "import { DatePicker, DateField, DatePickerItem, DatePickerHeader, DatePickerAction, DatePickerMonthYear, DatePickerTimePicker } from \"@zen/design-system\";",
   "components": [
     {
       "name": "DatePicker",
       "file": "src/components/DatePicker/DatePicker.tsx",
-      "description": "Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` on the shared token and\nButton primitives. The single calendar's month/year opens the Select-Month-Year state. It is\nalso the calendar surface used by Input/Date-Field. With `showActions` (Figma Actions,\n`.Primitives/Date-Picker/Action` 460:38871) picks are a draft: Submit applies it through `onApply(value, range)`,\nCancel drops it (`onCancel`) and the calendar shows the applied `value` / `range` again.",
+      "description": "Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` on the shared token and\nButton primitives. The single calendar's month/year opens the Select-Month-Year state. It is\nalso the calendar surface used by Input/Date-Field. With `showActions` (Figma Actions,\n`.Primitives/Date-Picker/Action` 460:38871) picks are a draft: Submit applies it through `onApply(value, range)`,\nCancel drops it (`onCancel`) and the calendar shows the applied `value` / `range` again.\nAs a popover (`onClose` / `onOpenChange` / `anchorRef`) it is the Single-Calendar surface: Color/Background/Popover/\nDefault, Color/Border/Popover/Subtle, Corner-Radius/3XLarge, Spacing/Padding/Medium and Effect/Popover. Inline (none of\nthose) it sits in the flow of its container with no surface, as Figma's in-place calendar (`.Primitives/Date-Picker/\nCalendar` 478:30561, `Date-Picker/Mobile` 9923:3576: no fill, stroke or effect), so it never casts a popover shadow.\nSemantics follow: the popover is a `role=\"dialog\"`, the inline calendar a `role=\"group\"` (part of the page, not a\nwindow over it); both are named \"Choose date\" / \"Choose dates\" unless `aria-label` / `aria-labelledby` name them.\nToday's day carries `aria-current=\"date\"`.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -92,7 +92,7 @@
         },
         {
           "name": "onApply",
-          "type": "(value: Date | null, range: DatePickerRange | null) => void",
+          "type": "(value: Date | null, range: DatePickerRange | null, time?: DatePickerTime) => void",
           "required": false,
           "default": null,
           "description": "With `showActions`, pressing Submit (the Primary action) applies the picks, then closes a popover. Called with the\npicked date (single mode; null in range mode) and the picked range (range mode; null in single mode). An\nuncontrolled picker keeps what was applied and Cancel returns to it; a controlled one expects `value` / `range` to\nfollow. Inline, Submit is disabled until there is a change, and in range mode until the end date is picked.",
@@ -163,6 +163,46 @@
           "deprecated": null
         },
         {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Date-Picker/Mobile (9923:3576) primitives: `mobile` days fill the width (square cells in Body/Base/Medium,\n`.Primitives/Mobile-Date-Picker/Item` 9921:3283) under a Heading/Subheading month with Back / Next at the end,\nSpacing/Gap/XLarge apart (Gap/XSmall for the dual calendar, whose months stack Gap/Medium apart). Unset, an inline\ncalendar follows the breakpoint (the nearest `data-breakpoint`, else ZenProvider) and a popover stays `desktop`\n(Figma has no mobile popover). A `mobile` popover spans its containing block (a DateField's width).",
+          "deprecated": null
+        },
+        {
+          "name": "timePicker",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma `Time-Picker`: a Divider and `.Primitives/Date-Picker/Time-Picker` under the calendar — From / To times\n(hh:mm + AM/PM) and All day; stacked on the single calendar, side by side on the dual one. Picking a date no longer\ncloses a popover (the times come next): pair it with `showActions`, whose Submit applies date and time together.",
+          "deprecated": null
+        },
+        {
+          "name": "time",
+          "type": "DatePickerTime",
+          "required": false,
+          "default": null,
+          "description": "Controlled times (with `timePicker`); with `showActions` it is the applied time.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultTime",
+          "type": "DatePickerTime",
+          "required": false,
+          "default": "{ from: null, to: null, fromAllDay: false, toAllDay: false }",
+          "description": "Uncontrolled times at first.",
+          "deprecated": null
+        },
+        {
+          "name": "onTimeChange",
+          "type": "(time: DatePickerTime) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with each time change; with `showActions` it is a draft, read the applied one in `onApply`.",
+          "deprecated": null
+        },
+        {
           "name": "minDate",
           "type": "Date",
           "required": false,
@@ -176,6 +216,30 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "The day the calendar treats as today: the Today ring (`.Primitives/Date-Picker/Item` State=Today) and the month it\nopens on without a value. Default: the device clock. Pass your app's date when it is not the device's (a server or\nbusiness date, a demo world, a test).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the calendar. Default: the locale's \"Choose date\" (\"Choose dates\" for the dual calendar). Name an\ninline calendar after what it sets (\"Start date\") when a form shows more than one.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "id of a visible element that names the calendar (a heading or label next to an inline calendar); wins over `aria-label`.",
           "deprecated": null
         },
         {
@@ -336,7 +400,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "",
+          "description": "The calendar's Cancel + Submit (Figma Actions): a picked day is a draft until Submit writes it to the field; Cancel and\n Escape keep the date the field had.",
           "deprecated": null
         },
         {
@@ -346,13 +410,37 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "minDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "Earliest day the calendar lets people pick (DatePicker `minDate`); earlier days are disabled. A typed date before\nit stays in the field and reaches `onValueChange` as usual, and the input is marked `aria-invalid` (Form and\nModalForm count it and focus it after a blocked submit). The field shows no message of its own: validate the value\nand pass `error` (\"Pick a date from 1 October\").",
+          "deprecated": null
+        },
+        {
+          "name": "maxDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "Latest day the calendar lets people pick (DatePicker `maxDate`); later days are disabled. A typed date after it is\nkept, reported and marked `aria-invalid` as for `minDate`: pass `error` to say why.",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "The day the calendar treats as today (DatePicker `today`): its Today ring and the month it opens on while empty.\nDefault: the device clock.",
+          "deprecated": null
         }
       ]
     },
     {
       "name": "DatePickerItem",
       "file": "src/components/DatePicker/DatePicker.tsx",
-      "description": "The 32px day primitive from `.Primitives/Date-Picker/Item`.",
+      "description": "The day primitive from `.Primitives/Date-Picker/Item` (455:33517): Medium 32px on Corner-Radius/Action/Small,\nSmall 24px on Corner-Radius/Action/XSmall. The button paints the In-Range strip, its label span the day.\nState=Today carries `aria-current=\"date\"` (the calendar sets it on today's day in every state, selected included).",
       "deprecated": null,
       "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
       "props": [
@@ -362,6 +450,14 @@
           "required": false,
           "default": "\"\"",
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "date",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "The full date of this day. It names the button in the locale (\"Wednesday, September 30, 2026\"); without it the\nname is the locale's \"Day N\". The calendar passes it for every day.",
           "deprecated": null
         },
         {
@@ -385,7 +481,15 @@
           "type": "\"md\" | \"sm\" | \"medium\" | \"small\"",
           "required": false,
           "default": "\"md\"",
-          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "description": "Medium 32px (default) or Small 24px; short (sm, md…) or Figma (small, medium…) spelling. Ignored on mobile.",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": "\"desktop\"",
+          "description": "`mobile`: `.Primitives/Mobile-Date-Picker/Item` (9921:3283), a square that fills its grid column (40px in the\ncomponent, 50px in the 350px table of a 390px phone) with the day in Body/Base/Medium; same states and tokens as desktop.",
           "deprecated": null
         }
       ]
@@ -442,7 +546,7 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "Figma `Back` / `Next`. A hidden button keeps its 32px slot so the label stays centred.",
+          "description": "Figma `Back` / `Next`. A hidden button keeps its 32px slot so the label stays centred (desktop).",
           "deprecated": null
         },
         {
@@ -451,6 +555,14 @@
           "required": false,
           "default": "true",
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": "\"desktop\"",
+          "description": "`mobile` (Date-Picker/Mobile 9923:3576): month and year in Heading/Subheading at the start, Back and Next together\nat the end; a hidden button leaves no slot.",
           "deprecated": null
         }
       ]
@@ -552,9 +664,51 @@
           "deprecated": null
         }
       ]
+    },
+    {
+      "name": "DatePickerTimePicker",
+      "file": "src/components/DatePicker/DatePicker.tsx",
+      "description": "Figma `.Primitives/Date-Picker/Time-Picker` (460:38628): Input/Text-Field Small times with an AM/PM picker and\n Checkbox/Text \"All day\", Spacing/Gap/Medium apart (Gap/XSmall between a range side's field and its checkbox).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "type",
+          "type": "\"single\" | \"range\"",
+          "required": false,
+          "default": "\"single\"",
+          "description": "Figma Type: `single` (From over To, one All day; the Single-Calendar) or `range` (From | To side by side, each with\n its own All day; the Dual-Calendar).",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "DatePickerTime",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(time: DatePickerTime) => void",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": "\"desktop\"",
+          "description": "`mobile`: the time fields are Medium (phones keep full-size inputs); DatePicker passes its own `device`.",
+          "deprecated": null
+        }
+      ]
     }
   ],
   "types": {
-    "DatePickerRange": "interface DatePickerRange { start: Date; end: Date | null; }"
+    "DatePickerRange": "interface DatePickerRange { start: Date; end: Date | null; }",
+    "DatePickerTime": "interface DatePickerTime { from: string | null; to: string | null; fromAllDay?: boolean; toAllDay?: boolean; }"
   }
 }

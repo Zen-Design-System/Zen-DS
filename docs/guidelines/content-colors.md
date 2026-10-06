@@ -9,7 +9,7 @@ Text and icon colours share the Color/Content tokens, but the level depends on t
 ## Use it for
 - Neutral families — Neutral, Inverse, On-Black-Overlay, On-White-Overlay: Strongest = Primary (titles, main content, values, primary icons); Base = Secondary (body copy, descriptions, secondary icons); Light = Tertiary (captions, meta, helper text, timestamps, quiet icons).
 - Colour families — Accent, Info, Positive, Negative, Warning and every Support/* colour: Strongest and Base are regular text, the Primary and Secondary levels, placed on that colour's Subtle background (subtle Badge, Tag, Alert, callout).
-- Colour Light: text or icons that must stand out as a highlight — status icons, a success/error hint, a positive or negative delta, a highlighted keyword.
+- Colour Light, sparingly: short text or icons that must stand out — status icons, help or error text under a field, a condition ("Not delivered", "Expires in 5 days"), a positive or negative delta, a highlighted keyword. Only the Lights group never takes Light for text.
 - Lights group — every family whose tokens reference the Sky, Mint, Yellow or Zen scales (similar low contrast); today Accent (Zen), Warning (Yellow) and Support/Yellow: text is Base at most (Strongest or Base); Light is only for icons. The harness derives the group from tokens.css.
 
 ## Use something else for
@@ -24,10 +24,11 @@ Text and icon colours share the Color/Content tokens, but the level depends on t
 | Colour families | `accent · info · positive · negative · warning · support-*` | strongest / base = text on Subtle · light = highlight text & icons |
 | Lights group | `families referencing Sky · Mint · Yellow · Zen (today: accent · warning · support-yellow)` | text: strongest / base only · icons may use light |
 | Solid backgrounds | `on-colors · on-brights · on-accent-*` | text on Solid fills |
+| Text · Heading · Icon tone | `tone="<token path>"` | Content/Support/Blue/Light → support-blue-light; Neutral drops its name (strongest · base · light); /Default drops (hyperlink · on-accent); resting tokens only — Hover/Pressed/Visited/Placeholder stay with their components |
 
 ## ✅ Do
 - Pick the family first (neutral vs colour), then the level by role: Primary → Strongest, Secondary → Base, Tertiary (neutral only) → Light.
-- Keep titles and headings at Strongest in neutral families; a list group header in Body/Small/Bold (a kicker label) stays Base.
+- Keep titles and headings at Strongest in neutral families; a list group header in Body/Small/Bold (a kicker label) takes Light.
 - On a colour's Subtle background, set the text to Strongest (title) or Base (body) of the same colour and the icon to Light.
 - Use colour Light sparingly for the one thing that must pop (status icon, delta, inline hint).
 - In Lights-group components (Warning Badge/Alert, Accent text), keep the text at Base or Strongest and put the Light level on the icon only.
@@ -46,7 +47,7 @@ Text and icon colours share the Color/Content tokens, but the level depends on t
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
-| `content/lights-no-light-text` | error | Lights-group text (families referencing Sky, Mint, Yellow or Zen — today Accent, Warning, Support/Yellow) never uses the Light level — Base at most (Light fails contrast); Light stays for icons. | `zen-allow-lights-light-text: <reason>` |
+| `content/lights-no-light-text` | error | Lights-group text (families referencing Sky, Mint, Yellow or Zen — today Accent, Warning, Support/Yellow) never uses the Light level — Base at most (Light fails contrast); Light stays for icons. Checks CSS colours and the Text/Heading `tone`. | `zen-allow-lights-light-text: <reason>` |
 | `content/title-is-strongest` | warn | Neutral-family titles and headings use Strongest (Primary level); Base is for secondary text and Light for tertiary text. | `zen-allow-title-level: <reason>` |
 | `content/colour-light-is-highlight` | warn | In colour families, Strongest/Base are for running text on Subtle backgrounds; Light is only for text or icons that must stand out, never body copy. | `zen-allow-colour-light-body: <reason>` |
 

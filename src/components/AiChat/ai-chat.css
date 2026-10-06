@@ -1,7 +1,8 @@
 /* Figma ❖ AI-Chat (7032:2174). */
 .zen-ai-thread { display: flex; width: 100%; max-width: 800px; box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-large, 24px); margin-inline: auto; }
 
-/* Chat-Field (12074:16884): Corner-Radius/Giant, Padding/Small; grid so a long prompt moves above the controls (State=Long-Typing). */
+/* Chat-Field (12074:16884): AI-Chat/Field/Corner-Radius (Corner-Radius/Giant Compact, XGiant Comfortable: concentric with the
+   40/48px buttons + Padding/Small), Padding/Small; grid so a long prompt moves above the controls (State=Long-Typing). */
 .zen-ai-field {
   display: grid;
   width: 100%;
@@ -12,14 +13,19 @@
   column-gap: var(--zen-spacing-gap-small, 12px);
   row-gap: var(--zen-spacing-gap-medium, 16px);
   padding: var(--zen-spacing-padding-small, 12px);
-  border-radius: var(--zen-corner-radius-giant, 32px);
+  border-radius: var(--zen-ai-chat-field-corner-radius, 32px);
   background: var(--zen-input-background-default, rgb(5 5 5 / 3%));
-  box-shadow: var(--zen-style-effect-input-shadow, none);
+  /* Style=Default: Input/Border/Default as a 1px INSIDE stroke (clear in S1–S3, Border/Neutral/Subtle in S4) + Effect/Input
+     (inner shadows and its background blur). */
+  box-shadow: inset 0 0 0 1px var(--zen-input-border-default, transparent), var(--zen-style-effect-input-shadow, none);
+  -webkit-backdrop-filter: var(--zen-style-effect-input-backdrop-filter, none);
+  backdrop-filter: var(--zen-style-effect-input-backdrop-filter, none);
   /* The whole field is the prompt's hit area (AiChatField focuses it on a press outside the buttons). */
   cursor: text;
 }
-.zen-ai-field:focus-within { background: var(--zen-input-background-focused, #fff); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)), var(--zen-style-effect-input-shadow, none); }
-.zen-ai-field[data-style="surface"] { background: var(--zen-color-background-surface-default, #fff); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow, 0 1px 3px rgb(0 0 0 / 10%)); }
+/* Figma State=Focused keeps the Default fill and stroke. */
+.zen-ai-field:focus-within { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)), var(--zen-style-effect-input-shadow, none); }
+.zen-ai-field[data-style="surface"] { background: var(--zen-color-background-surface-default, #fff); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow, 0 1px 3px rgb(0 0 0 / 10%)); -webkit-backdrop-filter: none; backdrop-filter: none; }
 /* Liquid Glass (12077:5298): effect style Liquid-Glass/Normal — GLASS frost 4 → blur 2px, light −45° → a lit top-left rim
    and a fainter bottom-right one (refraction and dispersion have no CSS equivalent), plus its 0 4 24 −8 shadow. */
 .zen-ai-field[data-style="liquid-glass"] {
@@ -83,6 +89,9 @@
 .zen-ai-block__logo .zen-icon, .zen-ai-block__logo svg { width: 100%; height: calc(100% * 40 / 44); }
 .zen-ai-block__greeting { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-ai-block__suggestions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* A suggestion longer than the block (a phone at Comfortable) shrinks and ellipsizes instead of overflowing: Chip keeps
+   min-width: max-content elsewhere so chip rows never squeeze. */
+.zen-ai-block__suggestions > .zen-chip { min-width: 0; }
 
 /* Thinking: three 8px dots in a looping wave (each rises 4px and brightens in turn, 1.2s cycle, 150ms stagger).
    Reduced motion keeps only the staggered opacity, no movement.

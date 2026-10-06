@@ -1,10 +1,13 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from "react";
 import { Icon } from "../Icon";
 import { Button, IconButton } from "../Button";
+import { Checkbox } from "../Checkbox";
+import { Divider } from "../Divider";
+import { InputField, InputLeadingTrailing } from "../Input";
 import { useAnchoredPosition } from "../Popover/useAnchoredPosition";
 import { useExclusivePopover } from "../Popover/useExclusivePopover";
 import { scaleKey } from "../_shared/scale";
-import { useZenLabels, useZenLocale } from "../_shared/zen-context";
+import { useZen, useZenLabels, useZenLocale } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./date-picker.css";
 import "../Icon/core";
@@ -15,18 +18,43 @@ export type DatePickerItemState =
 
 export interface DatePickerItemProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
   day?: number | string;
+  /** The full date of this day. It names the button in the locale ("Wednesday, September 30, 2026"); without it the
+   * name is the locale's "Day N". The calendar passes it for every day. */
+  date?: Date;
   state?: DatePickerItemState;
   event?: boolean;
-  /** Short (sm, md…) or Figma (small, medium…) spelling. */
+  /** Medium 32px (default) or Small 24px; short (sm, md…) or Figma (small, medium…) spelling. Ignored on mobile. */
   size?: "md" | "sm" | "medium" | "small";
+  /** `mobile`: `.Primitives/Mobile-Date-Picker/Item` (9921:3283), a square that fills its grid column (40px in the
+   * component, 50px in the 350px table of a 390px phone) with the day in Body/Base/Medium; same states and tokens as desktop. */
+  device?: DatePickerDevice;
 }
+
+/** Figma Date Picker primitives: desktop (`.Primitives/Date-Picker/*`) or mobile (`.Primitives/Mobile-Date-Picker/Item`,
+ * Date-Picker/Mobile 9923:3576). */
+export type DatePickerDevice = "desktop" | "mobile";
 
 /** DatePickerItem CSS / Figma keys (its `data-size` values). */
 const datePickerItemSizes = ["medium", "small"] as const;
 
-/** The 32px day primitive from `.Primitives/Date-Picker/Item`. */
-export function DatePickerItem({ day = "", state = "default", event = false, size: sizeProp = "md", className, ...props }: DatePickerItemProps) {
+/** A day's accessible name in `locale`: weekday, month, day and year ("Wednesday, September 30, 2026", vi "Thứ Tư,
+ * 30 tháng 9, 2026"), so a screen reader hears which day it is, not "Day 30". */
+const fullDateFormats = new Map<string, Intl.DateTimeFormat>();
+function fullDateName(date: Date, locale: string) {
+  let format = fullDateFormats.get(locale);
+  if (!format) {
+    format = new Intl.DateTimeFormat(locale, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    fullDateFormats.set(locale, format);
+  }
+  return format.format(date);
+}
+
+/** The day primitive from `.Primitives/Date-Picker/Item` (455:33517): Medium 32px on Corner-Radius/Action/Small,
+ * Small 24px on Corner-Radius/Action/XSmall. The button paints the In-Range strip, its label span the day.
+ * State=Today carries `aria-current="date"` (the calendar sets it on today's day in every state, selected included). */
+export function DatePickerItem({ day = "", date, state = "default", event = false, size: sizeProp = "md", device = "desktop", className, "aria-current": ariaCurrent, ...props }: DatePickerItemProps) {
   const t = useZenLabels();
+  const locale = useZenLocale();
   const size = scaleKey(sizeProp, datePickerItemSizes);
   const blank = state === "blank" || day === "";
   return (
@@ -34,9 +62,11 @@ export function DatePickerItem({ day = "", state = "default", event = false, siz
       {...props}
       className={["zen-date-picker__day", blank ? "is-blank" : "", className].filter(Boolean).join(" ")}
       data-state={state}
-      data-size={size}
+      data-size={device === "mobile" ? undefined : size}
+      data-device={device === "mobile" ? "mobile" : undefined}
       type="button"
-      aria-label={blank ? undefined : t.day(day)}
+      aria-label={blank ? undefined : date ? fullDateName(date, locale) : t.day(day)}
+      aria-current={blank ? undefined : ariaCurrent ?? (state === "today" ? "date" : undefined)}
       // Padding cells before the 1st / after the last day are layout only: keep them out of the accessibility tree.
       aria-hidden={blank || undefined}
       tabIndex={blank ? -1 : props.tabIndex}
@@ -56,9 +86,12 @@ export interface DatePickerHeaderProps {
   /** Figma Header Type: Interactive (month/year opens Select-Month-Year), Static (label only,
    * used by the Dual calendar) or Display (label only, no navigation slots). */
   type?: "interactive" | "static" | "display";
-  /** Figma `Back` / `Next`. A hidden button keeps its 32px slot so the label stays centred. */
+  /** Figma `Back` / `Next`. A hidden button keeps its 32px slot so the label stays centred (desktop). */
   back?: boolean;
   next?: boolean;
+  /** `mobile` (Date-Picker/Mobile 9923:3576): month and year in Heading/Subheading at the start, Back and Next together
+   * at the end; a hidden button leaves no slot. */
+  device?: DatePickerDevice;
 }
 
 /** The month name of `month` ("September", vi "Tháng 9") in `locale`. */
@@ -71,7 +104,8 @@ const weekdayInitials = (locale: string) => {
   return Array.from({ length: 7 }, (_, index) => format.format(new Date(2026, 0, 5 + index)));
 };
 
-export function DatePickerHeader({ month, onPrevious, onNext, onMonthYearClick, type = "interactive", back = true, next = true }: DatePickerHeaderProps) {
+export function DatePickerHeader({ month, onPrevious, onNext, onMonthYearClick, type = "interactive", back = true, next = true, device = "desktop" }: DatePickerHeaderProps) {
+  const mobile = device === "mobile";
   const t = useZenLabels();
   const locale = useZenLocale();
   // Shown as two parts, month name then year; the accessible name is the locale's "Month YYYY" ("September 2026").
@@ -79,17 +113,22 @@ export function DatePickerHeader({ month, onPrevious, onNext, onMonthYearClick, 
   const fullLabel = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(month);
   const slot = (show: boolean, direction: "previous" | "next") => show
     ? <IconButton className="zen-date-picker__nav" appearance="main" level="tertiary" size="sm" aria-label={direction === "previous" ? t.previousMonth : t.nextMonth} onClick={direction === "previous" ? onPrevious : onNext} icon={<Icon name={direction === "previous" ? "icon-chevron-left-line-small" : "icon-chevron-right-line-small"} />} />
-    : <span className="zen-date-picker__nav-slot" aria-hidden="true" />;
+    // Mobile has no centred label to balance: a hidden button leaves no slot.
+    : mobile ? null : <span className="zen-date-picker__nav-slot" aria-hidden="true" />;
+  // Mobile: the month and year in Heading/Subheading at the start (Date-Container 9923:3576), then Back and Next.
+  const labelStyle = typographyStyles[mobile ? "Heading/Subheading" : "Body/Extra/Bold"];
+  const monthLabel = type === "interactive" ? (
+    <button className={`zen-date-picker__month ${labelStyle}`} type="button" onClick={onMonthYearClick} aria-label={t.chooseMonthAndYear(fullLabel)}>
+      <span>{label[0]}</span><span>{label[1]}</span>
+    </button>
+  ) : (
+    <span className={`zen-date-picker__month ${labelStyle}`} aria-live="polite"><span>{label[0]}</span><span>{label[1]}</span></span>
+  );
   return (
-    <header className="zen-date-picker__header" data-type={type}>
-      {type !== "display" ? slot(back, "previous") : null}
-      {type === "interactive" ? (
-        <button className={`zen-date-picker__month ${typographyStyles["Body/Extra/Bold"]}`} type="button" onClick={onMonthYearClick} aria-label={t.chooseMonthAndYear(fullLabel)}>
-          <span>{label[0]}</span><span>{label[1]}</span>
-        </button>
-      ) : (
-        <span className={`zen-date-picker__month ${typographyStyles["Body/Extra/Bold"]}`} aria-live="polite"><span>{label[0]}</span><span>{label[1]}</span></span>
-      )}
+    <header className="zen-date-picker__header" data-type={type} data-device={mobile ? "mobile" : undefined}>
+      {!mobile && type !== "display" ? slot(back, "previous") : null}
+      {monthLabel}
+      {mobile && type !== "display" ? slot(back, "previous") : null}
       {type !== "display" ? slot(next, "next") : null}
     </header>
   );
@@ -127,12 +166,13 @@ export function DatePickerAction({ action = "dual", onCancel, onApply, cancelLab
 
 /** Row pitch of the wheel: 28px Heading/4 row + Spacing/Gap/2XSmall. */
 const WHEEL_PITCH = 32;
-/** Figma fades rows 1 / 0.4 / 0.2 by distance from the selection; interpolated for motion, 0 at 3. */
+/** Figma (Calendar 478:30561, Type=Select-Month-Year) fades rows 1 / 0.25 / 0.1 by distance from the selection;
+ * interpolated for motion, 0 at 3. */
 function wheelOpacity(distance: number) {
   const d = Math.abs(distance);
-  if (d <= 1) return 1 - 0.6 * d;
-  if (d <= 2) return 0.4 - 0.2 * (d - 1);
-  return Math.max(0, 0.2 - 0.2 * (d - 2));
+  if (d <= 1) return 1 - 0.75 * d;
+  if (d <= 2) return 0.25 - 0.15 * (d - 1);
+  return Math.max(0, 0.1 - 0.1 * (d - 2));
 }
 const prefersReducedMotion = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
@@ -366,6 +406,135 @@ export interface DatePickerRange {
   end: Date | null;
 }
 
+/** What the Time-Picker holds: 24-hour "HH:mm" times (null while a field is empty) and the All day checks. */
+export interface DatePickerTime {
+  /** Start time, "HH:mm" (24-hour), or null. */
+  from: string | null;
+  /** End time, "HH:mm" (24-hour), or null. */
+  to: string | null;
+  /** All day: the start has no time (single calendar: the whole day, both fields). */
+  fromAllDay?: boolean;
+  /** Range (dual calendar): the end day is all day. */
+  toAllDay?: boolean;
+}
+
+const emptyTime: DatePickerTime = { from: null, to: null, fromAllDay: false, toAllDay: false };
+const timeKey = (time: DatePickerTime) => `${time.from ?? ""}|${time.to ?? ""}|${time.fromAllDay ? 1 : 0}|${time.toAllDay ? 1 : 0}`;
+const pad2 = (value: number) => String(value).padStart(2, "0");
+/** Reads "9", "930", "9:30", "09.30" or a 24-hour "21:30"; hours above 12 pick PM, 0 is 12 AM. */
+function parseTime(raw: string): { hours: number; minutes: number; period?: "AM" | "PM" } | null {
+  const match = raw.trim().match(/^(\d{1,2})(?:[:.h]?(\d{2}))?$/i);
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = match[2] ? Number(match[2]) : 0;
+  if (hours > 23 || minutes > 59) return null;
+  if (hours === 0) return { hours: 12, minutes, period: "AM" };
+  if (hours > 12) return { hours: hours - 12, minutes, period: "PM" };
+  return { hours, minutes };
+}
+const to24 = (hours: number, minutes: number, period: "AM" | "PM") => `${pad2((hours % 12) + (period === "PM" ? 12 : 0))}:${pad2(minutes)}`;
+function from24(value: string | null): { text: string; period: "AM" | "PM" } | null {
+  const match = value?.match(/^(\d{2}):(\d{2})$/);
+  if (!match) return null;
+  const hours = Number(match[1]);
+  return { text: `${pad2(hours % 12 || 12)}:${match[2]}`, period: hours >= 12 ? "PM" : "AM" };
+}
+
+/** One time of the Time-Picker: Input/Text-Field Small ("hh:mm") with the AM/PM picker as its Leading-Trailing
+ *  (Label + Dropdown). All day makes it Read-only: the times stay readable. */
+function DatePickerTimeField({ label, value, allDay, onValueChange, device = "desktop" }: { label: string; value: string | null; allDay: boolean; onValueChange: (value: string | null) => void; device?: DatePickerDevice }) {
+  const t = useZenLabels();
+  const shown = from24(value);
+  const [text, setText] = useState(shown?.text ?? "");
+  const [period, setPeriod] = useState<"AM" | "PM">(shown?.period ?? "AM");
+  const [invalid, setInvalid] = useState(false);
+  useEffect(() => {
+    const next = from24(value);
+    setText(next?.text ?? "");
+    if (next) setPeriod(next.period);
+    setInvalid(false);
+  }, [value]);
+  const commit = (raw: string, nextPeriod: "AM" | "PM") => {
+    if (!raw.trim()) { setInvalid(false); if (value !== null) onValueChange(null); return; }
+    const parsed = parseTime(raw);
+    if (!parsed) { setInvalid(true); return; }
+    const resolvedPeriod = parsed.period ?? nextPeriod;
+    setInvalid(false);
+    setPeriod(resolvedPeriod);
+    setText(`${pad2(parsed.hours)}:${pad2(parsed.minutes)}`);
+    const next = to24(parsed.hours, parsed.minutes, resolvedPeriod);
+    if (next !== value) onValueChange(next);
+  };
+  return (
+    <InputField
+      // Figma's Time-Picker fields are Small; on a phone fields stay full size (Medium), like every other input there.
+      size={device === "mobile" ? "md" : "sm"}
+      label={label}
+      placeholder={t.timePlaceholder}
+      inputMode="numeric"
+      autoComplete="off"
+      value={allDay ? "" : text}
+      state={allDay ? "read-only" : undefined}
+      error={invalid && !allDay ? t.invalidTime : undefined}
+      onChange={(event) => { setText(event.target.value); if (invalid) setInvalid(false); }}
+      onBlur={() => commit(text, period)}
+      onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); commit(text, period); } }}
+      trailing={(
+        <InputLeadingTrailing
+          label={period === "AM" ? t.timeAm : t.timePm}
+          options={[{ value: "AM", label: t.timeAm }, { value: "PM", label: t.timePm }]}
+          value={period}
+          popoverLabel={label}
+          interactive={!allDay}
+          dropdown
+          onValueChange={(next) => { const resolved = next === "PM" ? "PM" : "AM"; setPeriod(resolved); if (text.trim()) commit(text, resolved); }}
+        />
+      )}
+    />
+  );
+}
+
+export interface DatePickerTimePickerProps {
+  /** Figma Type: `single` (From over To, one All day; the Single-Calendar) or `range` (From | To side by side, each with
+   *  its own All day; the Dual-Calendar). */
+  type?: "single" | "range";
+  value: DatePickerTime;
+  onValueChange: (time: DatePickerTime) => void;
+  /** `mobile`: the time fields are Medium (phones keep full-size inputs); DatePicker passes its own `device`. */
+  device?: DatePickerDevice;
+}
+
+/** Figma `.Primitives/Date-Picker/Time-Picker` (460:38628): Input/Text-Field Small times with an AM/PM picker and
+ *  Checkbox/Text "All day", Spacing/Gap/Medium apart (Gap/XSmall between a range side's field and its checkbox). */
+export function DatePickerTimePicker({ type = "single", value, onValueChange, device = "desktop" }: DatePickerTimePickerProps) {
+  const t = useZenLabels();
+  const set = (patch: Partial<DatePickerTime>) => onValueChange({ ...value, ...patch });
+  if (type === "range") {
+    return (
+      <div className="zen-date-picker__time" data-type="range">
+        <div className="zen-date-picker__time-side">
+          <DatePickerTimeField device={device} label={t.timeFrom} value={value.from} allDay={Boolean(value.fromAllDay)} onValueChange={(from) => set({ from })} />
+          <Checkbox label={t.allDay} checked={Boolean(value.fromAllDay)} onCheckedChange={(fromAllDay) => set({ fromAllDay })} />
+        </div>
+        <div className="zen-date-picker__time-side">
+          <DatePickerTimeField device={device} label={t.timeTo} value={value.to} allDay={Boolean(value.toAllDay)} onValueChange={(to) => set({ to })} />
+          <Checkbox label={t.allDay} checked={Boolean(value.toAllDay)} onCheckedChange={(toAllDay) => set({ toAllDay })} />
+        </div>
+      </div>
+    );
+  }
+  const allDay = Boolean(value.fromAllDay);
+  return (
+    <div className="zen-date-picker__time" data-type="single">
+      <div className="zen-date-picker__time-fields">
+        <DatePickerTimeField device={device} label={t.timeFrom} value={value.from} allDay={allDay} onValueChange={(from) => set({ from })} />
+        <DatePickerTimeField device={device} label={t.timeTo} value={value.to} allDay={allDay} onValueChange={(to) => set({ to })} />
+      </div>
+      <Checkbox label={t.allDay} checked={allDay} onCheckedChange={(on) => set({ fromAllDay: on, toAllDay: on })} />
+    </div>
+  );
+}
+
 export interface DatePickerProps {
   /** Default true: DatePicker is the calendar panel itself. As a popover, pass `open` with `onOpenChange` (or `onClose`). */
   open?: boolean;
@@ -394,7 +563,7 @@ export interface DatePickerProps {
    * uncontrolled picker keeps what was applied and Cancel returns to it; a controlled one expects `value` / `range` to
    * follow. Inline, Submit is disabled until there is a change, and in range mode until the end date is picked.
    */
-  onApply?: (value: Date | null, range: DatePickerRange | null) => void;
+  onApply?: (value: Date | null, range: DatePickerRange | null, time?: DatePickerTime) => void;
   /**
    * With `showActions`, pressing Cancel (the Tertiary action) drops the picks made since the last Submit (the
    * calendar shows the applied value again), then calls this and closes a popover. Inline, Cancel is disabled while
@@ -417,8 +586,39 @@ export interface DatePickerProps {
   /** Figma Date-Picker/Single-Calendar or Date-Picker/Dual-Calendar (two consecutive months side by
    * side; Static headers with Back on the first and Next on the second). */
   calendar?: "single" | "dual";
+  /**
+   * Figma Date-Picker/Mobile (9923:3576) primitives: `mobile` days fill the width (square cells in Body/Base/Medium,
+   * `.Primitives/Mobile-Date-Picker/Item` 9921:3283) under a Heading/Subheading month with Back / Next at the end,
+   * Spacing/Gap/XLarge apart (Gap/XSmall for the dual calendar, whose months stack Gap/Medium apart). Unset, an inline
+   * calendar follows the breakpoint (the nearest `data-breakpoint`, else ZenProvider) and a popover stays `desktop`
+   * (Figma has no mobile popover). A `mobile` popover spans its containing block (a DateField's width).
+   */
+  device?: DatePickerDevice;
+  /**
+   * Figma `Time-Picker`: a Divider and `.Primitives/Date-Picker/Time-Picker` under the calendar — From / To times
+   * (hh:mm + AM/PM) and All day; stacked on the single calendar, side by side on the dual one. Picking a date no longer
+   * closes a popover (the times come next): pair it with `showActions`, whose Submit applies date and time together.
+   */
+  timePicker?: boolean;
+  /** Controlled times (with `timePicker`); with `showActions` it is the applied time. */
+  time?: DatePickerTime;
+  /** Uncontrolled times at first. */
+  defaultTime?: DatePickerTime;
+  /** Called with each time change; with `showActions` it is a draft, read the applied one in `onApply`. */
+  onTimeChange?: (time: DatePickerTime) => void;
   minDate?: Date;
   maxDate?: Date;
+  /**
+   * The day the calendar treats as today: the Today ring (`.Primitives/Date-Picker/Item` State=Today) and the month it
+   * opens on without a value. Default: the device clock. Pass your app's date when it is not the device's (a server or
+   * business date, a demo world, a test).
+   */
+  today?: Date;
+  /** Accessible name of the calendar. Default: the locale's "Choose date" ("Choose dates" for the dual calendar). Name an
+   * inline calendar after what it sets ("Start date") when a form shows more than one. */
+  "aria-label"?: string;
+  /** id of a visible element that names the calendar (a heading or label next to an inline calendar); wins over `aria-label`. */
+  "aria-labelledby"?: string;
   className?: string;
 }
 
@@ -426,7 +626,14 @@ export interface DatePickerProps {
  * Button primitives. The single calendar's month/year opens the Select-Month-Year state. It is
  * also the calendar surface used by Input/Date-Field. With `showActions` (Figma Actions,
  * `.Primitives/Date-Picker/Action` 460:38871) picks are a draft: Submit applies it through `onApply(value, range)`,
- * Cancel drops it (`onCancel`) and the calendar shows the applied `value` / `range` again. */
+ * Cancel drops it (`onCancel`) and the calendar shows the applied `value` / `range` again.
+ * As a popover (`onClose` / `onOpenChange` / `anchorRef`) it is the Single-Calendar surface: Color/Background/Popover/
+ * Default, Color/Border/Popover/Subtle, Corner-Radius/3XLarge, Spacing/Padding/Medium and Effect/Popover. Inline (none of
+ * those) it sits in the flow of its container with no surface, as Figma's in-place calendar (`.Primitives/Date-Picker/
+ * Calendar` 478:30561, `Date-Picker/Mobile` 9923:3576: no fill, stroke or effect), so it never casts a popover shadow.
+ * Semantics follow: the popover is a `role="dialog"`, the inline calendar a `role="group"` (part of the page, not a
+ * window over it); both are named "Choose date" / "Choose dates" unless `aria-label` / `aria-labelledby` name them.
+ * Today's day carries `aria-current="date"`. */
 export function DatePicker({
   open = true,
   value,
@@ -447,16 +654,26 @@ export function DatePicker({
   action = "dual",
   selectionMode = "single",
   calendar = "single",
+  device: deviceProp,
+  timePicker = false,
+  time,
+  defaultTime = emptyTime,
+  onTimeChange,
   minDate,
   maxDate,
+  today: todayProp,
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
   className,
 }: DatePickerProps) {
   const t = useZenLabels();
   const locale = useZenLocale();
   const weekdays = useMemo(() => weekdayInitials(locale), [locale]);
+  // The app's today when given, else the device clock (read each render, so an open calendar crosses midnight).
+  const today = todayProp ?? new Date();
   const [internalValue, setInternalValue] = useState<Date | null>(defaultValue);
   const [internalRange, setInternalRange] = useState<DatePickerRange | null>(defaultRange);
-  const [internalMonth, setInternalMonth] = useState<Date>(() => monthStart(value ?? defaultValue ?? range?.start ?? defaultRange?.start ?? new Date()));
+  const [internalMonth, setInternalMonth] = useState<Date>(() => monthStart(value ?? defaultValue ?? range?.start ?? defaultRange?.start ?? today));
   const [view, setView] = useState<"days" | "month-year">("days");
   // The applied selection; with actions, picks are a draft over it until Submit (null: no draft, show the applied one).
   const applied: DatePickerSelection = { date: value === undefined ? internalValue : value, range: range === undefined ? internalRange : range };
@@ -465,10 +682,23 @@ export function DatePicker({
   const selected = shown.date;
   const rangeStart = shown.range?.start ?? null;
   const rangeEnd = shown.range?.end ?? null;
-  const dirty = Boolean(showActions && draft && !sameSelection(draft, applied, selectionMode));
+  // Times follow the same draft rule as dates.
+  const [internalTime, setInternalTime] = useState<DatePickerTime>(defaultTime);
+  const appliedTime = time ?? internalTime;
+  const [draftTime, setDraftTime] = useState<DatePickerTime | null>(null);
+  const shownTime = showActions && draftTime ? draftTime : appliedTime;
+  const timeDirty = Boolean(timePicker && showActions && draftTime && timeKey(draftTime) !== timeKey(appliedTime));
+  const dirty = Boolean(showActions && draft && !sameSelection(draft, applied, selectionMode)) || timeDirty;
   // A new applied value (Submit, a controlled change such as a date typed into the field) replaces any draft.
   const appliedKey = selectionKey(applied, selectionMode);
   useEffect(() => { setDraft(null); }, [appliedKey]);
+  const appliedTimeKey = timeKey(appliedTime);
+  useEffect(() => { setDraftTime(null); }, [appliedTimeKey]);
+  const changeTime = (next: DatePickerTime) => {
+    if (showActions) setDraftTime(next);
+    else if (time === undefined) setInternalTime(next);
+    onTimeChange?.(next);
+  };
   const currentMonth = controlledMonth ? monthStart(controlledMonth) : internalMonth;
   const months = useMemo(() => (calendar === "dual" ? [currentMonth, addMonths(currentMonth, 1)] : [currentMonth]), [calendar, currentMonth]);
   // Smooth view switch: the viewport height follows the measured content (CSS transitions it) and
@@ -476,6 +706,9 @@ export function DatePicker({
   const viewRef = useRef<HTMLDivElement>(null);
   const [viewHeight, setViewHeight] = useState<number>();
   const [switched, setSwitched] = useState(false);
+  // The viewport clips only while a view switch plays: at rest, hover halos and focus rings (the All day Checkbox's 8px
+  // halo) paint past its edge.
+  const [switching, setSwitching] = useState(false);
   useLayoutEffect(() => {
     const node = viewRef.current;
     if (!node) return undefined;
@@ -486,6 +719,7 @@ export function DatePicker({
   }, [view, open]);
   const switchView = (next: "days" | "month-year") => {
     setSwitched(true);
+    setSwitching(true);
     setView(next);
     // The focused control unmounts with the old view; land on the month/year header of the day view.
     if (next === "days") requestAnimationFrame(() => rootRef.current?.querySelector<HTMLElement>("button.zen-date-picker__month")?.focus({ preventScroll: true }));
@@ -505,6 +739,16 @@ export function DatePicker({
   const onOpenChangeRef = useRef(onOpenChange);
   onOpenChangeRef.current = onOpenChange;
   const hasClose = Boolean(onClose || onOpenChange);
+  // Inline: rendered in place (no close callback, no trigger) rather than as a popover. It drops the popover surface.
+  const inline = !hasClose && !anchorRef;
+  // Device: an inline calendar follows the nearest data-breakpoint (ZenProvider's, or a frame that only sets the attribute,
+  // such as a phone preview), else the provider's breakpoint; a popover stays desktop unless `device` says otherwise.
+  const zen = useZen();
+  const [domBreakpoint, setDomBreakpoint] = useState<string | null>(null);
+  useLayoutEffect(() => {
+    if (open) setDomBreakpoint(rootRef.current?.parentElement?.closest("[data-breakpoint]")?.getAttribute("data-breakpoint") ?? null);
+  }, [open, zen?.breakpoint]);
+  const device: DatePickerDevice = deviceProp ?? (inline && (domBreakpoint ?? zen?.breakpoint) === "mobile" ? "mobile" : "desktop");
   /** Every close request: `onClose()` and `onOpenChange(false)`. */
   const requestClose = () => { onCloseRef.current?.(); onOpenChangeRef.current?.(false); };
   // One popover at a time (shared with Popover): opening the calendar closes any other object's popover and vice versa.
@@ -530,11 +774,19 @@ export function DatePicker({
     };
   }, [open, hasClose, anchorRef]);
   // Every opening starts on the day view and on the applied value (closing without Submit drops the draft).
-  useEffect(() => { if (!open) { setView("days"); setSwitched(false); setDraft(null); } }, [open]);
+  useEffect(() => { if (!open) { setView("days"); setSwitched(false); setDraft(null); setDraftTime(null); } }, [open]);
+  // …and on its month: a date typed into the field while the calendar was closed (or set by the app) is where it opens,
+  // else today's month. Before paint, so the old month never flashes. A controlled `month` stays the caller's.
+  // Only when it opens (deps: open): browsing months while open is the user's.
+  useLayoutEffect(() => {
+    if (open && !controlledMonth) setInternalMonth(monthStart(applied.date ?? applied.range?.start ?? today));
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
   const close = () => {
     requestClose();
+    // Back to the trigger: the anchor itself, else a field's own input (not a label tooltip or action before it), else
+    // the anchor's first focusable element.
     const anchor = anchorRef?.current;
-    (anchor?.matches("button, input, [tabindex]") ? anchor : anchor?.querySelector<HTMLElement>("button, input, [tabindex]"))?.focus({ preventScroll: true });
+    (anchor?.matches("button, input, [tabindex]") ? anchor : anchor?.querySelector<HTMLElement>(".zen-input__native:not(:disabled)") ?? anchor?.querySelector<HTMLElement>("button, input, [tabindex]"))?.focus({ preventScroll: true });
   };
   if (!open) return null;
   const setMonth = (next: Date) => {
@@ -554,14 +806,15 @@ export function DatePicker({
       onValueChange?.(next.end ?? next.start);
       onChange?.(next.end ?? next.start);
       onRangeChange?.(next);
-      if (next.end && !showActions) close();
+      // With a Time-Picker the times come after the dates, so a pick never closes the popover.
+      if (next.end && !showActions && !timePicker) close();
       return;
     }
     if (showActions) setDraft({ date, range: shown.range });
     else if (value === undefined) setInternalValue(date);
     onValueChange?.(date);
     onChange?.(date);
-    if (!showActions) close();
+    if (!showActions && !timePicker) close();
   };
   // Inline, both actions turn disabled once nothing is left to apply or drop: keyboard focus on the one just pressed
   // would fall back to the page, so it moves to the calendar (the selected day, else the first day that can be picked).
@@ -578,13 +831,16 @@ export function DatePicker({
   const apply = () => {
     if (selectionMode === "range") { if (range === undefined) setInternalRange(shown.range); }
     else if (value === undefined) setInternalValue(shown.date);
+    if (timePicker && time === undefined) setInternalTime(shownTime);
     setDraft(null);
-    onApply?.(selectionMode === "range" ? null : shown.date, selectionMode === "range" ? shown.range : null);
+    setDraftTime(null);
+    onApply?.(selectionMode === "range" ? null : shown.date, selectionMode === "range" ? shown.range : null, timePicker ? shownTime : undefined);
     finishAction();
   };
   // Cancel: drop the draft, so the calendar shows the applied value again.
   const cancel = () => {
     setDraft(null);
+    setDraftTime(null);
     onCancel?.();
     finishAction();
   };
@@ -598,7 +854,7 @@ export function DatePicker({
     if (selectionMode === "range" && rangeStart && key === dateKey(rangeStart)) return "range-selected-start";
     if (selectionMode === "range" && rangeEnd && key === dateKey(rangeEnd)) return "range-selected-end";
     if (selected && key === dateKey(selected)) return "single-selected";
-    if (key === dateKey(new Date())) return "today";
+    if (key === dateKey(today)) return "today";
     if (date.getDay() === 0 || date.getDay() === 6) return "weekend";
     return "default";
   };
@@ -607,22 +863,33 @@ export function DatePicker({
     <div
       ref={rootRef}
       className={["zen-date-picker", className].filter(Boolean).join(" ")}
-      role="dialog"
-      aria-label={dual ? t.chooseDates : t.chooseDate}
+      // A popover is a dialog over the page; an inline calendar is a group within it.
+      role={inline ? "group" : "dialog"}
+      aria-label={ariaLabelledBy ? undefined : ariaLabel ?? (dual ? t.chooseDates : t.chooseDate)}
+      aria-labelledby={ariaLabelledBy}
       data-calendar={calendar}
+      data-device={device}
       data-view={view}
-      data-side={placement.side}
-      style={placement.style}
+      data-placement={inline ? "inline" : "popover"}
+      data-side={inline ? undefined : placement.side}
+      style={inline ? undefined : placement.style}
       onKeyDown={(event) => {
-        if (event.key !== "Escape") return;
-        event.preventDefault();
-        // Escape steps back out of Select-Month-Year first, then closes the popover.
+        // An inner popover (the AM/PM picker) handles its own Escape first.
+        if (event.key !== "Escape" || event.defaultPrevented) return;
+        // Escape steps back out of Select-Month-Year first, then closes the popover. Either way the key is used up here
+        // (preventDefault + stopPropagation), so a Dialog or Side Panel around the field stays open. Inline, on the day
+        // view, there is nothing to close: Escape goes on to the page.
         if (view === "month-year") switchView("days");
         else if (hasClose) close();
+        else return;
+        event.preventDefault();
+        event.stopPropagation();
       }}
     >
-      <div className="zen-date-picker__viewport" style={viewHeight === undefined ? undefined : { height: viewHeight + 8 }}>
-        <div ref={viewRef} key={view} className={["zen-date-picker__view", switched ? "is-entering" : ""].filter(Boolean).join(" ")}>
+      <div className="zen-date-picker__viewport" data-switching={switching || undefined} style={viewHeight === undefined ? undefined : { height: viewHeight + 8 }}
+        onTransitionEnd={(event) => { if (event.target === event.currentTarget && event.propertyName === "height") setSwitching(false); }}>
+        <div ref={viewRef} key={view} className={["zen-date-picker__view", switched ? "is-entering" : ""].filter(Boolean).join(" ")}
+          onAnimationEnd={(event) => { if (event.target === event.currentTarget) setSwitching(false); }}>
           {view === "month-year" ? (
             <DatePickerMonthYear
               month={currentMonth}
@@ -642,14 +909,16 @@ export function DatePicker({
                       onPrevious={() => setMonth(addMonths(currentMonth, -1))}
                       onNext={() => setMonth(addMonths(currentMonth, 1))}
                       onMonthYearClick={() => switchView("month-year")}
+                      device={device}
                     />
                     <div className={`zen-date-picker__calendar ${typographyStyles["Body/Small/Medium"]}`}>
                       <div className="zen-date-picker__weekdays">{weekdays.map((day, dayIndex) => <span key={`${day}-${dayIndex}`}>{day}</span>)}</div>
-                      <div className="zen-date-picker__grid">{monthDays(month).map((date, dayIndex) => date ? <DatePickerItem key={date.toISOString()} day={date.getDate()} state={stateFor(date)} disabled={isDisabled(date)} onClick={() => selectDate(date)} /> : <DatePickerItem key={`blank-${dayIndex}`} state="blank" />)}</div>
+                      <div className="zen-date-picker__grid">{monthDays(month).map((date, dayIndex) => date ? <DatePickerItem key={date.toISOString()} device={device} day={date.getDate()} date={date} state={stateFor(date)} aria-current={dateKey(date) === dateKey(today) ? "date" : undefined} disabled={isDisabled(date)} onClick={() => selectDate(date)} /> : <DatePickerItem key={`blank-${dayIndex}`} device={device} state="blank" />)}</div>
                     </div>
                   </div>
                 ))}
               </div>
+              {timePicker ? <><Divider /><DatePickerTimePicker type={dual ? "range" : "single"} value={shownTime} onValueChange={changeTime} device={device} /></> : null}
               {/* Inline there is nothing to close: the actions are live only while there is a draft to apply or drop. */}
               {showActions ? <DatePickerAction action={action} onCancel={cancel} onApply={apply} cancelDisabled={!dirty && !hasClose} applyDisabled={!complete || (!dirty && !hasClose)} /> : null}
             </>

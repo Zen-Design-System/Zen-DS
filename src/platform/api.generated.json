@@ -190,8 +190,8 @@
           "name": "size",
           "type": "\"xs\" | \"sm\" | \"md\" | \"xsmall\" | \"small\" | \"medium\"",
           "required": false,
-          "default": "\"sm\"",
-          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "default": "\"md\"",
+          "description": "Medium by default, on desktop and phones (a filter row lines up with Search and Buttons at 40px); small only inside a\n genuinely narrow component space. Short (sm, md…) or Figma (small, medium…) spelling.",
           "deprecated": null
         },
         {
@@ -255,7 +255,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "Number of selected options for a multiple filter.",
+          "description": "Number of selected options for a multiple filter. Shown from 2 as the Chip/Trailing Badge-Counter; the chip is\n then named \"Owner, 3 applied\" (the locale's `appliedCount`).",
           "deprecated": null
         },
         {
@@ -263,7 +263,7 @@
           "type": "number | string",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Figma Chip/Advanced Counter: a Badge-Counter after the label. The chip is then named \"Filters, 2 applied\" (the\n locale's `appliedCount`; a Normal chip reads \"Unread, 4\"), never the run-together \"Filters2\".",
           "deprecated": null
         },
         {
@@ -416,6 +416,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "popoverPortal",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Renders the Popover in the page's overlay layer (ZenPortal), anchored under the chip, instead of inside it: a chip in\na row that scrolls sideways (`overflow-x: auto` clips both axes) or in any box that clips its overflow keeps a whole,\nvisible menu. Light dismiss, Escape and focus return work the same. Leave it off inside a Dialog or Bottom Sheet.",
           "deprecated": null
         },
         {
@@ -753,6 +761,22 @@
           "deprecated": null
         },
         {
+          "name": "popoverOpen",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself.",
+          "deprecated": null
+        },
+        {
+          "name": "onPopoverOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the next open state: the trigger, Escape, a pick, a click outside or focus leaving the field.",
+          "deprecated": null
+        },
+        {
           "name": "readOnly",
           "type": "boolean",
           "required": false,
@@ -907,7 +931,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "",
+          "description": "The calendar's Cancel + Submit (Figma Actions): a picked day is a draft until Submit writes it to the field; Cancel and\n Escape keep the date the field had.",
           "deprecated": null
         },
         {
@@ -916,6 +940,30 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "minDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "Earliest day the calendar lets people pick (DatePicker `minDate`); earlier days are disabled. A typed date before\nit stays in the field and reaches `onValueChange` as usual, and the input is marked `aria-invalid` (Form and\nModalForm count it and focus it after a blocked submit). The field shows no message of its own: validate the value\nand pass `error` (\"Pick a date from 1 October\").",
+          "deprecated": null
+        },
+        {
+          "name": "maxDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "Latest day the calendar lets people pick (DatePicker `maxDate`); later days are disabled. A typed date after it is\nkept, reported and marked `aria-invalid` as for `minDate`: pass `error` to say why.",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "The day the calendar treats as today (DatePicker `today`): its Today ring and the month it opens on while empty.\nDefault: the device clock.",
           "deprecated": null
         }
       ]
@@ -1181,7 +1229,7 @@
           "type": "(label: string) => string | void",
           "required": false,
           "default": null,
-          "description": "Figma Popover/Manual-Add-New: create a value that isn't in `options`. Add the new option to `options`\nand return its id; the field then selects it as a Tag.",
+          "description": "Figma Popover/Manual-Add-New: create a value that isn't in `options`. Add the new option to `options`\nand return its id; the field then selects it as a Tag. A typed value that matches an option shows no Create row:\nan option already added as a Tag is listed as selected (disabled) instead.",
           "deprecated": null
         },
         {
@@ -1818,14 +1866,14 @@
   "search": [
     {
       "name": "Search",
-      "extends": "Omit<InputHTMLAttributes<HTMLInputElement>, \"size\" | \"disabled\">",
+      "extends": "Omit<InputHTMLAttributes<HTMLInputElement>, \"size\">",
       "props": [
         {
           "name": "variant",
           "type": "\"default\" | \"popover\"",
           "required": false,
           "default": "\"default\"",
-          "description": "`popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, and a 1px\nInput/Border stroke in every state with no focus ring, so the border shows only in component\nthemes with a visible input border (Neutral S4). `size` is ignored.",
+          "description": "`popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, no focus ring. Its border is\nInput/Border/Default (Hover: Input/Border/Hover), visible only in outlined component themes (Neutral S4, S6);\nFocused/Typing use Input/Border/Popover-Search, visible only in Neutral S7. `size` is ignored.",
           "deprecated": null
         },
         {
@@ -1933,6 +1981,22 @@
           "deprecated": null
         },
         {
+          "name": "filterHasPopup",
+          "type": "ButtonHTMLAttributes<HTMLButtonElement>[\"aria-haspopup\"]",
+          "required": false,
+          "default": null,
+          "description": "`aria-haspopup` of the filter affordance when `onFilterClick` opens your own surface: `\"dialog\"` for a Bottom Sheet,\n Side Panel or Modal, `\"menu\"` or `\"listbox\"` for a menu or Popover list. Filter-Dropdown with `filterOptions`\n manages its own listbox and ignores it. (`aria-haspopup` on Search itself goes to the input.)",
+          "deprecated": null
+        },
+        {
+          "name": "filterExpanded",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "`aria-expanded` of that filter affordance: whether the surface it opens is open now. Pair it with `filterHasPopup`.",
+          "deprecated": null
+        },
+        {
           "name": "filterOptions",
           "type": "InputLeadingTrailingOption[]",
           "required": false,
@@ -1962,6 +2026,14 @@
           "required": false,
           "default": null,
           "description": "Accessible name / Popover heading for the filter affordance. Default: the locale's \"Filter\".",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Search/Default is a `.Primitives/Input/Field-Only` instance, so Disabled is Field-Only State=Disabled\n(Input/Border/Disabled, Content/Disabled text) with its Leading/Trailing at Active=No. The clear button and the\nshortcut hint are hidden and the filter is locked. Use it when searching is unavailable for a reason the page shows.",
           "deprecated": null
         },
         {
@@ -2632,7 +2704,7 @@
         },
         {
           "name": "theme",
-          "type": "\"accent\" | \"neutral\" | \"yellow\" | \"orange\" | \"red\" | \"crimson\" | \"pink\" | \"plum\" | \"purple\" | \"violet\" | \"indigo\" | \"blue\" | \"cyan\" | \"teal\" | \"green\" | \"brown\" | \"inverse\" | \"on-color\"",
+          "type": "\"accent\" | \"neutral\" | \"yellow\" | \"orange\" | \"red\" | \"crimson\" | \"pink\" | \"plum\" | \"purple\" | \"violet\" | \"indigo\" | \"blue\" | \"cyan\" | \"teal\" | \"green\" | \"brown\" | \"inverse\" | \"on-color\" | \"sky\" | \"mint\" | \"bronze\" | \"golden\"",
           "required": false,
           "default": null,
           "description": "",
@@ -2640,7 +2712,7 @@
         },
         {
           "name": "color",
-          "type": "\"accent\" | \"neutral\" | \"yellow\" | \"orange\" | \"red\" | \"crimson\" | \"pink\" | \"plum\" | \"purple\" | \"violet\" | \"indigo\" | \"blue\" | \"cyan\" | \"teal\" | \"green\" | \"brown\" | \"inverse\" | \"on-color\"",
+          "type": "\"accent\" | \"neutral\" | \"yellow\" | \"orange\" | \"red\" | \"crimson\" | \"pink\" | \"plum\" | \"purple\" | \"violet\" | \"indigo\" | \"blue\" | \"cyan\" | \"teal\" | \"green\" | \"brown\" | \"inverse\" | \"on-color\" | \"sky\" | \"mint\" | \"bronze\" | \"golden\"",
           "required": false,
           "default": null,
           "description": "",
@@ -2675,7 +2747,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "",
+          "description": "Shows the remove button (icon-x-circle-solid), named \"Remove <label>\" from a text label (the locale's `removeItem`).",
           "deprecated": null
         },
         {
@@ -2684,6 +2756,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "removeLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Name of the remove button. Default: \"Remove\" and the badge text from the locale's labels (\"Remove Design\"); pass it\nwhen the label is not plain text (a node, an icon, a number) so the button still says what it removes.",
           "deprecated": null
         },
         {
@@ -2698,7 +2778,7 @@
     },
     {
       "name": "BadgeCounter",
-      "extends": "Omit<BadgeProps, \"remove\" | \"onRemove\" | \"leading\">",
+      "extends": "Omit<BadgeProps, \"remove\" | \"onRemove\" | \"removeLabel\" | \"leading\">",
       "props": [
         {
           "name": "value",
@@ -2814,7 +2894,7 @@
         },
         {
           "name": "theme",
-          "type": "\"photo\" | \"accent\" | \"blue\" | \"brown\" | \"crimson\" | \"cyan\" | \"green\" | \"indigo\" | \"neutral\" | \"orange\" | \"pink\" | \"plum\" | \"purple\" | \"red\" | \"teal\" | \"violet\" | \"yellow\"",
+          "type": "\"photo\" | \"accent\" | \"blue\" | \"brown\" | \"crimson\" | \"cyan\" | \"green\" | \"indigo\" | \"neutral\" | \"orange\" | \"pink\" | \"plum\" | \"purple\" | \"red\" | \"teal\" | \"violet\" | \"yellow\" | \"sky\" | \"mint\" | \"bronze\" | \"golden\"",
           "required": false,
           "default": "\"neutral\"",
           "description": "",
@@ -2865,7 +2945,7 @@
           "type": "string",
           "required": false,
           "default": "\"\"",
-          "description": "",
+          "description": "The person's name. With `src` it is the photo's alt text; without it the initials avatar is named by it (`role=\"img\"`,\n`aria-label`), so screen readers say \"Ava Chen\", not \"AC\" (an AvatarStack of initials reads names). `alt=\"\"` makes the\navatar decorative: use it only when the name is shown next to it.",
           "deprecated": null
         },
         {
@@ -3304,7 +3384,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Replaces the whole header, including the collapse control. Prefer `logo` / `productName`, which keep it.",
+          "description": "Replaces the whole header, including the collapse control. Prefer `logo` / `productName`, which keep it. In the\ncollapsed rail `logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its\nmark), centred, and hides the rest visually.",
           "deprecated": null
         },
         {
@@ -3320,7 +3400,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Mark shown in the collapsed rail instead of `logo` (Figma collapsed Logo, 28px; 20px in Small-Density).",
+          "description": "Mark shown centred in the collapsed rail instead of `logo` or a custom `brand` (Figma collapsed Logo, 28px; 20px\nin Small-Density).",
           "deprecated": null
         },
         {
@@ -3400,7 +3480,15 @@
           "type": "\"default\" | \"alt\" | \"flat\" | \"inverse\"",
           "required": false,
           "default": "\"default\"",
-          "description": "",
+          "description": "Default = Surface with a shadow (a Canvas/Default page; cards on the page take the same shadow, no border). Alt\n (Surface/Alt) and Flat are the only choices on a Canvas/Alt (white) page, where cards are bordered.",
+          "deprecated": null
+        },
+        {
+          "name": "divider",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "A Pale divider on the Sidebar's inner edge, the full height of the block: separates an Alt or Flat Sidebar from the\n page on a Canvas/Alt (white) page. Not with the default Sidebar, whose shadow already separates it.",
           "deprecated": null
         },
         {
@@ -3619,7 +3707,7 @@
         },
         {
           "name": "onApply",
-          "type": "(value: Date | null, range: DatePickerRange | null) => void",
+          "type": "(value: Date | null, range: DatePickerRange | null, time?: DatePickerTime) => void",
           "required": false,
           "default": null,
           "description": "With `showActions`, pressing Submit (the Primary action) applies the picks, then closes a popover. Called with the\npicked date (single mode; null in range mode) and the picked range (range mode; null in single mode). An\nuncontrolled picker keeps what was applied and Cancel returns to it; a controlled one expects `value` / `range` to\nfollow. Inline, Submit is disabled until there is a change, and in range mode until the end date is picked.",
@@ -3690,6 +3778,46 @@
           "deprecated": null
         },
         {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Date-Picker/Mobile (9923:3576) primitives: `mobile` days fill the width (square cells in Body/Base/Medium,\n`.Primitives/Mobile-Date-Picker/Item` 9921:3283) under a Heading/Subheading month with Back / Next at the end,\nSpacing/Gap/XLarge apart (Gap/XSmall for the dual calendar, whose months stack Gap/Medium apart). Unset, an inline\ncalendar follows the breakpoint (the nearest `data-breakpoint`, else ZenProvider) and a popover stays `desktop`\n(Figma has no mobile popover). A `mobile` popover spans its containing block (a DateField's width).",
+          "deprecated": null
+        },
+        {
+          "name": "timePicker",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma `Time-Picker`: a Divider and `.Primitives/Date-Picker/Time-Picker` under the calendar — From / To times\n(hh:mm + AM/PM) and All day; stacked on the single calendar, side by side on the dual one. Picking a date no longer\ncloses a popover (the times come next): pair it with `showActions`, whose Submit applies date and time together.",
+          "deprecated": null
+        },
+        {
+          "name": "time",
+          "type": "DatePickerTime",
+          "required": false,
+          "default": null,
+          "description": "Controlled times (with `timePicker`); with `showActions` it is the applied time.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultTime",
+          "type": "DatePickerTime",
+          "required": false,
+          "default": "{ from: null, to: null, fromAllDay: false, toAllDay: false }",
+          "description": "Uncontrolled times at first.",
+          "deprecated": null
+        },
+        {
+          "name": "onTimeChange",
+          "type": "(time: DatePickerTime) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with each time change; with `showActions` it is a draft, read the applied one in `onApply`.",
+          "deprecated": null
+        },
+        {
           "name": "minDate",
           "type": "Date",
           "required": false,
@@ -3703,6 +3831,30 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "The day the calendar treats as today: the Today ring (`.Primitives/Date-Picker/Item` State=Today) and the month it\nopens on without a value. Default: the device clock. Pass your app's date when it is not the device's (a server or\nbusiness date, a demo world, a test).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the calendar. Default: the locale's \"Choose date\" (\"Choose dates\" for the dual calendar). Name an\ninline calendar after what it sets (\"Start date\") when a form shows more than one.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "id of a visible element that names the calendar (a heading or label next to an inline calendar); wins over `aria-label`.",
           "deprecated": null
         },
         {
@@ -3860,7 +4012,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "",
+          "description": "The calendar's Cancel + Submit (Figma Actions): a picked day is a draft until Submit writes it to the field; Cancel and\n Escape keep the date the field had.",
           "deprecated": null
         },
         {
@@ -3869,6 +4021,30 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "minDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "Earliest day the calendar lets people pick (DatePicker `minDate`); earlier days are disabled. A typed date before\nit stays in the field and reaches `onValueChange` as usual, and the input is marked `aria-invalid` (Form and\nModalForm count it and focus it after a blocked submit). The field shows no message of its own: validate the value\nand pass `error` (\"Pick a date from 1 October\").",
+          "deprecated": null
+        },
+        {
+          "name": "maxDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "Latest day the calendar lets people pick (DatePicker `maxDate`); later days are disabled. A typed date after it is\nkept, reported and marked `aria-invalid` as for `minDate`: pass `error` to say why.",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "The day the calendar treats as today (DatePicker `today`): its Today ring and the month it opens on while empty.\nDefault: the device clock.",
           "deprecated": null
         }
       ]
@@ -3883,6 +4059,14 @@
           "required": false,
           "default": "\"\"",
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "date",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "The full date of this day. It names the button in the locale (\"Wednesday, September 30, 2026\"); without it the\nname is the locale's \"Day N\". The calendar passes it for every day.",
           "deprecated": null
         },
         {
@@ -3906,7 +4090,15 @@
           "type": "\"md\" | \"sm\" | \"medium\" | \"small\"",
           "required": false,
           "default": "\"md\"",
-          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "description": "Medium 32px (default) or Small 24px; short (sm, md…) or Figma (small, medium…) spelling. Ignored on mobile.",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": "\"desktop\"",
+          "description": "`mobile`: `.Primitives/Mobile-Date-Picker/Item` (9921:3283), a square that fills its grid column (40px in the\ncomponent, 50px in the 350px table of a 390px phone) with the day in Body/Base/Medium; same states and tokens as desktop.",
           "deprecated": null
         }
       ]
@@ -3960,7 +4152,7 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "Figma `Back` / `Next`. A hidden button keeps its 32px slot so the label stays centred.",
+          "description": "Figma `Back` / `Next`. A hidden button keeps its 32px slot so the label stays centred (desktop).",
           "deprecated": null
         },
         {
@@ -3969,6 +4161,14 @@
           "required": false,
           "default": "true",
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": "\"desktop\"",
+          "description": "`mobile` (Date-Picker/Mobile 9923:3576): month and year in Heading/Subheading at the start, Back and Next together\nat the end; a hidden button leaves no slot.",
           "deprecated": null
         }
       ]
@@ -4061,6 +4261,44 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "DatePickerTimePicker",
+      "extends": null,
+      "props": [
+        {
+          "name": "type",
+          "type": "\"single\" | \"range\"",
+          "required": false,
+          "default": "\"single\"",
+          "description": "Figma Type: `single` (From over To, one All day; the Single-Calendar) or `range` (From | To side by side, each with\n its own All day; the Dual-Calendar).",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "DatePickerTime",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(time: DatePickerTime) => void",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": "\"desktop\"",
+          "description": "`mobile`: the time fields are Medium (phones keep full-size inputs); DatePicker passes its own `device`.",
           "deprecated": null
         }
       ]
@@ -4430,7 +4668,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "Collapse middle items behind an ellipsis button when there are more than this many.",
+          "description": "Collapse middle items behind an ellipsis button when there are more than this many. Activating the ellipsis\n shows them all and moves focus to the first crumb it revealed.",
           "deprecated": null
         },
         {
@@ -4695,7 +4933,7 @@
         },
         {
           "name": "primaryAction",
-          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
           "required": false,
           "default": null,
           "description": "Primary action (Level=Primary by default).",
@@ -4703,7 +4941,7 @@
         },
         {
           "name": "secondaryAction",
-          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
           "required": false,
           "default": null,
           "description": "Secondary action beside the primary (Level=Tertiary).",
@@ -4711,7 +4949,7 @@
         },
         {
           "name": "tertiaryAction",
-          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
           "required": false,
           "default": null,
           "description": "Third action, placed on the far left on desktop (Button=Triple).",
@@ -4869,7 +5107,7 @@
         },
         {
           "name": "primaryAction",
-          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
           "required": false,
           "default": null,
           "description": "",
@@ -4877,7 +5115,7 @@
         },
         {
           "name": "secondaryAction",
-          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
           "required": false,
           "default": null,
           "description": "",
@@ -4885,7 +5123,7 @@
         },
         {
           "name": "tertiaryAction",
-          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
           "required": false,
           "default": null,
           "description": "",
@@ -4901,10 +5139,26 @@
         },
         {
           "name": "onSubmit",
-          "type": "(event: FormEvent<HTMLFormElement>) => void",
+          "type": "(event: FormEvent<HTMLFormElement>) => unknown",
           "required": false,
           "default": null,
-          "description": "Wraps the modal in a <form>: Enter or the primary button submits; the primary action becomes type=submit.",
+          "description": "Wraps the modal in a <form noValidate>: Enter or the primary button submits; the primary action becomes type=submit.\nThe handler may return a promise and ModalForm waits for it; then, if any field is invalid (aria-invalid, as Form\nreads it), focus moves to the first one and \"N fields need attention\" is announced, so a blocked submit lands on what\nneeds fixing.",
+          "deprecated": null
+        },
+        {
+          "name": "noValidate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Skip the browser's own validation bubbles, as Form does: `required` fields don't block the submit, so `onSubmit`\nalways runs and shows the errors under each field. Default true; only applies with `onSubmit`.",
+          "deprecated": null
+        },
+        {
+          "name": "invalidMessage",
+          "type": "(count: number) => string",
+          "required": false,
+          "default": null,
+          "description": "Screen-reader message after a blocked submit. Default: the locale's \"1 field needs attention\" / \"3 fields need attention\".",
           "deprecated": null
         },
         {
@@ -4931,7 +5185,7 @@
       "props": [
         {
           "name": "primaryAction",
-          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
           "required": false,
           "default": null,
           "description": "",
@@ -4939,7 +5193,7 @@
         },
         {
           "name": "secondaryAction",
-          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
           "required": false,
           "default": null,
           "description": "",
@@ -4947,7 +5201,7 @@
         },
         {
           "name": "tertiaryAction",
-          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
           "required": false,
           "default": null,
           "description": "",
@@ -5007,6 +5261,14 @@
           "required": false,
           "default": null,
           "description": "A token size (`2xs`…`3xl`, default `base` = 20px) or a px number.",
+          "deprecated": null
+        },
+        {
+          "name": "tone",
+          "type": "ContentTone",
+          "required": false,
+          "default": null,
+          "description": "Colour: a Color/Content token by its path, as on Text (\"light\", \"positive-base\", \"support-blue-light\"). Default:\nthe parent's colour (most icons sit in a component that colours them). Icons may use a colour family's Light level.",
           "deprecated": null
         },
         {
@@ -5075,10 +5337,10 @@
         },
         {
           "name": "action",
-          "type": "{ label: ReactNode; onClick?: () => void }",
+          "type": "{ label: ReactNode; onClick?: () => void; keepOpen?: boolean }",
           "required": false,
           "default": null,
-          "description": "Figma Actions: one Small button.",
+          "description": "Figma Actions: one Small button. Pressing it runs `onClick`, then dismisses the toast through `onClose` (which\n useToast and ToastStack provide), so Undo or View never leaves a stale toast. `keepOpen: true` leaves it open,\n e.g. when the action updates this toast in place; calling dismiss(id) in `onClick` as well is harmless.",
           "deprecated": null
         },
         {
@@ -5124,7 +5386,7 @@
           "type": "(id: ToastItem[\"id\"]) => void",
           "required": true,
           "default": null,
-          "description": "Called when a toast times out or its close button is pressed; remove it from `toasts`.",
+          "description": "Called when a toast times out, its close button is pressed or its action runs (unless `action.keepOpen`); remove it\n from `toasts`. It may be called again for an id already removed (an action that dismisses itself): ignore that.",
           "deprecated": null
         },
         {
@@ -5140,7 +5402,7 @@
           "type": "number",
           "required": false,
           "default": "5000",
-          "description": "Default auto-dismiss (ms). Toasts with an action get +3s. Timers pause while the stack is hovered or focused.",
+          "description": "Default auto-dismiss (ms). Toasts with an action get +3s. Each toast counts down from when it appears; timers\n pause while the stack is hovered or focused.",
           "deprecated": null
         },
         {
@@ -5338,7 +5600,15 @@
           "type": "\"divider\" | \"box\"",
           "required": false,
           "default": "\"divider\"",
-          "description": "Divider: bottom Border/Neutral/Subtle rule; Box: Support/Neutral/Pale surface with radius.",
+          "description": "Divider: bottom Border/Neutral/Subtle rule; the whole header row, its block padding included, is the toggle. Box:\nSupport/Neutral/Pale surface with radius (Corner-Radius/Large, XLarge 2XLarge); the whole box header is the toggle,\nand its focus ring is concentric with the box corner.",
+          "deprecated": null
+        },
+        {
+          "name": "contentWidth",
+          "type": "\"title\" | \"full\"",
+          "required": false,
+          "default": "\"title\"",
+          "description": "Where the content column ends. title (default, Figma): at the end of the title, before the chevron column, which keeps\ntext lines short. full: under the chevron too, to the box padding (Box) or the row's end (Divider), for rows with\nend-aligned values (a receipt, specs, a DescriptionList or a List with trailing values), so the values line up with\nthe edge instead of stopping before an empty column. Figma Content Width=Title|Full (added 2026-10-03).",
           "deprecated": null
         },
         {
@@ -5458,7 +5728,7 @@
           "type": "\"xs\" | \"sm\" | \"xsmall\" | \"small\"",
           "required": false,
           "default": "\"xs\"",
-          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "description": "Page items and the ‹ › arrows: xs = 24px (Figma) · sm = 32px. Short (xs, sm) or Figma (xsmall, small) spelling.",
           "deprecated": null
         },
         {
@@ -6168,7 +6438,7 @@
           "type": "\"default\" | \"alt\"",
           "required": false,
           "default": null,
-          "description": "Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface\n (a page scope can set it once), else Surface/Default. Pale / Semi-Pale keep their own fill.",
+          "description": "Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface\n (a page scope can set it once), else Surface/Default. Pale / Semi-Pale keep their own fill. With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)\n on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
           "deprecated": null
         },
         {
@@ -6192,7 +6462,7 @@
           "type": "CardSubAction | ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Sub-Action: a Small Flat icon button pinned to the top-right corner (default ⋯ \"More actions\").",
+          "description": "Figma Sub-Action: an absolute layer over the top-right corner holding Button/Icon-Flat Small Secondary (default ⋮).\n It takes no room: the Content slot keeps the full width. A node (e.g. a Menu) should use the same trigger.",
           "deprecated": null
         },
         {
@@ -6240,12 +6510,12 @@
           "type": "\"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
           "required": false,
           "default": "\"md\"",
-          "description": "Figma Size: XSmall 24 · Small 32 · Medium 40 · Large 56 · XLarge 80 (Image-Size tokens). Short (sm, md…) or Figma (small, medium…) spelling.",
+          "description": "Figma Size: XSmall 24 · Small 32 · Medium 40 · Large 56 · XLarge 80 (Image-Size tokens); Theme=Emoji draws Medium 40 with a 28px glyph (Heading/1) and Large 48 with a 36px glyph (Display/3). Short (sm, md…) or Figma (small, medium…) spelling.",
           "deprecated": null
         },
         {
           "name": "theme",
-          "type": "\"neutral\" | \"accent\" | \"inverse\" | \"on-color\" | \"pale\" | \"surface\" | \"emoji\"",
+          "type": "DockIconTheme",
           "required": false,
           "default": "\"neutral\"",
           "description": "",
@@ -6304,8 +6574,8 @@
           "type": "\"auto\" | \"comfortable\" | \"compact\" | \"none\"",
           "required": false,
           "default": "\"auto\"",
-          "description": "Horizontal inset of the rows' content, following the layout it sits in.\n auto (default): full-bleed on a page = Margin/Comfortable (24px); inside a container that already has its own\n padding (Modal, Side Panel, Card) = none, so row content lines up with the container's other content.\n comfortable = Margin/Comfortable, compact = Margin/Compact, none = 0 (the hover/selected fill bleeds 12px outward).",
-          "deprecated": null
+          "description": "",
+          "deprecated": "Rows keep the spacing Figma sets inside List-Item: Padding/Small (12px) above and below, none at the\n sides; the container around the List insets it sideways. This prop still gives the rows a horizontal padding\n (comfortable = Margin/Comfortable, compact = Margin/Compact, none = 0) for existing apps."
         },
         {
           "name": "aria-label",
@@ -6346,6 +6616,14 @@
           "deprecated": null
         },
         {
+          "name": "titleLines",
+          "type": "1 | 2",
+          "required": false,
+          "default": "1",
+          "description": "Lines the title may take before it truncates with an ellipsis. 1 (default) = Figma's one line\n (Title, textTruncation ENDING, maxLines 1); 2 when the title must be read in full, e.g. a long task or document name\n in a narrow list.",
+          "deprecated": null
+        },
+        {
           "name": "caption",
           "type": "ReactNode",
           "required": false,
@@ -6382,7 +6660,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Figma State=Selected (Background/Active/Neutral/Subtle).",
+          "description": "Figma State=Selected (Background/Active/Neutral/Subtle). Interactive rows only (Figma has no Selected for\n Interactive=No): pair it with onClick or href.",
           "deprecated": null
         },
         {
@@ -6390,7 +6668,7 @@
           "type": "(event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void",
           "required": false,
           "default": null,
-          "description": "Makes the row one action (Hover / Pressed from real interaction). Keep trailing buttons out of clickable rows.",
+          "description": "Makes the row one action: Figma Interactive=Yes (an Interactive-Background over the row's height and 12px past it\n sideways, Interactive-List-Item-Radius corners, Hover / Pressed from real interaction). Without onClick or href the row is Interactive=No: no background or states. Keep\n trailing buttons out of clickable rows.",
           "deprecated": null
         },
         {
@@ -6398,7 +6676,7 @@
           "type": "string",
           "required": false,
           "default": null,
-          "description": "Renders the row as a link.",
+          "description": "Renders the row as a link (Figma Interactive=Yes).",
           "deprecated": null
         },
         {
@@ -6407,6 +6685,68 @@
           "required": false,
           "default": "\"li\"",
           "description": "\"li\" (default, inside <List>) or \"div\" when used on its own.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ListBox",
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The root element.",
+          "deprecated": null
+        },
+        {
+          "name": "header",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Header-Slot (Header=Yes): what names the box, e.g. a Heading/Subheading title and a caption, or a toolbar.\n Pads Card-padding-medium on top and at the sides and Padding/XSmall below; its content stacks Spacing/Gap/Medium.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Body-Slot: the rows, usually a `<List>` of ListItems. Pads Card-padding-medium sideways and\n List-Container-Vertical-Padding above and below (12px desktop, 8px tablet and mobile) and stacks its children\n Spacing/Gap/3XSmall, so a clickable row's fill sits 12px (desktop) or 8px (phone) from every box edge.",
+          "deprecated": null
+        },
+        {
+          "name": "footer",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Footer-Slot (Footer=Yes): what follows the rows, e.g. a \"Show all\" Tertiary button. Pads Card-padding-medium.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"flat\" | \"shadow\" | \"pale\" | \"border\"",
+          "required": false,
+          "default": "\"flat\"",
+          "description": "Elevation, as Card's Figma Theme. Flat (default): Surface/Default alone — on Canvas/Default it needs no frame\n (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale:\n Support/Neutral/Pale + Effect/Overlay blur, a tinted box (never with a shadow, §9). Border: a 1px\n Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11).",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "\"div\" | \"section\"",
+          "required": false,
+          "default": "\"div\"",
+          "description": "\"div\" (default) or \"section\" when the box is a titled region (give it aria-labelledby).",
           "deprecated": null
         },
         {
@@ -6527,6 +6867,14 @@
           "required": false,
           "default": null,
           "description": "Rendered in a full-width row when `rows` is empty (e.g. an EmptyState).",
+          "deprecated": null
+        },
+        {
+          "name": "onRowClick",
+          "type": "(row: T) => void",
+          "required": false,
+          "default": null,
+          "description": "Rows that open something (a detail page, a Side Panel, a dialog): the whole row is the click target, keyboard focus\nreaches each row and Enter or Space opens it; buttons, links, checkboxes and fields inside the row keep their own\nclicks. For read-only rows — an editable table opens a row with its column's `onOpen` button instead.",
           "deprecated": null
         },
         {
@@ -6862,7 +7210,7 @@
           "type": "Partial<Record<OpinionEmotion, ReactNode>>",
           "required": false,
           "default": null,
-          "description": "Override option labels (keep them short).",
+          "description": "Override option labels. Keep them to one or two short words: a longer label is clamped to two lines (ellipsis), and\nits full text still names the radio.",
           "deprecated": null
         },
         {
@@ -7057,7 +7405,7 @@
         },
         {
           "name": "iconTheme",
-          "type": "\"neutral\" | \"accent\" | \"inverse\" | \"on-color\" | \"pale\" | \"surface\" | \"emoji\"",
+          "type": "DockIconTheme",
           "required": false,
           "default": "\"neutral\"",
           "description": "Dock-Icon Theme — colour-code the metric's category (Figma instance swap). Default Neutral.",
@@ -7085,6 +7433,30 @@
           "required": false,
           "default": "\"xl\"",
           "description": "Figma Size: XLarge/Large stack the icon above the text; Medium–XSmall put it on the left. Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "variant",
+          "type": "\"icon-highlight\" | \"title-highlight\"",
+          "required": false,
+          "default": "\"icon-highlight\"",
+          "description": "Figma Metric-Inline type. Icon-Highlight (default, 595:55188): the Dock-Icon leads, the label sits over the number.\nTitle-Highlight (7523:507049): the title on top (Heading/Subheading at XLarge–Medium, Caption above the number at\nSmall/XSmall), the number and trend under it, the Dock-Icon pinned to the bottom-right corner.",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: the title row's action (Figma Button/Icon-Main XSmall Tertiary, e.g. a chevron that opens the breakdown).",
+          "deprecated": null
+        },
+        {
+          "name": "iconSize",
+          "type": "\"md\" | \"lg\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": null,
+          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below.",
           "deprecated": null
         },
         {
@@ -7135,7 +7507,7 @@
         },
         {
           "name": "iconTheme",
-          "type": "\"neutral\" | \"accent\" | \"inverse\" | \"on-color\" | \"pale\" | \"surface\" | \"emoji\"",
+          "type": "DockIconTheme",
           "required": false,
           "default": null,
           "description": "Dock-Icon Theme — colour-code the metric's category (Figma instance swap). Default Neutral.",
@@ -7163,6 +7535,30 @@
           "required": false,
           "default": null,
           "description": "Figma Size: XLarge/Large stack the icon above the text; Medium–XSmall put it on the left. Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "variant",
+          "type": "\"icon-highlight\" | \"title-highlight\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Metric-Inline type. Icon-Highlight (default, 595:55188): the Dock-Icon leads, the label sits over the number.\nTitle-Highlight (7523:507049): the title on top (Heading/Subheading at XLarge–Medium, Caption above the number at\nSmall/XSmall), the number and trend under it, the Dock-Icon pinned to the bottom-right corner.",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: the title row's action (Figma Button/Icon-Main XSmall Tertiary, e.g. a chevron that opens the breakdown).",
+          "deprecated": null
+        },
+        {
+          "name": "iconSize",
+          "type": "\"md\" | \"lg\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": null,
+          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below.",
           "deprecated": null
         },
         {
@@ -7507,7 +7903,7 @@
         },
         {
           "name": "primaryAction",
-          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
           "required": false,
           "default": null,
           "description": "",
@@ -7515,7 +7911,7 @@
         },
         {
           "name": "secondaryAction",
-          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
           "required": false,
           "default": null,
           "description": "",
@@ -7606,8 +8002,8 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Figma Nav-Action/Icon-Main with a trailing icon: the trailing actions share one Tertiary pill (e.g. audio + video call).",
-          "deprecated": null
+          "description": "The first two trailing actions share one pill (see `TopNavigationAction.group`), when no action names a group.",
+          "deprecated": "Give the actions that share a pill the same `group` (e.g. `group: \"call\"` on both)."
         },
         {
           "name": "title",
@@ -7646,15 +8042,23 @@
           "type": "TopNavigationAction[]",
           "required": false,
           "default": "[]",
-          "description": "Figma Top-Trailing: up to two actions.",
+          "description": "Figma Top-Trailing: up to three actions (its Trailing-Slot takes 3); more are not drawn.",
           "deprecated": null
         },
         {
           "name": "largeTitleAction",
-          "type": "TopNavigationAction",
+          "type": "TopNavigationAction | TopNavigationAction[]",
           "required": false,
           "default": null,
-          "description": "Figma Expand-Trailing: one action beside the large title.",
+          "description": "Figma Expand-Trailing (Header-Trailing): one action, or a list of up to three, beside the large title. When the bar\nrow folds into the large-title row (a root, see `topBar`) they sit first in the trailing slot, so they stay in place\nand in reach once the title folds; the bar still draws three actions in all.",
+          "deprecated": null
+        },
+        {
+          "name": "topBar",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Top-bar: the navigator-bar row. By default a root (a large title and no `leading`) hides it while the large title\nshows, as Figma's root screens do (Top-bar=false): the trailing actions sit at the right of the large-title row, and\nonce the title folds the bar title shows in that same row, so the header keeps its height. `true` keeps the row\nabove the large title (the iOS layout); `false` hides it on any screen with a large title.",
           "deprecated": null
         },
         {
@@ -7666,19 +8070,35 @@
           "deprecated": null
         },
         {
+          "name": "banner",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "A status that must stay in view while the screen scrolls (offline, syncing, read-only): a Small AlertBanner pinned\nunder the bar and the control bar, edge to edge. It never scrolls away; with `scrollRef` it moves up with the fold,\nlike a pinned control bar. One banner at a time; the screen's content starts below it.",
+          "deprecated": null
+        },
+        {
           "name": "searchAction",
           "type": "{ onClick: () => void; label?: string; icon?: IconName | ReactElement }",
           "required": false,
           "default": null,
-          "description": "For a Search control bar: while `collapsed`, the bar folds away and this Search action appears at the start of the\ntrailing slot (top-right); it leaves again when the bar expands. Its `onClick` usually scrolls back up and focuses\nthe field. Counts toward the two trailing actions, so keep at most one other. `label` defaults to the locale's\n“Search”, `icon` to icon-search-medium-line (an icon name or an element).",
+          "description": "For a Search control bar: while `collapsed`, the bar folds away and this Search action appears at the start of the\ntrailing slot (top-right); it leaves again when the bar expands. Its `onClick` usually scrolls back up and focuses\nthe field. Counts toward the three trailing actions, so keep at most two others. `label` defaults to the locale's\n“Search”, `icon` to icon-search-medium-line (an icon name or an element).",
+          "deprecated": null
+        },
+        {
+          "name": "scrollRef",
+          "type": "RefObject<HTMLElement | null> | \"window\"",
+          "required": false,
+          "default": null,
+          "description": "Scroll-linked collapse (the iOS large-title behaviour): the element whose scroll moves the screen's content, or\n\"window\". The large title (and a Search Control-Bar with `searchAction`) slide up under the bar with the content,\n1:1, never jumping; the bar title fades in once the large title is covered; a scroll that stops half-way settles\nopen or closed; once content runs under the bar, the opaque types (default · alt · compact · compact-alt) get a\nBorder/Neutral/Pale rule under the bar. The header must overlay the scrolled content: `sticky` as the scroller's\nfirst child, or positioned over it. A `collapsed` value overrides it.",
           "deprecated": null
         },
         {
           "name": "collapsed",
           "type": "boolean",
           "required": false,
-          "default": "false",
-          "description": "Scrolled state: hides the large title and shows `title` (or the large title) in the navigator bar.",
+          "default": null,
+          "description": "Collapsed by hand: hides the large title and shows `title` (or the large title) in the navigator bar. Prefer\n `scrollRef`, which follows the scroll; with `collapsed` set, the scroll does not change it.",
           "deprecated": null
         },
         {
@@ -7804,7 +8224,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Figma Label (Label/Small/Medium; Bold when selected on Floating). Off by default, like Figma; the label is still the accessible name.",
+          "description": "Figma Label (Label/Small/Medium; Bold when selected on Floating). Off by default, like Figma; the label is still the accessible name. Idle labels are Content/Neutral/Light on the Default bar (Figma's hidden label is Placeholder) and on Floating (as Figma), Content/Neutral/Strongest on Floating-Glass (as Figma 9018:43882); idle icons keep Figma's colours.",
           "deprecated": null
         },
         {
@@ -7916,7 +8336,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Search slot (a Search, under the header).",
+          "description": "Figma Search slot (a Search, under the header). The Search takes focus when the sheet opens (`data-autofocus` elsewhere wins).",
           "deprecated": null
         },
         {
@@ -7961,7 +8381,7 @@
         },
         {
           "name": "primaryAction",
-          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
           "required": false,
           "default": null,
           "description": "",
@@ -7969,7 +8389,7 @@
         },
         {
           "name": "secondaryAction",
-          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
           "required": false,
           "default": null,
           "description": "",
@@ -7981,6 +8401,14 @@
           "required": false,
           "default": "\"horizontal\"",
           "description": "Figma .Primitives/Bottom-Sheet/Actions Direction.",
+          "deprecated": null
+        },
+        {
+          "name": "onSubmit",
+          "type": "(event: FormEvent<HTMLFormElement>) => void",
+          "required": false,
+          "default": null,
+          "description": "Modal type: makes the sheet a form (same contract as ModalForm `onSubmit`). The body and the Actions footer are\nwrapped in a `<form>`: Enter in a field submits it and the primary action becomes `type=\"submit\"`, so it submits\ninstead of closing (its `onClick`, if any, still runs first). The default is prevented; close the sheet from the\nhandler when the submit succeeds. Pass `form.handleSubmit` from useFormState so a failed submit focuses the first\ninvalid field. Don't nest a `<Form>` in the children. The Search slot stays outside the form. The first field (the\nSearch, when there is one) takes focus when the sheet opens; put `data-autofocus` on another control to start there.",
           "deprecated": null
         },
         {
@@ -8044,7 +8472,7 @@
           "type": "ChatPerson",
           "required": false,
           "default": null,
-          "description": "Others: who sent it (the avatar and, when `showName`, the name above the bubble).",
+          "description": "Others: who sent it (the avatar — the photo, or first + last name initials without `src` — and, when `showName`, the name above the bubble).",
           "deprecated": null
         },
         {
@@ -8266,7 +8694,7 @@
           "type": "ChatReplyTarget",
           "required": false,
           "default": null,
-          "description": "Replying to a message: a \"Replying to …\" bar above the field (× or Escape cancels). Attach it to what you send.",
+          "description": "Replying to a message: a \"Replying to …\" bar above the field (× or Escape cancels). Attach it to what you send.\nSetting it (or switching to another message) moves focus into the field, so Reply leaves the caret ready to type;\na composer that mounts with a reply already set does not take focus.",
           "deprecated": null
         },
         {
@@ -8366,7 +8794,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Override the call label (the locale's \"Missed Call\", \"Audio Call\", \"Ongoing Call…\").",
+          "description": "Override the call label (the locale's \"Missed call\", \"Audio call\", \"Ongoing call…\").",
           "deprecated": null
         },
         {
@@ -8720,7 +9148,7 @@
           "type": "string",
           "required": false,
           "default": null,
-          "description": "The action's text (the locale's Call back / Call Again / Send Voice by default).",
+          "description": "The action's text (the locale's Call back / Call again / Send voice message by default).",
           "deprecated": null
         },
         {
@@ -9350,6 +9778,22 @@
           "deprecated": null
         },
         {
+          "name": "rangesFullWidth",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "The range switch fills the card and splits it into equal items (Figma Segmented FILL, default); `false` hugs its\n items, as on a wide card where a full-width switch would stretch far past its labels (Figma HUG).",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
+          "required": false,
+          "default": "\"flat\"",
+          "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas\n next to other Shadow cards (metric cards on a dashboard).",
+          "deprecated": null
+        },
+        {
           "name": "surface",
           "type": "\"default\" | \"alt\"",
           "required": false,
@@ -9408,6 +9852,38 @@
       ]
     }
   ],
+  "flag": [
+    {
+      "name": "Flag",
+      "extends": null,
+      "props": [
+        {
+          "name": "name",
+          "type": "FlagName",
+          "required": true,
+          "default": null,
+          "description": "Figma Flag `Name`: the country or region, spelled as in Figma (e.g. \"Vietnam\", \"United Kingdom\").",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Figma Size: Small 16 · Medium 24 (default) · Large 32, on the Image-Size scale (Avatar XSmall = Medium).",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name for a flag that stands alone. Omit it when the country name sits next to the flag (decorative).",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
   "provider": [
     {
       "name": "ZenProvider",
@@ -9423,7 +9899,7 @@
         },
         {
           "name": "componentTheme",
-          "type": "\"neutral-s1\" | \"neutral-s2\" | \"neutral-s3\" | \"neutral-s4\" | \"brand-s1\" | \"brand-s2\"",
+          "type": "\"neutral-s1\" | \"neutral-s2\" | \"neutral-s3\" | \"neutral-s4\" | \"neutral-s5\" | \"neutral-s6\" | \"neutral-s7\" | \"brand-s1\" | \"brand-s2\"",
           "required": false,
           "default": null,
           "description": "Component colour theme (Figma \"Component Theme\" mode). Default neutral-s1.",
@@ -9475,6 +9951,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "contrast",
+          "type": "\"standard\" | \"high\" | \"system\"",
+          "required": false,
+          "default": null,
+          "description": "Contrast. `high` raises the borders of Checkbox, Radio and Subtle controls to 3:1 and placeholders, Light text and\na colour's Light text to 4.5:1; step 9 of every colour, the backgrounds and the text on Solid fills stay.\n`system` follows the OS Increase Contrast setting. Unset: inherit (the page default is standard).",
           "deprecated": null
         },
         {
@@ -9593,8 +10077,120 @@
   "layout": [
     {
       "name": "Stack",
-      "extends": "HTMLAttributes<HTMLElement>",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps",
       "props": [
+        {
+          "name": "width",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width.\n`\"hug\"` (Hug contents): as wide as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding\nand may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full\nwidth. Fill children in a wrapping row need a `minWidth` to wrap.\nA number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box).\n(Container's `maxWidth` is a different prop: a token width, sm…full.)\nPrefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame).",
+          "deprecated": null
+        },
+        {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum width in px (Figma min width). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text.",
+          "deprecated": null
+        },
+        {
+          "name": "alignSelf",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "required": false,
+          "default": null,
+          "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "height",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Vertical resizing, as in Figma auto layout. Unset keeps the element's usual height.\n`\"hug\"` (Hug contents): as tall as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a column Stack it takes an equal share of the free height; it shrinks below its\ncontent only when the column has a height of its own (Fixed, Fill or maxHeight), else it keeps its content height\n(pass `minHeight={0}` for a scrolling child of a column sized from outside). In a row Stack it stretches to the\nrow's height; in a Grid cell it fills the cell (over alignSelf); in a plain block it takes 100% (the parent needs\na height).\nA number: Fixed height in px, which does not shrink in a column Stack.",
+          "deprecated": null
+        },
+        {
+          "name": "minHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum height in px (Figma min height). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum height in px (Figma max height).",
+          "deprecated": null
+        },
+        {
+          "name": "position",
+          "type": "\"static\" | \"absolute\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Ignore auto layout\" (layoutPositioning ABSOLUTE). `\"absolute\"` takes the element out of its parent's flow\nand pins it to the parent Stack, Grid, Box or Card with `constraintX` / `constraintY`; siblings, `gap`, `justify`\nand the parent's Hug size ignore it, as in Figma. Siblings written after it paint above it (Figma auto layout\n\"Last on top\"), so put background media first. Default `\"static\"` (in flow). Only Stack, Grid and Box take it:\nwrap a Text or a component in a Box. Badges, status dots and a Card sub-action are component props, never insets.",
+          "deprecated": null
+        },
+        {
+          "name": "constraintX",
+          "type": "\"left\" | \"right\" | \"left-right\" | \"center\"",
+          "required": false,
+          "default": null,
+          "description": "Figma horizontal constraint, read only with `position=\"absolute\"`: `left` (default, Figma Left) · `right` (Right)\n· `left-right` (Left & right: stretches between the two offsets, `width` is ignored) · `center` (Center: exact\ncentre, the X offsets are ignored). Figma Scale is not offered (it needs percentages, which are not tokens).",
+          "deprecated": null
+        },
+        {
+          "name": "constraintY",
+          "type": "\"top\" | \"bottom\" | \"top-bottom\" | \"center\"",
+          "required": false,
+          "default": null,
+          "description": "Figma vertical constraint, read only with `position=\"absolute\"`: `top` (default) · `bottom` · `top-bottom`\n(Top & bottom: stretches between the two offsets, `height` is ignored) · `center` (exact centre).",
+          "deprecated": null
+        },
+        {
+          "name": "insetTop",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children.",
+          "deprecated": null
+        },
+        {
+          "name": "insetRight",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's right edge on Spacing/Padding. Read only when `constraintX` is `right` or `left-right`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "insetBottom",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's bottom edge on Spacing/Padding. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "insetLeft",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder). Read only when `constraintX` is `left` or `left-right`. Default none.",
+          "deprecated": null
+        },
         {
           "name": "direction",
           "type": "\"column\" | \"row\"",
@@ -9633,6 +10229,14 @@
           "required": false,
           "default": "false",
           "description": "Let row items wrap onto new lines.",
+          "deprecated": null
+        },
+        {
+          "name": "fillChildren",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Every child takes an equal share along the direction (Figma: all children Fill container), for children that have\nno sizing props of their own (Button, Input, Card… but also a Divider or an Icon: wrap those in `<Box width=\"hug\">`).\nA child's own `width` (row) or `height` (column) wins; in a row children keep their own minimum width (a Button\nnever shrinks below its label). A column shares equally only when its height is Fixed or Fill (Buttons get\ntaller); with only a maxHeight the children keep their content height and shrink once it caps; without a height\nthey keep their content height.",
           "deprecated": null
         },
         {
@@ -9679,8 +10283,120 @@
     },
     {
       "name": "Grid",
-      "extends": "HTMLAttributes<HTMLElement>",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps",
       "props": [
+        {
+          "name": "width",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width.\n`\"hug\"` (Hug contents): as wide as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding\nand may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full\nwidth. Fill children in a wrapping row need a `minWidth` to wrap.\nA number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box).\n(Container's `maxWidth` is a different prop: a token width, sm…full.)\nPrefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame).",
+          "deprecated": null
+        },
+        {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum width in px (Figma min width). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text.",
+          "deprecated": null
+        },
+        {
+          "name": "alignSelf",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "required": false,
+          "default": null,
+          "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "height",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Vertical resizing, as in Figma auto layout. Unset keeps the element's usual height.\n`\"hug\"` (Hug contents): as tall as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a column Stack it takes an equal share of the free height; it shrinks below its\ncontent only when the column has a height of its own (Fixed, Fill or maxHeight), else it keeps its content height\n(pass `minHeight={0}` for a scrolling child of a column sized from outside). In a row Stack it stretches to the\nrow's height; in a Grid cell it fills the cell (over alignSelf); in a plain block it takes 100% (the parent needs\na height).\nA number: Fixed height in px, which does not shrink in a column Stack.",
+          "deprecated": null
+        },
+        {
+          "name": "minHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum height in px (Figma min height). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum height in px (Figma max height).",
+          "deprecated": null
+        },
+        {
+          "name": "position",
+          "type": "\"static\" | \"absolute\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Ignore auto layout\" (layoutPositioning ABSOLUTE). `\"absolute\"` takes the element out of its parent's flow\nand pins it to the parent Stack, Grid, Box or Card with `constraintX` / `constraintY`; siblings, `gap`, `justify`\nand the parent's Hug size ignore it, as in Figma. Siblings written after it paint above it (Figma auto layout\n\"Last on top\"), so put background media first. Default `\"static\"` (in flow). Only Stack, Grid and Box take it:\nwrap a Text or a component in a Box. Badges, status dots and a Card sub-action are component props, never insets.",
+          "deprecated": null
+        },
+        {
+          "name": "constraintX",
+          "type": "\"left\" | \"right\" | \"left-right\" | \"center\"",
+          "required": false,
+          "default": null,
+          "description": "Figma horizontal constraint, read only with `position=\"absolute\"`: `left` (default, Figma Left) · `right` (Right)\n· `left-right` (Left & right: stretches between the two offsets, `width` is ignored) · `center` (Center: exact\ncentre, the X offsets are ignored). Figma Scale is not offered (it needs percentages, which are not tokens).",
+          "deprecated": null
+        },
+        {
+          "name": "constraintY",
+          "type": "\"top\" | \"bottom\" | \"top-bottom\" | \"center\"",
+          "required": false,
+          "default": null,
+          "description": "Figma vertical constraint, read only with `position=\"absolute\"`: `top` (default) · `bottom` · `top-bottom`\n(Top & bottom: stretches between the two offsets, `height` is ignored) · `center` (exact centre).",
+          "deprecated": null
+        },
+        {
+          "name": "insetTop",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children.",
+          "deprecated": null
+        },
+        {
+          "name": "insetRight",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's right edge on Spacing/Padding. Read only when `constraintX` is `right` or `left-right`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "insetBottom",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's bottom edge on Spacing/Padding. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "insetLeft",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder). Read only when `constraintX` is `left` or `left-right`. Default none.",
+          "deprecated": null
+        },
         {
           "name": "columns",
           "type": "GridTracks | { mobile?: GridTracks; tablet?: GridTracks; desktop?: GridTracks }",
@@ -9757,8 +10473,168 @@
     },
     {
       "name": "Box",
-      "extends": "HTMLAttributes<HTMLElement>",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, CornerRadiusProps",
       "props": [
+        {
+          "name": "width",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width.\n`\"hug\"` (Hug contents): as wide as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding\nand may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full\nwidth. Fill children in a wrapping row need a `minWidth` to wrap.\nA number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box).\n(Container's `maxWidth` is a different prop: a token width, sm…full.)\nPrefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame).",
+          "deprecated": null
+        },
+        {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum width in px (Figma min width). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text.",
+          "deprecated": null
+        },
+        {
+          "name": "alignSelf",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "required": false,
+          "default": null,
+          "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "height",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Vertical resizing, as in Figma auto layout. Unset keeps the element's usual height.\n`\"hug\"` (Hug contents): as tall as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a column Stack it takes an equal share of the free height; it shrinks below its\ncontent only when the column has a height of its own (Fixed, Fill or maxHeight), else it keeps its content height\n(pass `minHeight={0}` for a scrolling child of a column sized from outside). In a row Stack it stretches to the\nrow's height; in a Grid cell it fills the cell (over alignSelf); in a plain block it takes 100% (the parent needs\na height).\nA number: Fixed height in px, which does not shrink in a column Stack.",
+          "deprecated": null
+        },
+        {
+          "name": "minHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum height in px (Figma min height). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum height in px (Figma max height).",
+          "deprecated": null
+        },
+        {
+          "name": "position",
+          "type": "\"static\" | \"absolute\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Ignore auto layout\" (layoutPositioning ABSOLUTE). `\"absolute\"` takes the element out of its parent's flow\nand pins it to the parent Stack, Grid, Box or Card with `constraintX` / `constraintY`; siblings, `gap`, `justify`\nand the parent's Hug size ignore it, as in Figma. Siblings written after it paint above it (Figma auto layout\n\"Last on top\"), so put background media first. Default `\"static\"` (in flow). Only Stack, Grid and Box take it:\nwrap a Text or a component in a Box. Badges, status dots and a Card sub-action are component props, never insets.",
+          "deprecated": null
+        },
+        {
+          "name": "constraintX",
+          "type": "\"left\" | \"right\" | \"left-right\" | \"center\"",
+          "required": false,
+          "default": null,
+          "description": "Figma horizontal constraint, read only with `position=\"absolute\"`: `left` (default, Figma Left) · `right` (Right)\n· `left-right` (Left & right: stretches between the two offsets, `width` is ignored) · `center` (Center: exact\ncentre, the X offsets are ignored). Figma Scale is not offered (it needs percentages, which are not tokens).",
+          "deprecated": null
+        },
+        {
+          "name": "constraintY",
+          "type": "\"top\" | \"bottom\" | \"top-bottom\" | \"center\"",
+          "required": false,
+          "default": null,
+          "description": "Figma vertical constraint, read only with `position=\"absolute\"`: `top` (default) · `bottom` · `top-bottom`\n(Top & bottom: stretches between the two offsets, `height` is ignored) · `center` (exact centre).",
+          "deprecated": null
+        },
+        {
+          "name": "insetTop",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children.",
+          "deprecated": null
+        },
+        {
+          "name": "insetRight",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's right edge on Spacing/Padding. Read only when `constraintX` is `right` or `left-right`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "insetBottom",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's bottom edge on Spacing/Padding. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "insetLeft",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder). Read only when `constraintX` is `left` or `left-right`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "effectStyle",
+          "type": "\"Shadow/Bottom/Level-1\" | \"Shadow/Bottom/Level-2\" | \"Shadow/Bottom/Level-3\" | \"Shadow/Bottom/Level-4\" | \"Shadow/Top/Level-1\" | \"Shadow/Top/Level-2\" | \"Shadow/Top/Level-3\" | \"Shadow/Top/Level-4\" | \"Effect/Overlay\"",
+          "required": false,
+          "default": null,
+          "description": "Figma effect style (the whole style is the token, one per layer as in Figma). Drop shadows\n(`Shadow/Bottom/Level-1…4`, `Shadow/Top/Level-1…4`) render only on `surface=\"surface\"`, never on Subtle, Pale or\nSurface-Alt (component-usage-rules §9) nor without a fill, and a shadowed surface takes no border (elevation follows\nthe Sidebar). `Shadow/Bottom/Level-1` is the Card (Theme=Shadow 7063:62203) and Sidebar elevation; the Top levels\ncast upward for bottom-pinned bars (Bottom-Sheet 4059:14162 uses Top/Level-2). `Effect/Overlay` is the background\nblur behind a translucent fill and renders only on `surface=\"subtle\"` or `\"pale\"`. The shadows use the spread\ntokens, which Figma draws on a filled, clipped frame: pair them with `clip` when children could overflow.",
+          "deprecated": null
+        },
+        {
+          "name": "clip",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Clip content\" (frame clipsContent): children are clipped to the box's padding box and its corner radius, so\nfull-bleed media or an absolute layer keeps the box's rounded corners. Uses `overflow: clip`, which makes no scroll\ncontainer (a sticky child still sticks to the page scroller). Default false (content may overflow).",
+          "deprecated": null
+        },
+        {
+          "name": "radiusTopLeft",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Top-left corner on the Corner-Radius tokens (Figma topLeftRadius; none · 2xs 2 · xs 4 · sm 8 · md 12 · lg 16 ·\nxl 20 · 2xl 24 · 3xl 28 · full), following the radius mode. A set corner wins over `radius`, as `paddingX` wins\nover `padding`; unset corners keep `radius`. Don't mix `full` with a finite corner (`radius=\"full\"\nradiusBottomRight=\"xs\"`): `full` is Corner-Radius/Rounded (1000px), so the browser scales every corner down to fit\nthe box and the small one renders square. Use a finite radius (a chat tail: `radius=\"xl\" radiusBottomRight=\"xs\"`);\n`full` mixes only with `none`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusTopRight",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Top-right corner on the Corner-Radius tokens (Figma topRightRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusBottomRight",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusBottomLeft",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`.",
+          "deprecated": null
+        },
         {
           "name": "padding",
           "type": "\"none\" | ZenScaleInput | \"4xl\"",
@@ -9804,7 +10680,7 @@
           "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners.",
           "deprecated": null
         },
         {
@@ -9834,7 +10710,7 @@
           "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"full\"",
           "required": false,
           "default": "\"lg\"",
-          "description": "Content width: sm 640 (forms) · md 960 (settings, reading) · lg 1280 (dashboards, default) · xl 1440 · full.",
+          "description": "Content width: sm 640 (forms) · md 960 (settings, reading) · lg 1280 (dashboards, default) · xl 1440 · full (list and\ntable pages: a page whose content is a non-widget Table spans the whole width, no max).",
           "deprecated": null
         },
         {
@@ -9867,8 +10743,64 @@
   "text": [
     {
       "name": "Text",
-      "extends": "Omit<HTMLAttributes<HTMLElement>, \"color\">",
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"color\">, LayoutSizingProps",
       "props": [
+        {
+          "name": "width",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width.\n`\"hug\"` (Hug contents): as wide as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding\nand may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full\nwidth. Fill children in a wrapping row need a `minWidth` to wrap.\nA number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box).\n(Container's `maxWidth` is a different prop: a token width, sm…full.)\nPrefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame).",
+          "deprecated": null
+        },
+        {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum width in px (Figma min width). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text.",
+          "deprecated": null
+        },
+        {
+          "name": "alignSelf",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "required": false,
+          "default": null,
+          "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "height",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Vertical resizing, as in Figma auto layout. Unset keeps the element's usual height.\n`\"hug\"` (Hug contents): as tall as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a column Stack it takes an equal share of the free height; it shrinks below its\ncontent only when the column has a height of its own (Fixed, Fill or maxHeight), else it keeps its content height\n(pass `minHeight={0}` for a scrolling child of a column sized from outside). In a row Stack it stretches to the\nrow's height; in a Grid cell it fills the cell (over alignSelf); in a plain block it takes 100% (the parent needs\na height).\nA number: Fixed height in px, which does not shrink in a column Stack.",
+          "deprecated": null
+        },
+        {
+          "name": "minHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum height in px (Figma min height). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum height in px (Figma max height).",
+          "deprecated": null
+        },
         {
           "name": "textStyle",
           "type": "keyof typeof typographyStyles",
@@ -9879,10 +10811,10 @@
         },
         {
           "name": "tone",
-          "type": "\"strongest\" | \"base\" | \"light\" | \"primary\" | \"secondary\" | \"tertiary\" | \"accent\" | \"info\" | \"positive\" | \"negative\" | \"warning\" | \"inverse\" | \"on-colors\" | \"disabled\" | \"inherit\"",
+          "type": "ContentTone",
           "required": false,
           "default": "\"strongest\"",
-          "description": "Colour role. Default strongest (primary text).",
+          "description": "Colour role: a Color/Content token by its path (\"base\", \"support-blue-strongest\"). Default strongest (primary text).",
           "deprecated": null
         },
         {
@@ -9903,10 +10835,18 @@
         },
         {
           "name": "align",
-          "type": "\"start\" | \"center\" | \"end\"",
+          "type": "\"start\" | \"center\" | \"end\" | \"justify\"",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Text alignment (Figma Alignment): \"start\" (left in LTR), \"center\", \"end\", or \"justify\" (both edges flush, Figma's\nJustified: only for long paragraphs in a wide column; in a narrow one it opens gaps between words). Unset keeps the\nparent's alignment. Inline text (as=\"span\") aligns once it is a block or has a width.",
+          "deprecated": null
+        },
+        {
+          "name": "verticalAlign",
+          "type": "\"top\" | \"middle\" | \"bottom\"",
+          "required": false,
+          "default": null,
+          "description": "Vertical alignment inside the box (Figma Align top / middle / bottom). It shows only when the box is taller than its\ntext: a Fixed or Fill `height` (Figma's Fixed size text box). Default top.",
           "deprecated": null
         },
         {
@@ -9929,8 +10869,64 @@
     },
     {
       "name": "Heading",
-      "extends": "Omit<HTMLAttributes<HTMLHeadingElement>, \"color\">",
+      "extends": "Omit<HTMLAttributes<HTMLHeadingElement>, \"color\">, LayoutSizingProps",
       "props": [
+        {
+          "name": "width",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width.\n`\"hug\"` (Hug contents): as wide as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding\nand may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full\nwidth. Fill children in a wrapping row need a `minWidth` to wrap.\nA number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box).\n(Container's `maxWidth` is a different prop: a token width, sm…full.)\nPrefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame).",
+          "deprecated": null
+        },
+        {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum width in px (Figma min width). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text.",
+          "deprecated": null
+        },
+        {
+          "name": "alignSelf",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "required": false,
+          "default": null,
+          "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "height",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Vertical resizing, as in Figma auto layout. Unset keeps the element's usual height.\n`\"hug\"` (Hug contents): as tall as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a column Stack it takes an equal share of the free height; it shrinks below its\ncontent only when the column has a height of its own (Fixed, Fill or maxHeight), else it keeps its content height\n(pass `minHeight={0}` for a scrolling child of a column sized from outside). In a row Stack it stretches to the\nrow's height; in a Grid cell it fills the cell (over alignSelf); in a plain block it takes 100% (the parent needs\na height).\nA number: Fixed height in px, which does not shrink in a column Stack.",
+          "deprecated": null
+        },
+        {
+          "name": "minHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum height in px (Figma min height). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum height in px (Figma max height).",
+          "deprecated": null
+        },
         {
           "name": "level",
           "type": "(typeof headingLevels)[number]",
@@ -9944,15 +10940,15 @@
           "type": "keyof typeof typographyStyles",
           "required": false,
           "default": null,
-          "description": "Visual style; defaults to the level's ladder style (1 Heading/1 · 2 Heading/4 · 3 Heading/Subheading · 4\n Body/Extra/Bold · 5–6 Body/Base/Bold). A content h1 (the page title shown large) stays Heading/1 (harness:\n heading/h1-is-heading-1). Set textStyle when the kind of content asks for it: a card title is always\n Heading/Subheading, whatever its level; a list group header (a kicker) is Body/Small/Bold in tone \"base\".",
+          "description": "Visual style; defaults to the level's ladder style (1 Heading/1 · 2 Heading/4 · 3 Heading/Subheading · 4\n Body/Extra/Bold · 5–6 Body/Base/Bold). A content h1 (the page title shown large) stays Heading/1 (harness:\n heading/h1-is-heading-1). Set textStyle when the kind of content asks for it: a card title is always\n Heading/Subheading, whatever its level; a list group header (a kicker) is Body/Small/Bold in tone \"light\".",
           "deprecated": null
         },
         {
           "name": "tone",
-          "type": "\"strongest\" | \"base\" | \"light\" | \"primary\" | \"secondary\" | \"tertiary\" | \"accent\" | \"info\" | \"positive\" | \"negative\" | \"warning\" | \"inverse\" | \"on-colors\" | \"disabled\" | \"inherit\"",
+          "type": "ContentTone",
           "required": false,
           "default": "\"strongest\"",
-          "description": "",
+          "description": "Colour role: a Color/Content token by its path, as on Text. Default strongest.",
           "deprecated": null
         },
         {
@@ -9960,15 +10956,23 @@
           "type": "boolean | number",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "true: one line with an ellipsis; a number: clamp to that many lines. The full text stays in the DOM.",
           "deprecated": null
         },
         {
           "name": "align",
-          "type": "\"start\" | \"center\" | \"end\"",
+          "type": "\"start\" | \"center\" | \"end\" | \"justify\"",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Text alignment (Figma Alignment), as on Text: start · center · end · justify. Unset keeps the parent's alignment.",
+          "deprecated": null
+        },
+        {
+          "name": "verticalAlign",
+          "type": "\"top\" | \"middle\" | \"bottom\"",
+          "required": false,
+          "default": null,
+          "description": "Vertical alignment inside the box (Figma Align top / middle / bottom), as on Text: shows with a Fixed or Fill height.",
           "deprecated": null
         },
         {
@@ -10966,7 +11970,7 @@
           "type": "\"vertical\" | \"horizontal\"",
           "required": false,
           "default": "\"vertical\"",
-          "description": "vertical (default, phones and narrow panels): full-width stacked buttons, Primary on top. horizontal (desktop): the\nsummary at the start, buttons hug their labels at the end, Tertiary then Primary; when the bar itself is narrower\nthan 480px the summary takes its own row and the buttons split the next one (the Bottom-Sheet dual footer).",
+          "description": "vertical (default): full-width stacked Large buttons, Primary on top; the phone footer for one main action.\nhorizontal: Tertiary then Primary side by side. On a bar 480px or wider (desktop) the summary sits at the start and\nMedium buttons hug their labels at the end; on a narrower bar (a phone, a narrow panel) the summary takes its own row\nand Large buttons split the next one equally (the Figma Bottom-Sheet dual footer), for two peer actions such as\nClear all · Show results.",
           "deprecated": null
         },
         {
@@ -11015,8 +12019,40 @@
   "image": [
     {
       "name": "Image",
-      "extends": "Omit<ImgHTMLAttributes<HTMLImageElement>, \"src\" | \"alt\" | \"loading\" | \"width\" | \"height\" | \"children\" | \"className\" | \"style\" | \"placeholder\">",
+      "extends": "Omit<ImgHTMLAttributes<HTMLImageElement>, \"src\" | \"alt\" | \"loading\" | \"width\" | \"height\" | \"children\" | \"className\" | \"style\" | \"placeholder\">, CornerRadiusProps",
       "props": [
+        {
+          "name": "radiusTopLeft",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Top-left corner on the Corner-Radius tokens (Figma topLeftRadius; none · 2xs 2 · xs 4 · sm 8 · md 12 · lg 16 ·\nxl 20 · 2xl 24 · 3xl 28 · full), following the radius mode. A set corner wins over `radius`, as `paddingX` wins\nover `padding`; unset corners keep `radius`. Don't mix `full` with a finite corner (`radius=\"full\"\nradiusBottomRight=\"xs\"`): `full` is Corner-Radius/Rounded (1000px), so the browser scales every corner down to fit\nthe box and the small one renders square. Use a finite radius (a chat tail: `radius=\"xl\" radiusBottomRight=\"xs\"`);\n`full` mixes only with `none`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusTopRight",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Top-right corner on the Corner-Radius tokens (Figma topRightRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusBottomRight",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusBottomLeft",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`.",
+          "deprecated": null
+        },
         {
           "name": "src",
           "type": "string",
@@ -11054,7 +12090,7 @@
           "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
           "required": false,
           "default": "\"md\"",
-          "description": "Corner radius on the Zen scale (Corner-Radius): none · 2xs · xs · sm · md (default, 12) · lg · xl · 2xl · 3xl · full.",
+          "description": "Corner radius on the Zen scale (Corner-Radius): none · 2xs · xs · sm · md (default, 12) · lg · xl · 2xl · 3xl · full.\n`radiusTopLeft` … `radiusBottomLeft` override single corners (Figma per-corner radius, e.g. top media in a card:\n`radius=\"none\" radiusTopLeft=\"2xl\" radiusTopRight=\"2xl\"`); unset corners keep this radius (md by default).",
           "deprecated": null
         },
         {

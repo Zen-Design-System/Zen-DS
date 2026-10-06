@@ -1,0 +1,4 @@
+/* Tag examples. */
+/* A wrapping list of tags (ul): no bullets or indent; each tag keeps its own width. */
+.px-tag-list { margin: 0; padding: 0; list-style: none; }
+.px-tag-list > li { display: inline-flex; max-width: 100%; }

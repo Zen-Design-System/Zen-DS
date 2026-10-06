@@ -332,6 +332,22 @@
           "deprecated": null
         },
         {
+          "name": "popoverOpen",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself.",
+          "deprecated": null
+        },
+        {
+          "name": "onPopoverOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the next open state: the trigger, Escape, a pick, a click outside or focus leaving the field.",
+          "deprecated": null
+        },
+        {
           "name": "readOnly",
           "type": "boolean",
           "required": false,
@@ -489,7 +505,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "",
+          "description": "The calendar's Cancel + Submit (Figma Actions): a picked day is a draft until Submit writes it to the field; Cancel and\n Escape keep the date the field had.",
           "deprecated": null
         },
         {
@@ -499,13 +515,37 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "minDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "Earliest day the calendar lets people pick (DatePicker `minDate`); earlier days are disabled. A typed date before\nit stays in the field and reaches `onValueChange` as usual, and the input is marked `aria-invalid` (Form and\nModalForm count it and focus it after a blocked submit). The field shows no message of its own: validate the value\nand pass `error` (\"Pick a date from 1 October\").",
+          "deprecated": null
+        },
+        {
+          "name": "maxDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "Latest day the calendar lets people pick (DatePicker `maxDate`); later days are disabled. A typed date after it is\nkept, reported and marked `aria-invalid` as for `minDate`: pass `error` to say why.",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "The day the calendar treats as today (DatePicker `today`): its Today ring and the month it opens on while empty.\nDefault: the device clock.",
+          "deprecated": null
         }
       ]
     },
     {
       "name": "NumberField",
       "file": "src/components/Input/Input.tsx",
-      "description": "Figma Input/Number-Align-Left (421:10057) and Number-Align-Center (450:7900): Button/Icon-Main 2XSmall Tertiary\nsteppers (24px) after or around the value. Read-Only hides the steppers. Keyboard: ↑/↓ step; Enter/blur clamps.",
+      "description": "Figma Input/Number-Align-Left (421:10057) and Number-Align-Center (450:7900): Button/Icon-Main 2XSmall Tertiary\nsteppers (24px) after or around the value. Read-Only hides the steppers; Disabled keeps them, disabled (Figma still\ndraws State=Default steppers in the Disabled variant). Keyboard: ↑/↓ step; Enter/blur clamps.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -619,7 +659,7 @@
     {
       "name": "AutocompleteField",
       "file": "src/components/Input/Input.tsx",
-      "description": "Figma Input/Autocomplete-Field (1241:5616): Label, a wrapping Tag list (gap 4, Tag Remove=Yes) and an\n\"Add Item\" Button/Main XSmall Secondary that opens Popover/Default (Search + \"Search and select\" label + items)\nover the Add slot. Selected options become tags; the popover closes on outside pointer-down or Escape.",
+      "description": "Figma Input/Autocomplete-Field (1241:5616): Label, a wrapping Tag list (gap 4, Tag Remove=Yes) and an\n\"Add Item\" Button/Main XSmall Secondary that opens Popover/Default (Search + \"Search and select\" label + items)\nover the Add slot. Selected options become tags; the popover closes on outside pointer-down or Escape. Removing a tag\nmoves focus to the next tag's Remove button, else the previous tag's, else Add Item.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -772,7 +812,7 @@
           "type": "(label: string) => string | void",
           "required": false,
           "default": null,
-          "description": "Figma Popover/Manual-Add-New: create a value that isn't in `options`. Add the new option to `options`\nand return its id; the field then selects it as a Tag.",
+          "description": "Figma Popover/Manual-Add-New: create a value that isn't in `options`. Add the new option to `options`\nand return its id; the field then selects it as a Tag. A typed value that matches an option shows no Create row:\nan option already added as a Tag is listed as selected (disabled) instead.",
           "deprecated": null
         },
         {

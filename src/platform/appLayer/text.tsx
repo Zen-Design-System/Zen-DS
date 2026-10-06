@@ -1,20 +1,26 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "../../components/Button";
 import { FileIcon, fileIconFormatOf } from "../../components/FileIcon";
 import { Icon } from "../../components/Icon";
 import { Card } from "../../components/Card";
+import { Checkbox } from "../../components/Checkbox";
+import { DescriptionList } from "../../components/DescriptionList";
+import { Thumbnail } from "../../components/Image";
 import { Grid, Stack } from "../../components/Layout";
 import { List, ListItem } from "../../components/ListItem";
 import { ZenProvider } from "../../components/Provider";
-import { Heading, Text, plural, textTones, type HeadingLevel, type TextTone } from "../../components/Text";
+import { Heading, Text, contentToneGroups, plural, type HeadingLevel, type TextTone } from "../../components/Text";
+import { useToast } from "../../components/Toast";
 import { TopNavigation } from "../../components/TopNavigation";
 import { typographyStyles, type TypographyStyleName } from "../../tokens/typography.generated";
 import { PlatformPhone, usePhoneScreen } from "../PlatformPhone";
-import { Panel, PlaygroundFilterChip, PlaygroundToggle, option } from "./shared";
+import { phoneMoney, phoneOrderAddress, phoneOrderPrints, phoneOrderSubtotal, phoneOrders, phonePrints, phoneShipping } from "../phoneOrders";
+import { Panel, PlaygroundFilterChip, PlaygroundToggle, keepOnHotUpdate, option } from "./shared";
 import type { AppLayerPage, AppLayerPageMeta, ExampleMap } from "./types";
 
 const styleNames = Object.keys(typographyStyles) as TypographyStyleName[];
-const playgroundTones = textTones.filter((tone) => !["primary", "secondary", "tertiary"].includes(tone));
+/** Every tone once, in token-family order (aliases such as secondary or accent left out). */
+const playgroundTones = contentToneGroups.flatMap(({ tones }) => tones);
 /** The Heading default per level (the Content hierarchy ladder, as in Text.tsx): the code omits textStyle when it matches. */
 const headingDefault: Record<HeadingLevel, TypographyStyleName> = { 1: "Heading/1", 2: "Heading/4", 3: "Heading/Subheading", 4: "Body/Extra/Bold", 5: "Body/Base/Bold", 6: "Body/Base/Bold" };
 
@@ -61,7 +67,7 @@ function PageOutlineExample() {
       </Stack>
       <Stack gap="xs">
         <Heading level={2} textStyle="Heading/4">Current plan</Heading>
-        <Text>Team · $12 per member per month · renews on 1 November 2026.</Text>
+        <Text>Team · $12 per member per month · renews on Nov 1, 2026.</Text>
       </Stack>
       <Stack gap="xs">
         <Heading level={2} textStyle="Heading/4">Payment method</Heading>
@@ -109,7 +115,7 @@ function TruncateExample() {
           <Stack gap="xs">
             <FileIcon format={fileIconFormatOf(name)} />
             <Text textStyle="Body/Base/Medium" truncate title={name}>{name}</Text>
-            <Text textStyle="Body/Small/Regular" tone="base" truncate={2}>Shared with the design team · last edited by Ava Chen two hours ago</Text>
+            <Text textStyle="Body/Small/Regular" tone="base" truncate={2}>Shared with the design team · last edited by Ava Chen 2 hours ago</Text>
           </Stack>
         </Card>
       ))}
@@ -117,62 +123,102 @@ function TruncateExample() {
   );
 }
 
+const printFiles = [
+  { id: "contract", name: "Northwind contract.pdf", pages: 1 },
+  { id: "brief", name: "Q4 brief.pdf", pages: 12 },
+  { id: "notes", name: "Interview notes.docx", pages: 4 },
+  { id: "budget", name: "Budget summary.pdf", pages: 2 },
+];
+
 function PluralExample() {
-  const [count, setCount] = useState(1);
+  const { toast } = useToast();
+  const [picked, setPicked] = useState<string[]>(["brief"]);
+  const chosen = printFiles.filter((file) => picked.includes(file.id));
+  const pages = chosen.reduce((sum, file) => sum + file.pages, 0);
   return (
-    <Stack gap="md">
-      <Text textStyle="Body/Extra/Medium" aria-live="polite">{plural(count, "file")} selected · {plural(count * 3, "page")}</Text>
-      <Stack direction="row" gap="sm">
-        <Button level="tertiary" size="sm" disabled={count === 0} onClick={() => setCount((value) => Math.max(0, value - 1))}>Deselect a file</Button>
-        <Button level="tertiary" size="sm" onClick={() => setCount((value) => value + 1)}>Select a file</Button>
+    <Stack gap="sm" className="pat-stage">
+      {/* Selection bar: every count goes through plural(), so 1 reads "1 file" and 2 reads "2 files". */}
+      <Stack direction="row" justify="between" align="center" gap="sm" wrap>
+        <Text textStyle="Body/Base/Medium" aria-live="polite">{chosen.length ? `${plural(chosen.length, "file")} selected · ${plural(pages, "page")}` : plural(printFiles.length, "file")}</Text>
+        {chosen.length ? (
+          <Stack direction="row" gap="xs">
+            <Button level="tertiary" size="sm" onClick={() => setPicked([])}>Clear</Button>
+            <Button level="primary" size="sm" onClick={() => toast({ title: `Downloading ${plural(chosen.length, "file")}` })}>Download</Button>
+          </Stack>
+        ) : <Button level="tertiary" size="sm" onClick={() => setPicked(printFiles.map((file) => file.id))}>Select all</Button>}
       </Stack>
+      <Card theme="border" spacing="small" className="pe-list-card">
+        <List aria-label="Files">
+          {printFiles.map((file) => (
+            <ListItem key={file.id} title={file.name} caption={`${plural(file.pages, "page")} · ${fileIconFormatOf(file.name) === "pdf" ? "PDF" : "Word document"}`}
+              leading={<Checkbox aria-label={`Select ${file.name}`} checked={picked.includes(file.id)} onCheckedChange={(on) => setPicked((list) => (on ? [...list, file.id] : list.filter((id) => id !== file.id)))} />} />
+          ))}
+        </List>
+      </Card>
     </Stack>
   );
 }
 
 function MobileTypographyExample() {
-  // Back goes up to Orders; the #1042 row comes back here.
-  const [atOrders, setAtOrders] = useState(false);
-  const [open, setOpen] = useState<string | null>(null);
+  // Opens on order #1042. Back goes up to the Orders root (scroll it and the large title folds); every order opens its own
+  // screen, and focus lands on the next screen's control. One key per screen, so each screen opens at the top.
+  const [openId, setOpenId] = useState<string | null>("#1042");
+  const screenRef = useRef<HTMLDivElement>(null);
   const screen = usePhoneScreen();
-  if (atOrders) {
-    return (
-      <ZenProvider typography="mobile" paint={false} portal={false} breakpoint="mobile">
-        <PlatformPhone header={<TopNavigation title="Orders" largeTitle="Orders" />}>
-          {screen.anchor}
-          <List aria-label="Orders">
-            {[["#1042", "Arriving Thursday"], ["#1038", "Delivered 22 Sep"], ["#1031", "Delivered 9 Sep"]].map(([id, caption]) => (
-              <ListItem key={id} data-order={id} title={`Order ${id}`} caption={caption} selected={open === id}
-                onClick={() => (id === "#1042" ? screen.go('.zen-top-nav__action[aria-label="Back"]', () => setAtOrders(false)) : setOpen(id))} />
-            ))}
-          </List>
-        </PlatformPhone>
-      </ZenProvider>
-    );
-  }
-  // Child screen: the compact bar title "Order #1042" is the screen's h1 (Body/Extra/Bold), so content starts at h2.
+  const order = phoneOrders.find((item) => item.id === openId);
+  const subtotal = order ? phoneOrderSubtotal(order) : 0;
   return (
     <ZenProvider typography="mobile" paint={false} portal={false} breakpoint="mobile">
-      <PlatformPhone header={<TopNavigation type="default" title="Order #1042" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go('[data-order="#1042"] .zen-list-item__wrapper', () => setAtOrders(true)) }} />}>
+      <PlatformPhone key={openId ?? "root"} headerOverlay screenRef={screenRef} header={order
+        // Child screen: the compact bar title is the screen's h1 (Body/Extra/Bold), so content starts at h2.
+        ? <TopNavigation type="compact" title={`Order ${order.id}`} scrollRef={screenRef} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-order="${order.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />
+        : <TopNavigation title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
         {screen.anchor}
-        <Stack gap="lg" padding="lg">
-          <Stack gap="2xs">
-            {/* A key status line is text, not a heading. */}
-            <Text textStyle="Body/Extra/Bold">Arriving Thursday</Text>
-            <Text tone="base">Your order left the warehouse this morning.</Text>
+        {order ? (
+          <Stack gap="lg" padding="lg">
+            <Stack gap="2xs">
+              {/* A key status line is text, not a heading. */}
+              <Text textStyle="Body/Extra/Bold">{order.status}</Text>
+              <Text tone="base">{order.note}</Text>
+            </Stack>
+            <Stack gap="xs">
+              <Heading level={2} textStyle="Heading/4">Items</Heading>
+              <List aria-label={`Items in order ${order.id}`}>
+                {order.items.map(({ print, qty }) => {
+                  const item = phonePrints[print];
+                  return (
+                    <ListItem key={print} title={item.name} caption={`${item.size} · Qty ${qty}`} leading={<Thumbnail src={item.photo.src} alt="" />}
+                      trailing={<Text as="span" textStyle="Body/Base/Medium">{phoneMoney(item.price * qty)}</Text>} />
+                  );
+                })}
+              </List>
+              <DescriptionList items={[
+                { term: `Subtotal · ${plural(phoneOrderPrints(order), "print")}`, description: phoneMoney(subtotal) },
+                { term: "Shipping", description: phoneMoney(phoneShipping) },
+                { term: "Total", description: phoneMoney(subtotal + phoneShipping), emphasis: true },
+              ]} />
+            </Stack>
+            <Stack gap="xs">
+              <Heading level={2} textStyle="Heading/4">Delivery address</Heading>
+              <Text>{phoneOrderAddress}</Text>
+            </Stack>
           </Stack>
-          <Stack gap="xs">
-            <Heading level={2} textStyle="Heading/4">Delivery address</Heading>
-            <Text>Ava Chen, 12 Nguyen Hue, District 1, Ho Chi Minh City</Text>
-          </Stack>
-          <Text textStyle="Body/Small/Regular" tone="base">Typography mode: mobile. The same styles resize for phones.</Text>
-        </Stack>
+        ) : (
+          <List aria-label="Orders">
+            {/* Interactive rows pad themselves (Padding/XLarge), so the list runs edge to edge on the screen. */}
+            {phoneOrders.map((item) => (
+              <ListItem key={item.id} data-order={item.id} title={`Order ${item.id}`} caption={`${item.status} · ${plural(phoneOrderPrints(item), "print")}`}
+                trailing={<Text as="span" textStyle="Body/Base/Medium">{phoneMoney(phoneOrderSubtotal(item) + phoneShipping)}</Text>}
+                onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpenId(item.id))} />
+            ))}
+          </List>
+        )}
       </PlatformPhone>
     </ZenProvider>
   );
 }
 
-export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = {
+export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = keepOnHotUpdate(import.meta.hot, "pages", {
   text: {
     label: "Text & Heading",
     eyebrow: "Components / Text",
@@ -180,9 +226,9 @@ export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = {
     description: "Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels and captions.",
     playground: TextPlayground,
   },
-};
+});
 
-export const examples: ExampleMap = {
+export const examples: ExampleMap = keepOnHotUpdate(import.meta.hot, "examples", {
   text: [
     { title: "Page outline", description: "One h1 per page (the page title, Heading/1) and h2 Heading/4 for its sections. The level comes from the outline; the look comes from the kind of content, never from a bigger size.", render: () => <PageOutlineExample />, code: `<Stack gap="lg">
   <Stack gap="2xs">
@@ -191,7 +237,7 @@ export const examples: ExampleMap = {
   </Stack>
   <Stack gap="xs">
     <Heading level={2} textStyle="Heading/4">Current plan</Heading>
-    <Text>Team · $12 per member per month · renews on 1 November 2026.</Text>
+    <Text>Team · $12 per member per month · renews on Nov 1, 2026.</Text>
   </Stack>
 </Stack>` },
     { title: "Status text", description: "Colour families use their Base tone and always pair with an icon or wording, never colour alone.", render: () => <StatusTextExample />, code: `<Stack direction="row" gap="xs" align="center">
@@ -205,12 +251,19 @@ export const examples: ExampleMap = {
     <Text textStyle="Body/Small/Regular" tone="base" truncate={2}>{description}</Text>
   </Stack>
 </Card>` },
-    { title: "Counts with plural()", description: "plural(count, “file”) writes “1 file” and “2 files”, never “1 files”.", render: () => <PluralExample />, code: `<Text textStyle="Body/Extra/Medium" aria-live="polite">
-  {plural(count, "file")} selected · {plural(count * 3, "page")}
-</Text>` },
+    { title: "Counts with plural()", description: "plural(count, “file”) writes “1 file” and “2 files”, never “1 files”: the selection bar and every page count use it.", render: () => <PluralExample />, code: `<Text textStyle="Body/Base/Medium" aria-live="polite">
+  {selected.length ? \`\${plural(selected.length, "file")} selected · \${plural(pages, "page")}\` : plural(files.length, "file")}
+</Text>
+<List aria-label="Files">
+  {files.map((file) => (
+    <ListItem key={file.id} title={file.name} caption={plural(file.pages, "page")}
+      leading={<Checkbox aria-label={\`Select \${file.name}\`} checked={selected.includes(file.id)} onCheckedChange={(on) => toggle(file.id, on)} />} />
+  ))}
+</List>` },
     { title: "Mobile typography", description: "ZenProvider typography “mobile” resizes every text style for phones; the components don't change. On a child screen the compact bar title is the h1, so sections start at h2.", wide: true, render: () => <MobileTypographyExample />, code: `<ZenProvider typography="mobile">
   {/* The compact bar title is the screen's h1. */}
-  <TopNavigation title="Order #1042" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />
+  <TopNavigation type="compact" title="Order #1042" scrollRef={screenRef}
+    leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />
   <Stack gap="lg" padding="lg">
     <Stack gap="2xs">
       <Text textStyle="Body/Extra/Bold">Arriving Thursday</Text>
@@ -223,4 +276,4 @@ export const examples: ExampleMap = {
   </Stack>
 </ZenProvider>` },
   ],
-};
+});

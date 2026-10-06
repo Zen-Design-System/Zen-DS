@@ -6,7 +6,7 @@
     {
       "name": "ActionBar",
       "file": "src/components/ActionBar/ActionBar.tsx",
-      "description": "The footer bar that holds a screen's main actions: the mobile footer CTA (Large, full width, Primary on top) and the\nsticky action row of desktop detail and edit pages (Tertiary · Primary at the end). Surface/Default with a\nBorder/Neutral/Pale top rule, padding Spacing/Padding/Small × Margin/Comfortable, and a bottom padding that clears the\ndevice safe area (`--zen-safe-area-bottom`, else `env(safe-area-inset-bottom)`).\n\n  <ActionBar primaryAction={{ label: \"Add to cart\", onClick: add }} secondaryAction={{ label: \"Save for later\", onClick: save }} />",
+      "description": "The footer bar that holds a screen's main actions: the mobile footer CTA (Large, full width, Primary on top), the phone\ndual footer (Large Tertiary · Primary side by side) and the sticky action row of desktop detail and edit pages\n(Tertiary · Primary at the end). Surface/Default with a\nBorder/Neutral/Pale top rule, padding Spacing/Padding/Small × Margin/Comfortable, and a bottom padding that clears the\ndevice safe area (`--zen-safe-area-bottom`, else `env(safe-area-inset-bottom)`).\n\n  <ActionBar primaryAction={{ label: \"Add to cart\", onClick: add }} secondaryAction={{ label: \"Save for later\", onClick: save }} />",
       "deprecated": null,
       "extends": "HTMLAttributes<HTMLDivElement>",
       "props": [
@@ -23,7 +23,7 @@
           "type": "\"vertical\" | \"horizontal\"",
           "required": false,
           "default": "\"vertical\"",
-          "description": "vertical (default, phones and narrow panels): full-width stacked buttons, Primary on top. horizontal (desktop): the\nsummary at the start, buttons hug their labels at the end, Tertiary then Primary; when the bar itself is narrower\nthan 480px the summary takes its own row and the buttons split the next one (the Bottom-Sheet dual footer).",
+          "description": "vertical (default): full-width stacked Large buttons, Primary on top; the phone footer for one main action.\nhorizontal: Tertiary then Primary side by side. On a bar 480px or wider (desktop) the summary sits at the start and\nMedium buttons hug their labels at the end; on a narrower bar (a phone, a narrow panel) the summary takes its own row\nand Large buttons split the next one equally (the Figma Bottom-Sheet dual footer), for two peer actions such as\nClear all · Show results.",
           "deprecated": null
         },
         {

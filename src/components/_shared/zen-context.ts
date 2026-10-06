@@ -16,6 +16,8 @@ export interface ZenContextValue {
   breakpoint?: Exclude<ZenBreakpoint, "auto">;
   typography?: ZenTypography;
   brand?: ZenBrand;
+  /** Resolved contrast (`system` already resolved). Undefined when inherited from outside any provider. */
+  contrast?: "standard" | "high";
   locale?: string;
   /** Built-in component text for `locale`, with the providers' `labels` overrides. */
   labels?: ZenLabels;

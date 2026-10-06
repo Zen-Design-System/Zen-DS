@@ -1,0 +1,10 @@
+/* Badge examples. */
+/* The invoice number and client take the room beside the Dock Icon. */
+.px-badge-grow { flex: 1 1 auto; min-width: 0; }
+/* Phone filter row: one line that scrolls sideways (no wrapping), starting at the phone margin (Margin/Comfortable, 20 on
+   a phone) like the list rows and the bar; a little block padding keeps the focus ring inside the scroller. */
+.px-badge-chip-row { flex-wrap: nowrap; overflow-x: auto; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-margin-comfortable, 20px); scrollbar-width: none; }
+.px-badge-chip-row::-webkit-scrollbar { display: none; }
+.px-badge-chip-row > * { flex: 0 0 auto; }
+/* The applied labels are a list (ul): no bullets or indent. */
+.px-badge-list { margin: 0; padding: 0; list-style: none; }

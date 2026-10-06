@@ -3,7 +3,8 @@
  * Visual pass for the Codebase Platform (Playwright): screenshots example cards so a person or an agent can look at every
  * example instead of trusting the DOM checks alone (audit.mjs finds overflow and a11y issues, not a squashed button).
  *
- *   node tools/platform-audit/shoot.mjs <page> [--title="Card title"] [--click="Button name"]… [--width=1512] [--dark] [--out=dir]
+ *   node tools/platform-audit/shoot.mjs <page> [--title="Card title"] [--click="Button name"]… [--width=1512] [--dark]
+ *                                         [--contrast=high] [--out=dir]   (--contrast=high: Zen-High-Contrast, files end in -hc)
  *                                         [--timeout=30000] [--wait-until=load|domcontentloaded]   (page load, for a busy machine)
  *     one card:   --title picks the example card by its heading; each --click presses a button inside it first (e.g. open a sheet)
  *     whole page: without --title every example card is shot, plus a contact sheet (all cards side by side) → <page>-<width>.png
@@ -28,6 +29,8 @@ const WIDTH = Number(opt("width")[0] ?? 1512);
 const OUT = path.resolve(opt("out")[0] ?? path.join(root, ".platform-shots"));
 const TIMEOUT = Number(opt("timeout")[0] ?? 30000);
 const WAIT_UNTIL = opt("wait-until")[0] ?? "load";
+const HIGH_CONTRAST = opt("contrast")[0] === "high";
+const suffix = () => `${flag("dark") ? "-dark" : ""}${HIGH_CONTRAST ? "-hc" : ""}`;
 if (!["load", "domcontentloaded", "networkidle", "commit"].includes(WAIT_UNTIL)) { console.error(`--wait-until=${WAIT_UNTIL}: use load, domcontentloaded, networkidle or commit`); process.exit(2); }
 const slug = (s) => s.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
 fs.mkdirSync(OUT, { recursive: true });
@@ -55,7 +58,7 @@ try {
     page.on("pageerror", (e) => errors.push(e.message));
     page.on("console", (m) => { if (m.type() === "error" && !/\[vite\]|hmr/i.test(m.text())) errors.push(m.text()); });
     // On a loaded machine (several gates at once) 'load' can miss Playwright's 30s default: --timeout / --wait-until.
-    await page.goto(`${BASE}/?page=${pageId}`, { timeout: TIMEOUT, waitUntil: WAIT_UNTIL });
+    await page.goto(`${BASE}/?page=${pageId}${HIGH_CONTRAST ? "&contrast=high" : ""}`, { timeout: TIMEOUT, waitUntil: WAIT_UNTIL });
     await page.waitForTimeout(900);
     // A card taller than the viewport is captured while scrolling, so the sticky platform chrome (topbar, sidebar, TOC)
     // would be stamped over the middle of it. Pin that chrome in place; example content keeps its own sticky elements.
@@ -72,13 +75,13 @@ try {
       await card.scrollIntoViewIfNeeded();
       for (const name of opt("click")) { await card.getByRole("button", { name, exact: true }).first().click(); await page.waitForTimeout(700); }
       const heading = title ?? ((await card.getByRole("heading").first().textContent().catch(() => null)) || `card-${index + 1}`);
-      const file = path.join(OUT, `${pageId}-${slug(heading)}${opt("click").length ? `-${slug(opt("click").join("-"))}` : ""}-${WIDTH}${flag("dark") ? "-dark" : ""}.png`);
+      const file = path.join(OUT, `${pageId}-${slug(heading)}${opt("click").length ? `-${slug(opt("click").join("-"))}` : ""}-${WIDTH}${suffix()}.png`);
       await card.screenshot({ path: file });
       shots.push([heading, file]);
       console.log(file);
     }
     if (!title && shots.length) {
-      const sheet = path.join(OUT, `${pageId}-${WIDTH}${flag("dark") ? "-dark" : ""}.png`);
+      const sheet = path.join(OUT, `${pageId}-${WIDTH}${suffix()}.png`);
       await compose(browser, sheet, shots);
       console.log(`sheet → ${sheet}`);
     }

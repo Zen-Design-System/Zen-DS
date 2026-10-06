@@ -10,6 +10,7 @@ export function Good({ gap, stat }: { gap: string; stat: { value: string } }) {
       <p style={{ margin: 0, lineHeight: 1 }}>Tight</p>
       {/* zen-allow-raw-radius: Figma 123:4 masks the photo with a 6px corner. */}
       <img style={{ borderRadius: 6 }} alt="" />
+      <div style={{ position: "sticky", top: 0 }} />
     </div>
   );
 }

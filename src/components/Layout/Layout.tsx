@@ -1,8 +1,16 @@
 import { forwardRef, type CSSProperties, type HTMLAttributes, type ReactNode } from "react";
-import { gapValue, paddingValue, radiusValue, type ZenCornerRadius, type ZenGap, type ZenPadding } from "../_shared/scale";
+import { gapValue, paddingValue, type ZenCornerRadius, type ZenGap, type ZenPadding } from "../_shared/scale";
 import "./layout.css";
+import { layoutSizing, type LayoutSizingProps } from "./sizing";
+import { layoutPosition, type LayoutPositionProps } from "./position";
+import { boxEffects, type BoxEffectProps } from "./effects";
+import { cornerRadiusValue, type CornerRadiusProps } from "../_shared/corners";
 
 export type { ZenCornerRadius, ZenGap, ZenPadding };
+export { layoutAlignSelfValues, type LayoutAlignSelf, type LayoutSizing, type LayoutSizingProps, type LayoutWidthProps } from "./sizing";
+export { layoutConstraintsX, layoutConstraintsY, layoutPositions, positionPropNames, type LayoutConstraintX, type LayoutConstraintY, type LayoutPosition, type LayoutPositionProps } from "./position";
+export { boxEffectStyles, effectPropNames, type BoxEffectProps, type BoxEffectStyle } from "./effects";
+export { cornerRadiusPropNames, radiusPropNames, type CornerRadiusProps } from "../_shared/corners";
 
 export const layoutElements = ["div", "section", "article", "aside", "header", "footer", "main", "nav", "form", "fieldset", "ul", "ol", "li"] as const;
 export type LayoutElement = (typeof layoutElements)[number];
@@ -15,7 +23,7 @@ const withVars = (style: CSSProperties | undefined, vars: Record<`--${string}`, 
 
 /* ───────────── Stack ───────────── */
 
-export interface StackProps extends HTMLAttributes<HTMLElement> {
+export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps {
   /** column (default) stacks top to bottom; row lays items side by side. */
   direction?: "column" | "row";
   /** Space between items (Figma Spacing/Gap). Default md (16px). */
@@ -30,6 +38,15 @@ export interface StackProps extends HTMLAttributes<HTMLElement> {
   justify?: "start" | "center" | "end" | "between" | "around";
   /** Let row items wrap onto new lines. */
   wrap?: boolean;
+  /**
+   * Every child takes an equal share along the direction (Figma: all children Fill container), for children that have
+   * no sizing props of their own (Button, Input, Card… but also a Divider or an Icon: wrap those in `<Box width="hug">`).
+   * A child's own `width` (row) or `height` (column) wins; in a row children keep their own minimum width (a Button
+   * never shrinks below its label). A column shares equally only when its height is Fixed or Fill (Buttons get
+   * taller); with only a maxHeight the children keep their content height and shrink once it caps; without a height
+   * they keep their content height.
+   */
+  fillChildren?: boolean;
   /** Space inside the stack (Figma Spacing/Padding). */
   padding?: ZenPadding;
   /** Horizontal padding (overrides `padding` on the sides). */
@@ -47,9 +64,11 @@ export interface StackProps extends HTMLAttributes<HTMLElement> {
  *   <Stack direction="row" gap="sm" align="center" justify="between">…toolbar…</Stack>
  */
 export const Stack = forwardRef<HTMLElement, StackProps>(function Stack(
-  { direction = "column", gap = "md", align, justify, wrap = false, padding, paddingX, paddingY, as: Element = "div", className, style, children, ...rest },
+  { direction = "column", gap = "md", align, justify, wrap = false, fillChildren = false, padding, paddingX, paddingY, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ...rest },
   ref,
 ) {
+  const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
+  const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
   return (
     <Element
       {...rest}
@@ -59,8 +78,11 @@ export const Stack = forwardRef<HTMLElement, StackProps>(function Stack(
       data-align={align ?? (direction === "row" ? "center" : undefined)}
       data-justify={justify}
       data-wrap={wrap ? "true" : undefined}
+      data-fill-children={fillChildren ? "true" : undefined}
       data-padded={(paddingX ?? padding) && (paddingX ?? padding) !== "none" ? "true" : undefined}
-      style={withVars(style, { "--zen-stack-gap": gapValue(gap), "--zen-stack-padding-block": own(paddingValue(paddingY ?? padding)), "--zen-stack-padding-inline": own(paddingValue(paddingX ?? padding)) })}
+      {...sizing.attributes}
+      {...placed.attributes}
+      style={withVars(style, { "--zen-stack-gap": gapValue(gap), "--zen-stack-padding-block": own(paddingValue(paddingY ?? padding)), "--zen-stack-padding-inline": own(paddingValue(paddingX ?? padding)), ...sizing.vars, ...placed.vars })}
     >
       {children}
     </Element>
@@ -73,7 +95,7 @@ export const Stack = forwardRef<HTMLElement, StackProps>(function Stack(
 export type GridTracks = number | string;
 export type GridColumns = GridTracks | { mobile?: GridTracks; tablet?: GridTracks; desktop?: GridTracks };
 
-export interface GridProps extends HTMLAttributes<HTMLElement> {
+export interface GridProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps {
   /**
    * Fixed column count, or per breakpoint (`{ mobile: 1, tablet: 2, desktop: 3 }`, following ZenProvider's
    * breakpoint). A string is a track list for unequal columns: `{ mobile: 1, desktop: "2fr 1fr" }` puts a main column
@@ -104,9 +126,11 @@ const tracks = (value: GridTracks | undefined) => (value === undefined ? undefin
  *   <Grid columns={{ mobile: 1, desktop: "2fr 1fr" }} gap="lg" align="start">…main…aside…</Grid>
  */
 export const Grid = forwardRef<HTMLElement, GridProps>(function Grid(
-  { columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, padding, as: Element = "div", className, style, children, ...rest },
+  { columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, padding, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ...rest },
   ref,
 ) {
+  const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
+  const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
   const perBreakpoint = typeof columns === "object" ? columns : undefined;
   const fixed = typeof columns === "object" ? undefined : columns;
   const desktop = tracks(fixed ?? perBreakpoint?.desktop ?? perBreakpoint?.tablet ?? perBreakpoint?.mobile);
@@ -118,6 +142,8 @@ export const Grid = forwardRef<HTMLElement, GridProps>(function Grid(
       className={["zen-grid", className].filter(Boolean).join(" ")}
       data-mode={desktop === undefined ? "fill" : perBreakpoint ? "responsive" : "fixed"}
       data-align={align}
+      {...sizing.attributes}
+      {...placed.attributes}
       style={withVars(style, {
         "--zen-grid-min": min,
         "--zen-grid-cols": desktop,
@@ -126,6 +152,8 @@ export const Grid = forwardRef<HTMLElement, GridProps>(function Grid(
         "--zen-grid-row-gap": gapValue(rowGap ?? gap),
         "--zen-grid-column-gap": gapValue(columnGap ?? gap),
         "--zen-grid-padding": own(paddingValue(padding)),
+        ...sizing.vars,
+        ...placed.vars,
       })}
     >
       {children}
@@ -138,7 +166,7 @@ export const Grid = forwardRef<HTMLElement, GridProps>(function Grid(
 export const boxSurfaces = ["none", "surface", "surface-alt", "subtle", "pale"] as const;
 export type BoxSurface = (typeof boxSurfaces)[number];
 
-export interface BoxProps extends HTMLAttributes<HTMLElement> {
+export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, CornerRadiusProps {
   padding?: ZenPadding;
   paddingX?: ZenPadding;
   paddingY?: ZenPadding;
@@ -150,6 +178,7 @@ export interface BoxProps extends HTMLAttributes<HTMLElement> {
   surface?: BoxSurface;
   /** Closed-box border: `subtle` when the box is actionable, `pale` when it is static (docs/guidelines/borders.md). */
   border?: "none" | "pale" | "subtle";
+  /** Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners. */
   radius?: ZenCornerRadius;
   as?: LayoutElement;
   children?: ReactNode;
@@ -160,9 +189,11 @@ export interface BoxProps extends HTMLAttributes<HTMLElement> {
  * Card; for page width use Container.
  */
 export const Box = forwardRef<HTMLElement, BoxProps>(function Box(
-  { padding, paddingX, paddingY, surface = "none", border = "none", radius, as: Element = "div", className, style, children, ...rest },
+  { padding, paddingX, paddingY, surface = "none", border = "none", radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, clip, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ...rest },
   ref,
 ) {
+  const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
+  const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
   return (
     <Element
       {...rest}
@@ -171,10 +202,15 @@ export const Box = forwardRef<HTMLElement, BoxProps>(function Box(
       data-surface={surface === "none" ? undefined : surface}
       data-border={border === "none" ? undefined : border}
       data-padded={(paddingX ?? padding) && (paddingX ?? padding) !== "none" ? "true" : undefined}
+      {...sizing.attributes}
+      {...placed.attributes}
+      {...boxEffects({ effectStyle, clip })}
       style={withVars(style, {
         "--zen-box-padding-block": own(paddingValue(paddingY ?? padding)),
         "--zen-box-padding-inline": own(paddingValue(paddingX ?? padding)),
-        "--zen-box-radius": own(radiusValue(radius)),
+        "--zen-box-radius": own(cornerRadiusValue(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft })),
+        ...sizing.vars,
+        ...placed.vars,
       })}
     >
       {children}
@@ -188,7 +224,8 @@ export const containerWidths = ["sm", "md", "lg", "xl", "full"] as const;
 export type ContainerWidth = (typeof containerWidths)[number];
 
 export interface ContainerProps extends HTMLAttributes<HTMLElement> {
-  /** Content width: sm 640 (forms) · md 960 (settings, reading) · lg 1280 (dashboards, default) · xl 1440 · full. */
+  /** Content width: sm 640 (forms) · md 960 (settings, reading) · lg 1280 (dashboards, default) · xl 1440 · full (list and
+   * table pages: a page whose content is a non-widget Table spans the whole width, no max). */
   maxWidth?: ContainerWidth;
   /** Page margin on both sides from the breakpoint tokens (24 desktop/tablet, 20 mobile). Default true. */
   gutter?: boolean;

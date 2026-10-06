@@ -1,0 +1,11 @@
+/* Card examples. Plan cards share one height (the Grid stretches them); the content fills the card so each CTA sits on
+   the bottom edge, level across the row. */
+.px-card-plan > .zen-card__content { flex: 1 1 auto; }
+.px-card-grow { flex: 1 1 auto; min-width: 0; }
+.px-card-plan__cta { margin-top: auto; }
+.px-card-plan__title { min-height: var(--zen-badge-size-medium, 28px); }
+/* Example cards follow the docs breakpoint, so a phone already gets Grid's `columns.mobile`. On a tablet or a narrow
+   window the card is still narrower than the app's page would be, so these grids also read their own width and stack
+   below 640px, as `columns={{ mobile: 1, … }}` does on a phone. */
+.px-card-scope { container-type: inline-size; }
+@container (max-width: 640px) { .zen-grid.px-card-stack { grid-template-columns: minmax(0, 1fr); } }

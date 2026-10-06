@@ -18,6 +18,8 @@ export type ZenLabels = {
   clearSearch: string;
   filter: string;
   filterAll: string;
+  /** How many filter values a Chip counter stands for, read after its label: "Filters, 2 applied". */
+  appliedCount: (count: number | string) => string;
   noResults: string;
   noOptionMatches: (query: string) => string;
   create: string;
@@ -46,7 +48,7 @@ export type ZenLabels = {
   page: (page: number) => string;
   resultsPerPage: string;
   results: (count: number) => string;
-  /** Inline / Manually range: "1 - 50 of 1234 results". */
+  /** Inline / Manually range: "1–50 of 1,234 results" (en dash, the language's thousands separator). */
   resultsRange: (first: number, last: number, total: number) => string;
   /** The unit after the Manually page-size number: "results". */
   resultsUnit: string;
@@ -67,6 +69,15 @@ export type ZenLabels = {
   chooseDate: string;
   /** The calendar's name: dual calendar. */
   chooseDates: string;
+  /** Date Picker Time-Picker: the start and end time fields, their placeholder, the day halves and "All day". */
+  timeFrom: string;
+  timeTo: string;
+  timePlaceholder: string;
+  timeAm: string;
+  timePm: string;
+  allDay: string;
+  /** A time field that could not be read. */
+  invalidTime: string;
   // Forms and fields
   fieldsNeedAttention: (count: number) => string;
   /** After an optional field's label or legend: "(Optional)". */
@@ -189,7 +200,7 @@ export type ZenLabels = {
   videoCall: string;
   missedAudioCall: string;
   missedVideoCall: string;
-  /** Call card actions: "Call back" on a call, Figma's "Call Back" on a call you missed, "Call Again" on one they missed. */
+  /** Call card actions, in sentence case: "Call back" on a call and on one you missed (Figma's "Call Back"), "Call again" on one they missed. */
   callBack: string;
   callBackMissed: string;
   callAgain: string;
@@ -230,6 +241,10 @@ export type ZenLabels = {
   assistant: string;
 };
 
+/** Range numbers with the language's thousands separator: en 1,284 · vi 1.284. */
+const enNumber = new Intl.NumberFormat("en-US");
+const viNumber = new Intl.NumberFormat("vi-VN");
+
 const en: ZenLabels = {
   close: "Close",
   closePanel: "Close panel",
@@ -241,6 +256,7 @@ const en: ZenLabels = {
   clearSearch: "Clear search",
   filter: "Filter",
   filterAll: "All",
+  appliedCount: (count) => `${count} applied`,
   noResults: "No results",
   noOptionMatches: (query) => `No option matches “${query}”`,
   create: "Create",
@@ -261,7 +277,7 @@ const en: ZenLabels = {
   page: (page) => `Page ${page}`,
   resultsPerPage: "Results per page",
   results: (count) => `${count} ${count === 1 ? "result" : "results"}`,
-  resultsRange: (first, last, total) => `${first} - ${last} of ${total} ${total === 1 ? "result" : "results"}`,
+  resultsRange: (first, last, total) => `${enNumber.format(first)}–${enNumber.format(last)} of ${enNumber.format(total)} ${total === 1 ? "result" : "results"}`,
   resultsUnit: "results",
   breadcrumb: "Breadcrumb",
   showMore: (count) => `Show ${count} more`,
@@ -276,6 +292,13 @@ const en: ZenLabels = {
   chooseMonthAndYear: (month) => `${month}, choose month and year`,
   chooseDate: "Choose date",
   chooseDates: "Choose dates",
+  timeFrom: "From",
+  timeTo: "To",
+  timePlaceholder: "hh:mm",
+  timeAm: "AM",
+  timePm: "PM",
+  allDay: "All day",
+  invalidTime: "Enter a time like 9:30",
   fieldsNeedAttention: (count) => `${count} ${count === 1 ? "field needs" : "fields need"} attention`,
   optional: "(Optional)",
   somethingWentWrong: "Something went wrong. Try again.",
@@ -375,12 +398,12 @@ const en: ZenLabels = {
   missedAudioCall: "Missed audio call",
   missedVideoCall: "Missed video call",
   callBack: "Call back",
-  callBackMissed: "Call Back",
-  callAgain: "Call Again",
-  sendVoice: "Send Voice",
-  previewMissedCall: "Missed Call",
-  previewAudioCall: "Audio Call",
-  previewOngoingCall: "Ongoing Call…",
+  callBackMissed: "Call back",
+  callAgain: "Call again",
+  sendVoice: "Send voice message",
+  previewMissedCall: "Missed call",
+  previewAudioCall: "Audio call",
+  previewOngoingCall: "Ongoing call…",
   repliedTo: (who, whom) => `${who} replied to ${whom}`,
   replyingTo: (name) => `Replying to ${name}`,
   they: "They",
@@ -417,6 +440,7 @@ const vi: ZenLabels = {
   clearSearch: "Xoá tìm kiếm",
   filter: "Lọc",
   filterAll: "Tất cả",
+  appliedCount: (count) => `${count} mục đã áp dụng`,
   noResults: "Không có kết quả",
   noOptionMatches: (query) => `Không có lựa chọn nào khớp “${query}”`,
   create: "Tạo",
@@ -437,7 +461,7 @@ const vi: ZenLabels = {
   page: (page) => `Trang ${page}`,
   resultsPerPage: "Số kết quả mỗi trang",
   results: (count) => `${count} kết quả`,
-  resultsRange: (first, last, total) => `${first} - ${last} trên ${total} kết quả`,
+  resultsRange: (first, last, total) => `${viNumber.format(first)}–${viNumber.format(last)} trên ${viNumber.format(total)} kết quả`,
   resultsUnit: "kết quả",
   breadcrumb: "Đường dẫn",
   showMore: (count) => `Hiện thêm ${count}`,
@@ -452,6 +476,13 @@ const vi: ZenLabels = {
   chooseMonthAndYear: (month) => `${month}, chọn tháng và năm`,
   chooseDate: "Chọn ngày",
   chooseDates: "Chọn các ngày",
+  timeFrom: "Từ",
+  timeTo: "Đến",
+  timePlaceholder: "hh:mm",
+  timeAm: "SA",
+  timePm: "CH",
+  allDay: "Cả ngày",
+  invalidTime: "Nhập giờ dạng 9:30",
   fieldsNeedAttention: (count) => `${count} trường cần xem lại`,
   optional: "(Không bắt buộc)",
   somethingWentWrong: "Đã có lỗi xảy ra. Hãy thử lại.",

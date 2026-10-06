@@ -1,0 +1,10 @@
+/* Empty State examples (pages/empty-state.tsx). Tokens only; class prefix .px-empty-state-. */
+
+/* A widget (ListBox) fills its stage column. */
+.px-empty-state-card { width: 100%; box-sizing: border-box; }
+
+/* A Skeleton line in a ListItem text slot stays on the text's line, sized like the text that replaces it. The doubled
+   class outranks the component's own display and width. */
+.px-empty-state-line.px-empty-state-line { display: inline-flex; max-width: 100%; vertical-align: middle; }
+.px-empty-state-line--title.px-empty-state-line--title { width: 18ch; }
+.px-empty-state-line--caption.px-empty-state-line--caption { width: 11ch; }

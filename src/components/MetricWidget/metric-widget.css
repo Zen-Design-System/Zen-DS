@@ -1,8 +1,26 @@
 /* Figma Metric (page 595:54968). */
 .zen-metric { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: var(--zen-spacing-gap-medium, 16px); }
-.zen-metric[data-layout="inline"] { flex-direction: row; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+/* Medium–XSmall (Figma Size=Medium/Small/XSmall, 595:55188): the Dock-Icon sits beside the contents, top-aligned with the
+   label (counter-axis Min), so a row of tiles lines up on its titles whether or not a trend follows. */
+.zen-metric[data-layout="inline"] { flex-direction: row; align-items: flex-start; gap: var(--zen-spacing-gap-small, 12px); }
 .zen-metric__contents { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-metric__content { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .zen-metric__label { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-metric__value { color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; }
 .zen-metric-card { min-width: 0; }
+/* Figma Metric-Inline/Title-Highlight (7523:507049): Contents (title row, then number + trend) beside an absolute
+   Dock-Icon at the bottom-right corner. Gaps per size: Contents XLarge 32 · Large 24 · Medium 16 · Small/XSmall 12. */
+.zen-metric[data-variant="title-highlight"] { position: relative; flex-direction: row; align-items: stretch; align-self: stretch; flex: 1 1 auto; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-metric[data-variant="title-highlight"] .zen-metric__contents { flex: 1 1 auto; align-items: stretch; justify-content: space-between; gap: var(--zen-spacing-gap-xlarge, 32px); }
+.zen-metric[data-variant="title-highlight"][data-size="large"] .zen-metric__contents { gap: var(--zen-spacing-gap-large, 24px); }
+.zen-metric[data-variant="title-highlight"][data-size="medium"] .zen-metric__contents { gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-metric[data-variant="title-highlight"]:is([data-size="small"], [data-size="xsmall"]) .zen-metric__contents { gap: var(--zen-spacing-gap-small, 12px); }
+.zen-metric__header { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-metric__title { min-width: 0; color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-metric[data-variant="title-highlight"] .zen-metric__content { align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+/* The number never runs under the corner icon. */
+.zen-metric[data-variant="title-highlight"][data-icon="large"] .zen-metric__content { padding-inline-end: calc(var(--zen-image-size-xlarge, 56px) + var(--zen-spacing-gap-medium, 16px)); }
+.zen-metric[data-variant="title-highlight"][data-icon="medium"] .zen-metric__content { padding-inline-end: calc(var(--zen-image-size-medium, 40px) + var(--zen-spacing-gap-small, 12px)); }
+.zen-metric[data-variant="title-highlight"] > .zen-metric__icon { position: absolute; right: 0; bottom: 0; }
+/* A Metric Card stretched by its grid row keeps the number at the bottom (Figma Contents: Space between, Fill). */
+.zen-metric-card > .zen-card__content { flex: 1 1 auto; }

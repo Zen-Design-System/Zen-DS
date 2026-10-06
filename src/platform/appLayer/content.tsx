@@ -1,11 +1,14 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type RefObject } from "react";
 import { ActionBar, type ActionBarDirection, type ActionBarPosition, type ActionBarSurface } from "../../components/ActionBar";
-import { Badge } from "../../components/Badge";
+import { Avatar } from "../../components/Avatar";
+import { Badge, BadgeCounter } from "../../components/Badge";
 import { BottomSheet } from "../../components/BottomSheet";
 import { Button, IconButton } from "../../components/Button";
 import { Card } from "../../components/Card";
+import { Chip } from "../../components/Chip";
 import { DescriptionList, type DescriptionListItem, type DescriptionListLayout } from "../../components/DescriptionList";
 import { EmptyState } from "../../components/EmptyState";
+import { FormFieldset } from "../../components/Form";
 import { Icon } from "../../components/Icon";
 import { Image, Thumbnail, imageRatios, type ImageFit, type ImageRatioName, type ThumbnailShape } from "../../components/Image";
 import { InlineMessage } from "../../components/InlineMessage";
@@ -23,7 +26,7 @@ import { VisuallyHidden } from "../../components/VisuallyHidden";
 import type { ZenCornerRadius, ZenScale } from "../../components/_shared/scale";
 import { platformMedia, type PlatformPhoto } from "../PlatformMedia";
 import { PlatformPhone } from "../PlatformPhone";
-import { Panel, PlaygroundFilterChip, PlaygroundToggle, option } from "./shared";
+import { Panel, PlaygroundFilterChip, PlaygroundToggle, keepOnHotUpdate, option } from "./shared";
 import type { AppLayerPage, AppLayerPageMeta, ExampleMap } from "./types";
 import "./content.css";
 
@@ -131,7 +134,7 @@ ${itemCode.join("\n")}
       code={code}
     >
       <div className="pac-dl-frame" data-width={width}>
-        <Card theme="border">
+        <Card theme="flat">
           <Stack gap="md">
             <Heading level={3} textStyle="Heading/Subheading">{content === "order" ? "Order summary" : "Contact details"}</Heading>
             <DescriptionList layout={layout} divider={divider} items={items} />
@@ -155,7 +158,7 @@ function DlOrderSummaryExample() {
     event.preventDefault();
     const value = code.trim().toUpperCase();
     if (!value) { setError("Enter a promo code, like WELCOME10."); return; }
-    if (value !== "WELCOME10") { setError(`“${value}” isn’t a valid code. Check the spelling or try WELCOME10.`); return; }
+    if (value !== "WELCOME10") { setError(`“${value}” isn’t a valid code. Check the spelling and try again.`); return; }
     setApplied(value);
     setError(undefined);
     setCode("");
@@ -344,7 +347,7 @@ function DlEdgeCasesExample() {
       <div className="pac-edge-grid" data-narrow={narrow ? "true" : undefined}>
         <Card theme="border" spacing="small">
           <Stack gap="sm">
-            <Heading level={4} textStyle="Body/Base/Bold">Workspace</Heading>
+            <Heading level={4} textStyle="Heading/Subheading">Workspace</Heading>
             <DescriptionList
               items={[
                 { term: "Workspace ID", description: "ws_01J9ZK4T7Q8M3N5B2V6C8X0Z1A" },
@@ -356,7 +359,7 @@ function DlEdgeCasesExample() {
         </Card>
         <Card theme="border" spacing="small">
           <Stack gap="sm">
-            <Heading level={4} textStyle="Body/Base/Bold">Balance</Heading>
+            <Heading level={4} textStyle="Heading/Subheading">Balance</Heading>
             <DescriptionList items={[{ term: "Available credit", description: "$0.00", emphasis: true }]} />
           </Stack>
         </Card>
@@ -382,6 +385,7 @@ function PrintDetails({ print, headingLevel }: { print: Print; headingLevel: 3 |
 }
 
 function ActionBarPlayground() {
+  const [device, setDevice] = useState<"phone" | "desktop">("phone");
   const [direction, setDirection] = useState<ActionBarDirection>("vertical");
   const [position, setPosition] = useState<ActionBarPosition>("sticky");
   const [surface, setSurface] = useState<ActionBarSurface>("default");
@@ -403,7 +407,8 @@ function ActionBarPlayground() {
       title="Action Bar"
       previewClassName="pac-preview"
       controls={<>
-        <PlaygroundFilterChip label="Direction" value={direction} onChange={(value) => setDirection(value === "horizontal" ? "horizontal" : "vertical")} options={[option("vertical", "Vertical (phone)"), option("horizontal", "Horizontal (desktop)")]} />
+        <PlaygroundFilterChip label="Device" value={device} onChange={(value) => setDevice(value === "desktop" ? "desktop" : "phone")} options={[option("phone", "Phone"), option("desktop", "Desktop")]} />
+        <PlaygroundFilterChip label="Direction" value={direction} onChange={(value) => setDirection(value === "horizontal" ? "horizontal" : "vertical")} options={[option("vertical", "Vertical"), option("horizontal", "Horizontal")]} />
         <PlaygroundFilterChip label="Position" value={position} onChange={(value) => setPosition(value === "fixed" || value === "static" ? value : "sticky")} options={[option("sticky", "Sticky"), option("fixed", "Fixed"), option("static", "Static")]} />
         <PlaygroundFilterChip label="Surface" value={surface} onChange={(value) => setSurface(value === "alt" || value === "none" ? value : "default")} options={[option("default", "Default"), option("alt", "Alt"), option("none", "None")]} />
         <PlaygroundToggle label="Summary" selected={summary} onChange={setSummary} />
@@ -412,7 +417,7 @@ function ActionBarPlayground() {
       code={code}
     >
       <div className="pac-frame-stack">
-        <div className="pac-frame" data-device={direction === "vertical" ? "phone" : "desktop"} role="group" aria-label="Page preview">
+        <div className="pac-frame" data-device={device} role="group" aria-label={`${device === "phone" ? "Phone" : "Desktop"} page preview`}>
           <div className="pac-frame__scroll">
             <div className="pac-frame__page"><PrintDetails print={print} headingLevel={3} /></div>
             <ActionBar direction={direction} position={position} surface={surface}
@@ -421,7 +426,6 @@ function ActionBarPlayground() {
               secondaryAction={secondary ? { label: saved ? "Saved for later" : "Save for later", onClick: () => setSaved((value) => !value) } : undefined} />
           </div>
         </div>
-        <Text className="pac-frame__note" textStyle="Body/Small/Regular" tone="light" align="center">Scroll the page: sticky settles at the end, fixed stays pinned (a spacer keeps the end reachable), static scrolls away.</Text>
       </div>
     </Panel>
   );
@@ -453,6 +457,64 @@ function AbPrintShopExample() {
               leading={<Thumbnail src={entry.photo.src} alt="" size="lg" />} trailing={<Icon name="icon-chevron-right-line-small" decorative />} onClick={() => setPrintId(entry.id)} />
           ))}
         </List>
+      )}
+    </PlatformPhone>
+  );
+}
+
+type PrintFilters = { sizes: string[]; price: string | null; inStock: boolean };
+const noPrintFilters: PrintFilters = { sizes: [], price: null, inStock: false };
+const printSizes = [...new Set(prints.map((print) => print.size))];
+const priceBands = [
+  { id: "under-40", label: "Under $40", test: (price: number) => price < 40 },
+  { id: "40-50", label: "$40–$50", test: (price: number) => price >= 40 && price <= 50 },
+  { id: "over-50", label: "Over $50", test: (price: number) => price > 50 },
+];
+const printsMatching = (filters: PrintFilters) => prints.filter((print) => (!filters.sizes.length || filters.sizes.includes(print.size))
+  && (!filters.price || Boolean(priceBands.find((band) => band.id === filters.price)?.test(print.price)))
+  && (!filters.inStock || print.stock > 0));
+const printFilterCount = (filters: PrintFilters) => filters.sizes.length + (filters.price ? 1 : 0) + (filters.inStock ? 1 : 0);
+
+function AbPhoneFiltersExample() {
+  const [applied, setApplied] = useState<PrintFilters>(noPrintFilters);
+  const [draft, setDraft] = useState<PrintFilters>(noPrintFilters);
+  const [view, setView] = useState<"filters" | "results">("filters");
+  const matches = printsMatching(draft);
+  const results = printsMatching(applied);
+  const appliedCount = printFilterCount(applied);
+  const toggleSize = (size: string) => setDraft((current) => ({ ...current, sizes: current.sizes.includes(size) ? current.sizes.filter((entry) => entry !== size) : [...current.sizes, size] }));
+  const openFilters = () => { setDraft(applied); setView("filters"); };
+  return (
+    <PlatformPhone label="Print filters"
+      header={view === "filters"
+        ? <TopNavigation type="compact" title="Filters" leading={{ icon: "icon-x-medium-line", label: "Close", onClick: () => { setDraft(applied); setView("results"); } }} />
+        : <TopNavigation type="compact" title="Prints" trailing={[{ icon: "icon-filter-lines-line", label: appliedCount ? `Filters, ${appliedCount} applied` : "Filters", onClick: openFilters }]} />}
+      footer={view === "filters" ? (
+        <ActionBar direction="horizontal"
+          secondaryAction={{ label: "Clear all", disabled: !printFilterCount(draft), onClick: () => setDraft(noPrintFilters) }}
+          primaryAction={{ label: matches.length ? `Show ${plural(matches.length, "print")}` : "No prints match", disabled: !matches.length, onClick: () => { setApplied(draft); setView("results"); } }} />
+      ) : undefined}>
+      {view === "filters" ? (
+        <div className="pac-frame__page">
+          <FormFieldset legend="Size" direction="row">
+            {printSizes.map((size) => <Chip key={size} variant="normal" size="md" selected={draft.sizes.includes(size)} onClick={() => toggleSize(size)}>{size}</Chip>)}
+          </FormFieldset>
+          <FormFieldset legend="Price" direction="row">
+            {priceBands.map((band) => <Chip level="primary" key={band.id} variant="normal" size="md" selected={draft.price === band.id} onClick={() => setDraft((current) => ({ ...current, price: current.price === band.id ? null : band.id }))}>{band.label}</Chip>)}
+          </FormFieldset>
+          <FormFieldset legend="Availability" kind="toggle">
+            <Toggle label="In stock only" size="lg" selected={draft.inStock} onSelectedChange={(inStock) => setDraft((current) => ({ ...current, inStock }))} />
+          </FormFieldset>
+        </div>
+      ) : (
+        <div className="pac-frame__page">
+          <Text textStyle="Body/Small/Regular" tone="light" role="status">{appliedCount ? `${results.length} of ${plural(prints.length, "print")} · ${plural(appliedCount, "filter")}` : `All ${plural(prints.length, "print")}`}</Text>
+          <List aria-label="Prints">
+            {results.map((print) => (
+              <ListItem key={print.id} title={print.name} caption={`${money(print.price)} · ${print.size}${print.stock ? "" : " · Sold out"}`} leading={<Thumbnail src={print.photo.src} alt="" size="lg" />} />
+            ))}
+          </List>
+        </div>
       )}
     </PlatformPhone>
   );
@@ -493,7 +555,7 @@ function AbEditPageExample() {
             <TextAreaField label="Notes for the team" rows={3} value={values.notes} onChange={(event) => set("notes")(event.target.value)} />
           </div>
         </div>
-        <ActionBar direction="horizontal"
+        <ActionBar direction="horizontal" className="pac-bar-whole-labels"
           summary={<span className="pac-status" data-tone={status.tone}><Icon name={status.icon} size="sm" decorative /><Text as="span" textStyle="Body/Small/Regular" tone="base" role="status">{status.text}</Text></span>}
           secondaryAction={{ label: "Undo changes", disabled: !changed || phase === "saving", onClick: () => { setValues(saved); setPhase("idle"); } }}
           primaryAction={{ label: phase === "saving" ? "Saving…" : "Save changes", type: "submit", disabled: !changed || phase === "saving" }} />
@@ -542,17 +604,22 @@ function AbCartExample() {
           {placed ? (
             <InlineMessage theme="positive" title="Order placed" action={{ label: "Start a new order", onClick: () => { setLines(cartInitial); setPlaced(false); } }}>We’ll email you when your prints ship.</InlineMessage>
           ) : rows.length ? (
-            <List aria-label="Cart">
-              {rows.map((row) => (
-                <ListItem key={row.id} title={row.print.name} leading={<Thumbnail src={row.print.photo.src} alt="" />}
-                  trailing={<IconButton appearance="flat" level="primary" size="md" aria-label={`Remove ${row.print.name}`} icon={<Icon name="icon-trash-line" />} onClick={() => setLines((current) => current.filter((line) => line.id !== row.id))} />}>
-                  {/* Contents slot: title and price, then the quantity, so the row fits any width. */}
-                  <Text as="span" textStyle="Body/Base/Bold" truncate>{row.print.name}</Text>
-                  <Text as="span" textStyle="Body/Small/Regular" tone="light">{money(row.print.price)} each</Text>
-                  <NumberField className="pac-cart-qty" aria-label={`Quantity of ${row.print.name}`} align="center" size="small" min={1} max={9} value={row.qty} onValueChange={(value) => setLines((current) => current.map((line) => line.id === row.id ? { ...line, qty: value ?? 1 } : line))} />
-                </ListItem>
-              ))}
-            </List>
+            <Card theme="border" spacing="small" className="pe-list-card">
+              <List aria-label="Cart">
+                {rows.map((row) => (
+                  <ListItem key={row.id} title={row.print.name} leading={<Thumbnail src={row.print.photo.src} alt="" />}>
+                    {/* Contents slot: the title takes the full width, the price line ends in Remove, then the quantity
+                        (Medium, a full touch size), so nothing is squeezed on a phone. */}
+                    <Text as="span" textStyle="Body/Base/Bold">{row.print.name}</Text>
+                    <span className="pac-cart-line">
+                      <Text as="span" textStyle="Body/Small/Regular" tone="light">{money(row.print.price)} each</Text>
+                      <IconButton appearance="flat" level="primary" size="md" aria-label={`Remove ${row.print.name}`} icon={<Icon name="icon-trash-line" />} onClick={() => setLines((current) => current.filter((line) => line.id !== row.id))} />
+                    </span>
+                    <NumberField className="pac-cart-qty" aria-label={`Quantity of ${row.print.name}`} align="center" size="md" min={1} max={9} value={row.qty} onValueChange={(value) => setLines((current) => current.map((line) => line.id === row.id ? { ...line, qty: value ?? 1 } : line))} />
+                  </ListItem>
+                ))}
+              </List>
+            </Card>
           ) : (
             <EmptyState illustration={false} title="Your cart is empty" primaryAction={{ label: "Add sample prints", onClick: () => setLines(cartInitial) }}>Prints you add appear here.</EmptyState>
           )}
@@ -653,22 +720,26 @@ function ImageGalleryExample() {
   );
 }
 
+/** Two proofs of an order: one still loading (Skeleton in its frame), one whose file failed (placeholder + Try again). */
 function ImageStatesExample() {
-  const photo = platformMedia.site[4];
-  const [src, setSrc] = useState<string | undefined>(undefined);
-  const [failed, setFailed] = useState(false);
-  const delay = useDelay();
-  const load = () => { setFailed(false); setSrc(undefined); delay(() => setSrc(photo.src), 1400); };
-  useEffect(load, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const bridge = platformMedia.site[4];
+  const cafe = platformMedia.site[5];
+  const [bridgeSrc, setBridgeSrc] = useState<string | undefined>(undefined);
+  const [cafeSrc, setCafeSrc] = useState<string | undefined>(brokenImage);
+  const [cafeFailed, setCafeFailed] = useState(false);
+  const bridgeDelay = useDelay();
+  const cafeDelay = useDelay();
+  useEffect(() => { bridgeDelay(() => setBridgeSrc(bridge.src), 2400); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const retry = () => { setCafeFailed(false); setCafeSrc(undefined); cafeDelay(() => setCafeSrc(cafe.src), 1200); };
   return (
     <Card theme="border" className="pac-card-fill">
       <Stack gap="md">
-        <Image src={failed ? brokenImage : src} alt={photo.alt} ratio="16:9" caption="Bridge at dusk · 50 × 40 cm print" />
-        {failed ? <InlineMessage theme="negative" title="The photo couldn’t load" action={{ label: "Try again", onClick: load }}>The description stays available to screen readers.</InlineMessage> : null}
-        <Stack direction="row" gap="xs" wrap>
-          <Button level="tertiary" size="sm" startIcon={<Icon name="icon-refresh-cw-01-line" decorative />} onClick={load}>Reload photo</Button>
-          <Button level="tertiary" size="sm" startIcon={<Icon name="icon-link-broken-01-line" decorative />} disabled={failed} onClick={() => setFailed(true)}>Break the link</Button>
-        </Stack>
+        <Heading level={4} textStyle="Heading/Subheading">Proofs for order #10428</Heading>
+        <div className="pac-proofs">
+          <Image src={bridgeSrc} alt={bridge.alt} ratio="4:3" caption="Bridge at dusk · 50 × 40 cm" />
+          <Image src={cafeSrc} alt={cafe.alt} ratio="4:3" caption="Café corner · 30 × 24 cm" onError={() => setCafeFailed(true)} />
+        </div>
+        {cafeFailed ? <InlineMessage theme="negative" title="“Café corner” couldn’t load" action={{ label: "Try again", onClick: retry }}>Check your connection, then try again.</InlineMessage> : null}
       </Stack>
     </Card>
   );
@@ -718,15 +789,14 @@ function ImageTableExample() {
     const order = sort.columnId === "name" ? a.name.localeCompare(b.name) : a.price - b.price;
     return sort.direction === "asc" ? order : -order;
   });
+  // A page's table sits straight on the page, no Card (usage rules §14); on a narrow screen it scrolls sideways.
   return (
-    <Card theme="border" spacing="small" className="pac-table-card">
-    <Table aria-label="Prints" rows={rows} getRowId={(row) => row.id} sort={sort} onSortChange={setSort}
+    <Table aria-label="Prints" className="pac-scroll-table" rows={rows} getRowId={(row) => row.id} sort={sort} onSortChange={setSort}
       columns={[
-        { id: "name", header: "Print", sortable: true, cell: (row) => <TableMedia media={<Thumbnail src={row.photo.src} alt="" size="sm" />} caption={row.size}>{row.name}</TableMedia> },
+        { id: "name", header: "Print", sortable: true, cell: (row) => <TableMedia media={<Thumbnail src={row.photo.src} alt="" size="sm" />} caption={row.size}><span className="pac-nowrap">{row.name}</span></TableMedia> },
         { id: "stock", header: "Stock", align: "right", cell: (row) => row.stock ? <TableText>{row.stock}</TableText> : <Badge size="small" theme="orange" background="subtle">Sold out</Badge> },
         { id: "price", header: "Price", align: "right", sortable: true, cell: (row) => <TableText>{money(row.price)}</TableText> },
       ]} />
-    </Card>
   );
 }
 
@@ -784,28 +854,35 @@ function InvoiceTable({ archiveNote = true }: { archiveNote?: boolean }) {
   return (
     <Stack gap="sm">
       {archiveNote && archived ? <InlineMessage theme="neutral" title={`${archived.id} archived`} action={{ label: "Undo", onClick: undo }} onClose={() => setArchived(null)} /> : null}
-      <Card theme="border" spacing="small" className="pac-table-card">
+      {/* A page's table sits straight on the page, no Card (usage rules §14). */}
       <Table aria-label="Invoices" rows={rows} getRowId={(row) => row.id}
         empty={<EmptyState illustration={false} title="No invoices" primaryAction={{ label: "Restore invoices", onClick: () => { setRows(invoicesInitial); setArchived(null); } }}>Archived invoices leave this list.</EmptyState>}
         columns={[
-          { id: "starred", header: <VisuallyHidden>Starred</VisuallyHidden>, icon: "icon-star-01-line", width: "64px", cell: (row) => {
+          { id: "starred", header: <VisuallyHidden>Starred</VisuallyHidden>, width: "64px", cell: (row) => {
             const on = starred.includes(row.id);
             return <IconButton appearance="flat" level="primary" size="sm" aria-label={`Star ${row.id}`} aria-pressed={on} icon={<Icon name={on ? "icon-star-01-solid" : "icon-star-01-line"} />} onClick={() => setStarred((list) => on ? list.filter((id) => id !== row.id) : [...list, row.id])} />;
           } },
           { id: "invoice", header: "Invoice", cell: (row) => <TableText bold caption={row.client}><span className="pac-nowrap">{row.id}</span></TableText> },
           { id: "amount", header: "Amount", align: "right", cell: (row) => <TableText>{money(row.amount)}</TableText> },
-          { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: (row) => <TableActions><IconButton appearance="flat" level="primary" size="sm" aria-label={`Archive ${row.id}`} icon={<Icon name="icon-archive-line" />} onClick={() => archive(row)} /></TableActions> },
+          { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: (row) => <TableActions><IconButton appearance="flat" level="primary" size="md" aria-label={`Archive ${row.id}`} icon={<Icon name="icon-archive-line" />} onClick={() => archive(row)} /></TableActions> },
         ]} />
-      </Card>
     </Stack>
   );
 }
+
+const sitePages: Record<string, string> = {
+  Overview: "12 orders to pack today, 3 prints low on stock and $1,284.00 in sales this week.",
+  Prints: "6 prints in the shop. Bridge at dusk is sold out: restock it before the weekend sale.",
+  Orders: "12 orders are waiting to ship; the oldest was placed on Monday morning.",
+  Customers: "248 customers, 18 of them new this month. 5 have an order on the way.",
+  Settings: "Store name, shipping zones and payment methods for Zen Prints.",
+};
 
 function SkipLinkSite({ skipRef }: { skipRef?: RefObject<HTMLElement | null> }) {
   const headingId = useId();
   const [page, setPage] = useState("Overview");
   const mainRef = useRef<HTMLElement>(null);
-  const pagesList = ["Overview", "Prints", "Orders", "Customers", "Settings"];
+  const pagesList = Object.keys(sitePages);
   return (
     <div className="pac-site">
       <VisuallyHidden as="a" href={`#${headingId}`} focusable ref={skipRef} onClick={(event) => { event.preventDefault(); mainRef.current?.focus(); }}>Skip to main content</VisuallyHidden>
@@ -819,7 +896,7 @@ function SkipLinkSite({ skipRef }: { skipRef?: RefObject<HTMLElement | null> }) 
       </header>
       <section ref={mainRef} className="pac-site__main" tabIndex={-1} aria-labelledby={headingId}>
         <Heading level={4} textStyle="Heading/Subheading" id={headingId}>{page}</Heading>
-        <Text tone="base">The skip link is the first stop for the Tab key: it jumps past the {plural(pagesList.length, "navigation link")} straight to this section.</Text>
+        <Text tone="base">{sitePages[page]}</Text>
       </section>
     </div>
   );
@@ -835,7 +912,7 @@ function VisuallyHiddenPlayground() {
     ? `import { Table, VisuallyHidden } from "@zen/design-system";
 
 <Table aria-label="Invoices" rows={invoices} getRowId={(row) => row.id} columns={[
-  { id: "starred", icon: "icon-star-01-line", header: <VisuallyHidden>Starred</VisuallyHidden>, cell: starToggle },
+  { id: "starred", header: <VisuallyHidden>Starred</VisuallyHidden>, cell: starToggle },
   { id: "invoice", header: "Invoice", cell: invoiceCell },
   { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: archiveButton },
 ]} />`
@@ -884,13 +961,7 @@ function VisuallyHiddenPlayground() {
 }
 
 function VhSkipLinkExample() {
-  const skipRef = useRef<HTMLElement | null>(null);
-  return (
-    <Stack gap="sm">
-      <SkipLinkSite skipRef={skipRef} />
-      <Button level="tertiary" size="sm" className="pac-stack-start" onClick={() => skipRef.current?.focus()}>Focus the skip link</Button>
-    </Stack>
-  );
+  return <SkipLinkSite />;
 }
 
 const articles = [
@@ -903,20 +974,25 @@ function VhReadMoreExample() {
   const [open, setOpen] = useState<string[]>([]);
   return (
     <div className="pac-articles">
-      {articles.map((article) => {
-        const expanded = open.includes(article.id);
-        return (
-          <Card key={article.id} as="article" theme="border" spacing="small">
-            <Stack gap="xs">
-              <Heading level={4} textStyle="Body/Base/Bold">{article.title}</Heading>
-              <Text textStyle="Body/Small/Regular" tone="base">{article.excerpt}{expanded ? article.more : null}</Text>
-              <Button level="tertiary" size="sm" className="pac-stack-start" aria-expanded={expanded} onClick={() => setOpen((list) => expanded ? list.filter((id) => id !== article.id) : [...list, article.id])}>
-                {expanded ? "Show less" : "Read more"}<VisuallyHidden> about {article.title}</VisuallyHidden>
-              </Button>
-            </Stack>
-          </Card>
-        );
-      })}
+      <div className="pac-articles__grid">
+        {articles.map((article) => {
+          const expanded = open.includes(article.id);
+          return (
+            <Card key={article.id} as="article" theme="border" spacing="small">
+              {/* Equal-height cards: the body fills the card, so every Read more lines up at the bottom. */}
+              <Stack gap="md" justify="between" className="pac-articles__body">
+                <Stack gap="xs">
+                  <Heading level={4} textStyle="Body/Base/Bold">{article.title}</Heading>
+                  <Text textStyle="Body/Small/Regular" tone="base">{article.excerpt}{expanded ? article.more : null}</Text>
+                </Stack>
+                <Button level="tertiary" size="sm" className="pac-stack-start" aria-expanded={expanded} onClick={() => setOpen((list) => expanded ? list.filter((id) => id !== article.id) : [...list, article.id])}>
+                  {expanded ? "Show less" : "Read more"}<VisuallyHidden> about {article.title}</VisuallyHidden>
+                </Button>
+              </Stack>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -933,9 +1009,39 @@ function VhStatusExample() {
           <IconButton appearance="main" level="tertiary" size="md" aria-label="Copy link" icon={<Icon name={copied ? "icon-check-line" : "icon-copy-line"} />} onClick={() => { copyText(url); flash(); }} />
         </div>
         <VisuallyHidden role="status">{copied ? "Link copied to the clipboard" : ""}</VisuallyHidden>
-        <Text textStyle="Body/Small/Regular" tone="light" aria-hidden="true">Screen readers hear: {copied ? "“Link copied to the clipboard”" : "nothing until the link is copied"}</Text>
       </Stack>
     </Card>
+  );
+}
+
+const inboxThreads = [
+  { id: "t1", from: "Ava Chen", initials: "AC", theme: "blue" as const, preview: "The windmill proof looks great, one note on the margin.", time: "9:41", unread: 2 },
+  { id: "t2", from: "Bao Nguyen", initials: "BN", theme: "green" as const, preview: "Shipping labels for Friday are ready.", time: "8:15", unread: 1 },
+  { id: "t3", from: "Chi Tran", initials: "CT", theme: "purple" as const, preview: "Thanks, the frame arrived safely!", time: "Yesterday", unread: 0 },
+  { id: "t4", from: "Duy Le", initials: "DL", theme: "orange" as const, preview: "Can we move the print sale to next week?", time: "Mon", unread: 0 },
+];
+
+/** On a phone a bare counter says "2" to a screen reader; hidden text gives it its meaning. Opening a thread reads it. */
+function VhUnreadPhoneExample() {
+  const [threads, setThreads] = useState(inboxThreads);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const unreadTotal = threads.reduce((sum, thread) => sum + thread.unread, 0);
+  return (
+    <PlatformPhone label="Inbox with unread counts" header={<TopNavigation type="compact" title="Inbox" />}>
+      <List aria-label={`Conversations, ${plural(unreadTotal, "unread message")}`}>
+        {threads.map((thread) => (
+          <ListItem key={thread.id} title={thread.from} caption={thread.preview} selected={openId === thread.id}
+            leading={<Avatar size="medium" theme={thread.theme} background="subtle" alt="">{thread.initials}</Avatar>}
+            onClick={() => { setOpenId(thread.id); setThreads((list) => list.map((entry) => (entry.id === thread.id ? { ...entry, unread: 0 } : entry))); }}
+            trailing={(
+              <Stack gap="2xs" align="end">
+                <Text as="span" textStyle="Caption/Regular" tone="light">{thread.time}</Text>
+                {thread.unread ? <><BadgeCounter size="small" theme="red" value={thread.unread} aria-hidden="true" /><VisuallyHidden>{plural(thread.unread, "unread message")}</VisuallyHidden></> : null}
+              </Stack>
+            )} />
+        ))}
+      </List>
+    </PlatformPhone>
   );
 }
 
@@ -953,7 +1059,7 @@ function VhHeadingExample() {
 
 /* ───────────── Pages and examples ───────────── */
 
-export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = {
+export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = keepOnHotUpdate(import.meta.hot, "pages", {
   "description-list": {
     label: "Description List",
     eyebrow: "Components / Description List",
@@ -965,7 +1071,7 @@ export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = {
     label: "Action Bar",
     eyebrow: "Components / Action Bar",
     title: "Action Bar",
-    description: "The footer bar for a screen’s main actions: Large full-width buttons with Primary on top on phones, Tertiary · Primary at the end on desktop. Sticky, fixed or static, on Surface with a Pale rule and safe-area padding.",
+    description: "The footer bar for a screen’s main actions. On phones: vertical, Large full-width buttons with Primary on top, or horizontal, two Large buttons side by side (Tertiary · Primary). On desktop: Tertiary · Primary at the end. Sticky, fixed or static, on Surface with a Pale rule and safe-area padding.",
     playground: ActionBarPlayground,
   },
   image: {
@@ -982,9 +1088,9 @@ export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = {
     description: "Content for screen readers only: names for icon-only table headers, context for repeated links, status announcements and skip links that appear on focus.",
     playground: VisuallyHiddenPlayground,
   },
-};
+});
 
-export const examples: ExampleMap = {
+export const examples: ExampleMap = keepOnHotUpdate(import.meta.hot, "examples", {
   "description-list": [
     { title: "Order summary", description: "An inline list with one emphasised total: Body/Base/Bold under a High rule. Try WELCOME10: the discount row gets its own remove action and the amounts stay in one column.", render: () => <DlOrderSummaryExample />, code: `<DescriptionList items={[
   { term: "Subtotal · 3 prints", description: "$134.00" },
@@ -1028,6 +1134,15 @@ export const examples: ExampleMap = {
     secondaryAction={{ label: "Save for later", onClick: toggleSaved }} />}>
   <PrintDetails print={print} />
 </PlatformPhone>` },
+    { title: "Filters on a phone", description: "Horizontal on a phone: Clear all · Show 6 prints side by side as two Large buttons, the count updating as filters change. Show applies them; the filter action in the header brings them back.", render: () => <AbPhoneFiltersExample />, code: `<PlatformPhone header={<TopNavigation type="compact" title="Filters" leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
+  footer={<ActionBar direction="horizontal"
+    secondaryAction={{ label: "Clear all", disabled: !count, onClick: clearAll }}
+    primaryAction={{ label: \`Show \${plural(matches.length, "print")}\`, disabled: !matches.length, onClick: apply }} />}>
+  <FormFieldset legend="Size" direction="row">
+    {sizes.map((size) => <Chip key={size} variant="normal" size="md" selected={draft.sizes.includes(size)} onClick={() => toggleSize(size)}>{size}</Chip>)}
+  </FormFieldset>
+  …
+</PlatformPhone>` },
     { title: "Edit page with a sticky bar", wide: true, description: "Horizontal on desktop: the status sits at the start, Undo changes · Save changes at the end. Save submits the form and is disabled only while there is nothing to save, and the status says why.", render: () => <AbEditPageExample />, code: `<form onSubmit={save}>
   …fields…
   <ActionBar direction="horizontal"
@@ -1054,9 +1169,10 @@ export const examples: ExampleMap = {
     </button></li>
   ))}
 </ul>` },
-    { title: "Loading and error", description: "The Skeleton holds the 16:9 frame until the photo arrives; a broken link shows the neutral placeholder (the alt stays its name) with a Negative Inline Message and Try again.", render: () => <ImageStatesExample />, code: `<Image src={src} alt="Suspension bridge at dusk" ratio="16:9" caption="Bridge at dusk · 50 × 40 cm print" />
-{failed ? <InlineMessage theme="negative" title="The photo couldn’t load" action={{ label: "Try again", onClick: reload }}>
-  The description stays available to screen readers.
+    { title: "Loading and error", description: "The Skeleton holds a proof’s 4:3 frame until the photo arrives; a file that fails keeps its frame with the neutral placeholder (its alt still names it), and a Negative Inline Message offers Try again.", render: () => <ImageStatesExample />, code: `<Image src={bridgeSrc} alt="Suspension bridge at dusk" ratio="4:3" caption="Bridge at dusk · 50 × 40 cm" />
+<Image src={cafeSrc} alt="Café table with a coffee" ratio="4:3" caption="Café corner · 30 × 24 cm" onError={() => setFailed(true)} />
+{failed ? <InlineMessage theme="negative" title="“Café corner” couldn’t load" action={{ label: "Try again", onClick: retry }}>
+  Check your connection, then try again.
 </InlineMessage> : null}` },
     { title: "Ratios and fit", description: "The same tall photo in every named ratio. Cover fills and crops; Contain shows the whole picture on Neutral/Pale bars.", render: () => <ImageRatiosExample />, code: `{["1:1", "4:3", "3:2", "16:9", "3:4"].map((ratio) => (
   <Image key={ratio} src={photo} alt="" ratio={ratio} fit={fit} caption={ratio} />
@@ -1074,11 +1190,11 @@ export const examples: ExampleMap = {
 </Card>` },
   ],
   "visually-hidden": [
-    { title: "Skip link", description: "The first Tab stop of the page: invisible until focused, then a Surface pill that jumps past the navigation. The button focuses it for mouse users.", render: () => <VhSkipLinkExample />, code: `<VisuallyHidden as="a" href="#main" focusable>Skip to main content</VisuallyHidden>
+    { title: "Skip link", description: "The first Tab stop of the page: invisible until the first Tab, then it appears as a Surface pill and jumps past the navigation to the main content.", render: () => <VhSkipLinkExample />, code: `<VisuallyHidden as="a" href="#main" focusable>Skip to main content</VisuallyHidden>
 <header>…navigation…</header>
 <main id="main" tabIndex={-1}>…</main>` },
     { title: "Icon-only table headers", description: "The star and actions columns show no header text, yet screen readers announce “Starred” and “Actions” for every cell. Archive a row, then Undo.", render: () => <InvoiceTable />, code: `columns={[
-  { id: "starred", icon: "icon-star-01-line", header: <VisuallyHidden>Starred</VisuallyHidden>, cell: starToggle },
+  { id: "starred", header: <VisuallyHidden>Starred</VisuallyHidden>, cell: starToggle },
   { id: "invoice", header: "Invoice", cell: invoiceCell },
   { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: archiveButton },
 ]}` },
@@ -1087,9 +1203,15 @@ export const examples: ExampleMap = {
 </Button>` },
     { title: "Announce a status", description: "The copy button only swaps its icon; a hidden role=\"status\" region, rendered empty from the start, says what happened.", render: () => <VhStatusExample />, code: `<IconButton aria-label="Copy link" icon={<Icon name={copied ? "icon-check-line" : "icon-copy-line"} />} onClick={copy} />
 <VisuallyHidden role="status">{copied ? "Link copied to the clipboard" : ""}</VisuallyHidden>` },
-    { title: "Hidden section heading", wide: true, description: "The layout makes the group obvious, but screen-reader users navigate by headings: a hidden h4 names the region (aria-labelledby).", render: () => <VhHeadingExample />, code: `<section aria-labelledby="sales-heading">
+    { title: "Unread counts on a phone", description: "A red counter alone reads as “2”; hidden text next to it says “2 unread messages”, and the list's name carries the total. Opening a thread clears its count.", render: () => <VhUnreadPhoneExample />, code: `<ListItem title="Ava Chen" caption={preview} onClick={open}
+  leading={<Avatar size="medium" theme="blue" background="subtle" alt="">AC</Avatar>}
+  trailing={<>
+    <BadgeCounter size="small" theme="red" value={2} aria-hidden="true" />
+    <VisuallyHidden>2 unread messages</VisuallyHidden>
+  </>} />` },
+    { title: "Hidden section heading", wide: true, description: "The layout makes the group obvious, but screen-reader users navigate by headings: a hidden heading at the section's level (h2 on a page, h4 inside this docs card) names the region through aria-labelledby.", render: () => <VhHeadingExample />, code: `<section aria-labelledby="sales-heading">
   <VisuallyHidden as="h2" id="sales-heading">Sales this week</VisuallyHidden>
   <MetricCard label="Orders" value="128" … />
 </section>` },
   ],
-};
+});

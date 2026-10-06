@@ -8,7 +8,7 @@ A surface that groups related content about one subject — a project, a stat, a
 
 ## Use it for
 - Grids of objects users scan and pick (projects, templates, plans).
-- KPI / stat tiles (Shadow or Flat).
+- KPI / stat tiles (Flat by default; Shadow beside a shadowed Sidebar).
 - A selectable option with rich content (Active marks the choice).
 - Framing a List or a group of settings (Border).
 
@@ -22,11 +22,11 @@ A surface that groups related content about one subject — a project, a stat, a
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Theme | `theme` | shadow (default) · flat · border · pale · semi-pale |
-| Surface | `surface` | default · alt — Surface/Default or Surface/Alt to suit the page Canvas; unset follows an inherited --zen-card-surface, else default |
+| Surface | `surface` | default · alt — Surface/Default or Surface/Alt to suit the page Canvas; on a Canvas/Alt page pass alt explicitly (only an explicit alt drops the Shadow theme's shadow); unset follows an inherited --zen-card-surface, else default |
 | Spacing | `spacing` | medium (Card-padding-medium, Radius 2XLarge) · small (Card-padding-small, Radius Large) |
 | Active | `selected` | Surface + 2px Card/Border/Active (active is the deprecated alias) |
 | Clickable | `onClick · aria-label` | role=button, Enter/Space; Border steps up to Neutral/Subtle |
-| Sub-Action | `subAction` | { label, icon, onClick } or a node — top-right Small Flat icon button |
+| Sub-Action | `subAction` | { label, icon, onClick } or a node — Small Flat Secondary ⋮ (icon-dots-vertical-line) over the top-right corner; the content keeps the full width |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/card.json`.
@@ -44,10 +44,10 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "children" | "onClick">`.
 | `spacing` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large). Short (sm, md…) or Figma (small, medium…) spelling. |
 | `selected` | `boolean` | — | Figma Active=Yes: the selected card — Surface fill with a 2px Card/Border/Active stroke. |
 | `active` | `boolean` | — | **Deprecated:** Use selected. Figma Active=Yes (the selected card). |
-| `surface` | `"default" \| "alt"` | — | Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface (a page scope can set it once), else Surface/Default. Pale / Semi-Pale keep their own fill. |
+| `surface` | `"default" \| "alt"` | — | Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface (a page scope can set it once), else Surface/Default. Pale / Semi-Pale keep their own fill. With theme="shadow", `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018) on Surface/Alt; an inherited alt surface cannot do this, so pass surface="alt" explicitly on an alt page. |
 | `onClick` | `(event: MouseEvent<HTMLElement> \| KeyboardEvent<HTMLElement>) => void` | — | Makes the whole card one action (role=button, Enter/Space). Keep other controls out of clickable cards. |
 | `aria-label` | `string` | — | Accessible name for a clickable card when its content does not start with a clear title. |
-| `subAction` | `CardSubAction \| ReactNode` | — | Figma Sub-Action: a Small Flat icon button pinned to the top-right corner (default ⋯ "More actions"). |
+| `subAction` | `CardSubAction \| ReactNode` | — | Figma Sub-Action: an absolute layer over the top-right corner holding Button/Icon-Flat Small Secondary (default ⋮). It takes no room: the Content slot keeps the full width. A node (e.g. a Menu) should use the same trigger. |
 | `as` | `"div" \| "article" \| "section" \| "li"` | `"div"` |  |
 | `className` | `string` | — |  |
 
@@ -65,12 +65,15 @@ interface CardSubAction { label: string; icon?: IconName | ReactElement; onClick
 | Tab | Reach the Sub-Action |
 
 ## ✅ Do
-- Use one theme per grid; Shadow on the canvas, Border inside another surface, Pale/Semi-Pale on imagery.
+- Use one theme per grid. With nothing else deciding (examples, a page with no Sidebar), Flat on Canvas/Default: no border, no shadow (usage rules §16). Shadow when the screen's Sidebar casts one, Border on a white page, inside another surface or on a clickable card, Pale/Semi-Pale on imagery.
+- Match the screen's elevation to its Sidebar: the default Sidebar (Surface + shadow) on the grey Canvas takes Shadow cards with no border; a white Canvas takes a Surface-alt or Flat Sidebar (optionally with divider) and Border cards. Never a shadowed Sidebar on a white Canvas.
+- Title a widget card with Heading/Subheading (heading level from the outline); page sections outside cards use Heading/4.
 - Make the whole card clickable when it opens one thing, and name it with aria-label when the content doesn't start with a title.
 - Use Active for the selected card in a single-choice grid, together with aria-pressed or a radio inside.
 - Put secondary card actions in the Sub-Action menu.
-- Pick surface from the page Canvas: default on Canvas/Default, alt on a white Canvas/Alt page (or set --zen-card-surface once on the page scope).
-- Pricing plans: Border cards in an auto-fit grid; Active marks the current plan, an Accent Badge marks the recommended one, and each card ends with one md CTA pinned to the bottom whose label says what happens (Upgrade to Pro · Switch · Manage plan).
+- Card shadow = Box effectStyle="Shadow/Bottom/Level-1": a static elevated panel may be a Box with that style; a clickable or selectable panel is a Card.
+- Pick surface from the page Canvas: default on Canvas/Default, surface="alt" passed explicitly on a white Canvas/Alt page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Flat cards only, which is what a Canvas/Alt page takes anyway.
+- Pricing plans: Flat cards in an auto-fit grid; Active marks the current plan, an Accent Badge marks the recommended one, and each card ends with one md CTA pinned to the bottom whose label says what happens (Upgrade to Pro · Switch · Manage plan).
 
 ## ❌ Don't
 - Don't put buttons, links or inputs inside a clickable card (harness: card/clickable-no-nested-controls).

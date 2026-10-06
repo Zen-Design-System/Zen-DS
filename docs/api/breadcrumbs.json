@@ -39,7 +39,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "Collapse middle items behind an ellipsis button when there are more than this many.",
+          "description": "Collapse middle items behind an ellipsis button when there are more than this many. Activating the ellipsis\n shows them all and moves focus to the first crumb it revealed.",
           "deprecated": null
         },
         {

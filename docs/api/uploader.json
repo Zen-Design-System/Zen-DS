@@ -6,7 +6,7 @@
     {
       "name": "FileUpload",
       "file": "src/components/Uploader/Uploader.tsx",
-      "description": "Figma Uploader/File-Upload (1581:22708): Label → Drag & Drop field (Primitives/Uploader/DragDrop-Field, Extended) or a\n“Choose File” button → Help-Text → File-Item list (gap XSmall). The drop zone is a real button (Enter/Space open the\npicker) that also accepts dropped files; Dragover shows the 2px dashed Focus/Neutral/Subtle stroke.",
+      "description": "Figma Uploader/File-Upload (1581:22708): Label → Drag & Drop field (Primitives/Uploader/DragDrop-Field, Extended) or a\n“Choose File” button → Help-Text → File-Item list (gap XSmall). The drop zone is a real button (Enter/Space open the\npicker) that also accepts dropped files; Dragover shows the 2px dashed Focus/Neutral/Subtle stroke.\nRemoving a file keeps focus in the field: the next file's Remove button, else the previous one's, else the upload\nbutton (also when a single-file field shows its drop zone or Choose File button again). Apps need no refocus code.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -151,7 +151,7 @@
     {
       "name": "UploaderFileItem",
       "file": "src/components/Uploader/Uploader.tsx",
-      "description": "Figma Primitives/Uploader/File-Item (1581:22739): padding Medium, gap Small, Corner-Radius/Large.\nName Body/Base/Bold · details Caption/Regular Neutral/Light (gap XSmall, 4px dot) · 8px Neutral progress while uploading.\nAlert switches to Negative/Subtle with the error as help text. Actions are 16px icons 12px apart (24px hit areas).",
+      "description": "Figma Primitives/Uploader/File-Item (1581:22739): padding Medium, gap Small, Corner-Radius/Large.\nName Body/Base/Bold · details Caption/Regular Neutral/Light (gap XSmall, 4px dot) · 8px Neutral progress while uploading.\nAlert switches to Negative/Subtle with the error as help text. Actions are 16px icons 12px apart (24px hit areas).\nWhen the item is removed while focus is in it (or right after its Remove button), focus moves to the next item's\nRemove button, else the previous item's, else the field's upload button, so keyboard users stay in the list.",
       "deprecated": null,
       "extends": null,
       "props": [

@@ -6,7 +6,7 @@
     {
       "name": "Avatar",
       "file": "src/components/Avatar/Avatar.tsx",
-      "description": "",
+      "description": "Figma Avatar/Single (Medium 223:8784 … 3XLarge 223:8714): photo or initials on the theme fill, optional status dot.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -20,7 +20,7 @@
         },
         {
           "name": "theme",
-          "type": "\"photo\" | \"accent\" | \"blue\" | \"brown\" | \"crimson\" | \"cyan\" | \"green\" | \"indigo\" | \"neutral\" | \"orange\" | \"pink\" | \"plum\" | \"purple\" | \"red\" | \"teal\" | \"violet\" | \"yellow\"",
+          "type": "\"photo\" | \"accent\" | \"blue\" | \"brown\" | \"crimson\" | \"cyan\" | \"green\" | \"indigo\" | \"neutral\" | \"orange\" | \"pink\" | \"plum\" | \"purple\" | \"red\" | \"teal\" | \"violet\" | \"yellow\" | \"sky\" | \"mint\" | \"bronze\" | \"golden\"",
           "required": false,
           "default": "\"neutral\"",
           "description": "",
@@ -71,7 +71,7 @@
           "type": "string",
           "required": false,
           "default": "\"\"",
-          "description": "",
+          "description": "The person's name. With `src` it is the photo's alt text; without it the initials avatar is named by it (`role=\"img\"`,\n`aria-label`), so screen readers say \"Ava Chen\", not \"AC\" (an AvatarStack of initials reads names). `alt=\"\"` makes the\navatar decorative: use it only when the name is shown next to it.",
           "deprecated": null
         },
         {

@@ -45,6 +45,8 @@
 .context-menu { background: var(--zen-color-background-popover-default); }
 .theme-preview { --preview-bg: var(--zen-color-background-canvas-flat); }
 .drawer { --zen-list-inset: 0px; }
+/* A container keyed on its rows pads itself, not the rows (list-item/inset-not-padding ignores :has()). */
+.drawer:has(.zen-list-item[data-interactive="true"]) { padding-block: var(--zen-spacing-padding-small, 12px); }
 /* §9: tinted fills keep rings and inset effects, drop shadows only on non-tinted surfaces or behind a -shadow-off guard. */
 .filters-panel { background: var(--zen-color-background-neutral-pale-default); box-shadow: 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
 .field-like { background: var(--zen-color-background-neutral-pale-default); box-shadow: inset 0 0 1px 0 var(--zen-color-shadow-neutral-base); }

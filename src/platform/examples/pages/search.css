@@ -1,0 +1,33 @@
+/* Search examples (src/platform/examples/pages/search.tsx). Tokens only; class prefix .px-search-. */
+
+/* ListBoxes in the two-column grid keep a readable width and sit in the middle of the stage. */
+.px-search-card { width: 100%; max-width: 440px; margin-inline: auto; }
+
+/* A long result list scrolls inside its ListBox instead of stretching the grid row: five whole rows (Avatar Medium plus
+   the row's own Padding/Small above and below, Spacing/Gap/3XSmall between them), framed by Pale rules that run to the
+   box edge so rows clearly run on under them. The scroller spans the ListBox body's side padding (Card-padding-medium)
+   and pads it back, so the rows line up with the header and a row's fill (12px past it sideways) stays inside;
+   max-height counts the rows only. The bottom rule keeps a Corner-Radius/2XLarge (24px) clearance from the box's bottom
+   edge (the body's own List-Container-Vertical-Padding plus the rest), so its ends never cross the rounded corners. */
+.px-search-scroll {
+  box-sizing: content-box;
+  max-height: calc(5 * (var(--zen-image-size-medium, 40px) + 2 * var(--zen-spacing-padding-small, 12px)) + 4 * var(--zen-spacing-gap-3-xsmall, 2px));
+  overflow-y: auto;
+  margin-inline: calc(-1 * var(--zen-card-padding-medium, 24px));
+  margin-block-end: calc(var(--zen-corner-radius-2-xlarge, 24px) - var(--zen-list-container-vertical-padding, 12px));
+  padding-inline: var(--zen-card-padding-medium, 24px);
+  border-block: 1px solid var(--zen-color-border-neutral-pale-default);
+}
+
+/* Table toolbar: the search grows up to 320px and the filter chips wrap beside or under it. */
+.px-search-toolbar { min-width: 0; flex: 1 1 auto; }
+.px-search-toolbar-field { flex: 1 1 240px; min-width: 0; max-width: 320px; }
+
+/* Split view: list pane and detail pane on one surface, divided by a Pale rule. It follows the card's own width,
+   so the panes stack (rule under the list) when the card is narrow. */
+.px-search-split { container-type: inline-size; }
+.px-search-pane { border-inline-end: 1px solid var(--zen-color-border-neutral-pale-default); }
+@container (max-width: 640px) {
+  .px-search-split .zen-grid.px-search-split-grid { grid-template-columns: minmax(0, 1fr); }
+  .px-search-split .px-search-pane { border-inline-end: 0; border-block-end: 1px solid var(--zen-color-border-neutral-pale-default); }
+}

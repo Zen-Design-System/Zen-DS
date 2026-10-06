@@ -86,6 +86,24 @@
           "Tablet": "{Corner-Radius/Giant}",
           "Mobile": "{Corner-Radius/Giant}"
         }
+      },
+      {
+        "name": "Interactive-List-Item-Radius",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Desktop": "{Corner-Radius/Base}",
+          "Tablet": "{Corner-Radius/Large}",
+          "Mobile": "{Corner-Radius/Large}"
+        }
+      },
+      {
+        "name": "List-Container-Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Desktop": "{Spacing/Padding/Small}",
+          "Tablet": "{Spacing/Padding/XSmall}",
+          "Mobile": "{Spacing/Padding/XSmall}"
+        }
       }
     ]
   }

@@ -1,6 +1,29 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "zen-dev-5174", "runtimeExecutable": "npx", "runtimeArgs": ["vite", "--port", "5174", "--strictPort"], "port": 5174, "autoPort": false }
+    {
+      "name": "zen-dev-5174",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5174",
+        "--strictPort"
+      ],
+      "port": 5174,
+      "autoPort": false
+    },
+    {
+      "name": "zen-studio-5180",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--config",
+        "vite.studio.config.ts"
+      ],
+      "port": 5180,
+      "autoPort": false,
+      "url": "http://127.0.0.1:5180"
+    }
   ]
 }

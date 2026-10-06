@@ -1,6 +1,15 @@
 /* Layout page (platform only): the playground preview box. */
 .pal-preview { justify-content: stretch; }
 .pal-preview > .pal-stage { width: 100%; }
+/* The Box specimen keeps a panel's width instead of stretching across the well. */
+.pal-preview > .pal-box { width: min(100%, 25rem); margin-inline: auto; }
+/* The page the Container sits in: a dashed Subtle frame (dashed lines are at least Subtle). */
 .pal-container-frame { width: 100%; padding-block: var(--zen-spacing-padding-medium, 16px); border: 1px dashed var(--zen-color-border-neutral-subtle-default); border-radius: var(--zen-corner-radius-large, 16px); }
+/* Settings rows: Toggles fill their box so the switches line up at the right edge. */
+.pal-toggles > .zen-toggle { width: 100%; }
 /* Text page (platform only). */
 .pat-stage { width: min(100%, 560px); }
+
+/* A page layout shown as a desktop screen bleeds to the card's edges like the templates; the page keeps its own
+   Margin-Comfortable, as an app's main area does. */
+.pe-card[data-screen="true"] .pe-card__preview > .pal-page { padding: var(--zen-margin-comfortable, 24px); }

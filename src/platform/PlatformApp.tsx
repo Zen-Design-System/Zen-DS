@@ -24,7 +24,7 @@ const cards: Array<{ title: string; description: string; icon: IconName; page?: 
 ];
 
 /** Component pages shown in the sidebar (sorted A–Z at render time). */
-const componentNavigation: Array<{ id: PlatformPage; label: string }> = [
+export const componentNavigation: Array<{ id: PlatformPage; label: string }> = [
   { id: "color-selector", label: "Color Selector" },
   { id: "metric", label: "Metric Widget" },
   { id: "rating", label: "Rating" },
@@ -125,7 +125,7 @@ function filterWith(sections: SidebarSection[], matches: (label: string) => bool
     .filter((section) => section.items.length);
 }
 
-function OverviewPage({ onCardClick }: { onCardClick: (page: PlatformPage) => void }) {
+export function OverviewPage({ onCardClick }: { onCardClick: (page: PlatformPage) => void }) {
   return (
     <div className="official-overview">
       <section className="official-cover" aria-labelledby="official-cover-title">
@@ -166,7 +166,7 @@ function OverviewPage({ onCardClick }: { onCardClick: (page: PlatformPage) => vo
   );
 }
 
-const pageLabels: Record<PlatformPage, string> = {
+export const pageLabels: Record<PlatformPage, string> = {
   overviews: "Overviews",
   installation: "Installation",
   "design-tokens": "Design Tokens",
@@ -246,7 +246,8 @@ export function PlatformApp() {
   const [activePage, setActivePage] = useState<PlatformPage>(getInitialPage);
   const [activeCollection, setActiveCollection] = useState<string | null>(getInitialCollection);
   const [navOpen, setNavOpen] = useState(false);
-  const [settings, setSettings] = useState<PlatformShellSettings>({ theme: "light", density: "compact", componentTheme: "neutral-s1", typography: "dashboard", radius: "rounded", emphasis: "medium" });
+  // `?contrast=high` opens the docs in Zen-High-Contrast (the QA scripts' --contrast=high).
+  const [settings, setSettings] = useState<PlatformShellSettings>(() => ({ theme: "light", density: "compact", componentTheme: "neutral-s1", typography: "dashboard", radius: "rounded", emphasis: "medium", contrast: typeof window !== "undefined" && new URLSearchParams(window.location.search).get("contrast") === "high" ? "high" : "standard" }));
   const [navQuery, setNavQuery] = useState("");
   const sidebarSections = useMemo(() => getSidebarSections(activePage, activeCollection), [activePage, activeCollection]);
   const visibleSections = useMemo(() => filterSidebarSections(sidebarSections, navQuery), [sidebarSections, navQuery]);
@@ -314,7 +315,7 @@ export function PlatformApp() {
     <ZenPortalProvider container={portalRoot}>
     {/* The shell is Typography Configuration Dashboard plus the platform-only Zen-Platform
         overrides (platform.css); component previews apply the chip's mode themselves. */}
-    <main className="official-platform" aria-label="Zen Design System platform" data-nav-open={navOpen ? "true" : undefined} data-brand="zen" data-theme={settings.theme} data-component-theme={settings.componentTheme} data-density={settings.density} data-radius={settings.radius} data-emphasis={settings.emphasis} data-typography="dashboard">
+    <main className="official-platform" aria-label="Zen Design System platform" data-nav-open={navOpen ? "true" : undefined} data-brand="zen" data-theme={settings.theme} data-component-theme={settings.componentTheme} data-density={settings.density} data-radius={settings.radius} data-emphasis={settings.emphasis} data-contrast={settings.contrast} data-typography="dashboard">
       <div id="official-navigation" className="official-nav">
       <Sidebar
         className="official-sidebar"

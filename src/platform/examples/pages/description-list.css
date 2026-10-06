@@ -1,0 +1,44 @@
+/* Description List examples (src/platform/examples/pages/description-list.tsx). Tokens only. */
+
+/* A value that is still loading: a one-line Skeleton about as wide as a short value, on the value's own line. */
+.px-description-list-skeleton { display: inline-flex; width: 10ch; vertical-align: middle; }
+/* The Status value while loading: a pill as tall as the Badge (Badge/Size/Medium). The Badge's baseline is the bottom
+   of its 16px leading dot, centred in the pill; an empty item of the same height gives the pill that baseline, so the
+   term beside it stays put when the Badge arrives. */
+.zen-skeleton-shape.px-description-list-badge-skeleton {
+  display: inline-flex;
+  width: 10ch;
+  height: var(--zen-badge-size-medium, 28px);
+  align-items: center;
+}
+.zen-skeleton-shape.px-description-list-badge-skeleton::before { height: var(--zen-element-size-popular-small, 16px); content: ""; }
+
+/* Load details in a panel: a project page and its docked Standard panel side by side, on the app's Canvas. The page sets
+   the height; the panel keeps the full height beside it (its own Pale left edge separates them). Full screen fills the
+   viewport (the platform stretches the preview's child). */
+.px-description-list-frame { display: flex; background: var(--zen-color-background-canvas-default); }
+.px-description-list-frame__page { min-width: 0; flex: 1 1 auto; }
+/* The docked panel stretches to the page's height (its own 100% has no fixed height to resolve against here). */
+.px-description-list-frame > .zen-side-panel.px-description-list-panel { height: auto; align-self: stretch; }
+/* The panel title takes focus when Try again goes away (tabIndex -1): its ring is drawn around the text with room. */
+.px-description-list-focus-target { position: relative; }
+.px-description-list-focus-target:focus { outline: none; }
+.px-description-list-focus-target:focus-visible::after {
+  position: absolute;
+  inset: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)) calc(-1 * var(--zen-spacing-padding-xsmall, 8px));
+  border-radius: var(--zen-corner-radius-small, 8px);
+  box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #ff66d4);
+  content: "";
+  pointer-events: none;
+}
+
+/* A long value (the mailing address) keeps the line breaks typed into its Text Area. */
+.px-description-list-lines { white-space: pre-line; }
+
+/* A Primary button in a column keeps its label width. */
+.px-description-list-start { align-self: flex-start; }
+
+/* The task and its details split on a desktop page; on a phone Grid's `columns.mobile` stacks them. Between the two (a
+   tablet, a narrow docs window) the card can still be too narrow for a side column, so it also reads its own width. */
+.px-description-list-scope { container-type: inline-size; }
+@container (max-width: 640px) { .zen-grid.px-description-list-split { grid-template-columns: minmax(0, 1fr); } }

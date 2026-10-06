@@ -1,0 +1,4 @@
+/* Link examples (src/platform/examples/pages/link.tsx). Tokens only; class prefix .px-link-. */
+
+/* The reading list's search takes a readable width and lets the Topic chip sit beside it or wrap under it. */
+.px-link-search { flex: 1 1 220px; max-width: 320px; }

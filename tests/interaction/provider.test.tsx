@@ -18,6 +18,30 @@ describe("ZenProvider", () => {
     await expect.element(root).toHaveAttribute("lang", "vi");
   });
 
+  it("contrast high re-resolves the colour tokens; a standard scope inside it puts the Zen values back", async () => {
+    // The Checkbox border (Border/Neutral/Subtle, Neutral alpha 5) composited on white: 3:1 and up only in high contrast.
+    const borderContrast = (element: Element) => {
+      const hex = getComputedStyle(element).getPropertyValue("--zen-checkbox-border-default").trim().replace("#", "");
+      const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16));
+      const a = hex.length === 8 ? parseInt(hex.slice(6, 8), 16) / 255 : 1;
+      const channel = (c: number) => { const v = (c * a + 255 * (1 - a)) / 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+      const luminance = 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+      return 1.05 / (luminance + 0.05);
+    };
+    const screen = await render(
+      <ZenProvider contrast="high" syncDocument={false} data-testid="high">
+        <span data-testid="in-high" />
+        <ZenProvider contrast="standard" data-testid="standard"><span data-testid="in-standard" /></ZenProvider>
+      </ZenProvider>,
+    );
+    await expect.element(screen.getByTestId("high")).toHaveAttribute("data-contrast", "high");
+    // A scope with no theme of its own still declares one, so the semantic colours re-resolve there.
+    await expect.element(screen.getByTestId("high")).toHaveAttribute("data-theme", "light");
+    await expect.element(screen.getByTestId("standard")).toHaveAttribute("data-contrast", "standard");
+    expect(borderContrast(screen.getByTestId("in-high").element())).toBeGreaterThanOrEqual(3);
+    expect(borderContrast(screen.getByTestId("in-standard").element())).toBeLessThan(3);
+  });
+
   it("gives components English labels by default and Vietnamese under locale vi", async () => {
     const screen = await render(
       <>
@@ -47,7 +71,7 @@ describe("ZenProvider", () => {
         <ZenProvider locale="vi"><div data-testid="vi"><Pagination theme="inline" page={1} pageSize={50} total={1234} /></div></ZenProvider>
       </>,
     );
-    await expect.element(screen.getByTestId("en").getByText("1 - 50 of 1234 results")).toBeVisible();
-    await expect.element(screen.getByTestId("vi").getByText("1 - 50 trên 1234 kết quả")).toBeVisible();
+    await expect.element(screen.getByTestId("en").getByText("1–50 of 1,234 results")).toBeVisible();
+    await expect.element(screen.getByTestId("vi").getByText("1–50 trên 1.234 kết quả")).toBeVisible();
   });
 });

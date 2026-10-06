@@ -6,7 +6,7 @@
     {
       "name": "Accordion",
       "file": "src/components/Accordion/Accordion.tsx",
-      "description": "Figma Accordion/Text (239:16847): Size XLarge/Large/Medium × Theme Divider/Box × Expanded.\nThe whole header row is the toggle button, wrapped in an `h{headingLevel}` so the outline lists every section;\nthe chevron turns 180° when expanded and the panel height animates open (disabled for reduced motion).",
+      "description": "Figma Accordion/Text (239:16847): Size XLarge/Large/Medium × Theme Divider/Box × Expanded.\nThe whole header row is the toggle button, wrapped in an `h{headingLevel}` so the outline lists every section;\nthe chevron turns 180° when expanded and the panel height animates open (disabled for reduced motion).\nTheme=Divider: the root keeps Figma's block padding and a hit layer on the trigger covers it (open: down to the\ncontent only), so a press anywhere on the header row toggles, as in Box; the layout and focus ring are unchanged.\nTheme=Box: the trigger covers the whole box header, not just the title line. The box padding (Padding/Medium,\nXLarge Padding/XLarge) splits into a box inset of padding − header gap and a trigger padding of the header gap, so the\nlayout matches Figma; the trigger radius is box radius − inset (concentric corners), and the focus ring sits inside it.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -47,7 +47,15 @@
           "type": "\"divider\" | \"box\"",
           "required": false,
           "default": "\"divider\"",
-          "description": "Divider: bottom Border/Neutral/Subtle rule; Box: Support/Neutral/Pale surface with radius.",
+          "description": "Divider: bottom Border/Neutral/Subtle rule; the whole header row, its block padding included, is the toggle. Box:\nSupport/Neutral/Pale surface with radius (Corner-Radius/Large, XLarge 2XLarge); the whole box header is the toggle,\nand its focus ring is concentric with the box corner.",
+          "deprecated": null
+        },
+        {
+          "name": "contentWidth",
+          "type": "\"title\" | \"full\"",
+          "required": false,
+          "default": "\"title\"",
+          "description": "Where the content column ends. title (default, Figma): at the end of the title, before the chevron column, which keeps\ntext lines short. full: under the chevron too, to the box padding (Box) or the row's end (Divider), for rows with\nend-aligned values (a receipt, specs, a DescriptionList or a List with trailing values), so the values line up with\nthe edge instead of stopping before an empty column. Figma Content Width=Title|Full (added 2026-10-03).",
           "deprecated": null
         },
         {

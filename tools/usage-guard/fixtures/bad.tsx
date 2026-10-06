@@ -11,7 +11,7 @@ export const Bad = () => <>
   {/* expect: icon-button/needs-name */}
   <IconButton onClick={act} level="tertiary" icon={<Icon name="icon-plus-line" />} />
   {/* expect: input/no-disabled */}
-  <InputField label="Name" disabled />
+  <AutocompleteField label="Tags" options={tags} disabled />
   {/* expect: input/needs-label */}
   <SelectField options={[]} />
   {/* expect: search/needs-name */}
@@ -28,6 +28,10 @@ export const Bad = () => <>
   <BadgeCounter value={124} />
   {/* expect: avatar/needs-alt */}
   <Avatar theme="photo" src={url} />
+  {/* expect: avatar/solid-initials-contrast */}
+  <Avatar theme="green" alt="Ava Chen">AC</Avatar>
+  {/* expect: avatar/solid-initials-contrast */}
+  <Avatar theme="cyan" background="solid" alt="Minh Tran" />
   {/* expect: tooltip/focusable-trigger */}
   <Tooltip content="Help"><span>?</span></Tooltip>
   {/* expect: tooltip/short */}
@@ -170,6 +174,10 @@ export const Bad = () => <>
   <SidePanel open={open} onOpenChange={setOpen} title="Delete project" primaryAction={{ label: "Delete project" }} />
   {/* expect: button/flat-level */}
   <IconButton onClick={act} appearance="flat" level="tertiary" size="sm" aria-label="Close" icon={<Icon name="icon-x-small-line" />} />
+  {/* expect: flag/unknown-name */}
+  <Flag name="Viet Nam" />
+  {/* expect: flag/no-emoji-flag */}
+  <TableMedia media={<DockIcon theme="emoji" emoji="🇻🇳" size="xs" />}>Vietnam</TableMedia>
   {/* expect: file-icon/not-an-action */}
   <IconButton onClick={act} appearance="flat" level="primary" aria-label="Download" icon={<FileIcon format="pdf" />} />
   {/* expect: button/small-full-width  expect: button/compact-size-special */}
@@ -188,8 +196,16 @@ export const Bad = () => <>
   {/* expect: table/title-heading-4 */}
   <Heading level={2} textStyle="Heading/Subheading">Invoices</Heading>
   <Table aria-label="Invoices" columns={[]} rows={[]} getRowId={(r) => r.id} />
-  {/* expect: top-navigation/max-two-trailing */}
-  <TopNavigation title="Files" trailing={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, { icon: "icon-trash-line", label: "Delete", onClick: remove }]} />
+  {/* A widget Card titles its table with the widget title: Heading/Subheading, not the page-section Heading/4. */}
+  <Card>
+    {/* expect: table/title-heading-4 */}
+    <Heading level={2} textStyle="Heading/4">Recent claims</Heading>
+    <Table aria-label="Recent claims" columns={[]} rows={[]} getRowId={(r) => r.id} />
+  </Card>
+  {/* expect: top-navigation/max-three-trailing */}
+  <TopNavigation title="Files" trailing={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, { icon: "icon-star-01-line", label: "Favourite", onClick: favourite }, { icon: "icon-trash-line", label: "Delete", onClick: remove }]} />
+  {/* expect: top-navigation/max-three-trailing */}
+  <TopNavigation title="Files" largeTitle="Files" largeTitleAction={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, { icon: "icon-star-01-line", label: "Favourite", onClick: favourite }, { icon: "icon-trash-line", label: "Delete", onClick: remove }]} />
   {/* expect: bottom-navigation/destinations */}
   <BottomNavigation value="a" onValueChange={go} items={[{ id: "a", label: "Home", icon: "icon-home-smile-line" }, { id: "b", label: "Me", icon: "icon-user-line" }]} />
   {/* expect: bottom-sheet/action-needs-items */}
@@ -230,8 +246,8 @@ export const Bad = () => <>
   <PopoverBulkAction><PopoverBulkActionGroup><IconButton onClick={act} aria-label="Undo" icon={undo} /></PopoverBulkActionGroup></PopoverBulkAction>
   {/* expect: top-navigation/search-folds-to-action */}
   <TopNavigation title="Inbox" largeTitle="Inbox" collapsed={collapsed} controlBar={<Search placeholder="Search messages" />} />
-  {/* expect: top-navigation/max-two-trailing */}
-  <TopNavigation title="Inbox" collapsed={collapsed} controlBar={<Search placeholder="Search messages" />} searchAction={{ onClick: openSearch }} trailing={[{ icon: "icon-edit-02-line", label: "New message", onClick: compose }, { icon: "icon-dots-horizontal-line", label: "More", onClick: openMore }]} />
+  {/* expect: top-navigation/max-three-trailing */}
+  <TopNavigation title="Inbox" collapsed={collapsed} controlBar={<Search placeholder="Search messages" />} searchAction={{ onClick: openSearch }} trailing={[{ icon: "icon-edit-02-line", label: "New message", onClick: compose }, { icon: "icon-star-01-line", label: "Starred", onClick: openStarred }, { icon: "icon-dots-horizontal-line", label: "More", onClick: openMore }]} />
   {/* expect: chat/hold-delete-destructive */}
   <ChatMessage side="you" holdActions={[{ id: "copy", label: "Copy", icon: "icon-copy-solid" }, { id: "delete", label: "Delete", icon: "icon-trash-solid" }]}>Hi</ChatMessage>
   {/* expect: icon-button/tooltip */}
@@ -256,6 +272,10 @@ export const Bad = () => <>
   <ActionBar><Button level="tertiary" size="lg" onClick={save}>Save for later</Button><Button level="primary" size="lg" onClick={add}>Add to cart</Button></ActionBar>
   {/* expect: action-bar/full-width-size */}
   <ActionBar><Button level="primary" size="sm" onClick={add}>Add to cart</Button></ActionBar>
+  {/* expect: mobile/full-size-controls */}
+  <PlatformPhone label="Settings"><Toggle label="Sync over Wi-Fi only" checked={wifi} onCheckedChange={setWifi} /></PlatformPhone>
+  {/* expect: mobile/full-size-controls */}
+  <BottomSheet open={open} onOpenChange={setOpen} title="Filters"><InputField label="Name" size="sm" value={name} onValueChange={setName} /></BottomSheet>
   {/* expect: visually-hidden/focusable-shows */}
   <VisuallyHidden as="a" href="#main">Skip to main content</VisuallyHidden>
   {/* expect: heading/h1-is-heading-1 */}
@@ -312,4 +332,41 @@ export const Bad = () => <>
   <BottomSheet open={open} onOpenChange={setOpen} type="action" title="Create" items={createItems} />
   {/* expect: interaction/action-without-handler */}
   <Breadcrumbs items={[{ id: "settings", label: "Settings" }, { id: "billing", label: "Billing" }]} />
+  {/* Position, effect styles and per-corner radius (spec 2026-10-03 §3.6). */}
+  {/* expect: layout/constraint-needs-absolute */}
+  <Box constraintX="right" insetRight="sm">Saved</Box>
+  {/* expect: layout/inset-not-read */}
+  <Box position="absolute" insetRight="sm">Close</Box>
+  {/* expect: layout/absolute-fill */}
+  <Stack position="absolute" constraintY="bottom" width="fill">Caption</Stack>
+  {/* expect: layout/stretch-ignores-size */}
+  <Box position="absolute" constraintX="left-right" width={320}>Caption bar</Box>
+  {/* expect: layout/absolute-align-self */}
+  <Box position="absolute" alignSelf="end">Scrim</Box>
+  <figure>
+    {/* expect: layout/absolute-parent */}
+    <Box position="absolute" constraintX="right">Zoom</Box>
+  </figure>
+  {/* expect: box/effect-needs-surface */}
+  <Box surface="pale" effectStyle="Shadow/Bottom/Level-1" padding="md">Tinted well</Box>
+  {/* expect: box/effect-needs-surface */}
+  <Box effectStyle="Shadow/Top/Level-2" padding="md">No fill</Box>
+  {/* expect: box/blur-needs-tint */}
+  <Box surface="surface" effectStyle="Effect/Overlay" padding="md">Opaque panel</Box>
+  {/* expect: box/shadow-no-border */}
+  <Box surface="surface" border="pale" effectStyle="Shadow/Bottom/Level-1" padding="md">Panel</Box>
+  {/* expect: radius/redundant-corners */}
+  <Box radius="lg" radiusTopLeft="lg" radiusBottomRight="xs">Bubble</Box>
+  {/* expect: radius/redundant-corners */}
+  <Image src={photo} alt="Harbour at dusk" radiusTopLeft="sm" radiusTopRight="sm" radiusBottomRight="sm" radiusBottomLeft="sm" />
+  {/* expect: radius/redundant-corners */}
+  <Box radius="md" radiusTopLeft="xl" radiusTopRight="xl" radiusBottomRight="xs" radiusBottomLeft="xs">Range</Box>
+  {/* expect: radius/full-mixed */}
+  <Box surface="surface" radius="full" radiusBottomRight="xs">Pill tail</Box>
+  {/* expect: radius/full-mixed */}
+  <Image src={photo} alt="Harbour at dusk" radius="full" radiusTopLeft="lg" />
+  {/* expect: content/lights-no-light-text */}
+  <Text tone="warning-light">Due tomorrow</Text>
+  {/* expect: content/lights-no-light-text */}
+  <Heading level={3} tone={"support-yellow-light"}>Pending</Heading>
 </>;

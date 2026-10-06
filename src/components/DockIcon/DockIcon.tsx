@@ -5,7 +5,7 @@ import "./dock-icon.css";
 import "../Icon/core";
 
 export const dockIconSizes = ["xsmall", "small", "medium", "large", "xlarge"] as const;
-export const dockIconSupportColors = ["blue", "brown", "crimson", "cyan", "golden", "green", "indigo", "orange", "pink", "plum", "purple", "red", "teal", "violet", "yellow"] as const;
+export const dockIconSupportColors = ["blue", "bronze", "brown", "crimson", "cyan", "golden", "green", "indigo", "mint", "orange", "pink", "plum", "purple", "red", "sky", "teal", "violet", "yellow"] as const;
 export const dockIconThemes = ["neutral", "accent", ...dockIconSupportColors, "inverse", "on-color", "pale", "surface", "emoji"] as const;
 /** CSS / Figma key (the `data-size` value). */
 type DockIconSizeKey = (typeof dockIconSizes)[number];
@@ -19,7 +19,7 @@ export interface DockIconProps {
   icon?: IconName;
   /** Theme=Emoji: the emoji (or any glyph) shown instead of an icon. */
   emoji?: ReactNode;
-  /** Figma Size: XSmall 24 · Small 32 · Medium 40 · Large 56 · XLarge 80 (Image-Size tokens). Short (sm, md…) or Figma (small, medium…) spelling. */
+  /** Figma Size: XSmall 24 · Small 32 · Medium 40 · Large 56 · XLarge 80 (Image-Size tokens); Theme=Emoji draws Medium 40 with a 28px glyph (Heading/1) and Large 48 with a 36px glyph (Display/3). Short (sm, md…) or Figma (small, medium…) spelling. */
   size?: DockIconSize;
   theme?: DockIconTheme;
   /** Solid (default) or Subtle; Pale is always subtle, Inverse / On-Color / Surface / Emoji always solid. */

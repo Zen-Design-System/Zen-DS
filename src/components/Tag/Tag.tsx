@@ -29,7 +29,11 @@ export interface TagProps extends Omit<HTMLAttributes<HTMLSpanElement>, "childre
   removeLabel?: string;
 }
 
-/** Figma Tag (288:32046): Medium only — Theme × State × Remove. */
+/**
+ * Figma Tag (288:32046): Medium only — Theme × State × Remove. With `onClick` the tag is a button; a tag that toggles
+ * (a filter) also passes `aria-pressed`, and `aria-pressed={true}` draws it selected (code-only: Figma Tag has no Selected
+ * state, so it uses the default Chip's selected tokens — Surface fill, Border/Active 2px, Content Strongest).
+ */
 export function Tag({ children, leading, photoSrc, state, error = false, disabled = false, remove = false, onRemove, removeLabel, className, onClick, onKeyDown, ...props }: TagProps) {
   // onClick makes the tag itself an action (filter by it, open it): focusable, Enter / Space activate it.
   const interactive = Boolean(onClick) && !disabled;

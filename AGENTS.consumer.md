@@ -55,8 +55,9 @@ Props are strict literal unions: let TypeScript autocomplete values instead of g
    rare; `accent` only for a promoted action; `danger` for irreversible ones. Labels name the outcome
    ("Save changes"), never "OK" / "Submit".
 2. **Filters, sort, scope, status and owner pickers** are `<Chip variant="advanced">`, never a Button or Segmented.
-3. **Fields** always have a `label`; they have `readOnly`, not `disabled` (Search has no disabled state either);
-   `placeholder` shows an example value, not the label; errors go in `error`.
+3. **Fields** always have a `label`; a value people may see but not change is `readOnly`; `disabled` only when the
+   field is unavailable for a reason the page shows (Text, Select, Date, Number, TextArea and Search; Autocomplete and
+   RichText are `readOnly` only); `placeholder` shows an example value, not the label; errors go in `error`.
 4. **Icon-only actions** are `<IconButton aria-label="Add member" icon="icon-plus-line" />` (the name shows as a
    tooltip). Never `<button><Icon /></button>`.
 5. **Compose, don't rebuild:** rows → `List` + `ListItem`; tiles → `Card`; data → `Table`; nothing to show →
@@ -67,7 +68,10 @@ Props are strict literal unions: let TypeScript autocomplete values instead of g
    three also call `onClose` on every close request). A Popover is closed by default. Actions are objects:
    `primaryAction={{ label: "Delete project", onClick }}`.
 7. **Background layers:** the page is Canvas (ZenProvider paints it); cards and panels are Surface; modals and
-   sheets are Container; floating menus are Popover. Components never paint Canvas.
+   sheets are Container; floating menus are Popover. Components never paint Canvas. With nothing else deciding, the
+   page is `canvas-default` and its boxes are flat Surface/Default, no border and no shadow (`<Card theme="flat">`,
+   `<MetricCard theme="flat">`); a Sidebar's shadow, a white page, a Surface inside a Surface or a clickable card
+   changes that (`docs/component-usage-rules.md` §16).
 8. **Borders:** a closed box that is clickable uses `--zen-color-border-neutral-subtle-default`, a static box
    `--zen-color-border-neutral-pale-default`; dashed lines are at least Subtle.
 9. **Text colour** comes from tokens: `--zen-color-content-neutral-strongest` (primary text), `-base`
@@ -87,7 +91,7 @@ Props are strict literal unions: let TypeScript autocomplete values instead of g
 | Button | `level`, `size` (`2xs`…`xl`, default `md`), `appearance` (`main`/`flat`/`overlay`), `startIcon`/`endIcon`: an icon name (`"icon-plus-line"`) or a node |
 | IconButton | `icon="icon-plus-line"` (a name, or any node such as `<Icon name size />`) + `aria-label`; default level `tertiary` |
 | Icon | `name` (type `IconName`, autocompletes), `size` token (`2xs`…`3xl`, `base` = 20px) or px number, `title` when meaningful |
-| Fields | `InputField`, `SelectField` (`options: { label, value }[]`), `TextAreaField`, `NumberField`, `DateField`, `AutocompleteField`, `RichTextField`: `label`, `helpText`, `error`, `readOnly` |
+| Fields | `InputField`, `SelectField` (`options: { label, value }[]`), `TextAreaField`, `NumberField`, `DateField`, `AutocompleteField`, `RichTextField`: `label`, `helpText`, `error`, `readOnly`, `disabled` (not on Autocomplete or RichText) |
 | Field values | `value` + `onValueChange={(value) => set(value)}` on `InputField`, `TextAreaField`, `SelectField`, `Search`, `NumberField` (`number \| null`) and `RichTextField` (`html, text`); the native `onChange(event)` also works on text fields. `DateField`: `onDateChange(date)`; `AutocompleteField`: `onChange(string[])`; `SelectField placeholder` shows until a value is picked |
 | Value controls | `value` / `defaultValue` + `onValueChange(value)` on Tabs (`items: { id, label, icon? }[]`), Segmented (`options: { id, label }[]`, default `level="secondary"`), Rating, Slider, ColorSelector (the old `onChange` still works but is deprecated) |
 | Checkbox / RadioButton / Toggle | `checked` / `defaultChecked` + `onCheckedChange(checked)`; Toggle and Checkbox need `label` (or `aria-label`) |
@@ -100,7 +104,7 @@ Props are strict literal unions: let TypeScript autocomplete values instead of g
 | Sidebar | `sections: { label?, items: { id, label, icon, active? }[] }[]`, `onItemClick`, `logo`, `productName` |
 | Toast | `const { toast } = useToast(); toast({ title: "Invite sent", action? })` (ZenProvider hosts the stack). Neutral for everyday confirmations (sent, saved, copied); `type: "positive"` only when success is the news (a payment went through); keep the title ≤ 60 characters and put details in `children` |
 | Filter chip | `<Chip variant="advanced" dropdown selectionMode="multiple" selected={picked.length > 0} selectionCount={picked.length} popoverMultiple popoverItems={options.map((o) => ({ ...o, selected: picked.includes(o.id) }))} onPopoverSelect={(item) => toggle(item.id)} onClearSelection={() => setPicked([])}>Status</Chip>` (single choice: drop `selectionMode`/`popoverMultiple`, mark one item `selected`). Toolbar: Search fills its container, so give it a Grid column: `<Grid columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} align="center"><Search …/><Stack direction="row" gap="xs" wrap>{chips}</Stack></Grid>` |
-| Layout | `Stack` (`direction`, `gap`, `align`, `justify`, `wrap`), `Grid` (`columns` as a count, a track list like `"2fr 1fr"` for main + aside, or `{ mobile, tablet, desktop }`; `minColumnWidth`), `Box` (`padding`, `surface`, `border`, `radius`), `Container` (`maxWidth`). Spacing values: `2xs` 4 · `xs` 8 · `sm` 12 · `md` 16 · `lg` 24 · `xl` 32 |
+| Layout | `Stack` (`direction`, `gap`, `align`, `justify`, `wrap`, `fillChildren`), `Grid` (`columns` as a count, a track list like `"2fr 1fr"` for main + aside, or `{ mobile, tablet, desktop }`; `minColumnWidth`), `Box` (`padding`, `surface`, `border`, `radius`), `Container` (`maxWidth` token width). Figma resizing on Stack/Grid/Box (Text/Heading: width only): `width`/`height` = `"hug"` · `"fill"` · a px number (Fixed), `minWidth`/`maxWidth`/`minHeight`/`maxHeight` px, `alignSelf`. Figma constraints on Stack/Grid/Box: `position="absolute"` pins a layer to its parent with `constraintX` (`left` · `right` · `left-right` · `center`) / `constraintY` (`top` · `bottom` · `top-bottom` · `center`) and `insetTop`/`insetRight`/`insetBottom`/`insetLeft` on the padding scale (corner action: `constraintX="right" constraintY="top" insetRight="sm" insetTop="sm"`; put background media first, content after it). Box only: `effectStyle` (`"Shadow/Bottom/Level-1"` = the Card and Sidebar elevation, only on `surface="surface"`, no border; `"Shadow/Top/Level-N"` for bottom-docked panels; `"Effect/Overlay"` blur on `subtle`/`pale`), `clip` (Figma Clip content) and `radiusTopLeft`/`radiusTopRight`/`radiusBottomRight`/`radiusBottomLeft` (also on Image; a sheet: `radiusTopLeft="3xl" radiusTopRight="3xl"`). Gap values (Spacing/Gap): `2xs` 4 · `xs` 8 · `sm` 12 · `md` 16 · `lg` 24 · `xl` 32. Padding and inset values (Spacing/Padding): `2xs` 4 · `xs` 8 · `sm` 12 · `md` 16 · `lg` 20 · `xl` 24 · `2xl` 32 |
 | Text | `<Heading level={2} textStyle="Heading/4">` (a real h1–h6; one h1 per page or screen = its title, Heading/1 when shown large; sections h2 Heading/4, card titles one level below in Heading/Subheading; the default style per level follows that ladder), `<Text tone="base" textStyle="Body/Small/Regular">` (default `p`; `as="span"` inline); `truncate`; `plural(n, "file")` |
 | Page frame | `<AppShell sidebar={<Sidebar …/>} header={<Breadcrumbs master={false} …/>} headerActions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={n} …/><Menu align="end" trigger={<AppShellAccount name=… />} …/></>}>` (a toggle before the header collapses the Sidebar to its rail; a drawer when the shell is under 1024px; `banner`, `aside`, `floatingAction` slots) + `<Container><PageHeader title description actions tabs /></Container>` (Breadcrumbs once: top bar or PageHeader). PageHeader has no outer margin: `<Container><Stack gap="lg" paddingY="lg"><PageHeader …/>…</Stack></Container>`, as in the templates |
 | Forms | `const form = useFormState({ initialValues, validate, onSubmit })`, then `<Form form={form}>` with `<InputField label="Email" {...form.field("email")} />`, `{...form.selectField("role")}`, `{...form.checkboxField("terms")}`; `<FormActions><Button level="tertiary">Cancel</Button><Button level="primary" type="submit">Save changes</Button></FormActions>`; in a ModalForm pass `onSubmit={form.handleSubmit}`. Let TypeScript infer the values from `initialValues`; if you name them, use a `type` alias (an `interface` turns the field names into `never`) |
@@ -144,6 +148,10 @@ Start a new screen by copying the closest one, then replace its sample data. The
 - Build structure with components, not CSS: `AppShell` + `Container` + `PageHeader` for the page, `Stack` and `Grid`
   for arrangement, `Box` for plain panels, `Card` for clickable tiles, `Text` / `Heading` for copy (they reset margins
   and use the content colours). A new screen should need little or no custom CSS.
+- Layers over media (a button on a photo, a caption bar, a docked sheet) use the Layout position props, not CSS
+  `position`/`top`/`inset`: `<Box position="absolute" constraintX="left-right" constraintY="bottom" insetBottom="sm">`.
+  Never use them for what `gap`, `justify` or `alignSelf` does, nor for a component's own badge, status dot or
+  sub-action. A shadow goes only on a Surface (`effectStyle`), never on a tinted or Surface-Alt fill.
 - If you must write CSS, use tokens only:
   - spacing: `var(--zen-spacing-gap-xsmall)` … `var(--zen-spacing-gap-2-xlarge)`, `var(--zen-spacing-padding-medium)`;
   - page margin and gutter (follow the breakpoint): `var(--zen-margin-comfortable)`, `var(--zen-gutter)`;
@@ -162,4 +170,9 @@ Start a new screen by copying the closest one, then replace its sample data. The
   In the editor: `import zen from "@zen/design-system/eslint"` → `export default [...config, zen.configs.recommended]`.
   A deliberate exception gets a comment `zen-allow-<allow>: <reason>` right above the element.
 - `npx zen-ds doctor` checks the setup once.
+- `npx zen-ds audit http://localhost:5173/ --routes=/,/settings --dark` loads each page in Chromium (needs
+  `npm i -D playwright && npx playwright install chromium`; `axe-core` adds the axe rules) and checks what people see:
+  the page scrolling sideways, controls without a name, the heading outline, text that is no Zen text style or runs out
+  of its box, colours and spacing off the tokens, Surface boxes on a Canvas/Alt page without a border. It saves
+  screenshots at 1440 and 390 and `.zen-audit/report.md`; exit 1 on an error.
 - Look at the result in the browser in both light and dark, and at 390px width for mobile screens.

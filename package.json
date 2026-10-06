@@ -53,7 +53,10 @@
     "tools/usage-guard/eslint.mjs",
     "tools/usage-guard/api.mjs",
     "mcp/server.mjs",
-    "tools/zen-ds.mjs"
+    "tools/zen-ds.mjs",
+    "tools/zen-audit/audit.mjs",
+    "tools/zen-audit/app-checks.mjs",
+    "tools/platform-audit/quality-checks.mjs"
   ],
   "scripts": {
     "dev": "vite",
@@ -72,6 +75,8 @@
     "styles:check": "node scripts/check-text-styles.mjs && node scripts/check-style-manifest.mjs",
     "icons:build": "node scripts/build-icons.mjs",
     "icons:check": "node scripts/check-icons.mjs",
+    "flags:build": "node scripts/build-flags.mjs",
+    "flags:check": "node scripts/build-flags.mjs --check",
     "usage:check": "node tools/usage-guard/check-usage.mjs",
     "usage:selftest": "node tools/usage-guard/selftest.mjs",
     "usage:rules": "node tools/usage-guard/check-usage.mjs --list",
@@ -86,6 +91,9 @@
     "platform:behaviour": "node tools/platform-audit/behaviour.mjs",
     "style:check": "node tools/style-guard/check-styles.mjs",
     "style:selftest": "node tools/style-guard/selftest.mjs",
+    "layout:selftest": "node src/components/Layout/position.selftest.mjs && node src/components/Layout/effects.selftest.mjs",
+    "studio:selftest": "node tools/studio/selftest.mjs && node tools/studio/data-source.selftest.mjs && node tools/studio/shared-code.selftest.mjs && node tools/studio/engine-iso.selftest.mjs && node tools/studio/dialect.selftest.mjs && node tools/studio/builder.selftest.mjs && node tools/studio/figma-props-build.mjs --check && node src/platform/studio/appearance/appearanceModel.selftest.mjs && node src/platform/studio/inspector/controls/scale.selftest.mjs && node src/platform/studio/inspector/layoutModel.selftest.mjs && node src/platform/studio/select/gridTracks.selftest.mjs && node tools/studio/e2e/selftest.mjs",
+    "studio:e2e": "node tools/studio/e2e/run.mjs",
     "qa": "node tools/qa/run.mjs",
     "qa:quick": "node tools/qa/run.mjs --quick",
     "ship": "node tools/ship/ship.mjs",
@@ -97,6 +105,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@babel/parser": "^7.29.9",
     "@modelcontextprotocol/sdk": "1.30.1",
     "@storybook/addon-a11y": "10.6.0",
     "@storybook/addon-docs": "^10.6.0",
@@ -108,6 +117,7 @@
     "@vitest/browser-playwright": "5.0.2",
     "axe-core": "4.13.0",
     "eslint": "10.11.0",
+    "magic-string": "^1.4.1",
     "playwright": "1.63.0",
     "react": "19.3.0",
     "react-docgen": "8.0.4",

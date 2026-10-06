@@ -20,6 +20,9 @@ export const relTo = (root, file) => path.relative(root, path.resolve(file)).spl
 export function uiKind(rel) {
   if (/\.stories\.(tsx|css)$|\.generated\.|^src\/icons\/generated\//.test(rel)) return null;
   if (/^src\/components\/.+\.(tsx|ts|css)$/.test(rel)) return "component";
+  // Zen Studio (the canvas tool) and its E2E fixture render on no platform page: the gate checks them with the Studio
+  // self-tests and the Studio E2E harness (tools/studio/e2e), not the page audit.
+  if (/^src\/platform\/(studio|examples\/e2e)\/.+\.(tsx|ts|css)$/.test(rel)) return "studio";
   if (/^src\/(platform|foundations)\/.+\.(tsx|ts|css)$/.test(rel)) return "platform";
   if (/^src\/templates\/.+\.(tsx|ts|css)$/.test(rel)) return "template";
   if (/^src\/styles\/.+\.css$/.test(rel)) return "styles";
@@ -34,6 +37,7 @@ export function auxKind(rel) {
   if (/^tools\/usage-guard\//.test(rel)) return "usage-guard";
   if (/^tools\/style-guard\//.test(rel)) return "style-guard";
   if (/^tools\/figma-contract\//.test(rel)) return "figma-contract";
+  if (/^tools\/studio\//.test(rel)) return "studio";
   if (/^tests\//.test(rel)) return "tests";
   if (/^(tokens\/source|src\/tokens)\//.test(rel)) return "tokens";
   if (/^styles\/source\//.test(rel)) return "styles-source";
@@ -160,7 +164,7 @@ const SHELL_CLASSES = /^\.?official-|platform-(app|sidebar|topbar|shell)/;
 /** Page ids that render the edited region of `rel`. `snippets` are the edited strings when known (hooks pass them). */
 export function pagesForEdit(root, rel, snippets = [], pages = allPages(root)) {
   const out = new Set(); const notes = [];
-  const kind = uiKind(rel); if (!kind) return { pages: [], notes };
+  const kind = uiKind(rel); if (!kind || kind === "studio") return { pages: [], notes };
   const comp = rel.match(/^src\/components\/([^/]+)\//)?.[1];
   if (rel === LABELS_FILE) {
     // New or re-worded built-in text: only the components that read those keys render differently.
@@ -403,6 +407,27 @@ export function recordEdit(ledger, rel, found, at = Date.now()) {
   f.editedAt = at;
   syncFile(f);
   return f;
+}
+/**
+ * Other sessions that edited `rel` (a UI or aux file) within `withinMs`, from their ledgers in .qa/sessions, newest
+ * first: [{ session, at }]. The post-edit hook warns with it, so two sessions notice a shared file before one overwrites
+ * the other (Backlog P1 "Session setup", 2026-10-05).
+ */
+export function recentOtherEdits(root, session, rel, withinMs = 30 * 60 * 1000, now = Date.now()) {
+  const dir = path.join(root, ".qa", "sessions");
+  let names = [];
+  try { names = fs.readdirSync(dir).filter((n) => n.endsWith(".json")); } catch { return []; }
+  const mine = path.basename(ledgerPath(root, session));
+  const out = [];
+  for (const name of names) {
+    if (name === mine) continue;
+    try {
+      const other = JSON.parse(fs.readFileSync(path.join(dir, name), "utf8"));
+      const at = Math.max(other.files?.[rel]?.editedAt ?? 0, other.aux?.[rel]?.editedAt ?? 0);
+      if (at && now - at < withinMs) out.push({ session: String(other.session ?? name.replace(/\.json$/, "")), at });
+    } catch { /* an unreadable ledger */ }
+  }
+  return out.sort((a, b) => b.at - a.at);
 }
 /** Record an edit of a non-UI file that scopes the static gates (auxKind). */
 export function recordAux(ledger, rel, at = Date.now()) {

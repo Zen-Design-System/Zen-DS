@@ -1,0 +1,22 @@
+/* Layout examples. A desktop page (screen card) paints the Canvas; Container gives its side margin and the page adds the
+   same margin above and below, as an app's main area does. */
+.px-layout-page { padding-block: var(--zen-margin-comfortable, 24px); background: var(--zen-color-background-canvas-default); }
+
+/* Equal-height cards: the grid stretches every card to the tallest in its row, and the card's content column grows
+   with it, so the footer row (justify between) sits on the same line in every card. */
+.px-layout-template > .zen-card__content { flex: 1 1 auto; }
+.px-layout-template-body { flex: 1 1 auto; }
+
+/* Cards in the two-column grid keep a readable width and sit in the middle of the stage. */
+.px-layout-profile, .px-layout-cover { width: min(100%, 440px); margin-inline: auto; }
+
+/* The cover: a panel of fixed height whose middle grows, so an empty state sits in its optical centre and the footnote
+   stays at the bottom. */
+.px-layout-cover { min-height: 26rem; }
+.px-layout-cover-body { flex: 1 1 auto; }
+
+/* One value of a row caption (a key, a project name): it never breaks inside, so the caption wraps between values. */
+.px-layout-value { white-space: nowrap; }
+
+/* A picture in a stretched layer (position="absolute", Left & right × Top & bottom) covers the layer, cropping as needed. */
+.px-layout-media { display: block; width: 100%; height: 100%; object-fit: cover; }

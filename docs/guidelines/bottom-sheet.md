@@ -9,7 +9,7 @@ A surface that slides up from the bottom for supplementary content, a short task
 ## Use it for
 - Contextual actions for the current screen or item (type="action").
 - A short form or filters (Modal).
-- Picking one option from a list (Action with selectedId).
+- Picking one option from a list (Sort by, Deliver to): a List of ListItems in the sheet body.
 
 ## Use something else for
 - Destructive confirmations → Dialog.
@@ -24,13 +24,14 @@ A surface that slides up from the bottom for supplementary content, a short task
 | Header | `title · search` | title h2 in Heading/3 (never Heading/1) + 44px Tertiary close; optional Search slot |
 | Items | `items[] {id, label, icon, trailing, destructive} · selectedId · onSelect · keepOpen` | 48px rows (24px icon, 12px gap), Single-Selected = Accent/Subtle + check |
 | Actions | `primaryAction · secondaryAction · actionsDirection` | Large buttons; horizontal (Tertiary · Primary, equal widths) or vertical (Primary over Tertiary, each at its own 48px height) |
+| Form | `onSubmit` | Modal type: body + Actions footer become a <form>; Enter in a field or the primary action submits (primary = type=submit, closes only from your handler); pass form.handleSubmit; the Search slot stays outside |
 | Dismiss | `dismissible · inline` | scrim, Escape and drag-down; inline anchors to a positioned container |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/bottom-sheet.json`.
 
 ### BottomSheet
-Figma Bottom-Sheet (4059:14161, page ❖ Bottom Sheet): Background/Container, top corners 28, Shadow/Top/Level-2, over the Overlay scrim. Top-Indicator (40×5 Neutral/Subtle grabber) · Header-Bar (Heading/3 + 44px Tertiary close) · Search · Body (Modal: padding 20, gap 16 · Action: padding 4, 48px items) · Footer (Large buttons, padding 12/20). Focus is trapped (shared Dialog `useModal`), Escape/scrim/drag-down close, and the sheet slides up/down with `usePresence`.
+Figma Bottom-Sheet (4059:14161, page ❖ Bottom Sheet): Background/Container, top corners 28, Shadow/Top/Level-2, over the Overlay scrim. Top-Indicator (40×5 Neutral/Subtle grabber) · Header-Bar (Heading/3 + 44px Tertiary close) · Search · Body (Modal: padding 20, gap 16 · Action: padding 4, 48px items) · Footer (Large buttons, padding 12/20). Focus is trapped (shared Dialog `useModal`), Escape/scrim/drag-down close, and the sheet slides up/down with `usePresence`. Initial focus: `data-autofocus`, else the Search or first field of a form sheet, else the sheet itself. Modal + `onSubmit`: body and footer become a `<form>` (Form rule: Enter submits; the primary action is the submit button).
 
 Also accepts `OverlayOpenProps`.
 
@@ -43,15 +44,16 @@ Also accepts `OverlayOpenProps`.
 | `title` (required) | `ReactNode` | — | Figma Header-Bar heading (Heading-Text H3). |
 | `type` | `"modal" \| "action"` | `"modal"` |  |
 | `size` | `"flex" \| "max"` | `"flex"` |  |
-| `search` | `ReactNode` | — | Figma Search slot (a Search, under the header). |
+| `search` | `ReactNode` | — | Figma Search slot (a Search, under the header). The Search takes focus when the sheet opens (`data-autofocus` elsewhere wins). |
 | `items` | `BottomSheetItem[]` | `[]` | Action type: Figma Items slot. |
 | `selectedId` | `string` | — | Action type: the item shown as Single-Selected (Active/Accent/Subtle + check). |
 | `onSelect` | `(item: BottomSheetItem) => void` | — | Action type: called with the item; the sheet closes unless `keepOpen` is set. |
 | `keepOpen` | `boolean` | `false` |  |
 | `children` | `ReactNode` | — | Modal type: Figma Contents slot. |
-| `primaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }` | — |  |
-| `secondaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }` | — |  |
+| `primaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
+| `secondaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
 | `actionsDirection` | `"horizontal" \| "vertical"` | `"horizontal"` | Figma .Primitives/Bottom-Sheet/Actions Direction. |
+| `onSubmit` | `(event: FormEvent<HTMLFormElement>) => void` | — | Modal type: makes the sheet a form (same contract as ModalForm `onSubmit`). The body and the Actions footer are wrapped in a `<form>`: Enter in a field submits it and the primary action becomes `type="submit"`, so it submits instead of closing (its `onClick`, if any, still runs first). The default is prevented; close the sheet from the handler when the submit succeeds. Pass `form.handleSubmit` from useFormState so a failed submit focuses the first invalid field. Don't nest a `<Form>` in the children. The Search slot stays outside the form. The first field (the Search, when there is one) takes focus when the sheet opens; put `data-autofocus` on another control to start there. |
 | `dismissible` | `boolean` | `true` | Scrim tap, Escape and drag-down dismiss (default true). |
 | `inline` | `boolean` | `false` | Render inside the nearest positioned ancestor instead of the viewport (device previews, embedded demos). |
 | `closeLabel` | `string` | — | Accessible name of the close button. Default: the locale's “Close”. |
@@ -68,25 +70,29 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 ## Keyboard
 | Keys | Action |
 | --- | --- |
-| (open) | Focus moves to the sheet; Tab reaches Close first |
+| (open) | Focus moves to data-autofocus, else the Search, else a form sheet's first field, else the sheet itself (Tab reaches Close first) |
 | Tab / Shift+Tab | Cycle focus inside the sheet (focus is trapped) |
 | Escape | Close the sheet and return focus |
 | Enter / Space | Choose an item / run an action |
+| Enter (in a field) | Submit the sheet's form (with onSubmit) |
 
 ## ✅ Do
 - Keep one task per sheet and one primary action.
 - Let the user drag, tap the scrim or press Escape to dismiss.
-- Use Action type with `selectedId` for single choice; the sheet closes on select unless `keepOpen`.
+- For a single choice, fill the sheet with List + ListItem: the picked row is `selected` (Active/Neutral/Subtle) with a trailing check, and picking closes the sheet. The Action type's `selectedId` row (Accent/Subtle) is Figma's state, not the house pattern for choices (user, 2026-09-30).
 - Lists inside the sheet use List/ListItem (the sheet sets --zen-list-inset: 0).
 - For long reading content (terms, release notes) use size="max" with vertical actions: the body scrolls under the fixed header and the footer stays reachable.
+- A sheet with fields is a form: pass onSubmit so Enter submits and the primary action is the submit button; close the sheet from the handler once the save succeeds.
+- Let a form sheet (onSubmit) start on its first field. Add data-autofocus only to start on a different control, never on the first field (redundant).
 
 ## ❌ Don't
 - Don't give an Action sheet no items (harness: bottom-sheet/action-needs-items).
 - Don't stack a sheet on a sheet; replace the content instead.
 - Don't put destructive actions first; mark them `destructive` and keep them last.
+- Don't nest a `<Form>` inside a BottomSheet that has onSubmit, and don't submit from primaryAction.onClick; pass form.handleSubmit to onSubmit instead.
 
 ## Accessibility
-- role=dialog with aria-modal, labelled by the title. Initial focus lands on the sheet itself (announced by its title, no stray ring after a tap); Tab reaches Close first; put data-autofocus on a field to focus it instead. Tab is trapped and focus returns to the opener on close.
+- role=dialog with aria-modal, labelled by the title. Initial focus goes to data-autofocus; else the Search, when the sheet has one; else the first field of a form sheet (onSubmit); else the sheet itself (announced by its title, no stray ring after a tap, Tab reaches Close first). Tab is trapped and focus returns to the opener on close.
 - Motion: slides up with the emphasized curve and down with the exit curve; reduced motion removes the slide; the grabber is decorative, so Escape and the close button are always available.
 
 ## Content
@@ -99,6 +105,7 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 | `segmented/control-bar-full-width` | warn | On mobile, a Segmented in a Top Navigation control bar or a Bottom Sheet spans the container with equal items (fullWidth). | `zen-allow-segmented-hug: <reason>` |
 | `bottom-sheet/action-needs-items` | error | An Action bottom sheet lists its actions in `items`. | `zen-allow-sheet-items: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `mobile/full-size-controls` | error | On phones components keep their full size: Toggle and ToggleButton are size large, inputs medium or larger; the small sizes are for dense desktop rows, tables and panels. | `zen-allow-mobile-size: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 | `interaction/action-without-handler` | warn | Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |

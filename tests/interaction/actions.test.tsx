@@ -8,8 +8,8 @@ import { render } from "vitest-browser-react";
 import { userEvent } from "vitest/browser";
 import { ChatReplyQuote, Chip, DatePicker, HeadingField, RichTextField, ZenProvider, type DatePickerRange } from "../../src/index";
 
-/** A day of the calendar: "Day 10". */
-const dayButton = (container: HTMLElement, day: number) => [...container.querySelectorAll<HTMLButtonElement>(".zen-date-picker__day")].find((button) => button.getAttribute("aria-label") === `Day ${day}`)!;
+/** A day of the calendar by its number (the button is named with the full date, "Thursday, September 10, 2026"). */
+const dayButton = (container: HTMLElement, day: number) => [...container.querySelectorAll<HTMLButtonElement>(".zen-date-picker__day:not(.is-blank)")].find((button) => button.textContent === String(day))!;
 
 describe("Chip Number-only", () => {
   it("is a static count without onClick or selected, and a button with them", async () => {
@@ -64,7 +64,7 @@ describe("DatePicker actions: picks are a draft", () => {
     await userEvent.click(dayButton(root, 16));
     (screen.getByRole("button", { name: "Submit" }).element() as HTMLElement).focus();
     await userEvent.keyboard("{Enter}");
-    await expect.poll(() => document.activeElement?.getAttribute("aria-label")).toBe("Day 14");
+    await expect.poll(() => document.activeElement?.getAttribute("aria-label")).toBe("Monday, September 14, 2026");
   });
 
   it("controlled single date: value is the applied date, Cancel shows it again", async () => {

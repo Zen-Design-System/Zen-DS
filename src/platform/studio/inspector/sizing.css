@@ -1,0 +1,40 @@
+/* Zen Studio inspector, Size group (SizingSection.tsx). Spec: docs/research/studio-inspector-redesign-2026-10-03.md
+   "SIZE": group label above, two fields per row, a fixed trailing slot sized like an xs IconButton (stable geometry). */
+
+/* Rows inside a group are XSmall apart (ladder: label/toolbar), as in the inspector sections. */
+.studio-sizing { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-sizing__label { color: var(--zen-color-content-neutral-base); }
+
+/* [W][H][slot]: two equal fields and the slot column, the same width as InspectorRow's reset column. */
+.studio-sizing__pair { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Text and Heading have no height: W takes both field columns. */
+.studio-sizing__pair[data-single="true"] { grid-template-columns: minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); }
+.studio-sizing__slot { display: inline-flex; width: var(--zen-button-size-xsmall, 24px); min-width: var(--zen-button-size-xsmall, 24px); align-items: center; justify-content: center; }
+
+.studio-sizing__field { position: relative; display: flex; min-width: 0; }
+.studio-sizing__field > .zen-input-field { width: 100%; min-width: 0; }
+/* An unset value shows what renders, in the default tone; a written one keeps the field's Strongest. */
+.studio-sizing__field[data-default="true"] .zen-input__native:not(:disabled) { color: var(--zen-color-content-neutral-base); }
+/* An unset limit next to a written one reads its effective value ("Auto", "None") in the same default tone. */
+.studio-sizing__field[data-default="true"] .zen-input__native:not(:disabled)::placeholder { color: var(--zen-color-content-neutral-base); }
+
+/* The W / H letter (Caption/Medium) is the scrub handle: drag sideways to change the size. */
+.studio-sizing__handle { display: inline-flex; min-width: var(--zen-element-size-popular-small, 16px); justify-content: center; color: var(--zen-color-content-neutral-base); cursor: ew-resize; touch-action: none; user-select: none; }
+.studio-sizing__handle[data-locked="true"] { cursor: default; }
+.studio-sizing__field:has(.zen-input-field[data-state="disabled"]) .studio-sizing__handle { color: var(--zen-color-content-disabled); }
+/* Trailing: the measured px, then the chevron (or the lock / code mark of a read-only value). */
+.studio-sizing__trail { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-sizing__measure { color: var(--zen-color-content-neutral-base); white-space: nowrap; }
+.studio-sizing__field:has(.zen-input-field[data-state="disabled"]) .studio-sizing__measure { color: var(--zen-color-content-disabled); }
+.studio-sizing__mark { display: inline-flex; color: var(--zen-color-content-neutral-base); }
+
+/* A Segmented in an InspectorRow, its effective (unset) segment in the default tone. */
+.studio-sizing__seg { display: flex; width: 100%; min-width: 0; }
+.studio-sizing__seg > .zen-segmented { width: 100%; min-width: 0; }
+.studio-sizing__seg[data-default="true"] .zen-segmented__item[data-selected="true"]:not(:disabled) { color: var(--zen-color-content-neutral-base); }
+
+/* "Align in parent needs a Stack or Grid parent." + Remove. */
+.studio-sizing__warning { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-sizing__note { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
+.studio-sizing__note > .zen-icon { flex: 0 0 auto; }
+.studio-sizing__warning > .zen-button { flex: 0 0 auto; }

@@ -160,7 +160,7 @@
     {
       "name": "OpinionScale",
       "file": "src/components/Rating/Rating.tsx",
-      "description": "Figma Rating/Opinion-Scale (1536:25762) of .Primitives/Rating/Opinion item: emoji (32) + Caption/Regular label,\npadding XSmall, gap 2XSmall, Corner-Radius/Base; Hover Neutral/Flat/Hover, Selected Active/Neutral/Subtle + Caption/Bold.",
+      "description": "Figma Rating/Opinion-Scale (1536:25762) of .Primitives/Rating/Opinion item: emoji (32) + Caption/Regular label,\npadding XSmall, gap 2XSmall, Corner-Radius/Base; Hover Neutral/Flat/Hover, Selected Active/Neutral/Subtle + Caption/Bold.\nAlways one row (Figma: no wrap, items Fill): the scale fills its container and the faces share it equally. When an item\ngets narrower than its label needs (under 96px per face: 2 faces < 200px, 3 < 304px, 5 < 512px of scale width), the\nlabels are visually hidden (they still name each radio) and the faces shrink, down to about 43px each for five faces\nin 246px, which keeps every target well above 24×24 (WCAG 2.5.8). A visible label never runs past two lines: longer\ncustom `labels` are clamped with an ellipsis (Figma's item is 68px tall for one Caption line; two lines is the code\nlimit), so the faces keep one height. Figma has no narrow or long-label variant; both are code-only.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -201,7 +201,7 @@
           "type": "Partial<Record<OpinionEmotion, ReactNode>>",
           "required": false,
           "default": null,
-          "description": "Override option labels (keep them short).",
+          "description": "Override option labels. Keep them to one or two short words: a longer label is clamped to two lines (ellipsis), and\nits full text still names the radio.",
           "deprecated": null
         },
         {
@@ -225,7 +225,7 @@
     {
       "name": "NpsScale",
       "file": "src/components/Rating/Rating.tsx",
-      "description": "Figma Rating/NPS-Scale (1536:26034): Chip/Number-Only Small Secondary buttons (gap 2XSmall) over two Caption/Regular end labels.",
+      "description": "Figma Rating/NPS-Scale (1536:26034): Chip/Number-Only Small Secondary buttons (gap 2XSmall) over two Caption/Regular end\nlabels. One row (Figma: no wrap): the scale is as wide as Figma's (0–10: 11 × Chip/Size/Small + 10 × Gap/2XSmall,\n392px) or its container, whichever is narrower. In a narrower container the chips shrink as equal circles; the gap\ncloses only once a chip would drop under the 24×24 minimum target (WCAG 2.5.8), so 0–10 keeps 24px targets in one row\ndown to 264px of width (318px: 25px chips with the 4px gap). The end labels sit under the first and the last chip,\nthe high one aligned to the end.\nBelow 264px, 11 chips cannot keep 24px targets in one row, so 0–10 falls back to two balanced rows, 0–5 over 6–10\n(Gap/2XSmall both ways), at full Chip/Size/Small (6 × 32 + 5 × 4 = 212px; still ≥ 24px down to 164px). The low label\nmoves above 0 and the high label stays under 10, so each end label sits next to its value. Code-only (Figma has no\nnarrow variant). Two rows rather than swapping to `scale={5}`: NPS is defined on 0–10 (detractors 0–6, passives\n7–8, promoters 9–10), so the component must not change the scale the app collects. 0–5 keeps 24px targets in one row\ndown to 144px.",
       "deprecated": null,
       "extends": null,
       "props": [

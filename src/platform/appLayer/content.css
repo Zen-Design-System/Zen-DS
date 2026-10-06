@@ -17,8 +17,8 @@
 .pac-edge-grid[data-narrow="true"] { grid-template-columns: minmax(0, 280px) minmax(0, 1fr); }
 @media (max-width: 760px) { .pac-edge-grid, .pac-edge-grid[data-narrow="true"] { grid-template-columns: minmax(0, 1fr); } }
 .pac-sheet-body { display: grid; gap: var(--zen-spacing-gap-large, 24px); }
-/* A Table on the Neutral/Pale stage sits on a static Surface card, edge to edge. */
-.zen-card.pac-table-card { width: 100%; overflow: hidden; padding: var(--zen-spacing-padding-2-xsmall, 4px) 0; }
+/* A table whose columns never squeeze: on a narrow card it scrolls sideways inside its own box instead. */
+.zen-table.pac-scroll-table > .zen-table__table { min-width: max-content; }
 
 /* ── Action Bar: a page preview (the frame is the "viewport" a fixed bar pins to) ── */
 /* zen-allow-canvas-layer: the frame stands in for the app page behind the bar */
@@ -43,7 +43,6 @@
 .pac-frame__scroll { display: flex; height: 100%; box-sizing: border-box; flex-direction: column; margin: 0; overflow: auto; overscroll-behavior: contain; }
 .pac-frame__page { display: flex; box-sizing: border-box; flex: 1 0 auto; flex-direction: column; gap: var(--zen-spacing-gap-large, 24px); padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-margin-comfortable, 24px); }
 .pac-frame[data-device="phone"] .pac-frame__page { padding-top: var(--zen-spacing-padding-large, 20px); }
-.pac-frame__note { margin: 0; }
 .pac-frame-stack { display: flex; width: 100%; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
 .pac-product { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-large, 24px); }
 .pac-product__head { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
@@ -54,7 +53,12 @@
 .pac-status[data-tone="positive"] { --pac-status-icon: var(--zen-color-content-positive-light, #2e7d32); }
 .pac-status[data-tone="warning"] { --pac-status-icon: var(--zen-color-content-warning-light, #b26a00); }
 .pac-status > .zen-icon { color: var(--pac-status-icon); }
-.zen-input-field.pac-cart-qty { width: 112px; margin-top: var(--zen-spacing-gap-2-xsmall, 4px); }
+/* Cart row: the price line ends in Remove; the quantity stepper sits under it. */
+.pac-cart-line { display: flex; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-input-field.pac-cart-qty { width: 128px; }
+/* Edit page bar: under 480px the component puts the buttons side by side at equal widths, which cuts longer labels
+   ("Undo c…"). Here each button keeps its whole label: when the two do not fit they wrap to full-width rows, Primary on top. */
+.zen-action-bar.pac-bar-whole-labels[data-narrow="true"] > .zen-action-bar__actions > * { flex: 1 1 auto; }
 
 /* ── Image ── */
 .pac-image-stage { width: min(440px, 100%); }
@@ -70,6 +74,7 @@
 .pac-thumb[aria-pressed="true"] { opacity: 1; outline: 2px solid var(--zen-color-border-active-neutral-solid, #111); outline-offset: 2px; }
 .pac-thumb:focus-visible { opacity: 1; outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .pac-thumb { transition: none; } }
+.pac-proofs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: var(--zen-spacing-gap-small, 12px); }
 .pac-ratio-grid { display: grid; width: 100%; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); align-items: start; gap: var(--zen-spacing-gap-medium, 16px); }
 .pac-feed { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px) var(--zen-spacing-padding-xlarge, 24px); }
 .zen-card.pac-feed__card { overflow: hidden; padding: 0; }
@@ -90,7 +95,11 @@
 .pac-site__nav a:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 0; }
 .pac-site__main { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-large, 20px); outline: 0; }
 .pac-site__main:focus-visible { box-shadow: inset 0 0 0 3px var(--zen-color-focus-accent-solid, #ff66d4); }
-.pac-articles { display: grid; width: 100%; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); align-items: start; gap: var(--zen-spacing-gap-small, 12px); }
+/* Three equal-height columns while the preview is wide enough, one below that (a container query: examples keep the desktop breakpoint). */
+.pac-articles { width: 100%; container-type: inline-size; }
+.pac-articles__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
+@container (max-width: 420px) { .pac-articles__grid { grid-template-columns: minmax(0, 1fr); } }
+.pac-articles__body { flex: 1 1 auto; }
 .pac-share { display: flex; align-items: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .pac-share > :first-child { min-width: 0; flex: 1 1 auto; }
 .pac-metrics { display: grid; width: 100%; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--zen-spacing-gap-medium, 16px); }

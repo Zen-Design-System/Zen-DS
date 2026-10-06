@@ -60,7 +60,6 @@
 }
 @media (max-width: 480px) { .zen-side-panel[data-type="modal"] { width: 100%; } }
 /* The Contents slot is a form/detail column: direct children span its width. */
-.zen-side-panel__body { --zen-list-inset: 0px; }
 /* Content blocks (fields, lists, cards…) fill the panel; fixed-size visuals keep their own size (an Avatar stretched to 376×56). */
 .zen-side-panel__body > * { box-sizing: border-box; max-width: 100%; }
 .zen-side-panel__body > :not(.zen-avatar, .zen-avatar-stack, .zen-dock-icon, .zen-file-icon, .zen-icon, .zen-badge, .zen-tag, .zen-button, .zen-chip, img, svg, video) { width: 100%; }

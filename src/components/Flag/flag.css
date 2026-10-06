@@ -1,0 +1,5 @@
+/* Figma Flag (7063:63834): a 24×24 round flag; Small 16 · Medium 24 · Large 32 on the Image-Size scale. */
+.zen-flag { display: inline-block; flex: 0 0 auto; width: var(--zen-flag-size); height: var(--zen-flag-size); --zen-flag-size: var(--zen-image-size-xsmall, 24px); vertical-align: middle; }
+.zen-flag[data-size="small"] { --zen-flag-size: var(--zen-image-size-3-xsmall, 16px); }
+.zen-flag[data-size="large"] { --zen-flag-size: var(--zen-image-size-small, 32px); }
+.zen-flag__placeholder { fill: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); }

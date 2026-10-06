@@ -6,7 +6,7 @@
     {
       "name": "BottomSheet",
       "file": "src/components/BottomSheet/BottomSheet.tsx",
-      "description": "Figma Bottom-Sheet (4059:14161, page ❖ Bottom Sheet): Background/Container, top corners 28, Shadow/Top/Level-2, over the\nOverlay scrim. Top-Indicator (40×5 Neutral/Subtle grabber) · Header-Bar (Heading/3 + 44px Tertiary close) · Search ·\nBody (Modal: padding 20, gap 16 · Action: padding 4, 48px items) · Footer (Large buttons, padding 12/20).\nFocus is trapped (shared Dialog `useModal`), Escape/scrim/drag-down close, and the sheet slides up/down with `usePresence`.",
+      "description": "Figma Bottom-Sheet (4059:14161, page ❖ Bottom Sheet): Background/Container, top corners 28, Shadow/Top/Level-2, over the\nOverlay scrim. Top-Indicator (40×5 Neutral/Subtle grabber) · Header-Bar (Heading/3 + 44px Tertiary close) · Search ·\nBody (Modal: padding 20, gap 16 · Action: padding 4, 48px items) · Footer (Large buttons, padding 12/20).\nFocus is trapped (shared Dialog `useModal`), Escape/scrim/drag-down close, and the sheet slides up/down with `usePresence`.\nInitial focus: `data-autofocus`, else the Search or first field of a form sheet, else the sheet itself.\nModal + `onSubmit`: body and footer become a `<form>` (Form rule: Enter submits; the primary action is the submit button).",
       "deprecated": null,
       "extends": "OverlayOpenProps",
       "props": [
@@ -71,7 +71,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Search slot (a Search, under the header).",
+          "description": "Figma Search slot (a Search, under the header). The Search takes focus when the sheet opens (`data-autofocus` elsewhere wins).",
           "deprecated": null
         },
         {
@@ -116,7 +116,7 @@
         },
         {
           "name": "primaryAction",
-          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
           "required": false,
           "default": null,
           "description": "",
@@ -124,7 +124,7 @@
         },
         {
           "name": "secondaryAction",
-          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean }",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
           "required": false,
           "default": null,
           "description": "",
@@ -136,6 +136,14 @@
           "required": false,
           "default": "\"horizontal\"",
           "description": "Figma .Primitives/Bottom-Sheet/Actions Direction.",
+          "deprecated": null
+        },
+        {
+          "name": "onSubmit",
+          "type": "(event: FormEvent<HTMLFormElement>) => void",
+          "required": false,
+          "default": null,
+          "description": "Modal type: makes the sheet a form (same contract as ModalForm `onSubmit`). The body and the Actions footer are\nwrapped in a `<form>`: Enter in a field submits it and the primary action becomes `type=\"submit\"`, so it submits\ninstead of closing (its `onClick`, if any, still runs first). The default is prevented; close the sheet from the\nhandler when the submit succeeds. Pass `form.handleSubmit` from useFormState so a failed submit focuses the first\ninvalid field. Don't nest a `<Form>` in the children. The Search slot stays outside the form. The first field (the\nSearch, when there is one) takes focus when the sheet opens; put `data-autofocus` on another control to start there.",
           "deprecated": null
         },
         {

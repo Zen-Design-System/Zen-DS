@@ -6,7 +6,7 @@
     {
       "name": "Tag",
       "file": "src/components/Tag/Tag.tsx",
-      "description": "Figma Tag (288:32046): Medium only — Theme × State × Remove.",
+      "description": "Figma Tag (288:32046): Medium only — Theme × State × Remove. With `onClick` the tag is a button; a tag that toggles\n(a filter) also passes `aria-pressed`, and `aria-pressed={true}` draws it selected (code-only: Figma Tag has no Selected\nstate, so it uses the default Chip's selected tokens — Surface fill, Border/Active 2px, Content Strongest).",
       "deprecated": null,
       "extends": "Omit<HTMLAttributes<HTMLSpanElement>, \"children\">",
       "props": [

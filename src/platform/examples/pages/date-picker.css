@@ -1,0 +1,13 @@
+/* Date Picker examples (docs/research/example-rebuild-brief-2026-09-30.md). Tokens only; class prefix .px-date-picker-. */
+
+/* Cards in the two-column grid keep a readable width and sit in the middle of the stage. */
+.px-date-picker-card { width: 100%; max-width: 440px; margin-inline: auto; }
+
+/* A status Badge never shrinks or truncates beside a title. */
+.px-date-picker-status { flex: none; }
+
+/* A calendar anchored to its own trigger (the issue-date Chip) is placed against this box. */
+.px-date-picker-anchor { position: relative; }
+
+/* Calendar + request in one card: the request takes the rest of the row and wraps under the calendar when narrow. */
+.px-date-picker-split > :last-child { min-width: 0; flex: 1 1 240px; }

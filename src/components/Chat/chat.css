@@ -56,7 +56,8 @@
 .zen-chat-file { flex-direction: row; align-items: center; cursor: pointer; }
 .zen-chat-file:hover { background: linear-gradient(var(--zen-color-background-neutral-subtle-hover, rgb(1 1 1 / 11%)), var(--zen-color-background-neutral-subtle-hover, rgb(1 1 1 / 11%))), var(--zen-color-background-surface-default, #fff); }
 .zen-chat-file:focus-visible, .zen-chat-photos__tile:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 2px; }
-/* Message-Text is a fixed 32px box: name (20) + size (16) + gap 2 overflow it evenly, so the row stays 32 high. */
+/* Message-Text is a fixed 32px box: name (20) + size (16) + gap 2 overflow it evenly, so the row stays 32 high
+   (the mobile type scale hugs instead, below). */
 .zen-chat-file__text { display: flex; height: 32px; min-width: 0; flex: 1; flex-direction: column; justify-content: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 /* The lines keep their full line-height (no flex shrink): shrinking the overflow:hidden name to fit 32 cropped its glyphs. */
 .zen-chat-file__text > * { flex: none; }
@@ -76,6 +77,15 @@
 .zen-chat-photo-card__time { padding-inline: var(--zen-spacing-padding-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: right; }
 .zen-chat-call__row { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-2-xsmall, 4px); }
 .zen-chat-call__action { width: 100%; }
+/* No action (a ringing call, an answered Business call): the text column hugs its lines (min Image-Size/Small, the Dock-Icon)
+   instead of Figma's fixed 32px Message-Text box, which the 20 + 2 + 16 lines overflow (24 + 2 + 20 in the mobile type
+   scale), so the last line keeps 12px to the bottom edge (Padding/XSmall + the row's Padding/2XSmall), like a text bubble. */
+.zen-chat-call:not([data-action]) .zen-chat-file__text { height: auto; min-height: var(--zen-image-size-small, 32px); }
+/* Mobile type scale (and Popular, same metrics): Body/Base 24 + 2 + Body/Small 20 = 46 would spill 7px out of each edge of
+   Figma's fixed 32px Message-Text box (6182:57713, 6349:59818; Figma draws only its 20/16 scale, a 3px spill), leaving the
+   lines 5px from a file card's edge and 5px above a call's action. There the box hugs its lines (min Image-Size/Small, the
+   Dock-Icon), so the text keeps the card's 12px inset. Figma's 20/16 (Dashboard) scale keeps the fixed 32px box. */
+:is([data-typography="mobile"], [data-typography="popular"]) .zen-chat-file__text { height: auto; min-height: var(--zen-image-size-small, 32px); }
 
 /* Figma Chat/Photo/Grid-Slot: a square (260 Mobile · 400 Desktop); every Photo-Container is its own radius-16 tile, gap 4.
    1 = one tile · 2 = two overlapping tiles (160 · 240) on the diagonal · 3 = a tall tile + two · 4+ = 2×2. */
@@ -122,11 +132,15 @@
 .zen-top-nav__action[data-style="flat-chat"] { background: transparent; box-shadow: none; color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-top-nav__action[data-style="flat-chat"]:hover:not(:disabled) { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
 /* Figma Search/Default in the bar: 40 high, padding 10/0/10/12 (+2 text inset), gap 8; the emoji is a flat 44px Nav-Action at its trailing edge.
-   zen-allow-raw-spacing zen-allow-raw-radius: the composer keeps fixed sizes (mobile, no density) — Figma's Input/Spacing/Medium
-   grows in Comfortable — and its radius is half the fixed 40px height, so a grown multi-line field stays a rounded rectangle. */
-.zen-chat-composer__field { --zen-chat-field-pad-y: 10px; display: flex; min-width: 0; min-height: 40px; flex: 1; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); align-self: center; box-sizing: border-box; padding: var(--zen-chat-field-pad-y) 0 var(--zen-chat-field-pad-y) 14px; /* Figma Container p10/0/10/12 + the 2px text-wrapper inset = text at 14 */ border-radius: 20px; background: var(--zen-input-background-default, rgb(5 5 5 / 3%)); box-shadow: var(--zen-style-effect-input-shadow, none); -webkit-backdrop-filter: var(--zen-style-effect-input-backdrop-filter, none); backdrop-filter: var(--zen-style-effect-input-backdrop-filter, none); }
+   zen-allow-raw-spacing: the composer keeps fixed sizes (mobile, no density) — Figma's Input/Spacing/Medium grows in Comfortable.
+   Radius Corner-Radius/2XLarge (24px in Rounded): the one-line 40px field clamps it to a 20px pill, a grown multi-line field
+   keeps 24px corners. */
+.zen-chat-composer__field { --zen-chat-field-pad-y: 10px; display: flex; min-width: 0; min-height: 40px; flex: 1; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); align-self: center; box-sizing: border-box; padding: var(--zen-chat-field-pad-y) 0 var(--zen-chat-field-pad-y) 14px; /* Figma Container p10/0/10/12 + the 2px text-wrapper inset = text at 14 */ border-radius: var(--zen-corner-radius-2-xlarge, 24px); background: var(--zen-input-background-default, rgb(5 5 5 / 3%)); /* Container stroke Input/Border/Default, 1px INSIDE (clear in S1–S3, Border/Neutral/Subtle in S4) */ box-shadow: inset 0 0 0 1px var(--zen-input-border-default, transparent), var(--zen-style-effect-input-shadow, none); -webkit-backdrop-filter: var(--zen-style-effect-input-backdrop-filter, none); backdrop-filter: var(--zen-style-effect-input-backdrop-filter, none); }
 .zen-chat-composer__field:hover { background: var(--zen-input-background-hover, rgb(5 5 5 / 5%)); }
-/* Figma State=Focused keeps the Default field — only the Accent caret shows (no white fill, no ring). */
+/* Figma Chat-Control State=Focused (6182:56819) keeps the Default fill and Effect/Input and adds only the Accent caret, which
+   is no visible focus indicator (WCAG 2.4.7). The field takes the standard Input focus ring (input.css): a 1px inside
+   Focus/Neutral/Solid stroke + the 3px Border/Active/Neutral/Subtle ring outside, over Figma's Default fill. */
+.zen-chat-composer__field:has(> textarea:focus) { box-shadow: var(--zen-style-effect-input-shadow, inset 0 0 1px 0 var(--zen-input-shadow-base, #00000014), inset 0 0 3px 0 var(--zen-input-shadow-strong, #0000001f)), inset 0 0 0 1px var(--zen-color-focus-neutral-solid, #111), 0 0 0 3px var(--zen-color-border-active-neutral-subtle, #00000024); }
 /* The fixed 44px Nav-Action overhangs the one-line field ((Body/Base line − its size) / 2), so the field stays 40px high; the
    Button only eats the field's vertical padding, so a Comfortable (48px) Button grows the field instead of overflowing it. */
 .zen-chat-composer__field > .zen-top-nav__action { margin-block: calc((var(--zen-typography-line-height-body-base, 20px) - var(--zen-navigation-action-size, 44px)) / 2); }
@@ -134,7 +148,8 @@
 .zen-chat-composer__field textarea { width: 100%; max-height: 120px; min-height: 20px; padding: 0; border: 0; background: transparent; color: var(--zen-color-content-neutral-strongest, #111); caret-color: var(--zen-color-background-active-accent-solid, #ff66d4); field-sizing: content; outline: 0; resize: none; }
 .zen-chat-composer__field textarea::placeholder { color: var(--zen-color-content-placeholder, rgb(0 0 0 / 27%)); }
 
-/* Conversation list item (ListItem composition): Figma List-Item padding 12/16 whatever list it sits in. */
+/* Conversation list item (ListItem composition): Figma Chat/Conversation-List/List-Item (6331:35340) pads its List-Item
+   0/16 (Margin-Compact sides) whatever list it sits in; the fill hangs 12px outside the content, 4px from the row edge. */
 .zen-list-item.zen-chat-convo { --zen-list-inset: var(--zen-spacing-padding-medium, 16px); }
 .zen-chat-convo__title { display: inline-flex; min-width: 0; max-width: 100%; align-items: baseline; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-chat-convo__name { overflow: hidden; color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }

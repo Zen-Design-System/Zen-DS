@@ -1,0 +1,22 @@
+/* AI Chat examples. */
+
+/* Assistant home: a page on the Canvas (so the field takes its Surface style) of fixed height. The greeting sits in the
+   middle; once a conversation starts it scrolls on its own and the field stays docked at the bottom. */
+.px-ai-chat-screen { display: flex; height: clamp(560px, calc(100dvh - 160px), 720px); flex-direction: column; background: var(--zen-color-background-canvas-default, #f7f7f7); }
+.pe-card[data-fullscreen="true"] .pe-card__preview > .px-ai-chat-screen { flex: 1 1 0; height: auto; min-height: 0; }
+.px-ai-chat-screen__home { display: flex; min-height: 0; flex: 1 1 auto; align-items: center; overflow-y: auto; padding: var(--zen-margin-comfortable, 24px); }
+.px-ai-chat-screen__bar { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px); }
+.px-ai-chat-screen__scroll { min-height: 0; flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-xlarge, 24px); }
+.px-ai-chat-screen__dock { padding: 0 var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px); }
+/* The docked field lines up with the conversation column (AiChatThread: max 800, centred). */
+.px-ai-chat-column { width: 100%; max-width: 800px; margin-inline: auto; }
+
+/* The field's Popovers (model, recent files) position against it. */
+.px-ai-chat-field { position: relative; }
+
+/* Phone: the greeting fills the first screen inside the screen margin (Margin/Comfortable, 20 on phones, the Top
+   Navigation's own margin); the thread keeps the same margin. The docked field is a strip (block padding Small, like the
+   Action Bar) whose bottom clears the home indicator. */
+.px-ai-chat-phone-home { display: flex; min-height: 100%; box-sizing: border-box; align-items: center; padding: var(--zen-margin-comfortable, 20px); }
+.px-ai-chat-phone-body { padding: var(--zen-margin-comfortable, 20px); }
+.px-ai-chat-phone-dock { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 20px) calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)); background: var(--zen-color-background-surface-default, #fff); }

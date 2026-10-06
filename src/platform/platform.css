@@ -66,8 +66,6 @@
 }
 
 .official-platform {
-  /* Codebase Platform uses the Basic sidebar token from the referenced Figma node. */
-  --zen-sidebar-default-width: 260px;
   --platform-code-font: "JetBrains Mono";
   --official-canvas: var(--zen-color-background-canvas-default, #f7f7f7);
   --official-surface: var(--zen-color-background-surface-default, #fff);
@@ -118,8 +116,9 @@
 .official-platform[data-typography] {
   --zen-typography-font-family-display: "TASA Explorer";
   --zen-typography-font-family-heading: "TASA Explorer";
-  --zen-typography-font-family-sans: "Inter";
-  --zen-typography-font-family-button: "Inter";
+  /* Generic fallbacks: with "Inter" alone, chips and body text drew in the browser's serif until the font loaded. */
+  --zen-typography-font-family-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --zen-typography-font-family-button: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --zen-typography-font-family-dev: "JetBrains Mono";
   --zen-typography-font-size-display-1: 52px;
   --zen-typography-line-height-display-1: 60px;
@@ -196,20 +195,19 @@
   --zen-typography-letter-spacing-body-code: 0px;
 }
 
-/* The platform template is a fixed 260px rail even when the global density mode
-   resolves Sidebar/Default-Width to its Comfortable value (280px). */
-.official-platform[data-brand="zen"] { --zen-sidebar-default-width: 260px; }
+/* The docs rail and every Sidebar in the examples take Sidebar/Default-Width as the density mode resolves it (Compact
+   240px, Comfortable 260px; user, 2026-10-06): the platform no longer pins its own width. */
 
 :where(.official-platform) button:where(:not(.zen-button):not(.zen-chip)) { border: 0; cursor: pointer; font: inherit; }
 .official-platform .zen-button { cursor: pointer; }
 .official-sidebar {
   position: sticky;
   top: 0;
-  width: var(--zen-sidebar-default-width, 260px);
-  min-width: var(--zen-sidebar-default-width, 260px);
-  max-width: var(--zen-sidebar-default-width, 260px);
+  width: var(--zen-sidebar-default-width, 240px);
+  min-width: var(--zen-sidebar-default-width, 240px);
+  max-width: var(--zen-sidebar-default-width, 240px);
   height: 100vh;
-  flex: 0 0 var(--zen-sidebar-default-width, 260px);
+  flex: 0 0 var(--zen-sidebar-default-width, 240px);
   align-self: flex-start;
 }
 .official-sidebar .zen-sidebar__surface {
@@ -405,8 +403,8 @@
   .official-card--development { grid-column: auto; grid-row: auto; }
 }
 
-/* Below 1024px the 260px rail becomes an off-canvas drawer opened from the topbar menu button,
-   and the settings chips scroll horizontally instead of pushing the page wider. */
+/* Below 1024px the rail becomes an off-canvas drawer opened from the topbar menu button,
+   and the settings chips move out of the sticky bar into their own row (PlatformTopbar), which wraps and scrolls away. */
 @media (max-width: 1024px) {
   .official-nav { position: fixed; z-index: 40; inset: 0 auto 0 0; display: block; transform: translateX(-100%); transition: transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1); }
   .official-platform[data-nav-open="true"] .official-nav { transform: none; box-shadow: var(--zen-style-effect-popover-shadow); }
@@ -416,8 +414,11 @@
   .official-topbar { height: auto; min-height: 72px; flex-basis: auto; flex-wrap: wrap; justify-content: flex-start; row-gap: var(--zen-spacing-gap-xsmall, 8px); padding-inline: var(--zen-spacing-padding-medium, 16px); }
   .official-topbar__breadcrumbs { flex: 1 1 0; }
   .official-topbar__trailing { max-width: 100%; margin-inline-start: auto; }
-  .official-topbar__controls { overflow-x: auto; scrollbar-width: none; }
-  .official-topbar__controls::-webkit-scrollbar { display: none; }
+  /* The chips wrap instead of scrolling: a horizontal scroll box (overflow-x: auto makes overflow-y auto too) clipped
+     every chip's Popover. The row is not sticky, so two or three rows of chips never cover the page or its popovers;
+     it sits above the content (its popovers open over the first cards) and below the sticky bar. */
+  .official-topbar-settings { position: relative; z-index: 15; padding: 0 var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-xsmall, 8px); }
+  .official-topbar-settings .official-topbar__controls { display: flex; flex-wrap: wrap; }
 }
 @media (max-width: 1024px) and (prefers-reduced-motion: reduce) { .official-nav { transition: none; } }
 @media (max-width: 1024px) {
@@ -433,8 +434,6 @@
   .platform-example-panel--stack > :is(.platform-example-row, .platform-input-preview) { margin-inline: var(--zen-spacing-padding-medium, 16px); padding-inline: var(--zen-spacing-padding-medium, 16px); }
 }
 @media (max-width: 760px) {
-  /* Settings chips get their own full-width, scrollable row under the breadcrumbs. */
-  .official-topbar__trailing:has(.official-topbar__controls) { width: 100%; justify-content: space-between; margin-inline-start: 0; }
   /* Hero and cover titles scale with the viewport instead of clipping. */
   .platform-page-hero { height: 280px; padding: var(--zen-spacing-padding-xlarge, 24px); }
   .platform-page-hero__logo { top: var(--zen-spacing-padding-xlarge, 24px); left: var(--zen-spacing-padding-xlarge, 24px); }
@@ -467,6 +466,8 @@
 .platform-radio-group { display: grid; gap: var(--zen-spacing-gap-small, 12px); width: min(360px, 100%); }
 .platform-date-picker-preview { flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
 .platform-date-picker-inline .zen-date-picker, .pe-inline-picker .zen-date-picker { position: static; }
+/* Device=Mobile: the calendar fills a phone's content width (Date-Picker/Mobile 9923:3576: 390 − 2 × Modal-Padding = 350). */
+.platform-date-picker-inline[data-device="mobile"] { width: min(350px, 100%); }
 /* A dual calendar (≈492px) scrolls inside its card on narrow screens instead of widening the page. */
 /* The scroll box is padded by the picker's shadow reach (and pulled back with a negative margin) so
    overflow-x can scroll a wide dual calendar without clipping the Effect/Popover shadow. */
@@ -483,7 +484,13 @@
 /* Cards in one row share their tracks (subgrid): head · stage · code line up, so neighbouring cards and their stages are the
    same height and the layout never steps. The preview is centred in a stage taller than it needs. */
 .pe-grid > .pe-card { grid-row: span 3; grid-template-rows: subgrid; row-gap: 0; }
-.pe-card__stage { display: flex; flex-direction: column; justify-content: center; }
+/* Stages in one row share a height: a shorter preview sits at the top of its stage, never floating in the middle of a
+   tall grey area beside a phone (2026-10-01 examples review). */
+.pe-card__stage { display: flex; flex-direction: column; justify-content: flex-start; }
+/* A card whose control is open (a Select list, a picker, a menu rendered in place) rises above the cards after it, so
+   the next card's stage never covers the open list. A full-screen card is left alone: focus sits inside it, and this
+   rule's specificity would otherwise put it back in the flow as a thin strip. */
+.pe-card:not([data-fullscreen="true"]):is(:focus-within, :has(:is([aria-haspopup], [role="combobox"])[aria-expanded="true"])) { position: relative; z-index: 1; }
 .pe-card__preview { min-width: 0; }
 /* An example card can switch token mode (data-theme). Inherited colour was resolved above it, so the card sets its own. */
 .pe-card[data-theme] { color: var(--zen-color-content-neutral-strongest, #111); }
@@ -492,20 +499,90 @@
 .pe-card__titles { display: grid; min-width: 0; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .pe-card__titles h3 { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
 .pe-card__titles p { margin: 0; color: var(--official-muted); }
-.pe-card__stage { min-width: 0; margin: var(--zen-spacing-gap-medium, 16px) var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px); padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); }
+/* The stage is the page the example lives on: Canvas/Default, so every example shares one mood — flat Surface/Default
+   boxes (no border, no shadow) on a grey canvas, unless a condition picks another pairing (usage rules §16, 2026-10-06). */
+.pe-card__stage { min-width: 0; margin: var(--zen-spacing-gap-medium, 16px) var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px); padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-canvas-default, #f7f7f7); }
 .pe-card__code { min-width: 0; margin: 0 var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px); }
 .pe-card__actions { display: flex; flex: 0 0 auto; flex-wrap: wrap; justify-content: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); }
-/* Full screen (examples flagged `screen`, a whole desktop screen): the card covers the viewport under the platform's
-   overlays (portal z ≥ 30); head · stage · code keep their order, the screen fills the stage, and frames that scroll
-   inside (shells, chat windows, templates) trade their fixed demo height for the room left. */
-.pe-card[data-fullscreen="true"] { position: fixed; z-index: 25; inset: 0; grid-row: auto; grid-template-rows: auto minmax(0, 1fr) auto; border-radius: 0; background: var(--official-canvas); box-shadow: none; }
-.pe-card[data-fullscreen="true"] .pe-card__head { padding: var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-xlarge, 24px) 0; }
-.pe-card[data-fullscreen="true"] .pe-card__titles p { display: none; }
-.pe-card[data-fullscreen="true"] .pe-card__stage { justify-content: flex-start; overflow: auto; margin-bottom: var(--zen-spacing-padding-medium, 16px); padding: var(--zen-spacing-padding-medium, 16px); }
+/* Full screen (examples flagged `screen` and the App Shell playground): the screen alone covers the viewport like the
+   real web app — no docs header, description, Code button or code panel, no stage inset or frame — under the platform's
+   overlays (portal z ≥ 30). Frames that scroll inside (shells, chat windows, templates) fill the viewport's height; a
+   page without a frame scrolls in the stage. The title stays for the dialog's name, visually hidden. */
+.pe-card[data-fullscreen="true"] { position: fixed; z-index: 25; inset: 0; display: flex; flex-direction: column; border-radius: 0; background: var(--official-canvas); box-shadow: none; }
+.pe-card[data-fullscreen="true"] .pe-card__head { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.pe-card[data-fullscreen="true"] .pe-card__stage.pe-card__stage { flex: 1 1 auto; min-height: 0; justify-content: flex-start; margin: 0; padding: 0; overflow: auto; border: 0; border-radius: 0; }
 .pe-card[data-fullscreen="true"] .pe-card__preview { display: flex; flex: 1 0 auto; flex-direction: column; }
 .pe-card[data-fullscreen="true"] .pe-card__preview > * { flex: 1 0 auto; width: 100%; max-width: none; }
-.pe-card[data-fullscreen="true"] :is(.pe-shell--tall, .pe-chat-desktop, .patpl-frame, .pash-frame, .pe-panel-shell) { flex: 1 1 0; height: auto !important; min-height: 480px; max-width: none; }
-.pe-card[data-fullscreen="true"] .pe-card__code { max-height: 40vh; overflow: auto; }
+/* A Container straight in the preview is content-box with its gutter as padding: width 100% overflowed the stage by both
+   gutters (a 48px sideways scroll in full screen, the table lost its right gutter; 2026-10-03). */
+.pe-card[data-fullscreen="true"] .pe-card__preview > .zen-container { width: calc(100% - 2 * var(--zen-container-gutter)); }
+.pe-card[data-fullscreen="true"] :is(.pe-shell--tall, .pe-chat-desktop, .patpl-frame, .pash-frame, .psp-studio) { flex: 1 1 0; height: auto !important; min-height: 0; max-width: none; border: 0; border-radius: 0; }
+.platform-example-row[data-fullscreen="true"] { position: fixed; z-index: 25; inset: 0; display: flex; min-height: 0; flex-direction: column; align-items: stretch; justify-content: flex-start; margin: 0; padding: 0; overflow: auto; border-radius: 0; background: var(--official-canvas); }
+.platform-example-row[data-fullscreen="true"] > .pash-frame { flex: 1 1 0; height: auto !important; min-height: 0; border: 0; border-radius: 0; }
+/* The one docs control left on a full-screen page (FullScreenBar; also the Zen Studio's Present): a pill at the bottom
+   centre on the popover surface, above the screen (25) and under its overlays (30). It fades out after a pause of the
+   pointer and comes back on movement or keyboard focus; hidden, it takes no presses. */
+.platform-fullscreen-bar {
+  position: fixed;
+  z-index: 26;
+  bottom: var(--zen-spacing-padding-medium, 16px);
+  left: 50%;
+  display: flex;
+  max-width: calc(100% - 2 * var(--zen-spacing-padding-medium, 16px));
+  box-sizing: border-box;
+  align-items: center;
+  gap: var(--zen-spacing-gap-3-xsmall, 2px);
+  padding: var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
+  background: var(--zen-popover-background, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+  translate: -50% 0;
+  transition: opacity var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease), translate var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease);
+}
+.platform-fullscreen-bar[data-shown="false"]:not(:has(:focus-visible)) { opacity: 0; translate: -50% calc(var(--zen-spacing-gap-xsmall, 8px) * var(--zen-motion-movement, 1)); pointer-events: none; }
+/* zen-allow-slot-size: the screen's name truncates before the controls do. */
+.platform-fullscreen-bar__title { min-width: 0; max-width: 280px; overflow: hidden; padding-inline: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-2-xsmall, 4px); text-overflow: ellipsis; white-space: nowrap; }
+.platform-fullscreen-bar__divider { align-self: stretch; margin-block: var(--zen-spacing-padding-2-xsmall, 4px); margin-inline: var(--zen-spacing-gap-2-xsmall, 4px); }
+.platform-fullscreen-bar__key {
+  margin-inline-start: var(--zen-spacing-gap-2-xsmall, 4px);
+  padding: 0 var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%));
+  font: inherit;
+  font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace;
+  font-size: var(--zen-typography-font-size-caption);
+  line-height: var(--zen-typography-line-height-caption);
+}
+/* A panel a caller opens above the pill (the Studio's Modes): the popover surface. */
+.platform-fullscreen-bar__panel {
+  position: absolute;
+  bottom: calc(100% + var(--zen-spacing-gap-xsmall, 8px));
+  left: 50%;
+  display: grid;
+  width: min(320px, calc(100vw - 2 * var(--zen-spacing-padding-medium, 16px)));
+  box-sizing: border-box;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-small, 12px);
+  border-radius: var(--zen-corner-radius-large, 16px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 6%));
+  background: var(--zen-popover-background, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+  translate: -50% 0;
+}
+/* The App Shell playground opens full screen from its title row. */
+.platform-playground-screen { display: flex; grid-area: title; align-self: start; justify-self: end; padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
+/* Desktop screens (`screen`: templates, app shells, page layouts, desktop chat) bleed to the card's edges: the page is the
+   preview, so it gets no inset and no frame of its own and sits on the stage's Canvas/Default (a shell paints its own
+   canvas); a Pale rule separates it from the card head and the card's corners clip it. The same in full screen. */
+.pe-card[data-screen="true"] { overflow: hidden; }
+.pe-card[data-screen="true"] .pe-card__stage { margin: var(--zen-spacing-gap-medium, 16px) 0 0; padding: 0; border-top: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: 0; }
+.pe-card[data-screen="true"] .pe-card__preview > * { max-width: none; }
+.pe-card[data-screen="true"] :is(.patpl-frame, .pash-frame, .pe-shell, .psp-studio, .pe-chat-desktop) { max-width: none; border: 0; border-radius: 0; }
+.pe-card[data-screen="true"] .pe-card__code { margin-top: var(--zen-spacing-padding-xlarge, 24px); }
 
 .pe-text { margin: 0; }
 .pe-text--strongest { color: var(--zen-color-content-neutral-strongest, #111); }
@@ -526,6 +603,7 @@
 .pe-dialog { display: grid; width: min(380px, 100%); gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-xlarge, 20px); background: var(--zen-color-background-surface-default, #fff); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
 .pe-dialog .pe-actions { margin-top: var(--zen-spacing-gap-xsmall, 8px); }
 .pe-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default, #fff); }
+.pe-toolbar--nowrap { flex-wrap: nowrap; }
 .pe-empty { padding: var(--zen-spacing-padding-medium, 16px); text-align: center; }
 .pe-person-meta { display: grid; min-width: 0; }
 .pe-people-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px); }
@@ -688,9 +766,7 @@
 .platform-sidebar-stage[data-canvas="alt"] { background: var(--zen-color-background-canvas-alt, #fff); }
 /* zen-allow-canvas-layer: the playground stage stands in for an app page */
 .platform-sidebar-stage[data-canvas="flat"] { background: var(--zen-color-background-canvas-flat, #fff); }
-.pe-shell[data-canvas] .pe-shell__stat { background: var(--zen-card-surface, var(--zen-color-background-surface-default, #fff)); }
 /* A flat page has no fill contrast for its cards (white on white in light), so static cards frame with Neutral/Pale. */
-.pe-shell[data-canvas="flat"] .pe-shell__stat { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
 /* App-shell previews behave like a real app window: a fixed height tied to the viewport (under the 72px docs topbar,
    capped at 760), the Sidebar fills it and scrolls its own menu (.zen-sidebar__body), and the page scrolls on its own. */
 .pe-shell--tall { height: clamp(520px, calc(100dvh - 120px), 760px); }
@@ -705,10 +781,6 @@
 /* Inbox rows: time over the New badge, so the subject keeps the width in narrow shells. */
 .pe-inbox-meta { display: flex; flex-direction: column; align-items: flex-end; gap: var(--zen-spacing-gap-2-xsmall, 4px); white-space: nowrap; }
 @media (max-width: 620px) { .pe-shell__main { padding: var(--zen-spacing-padding-medium, 16px); } }
-.pe-shell__head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--zen-spacing-gap-medium, 16px); }
-.pe-shell__titles { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); max-width: 560px; }
-.pe-shell__stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
-.pe-shell__stat { display: grid; justify-items: start; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); }
 .pe-shell .zen-sidebar__sub-content > .zen-button { align-self: flex-start; }
 
 /* Help-Text variants matrix: 3 columns (Icon · No icon · Character limit), one row per theme. */
@@ -752,26 +824,20 @@
 .platform-dock-preview { gap: var(--zen-spacing-gap-medium, 16px); }
 .platform-dock-preview[data-tone="on-color"] { padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-accent-solid-default); }
 .platform-dock-preview__current { outline: 2px dashed var(--zen-color-border-neutral-subtle-default); outline-offset: 4px; }
-/* Padding-block matches the List-Item Interactive-Background inset (Spacing/Padding/Small) so the hover/selected fill never touches the container edge. */
-.platform-list-preview > .zen-list { box-sizing: border-box; width: min(420px, 100%); padding-block: var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); }
+/* The playground shows the list in a ListBox (Figma Component/List-Box), at a readable width. */
+.platform-list-preview > .zen-list-box { width: min(420px, 100%); }
 .platform-table-preview { display: block; }
 .platform-table-preview > .zen-table { border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default, #fff); }
 
 /* Compositions with Card / List (replacing the old pe-list, pe-radio-card, pe-metric and pe-preview-card helpers). */
 /* A bare List on the stage reads as a white card. Lists inside a surface that already frames them (sheet, popover, panel,
    dialog, card) keep that surface's own padding — painting them white made their inset-0 rows touch the edge. */
-.pe-card__stage .zen-list:not(:is(.pe-list-card, .zen-bottom-sheet, .zen-popover, .zen-side-panel, .zen-modal, [role="dialog"], .zen-card) .zen-list) { box-sizing: border-box; padding-block: var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); }
+/* Loose List examples sit on a Surface card; templates, phones and full-bleed screen examples are real screens, so their
+   lists keep the look the app gives them, and a List already inside a painted Box (surface or border) gets no second one. */
+/* A bare List on the stage gets the List-Box frame: flat Surface/Default on the stage's Canvas/Default, no border and no
+   shadow (usage rules §16). */
+.pe-card__stage .zen-list:not(:is(.zen-list-box, .zen-bottom-sheet, .zen-popover, .zen-side-panel, .zen-modal, [role="dialog"], .zen-card, .patpl-frame, .patpl-phone, .platform-phone, .pe-card[data-screen="true"], .zen-box[data-surface], .zen-box[data-border]) .zen-list) { box-sizing: border-box; padding: var(--zen-list-container-vertical-padding, 12px) var(--zen-card-padding-medium, 24px); border-radius: var(--zen-corner-radius-2-xlarge, 24px); background: var(--zen-color-background-surface-default, #fff); }
 .pe-card__stage .zen-list { width: 100%; }
-/* A List inside a Card, derived from the row's Interactive-Background (Corner-Radius/Large, 12 outside the content):
-   - gap card → hover fill = Padding/2XSmall (4) on every side: 4 top/bottom as card padding, and 4 at the sides via the
-     row inset (Padding/Small 12 + Padding/2XSmall 4 = 16), so the content sits 16 from every edge;
-   - concentric corners: card radius = item radius + gap = Large + 4 = Corner-Radius/XLarge (Rounded/Smooth 16→20,
-     Standard 12→16), so the fill's curve runs parallel to the card's in every radius mode. */
-.zen-card.pe-list-card {
-  --zen-list-inset: calc(var(--zen-spacing-padding-small, 12px) + var(--zen-spacing-padding-2-xsmall, 4px));
-  --zen-card-radius: var(--zen-corner-radius-xlarge, 20px);
-  padding: var(--zen-spacing-padding-2-xsmall, 4px) 0;
-}
 .pe-choice-card .zen-radio-button { width: 100%; }
 .pe-choice-card .zen-radio-button.pe-radio-card__main { width: auto; min-width: 0; flex: 1 1 auto; }
 .pe-theme-scope { width: 100%; }
@@ -784,6 +850,11 @@
 .platform-modal-side__icon { display: inline-flex; width: var(--zen-image-size-medium, 40px); height: var(--zen-image-size-medium, 40px); align-items: center; justify-content: center; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default, #fff); }
 .platform-modal-side__icon > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
 .pe-anchor > .zen-card { justify-self: stretch; }
+/* An empty Figma slot in a playground (PlaygroundSlot): the area a component leaves for your own content, named, on a
+   dashed Border/Neutral/Subtle outline; examples fill it with real content. */
+.platform-slot { display: flex; min-width: 0; min-height: var(--zen-image-size-3-xlarge, 112px); box-sizing: border-box; flex: 1 1 auto; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-small, 12px); border: 1px dashed var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); border-radius: var(--zen-corner-radius-base, 12px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: center; }
+.platform-slot--tall { min-height: calc(2 * var(--zen-image-size-3-xlarge, 112px)); }
+.platform-slot--fill { align-self: stretch; height: 100%; }
 .pe-card-grid { display: grid; width: 100%; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
 /* 120px: "Theme=semi-pale" in Caption (11px since the 2026-09-28 variables) plus Spacing=Small padding, unbroken. */
 .pe-card-grid--surfaces { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
@@ -827,10 +898,17 @@
 .pe-brand-preview { display: flex; min-height: 56px; box-sizing: border-box; align-items: center; padding: 0 var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-base, 12px); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
 .pe-brand-preview :is(.pe-text, .zen-text[data-tone]) { color: var(--zen-color-content-on-colors, #fff); }
 .pe-brand-preview[data-contrast="dark"] :is(.pe-text, .zen-text[data-tone]) { color: var(--zen-color-content-neutral-strongest, #111); }
-.pe-metric-row { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--zen-spacing-gap-large, 24px); }
+/* Metric cells split by Pale rules (Metric › Service health, Inline metrics): equal cells in one row with a rule before
+   each but the first; in a card narrower than 480px (a phone) they stack with the rule above instead. A container
+   query, because example cards always render at the desktop breakpoint. */
+.pe-metric-split-host { container-type: inline-size; }
+.zen-grid.pe-metric-split { grid-template-columns: none; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; }
+.pe-metric-split > * + * { padding-inline-start: var(--zen-spacing-padding-xlarge, 24px); border-inline-start: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+@container (max-width: 479.98px) {
+  .zen-grid.pe-metric-split { grid-template-columns: minmax(0, 1fr); grid-auto-flow: row; }
+  .pe-metric-split > * + * { padding-inline-start: 0; border-inline-start: 0; padding-top: var(--zen-spacing-padding-xlarge, 24px); border-top: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+}
 .pe-media-upload { width: 100%; box-sizing: border-box; padding: var(--zen-spacing-padding-large, 20px); border-radius: var(--zen-corner-radius-large, 16px); background: linear-gradient(135deg, var(--zen-color-background-support-indigo-solid, #3e63dd), var(--zen-color-background-support-pink-solid, #d6409f)); }
-.pe-panel-shell { display: flex; width: 100%; height: 360px; overflow: hidden; border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-alt, #f7f7f7); }
-.pe-panel-shell__canvas { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; align-items: flex-start; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-large, 20px); }
 .pe-toast-well { display: grid; min-height: 120px; align-content: end; justify-items: center; }
 
 /* ───────────── Component page template: sticky "On this page" (Figma Codebase Platform 14260:96953) ───────────── */
@@ -896,11 +974,10 @@
 .pe-phone-scroll { height: 100%; overflow: auto; }
 .pgv-mobile { width: min(360px, 100%); overflow: hidden; border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
 .pgv-mobile .zen-chat-thread { padding: var(--zen-spacing-padding-small, 12px); }
-.pgv-sheet { --zen-list-inset: 0px; display: flex; width: min(320px, 100%); box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-2-xlarge, 24px) var(--zen-corner-radius-2-xlarge, 24px) 0 0; background: var(--zen-color-background-container, #f7f7f7); box-shadow: var(--zen-style-shadow-top-level-2-shadow, 0 -8px 24px rgb(0 0 0 / 10%)); }
+.pgv-sheet { display: flex; width: min(320px, 100%); box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-2-xlarge, 24px) var(--zen-corner-radius-2-xlarge, 24px) 0 0; background: var(--zen-color-background-container, #f7f7f7); box-shadow: var(--zen-style-shadow-top-level-2-shadow, 0 -8px 24px rgb(0 0 0 / 10%)); }
 .pgv-sheet__grab { width: 40px; height: 5px; align-self: center; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); }
 .pe-chart-dash { display: grid; width: 100%; grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr); align-items: start; gap: var(--zen-spacing-gap-medium, 16px); }
 @media (max-width: 760px) { .pe-chart-dash { grid-template-columns: minmax(0, 1fr); } }
-.pe-metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--zen-spacing-gap-large, 24px); }
 
 /* ───────────── QA audit 2026-09-27: narrow-viewport fixes (tools/platform-audit) ───────────── */
 @media (max-width: 620px) {
@@ -911,9 +988,9 @@
   /* Desktop-only patterns (Sidebar shells, 3XLarge avatar stacks) scroll inside their preview instead of the page. */
   .platform-sidebar-stage, .platform-avatar-preview { overflow-x: auto; overscroll-behavior-x: contain; padding-block: var(--zen-spacing-padding-xsmall, 8px); }
 }
-/* The Sidebar Sub Menu flyout is absolutely positioned: reserve its 260px (+8 gap) so the centred preview holds both. */
+/* The Sidebar Sub Menu flyout is absolutely positioned: reserve its Sidebar/Default-Width (+8 gap) so the centred preview holds both. */
 /* Room for the flyout: it is the default sidebar width, Padding/XSmall off the rail (.zen-sidebar__submenu). */
-.platform-sidebar-stage > .zen-sidebar:has(.zen-sidebar__submenu) { margin-inline-end: calc(var(--zen-sidebar-default-width, 260px) + var(--zen-spacing-padding-xsmall, 8px)); }
+.platform-sidebar-stage > .zen-sidebar:has(.zen-sidebar__submenu) { margin-inline-end: calc(var(--zen-sidebar-default-width, 240px) + var(--zen-spacing-padding-xsmall, 8px)); }
 @media (max-width: 620px) { .platform-sidebar-stage > .zen-sidebar:has(.zen-sidebar__submenu) { margin-inline-end: 0; } }
 /* Truncated-text tooltip triggers are buttons: keep a 24px pointer target. */
 .pe-truncate { min-height: 24px; }
@@ -959,11 +1036,17 @@
 /* ───────────── PlatformPhone: device simulator (iPhone 15 390×844 · Pro Max 430×932 · iPad Air 820×1180) ─────────────
    The "OS" (status bar, Dynamic Island, home indicator) is drawn above the app; the app runs underneath and pads by
    --zen-safe-area-top/-bottom, so a Top/Bottom Navigation, Bottom Sheet or composer carries its own background under them. */
-.platform-phone-fit { position: relative; flex: 0 0 auto; }
-.platform-phone { position: absolute; top: 0; left: 0; display: flex; box-sizing: border-box; flex-direction: column; overflow: hidden; background: var(--zen-color-background-surface-default, #fff); box-shadow: 0 0 0 12px var(--platform-phone-bezel), 0 0 0 13.5px var(--platform-phone-frame), 0 0 0 14.5px var(--platform-phone-frame-edge); transform-origin: top left; isolation: isolate; }
+/* The device centres itself in a host whose width does not depend on it (an example stage, a playground, Present):
+   auto inline margins; PlatformPhone scales it to leave 16px each side for the bezel ring. A host sized by its content
+   (a grid or inline box around the phone) needs a definite width, like the Chat demo below, or the phone loops. */
+.platform-phone-fit { position: relative; flex: 0 0 auto; margin: var(--zen-spacing-gap-medium, 16px) auto; }
+/* overflow-anchor: none keeps the whole phone out of the docs page's scroll-anchor choice: a demo that re-pins its chat
+   thread (a call card flipping) made the page jump ~38px at 390 with no input (2026-10-02). The screen inside keeps its own
+   scroll anchoring. */
+.platform-phone { position: absolute; top: 0; left: 0; display: flex; box-sizing: border-box; flex-direction: column; overflow: hidden; overflow-anchor: none; background: var(--zen-color-background-surface-default, #fff); box-shadow: 0 0 0 12px var(--platform-phone-bezel), 0 0 0 13.5px var(--platform-phone-frame), 0 0 0 14.5px var(--platform-phone-frame-edge); transform-origin: top left; isolation: isolate; }
 /* Device hardware (not a theme surface): a black glass bezel and a thin titanium frame, identical in every
    token mode, like the real phone. zen-allow-raw-colour: physical device colours are not part of the colour system. */
-.platform-phone-fit { --platform-phone-bezel: #050505; --platform-phone-frame: #2c2c2e; --platform-phone-frame-edge: #8e8e93; margin: var(--zen-spacing-gap-medium, 16px); }
+.platform-phone-fit { --platform-phone-bezel: #050505; --platform-phone-frame: #2c2c2e; --platform-phone-frame-edge: #8e8e93; }
 .platform-phone[data-canvas="canvas"] { background: var(--zen-color-background-canvas-default, #f7f7f7); }
 .platform-phone[data-canvas="alt"] { background: var(--zen-color-background-surface-alt, #f7f7f7); }
 .platform-phone[data-canvas="flat"] { background: var(--zen-color-background-canvas-flat, #fff); }
@@ -979,11 +1062,14 @@
    first row below the header by its measured height. */
 .platform-phone[data-header-overlay="true"] .platform-phone__header { position: absolute; top: 0; right: 0; left: 0; }
 .platform-phone[data-header-overlay="true"]:not([data-canvas="media"]) .platform-phone__screen { padding-top: var(--platform-phone-header-height, 0px); }
+/* Keyboard focus never lands under the overlaid header: scrolling a focused row into view keeps it below the part of the
+   header that stays put (the bar, its status bar and a pinned control bar; the fold slides away). WCAG 2.2 SC 2.4.11. */
+.platform-phone[data-header-overlay="true"] .platform-phone__screen { scroll-padding-top: var(--platform-phone-header-pinned, 0px); }
 .platform-phone[data-canvas="media"] .platform-phone__screen { padding-top: 0; }
 .platform-phone__footer:has(> .zen-bottom-nav:not([data-type="default"])) { position: absolute; right: 0; bottom: 0; left: 0; }
 /* zen-allow-raw-spacing: room for the floating Bottom Navigation row, 64px in Figma (9017:26128). */
 .platform-phone:has(> .platform-phone__footer > .zen-bottom-nav:not([data-type="default"])) .platform-phone__screen { padding-bottom: calc(64px + var(--zen-safe-area-bottom)); }
-.platform-phone[data-canvas="canvas"] .platform-phone__header > .zen-top-nav { background: var(--zen-color-background-canvas-default, #f7f7f7); }
+.platform-phone[data-canvas="canvas"] .platform-phone__header > .zen-top-nav { --zen-top-nav-fill: var(--zen-color-background-canvas-default, #f7f7f7); }
 /* Status bar: Figma Status-bar/IOS/Mobile 390×50 — 21px top padding, 22px row, time (17/22 semibold) centred in the left
    133px, a 124px Dynamic Island gap, levels (gap 7) in the right 133px. The island itself is 125×37 at 11px. */
 /* Device chrome, not Zen UI: the iOS status bar, Dynamic Island and home indicator keep Apple's metrics (SF Pro 17/22,
@@ -1044,6 +1130,8 @@
 
 /* Popover / Bulk-Action examples: the bar floats over the content it acts on. */
 .pe-bulk-stage { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; gap: var(--zen-spacing-gap-medium, 16px); width: min(460px, 100%); padding-top: var(--zen-spacing-padding-2-xsmall, 4px); }
+/* The selection bar stays one row (it floats over the selection); it is narrower than a phone column. */
+.pe-bulk-stage__bar { flex-wrap: nowrap; max-width: 100%; }
 .pe-bulk-stage__text { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
 .pe-bulk-stage__selection { border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-accent-subtle-default, rgb(255 102 212 / 16%)); color: inherit; }
 .pe-bulk-list { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-small, 12px); width: 100%; }
@@ -1059,8 +1147,10 @@
    Canvas stage), the single-thread windows keep a Pale frame (static closed container), one vertical Divider
    between the list and the thread, one Divider under the thread header. No composer top line, no doubled edges. */
 .pe-chat-desktop--single { max-width: 760px; grid-template-columns: minmax(0, 1fr); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
-/* The Chat playground at Device=Desktop: the window takes the preview width (up to 760) instead of shrinking to its messages. */
-.pe-chat-demo:has(> .pe-chat-desktop) { width: 100%; justify-items: center; }
+/* The Chat playground: at Device=Desktop the window takes the preview width (up to 760) instead of shrinking to its
+   messages; at Device=Mobile the phone's host gets the same definite width, so the phone's auto margins centre it
+   instead of collapsing the grid to the phone (PlatformPhone then shrank the phone on every resize, 2026-10-03). */
+.pe-chat-demo:is(:has(> .pe-chat-desktop), :has(> .platform-phone-fit)) { width: 100%; justify-items: center; }
 /* Business sits on Canvas/Default so its Surface bubbles read (Figma 6349:59878). */
 /* zen-allow-canvas-layer: the example window stands in for the app page */
 .pe-chat-desktop[data-domain="business"] { background: var(--zen-color-background-canvas-default, #f7f7f7); }
@@ -1072,12 +1162,13 @@
 .pe-chat-desktop__header { display: flex; align-items: center; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px); }
 .pe-chat-desktop__who { display: flex; min-width: 0; flex: 1; flex-direction: column; }
 .pe-chat-desktop__name { overflow: hidden; color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
-.pe-chat-desktop__status { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+/* Presence stays on one line under the name ("Active 2 minutes ago" wrapped to two in a narrow window): it ellipsizes. */
+.pe-chat-desktop__status { overflow: hidden; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-overflow: ellipsis; white-space: nowrap; }
 .pe-chat-desktop__actions { display: flex; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 @media (max-width: 760px) {
   .pe-chat-desktop { height: auto; grid-template-columns: minmax(0, 1fr); }
-  .pe-chat-desktop__list { max-height: 280px; }
-  /* Stacked: the list/thread split turns into a horizontal Divider. */
+  /* Stacked: the conversation list hugs its rows above the thread (no fixed height: 280px cut a row in half), and the
+     list/thread split turns into a horizontal Divider. */
   .pe-chat-desktop__split.zen-divider { width: auto; height: 0; min-height: 0; border-left: 0; border-top: 1px solid var(--zen-divider-color); }
   .pe-chat-desktop__main { height: 600px; }
 }
@@ -1174,10 +1265,9 @@
 .pth-page { display: grid; width: 100%; box-sizing: border-box; gap: var(--zen-spacing-gap-xlarge, 24px); padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-canvas-default, #f7f7f7); }
 .pth-section { display: grid; min-width: 0; gap: var(--zen-spacing-gap-small, 12px); }
 .pth-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--zen-spacing-gap-medium, 16px); }
-/* Lines up with the List rows below it (List inset comfortable). */
-.pth-list-head { padding: var(--zen-spacing-padding-medium, 16px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-2-xsmall, 4px); }
-.pth-screen { display: grid; align-content: start; gap: var(--zen-spacing-gap-xlarge, 24px); padding: var(--zen-spacing-padding-medium, 16px); }
-.pth-outline { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); }
+/* Phone screens (mobile breakpoint tokens) line up on the Top Navigation's 20px margin: blocks with the title. */
+.pth-screen { display: grid; align-content: start; gap: var(--zen-spacing-gap-xlarge, 24px); padding: var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-large, 20px); }
+.pth-outline { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); color: var(--zen-color-content-neutral-strongest, #111); }
 .pth-outline__list { display: grid; margin: 0; padding: 0; gap: var(--zen-spacing-gap-xsmall, 8px); list-style: none; }
 .pth-outline__row { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--zen-spacing-gap-xsmall, 8px); align-items: baseline; }
 .pth-outline__row > :last-child { grid-column: 2; }

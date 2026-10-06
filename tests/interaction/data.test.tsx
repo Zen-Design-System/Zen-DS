@@ -6,7 +6,7 @@ import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 import { userEvent } from "vitest/browser";
-import { Accordion, Button, Form, FormActions, InputField, Pagination, Table, ZenProvider, useFormState, type TableSort } from "../../src/index";
+import { Accordion, Button, Form, FormActions, InputField, Menu, Pagination, Table, ZenProvider, useFormState, type TableSort } from "../../src/index";
 
 type Member = { id: string; name: string; seats: number };
 const members: Member[] = [
@@ -56,6 +56,37 @@ describe("Table", () => {
     // The native input is visually hidden behind the Zen mark (the label is the hit area), as in every Zen checkbox.
     await userEvent.click(screen.getByRole("checkbox", { name: "Select all rows" }), { force: true });
     expect(onSelection).toHaveBeenLastCalledWith(["a", "b", "c"]);
+  });
+});
+
+describe("Table onRowClick", () => {
+  it("opens a row on click and with Enter, but not from a control inside it", async () => {
+    const onRowClick = vi.fn();
+    const onArchive = vi.fn();
+    const screen = await render(<ZenProvider><Table aria-label="Members" rows={members} onRowClick={onRowClick}
+      columns={[{ id: "name", header: "Name", cell: (row) => row.name }, { id: "actions", header: "Actions", cell: (row) => <Button level="tertiary" size="sm" onClick={() => onArchive(row.id)}>Archive</Button> }]} /></ZenProvider>);
+    await screen.getByRole("cell", { name: "Bao Tran" }).click();
+    expect(onRowClick).toHaveBeenLastCalledWith(members[1]);
+    await screen.getByRole("button", { name: "Archive" }).nth(0).click();
+    expect(onArchive).toHaveBeenCalledWith("a");
+    expect(onRowClick).toHaveBeenCalledTimes(1);
+    const third = screen.getByRole("row").nth(3);
+    (third.element() as HTMLElement).focus();
+    await userEvent.keyboard("{Enter}");
+    expect(onRowClick).toHaveBeenLastCalledWith(members[2]);
+  });
+
+  it("does not open a row from a Menu item the row opened (portal)", async () => {
+    const onRowClick = vi.fn();
+    const onMove = vi.fn();
+    const screen = await render(<ZenProvider><Table aria-label="Members" rows={members} onRowClick={onRowClick}
+      columns={[{ id: "name", header: "Name", cell: (row) => row.name }, { id: "actions", header: "Actions", cell: (row) => (
+        <Menu trigger={<Button level="tertiary" size="sm">More</Button>} items={[{ id: "move", label: "Move", onSelect: () => onMove(row.id) }]} />
+      ) }]} /></ZenProvider>);
+    await screen.getByRole("button", { name: "More" }).nth(0).click();
+    await screen.getByRole("menuitem", { name: "Move" }).click();
+    expect(onMove).toHaveBeenCalledWith("a");
+    expect(onRowClick).not.toHaveBeenCalled();
   });
 });
 

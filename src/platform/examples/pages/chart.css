@@ -1,0 +1,7 @@
+/* Chart examples. The finance dashboard is a page on the Canvas: its cards (metrics and the chart) are Surfaces with a
+   Pale border on that layer; the screen card shows it edge to edge. */
+.px-chart-canvas { background: var(--zen-color-background-canvas-default, #f7f7f7); }
+
+/* Data didn't load: the Skeleton in the chart's place. The Skeleton takes the chart's own height
+   (LineChart height={220}) so nothing jumps when the months arrive; the doubled class outranks the shape's size. */
+.px-chart-skeleton.px-chart-skeleton { display: block; inline-size: 100%; block-size: 220px; }

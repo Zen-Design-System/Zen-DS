@@ -8,6 +8,22 @@
   text-decoration-thickness: from-font;
   text-underline-offset: 0.2em;
 }
+/* as="button": drop the browser's button chrome (fill, border, padding, margin, font, centred text) so it looks exactly
+   like the anchor — the same colour, underline, ring and inherited text. Code-only (Link has no Figma node); no token is
+   needed: everything inherits or resets to none. */
+button.zen-link {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  appearance: none;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: inherit;
+  text-transform: inherit;
+  vertical-align: baseline;
+  word-spacing: inherit;
+}
 /* hover (default): the underline appears on hover and on keyboard focus. always: links inside running text. */
 .zen-link[data-underline="always"],
 .zen-link[data-underline="hover"]:is(:hover, :focus-visible) { text-decoration-line: underline; }

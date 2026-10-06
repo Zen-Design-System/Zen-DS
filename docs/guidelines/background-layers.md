@@ -26,12 +26,14 @@ Every background sits on one of five layers, bottom to top: 1 Canvas (the page) 
 | 3 Other colours | `--zen-color-background-<family>-<subtle|solid|pale>…` | component fills and states |
 | 4 Container | `--zen-color-background-container` | Modal, Dialog, Modal/Forms, Bottom-Sheet |
 | 5 Popover | `--zen-color-background-popover-default` | Popover, menus, tooltips, pickers, flyouts, toasts |
+| Box elevation | `effectStyle (Box): Shadow/Bottom|Top/Level-1…4 · Effect/Overlay` | a drop shadow only on surface="surface" over Canvas/Default, with no border (never on Subtle, Pale, Surface-Alt or a Canvas/Alt page); Effect/Overlay blurs behind a subtle or pale fill; Effect/Container and Effect/Popover stay with layers 4 and 5 |
 
 ## ✅ Do
 - On a canvas-alt (white) page, frame every surface-default card or panel with a closed border — 0 0 0 1px Border/Neutral/Pale when static, Subtle when actionable — or switch it to surface-alt (§11).
 - Keep Subtle, Pale and Surface-Alt surfaces flat: separate them with a 0 0 0 1px ring or an inset effect, never a drop shadow (§9); guard component shadows with var(<background token>-shadow-off, `<shadow>`).
 - Start every page with Canvas; choose default (most designs) or alt (white page).
 - Place cards on the page with Surface; match default/alt to the page style.
+- When nothing picks the pairing (examples, a page with no Sidebar), use Canvas/Default with flat Surface/Default boxes — no border, no shadow (Card and MetricCard theme="flat", ChartCard, ListBox); border or shadow only when a condition asks for it (usage rules §16).
 - On a canvas-flat page, give top and bottom navigation surface-flat so both modes stay seamless.
 - Only raise a box to Container or Popover when it actually floats above the page (modal, sheet, overlay).
 

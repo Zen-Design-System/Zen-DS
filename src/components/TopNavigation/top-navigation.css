@@ -12,7 +12,9 @@
   width: 100%;
   flex-direction: column;
   padding-top: var(--zen-safe-area-top, env(safe-area-inset-top, 0px));
-  background: var(--zen-color-background-surface-default, #fff);
+  /* The fill lives in a variable so the scroll-linked mode can paint it on a layer that shrinks with the fold. */
+  --zen-top-nav-fill: var(--zen-color-background-surface-default, #fff);
+  background: var(--zen-top-nav-fill);
   color: var(--zen-top-nav-content);
 }
 .zen-top-nav[data-margin="compact"] { --zen-top-nav-side: var(--zen-spacing-padding-medium, 16px); }
@@ -20,19 +22,35 @@
 
 /* Backgrounds (Figma Type). The gradient types paint their fill at 80% (Figma gradient paint opacity 0.8, 12014:45358 …
    12053:56882): the opaque stop is 80% of its token, so the bar stays a little see-through over the blur. */
-.zen-top-nav:is([data-type="alt"], [data-type="compact-alt"]) { background: var(--zen-color-background-surface-alt, #f7f7f7); }
+.zen-top-nav:is([data-type="alt"], [data-type="compact-alt"]) { --zen-top-nav-fill: var(--zen-color-background-surface-alt, #f7f7f7); }
 .zen-top-nav[data-type="default-blurring"] {
   --zen-top-nav-blur: 5px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-surface-default, #fff) 80%, transparent) 50%, var(--zen-color-background-surface-default-bluring-end, rgb(255 255 255 / 0%)) 100%);
+  --zen-top-nav-fill: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-surface-default, #fff) 80%, transparent) 50%, var(--zen-color-background-surface-default-bluring-end, rgb(255 255 255 / 0%)) 100%);
 }
 .zen-top-nav:is([data-type="alt-blurring"], [data-type="liquid-glass"]) {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-surface-alt, #f7f7f7) 80%, transparent) 0%, var(--zen-color-background-surface-alt-bluring-end, rgb(247 247 247 / 0%)) 100%);
+  --zen-top-nav-fill: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-surface-alt, #f7f7f7) 80%, transparent) 0%, var(--zen-color-background-surface-alt-bluring-end, rgb(247 247 247 / 0%)) 100%);
 }
 .zen-top-nav:is([data-type="default-overlay"], [data-type="liquid-overlay"], [data-type="compact-overlay"]) {
   --zen-top-nav-content: var(--zen-color-content-on-black-overlay-strongest, #fff);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-black-overlay-hover, rgb(0 0 0 / 50%)) 80%, transparent) 0%, transparent 100%);
+  --zen-top-nav-fill: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-black-overlay-hover, rgb(0 0 0 / 50%)) 80%, transparent) 0%, transparent 100%);
 }
-.zen-top-nav[data-type="compact-overlay"] { background: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-black-overlay-pressed, rgb(0 0 0 / 60%)) 80%, transparent) 0%, transparent 100%); }
+.zen-top-nav[data-type="compact-overlay"] { --zen-top-nav-fill: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-black-overlay-pressed, rgb(0 0 0 / 60%)) 80%, transparent) 0%, transparent 100%); }
+
+/* Scroll-linked collapse (scrollRef). The fold (Expand-Heading, plus a Search Control-Bar that folds into searchAction)
+   slides up by --zen-top-nav-fold with the content, 1:1, and is cut where it passes under the bar; a pinned Control-Bar
+   moves up with it. The fill and the blur end at that edge (the ::before layer), so content scrolling up shows below the
+   header instead of behind its old height. Once content runs under the bar, the opaque types show a Border/Neutral/Pale
+   rule (the iOS standard appearance); the blurring, glass and overlay types keep their own edge (fade + blur). */
+.zen-top-nav[data-scroll-linked="true"] { background: none; }
+.zen-top-nav[data-scroll-linked="true"]::before { position: absolute; z-index: -1; box-sizing: border-box; inset: 0 0 var(--zen-top-nav-shrink, var(--zen-top-nav-fold, 0px)); border-bottom: 1px solid transparent; background: var(--zen-top-nav-fill); content: ""; pointer-events: none; }
+.zen-top-nav[data-scroll-linked="true"] > .zen-top-nav__progressive { bottom: var(--zen-top-nav-shrink, var(--zen-top-nav-fold, 0px)); }
+.zen-top-nav[data-scrolled="true"]:is([data-type="default"], [data-type="alt"], [data-type="compact"], [data-type="compact-alt"])::before { border-bottom-color: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.zen-top-nav__fold { transform: translateY(calc(-1 * var(--zen-top-nav-fold, 0px))); }
+/* What stays under the fold (a pinned Control-Bar, a banner) moves up with the header's edge (--zen-top-nav-shrink: the
+   fold, less the bar row when that row overlays the large title). */
+.zen-top-nav__control--pinned, .zen-top-nav__banner--pinned { transform: translateY(calc(-1 * var(--zen-top-nav-shrink, var(--zen-top-nav-fold, 0px)))); }
+.zen-top-nav__fold { clip-path: inset(var(--zen-top-nav-fold, 0px) 0 0 0); }
+@media (prefers-reduced-motion: no-preference) { .zen-top-nav[data-scroll-linked="true"]::before { transition: border-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
 
 /* Progressive background blur (Figma blurType=PROGRESSIVE, start radius at the top → 0 at the bottom). CSS has one
    backdrop-filter per element, so five stacked layers each blur the backdrop and are masked to a band that ends
@@ -49,14 +67,17 @@
 .zen-top-nav__progressive > i:nth-child(5) { -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 20%); mask-image: linear-gradient(180deg, #000 0%, transparent 20%); }
 
 /* Navigator bar: 64px, leading · centred Sub heading · trailing. */
-.zen-top-nav__bar { display: grid; min-height: 64px; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; }
+/* The sides are equal while both fit, so the title stays centred; a side never shrinks below its actions (three Tertiary
+   actions are 180px, more than half a 390px bar), so then the title gives way and ellipsizes instead of running under them. */
+.zen-top-nav__bar { display: grid; min-height: 64px; grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr); align-items: center; }
 .zen-top-nav__leading, .zen-top-nav__trailing { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding-block: var(--zen-spacing-padding-xsmall, 8px); }
 /* Figma Leading-Slot gap = Spacing/Gap/Medium (16). Trailing-Slot gap between actions:
    Style=Default/Glass 44px buttons = Navigation-Mobile/Top/Action-Button-Gap (8);
    Style=Flat 24px icons (Type=Compact*) = Navigation-Mobile/Top/Action-Icon-Gap (20). Same in both Margin variants. */
 .zen-top-nav__leading { gap: var(--zen-spacing-gap-medium, 16px); }
-.zen-top-nav__trailing { gap: var(--zen-navigation-mobile-top-action-button-gap, 8px); }
-.zen-top-nav__trailing:has(> .zen-top-nav__action[data-style="flat"]) { gap: var(--zen-navigation-mobile-top-action-icon-gap, 20px); }
+/* Header-Trailing is the same Trailing primitive (up to 3 actions), so it takes the same gaps. */
+.zen-top-nav__trailing, .zen-top-nav__expand-trailing { gap: var(--zen-navigation-mobile-top-action-button-gap, 8px); }
+.zen-top-nav__trailing:has(> .zen-top-nav__action[data-style="flat"]), .zen-top-nav__expand-trailing:has(> .zen-top-nav__action[data-style="flat"]) { gap: var(--zen-navigation-mobile-top-action-icon-gap, 20px); }
 .zen-top-nav__leading { padding-inline: var(--zen-top-nav-side) var(--zen-spacing-padding-small, 12px); }
 .zen-top-nav__trailing { justify-content: flex-end; padding-inline: var(--zen-spacing-padding-small, 12px) var(--zen-top-nav-side); }
 /* Top-Heading-Text (12014:44793): Padding/XSmall × Padding/2XSmall. */
@@ -118,8 +139,9 @@
 .zen-top-nav__action[data-style="glass"]:hover:not(:disabled) { background: var(--zen-color-background-liquid-glass-normal-hover, rgb(255 255 255 / 80%)); }
 .zen-top-nav__action[data-style="glass-dark"] { background: var(--zen-color-background-liquid-glass-black-overlay-default, rgb(0 0 0 / 30%)); }
 .zen-top-nav__action[data-style="glass-dark"]:hover:not(:disabled) { background: var(--zen-color-background-liquid-glass-black-overlay-hover, rgb(0 0 0 / 40%)); }
-.zen-top-nav__dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-negative-solid-default, #e5532e); box-shadow: 0 0 0 2px var(--zen-color-border-inverse, #fff); }
-.zen-top-nav__action[data-style="flat"] .zen-top-nav__dot { top: 8px; right: 8px; }
+/* Noti (Nav-Slot/Action 6085:44062, every Style incl. Flat): 8px at x 26 · y 10 of the 44px button, i.e. pinned to the
+   icon's top-right corner, so it sits one icon padding in from the top and the end. */
+.zen-top-nav__dot { position: absolute; top: var(--zen-navigation-action-icon-spacing-vertical-padding, 10px); right: var(--zen-navigation-action-icon-spacing-horizontal-padding, 10px); width: 8px; height: 8px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-negative-solid-default, #e5532e); box-shadow: 0 0 0 2px var(--zen-color-border-inverse, #fff); }
 @media (prefers-reduced-motion: no-preference) { .zen-top-nav__action { transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
 
 /* searchAction: the Search control bar folds into a trailing Search action while collapsed (and back). */
@@ -145,9 +167,37 @@ button.zen-top-nav__identity:focus-visible { outline: 3px solid var(--zen-color-
 .zen-top-nav__identity-subtitle { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-top-nav[data-type$="overlay"] .zen-top-nav__identity-subtitle { color: var(--zen-color-content-on-black-overlay-base, rgb(255 255 255 / 70%)); }
 
-/* Grouped trailing actions: one Tertiary pill (Figma Nav-Action/Icon-Main with a trailing icon, 92×44 — padding 10,
-   two 24px icons 24 apart) made of two 44px flat halves, so each icon keeps its own target and name. */
+/* Grouped trailing actions: the dual Nav-Action (Figma Trailing-Icon on Nav-Action/Icon-Main 6085:33688 · Liquid-Glass
+   12015:46174 · Icon-Overlay 6085:33284, 92×44 — padding 10, two 24px icons 24 apart) made of two 44px flat halves, so
+   each icon keeps its own target and name. The pill takes the bar's action style: Tertiary by default. */
 .zen-top-nav__group { display: inline-flex; box-sizing: border-box; align-items: center; padding: 0 var(--zen-spacing-padding-3-xsmall, 2px); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-button-tertiary-background-default, #fff); box-shadow: inset 0 0 0 1px var(--zen-button-tertiary-border-default, rgb(1 1 1 / 11%)), var(--zen-style-shadow-action-tertiary-shadow, 0 1px 1px rgb(0 0 0 / 6%)); -webkit-backdrop-filter: var(--zen-style-shadow-action-tertiary-backdrop-filter, none); backdrop-filter: var(--zen-style-shadow-action-tertiary-backdrop-filter, none); }
 .zen-top-nav__action[data-style="flat-group"] { background: transparent; box-shadow: none; }
 .zen-top-nav__action[data-style="flat-group"]:hover:not(:disabled) { background: var(--zen-button-tertiary-background-hover, rgb(1 1 1 / 4%)); }
-.zen-top-nav__action[data-style="flat-group"]:active:not(:disabled) { background: var(--zen-button-tertiary-background-pressed, rgb(1 1 1 / 8%)); }
+.zen-top-nav__action[data-style="flat-group"]:active:not(:disabled) { background: var(--zen-button-tertiary-background-pressed, rgb(1 1 1 / 8%)); box-shadow: none; }
+/* Liquid Glass (liquid-glass: Level=Secondary) and Liquid Glass Black Overlay (the overlay types): the glass of the single
+   actions on the whole pill; each half answers with a flat tint that reads on that glass. */
+.zen-top-nav__group:is([data-style="glass"], [data-style="glass-dark"]) {
+  box-shadow: inset 1px 1px 0 0 var(--zen-color-background-liquid-glass-white-overlay-pressed, rgb(255 255 255 / 70%)), inset -1px -1px 0 0 var(--zen-color-background-liquid-glass-white-overlay-default, rgb(255 255 255 / 40%)), var(--zen-style-liquid-glass-normal-shadow, 0 4px 24px -8px rgb(0 0 0 / 16%));
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.zen-top-nav__group[data-style="glass"] { background: var(--zen-color-background-liquid-glass-normal-default, rgb(255 255 255 / 70%)); }
+.zen-top-nav__group[data-style="glass-dark"] { background: var(--zen-color-background-liquid-glass-black-overlay-default, rgb(0 0 0 / 30%)); }
+.zen-top-nav__group[data-style="glass"] > .zen-top-nav__action:hover:not(:disabled) { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+.zen-top-nav__group[data-style="glass"] > .zen-top-nav__action:active:not(:disabled) { background: var(--zen-color-background-neutral-flat-pressed, rgb(1 1 1 / 10%)); }
+.zen-top-nav__group[data-style="glass-dark"] > .zen-top-nav__action:hover:not(:disabled) { background: var(--zen-color-background-inverse-flat-hover, rgb(255 255 255 / 10%)); }
+.zen-top-nav__group[data-style="glass-dark"] > .zen-top-nav__action:active:not(:disabled) { background: var(--zen-color-background-inverse-flat-pressed, rgb(255 255 255 / 16%)); }
+
+/* Top-bar=false (Figma root screens, `topBar`): the navigator bar overlays the large-title row instead of sitting above
+   it, so a root header is the status inset + the 64px large-title row (+ control bar). The bar's actions sit at the right
+   of that row (Figma Expand-Trailing); its title stays hidden until the large title folds, then shows in the same row,
+   which takes the fill so nothing that still slides under it shows through. */
+.zen-top-nav[data-bar="overlay"] > .zen-top-nav__bar { position: absolute; z-index: 1; top: var(--zen-safe-area-top, env(safe-area-inset-top, 0px)); right: 0; left: 0; pointer-events: none; }
+.zen-top-nav[data-bar="overlay"] > .zen-top-nav__bar .zen-top-nav__action { pointer-events: auto; }
+.zen-top-nav[data-bar="overlay"][data-collapsed="true"] > .zen-top-nav__bar { background: var(--zen-top-nav-fill); }
+/* The room the overlaid actions take, kept free in the large-title row (invisible placeholders of the same size). */
+.zen-top-nav__trailing--room { flex: 0 0 auto; visibility: hidden; }
+
+/* banner: a status pinned under the bar and the control bar, edge to edge (a Small AlertBanner). */
+.zen-top-nav__banner { display: flex; flex-direction: column; }
+

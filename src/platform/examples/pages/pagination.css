@@ -1,0 +1,12 @@
+/* Pagination examples. The count line on the phone takes focus after a page change (tabIndex -1); it keeps a focus
+   ring, drawn on a pseudo-element with room around the text instead of flush on it. */
+.px-pagination-focus-target { position: relative; }
+.px-pagination-focus-target:focus { outline: none; }
+.px-pagination-focus-target:focus-visible::after {
+  position: absolute;
+  inset: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)) calc(-1 * var(--zen-spacing-padding-xsmall, 8px));
+  border-radius: var(--zen-corner-radius-small, 8px);
+  box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #ff66d4);
+  content: "";
+  pointer-events: none;
+}

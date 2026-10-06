@@ -17,6 +17,7 @@ Render a system icon from the generated set at a token size.
 | --- | --- | --- |
 | Name | `name` | icon-*-line / -solid |
 | Size | `size` | 2xs · xs · sm · base · md · lg · xl · 2xl · 3xl (Element-Size tokens) or a number of px |
+| Colour | `tone` | a Color/Content token by its path, as on Text (light · positive-base · support-blue-light); default: the parent's colour; a colour family's Light level is fine for icons |
 | Decorative | `decorative` | aria-hidden |
 
 ## Props
@@ -29,6 +30,7 @@ Zen icon. Icons used by Zen components draw synchronously; any other name loads 
 | --- | --- | --- | --- |
 | `name` (required) | `IconName` | — | One of the 1,598 Zen icon names (`IconName` autocompletes them), e.g. `icon-home-03-line`, `icon-search-medium-line`. Icons that only come in cuts also take their plain name (`icon-search-line`, `icon-x-line`, `icon-chevron-left-line`, `icon-chevron-right-line`), which draws the Medium cut. |
 | `size` | `IconSize \| number \| string` | — | A token size (`2xs`…`3xl`, default `base` = 20px) or a px number. |
+| `tone` | `ContentTone` | — | Colour: a Color/Content token by its path, as on Text ("light", "positive-base", "support-blue-light"). Default: the parent's colour (most icons sit in a component that colours them). Icons may use a colour family's Light level. |
 | `title` | `string` | — | Accessible name; without it the icon is decorative (aria-hidden). |
 | `decorative` | `boolean` | — |  |
 
@@ -36,6 +38,7 @@ Zen icon. Icons used by Zen components draw synchronously; any other name loads 
 Object shapes the props above refer to.
 
 ```ts
+type ContentTone = (typeof contentTones)[number]
 type IconSize = "2xs" | "xs" | "sm" | "base" | "md" | "lg" | "xl" | "2xl" | "3xl"
 ```
 

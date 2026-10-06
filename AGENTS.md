@@ -26,7 +26,7 @@ with the QA loop below.
 - **Definition of done** (`docs/component-usage-rules.md`, skill `skills/zen-component-usage`):
   1. `src/components/<Name>/{Name.tsx, name.css, index.ts, Name.stories.tsx}`; JSDoc cites the Figma node and tokens.
   2. `export *` in `src/index.ts`.
-  3. Platform: nav + page (`PlatformApp.tsx`, `PlatformExamples.tsx`), ≥ 4 examples (`PlatformShowcases.tsx`), 1–2 visual
+  3. Platform: nav + page (`PlatformApp.tsx`, `PlatformExamples.tsx`), ≥ 4 examples (`src/platform/examples/pages/<page>.tsx`), 1–2 visual
      Do/Don't pairs (`PlatformGuidelineVisuals.tsx`), `.platform-*` CSS in `platform.css`.
   4. Guideline entry in `tools/usage-guard/guidelines.source.mjs` (+ JSX tags in `tagsFor` of `build-guidelines.mjs`).
   5. Harness rules in `tools/usage-guard/check-usage.mjs`, each with an `expect:` case in `fixtures/bad.tsx` and a
@@ -110,7 +110,7 @@ reporting work as done.
 ## Reading discipline (saves tokens)
 
 Sessions pay for every line they read, again on every later turn. Find with Grep, then read a slice (`offset`/`limit`);
-never `Read` a whole large file. The big ones: `src/platform/PlatformShowcases.tsx` (5,000 lines), `PlatformExamples.tsx`,
+never `Read` a whole large file. The big ones: `PlatformExamples.tsx`,
 `Input.tsx`, `src/styles/tokens.css`, `src/tokens/generated.ts`, `src/icons/generated/*`, `docs/figma-contracts/*.json`
 (0.7–2 MB) and the long `docs/context/session-log-*.md`. Slice a contract with a script (`node -e` / `jq` on one set or
 variant), or let `node tools/figma-contract/run-all.mjs` compare it. `dist*`, `storybook-static`, `node_modules` and
@@ -127,8 +127,12 @@ variant), or let `node tools/figma-contract/run-all.mjs` compare it. `dist*`, `s
 
 Several Claude sessions often edit this folder at once. Re-read a file right before writing it, make targeted edits
 (never rewrite a whole shared file), and generate new files before switching imports to them, so the shared dev server
-never breaks. Log what you did in `docs/context/session-log-<date>.md` (length by tier, §C), add a user-facing line
-to `CHANGELOG.md` (Unreleased), and update `docs/context/HANDOFF.md` when the current state changes (`BACKLOG.md` when open items change).
+never breaks. Each session owns a file area (say it to the others with SendMessage when you start); the post-edit hook
+warns ("Shared file: …") when you touch a file another session edited in the last 30 minutes — coordinate before you go
+on. Two sessions that need the same files for a while each take a git worktree and merge at an agreed stable point;
+commits come from one place. Browser checks that must not catch another session's hot reloads run with
+`npm run qa -- --isolated` (a private dev server, no HMR, no Studio drafts). Log what you did in
+`docs/context/session-log-<date>.md` (length by tier, §C), add a user-facing line to `CHANGELOG.md` (Unreleased), and update `docs/context/HANDOFF.md` when the current state changes (`BACKLOG.md` when open items change).
 
 **Scope lock (the user's rule since 2026-09-29).** Do only the task the user approved. Nothing new starts without the
 user's explicit approval: no new session, no task chip, no new harness rule or audit check, no fix to a component or

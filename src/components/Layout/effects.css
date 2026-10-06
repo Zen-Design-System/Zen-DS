@@ -1,0 +1,18 @@
+/* Box effect styles and Clip content (effects.ts; spec docs/research/studio-position-effects-radius-spec-2026-10-03.md §3.2).
+   One explicit rule per Figma effect style. Each selector carries the fill it needs, so a drop shadow on Subtle, Pale or
+   Surface-Alt (component-usage-rules §9) or on no fill cannot render, and a blur needs a translucent fill. Only the
+   generated --zen-style-* effect tokens (src/styles/style-effects.css) are used; the spread versions match Card and
+   Sidebar (Figma draws spread on filled, clipped frames). Gating is asserted by effects.selftest.mjs. */
+.zen-box[data-surface="surface"][data-effect-style="shadow-bottom-level-1"] { box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
+.zen-box[data-surface="surface"][data-effect-style="shadow-bottom-level-2"] { box-shadow: var(--zen-style-shadow-bottom-level-2-shadow); }
+.zen-box[data-surface="surface"][data-effect-style="shadow-bottom-level-3"] { box-shadow: var(--zen-style-shadow-bottom-level-3-shadow); }
+.zen-box[data-surface="surface"][data-effect-style="shadow-bottom-level-4"] { box-shadow: var(--zen-style-shadow-bottom-level-4-shadow); }
+.zen-box[data-surface="surface"][data-effect-style="shadow-top-level-1"] { box-shadow: var(--zen-style-shadow-top-level-1-shadow); }
+.zen-box[data-surface="surface"][data-effect-style="shadow-top-level-2"] { box-shadow: var(--zen-style-shadow-top-level-2-shadow); }
+.zen-box[data-surface="surface"][data-effect-style="shadow-top-level-3"] { box-shadow: var(--zen-style-shadow-top-level-3-shadow); }
+.zen-box[data-surface="surface"][data-effect-style="shadow-top-level-4"] { box-shadow: var(--zen-style-shadow-top-level-4-shadow); }
+/* Effect/Overlay: background blur only (its shadow layer is none), behind a translucent Subtle or Pale fill. */
+.zen-box:is([data-surface="subtle"], [data-surface="pale"])[data-effect-style="effect-overlay"] { backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
+
+/* Figma "Clip content": clip to the padding box and the corner radius without making a scroll container. */
+.zen-box[data-clip="true"] { overflow: clip; }

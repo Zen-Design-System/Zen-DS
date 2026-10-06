@@ -17,7 +17,7 @@ export type CardSurface = "default" | "alt";
 
 export interface CardSubAction {
   label: string;
-  /** Icon name (default `icon-dots-horizontal-line`) or an icon element. */
+  /** Icon name (default `icon-dots-vertical-line`, Figma 1460:13) or an icon element. */
   icon?: IconName | ReactElement;
   onClick?: () => void;
 }
@@ -41,13 +41,16 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" 
    */
   active?: boolean;
   /** Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface
-   *  (a page scope can set it once), else Surface/Default. Pale / Semi-Pale keep their own fill. */
+   *  (a page scope can set it once), else Surface/Default. Pale / Semi-Pale keep their own fill. With theme="shadow",
+   *  `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)
+   *  on Surface/Alt; an inherited alt surface cannot do this, so pass surface="alt" explicitly on an alt page. */
   surface?: CardSurface;
   /** Makes the whole card one action (role=button, Enter/Space). Keep other controls out of clickable cards. */
   onClick?: (event: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>) => void;
   /** Accessible name for a clickable card when its content does not start with a clear title. */
   "aria-label"?: string;
-  /** Figma Sub-Action: a Small Flat icon button pinned to the top-right corner (default ⋯ "More actions"). */
+  /** Figma Sub-Action: an absolute layer over the top-right corner holding Button/Icon-Flat Small Secondary (default ⋮).
+   *  It takes no room: the Content slot keeps the full width. A node (e.g. a Menu) should use the same trigger. */
   subAction?: CardSubAction | ReactNode;
   as?: "div" | "article" | "section" | "li";
   className?: string;
@@ -61,8 +64,9 @@ export function Card({ ref, children, theme = "shadow", spacing: spacingProp = "
   const spacing = scaleKey(spacingProp, cardSpacings);
   const active = selected ?? activeProp ?? false;
   const interactive = Boolean(onClick);
+  // zen-allow-secondary: Figma Card Sub-Action (6664:21688) = Button/Icon-Flat Small Secondary.
   const sub: ReactNode = isSubActionConfig(subAction)
-    ? <IconButton appearance="flat" level="primary" size="sm" aria-label={subAction.label} onClick={subAction.onClick} icon={subAction.icon ?? "icon-dots-horizontal-line"} />
+    ? <IconButton appearance="flat" level="secondary" size="sm" aria-label={subAction.label} onClick={subAction.onClick} icon={subAction.icon ?? "icon-dots-vertical-line"} />
     : subAction;
   return (
     <Tag

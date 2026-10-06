@@ -35,15 +35,19 @@ Generated from the TypeScript source; full JSON in `docs/api/image.json`.
 ### Image
 A responsive picture in a ratio frame: Skeleton while it loads, a neutral placeholder with an image icon when it fails (the alt text stays available to screen readers), and an optional figure caption. The frame is Neutral/Pale with a 1px Border/Neutral/Pale inner hairline so light pictures keep their edge; radius from Corner-Radius. <Image src={photo} alt="Snowy rooftops of the old town" ratio="16:9" caption="Old town, January" />
 
-Also accepts `Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt" | "loading" | "width" | "height" | "children" | "className" | "style" | "placeholder">`.
+Also accepts `Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt" | "loading" | "width" | "height" | "children" | "className" | "style" | "placeholder">, CornerRadiusProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
+| `radiusTopLeft` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Top-left corner on the Corner-Radius tokens (Figma topLeftRadius; none · 2xs 2 · xs 4 · sm 8 · md 12 · lg 16 · xl 20 · 2xl 24 · 3xl 28 · full), following the radius mode. A set corner wins over `radius`, as `paddingX` wins over `padding`; unset corners keep `radius`. Don't mix `full` with a finite corner (`radius="full" radiusBottomRight="xs"`): `full` is Corner-Radius/Rounded (1000px), so the browser scales every corner down to fit the box and the small one renders square. Use a finite radius (a chat tail: `radius="xl" radiusBottomRight="xs"`); `full` mixes only with `none`. |
+| `radiusTopRight` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Top-right corner on the Corner-Radius tokens (Figma topRightRadius). Wins over `radius`. |
+| `radiusBottomRight` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius). Wins over `radius`. |
+| `radiusBottomLeft` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`. |
 | `src` | `string` | — | Image URL. While it is undefined (the URL is still being fetched) the Skeleton shows. |
 | `alt` (required) | `string` | — | Required text alternative: what the picture shows, in context ("Matte black pour-over kettle, side view"). Use "" only for a decorative picture that repeats text next to it; never a file name or "image of…". |
 | `ratio` | `ImageRatioName \| number` | — | Frame ratio (width : height): "1:1" · "4:3" · "3:2" · "16:9" · "3:4", or a number (2.35). The frame keeps its size while loading, so nothing jumps. Unset: the picture's own ratio (4:3 while it loads or fails). |
 | `fit` | `"cover" \| "contain"` | `"cover"` | cover (default): fills the frame and crops. contain: shows the whole picture on Neutral/Pale bars (logos, documents). |
-| `radius` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | `"md"` | Corner radius on the Zen scale (Corner-Radius): none · 2xs · xs · sm · md (default, 12) · lg · xl · 2xl · 3xl · full. |
+| `radius` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | `"md"` | Corner radius on the Zen scale (Corner-Radius): none · 2xs · xs · sm · md (default, 12) · lg · xl · 2xl · 3xl · full. `radiusTopLeft` … `radiusBottomLeft` override single corners (Figma per-corner radius, e.g. top media in a card: `radius="none" radiusTopLeft="2xl" radiusTopRight="2xl"`); unset corners keep this radius (md by default). |
 | `loading` | `"lazy" \| "eager"` | `"lazy"` | Native loading: lazy (default) waits until the picture nears the viewport; eager for the first picture on screen. |
 | `caption` | `ReactNode` | — | A caption under the picture (Body/Small/Regular, Content/Neutral/Base); the picture becomes a figure with a figcaption. |
 | `className` | `string` | — | On the root (figure or div). |
@@ -102,6 +106,8 @@ type ZenScaleLong = "3xsmall" | "2xsmall" | "xsmall" | "small" | "medium" | "lar
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `radius/redundant-corners` | warn | Write radius alone when the corners match, and set radiusTopLeft/TopRight/BottomRight/BottomLeft only where they differ from radius (Image's radius defaults to md). | `zen-allow-redundant-corners: <reason>` |
+| `radius/full-mixed` | warn | radius="full" takes no finite corner (radiusTopLeft/TopRight/BottomRight/BottomLeft other than full or none): use one token for all corners, or a finite radius with corner overrides. | `zen-allow-full-mixed: <reason>` |
 | `image/needs-alt` | error | Image and Thumbnail always carry alt: what the picture shows, or alt="" when it is decorative or the text beside it already names it. | `zen-allow-image-alt: <reason>` |
 | `image/alt-describes` | warn | alt describes the picture in context: never a file name, and never "image of…" / "photo of…" (screen readers already announce an image). | `zen-allow-image-alt-text: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |

@@ -1,0 +1,39 @@
+{
+  "$comment": "Elements a Zen component clones or checks by type, so a wrapper around them would take the cloned props (id, ARIA, ref, handlers, size) or fail the type check: the Studio never wraps them (op wrap, GET /element wrap). One list for the dev server (tools/studio*/jsx-source.mjs, import … with { type: \"json\" }) and the Studio client (a Vite JSON import). From a grep of src/components for cloneElement, Children.only / Children.map, isValidElement and child.type === checks (2026-10-03). props: \"Owner.prop\", the element is that attribute's value. parents: \"Owner\", the element is its child; `only` = the child components it clones (else any); `through` = how it still reaches a child further in: \"fragment\" (<>…</>, <Fragment>), \"array\" (an [ … ] item or a .map callback's result). A child with a sibling reaches its owner as an array (not counted: whitespace-only text with a line break, which JSX drops, and {/* comments */}), so an entry without `through` \"array\" (Tooltip, FormField, ChatMessage) refuses only a sole child. `anywhere`: true (with `only`): those children are only ever the owner's child, so they are refused in any position. A body a helper returns outside the owner's JSX (chat.tsx bodyOf() returns ChatPhotos / ChatCall from a switch) is out of the source's sight: the Studio client's runtime check guards it (the React fibers: the nearest component above the element, as here), and the server too where `anywhere` is set. Names are the JSX name's last segment (Zen.Menu is Menu). {element} in a reason is the element's tag, e.g. <IconButton>. A reason points at the owner or the code, never at a size of the element's own (in docs/api only Layout, Text and Chart have width or height props).",
+  "props": {
+    "Menu.trigger": {
+      "why": "Menu.tsx clones the trigger with ref, id, aria-haspopup, aria-expanded, aria-controls and onClick.",
+      "reason": "{element} is the Menu's trigger, which Menu clones; resize the Menu instead."
+    },
+    "AppShell.sidebar": {
+      "why": "AppShell.tsx keeps the sidebar only when sidebar.type === Sidebar, then clones it with collapsed (inline) and collapsed: false (drawer).",
+      "reason": "{element} is the AppShell's sidebar, which AppShell checks by type and clones; change it in code."
+    },
+    "AppShell.aside": {
+      "why": "AppShell.tsx keeps the aside only when aside.type === SidePanel, then clones it with type \"modal\" when it does not dock.",
+      "reason": "{element} is the AppShell's aside, which AppShell checks by type and clones; change it in code."
+    }
+  },
+  "parents": {
+    "Tooltip": {
+      "why": "Tooltip.tsx clones its child (when it is one element) with aria-describedby.",
+      "reason": "{element} keeps its size inside a Tooltip, which clones it; change it in code."
+    },
+    "FormField": {
+      "why": "Form.tsx: Children.only, then the control is cloned with id, aria-labelledby, aria-describedby, aria-invalid and aria-required.",
+      "reason": "{element} is the FormField's control, which FormField clones; resize the FormField instead."
+    },
+    "FormActions": {
+      "only": ["Button"],
+      "through": ["fragment", "array"],
+      "why": "Form.tsx largeButtons: Children.map (arrays flattened) into Fragments, each child.type === Button cloned with size lg while the actions stack.",
+      "reason": "FormActions sizes its Buttons (Large when stacked); resize the FormActions instead."
+    },
+    "ChatMessage": {
+      "only": ["ChatPhotos", "ChatCall"],
+      "anywhere": true,
+      "why": "Chat.tsx chatHoverKind: children.type === ChatPhotos / ChatCall picks the bubble's kind (photo; call: no reactions); anything else reads as a file. ChatPhotos and ChatCall are only ever ChatMessage bodies (anywhere: also where a helper returns them, chat.tsx bodyOf()); resizing the message never resizes the body.",
+      "reason": "{element} is a ChatMessage body, which ChatMessage reads by type; change it in code."
+    }
+  }
+}

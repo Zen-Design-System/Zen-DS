@@ -48,9 +48,23 @@ async function main() {
 
   const lib = await import(pathToFileURL(path.join(path.dirname(new URL(import.meta.url).pathname), "../lib.mjs")).href);
   const messages = { block: [], context: [] };
+  // A file another session edited in the last 30 minutes: say so once per file per half hour (ledger.sharedWarned).
+  const warnShared = (root, rel) => {
+    if (!session) return;
+    const others = lib.recentOtherEdits(root, session, rel);
+    if (!others.length) return;
+    const ledger = lib.readLedger(root, session);
+    const last = ledger.sharedWarned?.[rel] ?? 0;
+    if (Date.now() - last < 30 * 60 * 1000) return;
+    (ledger.sharedWarned ??= {})[rel] = Date.now();
+    lib.writeLedger(root, session, ledger);
+    const who = others.map((o) => `${o.session.slice(0, 8)} (${Math.max(1, Math.round((Date.now() - o.at) / 60000))} min ago)`).join(", ");
+    messages.context.push(`Shared file: ${rel} was also edited by session ${who}. Coordinate before you overwrite it: ListAgents → SendMessage its owner, re-read the file right before each write and keep edits targeted; when you both need it for a while, take a git worktree and merge at an agreed stable point (AGENTS.md "Working alongside other sessions").`);
+  };
   for (const file of targets) {
     const root = lib.repoRootOf(file); if (!root) continue;
     const rel = lib.relTo(root, file); const kind = lib.uiKind(rel);
+    warnShared(root, rel);
     if (!kind) {
       // Tooling / tests / token sources: record the edit so the gate scopes its static checks; no lint, no brief.
       if (session && lib.auxKind(rel)) { const ledger = lib.readLedger(root, session); lib.recordAux(ledger, rel); ledger.repo = root; lib.writeLedger(root, session, ledger); }

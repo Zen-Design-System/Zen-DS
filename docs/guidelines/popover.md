@@ -23,6 +23,7 @@ The shared floating list used by Chip, Select, Autocomplete and Leading/Trailing
 | Manual-Add-New | `PopoverManualAddNew · Chip onPopoverCreate · AutocompleteField onCreate` | Create + Accent Badge row for a new value; Enter creates |
 | Items | `items[] {id,label,caption,leading,photoSrc,theme,badgeTheme,selected}` | Content themes: icon, text-only, avatar-small/big, photo-small/big, dock-icon, badge |
 | Open | `open / onOpenChange / anchorRef / autoFocus` | outside click + Escape close |
+| Placement | `align` | 4px below the trigger, above it when there is no room below; while open it keeps that side until it would be cut off, so scrolling never makes it jump back and forth, and it follows the trigger in the same frame |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/popover.json`.
@@ -108,7 +109,7 @@ Also accepts `Omit<PopoverProps, "label" | "search">`.
 Object shapes the props above refer to.
 
 ```ts
-type BadgeTheme = "accent" | "neutral" | "yellow" | "orange" | "red" | "crimson" | "pink" | "plum" | "purple" | "violet" | "indigo" | "blue" | "cyan" | "teal" | "green" | "brown" | "inverse" | "on-color"
+type BadgeTheme = "accent" | "neutral" | "yellow" | "orange" | "red" | "crimson" | "pink" | "plum" | "purple" | "violet" | "indigo" | "blue" | "cyan" | "teal" | "green" | "brown" | "inverse" | "on-color" | "sky" | "mint" | "bronze" | "golden"
 type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?: ReactNode; leading?: IconName | ReactNode; trailing?: IconName | ReactNode; disabled?: boolean; selected?: boolean; photoSrc?: string; photoAlt?: string; badgeTheme?: BadgeTheme; theme?: "icon" | "text-only" | "photo-small" | "photo-big" | "avatar-small" | "avatar-big" | "dock-icon" | "badge"; function?: "default" | "manual-add-new"; }
 ```
 
@@ -141,6 +142,7 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 ## Accessibility
 - role=listbox / option with aria-selected; ↑/↓/Home/End move; Escape closes and restores focus.
 - Keyboard focus on an option is the 3px Focus/Accent ring, drawn inside the row: Selected, Flat/Hover and Flat/Pressed are the same alpha, so a fill alone would hide focus on or beside the selected option (harness: focus/selected-fill-only).
+- The Escape that closes a Popover is used up (preventDefault + stopPropagation), whether focus is in the surface or on its trigger, so a Dialog, Side Panel or DatePicker around it stays open.
 
 ## Content
 - Label = category; item label = value; caption = secondary fact.

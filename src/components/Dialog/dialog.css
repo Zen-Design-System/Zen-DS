@@ -44,8 +44,6 @@
 .zen-dialog__title { margin: 0; color: var(--zen-color-content-neutral-strongest); }
 .zen-dialog__description { margin: 0; color: var(--zen-color-content-neutral-base); }
 .zen-dialog__custom { padding: 0 var(--zen-modal-padding, 24px) var(--zen-modal-padding, 24px); }
-/* Lists align with the modal content; their fill bleeds into the modal padding. */
-.zen-dialog__custom, .zen-modal-form__body { --zen-list-inset: 0px; }
 .zen-dialog__content + .zen-dialog__custom { margin-top: calc(-1 * var(--zen-spacing-gap-xsmall, 8px)); }
 /* .Primitives/Modal/Actions (694:9383): Direction=Horizontal → right-aligned [Secondary][Primary], Triple puts the
    Tertiary on the far left; Direction=Vertical → full-width Primary, Secondary, Tertiary stacked 12px apart. */
@@ -60,9 +58,21 @@
 .zen-dialog__content + .zen-dialog__actions { padding-top: 0; }
 .zen-dialog__custom + .zen-dialog__actions { padding-top: var(--zen-spacing-padding-small, 12px); }
 
+/* Device=Mobile (10153:7277) is a fixed 350 wide, i.e. 20px side margins on a 390 screen: Spacing/Padding/Large, the value
+   Modal-Padding and Margin-Comfortable take in the Mobile mode (Margin-Compact resolves to Padding/Medium 16 there, so it
+   is not used). Padding/Large is used directly so the margin does not depend on a data-breakpoint ancestor. Above 480px
+   the 440px dialog is centred and the side padding never shows. */
+.zen-dialog-overlay[data-modal="dialog"] { padding-inline: var(--zen-spacing-padding-large, 20px); }
+
 /* Device=Mobile */
 @media (max-width: 480px) {
-  .zen-dialog-overlay { align-items: flex-end; }
+  /* The panel sits at the bottom of the screen and clears the home indicator and the status bar (safe areas), as it does
+     inside a device frame (below); Padding/Medium stays the floor. Code-only: Figma has no placement for the Mobile device. */
+  .zen-dialog-overlay {
+    align-items: flex-end;
+    padding-top: max(var(--zen-spacing-padding-medium, 16px), var(--zen-safe-area-top, env(safe-area-inset-top, 0px)));
+    padding-bottom: max(var(--zen-spacing-padding-medium, 16px), var(--zen-safe-area-bottom, env(safe-area-inset-bottom, 0px)));
+  }
   .zen-dialog__content { gap: var(--zen-spacing-gap-2-xsmall, 4px); }
   /* Device=Mobile uses Heading/4; out-rank the generated .zen-type-heading-3 class. */
   .zen-dialog .zen-dialog__title { font-size: var(--zen-typography-font-size-heading-4, 20px); line-height: var(--zen-typography-line-height-heading-4, 28px); letter-spacing: var(--zen-typography-letter-spacing-heading-4, normal); }
@@ -121,6 +131,37 @@
 .zen-modal-form__close { position: absolute; top: var(--zen-spacing-padding-large, 20px); right: var(--zen-spacing-padding-large, 20px); }
 /* Figma: "DO NOT use for mobile" — below 720px the side column stacks above the form so it still works. */
 @media (max-width: 720px) {
+  .zen-modal-form[data-side="true"] .zen-modal-form__content { grid-template-columns: minmax(0, 1fr) !important; }
+  .zen-modal-form__side { padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
+  .zen-modal-form__footer.zen-modal-actions { flex-direction: column-reverse; align-items: stretch; }
+  .zen-modal-form__footer .zen-modal-actions__main { flex-direction: column-reverse; align-items: stretch; }
+  .zen-modal-form__footer .zen-button { width: 100%; }
+}
+
+/* Device frame ([data-zen-overlay-root]: PlatformPhone and app device previews). Dialog and ModalForm open inside the
+   frame, as Menu and the Chat hold layer do: the scrim fills the frame instead of the viewport and sits under its status
+   bar and home indicator (device chrome, z-index 20), like the inline Bottom Sheet. The panel keeps the frame's safe areas
+   clear (--zen-safe-area-top/-bottom, else Padding/Medium). Code-only: Figma's Overlay (1248:1393) has Device=Desktop only. */
+.zen-dialog-overlay[data-contained="true"] {
+  position: absolute;
+  z-index: 5;
+  padding-top: max(var(--zen-spacing-padding-medium, 16px), var(--zen-safe-area-top, 0px));
+  padding-bottom: max(var(--zen-spacing-padding-medium, 16px), var(--zen-safe-area-bottom, 0px));
+  container: zen-modal-frame / inline-size;
+}
+/* The frame's width, not the page viewport, picks the Device: the 480px and 720px switches above, measured on the
+   overlay's content box (the frame minus its side padding: Padding/Large for Dialog, so 440 = a 480px frame; Padding/Medium
+   for ModalForm, so 688 = 720). A phone frame gets Device=Mobile (10153:7277: 350 of 390, Heading/4, stacked full-width
+   actions, at the bottom of the screen); a tablet keeps Desktop. */
+@container zen-modal-frame (max-width: 440px) {
+  .zen-dialog { align-self: flex-end; }
+  .zen-dialog__content { gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+  .zen-dialog .zen-dialog__title { font-size: var(--zen-typography-font-size-heading-4, 20px); line-height: var(--zen-typography-line-height-heading-4, 28px); letter-spacing: var(--zen-typography-letter-spacing-heading-4, normal); }
+  .zen-dialog__actions.zen-modal-actions { flex-direction: column-reverse; align-items: stretch; }
+  .zen-dialog__actions .zen-modal-actions__main { flex-direction: column-reverse; align-items: stretch; }
+  .zen-dialog__actions .zen-button { width: 100%; }
+}
+@container zen-modal-frame (max-width: 688px) {
   .zen-modal-form[data-side="true"] .zen-modal-form__content { grid-template-columns: minmax(0, 1fr) !important; }
   .zen-modal-form__side { padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
   .zen-modal-form__footer.zen-modal-actions { flex-direction: column-reverse; align-items: stretch; }

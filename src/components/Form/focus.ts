@@ -12,12 +12,33 @@ function canFocus(element: Element): element is HTMLElement {
   return element.getClientRects().length > 0;
 }
 
-/** The control to focus for an invalid element: itself, the checked radio of a group, or its first focusable control. */
+/**
+ * In an AutocompleteField, what needs fixing: the Error tags (Tag State=Error, its Remove button), then the Add Item
+ * button. A valid tag's Remove button is never the target (its first focusable control otherwise), so a blocked submit
+ * does not land on a value that is fine, one Enter away from removing it.
+ */
+const AUTOCOMPLETE_TARGETS = '.zen-tag[data-state="error"], .zen-autocomplete__add';
+
+function firstFocusableIn(element: Element): HTMLElement | null {
+  if (canFocus(element)) return element;
+  return [...element.querySelectorAll(FOCUSABLE)].find(canFocus) ?? null;
+}
+
+/**
+ * The control to focus for an invalid element: itself, the checked radio of a group, an AutocompleteField's first Error
+ * tag (else its Add button), or its first focusable control.
+ */
 function focusTargetOf(element: Element): HTMLElement | null {
   if (canFocus(element)) return element;
   const checked = [...element.querySelectorAll('input[type="radio"]:checked')].find(canFocus);
   if (checked) return checked;
-  return [...element.querySelectorAll(FOCUSABLE)].find(canFocus) ?? null;
+  if (element.matches(".zen-autocomplete")) {
+    for (const part of element.querySelectorAll(AUTOCOMPLETE_TARGETS)) {
+      const target = firstFocusableIn(part);
+      if (target) return target;
+    }
+  }
+  return firstFocusableIn(element);
 }
 
 /** Invalid fields inside `root`, in DOM (reading) order; a wrapper and the control inside it count once. */

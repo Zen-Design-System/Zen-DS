@@ -1,0 +1,20 @@
+/* Chip examples (src/platform/examples/pages/chip.tsx). Tokens only. */
+
+/* Cards in the two-column grid keep a readable width and sit in the middle of the stage. */
+.px-chip-card { width: 100%; max-width: 440px; margin-inline: auto; }
+
+/* Phone filter row: one line that scrolls sideways, no scrollbar, the screen margin on both ends (Margin/Comfortable,
+   20 on a phone), so the first chip lines up with the bar title and the list rows (example-patterns §2). */
+.px-chip-scroll {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-margin-comfortable, 20px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.px-chip-scroll::-webkit-scrollbar { display: none; }
+.px-chip-scroll > * { flex: none; }
+
+/* The search takes a readable width and lets the chips wrap beside or under it. */
+.px-chip-search { flex: 1 1 220px; max-width: 320px; }

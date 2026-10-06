@@ -3,6 +3,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import { BadgeCounter } from "../Badge";
 import type { IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
+import { useIconTooltip } from "../Tooltip";
 import { scaleKey } from "../_shared/scale";
 import { useZenLabels } from "../_shared/zen-context";
 import "./segmented.css";
@@ -28,7 +29,8 @@ export type SegmentedOption = {
   badge?: ReactNode;
   state?: SegmentedState;
   disabled?: boolean;
-  /** Accessible name — required when `label` is empty or an icon only (Figma Icon-only segments). */
+  /** Accessible name — required when `label` is empty or an icon only (Figma Label=false segments). It is also the
+   *  name tooltip such a segment shows after a 1s hover, at once on keyboard focus (like IconButton). */
   "aria-label"?: string;
 };
 
@@ -53,6 +55,11 @@ export interface SegmentedProps {
   "aria-label"?: string;
 }
 
+/**
+ * Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a Neutral/Subtle pill track (Spacing/Padding/
+ * 2XSmall) of toggle segments, Secondary (default) or Primary, Small or Medium. An icon-only segment (Item Label=false:
+ * `label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.
+ */
 export function Segmented({ options, value, defaultValue, onValueChange, onChange, level = "secondary", size: sizeProp = "md", children, className, disabled = false, fullWidth = false, "aria-label": ariaLabelProp }: SegmentedProps) {
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.segmentedControl;
@@ -103,18 +110,25 @@ export interface SegmentedItemProps extends ButtonHTMLAttributes<HTMLButtonEleme
   state?: SegmentedState;
 }
 
+/** One `Primitives/Segmented/Item` (1204:11690). Without a visible label, its `aria-label` shows as the 1s name tooltip. */
 export function SegmentedItem({ selected = false, leading, badge, level = "secondary", size: sizeProp = "md", state = "default", className, children, ...props }: SegmentedItemProps) {
   const size = scaleKey(sizeProp, segmentedSizes);
+  // Icon-only segment (Figma Label=false): its name shows as a tooltip after 1s of hover and at once on keyboard focus.
+  const noLabel = children === undefined || children === null || children === false || children === "";
+  const iconOnly = noLabel && Boolean(props["aria-label"]);
+  const tip = useIconTooltip(iconOnly ? props["aria-label"] : false);
   const resolvedState = props.disabled || state === "disabled" ? "disabled" : state;
   // Figma: unselected → Neutral/Subtle; selected Primary → Inverse/Solid; selected Secondary → Neutral/Solid.
   const counter = typeof badge === "number" || typeof badge === "string"
     ? <BadgeCounter size="xsmall" value={badge} theme={selected && level === "primary" ? "inverse" : "neutral"} background={selected ? "solid" : "subtle"} />
     : badge;
   return (
-    <button {...props} disabled={resolvedState === "disabled" || props.disabled} type="button" className={["zen-segmented__item", className].filter(Boolean).join(" ")} data-selected={selected ? "true" : "false"} data-size={size} data-state={resolvedState} aria-pressed={selected}>
+    <button {...tip.bind({ ...props })} disabled={resolvedState === "disabled" || props.disabled} type="button" className={["zen-segmented__item", className].filter(Boolean).join(" ")} data-selected={selected ? "true" : "false"} data-size={size} data-state={resolvedState} aria-pressed={selected}>
       {leading ? <span className="zen-segmented__leading">{renderIcon(leading)}</span> : null}
-      {children !== undefined && children !== null ? <span className={`zen-segmented__label ${typographyStyles[size === "small" ? "Body/Small/Bold" : "Body/Base/Bold"]}`}>{children}</span> : null}
+      {/* An empty label ("" as well as null) renders no label box, so an icon-only segment centres its icon. */}
+      {!noLabel ? <span className={`zen-segmented__label ${typographyStyles[size === "small" ? "Body/Small/Bold" : "Body/Base/Bold"]}`}>{children}</span> : null}
       {counter !== undefined && counter !== null && counter !== false ? <span className="zen-segmented__badge">{counter}</span> : null}
+      {tip.tooltip}
     </button>
   );
 }

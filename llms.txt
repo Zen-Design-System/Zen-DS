@@ -13,7 +13,7 @@
 - [Button & IconButton](docs/guidelines/button.md): Triggers an action on the current surface (save, submit, open, delete). Navigation between pages is a link, not a Button. Props: docs/api/button.json
 - [Chip / Pill](docs/guidelines/chip.md): Compact, selectable tokens. Advanced chips are the Zen filter control: each owns a Popover of options. Props: docs/api/chip.json
 - [Input fields](docs/guidelines/input.md): Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots. Props: docs/api/input.json
-- [Search](docs/guidelines/search.md): Find or filter content by typing. Like every Zen input it has no Disabled state. Props: docs/api/search.json
+- [Search](docs/guidelines/search.md): Find or filter content by typing. Props: docs/api/search.json
 - [Segmented](docs/guidelines/segmented.md): Switch between 2–5 mutually exclusive views or sections of the same content. Props: docs/api/segmented.json
 - [Toggle](docs/guidelines/toggle.md): Turn a setting on or off with immediate effect. Props: docs/api/toggle.json
 - [Checkbox](docs/guidelines/checkbox.md): Select zero, one or many independent options, or confirm a single statement. Props: docs/api/checkbox.json
@@ -52,8 +52,9 @@
 - [Background layers (Canvas → Popover)](docs/guidelines/background-layers.md): Every background sits on one of five layers, bottom to top: 1 Canvas (the page) · 2 Surface (containers on the page) · 3 other colours (component fills: subtle, solid, support) · 4 Container (Modal and Bottom-Sheet) · 5 Popover (floating overlays). Pick the token by the layer the box lives on, never by how it looks.
 - [Content colours (text & icons)](docs/guidelines/content-colors.md): Text and icon colours share the Color/Content tokens, but the level depends on the family: neutral families map Strongest/Base/Light to the Primary/Secondary/Tertiary text roles; colour families use Strongest/Base for normal text on Subtle backgrounds and Light only for highlights; the Lights group (colours referencing Sky, Mint, Yellow or Zen) never uses Light for text.
 - [File Icon](docs/guidelines/file-icon.md): A coloured document mark that identifies a file's type (PDF, sheet, zip, video …) next to its name. Props: docs/api/file-icon.json
+- [Flag](docs/guidelines/flag.md): A round country or region flag that helps people spot a country next to its name. Props: docs/api/flag.json
 - [Icon](docs/guidelines/icon.md): Render a system icon from the generated set at a token size. Props: docs/api/icon.json
-- [Top Navigation](docs/guidelines/top-navigation.md): The mobile app bar: where you are (title), how to go back (leading) and the one or two actions for this screen (trailing). Props: docs/api/top-navigation.json
+- [Top Navigation](docs/guidelines/top-navigation.md): The mobile app bar: where you are (title), how to go back (leading) and up to three actions for this screen (trailing). Props: docs/api/top-navigation.json
 - [Bottom Navigation](docs/guidelines/bottom-navigation.md): Root-level navigation on mobile: switch between three to five top destinations with one tap. Props: docs/api/bottom-navigation.json
 - [Bottom Sheet](docs/guidelines/bottom-sheet.md): A surface that slides up from the bottom for supplementary content, a short task or a list of actions, without leaving the screen. Props: docs/api/bottom-sheet.json
 - [Chat](docs/guidelines/chat.md): Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list. Props: docs/api/chat.json
@@ -68,7 +69,7 @@
 - [Menu](docs/guidelines/menu.md): A button that opens a list of actions for an object: row actions in a table, a card's ⋯, an Edit or New menu. It uses the Popover surface and Popover/Item rows, follows the WAI-ARIA menu button pattern and floats in the overlay layer. Props: docs/api/menu.json
 - [ZenProvider (app root)](docs/guidelines/provider.md): The root of every Zen UI. It sets the token modes (data-theme, data-density…), paints the page Canvas and text colour, and hosts the portal that overlays render into, so dialogs, toasts and menus follow the same modes. Props: docs/api/provider.json
 - [Description List](docs/guidelines/description-list.md): Shows read-only term → value pairs in a semantic dl: order summaries and receipts, contact and profile details, specs and metadata. Props: docs/api/description-list.json
-- [Action Bar](docs/guidelines/action-bar.md): The footer bar that holds a screen's main actions: the mobile footer CTA (Large, full width, Primary on top) and the sticky action row of desktop detail and edit pages (Tertiary · Primary at the end). Props: docs/api/action-bar.json
+- [Action Bar](docs/guidelines/action-bar.md): The footer bar that holds a screen's main actions: the mobile footer CTA (Large, full width, Primary on top), the phone dual footer (Large Tertiary · Primary side by side) and the sticky action row of desktop detail and edit pages (Tertiary · Primary at the end). Props: docs/api/action-bar.json
 - [Image & Thumbnail](docs/guidelines/image.md): Shows a picture in a ratio frame that keeps its size while loading (Skeleton) and fails gracefully (neutral placeholder, alt kept). Thumbnail is the fixed square for list rows, tables and pickers. Props: docs/api/image.json
 - [Visually Hidden](docs/guidelines/visually-hidden.md): Adds text that only assistive technology reads: names for icon-only table headers, context for repeated links, status announcements, hidden headings and skip links that appear on focus. Props: docs/api/visually-hidden.json
 

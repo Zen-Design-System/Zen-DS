@@ -121,7 +121,10 @@ export interface OpinionScaleProps {
   onValueChange?: (value: OpinionEmotion) => void;
   /** @deprecated Use onValueChange (same arguments). */
   onChange?: (value: OpinionEmotion) => void;
-  /** Override option labels (keep them short). */
+  /**
+   * Override option labels. Keep them to one or two short words: a longer label is clamped to two lines (ellipsis), and
+   * its full text still names the radio.
+   */
   labels?: Partial<Record<OpinionEmotion, ReactNode>>;
   "aria-label"?: string;
   className?: string;
@@ -130,6 +133,12 @@ export interface OpinionScaleProps {
 /**
  * Figma Rating/Opinion-Scale (1536:25762) of .Primitives/Rating/Opinion item: emoji (32) + Caption/Regular label,
  * padding XSmall, gap 2XSmall, Corner-Radius/Base; Hover Neutral/Flat/Hover, Selected Active/Neutral/Subtle + Caption/Bold.
+ * Always one row (Figma: no wrap, items Fill): the scale fills its container and the faces share it equally. When an item
+ * gets narrower than its label needs (under 96px per face: 2 faces < 200px, 3 < 304px, 5 < 512px of scale width), the
+ * labels are visually hidden (they still name each radio) and the faces shrink, down to about 43px each for five faces
+ * in 246px, which keeps every target well above 24×24 (WCAG 2.5.8). A visible label never runs past two lines: longer
+ * custom `labels` are clamped with an ellipsis (Figma's item is 68px tall for one Caption line; two lines is the code
+ * limit), so the faces keep one height. Figma has no narrow or long-label variant; both are code-only.
  */
 export function OpinionScale({ scale = 5, value, onValueChange, onChange, labels, "aria-label": ariaLabelProp, className }: OpinionScaleProps) {
   const t = useZenLabels();
@@ -138,7 +147,7 @@ export function OpinionScale({ scale = 5, value, onValueChange, onChange, labels
   const current = value === undefined ? internal : value;
   const name = useId();
   return (
-    <div className={["zen-opinion-scale", className].filter(Boolean).join(" ")} role="radiogroup" aria-label={ariaLabel}>
+    <div className={["zen-opinion-scale", className].filter(Boolean).join(" ")} data-scale={scale} role="radiogroup" aria-label={ariaLabel}>
       {scaleSets[scale].map((id) => {
         const option = opinionEmotions.find((item) => item.id === id)!;
         const selected = current === id;
@@ -169,7 +178,20 @@ export interface NpsScaleProps {
   className?: string;
 }
 
-/** Figma Rating/NPS-Scale (1536:26034): Chip/Number-Only Small Secondary buttons (gap 2XSmall) over two Caption/Regular end labels. */
+/**
+ * Figma Rating/NPS-Scale (1536:26034): Chip/Number-Only Small Secondary buttons (gap 2XSmall) over two Caption/Regular end
+ * labels. One row (Figma: no wrap): the scale is as wide as Figma's (0–10: 11 × Chip/Size/Small + 10 × Gap/2XSmall,
+ * 392px) or its container, whichever is narrower. In a narrower container the chips shrink as equal circles; the gap
+ * closes only once a chip would drop under the 24×24 minimum target (WCAG 2.5.8), so 0–10 keeps 24px targets in one row
+ * down to 264px of width (318px: 25px chips with the 4px gap). The end labels sit under the first and the last chip,
+ * the high one aligned to the end.
+ * Below 264px, 11 chips cannot keep 24px targets in one row, so 0–10 falls back to two balanced rows, 0–5 over 6–10
+ * (Gap/2XSmall both ways), at full Chip/Size/Small (6 × 32 + 5 × 4 = 212px; still ≥ 24px down to 164px). The low label
+ * moves above 0 and the high label stays under 10, so each end label sits next to its value. Code-only (Figma has no
+ * narrow variant). Two rows rather than swapping to `scale={5}`: NPS is defined on 0–10 (detractors 0–6, passives
+ * 7–8, promoters 9–10), so the component must not change the scale the app collects. 0–5 keeps 24px targets in one row
+ * down to 144px.
+ */
 export function NpsScale({ scale = 10, value, onValueChange, onChange, lowLabel: lowLabelProp, highLabel: highLabelProp, "aria-label": ariaLabelProp, className }: NpsScaleProps) {
   const t = useZenLabels();
   const lowLabel = lowLabelProp === undefined ? t.npsLow : lowLabelProp;
@@ -178,13 +200,13 @@ export function NpsScale({ scale = 10, value, onValueChange, onChange, lowLabel:
   const [internal, setInternal] = useState<number | null>(null);
   const current = value === undefined ? internal : value;
   return (
-    <div className={["zen-nps-scale", className].filter(Boolean).join(" ")}>
+    <div className={["zen-nps-scale", className].filter(Boolean).join(" ")} data-scale={scale} style={{ "--zen-nps-count": scale + 1 } as CSSProperties}>
       <div className="zen-nps-scale__numbers" role="group" aria-label={ariaLabel}>
         {Array.from({ length: scale + 1 }, (_, n) => (
           <Chip key={n} variant="number-only" size="small" level="secondary" selected={current === n} aria-pressed={current === n} onClick={() => { if (value === undefined) setInternal(n); onValueChange?.(n); onChange?.(n); }}>{n}</Chip>
         ))}
       </div>
-      <div className={`zen-nps-scale__labels ${typographyStyles["Caption/Regular"]}`} aria-hidden="true"><span>{lowLabel}</span><span>{highLabel}</span></div>
+      <div className={`zen-nps-scale__labels ${typographyStyles["Caption/Regular"]}`} aria-hidden="true"><span className="zen-nps-scale__label" data-end="low" aria-hidden="true">{lowLabel}</span><span className="zen-nps-scale__label" data-end="high" aria-hidden="true">{highLabel}</span></div>
     </div>
   );
 }

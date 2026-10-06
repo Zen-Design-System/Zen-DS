@@ -41,6 +41,19 @@
 .zen-bottom-nav__icon { position: relative; display: inline-flex; width: var(--zen-navigation-mobile-bottom-icon-size, 24px); height: var(--zen-navigation-mobile-bottom-icon-size, 24px); }
 .zen-bottom-nav__icon .zen-icon, .zen-bottom-nav__icon svg { width: var(--zen-navigation-mobile-bottom-icon-size, 24px); height: var(--zen-navigation-mobile-bottom-icon-size, 24px); }
 .zen-bottom-nav__label { overflow: hidden; max-width: 100%; color: inherit; text-overflow: ellipsis; white-space: nowrap; }
+/* Idle labels (showLabels) take Content/Neutral/Light (user decision, 2026-10-02), lighter than the selected item and
+   readable, while the idle icons stay as Figma draws them (the item colour).
+   - Default bar: Figma's hidden Label layer (Select=No, 4060:26463) is Content/Placeholder (1.92:1); the label takes
+     Content/Neutral/Light instead.
+   - Floating: the Label layer of .Primitives/Bottom-Navigation/Items/Floating Select=No (9017:25814) is
+     Content/Neutral/Light, as Figma.
+   - Floating-Glass: Figma's own Label (Items/Floating-Glass Select=No, 9018:43882) is Content/Neutral/Strongest; the
+     label follows Figma.
+   Hovering a floating item brightens the label with its icon (Neutral/Strongest). */
+.zen-bottom-nav { --zen-bottom-nav-idle-label: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-bottom-nav[data-type="floating-glass"] { --zen-bottom-nav-idle-label: var(--zen-color-content-neutral-strongest, #111); }
+.zen-bottom-nav__item:not([data-selected="true"]) .zen-bottom-nav__label { color: var(--zen-bottom-nav-idle-label); }
+.zen-bottom-nav:not([data-type="default"]) .zen-bottom-nav__item:hover:not([data-selected="true"]) .zen-bottom-nav__label { color: inherit; }
 .zen-bottom-nav__dot { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-negative-solid-default, #e5532e); box-shadow: 0 0 0 2px var(--zen-color-border-inverse, #fff); }
 @media (prefers-reduced-motion: no-preference) { .zen-bottom-nav__item { transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), box-shadow var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
 

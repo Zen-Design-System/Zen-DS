@@ -8,14 +8,14 @@
       "file": "src/components/Search/Search.tsx",
       "description": "",
       "deprecated": null,
-      "extends": "Omit<InputHTMLAttributes<HTMLInputElement>, \"size\" | \"disabled\">",
+      "extends": "Omit<InputHTMLAttributes<HTMLInputElement>, \"size\">",
       "props": [
         {
           "name": "variant",
           "type": "\"default\" | \"popover\"",
           "required": false,
           "default": "\"default\"",
-          "description": "`popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, and a 1px\nInput/Border stroke in every state with no focus ring, so the border shows only in component\nthemes with a visible input border (Neutral S4). `size` is ignored.",
+          "description": "`popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, no focus ring. Its border is\nInput/Border/Default (Hover: Input/Border/Hover), visible only in outlined component themes (Neutral S4, S6);\nFocused/Typing use Input/Border/Popover-Search, visible only in Neutral S7. `size` is ignored.",
           "deprecated": null
         },
         {
@@ -123,6 +123,22 @@
           "deprecated": null
         },
         {
+          "name": "filterHasPopup",
+          "type": "ButtonHTMLAttributes<HTMLButtonElement>[\"aria-haspopup\"]",
+          "required": false,
+          "default": null,
+          "description": "`aria-haspopup` of the filter affordance when `onFilterClick` opens your own surface: `\"dialog\"` for a Bottom Sheet,\n Side Panel or Modal, `\"menu\"` or `\"listbox\"` for a menu or Popover list. Filter-Dropdown with `filterOptions`\n manages its own listbox and ignores it. (`aria-haspopup` on Search itself goes to the input.)",
+          "deprecated": null
+        },
+        {
+          "name": "filterExpanded",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "`aria-expanded` of that filter affordance: whether the surface it opens is open now. Pair it with `filterHasPopup`.",
+          "deprecated": null
+        },
+        {
           "name": "filterOptions",
           "type": "InputLeadingTrailingOption[]",
           "required": false,
@@ -152,6 +168,14 @@
           "required": false,
           "default": null,
           "description": "Accessible name / Popover heading for the filter affordance. Default: the locale's \"Filter\".",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Search/Default is a `.Primitives/Input/Field-Only` instance, so Disabled is Field-Only State=Disabled\n(Input/Border/Disabled, Content/Disabled text) with its Leading/Trailing at Active=No. The clear button and the\nshortcut hint are hidden and the filter is locked. Use it when searching is unavailable for a reason the page shows.",
           "deprecated": null
         },
         {

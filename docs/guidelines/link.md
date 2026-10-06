@@ -26,6 +26,7 @@ Navigates to another page, section or site from inside text or next to it. It us
 | Underline | `underline` | hover (default; also on keyboard focus) · always (running text, inherit tone) · none (only where the context says it is a link) |
 | External | `external` | target="_blank" + rel="noopener noreferrer" + icon-link-external-line + a hidden “(opens in a new tab)” |
 | Router link | `as (+ the router's props)` | as={RouterLink} to="/x": every other prop and the ref are forwarded |
+| Button look | `as="button"` | renders a <button> without browser chrome (no fill, border, padding or margin; font, spacing and alignment inherited), so it looks exactly like the anchor link |
 | Typography | `— (inherited)` | put it inside Text or a line of copy; Link sets no font of its own |
 
 ## Props

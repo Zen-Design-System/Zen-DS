@@ -42,8 +42,10 @@ export interface ToastProps {
   children?: ReactNode;
   /** `true` (default) shows the type's icon, `false` hides it; an icon name or a node replaces it. */
   icon?: boolean | IconName | ReactNode;
-  /** Figma Actions: one Small button. */
-  action?: { label: ReactNode; onClick?: () => void };
+  /** Figma Actions: one Small button. Pressing it runs `onClick`, then dismisses the toast through `onClose` (which
+   *  useToast and ToastStack provide), so Undo or View never leaves a stale toast. `keepOpen: true` leaves it open,
+   *  e.g. when the action updates this toast in place; calling dismiss(id) in `onClick` as well is harmless. */
+  action?: { label: ReactNode; onClick?: () => void; keepOpen?: boolean };
   /** Shows the close control (icon-x-small-line). */
   onClose?: () => void;
   /** Accessible name of the close control. Default: the locale's “Dismiss”. */
@@ -64,6 +66,11 @@ export function Toast({ type: typeProp, status, title, children, icon = true, ac
   const urgent = type === "negative" || type === "warning";
   const button = actionButton[type];
   const closeTip = useIconTooltip(onClose ? closeLabel : false);
+  // The action finishes the toast's job: run it, then dismiss (unless the caller keeps it open).
+  const runAction = () => {
+    action?.onClick?.();
+    if (!action?.keepOpen) onClose?.();
+  };
   return (
     <div className={["zen-toast", className].filter(Boolean).join(" ")} data-type={type} role={urgent ? "alert" : "status"}>
       {leading ? <span className="zen-toast__icon" aria-hidden="true">{leading}</span> : null}
@@ -72,7 +79,7 @@ export function Toast({ type: typeProp, status, title, children, icon = true, ac
           {title ? <span className={`zen-toast__title ${typographyStyles["Body/Base/Bold"]}`}>{title}</span> : null}
           {children ? <span className={`zen-toast__caption ${typographyStyles["Body/Small/Regular"]}`}>{children}</span> : null}
         </div>
-        {action ? <Button className="zen-toast__action" appearance={button.appearance} level={button.level} size="sm" onClick={action.onClick}>{action.label}</Button> : null}
+        {action ? <Button className="zen-toast__action" appearance={button.appearance} level={button.level} size="sm" onClick={runAction}>{action.label}</Button> : null}
       </div>
       {onClose ? (
         <button type="button" className="zen-toast__close" aria-label={closeLabel} {...closeTip.bind({ onClick: onClose })}>

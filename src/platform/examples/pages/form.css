@@ -1,0 +1,8 @@
+/* Form examples (src/platform/examples/pages/form.tsx). Tokens only; class prefix .px-form-. */
+
+/* "Add a client" is a desktop page (screen card): it paints the app's Canvas, as every page-level screen does. */
+.px-form-page { min-height: 100%; background: var(--zen-color-background-canvas-default); }
+
+/* The workspace address and the invoice draft take a whole row (the invoice so its actions sit side by side, a form
+   480px or wider), yet keep a readable width in the middle of the stage. */
+.px-form-card { width: 100%; max-width: 720px; margin-inline: auto; }

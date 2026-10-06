@@ -13,7 +13,6 @@
   color: var(--zen-color-content-neutral-strongest, #111);
   text-align: start;
 }
-.zen-card { --zen-list-inset: 0px; }
 .zen-card[data-spacing="small"] { --zen-card-padding: var(--zen-card-padding-small, 16px); --zen-card-radius: var(--zen-corner-radius-large, 16px); }
 /* Shadow: Shadow/Bottom/Level-1 (the card clips its content, so the spread-aware token applies). */
 .zen-card[data-tone="shadow"] { box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
@@ -27,6 +26,11 @@
 /* Active=Yes: Surface fill + 2px INSIDE Card/Border/Active, on every theme (Shadow keeps its shadow). */
 .zen-card[data-active="true"] { background: var(--zen-card-surface, var(--zen-color-background-surface-default, #fff)); box-shadow: inset 0 0 0 2px var(--zen-card-border-active, #111); }
 .zen-card[data-tone="shadow"][data-active="true"] { box-shadow: inset 0 0 0 2px var(--zen-card-border-active, #111), var(--zen-style-shadow-bottom-level-1-shadow); }
+/* Shadow on Surface/Alt: Surface-Alt never casts an outer shadow (component-usage-rules §9), so the card renders as Figma
+   Theme=Flat (6643:51018) on Surface/Alt, which already stands apart from a white Canvas/Alt page (§11); Selected keeps
+   its 2px inside stroke. CSS cannot read an inherited --zen-card-surface value: on an alt page scope pass surface="alt". */
+.zen-card[data-tone="shadow"][data-surface="alt"] { box-shadow: none; }
+.zen-card[data-tone="shadow"][data-surface="alt"][data-active="true"] { box-shadow: inset 0 0 0 2px var(--zen-card-border-active, #111); }
 
 /* Clickable cards are actionable containers: Border theme steps up to Neutral/Subtle with hover/pressed (§6). */
 .zen-card[data-interactive="true"] { cursor: pointer; transition: box-shadow var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); }
@@ -37,6 +41,7 @@
 .zen-card__content { display: flex; min-width: 0; flex-direction: column; }
 /* Sub-Action: a 20px anchor at the padding corner holding the 32px Small icon button, so it overhangs 6px. */
 .zen-card__sub-action { position: absolute; top: var(--zen-card-padding); right: var(--zen-card-padding); display: flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; }
-.zen-card:has(.zen-card__sub-action) > .zen-card__content { padding-inline-end: calc(var(--zen-element-size-popular-base, 20px) + var(--zen-spacing-gap-xsmall, 8px)); }
+/* Figma Card (6664:21686): the Sub-Action is an absolute layer over the top-right corner and takes no room; the Content
+   slot keeps the full width (Fill). Content that starts with a title row leaves the corner free itself. */
 /* Choice controls in a card span its width (the Toggle switch sits on the right edge). */
 .zen-card__content > :is(.zen-toggle, .zen-checkbox, .zen-radio-button) { width: 100%; }

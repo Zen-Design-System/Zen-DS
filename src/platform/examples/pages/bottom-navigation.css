@@ -1,0 +1,8 @@
+/* Bottom Navigation examples (src/platform/examples/pages/bottom-navigation.tsx). Tokens only. */
+
+/* Photo grids on a media screen: a list without bullets that runs edge to edge, starting under the status bar so the
+   clock and levels stay on the dark canvas. */
+.px-bottom-navigation-grid { margin: 0; padding: var(--zen-safe-area-top, 0px) 0 0; list-style: none; }
+
+/* Prices, points and distances line up at the end of their rows and never wrap. */
+.px-bottom-navigation-value { font-variant-numeric: tabular-nums; white-space: nowrap; }

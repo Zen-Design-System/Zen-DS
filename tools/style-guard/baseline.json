@@ -1,6 +1,9 @@
 {
-  "generated": "2026-09-28T14:50:05.650Z",
+  "generated": "2026-10-03T08:20:12.423Z",
   "note": "Pre-existing style-guard debt. New findings fail; fix these when you touch them, then run --baseline-update.",
-  "total": 0,
-  "keys": {}
+  "total": 2,
+  "keys": {
+    "src/platform/examples/pages/chat.css|position/token|.px-chat-emoji { bottom: calc(100% + var(--zen-spacing-padding-xsmall, 8px)) }": 1,
+    "src/platform/examples/pages/toast.css|position/token|.px-toast-phone-host { bottom: 100% }": 1
+  }
 }

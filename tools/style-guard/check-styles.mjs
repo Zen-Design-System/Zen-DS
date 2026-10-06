@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Zen DS style guard — token discipline for the things that drift while building: spacing (padding / margin / gap),
-// corner radius, typography, colour roles, shadows and slot sizes, in component CSS, platform CSS and inline styles.
+// corner radius, typography, colour roles, shadows and slot sizes, in component CSS, platform CSS and inline styles; and raw
+// top/right/bottom/left/inset offsets in examples and templates (position/token).
 //
 //   node tools/style-guard/check-styles.mjs [files or dirs…]   default: src/components, src/platform, src/templates
 //     --json               print findings as JSON (for agents and tools/qa/run.mjs)
@@ -103,6 +104,8 @@ export const rules = [
     summary: "Elevation uses --zen-style-*-shadow tokens; hand-written shadows ignore theme and mode. Rings (0 0 0 Npx token) and inset hairlines are fine." },
   { id: "size/slot-token", severity: "warn", allow: "slot-size", scope: ["css"], guideline: "docs/qa/build-qa-process.md#density",
     summary: "A slot that holds a token-sized child (icon, avatar, thumbnail, mark) is sized with the same token or a calc of it, so Comfortable density does not overflow it." },
+  { id: "position/token", severity: "warn", allow: "raw-position", scope: ["css", "inline"], guideline: "docs/guidelines/layout.md",
+    summary: "Examples and templates pin a layer with Stack/Grid/Box position=\"absolute\" + constraintX/constraintY + Spacing/Padding insets (Figma constraints), not raw top/right/bottom/left/inset lengths or percentages; 0, auto and token offsets are fine." },
 ];
 const RULE = Object.fromEntries(rules.map((r) => [r.id, r]));
 
@@ -112,6 +115,9 @@ const RADIUS_PROP = /^border(-(top|bottom|start|end)-(left|right|start|end))?-ra
 const TYPE_PROP = /^(font-size|line-height|letter-spacing|font-weight|font-family|font)$/;
 const COLOUR_PROP = /^(color|background|background-color|border|border-(top|right|bottom|left|inline|block)(-color)?|border-color|outline|outline-color|fill|stroke|box-shadow|caret-color|text-decoration-color|column-rule-color|accent-color)$/;
 const SIZE_PROP = /^(width|height|min-width|min-height|flex-basis|inline-size|block-size)$/;
+const POSITION_PROP = /^(top|right|bottom|left|inset|inset-(inline|block)(-(start|end))?)$/;
+/** position/token reads examples and templates only (component CSS owns its overlays: focus rings, status dots). */
+const POSITION_SCOPE = /^src\/platform\/examples\/|^src\/templates\/|^tools\/style-guard\/fixtures\//;
 // A custom property whose name says what it is (e.g. --zen-chat-bubble-gap: 6px) is checked like that property.
 const TOKEN_NAMESPACE = /^--zen-(typography|spacing|corner-radius|dm|color|emphasis|element-size|style|motion|margin|gutter|modal|card-padding|viewport)-/;
 const roleOfCustom = (name) => TOKEN_NAMESPACE.test(name) ? null : /radius/.test(name) ? "border-radius" : /(^|-)(padding|inset-x|inset-y|gutter)(-|$)/.test(name) ? "padding" : /(^|-)(gap|spacing)(-|$)/.test(name) ? "gap" : /(font-size|line-height|letter-spacing)/.test(name) ? name.match(/font-size|line-height|letter-spacing/)[0] : null;
@@ -204,6 +210,20 @@ function checkDecl(prop, value, ctx) {
   if (!ctx.inline && SIZE_PROP.test(p) && words(ctx.selector ?? "").some((w) => SLOT_WORD.test(w))) {
     const raw = rawLengths(v).find(({ n }) => n >= 12);
     if (raw && !/%|fr|vw|vh|ch|auto|fit-content|max-content|min-content/.test(stripFns(v).replace(/-?\d*\.?\d+(px|rem|em)/g, ""))) add("size/slot-token", `\`${ctx.selector.trim().slice(0, 50)} { ${prop}: ${v.slice(0, 40)} }\` sizes a slot in px → the token of what it holds (var(--zen-image-size-*), var(--zen-element-size-popular-*), var(--zen-button-size-*)…)`);
+  }
+
+  // Offsets in examples and templates (Studio Phase 2 spec 2026-10-03 §3.6, approved): a layer placed by hand with a raw
+  // length or percentage is a Stack/Grid/Box position="absolute" with constraints and Spacing/Padding insets. 0, auto and
+  // token offsets (var(--zen-spacing-padding-*), calc(-1 * var(…))) pass; var() fallbacks are not read.
+  if (POSITION_PROP.test(p) && POSITION_SCOPE.test(ctx.file ?? "")) {
+    const raw = [...stripFns(v).matchAll(/(?<![\w#.-])(-?\d*\.?\d+)(px|rem|em|%|vh|vw|vmin|vmax|dvh|svh|lvh|ch)(?![\w-])/g)].find((m) => Number(m[1]) !== 0);
+    if (raw) {
+      const n = Number(raw[1]), pct = raw[2] === "%";
+      const hint = pct && Math.abs(n) === 50 ? "constraintX/constraintY=\"center\" on a <Box position=\"absolute\"> (exact centre, no translate)"
+        : pct && Math.abs(n) >= 100 ? "a layer outside its parent is a floating component (Popover, Tooltip) or a component prop, not an inset"
+        : "pin the layer with <Box position=\"absolute\"> + constraintX/constraintY and insetTop/Right/Bottom/Left on the Spacing/Padding scale (or var(--zen-spacing-padding-*))";
+      add("position/token", `raw ${raw[0]} in \`${prop}: ${v.slice(0, 70)}\` → ${hint}`);
+    }
   }
   return out;
 }

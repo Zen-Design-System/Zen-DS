@@ -197,6 +197,22 @@
           "deprecated": null
         },
         {
+          "name": "rangesFullWidth",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "The range switch fills the card and splits it into equal items (Figma Segmented FILL, default); `false` hugs its\n items, as on a wide card where a full-width switch would stretch far past its labels (Figma HUG).",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
+          "required": false,
+          "default": "\"flat\"",
+          "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas\n next to other Shadow cards (metric cards on a dashboard).",
+          "deprecated": null
+        },
+        {
           "name": "surface",
           "type": "\"default\" | \"alt\"",
           "required": false,

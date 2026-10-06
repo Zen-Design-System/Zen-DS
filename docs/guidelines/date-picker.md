@@ -9,6 +9,7 @@ Pick a date or a date range. DatePicker is the calendar panel itself and is visi
 ## Use it for
 - DateField in forms (the field owns the popover); inline DatePicker for booking-style range selection.
 - A DatePicker anchored to your own trigger: pass open, onClose and anchorRef.
+- Inline (no onClose / onOpenChange / anchorRef) the calendar has no surface of its own (no popover fill, border, padding or shadow, as Figma's in-place calendar): place it in a Card or panel.
 
 ## Use something else for
 - Known far-past dates (birthdays) → typed DateField without calendar-first UX.
@@ -17,6 +18,8 @@ Pick a date or a date range. DatePicker is the calendar panel itself and is visi
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Selection | `selectionMode · value / defaultValue · range / defaultRange` | single · range (onRangeChange) |
+| Device | `device · DatePickerItem device · DatePickerHeader device` | desktop · mobile (Date-Picker/Mobile 9923:3576: days fill the width as squares in Body/Base/Medium, Heading/Subheading month with Back / Next at the end); unset, an inline calendar follows the breakpoint and a popover stays desktop |
+| Time | `timePicker · time / defaultTime · onTimeChange · DatePickerTimePicker` | Figma Time-Picker (460:38628) under a Divider: From / To as Input Small hh:mm with an AM/PM picker plus All day (Read-only times); stacked on the single calendar (Type=Single), side by side on the dual one (Type=Range, an All day each). Values are 24-hour "HH:mm"; with showActions they are part of the draft and reach onApply as its third argument; a date pick no longer closes the popover |
 | Bounds | `minDate / maxDate` | disabled days |
 | Actions | `showActions / action · onApply(value, range) · onCancel` | none · single · dual; picks are a draft that Submit applies and Cancel drops |
 
@@ -24,7 +27,7 @@ Pick a date or a date range. DatePicker is the calendar panel itself and is visi
 Generated from the TypeScript source; full JSON in `docs/api/date-picker.json`.
 
 ### DatePicker
-Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` on the shared token and Button primitives. The single calendar's month/year opens the Select-Month-Year state. It is also the calendar surface used by Input/Date-Field. With `showActions` (Figma Actions, `.Primitives/Date-Picker/Action` 460:38871) picks are a draft: Submit applies it through `onApply(value, range)`, Cancel drops it (`onCancel`) and the calendar shows the applied `value` / `range` again.
+Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` on the shared token and Button primitives. The single calendar's month/year opens the Select-Month-Year state. It is also the calendar surface used by Input/Date-Field. With `showActions` (Figma Actions, `.Primitives/Date-Picker/Action` 460:38871) picks are a draft: Submit applies it through `onApply(value, range)`, Cancel drops it (`onCancel`) and the calendar shows the applied `value` / `range` again. As a popover (`onClose` / `onOpenChange` / `anchorRef`) it is the Single-Calendar surface: Color/Background/Popover/ Default, Color/Border/Popover/Subtle, Corner-Radius/3XLarge, Spacing/Padding/Medium and Effect/Popover. Inline (none of those) it sits in the flow of its container with no surface, as Figma's in-place calendar (`.Primitives/Date-Picker/ Calendar` 478:30561, `Date-Picker/Mobile` 9923:3576: no fill, stroke or effect), so it never casts a popover shadow. Semantics follow: the popover is a `role="dialog"`, the inline calendar a `role="group"` (part of the page, not a window over it); both are named "Choose date" / "Choose dates" unless `aria-label` / `aria-labelledby` name them. Today's day carries `aria-current="date"`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -38,7 +41,7 @@ Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` 
 | `onChange` | `(date: Date \| null) => void` | — | **Deprecated:** Use onValueChange (same arguments).  |
 | `onRangeChange` | `(range: DatePickerRange) => void` | — | Range mode: called with the new start (end = null) and again once the end date is picked. With `showActions` these are drafts: read the applied range in `onApply`. |
 | `onMonthChange` | `(month: Date) => void` | — |  |
-| `onApply` | `(value: Date \| null, range: DatePickerRange \| null) => void` | — | With `showActions`, pressing Submit (the Primary action) applies the picks, then closes a popover. Called with the picked date (single mode; null in range mode) and the picked range (range mode; null in single mode). An uncontrolled picker keeps what was applied and Cancel returns to it; a controlled one expects `value` / `range` to follow. Inline, Submit is disabled until there is a change, and in range mode until the end date is picked. |
+| `onApply` | `(value: Date \| null, range: DatePickerRange \| null, time?: DatePickerTime) => void` | — | With `showActions`, pressing Submit (the Primary action) applies the picks, then closes a popover. Called with the picked date (single mode; null in range mode) and the picked range (range mode; null in single mode). An uncontrolled picker keeps what was applied and Cancel returns to it; a controlled one expects `value` / `range` to follow. Inline, Submit is disabled until there is a change, and in range mode until the end date is picked. |
 | `onCancel` | `() => void` | — | With `showActions`, pressing Cancel (the Tertiary action) drops the picks made since the last Submit (the calendar shows the applied value again), then calls this and closes a popover. Inline, Cancel is disabled while there is nothing to drop. Escape and an outside click close a popover without applying, too. |
 | `onClose` | `() => void` | — | Popover behaviour: called on a pointer-down outside the picker (and outside `anchorRef`), on Escape, after a single date / a complete range is picked (without actions), and by the actions. |
 | `onOpenChange` | `(open: boolean) => void` | — | Called with `false` wherever `onClose` is called (the `open` / `onOpenChange` pair of every Zen overlay). |
@@ -47,8 +50,16 @@ Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` 
 | `action` | `"single" \| "dual"` | `"dual"` | `.Primitives/Date-Picker/Action`: `dual` (Cancel + Submit, default) or `single` (Submit only). |
 | `selectionMode` | `"single" \| "range"` | `"single"` |  |
 | `calendar` | `"single" \| "dual"` | `"single"` | Figma Date-Picker/Single-Calendar or Date-Picker/Dual-Calendar (two consecutive months side by side; Static headers with Back on the first and Next on the second). |
+| `device` | `"desktop" \| "mobile"` | — | Figma Date-Picker/Mobile (9923:3576) primitives: `mobile` days fill the width (square cells in Body/Base/Medium, `.Primitives/Mobile-Date-Picker/Item` 9921:3283) under a Heading/Subheading month with Back / Next at the end, Spacing/Gap/XLarge apart (Gap/XSmall for the dual calendar, whose months stack Gap/Medium apart). Unset, an inline calendar follows the breakpoint (the nearest `data-breakpoint`, else ZenProvider) and a popover stays `desktop` (Figma has no mobile popover). A `mobile` popover spans its containing block (a DateField's width). |
+| `timePicker` | `boolean` | `false` | Figma `Time-Picker`: a Divider and `.Primitives/Date-Picker/Time-Picker` under the calendar — From / To times (hh:mm + AM/PM) and All day; stacked on the single calendar, side by side on the dual one. Picking a date no longer closes a popover (the times come next): pair it with `showActions`, whose Submit applies date and time together. |
+| `time` | `DatePickerTime` | — | Controlled times (with `timePicker`); with `showActions` it is the applied time. |
+| `defaultTime` | `DatePickerTime` | `{ from: null, to: null, fromAllDay: false, toAllDay: false }` | Uncontrolled times at first. |
+| `onTimeChange` | `(time: DatePickerTime) => void` | — | Called with each time change; with `showActions` it is a draft, read the applied one in `onApply`. |
 | `minDate` | `Date` | — |  |
 | `maxDate` | `Date` | — |  |
+| `today` | `Date` | — | The day the calendar treats as today: the Today ring (`.Primitives/Date-Picker/Item` State=Today) and the month it opens on without a value. Default: the device clock. Pass your app's date when it is not the device's (a server or business date, a demo world, a test). |
+| `aria-label` | `string` | — | Accessible name of the calendar. Default: the locale's "Choose date" ("Choose dates" for the dual calendar). Name an inline calendar after what it sets ("Start date") when a form shows more than one. |
+| `aria-labelledby` | `string` | — | id of a visible element that names the calendar (a heading or label next to an inline calendar); wins over `aria-label`. |
 | `className` | `string` | — |  |
 
 ### DateField
@@ -71,20 +82,25 @@ Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` 
 | `className` | `string` | — |  |
 | `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |
 | `datePicker` | `boolean` | `true` |  |
-| `datePickerActions` | `boolean` | `false` |  |
+| `datePickerActions` | `boolean` | `false` | The calendar's Cancel + Submit (Figma Actions): a picked day is a draft until Submit writes it to the field; Cancel and Escape keep the date the field had. |
 | `onDateChange` | `(date: Date \| null) => void` | — |  |
+| `minDate` | `Date` | — | Earliest day the calendar lets people pick (DatePicker `minDate`); earlier days are disabled. A typed date before it stays in the field and reaches `onValueChange` as usual, and the input is marked `aria-invalid` (Form and ModalForm count it and focus it after a blocked submit). The field shows no message of its own: validate the value and pass `error` ("Pick a date from 1 October"). |
+| `maxDate` | `Date` | — | Latest day the calendar lets people pick (DatePicker `maxDate`); later days are disabled. A typed date after it is kept, reported and marked `aria-invalid` as for `minDate`: pass `error` to say why. |
+| `today` | `Date` | — | The day the calendar treats as today (DatePicker `today`): its Today ring and the month it opens on while empty. Default: the device clock. |
 
 ### DatePickerItem
-The 32px day primitive from `.Primitives/Date-Picker/Item`.
+The day primitive from `.Primitives/Date-Picker/Item` (455:33517): Medium 32px on Corner-Radius/Action/Small, Small 24px on Corner-Radius/Action/XSmall. The button paints the In-Range strip, its label span the day. State=Today carries `aria-current="date"` (the calendar sets it on today's day in every state, selected included).
 
 Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `day` | `number \| string` | `""` |  |
+| `date` | `Date` | — | The full date of this day. It names the button in the locale ("Wednesday, September 30, 2026"); without it the name is the locale's "Day N". The calendar passes it for every day. |
 | `state` | `\| "default" \| "hover" \| "single-selected" \| "range-selected-start" \| "range-selected-end" \| "in-range" \| "today" \| "blank" \| "weekend" \| "disabled"` | `"default"` |  |
 | `event` | `boolean` | `false` |  |
-| `size` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `size` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Medium 32px (default) or Small 24px; short (sm, md…) or Figma (small, medium…) spelling. Ignored on mobile. |
+| `device` | `"desktop" \| "mobile"` | `"desktop"` | `mobile`: `.Primitives/Mobile-Date-Picker/Item` (9921:3283), a square that fills its grid column (40px in the component, 50px in the 350px table of a 390px phone) with the day in Body/Base/Medium; same states and tokens as desktop. |
 
 ### DatePickerHeader
 | Prop | Type | Default | Description |
@@ -94,8 +110,9 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `onNext` | `() => void` | — |  |
 | `onMonthYearClick` | `() => void` | — |  |
 | `type` | `"interactive" \| "static" \| "display"` | `"interactive"` | Figma Header Type: Interactive (month/year opens Select-Month-Year), Static (label only, used by the Dual calendar) or Display (label only, no navigation slots). |
-| `back` | `boolean` | `true` | Figma `Back` / `Next`. A hidden button keeps its 32px slot so the label stays centred. |
+| `back` | `boolean` | `true` | Figma `Back` / `Next`. A hidden button keeps its 32px slot so the label stays centred (desktop). |
 | `next` | `boolean` | `true` |  |
+| `device` | `"desktop" \| "mobile"` | `"desktop"` | `mobile` (Date-Picker/Mobile 9923:3576): month and year in Heading/Subheading at the start, Back and Next together at the end; a hidden button leaves no slot. |
 
 ### DatePickerAction
 `.Primitives/Date-Picker/Action` (460:38871): Button/Main Small Tertiary "Cancel" + Primary "Submit", gap Spacing/Gap/XSmall.
@@ -119,11 +136,22 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `onSubmit` | `(month: Date) => void` | — |  |
 | `onCancel` | `() => void` | — |  |
 
+### DatePickerTimePicker
+Figma `.Primitives/Date-Picker/Time-Picker` (460:38628): Input/Text-Field Small times with an AM/PM picker and Checkbox/Text "All day", Spacing/Gap/Medium apart (Gap/XSmall between a range side's field and its checkbox).
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `type` | `"single" \| "range"` | `"single"` | Figma Type: `single` (From over To, one All day; the Single-Calendar) or `range` (From \| To side by side, each with its own All day; the Dual-Calendar). |
+| `value` (required) | `DatePickerTime` | — |  |
+| `onValueChange` (required) | `(time: DatePickerTime) => void` | — |  |
+| `device` | `"desktop" \| "mobile"` | `"desktop"` | `mobile`: the time fields are Medium (phones keep full-size inputs); DatePicker passes its own `device`. |
+
 ### Types
 Object shapes the props above refer to.
 
 ```ts
 interface DatePickerRange { start: Date; end: Date | null; }
+interface DatePickerTime { from: string | null; to: string | null; fromAllDay?: boolean; toAllDay?: boolean; }
 ```
 
 ## Keyboard
@@ -132,10 +160,12 @@ interface DatePickerRange { start: Date; end: Date | null; }
 | Tab / Shift+Tab | Move between navigation buttons and days |
 | Enter / Space | Pick the focused day |
 | ↑ / ↓ | Month-year wheel: scroll one step |
-| Escape | Close the picker and return focus |
+| Escape | Select-Month-Year: back to the days; a popover closes and focus returns to its trigger (a Dialog around it stays open); inline on the day view, Escape is left to the page |
 
 ## ✅ Do
-- Disable impossible dates (past check-in) with minDate.
+- On a phone, put the calendar in the screen or a Bottom Sheet inline: at the mobile breakpoint it takes the Figma mobile primitives by itself and fills the width; pass device="mobile" only to force them (a popover, a narrow preview).
+- Disable impossible dates (past check-in) with minDate / maxDate (earlier or later days disabled); in a DateField a typed date outside them is kept and marked aria-invalid, so pair the range with an `error` message.
+- Pass `today` (your app's date: a server, business or demo date) when it is not the device's; the Today ring and the month the calendar opens on follow it. DateField forwards `today`, `minDate` and `maxDate` to its calendar.
 - Show the chosen range and its consequence (nights, price) next to the calendar.
 - Let users type the date in the DateField; the calendar is a shortcut, not the only input.
 - Use calendar="dual" for ranges longer than a few days; single for one date.
@@ -151,7 +181,8 @@ interface DatePickerRange { start: Date; end: Date | null; }
 - Don't pass `month` without `onMonthChange`: Previous / Next and the month-year wheel stop working. To open on another month, keep it in state: `month={month} onMonthChange={setMonth}` (harness: interaction/controlled-needs-handler).
 
 ## Accessibility
-- Nav buttons are labelled; days are buttons with the date in the label.
+- Nav buttons are labelled; each day is a button named with its full date in the locale ("Wednesday, September 30, 2026").
+- An inline calendar is role="group" and a popover calendar role="dialog"; both are named "Choose date" ("Choose dates" dual) unless aria-label or aria-labelledby names them. Name each inline calendar after what it sets when a form shows more than one. Today's day carries aria-current="date", selected or not.
 
 ## Content
 - Use the locale's date format in the field placeholder.
@@ -159,7 +190,6 @@ interface DatePickerRange { start: Date; end: Date | null; }
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
-| `input/no-disabled` | error | Inputs (Search included) never use Disabled; fields use Read-only. | `zen-allow-disabled-input: <reason>` |
 | `input/needs-label` | error | Every field has a visible label (or an aria-label when the context labels it). | `zen-allow-unlabelled-input: <reason>` |
 | `input/placeholder-not-label` | warn | Placeholder shows an example or format, never repeats the label. | `zen-allow-placeholder-label: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |

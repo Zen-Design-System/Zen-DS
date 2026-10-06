@@ -72,7 +72,8 @@ const keyOf = (item: DescriptionListItem, index: number) => item.id ?? (typeof i
 
 /**
  * A semantic description list (dl) of term → description pairs: order summaries and receipts, profile details, specs
- * and metadata. Typography comes from the Figma text styles (term Body/Small/Regular Base, value Body/Base/Medium
+ * and metadata. Figma: Description List (14859:79180, Layout × Divider, an Items slot) built from
+ * .Primitives/Description-List/Item (14859:78890, Layout × Emphasis × Divider, Term · Value · Action). Typography comes from the Figma text styles (term Body/Small/Regular Base, value Body/Base/Medium
  * Strongest, total Body/Base/Bold); rules use Border/Neutral/Pale, and the total's rule Border/Neutral/Solid (Divider High).
  *
  *   <DescriptionList items={[{ term: "Subtotal", description: "$311.90" }, { term: "Total", description: "$321.90", emphasis: true }]} />

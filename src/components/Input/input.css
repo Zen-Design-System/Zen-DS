@@ -161,9 +161,11 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
   color: var(--zen-color-content-neutral-light, #0000007d);
 }
 
-/* Figma .Primitives/Input/Help-Text (373:97364): Content row (icon 12 + message, gap 2XSmall) centred; the
-   Character-Limitation text is right-aligned, never wraps and stays Content/Neutral/Light in every theme. */
-.zen-input-help__content { display: inline-flex; min-width: 0; flex: 1 1 auto; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+/* Figma .Primitives/Input/Help-Text (373:97364): Content row (icon 12 + message, gap 2XSmall); the
+   Character-Limitation text is right-aligned, never wraps and stays Content/Neutral/Light in every theme. The icon sits
+   on the first line: the row aligns to the top and the icon box is one text line tall (1lh), so a message that wraps to
+   two or three lines keeps its icon beside the first line (user, 2026-10-04), and a one-line message looks as before. */
+.zen-input-help__content { display: inline-flex; min-width: 0; flex: 1 1 auto; align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-input-help__limit { flex: 0 0 auto; margin-left: auto; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: right; white-space: nowrap; }
 
 .zen-input__message-icon,
@@ -172,6 +174,7 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
   flex: 0 0 var(--zen-element-size-popular-xsmall, 12px);
   width: var(--zen-element-size-popular-xsmall, 12px);
   height: var(--zen-element-size-popular-xsmall, 12px);
+  height: 1lh;
   align-items: center;
   justify-content: center;
 }
@@ -179,7 +182,7 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
 .zen-input__message-icon > .zen-icon,
 .zen-input-help__icon > .zen-icon {
   width: 100%;
-  height: 100%;
+  height: var(--zen-element-size-popular-xsmall, 12px);
 }
 
 .zen-input__message.is-error {
@@ -211,6 +214,8 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
 .zen-input-leading-trailing[data-active="false"] :is(.zen-input-leading-trailing__label, .zen-input-leading-trailing__dropdown),
 .zen-input-field:is([data-state="disabled"], [data-state="read-only"]) .zen-input-leading-trailing,
 .zen-input-field:is([data-state="disabled"], [data-state="read-only"]) .zen-input-leading-trailing :is(.zen-input-leading-trailing__label, .zen-input-leading-trailing__dropdown) { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); }
+/* Leading-Trailing Active=No: the Flag layer drops to 50% opacity (Figma layer opacity 0.5, no token). */
+.zen-input-leading-trailing[data-active="false"] > .zen-flag { opacity: .5; }
 /* A composite Leading-Trailing hugs its content; it must beat the per-size icon slot rules above. */
 .zen-input-content { display: inline-flex; min-width: 0; align-items: center; padding-inline-start: var(--zen-spacing-padding-3-xsmall, 2px); color: var(--zen-color-content-placeholder, rgb(0 0 0 / 27%)); }
 .zen-input-content:is([data-state="typing"], [data-state="inputted"]) { color: var(--zen-color-content-neutral-strongest, #111); }
@@ -282,7 +287,9 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
 .zen-input-field[data-state="typing"] .zen-input__control,
 .zen-input-field:is([data-state="default"], [data-state="inputted"], [data-state="hover"]) .zen-input__control:focus-within:not(:where(:has(.zen-input-leading-trailing__picker :focus))) {
   --zen-input-field-stroke: 1px;
-  --zen-input-field-border: var(--zen-color-focus-neutral-solid, #111);
+  /* Field-Only Focused/Typing Container stroke (374:103464, live 2026-10-03): Input/Border/Focus = Color/Focus/Neutral/Solid
+     in every Component Theme (Neutral-S7 too since the 2026-10-03 evening export). */
+  --zen-input-field-border: var(--zen-input-border-focus, #111);
   --zen-input-field-background: var(--zen-input-background-focused, #05050508);
   /* Field-Only's 3px OUTSIDE stroke surrounds the field, not label/help text. */
   box-shadow: 0 0 0 3px var(--zen-color-border-active-neutral-subtle, #00000024);
@@ -315,6 +322,19 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
   backdrop-filter: none;
 }
 
+/* Read-Only + focus (code-only: Field-Only 374:103464 has no Read-Only Focused state). A read-only field still takes
+   focus (to read, select or copy its value), so it shows the Focused state's 3px OUTSIDE ring
+   (Color/Border/Active/Neutral/Subtle) and its dashed border keeps the [2,2] pattern in Color/Focus/Neutral/Solid: the
+   ring alone is ~1.4:1 against the page, the dashes give the indicator 3:1 or more (WCAG 1.4.11, 2.4.7). The dashes
+   use Color/Focus/Neutral/Solid, the value Input/Border/Focus has in every Component Theme. Fill and dash pattern stay
+   Read-Only. */
+.zen-input-field[data-state="read-only"] .zen-input__control:focus-within:not(:where(:has(.zen-input-leading-trailing__picker :focus))) {
+  box-shadow: 0 0 0 3px var(--zen-color-border-active-neutral-subtle, #00000024);
+}
+.zen-input-field[data-state="read-only"] .zen-input__control:focus-within:not(:where(:has(.zen-input-leading-trailing__picker :focus))) .zen-input__dash rect {
+  stroke: var(--zen-color-focus-neutral-solid, #111);
+}
+
 /* Input/Border/Disabled: transparent in Neutral-S1…S3 (like Input/Border/Default), Color/Border/Disabled in Neutral-S4,
    whose fields are outlined. */
 .zen-input-field[data-state="disabled"] .zen-input__control {
@@ -327,6 +347,13 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
 .zen-input-field[data-state="disabled"] .zen-input__native::placeholder {
   color: var(--zen-color-content-disabled, #00000045);
 }
+
+/* WebKit paints a disabled field with its own text fill and opacity; keep Content/Disabled exact. */
+.zen-input-field[data-state="disabled"] .zen-input__native { -webkit-text-fill-color: currentColor; opacity: 1; }
+
+/* Field-Only State=Disabled puts its slots at Leading-Trailing Active=No (373:101815): plain slot icons (Search, Date
+   calendar, Select chevron) turn Content/Disabled. */
+.zen-input-field[data-state="disabled"] .zen-input__affordance { color: var(--zen-color-content-disabled, #00000045); }
 
 .zen-input__control > select {
   appearance: none;
@@ -452,5 +479,5 @@ textarea.zen-heading-field__native { resize: none; overflow: hidden; }
 .zen-input-field[data-size="large"] .zen-input__dash rect { rx: var(--zen-corner-radius-input-large, 16px); ry: var(--zen-corner-radius-input-large, 16px); }
 .zen-input-field[data-size="xlarge"] .zen-input__dash rect { rx: var(--zen-corner-radius-input-xlarge, 16px); ry: var(--zen-corner-radius-input-xlarge, 16px); }
 /* Hit area ≥ 24×24 (WCAG 2.5.8) around the Figma-sized glyph: an invisible, centred layer; the visual size is unchanged. */
-.zen-input-label__action :is(a, button) { position: relative; }
-.zen-input-label__action :is(a, button)::after { position: absolute; top: 50%; left: 50%; width: max(100%, 24px); height: max(100%, 24px); content: ""; transform: translate(-50%, -50%); }
+.zen-input-label__action :is(a, button), button.zen-input-label__tooltip { position: relative; }
+.zen-input-label__action :is(a, button)::after, button.zen-input-label__tooltip::after { position: absolute; top: 50%; left: 50%; width: max(100%, 24px); height: max(100%, 24px); content: ""; transform: translate(-50%, -50%); }

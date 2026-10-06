@@ -46,6 +46,11 @@
 .zen-table__cell[data-align="right"] { text-align: end; }
 .zen-table__row:hover > .zen-table__cell { background: var(--zen-table-cell-background-hover); }
 .zen-table__row[data-selected="true"] > .zen-table__cell { background: var(--zen-table-cell-background-selected); }
+/* Clickable rows (onRowClick): the whole row opens its item; keyboard focus shows the hover tint and the focus ring. */
+.zen-table__row[data-clickable="true"] { cursor: pointer; }
+.zen-table__row[data-clickable="true"]:focus { outline: none; }
+.zen-table__row[data-clickable="true"]:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: -3px; }
+.zen-table__row[data-clickable="true"]:focus-visible > .zen-table__cell { background: var(--zen-table-cell-background-hover); }
 .zen-table__select { width: 48px; padding-inline-end: 0; }
 .zen-table__checkbox { width: auto; }
 .zen-table__checkbox .zen-checkbox__content { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
@@ -55,11 +60,25 @@
 .zen-table-text { display: inline-flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); vertical-align: middle; }
 .zen-table-text__label { color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-table-text__caption { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+/* Text-Cell Subtext=Yes (label + caption, 38px) also sits in the fixed row: it spills evenly into the padding.
+   zen-allow-mixed-type: the two line heights only measure the cell's height; no text is styled here. */
+.zen-table-text:has(> .zen-table-text__caption) {
+  margin-block: calc((var(--zen-table-slot, 28px) - var(--zen-typography-line-height-body-base, 20px) - var(--zen-spacing-gap-3-xsmall, 2px) - var(--zen-typography-line-height-caption, 16px)) / 2);
+}
 .zen-table-media { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-small, 12px); vertical-align: middle; text-align: start; }
-.zen-table-media__visual { display: inline-flex; flex: 0 0 auto; }
+/* Figma Table/Cell/Default is a FIXED Table/Cell/Size row (padding Small, clipsContent off): a 32–40px Avatar,
+   Dock-Icon or icon button overflows the Content slot into the padding instead of growing the row. The visual and the
+   actions take the slot height and centre what is taller. */
+.zen-table { --zen-table-slot: calc(var(--zen-table-cell-size, 52px) - 2 * var(--zen-spacing-padding-small, 12px)); }
+.zen-table-media__visual { display: inline-flex; height: var(--zen-table-slot, 28px); flex: 0 0 auto; align-items: center; }
+/* Figma FIXED/FILL tables (a column with a fixed width): Avatar/Dock-Icon/Photo cells hug their Text-Cell (one line)
+   and the fill column keeps a readable width, so a narrow container scrolls the table sideways instead of breaking
+   "Annual Leave" under its icon or a name into four lines. Tables without fixed widths share the room as before. */
+.zen-table[data-fixed-columns="true"] .zen-table-media > .zen-table-text { white-space: nowrap; }
+.zen-table[data-fixed-columns="true"] .zen-table__header[data-fill="true"] { min-width: var(--zen-table-fill-min-width, 200px); }
 /* Badge-Cell / Tag-Cell Items slot: wraps, gap 2XSmall. */
 .zen-table-items { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); vertical-align: middle; }
-.zen-table-actions { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); vertical-align: middle; }
+.zen-table-actions { display: inline-flex; height: var(--zen-table-slot, 28px); align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); vertical-align: middle; }
 
 /* Figma Table/Cell/Default State=Focused (1603:23600): 3px Color/Focus/Accent/Subtle ring inside the cell. */
 .zen-table__cell[data-editable="true"] { position: relative; cursor: text; }

@@ -1,10 +1,13 @@
 import { forwardRef, useEffect, useRef, useState, type ButtonHTMLAttributes, type MouseEvent, type ReactNode, type Ref } from "react";
 import { Icon, type IconName } from "../Icon";
 import { Popover, PopoverManualAddNew, useExclusivePopover, type PopoverItemData } from "../Popover";
+import { ZenPortal } from "../Portal";
 import { BadgeCounter } from "../Badge";
 import { Avatar, type AvatarSize } from "../Avatar";
+import { VisuallyHidden } from "../VisuallyHidden";
 import { renderIcon } from "../_shared/icon";
 import { scaleKey } from "../_shared/scale";
+import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chip.css";
 import "../Icon/core";
@@ -30,7 +33,8 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
   children?: ReactNode;
   /** Component set: Advanced, Normal, or Number-only. */
   variant?: ChipVariant;
-  /** Short (sm, md…) or Figma (small, medium…) spelling. */
+  /** Medium by default, on desktop and phones (a filter row lines up with Search and Buttons at 40px); small only inside a
+   *  genuinely narrow component space. Short (sm, md…) or Figma (small, medium…) spelling. */
   size?: ChipSize;
   level?: ChipLevel;
   theme?: ChipTheme;
@@ -47,8 +51,11 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
   /** Filter behavior: single keeps the dropdown affordance; multiple uses the
    * Figma Chip/Trailing counter and changes to remove on hover. */
   selectionMode?: ChipSelectionMode;
-  /** Number of selected options for a multiple filter. */
+  /** Number of selected options for a multiple filter. Shown from 2 as the Chip/Trailing Badge-Counter; the chip is
+   *  then named "Owner, 3 applied" (the locale's `appliedCount`). */
   selectionCount?: number;
+  /** Figma Chip/Advanced Counter: a Badge-Counter after the label. The chip is then named "Filters, 2 applied" (the
+   *  locale's `appliedCount`; a Normal chip reads "Unread, 4"), never the run-together "Filters2". */
   counter?: number | string;
   /** Alias used by the Number-only component set. */
   value?: number | string;
@@ -80,6 +87,12 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
    * The popover gets a Search row; a "Create" + Accent Badge row appears only for a new value, Enter creates it. */
   onPopoverCreate?: (value: string) => void;
   popoverCreateLabel?: ReactNode;
+  /**
+   * Renders the Popover in the page's overlay layer (ZenPortal), anchored under the chip, instead of inside it: a chip in
+   * a row that scrolls sideways (`overflow-x: auto` clips both axes) or in any box that clips its overflow keeps a whole,
+   * visible menu. Light dismiss, Escape and focus return work the same. Leave it off inside a Dialog or Bottom Sheet.
+   */
+  popoverPortal?: boolean;
 }
 
 /**
@@ -94,7 +107,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
   {
     children,
     variant = "advanced",
-    size: sizeProp = "sm",
+    size: sizeProp = "md",
     level = "secondary",
     theme,
     state = "default",
@@ -123,6 +136,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
     popoverScrollBar = true,
     onPopoverCreate,
     popoverCreateLabel,
+    popoverPortal = false,
     className,
     type = "button",
     disabled,
@@ -133,6 +147,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
   ref,
 ) {
   const size = scaleKey(sizeProp, chipSizes);
+  const t = useZenLabels();
   const select = selectedProp ?? selectProp ?? false;
   // Icon names render at the slot's size today (leading Small 16, trailing chevron 2XSmall); the slot CSS sizes the glyph.
   const trailing = renderIcon(trailingProp, { size: "2xs" });
@@ -140,6 +155,8 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
   const [openedFromKeyboard, setOpenedFromKeyboard] = useState(false);
   const dropdownRef = useRef<HTMLSpanElement>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+  // The portalled layer (popoverPortal): outside the chip in the DOM, so light dismiss checks it as well.
+  const layerRef = useRef<HTMLDivElement>(null);
   const isNumberOnly = variant === "number-only";
   const photoSize: AvatarSize = size === "xsmall" ? "2xsmall" : size === "medium" ? "small" : "xsmall";
   const leading = photoSrc ? <Avatar size={photoSize} theme="photo" background="subtle" src={photoSrc} alt={photoAlt} /> : renderIcon(leadingProp, { size: "sm" });
@@ -188,6 +205,16 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
       <span className="zen-chip__multi-remove" aria-hidden="true"><Icon name="icon-x-circle-solid" decorative /></span>
     </span>
   ) : null;
+  // A shown count is part of the chip's name, after a comma: "Filters, 2 applied" (Advanced counter or the Multiple
+  // count), "Unread, 4" (a Normal chip's counter). The badges themselves are aria-hidden, so the name never runs the
+  // digits into the label ("Filters2"). Text labels get an exact aria-label; any other label gets a hidden suffix.
+  const counterShown = !isNumberOnly && counter !== undefined && counter !== null && counter !== "";
+  const shownCount = counterShown ? counter : multipleTrailing ? multipleCount : undefined;
+  const countName = shownCount === undefined ? null : variant === "advanced" || !counterShown ? t.appliedCount(shownCount) : String(shownCount);
+  const ownName = buttonProps["aria-label"] !== undefined || buttonProps["aria-labelledby"] !== undefined;
+  const textLabel = typeof children === "string" || typeof children === "number" ? String(children) : null;
+  const countLabel = countName && !ownName && textLabel ? `${textLabel}, ${countName}` : undefined;
+  const countSuffix = countName && !ownName && !textLabel ? <VisuallyHidden>{`, ${countName}`}</VisuallyHidden> : null;
   const resolvedTrailing = trailing ?? (multipleTrailing ?? (showRemove ? singleRemove : showDropdown ? <Icon name={isPopoverOpen || state === "press" ? "icon-chevron-up-line" : "icon-chevron-down-line"} size="2xs" /> : null));
   const resolvedValue = value ?? counter;
   const resolvedLevel = variant === "advanced" ? "secondary" : level;
@@ -230,7 +257,8 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
   useEffect(() => {
     if (!isPopoverOpen || !canOpenPopover) return undefined;
     const handleOutsidePointer = (event: PointerEvent) => {
-      if (!dropdownRef.current?.contains(event.target as Node)) setPopoverOpen(false);
+      const target = event.target as Node;
+      if (!dropdownRef.current?.contains(target) && !layerRef.current?.contains(target)) setPopoverOpen(false);
     };
     document.addEventListener("pointerdown", handleOutsidePointer);
     return () => document.removeEventListener("pointerdown", handleOutsidePointer);
@@ -273,6 +301,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
       aria-expanded={canOpenPopover ? isPopoverOpen : buttonProps["aria-expanded"]}
       aria-pressed={!canOpenPopover && variant !== "advanced" ? select : undefined}
       aria-keyshortcuts={select && onClearSelection ? "Delete Backspace" : undefined}
+      aria-label={countLabel ?? buttonProps["aria-label"]}
       className={["zen-chip", className].filter(Boolean).join(" ")}
       data-level={resolvedLevel}
       data-open={isPopoverOpen ? "true" : "false"}
@@ -283,18 +312,16 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
       data-variant={variant}
     >
       {leading && !isNumberOnly ? <span className={["zen-chip__slot", resolvedTheme === "leading-photo" ? "zen-chip__photo" : ""].filter(Boolean).join(" ")}>{leading}</span> : null}
-      {isNumberOnly ? <span className={`zen-chip__value ${typographyStyles["Body/Base/Bold"]}`}>{resolvedValue ?? children}</span> : <span className={`zen-chip__label ${typographyStyles[state === "placeholder" ? "Body/Base/Medium" : "Body/Base/Bold"]}`}>{children}</span>}
+      {isNumberOnly ? <span className={`zen-chip__value ${typographyStyles["Body/Base/Bold"]}`}>{resolvedValue ?? children}</span> : <span className={`zen-chip__label ${typographyStyles[state === "placeholder" ? "Body/Base/Medium" : "Body/Base/Bold"]}`}>{children}{countSuffix}</span>}
       {/* Figma Chip/Advanced "Counter" boolean: a count → Badge-Counter XSmall · Neutral · Subtle (Figma still nests a plain Badge). */}
-      {!isNumberOnly && counter !== undefined ? <BadgeCounter className="zen-chip__counter" size="xsmall" theme="neutral" background="subtle" value={counter} /> : null}
+      {!isNumberOnly && counter !== undefined ? <BadgeCounter className="zen-chip__counter" size="xsmall" theme="neutral" background="subtle" value={counter} aria-hidden="true" /> : null}
       {resolvedTrailing ? <span className="zen-chip__slot zen-chip__trailing">{resolvedTrailing}</span> : null}
     </button>
   );
 
   if (!canOpenPopover) return button;
-  return (
-    <span ref={dropdownRef} className="zen-chip__dropdown">
-      {button}
-      {onPopoverCreate ? (
+  const anchor = popoverPortal ? buttonRef : undefined;
+  const popover = onPopoverCreate ? (
         <PopoverManualAddNew
           open={isPopoverOpen}
           label={popoverLabel}
@@ -308,6 +335,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
           multiple={popoverMultiple}
           onSelect={handlePopoverSelect}
           autoFocus
+          anchorRef={anchor}
           onKeyDown={(event) => {
             if (event.key === "Escape") {
               event.preventDefault();
@@ -328,13 +356,18 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
         multiple={popoverMultiple}
         onSelect={handlePopoverSelect}
         autoFocus={openedFromKeyboard}
+        anchorRef={anchor}
         onKeyDown={(event) => {
           if (event.key === "Escape") {
             event.preventDefault();
             setPopoverOpen(false, { restoreFocus: true });
           }
         }}
-      />}
+      />;
+  return (
+    <span ref={dropdownRef} className="zen-chip__dropdown">
+      {button}
+      {popoverPortal ? <ZenPortal><div ref={layerRef} className="zen-chip__layer">{popover}</div></ZenPortal> : popover}
     </span>
   );
 });

@@ -40,7 +40,7 @@ Figma Bottom-Navigation (page ❖ Bottom-Navigations, 7042:38507): 3–5 root de
 | `type` | `"default" \| "floating" \| "floating-glass"` | `"default"` |  |
 | `theme` | `"neutral" \| "accent"` | `"neutral"` |  |
 | `selection` | `"subtle" \| "surface" \| "solid"` | — |  |
-| `showLabels` | `boolean` | `false` | Figma Label (Label/Small/Medium; Bold when selected on Floating). Off by default, like Figma; the label is still the accessible name. |
+| `showLabels` | `boolean` | `false` | Figma Label (Label/Small/Medium; Bold when selected on Floating). Off by default, like Figma; the label is still the accessible name. Idle labels are Content/Neutral/Light on the Default bar (Figma's hidden label is Placeholder) and on Floating (as Figma), Content/Neutral/Strongest on Floating-Glass (as Figma 9018:43882); idle icons keep Figma's colours. |
 | `action` | `BottomNavigationAction` | — | Default: a 48px Primary/Accent action item in the bar (Type=Action). Floating: a separate 64px floating button. |
 | `fixed` | `boolean` | `false` | Pin to the bottom of the viewport / scroll container. |
 | `backdrop` | `"surface" \| "none"` | `"surface"` | Floating types: what sits behind the pill. `surface` (Figma) fades transparent → Surface/Default for plain screens; `none` keeps only the progressive blur, for photos and video where a Surface band would show as a white strip. |
@@ -78,6 +78,7 @@ interface BottomNavigationItem { id: string; label: string; icon: IconName | Rea
 ## Accessibility
 - A <nav aria-label> list of buttons; the current destination has aria-current="page".
 - Items are 56px tall; labels (visible or not) name each item, so screen readers never read a bare icon.
+- Idle labels (showLabels) use Content/Neutral/Light on the Default and Floating bars (Strongest on Floating-Glass, as Figma); idle icons stay Content/Placeholder, as Figma draws them.
 
 ## Content
 - One short noun per destination ("Home", "Search", "Inbox").

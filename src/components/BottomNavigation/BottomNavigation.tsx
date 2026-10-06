@@ -41,7 +41,7 @@ export interface BottomNavigationProps {
   type?: BottomNavigationType;
   theme?: BottomNavigationTheme;
   selection?: BottomNavigationSelection;
-  /** Figma Label (Label/Small/Medium; Bold when selected on Floating). Off by default, like Figma; the label is still the accessible name. */
+  /** Figma Label (Label/Small/Medium; Bold when selected on Floating). Off by default, like Figma; the label is still the accessible name. Idle labels are Content/Neutral/Light on the Default bar (Figma's hidden label is Placeholder) and on Floating (as Figma), Content/Neutral/Strongest on Floating-Glass (as Figma 9018:43882); idle icons keep Figma's colours. */
   showLabels?: boolean;
   /** Default: a 48px Primary/Accent action item in the bar (Type=Action). Floating: a separate 64px floating button. */
   action?: BottomNavigationAction;

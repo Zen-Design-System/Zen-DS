@@ -21,13 +21,14 @@ Rows of structured records that users scan, compare, sort and act on.
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Columns | `columns[] {id, header, align, width, sortable, icon, cell}` | header All-Caps/S Light; right-align numbers |
-| Rows | `rows · getRowId` | Table/Cell/Size, 1px bottom Border/Neutral/Pale |
+| Columns | `columns[] {id, header, align, width, sortable, icon, cell}` | header All-Caps/S Light; right-align numbers; a px width is fixed (Figma FIXED: a narrow container scrolls the table sideways, values never wrap); leave the main column without a width so it fills (Figma FILL) |
+| Rows | `rows · getRowId` | fixed Table/Cell/Size, 1px bottom Border/Neutral/Pale; a 32–40px Avatar, Dock Icon or icon button and a label + Subtext cell sit inside it (they spill into the padding, the row stays 52) |
 | Selection | `selectable · selectedIds · onSelectionChange` | checkbox column; select-all is indeterminate when partial |
 | Sort | `sort · onSortChange` | asc → desc → none; aria-sort |
 | Empty | `empty` | full-width row (Empty State) |
 | Editable cells | `column.edit {type: text · number · select · tags, value, onCommit, validate, disabled, options, suggestions, multiline}` | Figma Table/Cell/Default State=Edit · Editabled-Cell; Focused ring Focus/Accent/Subtle |
-| Open button | `column.onOpen · openLabel` | Figma Open-Button: XSmall Tertiary “Open” on row hover |
+| Open button | `column.onOpen · openLabel` | Figma Open-Button: XSmall Tertiary “Open” on row hover — editable tables only |
+| Clickable rows | `onRowClick` | read-only rows that open a record: the whole row is the target (hover tint, pointer, Tab stop, Enter/Space, Focus/Accent/Solid ring); controls in the row keep their clicks |
 | Cells | `TableText · TableMedia · TableTrend · TableActions` | Text / Avatar-Photo-Icon-Dock / Trend / Actions cells; Badge, Tag, ProgressBar go in directly |
 | Cell primitives | `TableText · TableMedia · TableBadges · TableTags · TableTrend · TableActions` | Figma Primitives/Table/Cell/*: Text-Cell (Body/Base Regular|Bold + Subtext Caption/Regular 11/16, gap 3XSmall); media size follows Subtext — Avatar/Photo-Cell 24px (Avatar XSmall) without a caption, 32px (Small) with one; Basic-Icon-Cell 20px (Icon base) / 28px (Icon lg); Dock-Icon-Cell Dock Icon XSmall 24px / Small 32px — media gap Small; Badge-Cell and Trend-Cell Badge Medium; Tag-Cell Tag; Items gap 2XSmall; Group-Avatar-Cell Avatar/Stack Small; Actions-Cell Button/Icon-Flat Medium, gap XSmall; Progress-Cell Progress-Bar |
 
@@ -52,6 +53,7 @@ Figma Table (page 1595:2631): Primitives/Table/Header (Table/Header/Size) over P
 | `sort` | `TableSort \| null` | — |  |
 | `onSortChange` | `(sort: TableSort \| null) => void` | — |  |
 | `empty` | `ReactNode` | — | Rendered in a full-width row when `rows` is empty (e.g. an EmptyState). |
+| `onRowClick` | `(row: T) => void` | — | Rows that open something (a detail page, a Side Panel, a dialog): the whole row is the click target, keyboard focus reaches each row and Enter or Space opens it; buttons, links, checkboxes and fields inside the row keep their own clicks. For read-only rows — an editable table opens a row with its column's `onOpen` button instead. |
 | `className` | `string` | — |  |
 
 ### TableText
@@ -127,6 +129,7 @@ type TableSortDirection = "asc" | "desc"
 
 ## ✅ Do
 - Name the table (aria-labelledby pointing at its section heading, a caption, or aria-label; harness: table/needs-name).
+- Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4).
 - Right-align numbers and amounts; keep text left.
 - Give each row one primary text (bold) and at most one caption.
 - Put row actions in the last column (TableActions) as Button/Icon-Flat Medium (IconButton appearance="flat" level="primary"; a ⋯ Menu trigger for several) and bulk actions above the table (harness: table/actions-flat).
@@ -135,13 +138,15 @@ type TableSortDirection = "asc" | "desc"
 - Wire onCommit to save, and validate numbers and required text; the error stays in the cell until fixed (harness: table/editor-needs-commit, table/editor-number-validate).
 - Right-align number editors like the numbers they edit (harness: table/editor-number-right).
 - Use select for closed sets and tags for open sets; lock rows that can't change with edit.disabled.
-- Offer onOpen when the full record needs a detail view.
+- Offer onOpen when the full record of an editable row needs a detail view; a read-only table that opens records uses onRowClick, so the whole row is the click target.
 - Let clickable content inside an editable cell (Tag onClick, links, buttons) keep its own action — clicking the cell around it edits. Leave room (padding, gaps) so the edit target stays easy to hit.
+- A table that is the page content or a section of it sits straight on the page: no Card, Box or other container and no Surface fill, and it spans the page width with no max: wrap that page in <Container maxWidth="full"> (not the default lg 1280). Only a table that is a widget (a dashboard tile with its own title and a few rows beside other widgets) goes in a Card.
 - A table that is its own section gets an h2 in Heading/4 directly above it (<Heading level={2} id>), and the Table points to it with aria-labelledby. Use `caption` (rendered in Heading/4) only to name a table that already sits under a section heading: a caption is not a heading and is missing from the headings list (harness: table/title-heading-4).
 - Build cells from the cell primitives at their Figma sizes: Badge Medium (not Small) in Badge/Trend cells, media sized by Subtext (Avatar XSmall → Small and Icon base → lg and Dock Icon XSmall → Small when a caption is on) (harness: table/media-size-by-subtext), Avatar/Stack Small for groups.
 
 ## ❌ Don't
 - Don't make selectable or sortable tables without handlers (harness: table/interaction-needs-handler).
+- Don't open a read-only row from a small icon or the hover Open button: use onRowClick (a passive chevron at the end may show that rows open).
 - Don't wrap long text in every cell; truncate and show the full value on the detail view.
 - Don't use colour alone for status — use a Badge with text.
 - Don't make every cell editable — it turns the table into a spreadsheet and invites accidental edits.
@@ -162,7 +167,7 @@ type TableSortDirection = "asc" | "desc"
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `table/actions-flat` | warn | Row actions in TableActions are Button/Icon-Flat Medium (IconButton appearance="flat" level="primary"), so rows don't fill with outlined buttons. | `zen-allow-table-action-style: <reason>` |
-| `table/title-heading-4` | warn | A table that is its own section is titled by a <Heading level={2} textStyle="Heading/4"> right above it (the Table points to it with aria-labelledby); <Table caption> only names a table that already sits under a section heading. A <Text> title above a table is a paragraph, not a heading. | `zen-allow-table-title: <reason>` |
+| `table/title-heading-4` | warn | A table that is its own page section is titled by a <Heading level={2} textStyle="Heading/4"> right above it (the Table points to it with aria-labelledby); a table inside a widget Card is titled by the widget title, <Heading textStyle="Heading/Subheading"> (every widget title is Subheading); <Table caption> only names a table that already sits under a section heading. A <Text> title above a table is a paragraph, not a heading. | `zen-allow-table-title: <reason>` |
 | `table/needs-name` | error | A Table is named by a caption or aria-label. | `zen-allow-table-name: <reason>` |
 | `table/interaction-needs-handler` | warn | Selectable tables need onSelectionChange; sortable columns need onSortChange. | `zen-allow-table-handler: <reason>` |
 | `table/media-size-by-subtext` | warn | TableMedia follows the Figma cell primitives: with a caption (Subtext=Yes) Avatar/Photo is Small 32px and a basic Icon lg 28px; without one Avatar is XSmall 24px and Icon base 20px; Dock Icon follows Avatar (XSmall 24px → Small 32px with a caption). | `zen-allow-table-media-size: <reason>` |

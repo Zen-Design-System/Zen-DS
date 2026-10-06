@@ -1,5 +1,5 @@
 import { useId, useMemo, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
-import { Card, type CardSurface } from "../Card";
+import { Card, type CardSurface, type CardTheme } from "../Card";
 import { EmptyStateCardContext } from "../EmptyState/EmptyState";
 import { IconButton } from "../Button";
 import { Icon } from "../Icon";
@@ -76,7 +76,7 @@ function PlotFrame({ labels, ticks, top, format, active, setActive, onKeyDown, h
           {labels.map((label, index) => (
             <button key={label + index} type="button" tabIndex={-1} className="zen-chart__sector" data-active={index === active ? activeLine : undefined} onPointerEnter={() => setActive(index)} onFocus={() => setActive(index)} onClick={() => setActive(index)} aria-hidden="true">
               <span className={`zen-chart__x ${typographyStyles["Label/Small/Medium"]}`}>{label}</span>
-              {index === active ? <span className="zen-chart__tooltip"><TooltipSurface color="default" size="small">{tooltip}</TooltipSurface></span> : null}
+              {index === active ? <span className="zen-chart__tooltip"><TooltipSurface color="default" size="medium">{tooltip}</TooltipSurface></span> : null}
             </button>
           ))}
         </div>
@@ -180,6 +180,12 @@ export interface ChartCardProps {
   ranges?: SegmentedOption[];
   range?: string;
   onRangeChange?: (id: string) => void;
+  /** The range switch fills the card and splits it into equal items (Figma Segmented FILL, default); `false` hugs its
+   *  items, as on a wide card where a full-width switch would stretch far past its labels (Figma HUG). */
+  rangesFullWidth?: boolean;
+  /** Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas
+   *  next to other Shadow cards (metric cards on a dashboard). */
+  theme?: CardTheme;
   surface?: CardSurface;
   /** The chart, or an EmptyState before there is data (keep the card title; the Empty State is set one level below it). */
   children: ReactNode;
@@ -187,18 +193,18 @@ export interface ChartCardProps {
 }
 
 /** Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) → header · Segmented · chart, gap 16. */
-export function ChartCard({ title, headingLevel = 3, onOpen, openLabel: openLabelProp, ranges, range, onRangeChange, surface, children, className }: ChartCardProps) {
+export function ChartCard({ title, headingLevel = 3, onOpen, openLabel: openLabelProp, ranges, range, onRangeChange, rangesFullWidth = true, theme = "flat", surface, children, className }: ChartCardProps) {
   const t = useZenLabels();
   const openLabel = openLabelProp ?? t.openReport;
   const Title = `h${headingLevel}` as const;
   return (
-    <Card theme="flat" spacing="medium" surface={surface} className={["zen-chart-card", className].filter(Boolean).join(" ")}>
+    <Card theme={theme} spacing="medium" surface={surface} className={["zen-chart-card", className].filter(Boolean).join(" ")}>
       <div className="zen-chart-card__body">
         <div className="zen-chart-card__header">
           <Title className={`zen-chart-card__title ${typographyStyles["Heading/Subheading"]}`}>{title}</Title>
           {onOpen ? <IconButton appearance="main" level="tertiary" size="2xs" aria-label={openLabel} onClick={onOpen} icon={<Icon name="icon-chevron-right-line-small" />} /> : null}
         </div>
-        {ranges?.length ? <Segmented options={ranges} value={range} onValueChange={onRangeChange} aria-label={t.range} /> : null}
+        {ranges?.length ? <Segmented options={ranges} value={range} onValueChange={onRangeChange} fullWidth={rangesFullWidth} aria-label={t.range} /> : null}
         <EmptyStateCardContext.Provider value={headingLevel}>{children}</EmptyStateCardContext.Provider>
       </div>
     </Card>

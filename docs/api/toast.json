@@ -52,10 +52,10 @@
         },
         {
           "name": "action",
-          "type": "{ label: ReactNode; onClick?: () => void }",
+          "type": "{ label: ReactNode; onClick?: () => void; keepOpen?: boolean }",
           "required": false,
           "default": null,
-          "description": "Figma Actions: one Small button.",
+          "description": "Figma Actions: one Small button. Pressing it runs `onClick`, then dismisses the toast through `onClose` (which\n useToast and ToastStack provide), so Undo or View never leaves a stale toast. `keepOpen: true` leaves it open,\n e.g. when the action updates this toast in place; calling dismiss(id) in `onClick` as well is harmless.",
           "deprecated": null
         },
         {
@@ -87,7 +87,7 @@
     {
       "name": "ToastStack",
       "file": "src/components/Toast/ToastStack.tsx",
-      "description": "Toast queue with motion: new toasts rise in (Slow, emphasized), leaving toasts fade/scale out while their row\ncollapses (Base, exit curve) so the stack reflows smoothly. Portals through ZenPortal; aria-live is on each Toast.",
+      "description": "Toast queue with motion: a new toast rises in from the screen edge while its row opens (Slow, emphasized); a leaving\ntoast fades and shrinks in place (Fast), then its row closes (Base) so the others slide over. Fixed stacks portal into\na shared layer in the ZenPortal container; aria-live is on each Toast.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -104,7 +104,7 @@
           "type": "(id: ToastItem[\"id\"]) => void",
           "required": true,
           "default": null,
-          "description": "Called when a toast times out or its close button is pressed; remove it from `toasts`.",
+          "description": "Called when a toast times out, its close button is pressed or its action runs (unless `action.keepOpen`); remove it\n from `toasts`. It may be called again for an id already removed (an action that dismisses itself): ignore that.",
           "deprecated": null
         },
         {
@@ -120,7 +120,7 @@
           "type": "number",
           "required": false,
           "default": "5000",
-          "description": "Default auto-dismiss (ms). Toasts with an action get +3s. Timers pause while the stack is hovered or focused.",
+          "description": "Default auto-dismiss (ms). Toasts with an action get +3s. Each toast counts down from when it appears; timers\n pause while the stack is hovered or focused.",
           "deprecated": null
         },
         {

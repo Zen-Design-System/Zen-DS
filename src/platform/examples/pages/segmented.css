@@ -1,0 +1,32 @@
+/* Segmented examples (src/platform/examples/pages/segmented.tsx). Tokens only. */
+
+/* Cards in the two-column grid keep a readable width and sit in the middle of the stage. */
+.px-segmented-card { width: 100%; max-width: 440px; margin-inline: auto; }
+
+/* A control that hugs its options inside a stretching column. */
+.px-segmented-start { align-self: flex-start; }
+
+/* The search takes a readable width and shrinks on a narrow page; the view switch stays at the end of the row at its
+   own width (two icons never scroll inside it). */
+.px-segmented-search { flex: 1 1 auto; min-width: 0; max-width: 320px; }
+.px-segmented-hug { flex: none; }
+
+/* File tiles: a list without bullets, and a file preview with the same 4:3 frame as the photos. */
+.px-segmented-tiles { margin: 0; padding: 0; list-style: none; }
+.px-segmented-preview { display: grid; aspect-ratio: 4 / 3; place-items: center; }
+
+/* Phone period row: one line that scrolls sideways, no scrollbar, the screen margin on both ends (Margin/Comfortable,
+   20 on a phone), so the first chip lines up with the bar title and the rows (example-patterns §2). */
+.px-segmented-chips {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-margin-comfortable, 20px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.px-segmented-chips::-webkit-scrollbar { display: none; }
+.px-segmented-chips > * { flex: none; }
+
+/* Hours line up in their column. */
+.px-segmented-hours { font-variant-numeric: tabular-nums; white-space: nowrap; }

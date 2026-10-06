@@ -1,0 +1,18 @@
+/* Breadcrumbs examples. A desktop page (screen card) paints the Canvas; Container gives its side margin and the page adds
+   the same margin above and below. The app window of the top-bar example has a fixed height and is a size container, so
+   the AppShell fills it (100cqh) and its navigation drawer (below 1024px) covers the window instead of the docs page
+   (layout containment holds the drawer). */
+.px-breadcrumbs-page { padding-block: var(--zen-margin-comfortable, 24px); background: var(--zen-color-background-canvas-default); }
+.px-breadcrumbs-frame { height: clamp(520px, calc(100dvh - 120px), 720px); overflow: hidden; contain: layout; container-type: size; }
+.px-breadcrumbs-frame__scroll { height: 100%; overflow: auto; overscroll-behavior: contain; }
+.px-breadcrumbs-frame__scroll > .zen-app-shell { --zen-app-shell-height: 100cqh; }
+.pe-card[data-fullscreen="true"] .pe-card__preview > .px-breadcrumbs-frame { flex: 1 1 0; height: auto; min-height: 0; }
+/* Under the AppShell top bar (the trail) the page starts Padding/Small below it and ends a page margin above the edge;
+   without a top bar (Home has no trail) it starts a page margin from the top. */
+.px-breadcrumbs-shell-page { padding-block: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px); }
+.zen-app-shell:not(:has(.zen-app-shell__header)) .px-breadcrumbs-shell-page { padding-top: var(--zen-margin-comfortable, 24px); }
+/* Cards in the grid keep a readable width and sit in the middle of the stage. */
+.px-breadcrumbs-doc, .px-breadcrumbs-move { width: min(100%, 480px); margin-inline: auto; }
+/* Studio logo in the Sidebar's logo slot: the mark fills the slot's height (24px, 20px dense), the name sits beside it. */
+.px-breadcrumbs-brand { display: inline-flex; height: 100%; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); white-space: nowrap; }
+.px-breadcrumbs-brand > img { display: block; height: 100%; aspect-ratio: 1; border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }
