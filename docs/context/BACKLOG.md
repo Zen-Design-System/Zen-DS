@@ -165,10 +165,6 @@ Read this file only when picking up work or logging a follow-up.
   `npm run studio:build-check` covers link, write, Trash (trash/ copy), Restore and the reconnect after a reload through
   an OPFS folder, which the browser always grants; a folder the person picks is usually "prompt" after a reload, so the
   Reconnect button path (`mirrors.ts` reconnectFolder → requestPermission) needs one check by hand in Chromium.
-- **P2 · Builder engine chunk over its budget (2026-10-06, GĐ2 M4, user decision):** the lazy engine chunk is 135 KB gzip
-  (spec budget 130; @babel/parser alone is 77). Options: accept and set the budget to 140 (the build check then fails
-  above it with --strict-budget), or trim more of the shared engine for the browser (snippet sync and hook/state paths
-  are dead on builder pages; a refactor of jsx-source.mjs / slots.mjs, about 5–10 KB).
 - **P3 · Grid column resize follow-ups (2026-10-06, session "Search spacing collapse bug"):** (1) an item with a Fixed
   width (a Studio wrap Stack `width={240}`) that is alone in a px Grid column still edits its own width on a drag, which
   can leave free space again; resizing the column and clearing that width needs one request touching two elements

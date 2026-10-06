@@ -177,7 +177,7 @@ removed (four unused colour ramps were, see Removed).
   - The edit engine loads only when a builder page opens: a component page never requests it. Its lazy chunk went from
     150 to 135 KB gzip: builder pages have no Detach, so the browser engine leaves the detach recipes out. The helpers
     the edit ops share moved to `tools/studio/source-helpers.mjs`, and `detach.mjs` registers op "detach" when it
-    loads. The budget in the spec is 130 KB; the check warns above it.
+    loads. Its budget is 140 KB gzip (the spec's 130 guessed the parser at 100 KB; it is 77); the check fails above it.
 - **Zen Studio: shared demo code can be restructured, after a question (2026-10-06, GĐ1 WP-B2):**
   - Removing, duplicating, moving, inserting, pasting, dragging or wrapping layers whose code lives in shared demo files
     (PlatformDemoActions.tsx, chatDemo.tsx, PlatformChat…) used to be greyed out ("shared beyond this example").

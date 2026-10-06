@@ -444,3 +444,12 @@ Spec §5 M4, §7. M3 committed and pushed first (f06513b).
   errors. 12/12. Report + Play screenshot in .qa/studio-e2e/build-check-<stamp>.{json,png}. Not in `npm run qa`.
 - Gate PASS (98 works / 1 broken, ST-02; the dev-server Detach rows still pass). Backlog: budget decision (P2), real
   folder permission prompt by hand (P3, replaces the M2 line).
+
+## Studio builder: engine budget 140 KB, GĐ3 spec (session "Studio builder tool planning", tier XS)
+
+- User chose option (a) for the engine chunk: budget 140 KB gzip; `build-check.mjs` now fails above it (no
+  `--strict-budget`); README, CHANGELOG, spec and HANDOFF updated; the P2 Backlog decision line removed.
+- GĐ3 spec `docs/research/studio-builder-library-spec-2026-10-06.md` (catalog of components / icons / photos, search with
+  EN + VI synonyms, accent folding and one-typo tolerance, Quick insert ⇧I, insert target incl. the frame in view for
+  ST-02, icon swap, `zen-media:` photos on builder pages; M1–M3 (+M4 if uploads); Q1 preview, Q2 uploads, Q3 starters,
+  Q4 Vietnamese keywords). Waiting for the user's OK.

@@ -9,7 +9,6 @@
 //
 //   npm run studio:build-check                 build, serve, drive, report (exit 1 when a step fails)
 //   npm run studio:build-check -- --headed     watch it
-//   npm run studio:build-check -- --strict-budget   also fail when the engine chunk is over its budget
 import fs from "node:fs";
 import net from "node:net";
 import path from "node:path";
@@ -23,8 +22,9 @@ const root = path.resolve(here, "../../..");
 const outDir = path.join(root, "node_modules/.cache/zen-studio/build-check/dist");
 const args = process.argv.slice(2);
 const has = (name) => args.includes(`--${name}`);
-/** The engine chunk's budget (gzip KB), from the spec. Over it is a warning unless --strict-budget. */
-const ENGINE_BUDGET_KB = 130;
+/** The engine chunk's budget (gzip KB). The spec said 130 on a guess of the parser's size; the user set 140 on
+ *  2026-10-06 after M4 measured it (parser 77 + engine 58). Over it fails the check. */
+const ENGINE_BUDGET_KB = 140;
 const FOLDER = "linked-pages";
 
 const steps = [];
@@ -82,10 +82,7 @@ const engineFile = engineKey ? manifest[engineKey].file : null;
 await step(`engine chunk ≤ ${ENGINE_BUDGET_KB} KB gzip`, async () => {
   if (!engineFile) throw new Error("no chunk for tools/studio/browser-engine.mjs");
   const text = `${engineKb.toFixed(1)} KB gzip (${engineChunks.join(", ")})`;
-  if (engineKb > ENGINE_BUDGET_KB) {
-    if (has("strict-budget")) throw new Error(`${text}: over the budget`);
-    return `⚠ ${text}: over the budget (a warning; --strict-budget fails)`;
-  }
+  if (engineKb > ENGINE_BUDGET_KB) throw new Error(`${text}: over the budget`);
   return text;
 });
 await step("the parser loads with the engine only", async () => {
