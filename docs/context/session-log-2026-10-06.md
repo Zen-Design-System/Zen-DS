@@ -453,3 +453,22 @@ Spec §5 M4, §7. M3 committed and pushed first (f06513b).
   EN + VI synonyms, accent folding and one-typo tolerance, Quick insert ⇧I, insert target incl. the frame in view for
   ST-02, icon swap, `zen-media:` photos on builder pages; M1–M3 (+M4 if uploads); Q1 preview, Q2 uploads, Q3 starters,
   Q4 Vietnamese keywords). Waiting for the user's OK.
+
+## Studio builder GĐ3 · M1: library search and the insert target (session "Studio builder tool planning", tier M)
+
+Spec approved (Q1 preview of the focused item, Q2 uploads with GĐ5, Q3 starters = GĐ3b, Q4 Vietnamese).
+- `builder/library/search.ts` (pure, no runtime imports): fold (marks dropped, đ → d), withinOneEdit (Damerau ≤ 1),
+  tokensOf (longest synonym phrase first), paletteEntries, searchLibrary (AND over tokens; synonym first id 100 / other
+  60, label word 60/45 (+10 first word), component name 50/40, typo 35, group/caption 15, guideline keyword 12; +40 label
+  equals the query, +20 starts with it; ties keep palette order). `synonyms.ts`: ~75 rows EN + VI → palette ids.
+  `tools/studio/library-keywords-build.mjs` → `keywords.generated.ts` (purpose + use words per component, and the
+  intent words of other guidelines' avoid "→ X" lines; 157 components, 40 KB; --check in studio:selftest).
+  `search.selftest.mjs` 77 checks (60 "what people type → first item" rows, ids exist, AND, order).
+- `catalog.ts` (LIBRARY, searchCatalog); `target.ts` (insertTarget: node selection, else the selected frame's or the
+  frame in view's first drop container found breadth first from its root layers, never Board/Screen; example and
+  Screen frames only). Assets: ranked "Results" when searching (caption falls back to the group); insertAsset uses
+  insertTarget; builder refusal for Overlays points to Prototype › Add overlay (other items keep "keeps state or code").
+- E2E group `library` (run.mjs GROUPS): LB-01 EN synonyms, LB-02 VI + typo, LB-03 builder page with nothing selected,
+  LB-04 Dialog hint; builder.mjs exports its helpers. ST-02 first failed ("LayoutFixture has no parent layer"): an
+  example's root can be its own component, hence the breadth-first search for a layout. Gate PASS 103 works / 0 broken;
+  build-check 12/12 (engine 135 KB, Studio chunk 218 KB gzip).

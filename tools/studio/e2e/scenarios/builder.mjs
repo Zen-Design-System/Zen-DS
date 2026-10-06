@@ -7,7 +7,7 @@ import { inspectorRow, showLeftTab, sleep, statusText, until } from "../lib/stud
 import { pickOption } from "./inspector.mjs";
 
 /** The page's text as the browser keeps it (IndexedDB "zen-studio-builder"). */
-const pageText = (page, id) => page.evaluate((key) => new Promise((resolve) => {
+export const pageText = (page, id) => page.evaluate((key) => new Promise((resolve) => {
   const request = indexedDB.open("zen-studio-builder");
   request.onsuccess = () => {
     const get = request.result.transaction("pages").objectStore("pages").get(key);
@@ -19,7 +19,7 @@ const pageText = (page, id) => page.evaluate((key) => new Promise((resolve) => {
 
 let made = 0;
 /** New page from the Pages tab; returns its id (from the address). */
-async function newPage(ctx, { title, device = "phone" } = {}) {
+export async function newPage(ctx, { title, device = "phone" } = {}) {
   const { page } = await ctx.studio();
   made += 1;
   const name = title ?? `Builder ${made} ${Date.now().toString(36)}`;
@@ -37,7 +37,7 @@ async function newPage(ctx, { title, device = "phone" } = {}) {
 }
 
 /** Zooms the canvas to the page's first Screen (its Layers row, then ⇧2), as focusFrame does for an example. */
-async function focusScreen(page) {
+export async function focusScreen(page) {
   await showLeftTab(page, "layers");
   const row = page.locator('[data-layer-id^="frame:screen:"]').first();
   await row.waitFor({ state: "attached", timeout: 5000 }).catch(async () => { throw new Error(`no Screen row in Layers (rows: ${(await page.locator("[data-layer-id]").evaluateAll((els) => els.slice(0, 4).map((el) => el.getAttribute("data-layer-id")))).join(", ")})`); });
@@ -49,7 +49,7 @@ async function focusScreen(page) {
 }
 
 /** Clicks the n-th element of the page named `name` (its centre, through the canvas picker). */
-async function clickNamed(page, id, name, index = 0) {
+export async function clickNamed(page, id, name, index = 0) {
   const target = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="${name}"]`).nth(index);
   await target.waitFor({ state: "attached", timeout: 5000 }).catch(async () => { throw new Error(`no <${name}> of ${id} on the canvas (url ${page.url()})`); });
   const box = await target.boundingBox();
@@ -59,7 +59,7 @@ async function clickNamed(page, id, name, index = 0) {
 }
 
 /** The Inspector's heading: the selected layer's name. */
-const selectedName = async (page) => (await page.locator("#studio-right h2").first().innerText({ timeout: 1000 }).catch(() => "")).trim();
+export const selectedName = async (page) => (await page.locator("#studio-right h2").first().innerText({ timeout: 1000 }).catch(() => "")).trim();
 
 /** Selects the screen's Stack (its heading, then Escape to the parent). The Design tab names the selection (the tab
  *  persists across rows, and the Prototype tab has no h2 for selectedName to read). */

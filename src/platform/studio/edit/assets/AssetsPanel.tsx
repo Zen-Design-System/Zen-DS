@@ -4,14 +4,16 @@ import { Icon } from "../../../../components/Icon";
 import { Search } from "../../../../components/Search";
 import type { IconName } from "../../../../icons/generated/names";
 import { typographyStyles } from "../../../../tokens/typography.generated";
-import { PALETTE, PALETTE_GROUPS, searchPalette, type PaletteGroup } from "../../slots/palette";
+import { searchCatalog } from "../../builder/library/catalog";
+import { PALETTE, PALETTE_GROUPS, type PaletteGroup, type PaletteItem } from "../../slots/palette";
 import { insertAsset, pressAsset } from "./assets";
 import "./assets.css";
 
 /*
- * The left panel's Assets tab (Figma's Assets): the Zen components the Studio can add, by group, with search. A click
- * adds one into the selected layout (else right after the selected layer); dragging one onto the canvas shows where it
- * lands. Keyboard: Tab to a row, Enter adds it at the selection.
+ * The left panel's Assets tab (Figma's Assets): the Zen components the Studio can add, by group, with search (best
+ * first, synonyms in English and Vietnamese: builder/library). A click adds one into the selected layout (else right
+ * after the selected layer, else into the frame in view); dragging one onto the canvas shows where it lands. Keyboard:
+ * Tab to a row, Enter adds it at the selection.
  */
 
 const GROUP_ICON: Record<PaletteGroup, IconName> = {
@@ -30,9 +32,14 @@ const GROUP_ICON: Record<PaletteGroup, IconName> = {
 
 export function AssetsPanel() {
   const [query, setQuery] = useState("");
-  const groups = useMemo(() => {
-    const items = query.trim() ? searchPalette(PALETTE, query) : PALETTE;
-    return PALETTE_GROUPS.map((group) => ({ group, items: items.filter((item) => item.group === group) })).filter((entry) => entry.items.length);
+  // A search lists its results best first (builder/library: synonyms in English and Vietnamese, one typo); no search lists
+  // the palette by group.
+  const groups = useMemo((): Array<{ group: string; items: PaletteItem[] }> => {
+    if (query.trim()) {
+      const items = searchCatalog(query).map((entry) => entry.item);
+      return items.length ? [{ group: "Results", items }] : [];
+    }
+    return PALETTE_GROUPS.map((group) => ({ group, items: PALETTE.filter((item) => item.group === group) as PaletteItem[] })).filter((entry) => entry.items.length);
   }, [query]);
 
   return (
@@ -64,7 +71,7 @@ export function AssetsPanel() {
                   >
                     <Icon name={GROUP_ICON[item.group]} size="sm" decorative />
                     <span className={`studio-assets__name ${typographyStyles["Body/Small/Medium"]}`}>{item.label}</span>
-                    {item.caption ? <span className={`studio-assets__caption ${typographyStyles["Caption/Regular"]}`}>{item.caption}</span> : null}
+                    {item.caption || group === "Results" ? <span className={`studio-assets__caption ${typographyStyles["Caption/Regular"]}`}>{item.caption ?? item.group}</span> : null}
                   </button>
                 </li>
               ))}

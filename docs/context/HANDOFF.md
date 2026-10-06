@@ -126,7 +126,12 @@ Last updated: 2026-10-06.
   it); `tools/studio/source-helpers.mjs` holds UNIT / pathTo / piece / importEdits (detach.mjs re-exports them and
   calls jsx-source `registerDetach`), so the browser engine has no detach recipes: 150 → 135 KB gzip; budget 140
   (user, 2026-10-06; the check fails above it). **GĐ2 is complete.** Next: GĐ3 (library search and insert): spec
-  `docs/research/studio-builder-library-spec-2026-10-06.md` written, waiting for the user's OK (Q1–Q4).
+  `docs/research/studio-builder-library-spec-2026-10-06.md` approved 2026-10-06 (preview of the focused item only,
+  uploads with GĐ5, starters = GĐ3b, Vietnamese keywords); delivered M1 → M3. M1 done 2026-10-06:
+  `src/platform/studio/builder/library/` (search.ts pure + selftest 77, synonyms.ts EN/VI → palette ids,
+  keywords.generated.ts from `tools/studio/library-keywords-build.mjs` (--check in studio:selftest), catalog.ts,
+  target.ts: frame in view → its first layout); Assets uses them; E2E group `library` LB-01…LB-04; ST-02 fixed:
+  baseline 103 works / 0 broken. Next: M2 (Quick insert ⇧I + preview of the focused item).
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers

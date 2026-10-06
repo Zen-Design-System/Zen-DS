@@ -3,17 +3,19 @@ import { canvasApi, getViewportBox } from "../../canvas/viewport";
 import { multiSelection } from "../../select/multiSelection";
 import { expectRender, renderedNow } from "../../select/remap";
 import { canStructurallyEdit } from "../../slots/actions";
+import { insertTarget } from "../../builder/library/target";
 import { builderCode, type PaletteContext, type PaletteItem } from "../../slots/palette";
 import type { ContentSlot } from "../../slots/registry";
 import { canEdit, flushStudioStore, studioStore } from "../../store";
 import type { EditOp, StudioSelection } from "../../types";
-import type { DropTarget, NodeSelection } from "../arrange";
+import type { DropTarget } from "../arrange";
 import { insertCode } from "../clipboard";
 import { dropTargetAt, publishDragView, type DropContext } from "../drag";
 
 /*
  * Assets, Figma-like (docs/research/studio-figma-editing-plan-2026-10-03.md, Phase 6): the Zen components of the slot
- * palette (slots/palette.ts), inserted by a click (into the selected layout, else after the selected layer) or dragged
+ * palette (slots/palette.ts), inserted by a click (into the selected layout, else after the selected layer, else into the
+ * frame in view) or dragged
  * onto the canvas, where the insertion line of a layer drag shows where it lands. Op pasteCode: Zen components join
  * the imports, an action's toast gets its useToast(). One undo step; the new layer gets selected.
  */
@@ -32,18 +34,20 @@ export function codeOf(item: PaletteItem, file?: string): string | null {
   if (!file?.startsWith("local:")) return code;
   return item.state?.length ? null : builderCode(code);
 }
-const builderRefusal = (item: PaletteItem) => `${item.label} keeps state or code, which a builder page has none of yet (it comes with prototypes)`;
+const builderRefusal = (item: PaletteItem) => item.group === "Overlays"
+  ? `On a builder page ${item.label} opens from an action: add it with Prototype › Add overlay, then point a button at it`
+  : `${item.label} keeps state or code, which a builder page has none of (its screens and overlays do that: Prototype tab)`;
 
-/** Click: into the selected layout, else after the selected layer. */
+/**
+ * Click: into the selected layout, else after the selected layer; with nothing selected, into the frame most in view
+ * (Studio builder GĐ3, builder/library/target.ts).
+ */
 export function insertAsset(item: PaletteItem) {
-  const selection = studioStore.getState().selection;
-  if (selection?.kind !== "node" || selection.part) {
-    fail(`Select a layer in an example first: ${item.label} goes into it (a layout) or right after it`);
-    return;
-  }
-  const code = codeOf(item, parseSrc(selection.src)?.file);
+  const target = insertTarget();
+  if (typeof target === "string") { fail(target); return; }
+  const code = codeOf(item, parseSrc(target.src)?.file);
   if (code === null) { fail(builderRefusal(item)); return; }
-  void insertCode(selection as NodeSelection, code, item.state);
+  void insertCode(target, code, item.state);
 }
 
 /** Why nothing can be dropped into `target` (a playground, docs, the role), or null. */

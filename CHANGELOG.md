@@ -178,6 +178,13 @@ removed (four unused colour ramps were, see Removed).
     150 to 135 KB gzip: builder pages have no Detach, so the browser engine leaves the detach recipes out. The helpers
     the edit ops share moved to `tools/studio/source-helpers.mjs`, and `detach.mjs` registers op "detach" when it
     loads. Its budget is 140 KB gzip (the spec's 130 guessed the parser at 100 KB; it is 77); the check fails above it.
+- **Zen Studio library, GĐ3 M1: search that understands you, and adding with nothing selected (2026-10-06):**
+  - The Assets search lists the best match first and knows what people call things, in English and Vietnamese:
+    "modal", "popup", "hộp thoại" or "hop thoai" find Dialog; "dropdown" finds Select; "switch" or "công tắc" finds
+    Toggle; "nút" finds Button; "bảng" finds Table. One typo is forgiven ("buton", "tabel"). Words from each component's
+    guideline count too ("confirm" → Dialog).
+  - With nothing selected, a click on an Assets item adds it into the frame most in view (its first layout); with a
+    frame selected, into that frame. On a builder page, Dialog and the other overlays point to Prototype › Add overlay.
 - **Zen Studio: shared demo code can be restructured, after a question (2026-10-06, GĐ1 WP-B2):**
   - Removing, duplicating, moving, inserting, pasting, dragging or wrapping layers whose code lives in shared demo files
     (PlatformDemoActions.tsx, chatDemo.tsx, PlatformChat…) used to be greyed out ("shared beyond this example").
