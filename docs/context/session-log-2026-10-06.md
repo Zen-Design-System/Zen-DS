@@ -401,3 +401,26 @@ Spec `docs/research/studio-builder-pages-spec-2026-10-06.md` §3 2c, §5 M2. Clo
 - E2E group `builder` B-07…B-13 (folder file, rename, duplicate, export → import byte for byte + invalid file refused,
   Trash → restore with the folder's trash, version history restore, a folder edit synced). Not covered by E2E: Link
   folder (File System Access has no headless picker; M4 checks the build).
+
+## Studio builder GĐ2 · M3: Prototype + Play (session "Studio builder tool planning", tier L)
+
+Spec §3 2d, §5 M3. M2 committed and pushed first (1931c2b).
+- Engine: `dialect.mjs` boardFrames, freeFrameId, frameCode (Screen: heading in a padded Stack; Overlay: a Dialog whose
+  actions are `proto.close()`), protoCode; exported by browser-engine (+ .d.mts). `slots.mjs` insertChild on a builder
+  page allows BUILDER_RUNTIME (Screen, Overlay, proto) and adds them to the runtime import (was proto only).
+  builder.selftest 15 → 27 (screen + overlay inserted with their imports, setProp of a proto expression read back).
+- Play `builder/proto/Player.tsx`: reuses Present's `presenting` as "play:<screen>" (Studio inert, shortcuts paused);
+  ToastProvider; history stack (navigate / back), one overlay (opened in the device, which is a data-zen-overlay-root),
+  link opens http(s)/mailto in a new tab; P in StudioApp (from the selected Screen), `?play=` on load and while playing,
+  FullScreenBar with Back / Restart / Exit; a fade between screens (opacity only).
+- Prototype tab `builder/proto/PrototypePanel.tsx` (StudioInspectorTab "prototype", only on builder pages): Flow (frames,
+  Add screen / Add overlay = insertChild on the Board, Play) and Interactions (triggers = written on* props, onClick for
+  components that extend HTML attributes, on* function props from api.generated.json; action + target written with
+  setProp / removeProp; Navigate to picks another Screen than the element's own first).
+- `ProtoLinks.tsx`: arrows in board coordinates while the tab is open. BuilderBoard: usePageTree, Interact tool proto
+  (navigate / open zoom to the frame, toast in the status line).
+- Bug fixed (from M1, visible once overlays could be added): an Overlay frame's Dialog scrim covered the whole board
+  (fixed inside the transformed world); the Overlay frame is now a data-zen-overlay-root with overflow hidden.
+- E2E B-14…B-18 (add frames, navigate + arrow + ⌘Z, Play navigate / Back / R / Esc, overlay Dialog Cancel, ?play=). A
+  helper hang found on the way: `selectedName` read an h2 the Prototype tab does not have (no timeout); selectStack now
+  opens the Design tab and the read has a 1 s timeout. Gate PASS (98 works / 1 broken, ST-02).

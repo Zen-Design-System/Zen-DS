@@ -5,4 +5,4 @@
 export { applyOps, changedRange, describeElement, sha1 } from "./jsx-source.mjs";
 export { describeSlots, withSlots, requiredFromApi } from "./slots.mjs";
 export { dataFieldEdit, originsOf } from "./data-source.mjs";
-export { newPageText, pageHeader, parsePage, validateDialect } from "./dialect.mjs";
+export { boardFrames, frameCode, freeFrameId, newPageText, pageHeader, parsePage, protoCode, validateDialect } from "./dialect.mjs";

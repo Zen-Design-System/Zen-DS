@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { Icon } from "../../../components/Icon";
 import { TabPanel, Tabs } from "../../../components/Tabs";
+import { PrototypePanel } from "../builder/proto/PrototypePanel";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { useStudioEditStatus, useStudioServer } from "../api";
 import { useStudioDrafts } from "../sourceDrafts";
@@ -25,6 +26,8 @@ import "./inspector.css";
  */
 
 const tabs = [{ id: "design", label: "Design" }, { id: "code", label: "Code" }];
+/** A builder page adds Prototype (GĐ2 M3). */
+const builderTabs = [...tabs, { id: "prototype", label: "Prototype" }];
 
 /**
  * Footer line: the last edit / save / undo / redo / error, else what editing does here. Edits on a drafts server read
@@ -91,7 +94,9 @@ function useSelectionIdentity(selection: StudioSelection | null) {
 /** The right panel. Hosts the two bridge slots (playground controls, playground code) while a playground node is selected. */
 export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElement; codeSlot: HTMLElement }) {
   const selection = useStudio((state) => state.selection);
-  const tab = useStudio((state) => state.inspectorTab);
+  const localPage = useStudio((state) => Boolean(state.localPage));
+  const chosen = useStudio((state) => state.inspectorTab);
+  const tab = chosen === "prototype" && !localPage ? "design" : chosen;
   // Several layers selected (Shift+click): what they share (wrap in a container) instead of one layer's properties.
   const several = useExtraSelection().length > 0;
   const identity = useSelectionIdentity(selection);
@@ -99,7 +104,7 @@ export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElemen
     <div className="studio-inspector">
       <div className="studio-inspector__tabs">
         <Tabs
-          items={tabs}
+          items={localPage ? builderTabs : tabs}
           value={tab}
           size="sm"
           variant="subtle"
@@ -109,7 +114,8 @@ export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElemen
         />
       </div>
       <TabPanel idPrefix="studio-inspector" id={tab} className="studio-inspector__body">
-        {tab === "code" ? <CodePanel selection={selection} codeSlot={codeSlot} />
+        {tab === "prototype" ? <PrototypePanel />
+          : tab === "code" ? <CodePanel selection={selection} codeSlot={codeSlot} />
           : several && selection?.kind === "node" && !selection.part ? <SelectionActions />
           : selection?.kind === "node" && selection.part ? <PartPanel key={identity} selection={selection} controlsSlot={controlsSlot} />
           : selection?.kind === "node" ? <DesignPanel key={identity} selection={selection} controlsSlot={controlsSlot} />

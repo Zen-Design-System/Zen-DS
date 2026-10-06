@@ -50,7 +50,7 @@ export type StudioPartRef = { path: number[]; name: string };
 export type StudioSelection = { kind: "frame"; frameId: string } | ({ kind: "node"; part?: StudioPartRef } & StudioNodeRef);
 
 export type StudioLeftTab = "pages" | "layers" | "assets";
-export type StudioInspectorTab = "design" | "code";
+export type StudioInspectorTab = "design" | "code" | "prototype";
 
 /**
  * One changed region of an edit, on whole lines: at char offset `start` of the text before the edit, `removed` became

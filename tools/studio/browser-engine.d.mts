@@ -16,3 +16,8 @@ export function parsePage(text: string, options?: { components?: Set<string> }):
 export function validateDialect(text: string, options?: { components?: Set<string> }): DialectError[];
 export function newPageText(options?: { title?: string; device?: string }): string;
 export function pageHeader(text: string): Record<string, unknown> | null;
+export type BoardFrame = { kind: "screen" | "overlay"; id: string; state?: string; title: string; device?: string; loc: string };
+export function boardFrames(tree: unknown): BoardFrame[];
+export function freeFrameId(base: string, taken: Iterable<string>): string;
+export function frameCode(options: { kind: "screen" | "overlay"; id: string; title?: string; device?: string }): string;
+export function protoCode(action: string, arg?: string): string;

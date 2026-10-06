@@ -5,6 +5,7 @@
 //   validateDialect(text, { components? }) → errors [{ line, column, message }]
 //   newPageText({ title, device }) → the text of a blank page
 //   PAGE_DEVICES, SCREEN_STATES
+//   boardFrames(tree), freeFrameId(base, taken), frameCode({ kind, id, title, device }), protoCode(action, arg)   (M3)
 //
 // Tree: Node = { kind: "element", name, loc: "line:col", props: { [name]: Value }, children: Child[] }
 //       Value = { kind: "literal", value } | { kind: "array", items } | { kind: "object", fields } | { kind: "element", node }
@@ -57,6 +58,56 @@ export function newPageText({ title = "Untitled", device = "desktop" } = {}) {
     "}",
     "",
   ].join("\n");
+}
+
+/* ── prototype (GĐ2 M3): frames on the Board and proto actions ─────────────────────────────────────────────────── */
+
+/** The Board's Screens and Overlays: [{ kind: "screen" | "overlay", id, state?, title, device?, loc }] (a parsed page's tree). */
+export function boardFrames(tree) {
+  const literal = (node, name) => (node.props[name]?.kind === "literal" ? node.props[name].value : undefined);
+  return (tree?.board?.children ?? []).filter((child) => child.kind === "element").map((node) => {
+    const id = String(literal(node, "id") ?? "");
+    if (node.name === "Overlay") return { kind: "overlay", id, title: id, loc: node.loc };
+    const state = literal(node, "state");
+    return { kind: "screen", id, ...(typeof state === "string" ? { state } : {}), title: String(literal(node, "title") ?? id), device: literal(node, "device") ?? "desktop", loc: node.loc };
+  });
+}
+
+/** `<base>-<n>`: the first id not in `taken` (a Set or an array). */
+export function freeFrameId(base, taken) {
+  const used = new Set(taken);
+  for (let n = 1; ; n += 1) if (!used.has(`${base}-${n}`)) return `${base}-${n}`;
+}
+
+/**
+ * The code of a new Board child: a Screen (title heading in a padded Stack, on `device`) or an Overlay holding a Dialog
+ * whose actions close it. Inserted with insertChild on the Board; slots.mjs adds the runtime and component imports.
+ */
+export function frameCode({ kind, id, title, device = "desktop" }) {
+  const name = String(title ?? id).replace(/[{}<>]/g, "");
+  if (kind === "overlay") {
+    return [
+      `<Overlay id=${quote(id)}>`,
+      `  <Dialog title=${quote(name)} description="Say what happens next." primaryAction={{ label: "Continue", onClick: proto.close() }} secondaryAction={{ label: "Cancel", onClick: proto.close() }} />`,
+      "</Overlay>",
+    ].join("\n");
+  }
+  const screenDevice = PAGE_DEVICES.includes(device) ? device : "desktop";
+  return [
+    `<Screen id=${quote(id)} title=${quote(name)} device="${screenDevice}">`,
+    `  <Stack gap="md" padding="${screenDevice === "phone" ? "lg" : "xl"}">`,
+    `    <Text textStyle="Heading/3">${name}</Text>`,
+    "  </Stack>",
+    "</Screen>",
+  ].join("\n");
+}
+
+/** A prop's proto action as code: navigate / open take a frame id, toast a title, link a URL; close and back nothing. */
+export function protoCode(action, arg) {
+  if (!PROTO_ACTIONS.has(action)) throw new Error(`proto.${action} is not an interaction`);
+  if (action === "close" || action === "back") return `proto.${action}()`;
+  if (action === "toast") return `proto.toast({ title: ${quote(String(arg ?? ""))} })`;
+  return `proto.${action}(${quote(String(arg ?? ""))})`;
 }
 
 /* ── JSX text, as Babel's JSX transform cleans it (cleanJSXElementLiteralChild) ─────────────────────────────────── */

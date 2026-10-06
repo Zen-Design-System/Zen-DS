@@ -59,10 +59,12 @@ async function clickNamed(page, id, name, index = 0) {
 }
 
 /** The Inspector's heading: the selected layer's name. */
-const selectedName = async (page) => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim();
+const selectedName = async (page) => (await page.locator("#studio-right h2").first().innerText({ timeout: 1000 }).catch(() => "")).trim();
 
-/** Selects the screen's Stack (its heading, then Escape to the parent). */
+/** Selects the screen's Stack (its heading, then Escape to the parent). The Design tab names the selection (the tab
+ *  persists across rows, and the Prototype tab has no h2 for selectedName to read). */
 async function selectStack(page, id) {
+  await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
   await focusScreen(page);
   await clickNamed(page, id, "Text");
   await page.keyboard.press("Escape");
@@ -107,6 +109,37 @@ async function mineOption(page, action) {
 }
 
 const listed = async (page, name) => (await mineRow(page, name).count()) > 0;
+
+/* ── M3: Prototype tab, Play ── */
+
+/** Opens the Inspector's Prototype tab. */
+async function prototypeTab(page) {
+  await page.locator("#studio-right").getByRole("tab", { name: "Prototype" }).click();
+  await page.locator('[data-e2e="prototype-panel"]').waitFor({ state: "visible", timeout: 5000 });
+}
+
+/** A new page with a Button (from Assets) and a second Screen; returns the page and the Button's text check. */
+async function flowPage(ctx) {
+  const made = await newPage(ctx);
+  const { page, id } = made;
+  await selectStack(page, id);
+  await insertAsset(page, "Button");
+  await until(async () => /<Button /.test((await pageText(page, id)) ?? ""), { message: "a Button" });
+  await prototypeTab(page);
+  await page.getByRole("button", { name: "Add screen" }).click();
+  await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "screen-2 in the page" });
+  await until(async () => (await page.locator('[data-studio-frame="screen:screen-2"]').count()) > 0, { message: "screen-2 on the canvas" });
+  return made;
+}
+
+/** Sets the selected element's onClick action in the Prototype tab. */
+async function setAction(page, action, target) {
+  await pickOption(page, "proto:onClick", action);
+  if (target) await pickOption(page, "proto:onClick:target", target);
+}
+
+const playing = (page) => page.locator(".studio-player");
+const playScreen = (page) => playing(page).locator(".studio-player__device").getAttribute("data-screen-id");
 
 export const rows = [
   {
@@ -297,6 +330,102 @@ export const rows = [
       await until(async () => listed(page, changed), { message: "the folder's title under My pages" });
       if ((await pageText(page, id)) !== fs.readFileSync(file, "utf8")) throw new Error("the browser copy differs from the folder");
       return "folder edit synced into the browser";
+    },
+  },
+  {
+    id: "B-14", feature: "Prototype tab: Add screen and Add overlay put frames on the Board", wp: "GĐ2 M3",
+    async run(ctx) {
+      const { page, id } = await flowPage(ctx);
+      await page.getByRole("button", { name: "Add overlay" }).click();
+      await until(async () => /<Overlay id="overlay-1">/.test((await pageText(page, id)) ?? ""), { message: "overlay-1 in the page" });
+      const text = await pageText(page, id);
+      if (!/import \{ Board, Overlay, Screen, proto \} from "@zen\/design-system\/builder";/.test(text)) throw new Error("Overlay not imported");
+      if (!/import \{[^}]*\bDialog\b[^}]*\} from "@zen\/design-system";/.test(text)) throw new Error("Dialog not imported");
+      await until(async () => (await page.locator('[data-studio-frame="overlay:overlay-1"]').count()) > 0, { message: "the overlay frame on the canvas" });
+      const listed = await page.locator('[data-e2e="prototype-panel"] .studio-prototype__frame').count();
+      if (listed !== 3) throw new Error(`Flow lists ${listed} frames`);
+      return "screen-2 and overlay-1 added, imported, listed";
+    },
+  },
+  {
+    id: "B-15", feature: "Prototype tab: a Button's onClick navigates to a Screen (code + arrow on the canvas)", wp: "GĐ2 M3",
+    async run(ctx) {
+      const { page, id } = await flowPage(ctx);
+      await clickNamed(page, id, "Button");
+      await prototypeTab(page);
+      await setAction(page, "Navigate to", "Screen 2");
+      await until(async () => /onClick=\{proto\.navigate\("screen-2"\)\}/.test((await pageText(page, id)) ?? ""), { message: 'onClick={proto.navigate("screen-2")}' });
+      await until(async () => (await page.locator(".studio-proto-links").getAttribute("data-links").catch(() => null)) === "1", { message: "one arrow on the canvas" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => /onClick=\{proto\.toast/.test((await pageText(page, id)) ?? ""), { message: "⌘Z back to the toast" });
+      return "navigate written, arrow drawn, ⌘Z undoes it";
+    },
+  },
+  {
+    id: "B-16", feature: "Play (P): the Button navigates, Back returns, R restarts, Esc leaves", wp: "GĐ2 M3",
+    async run(ctx) {
+      const { page, id } = await flowPage(ctx);
+      await clickNamed(page, id, "Button");
+      await prototypeTab(page);
+      await setAction(page, "Navigate to", "Screen 2");
+      await until(async () => /proto\.navigate\("screen-2"\)/.test((await pageText(page, id)) ?? ""), { message: "the action" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("p");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      if ((await playScreen(page)) !== "screen-1") throw new Error(`Play starts on ${await playScreen(page)}`);
+      if (!new URL(page.url()).searchParams.has("play")) throw new Error("no ?play= in the address");
+      await playing(page).locator(`[data-zen-name="Button"]`).first().click();
+      await until(async () => (await playScreen(page)) === "screen-2", { message: "screen-2 after the click" });
+      await playing(page).getByRole("button", { name: "Back" }).click();
+      await until(async () => (await playScreen(page)) === "screen-1", { message: "Back to screen-1" });
+      await playing(page).locator(`[data-zen-name="Button"]`).first().click();
+      await until(async () => (await playScreen(page)) === "screen-2", { message: "screen-2 again" });
+      await page.keyboard.press("r");
+      await until(async () => (await playScreen(page)) === "screen-1", { message: "R restarts" });
+      await page.keyboard.press("Escape");
+      await until(async () => (await playing(page).count()) === 0, { message: "Esc leaves Play" });
+      if (new URL(page.url()).searchParams.has("play")) throw new Error("?play= stays after Play");
+      return "navigate · Back · R · Esc";
+    },
+  },
+  {
+    id: "B-17", feature: "Play: a Button opens an Overlay's Dialog; its Cancel closes it", wp: "GĐ2 M3",
+    async run(ctx) {
+      const { page, id } = await flowPage(ctx);
+      await page.getByRole("button", { name: "Add overlay" }).click();
+      await until(async () => /<Overlay id="overlay-1">/.test((await pageText(page, id)) ?? ""), { message: "overlay-1" });
+      await sleep(400);
+      await clickNamed(page, id, "Button");
+      await prototypeTab(page);
+      await setAction(page, "Open overlay", "overlay-1");
+      await until(async () => /onClick=\{proto\.open\("overlay-1"\)\}/.test((await pageText(page, id)) ?? ""), { message: "the open action" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("p");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      await playing(page).locator(`[data-zen-name="Button"]`).first().click();
+      const dialog = playing(page).getByRole("dialog", { name: "Are you sure?" });
+      await dialog.waitFor({ state: "visible", timeout: 5000 });
+      await dialog.getByRole("button", { name: "Cancel" }).click();
+      await until(async () => (await dialog.count()) === 0, { message: "Cancel closes the Dialog" });
+      if (!(await playing(page).count())) throw new Error("closing the Dialog left Play");
+      await page.keyboard.press("Escape");
+      await until(async () => (await playing(page).count()) === 0, { message: "Esc leaves Play" });
+      return "open → Dialog → Cancel closes";
+    },
+  },
+  {
+    id: "B-18", feature: "?play= in the address opens the page in Play after a reload", wp: "GĐ2 M3",
+    async run(ctx) {
+      const { page } = await flowPage(ctx);
+      const url = new URL(page.url());
+      url.searchParams.set("play", "screen-2");
+      await page.goto(url.toString(), { waitUntil: "domcontentloaded" });
+      await playing(page).waitFor({ state: "visible", timeout: 30000 });
+      await until(async () => (await playScreen(page)) === "screen-2", { message: "Play on screen-2" });
+      await page.keyboard.press("Escape");
+      await until(async () => (await playing(page).count()) === 0, { message: "Esc leaves Play" });
+      return "reloaded into Play on screen-2";
     },
   },
 ];

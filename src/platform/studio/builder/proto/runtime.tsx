@@ -58,7 +58,9 @@ export function Screen({ id, title, device = "desktop", state, children, ...rest
 export function Overlay({ id, children, ...rest }: HTMLAttributes<HTMLDivElement> & { id?: string; children?: ReactNode }) {
   const [host, setHost] = useState<HTMLDivElement | null>(null);
   return (
-    <div {...rest} className="studio-builder-overlay" data-overlay={id}>
+    // The frame is the overlay's device frame (data-zen-overlay-root): a Dialog opens contained, its scrim fills this frame
+    // only (the world's transform would otherwise make its fixed scrim cover the whole board).
+    <div {...rest} className="studio-builder-overlay" data-overlay={id} data-zen-overlay-root="">
       <div ref={setHost} className="studio-builder-overlay__portal" />
       {host ? <ZenPortalProvider container={host}>{children}</ZenPortalProvider> : null}
     </div>

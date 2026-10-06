@@ -159,6 +159,17 @@ removed (four unused colour ramps were, see Removed).
   - On a build without the dev server, Link folder… keeps a copy in a folder you pick (Chromium); after a reload,
     Reconnect gives the browser access again.
   - Under My pages a line says where the pages are kept.
+- **Zen Studio builder, M3: prototype and Play (2026-10-06, GĐ2):**
+  - On a builder page the Inspector has a Prototype tab. Flow lists the page's Screens and Overlays, with Add screen,
+    Add overlay (an Overlay holding a Dialog whose buttons close it) and Play.
+  - Interactions: select a button (or anything with onClick, onSelect…) and pick an action: Navigate to a Screen, Open
+    overlay, Close overlay, Back, Show toast (a title) or Open link (a URL). It is written as code
+    (`onClick={proto.navigate("screen-2")}`), so ⌘Z undoes it.
+  - While the Prototype tab is open, arrows on the canvas join each action to its Screen or Overlay.
+  - Play (P, the Play button, or `?play=<screen>` in the address) runs the page full screen from the selected or first
+    Screen: navigate, overlays (opened inside the device), toasts, links, Back, R to restart, Esc to leave. The
+    Interact tool (I) runs the actions on the canvas too: navigate and open zoom to their frame.
+  - An Overlay frame on the canvas now keeps its Dialog's scrim inside the frame (it covered the whole board).
 - **Zen Studio: shared demo code can be restructured, after a question (2026-10-06, GĐ1 WP-B2):**
   - Removing, duplicating, moving, inserting, pasting, dragging or wrapping layers whose code lives in shared demo files
     (PlatformDemoActions.tsx, chatDemo.tsx, PlatformChat…) used to be greyed out ("shared beyond this example").

@@ -1,12 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Icon } from "../../../components/Icon";
 import { Heading, Text } from "../../../components/Text";
 import { StudioFrame } from "../board/StudioFrame";
 import type { StudioExample } from "../board/frames";
 import { notifySourceUpdate } from "../select/picker";
-import { loadEngine, zenComponents } from "./engine";
+import { announceEditStatus } from "../api";
+import { zoomToFrame } from "../board/presentFrame";
+import { usePageTree } from "./usePageTree";
+import { ProtoLinks } from "./proto/ProtoLinks";
 import { DEVICE_WIDTH, ProtoContext, type PageDevice, type ProtoActions } from "./proto/runtime";
-import { renderFrame, type PageNode, type PageTree } from "./render/renderPage";
+import { renderFrame, type PageNode } from "./render/renderPage";
 import { Button } from "../../../components/Button";
 import { useStudio } from "../store";
 import { pageFile, pagesPersist, restorePage, usePage, useStorage, useTrash } from "./store/pageStore";
@@ -21,6 +24,21 @@ import "./builder.css";
  */
 
 const inertProto: ProtoActions = { navigate: () => undefined, open: () => undefined, close: () => undefined, back: () => undefined, toast: () => undefined, link: () => undefined };
+
+/** With the Interact tool (GĐ2 M3), a page's actions act on the canvas: navigate / open zoom to their frame, toast says
+ *  its title in the status line, link opens a tab. Close and back have nothing to undo here (Play runs the flow). */
+const frameElement = (id: string) => document.querySelector<HTMLElement>(`[data-studio-frame="${CSS.escape(id)}"]`);
+const canvasProto: ProtoActions = {
+  navigate: (screen) => { const frame = frameElement(`screen:${screen}`); if (frame) zoomToFrame(frame); },
+  open: (overlay) => { const frame = frameElement(`overlay:${overlay}`); if (frame) zoomToFrame(frame); },
+  close: () => undefined,
+  back: () => undefined,
+  toast: (options) => {
+    const title = options && typeof options === "object" && "title" in options ? String((options as { title?: unknown }).title ?? "") : String(options ?? "");
+    announceEditStatus({ kind: "unchanged", message: `Toast: ${title}`, at: Date.now() });
+  },
+  link: (url) => { if (/^(https?:|mailto:)/i.test(String(url))) window.open(String(url), "_blank", "noopener,noreferrer"); },
+};
 
 const literal = (node: PageNode, prop: string) => { const value = node.props[prop]; return value?.kind === "literal" ? value.value : undefined; };
 
@@ -42,31 +60,29 @@ function whereKept(storage: ReturnType<typeof useStorage>): string {
 
 export function BuilderBoard({ id }: { id: string }) {
   const page = usePage(id);
+  const interact = useStudio((state) => state.tool === "interact");
+  const showLinks = useStudio((state) => state.inspectorTab === "prototype");
+  const boardRef = useRef<HTMLDivElement>(null);
+  const proto = interact ? canvasProto : inertProto;
   const storage = useStorage();
   const inTrash = useTrash().some((item) => item.id === id);
   const admin = useStudio((state) => state.role === "admin");
-  const [tree, setTree] = useState<PageTree | null>(null);
   const text = page?.text;
-  useEffect(() => {
-    if (text === undefined) return undefined;
-    let alive = true;
-    void loadEngine().then((engine) => { if (alive) setTree(engine.parsePage(text, { components: new Set(zenComponents) }) as unknown as PageTree); });
-    return () => { alive = false; };
-  }, [text]);
+  const tree = usePageTree(text);
   // The new text is on the canvas: what read the old one reads again (Vite's afterUpdate for example code).
   useEffect(() => { if (tree) notifySourceUpdate(); }, [tree]);
 
   const file = pageFile(id);
   const frames = useMemo(() => {
     if (!tree?.board) return [];
-    // Proto handlers run only with the Interact tool (Play is M3); in Select they are inert, as an example's handlers.
-    const ctx = { file, mock: tree.mock, proto: inertProto };
+    // Proto handlers act on the canvas only with the Interact tool (Play runs the flow); in Select they are inert.
+    const ctx = { file, mock: tree.mock, proto };
     return tree.board.children.filter((child): child is PageNode => child.kind === "element").map((node) => {
       const frame = frameOf(node);
       const example: StudioExample = { title: frame.label, description: "", code: text ?? "", screen: true, render: () => renderFrame(node, ctx) };
       return { ...frame, example };
     });
-  }, [tree, file, text]);
+  }, [tree, file, text, proto]);
 
   if (!page) {
     return (
@@ -82,8 +98,8 @@ export function BuilderBoard({ id }: { id: string }) {
     );
   }
   return (
-    <ProtoContext value={inertProto}>
-      <div className="studio-board studio-builder-board" data-page={`local:${id}`}>
+    <ProtoContext value={proto}>
+      <div ref={boardRef} className="studio-board studio-builder-board" data-page={`local:${id}`}>
         <header className="studio-board__title">
           <Text as="p" textStyle="Body/Small/Medium" tone="base">{whereKept(storage)}</Text>
           <Heading level={1} textStyle="Heading/1">{page.title}</Heading>
@@ -101,6 +117,7 @@ export function BuilderBoard({ id }: { id: string }) {
             </StudioFrame>
           ))}
         </div>
+        {showLinks ? <ProtoLinks tree={tree} file={file} boardRef={boardRef} /> : null}
       </div>
     </ProtoContext>
   );

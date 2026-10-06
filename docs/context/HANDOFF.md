@@ -116,8 +116,13 @@ Last updated: 2026-10-06.
   `ZEN_STUDIO_PAGES_DIR` for the E2E server); client `builder/store/pageModel.ts` (pure: sync plan, revisions, Trash),
   pageStore v2 (IndexedDB v2: revisions, settings, trashedAt, mirror sync), `store/mirrors.ts` (dev folder or File
   System Access Link folder), `builder/MyPages.tsx` (row + section menus, Rename / Version history / Trash dialogs,
-  Import / Export); E2E B-07…B-13; baseline 93 works / 1 broken (ST-02). Next: M3 (Prototype + Play), then M4 (build
-  without the dev server, chunk budget; Link folder is checked there).
+  Import / Export); E2E B-07…B-13. M3 done 2026-10-06: `dialect.mjs` boardFrames / freeFrameId / frameCode /
+  protoCode; slots.mjs insertChild takes Screen / Overlay on a builder page (BUILDER_RUNTIME, runtime import);
+  `builder/proto/Player.tsx` (Play = `presenting: "play:<screen>"`, P, `?play=`, R, Esc), `proto/PrototypePanel.tsx`
+  (Inspector tab "prototype": Flow + Interactions via setProp / removeProp), `proto/ProtoLinks.tsx` (arrows),
+  `usePageTree.ts`; Interact tool runs proto on the canvas; Overlay frame is a `data-zen-overlay-root`; E2E B-14…B-18;
+  baseline 98 works / 1 broken (ST-02). Next: M4 (production build without the dev server, chunk budget, Link folder
+  by hand).
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers

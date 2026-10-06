@@ -2,7 +2,7 @@
 // The edit engine on a builder page kept in the browser ("local:<id>.zen.tsx", Studio builder GĐ2 M1): the same ops as
 // on example code, results that stay valid pages. Run: node tools/studio/builder.selftest.mjs
 import { dataFieldEdit } from "./data-source.mjs";
-import { newPageText, parsePage, validateDialect } from "./dialect.mjs";
+import { boardFrames, frameCode, freeFrameId, newPageText, parsePage, protoCode, validateDialect } from "./dialect.mjs";
 import { applyOps, describeElement, sha1 } from "./jsx-source.mjs";
 
 const failures = [];
@@ -14,7 +14,7 @@ const check = (label, actual, expected) => {
   else failures.push(`${label}\n    expected ${e}\n    actual   ${a}`);
 };
 const FILE = "local:checkout.zen.tsx";
-const componentModules = new Map([["Button", "Button"], ["Stack", "Layout"], ["Text", "Text"], ["List", "ListItem"], ["ListItem", "ListItem"], ["Badge", "Badge"]]);
+const componentModules = new Map([["Dialog", "Dialog"], ["Button", "Button"], ["Stack", "Layout"], ["Text", "Text"], ["List", "ListItem"], ["ListItem", "ListItem"], ["Badge", "Badge"]]);
 const options = (code) => ({ file: FILE, componentModules, requiredChildren: new Set(), requiredProps: new Map(), hash: sha1(code) });
 const components = new Set(componentModules.keys());
 
@@ -62,6 +62,37 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
   check("a page with an action is valid", validateDialect(fresh, { components }), []);
   const hook = applyOps(fresh, at, "Stack", [{ op: "insertChild", code: '<Button onClick={() => toast({ title: "x" })}>X</Button>', requires: ["toast"] }], options(fresh));
   check("a toast hook is refused", /no hooks/.test(hook.error ?? ""), true);
+}
+
+
+// Prototype (M3): a Screen and an Overlay added to the Board, their imports, and a proto action written on a Button.
+{
+  let proto = newPageText({ title: "Flow", device: "phone" });
+  const board = () => parsePage(proto).board.loc;
+  const frames = () => boardFrames(parsePage(proto));
+  check("one screen at first", frames().map((frame) => `${frame.kind}:${frame.id}`), ["screen:screen-1"]);
+  const id = freeFrameId("screen", frames().map((frame) => frame.id));
+  check("a free screen id", id, "screen-2");
+  const screen = applyOps(proto, board(), "Board", [{ op: "insertChild", code: frameCode({ kind: "screen", id, title: "Done", device: "phone" }) }], options(proto));
+  check("insert a Screen into the Board", screen.error ?? null, null);
+  proto = screen.code ?? proto;
+  const overlay = applyOps(proto, board(), "Board", [{ op: "insertChild", code: frameCode({ kind: "overlay", id: "confirm" }) }], options(proto));
+  check("insert an Overlay with a Dialog", overlay.error ?? null, null);
+  proto = overlay.code ?? proto;
+  check("Overlay joins the builder import", /import \{ Board, Overlay, Screen, proto \} from "@zen\/design-system\/builder";/.test(proto), true);
+  check("Dialog joins the package import", /import \{ Dialog, Stack, Text \} from "@zen\/design-system";/.test(proto), true);
+  check("frames after", frames().map((frame) => `${frame.kind}:${frame.id}`), ["screen:screen-1", "screen:screen-2", "overlay:confirm"]);
+  check("still a valid page", validateDialect(proto, { components }), []);
+  const stack = parsePage(proto).board.children[0].children[0].loc;
+  const withButton = applyOps(proto, stack, "Stack", [{ op: "insertChild", code: '<Button level="primary">Next</Button>' }], options(proto));
+  proto = withButton.code ?? proto;
+  const next = parsePage(proto).board.children[0].children[0].children[1];
+  const linked = applyOps(proto, next.loc, "Button", [{ op: "setProp", name: "onClick", value: { kind: "expression", code: protoCode("navigate", "screen-2") } }], options(proto));
+  check("setProp writes a proto action", linked.error ?? null, null);
+  proto = linked.code ?? proto;
+  check("written as code", /<Button level="primary" onClick=\{proto\.navigate\("screen-2"\)\}>Next<\/Button>/.test(proto), true);
+  check("read back as a proto value", parsePage(proto).board.children[0].children[0].children[1].props.onClick, { kind: "proto", action: "navigate", args: ["screen-2"] });
+  check("protoCode forms", [protoCode("close"), protoCode("toast", 'Say "hi"'), protoCode("link", "https://zen.dev")], ["proto.close()", 'proto.toast({ title: "Say \\"hi\\"" })', 'proto.link("https://zen.dev")']);
 }
 
 if (failures.length) {

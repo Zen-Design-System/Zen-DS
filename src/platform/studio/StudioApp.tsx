@@ -30,6 +30,7 @@ import { selectedPartStore } from "./select/parts";
 import { SlotConfirm } from "./slots/SlotConfirm";
 import { SharedConfirm } from "./shell/SharedConfirm";
 import { BuilderBoard } from "./builder/BuilderBoard";
+import { isPlaying, Player, startPlay } from "./builder/proto/Player";
 import { startPageMirror } from "./builder/store/mirrors";
 import { cachedPage } from "./builder/store/pageStore";
 import { ChromePortalContext, ChromeScope, useChromeAttributes } from "./shell/ChromeScope";
@@ -102,7 +103,12 @@ function useRouting() {
   const localPage = useStudio((state) => state.localPage);
   const first = useRef(true);
   // Builder pages: connect the folder that keeps their copy (the dev server's .zen-studio/pages/, or a linked folder).
-  useEffect(() => { void startPageMirror(); }, []);
+  // ?play=<screen> on a builder page opens it in Play.
+  useEffect(() => {
+    void startPageMirror();
+    const play = new URLSearchParams(window.location.search).get("play");
+    if (play !== null && studioStore.getState().localPage && !isPlaying(studioStore.getState().presenting)) startPlay(play || null);
+  }, []);
   useEffect(() => {
     const url = new URL(window.location.href);
     // A builder page kept in this browser: ?page=local:<id> (Studio builder GĐ2).
@@ -401,7 +407,12 @@ export function StudioApp() {
       if (key === "v") studioStore.setState({ tool: "select" });
       else if (key === "h") studioStore.setState({ tool: "hand" });
       else if (key === "i") studioStore.setState({ tool: "interact" });
-      else if (key === "f") {
+      else if (key === "p" && state.localPage) {
+        // Play the builder page from the selected Screen (else its first).
+        event.preventDefault();
+        const frameId = state.selection?.kind === "frame" ? state.selection.frameId : state.selection?.frameId;
+        startPlay(frameId?.startsWith("screen:") ? frameId.split(":")[1] : null);
+      } else if (key === "f") {
         const frameId = state.selection?.kind === "frame" ? state.selection.frameId : state.selection?.frameId;
         if (frameId) { event.preventDefault(); presentFrame(frameId); }
       } else return;
@@ -492,6 +503,8 @@ export function StudioApp() {
         <StudioBridgeContext value={bridge}>
           <Present />
         </StudioBridgeContext>
+        {/* Play (Studio builder GĐ2 M3): a builder page run full screen with live prototype actions. */}
+        <Player />
 
         <ChromeScope className="studio-dialogs">
           <ShortcutsDialog />

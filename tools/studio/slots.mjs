@@ -75,6 +75,8 @@ import { ITEM_OPS, itemPlan } from "./items.mjs";
 const BOM = "\uFEFF";
 const PACKAGE = "@zen/design-system";
 const BUILDER_PACKAGE = "@zen/design-system/builder";
+/** What a builder page's code may use from its runtime besides Zen components (Board is the page's root). */
+const BUILDER_RUNTIME = ["Screen", "Overlay", "proto"];
 const PLUGINS = ["jsx", "typescript"];
 const LINE_SEPARATOR = /[\u2028\u2029]/;
 const FUNCTION_TYPES = new Set(["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression", "ObjectMethod", "ClassMethod", "ClassPrivateMethod"]);
@@ -1199,7 +1201,7 @@ function insertPlan(ctx, nodePath, op) {
   const state = stateFor(ctx, typeof op.code === "string" ? op.code : "", op.state);
   // A builder page (Studio builder GĐ2) has no hooks: its actions are proto.*(…) handlers, which the page imports.
   const builderPage = LOCAL_PAGE.test(ctx.file ?? "");
-  const code = prepareCode(typeof op.code === "string" ? state.src : op.code, ctx.folders, builderPage ? new Set([...state.names, "proto"]) : state.names);
+  const code = prepareCode(typeof op.code === "string" ? state.src : op.code, ctx.folders, builderPage ? new Set([...state.names, ...BUILDER_RUNTIME]) : state.names);
   if (builderPage && (code.toast || state.statements?.length)) refuse("A builder page has no hooks: an action is proto.toast(…), proto.navigate(…) or proto.open(…), and a control keeps its own state");
   if (CHROME_NAMES.includes(code.name)) refuse(`<${code.name}> is docs chrome; it cannot be inserted.`);
   if (op.requires !== undefined && (!Array.isArray(op.requires) || op.requires.some((item) => item !== "toast" && item !== "media"))) refuse('`requires` lists what the code needs: "toast" or "media"');
@@ -1279,7 +1281,9 @@ function insertPlan(ctx, nodePath, op) {
   if (code.media) edits.push(...mediaImportEdits(ctx));
   for (const name of needed) if (!ctx.folders.has(name)) refuse(`<${name}> is not a Zen component (no src/components folder exports it)`);
   edits.push(...importChanges(ctx.ast, text, eol, ctx.file, [...needed], [], ctx.folders));
-  if (builderPage && /\bproto\./.test(code.src)) edits.push(...builderImportEdits(ctx.ast, text, eol, ["proto"]));
+  // A Screen or an Overlay added to the Board (GĐ2 M3), or proto.*(…) handlers: the builder runtime import gains them.
+  const runtime = builderPage ? BUILDER_RUNTIME.filter((name) => new RegExp(name === "proto" ? "\\bproto\\." : `<${name}\\b`).test(code.src)) : [];
+  if (runtime.length) edits.push(...builderImportEdits(ctx.ast, text, eol, runtime));
   return {
     edits,
     focus: { ...plan.focus, name: code.name },
