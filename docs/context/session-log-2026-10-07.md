@@ -405,3 +405,7 @@
   switches"; stories; smoke fixtures; tests/interaction/chipgroup-togglelistitem.test.tsx (4/4). Playwright treats a
   click inside a <label> as a click on its (hidden) control, so the row-press test forces the click.
 - Generated: guidelines/api docs, tools/studio/compile-api.generated.mjs, library keywords.
+- Gate (.qa/reports/2026-10-07T16-05-21-267cb264.md): static all ✓, browser tests 31/31 (TabItem passed this time),
+  Studio E2E 158/158; ✗ only the 36 chat emoji [fit] errors (same on 29305b4, cloud font); warnings pre-existing
+  (templates rhythm/outline, button 2px gap, card slot corners, probe dead clicks). Contact sheets: Pick one and Email
+  switches render as intended at 390.
