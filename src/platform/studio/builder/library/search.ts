@@ -12,7 +12,8 @@ import type { PaletteItem } from "../../slots/palette";
  *   a word of the label: equal 60 (+10 when it is the first word) · starts with the token 45 (+10)
  *   a component the item uses: a word of its name equal 50, starting with the token 40; the whole name starts with it 40
  *   one typo (≥ 4 letters: a letter added, dropped, changed or two swapped) against a label word or a component 35
- *   a word of the group or caption starting with the token 15 · a guideline keyword starting with it (≥ 3 letters) 12
+ *   a word of the group or caption starting with the token 15 · a guideline keyword equal to it (3 letters) or starting
+ *   with it (4 or more) 12
  * plus 40 when the whole query is the label and 20 when the label starts with it. Ties keep the palette's order.
  */
 
@@ -155,7 +156,8 @@ function tokenScore(token: Token, p: Prepared): number {
   }
   if (best < 35 && word.length >= 4 && (p.labelWords.some((labelWord) => withinOneEdit(word, labelWord)) || p.nameJoined.some((name) => withinOneEdit(word, name)) || p.names.some((words) => words.some((part) => part.length >= 4 && withinOneEdit(word, part))))) best = 35;
   if (best < 15 && p.groupWords.some((groupWord) => groupWord.startsWith(word))) best = 15;
-  if (best < 12 && word.length >= 3 && p.keywords.some((keyword) => keyword.startsWith(word))) best = 12;
+  // Guideline words: a 3-letter token must equal one ("tab", not "the" → "theme"); a longer one may start one.
+  if (best < 12 && word.length >= 3 && p.keywords.some((keyword) => (word.length === 3 ? keyword === word : keyword.startsWith(word)))) best = 12;
   return best;
 }
 

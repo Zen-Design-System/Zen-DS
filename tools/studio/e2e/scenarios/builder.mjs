@@ -63,7 +63,7 @@ export const selectedName = async (page) => (await page.locator("#studio-right h
 
 /** Selects the screen's Stack (its heading, then Escape to the parent). The Design tab names the selection (the tab
  *  persists across rows, and the Prototype tab has no h2 for selectedName to read). */
-async function selectStack(page, id) {
+export async function selectStack(page, id) {
   await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
   await focusScreen(page);
   await clickNamed(page, id, "Text");

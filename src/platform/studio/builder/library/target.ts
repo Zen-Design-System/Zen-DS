@@ -1,7 +1,8 @@
 import { canvasApi, getViewportBox } from "../../canvas/viewport";
 import type { NodeSelection } from "../../edit/arrange";
 import { isDropContainer } from "../../edit/drag";
-import { childHits, elementFiber, frameOf, hitOf, instanceOf, panelOf, walkAnnotated, type FiberHit } from "../../select/picker";
+import { findFrame } from "../../board/frames";
+import { childHits, elementFiber, findBySrc, frameOf, hitOf, instanceOf, panelOf, walkAnnotated, type FiberHit } from "../../select/picker";
 import { studioStore } from "../../store";
 
 /*
@@ -75,4 +76,13 @@ export function insertTarget(): NodeSelection | string {
   const frame = selection?.kind === "frame" ? frameElement(selection.frameId) : frameInView();
   if (!frame || !EDITABLE_FRAME.test(frame.getAttribute("data-studio-frame") ?? "")) return "Nothing here takes new layers: bring an example or a screen into view, or select a layer";
   return rootSelection(frame) ?? "This frame has no layer to add into yet";
+}
+
+/** "Into Stack · Checkout", "After Button · Checkout": where `target` takes an item (edit/clipboard.ts's rule). */
+export function describeTarget(target: NodeSelection): string {
+  const world = canvasApi.getWorldElement();
+  const hits = world ? findBySrc(world, target.src) : [];
+  const hit = hits[target.instance] ?? hits[0] ?? null;
+  const frame = findFrame(target.frameId)?.label;
+  return `${hit && isDropContainer(hit) ? "Into" : "After"} ${target.name}${frame ? ` · ${frame}` : ""}`;
 }

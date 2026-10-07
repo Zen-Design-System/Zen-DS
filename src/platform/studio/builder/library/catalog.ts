@@ -1,4 +1,5 @@
-import { PALETTE } from "../../slots/palette";
+import type { IconName } from "../../../../icons/generated/names";
+import { PALETTE, type PaletteGroup } from "../../slots/palette";
 import { GUIDELINE_KEYWORDS } from "./keywords.generated";
 import { paletteEntries, searchLibrary, synonymMap, type LibraryEntry } from "./search";
 import { SYNONYM_ROWS } from "./synonyms";
@@ -14,3 +15,18 @@ const SYNONYMS = synonymMap(SYNONYM_ROWS);
 
 /** The library entries matching `query`, best first (every entry, in palette order, for an empty query). */
 export const searchCatalog = (query: string): LibraryEntry[] => searchLibrary(LIBRARY, query, SYNONYMS);
+
+/** The icon each palette group shows in the Assets tab and Quick insert. */
+export const GROUP_ICON: Record<PaletteGroup, IconName> = {
+  Text: "icon-type-01-line",
+  Actions: "icon-pointer-line",
+  Navigation: "icon-navigation-pointer-01-line",
+  "Data display": "icon-table-line",
+  Charts: "icon-bar-chart-01-line",
+  Feedback: "icon-alert-circle-line",
+  Inputs: "icon-text-input-line",
+  Overlays: "icon-layers-three-01-line",
+  Layout: "icon-layout-grid-01-line",
+  Page: "icon-browser-line",
+  Chat: "icon-message-chat-circle-line",
+};

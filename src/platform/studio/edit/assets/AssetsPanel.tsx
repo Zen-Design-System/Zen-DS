@@ -2,10 +2,9 @@ import { useMemo, useState } from "react";
 import { EmptyState } from "../../../../components/EmptyState";
 import { Icon } from "../../../../components/Icon";
 import { Search } from "../../../../components/Search";
-import type { IconName } from "../../../../icons/generated/names";
 import { typographyStyles } from "../../../../tokens/typography.generated";
-import { searchCatalog } from "../../builder/library/catalog";
-import { PALETTE, PALETTE_GROUPS, type PaletteGroup, type PaletteItem } from "../../slots/palette";
+import { GROUP_ICON, searchCatalog } from "../../builder/library/catalog";
+import { PALETTE, PALETTE_GROUPS, type PaletteItem } from "../../slots/palette";
 import { insertAsset, pressAsset } from "./assets";
 import "./assets.css";
 
@@ -16,19 +15,6 @@ import "./assets.css";
  * Tab to a row, Enter adds it at the selection.
  */
 
-const GROUP_ICON: Record<PaletteGroup, IconName> = {
-  Text: "icon-type-01-line",
-  Actions: "icon-pointer-line",
-  Navigation: "icon-navigation-pointer-01-line",
-  "Data display": "icon-table-line",
-  Charts: "icon-bar-chart-01-line",
-  Feedback: "icon-alert-circle-line",
-  Inputs: "icon-text-input-line",
-  Overlays: "icon-layers-three-01-line",
-  Layout: "icon-layout-grid-01-line",
-  Page: "icon-browser-line",
-  Chat: "icon-message-chat-circle-line",
-};
 
 export function AssetsPanel() {
   const [query, setQuery] = useState("");

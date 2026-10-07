@@ -65,6 +65,7 @@ check("every word must match", ids("button xyzzy"), []);
 check("nothing for nonsense", ids("xyzzy"), []);
 check("an empty query lists everything in order", ids("").length, PALETTE.length);
 check("button row as words", top("button row")[0], "button-row");
+check("a 3-letter word is no keyword prefix (thẻ → only its synonyms and real matches)", ids("thẻ").length <= 6, true);
 
 if (failures.length) {
   console.error(`library search selftest: ${failures.length} failed, ${passed} passed\n  ✗ ${failures.join("\n  ✗ ")}`);

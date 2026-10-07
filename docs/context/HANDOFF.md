@@ -131,7 +131,11 @@ Last updated: 2026-10-06.
   `src/platform/studio/builder/library/` (search.ts pure + selftest 77, synonyms.ts EN/VI → palette ids,
   keywords.generated.ts from `tools/studio/library-keywords-build.mjs` (--check in studio:selftest), catalog.ts,
   target.ts: frame in view → its first layout); Assets uses them; E2E group `library` LB-01…LB-04; ST-02 fixed:
-  baseline 103 works / 0 broken. Next: M2 (Quick insert ⇧I + preview of the focused item).
+  baseline 103 works / 0 broken. M2 done 2026-10-07: `library/QuickInsert.tsx` (⇧I in StudioApp; combobox +
+  listbox, target line from target.ts describeTarget, a click outside closes), `ItemPreview.tsx` + `preview.ts` (the
+  item's code in a one-Screen page parsed by the engine and drawn by renderPage; overlays forced closed, portals kept
+  in the inert pane), E2E LB-05…LB-07, build-check 13 steps; baseline 106 works / 0 broken. Next: M3 (icons and
+  photos in the library, icon swap, `zen-media:` on builder pages).
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers

@@ -244,6 +244,19 @@ try {
     return "navigate in Play, Esc";
   });
 
+  await step("Quick insert (⇧I) with nothing selected adds a Badge into the screen", async () => {
+    await page.locator(".studio-viewport").focus();
+    for (let i = 0; i < 3; i += 1) await page.keyboard.press("Escape");
+    await page.keyboard.press("Shift+KeyI");
+    const quick = page.locator('[data-e2e="quick-insert"]');
+    await quick.waitFor({ state: "visible", timeout: 5000 });
+    await page.keyboard.type("badge");
+    await quick.locator('[data-e2e="quick-insert-preview"][data-ready="true"]').waitFor({ state: "visible", timeout: 10_000 });
+    await page.keyboard.press("Enter");
+    await until(async () => /<Badge/.test((await storedText(page, id)) ?? ""), { timeout: 10_000, message: "a Badge in the stored page" });
+    return "previewed, added";
+  });
+
   await step("Link folder… keeps the page in the folder", async () => {
     await showLeftTab(page, "pages");
     await page.getByRole("button", { name: "My pages options" }).click();

@@ -2,7 +2,7 @@
 
 **Trạng thái: user duyệt 2026-10-06** (Q1 xem trước mục đang focus · Q2 ảnh tải lên để GĐ5 · Q3 starters là GĐ3b ·
 Q4 có tiếng Việt). Giao M1 → M3; không có M4. **Tiến độ:** M1 xong 2026-10-06 (LB-01…LB-04, ST-02 works; ma trận
-103/103). GĐ3 của `docs/research/studio-builder-plan-2026-10-05.md`. GĐ2 đã xong (M1–M4,
+103/103); M2 xong 2026-10-07 (Quick insert ⇧I + xem trước, LB-05…LB-07; ma trận 106/106). GĐ3 của `docs/research/studio-builder-plan-2026-10-05.md`. GĐ2 đã xong (M1–M4,
 `docs/research/studio-builder-pages-spec-2026-10-06.md`). Spec này chốt phạm vi GĐ3 mà plan mới phác, dựa trên đo đạc
 code hiện tại (§2), và nêu 4 câu hỏi cho user (§8).
 

@@ -30,6 +30,7 @@ import { selectedPartStore } from "./select/parts";
 import { SlotConfirm } from "./slots/SlotConfirm";
 import { SharedConfirm } from "./shell/SharedConfirm";
 import { BuilderBoard } from "./builder/BuilderBoard";
+import { openQuickInsert, QuickInsert } from "./builder/library/QuickInsert";
 import { isPlaying, Player, startPlay } from "./builder/proto/Player";
 import { startPageMirror } from "./builder/store/mirrors";
 import { cachedPage } from "./builder/store/pageStore";
@@ -398,6 +399,8 @@ export function StudioApp() {
       if (event.shiftKey) {
         // ⇧A wraps the selected layers in a Stack laid out as they render (Figma's Add auto layout).
         if (event.code === "KeyA" && !event.repeat && state.tool === "select" && state.selection?.kind === "node" && !state.selection.part) { event.preventDefault(); void wrapSelection("stack"); return; }
+        // ⇧I opens Quick insert (Figma's): search the library, Enter adds the item (builder/library/QuickInsert.tsx).
+        if (event.code === "KeyI" && !event.repeat && !inExample) { event.preventDefault(); openQuickInsert(); return; }
         if (event.code === "Digit0") { event.preventDefault(); canvasApi.setZoom(1); return; }
         if (event.code === "Digit1") { event.preventDefault(); canvasApi.fit(); return; }
         if (event.code === "Digit2") { event.preventDefault(); zoomToSelection(); return; }
@@ -508,6 +511,7 @@ export function StudioApp() {
 
         <ChromeScope className="studio-dialogs">
           <ShortcutsDialog />
+          <QuickInsert />
           <DetachDialog />
           <SlotConfirm />
           <SharedConfirm />

@@ -185,6 +185,11 @@ removed (four unused colour ramps were, see Removed).
     guideline count too ("confirm" → Dialog).
   - With nothing selected, a click on an Assets item adds it into the frame most in view (its first layout); with a
     frame selected, into that frame. On a builder page, Dialog and the other overlays point to Prototype › Add overlay.
+- **Zen Studio library, GĐ3 M2: Quick insert (⇧I) (2026-10-07):** ⇧I on the canvas opens a search over the library,
+  as Figma's Quick insert does. ↑/↓ pick a result and Enter adds it. A line under the field says where it will go ("Into
+  Stack · Checkout", "After Button"); with nothing selected it goes into the frame in view. Esc or a click outside
+  closes it. The focused item is drawn for real beside the list, in the canvas's modes, with its overlays kept closed.
+  The Shortcuts dialog lists ⇧I and P (Play).
 - **Zen Studio: shared demo code can be restructured, after a question (2026-10-06, GĐ1 WP-B2):**
   - Removing, duplicating, moving, inserting, pasting, dragging or wrapping layers whose code lives in shared demo files
     (PlatformDemoActions.tsx, chatDemo.tsx, PlatformChat…) used to be greyed out ("shared beyond this example").
