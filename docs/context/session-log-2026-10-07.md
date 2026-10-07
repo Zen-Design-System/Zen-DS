@@ -242,3 +242,4 @@
   HO-07: Promote → TypeScript ✓ · harness ✓, the photo copied; a local edit to the template → "exists and differs" →
   Replace → the page's code again.
 - GĐ5 complete: M1 React, M2 HTML, M3 handoff, M4 uploads, M5 Promote.
+- The first M5 gate failed one promote selftest check (not reproduced alone or under load; its detail was not listed). tsc now runs with --pretty false (its error lines are what the filter reads) and each failing check prints ✗ lines the gate shows. Rerun: gate PASS (.qa/reports/2026-10-07T08-40-11-e54a8cf5.md, E2E 142 works).
