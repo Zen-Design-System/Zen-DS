@@ -30,8 +30,9 @@ export interface TooltipSurfaceProps extends HTMLAttributes<HTMLSpanElement> {
 
 /**
  * Figma Tooltip (1595:2220): Color × Size bubble with the Simple-Label primitive (Caption/Medium). Close (boolean, added
- * 2026-10-07): an icon-x-medium-line at Element-Size/Popular/XSmall, Spacing/Gap/XSmall after the label, in the label's
- * content colour, for a tooltip shown open by default.
+ * 2026-10-07): a Wrapper Element-Size/Popular/Small high, Spacing/Gap/XSmall after the label, holding an
+ * icon-x-medium-line at Element-Size/Popular/XSmall centred, in the label's content colour; for a tooltip shown open by
+ * default.
  */
 export function TooltipSurface({ color = "default", size: sizeProp = "md", className, children, onClose, closeLabel, ...props }: TooltipSurfaceProps) {
   const size = scaleKey(sizeProp, tooltipSizes);

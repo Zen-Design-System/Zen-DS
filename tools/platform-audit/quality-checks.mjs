@@ -323,14 +323,21 @@ export function qualityChecks({ scopeSel, regionSel }) {
       const canvasColour = probe("canvas-default");
       const backdropOf = (el) => { for (let a = el.parentElement; a; a = a.parentElement) { const c = getComputedStyle(a).backgroundColor; if (c && !/rgba\(0, 0, 0, 0\)|transparent/.test(c)) return normColour(c); if (a === region) break; } return normColour(getComputedStyle(region).backgroundColor); };
       const BOX = ".zen-card, .zen-list-box, .zen-metric-card, .zen-chart-card, .zen-box[data-surface]";
-      const SKIP = ".platform-phone, .zen-app-shell, .pe-shell, .platform-sidebar-stage, .zen-popover, .zen-menu, [role='dialog'], .zen-toast, .zen-tooltip, .zen-side-panel, .zen-bottom-sheet, [data-audit-skip-quality]";
+      // Playgrounds show the variant picked in their controls (a shadow one included), so they are not checked.
+      const SKIP = ".platform-example-panel, .platform-phone, .zen-app-shell, .pe-shell, .platform-sidebar-stage, .zen-popover, .zen-menu, [role='dialog'], .zen-toast, .zen-tooltip, .zen-side-panel, .zen-bottom-sheet, [data-audit-skip-quality]";
       if (surface && canvasColour && surface !== canvasColour) {
         for (const box of region.querySelectorAll(BOX)) {
           if (!visible(box) || box.closest(SKIP) || box.closest("[data-interactive='true'], [data-selected='true'], [aria-selected='true'], [aria-checked='true'], [aria-current], a[href], button") || box.matches("[data-interactive='true'], [data-selected='true']")) continue;
           const bs = getComputedStyle(box);
           if (normColour(bs.backgroundColor) !== surface || backdropOf(box) !== canvasColour) continue;
           const bordered = ["Top", "Right", "Bottom", "Left"].every((k) => px(bs[`border${k}Width`]) >= 0.5 && bs[`border${k}Style`] !== "none" && !/rgba\(0, 0, 0, 0\)|transparent/.test(bs[`border${k}Color`]));
-          const shadowed = bs.boxShadow && bs.boxShadow !== "none";
+          // A shadow that shows: some layer with a visible colour and a blur, spread or offset (a transparent or
+          // zero-size layer, as a selectable card keeps for its ring, is not one).
+          const shadowed = bs.boxShadow && bs.boxShadow !== "none" && bs.boxShadow.split(/,(?![^(]*\))/).some((layer) => {
+            const colour = /rgba?\([^)]*\)/.exec(layer)?.[0] ?? "";
+            if (/rgba\([^)]*,\s*0\)$/.test(colour) || /transparent/.test(layer)) return false;
+            return layer.replace(colour, "").match(/-?[\d.]+px/g)?.some((n) => parseFloat(n) !== 0);
+          });
           if (bordered || shadowed) push("roles", `${label(box)}: ${describe(box)} is a Surface/Default box on Canvas/Default with ${bordered ? "a border" : "a shadow"} — the default pairing is flat (usage rules §16: Card/ListBox theme="flat", Box surface without border), unless a Sidebar, a white page or a Surface around it picks another pairing`);
         }
       }

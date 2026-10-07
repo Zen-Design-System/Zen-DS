@@ -22,11 +22,12 @@
 .zen-tooltip[data-color="white-overlay"] { --zen-tooltip-fill: var(--zen-color-background-white-solid-default); --zen-tooltip-content: var(--zen-color-content-neutral-strongest); }
 .zen-tooltip[data-color="black-overlay"] { --zen-tooltip-fill: var(--zen-color-background-black-overlay-default); --zen-tooltip-content: var(--zen-color-content-on-black-overlay-strongest); }
 .zen-tooltip__label { overflow-wrap: anywhere; }
-/* Figma Close=Yes: the label and an XSmall X side by side, Spacing/Gap/XSmall apart, top-aligned; the X takes the
-   label's content colour. A closable surface takes presses (others stay click-through); the X's hit area is 24px. */
+/* Figma Close=Yes: the label and a Wrapper side by side, Spacing/Gap/XSmall apart, top-aligned. The Wrapper is
+   Element-Size/Popular/Small high (the label's line) with the XSmall X centred in it, in the label's content colour. A
+   closable surface takes presses (others stay click-through); the X's hit area is 24px. */
 .zen-tooltip[data-closable="true"] { flex-direction: row; align-items: flex-start; gap: var(--zen-spacing-gap-xsmall, 8px); pointer-events: auto; }
-.zen-tooltip__close { position: relative; display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; margin: 0; padding: 0; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: transparent; color: inherit; cursor: pointer; }
-.zen-tooltip__close::after { position: absolute; inset: calc((var(--zen-element-size-popular-xsmall, 16px) - 24px) / 2); content: ""; }
+.zen-tooltip__close { position: relative; display: inline-flex; height: var(--zen-element-size-popular-small, 16px); flex: 0 0 auto; align-items: center; justify-content: center; margin: 0; padding: 0; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: transparent; color: inherit; cursor: pointer; }
+.zen-tooltip__close::after { position: absolute; inset: calc((var(--zen-element-size-popular-small, 16px) - 24px) / 2) calc((var(--zen-element-size-popular-xsmall, 12px) - 24px) / 2); content: ""; }
 .zen-tooltip__close:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
 
 .zen-tooltip-anchor { position: relative; display: inline-flex; }
