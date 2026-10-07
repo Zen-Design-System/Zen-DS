@@ -231,3 +231,4 @@
   takes its own id; the row reads it from the address. LB-05 / LB-06 failed with --no-retry: after LB-04 a frame stays
   selected and "New page from this frame" also matched getByRole("New page") (retries hid it): `exact: true` now.
 - Build-check 24/24: the upload on the build, its copy in the linked (OPFS) folder's assets/.
+- Gate PASS (.qa/reports/2026-10-07T08-20-19-e54a8cf5.md, E2E 141 works).
