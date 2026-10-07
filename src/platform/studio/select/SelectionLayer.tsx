@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { typographyStyles } from "../../../tokens/typography.generated";
-import { canvasApi } from "../canvas/viewport";
+import { canvasApi, getViewport } from "../canvas/viewport";
 import { inspectorStatus } from "../inspector/status";
 import { studioStore, useStudio } from "../store";
 import type { StudioSelection } from "../types";
 import { annotatedAt, childHits, findBySrc, frameOfFiber, hitForHost, isTypingTarget, layerHover, nestedHitAt, onSourceUpdate, parentHit, publishSelectionInfo, rectOf, selectHit, shortSrc, type FiberHit } from "./picker";
 import { chainHas, deepPartAt, drillPart, partChildren, partForElement, pathOf, resolvePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
+import { dataItemOfPart } from "../slots/dataItems";
 import { openCanvasMenu, openEmptyCanvasMenu, openFrameMenu } from "../shell/CanvasMenu";
 import { awaitedRender, awaitedRenderShown, awaitingWriteRender, remapPart, remapSelection, sameSelectedElement, writeRendered } from "./remap";
 import { ResizeLayer } from "./ResizeLayer";
@@ -485,7 +486,10 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     const target = deepestAt(picked.element, x, y);
     const current = partRef.current;
     if (current && current.owner.hosts[0] === picked.hit.hosts[0] && chainHas(picked.hit, target, current)) return current;
-    return deepPartAt(picked.hit, target);
+    // A data-slot item (a TopNavigation action) is the part to land on, not the icon inside it (user, 2026-10-07); a
+    // double-click then drills on into it.
+    const deep = deepPartAt(picked.hit, target);
+    return dataItemOfPart(deep)?.part ?? deep;
   }, []);
 
   const hoverAt = useCallback(() => {
@@ -598,6 +602,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         multiSelection.clear();
         const frameId = picked.frame.getAttribute("data-studio-frame");
         if (frameId) studioStore.setState({ selection: { kind: "frame", frameId } });
+        // The Docs frame reads at 100%: a click on it below that opens it at 100%, top-aligned (user, 2026-10-07).
+        if (frameId === "docs" && getViewport().zoom < 1 - 1e-3) canvasApi.zoomToRead(picked.frame.getBoundingClientRect());
       };
       // A drag on a frame's background draws a marquee (Figma; edit/marquee.ts); a click selects the frame.
       if (startMarquee(event.nativeEvent, selectFrame)) return;

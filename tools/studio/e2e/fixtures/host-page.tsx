@@ -11,12 +11,14 @@ import { Badge } from "../../../components/Badge";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Checkbox } from "../../../components/Checkbox";
+import { Chip } from "../../../components/Chip";
 import { Dialog } from "../../../components/Dialog";
 import { EmptyState } from "../../../components/EmptyState";
 import { NumberField } from "../../../components/Input";
 import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListItem } from "../../../components/ListItem";
 import { Segmented } from "../../../components/Segmented";
+import { TopNavigation } from "../../../components/TopNavigation";
 import { Heading, Text } from "../../../components/Text";
 import type { PlatformPage } from "../../PlatformExamples";
 import { people } from "../data";
@@ -130,6 +132,10 @@ function InstanceFixture() {
       <AlertBanner data-e2e="inst-alert">Heads up</AlertBanner>
       <EmptyState data-e2e="inst-empty" title="Nothing here" illustration={false} />
       <Badge data-e2e="inst-badge" leadingIcon leading="icon-heart-line">New</Badge>
+      <Chip data-e2e="inst-chip" dropdown popoverLabel="Sort" popoverItems={[{ id: "new", label: "Newest", selected: true }, { id: "old", label: "Oldest" }]}>Sort</Chip>
+      <Box data-e2e="inst-nav-box" padding="sm">
+        <TopNavigation title="Inbox" trailing={[{ icon: "icon-star-01-line", label: "Favourite", onClick: () => undefined }, { icon: "icon-share-01-line", label: "Share", onClick: () => undefined }]} />
+      </Box>
       <List data-e2e="inst-list">
         <ListItem data-e2e="inst-row" title="Ava Tran" selected leading={<Avatar alt="Ava Tran" size="sm" />} />
         <ListItem data-e2e="inst-click-row" title="Bao Le" onClick={() => undefined} leading={<Badge data-e2e="inst-click-badge">New</Badge>} />

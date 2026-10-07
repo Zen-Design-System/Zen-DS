@@ -42,7 +42,9 @@
   vertical-align: top;
 }
 
-.zen-chip__dropdown > .zen-chip { max-width: 100%; }
+/* The chip fills its dropdown wrapper when a layout widens the wrapper (a Fill container in a fillChildren Stack; the
+   Studio's width handle), and hugs its label otherwise: the wrapper is max-content, so there is no room to fill then. */
+.zen-chip__dropdown > .zen-chip { max-width: 100%; min-width: 0; flex: 1 1 auto; }
 
 /* Figma INSIDE stroke is excluded from Auto Layout, so it must not add padding. */
 .zen-chip::after {

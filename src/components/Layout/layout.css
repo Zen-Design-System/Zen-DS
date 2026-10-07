@@ -103,7 +103,8 @@
    without a Fixed or Fill height they start from it (flex-basis auto), so a Button keeps its 40px in a Hug wrapper. */
 .zen-stack[data-fill-children="true"][data-direction="row"] > :not([data-w], [data-position="absolute"]) { flex: 1 1 0; }
 .zen-stack[data-fill-children="true"][data-direction="column"] > :not([data-h], [data-position="absolute"]) { flex: 1 1 0; }
-.zen-stack[data-fill-children="true"][data-direction="column"]:not([data-h="fixed"], [data-h="fill"]) > :not([data-h], [data-position="absolute"]) { flex-basis: auto; }
+/* A column with a minHeight of its own sizes its Fill children into that height too (Figma: Fill container in a Min-height frame; user 2026-10-07). */
+.zen-stack[data-fill-children="true"][data-direction="column"]:not([data-h="fixed"], [data-h="fill"], [data-min-h]) > :not([data-h], [data-position="absolute"]) { flex-basis: auto; }
 :where(.zen-stack[data-fill-children="true"][data-direction="row"] > :not([data-w], [data-position="absolute"])) { min-width: 0; }
 :where(.zen-stack[data-fill-children="true"][data-direction="column"]:is([data-h="fixed"], [data-h="fill"], [data-max-h]) > :not([data-h], [data-position="absolute"])) { min-height: 0; }
 /* …and with align="stretch" also across it: stretch only reaches an auto size, so a child that sizes itself on the
@@ -112,4 +113,4 @@
    gives its height up only when it has one of its own (Fixed or Fill, as a column above): in a Hug or unset row the
    line is as tall as its content, so a Button would drop its 40px to its label's height. */
 .zen-stack[data-fill-children="true"][data-direction="column"][data-align="stretch"] > :not([data-w], [data-position="absolute"]) { width: auto; }
-.zen-stack[data-fill-children="true"][data-direction="row"][data-align="stretch"]:is([data-h="fixed"], [data-h="fill"]) > :not([data-h], [data-position="absolute"]) { height: auto; }
+.zen-stack[data-fill-children="true"][data-direction="row"][data-align="stretch"]:is([data-h="fixed"], [data-h="fill"], [data-min-h]) > :not([data-h], [data-position="absolute"]) { height: auto; }

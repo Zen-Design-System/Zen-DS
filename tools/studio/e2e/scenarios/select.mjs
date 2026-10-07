@@ -1,5 +1,7 @@
 // Selection rows: canvas picking, keyboard navigation between layers, multi-selection, the Layers panel.
 import { locOf } from "../lib/source.mjs";
+import { freshSelect } from "./inspector.mjs";
+import { selectedName } from "./builder.mjs";
 import { clickLoc, focusFrame, rectOf, selectedSrc, showLeftTab, sleep, until } from "../lib/studio.mjs";
 
 const at = async (ctx, id, index = 0) => locOf(await ctx.text(), id, index).loc;
@@ -117,6 +119,53 @@ export const rows = [
       const hover = await page.locator('.studio-selection__outline[data-kind="hover"] .studio-selection__tag').allInnerTexts();
       if (hover.some((tag) => /ListItem/.test(tag))) throw new Error(`hover outlines the outer row: ${hover.join(", ")}`);
       return `Badge selected inside the row; hover over it shows ${hover.length ? hover.join(", ") : "no outer outline"}`;
+    },
+  },
+  {
+    id: "SE-10", feature: "A Chip that owns a Popover keeps its width handle (its height stays its own)", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-chip", { frame: 6 });
+      await sleep(600);
+      const handles = await page.locator(".studio-resize__handle").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-handle")));
+      const pill = (await page.locator(".studio-resize__pill").allInnerTexts()).join(" | ");
+      if (!handles.includes("e") || !handles.includes("w")) throw new Error(`no width handle: ${handles.join(",") || "none"} · pill "${pill}"`);
+      if (handles.includes("n") || handles.includes("s")) throw new Error(`a height handle on a Chip: ${handles.join(",")}`);
+      return `handles ${handles.join(",")} · pill "${pill}"`;
+    },
+  },
+  {
+    id: "SE-11", feature: "A click on the Docs frame below 100% zooms it to 100%, top-aligned", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const zoom = async () => (await page.locator(".studio-zoom__value").first().getAttribute("aria-label")) ?? "";
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+Digit1");
+      await until(async () => /^Zoom \d+%$/.test(await zoom()) && (await zoom()) !== "Zoom 100%", { message: "a zoom below 100% after ⇧1" });
+      const before = await zoom();
+      const frame = page.locator('[data-studio-frame="docs"]');
+      const rect = await frame.boundingBox();
+      await page.mouse.click(rect.x + 6, rect.y + 6);
+      await until(async () => (await zoom()) === "Zoom 100%", { message: "100% after the click" });
+      const top = await frame.boundingBox();
+      if (!top || top.y < 0 || top.y > 200) throw new Error(`the frame's top is at ${top?.y}, not near the viewport's top`);
+      return `${before} → click on Docs → Zoom 100%`;
+    },
+  },
+  {
+    id: "SE-12", feature: "⌘-click on a TopNavigation action lands on the action (a data-slot item), not the icon inside it", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-nav-box", { frame: 6, position: { dx: 4, dy: 4 } });
+      await page.keyboard.press("Enter");
+      await until(async () => (await selectedName(page)) === "TopNavigation", { message: "the TopNavigation selected" });
+      const action = page.locator('[data-studio-frame="example:6"] button.zen-top-nav__action').first();
+      const box = await action.boundingBox();
+      await page.keyboard.down("Control");
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await page.keyboard.up("Control");
+      await until(async () => !["TopNavigation", ""].includes(await selectedName(page)), { message: "a part selected" });
+      const name = await selectedName(page);
+      if (/^(Icon|IconSvg|svg|span)\b/i.test(name)) throw new Error(`landed on ${name}`);
+      return `⌘-click on the action → ${name}`;
     },
   },
   {

@@ -218,6 +218,16 @@ export const canvasApi = {
     const zoom = clampZoom(Math.min(options?.maxZoom ?? 1, (box.width - margin * 2) / Math.max(rect.width, 1)));
     setViewportNow({ zoom, x: box.width / 2 - (rect.x + rect.width / 2) * zoom, y: margin - rect.y * zoom }, { animate: true });
   },
+  /** Read a frame at an exact zoom (100%): its top under `margin`, centred across when it fits the viewport, else its
+   * left edge at `margin` (the rest pans). Unlike zoomToWidth it never shrinks the frame to fit. */
+  zoomToRead: (screenRect: DOMRect, options?: { zoom?: number; margin?: number }): void => {
+    const rect = toWorldRect(screenRect);
+    const box = viewportBox();
+    const margin = options?.margin ?? 24;
+    const zoom = clampZoom(options?.zoom ?? 1);
+    const fits = rect.width * zoom + margin * 2 <= box.width;
+    setViewportNow({ zoom, x: fits ? box.width / 2 - (rect.x + rect.width / 2) * zoom : margin - rect.x * zoom, y: margin - rect.y * zoom }, { animate: true });
+  },
   /** Zoom to fit (Shift+1, Figma's): every frame on the board, whole and centred, at whatever zoom that takes (never
    * above 100%). Reading starts from a frame instead (⇧2 on it, or its label). */
   fit: (): void => {
