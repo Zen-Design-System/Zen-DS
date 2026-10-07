@@ -189,4 +189,6 @@
   prop does not take); a component value (`as={RouterLink}`) is left out, its `to` becomes `href`.
 - Generated `OBJECT_FIELDS` (44 components): compile leaves out fields a closed object type lacks (option `at`, file `bytes`).
 - Coverage `--compile`: templates + 4 pages 26/40 → 40/40; every page 314/323, then the 9 (date-picker, link,
-  top-navigation, uploader) 46/46 after the fixes above.
+  top-navigation, uploader) 46/46 after the fixes above; every page again: 323/323 (tsc + harness).
+- Gate PASS (.qa/reports/2026-10-07T06-32-15-e54a8cf5.md, E2E 136 works); build-check 21/21 (compiler chunk 4.3 KB,
+  engine 137.6 / 140 KB: the stand-in list is in the renderer).
