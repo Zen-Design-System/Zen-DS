@@ -42,12 +42,12 @@ const zenNames: Map<unknown, string> = (() => {
 /** Library names a page leaves out and walks through: providers (the page's Screen gives the modes). */
 const transparent = (name: string) => /Provider$/.test(name);
 
-/** Overlays become Overlay frames (GĐ3b M3); until then they are left out, noted. */
+/** Overlays become Overlay frames (GĐ3b M3, the user's Q4): drawn open there, their own buttons close them. */
 export const OVERLAY_NAMES: ReadonlySet<string> = new Set(["Dialog", "ModalForm", "SidePanel", "BottomSheet"].filter((name) => name in Zen));
 
 
 /** The docs' chrome around an example: its card, a phone mock-up, a provider's own box. */
-const CHROME = ".pe-card, .pe-card__stage, .pe-card__preview, .zen-provider, .platform-phone-fit, .platform-phone, .platform-phone__screen, .platform-phone__header, .platform-phone__footer";
+const CHROME = ".pe-card, .pe-card__stage, .pe-card__preview, .zen-provider, .platform-phone-fit, .platform-phone, .platform-phone__screen, .platform-phone__header, .platform-phone__footer, .patpl-frame, .patpl-frame__scroll";
 
 /** Props a page never writes: React's, the Studio's and the platform's plumbing. */
 const SKIPPED = new Set(["children", "key", "ref"]);
@@ -179,6 +179,23 @@ function zenNode(name: string, props: Record<string, unknown>, ctx: Context): Sn
   return { kind: "element", name, props: [...out, ...fromClass], children: childrenOf(props.children, ctx) };
 }
 
+/** Props an Overlay frame sets itself (it draws the overlay open). */
+const OVERLAY_STATE = new Set(["open", "defaultOpen"]);
+
+/**
+ * An overlay as an Overlay frame holds it: without its open state, and each of its own actions (an object prop with an
+ * onClick: primaryAction, secondaryAction…) closing it, as a new Overlay frame's Dialog does.
+ */
+function overlayNode(name: string, props: Record<string, unknown>, ctx: Context): SnapNode {
+  const node = zenNode(name, props, ctx);
+  node.props = node.props.filter(([key]) => !OVERLAY_STATE.has(key)).map(([key, value]): [string, SnapValue] => {
+    const raw = props[key];
+    if (value.kind !== "object" || !raw || typeof raw !== "object" || typeof (raw as { onClick?: unknown }).onClick !== "function") return [key, value];
+    return [key, { kind: "object", fields: [...value.fields, ["onClick", { kind: "proto", action: "close" }]] }];
+  });
+  return node;
+}
+
 /** React children (text, elements, lists, fragments) as snapshot children. */
 function childrenOf(children: unknown, ctx: Context): SnapChild[] {
   const out: SnapChild[] = [];
@@ -201,7 +218,7 @@ function fromElement(element: ReactElement, ctx: Context): SnapChild[] {
   const name = zenNames.get(element.type);
   if (name) {
     if (transparent(name)) return childrenOf(props.children, ctx);
-    if (OVERLAY_NAMES.has(name)) { ctx.overlays.push(zenNode(name, props, ctx)); return []; }
+    if (OVERLAY_NAMES.has(name)) { ctx.overlays.push(overlayNode(name, props, ctx)); return []; }
     return [zenNode(name, props, ctx)];
   }
   if (fiber) return fromFiber(fiber, ctx);
@@ -242,7 +259,7 @@ function fromFiber(fiber: Fiber, ctx: Context): SnapChild[] {
   if (name) {
     const props = fiber.memoizedProps ?? {};
     if (transparent(name)) return fibersIn(fiber, ctx);
-    if (OVERLAY_NAMES.has(name)) { ctx.overlays.push(zenNode(name, props, ctx)); return []; }
+    if (OVERLAY_NAMES.has(name)) { ctx.overlays.push(overlayNode(name, props, ctx)); return []; }
     return [zenNode(name, props, ctx)];
   }
   if (fiber.tag === HOST_TEXT) {

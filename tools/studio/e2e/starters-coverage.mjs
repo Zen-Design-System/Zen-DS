@@ -25,6 +25,7 @@ async function measure(page) {
     const { snapshotFrame } = await import("/src/platform/studio/builder/starters/snapshot.ts");
     const { starterPage } = await import("/src/platform/studio/builder/starters/toDialect.ts");
     const { loadEngine, zenComponents } = await import("/src/platform/studio/builder/engine.ts");
+    const { overlayIds } = await import("/src/platform/studio/builder/starters/newPageFromFrame.ts");
     const engine = await loadEngine();
     const components = new Set(zenComponents);
     const out = [];
@@ -32,9 +33,9 @@ async function measure(page) {
       const id = frame.getAttribute("data-studio-frame");
       try {
         const shot = snapshotFrame(frame);
-        const text = starterPage({ title: "Coverage", device: shot.device, nodes: shot.nodes });
+        const text = starterPage({ title: "Coverage", device: shot.device, nodes: shot.nodes, padding: shot.padding, overlays: overlayIds(shot.overlays) });
         const errors = shot.nodes.length ? engine.validateDialect(text, { components }) : [{ line: 0, message: "no library components" }];
-        out.push({ id, label: frame.getAttribute("aria-label"), nodes: shot.nodes.length, elements: (text.match(/^\s*<[A-Z]/gm) ?? []).length, notes: shot.notes, error: errors[0] ? `line ${errors[0].line}: ${errors[0].message}` : null });
+        out.push({ id, label: frame.getAttribute("aria-label"), nodes: shot.nodes.length, overlays: shot.overlays.length, elements: (text.match(/^\s*<[A-Z]/gm) ?? []).length, notes: shot.notes, error: errors[0] ? `line ${errors[0].line}: ${errors[0].message}` : null });
       } catch (error) {
         out.push({ id, label: frame.getAttribute("aria-label"), nodes: 0, elements: 0, notes: [], error: `threw: ${error?.message ?? error}` });
       }
@@ -80,7 +81,7 @@ fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, [
   `# Starters coverage — ${stamp}`,
   "",
-  `${ok.length}/${rows.length} frames become a valid builder page (${pages.length} pages). Frames with nothing left out: ${ok.filter((row) => !row.notes.length).length}.`,
+  `${ok.length}/${rows.length} frames become a valid builder page (${pages.length} pages). Frames with nothing left out: ${ok.filter((row) => !row.notes.length).length}. Overlay frames: ${rows.reduce((sum, row) => sum + (row.overlays ?? 0), 0)}.`,
   "",
   "## Most frequent notes",
   "",

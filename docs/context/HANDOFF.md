@@ -169,8 +169,13 @@ Last updated: 2026-10-06.
   Heading / Text / Link / Image / Divider by token, measured with detach.ts textStyleKey / toneKey and partInfo
   colorTokensFor; `classProps` reads a primitive's className CSS back as props), docs chrome (`.pe-card*`,
   `.platform-phone*`, `.zen-provider`) walked through, the stage's padding kept; E2E SP-04 (fixture frame "E2E html");
-  `tools/studio/e2e/starters-coverage.mjs` (every example frame, nothing saved): 323/323 valid. Next: M3 (Start from,
-  Overlay frames); then GĐ5.
+  `tools/studio/e2e/starters-coverage.mjs` (every example frame, nothing saved): 323/323 valid. M3 done 2026-10-07:
+  `builder/starters/fromTemplate.tsx` (templates render off screen as their Templates-page frame, lazy chunk) + New
+  page's Start from (SelectField above Title; device from the template); overlays → `<Overlay id=…>` frames
+  (`overlayNode`: open state dropped, an action object's onClick → `proto.close()`, SnapValue kind "proto";
+  `pageFromSnapshot` / `overlayIds` in newPageFromFrame.ts shared by both); E2E SP-05, SP-06 (134 rows); build-check 19
+  steps (Start from a phone template on the build). **GĐ3b is complete.** Next: GĐ5 export (+ photo uploads), with a
+  spec and the user's approval.
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers

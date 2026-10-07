@@ -1,6 +1,6 @@
 // Starter rows (Studio builder GĐ3b, spec docs/research/studio-builder-starters-spec-2026-10-07.md): a builder page made
 // from what an example or template frame shows ("New page from this frame"), kept in the browser and editable.
-import { focusFrame, sleep, until } from "../lib/studio.mjs";
+import { focusFrame, showLeftTab, sleep, until } from "../lib/studio.mjs";
 import { clickNamed, pageText } from "./builder.mjs";
 import { pickOption, waitSeed } from "./inspector.mjs";
 
@@ -69,6 +69,42 @@ export const rows = [
       await sleep(400);
       if (newErrors().length) throw new Error(`console errors on the new page: ${newErrors().slice(0, 2).join(" | ").slice(0, 300)}`);
       return "Stack (gap lg, padding xl) › Heading 3 · Text with a Link · row Stack (sm, center) · Grid 3 (md) · Box subtle (lg)";
+    },
+  },
+  {
+    id: "SP-05", feature: "New page › Start from a template (Sign in): the template rendered off screen becomes the page", wp: "GĐ3b M3",
+    timeout: 40_000,
+    async run(ctx) {
+      const { page, errors } = await ctx.studio({ fresh: true });
+      await showLeftTab(page, "pages");
+      const from = page.url();
+      await page.getByRole("button", { name: "New page" }).click();
+      const dialog = page.getByRole("dialog", { name: "New page" });
+      await dialog.waitFor({ state: "visible", timeout: 5000 });
+      await dialog.getByLabel("Start from").first().click();
+      await page.getByRole("option", { name: /^Sign in/ }).click();
+      const before = errors.length;
+      await dialog.getByRole("button", { name: "Create page" }).click();
+      await until(async () => page.url() !== from && /page=local%3A/.test(page.url()), { timeout: 20_000, message: "the new page opened" });
+      const id = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
+      const text = await until(() => pageText(page, id), { message: "the page stored" });
+      if (!/"title":"Sign in"/.test(text) || !/device="desktop"/.test(text) || !/<Button\b/.test(text)) throw new Error(`unexpected page:\n${text.slice(0, 800)}`);
+      await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Button"]`).first().waitFor({ state: "attached", timeout: 10_000 });
+      await sleep(400);
+      const fresh = errors.slice(before).filter((line) => !/Failed to load resource/.test(line));
+      if (fresh.length) throw new Error(`console errors: ${fresh.slice(0, 2).join(" | ").slice(0, 300)}`);
+      return `${id}: ${(text.match(/^\s*<[A-Z]/gm) ?? []).length} elements, rendered`;
+    },
+  },
+  {
+    id: "SP-06", feature: "New page from a frame with a Dialog: the Dialog becomes an Overlay frame whose own action closes it", wp: "GĐ3b M3",
+    async run(ctx) {
+      const { page, id, text } = await pageFromFrame(ctx, 3);
+      const expected = ['<Button level="secondary">Open dialog</Button>', '<Overlay id="fixture-dialog">', '<Dialog title="Fixture dialog" primaryAction={{ label: "Done", onClick: proto.close() }} />'];
+      const missing = expected.filter((line) => !text.includes(line));
+      if (missing.length) throw new Error(`the page lacks ${missing.join(", ")}\n${text.slice(0, 1200)}`);
+      await page.locator('[data-studio-frame="overlay:fixture-dialog"]').waitFor({ state: "attached", timeout: 10_000 });
+      return `${id}: Screen › Button "Open dialog" · Overlay fixture-dialog › Dialog (Done closes it)`;
     },
   },
   ...[["SP-02", 4, "Sign in", "desktop"], ["SP-03", 5, "Mobile list", "phone"]].map(([id, frame, name, device]) => ({

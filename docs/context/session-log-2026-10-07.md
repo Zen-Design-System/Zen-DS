@@ -160,3 +160,16 @@
 - Fixture frame "E2E html" (HtmlFixture) + E2E SP-04; starters rows open the fixture page fresh. Coverage script
   `tools/studio/e2e/starters-coverage.mjs`: 323/323 frames valid, 57 with nothing left out. IN-16 waits for the Layers
   rows (it flaked in the M1 gate).
+
+## Studio builder GĐ3b M3 (session "Studio builder tool planning", tier M)
+
+- `builder/starters/fromTemplate.tsx`: `templateChoices()` / `snapshotTemplate(id)` load `appLayer/templates` lazily,
+  render `examples.templates[i].render()` (the Templates page's frame: PlatformPhone or `.patpl-frame`, both chrome)
+  off screen (fixed, left of the viewport, inert), wait 3 frames + 150 ms, snapshot, unmount.
+- New page dialog: SelectField "Start from" (Blank page + 15 templates, "(phone)" marked) above Title; Device only for
+  Blank; Title optional for a template; "Creating…" while it renders.
+- Overlays: `overlayNode` (open / defaultOpen dropped; an object prop whose onClick was a function gets
+  `onClick: proto.close()`); `pageFromSnapshot` writes them as Overlay frames (`overlayIds`: title slug, unique).
+  Coverage on templates / dialog / side-panel / bottom-sheet: 33/33 valid, 65 Overlay frames.
+- E2E SP-05 (Start from Sign in), SP-06 (fixture Dialog → `<Overlay id="fixture-dialog">`, Done closes it); toDialect
+  selftest 18; build-check 19 (Start from Mobile list on the build → phone page).

@@ -10,7 +10,9 @@ export type SnapValue =
   | { kind: "literal"; value: SnapLiteral }
   | { kind: "array"; items: SnapValue[] }
   | { kind: "object"; fields: Array<[string, SnapValue]> }
-  | { kind: "element"; node: SnapNode };
+  | { kind: "element"; node: SnapNode }
+  /** proto.<action>() (an overlay's own button closes it). */
+  | { kind: "proto"; action: "close" };
 export type SnapNode = { kind: "element"; name: string; props: Array<[string, SnapValue]>; children: SnapChild[] };
 export type SnapChild = SnapNode | { kind: "text"; value: string };
 export type PageDevice = "phone" | "tablet" | "desktop";
@@ -41,6 +43,7 @@ function literal(value: SnapLiteral): string {
 function expression(value: SnapValue, indent: string): string {
   switch (value.kind) {
     case "literal": return literal(value.value);
+    case "proto": return `proto.${value.action}()`;
     case "element": return element(value.node, indent);
     case "array": {
       if (!value.items.length) return "[]";

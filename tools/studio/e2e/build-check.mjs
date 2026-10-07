@@ -399,6 +399,23 @@ try {
     return `${starter}: ${(text.match(/^\s*<[A-Z]/gm) ?? []).length} elements, rendered`;
   });
 
+  await step("New page › Start from a phone template (Mobile list, rendered off screen in this build)", async () => {
+    await showLeftTab(page, "pages");
+    const from = page.url();
+    await page.getByRole("button", { name: "New page" }).click();
+    const dialog = page.getByRole("dialog", { name: "New page" });
+    await dialog.waitFor({ state: "visible", timeout: 10_000 });
+    await dialog.getByLabel("Start from").first().click();
+    await page.getByRole("option", { name: /^Mobile list/ }).click();
+    await dialog.getByRole("button", { name: "Create page" }).click();
+    await until(async () => page.url() !== from && /page=local(%3A|:)/.test(page.url()), { timeout: 20_000, message: "the new page opened" });
+    const starter = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
+    const text = (await storedText(page, starter)) ?? "";
+    if (!/device="phone"/.test(text) || !/<ListItem\b/.test(text)) throw new Error(`unexpected page:\n${text.slice(0, 600)}`);
+    await page.locator(`[data-zen-src^="local:${starter}.zen.tsx:"][data-zen-name="ListItem"]`).first().waitFor({ state: "attached", timeout: 20_000 });
+    return `${starter}: phone, ${(text.match(/^\s*<[A-Z]/gm) ?? []).length} elements, rendered`;
+  });
+
   await step("no page errors", async () => {
     const real = errors.filter((line) => !/Failed to load resource|favicon/.test(line));
     if (real.length) throw new Error(real.slice(0, 3).join(" | "));

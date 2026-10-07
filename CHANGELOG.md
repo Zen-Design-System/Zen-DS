@@ -244,6 +244,11 @@ removed (four unused colour ramps were, see Removed).
     alignment, text style).
   - The docs' card around an example is not copied; the room it leaves around the content is (a padded Stack).
   - Measured on every example and template: 323 of 323 frames become a valid page.
+- **Zen Studio starters, GĐ3b M3: Start from a template; overlays as Overlay frames (2026-10-07):**
+  - **New page › Start from:** Blank page or one of the 15 page templates (the title defaults to the template's; a phone
+    template makes a phone page). Works without a dev server.
+  - A Dialog, ModalForm, SidePanel or BottomSheet in what you copy becomes an Overlay frame of the page, drawn open; its
+    own buttons close it (`proto.close()`). Link the button that opens it in the Prototype tab (Open overlay).
 - **Zen Studio instance panel, GĐ4 M4: size and Detach (2026-10-07):**
   - **W / H for an instance** (Inspector › Layout › Size): Hug, Fill or a Fixed px, as in Figma. A component with its
     own size prop or `fullWidth` uses it; any other is wrapped in a Stack that it fills (`<Stack direction="row"
