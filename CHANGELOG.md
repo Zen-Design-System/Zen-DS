@@ -190,6 +190,14 @@ removed (four unused colour ramps were, see Removed).
   Stack · Checkout", "After Button"); with nothing selected it goes into the frame in view. Esc or a click outside
   closes it. The focused item is drawn for real beside the list, in the canvas's modes, with its overlays kept closed.
   The Shortcuts dialog lists ⇧I and P (Play).
+- **Zen Studio library, GĐ3 M3: icons and photos (2026-10-07):**
+  - The Assets tab has Components · Icons · Photos. Icons lists every glyph of the set once (Line or Solid), with a
+    search that knows English and Vietnamese ("xoá" or "delete" → trash, "nhà" → home, "đóng" → x) and one typo. A
+    click adds an `<Icon>`; with an Icon selected it swaps that Icon's glyph instead (⌘Z puts it back). Photos are the
+    platform's sample photos.
+  - On a page you made a photo is written `src="zen-media:<name>"`, the same text in every build; the canvas, Play and
+    the previews show this build's file. Example code keeps `platformMedia`, with its import.
+  - Quick insert (⇧I) lists Components, Icons and Photos in groups, and previews an icon or a photo as itself.
 - **Zen Studio: shared demo code can be restructured, after a question (2026-10-06, GĐ1 WP-B2):**
   - Removing, duplicating, moving, inserting, pasting, dragging or wrapping layers whose code lives in shared demo files
     (PlatformDemoActions.tsx, chatDemo.tsx, PlatformChat…) used to be greyed out ("shared beyond this example").

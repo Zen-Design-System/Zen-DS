@@ -1,5 +1,6 @@
 import { createElement, type ReactNode } from "react";
 import * as Zen from "../../../../index";
+import { resolveMedia } from "../library/media";
 import { Board, Overlay, protoHandler, Screen, type ProtoActions } from "../proto/runtime";
 
 /*
@@ -59,7 +60,8 @@ export function renderNode(node: PageNode, scope: Scope, ctx: RenderContext, key
   const component = componentOf(node.name);
   if (!component) return null;
   const props: Record<string, unknown> = { key, "data-zen-src": `${ctx.file}:${node.loc}`, "data-zen-name": node.name, ...extra };
-  for (const [name, value] of Object.entries(node.props)) props[name] = valueOf(value, scope, ctx);
+  // A builder page's photo is `zen-media:<key>` (builder/library/media.ts): this build's URL.
+  for (const [name, value] of Object.entries(node.props)) props[name] = resolveMedia(valueOf(value, scope, ctx));
   const children = node.children.flatMap((child, index): ReactNode[] => {
     if (child.kind === "text") return [child.value];
     if (child.kind === "ref") { const value = read(scope[child.root], child.path); return value === undefined || value === null ? [] : [String(value)]; }

@@ -5,6 +5,13 @@ import { focusScreen, newPage, pageText, selectStack, selectedName } from "./bui
 import { freshSelect } from "./inspector.mjs";
 
 const quick = (page) => page.locator('[data-e2e="quick-insert"]');
+/** The Assets tab on `kind` (Components · Icons · Photos), its search set to `query`. */
+async function library(page, kind, query) {
+  await showLeftTab(page, "assets");
+  await assets(page).getByRole("button", { name: kind, exact: true }).click();
+  await assets(page).getByLabel(`Search ${kind.toLowerCase()}`).fill(query);
+  await sleep(200);
+}
 const activeOption = (page) => quick(page).locator('[role="option"][aria-selected="true"] .studio-qi__name').innerText();
 /** ⇧I on the canvas; resolves once Quick insert shows. */
 async function openQuick(page) {
@@ -143,6 +150,94 @@ export const rows = [
       await page.keyboard.press("Enter");
       await until(async () => tagCount(await ctx.text(), "Badge") > before, { timeout: 5000, message: "a Badge in the host page" });
       return `"${where}" → Badge added`;
+    },
+  },
+  {
+    id: "LB-08", feature: "Assets › Icons: a Vietnamese search finds the glyph; a click adds the Icon into the selected layout", wp: "GĐ3 M3",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      await selectStack(page, id);
+      await library(page, "Icons", "xoá");
+      const tile = assets(page).locator(".studio-assets__tile").first();
+      const name = await tile.getAttribute("data-icon");
+      if (!/^icon-trash/.test(name ?? "")) throw new Error(`first icon for "xoá" is ${name}`);
+      await tile.click();
+      await until(async () => new RegExp(`<Icon name="${name}" title="Trash`).test((await pageText(page, id)) ?? ""), { message: `<Icon name="${name}"> in the page` });
+      await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+      await until(async () => (await selectedName(page)) === "Icon", { message: "the Icon selected" });
+      return `xoá → ${name}, added and selected`;
+    },
+  },
+  {
+    id: "LB-09", feature: "Assets › Icons with an Icon selected swaps its glyph (no new layer); ⌘Z puts it back", wp: "GĐ3 M3",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      await selectStack(page, id);
+      await library(page, "Icons", "trash");
+      await assets(page).locator(".studio-assets__tile").first().click();
+      await until(async () => /<Icon name="icon-trash/.test((await pageText(page, id)) ?? ""), { message: "an Icon" });
+      await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+      await until(async () => (await selectedName(page)) === "Icon", { message: "the Icon selected" });
+      await library(page, "Icons", "heart");
+      if (!/swap the selected Icon/.test(await assets(page).locator(".studio-assets__note").innerText())) throw new Error("no swap hint");
+      const heart = await assets(page).locator(".studio-assets__tile").first().getAttribute("data-icon");
+      await assets(page).locator(".studio-assets__tile").first().click();
+      await until(async () => new RegExp(`<Icon name="${heart}"`).test((await pageText(page, id)) ?? ""), { message: `the glyph swapped to ${heart}` });
+      const icons = ((await pageText(page, id)) ?? "").match(/<Icon /g)?.length ?? 0;
+      if (icons !== 1) throw new Error(`${icons} Icons in the page (a swap adds none)`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => /<Icon name="icon-trash/.test((await pageText(page, id)) ?? ""), { message: "⌘Z back to the trash glyph" });
+      return `trash → ${heart} → ⌘Z`;
+    },
+  },
+  {
+    id: "LB-10", feature: "Assets › Photos on a builder page: zen-media in the page, this build's URL on the canvas", wp: "GĐ3 M3",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      await selectStack(page, id);
+      await library(page, "Photos", "cà phê");
+      await assets(page).locator(".studio-assets__photo").first().click();
+      await until(async () => /<Image src="zen-media:site-cafe" alt="Café table with a coffee" ratio="4:3" \/>/.test((await pageText(page, id)) ?? ""), { message: "the zen-media Image in the page" });
+      const img = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Image"] img, img[data-zen-src^="local:${id}.zen.tsx:"]`).first();
+      await img.waitFor({ state: "attached", timeout: 10_000 });
+      const src = await img.getAttribute("src");
+      if (!src || src.startsWith("zen-media:")) throw new Error(`the canvas image src is ${src}`);
+      await until(async () => img.evaluate((el) => el.complete && el.naturalWidth > 0), { timeout: 10_000, message: "the photo loaded" });
+      return `zen-media:site-cafe → ${src.split("/").pop()}`;
+    },
+  },
+  {
+    id: "LB-11", feature: "Quick insert lists Icons for a Vietnamese word; Enter on one adds the Icon", wp: "GĐ3 M3",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      await selectStack(page, id);
+      await openQuick(page);
+      await page.keyboard.type("đóng");
+      const iconOption = quick(page).locator('[role="option"][data-kind="icon"]').first();
+      await iconOption.waitFor({ state: "visible", timeout: 5000 });
+      for (let guard = 0; guard < 40 && (await quick(page).locator('[role="option"][aria-selected="true"]').getAttribute("data-kind")) !== "icon"; guard += 1) await page.keyboard.press("ArrowDown");
+      const label = await activeOption(page);
+      await page.keyboard.press("Enter");
+      await until(async () => /<Icon name="icon-x/.test((await pageText(page, id)) ?? ""), { message: "an x Icon in the page" });
+      return `đóng → ${label}`;
+    },
+  },
+  {
+    id: "LB-12", feature: "Assets › Photos on an example page writes platformMedia (the import joins)", wp: "GĐ3 M3",
+    async run(ctx) {
+      await ctx.studio({ fresh: true });
+      const page = await freshSelect(ctx, "btn-c");
+      await page.locator(".studio-viewport").focus();
+      for (let i = 0; i < 4; i += 1) await page.keyboard.press("Escape");
+      const before = tagCount(await ctx.text(), "Image");
+      await library(page, "Photos", "coffee");
+      await assets(page).locator(".studio-assets__photo").first().click();
+      await until(async () => tagCount(await ctx.text(), "Image") > before, { timeout: 5000, message: "an Image in the host page" });
+      const text = await ctx.text();
+      if (!/<Image src=\{platformMedia\.site\[5\]\.src\}/.test(text)) throw new Error("not written with platformMedia");
+      if (!/import \{[^}]*\bplatformMedia\b[^}]*\} from "[^"]*PlatformMedia"/.test(text)) throw new Error("platformMedia not imported");
+      return "platformMedia.site[5] with its import";
     },
   },
 ];

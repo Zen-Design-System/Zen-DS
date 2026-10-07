@@ -158,6 +158,8 @@ Read this file only when picking up work or logging a follow-up.
   open page A then page B (both new pages, Screen id `screen-1`): the Page panel's Frames shows A's title. Likely the
   frame registry keys `screen:screen-1` without the page. Pointer: `builder/BuilderBoard.tsx` frame ids,
   `inspector/PagePanel.tsx` Frames.
+- **P3 · Studio E2E I-11 is flaky too (2026-10-07, seen during GĐ3 M3):** "timed out after 20 s" once with
+  `--no-retry` right after the library group; 2/2 alone. Pointer: `tools/studio/e2e/scenarios/inspector.mjs` I-11.
 - **P3 · Studio E2E I-15 is flaky (2026-10-06, session "Studio builder tool planning", seen during GĐ2 M2):** "Timed out
   waiting for ⌫ removes gap" on the first try in 2 of 3 full runs (passes on retry and alone, 2/2); the gate counts a
   failed try as a regression. Pointer: `tools/studio/e2e/scenarios/inspector.mjs` I-15, ScaleField ⌫ reset.

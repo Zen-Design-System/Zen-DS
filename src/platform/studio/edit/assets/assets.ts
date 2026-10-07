@@ -3,20 +3,21 @@ import { canvasApi, getViewportBox } from "../../canvas/viewport";
 import { multiSelection } from "../../select/multiSelection";
 import { expectRender, renderedNow } from "../../select/remap";
 import { canStructurallyEdit } from "../../slots/actions";
+import { photoCode, type LibraryPhoto } from "../../builder/library/media";
 import { insertTarget } from "../../builder/library/target";
 import { builderCode, type PaletteContext, type PaletteItem } from "../../slots/palette";
 import type { ContentSlot } from "../../slots/registry";
 import { canEdit, flushStudioStore, studioStore } from "../../store";
-import type { EditOp, StudioSelection } from "../../types";
-import type { DropTarget } from "../arrange";
+import type { EditOp, StateDecl, StudioSelection } from "../../types";
+import type { DropTarget, NodeSelection } from "../arrange";
 import { insertCode } from "../clipboard";
 import { dropTargetAt, publishDragView, type DropContext } from "../drag";
 
 /*
  * Assets, Figma-like (docs/research/studio-figma-editing-plan-2026-10-03.md, Phase 6): the Zen components of the slot
- * palette (slots/palette.ts), inserted by a click (into the selected layout, else after the selected layer, else into the
- * frame in view) or dragged
- * onto the canvas, where the insertion line of a layer drag shows where it lands. Op pasteCode: Zen components join
+ * palette (slots/palette.ts), and since GĐ3 M3 icons and photos (Insertable), inserted by a click (into the selected
+ * layout, else after the selected layer, else into the frame in view; an icon on a selected Icon swaps its glyph) or
+ * dragged onto the canvas, where the insertion line of a layer drag shows where it lands. Op pasteCode: Zen components join
  * the imports, an action's toast gets its useToast(). One undo step; the new layer gets selected.
  */
 
@@ -38,17 +39,55 @@ const builderRefusal = (item: PaletteItem) => item.group === "Overlays"
   ? `On a builder page ${item.label} opens from an action: add it with Prototype › Add overlay, then point a button at it`
   : `${item.label} keeps state or code, which a builder page has none of (its screens and overlays do that: Prototype tab)`;
 
+/** Anything the library adds (Studio builder GĐ3): a palette item, an icon, a photo. */
+export type Insertable = {
+  label: string;
+  /** The new layer's component (it gets selected after the insert). */
+  root: string;
+  /** Its code for `file` ("local:…" on a builder page), or null when that file cannot hold it (`refusal` says why). */
+  code(file: string | undefined): string | null;
+  refusal: string;
+  state?: readonly StateDecl[];
+  /** An icon's name: with an Icon selected, the click swaps that Icon's glyph instead of adding one. */
+  icon?: string;
+};
+
+export const paletteInsertable = (item: PaletteItem): Insertable => ({ label: item.label, root: item.root, state: item.state, code: (file) => codeOf(item, file), refusal: builderRefusal(item) });
+export const iconInsertable = (name: string, title: string): Insertable => ({ label: title, root: "Icon", icon: name, code: () => `<Icon name="${name}" title=${JSON.stringify(title)} />`, refusal: "" });
+export const photoInsertable = (entry: LibraryPhoto): Insertable => ({ label: entry.photo.alt, root: "Image", code: (file) => photoCode(entry, Boolean(file?.startsWith("local:"))), refusal: "" });
+
+/** The selected Icon layer (an icon from the library swaps its glyph), or null. */
+export function selectedIcon(): NodeSelection | null {
+  const selection = studioStore.getState().selection;
+  return selection?.kind === "node" && !selection.part && selection.name === "Icon" ? selection : null;
+}
+
+/** Gives the selected Icon another glyph (one undo step). */
+async function swapIcon(selection: NodeSelection, name: string) {
+  const at = parseSrc(selection.src);
+  if (!at) return;
+  const element = await studioApi.element(at.file, at.loc);
+  if (!element) { fail("The selected Icon is no longer there"); return; }
+  await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [{ op: "setProp", name: "name", value: { kind: "string", value: name } } as EditOp], hash: element.hash }, `Icon → ${name}`);
+}
+
 /**
- * Click: into the selected layout, else after the selected layer; with nothing selected, into the frame most in view
- * (Studio builder GĐ3, builder/library/target.ts).
+ * Click: an icon swaps the selected Icon's glyph; anything else goes into the selected layout, else after the selected
+ * layer; with nothing selected, into the frame most in view (Studio builder GĐ3, builder/library/target.ts).
  */
-export function insertAsset(item: PaletteItem) {
+export function insertItem(item: Insertable) {
+  if (!canEdit()) { fail("View only — switch to Admin to edit"); return; }
+  const icon = item.icon ? selectedIcon() : null;
+  if (icon && item.icon) { void swapIcon(icon, item.icon); return; }
   const target = insertTarget();
   if (typeof target === "string") { fail(target); return; }
-  const code = codeOf(item, parseSrc(target.src)?.file);
-  if (code === null) { fail(builderRefusal(item)); return; }
+  const code = item.code(parseSrc(target.src)?.file);
+  if (code === null) { fail(item.refusal); return; }
   void insertCode(target, code, item.state);
 }
+
+/** A palette item, as insertItem. */
+export const insertAsset = (item: PaletteItem) => insertItem(paletteInsertable(item));
 
 /** Why nothing can be dropped into `target` (a playground, docs, the role), or null. */
 function refusalFor(target: DropTarget): string | null {
@@ -57,13 +96,13 @@ function refusalFor(target: DropTarget): string | null {
   return check.ok ? null : check.reason;
 }
 
-async function dropAsset(item: PaletteItem, target: DropTarget) {
+async function dropAsset(item: Insertable, target: DropTarget) {
   const at = parseSrc(target.parentSrc);
   if (!at) return;
   const parent = await studioApi.element(at.file, at.loc);
   if (!parent) { fail(`${target.parentName} is no longer there`); return; }
-  const code = codeOf(item, at.file);
-  if (code === null) { fail(builderRefusal(item)); return; }
+  const code = item.code(at.file);
+  if (code === null) { fail(item.refusal); return; }
   const op: Extract<EditOp, { op: "pasteCode" }> = { op: "pasteCode", code, ...(item.state?.length ? { state: item.state.map((entry) => ({ ...entry })) } : {}) };
   if (target.before) op.before = parseSrc(target.before)?.loc;
   else if (target.after) op.after = parseSrc(target.after)?.loc;
@@ -81,7 +120,7 @@ async function dropAsset(item: PaletteItem, target: DropTarget) {
 
 const NOTHING: DropContext = { hosts: [], frame: undefined, parentHost: null, origin: null, layerSrc: null, copy: false };
 
-type Drag = { item: PaletteItem; start: { x: number; y: number }; dragging: boolean; target: DropTarget | null; refusal: string | null };
+type Drag = { item: Insertable; start: { x: number; y: number }; dragging: boolean; target: DropTarget | null; refusal: string | null };
 let drag: Drag | null = null;
 
 const overCanvas = (x: number, y: number) => {
@@ -130,7 +169,7 @@ function stop(commit: boolean) {
   document.body.removeAttribute("data-studio-asset-drag");
   publishDragView(null);
   if (!current.dragging) {
-    if (commit) insertAsset(current.item);
+    if (commit) insertItem(current.item);
     return;
   }
   const swallow = (event: MouseEvent) => { event.stopPropagation(); event.preventDefault(); };
@@ -148,8 +187,8 @@ function onKey(event: KeyboardEvent) {
   stop(false);
 }
 
-/** A press on an asset row: a click inserts it at the selection, a drag drops it where the line shows. */
-export function pressAsset(event: PointerEvent, item: PaletteItem) {
+/** A press on an asset row or tile: a click inserts it at the selection, a drag drops it where the line shows. */
+export function pressAsset(event: PointerEvent, item: Insertable) {
   if (event.button !== 0 || drag) return;
   if (!canEdit()) { fail("View only — switch to Admin to edit"); return; }
   event.preventDefault();

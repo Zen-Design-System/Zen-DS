@@ -34,3 +34,10 @@
 .studio-qi__stage { flex: 0 0 auto; transform-origin: top center; }
 .studio-qi__stage { position: relative; }
 .studio-qi__portal { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.studio-qi__group { margin: 0; padding: 0; list-style: none; }
+.studio-qi__group + .studio-qi__group { margin-top: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-qi__kicker { display: block; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-base); }
+.studio-qi__options { margin: 0; padding: 0; list-style: none; }
+.studio-qi__thumb { width: var(--zen-image-size-2-xsmall); height: var(--zen-image-size-2-xsmall); flex: 0 0 auto; border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }
+.studio-qi__glyph { align-self: center; margin: auto; color: var(--zen-color-content-neutral-strongest); }
+.studio-qi__photo { display: block; width: 100%; max-height: 100%; border-radius: var(--zen-corner-radius-small, 8px); object-fit: cover; }
