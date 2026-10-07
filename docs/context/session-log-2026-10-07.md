@@ -42,3 +42,14 @@
   the canvas img loads this build's URL), LB-11 (Quick insert "đóng" → an x Icon), LB-12 (example page: platformMedia +
   import). build-check gains a photo + Icon step (the photo loads site-cafe-<hash>.webp). Gate PASS 111 / 0. I-11
   timed out once with --no-retry after the library group (2/2 alone): Backlog P3 next to I-15.
+
+## Studio builder GĐ4 spec (session "Studio builder tool planning", tier XS)
+
+- Read-only survey of the Inspector against Figma's instance panel (an Explore agent, file:line evidence in the spec
+  §2): Figma order for 55 / 151 components with code option labels; icon swap without preferred values; no component
+  swap in ReactNode props; nested instances booleans only, one level; no Reset all overrides; no Hug/Fill/Fixed on
+  instances in the Inspector; Detach refused on builder pages. Figma capture: 144 sets (VARIANT 269, BOOLEAN 144,
+  SLOT 59, INSTANCE_SWAP 36, TEXT 24); figma-props-read.js keeps no preferredValues.
+- Spec `docs/research/studio-builder-instance-spec-2026-10-07.md` (M1 panel parity + Reset all, M2 swaps, M3 nested
+  props + one undo step across owner and nested, M4 sizing + Detach on builder pages; Q1 sizing approach, Q2 swap the
+  whole layer, Q3 preferred values from Figma, Q4 what Reset all keeps). Waiting for the user's OK.

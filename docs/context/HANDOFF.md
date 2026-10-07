@@ -138,8 +138,9 @@ Last updated: 2026-10-06.
   glyphs, icon + photo search), iconSynonyms.ts, icons.ts, media.ts (LIBRARY_PHOTOS, `zen-media:` keys, resolveMedia,
   photoCode)}`; edit/assets/assets.ts `Insertable` (palette / icon / photo; an icon on a selected Icon swaps its name);
   Assets kinds Components · Icons · Photos; Quick insert groups; renderPage resolves `zen-media:`; E2E LB-08…LB-12;
-  build-check 14 steps; baseline 111 works / 0 broken. **GĐ3 is complete.** Next: GĐ3b starters (needs a spec), GĐ4
-  instance panel like Figma, GĐ5 export (+ photo uploads).
+  build-check 14 steps; baseline 111 works / 0 broken. **GĐ3 is complete.** Next: GĐ4 instance panel like Figma: spec
+  `docs/research/studio-builder-instance-spec-2026-10-07.md` written, waiting for the user's OK (Q1–Q4); then GĐ3b
+  starters (needs a spec), GĐ5 export (+ photo uploads).
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers
