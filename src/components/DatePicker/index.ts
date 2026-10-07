@@ -16,3 +16,4 @@ export {
   type DatePickerTime,
   type DatePickerTimePickerProps,
 } from "./DatePicker";
+export { DatePickerSheet, type DatePickerSheetProps } from "./DatePickerSheet";

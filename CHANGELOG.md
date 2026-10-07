@@ -19,6 +19,12 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- **DatePickerSheet: dates on a phone (2026-10-07, Figma Date-Picker/Mobile 9923:3576):** a Bottom Sheet picker.
+  `selectionMode="single"` shows one month with Cancel / OK; `"range"` stacks the months under one pinned weekday row
+  and ends in Footer-Actions (your `summary`, e.g. the price for the nights, beside OK). Picks are a draft until OK.
+  DateField opens it by itself at the mobile breakpoint instead of the desktop popover. New: DatePicker
+  `calendar="stacked"` + `monthCount`, BottomSheet `footer` (your own Footer content), label key `ok` (en "OK", vi
+  "Xong"). DatePicker's month header is a `div` (a `<header>` per month made duplicate banner landmarks).
 - **Sidebar on a phone (2026-10-07):** the Sidebar page shows it as the AppShell drawer in a phone. AppShell's drawer now
   keeps clear of a phone's status bar and home indicator (safe areas; nothing changes on desktop or tablet).
 - **Metric Title-Highlight `custom` (2026-10-07, Figma Custom-Slot):** your own content under the number (a
@@ -606,6 +612,10 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **MCP `get_component` is brief by default (2026-10-07):** the props of the component you name, Do/Don't, keyboard,
+  accessibility and the rule ids, without the Figma mapping, node ids or the rule table (under half the size);
+  `detail: "full"` returns the whole guideline. CI's Package step works again: `verify:package` found npm's JSON
+  inside prepack's coloured build output.
 - **Table in a narrow box (2026-10-07):** a table without fixed column widths no longer crushes a text column to one word
   per line: left-aligned text cells keep a readable minimum (`--zen-table-text-min-width`, 120px) and the table scrolls
   sideways instead.

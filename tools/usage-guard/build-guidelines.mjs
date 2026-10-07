@@ -20,7 +20,7 @@ const list = (items) => items.map((item) => `- ${safe(item)}`).join("\n");
 const tagsFor = {
   button: ["Button", "IconButton"], chip: ["Chip", "ChipGroup"], input: ["InputField", "SelectField", "DateField", "NumberField", "TextAreaField", "AutocompleteField", "RichTextField"],
   search: ["Search"], segmented: ["Segmented"], toggle: ["Toggle"], checkbox: ["Checkbox"], "radio-button": ["RadioButton"], badge: ["Badge", "BadgeCounter"], tag: ["Tag"],
-  avatar: ["Avatar", "AvatarStack"], popover: ["Popover"], sidebar: ["Sidebar"], "date-picker": ["DatePicker", "DateField"], tooltip: ["Tooltip"], tabs: ["Tabs"],
+  avatar: ["Avatar", "AvatarStack"], popover: ["Popover"], sidebar: ["Sidebar"], "date-picker": ["DatePicker", "DateField", "DatePickerSheet"], tooltip: ["Tooltip"], tabs: ["Tabs"],
   breadcrumbs: ["Breadcrumbs"], progress: ["ProgressBar", "ProgressCircle"], dialog: ["Dialog", "ModalForm"], icon: ["Icon"],
   toast: ["Toast", "ToastStack", "ToastProvider"], "alert-banner": ["AlertBanner"], accordion: ["Accordion"], pagination: ["Pagination"], skeleton: ["SkeletonText", "SkeletonHeading", "SkeletonShape"],
   divider: ["Divider"], "inline-message": ["InlineMessage"], "empty-state": ["EmptyState"], stepper: ["Stepper"], slider: ["Slider"],

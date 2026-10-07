@@ -501,9 +501,11 @@ else if (!coverage.some((x) => examplePages.has(x.page))) step("coverage", "Exam
 /* ── ⑤ screenshots ──────────────────────────────────────────────────────────────────────────────────────────────── */
 if (!QUICK && serverUp && P.length && !failFast) {
   say("\n⑤ Screenshots to review");
+  // One folder per session (backlog batch C): sessions running the gate at once no longer overwrite each other's sheets.
+  const shots = path.join(root, ".platform-shots", SESSION ? String(SESSION).slice(0, 8) : "manual");
   for (const page of P) for (const width of [1512, 390]) {
-    run(process.execPath, ["tools/platform-audit/shoot.mjs", page, `--width=${width}`, `--url=${BASE}`], 600000);
-    const sheet = path.join(root, ".platform-shots", `${page}-${width}.png`);
+    run(process.execPath, ["tools/platform-audit/shoot.mjs", page, `--width=${width}`, `--url=${BASE}`, `--out=${shots}`], 600000);
+    const sheet = path.join(shots, `${page}-${width}.png`);
     let mtime = 0; try { mtime = fs.statSync(sheet).mtimeMs; } catch { /* not shot */ }
     if (mtime >= started) sheets.push({ path: rel(sheet), page, width, hash: sha1File(sheet), at: Math.round(mtime), primary: primary.has(page) });
   }

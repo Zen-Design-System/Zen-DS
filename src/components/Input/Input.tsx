@@ -1,14 +1,14 @@
 import { createContext, forwardRef, useCallback, useContext, useEffect, useId, useImperativeHandle, useLayoutEffect, useRef, useState, type ButtonHTMLAttributes, type ChangeEvent, type FocusEvent, type FocusEventHandler, type KeyboardEvent, type MouseEvent, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 import { Icon, type IconName } from "../Icon";
 import { Popover, PopoverManualAddNew, useExclusivePopover } from "../Popover";
-import { DatePicker } from "../DatePicker";
+import { DatePicker, DatePickerSheet } from "../DatePicker";
 import { Button, IconButton } from "../Button";
 import { Tag } from "../Tag";
 import { Tooltip, useIconTooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
 import type { ZenLabels } from "../_shared/labels";
 import { scaleKey } from "../_shared/scale";
-import { useZenLabels } from "../_shared/zen-context";
+import { useZen, useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./input.css";
 import "../Icon/core";
@@ -713,6 +713,11 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
     return () => { doc.removeEventListener("keydown", handleTab, true); window.clearTimeout(timer); };
   }, []);
   const canOpen = !props.readOnly && props.state !== "read-only" && !props.disabled && props.state !== "disabled";
+  // Phones (the nearest data-breakpoint, else ZenProvider's) get the Date-Picker/Mobile sheet instead of the desktop
+  // popover (Figma has no mobile popover). A modal sheet opens on a tap or ArrowDown, not on Tab focus.
+  const zenBreakpoint = useZen()?.breakpoint;
+  const [phone, setPhone] = useState(false);
+  useLayoutEffect(() => { setPhone((fieldRef.current?.closest("[data-breakpoint]")?.getAttribute("data-breakpoint") ?? zenBreakpoint) === "mobile"); }, [zenBreakpoint]);
   const controlledValue = value !== undefined;
   const [internalValue, setInternalValue] = useState(() => String(defaultValue ?? ""));
   const currentValue = controlledValue ? value : internalValue;
@@ -763,7 +768,7 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
         aria-haspopup={props["aria-haspopup"] ?? (datePicker ? "dialog" : undefined)}
         aria-expanded={props["aria-expanded"] ?? (datePicker ? open : undefined)}
         trailing={trailing ?? <Icon name="icon-calendar-line" size="sm" />}
-        onFocus={(event) => { if (canOpen && tabbing.current && !closing.current) setOpen(true); onFocus?.(event); }}
+        onFocus={(event) => { if (canOpen && tabbing.current && !closing.current && !phone) setOpen(true); onFocus?.(event); }}
         onClick={onClick}
         onKeyDown={(event) => {
           onKeyDown?.(event);
@@ -790,7 +795,9 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
         aria-invalid={ariaInvalid ?? (outOfRange || undefined)}
       />
       {/* With datePickerActions a pick is a draft: Submit writes it (onApply), Cancel and Escape keep the field's date. */}
-      {datePicker ? <DatePicker open={open} value={parsedValue} onValueChange={datePickerActions ? undefined : handleDateChange} onApply={datePickerActions ? (date) => handleDateChange(date) : undefined} onClose={close} anchorRef={fieldRef} showActions={datePickerActions} minDate={minDate} maxDate={maxDate} today={today} /> : null}
+      {datePicker && phone ? (
+        <DatePickerSheet open={open} onOpenChange={(next) => { if (!next) close(); }} title={typeof props.label === "string" ? props.label : undefined} value={parsedValue} onApply={(date) => handleDateChange(date)} minDate={minDate} maxDate={maxDate} today={today} />
+      ) : datePicker ? <DatePicker open={open} value={parsedValue} onValueChange={datePickerActions ? undefined : handleDateChange} onApply={datePickerActions ? (date) => handleDateChange(date) : undefined} onClose={close} anchorRef={fieldRef} showActions={datePickerActions} minDate={minDate} maxDate={maxDate} today={today} /> : null}
     </div>
   );
 }

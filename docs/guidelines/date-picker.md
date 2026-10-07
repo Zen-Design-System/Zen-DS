@@ -2,13 +2,14 @@
 # Date Picker
 
 **Figma:** Date-Picker/Single-Calendar (page 453:32817)  
-**Import:** `import { DatePicker, DateField } from "@zen/design-system";`
+**Import:** `import { DatePicker, DateField, DatePickerSheet } from "@zen/design-system";`
 
-Pick a date or a date range. DatePicker is the calendar panel itself and is visible by default (open defaults to true), like an inline calendar; DateField is the input that opens it in a popover.
+Pick a date or a date range. DatePicker is the calendar panel itself and is visible by default (open defaults to true), like an inline calendar; DateField is the input that opens it in a popover (a Bottom Sheet on a phone); DatePickerSheet is the phone picker of Figma Date-Picker/Mobile.
 
 ## Use it for
 - DateField in forms (the field owns the popover); inline DatePicker for booking-style range selection.
 - A DatePicker anchored to your own trigger: pass open, onClose and anchorRef.
+- DatePickerSheet on a phone, from your own trigger (a Dates row): selectionMode="single" is one month with Cancel / OK; "range" stacks the months (calendar="stacked") with your `summary` (the price for the nights) beside OK.
 - Inline (no onClose / onOpenChange / anchorRef) the calendar has no surface of its own (no popover fill, border, padding or shadow, as Figma's in-place calendar): place it in a Card or panel.
 
 ## Use something else for
@@ -22,6 +23,8 @@ Pick a date or a date range. DatePicker is the calendar panel itself and is visi
 | Time | `timePicker · time / defaultTime · onTimeChange · DatePickerTimePicker` | Figma Time-Picker (460:38628) under a Divider: From / To as Input Small hh:mm with an AM/PM picker plus All day (Read-only times); stacked on the single calendar (Type=Single), side by side on the dual one (Type=Range, an All day each). Values are 24-hour "HH:mm"; with showActions they are part of the draft and reach onApply as its third argument; a date pick no longer closes the popover |
 | Bounds | `minDate / maxDate` | disabled days |
 | Actions | `showActions / action · onApply(value, range) · onCancel` | none · single · dual; picks are a draft that Submit applies and Cancel drops |
+| Stacked | `calendar="stacked" · monthCount` | Date-Picker/Mobile Variant=Multiple: months one under another with Display headers and one weekday row pinned at the top of the scroll |
+| Phone sheet | `DatePickerSheet: open / onOpenChange · selectionMode · value / range · onRangeChange (draft) · onApply · summary · applyLabel` | Figma Date-Picker/Mobile 9923:3576 in a Bottom Sheet; picks are a draft until OK; DateField opens it by itself on a phone |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/date-picker.json`.
@@ -49,7 +52,8 @@ Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` 
 | `showActions` | `boolean` | `false` | Figma `Actions`: Cancel + Submit under the calendar. Picks are then a draft that Submit applies (`onApply`) and Cancel drops (`onCancel`); without actions a pick applies at once. |
 | `action` | `"single" \| "dual"` | `"dual"` | `.Primitives/Date-Picker/Action`: `dual` (Cancel + Submit, default) or `single` (Submit only). |
 | `selectionMode` | `"single" \| "range"` | `"single"` |  |
-| `calendar` | `"single" \| "dual"` | `"single"` | Figma Date-Picker/Single-Calendar or Date-Picker/Dual-Calendar (two consecutive months side by side; Static headers with Back on the first and Next on the second). |
+| `calendar` | `"single" \| "dual" \| "stacked"` | `"single"` | Figma Date-Picker/Single-Calendar or Date-Picker/Dual-Calendar (two consecutive months side by side; Static headers with Back on the first and Next on the second). `stacked`: Date-Picker/Mobile Variant=Multiple (9923:3574) — `monthCount` months one under another, Display headers (no Back / Next: the list scrolls), and one weekday row that stays at the top of the scrolling box (`.Primitives/Date-Picker` 9923:2323 Option 2). |
+| `monthCount` | `number` | `12` | `calendar="stacked"`: how many months follow the first one shown. Default 12. |
 | `device` | `"desktop" \| "mobile"` | — | Figma Date-Picker/Mobile (9923:3576) primitives: `mobile` days fill the width (square cells in Body/Base/Medium, `.Primitives/Mobile-Date-Picker/Item` 9921:3283) under a Heading/Subheading month with Back / Next at the end, Spacing/Gap/XLarge apart (Gap/XSmall for the dual calendar, whose months stack Gap/Medium apart). Unset, an inline calendar follows the breakpoint (the nearest `data-breakpoint`, else ZenProvider) and a popover stays `desktop` (Figma has no mobile popover). A `mobile` popover spans its containing block (a DateField's width). |
 | `timePicker` | `boolean` | `false` | Figma `Time-Picker`: a Divider and `.Primitives/Date-Picker/Time-Picker` under the calendar — From / To times (hh:mm + AM/PM) and All day; stacked on the single calendar, side by side on the dual one. Picking a date no longer closes a popover (the times come next): pair it with `showActions`, whose Submit applies date and time together. |
 | `time` | `DatePickerTime` | — | Controlled times (with `timePicker`); with `showActions` it is the applied time. |
@@ -87,6 +91,36 @@ Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` 
 | `minDate` | `Date` | — | Earliest day the calendar lets people pick (DatePicker `minDate`); earlier days are disabled. A typed date before it stays in the field and reaches `onValueChange` as usual, and the input is marked `aria-invalid` (Form and ModalForm count it and focus it after a blocked submit). The field shows no message of its own: validate the value and pass `error` ("Pick a date from 1 October"). |
 | `maxDate` | `Date` | — | Latest day the calendar lets people pick (DatePicker `maxDate`); later days are disabled. A typed date after it is kept, reported and marked `aria-invalid` as for `minDate`: pass `error` to say why. |
 | `today` | `Date` | — | The day the calendar treats as today (DatePicker `today`): its Today ring and the month it opens on while empty. Default: the device clock. |
+
+### DatePickerSheet
+Figma Date-Picker/Mobile (9923:3576): the phone date picker, a Bottom Sheet (Heading + Close) around the mobile calendar (`device="mobile"`: days fill the width). Variant=Single shows one month with Back / Next and the sheet's Cancel / OK; Variant=Multiple stacks the months (`calendar="stacked"`, one weekday row at the top of the scroll) and ends in `.Primitives/Date-Picker/Footer-Actions` (9923:2791): the summary beside a Large Primary, Spacing/Gap/Small apart. Picks are a draft until OK. DateField opens it on phones in place of the desktop popover.
+
+Also accepts `OverlayOpenProps`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `open` | `boolean` | — | Whether the overlay is shown: keep it in state and set it from `onOpenChange` (the exit animation then plays). Without `open` the overlay shows while it is mounted, e.g. `{show && <Dialog … />}`. |
+| `isOpen` | `boolean` | — | **Deprecated:** Use open (same meaning).  |
+| `onOpenChange` | `(open: boolean) => void` | — | Called with false on Escape, a scrim click, the close button, or an action without its own handler. |
+| `onClose` | `() => void` | — | Called at the same moments as `onOpenChange(false)`: the overlay asks to close. |
+| `title` | `ReactNode` | — | Figma Header heading (Heading/3). Default: the locale's "Choose date" ("Choose dates" for a range). |
+| `selectionMode` | `"single" \| "range"` | `"single"` | `single` (Figma Variant=Single): one month with Back / Next, Cancel and OK. `range` (Variant=Multiple): the months stacked in a scrolling list, a start and an end day, and the Footer-Actions (your `summary` next to OK). |
+| `value` | `Date \| null` | — | Applied date (single). The sheet picks a draft over it; OK applies the draft. |
+| `defaultValue` | `Date \| null` | `null` | Applied date when uncontrolled (single). |
+| `range` | `DatePickerRange \| null` | — | Applied range (range mode). |
+| `defaultRange` | `DatePickerRange \| null` | `null` | Applied range when uncontrolled (range mode). |
+| `onApply` | `(value: Date \| null, range: DatePickerRange \| null) => void` | — | OK: the picked date (single) or the complete range (range mode). The sheet closes. |
+| `onValueChange` | `(date: Date \| null) => void` | — | Each pick of a day (single), a draft until OK. |
+| `onRangeChange` | `(range: DatePickerRange) => void` | — | Each pick in range mode, a draft until OK: update the `summary` from it (the price for these nights). |
+| `onCancel` | `() => void` | — | Cancel (single): the draft is dropped and the sheet closes. Closing by the X, the scrim or Escape drops it too. |
+| `minDate` | `Date` | — |  |
+| `maxDate` | `Date` | — |  |
+| `today` | `Date` | — | The day the calendar treats as today (DatePicker `today`). |
+| `monthCount` | `number` | `12` | Range mode: how many months the list shows from the first one (DatePicker `monthCount`). Default 12. |
+| `summary` | `ReactNode` | — | Range mode: Figma Footer-Actions Content beside OK, e.g. a price in Body/Extra/Bold over a Body/Small line ("$605.50" · "7 nights"), or a hint while no range is picked ("Add dates for prices"). |
+| `applyLabel` | `ReactNode` | — | OK button label. Default: the locale's "OK". |
+| `cancelLabel` | `ReactNode` | — | Cancel button label (single). Default: the locale's "Cancel". |
+| `className` | `string` | — |  |
 
 ### DatePickerItem
 The day primitive from `.Primitives/Date-Picker/Item` (455:33517): Medium 32px on Corner-Radius/Action/Small, Small 24px on Corner-Radius/Action/XSmall. The button paints the In-Range strip, its label span the day. State=Today carries `aria-current="date"` (the calendar sets it on today's day in every state, selected included).
@@ -163,7 +197,8 @@ interface DatePickerTime { from: string | null; to: string | null; fromAllDay?: 
 | Escape | Select-Month-Year: back to the days; a popover closes and focus returns to its trigger (a Dialog around it stays open); inline on the day view, Escape is left to the page |
 
 ## ✅ Do
-- On a phone, put the calendar in the screen or a Bottom Sheet inline: at the mobile breakpoint it takes the Figma mobile primitives by itself and fills the width; pass device="mobile" only to force them (a popover, a narrow preview).
+- On a phone, let DateField open its sheet (it does at the mobile breakpoint), or open DatePickerSheet from your own row; for a range, update `summary` from onRangeChange so the price follows the picks.
+- On a phone, put an inline calendar in the screen or a Bottom Sheet: at the mobile breakpoint it takes the Figma mobile primitives by itself and fills the width; pass device="mobile" only to force them (a popover, a narrow preview).
 - Disable impossible dates (past check-in) with minDate / maxDate (earlier or later days disabled); in a DateField a typed date outside them is kept and marked aria-invalid, so pair the range with an `error` message.
 - Pass `today` (your app's date: a server, business or demo date) when it is not the device's; the Today ring and the month the calendar opens on follow it. DateField forwards `today`, `minDate` and `maxDate` to its calendar.
 - Show the chosen range and its consequence (nights, price) next to the calendar.

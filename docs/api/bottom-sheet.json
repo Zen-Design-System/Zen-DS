@@ -139,6 +139,14 @@
           "deprecated": null
         },
         {
+          "name": "footer",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Modal type: your own Footer content in place of the Actions (Figma's Footer holds any Buttons instance, e.g.\n `.Primitives/Date-Picker/Footer-Actions`: a summary next to a Primary). It keeps the footer's padding and stays\n put while the body scrolls. Ignored when `primaryAction` / `secondaryAction` are set.",
+          "deprecated": null
+        },
+        {
           "name": "onSubmit",
           "type": "(event: FormEvent<HTMLFormElement>) => void",
           "required": false,

@@ -122,15 +122,19 @@ export function DatePickerHeader({ month, onPrevious, onNext, onMonthYearClick, 
       <span>{label[0]}</span><span>{label[1]}</span>
     </button>
   ) : (
-    <span className={`zen-date-picker__month ${labelStyle}`} aria-live="polite"><span>{label[0]}</span><span>{label[1]}</span></span>
+    // Display headers (the stacked list) title each month section: a heading under the sheet's h2, read by the outline.
+    type === "display"
+      ? <h3 className={`zen-date-picker__month ${labelStyle}`}><span>{label[0]}</span><span>{label[1]}</span></h3>
+      : <span className={`zen-date-picker__month ${labelStyle}`} aria-live="polite"><span>{label[0]}</span><span>{label[1]}</span></span>
   );
   return (
-    <header className="zen-date-picker__header" data-type={type} data-device={mobile ? "mobile" : undefined}>
+    // A div, not <header>: outside a sectioning element a header is a banner landmark, and the stacked list has one per month.
+    <div className="zen-date-picker__header" data-type={type} data-device={mobile ? "mobile" : undefined}>
       {!mobile && type !== "display" ? slot(back, "previous") : null}
       {monthLabel}
       {mobile && type !== "display" ? slot(back, "previous") : null}
       {type !== "display" ? slot(next, "next") : null}
-    </header>
+    </div>
   );
 }
 
@@ -584,8 +588,12 @@ export interface DatePickerProps {
   action?: "single" | "dual";
   selectionMode?: "single" | "range";
   /** Figma Date-Picker/Single-Calendar or Date-Picker/Dual-Calendar (two consecutive months side by
-   * side; Static headers with Back on the first and Next on the second). */
-  calendar?: "single" | "dual";
+   * side; Static headers with Back on the first and Next on the second). `stacked`: Date-Picker/Mobile Variant=Multiple
+   * (9923:3574) — `monthCount` months one under another, Display headers (no Back / Next: the list scrolls), and one
+   * weekday row that stays at the top of the scrolling box (`.Primitives/Date-Picker` 9923:2323 Option 2). */
+  calendar?: "single" | "dual" | "stacked";
+  /** `calendar="stacked"`: how many months follow the first one shown. Default 12. */
+  monthCount?: number;
   /**
    * Figma Date-Picker/Mobile (9923:3576) primitives: `mobile` days fill the width (square cells in Body/Base/Medium,
    * `.Primitives/Mobile-Date-Picker/Item` 9921:3283) under a Heading/Subheading month with Back / Next at the end,
@@ -654,6 +662,7 @@ export function DatePicker({
   action = "dual",
   selectionMode = "single",
   calendar = "single",
+  monthCount = 12,
   device: deviceProp,
   timePicker = false,
   time,
@@ -700,7 +709,7 @@ export function DatePicker({
     onTimeChange?.(next);
   };
   const currentMonth = controlledMonth ? monthStart(controlledMonth) : internalMonth;
-  const months = useMemo(() => (calendar === "dual" ? [currentMonth, addMonths(currentMonth, 1)] : [currentMonth]), [calendar, currentMonth]);
+  const months = useMemo(() => (calendar === "stacked" ? Array.from({ length: Math.max(1, monthCount) }, (_, index) => addMonths(currentMonth, index)) : calendar === "dual" ? [currentMonth, addMonths(currentMonth, 1)] : [currentMonth]), [calendar, currentMonth, monthCount]);
   // Smooth view switch: the viewport height follows the measured content (CSS transitions it) and
   // the incoming view plays its enter animation — only after a switch, not on first open.
   const viewRef = useRef<HTMLDivElement>(null);
@@ -858,7 +867,9 @@ export function DatePicker({
     if (date.getDay() === 0 || date.getDay() === 6) return "weekend";
     return "default";
   };
-  const dual = calendar === "dual";
+  const dual = calendar === "dual" || calendar === "stacked";
+  const stacked = calendar === "stacked";
+  const weekdayRow = (className?: string) => <div className={["zen-date-picker__weekdays", className].filter(Boolean).join(" ")} aria-hidden={stacked || undefined}>{weekdays.map((day, dayIndex) => <span key={`${day}-${dayIndex}`}>{day}</span>)}</div>;
   return (
     <div
       ref={rootRef}
@@ -898,12 +909,13 @@ export function DatePicker({
             />
           ) : (
             <>
+              {stacked ? <div className={`zen-date-picker__sticky-weekdays ${typographyStyles["Body/Small/Medium"]}`}>{weekdayRow()}</div> : null}
               <div className="zen-date-picker__panels">
                 {months.map((month, index) => (
                   <div className="zen-date-picker__panel" key={month.toISOString()}>
                     <DatePickerHeader
                       month={month}
-                      type={dual ? "static" : "interactive"}
+                      type={stacked ? "display" : dual ? "static" : "interactive"}
                       back={!dual || index === 0}
                       next={!dual || index === months.length - 1}
                       onPrevious={() => setMonth(addMonths(currentMonth, -1))}
@@ -912,7 +924,7 @@ export function DatePicker({
                       device={device}
                     />
                     <div className={`zen-date-picker__calendar ${typographyStyles["Body/Small/Medium"]}`}>
-                      <div className="zen-date-picker__weekdays">{weekdays.map((day, dayIndex) => <span key={`${day}-${dayIndex}`}>{day}</span>)}</div>
+                      {stacked ? null : weekdayRow()}
                       <div className="zen-date-picker__grid">{monthDays(month).map((date, dayIndex) => date ? <DatePickerItem key={date.toISOString()} device={device} day={date.getDate()} date={date} state={stateFor(date)} aria-current={dateKey(date) === dateKey(today) ? "date" : undefined} disabled={isDisabled(date)} onClick={() => selectDate(date)} /> : <DatePickerItem key={`blank-${dayIndex}`} device={device} state="blank" />)}</div>
                     </div>
                   </div>

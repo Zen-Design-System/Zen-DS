@@ -24,6 +24,9 @@
     "color-contrast",
     "color-contrast:dark"
   ],
+  "DatePickerSheet": [
+    "color-contrast"
+  ],
   "InputContent": [
     "color-contrast"
   ],

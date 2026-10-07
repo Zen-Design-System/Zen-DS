@@ -6,10 +6,11 @@ import { BottomSheet } from "../../../components/BottomSheet";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Chip } from "../../../components/Chip";
-import { DatePicker, type DatePickerRange, type DatePickerTime } from "../../../components/DatePicker";
+import { DatePicker, DatePickerSheet, type DatePickerRange, type DatePickerTime } from "../../../components/DatePicker";
 import { DescriptionList } from "../../../components/DescriptionList";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
+import { Icon } from "../../../components/Icon";
 import { Form, FormActions } from "../../../components/Form";
 import { InlineMessage } from "../../../components/InlineMessage";
 import { DateField, InputField, SelectField } from "../../../components/Input";
@@ -460,6 +461,52 @@ function ReviewScheduleExample() {
   );
 }
 
+// ——— A stay on a phone: DatePickerSheet (Figma Date-Picker/Mobile) ————————————————————————————————————————————————————
+
+const NIGHTLY = 86.5;
+const nightsOf = (range: DatePickerRange | null) => (range?.start && range.end ? Math.round((range.end.getTime() - range.start.getTime()) / 86_400_000) : 0);
+
+function StayOnPhoneExample() {
+  const { toast } = useToast();
+  const screenRef = useRef<HTMLDivElement>(null);
+  const [stay, setStay] = useState<DatePickerRange | null>(null);
+  const [picking, setPicking] = useState(false);
+  const [draft, setDraft] = useState<DatePickerRange | null>(null);
+  const [pickup, setPickup] = useState("");
+  const nights = nightsOf(stay);
+  const draftNights = nightsOf(draft);
+  // Figma Footer-Actions Content: the price in Body/Extra/Bold over the rating line, or a hint before a range is picked.
+  const summary = (count: number) => (
+    <>
+      <Text as="span" textStyle="Body/Extra/Bold" tone={count ? "strongest" : "light"}>{count ? formatMoney(count * NIGHTLY) : "Add dates for prices"}</Text>
+      <Stack direction="row" gap="3xs" align="center">
+        <Icon name="icon-star-01-solid" size="sm" decorative />
+        <Text as="span" textStyle="Body/Small/Bold" tone="strongest">4.9</Text>
+        {count ? <Text as="span" textStyle="Body/Small/Regular" tone="light">· {plural(count, "night")}</Text> : null}
+      </Stack>
+    </>
+  );
+  return (
+    <PlatformPhone label="Saola Lodge" headerOverlay screenRef={screenRef}
+      header={<TopNavigation type="compact" title="Saola Lodge" scrollRef={screenRef} />}
+      footer={<ActionBar position="static" summary={summary(nights)}
+        primaryAction={{ label: "Reserve", disabled: !nights, onClick: () => { if (stay?.start && stay.end) toast({ type: "positive", title: "Stay reserved", children: `${formatRange(stay.start, stay.end)} · ${plural(nights, "night")}` }); } }} />}>
+      <Stack gap="lg" padding="lg">
+        <ListBox>
+          <List aria-label="Your stay">
+            <ListItem title="Dates" caption={stay?.start && stay.end ? `${formatRange(stay.start, stay.end)} · ${plural(nights, "night")}` : "Add your check-in and check-out"}
+              leading="icon-calendar-line" trailing={<Icon name="icon-chevron-right-line-small" decorative />} onClick={() => { setDraft(stay); setPicking(true); }} />
+          </List>
+        </ListBox>
+        {/* On a phone a DateField opens the same sheet (Variant=Single) instead of the desktop popover. */}
+        <DateField size="lg" label="Airport pickup" today={TODAY} minDate={TODAY} value={pickup} onValueChange={setPickup} helpText="Optional. We meet you at arrivals." />
+      </Stack>
+      <DatePickerSheet open={picking} onOpenChange={setPicking} selectionMode="range" title="Your stay" today={TODAY} minDate={TODAY} monthCount={6}
+        range={stay} onRangeChange={setDraft} onApply={(_, range) => setStay(range)} summary={summary(draftNights)} />
+    </PlatformPhone>
+  );
+}
+
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————
 
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
@@ -590,5 +637,27 @@ const [time, setTime] = useState<DatePickerTime>({ from: "14:00", to: "14:30" })
     </Stack>
   </Form>
 </PlatformPhone>`,
+  },
+  {
+    title: "A stay on a phone",
+    description: "On a phone dates open in a Bottom Sheet (Figma Date-Picker/Mobile). The stay's months scroll one under another with the weekdays pinned on top; the footer prices the nights as you pick and OK applies the range. The pickup date is a DateField, which opens the one-month sheet with Cancel and OK on a phone.",
+    render: () => <StayOnPhoneExample />,
+    code: `const [stay, setStay] = useState<DatePickerRange | null>(null);
+const [draft, setDraft] = useState<DatePickerRange | null>(null); // priced while picking
+const nights = nightsOf(draft);
+
+<ListItem title="Dates" caption={stay ? formatRange(stay.start, stay.end) : "Add your check-in and check-out"}
+  leading="icon-calendar-line" onClick={() => { setDraft(stay); setPicking(true); }} />
+{/* A DateField on a phone opens the one-month sheet (Cancel / OK) by itself. */}
+<DateField size="lg" label="Airport pickup" value={pickup} onValueChange={setPickup} />
+
+<DatePickerSheet open={picking} onOpenChange={setPicking} selectionMode="range" title="Your stay"
+  minDate={today} monthCount={6} range={stay} onRangeChange={setDraft} onApply={(_, range) => setStay(range)}
+  summary={<>
+    <Text as="span" textStyle="Body/Extra/Bold" tone={nights ? "strongest" : "light"}>
+      {nights ? formatMoney(nights * nightly) : "Add dates for prices"}
+    </Text>
+    <Text as="span" textStyle="Body/Small/Regular" tone="light">★ 4.9 · {plural(nights, "night")}</Text>
+  </>} />`,
   },
 ]);

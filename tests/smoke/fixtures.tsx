@@ -29,6 +29,7 @@ export const fixtures: Record<string, Fixture> = {
   ModalForm: { props: { open: true, title: "Invite member", children: "Form body" } },
   SidePanel: { props: { open: true, title: "Order details", children: "Panel body" } },
   BottomSheet: { props: { open: true, title: "Share", children: "Sheet body" } },
+  DatePickerSheet: { props: { open: true, title: "Your stay", selectionMode: "range", monthCount: 2, today: new Date(2026, 0, 4) } },
   Popover: { props: { open: true, "aria-label": "Sort by", items: [{ id: "new", label: "Newest" }, { id: "old", label: "Oldest" }] } },
   Menu: { props: { trigger: <button type="button">Actions</button>, children: null } },
   ChatReactorsPanel: {

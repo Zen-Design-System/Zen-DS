@@ -45,7 +45,10 @@ if (args.has("--no-pack")) {
   if (!tarball) throw new Error("No dist-pack/*.tgz; run without --no-pack.");
 } else {
   const json = execFileSync("npm", ["pack", "--json", "--pack-destination", packDir], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] });
-  const info = JSON.parse(json.slice(json.indexOf("[")))[0];
+  // prepack (build:lib) prints to the same stdout before npm's JSON; with colours on (CI) its ANSI codes hold "[" too,
+  // so the JSON starts at the first line that is only "[" (npm pack --json prints the array over several lines).
+  const start = json.search(/^\[\s*$/m);
+  const info = JSON.parse(start >= 0 ? json.slice(start) : json.slice(json.indexOf("[{")))[0];
   tarball = path.join(packDir, info.filename);
   pass("npm pack", `${info.filename}: ${info.entryCount} files, ${kb(info.size)} packed, ${kb(info.unpackedSize)} unpacked`);
 }

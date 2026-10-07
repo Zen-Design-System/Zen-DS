@@ -100,8 +100,8 @@ const templateText = (src) => {
   return ranges;
 };
 const inTemplateText = (src, index) => templateText(src).some(([from, to]) => index >= from && index < to);
-/** Component internals get their handlers through props: the rule judges the repo's demo code (platform examples and
- *  playgrounds, templates, fixtures), never src/components, and never apps (repoOnly). */
+/** Component internals get their handlers through props: the rule judges screens and demo code (platform examples and
+ *  playgrounds, templates, fixtures, an app's screens), never a src/components folder (the repo's, or an app's own). */
 const COMPONENT_SOURCE = /(^|[\\/])src[\\/]components[\\/]/;
 /** Action-object props ({ icon?, label, onClick? }): without onClick the action is drawn, focusable, and does nothing.
  *  Dialog, ModalForm, SidePanel and BottomSheet are left out on purpose: they give ModalActions an onDefault that
@@ -356,10 +356,12 @@ function setInteractionProps(apiDocs) {
   }
   // DatePicker with showActions commits through onApply(value, range), which changes value and range too. `range`
   // (DatePickerRange | null) never matches onRangeChange's argument, so it is paired by hand.
-  const datePicker = apiDocs.flatMap((doc) => doc.components ?? []).find((c) => c.name === "DatePicker");
-  if (datePicker?.props?.some((p) => p.name === "onApply")) {
-    CONTROLLED.DatePicker?.value?.push("onApply");
-    if (datePicker.props.some((p) => p.name === "range")) (CONTROLLED.DatePicker ??= {}).range = ["onRangeChange", "onApply"];
+  // DatePickerSheet works the same way: OK applies the draft through onApply.
+  for (const name of ["DatePicker", "DatePickerSheet"]) {
+    const picker = apiDocs.flatMap((doc) => doc.components ?? []).find((c) => c.name === name);
+    if (!picker?.props?.some((p) => p.name === "onApply")) continue;
+    CONTROLLED[name]?.value?.push("onApply");
+    if (picker.props.some((p) => p.name === "range")) (CONTROLLED[name] ??= {}).range = ["onRangeChange", "onApply"];
   }
   controlledComponents.splice(0, controlledComponents.length, ...Object.keys(CONTROLLED).sort());
   handlerComponents.splice(0, handlerComponents.length, ...[...takesHandlers].sort());
@@ -1292,8 +1294,8 @@ export const rules = [
       if (!actions || /^\s*false\s*$/.test(actions.expr ?? "") || own.has("onApply")) return null;
       return `passes showActions without onApply, so Submit applies nothing the app can read${inCodeSample(src, end) ? " (a code sample: readers copy it)" : ""} — commit the picked value in onApply(value, range); Cancel returns to the applied value by itself.`;
     } },
-  { id: "interaction/action-without-handler", repoOnly: true, components: ["Button", "button", ...new Set([...Object.keys(ACTION_PROPS), ...Object.keys(ITEM_LISTS)])], severity: "warn", allow: "action-handler", guideline: "docs/guidelines/README.md",
-    summary: "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+  { id: "interaction/action-without-handler", components: ["Button", "button", ...new Set([...Object.keys(ACTION_PROPS), ...Object.keys(ITEM_LISTS)])], severity: "warn", allow: "action-handler", guideline: "docs/guidelines/README.md",
+    summary: "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
     check: ({ tag, attrs, children, src, start, end, file }) => {
       if (inTemplateText(src, start) || /@storybook\//.test(src) || COMPONENT_SOURCE.test(file ?? "")) return null; // code samples, stories, component internals
       const own = topAttrs(attrs);

@@ -24,5 +24,12 @@ wrong is the pipeline (bad alias, wrong type), a value that does not match Figma
 6. **Report** one short table: collection, tokens before → after, added / removed / changed, consumer pages, and any
    value that differs from the live file. One CHANGELOG line if users see a change; session log ≤ 10 lines.
 
-Known gotchas: a typography change also breaks text-style snapshots, contract heights and baseline keys (memory
-`zen-token-sync-gotchas`); `-shadow-off` companions are emitted only where a background is Subtle/Pale/Surface-Alt.
+Known gotchas (moved here from a private memory note, 2026-10-07; add new ones here, not to memory):
+- A typography token change (size, line height, tracking) moves every text box: the Figma contract suites compare
+  rendered heights (`node tools/figma-contract/run-all.mjs`; re-capture per `tools/figma-contract/README.md` when Figma
+  changed too), `npm run styles:build` regenerates the text-style manifest, and `tools/platform-audit/quality-baseline.json`
+  keys that name text (fit, rhythm) stop matching. Re-baseline only after reading the new findings
+  (`npm run platform:audit -- --quality --baseline-update`). Typography is tier L: `npm run qa -- --all`.
+- `-shadow-off` companions are emitted only where a background is Subtle/Pale/Surface-Alt (scripts/build-tokens.mjs).
+- `npm run tokens:build` runs through Bash, so the post-edit hook does not record the generated files: pass them to the
+  gate (`npm run qa -- --files=src/styles/tokens.css,…`) or let its token fast path pick the changed names up.

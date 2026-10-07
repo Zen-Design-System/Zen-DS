@@ -696,3 +696,28 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   both scrolls and crushes text columns to min-content (Sidebar "Projects flyout" at 390: "Token rename for Selected"
   on 4 lines, table 345 in 246). Proposal: a readable minimum for text columns (as the fixed-column tables now have,
   `--zen-table-fill-min-width`), in line with the research overflow matrix (docs/research/ui-patterns-and-rules-2026-09-30.md B1 L11–L13).
+- [DONE A4: DatePickerSheet (Variant=Single Cancel/OK, Variant=Multiple stacked months + Footer-Actions summary), DatePicker calendar="stacked" + monthCount with one pinned weekday row, BottomSheet footer slot, DateField opens the sheet on phones; example "A stay on a phone". Not built: Option 2's "Clear dates" header action (no Figma spec for its place)] **P2 · DatePicker Date-Picker/Mobile composition (2026-10-04):** the mobile primitives are built (`device`); not built:
+  the Bottom Sheet picker of Figma 9923:3576 (Heading + Close, Cancel / OK), Variant=Multiple's scrolling stacked months
+  with one sticky weekday row (`.Primitives/Date-Picker` 9923:2323 Option 2, "Clear dates"), Footer-Actions 9923:2791
+  (price + Primary), and a DateField that opens it on phones instead of the desktop popover.
+
+## Done 2026-10-07 (backlog batch C: QA, tooling)
+- [DONE C: get_component detail "brief" (default: the named component's props, no Figma mapping/ids, rule ids in one line; under half of full) and "full"; the last component-usage-rules.md citation removed. get_template stays the full source on purpose (it is the code to copy)] **P2 · MCP answers too big:** `get_component` 8–15 KB with Figma ids and repo notes, `get_template` 39 KB; 5 guideline
+  lines cite `component-usage-rules.md §n`, which the package does not ship. Add a brief mode; drop repo-only notes.
+- [DONE C: the job log (run 37602020509) shows JSON.parse failing at verify-package.mjs:48 — prepack's coloured vite output holds "[" before npm's JSON; the JSON now starts at the first line that is only "["] **P2 · CI "Package" step fails on every run of the 0.4.0 branch (2026-10-07, seen when merging PR #1):** 14 of 14
+  finished CI runs since 2026-09-29 failed, almost all in "Package (pack, install in a temp app, budgets, zen-usage,
+  MCP, zen-ds)" (twice Browser tests, twice Platform audit); `npm run verify:package` passes locally ("Package OK").
+  The job log could not be read from the cloud session (its storage host is blocked). PR #1 was merged with it on the
+  user's call. Pointer: `.github/workflows/ci.yml` step "Package", `scripts/verify-package.mjs`.
+- [DONE C: interaction/action-without-handler runs in apps too (warn; component folders skipped); zen-ds check runs zen-usage --css and the app docs/init say --css (CSS stays opt-in on plain zen-usage: color/token-only is an error and would fail existing apps' CI). mobile/full-size-controls still keys on PlatformPhone — an app's phone screens cannot be told apart statically (accepted)] **P2 · App checks are weaker than repo checks:** CSS rules run only with `zen-usage --css` (init/ACM say plain
+  `zen-usage`); `interaction/action-without-handler` is repo-only; `mobile/full-size-controls` keys on PlatformPhone.
+- [DONE C: post-edit records what a tokens/styles/icons generator wrote in the last two minutes (src/styles, src/tokens, src/icons/generated); src/styles/tokens.css is a UI file, so the Stop hook asks for QA] **P2 · Token builds run through Bash** (`npm run tokens:build`) are not recorded by post-edit, so the Stop hook does
+  not ask for QA after a token change made only in `tokens/source`.
+- [DONE C: the Stop hook reads PNG Reads from the transcript (no settings change), and the gate now shoots into .platform-shots/<session>/, so parallel sessions keep their own sheets] **P2 · Exact sheet review:** add `Read` to the PostToolUse matcher in `Zen-CodeBase/.claude/settings.json` so a
+  sheet's hash is saved when it is opened (needs the user's OK: settings), and give each run its own sheet folder
+  (B3), since `.platform-shots/` is shared by sessions. **Sweep 2026-10-07:** done another way: the Stop hook scans the transcript for PNG Reads (stop-gate.mjs:51, :67), so no settings change is needed. Still open: one sheet folder per run (run.mjs:495).
+
+## Done 2026-10-07 (backlog batch B: Figma parity)
+- [DONE B: the official library has no master for either (search_design_system, ZEN Kaiz Official): both are compositions of List-Item + Toggle-Button and Chip/Normal Primary with those primitives' own tokens, nothing new. Do/Don't visuals added (list-item, chip)] **P2 · Figma check for ToggleListItem and ChipGroup (2026-10-07, batch 6):** both were composed in a cloud session
+  with no Figma MCP (user's choice); compare them with the live file 9nZv4uW2LT21yuHabMTCh1 (a List-Item with a
+  Toggle-Button trailing slot, a single-select Chip row) and add their Do/Don't visuals (PlatformGuidelineVisuals.tsx).

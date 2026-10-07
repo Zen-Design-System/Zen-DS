@@ -114,6 +114,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P3 · Metric-Inline props not in code (2026-10-07, read from Figma 595:55188 / 7523:507049):** Icon-Highlight
   Counter (a Small Neutral Subtle Badge after the label, XLarge/Large) and Metric-Color (an accent square before the
   label); Title-Highlight Hint (info icon) and Label-Icon (24px icon before the title). `custom` (Custom-Slot) is done.
+- **P3 · Density audit flake (2026-10-07, batch A4 gate):** date-picker@1512 "Date Picker" and "Time off request" reported
+  `zen-date-picker__view outgrows its box by 4px at Comfortable` once under a heavy gate; a lone run on HEAD and on the
+  change was clean. The viewport's height is a CSS transition from a measured size, so a check right after the density
+  switch can catch it mid-way (`DatePicker.tsx` viewport, `quality-checks.mjs` densitySnapshot): wait for transitions.
 - **P3 · usage:selftest fails now and then while another gate runs (2026-10-07):** twice a fixture rule reported 0 hits
   (`alert-banner/small-no-action`…, then `content/lights-no-light-text`) and passed 3/3 right after; both times a
   `npm run qa` ran in parallel. Find the shared state (a cache or a file the gate rewrites) before trusting a red run.
@@ -121,18 +125,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   cards and ListBoxes inside them that took §11 borders for the old white screen (card Choose on a phone, progress
   Loyalty stamps, metric Drill in on a phone, …) should go flat per §16, or their phone takes `canvas="surface"`; then the
   §16 audit check can stop skipping phones (quality-checks.mjs).
-- **P2 · Figma check for ToggleListItem and ChipGroup (2026-10-07, batch 6):** both were composed in a cloud session
-  with no Figma MCP (user's choice); compare them with the live file 9nZv4uW2LT21yuHabMTCh1 (a List-Item with a
-  Toggle-Button trailing slot, a single-select Chip row) and add their Do/Don't visuals (PlatformGuidelineVisuals.tsx).
 - **P3 · Gate failures seen only in the cloud container (2026-10-07):** TabItem's axe baseline lists color-contrast that
   this Chromium (1194, Playwright 1.63 wants 1243) no longer finds, and chat's emoji picker reports 36 [fit] errors
   (3px wider than their box with the container's emoji font). Both fail the same on 29305b4; check on a desktop run
   before touching the baseline or chat.css.
-- **P2 · CI "Package" step fails on every run of the 0.4.0 branch (2026-10-07, seen when merging PR #1):** 14 of 14
-  finished CI runs since 2026-09-29 failed, almost all in "Package (pack, install in a temp app, budgets, zen-usage,
-  MCP, zen-ds)" (twice Browser tests, twice Platform audit); `npm run verify:package` passes locally ("Package OK").
-  The job log could not be read from the cloud session (its storage host is blocked). PR #1 was merged with it on the
-  user's call. Pointer: `.github/workflows/ci.yml` step "Package", `scripts/verify-package.mjs`.
 - **P3 · Builder Link folder: the permission prompt of a real folder is untested (2026-10-06, GĐ2 M4):**
   `npm run studio:build-check` covers link, write, Trash (trash/ copy), Restore and the reconnect after a reload through
   an OPFS folder, which the browser always grants; a folder the person picks is usually "prompt" after a reload, so the
@@ -193,10 +189,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   same-file const (86 props, `editability-audit.mjs --class=data-const`). Then B3 (nested non-boolean props), B4 (override
   for loop-bound/bound/conditional props, 3,087), B5 (tests per class). Add/remove/reorder list items: done 2026-10-04 by
   session "Mở lại port preview" (`tools/studio/items.mjs`, ObjectProperties `selection`/`only`, DataItemPanel).
-- **P2 · DatePicker Date-Picker/Mobile composition (2026-10-04):** the mobile primitives are built (`device`); not built:
-  the Bottom Sheet picker of Figma 9923:3576 (Heading + Close, Cancel / OK), Variant=Multiple's scrolling stacked months
-  with one sticky weekday row (`.Primitives/Date-Picker` 9923:2323 Option 2, "Clear dates"), Footer-Actions 9923:2791
-  (price + Primary), and a DateField that opens it on phones instead of the desktop popover.
 - **P3 · Code Connect for Description List (blocked, 2026-10-04):** Figma answers "You need a Dev or Full seat on an
   Organization or Enterprise plan to use Code Connect" for this account. Once a seat is available: map
   `Description List` 14859:79180 (Layout → `layout`, Items slot → `items`) and `.Primitives/Description-List/Item`
@@ -343,11 +335,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   - **P2 · Seed the contrast/targets baseline:** `node tools/platform-audit/audit.mjs --quality --viewports=1512,390
     --baseline-update=contrast,targets` over all pages, plus a `--dark` pass (≈20 min). Until then those known
     warnings show as new.
-  - **P2 · Exact sheet review:** add `Read` to the PostToolUse matcher in `Zen-CodeBase/.claude/settings.json` so a
-    sheet's hash is saved when it is opened (needs the user's OK: settings), and give each run its own sheet folder
-    (B3), since `.platform-shots/` is shared by sessions. **Sweep 2026-10-07:** done another way: the Stop hook scans the transcript for PNG Reads (stop-gate.mjs:51, :67), so no settings change is needed. Still open: one sheet folder per run (run.mjs:495).
-  - **P2 · Token builds run through Bash** (`npm run tokens:build`) are not recorded by post-edit, so the Stop hook does
-    not ask for QA after a token change made only in `tokens/source`.
   - **P2 · Live Figma drift found by `__HASHES`:** 9 of 18 sets in `checkbox-radio-chip-popover.json` (Chip/Normal,
     Chip/Advanced, Chip/Number-Only, Popover label/item primitives …) no longer hash-match; check whether this is a
     real change or only the frame's variable mode (captures are not mode-independent until kit C1).
@@ -478,15 +465,13 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
     templates, or raise their limit.
 - **From the AI-readiness re-evaluation of 2026-10-02** (session "Đánh giá khả năng AI với library hiện tại"; blind trial on
   the packed tarball + memory-vs-repo audit; session log 2026-10-02, "AI-readiness re-evaluation"). Proposal, nothing fixed:
-  - **P2 · App checks are weaker than repo checks:** CSS rules run only with `zen-usage --css` (init/ACM say plain
-    `zen-usage`); `interaction/action-without-handler` is repo-only; `mobile/full-size-controls` keys on PlatformPhone.
-  - **P2 · MCP answers too big:** `get_component` 8–15 KB with Figma ids and repo notes, `get_template` 39 KB; 5 guideline
-    lines cite `component-usage-rules.md §n`, which the package does not ship. Add a brief mode; drop repo-only notes.
   - **P2 · Contrast in light mode (designer decision):** Content/Neutral/Tertiary #828282 on white 3.84:1 (ListItem and
     Table captions, chart axis), Table header 3.78:1, tonal destructive Button 3.8:1; every app inherits them (axe AA). **Sweep 2026-10-07:** the Tabs inactive label, Light kickers and Table headers (3.74–3.79:1) and the Danger button text (3.74:1) from the Studio polish list are the same question.
   - **P2 · Memory-only rules → repo:** token-sync gotchas (skills/zen-token-sync points to private memory), playground empty
     slots, backup naming on APFS; 15 more rules are documented but unchecked (elevation follows Sidebar, grouped lists,
-    table without container, phone Chips not Segmented…).
+    table without container, phone Chips not Segmented…). **Batch C 2026-10-07:** the token-sync gotchas are in
+    skills/zen-token-sync now. Still open: the playground empty-slot and APFS backup notes live in the Mac's memory
+    (not readable from a cloud session), and the unchecked rules (see the Container+Table rule row).
   - **P2 · Distribution:** `private: true`, 22 local commits not pushed, CI never ran; apps outside this Mac cannot install. **Sweep 2026-10-07:** done: the branch is pushed and CI runs (its Package failure is the CI row at the top of the Backlog). Still open: `private: true` (a decision: publish, and where).
 - P3 (2026-10-03, session "Component Theme tokens update"): re-capture the Input/Search contracts. `figma-kit status` on
   Field-Only, Text-Area, Search/Popover, Search/Default, Autocomplete-Field and Text-Field: 152 variants differ. Real

@@ -1009,11 +1009,12 @@
       "file": "docs/guidelines/date-picker.md",
       "apiFile": "docs/api/date-picker.json",
       "figma": "Date-Picker/Single-Calendar (page 453:32817)",
-      "import": "import { DatePicker, DateField, DatePickerItem, DatePickerHeader, DatePickerAction, DatePickerMonthYear, DatePickerTimePicker } from \"@zen/design-system\";",
-      "purpose": "Pick a date or a date range. DatePicker is the calendar panel itself and is visible by default (open defaults to true), like an inline calendar; DateField is the input that opens it in a popover.",
+      "import": "import { DatePicker, DateField, DatePickerSheet, DatePickerItem, DatePickerHeader, DatePickerAction, DatePickerMonthYear, DatePickerTimePicker } from \"@zen/design-system\";",
+      "purpose": "Pick a date or a date range. DatePicker is the calendar panel itself and is visible by default (open defaults to true), like an inline calendar; DateField is the input that opens it in a popover (a Bottom Sheet on a phone); DatePickerSheet is the phone picker of Figma Date-Picker/Mobile.",
       "use": [
         "DateField in forms (the field owns the popover); inline DatePicker for booking-style range selection.",
         "A DatePicker anchored to your own trigger: pass open, onClose and anchorRef.",
+        "DatePickerSheet on a phone, from your own trigger (a Dates row): selectionMode=\"single\" is one month with Cancel / OK; \"range\" stacks the months (calendar=\"stacked\") with your `summary` (the price for the nights) beside OK.",
         "Inline (no onClose / onOpenChange / anchorRef) the calendar has no surface of its own (no popover fill, border, padding or shadow, as Figma's in-place calendar): place it in a Card or panel."
       ],
       "avoid": [
@@ -1039,7 +1040,8 @@
           "showActions?: boolean = false",
           "action?: single|dual = dual",
           "selectionMode?: single|range = single",
-          "calendar?: single|dual = single",
+          "calendar?: single|dual|stacked = single",
+          "monthCount?: number = 12",
           "device?: desktop|mobile",
           "timePicker?: boolean = false",
           "time?: DatePickerTime",
@@ -1075,10 +1077,35 @@
           "minDate?: Date",
           "maxDate?: Date",
           "today?: Date"
+        ],
+        "DatePickerSheet": [
+          "open?: boolean",
+          "isOpen?: boolean (deprecated)",
+          "onOpenChange?: (open: boolean) => void",
+          "onClose?: () => void",
+          "title?: ReactNode",
+          "selectionMode?: single|range = single",
+          "value?: Date|null",
+          "defaultValue?: Date|null = null",
+          "range?: DatePickerRange|null",
+          "defaultRange?: DatePickerRange|null = null",
+          "onApply?: (value: Date|null, range: DatePickerRange|null) => void",
+          "onValueChange?: (date: Date|null) => void",
+          "onRangeChange?: (range: DatePickerRange) => void",
+          "onCancel?: () => void",
+          "minDate?: Date",
+          "maxDate?: Date",
+          "today?: Date",
+          "monthCount?: number = 12",
+          "summary?: ReactNode",
+          "applyLabel?: ReactNode",
+          "cancelLabel?: ReactNode",
+          "className?: string"
         ]
       },
       "do": [
-        "On a phone, put the calendar in the screen or a Bottom Sheet inline: at the mobile breakpoint it takes the Figma mobile primitives by itself and fills the width; pass device=\"mobile\" only to force them (a popover, a narrow preview).",
+        "On a phone, let DateField open its sheet (it does at the mobile breakpoint), or open DatePickerSheet from your own row; for a range, update `summary` from onRangeChange so the price follows the picks.",
+        "On a phone, put an inline calendar in the screen or a Bottom Sheet: at the mobile breakpoint it takes the Figma mobile primitives by itself and fills the width; pass device=\"mobile\" only to force them (a popover, a narrow preview).",
         "Disable impossible dates (past check-in) with minDate / maxDate (earlier or later days disabled); in a DateField a typed date outside them is kept and marked aria-invalid, so pair the range with an `error` message.",
         "Pass `today` (your app's date: a server, business or demo date) when it is not the device's; the Today ring and the month the calendar opens on follow it. DateField forwards `today`, `minDate` and `maxDate` to its calendar.",
         "Show the chosen range and its consequence (nights, price) next to the calendar.",
@@ -2970,6 +2997,7 @@
           "primaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body fo…",
           "secondaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body fo…",
           "actionsDirection?: horizontal|vertical = horizontal",
+          "footer?: ReactNode",
           "onSubmit?: (event: FormEvent<HTMLFormElement>) => void",
           "dismissible?: boolean = true",
           "inline?: boolean = false",
@@ -3396,7 +3424,7 @@
         ]
       },
       "do": [
-        "Build page structure with Stack and Grid and pick the gap by the relationship, the same step everywhere (docs/component-usage-rules.md §13): 2xs inside one inline item, xs a thing and its label or a toolbar row, sm a group of Buttons or choices, md blocks inside one surface and stacked form fields, lg columns and groups inside a surface, xl page sections (Figma Master-Layout).",
+        "Build page structure with Stack and Grid and pick the gap by the relationship, the same step everywhere: 2xs inside one inline item, xs a thing and its label or a toolbar row, sm a group of Buttons or choices, md blocks inside one surface and stacked form fields, lg columns and groups inside a surface, xl page sections (Figma Master-Layout).",
         "Step up one level at least between groups: the gap between groups is always larger than the gap inside them.",
         "Use Stack direction=\"row\" with justify=\"between\" for a title + actions row.",
         "Use Grid minColumnWidth for card grids so they reflow from phone to desktop.",
