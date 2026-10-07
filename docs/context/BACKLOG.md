@@ -154,8 +154,6 @@ Read this file only when picking up work or logging a follow-up.
     and Tabs only, so there is no slot for a banner under the bar.
 
 ## Backlog (plan before opening sessions)
-- **P3 · design-tokens page in dark: 11 [contrast] warnings (2026-10-07, first `qa --all` in a while):** section titles
-  ("Global Colors", "Component Theme"…) read 1.38:1 in dark; the same 11 on 63b458c (before batch 6b), so not from it.
 - **P3 · usage:selftest fails now and then while another gate runs (2026-10-07):** twice a fixture rule reported 0 hits
   (`alert-banner/small-no-action`…, then `content/lights-no-light-text`) and passed 3/3 right after; both times a
   `npm run qa` ran in parallel. Find the shared state (a cache or a file the gate rewrites) before trusting a red run.
@@ -270,7 +268,7 @@ Read this file only when picking up work or logging a follow-up.
   touch that page.
 - **P3 · Design Tokens dark nav contrast (2026-10-04):** `npm run qa` dark audit warns 11× `[contrast] design-tokens@1512-dark`
   "page: <section>" 1.38:1 (Global Colors … Typography Configuration); first seen after the 2026-10-04 Global Colors
-  Dark-contrast sync, not from the Studio code view change that ran the gate. Check the classic token-page nav text in Dark.
+  Dark-contrast sync, not from the Studio code view change that ran the gate. Check the classic token-page nav text in Dark. **Still open 2026-10-07:** the same 11 in `qa --all` before and after batch 6b (63b458c); Zen-High-Contrast is opt-in (`contrast="high"`), so it does not change this default-contrast Dark audit.
 - **P3 · Empty State guideline vs Studio (2026-10-04):** the Search guideline says `illustration={false}` "in narrow
   panels such as sidebars and pickers", but the user wants the Studio tool's empty states illustrated (done for Code,
   Layers, Pages, Assets). Decide: Studio-only exception, or update the guideline (`guidelines.source.mjs` Search + Empty
