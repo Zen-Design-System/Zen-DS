@@ -154,6 +154,15 @@ Read this file only when picking up work or logging a follow-up.
     and Tabs only, so there is no slot for a banner under the bar.
 
 ## Backlog (plan before opening sessions)
+- **P2 · Figma check for ToggleListItem and ChipGroup (2026-10-07, batch 6):** both were composed in a cloud session
+  with no Figma MCP (user's choice); compare them with the live file 9nZv4uW2LT21yuHabMTCh1 (a List-Item with a
+  Toggle-Button trailing slot, a single-select Chip row) and add their Do/Don't visuals (PlatformGuidelineVisuals.tsx).
+- **P3 · Gate failures seen only in the cloud container (2026-10-07):** TabItem's axe baseline lists color-contrast that
+  this Chromium (1194, Playwright 1.63 wants 1243) no longer finds, and chat's emoji picker reports 36 [fit] errors
+  (3px wider than their box with the container's emoji font). Both fail the same on 29305b4; check on a desktop run
+  before touching the baseline or chat.css.
+- **P3 · side-panel examples coverage (2026-10-07, gate ④):** no edge-case and no mobile example
+  (src/platform/examples/pages/side-panel.tsx).
 - **P2 · CI "Package" step fails on every run of the 0.4.0 branch (2026-10-07, seen when merging PR #1):** 14 of 14
   finished CI runs since 2026-09-29 failed, almost all in "Package (pack, install in a temp app, budgets, zen-usage,
   MCP, zen-ds)" (twice Browser tests, twice Platform audit); `npm run verify:package` passes locally ("Package OK").
@@ -185,7 +194,7 @@ Read this file only when picking up work or logging a follow-up.
   a colour emoji in text whose colour has alpha < 1 (Neutral Base/Light, captions, DescriptionList terms) — wrap it in
   an opaque span; (2) proposed DS helper (e.g. an inline `Emoji` primitive) so apps need not know the trick;
   (3) `examples/pages/chat.tsx:912` docs description "sends a 👋" renders at alpha .69; (4) `appLayer/shell.tsx:463`
-  "Phone app" (HrPhoneExample) does not render on the App Shell page — `examples/pages/app-shell.tsx` wins; dead or meant? **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** (2) no `Emoji` component; the opaque-span tip goes into the guideline → batch 6.
+  "Phone app" (HrPhoneExample) does not render on the App Shell page — `examples/pages/app-shell.tsx` wins; dead or meant? **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** (2) no `Emoji` component; the opaque-span tip goes into the guideline → batch 6 · **Done 2026-10-07 (batch 6)** (Text guideline do-line).
 - **P3 · Sidebar section titles (2026-10-06, session "Khoảng trống Report và Settings"):** (1) proposed harness rule
   `sidebar/untitled-section`: a `sections` entry after the first without `label` (renders a bare 16px gap); fixtures
   in `tools/usage-guard/fixtures`. (2) Titled one-item groups await the user's call (merge or keep):
@@ -195,7 +204,7 @@ Read this file only when picking up work or logging a follow-up.
   screens (`src/platform/appLayer/shellScreens.tsx` People/Time off/Settings, `shell.tsx`) pass `brand` without
   `logoCollapsed`: their rails are 84px (fallback, centred) vs 88px on the Modules screen. (2) HR module rails turn
   the `search` slot (Back + module title) into a magnifier "Search" button that only expands the panel: a Back
-  chevron (or nothing) would match what the slot holds. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** (2) the collapsed rail shows a Back chevron → batch 6.
+  chevron (or nothing) would match what the slot holds. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** (2) the collapsed rail shows a Back chevron → batch 6 · **Done 2026-10-07 (batch 6)** (Sidebar `searchCollapsed`; HrShell passes its Back IconButton).
 - **P3 · Card → ListBox leftovers (2026-10-06):** (1) done 2026-10-06 by session "Canvas và surface mặc định": the
   screen stage is Canvas/Default and the 4 list Cards (menu Projects + Open tasks, text Open tasks, visually-hidden
   Skip link) are ListBoxes; sidebar RowCard on Alt/Flat canvases stays a Card.
@@ -229,7 +238,7 @@ Read this file only when picking up work or logging a follow-up.
   (list-item/trailing-button-medium); avatar › Profile photo has no h1 (outline-h1/start); app-shell › Search in the top
   bar "Activity, new" and chat › First message "Audio call" dead clicks; button.tsx:403 Heading/2 Text on a Studio-detached
   row (type/visual-heading) and its 2px Stack gap (ladder); list-item › Pending invites Revoke flagged as a dead click but
-  works (3 → 2 rows + toast). **Sweep 2026-10-07:** done: (6) the list block is a `ListBox theme="shadow"` (app-shell.tsx:252); (7) the badge, menu, list-item and layout Main column / Centred code strings match their render, pagination's snippet has its List, and avatar's status row is a Stack above the ListBox (avatar.tsx:107-121). Duplicates: layout › Elevated panel (the Card → ListBox leftovers row above), "Activity, new" (a probe-order artifact, Done line of 2026-10-05 batch 1), button Heading/2 Text and 2px gap (Structural audit warnings row), Revoke (closed as a probe artifact). Still open: (1)–(5); (7) the stepper, date-picker and rating snippets; action-bar xs trailing buttons; avatar › Profile photo h1; chat › First message now flags "Video call" (its handler exists: check by hand). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** (3) phone sheets pad 20px and (4) Card uses radius xl on phones → batch 6; (5) chat rows keep Figma's 16px (closed).
+  works (3 → 2 rows + toast). **Sweep 2026-10-07:** done: (6) the list block is a `ListBox theme="shadow"` (app-shell.tsx:252); (7) the badge, menu, list-item and layout Main column / Centred code strings match their render, pagination's snippet has its List, and avatar's status row is a Stack above the ListBox (avatar.tsx:107-121). Duplicates: layout › Elevated panel (the Card → ListBox leftovers row above), "Activity, new" (a probe-order artifact, Done line of 2026-10-05 batch 1), button Heading/2 Text and 2px gap (Structural audit warnings row), Revoke (closed as a probe artifact). Still open: (1)–(5); (7) the stepper, date-picker and rating snippets; action-bar xs trailing buttons; avatar › Profile photo h1; chat › First message now flags "Video call" (its handler exists: check by hand). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** (3) phone sheets pad 20px and (4) Card uses radius xl on phones → batch 6 · **Done 2026-10-07 (batch 6)** (bottom-sheet.css --zen-bottom-sheet-inset; card.css XLarge on phones); (5) chat rows keep Figma's 16px (closed).
 - **P3 · Sky/Mint/Bronze/Golden themes, follow-ups (2026-10-05, session "Cập nhật Zen Variables tokens"):** (1) Avatar
   Golden Solid has white initials at 2.58:1 (Bronze 3.38:1): add `golden` to `avatar/solid-initials-contrast` (today
   green|teal|orange|cyan) and to the avatar guideline Don't; (2) Figma Dock-Icon Solid Sky, Mint (and Yellow) draw white
@@ -274,7 +283,7 @@ Read this file only when picking up work or logging a follow-up.
   flat **primary** ⋯, while Figma and the Card default are flat **Secondary** ⋮: card.tsx:172/585, badge.tsx:100/411,
   metric.tsx:159/532 (level only), appLayer/navigation.tsx:466/852. Switching trips `button/secondary-justified` (also
   in the code strings). Needs the user's call: exempt flat IconButtons from the rule, `zen-allow-secondary` per site, or
-  a Card `subAction={{ label, items }}` that renders the Menu with the Figma trigger. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** exempt flat IconButtons from `button/secondary-justified`; the examples switch to Figma's flat Secondary ⋮ → batch 6.
+  a Card `subAction={{ label, items }}` that renders the Menu with the Figma trigger. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** exempt flat IconButtons from `button/secondary-justified`; the examples switch to Figma's flat Secondary ⋮ → batch 6 · **Done 2026-10-07 (batch 6)** (check-usage.mjs; card, badge, metric, appLayer/navigation triggers).
 - **P3 · Card playground slot corners:** `.platform-slot` (radius Base 12px) inside a Small Card (16px, inset 16px) is
   not concentric ([rhythm] card@1512/390), new since the slot fills the card width (platform.css:817).
 - **P2 · App Shell examples (checked 2026-10-03 after the List Item refactor; none caused by it):**
@@ -292,7 +301,7 @@ Read this file only when picking up work or logging a follow-up.
 - ~~**P2 · List Item on phones (designer decision, 2026-10-03):** interactive rows put their text at Padding/XLarge
   24px while phone page margins are 20px.~~ Done 2026-10-03: Figma List-Item gained Device=Desktop/Mobile (Mobile binds
   Margin-Comfortable, 20px); code pads Margin-Comfortable by breakpoint. Left: tablet Margin-Comfortable is 24px while
-  Card/Modal padding is 20px, so tablet rows sit 4px inside a Card's content (Figma has no Tablet device). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** on tablet, rows follow the Card padding (20px); no Tablet device in Figma → batch 6.
+  Card/Modal padding is 20px, so tablet rows sit 4px inside a Card's content (Figma has no Tablet device). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** on tablet, rows follow the Card padding (20px); no Tablet device in Figma → batch 6 · **Done 2026-10-07 (batch 6)** (ListItem rows already sit in ListBox Card-padding-medium; the deprecated comfortable inset now follows it on tablet).
 - **P3 · List Item follow-ups (session "Component List Item refactor"):** EmptyError skeleton rows are static (0 / Gap/Medium
   16px) while the loaded rows are interactive (12px × 24px), so the list shifts when loading ends; a few static rows
   still carry Studio-written `selected={false}` (app-shell, action-bar, button); toggle.tsx "Show completed" snippet shows a
@@ -490,7 +499,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     Done 2026-10-02 (session "Platform UI/UX redesign với canvas editor"): Neutral - S5, S6, S7 synced from Component Theme.json.
   - **P3 · AiChatField focus ring (decision):** focus adds a 1px Border/Neutral/Subtle ring, which in S4 equals the new
     resting stroke, so only the caret changes; ChatComposer uses the standard Input ring (user-approved 2026-10-02).
-    Option: give AiChatField (all three styles) the same ring. `ai-chat.css` focus-within rules. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** all three styles take the standard Input ring → batch 6.
+    Option: give AiChatField (all three styles) the same ring. `ai-chat.css` focus-within rules. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** all three styles take the standard Input ring → batch 6 · **Done 2026-10-07 (batch 6)** (ai-chat.css :has(> .zen-ai-field__input:focus)).
   - **Done 2026-10-02 (user: "sửa lỗi đi") · P3 · Intermittent smoke finding on chat:** a race in the audit's smoke
     layer check, not a UI bug: it sampled a popover rect read before the mouse moved, while chat demo timers re-pinned a
     thread and the portalled popover moved with its anchor. The check now samples the popover's live rect
@@ -588,7 +597,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   - **P2 · Thin examples sweep (item 13 rest):** Dialog "Form · 1-3 with preview" and ModalForm "Basic" still open from
     a one-line row; scan other overlay/trigger examples the same way (script in the session log). **Sweep 2026-10-07:** done: "Form · 1-3 with preview" and "Basic" are gone; dialog.tsx:667-794 are scenario examples. The scan of the other overlay examples has not been re-run.
   - **P3 · Sidebar with a custom `brand`** loses its own collapse control (flat canvas without a top bar must use
-    logo/productName). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** a custom `brand` keeps the collapse control → batch 6.
+    logo/productName). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** a custom `brand` keeps the collapse control → batch 6 · **Done 2026-10-07 (batch 6)** (Sidebar SidebarCollapseButton after the brand).
   - **P3 · Components seen by the template agents:** emoji DockIcon XSmall draws a 12px glyph (Figma 28px); ProgressCircle
     has no decorative mode (status read twice); ModalForm `header={false}` has no accessible name; Box has no tinted
     surfaces (Kanban column colours); Card content does not fill a stretched card; AiChatBlock greeting is an h2 (Home
@@ -759,9 +768,9 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     (layout, content, navigation, form, shell, shellScreens, text, panels) no longer render; the playgrounds there do.
   - **Done 2026-10-02 · Brief §3b** now says example cards inherit the docs breakpoint.
   - **P3 · Component nits seen in the second fix round:**
-    - PageHeader `headingLevel={2}` renders Heading/2 (25px) next to the 28px h1; the house ladder says h2 = Heading/4. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** PageHeader h2 uses Heading/4 (house ladder) → batch 6.
+    - PageHeader `headingLevel={2}` renders Heading/2 (25px) next to the 28px h1; the house ladder says h2 = Heading/4. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** PageHeader h2 uses Heading/4 (house ladder) → batch 6 · **Done 2026-10-07 (batch 6)** (PageHeader.tsx; typography ladder table; guideline).
     - EmptyState inside a Card is lopsided: no top padding, 48px at the bottom (`empty-state.css:10`).
-    - FormActions in a narrow card (~424px) stack full width, and a dirty-only "Undo changes" makes the card grow. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** FormActions stack by container width (< 480px) → batch 6.
+    - FormActions in a narrow card (~424px) stack full width, and a dirty-only "Undo changes" makes the card grow. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** FormActions stack by container width (< 480px) → batch 6 · **Done 2026-10-07 (batch 6)** (already so since 2026-09-30: Form.tsx STACK_BELOW measures the parent).
     - The read-only TextArea still draws its resize grip.
     - Table has no selected-row cue (aria-current / Selected fill) for the row whose detail is open in a docked panel.
     - Inline DescriptionList amounts drop under their terms at 390.
@@ -817,7 +826,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     - Table: `TableMedia` defaults to `bold = true` while every Figma media cell defaults to Bold=No (behaviour
       change, needs a decision); Photo-Cell radius (XSmall at 24px, Small at 32px) has no API or harness check;
       the text editor adds Effect/Popover over a Neutral/Pale fill when it grows (house-rule exception?); a duplicate
-      `gap` in the select-editor rule (`table.css:85`). **Sweep 2026-10-07:** done: the duplicate `gap` is gone (table.css:104). Still open: Photo-Cell radius; decisions: TableMedia `bold` default, the text editor popover lift. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** TableMedia defaults to `bold=false` like Figma (CHANGELOG: behaviour change) → batch 6; the text editor lift is an accepted exception (closed).
+      `gap` in the select-editor rule (`table.css:85`). **Sweep 2026-10-07:** done: the duplicate `gap` is gone (table.css:104). Still open: Photo-Cell radius; decisions: TableMedia `bold` default, the text editor popover lift. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** TableMedia defaults to `bold=false` like Figma (CHANGELOG: behaviour change) → batch 6 · **Done 2026-10-07 (batch 6)** (Table.tsx; call sites keep `bold`; CHANGELOG Changed); the text editor lift is an accepted exception (closed).
     - Breadcrumbs: the Sub plate's bleed covers the first 4px of the chevron's hit area. (The 28px height is fixed:
       20px as in Figma since 2026-09-29.)
     - Toggle: the platform showcases still pass the deprecated `selected` / `onSelectedChange`
@@ -985,7 +994,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     - A portaled ModalForm ignores the phone breakpoint, so date fields stay in 2 columns at 390.
   - **P3 · HR templates:**
     - The Zen AI floating button sits over rows while the page scrolls (AppShell already keeps room for it at the end
-      of the page). On phones it covers a row's ⋯ mid-scroll: consider hide-on-scroll. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** on phones the button hides while scrolling down and comes back on scroll up → batch 6.
+      of the page). On phones it covers a row's ⋯ mid-scroll: consider hide-on-scroll. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** on phones the button hides while scrolling down and comes back on scroll up → batch 6 · **Done 2026-10-07 (batch 6)** (AppShell useHideOnScroll, app-shell.css motion tokens).
     - Team budgets still scrolls sideways at 390.
     - The "Who's out" chips wrap onto 2 lines.
     - Delete task cannot be reached on a phone.
@@ -1046,7 +1055,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     `zen-usage`); `interaction/action-without-handler` is repo-only; `mobile/full-size-controls` keys on PlatformPhone.
   - **P2 · Missing app patterns (trial):** switch row (ListItem + Toggle), inset-grouped List section (needed an inline
     `--zen-list-inset`), single-choice Chip group with radio semantics, profile header, Metric trend formatter, a phone
-    settings template. New components/templates need the user's OK. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** approved now: a switch row (ListItem + Toggle) and a single-choice Chip group with radio semantics → batch 6; the profile header, trend formatter and phone settings template wait.
+    settings template. New components/templates need the user's OK. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** approved now: a switch row (ListItem + Toggle) and a single-choice Chip group with radio semantics → batch 6 · **Done 2026-10-07 (batch 6)** (ToggleListItem + ChipGroup, composed, no Figma master yet; harness list-item/switch-row, chip/radio-is-chip-group); the profile header, trend formatter and phone settings template wait.
   - **P2 · Vietnamese:** `plural()` is English-only; `copy/plural-count` cuts words at the first non-ASCII letter
     ("phiên" → "phi") and fires under `locale="vi"`.
   - **P2 · MCP answers too big:** `get_component` 8–15 KB with Figma ids and repo notes, `get_template` 39 KB; 5 guideline
@@ -1070,7 +1079,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - P3 (same session, needs a user decision): `.zen-chat-composer__field` copies the Input focus ring with
   Color/Focus/Neutral/Solid (`chat.css:142`, guideline "standard Input focus ring"); switch it to `--zen-input-border-focus`
   so Neutral-S7 matches Input? (2026-10-03 evening: `Input/Border/Focus` is now Color/Focus/Neutral/Solid in all nine
-  modes, so both already render the same; only the binding name differs.) **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** the composer binds `--zen-input-border-focus` → batch 6.
+  modes, so both already render the same; only the binding name differs.) **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** the composer binds `--zen-input-border-focus` → batch 6 · **Done 2026-10-07 (batch 6)** (chat.css).
 - P3 (same session, for the designer): ~~Neutral-S7 focus is faint by design~~ — resolved 2026-10-03 evening: the designer
   set `Input/Border/Focus` in Neutral-S7 to Focus/Neutral/Solid (export synced). Still open: `Input/Border/Popover-Search` stores "Focus/Neutral/Solid at
   opacity 0" in S1–S6, which the export writes as `#NANNANNAN`: a plain transparent value would export cleanly. Also

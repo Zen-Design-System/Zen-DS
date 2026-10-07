@@ -19,6 +19,11 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- **ToggleListItem and ChipGroup (2026-10-07, backlog batch 6):** `<ToggleListItem>` is a settings row whose whole
+  surface flips its switch (title names it, caption describes it); `<ChipGroup>` is a single-choice radio group of
+  Normal chips (one Tab stop, arrow keys move the choice). Both are composed from the existing Figma primitives (no
+  Figma master yet). Sidebar takes `searchCollapsed`, what the collapsed rail shows in place of `search`. Harness:
+  `list-item/switch-row`, `chip/radio-is-chip-group`.
 - Docs platform and Zen Studio: required sign-in with Google through PocketBase (`src/platform/auth/`); Log out in the
   platform topbar's account menu and in the Studio brand menu. Automated browsers (QA gate, E2E) skip the sign-in screen.
 - **Zen-High-Contrast (2026-10-05, prototype):** `<ZenProvider contrast="high">` (or `"system"`, which follows the OS
@@ -870,6 +875,13 @@ removed (four unused colour ramps were, see Removed).
     which still bleeds outside the trail).
 
 ### Changed
+- **Component decisions of backlog batch 8 (2026-10-07, batch 6):** `TableMedia` defaults to `bold={false}` like every
+  Figma media cell — **behaviour change**: pass `bold` to keep a bold label. PageHeader `headingLevel={2}` renders
+  Heading/4 (the house ladder's h2). AiChatField (all styles) and the chat composer take the standard Input focus ring.
+  On phones a BottomSheet pads 20px at the sides, a Medium Card takes radius XLarge, and AppShell's `floatingAction`
+  hides while the page scrolls down. A Sidebar with a custom `brand` keeps its collapse control. A flat Secondary
+  IconButton no longer trips `button/secondary-justified` (the Card Sub-Action ⋮ in the examples uses it). Text
+  guideline: wrap a colour emoji in an opaque span inside light text.
 - **Zen Studio toolbar without dividers (2026-10-06):** the vertical rules between the toolbar groups (brand · tools,
   theme · undo/redo, before Drafts) are gone; groups are told apart by space instead (4px inside a group, 8px between).
 - **Zen Studio canvas chrome placed as in Figma (2026-10-06):** the Select · Hand · Interact tools left the top toolbar

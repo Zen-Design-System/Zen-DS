@@ -388,3 +388,20 @@
 - Full Studio E2E 157/158 before the IN-14 fix, then the 7 rows + select/keyboard groups (26) all work; baseline
   recorded (158 rows, all works). The gate's other ✗ are environment-only and fail the same on 29305b4: TabItem axe
   baseline (color-contrast no longer found) and 36 chat-picker emoji [fit] errors (the container's emoji font).
+
+## Backlog batch 6: component decisions + two composed patterns (session "Session continuation check", tier L)
+
+- User: "theo thứ tự" (5c, then 6, 6b, 7, 9). The 13 batch 8 decisions tagged → batch 6, all closed in BACKLOG with
+  pointers: focus rings (AiChatField all styles, composer binds --zen-input-border-focus), PageHeader h2 = Heading/4
+  (+ typography ladder table), TableMedia bold=false (41 call sites keep `bold`), phone BottomSheet inset 20px, Medium
+  Card radius XLarge on phones, deprecated comfortable List inset = Card padding on tablet, FormActions (already by
+  container width since 09-30), Sidebar custom brand keeps the collapse control + `searchCollapsed` (HR rail Back),
+  AppShell floatingAction hides on scroll down on phones (motion tokens × --zen-motion-movement), harness exempts flat
+  Secondary IconButtons (8 ⋮ triggers switched), Text guideline emoji tip.
+- New patterns (user picked "compose from existing" — no Figma MCP here; the user's 127.0.0.1:3845 Figma MCP is on their
+  machine): ToggleListItem (label row around ToggleButton; ToggleButton now puts aria-labelledby/-describedby on the
+  switch) and ChipGroup (radiogroup, roving tabindex, arrows wrap and skip disabled; Chip drops aria-pressed as a
+  radio). Rules list-item/switch-row, chip/radio-is-chip-group (170 rules); examples Chip "Pick one", List Item "Email
+  switches"; stories; smoke fixtures; tests/interaction/chipgroup-togglelistitem.test.tsx (4/4). Playwright treats a
+  click inside a <label> as a click on its (hidden) control, so the row-press test forces the click.
+- Generated: guidelines/api docs, tools/studio/compile-api.generated.mjs, library keywords.
