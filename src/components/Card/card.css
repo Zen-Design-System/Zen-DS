@@ -14,6 +14,9 @@
   text-align: start;
 }
 .zen-card[data-spacing="small"] { --zen-card-padding: var(--zen-card-padding-small, 16px); --zen-card-radius: var(--zen-corner-radius-large, 16px); }
+/* On phones a Medium card takes Corner-Radius/XLarge (20px), the radius of the `radius="xl"` row blocks beside it
+   (backlog batch 6, user 2026-10-07). */
+[data-breakpoint="mobile"] .zen-card:not([data-spacing="small"]) { --zen-card-radius: var(--zen-corner-radius-xlarge, 20px); }
 /* Shadow: Shadow/Bottom/Level-1 (the card clips its content, so the spread-aware token applies). */
 .zen-card[data-tone="shadow"] { box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
 /* Border: a static card is framed with Neutral/Pale (non-actionable container, §6); the clickable variant below steps up to Subtle.

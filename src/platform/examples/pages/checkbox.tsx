@@ -50,7 +50,7 @@ function SelectFilesExample() {
   };
   const download = () => toast({ title: `${plural(picked.length, "file")} downloaded` });
   const columns: TableColumn<StudioFile>[] = [
-    { id: "name", header: "Name", cell: (file) => <TableMedia media={<FileIcon format={fileIconFormatOf(file.name)} size="lg" />} caption={projectById(file.project).name}>{file.name}</TableMedia> },
+    { id: "name", header: "Name", cell: (file) => <TableMedia bold media={<FileIcon format={fileIconFormatOf(file.name)} size="lg" />} caption={projectById(file.project).name}>{file.name}</TableMedia> },
     { id: "owner", header: "Owner", cell: (file) => <TableMedia bold={false} media={<PersonAvatar person={people[file.owner]} size="xsmall" />}>{people[file.owner].name}</TableMedia> },
     { id: "updated", header: "Updated", cell: (file) => <TableText>{formatRelative(file.updated)}</TableText> },
     { id: "size", header: "Size", align: "right", cell: (file) => <TableText>{formatBytes(file.bytes)}</TableText> },

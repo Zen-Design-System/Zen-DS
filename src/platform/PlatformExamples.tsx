@@ -2037,7 +2037,7 @@ ${code}`} />
           <Table aria-label="Projects" rows={rows} getRowId={(row) => row.id} selectable={tableSelectable} selectedIds={tableSelected} onSelectionChange={setTableSelected} sort={tableSort} onSortChange={setTableSort}
             empty={<EmptyState title="No projects yet" illustration={false} primaryAction={{ label: "Create project", onClick: () => logAction("Create project", "primaryAction.onClick") }}>Projects you create show up here.</EmptyState>}
             columns={[
-              { id: "name", header: "Project", sortable: true, width: "34%", cell: (row) => <TableMedia media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia> },
+              { id: "name", header: "Project", sortable: true, width: "34%", cell: (row) => <TableMedia bold media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia> },
               { id: "status", header: "Status", cell: (row) => <Badge size="medium" theme={row.status === "Live" ? "green" : row.status === "Blocked" ? "red" : "yellow"} background="subtle">{row.status}</Badge> },
               { id: "progress", header: "Progress", width: "20%", cell: (row) => <ProgressBar value={row.progress} label aria-label={`${row.name} progress`} /> },
               { id: "trend", header: "Traffic", cell: (row) => <TableTrend trend={row.trend}>{row.delta}</TableTrend> },
@@ -2059,7 +2059,7 @@ ${code}`} />
   empty={<EmptyState title="No projects yet" illustration={false} />}
   columns={[
     { id: "name", header: "Project", sortable: true, cell: (row) => (
-      <TableMedia media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia>
+      <TableMedia bold media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia>
     ) },
     { id: "status", header: "Status", cell: (row) => <Badge size="medium" theme="green" background="subtle">{row.status}</Badge> },
     { id: "progress", header: "Progress", cell: (row) => <ProgressBar value={row.progress} label aria-label={\`\${row.name} progress\`} /> },

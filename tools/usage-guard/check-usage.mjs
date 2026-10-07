@@ -490,8 +490,9 @@ const HEADING_DEFAULT_STYLE = { 1: "Heading/1", 2: "Heading/4", 3: "Heading/Subh
 const TITLE_STYLE = /^(Heading|Display)\/|\/(Bold|Semi-?Bold)$/;
 export const rules = [
   { id: "button/secondary-justified", components: ["Button", "IconButton"], severity: "error", allow: "secondary", guideline: "docs/guidelines/button.md",
-    summary: "Secondary is a rare highlight; default to Primary (main CTA) or Tertiary.",
-    check: ({ attrs }) => /\bsecondary\b/.test(value(attrs, "level") ?? "") && "uses level secondary — use primary (main CTA) or tertiary, or justify with zen-allow-secondary." },
+    summary: "Secondary is a rare highlight; default to Primary (main CTA) or Tertiary. A flat IconButton is exempt: flat Secondary is Figma's quiet ⋮ trigger (Card Sub-Action).",
+    // Flat IconButtons are exempt (backlog batch 6, user 2026-10-07): flat Secondary is the Card Sub-Action ⋮ in Figma.
+    check: ({ tag, attrs }) => /\bsecondary\b/.test(value(attrs, "level") ?? "") && !(tag === "IconButton" && value(attrs, "appearance") === "flat") && "uses level secondary — use primary (main CTA) or tertiary, or justify with zen-allow-secondary." },
   { id: "button/filter-is-chip", components: ["Button", "IconButton"], severity: "error", allow: "filter-button", guideline: "docs/guidelines/chip.md",
     summary: "Filter, sort and scope pickers are Chip (variant=advanced), never buttons.",
     check: ({ attrs, children }) => {

@@ -440,7 +440,7 @@ export function HrExpenseOverviewTemplate() {
               columns={[
                 { id: "team", header: "Team", cell: (row) => {
                   const team = teams[row.team];
-                  return <TableMedia media={<DockIcon icon={team.icon} theme={team.theme} background="subtle" size="sm" />} caption={plural(team.headcount, "person", "people")}>{team.name}</TableMedia>;
+                  return <TableMedia bold media={<DockIcon icon={team.icon} theme={team.theme} background="subtle" size="sm" />} caption={plural(team.headcount, "person", "people")}>{team.name}</TableMedia>;
                 } },
                 { id: "budget", header: "Budget", width: "136px", align: "right", cell: (row) => <TableText>{formatMoney(row.budget)}</TableText> },
                 { id: "spent", header: "Spent", width: "136px", align: "right", cell: (row) => <TableText>{formatMoney(row.spent)}</TableText> },
@@ -492,7 +492,7 @@ export function HrExpenseOverviewTemplate() {
                 columns={[
                   { id: "claim", header: "Claim", cell: (row) => {
                     const category = expenseCategories[row.category];
-                    return <TableMedia media={<DockIcon icon={category.icon} theme={category.theme} background="subtle" size="sm" />} caption={row.merchant}>{row.title}</TableMedia>;
+                    return <TableMedia bold media={<DockIcon icon={category.icon} theme={category.theme} background="subtle" size="sm" />} caption={row.merchant}>{row.title}</TableMedia>;
                   } },
                   { id: "person", header: "Person", width: "184px", cell: (row) => {
                     const person = people[row.person];

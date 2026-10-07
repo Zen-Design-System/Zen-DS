@@ -194,7 +194,7 @@ function FilesTable() {
       return <IconButton appearance="flat" level="primary" size="md" icon={on ? "icon-star-01-solid" : "icon-star-01-line"} aria-pressed={on} aria-label={`Star ${row.name}`} onClick={() => toggleStar(row)} />;
     } },
     // Who changed the file and when share the name's caption, so the icon-only columns sit closer to the name.
-    { id: "name", header: "Name", cell: (row) => <TableMedia media={<FileIcon format={fileIconFormatOf(row.name)} size="lg" />} caption={`${people[row.owner].name} · ${formatRelative(row.updated)}`}>{row.name}</TableMedia> },
+    { id: "name", header: "Name", cell: (row) => <TableMedia bold media={<FileIcon format={fileIconFormatOf(row.name)} size="lg" />} caption={`${people[row.owner].name} · ${formatRelative(row.updated)}`}>{row.name}</TableMedia> },
     { id: "size", header: "Size", align: "right", width: "120px", cell: (row) => <TableText>{formatBytes(row.bytes)}</TableText> },
     { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", width: "72px", cell: (row) => (
       <TableActions>
@@ -518,7 +518,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       aria-pressed={starred(row)} aria-label={\`Star \${row.name}\`} onClick={() => toggleStar(row)} />
   ) },
   { id: "name", header: "Name", cell: (row) => (
-    <TableMedia media={<FileIcon format={fileIconFormatOf(row.name)} size="lg" />} caption={\`\${owner.name} · \${formatRelative(row.updated)}\`}>{row.name}</TableMedia>
+    <TableMedia bold media={<FileIcon format={fileIconFormatOf(row.name)} size="lg" />} caption={\`\${owner.name} · \${formatRelative(row.updated)}\`}>{row.name}</TableMedia>
   ) },
   { id: "size", header: "Size", align: "right", width: "120px", cell: (row) => <TableText>{formatBytes(row.bytes)}</TableText> },
   { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", width: "72px", cell: (row) => (

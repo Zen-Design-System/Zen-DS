@@ -98,7 +98,7 @@ function InvoiceStatus() {
     // Secondary actions live in the card's Sub-Action menu; the action that moves the invoice on sits at the bottom.
     <Card as="section" theme="flat" aria-labelledby={titleId}
       subAction={
-        <Menu align="end" trigger={<IconButton appearance="flat" level="primary" size="sm" icon="icon-dots-horizontal-line" aria-label={`Actions for ${overdue.number}`} />}
+        <Menu align="end" trigger={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label={`Actions for ${overdue.number}`} />}
           items={[
             { id: "remind", label: "Send reminder", icon: "icon-mail-01-line", disabled: paid, onSelect: () => toast({ title: "Reminder sent", children: `${overdue.client} gets a copy of ${overdue.number}.` }) },
             { id: "pdf", label: "Download PDF", icon: "icon-download-01-line", onSelect: () => toast({ title: "Download started", children: `${overdue.number}.pdf` }) },
@@ -414,7 +414,7 @@ const caption = (task) => \`\${task.key} · \${task.status === "Done" ? finished
 
 <Card as="section" theme="flat" aria-labelledby={titleId}
   subAction={<Menu align="end"
-    trigger={<IconButton appearance="flat" level="primary" size="sm" icon="icon-dots-horizontal-line" aria-label="Actions for INV-2026-0139" />}
+    trigger={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label="Actions for INV-2026-0139" />}
     items={[
       { id: "remind", label: "Send reminder", icon: "icon-mail-01-line", disabled: status === "Paid", onSelect: sendReminder },
       { id: "pdf", label: "Download PDF", icon: "icon-download-01-line", onSelect: downloadPdf },

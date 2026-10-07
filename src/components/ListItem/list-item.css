@@ -6,6 +6,9 @@
 /* @deprecated List inset: gives the rows a horizontal padding (kept for existing apps; the Chat conversation item sets
    --zen-list-inset itself, as its Figma instance pads Margin-Compact). */
 .zen-list[data-inset="comfortable"] { --zen-list-inset: var(--zen-margin-comfortable, 24px); }
+/* On tablet the rows follow the Card / Modal padding (20px), not Margin-Comfortable (24px): Figma has no Tablet List-Item
+   device (backlog batch 6, user 2026-10-07). */
+[data-breakpoint="tablet"] .zen-list[data-inset="comfortable"] { --zen-list-inset: var(--zen-card-padding-medium, 20px); }
 .zen-list[data-inset="compact"] { --zen-list-inset: var(--zen-margin-compact, 16px); }
 .zen-list[data-inset="none"] { --zen-list-inset: 0px; }
 /* Interactive=Yes and Interactive=No: padding Spacing/Padding/Small (12px) above and below, none at the sides (one set for

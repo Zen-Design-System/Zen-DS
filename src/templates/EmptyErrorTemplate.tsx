@@ -181,7 +181,7 @@ const statusBadge = (status: Status, size: "sm" | "md" = "md") => <Badge size={s
 const columnWidths = { lead: "200px", status: "128px", due: "136px" };
 const columns: TableColumn<Project>[] = [
   { id: "project", header: "Project", cell: (row) => (
-    <TableMedia caption={row.client} media={kindIcon(row.kind, "sm")}>{row.name}</TableMedia>
+    <TableMedia bold caption={row.client} media={kindIcon(row.kind, "sm")}>{row.name}</TableMedia>
   ) },
   { id: "lead", header: "Lead", width: columnWidths.lead, cell: (row) => <TableMedia bold={false} media={personAvatar(row.lead, "xs")}>{leadName(row.lead)}</TableMedia> },
   { id: "status", header: "Status", width: columnWidths.status, cell: (row) => <TableBadges>{statusBadge(row.status)}</TableBadges> },

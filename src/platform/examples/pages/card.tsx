@@ -170,7 +170,7 @@ function InvoiceSide() {
       <Card ref={invoiceCard} as="section" theme="flat" aria-labelledby={invoiceId}
         subAction={
           <Menu align="end"
-            trigger={<IconButton appearance="flat" level="primary" size="sm" icon="icon-dots-horizontal-line" aria-label="Invoice actions" />}
+            trigger={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label="Invoice actions" />}
             items={[
               { id: "remind", label: "Send reminder", icon: "icon-mail-01-line", disabled: status === "Paid", onSelect: () => toast({ title: "Reminder sent", children: `To ${email}` }) },
               { id: "pdf", label: "Download PDF", icon: "icon-download-01-line", onSelect: () => toast({ title: "PDF downloaded", children: "INV-2026-0142.pdf" }) },
@@ -583,7 +583,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 
 <Card as="section" theme="flat" aria-labelledby={invoiceId}
   subAction={<Menu align="end"
-    trigger={<IconButton appearance="flat" level="primary" size="sm" icon="icon-dots-horizontal-line" aria-label="Invoice actions" />}
+    trigger={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label="Invoice actions" />}
     items={[
       { id: "remind", label: "Send reminder", icon: "icon-mail-01-line", onSelect: sendReminder },
       { id: "pdf", label: "Download PDF", icon: "icon-download-01-line", onSelect: downloadPdf },

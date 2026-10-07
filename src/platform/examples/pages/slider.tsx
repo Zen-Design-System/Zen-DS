@@ -387,7 +387,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 const setShare = (person, share) => setRows(rows.map((row) => (row.person === person ? { ...row, share } : row)));
 
 const columns: TableColumn<Allocation>[] = [
-  { id: "person", header: "Person", cell: (row) => <TableMedia media={<Avatar size="sm" … />} caption={row.role}>{row.name}</TableMedia> },
+  { id: "person", header: "Person", cell: (row) => <TableMedia bold media={<Avatar size="sm" … />} caption={row.role}>{row.name}</TableMedia> },
   { id: "other", header: "Other projects", align: "right", cell: (row) => <TableText>{row.other}%</TableText> },
   { id: "share", header: "This project", cell: (row) => (
     <Stack direction="row" gap="xs" align="center">

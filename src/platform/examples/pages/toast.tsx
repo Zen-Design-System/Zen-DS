@@ -140,7 +140,7 @@ const entries: Entry[] = [
   { id: "e5", person: "ava", project: "lumen-banking", hours: 132 },
 ];
 const entryColumns: TableColumn<Entry>[] = [
-  { id: "person", header: "Person", cell: (row) => <TableMedia media={<Avatar size="xs" {...avatarOf(people[row.person])} />}>{people[row.person].name}</TableMedia> },
+  { id: "person", header: "Person", cell: (row) => <TableMedia bold media={<Avatar size="xs" {...avatarOf(people[row.person])} />}>{people[row.person].name}</TableMedia> },
   { id: "project", header: "Project", cell: (row) => <TableText>{projectById(row.project).name}</TableText> },
   { id: "hours", header: "Hours", align: "right", width: "96px", cell: (row) => <TableText>{row.hours.toFixed(1)}</TableText> },
 ];

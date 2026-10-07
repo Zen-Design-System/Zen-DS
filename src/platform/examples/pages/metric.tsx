@@ -157,7 +157,7 @@ function StudioOverviewExample() {
           {shown.map((kpi) => (
             <MetricCard key={kpi.id} theme="flat" label={kpi.label} value={kpi[period].value} trend={trendOf(kpi)} icon={kpi.icon} iconTheme={kpi.theme}
               subAction={
-                <Menu align="end" trigger={<IconButton appearance="flat" level="primary" size="sm" icon="icon-dots-vertical-line" aria-label={`Actions for ${kpi.label}`} />}
+                <Menu align="end" trigger={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label={`Actions for ${kpi.label}`} />}
                   items={[
                     { id: "breakdown", label: "View breakdown", onSelect: () => openBreakdown(kpi) },
                     { id: "hide", label: "Hide from overview", onSelect: () => hide(kpi) },
@@ -530,7 +530,7 @@ const hide = (kpi: Kpi) => {
       icon={kpi.icon} iconTheme={kpi.theme} // Revenue green, Billable hours blue…
       subAction={
         <Menu align="end"
-          trigger={<IconButton appearance="flat" level="primary" size="sm" icon="icon-dots-vertical-line" aria-label={\`Actions for \${kpi.label}\`} />}
+          trigger={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label={\`Actions for \${kpi.label}\`} />}
           items={[
             { id: "breakdown", label: "View breakdown", onSelect: () => openBreakdown(kpi) },
             { id: "hide", label: "Hide from overview", onSelect: () => hide(kpi) },

@@ -4,6 +4,8 @@ export const Good = () => <>
   <Button level="tertiary" onClick={cancel}>Cancel</Button>
   {/* zen-allow-secondary: pressed toolbar toggle */}
   <IconButton onClick={act} level="secondary" aria-label="Bold" aria-pressed icon={<Icon name="icon-bold-01-line" />} />
+  {/* A flat Secondary IconButton is Figma's quiet ⋮ trigger: no justification needed. */}
+  <IconButton appearance="flat" level="secondary" size="sm" aria-label="More actions" onClick={act} icon="icon-dots-vertical-line" />
   <Button level="danger" onClick={remove}>Delete project</Button>
   <Chip variant="advanced" dropdown popoverItems={items}>Status</Chip>
   <InputField label="Name" readOnly />

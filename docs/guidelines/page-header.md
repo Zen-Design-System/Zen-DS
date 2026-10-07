@@ -18,7 +18,7 @@ The top of an app page: breadcrumbs or Back, the h1 title with its meta and acti
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Title | `title · headingLevel` | h1 = Heading/1 by default (Figma Master-Layout); headingLevel 2 = Heading/2 for a page title inside a tab or an embedded view under the app's h1 (the ladder row "Page title inside a tab") |
+| Title | `title · headingLevel` | h1 = Heading/1 by default (Figma Master-Layout); headingLevel 2 = Heading/4 (the house ladder's h2) for a page title inside a tab or an embedded view under the app's h1 (the ladder row "Page title inside a tab") |
 | Above | `breadcrumbs · eyebrow · back` | Breadcrumbs for nested pages; a short eyebrow; Back = { label, onClick } with the chevron |
 | Beside | `meta · actions` | status Badge / BadgeCounter; Tertiary buttons then at most one Primary |
 | Below | `description · tabs` | one or two sentences; Tabs for the page's sections |
@@ -41,7 +41,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | `meta` | `ReactNode` | — | Next to the title: a status Badge, Tag or AvatarStack. |
 | `tabs` | `ReactNode` | — | Under the header: `<Tabs>` that switch the page's sections. |
 | `back` | `PageHeaderBack` | — | A Back control for detail pages (chevron icon, per the navigation rule). |
-| `headingLevel` | `1 \| 2` | `1` | Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 (Heading/2) only when the page already has an h1 (e.g. inside a tab). The text style always follows the level. |
+| `headingLevel` | `1 \| 2` | `1` | Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 only when the page already has an h1 (e.g. inside a tab), set in Heading/4 as the house ladder puts an h2. The text style follows the level. |
 
 ### Types
 Object shapes the props above refer to.

@@ -405,7 +405,7 @@ function SettingsTabs() {
   const narrow = width > 0 && width < 640;
   const columns: TableColumn<Member>[] = [
     { id: "member", header: "Member", cell: (row) => (
-      <TableMedia caption={row.email} media={row.person ? <Avatar size="small" {...avatarOf(row.person)} /> : <Avatar size="small" theme="neutral" background="subtle" alt="">{row.email.slice(0, 2).toUpperCase()}</Avatar>}>{row.name}</TableMedia>
+      <TableMedia bold caption={row.email} media={row.person ? <Avatar size="small" {...avatarOf(row.person)} /> : <Avatar size="small" theme="neutral" background="subtle" alt="">{row.email.slice(0, 2).toUpperCase()}</Avatar>}>{row.name}</TableMedia>
     ) },
     { id: "role", header: "Role", width: narrow ? undefined : "112px", cell: (row) => <TableText>{row.role}</TableText> },
     ...(narrow ? [] : [{ id: "team", header: "Team", width: "176px", cell: (row: Member) => <TableText>{row.team}</TableText> }]),

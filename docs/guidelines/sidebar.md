@@ -34,7 +34,7 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | `density` | `"medium" \| "small"` | — | Compatibility alias for the earlier component API. |
 | `collapsed` | `boolean` | `false` |  |
 | `onCollapsedChange` | `(collapsed: boolean) => void` | — | Controlled collapse callback used by the Figma Basic/Small-Density header control. Without it the control is not rendered. Ignored by `variant="workspace"`, which has no collapsed state. |
-| `brand` | `ReactNode` | — | Replaces the whole header, including the collapse control. Prefer `logo` / `productName`, which keep it. In the collapsed rail `logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its mark), centred, and hides the rest visually. |
+| `brand` | `ReactNode` | — | Replaces the header's logo slots; the collapse control (with `onCollapsedChange`) follows it. In the collapsed rail `logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its mark), centred, and hides the rest visually. |
 | `logo` | `ReactNode` | — | Header logo while expanded (Figma LOGO / Union). Sized to the header height (24px; 20px in Small-Density). |
 | `logoCollapsed` | `ReactNode` | — | Mark shown centred in the collapsed rail instead of `logo` or a custom `brand` (Figma collapsed Logo, 28px; 20px in Small-Density). |
 | `productName` | `ReactNode` | — | Small product label after the logo (Figma: the product badge beside the wordmark). |
@@ -43,7 +43,8 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | `selectedId` | `string` | — | Id of the current page's item: it is marked selected (aria-current="page") and its parent groups open (and stay open until the user collapses them), so the app passes its route id instead of setting `selected` in `sections`. When set, it replaces the items' own `selected` / `active` flags in the navigation (not in the workspace rail). |
 | `linkAs` | `ElementType` | — | Component that renders items with an `href`, e.g. your router's link. It receives `href`, `className`, `onClick`, `aria-current` and the children; adapt a router link that takes `to` (`({ href, ...rest }) => <RouterLink to={href} {...rest} />`). Default `a`. |
 | `footer` | `ReactNode` | — |  |
-| `search` | `ReactNode` | — |  |
+| `search` | `ReactNode` | — | The slot under the header (Figma Search): usually a Search field, or a Back control over a module title. |
+| `searchCollapsed` | `ReactNode` | — | What the collapsed rail shows in place of `search`. Default: a Search button that expands the panel. Pass the slot's own control when it is not a search (a Back chevron for a module's Back + title, backlog batch 6). |
 | `onItemClick` | `(item: SidebarItem) => void` | — |  |
 | `className` | `string` | — |  |
 | `background` | `"default" \| "alt" \| "flat" \| "inverse"` | `"default"` | Default = Surface with a shadow (a Canvas/Default page; cards on the page take the same shadow, no border). Alt (Surface/Alt) and Flat are the only choices on a Canvas/Alt (white) page, where cards are bordered. |

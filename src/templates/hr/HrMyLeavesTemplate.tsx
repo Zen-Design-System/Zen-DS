@@ -404,7 +404,7 @@ export function HrMyLeavesTemplate() {
                 selectedIds={opened ? [opened.id] : []} empty={noRequests}
                 columns={[
                   { id: "leave", header: "Leave", cell: (row) => (
-                    <TableMedia media={<DockIcon theme="emoji" emoji={leaveKinds[row.kind].emoji} size="sm" />} caption={reasonOf(row)}>{leaveKinds[row.kind].name}</TableMedia>
+                    <TableMedia bold media={<DockIcon theme="emoji" emoji={leaveKinds[row.kind].emoji} size="sm" />} caption={reasonOf(row)}>{leaveKinds[row.kind].name}</TableMedia>
                   ) },
                   { id: "dates", header: "Dates", width: "232px", sortable: true, cell: (row) => <TableText caption={row.half ? halfLabel[row.half] : undefined}>{formatRange(row.start, row.end)}</TableText> },
                   { id: "days", header: "Working days", width: "160px", align: "right", sortable: true, cell: (row) => <TableText>{row.days.toLocaleString("en-US")}</TableText> },

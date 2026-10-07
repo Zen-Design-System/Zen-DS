@@ -105,9 +105,9 @@ function FileBrowserExample() {
   const narrow = width > 0 && width < 560;
   const allColumns: TableColumn<Entry>[] = [
     { id: "name", header: "Name", cell: (e) => (narrow
-      ? <TableMedia media={isFolder(e) ? <Icon name="icon-folder-line" size="lg" /> : <FileIcon format={fileIconFormatOf(e.name)} size="lg" />}
+      ? <TableMedia bold media={isFolder(e) ? <Icon name="icon-folder-line" size="lg" /> : <FileIcon format={fileIconFormatOf(e.name)} size="lg" />}
           caption={[e.bytes === undefined ? "" : formatBytes(e.bytes), formatRelative(e.updated)].filter(Boolean).join(" · ")}>{e.name}</TableMedia>
-      : <TableMedia media={isFolder(e) ? <Icon name="icon-folder-line" size="base" /> : <FileIcon format={fileIconFormatOf(e.name)} size="base" />}>{e.name}</TableMedia>) },
+      : <TableMedia bold media={isFolder(e) ? <Icon name="icon-folder-line" size="base" /> : <FileIcon format={fileIconFormatOf(e.name)} size="base" />}>{e.name}</TableMedia>) },
     { id: "owner", header: "Owner", width: "180px", cell: (e) => <TableMedia bold={false} media={avatar(people[e.owner], "xsmall")}>{people[e.owner].name}</TableMedia> },
     { id: "updated", header: "Modified", width: "200px", cell: (e) => <TableText>{formatRelative(e.updated)}</TableText> },
     { id: "size", header: "Size", align: "right", width: "96px", cell: (e) => <TableText>{e.bytes === undefined ? "" : formatBytes(e.bytes)}</TableText> },

@@ -23,8 +23,10 @@
   /* The whole field is the prompt's hit area (AiChatField focuses it on a press outside the buttons). */
   cursor: text;
 }
-/* Figma State=Focused keeps the Default fill and stroke. */
-.zen-ai-field:focus-within { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)), var(--zen-style-effect-input-shadow, none); }
+/* Figma State=Focused keeps the Default fill and only adds the caret, no visible focus indicator (WCAG 2.4.7): every style
+   takes the standard Input focus ring (input.css) while the prompt has focus — a 1px inside Input/Border/Focus stroke and
+   the 3px Border/Active/Neutral/Subtle ring outside — over its own elevation (backlog batch 6, user 2026-10-07). */
+.zen-ai-field:has(> .zen-ai-field__input:focus) { box-shadow: inset 0 0 0 1px var(--zen-input-border-focus, #111), 0 0 0 3px var(--zen-color-border-active-neutral-subtle, #00000024), var(--zen-style-effect-input-shadow, none); }
 .zen-ai-field[data-style="surface"] { background: var(--zen-color-background-surface-default, #fff); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow, 0 1px 3px rgb(0 0 0 / 10%)); -webkit-backdrop-filter: none; backdrop-filter: none; }
 /* Liquid Glass (12077:5298): effect style Liquid-Glass/Normal — GLASS frost 4 → blur 2px, light −45° → a lit top-left rim
    and a fainter bottom-right one (refraction and dispersion have no CSS equivalent), plus its 0 4 24 −8 shadow. */
@@ -35,9 +37,9 @@
   -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
 }
-/* Focus keeps each style's own elevation and adds the 1px ring that replaces the prompt's removed outline. */
-.zen-ai-field[data-style="surface"]:focus-within { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)), var(--zen-style-shadow-bottom-level-1-shadow, 0 1px 3px rgb(0 0 0 / 10%)); }
-.zen-ai-field[data-style="liquid-glass"]:focus-within { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)), var(--zen-ai-field-glass); }
+/* Focus keeps each style's own elevation under the standard Input ring (above). */
+.zen-ai-field[data-style="surface"]:has(> .zen-ai-field__input:focus) { box-shadow: inset 0 0 0 1px var(--zen-input-border-focus, #111), 0 0 0 3px var(--zen-color-border-active-neutral-subtle, #00000024), var(--zen-style-shadow-bottom-level-1-shadow, 0 1px 3px rgb(0 0 0 / 10%)); }
+.zen-ai-field[data-style="liquid-glass"]:has(> .zen-ai-field__input:focus) { box-shadow: inset 0 0 0 1px var(--zen-input-border-focus, #111), 0 0 0 3px var(--zen-color-border-active-neutral-subtle, #00000024), var(--zen-ai-field-glass); }
 .zen-ai-field[data-long="true"] { grid-template-areas: "input input input" "leading . trailing"; }
 /* Long-Typing: the prompt sits in a padded Content box (12 + the 2px text inset) 16px above the Control-Bar. */
 .zen-ai-field[data-long="true"] .zen-ai-field__input { padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-small, 12px) calc(var(--zen-spacing-padding-small, 12px) + var(--zen-spacing-padding-3-xsmall, 2px)); }

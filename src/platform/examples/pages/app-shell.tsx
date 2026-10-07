@@ -184,7 +184,7 @@ function StudioApp({ narrowWindow = false, notice = false }: { narrowWindow?: bo
   const compactRows = width > 0 && width < 480;
   const dueId = useId();
   const projectColumns: TableColumn<Project>[] = [
-    { id: "project", header: "Project", cell: (row) => <TableMedia media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.client}>{row.name}</TableMedia> },
+    { id: "project", header: "Project", cell: (row) => <TableMedia bold media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.client}>{row.name}</TableMedia> },
     // On a phone-width page no column has a fixed width, so they share the room instead of scrolling sideways.
     { id: "status", header: "Status", width: narrow ? undefined : "128px", cell: (row) => badge(row.status, projectStatusTheme[row.status]) },
     ...(narrow ? [] : [
@@ -328,7 +328,7 @@ function PeopleDirectoryApp() {
   const shown = rows.filter((row) => !q || `${row.name} ${row.role} ${row.team} ${row.location}`.toLowerCase().includes(q));
   const columns: TableColumn<Row>[] = [
     { id: "person", header: "Person", cell: (row) => (
-      <TableMedia caption={row.role} media={row.person ? <Avatar size="small" {...avatarOf(row.person)} /> : <Avatar size="small" theme="neutral" background="subtle" alt="">{row.name.slice(0, 2).toUpperCase()}</Avatar>}>{row.name}</TableMedia>
+      <TableMedia bold caption={row.role} media={row.person ? <Avatar size="small" {...avatarOf(row.person)} /> : <Avatar size="small" theme="neutral" background="subtle" alt="">{row.name.slice(0, 2).toUpperCase()}</Avatar>}>{row.name}</TableMedia>
     ) },
     { id: "team", header: "Team", width: narrow ? undefined : "176px", cell: (row) => <TableText>{row.team}</TableText> },
     ...(narrow ? [] : [{ id: "office", header: "Office", width: "176px", cell: (row: Row) => <TableText>{row.location}</TableText> }]),
@@ -510,7 +510,7 @@ function FilesApp() {
   const narrow = width > 0 && width < 640;
   const shown = allFiles.filter(folders[folder].filter);
   const columns: TableColumn<StudioFile>[] = [
-    { id: "name", header: "Name", cell: (file) => <TableMedia media={<FileIcon format={fileIconFormatOf(file.name)} size={narrow ? "lg" : "base"} />} caption={narrow ? `${formatBytes(file.bytes)} · ${formatRelative(file.updated)}` : undefined}>{file.name}</TableMedia> },
+    { id: "name", header: "Name", cell: (file) => <TableMedia bold media={<FileIcon format={fileIconFormatOf(file.name)} size={narrow ? "lg" : "base"} />} caption={narrow ? `${formatBytes(file.bytes)} · ${formatRelative(file.updated)}` : undefined}>{file.name}</TableMedia> },
     ...(narrow ? [] : [
       { id: "owner", header: "Owner", width: "168px", cell: (file: StudioFile) => <TableMedia bold={false} media={<Avatar size="xsmall" {...avatarOf(people[file.owner])} />}>{people[file.owner].name}</TableMedia> },
       { id: "updated", header: "Modified", width: "200px", cell: (file: StudioFile) => <TableText>{formatRelative(file.updated)}</TableText> },

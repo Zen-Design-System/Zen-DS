@@ -53,7 +53,7 @@ function MembersTable() {
   return (
     <Table aria-label="Members" rows={members} getRowId={(row) => row.id}
       columns={[
-        { id: "name", header: "Name", cell: (row) => <TableMedia media={<Avatar size="small" theme={row.theme} background="subtle" alt="">{row.initials}</Avatar>} caption={row.email}>{row.name}</TableMedia> },
+        { id: "name", header: "Name", cell: (row) => <TableMedia bold media={<Avatar size="small" theme={row.theme} background="subtle" alt="">{row.initials}</Avatar>} caption={row.email}>{row.name}</TableMedia> },
         { id: "role", header: "Role", cell: (row) => <TableText>{row.role}</TableText> },
       ]} />
   );

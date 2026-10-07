@@ -64,7 +64,7 @@ export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "chi
    * content stacks under the page.
    */
   aside?: ReactNode;
-  /** One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. */
+  /** One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. On phones it hides while the page scrolls down and comes back on a scroll up. */
   floatingAction?: ReactNode;
   /** A sticky bar at the bottom of the main column, e.g. an ActionBar. */
   footer?: ReactNode;
@@ -121,6 +121,33 @@ function useElementSize(element: HTMLElement | null, axis: "width" | "height"): 
     return () => observer.disconnect();
   }, [element, axis]);
   return size;
+}
+
+/**
+ * On phones the floating action hides while the page scrolls down and comes back on a scroll up, so it never covers a
+ * row's controls mid-scroll (backlog batch 6, user 2026-10-07). Whatever scrolls the shell (the window or an
+ * ancestor) counts; a scroll inside the shell's own parts (a list, a panel) does not.
+ */
+function useHideOnScroll(root: HTMLElement | null, enabled: boolean): boolean {
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    if (!enabled || !root) { setHidden(false); return undefined; }
+    const last = new WeakMap<object, number>();
+    const onScroll = (event: Event) => {
+      const target = event.target;
+      const scroller = target instanceof Element ? target : document.scrollingElement;
+      if (!scroller || !(scroller === document.scrollingElement || scroller.contains(root))) return;
+      const top = scroller.scrollTop;
+      const before = last.get(scroller) ?? top;
+      last.set(scroller, top);
+      if (top <= 0) setHidden(false);
+      else if (top - before > 4) setHidden(true);
+      else if (before - top > 4) setHidden(false);
+    };
+    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    return () => document.removeEventListener("scroll", onScroll, { capture: true });
+  }, [root, enabled]);
+  return hidden;
 }
 
 /** Before the shell has been measured (server render): the provider's breakpoint, then the viewport. */
@@ -230,6 +257,9 @@ export function AppShell({
   const compact = layout === "drawer";
   const bannerHeight = useElementSize(banner ? bannerEl : null, "height");
   const floatingHeight = useElementSize(floatingAction ? floatingEl : null, "height");
+  const zenBreakpoint = useZen()?.breakpoint;
+  const phone = zenBreakpoint === "mobile" || rootEl?.closest("[data-breakpoint]")?.getAttribute("data-breakpoint") === "mobile";
+  const floatingHidden = useHideOnScroll(rootEl, Boolean(floatingAction) && phone);
   const sidebarWidth = useElementSize(sidebar && !compact ? sidebarEl : null, "width");
 
   // Sidebar rail. A Zen Sidebar gets `collapsed` from the shell; one with its own onCollapsedChange keeps its header control.
@@ -340,7 +370,7 @@ export function AppShell({
             {aside && !asideDocked && !asideElement ? <div className="zen-app-shell__aside" data-stacked="true">{aside}</div> : null}
             {floatingAction || footer ? (
               <div className="zen-app-shell__bottom">
-                {floatingAction ? <div ref={setFloatingEl} className="zen-app-shell__floating">{floatingAction}</div> : null}
+                {floatingAction ? <div ref={setFloatingEl} className="zen-app-shell__floating" data-hidden={floatingHidden ? "true" : undefined}>{floatingAction}</div> : null}
                 {footer ? <div className="zen-app-shell__footer">{footer}</div> : null}
               </div>
             ) : null}

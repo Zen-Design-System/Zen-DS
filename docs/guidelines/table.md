@@ -66,14 +66,14 @@ Figma Primitives/Table/Cell/Text-Cell (1603:3247): Label (Body/Base Regular or B
 | `bold` | `boolean` | `false` |  |
 
 ### TableMedia
-Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a visual + Text-Cell (gap Small). The visual follows the Subtext: Avatar/Photo/Dock Icon XSmall 24px (Icon base 20px) without a caption, Small 32px (Icon lg 28px) with one.
+Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a visual + Text-Cell (gap Small). The visual follows the Subtext: Avatar/Photo/Dock Icon XSmall 24px (Icon base 20px) without a caption, Small 32px (Icon lg 28px) with one. `bold` (Figma Bold, default No in every media cell): the label in Body/Base/Bold instead of Body/Base/Regular.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `media` (required) | `ReactNode` | — |  |
 | `children` (required) | `ReactNode` | — |  |
 | `caption` | `ReactNode` | — |  |
-| `bold` | `boolean` | `true` |  |
+| `bold` | `boolean` | `false` |  |
 
 ### TableTrend
 Figma Trend-Cell (1603:14279): a Medium Subtle Badge — Up green with icon-trend-up-01-line, Down red with icon-trend-down-01-line, Neutral grey with icon-minus-line.

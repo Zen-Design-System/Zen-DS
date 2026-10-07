@@ -144,7 +144,7 @@ function PeopleDirectoryExample() {
         <Table aria-label="Employees" rows={rows} getRowId={(row) => row.id} onRowClick={open} selectedIds={person ? [person.id] : []}
           empty={<EmptyState illustration={false} icon="icon-users-line" title="No one matches" secondaryAction={{ label: "Clear search", onClick: () => { setQuery(""); searchRef.current?.focus(); } }}>Try a name, a role or a team.</EmptyState>}
           columns={[
-            { id: "name", header: "Employee", cell: (row) => <TableMedia media={<PersonAvatar person={row} />} caption={row.role}>{row.name}</TableMedia> },
+            { id: "name", header: "Employee", cell: (row) => <TableMedia bold media={<PersonAvatar person={row} />} caption={row.role}>{row.name}</TableMedia> },
             { id: "department", header: "Team", cell: (row) => <TableText>{row.department}</TableText> },
             { id: "location", header: "Office", cell: (row) => <TableText>{row.location}</TableText> },
             { id: "start", header: "Start date", cell: (row) => <TableText>{row.start}</TableText> },
@@ -224,7 +224,7 @@ function ApprovalFiltersExample() {
         <Table ref={tableRef} aria-label="Leave requests" rows={rows} getRowId={(row) => row.id}
           empty={<EmptyState illustration={false} icon="icon-filter-lines-line" title="No requests match" secondaryAction={{ label: "Clear filters", onClick: () => { setApplied(noFilters); setQuery(""); searchRef.current?.focus(); } }}>Change or clear the filters to see more.</EmptyState>}
           columns={[
-            { id: "person", header: "Employee", cell: (row) => <TableMedia media={<PersonAvatar person={row.person} />} caption={row.person.department}>{row.person.name}</TableMedia> },
+            { id: "person", header: "Employee", cell: (row) => <TableMedia bold media={<PersonAvatar person={row.person} />} caption={row.person.department}>{row.person.name}</TableMedia> },
             { id: "kind", header: "Type", cell: (row) => <TableText>{kindLabel[row.kind]}</TableText> },
             { id: "dates", header: "Dates", cell: (row) => <TableText caption={plural(row.days, "day")}>{row.dates}</TableText> },
             { id: "status", header: "Status", cell: (row) => <TableBadges><Badge size="sm" theme={requestBadge[row.status].theme} background="subtle">{requestBadge[row.status].label}</Badge></TableBadges> },

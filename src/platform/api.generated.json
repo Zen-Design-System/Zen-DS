@@ -3384,7 +3384,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Replaces the whole header, including the collapse control. Prefer `logo` / `productName`, which keep it. In the\ncollapsed rail `logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its\nmark), centred, and hides the rest visually.",
+          "description": "Replaces the header's logo slots; the collapse control (with `onCollapsedChange`) follows it. In the collapsed rail\n`logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its mark), centred, and\nhides the rest visually.",
           "deprecated": null
         },
         {
@@ -3456,7 +3456,15 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "The slot under the header (Figma Search): usually a Search field, or a Back control over a module title.",
+          "deprecated": null
+        },
+        {
+          "name": "searchCollapsed",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "What the collapsed rail shows in place of `search`. Default: a Search button that expands the panel. Pass the\n slot's own control when it is not a search (a Back chevron for a module's Back + title, backlog batch 6).",
           "deprecated": null
         },
         {
@@ -6949,7 +6957,7 @@
           "name": "bold",
           "type": "boolean",
           "required": false,
-          "default": "true",
+          "default": "false",
           "description": "",
           "deprecated": null
         }
@@ -11036,7 +11044,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it.",
+          "description": "One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. On phones it hides while the page scrolls down and comes back on a scroll up.",
           "deprecated": null
         },
         {
@@ -11320,7 +11328,7 @@
           "type": "1 | 2",
           "required": false,
           "default": "1",
-          "description": "Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 (Heading/2) only when the\n page already has an h1 (e.g. inside a tab). The text style always follows the level.",
+          "description": "Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 only when the page already\n has an h1 (e.g. inside a tab), set in Heading/4 as the house ladder puts an h2. The text style follows the level.",
           "deprecated": null
         }
       ]

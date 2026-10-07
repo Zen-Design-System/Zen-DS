@@ -281,7 +281,7 @@ const ladder: Array<{ group: string; rows: Rule[] }> = [
   { group: "Desktop and web pages", rows: [
     ["Master page title — a destination in the Sidebar", "h1", "Heading/1", "PageHeader title (Figma Header/Dashboard Level=Master); document.title is the h1 text, then the app name"],
     ["Child page title — an item or sub-view of a master page", "h1", "Heading/1", "PageHeader title + Back named after the parent, or Breadcrumbs (Figma Child-Heading); document.title follows each view"],
-    ["Page title inside a tab — the page's h1 sits above the tabs", "h2", "Heading/2", "PageHeader headingLevel={2}"],
+    ["Page title inside a tab — the page's h1 sits above the tabs", "h2", "Heading/4", "PageHeader headingLevel={2}"],
     ["Page description", "p", "Body/Base/Regular · base", "PageHeader description (Figma SubHeading)"],
     ["Section title — a group of cards, a list, a table", "h2", "Heading/4 — one style for every sibling section", "<Heading level={2}> (its default look)"],
     ["Table that is its own section", "h2", "Heading/4", "A Heading above the Table, which points to it with aria-labelledby; the Table caption only names a table that already sits under a section heading"],

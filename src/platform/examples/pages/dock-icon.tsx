@@ -103,7 +103,7 @@ function ProjectTable() {
       <Table aria-labelledby={titleId} rows={sortProjects(clientProjects, sort)} getRowId={(row) => row.id} sort={sort} onSortChange={setSort}
       columns={[
         { id: "name", header: "Project", sortable: true, cell: (row) => (
-          <TableMedia media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="sm" />} caption={row.client}>{row.name}</TableMedia>
+          <TableMedia bold media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="sm" />} caption={row.client}>{row.name}</TableMedia>
         ) },
         { id: "lead", header: "Lead", width: "200px", cell: (row) => (
           <TableMedia media={<Avatar size="xs" {...avatarFor(person(row.lead))} />} bold={false}>{person(row.lead).name}</TableMedia>
@@ -323,7 +323,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 <Table aria-labelledby="client-projects" rows={sortProjects(projects, sort)} sort={sort} onSortChange={setSort}
   columns={[
     { id: "name", header: "Project", sortable: true, cell: (row) => (
-      <TableMedia media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="sm" />} caption={row.client}>
+      <TableMedia bold media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="sm" />} caption={row.client}>
         {row.name}
       </TableMedia>
     ) },

@@ -69,6 +69,10 @@
 /* zen-allow-raw-shadow: Figma Floating-Actions (6040:72809) carries a local effect, not an Effect style: 0 12 28 and
    0 4 8 −4 in Color/Shadow/Neutral/Base. drop-shadow takes half the blur (a standard deviation) and follows the button's shape. */
 .zen-app-shell__floating { position: absolute; right: var(--zen-margin-comfortable, 24px); bottom: calc(100% + var(--zen-margin-comfortable, 24px)); display: flex; filter: drop-shadow(0 12px 14px var(--zen-color-shadow-neutral-base, rgb(0 0 0 / 8%))) drop-shadow(0 4px 4px var(--zen-color-shadow-neutral-base, rgb(0 0 0 / 8%))); }
+/* Phones: hidden while the page scrolls down (AppShell useHideOnScroll), back on a scroll up or when it holds focus. It
+   slides down by Spacing/Padding/Medium × the motion movement (0 with reduced motion, so only the fade stays). */
+.zen-app-shell__floating { transition: opacity var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease-out), translate var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease-out); }
+.zen-app-shell__floating[data-hidden="true"]:not(:focus-within) { opacity: 0; pointer-events: none; translate: 0 calc(var(--zen-spacing-padding-medium, 16px) * var(--zen-motion-movement, 1)); }
 
 /* Drawer: a modal dialog over the Overlay scrim; the Sidebar keeps its own 8px inset and floating surface, and the Close
    button sits beside it, centred on the Sidebar header (Spacing/Padding/XSmall + half of Global-Control-Bar/Size − 40). */

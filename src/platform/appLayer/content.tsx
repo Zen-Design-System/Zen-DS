@@ -793,7 +793,7 @@ function ImageTableExample() {
   return (
     <Table aria-label="Prints" className="pac-scroll-table" rows={rows} getRowId={(row) => row.id} sort={sort} onSortChange={setSort}
       columns={[
-        { id: "name", header: "Print", sortable: true, cell: (row) => <TableMedia media={<Thumbnail src={row.photo.src} alt="" size="sm" />} caption={row.size}><span className="pac-nowrap">{row.name}</span></TableMedia> },
+        { id: "name", header: "Print", sortable: true, cell: (row) => <TableMedia bold media={<Thumbnail src={row.photo.src} alt="" size="sm" />} caption={row.size}><span className="pac-nowrap">{row.name}</span></TableMedia> },
         { id: "stock", header: "Stock", align: "right", cell: (row) => row.stock ? <TableText>{row.stock}</TableText> : <Badge size="small" theme="orange" background="subtle">Sold out</Badge> },
         { id: "price", header: "Price", align: "right", sortable: true, cell: (row) => <TableText>{money(row.price)}</TableText> },
       ]} />
@@ -1184,7 +1184,7 @@ export const examples: ExampleMap = keepOnHotUpdate(import.meta.hot, "examples",
     trailing={<IconButton appearance="flat" level="primary" size="md" aria-label="Delete windmill-by-the-sea.webp" icon={<Icon name="icon-trash-line" />} onClick={remove} />} />
 </List>` },
     { title: "Thumbnails in a table", description: "In a captioned media cell the Thumbnail is Small (32px), like an Avatar; sort by print name or price.", render: () => <ImageTableExample />, code: `{ id: "name", header: "Print", sortable: true,
-  cell: (row) => <TableMedia media={<Thumbnail src={row.photo.src} alt="" size="sm" />} caption={row.size}>{row.name}</TableMedia> }` },
+  cell: (row) => <TableMedia bold media={<Thumbnail src={row.photo.src} alt="" size="sm" />} caption={row.size}>{row.name}</TableMedia> }` },
     { title: "Photo feed on a phone", description: "Lazy-loaded 4:3 Images flush to their Cards; one post fails and keeps its frame and description. Like toggles with aria-pressed.", render: () => <ImageFeedExample />, code: `<Card as="article" spacing="small" className="feed-card"> {/* padding: 0; overflow: hidden */}
   <Image src={post.photo.src} alt={post.photo.alt} ratio="4:3" radius="none" />
   …author, time and a Like IconButton (aria-pressed)…

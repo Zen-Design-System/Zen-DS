@@ -47,7 +47,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 | `headerActions` | `ReactNode` | — | Top bar actions on the right, in this order: a plan Badge, AppShellAction buttons (notifications, settings, help), then the account menu (`<Menu trigger={<AppShellAccount … />}>`). Page actions belong in the PageHeader. |
 | `banner` | `ReactNode` | — | A full-width message strip above the whole shell, usually `<AlertBanner>` (trial ending, maintenance, offline). It stays in view while the page scrolls. |
 | `aside` | `ReactNode` | — | A right panel docked beside the content (Figma Side-Panel), usually <SidePanel type="standard">. It docks while the page keeps at least a Tablet width (744px) beside it; otherwise a SidePanel opens as the modal panel and other content stacks under the page. |
-| `floatingAction` | `ReactNode` | — | One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. |
+| `floatingAction` | `ReactNode` | — | One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. On phones it hides while the page scrolls down and comes back on a scroll up. |
 | `footer` | `ReactNode` | — | A sticky bar at the bottom of the main column, e.g. an ActionBar. |
 | `canvas` | `"default" \| "alt" \| "flat"` | `"default"` | Page background layer: default Canvas, alt (a white page) or flat (pair it with Sidebar background="flat"). |
 | `sidebarCollapsed` | `boolean` | — | Sidebar rail state when controlled; pair it with `onSidebarCollapsedChange`. |

@@ -107,7 +107,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
-| `button/secondary-justified` | error | Secondary is a rare highlight; default to Primary (main CTA) or Tertiary. | `zen-allow-secondary: <reason>` |
+| `button/secondary-justified` | error | Secondary is a rare highlight; default to Primary (main CTA) or Tertiary. A flat IconButton is exempt: flat Secondary is Figma's quiet ⋮ trigger (Card Sub-Action). | `zen-allow-secondary: <reason>` |
 | `button/filter-is-chip` | error | Filter, sort and scope pickers are Chip (variant=advanced), never buttons. | `zen-allow-filter-button: <reason>` |
 | `button/accent-is-promoted` | warn | Accent is for promoted CTAs (upsell, onboarding) only. | `zen-allow-accent: <reason>` |
 | `button/destructive-is-danger` | warn | Irreversible actions (Delete, Remove, Discard) use Danger or Danger-Subtle. | `zen-allow-destructive: <reason>` |

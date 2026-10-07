@@ -254,7 +254,7 @@ function PeopleTable({ rows, empty }: { rows: typeof staff; empty?: ReactNode })
   return (
     <Table aria-label="People" rows={rows} getRowId={(row) => row.id} empty={empty}
       columns={[
-        { id: "name", header: "Employee", cell: (row) => <TableMedia media={<PersonAvatar person={row} />} caption={row.email}>{row.name}</TableMedia> },
+        { id: "name", header: "Employee", cell: (row) => <TableMedia bold media={<PersonAvatar person={row} />} caption={row.email}>{row.name}</TableMedia> },
         { id: "team", header: "Team", cell: (row) => <TableText caption={row.role}>{row.department}</TableText> },
         { id: "office", header: "Office", cell: (row) => <TableText>{row.location}</TableText> },
         { id: "status", header: "Status", cell: (row) => <TableBadges><Badge size="sm" theme={statusBadge[row.status].theme} background="subtle">{statusBadge[row.status].label}</Badge></TableBadges> },

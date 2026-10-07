@@ -47,7 +47,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Replaces the whole header, including the collapse control. Prefer `logo` / `productName`, which keep it. In the\ncollapsed rail `logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its\nmark), centred, and hides the rest visually.",
+          "description": "Replaces the header's logo slots; the collapse control (with `onCollapsedChange`) follows it. In the collapsed rail\n`logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its mark), centred, and\nhides the rest visually.",
           "deprecated": null
         },
         {
@@ -119,7 +119,15 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "The slot under the header (Figma Search): usually a Search field, or a Back control over a module title.",
+          "deprecated": null
+        },
+        {
+          "name": "searchCollapsed",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "What the collapsed rail shows in place of `search`. Default: a Search button that expands the panel. Pass the\n slot's own control when it is not a search (a Back chevron for a module's Back + title, backlog batch 6).",
           "deprecated": null
         },
         {

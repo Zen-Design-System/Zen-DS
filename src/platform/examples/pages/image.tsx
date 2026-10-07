@@ -234,7 +234,7 @@ const sortValue: Record<string, (item: Asset) => string | number> = {
 // A captioned media cell takes a Small (32px) Thumbnail, like an Avatar; alt="" because the cell names the file.
 const photoCell = (caption: (item: Asset) => string): TableColumn<Asset> => ({
   id: "name", header: "Photo", sortable: true,
-  cell: (item) => <TableMedia media={<Thumbnail src={item.photo.src} alt="" size="sm" />} caption={caption(item)}>{item.name}</TableMedia>,
+  cell: (item) => <TableMedia bold media={<Thumbnail src={item.photo.src} alt="" size="sm" />} caption={caption(item)}>{item.name}</TableMedia>,
 });
 const assetColumns: TableColumn<Asset>[] = [
   photoCell((item) => `${item.width} × ${item.height}`),
@@ -491,7 +491,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     description: "In a captioned media cell the Thumbnail is Small (32px); a cell without a caption, like Owner, takes the XSmall step. The table sits on the page under its heading: Project filters it, the columns sort, and a row opens the photo in a Side Panel at its own ratio. On a phone it keeps the photo column alone, with the size and date in its caption.",
     render: () => <AssetLibrary />,
     code: `const photo = (caption) => ({ id: "name", header: "Photo", sortable: true, cell: (item) => (
-  <TableMedia media={<Thumbnail src={item.photo.src} alt="" size="sm" />} caption={caption(item)}>{item.name}</TableMedia>
+  <TableMedia bold media={<Thumbnail src={item.photo.src} alt="" size="sm" />} caption={caption(item)}>{item.name}</TableMedia>
 ) });
 const columns = [
   photo((item) => \`\${item.width} × \${item.height}\`),

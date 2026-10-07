@@ -109,7 +109,7 @@
       {
         "id": "button/secondary-justified",
         "severity": "error",
-        "summary": "Secondary is a rare highlight; default to Primary (main CTA) or Tertiary.",
+        "summary": "Secondary is a rare highlight; default to Primary (main CTA) or Tertiary. A flat IconButton is exempt: flat Secondary is Figma's quiet ⋮ trigger (Card Sub-Action).",
         "allow": "secondary"
       },
       {
@@ -6363,6 +6363,7 @@
     ],
     "keyboard": [],
     "do": [
+      "Colour emoji take the alpha of their text colour, so one in a light tone (Content/Neutral/Base or Light: captions, DescriptionList terms, muted text) renders faded: wrap the emoji alone in an opaque span, <Text as=\"span\" textStyle=… tone=\"strongest\">👋</Text>, and keep the words in the light tone (Zen has no Emoji component).",
       "Give every page or screen exactly one h1, present at all times, that names it and matches document.title (plus the app name). Where the title is shown large (PageHeader, a phone large title) it is Heading/1, like the Figma Master-Layout page title (harness: heading/h1-is-heading-1); a compact app bar title is the screen's h1 and keeps its bar style (Body/Extra/Bold).",
       "Follow the content hierarchy on the Typography page: page titles h1 Heading/1; sections (a group of cards, a table, a list) h2 Heading/4; card and widget titles one level below the nearest heading above (h3 under a section, h2 right under the page title), always Heading/Subheading; a page title inside a tab (PageHeader headingLevel 2) h2 Heading/2; list group headers one level below the nearest heading above, Body/Small/Bold in tone \"base\" (a kicker label); overlay titles h2 by default (h1 also accepted), never Heading/1. On a phone the master screen's large title and a child screen's compact bar title are the h1, so content starts at h2 (audit: outline).",
       "Step down one level at a time (h1 → h2 → h3); going back up may jump (h4 → h2). Every page or screen starts at h1; a component's headings take their level from where it is placed (headingLevel); fixed regions (Sidebar, Drawer) keep their level on every page.",
@@ -6642,7 +6643,7 @@
       [
         "Title",
         "title · headingLevel",
-        "h1 = Heading/1 by default (Figma Master-Layout); headingLevel 2 = Heading/2 for a page title inside a tab or an embedded view under the app's h1 (the ladder row \"Page title inside a tab\")"
+        "h1 = Heading/1 by default (Figma Master-Layout); headingLevel 2 = Heading/4 (the house ladder's h2) for a page title inside a tab or an embedded view under the app's h1 (the ladder row \"Page title inside a tab\")"
       ],
       [
         "Above",

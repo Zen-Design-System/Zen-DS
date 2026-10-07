@@ -54,7 +54,7 @@ function Kicker({ id, children }: { id: string; children: string }) {
 const projectsOf = (id: PersonId) => projects.filter((project) => project.members.includes(id) || project.lead === id);
 const directory = [...peopleList].sort((a, b) => a.name.localeCompare(b.name));
 const personColumns: TableColumn<Person>[] = [
-  { id: "name", header: "Name", cell: (person) => <TableMedia media={<Avatar size="sm" {...avatarOf(person)} />} caption={person.role}>{person.name}</TableMedia> },
+  { id: "name", header: "Name", cell: (person) => <TableMedia bold media={<Avatar size="sm" {...avatarOf(person)} />} caption={person.role}>{person.name}</TableMedia> },
   { id: "team", header: "Team", width: "180px", cell: (person) => <TableText>{person.team}</TableText> },
   { id: "office", header: "Office", width: "180px", cell: (person) => <TableText>{person.location}</TableText> },
   { id: "projects", header: "Projects", align: "right", width: "110px", cell: (person) => <TableText>{String(projectsOf(person.id as PersonId).length)}</TableText> },
@@ -136,7 +136,7 @@ const matches = (picks: Picks, status: LeaveStatus | null) => (request: Request)
   && (picks.when === "any" || (picks.when === "upcoming" ? request.from > TODAY : request.from <= TODAY));
 const datesOf = (request: Request) => (request.from.getTime() === request.to.getTime() ? formatDate(request.from) : formatRange(request.from, request.to));
 const requestColumns: TableColumn<Request>[] = [
-  { id: "person", header: "Person", cell: (request) => <TableMedia media={<Avatar size="sm" {...avatarOf(people[request.person])} />} caption={people[request.person].team}>{people[request.person].name}</TableMedia> },
+  { id: "person", header: "Person", cell: (request) => <TableMedia bold media={<Avatar size="sm" {...avatarOf(people[request.person])} />} caption={people[request.person].team}>{people[request.person].name}</TableMedia> },
   { id: "kind", header: "Type", width: "150px", cell: (request) => <TableText>{request.kind}</TableText> },
   { id: "dates", header: "Dates", width: "230px", cell: (request) => <TableText>{datesOf(request)}</TableText> },
   { id: "days", header: "Days", align: "right", width: "90px", cell: (request) => <TableText>{String(request.days)}</TableText> },
@@ -295,7 +295,7 @@ const loyaltyFiles: LoyaltyFile[] = [
   { id: "f11", name: "Launch plan – Nov 2.xlsx", bytes: 1_260_000, owner: "duy", updated: daysFromToday(-15, 9, 15), access: [{ person: "alex", can: "Can edit" }, { person: "hana", can: "Can view" }] },
 ];
 const fileColumns: TableColumn<LoyaltyFile>[] = [
-  { id: "name", header: "Name", cell: (file) => <TableMedia media={<FileIcon format={fileIconFormatOf(file.name)} size="lg" />}>{file.name}</TableMedia> },
+  { id: "name", header: "Name", cell: (file) => <TableMedia bold media={<FileIcon format={fileIconFormatOf(file.name)} size="lg" />}>{file.name}</TableMedia> },
   { id: "updated", header: "Updated", width: "180px", cell: (file) => <TableText>{formatRelative(file.updated)}</TableText> },
   { id: "size", header: "Size", align: "right", width: "100px", cell: (file) => <TableText>{formatBytes(file.bytes)}</TableText> },
 ];

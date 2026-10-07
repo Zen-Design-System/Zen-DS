@@ -28,8 +28,8 @@ export interface PageHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "titl
   tabs?: ReactNode;
   /** A Back control for detail pages (chevron icon, per the navigation rule). */
   back?: PageHeaderBack;
-  /** Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 (Heading/2) only when the
-   *  page already has an h1 (e.g. inside a tab). The text style always follows the level. */
+  /** Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 only when the page already
+   *  has an h1 (e.g. inside a tab), set in Heading/4 as the house ladder puts an h2. The text style follows the level. */
   headingLevel?: 1 | 2;
 }
 
@@ -54,8 +54,8 @@ export const PageHeader = forwardRef<HTMLElement, PageHeaderProps>(function Page
       {breadcrumbs ? <div className="zen-page-header__breadcrumbs">{breadcrumbs}</div> : eyebrow ? <Text className="zen-page-header__eyebrow" textStyle="Body/Small/Medium" tone="base">{eyebrow}</Text> : null}
       <div className="zen-page-header__row">
         <div className="zen-page-header__titles">
-          {/* h1 = Heading/1 (Figma ◇ Master-Layout page title), h2 = Heading/2: the style follows the level. */}
-          <Heading level={headingLevel} textStyle={headingLevel === 1 ? "Heading/1" : "Heading/2"}>{title}</Heading>
+          {/* h1 = Heading/1 (Figma ◇ Master-Layout page title), h2 = Heading/4 (the house ladder's h2, backlog batch 6). */}
+          <Heading level={headingLevel} textStyle={headingLevel === 1 ? "Heading/1" : "Heading/4"}>{title}</Heading>
           {meta ? <div className="zen-page-header__meta">{meta}</div> : null}
         </div>
         {actions ? <div className="zen-page-header__actions">{actions}</div> : null}

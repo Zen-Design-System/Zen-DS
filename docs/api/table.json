@@ -168,7 +168,7 @@
     {
       "name": "TableMedia",
       "file": "src/components/Table/Table.tsx",
-      "description": "Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a visual + Text-Cell (gap Small). The visual follows\nthe Subtext: Avatar/Photo/Dock Icon XSmall 24px (Icon base 20px) without a caption, Small 32px (Icon lg 28px) with one.",
+      "description": "Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a visual + Text-Cell (gap Small). The visual follows\nthe Subtext: Avatar/Photo/Dock Icon XSmall 24px (Icon base 20px) without a caption, Small 32px (Icon lg 28px) with one.\n`bold` (Figma Bold, default No in every media cell): the label in Body/Base/Bold instead of Body/Base/Regular.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -200,7 +200,7 @@
           "name": "bold",
           "type": "boolean",
           "required": false,
-          "default": "true",
+          "default": "false",
           "description": "",
           "deprecated": null
         }

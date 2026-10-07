@@ -463,7 +463,7 @@ function CardMenuExample() {
         {sorted.map((doc) => (
           <Card key={doc.id} as="article" theme="shadow" spacing="small"
             subAction={<Menu align="end"
-              trigger={<IconButton appearance="flat" level="primary" size="sm" aria-label={`More actions for ${doc.title}`} icon={<Icon name="icon-dots-horizontal-line" />} />}
+              trigger={<IconButton appearance="flat" level="secondary" size="sm" aria-label={`More actions for ${doc.title}`} icon={<Icon name="icon-dots-vertical-line" />} />}
               items={[
                 { id: "pin", label: doc.pinned ? "Unpin" : "Pin to top", icon: "icon-pin-01-line" },
                 { id: "copy", label: "Copy link", icon: "icon-link-01-line" },
@@ -849,7 +849,7 @@ export const examples: ExampleMap = keepOnHotUpdate(import.meta.hot, "examples",
 </SidePanel>` },
     { title: "Card menu", wide: true, description: "The Card's Sub-Action slot takes a Menu: a Small Flat ⋯ pinned to the top-right corner. Pin reorders the cards, Copy link writes to the clipboard, Delete offers Undo.", render: () => <CardMenuExample />, code: `<Card as="article" theme="shadow" spacing="small"
   subAction={<Menu align="end"
-    trigger={<IconButton appearance="flat" level="primary" size="sm" aria-label={\`More actions for \${doc.title}\`} icon={<Icon name="icon-dots-horizontal-line" />} />}
+    trigger={<IconButton appearance="flat" level="secondary" size="sm" aria-label={\`More actions for \${doc.title}\`} icon={<Icon name="icon-dots-vertical-line" />} />}
     items={[
       { id: "pin", label: doc.pinned ? "Unpin" : "Pin to top", icon: "icon-pin-01-line" },
       { id: "copy", label: "Copy link", icon: "icon-link-01-line" },
