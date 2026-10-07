@@ -1,6 +1,6 @@
 // Selection rows: canvas picking, keyboard navigation between layers, multi-selection, the Layers panel.
 import { locOf } from "../lib/source.mjs";
-import { clickLoc, focusFrame, selectedSrc, showLeftTab, sleep, until } from "../lib/studio.mjs";
+import { clickLoc, focusFrame, rectOf, selectedSrc, showLeftTab, sleep, until } from "../lib/studio.mjs";
 
 const at = async (ctx, id, index = 0) => locOf(await ctx.text(), id, index).loc;
 
@@ -97,6 +97,26 @@ export const rows = [
       const stack = await at(ctx, "stack");
       await expectSelected(page, ctx.file, stack);
       return "Alpha + heading → Escape → the outer Stack";
+    },
+  },
+  {
+    id: "SE-09", feature: "A nested instance under a row's click target, selected by double-click: hovering it outlines no outer row", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      await focusFrame(page, 6);
+      const row = await at(ctx, "inst-click-row");
+      const badge = await at(ctx, "inst-click-badge");
+      // The row's click target covers the Badge: a click selects the ListItem, a double-click goes into the Badge.
+      await clickLoc(page, ctx.file, badge);
+      await expectSelected(page, ctx.file, row);
+      await clickLoc(page, ctx.file, badge, { clickCount: 2 });
+      await expectSelected(page, ctx.file, badge);
+      const rect = await rectOf(page, ctx.file, badge);
+      await page.mouse.move(rect.x + rect.width / 2 + 2, rect.y + rect.height / 2 + 1);
+      await sleep(300);
+      const hover = await page.locator('.studio-selection__outline[data-kind="hover"] .studio-selection__tag').allInnerTexts();
+      if (hover.some((tag) => /ListItem/.test(tag))) throw new Error(`hover outlines the outer row: ${hover.join(", ")}`);
+      return `Badge selected inside the row; hover over it shows ${hover.length ? hover.join(", ") : "no outer outline"}`;
     },
   },
   {

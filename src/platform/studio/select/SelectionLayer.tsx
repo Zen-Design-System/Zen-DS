@@ -491,7 +491,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
   const hoverAt = useCallback(() => {
     const point = pointerRef.current;
     if (!point || toolRef.current !== "select") return;
-    const picked = pick(point.x, point.y);
+    // Over the selected element under an outer layer, the hover stays on the selection (as a press would keep it).
+    const picked = keepSelected(pick(point.x, point.y), point.x, point.y);
     setPassThrough(picked.kind === "chrome");
     const hit = picked.kind === "node" ? (deepAt(picked, deepRef.current) ? partAt(picked, point.x, point.y) ?? picked.hit : picked.hit) : null;
     setHoverFrame(picked.kind === "node" || picked.kind === "frame" ? picked.frame : null);
@@ -499,7 +500,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       hoverRef.current = hit;
       schedule(0);
     }
-  }, [pick, schedule, setHoverFrame, setPassThrough, deepAt, partAt]);
+  }, [pick, schedule, setHoverFrame, setPassThrough, deepAt, partAt, keepSelected]);
 
   const hoverRequest = useRef(0);
   const trackPointer = useCallback((event: PointerEvent | ReactPointerEvent) => {

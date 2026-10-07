@@ -594,7 +594,7 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
-- **Uploader error help text in Light (2026-10-07):** the field's error help text (icon and text) uses Content/Negative/Light like every help text but Warning (Input already did); it was Negative/Strongest.
+- **Uploader error text in Light (2026-10-07):** the field's error help text and a file item's error line (icon and text) use Content/Negative/Light like every help text but Warning (Input already did); they were Negative/Strongest.
 - **QA gate sees the example pages again (2026-10-07):** since the examples moved to `src/platform/examples/pages/<page>.tsx`, `npm run qa` mapped an edit there to no page and its example-coverage step (④) read no example list, so both passed without checking. Each page file (and its stylesheet) now scopes to its page, and step ④ reads the page's `examples` array.
 - **Zen Studio quick fixes (2026-10-07, backlog batch 2):** the Inspector's Frames list names the open builder page's
   Screens after switching pages (two pages both have `screen-1`); the first view zooms down to 50% so the Playground

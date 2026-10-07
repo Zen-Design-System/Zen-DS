@@ -128,6 +128,7 @@ function InstanceFixture() {
       <Badge data-e2e="inst-badge" leadingIcon leading="icon-heart-line">New</Badge>
       <List data-e2e="inst-list">
         <ListItem data-e2e="inst-row" title="Ava Tran" selected leading={<Avatar alt="Ava Tran" size="sm" />} />
+        <ListItem data-e2e="inst-click-row" title="Bao Le" onClick={() => undefined} leading={<Badge data-e2e="inst-click-badge">New</Badge>} />
       </List>
     </Stack>
   );
