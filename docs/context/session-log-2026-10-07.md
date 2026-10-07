@@ -254,3 +254,22 @@
   Neutral step 10 (decided), the 2026-10-03 design-tokens gate line (all parts tracked), Narrow window navigation
   (done), Pending invites and Hana Kim dead clicks (probe), TopNavigation E2E rows (duplicate), playground Avatar
   (kept). The other overlaps are fragments inside multi-topic lines and stay as written.
+
+## Backlog batch 2: Studio quick fixes (session "Studio builder tool planning", tier S)
+
+- 14 rows approved ("2 · Studio sửa nhanh"); 13 fixed, 1 (setProp/removeProp on a multi-line self-closing tag) already
+  fixed: set then remove returns the original text (a selftest check now covers it).
+- Frames list (P2): `inspector/frames.ts` useFrames kept page A's frames on page B (same `screen:screen-1` id, same
+  element); it compares labels too and re-reads on the frame registry. E2E B-19 fails on the old code, passes now.
+- First view: `FIRST_VISIT_MIN_ZOOM` 0.5 (`canvas/viewport.ts`); measured on 5173: 1280 → Playground ends at 912, the
+  Inspector starts at 960; 1024 → 656 / 704 (63%).
+- `jsx-source.mjs` setPropEdits: a new last attribute goes after a trailing `// comment` (3 selftest checks).
+- Selftest samples: tsconfig.json excludes `src/platform/examples/drafts` (gitignored), the samples' tsconfigs set
+  `exclude: []`; `detachable.selftest.mjs` joins `npm run studio:selftest` (33 checks).
+- Inspector: "Child size" (SizingSection), `title` on truncated headings (DesignPanel, FramePanel), nodeKind falls back
+  to the engine's zenComponents (ZenPortal, PopoverBulkAction* read as Zen), List "Row inset" label removed; palette
+  "Metric card · Value and trend in a card".
+- Data slots: `removeItem { all: true }` (items.mjs; the toast hook goes with the items) for a Figma list boolean
+  switched off with 2+ items (GroupedProperties ToggleRow); a move past identical items writes nothing and says why
+  (slots/actions.ts runDataItem). items selftest 21 cases.
+- SlotLayer clearOfPill: a + chip that lands on `.studio-resize__pill` moves just below it.

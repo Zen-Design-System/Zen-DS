@@ -159,7 +159,7 @@ Read this file only when picking up work or logging a follow-up.
   MCP, zen-ds)" (twice Browser tests, twice Platform audit); `npm run verify:package` passes locally ("Package OK").
   The job log could not be read from the cloud session (its storage host is blocked). PR #1 was merged with it on the
   user's call. Pointer: `.github/workflows/ci.yml` step "Package", `scripts/verify-package.mjs`.
-- **P2 · Builder: Inspector Frames list keeps the previous local page's frames (2026-10-06, seen during GĐ2 M2):**
+- **Done 2026-10-07 (backlog batch 2, E2E B-19: `inspector/frames.ts` compares labels and listens to the frame registry):** ~~P2 · Builder: Inspector Frames list keeps the previous local page's frames (2026-10-06, seen during GĐ2 M2):~~
   open page A then page B (both new pages, Screen id `screen-1`): the Page panel's Frames shows A's title. Likely the
   frame registry keys `screen:screen-1` without the page. Pointer: `builder/BuilderBoard.tsx` frame ids,
   `inspector/PagePanel.tsx` Frames.
@@ -326,7 +326,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     ("No change"). Pointer: `inspector/GroupedProperties.tsx` ToggleRow `on`; an optimistic state would fix it.
   - P3 · Server `origin`: bindingOf ignores for-of/for-in/catch bindings; custom hooks returning state read as
     bound-value (a switch could fix their value); loop-bound `rows` is the innermost loop's length.
-  - P3 · setProp after an attribute with a trailing `// comment` moves the comment; removeProp then leaves it on its own line.
+  - **Done 2026-10-07 (backlog batch 2: `jsx-source.mjs` setPropEdits inserts after the comment; 3 selftest checks):** ~~P3 · setProp after an attribute with a trailing `// comment` moves the comment; removeProp then leaves it on its own line.~~
   - P3 · Control-Bar switch ON only opens the slot picker when the saved file has no control bar (no write until a pick).
   - P3 · Non-component exports left in component modules (Toolbar `revealSection`, ShortcutsDialog `openShortcuts`,
     ZoomControls `modKey`): an edit to those modules cascades; FramePanel.tsx and frames.ts could import
@@ -366,12 +366,12 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     - Phase 7: polish, Appearance surface/border.
   - **Done 2026-10-05 (Studio builder plan GĐ1, E2E row ST-06):** **P2 · Canvas right-click menu still says "Detach component"** for non-detachable types. It should use
     isDetachableType and the label "Detach instance" (shell/CanvasMenu.tsx, Platform session).
-  - **P3 · Two "Children" labels:** the Size group's fillChildren row and the Slots section title both say
-    "Children" on Stack/Grid/Box.
-  - **P3 · Public exports read as "Local component":** PopoverBulkAction*, ZenPortal are missing from
-    api.generated.json.
-  - **P3 · Missing name tooltip:** a truncated node name in the header has no full-name tooltip.
-  - **P3 · No runner for detachable.selftest.mjs:** no test runner includes it.
+  - **Done 2026-10-07 (backlog batch 2: the Size row is "Child size"):** ~~**P3 · Two "Children" labels:** the Size group's fillChildren row and the Slots section title both say
+    "Children" on Stack/Grid/Box.~~
+  - **Done 2026-10-07 (backlog batch 2: `propSchema.ts` nodeKind falls back to the engine's `zenComponents`, the src/index.ts exports):** ~~**P3 · Public exports read as "Local component":** PopoverBulkAction*, ZenPortal are missing from
+    api.generated.json.~~
+  - **Done 2026-10-07 (backlog batch 2: DesignPanel and FramePanel headings carry `title`):** ~~**P3 · Missing name tooltip:** a truncated node name in the header has no full-name tooltip.~~
+  - **Done 2026-10-07 (backlog batch 2: `npm run studio:selftest` runs it, 33 checks):** ~~**P3 · No runner for detachable.selftest.mjs:** no test runner includes it.~~
   - **P3 · Unchecked dark / Comfortable / 280px:** no screenshot pass of the inspector in dark mode, Comfortable
     density or at 280px.
   - **P3 · Small Detach button:** the option-B Detach is `sm` full width and carries `zen-allow-small-full-width`.
@@ -456,7 +456,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     "Long file names" links are 16–20px tall targets. Report `.qa/reports/2026-10-03T15-48-37-47da80c2.md`.
   - **P3 · action-bar 390 contact sheet:** the sticky "No changes to save yet · Undo changes · Save changes" bar of
     Unsaved changes is drawn over the neighbouring cells (Two choices on a phone, Running total) in the shot.
-  - **P3 · Inspector: List `inset` is @deprecated** — `inspector/propSchema.ts` still labels it "Row inset" (inspector
+  - **Done 2026-10-07 (backlog batch 2: the "Row inset" label is gone; the prop shows as the API marks it):** ~~**P3 · Inspector: List `inset` is @deprecated**~~ — `inspector/propSchema.ts` still labels it "Row inset" (inspector
     owner: hide it or mark it deprecated).
   - **P3 · Board follow-ups (2026-10-03, stable layout):** a width override past the section edge overlaps the Docs
     frame and is left out of the section surface and zoom-to-fit (extend the surface / fitRect to the rendered extent
@@ -474,10 +474,10 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     parent/child contracts: wrapping a ListItem in List, a Tab in Tabs, menu/select items or Table parts may break the
     parent's semantics or ARIA (it already refuses table/svg/paragraph nesting). The wrap selftest runs no
     style-guard/usage-guard/tsc on its outputs (detach's does).
-  - **P3 · Studio setProp/removeProp on a multi-line self-closing tag:** setting then removing a prop (e.g. `fullWidth`
+  - **Done (checked 2026-10-07, backlog batch 2: set then remove returns the original text; a selftest check covers the tag closed on its last line):** ~~**P3 · Studio setProp/removeProp on a multi-line self-closing tag:**~~ setting then removing a prop (e.g. `fullWidth`
     on card.tsx's Segmented) leaves `/>` on its own line instead of the original text, so the draft no longer equals the
     disk until it is discarded (found by the resize builder, 2026-10-03).
-  - **P3 · Studio selftest temp files in src/:** `tools/studio/selftest.mjs` writes detach tsc samples under
+  - **Done 2026-10-07 (backlog batch 2: tsconfig.json excludes `src/platform/examples/drafts`, git ignores it; the samples' own tsconfigs set `exclude: []`):** ~~**P3 · Studio selftest temp files in src/:**~~ `tools/studio/selftest.mjs` writes detach tsc samples under
     `src/platform/examples/drafts/`, so a `tsc` run in parallel fails and the 5173 watcher sees them; write them to a temp
     dir with its own tsconfig.
   - **P3 · Frame Save at mid zoom:** on hover a drafted frame adds its frame tools only when the whole toolbar fits
@@ -1125,7 +1125,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   one layer only (several: one at a time); Mixed properties cover variants and booleans (not text, number, spacing or
   text style); ⌘D on several selects the first copy only (op many answers one loc); copying layers from two files is
   refused ("one example at a time").
-- P3 (2026-10-03, session "Figma-like editing functionality"): slots/palette.ts has two items labelled "Metric ·
+- **Done 2026-10-07 (backlog batch 2: "Metric card · Value and trend in a card"):** ~~P3 (2026-10-03, session "Figma-like editing functionality"):~~ slots/palette.ts has two items labelled "Metric ·
   Value and trend" (ids metric and metric-card); the Assets tab and the slot picker show them as twins — label the
   card one "Metric card".
 - **Done 2026-10-05 (Studio builder plan GĐ1, E2E row ST-11):** P3 (2026-10-03, session "Figma-like editing functionality"): Studio menu "Move up/down" (slots/actions.ts runMove) drops
@@ -1142,7 +1142,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     (1280–1920: 0/7 items visible; 1024/390 flip correctly).
   - **Done 2026-10-05 (Studio builder plan GĐ1):** P1 · Studio focus ring Focus/Accent/Solid #ff66d4 is 2.42:1 on the light canvas (SC 1.4.11 needs 3:1); 12 uses in
     src/platform/studio → Focus/Neutral like the components.
-  - **Shift+1 part done 2026-10-05 (fits every frame, E2E S-04); the first-view clip is still open:** P2 · First view clips the Playground under the Inspector (1280: 80px, 1024: 64px; zoom floors at 75%); Shift+1
+  - **Shift+1 part done 2026-10-05 (fits every frame, E2E S-04); first-view part done 2026-10-07 (backlog batch 2: the first view's zoom floor is 50%, `FIRST_VISIT_MIN_ZOOM` in `canvas/viewport.ts`):** ~~P2 · First view~~ clips the Playground under the Inspector (1280: 80px, 1024: 64px; zoom floors at 75%); Shift+1
     "fit all" leaves the Docs frame 213px off-canvas and hides 3/8 frame labels.
   - **Done 2026-10-05 (Studio builder plan GĐ1, E2E row SE-07):** P2 · Layers search with no match: blank panel + unchanged "158 layers" count (Pages/Assets have EmptyState + Clear).
   - **Done 2026-10-05 (Studio builder plan GĐ1, Popover blur):** P2 · Quick actions (⌘/) palette: rgba(255,255,255,.898) fill with no backdrop blur → canvas text shows through.
@@ -1163,12 +1163,12 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   items, ActionBar actions, Breadcrumbs items…) could join after a Figma SLOT-property check.
 - P3 (same session): ⌘-click on a TopNavigation action lands on its IconSvg (the deepest part); the action itself is one
   "Select …" link (or a parent step) away. Decide whether deep select should stop at a data-slot item.
-- P3 (same session): moving one of two identical list items reports "No change" (the texts swap to the same file).
+- **Done 2026-10-07 (backlog batch 2: a move past identical items writes nothing and says why, `slots/actions.ts` runDataItem):** ~~P3 (same session): moving one of two identical list items reports "No change" (the texts swap to the same file).~~
 - P2 (2026-10-05, session "Mở lại port preview"): Figma property groups exist for TopNavigation only
   (`src/platform/studio/inspector/propGroups.ts`). Each other component needs its Figma set read (componentPropertyDefinitions
   + which layers each boolean hides) before it gets groups; propose the order (most-used first) to the user.
-- P3 (same session): switching a list toggle off (Top-Trailing with 2+ actions) removes the prop, so a useToast() line an
-  inserted action brought can stay unused; one item, or an object prop, goes through removeItem and cleans it.
+- **Done 2026-10-07 (backlog batch 2: `removeItem { all: true }` takes every item and the prop, the toast hook with them; items selftest):** ~~P3 (same session): switching a list toggle off (Top-Trailing with 2+ actions) removes the prop, so a useToast() line an
+  inserted action brought can stay unused; one item, or an object prop, goes through removeItem and cleans it.~~
 - ~~P3 (2026-10-05, session "Studio builder tool planning", E2E):~~ **closed 2026-10-07 (backlog cleanup):** same as (3) of the TopNavigation groups follow-ups line. Was: add harness rows for TopNavigation data-slot items (drag to reorder, drop onto another action to group, Inspector Slots `[data-item-index]` rows, "Group X with Y" / "Take X out of its group"); gestures listed by session "Dual action trên top navigation Figma". Needs a TopNavigation in `tools/studio/e2e/fixtures/host-page.tsx`.
 - P3 (same session): intermittent HMR error during Studio E2E runs: `[vite] ReferenceError: Cannot access 'appLayerExamples' before initialization` then "Failed to reload /src/platform/PlatformShowcases.tsx" (import cycle PlatformShowcases ↔ appLayer). Not tied to one row (D-03/D-06 pass); the report's "Vite errors" lists it.
 - P3 (same session): the QA gate owner should review the Studio hooks in `tools/qa/lib.mjs` (`uiKind` "studio", `auxKind` tools/studio, `pagesForEdit` skips studio) and `tools/qa/run.mjs` ("Studio self-tests" static step, "Studio E2E" runtime step).
@@ -1201,9 +1201,9 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - P3 (2026-10-07, GĐ4 M4) · A Studio wrap Stack follows its instance for remove, duplicate, move and drag; Cut / Copy / Paste and the multi-selection ops (`edit/clipboard.ts`, `edit/multi.ts`) still act on the instance alone (a cut leaves its Stack empty).
 - P3 (2026-10-07, GĐ4 M4) · Detach approximations on builder pages leave out the "CSS keyed on the component class" lines: the browser has no repo CSS to read (`componentCss`).
 - P3 (2026-10-07, GĐ4 M2) · Component swap covers registered atom slots (ListItem leading / trailing) and whole layers; a ReactNode prop that is not a registered slot (Metric `action`, EmptyState `icon` as an element) shows its value read-only, with no ⇄.
-- P3 (2026-10-05, Studio builder session): on a selected Box (layout primitive with slots) the SlotLayer "+" chip sits
+- **Done 2026-10-07 (backlog batch 2: a chip on the size pill moves just below it, `slots/SlotLayer.tsx` clearOfPill):** ~~P3 (2026-10-05, Studio builder session): on a selected Box (layout primitive with slots) the SlotLayer "+" chip sits
   on the selection's size pill ("28 × 28") below small layers, so the size is hidden (`slots/SlotLayer.tsx` chip vs
-  `.studio-resize__pill`).
+  `.studio-resize__pill`).~~
 - P3 (2026-10-05, gate .qa/reports/2026-10-05T07-49-39-28eea406.md, backlog batch 3, not from its change): behaviour ⚠
   deadclick list-item › Pending invites "Revoke invite for an.vu@dizai.studio" is a probe artifact — by hand it removes the
   row and shows the Undo toast; the pass revoked the row above first (the list shifts, the toast may cover the next

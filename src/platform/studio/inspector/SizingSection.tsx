@@ -763,16 +763,17 @@ function AlignInParent({ value, info, disabled, onWrite }: { value: PropValue; i
 function Children({ value, disabled, onWrite }: { value: PropValue; disabled: boolean; onWrite: (ops: EditOp[] | null) => void }) {
   const on = value.state === "literal" ? value.value === true : value.state === "spread" ? value.live === true : false;
   const tip = useIconTooltip("Fill equally: every child takes an equal share along the direction; a child's own width or height wins");
-  const label = <span {...tip.bind({})}>Children{tip.tooltip}</span>;
+  // "Child size", not "Children": the Slots section of a layout primitive is titled Children.
+  const label = <span {...tip.bind({})}>Child size{tip.tooltip}</span>;
   if (value.state === "bound" || (value.state === "spread" && typeof value.live === "boolean")) {
-    return <InspectorRow name="fillChildren" label={label} action={<span className="studio-sizing__slot" />}><ReadOnlyValue label="Children" text={on ? "Fill equally" : "Own size"} value={value} /></InspectorRow>;
+    return <InspectorRow name="fillChildren" label={label} action={<span className="studio-sizing__slot" />}><ReadOnlyValue label="Child size" text={on ? "Fill equally" : "Own size"} value={value} /></InspectorRow>;
   }
   const unset = value.state === "unset" || value.state === "spread";
   return (
     <InspectorRow name="fillChildren" label={label} isDefault={unset} action={<span className="studio-sizing__slot" />}>
       <div className="studio-sizing__seg" data-default={unset || undefined}>
         <Segmented
-          aria-label="Children"
+          aria-label="Child size"
           size="sm"
           fullWidth
           disabled={disabled || value.state === "spread"}

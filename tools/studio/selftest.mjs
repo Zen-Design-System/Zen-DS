@@ -205,6 +205,16 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
   check("removeProp: shares a line with >", edit(lines("<Button", "  level=\"primary\"", "  size=\"sm\">", "  x", "</Button>;"), "1:0", "Button", [{ op: "removeProp", name: "size" }]), lines("<Button", "  level=\"primary\">", "  x", "</Button>;"));
   check("removeProp: multi-line attribute", edit(lines("<Button", "  onClick={() => {", "    go();", "  }}", "  size=\"sm\"", "/>;"), "1:0", "Button", [{ op: "removeProp", name: "onClick" }]), lines("<Button", "  size=\"sm\"", "/>;"));
   check("removeProp: absent → no change", applyOps('<A b="1" />;', "1:0", "A", [{ op: "removeProp", name: "c" }]).code, '<A b="1" />;');
+{
+  // A // comment after the last attribute stays on its line (backlog 2026-10-03: setProp moved it onto the new one).
+  const commented = lines("const x = (", "  <A", '    b="1" // why', "  />", ");");
+  const added = edit(commented, "2:2", "A", [{ op: "setProp", name: "c", value: { kind: "boolean", value: true } }]);
+  check("setProp after a // comment: the comment stays", added, lines("const x = (", "  <A", '    b="1" // why', "    c", "  />", ");"));
+  check("removeProp of it: the text as it was", edit(added, "2:2", "A", [{ op: "removeProp", name: "c" }]), commented);
+  const closing = lines("const x = (", '  <A b="1"', '    d="2" />', ");");
+  const withProp = edit(closing, "2:2", "A", [{ op: "setProp", name: "c", value: { kind: "boolean", value: true } }]);
+  check("setProp then removeProp on a tag closed on its last line: the same text", edit(withProp, "2:2", "A", [{ op: "removeProp", name: "c" }]), closing);
+}
   check("removeProp: own line before ` />` joins the line above", edit(lines("<Avatar", "  size=\"md\"", "  status />;"), "1:0", "Avatar", [{ op: "removeProp", name: "status" }]), lines("<Avatar", "  size=\"md\" />;"));
   check("removeProp: before ` />` under a // comment keeps the line", edit(lines("<Avatar", "  size=\"md\" // why", "  status />;"), "1:0", "Avatar", [{ op: "removeProp", name: "status" }]), lines("<Avatar", "  size=\"md\" // why", "  />;"));
   check("removeProp: before another attribute keeps its line", edit(lines("<Avatar", "  status size=\"md\" />;"), "1:0", "Avatar", [{ op: "removeProp", name: "status" }]), lines("<Avatar", "  size=\"md\" />;"));
@@ -1669,7 +1679,7 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
       try {
         fs.mkdirSync(draftDir, { recursive: true });
         tscSamples.forEach((sample, i) => fs.writeFileSync(path.join(draftDir, names[i]), sample.code));
-        fs.writeFileSync(path.join(draftDir, config), JSON.stringify({ extends: "../../../../tsconfig.json", include: ["../../../vite-env.d.ts", ...names] }));
+        fs.writeFileSync(path.join(draftDir, config), JSON.stringify({ extends: "../../../../tsconfig.json", include: ["../../../vite-env.d.ts", ...names], exclude: [] }));
         const run = spawnSync(process.execPath, [tscBin, "-p", path.join(draftDir, config), "--pretty", "false"], { encoding: "utf8" });
         ok("tsc: ran", !run.error && run.status !== null);
         const lines = `${run.stdout ?? ""}${run.stderr ?? ""}`.split(/\r?\n/);
@@ -2544,6 +2554,12 @@ const iconSuggestions = spawnSync(process.execPath, [fileURLToPath(new URL("../.
 process.stdout.write(iconSuggestions.stdout);
 process.stderr.write(iconSuggestions.stderr);
 if (iconSuggestions.status !== 0) process.exit(1);
+
+// Which components Detach can turn into primitives (detachable.ts, kept in step with detach.mjs's recipes).
+const detachable = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/detachable.selftest.mjs", import.meta.url))], { encoding: "utf8" });
+process.stdout.write(detachable.stdout);
+process.stderr.write(detachable.stderr);
+if (detachable.status !== 0) process.exit(1);
 
 // Starters (builder/starters/toDialect.ts: a frame's snapshot written as a builder page) have their own test.
 const starters = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/builder/starters/toDialect.selftest.mjs", import.meta.url))], { encoding: "utf8" });

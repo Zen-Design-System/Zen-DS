@@ -1717,7 +1717,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     })();
     ok("tsc: typescript found", tscBin && fs.existsSync(tscBin));
     if (tscBin && fs.existsSync(tscBin)) {
-      fs.writeFileSync(path.join(draftDir, config), JSON.stringify({ extends: "../../../../tsconfig.json", include: ["../../../vite-env.d.ts", ...names] }));
+      fs.writeFileSync(path.join(draftDir, config), JSON.stringify({ extends: "../../../../tsconfig.json", include: ["../../../vite-env.d.ts", ...names], exclude: [] }));
       written.push(config);
       const run = spawnSync(process.execPath, [tscBin, "-p", path.join(draftDir, config), "--pretty", "false"], { encoding: "utf8" });
       ok("tsc: ran", !run.error && run.status !== null);

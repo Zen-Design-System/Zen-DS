@@ -166,6 +166,16 @@ test("removeItem drops the toast hook an inserted item brought", () => {
   assert.ok(!removed.code.includes("useToast()"), "the hook went with the item");
 });
 
+test("removeItem all: every item and the attribute go, the toast hook two inserted items brought too", () => {
+  const one = ok(run(inline, "TopNavigation", { op: "insertItem", prop: "trailing", code: ACTION, requires: ["toast"] }));
+  const two = ok(run(locOf(one.code, '<TopNavigation title="Inbox"'), "TopNavigation", { op: "insertItem", prop: "trailing", code: ACTION, requires: ["toast"] }, one.code));
+  const all = ok(run(locOf(two.code, '<TopNavigation title="Inbox"'), "TopNavigation", { op: "removeItem", prop: "trailing", all: true }, two.code));
+  assert.match(all.code, /<TopNavigation title="Inbox" \/>/);
+  assert.ok(!all.code.includes("useToast"), "the hook and its import went with the items");
+  const required = ok(run(lines, "TopNavigation", { op: "removeItem", prop: "trailing", all: true }, SOURCE, { requiredProps: { TopNavigation: ["trailing"] } }));
+  assert.match(required.code, /trailing=\{\[\]\}/);
+});
+
 test("duplicateItem: a copy after it; id/value/key strings get a fresh value", () => {
   const copy = ok(run(lines, "TopNavigation", { op: "duplicateItem", prop: "trailing", index: 0 }));
   assert.match(copy.code, /label: "Audio call" \},\n {8}\{ icon: "icon-phone-line", label: "Audio call" \},\n {8}\{ icon: "icon-video/);

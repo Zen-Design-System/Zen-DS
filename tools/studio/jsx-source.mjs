@@ -774,7 +774,12 @@ function setPropEdits(element, text, op, eol, beforeSpread = false) {
   // One attribute per line (the last one starts its own line): a new line with the same indent; else a space.
   const indent = text.slice(lineStartOf(text, last.start), last.start);
   const ownLine = last.loc.start.line > opening.loc.start.line && /^[ \t]*$/.test(indent);
-  return [{ start: last.end, end: last.end, text: ownLine ? `${eol}${indent}${formatted}` : ` ${formatted}` }];
+  if (!ownLine) return [{ start: last.end, end: last.end, text: ` ${formatted}` }];
+  // A `// comment` after the last attribute stays on its line: the new one goes after it, not between them.
+  const newline = text.indexOf("\n", last.end);
+  const lineEnd = newline < 0 ? text.length : text[newline - 1] === "\r" ? newline - 1 : newline;
+  const at = /^[ \t]*\/\/[^\n]*$/.test(text.slice(last.end, lineEnd)) ? lineEnd : last.end;
+  return [{ start: at, end: at, text: `${eol}${indent}${formatted}` }];
 }
 
 const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;

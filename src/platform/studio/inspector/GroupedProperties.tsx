@@ -49,7 +49,7 @@ function inPlace(element: SourceElement, prop: string): boolean {
 }
 
 /** A Figma boolean that stands for a prop's presence: on writes its starting value, off removes the prop. */
-function ToggleRow({ toggle, on, count, value, api, selection, element }: { toggle: GroupToggle; on: boolean; count: number; value: PropValue; api: FieldApi; selection: NodeSelection; element: SourceElement }) {
+function ToggleRow({ toggle, on, value, api, selection, element }: { toggle: GroupToggle; on: boolean; value: PropValue; api: FieldApi; selection: NodeSelection; element: SourceElement }) {
   const spec: PropSpec = { name: toggle.prop, type: "boolean", description: `Figma boolean ${toggle.label}: shows the ${toggle.label} layer (${toggle.prop} set).`, defaultValue: false, editor: { kind: "boolean" } };
   // A value the source computes (a playground's state, a condition) or spreads: read-only, showing what renders.
   const computed = (value.state === "bound" && !inPlace(element, toggle.prop)) || value.state === "spread";
@@ -72,11 +72,11 @@ function ToggleRow({ toggle, on, count, value, api, selection, element }: { togg
     if (!element.savedAttributes?.[toggle.prop]) { startValue(); return; }
     void api.apply([{ op: "resetSlot", prop: toggle.prop }], `${element.name} ${toggle.label} on`).then((written) => { if (!written) startValue(); });
   };
-  // Off: an item the Studio added goes through the item op, so the useToast() line it brought goes with it (example and
-  // template content; a playground removes the prop).
+  // Off: the items go through the item op (all of them at once), so the useToast() line they brought goes with them
+  // (example and template content; a playground removes the prop).
   const switchOff = () => {
     const { on: start } = toggle;
-    if (start.kind === "item" && slot && dataItemBlock(selection) === null && sourceItems(element, slot).state === "items" && (slot.form === "object" || count === 1)) { void editDataItem(selection, slot, "remove", 0); return; }
+    if (start.kind === "item" && slot && dataItemBlock(selection) === null && sourceItems(element, slot).state === "items") { void editDataItem(selection, slot, "remove", 0, 0, { all: true }); return; }
     api.removeProp(toggle.prop);
   };
   return (
@@ -174,7 +174,7 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
     <InspectorSection title="Properties" note={note}>
       {rows(groups.own, "own")}
       {toggles.map((toggle) => (
-        <ToggleRow key={toggle.label} toggle={toggle} on={isSetValue(props[toggle.prop])} count={Array.isArray(props[toggle.prop]) ? (props[toggle.prop] as unknown[]).length : 1} value={api.valueFor(toggle.prop)} api={api} selection={selection} element={element} />
+        <ToggleRow key={toggle.label} toggle={toggle} on={isSetValue(props[toggle.prop])} value={api.valueFor(toggle.prop)} api={api} selection={selection} element={element} />
       ))}
       {rows(after, "after")}
       {groups.nested.filter((group) => holds(group.when, props)).map((group) => (

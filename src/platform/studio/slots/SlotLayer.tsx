@@ -120,6 +120,20 @@ function marksFor(selection: NodeSelection, { hit, root: hostRoot }: Resolved, w
   return { src: selection.src, slots: marks, playground: [] };
 }
 
+/**
+ * A chip on the selection's size pill (ResizeLayer centres it under the layer: a small Box's column slot puts its chip
+ * there too) moves just below the pill, so the size stays readable.
+ */
+function clearOfPill(marks: Marks, viewport: Element | null, origin: DOMRect): Marks {
+  const rect = viewport?.querySelector(".studio-resize__pill")?.getBoundingClientRect();
+  if (!rect?.width) return marks;
+  const pill = { x: rect.left - origin.left, y: rect.top - origin.top, w: rect.width, h: rect.height };
+  const half = CHIP / 2;
+  const onPill = (chip: { x: number; y: number }) => chip.x + half > pill.x && chip.x - half < pill.x + pill.w && chip.y + half > pill.y && chip.y - half < pill.y + pill.h;
+  if (!marks.slots.some((mark) => mark.chip && onPill(mark.chip))) return marks;
+  return { ...marks, slots: marks.slots.map((mark) => (mark.chip && onPill(mark.chip) ? { ...mark, chip: { x: mark.chip.x, y: pill.y + pill.h + 4 + half } } : mark)) };
+}
+
 /** The selected element's source while it is a slot host in example content (the picker builds its palette from it). */
 function useHostSource(selection: NodeSelection | null, enabled: boolean): SourceElement | null {
   const undo = useStudio((state) => state.undo.length);
@@ -169,6 +183,8 @@ export function SlotLayer({ viewport, world }: { viewport: HTMLElement | null; w
   // Read through a ref: a frame requested before the world mounted must still measure with it (like SelectionLayer).
   const worldRef = useRef(world);
   worldRef.current = world;
+  const viewportRef = useRef(viewport);
+  viewportRef.current = viewport;
   const measure = useCallback(() => {
     frameRequest.current = 0;
     const root = rootRef.current;
@@ -185,7 +201,8 @@ export function SlotLayer({ viewport, world }: { viewport: HTMLElement | null; w
           resolved = { key, hit, root: hit ? hostRootOf(hit) : null };
           resolvedRef.current = resolved;
         }
-        next = marksFor(current, resolved, canvas, root.getBoundingClientRect());
+        const origin = root.getBoundingClientRect();
+        next = clearOfPill(marksFor(current, resolved, canvas, origin), viewportRef.current, origin);
       }
     } catch {
       // A node went away mid-measure: nothing this frame.

@@ -17,7 +17,7 @@
 //        op "many" { action: remove|duplicate|setProps, locs, ops? }  a multi-selection in one file (arrange.mjs)
 //        op "clearSlot" { prop? }              on the host: empties the slot (Figma "Delete contents"); `cleared` = true
 //        op "resetSlot" { prop? }              on the host: the slot as the saved file has it (Figma "Reset slot"); `reset` = true
-//        ops "insertItem" | "removeItem" | "duplicateItem" | "moveItem" | "groupItem" | "ungroupItem" { prop, index?, to?, with?, regroup?, code?, single?, list?, requires? }
+//        ops "insertItem" | "removeItem" | "duplicateItem" | "moveItem" | "groupItem" | "ungroupItem" { prop, index?, to?, with?, regroup?, code?, single?, list?, requires?, all? }
 //                                              on the host: the objects of a data slot (`trailing={[{ … }]}`, items.mjs);
 //                                              `item` = { prop, index } where the item is now; `updated` / `removed` = true
 //        opts: { file (repo-relative, required), snippets?, componentModules? (Map or object: name → src/components

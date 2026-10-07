@@ -12,8 +12,12 @@ export const MIN_ZOOM = 0.02;
 export const MAX_ZOOM = 4;
 /** Zoom in / out walk this ladder (Figma-like steps). */
 export const zoomSteps = [0.02, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4] as const;
-/** The first visit of a page opens at least this zoom (a wide playground runs off to the right, one pan away). */
-export const FIRST_VISIT_MIN_ZOOM = 0.75;
+/**
+ * The first visit of a page fits its first frame's width in the visible canvas, down to this zoom (below it text is too
+ * small to read; a wider frame then runs off to the right, one pan away). At 1280 and 1024 the Playground fits at ~62%
+ * (docs/research/studio-ux-audit-2026-10-04.md §03: at the old 75% floor its right edge sat under the Inspector).
+ */
+export const FIRST_VISIT_MIN_ZOOM = 0.5;
 /** Dot grid spacing at 100% (world px); it doubles while it would be denser than MIN_GRID screen px. */
 const GRID = 24;
 const MIN_GRID = 12;

@@ -594,6 +594,16 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Zen Studio quick fixes (2026-10-07, backlog batch 2):** the Inspector's Frames list names the open builder page's
+  Screens after switching pages (two pages both have `screen-1`); the first view zooms down to 50% so the Playground
+  clears the Inspector at 1024–1280 px; setting a prop after an attribute with a trailing `// comment` keeps the comment
+  on its line; the Size row of Stack/Grid/Box is "Child size" (the Slots section keeps "Children"); public exports the
+  props docs do not list (ZenPortal, PopoverBulkAction…) read as Zen components; truncated layer names in the Inspector
+  header show the full name on hover; List `inset` loses its "Row inset" label (it is deprecated); the palette's
+  second Metric is "Metric card"; switching a Figma list boolean off (Top-Trailing with two or more actions) removes the
+  `useToast()` line those actions brought; moving an item past an identical one says the code stays the same instead of
+  "No change"; a slot's + chip no longer covers the selection's size pill. The Studio selftest no longer breaks a
+  parallel `tsc` (its samples are excluded) and runs the detach-type selftest.
 - **Task priority flags use the Light icon colour (2026-10-06):** the HR Tasks flags (list, board, panel) take their
   family's Content Light (Urgent Negative, High Warning, Medium Info, Low Neutral) through Icon `tone`, instead of the
   Base text colour; Light is the icon level.

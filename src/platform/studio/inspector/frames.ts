@@ -4,7 +4,7 @@ import { pageLabels } from "../../PlatformApp";
 // The lists as registry.ts composed them last: this module stays out of an example's hot update.
 import { getPageExamples } from "../../examples/pageExamples";
 import type { PlatformPage } from "../../PlatformExamples";
-import { findFrame } from "../board/frames";
+import { findFrame, subscribeStudioFrames } from "../board/frames";
 import { zoomToFrame } from "../board/Present";
 import { canvasApi } from "../canvas/viewport";
 import { onSourceUpdate } from "../select/picker";
@@ -62,7 +62,8 @@ export function useFrames(page: PlatformPage): FrameInfo[] {
         const id = element.getAttribute("data-studio-frame") ?? "";
         return { id, label: frameLabel(id, page), kind: frameKind(id), width: Math.round((element as HTMLElement).offsetWidth), element };
       }) : [];
-      setFrames((current) => (current.length === next.length && current.every((frame, index) => frame.id === next[index].id && frame.width === next[index].width && frame.element === next[index].element) ? current : next));
+      // The label too: two builder pages both have "screen:screen-1", and React keeps the frame's element between them.
+      setFrames((current) => (current.length === next.length && current.every((frame, index) => frame.id === next[index].id && frame.label === next[index].label && frame.width === next[index].width && frame.element === next[index].element) ? current : next));
       if (!next.length && tries++ < 20) timer = window.setTimeout(read, 300);
     };
     read();
@@ -70,7 +71,9 @@ export function useFrames(page: PlatformPage): FrameInfo[] {
     const observer = new MutationObserver(() => { window.clearTimeout(timer); timer = window.setTimeout(read, 400); });
     if (world) observer.observe(world, { subtree: true, childList: true, attributes: true, attributeFilter: ["data-studio-frame", "style"] });
     const offUpdate = onSourceUpdate(read);
-    return () => { window.clearTimeout(timer); observer.disconnect(); offUpdate(); };
+    // A frame registers its new label (another builder page's title) without a DOM change the observer sees.
+    const offFrames = subscribeStudioFrames(() => { window.clearTimeout(timer); timer = window.setTimeout(read, 50); });
+    return () => { window.clearTimeout(timer); observer.disconnect(); offUpdate(); offFrames(); };
   }, [page]);
   return frames;
 }

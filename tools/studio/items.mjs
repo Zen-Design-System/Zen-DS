@@ -12,7 +12,8 @@
 //        (`index` 0: `[code, object]`). `requires: ["toast"]`: the enclosing component gets `const { toast } = useToast();`
 //        unless a toast binding is in scope.
 //   op "removeItem" { prop, index? }      the index-th item goes with its comma; the only item, or an object prop,
-//        takes the attribute with it (a required prop keeps `[]`). A useToast() hook left unused goes too.
+//        takes the attribute with it (a required prop keeps `[]`). A useToast() hook left unused goes too. `all`: every
+//        item goes, the attribute with them (a Figma boolean switched off with 2+ items, the layer hidden).
 //   op "duplicateItem" { prop, index, list? }   a copy right after it; a string `id`, `value` or `key` field gets a fresh
 //        value (`"a"` → `"a-2"`), so list keys stay unique. With `list`, one object becomes `[object, copy]`.
 //   op "moveItem" { prop, index, to, regroup? }     the item goes to position `to`; the items in between shift by one.
@@ -412,7 +413,7 @@ function attributeEdits(ctx, element, op, h) {
   const index = op.index ?? 0;
   const item = itemAt(items, index, prop, h);
   if (op.op === "removeItem") {
-    if (array.elements.length === 1) {
+    if (array.elements.length === 1 || op.all === true) {
       // The only item: the attribute goes (`[]` says nothing more), unless the component requires it.
       if (ctx.requiredProps.get(jsxName(element.openingElement.name))?.has(prop)) return { edits: [{ start: array.start, end: array.end, text: "[]" }], index };
       return { edits: [removeAttribute(ctx, element, items.attr, h)], index };

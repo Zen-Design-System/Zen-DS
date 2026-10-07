@@ -274,7 +274,7 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => `<Metric label="Revenue" value="$21,000" icon={false} trend={{ direction: "positive", label: "+12% vs last month" }} />`,
   },
   {
-    id: "metric-card", label: "Metric", group: "Data display", caption: "Value and trend", root: "MetricCard", components: ["MetricCard"], interactive: false, input: false,
+    id: "metric-card", label: "Metric card", group: "Data display", caption: "Value and trend in a card", root: "MetricCard", components: ["MetricCard"], interactive: false, input: false,
     build: () => `<MetricCard label="Revenue" value="$21,000" icon={false} trend={{ direction: "positive", label: "+12% vs last month" }} />`,
   },
   {

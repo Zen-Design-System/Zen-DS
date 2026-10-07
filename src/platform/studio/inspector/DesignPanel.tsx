@@ -755,7 +755,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       <header className="studio-inspector__head-block">
         <div className="studio-inspector__title-row">
           <span className="studio-inspector__kind-icon" data-component={isComponent || undefined} aria-hidden="true"><Icon name={isComponent ? "icon-cube-line" : "icon-code-02-line"} size={16} /></span>
-          <Heading level={2} textStyle="Body/Small/Bold" truncate>{name}</Heading>
+          {/* Cut to one line: its full name on hover. */}
+          <Heading level={2} textStyle="Body/Small/Bold" truncate title={name}>{name}</Heading>
           {repeats ? (
             <span className={`studio-inspector__count ${typographyStyles["Body/Small/Medium"]}`} title={repeats}>
               <span aria-hidden="true">{`×${instances}`}</span>
