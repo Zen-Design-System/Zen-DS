@@ -123,7 +123,16 @@ try {
       text: async () => (await api.source(hostFile)).content,
       /** A Studio page for this group (opened once; `fresh` reopens it). */
       async studio({ fresh = false, ...options } = {}) {
-        if (session && !fresh && !Object.keys(options).length) return session;
+        if (session && !fresh && !Object.keys(options).length) {
+          // A builder row left the page on a local page: back to the host page and its fixture first (waiting for the
+          // fixture's seed there, then reloading that page, outran the next row's time limit).
+          const shown = (() => { try { return new URL(session.page.url()).searchParams.get("page"); } catch { return null; } })();
+          if (shown !== host) {
+            await session.page.goto(`${server.url}/studio.html?page=${host}`, { waitUntil: "domcontentloaded" }).catch(() => undefined);
+            await session.page.waitForSelector('[data-studio-frame="example:0"]', { timeout: 30_000 }).catch(() => undefined);
+          }
+          return session;
+        }
         if (session) await session.context.close();
         session = await openStudio(browser, { url: server.url, page: host, ...options });
         await sleep(300);

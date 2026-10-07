@@ -51,12 +51,12 @@ export function AssetsPanel() {
       <div className="studio-assets__search" role="search">
         <Search size="sm" placeholder={label} aria-label={label} value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} />
       </div>
-      {kind === "components" ? <ComponentList query={query} /> : kind === "icons" ? <IconGrid query={query} /> : <PhotoGrid query={query} />}
+      {kind === "components" ? <ComponentList query={query} onClear={() => setQuery("")} /> : kind === "icons" ? <IconGrid query={query} onClear={() => setQuery("")} /> : <PhotoGrid query={query} onClear={() => setQuery("")} />}
     </div>
   );
 }
 
-function ComponentList({ query }: { query: string }) {
+function ComponentList({ query, onClear }: { query: string; onClear: () => void }) {
   // A search lists its results best first; no search lists the palette by group.
   const groups = useMemo((): Array<{ group: string; items: PaletteItem[] }> => {
     if (query.trim()) {
@@ -88,12 +88,12 @@ function ComponentList({ query }: { query: string }) {
             ))}
           </ul>
         </section>
-      )) : <Empty what="components" />}
+      )) : <Empty what="components" onClear={onClear} />}
     </div>
   );
 }
 
-function IconGrid({ query }: { query: string }) {
+function IconGrid({ query, onClear }: { query: string; onClear: () => void }) {
   const [style, setStyle] = useState<"line" | "solid">("line");
   const swapping = useStudio((state) => state.selection?.kind === "node" && !state.selection.part && state.selection.name === "Icon");
   const glyphs = useMemo(() => searchIconGlyphs(query).filter((glyph) => glyph[style] ?? glyph.line), [query, style]);
@@ -118,12 +118,12 @@ function IconGrid({ query }: { query: string }) {
             );
           })}
         </ul>
-      ) : <Empty what="icons" />}
+      ) : <Empty what="icons" onClear={onClear} />}
     </div>
   );
 }
 
-function PhotoGrid({ query }: { query: string }) {
+function PhotoGrid({ query, onClear }: { query: string; onClear: () => void }) {
   const photos = useMemo(() => searchLibraryPhotos(query), [query]);
   const uploads = useUploads();
   const admin = useStudio((state) => state.role === "admin");
@@ -186,17 +186,17 @@ function PhotoGrid({ query }: { query: string }) {
               </li>
             ))}
           </ul>
-        ) : <Empty what="photos" />}
+        ) : <Empty what="photos" onClear={onClear} />}
       </section>
     </div>
   );
 }
 
-function Empty({ what }: { what: string }) {
+function Empty({ what, onClear }: { what: string; onClear: () => void }) {
   return (
     <div className="studio-assets__empty">
-      <EmptyState title={`No ${what} match`} compactTitle icon="icon-search-line" headingLevel={3}>
-        Try another word, in English or Vietnamese, or clear the search.
+      <EmptyState title={`No ${what} match`} compactTitle icon="icon-search-line" headingLevel={3} secondaryAction={{ label: "Clear search", onClick: onClear }}>
+        Try another word, in English or Vietnamese.
       </EmptyState>
     </div>
   );

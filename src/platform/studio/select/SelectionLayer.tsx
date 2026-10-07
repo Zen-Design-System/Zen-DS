@@ -709,7 +709,11 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         event.preventDefault();
         const hit = selectedRef.current;
         const frame = frameElement(world, current.frameId);
-        const parent = hit ? parentHit(hit, frame) : null;
+        // Several layers selected: their common parent (Figma), the first ancestor holding every one of them.
+        const others = world ? multiSelection.get().map((layer) => findBySrc(world, layer.src)[layer.instance]).filter((other): other is FiberHit => Boolean(other)) : [];
+        const holdsAll = (candidate: FiberHit) => others.every((other) => other.hosts.every((host) => candidate.hosts.some((owner) => owner.contains(host))));
+        let parent = hit ? parentHit(hit, frame) : null;
+        while (parent && others.length && !holdsAll(parent)) parent = parentHit(parent, frame);
         if (parent && parent.hosts.length && (!frame || frame.contains(parent.hosts[0]))) choose(parent, false);
         else {
           multiSelection.clear();

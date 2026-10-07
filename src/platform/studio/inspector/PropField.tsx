@@ -740,7 +740,9 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
       // instance renders and an edit writes a fixed value; one source line renders every row of a .map.
       const rows = value.origin?.kind === "loop-bound" ? value.origin.rows ?? repeats : repeats;
       const note = rows && rows > 1 ? `An edit sets a fixed value for all ${rows} rows; Restore brings the binding back.` : "An edit sets a fixed value; Restore brings the binding back.";
-      const shown = spec.editor.kind === "boolean" ? Boolean(value.live) : live;
+      // A switch shows what renders once the live props arrived; before that (one render) the read-only binding, not a
+      // false it may not be.
+      const shown = spec.editor.kind === "boolean" ? (value.live === undefined ? undefined : Boolean(value.live)) : live;
       const control = shown === undefined ? null : editorFor(spec, shown, undefined, { label, disabled }, onSet, { autoFocusToken, optionLabels, defaultIcon });
       if (control) return <InspectorRow {...row} bound={{ expression: value.expression, note }}>{control}</InspectorRow>;
     }

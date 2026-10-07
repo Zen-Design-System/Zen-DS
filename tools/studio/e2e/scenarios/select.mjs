@@ -82,6 +82,24 @@ export const rows = [
     },
   },
   {
+    id: "SE-08", feature: "Escape on several layers selects their common parent (Figma)", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      await focusFrame(page, 0);
+      const a = await at(ctx, "btn-a");
+      const heading = await at(ctx, "heading");
+      await clickLoc(page, ctx.file, a);
+      await expectSelected(page, ctx.file, a);
+      await clickLoc(page, ctx.file, heading, { modifiers: ["Shift"] });
+      await until(async () => (await selectedSrc(page)).length === 2, { message: "two layers selected" });
+      await page.keyboard.press("Escape");
+      // btn-a's own parent is the row; the layer that holds both is the outer stack.
+      const stack = await at(ctx, "stack");
+      await expectSelected(page, ctx.file, stack);
+      return "Alpha + heading → Escape → the outer Stack";
+    },
+  },
+  {
     id: "SE-06", feature: "Click a Layers row selects the layer", wp: "GĐ0",
     async run(ctx) {
       const { page } = await ctx.studio();

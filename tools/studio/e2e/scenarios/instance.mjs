@@ -74,7 +74,8 @@ export const rows = [
       await inspectorRow(page, "primaryAction").getByRole("switch").click();
       const on = await expectSource(ctx, "inst-empty", (el) => /label: "Action"/.test(el.attr("primaryAction") ?? ""), "primaryAction={{ label: \"Action\" }}");
       await switchShows(page, "primaryAction", true);
-      if (!(await page.locator("#studio-right").getByText("Primary action", { exact: true }).count())) throw new Error("no Primary action fields while on");
+      // The switch flips at once (optimistic); its fields come with the write's render.
+      await until(async () => (await page.locator("#studio-right").getByText("Primary action", { exact: true }).count()) > 0, { message: "Primary action fields while on" });
       await inspectorRow(page, "primaryAction").getByRole("switch").click();
       await expectSource(ctx, "inst-empty", (el) => el.attr("primaryAction") === undefined, "primaryAction removed");
       return `on → ${on.attr("primaryAction")}, off → removed`;

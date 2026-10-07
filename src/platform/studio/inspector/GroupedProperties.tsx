@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Icon } from "../../../components/Icon";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { dataItemBlock, dataSlotOf, editDataItem, openSlotPicker, sourceItems, type DataSlot } from "../slots";
@@ -49,7 +49,20 @@ function inPlace(element: SourceElement, prop: string): boolean {
 }
 
 /** A Figma boolean that stands for a prop's presence: on writes its starting value, off removes the prop. */
-function ToggleRow({ toggle, on, value, api, selection, element }: { toggle: GroupToggle; on: boolean; value: PropValue; api: FieldApi; selection: NodeSelection; element: SourceElement }) {
+/** How long a switch shows the value it was set to before the canvas renders it (its hot update, then the props read). */
+const PENDING_MS = 3000;
+
+function ToggleRow({ toggle, on: rendered, value, api, selection, element }: { toggle: GroupToggle; on: boolean; value: PropValue; api: FieldApi; selection: NodeSelection; element: SourceElement }) {
+  // Optimistic: the switch flips at once and holds until the canvas shows the new value (a second press meanwhile acts
+  // on what the switch shows, not on the props read before the write landed).
+  const [pending, setPending] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (pending === null) return undefined;
+    if (pending === rendered) { setPending(null); return undefined; }
+    const timer = window.setTimeout(() => setPending(null), PENDING_MS);
+    return () => window.clearTimeout(timer);
+  }, [pending, rendered]);
+  const on = pending ?? rendered;
   const spec: PropSpec = { name: toggle.prop, type: "boolean", description: `Figma boolean ${toggle.label}: shows the ${toggle.label} layer (${toggle.prop} set).`, defaultValue: false, editor: { kind: "boolean" } };
   // A value the source computes (a playground's state, a condition) or spreads: read-only, showing what renders.
   const computed = (value.state === "bound" && !inPlace(element, toggle.prop)) || value.state === "spread";
@@ -86,7 +99,9 @@ function ToggleRow({ toggle, on, value, api, selection, element }: { toggle: Gro
       value={shown}
       disabled={api.disabled}
       resettable={false}
-      onSet={(next) => { if (next === true && !on) switchOn(); else if (next === false && on) switchOff(); }}
+      onSet={(next) => {
+        if (next === true && !on) { setPending(true); switchOn(); } else if (next === false && on) { setPending(false); switchOff(); }
+      }}
       onReset={() => undefined}
     />
   );

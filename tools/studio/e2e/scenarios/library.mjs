@@ -240,4 +240,15 @@ export const rows = [
       return "platformMedia.site[5] with its import";
     },
   },
+  {
+    id: "LB-13", feature: "Assets search with no match: Clear search brings the list back", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const none = await results(page, "zzqqxx");
+      if (none.length) throw new Error(`"zzqqxx" lists ${none.slice(0, 3).join(", ")}`);
+      await assets(page).locator(".studio-assets__empty").getByRole("button", { name: "Clear search" }).click();
+      await until(async () => (await assets(page).getByLabel("Search components").inputValue()) === "" && (await assets(page).locator(".studio-assets__row").count()) > 0, { message: "the search cleared and the list back" });
+      return "No components match → Clear search → the list";
+    },
+  },
 ];
