@@ -9,6 +9,7 @@ import { fileName, inspectorStatus, saveShortcut, undoShortcut } from "../inspec
 import { childHits, findBySrc, instanceOf, onSourceUpdate, panelOf, parentHit, rectOf, selectHit, type FiberHit } from "../select/picker";
 import { selectPart, withoutPart } from "../select/parts";
 import { expectRender, mapSrc, noteEditTarget, remapSelection, renderedNow, sameSelectedElement, type RenderWaitEnd } from "../select/remap";
+import { stackTagBefore, studioWrapper, wrappedChildLoc, wrapperCandidate } from "../select/resize";
 import { studioDrafts } from "../sourceDrafts";
 import { canEdit, flushStudioStore, studioStore } from "../store";
 import type { SourceElement, StateDecl, StudioSelection, StudioWrite } from "../types";
@@ -397,11 +398,19 @@ export function locateLayer(host: NodeSelection, element: SourceElement, name: s
 export function moveAvailability(selection: NodeSelection): { prev: boolean; next: boolean } {
   const world = canvasApi.getWorldElement();
   const hit = selectedHit(selection, world);
-  const parent = hit ? parentHit(hit, frameElement(selection.frameId, world)) : null;
+  const frame = frameElement(selection.frameId, world);
+  let parent = hit ? parentHit(hit, frame) : null;
+  let src = selection.src;
+  // A component in its Studio wrap Stack moves with that Stack (studioWrapOf): among the Stack's siblings.
+  const host = hit?.isComponent && hit.hosts.length === 1 ? hit.hosts[0] : null;
+  if (parent && host && wrapperCandidate(host) === parent.src) {
+    src = parent.src;
+    parent = parentHit(parent, frame);
+  }
   if (!parent) return { prev: true, next: true };
   // One entry per JSX element: the rows of a `.map` share one source location.
   const order = [...new Set(childHits(parent).map((child) => child.src))];
-  const index = order.indexOf(selection.src);
+  const index = order.indexOf(src);
   return index < 0 ? { prev: true, next: true } : { prev: index > 0, next: index < order.length - 1 };
 }
 
@@ -750,6 +759,28 @@ export function swapSelection(selection: NodeSelection, code: string, label: str
   });
 }
 
+/**
+ * The Studio wrap Stack around the selected component (a fillChildren Stack a resize or the Inspector's Size group put
+ * it in: select/resize.ts studioWrapper), as a selection; null when it has none. Remove, duplicate and move take that
+ * Stack along (GĐ4 M4), so the component never leaves its size behind or gains a second one.
+ */
+export async function studioWrapOf(selection: NodeSelection): Promise<NodeSelection | null> {
+  const at = parseSrc(selection.src);
+  if (!at) return null;
+  // From the source, not the canvas: a copy just made may not render yet.
+  const source = await studioApi.source(at.file).catch(() => null);
+  const loc = source ? stackTagBefore(source.content, at.loc) : null;
+  if (!loc) return null;
+  const element = await studioApi.element(at.file, loc).catch(() => null);
+  return element && studioWrapper(element, at.file, at.loc) ? { ...selection, src: `${at.file}:${loc}`, name: "Stack" } : null;
+}
+
+/** The component inside the wrap Stack a write left at `loc` of `text` (a copy, a move), else that Stack. */
+export function insideWrap(selection: NodeSelection, file: string, text: string, loc: string): NodeSelection {
+  const child = wrappedChildLoc(text, loc);
+  return child ? { ...selection, src: `${file}:${child}` } : { ...selection, src: `${file}:${loc}`, name: "Stack" };
+}
+
 /* The selection a removal left (its parent) and when: a held ⌫ (key repeat), a quick second press or a double click on
  * Remove must not go on to remove that parent too. */
 let lastRemoval: { selection: StudioSelection; at: number } | null = null;
@@ -785,21 +816,23 @@ function parentAfter(parent: StudioSelection | null, removed: SourceElement, res
 async function runRemove(selection: NodeSelection, parentHint?: StudioSelection | null): Promise<boolean> {
   const check = canStructurallyEdit(selection);
   if (!check.ok) return fail(check.reason);
-  const element = await readElement(selection.src, selection.name);
+  // A component in its Studio wrap Stack goes with that Stack.
+  const target = (await studioWrapOf(selection)) ?? selection;
+  const element = await readElement(target.src, target.name);
   if (!element) return false;
-  const block = await structuralBlock(selection, "remove");
+  const block = await structuralBlock(target, "remove");
   if (block) return fail(block);
   const away = isOffCanvasSelection(selection) || !selectedHit(selection);
   // Read before the write: the element is gone after it.
-  const parent = parentHint !== undefined ? parentHint : parentSelectionOf(selection);
+  const parent = parentHint !== undefined ? parentHint : parentSelectionOf(target);
   const parentAt = parent?.kind === "node" ? parseSrc(parent.src) : null;
   // A parent whose opening tag sits above the removed lines keeps its place through the write.
   const keep = parent?.kind === "node" && parentAt && parentAt.file === element.file && parentAt.line <= element.startLine ? [parent.src] : [];
-  if (!(await confirmRepeats(selection, { verb: "remove", name: element.name }))) return false;
+  if (!(await confirmRepeats(selection, { verb: "remove", name: selection.name }))) return false;
   writing("Removing…");
-  const response = await write(targetOf(element), { op: "removeElement" }, `Remove ${element.name}`, keep);
+  const response = await write(targetOf(element), { op: "removeElement" }, `Remove ${selection.name}`, keep);
   if (!response) return false;
-  announce(outcomeOf(`Removed ${element.name}`, response));
+  announce(outcomeOf(`Removed ${selection.name}`, response));
   if (sameSelectedElement(selection, studioStore.getState().selection)) {
     const next = parentAfter(parent, element, response);
     if (next && parent && isOffCanvasSelection(parent)) markOffCanvas(next);
@@ -817,22 +850,26 @@ export function duplicateSelection(selection: NodeSelection): Promise<boolean> {
     if (!single("Duplicate")) return false;
     const check = canStructurallyEdit(selection);
     if (!check.ok) return fail(check.reason);
-    const element = await readElement(selection.src, selection.name);
+    // A component in its Studio wrap Stack is copied with that Stack (the copy keeps the size); the copy inside it is selected.
+    const wrap = await studioWrapOf(selection);
+    const target = wrap ?? selection;
+    const element = await readElement(target.src, target.name);
     if (!element) return false;
-    const block = await structuralBlock(selection, "duplicate");
+    const block = await structuralBlock(target, "duplicate");
     if (block) return fail(block);
-    if (!(await confirmRepeats(selection, { verb: "duplicate", name: element.name }))) return false;
+    if (!(await confirmRepeats(selection, { verb: "duplicate", name: selection.name }))) return false;
     writing("Duplicating…");
     // The copy renders where the original does: off the canvas with an overlay's content.
     const away = isOffCanvasSelection(selection) || !selectedHit(selection);
     const before = renderedNow(canvasApi.getWorldElement());
-    const response = await write(targetOf(element), { op: "duplicateElement" }, `Duplicate ${element.name}`, [selection.src]);
+    const response = await write(targetOf(element), { op: "duplicateElement" }, `Duplicate ${selection.name}`, [target.src]);
     if (!response) return false;
-    const text = outcomeOf(`Duplicated ${element.name}`, response);
+    const text = outcomeOf(`Duplicated ${selection.name}`, response);
     announce(text);
     const loc = answeredLoc(response, "inserted");
     if (!loc) return true;
-    const copy: NodeSelection = { kind: "node", src: `${response.file}:${loc}`, name: tagAt(response.after, loc) ?? selection.name, frameId: selection.frameId, panelId: selection.panelId, instance: selection.instance };
+    const copy: NodeSelection = wrap ? insideWrap(selection, response.file, response.after, loc)
+      : { kind: "node", src: `${response.file}:${loc}`, name: tagAt(response.after, loc) ?? selection.name, frameId: selection.frameId, panelId: selection.panelId, instance: selection.instance };
     // React may reuse a sibling's DOM node for the copy: a short wait, then the copy is found by its location.
     if (selectNew(selection, copy, before, text, { timeout: 3000, away })) remember(response.file, response.after, selection, copy, { before: false, after: true }, { before: away, after: away });
     return true;
@@ -858,22 +895,25 @@ export async function moveSlotLayer(host: NodeSelection, layer: { name: string; 
 async function runMove(selection: NodeSelection, to: "prev" | "next"): Promise<string | null> {
   const check = canStructurallyEdit(selection);
   if (!check.ok) { fail(check.reason); return null; }
-  const element = await readElement(selection.src, selection.name);
+  // A component in its Studio wrap Stack moves with that Stack, among the Stack's siblings.
+  const wrap = await studioWrapOf(selection);
+  const target = wrap ?? selection;
+  const element = await readElement(target.src, target.name);
   if (!element) return null;
-  const block = await structuralBlock(selection, "move");
+  const block = await structuralBlock(target, "move");
   if (block) { fail(block); return null; }
-  if (!(await confirmRepeats(selection, { verb: "move", name: element.name }))) return null;
+  if (!(await confirmRepeats(selection, { verb: "move", name: selection.name }))) return null;
   writing("Moving…");
   const direction = to === "prev" ? "up" : "down";
   // What the canvas shows before the write: the selection waits for the re-render instead of outlining the sibling that
   // still stands at the new place (as edit/arrange.ts stepLayer does; BACKLOG "Move up/down drops the selection").
   const before = renderedNow(canvasApi.getWorldElement());
-  const response = await write(targetOf(element), { op: "moveElement", to }, `Move ${element.name} ${direction}`);
+  const response = await write(targetOf(element), { op: "moveElement", to }, `Move ${selection.name} ${direction}`);
   if (!response) return null;
-  announce(outcomeOf(`Moved ${element.name} ${direction}`, response));
+  announce(outcomeOf(`Moved ${selection.name} ${direction}`, response));
   const loc = answeredLoc(response, "moved");
   if (!loc) return null;
-  const src = `${response.file}:${loc}`;
+  const src = wrap ? insideWrap(selection, response.file, response.after, loc).src : `${response.file}:${loc}`;
   const current = studioStore.getState().selection;
   if (current?.kind === "node" && sameSelectedElement(selection, current)) {
     // A new selection at the new place, not a remap of the old one: SelectionLayer follows a remapped selection by its

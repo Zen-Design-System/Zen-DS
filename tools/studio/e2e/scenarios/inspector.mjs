@@ -155,6 +155,9 @@ export const rows = [
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+KeyZ");
       await expectSource(ctx, "row", (el) => el.attr("gap") === "sm", "one ⌘Z back to sm (one edit, not two)");
+      // The field reads the undone value before ⌫, as a person sees it change first: a ⌫ planned from the element the
+      // Inspector read before the undo is refused as stale (BACKLOG I-15, fixed 2026-10-07).
+      await until(async () => /^sm · \d+/.test((await inspectorRow(page, "gap").locator("button").first().innerText()).trim()), { message: 'the gap field back to "sm · …"' });
       await trigger.focus();
       await page.keyboard.press("Backspace");
       await expectSource(ctx, "row", (el) => el.attr("gap") === undefined, "⌫ removes gap");

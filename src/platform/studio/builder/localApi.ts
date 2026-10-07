@@ -1,6 +1,6 @@
 import { typographyStyles } from "../../../tokens/typography.generated";
-import type { EditRequest, EditResponse, SourceElement, SourceFile, WriteRequest, WriteResponse } from "../types";
-import { engineOptions, loadEngine, zenComponents } from "./engine";
+import type { DetachPlan, EditRequest, EditResponse, SourceElement, SourceFile, WriteRequest, WriteResponse } from "../types";
+import { engineOptions, loadDetach, loadEngine, zenComponents } from "./engine";
 import { getPage, pageIdOf, putPage } from "./store/pageStore";
 
 /*
@@ -51,6 +51,17 @@ export async function localElement(file: string, loc: string): Promise<SourceEle
   return element as unknown as SourceElement;
 }
 
+/**
+ * As GET /detach-plan (GĐ4 M4): whether the element can be detached and what to measure, from the detach recipes,
+ * loaded on first use. The plan's raw answer; api.ts reads it as it reads the dev server's.
+ */
+export async function localDetachPlan(file: string, loc: string, name: string, instances?: number): Promise<DetachPlan | { ok: false; reason: string }> {
+  const page = await pageText(file);
+  if (!page) return { ok: false, reason: `${file} is not a page in this browser` };
+  const { detachPlan } = await loadDetach();
+  return detachPlan(page.text, loc, name, { file, instances }) as DetachPlan | { ok: false; reason: string };
+}
+
 const EXTRAS = ["snippet", "detached", "wrapped", "unwrapped", "inserted", "moved", "removed", "cleared", "reset", "item", "updated"] as const;
 
 /** As POST /edit: one apply on the page's text, kept valid, saved to the PageStore (no drafts: a page saves as it goes). */
@@ -72,6 +83,8 @@ export async function localEdit(request: EditRequest): Promise<EditResponse> {
     after = result.code;
     changed = engine.changedRange(before, after);
   } else {
+    // Op "detach" runs once the recipes have registered with the engine.
+    if (request.ops.some((op) => op.op === "detach")) await loadDetach();
     const result = engine.applyOps(before, request.loc, request.name, request.ops, { ...(await engineOptions()), typographyKeys: Object.keys(typographyStyles), file: request.file, hash: request.hash, shared: request.shared });
     if (typeof result.error === "string") return { ok: false, code: result.code === "stale" || result.code === "not-found" || result.code === "forbidden" ? result.code : "invalid", error: result.error };
     after = result.code;

@@ -13,8 +13,10 @@ import cloning from "../cloning.json";
 import { childHits, nameOf, onSourceUpdate, selectionInstances, type FiberHit } from "./picker";
 import { expectRender, mapSrc, noteEditTarget, renderedNow, sameSelectedElement } from "./remap";
 import { breakpointOf, columnsSource, pxTrack, soleColumn, splitTracks, withTrackPx } from "./gridTracks";
-import { axisText, cloneReason, cloningParent, cloningProp, contentWidth, currentMode, layoutParent, lockBound, MIN_SIZE, noCross, pillReason, planHug, planResize, reachesParent, refuseWrap, resizeTarget, snapSize, specimenOnly, stackAxes, stackFill, studioWrapper, withColumn, withoutAxes, withWrapper, wrappedChildLoc, wrapperCandidate, wrapRefusal, type AxisMode, type CloningList, type CrossFits, type ResizeAxis, type ResizePlan, type ResizeTarget } from "./resize";
+import { axisText, cloneReason, cloningParent, cloningProp, contentWidth, currentMode, layoutParent, lockBound, MIN_SIZE, noCross, pillReason, planFill, planHug, planHugAxis, planResize, reachesParent, refuseWrap, resizeTarget, snapSize, specimenOnly, stackAxes, stackFill, studioWrapper, withColumn, withoutAxes, withWrapper, wrappedChildLoc, wrapperCandidate, wrapRefusal, type AxisMode, type CloningList, type CrossFits, type ResizeAxis, type ResizePlan, type ResizeTarget } from "./resize";
 import type { Box } from "./spacing";
+import { instanceSizing, type InstanceAxis, type InstanceSizingInput } from "./instanceSizing";
+import type { ParentLayout } from "../inspector/sizingModel";
 
 /*
  * Resize handles on the selected element (Figma-like): 4 corner squares and 4 edge strips on its outline (Text and
@@ -110,7 +112,12 @@ type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
  * element too).
  */
 type Print = { size: number; hash: string };
-type WrapRecord = { file: string; before: Print; after: Print; original: NodeSelection; wrapper: NodeSelection; child: string | null };
+/**
+ * `inverse`: the write took a Studio wrap Stack away (Hug from the Inspector), so its undo puts the Stack back and its
+ * redo takes it away again. `keep`: the wrapped element stays selected inside its Stack (the Inspector's Size group:
+ * the Layers fold the Stack into its row), not the Stack.
+ */
+type WrapRecord = { file: string; before: Print; after: Print; original: NodeSelection; wrapper: NodeSelection; child: string | null; inverse?: boolean; keep?: boolean };
 const WRAP_KEY = "zen-studio:last-wrap";
 
 /** FNV-1a of the text (with its length, how a wrap's texts are told apart). */
@@ -146,24 +153,30 @@ function rememberWrap(record: WrapRecord) {
 const offWrites = subscribeStudioWrites((write) => {
   const last = lastWrap;
   if (!last || write.file !== last.file || write.kind === "edit") return;
-  // Both sides: the wrap's undo goes from its result back to the text before it, its redo the other way. Another edit
-  // undone back to the same text (a prop set and undone after the wrap was undone) is not the wrap.
-  const undo = write.kind === "undo" && matches(write.before, last.after) && matches(write.after, last.before);
-  const redo = write.kind === "redo" && matches(write.before, last.before) && matches(write.after, last.after);
-  if (!undo && !redo) return;
+  // Both sides: the wrap's undo goes from its result back to the text before it, its redo the other way (the other way
+  // round for an unwrap, `inverse`). Another edit undone back to the same text (a prop set and undone after the wrap
+  // was undone) is not the wrap.
+  const toBefore = matches(write.before, last.after) && matches(write.after, last.before);
+  const toAfter = matches(write.before, last.before) && matches(write.after, last.after);
+  const [undoes, redoes] = last.inverse ? [toAfter, toBefore] : [toBefore, toAfter];
+  if (!(write.kind === "undo" && undoes) && !(write.kind === "redo" && redoes)) return;
+  // The write leaves the element out of its Stack (an undone wrap, a redone unwrap).
+  const unwrapped = toBefore;
   // What the canvas shows now is the render before this write (read synchronously, before Vite applies it).
   const before = renderedNow(canvasApi.getWorldElement());
+  // The wrapped element selected inside its Stack (`keep`), else the Stack.
+  const inside: NodeSelection = last.keep && last.child ? { ...last.original, src: last.child } : last.wrapper;
   // After every other write listener (the selection remap).
   queueMicrotask(() => {
     const current = studioStore.getState().selection;
-    const from = undo ? last.wrapper : last.original;
+    const from = unwrapped ? inside : last.original;
     // That element at `src` (or moved there by the remap), read back or picked again.
     const at = (name: string, src: string | null) => Boolean(src && current?.kind === "node" && !current.part && current.name === name
       && current.instance === from.instance && (current.src === src || current.src === mapSrc(src, write)));
     // The selection it left (the Stack, or the element inside it), or none (dropped): never another pick.
-    const same = !current || sameSelectedElement(from, current) || at(from.name, from.src) || (undo && at(last.original.name, last.child));
+    const same = !current || sameSelectedElement(from, current) || at(from.name, from.src) || (unwrapped && at(last.original.name, last.child));
     if (!same) return;
-    const next = undo ? last.original : last.wrapper;
+    const next = unwrapped ? last.original : inside;
     // The element renders only after Vite applied the write: the canvas waits for it (never drops it).
     expectRender(next, before, () => undefined);
     studioStore.setState({ selection: next });
@@ -173,6 +186,13 @@ const offWrites = subscribeStudioWrites((write) => {
 import.meta.hot?.dispose(offWrites);
 
 const fiberHost = (hit: FiberHit | null) => (hit && hit.hosts.length === 1 && hit.hosts[0] instanceof HTMLElement ? hit.hosts[0] : null);
+
+/** The layout `element` sits in, as the Size group's Fill caption reads it (SizingSection readHost). */
+function parentLayout(element: HTMLElement): ParentLayout {
+  const parent = layoutParent(element);
+  const kind: ParentLayout["kind"] = parent?.matches(".zen-stack[data-direction]") ? (parent.dataset.direction === "row" ? "row" : "column") : parent?.matches(".zen-grid") ? "grid" : "other";
+  return { kind, fillChildren: (kind === "row" || kind === "column") && parent?.dataset.fillChildren === "true" };
+}
 
 /**
  * The JSX element at `src` as the dev server reads it, refreshed after source updates, undo and redo; undefined until
@@ -695,6 +715,9 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     release?.();
   }, []);
 
+  /** Counts released previews: the Inspector's Size group is measured again once the element shows its own size. */
+  const [settled, setSettled] = useState(0);
+
   /** Keeps the preview until Vite re-rendered the write (or 3 s), so the element never jumps back in between. */
   const hold = useCallback((drag: Drag) => {
     releaseHeld();
@@ -705,6 +728,7 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
       cancelAnimationFrame(frame);
       restoreDrag(drag);
       if (heldRef.current === clear) heldRef.current = null;
+      setSettled((value) => value + 1);
     };
     const off = onSourceUpdate(() => { frame = requestAnimationFrame(() => { frame = requestAnimationFrame(clear); }); });
     const timer = window.setTimeout(clear, 3000);
@@ -766,8 +790,11 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     setLive({ values, fill: fullWidth, stack: drag.stack, count: drag.count, column });
   }, [valuesAt]);
 
-  /** Sends one request: the plan's ops, to the element or to its Studio wrap Stack (a wrap selects the new Stack). */
-  const write = useCallback(async (drag: Pick<Drag, "hit" | "element" | "selection">, plan: ResizePlan) => {
+  /**
+   * Sends one request: the plan's ops, to the element or to its Studio wrap Stack. A wrap selects the new Stack, or with
+   * `keep` (the Inspector's Size group) the element inside it; an unwrap selects the element where the Stack was.
+   */
+  const write = useCallback(async (drag: Pick<Drag, "hit" | "element" | "selection">, plan: ResizePlan, keep = false) => {
     const parsed = parseSrc(plan.grid ?? plan.wrapper ?? drag.hit.src);
     if (!parsed) return false;
     const fresh = await studioApi.element(parsed.file, parsed.loc);
@@ -776,6 +803,25 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
       return false;
     }
     const request = { file: parsed.file, loc: parsed.loc, name: fresh.name, ops: plan.ops, hash: fresh.hash };
+    if (plan.wrapper && plan.ops.some((op) => op.op === "unwrap")) {
+      const before = renderedNow(canvasApi.getWorldElement());
+      const response = await applyEdit(request, plan.label);
+      if (!response.ok) {
+        if (/Unknown op "unwrap"/.test(response.error)) inspectorStatus.set("negative", "Restart the dev server to take a Stack away");
+        return false;
+      }
+      if (response.before === response.after || !response.unwrapped) return false;
+      announce(plan.announce);
+      const next: NodeSelection = { ...drag.selection, src: `${response.file}:${response.unwrapped.loc}`, name: drag.hit.name };
+      // Its undo puts the Stack back with the element selected inside it, its redo takes it away again.
+      rememberWrap({ file: response.file, before: fingerprint(response.after), after: fingerprint(response.before), original: next, wrapper: { ...drag.selection, src: plan.wrapper, name: "Stack" }, child: drag.selection.src, inverse: true, keep: true });
+      if (sameSelectedElement(drag.selection, studioStore.getState().selection)) {
+        expectRender(next, before, () => undefined);
+        studioStore.setState({ selection: next });
+        flushStudioStore();
+      }
+      return true;
+    }
     if (!plan.wrap) {
       const done = noteEditTarget(`${parsed.file}:${parsed.loc}`);
       try {
@@ -797,9 +843,11 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     announce(plan.announce);
     const wrapped = response.wrapped;
     if (wrapped && typeof wrapped.loc === "string") {
-      const next: NodeSelection = { kind: "node", src: `${response.file}:${wrapped.loc}`, name: "Stack", frameId: drag.selection.frameId, panelId: drag.selection.panelId, instance: drag.selection.instance };
-      const child = wrappedChildLoc(response.after, wrapped.loc);
-      rememberWrap({ file: response.file, before: fingerprint(response.before), after: fingerprint(response.after), original: drag.selection, wrapper: next, child: child && `${response.file}:${child}` });
+      const stack: NodeSelection = { kind: "node", src: `${response.file}:${wrapped.loc}`, name: "Stack", frameId: drag.selection.frameId, panelId: drag.selection.panelId, instance: drag.selection.instance };
+      const childLoc = wrappedChildLoc(response.after, wrapped.loc);
+      const child = childLoc && `${response.file}:${childLoc}`;
+      const next: NodeSelection = keep && child ? { ...drag.selection, src: child } : stack;
+      rememberWrap({ file: response.file, before: fingerprint(response.before), after: fingerprint(response.after), original: drag.selection, wrapper: stack, child, keep: keep && Boolean(child) });
       if (sameSelectedElement(drag.selection, studioStore.getState().selection)) {
         // Synchronously (no request in between): Vite may reload the page as soon as it sees the write.
         expectRender(next, before, () => undefined);
@@ -934,6 +982,59 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     }
     void write({ hit, element, selection }, plan);
   };
+
+  // The Inspector's Size group for a library component (GĐ4 M4, instanceSizing.ts): what each axis renders with, and a
+  // writer that plans as a drag does, keeping the component selected. Measured once per selection, source update and
+  // size, never under a drag's preview.
+  // The target itself, not `shown`: the outline's box may be missing for a frame while the canvas re-renders.
+  const sizingTarget = enabled && target?.kind === "component" && (target.width || target.height) && host && hit && element ? target : null;
+  const latest = useRef({ shown: sizingTarget, element, hit, host, count });
+  latest.current = { shown: sizingTarget, element, hit, host, count };
+  const sizingKey = sizingTarget && hit && host
+    ? `${hit.src}|${updates}|${settled}|${count}|${sizingTarget.width?.kind ?? ""}/${sizingTarget.height?.kind ?? ""}|${sizingTarget.wrapper?.src ?? ""}|${host.offsetWidth}x${host.offsetHeight}`
+    : "";
+  const setSize = useCallback((axis: ResizeAxis, input: InstanceSizingInput) => {
+    const { shown: target, element: source, hit: picked, host: node, count: times } = latest.current;
+    if (!target || !source || !picked || !node || dragRef.current) return;
+    const selection = studioStore.getState().selection;
+    if (selection?.kind !== "node" || selection.part || selection.src !== picked.src) return;
+    // What the element (or its Studio wrap Stack) fills: what a Stack keeps on the axis it does not size.
+    const filler = target.wrapper && node.parentElement instanceof HTMLElement ? node.parentElement : node;
+    const cross = stackAxes(target).length || target.width?.kind === "fullWidth" ? crossFits(filler) : noCross;
+    // A typed width is Fixed even at the parent's width (`corner`: never fullWidth); Fill is its own choice.
+    const plan = input.kind === "hug" ? planHugAxis(picked.name, target, axis, source.attributes, { cross, count: times })
+      : input.kind === "fill" ? planFill(picked.name, target, axis, { count: times })
+        : planResize(picked.name, target, { [axis]: input.px }, contentWidth(layoutParent(node)), { cross, count: times, corner: true });
+    if (!plan) return;
+    if ("none" in plan) {
+      inspectorStatus.set("neutral", plan.none);
+      return;
+    }
+    void write({ hit: picked, element: source, selection }, plan, true);
+  }, [write]);
+  const unpublish = useRef(0);
+  useLayoutEffect(() => {
+    window.clearTimeout(unpublish.current);
+    if (!sizingKey) {
+      // A moment later: a re-render that reads the element (or its Stack) again keeps the fields (and what is typed).
+      unpublish.current = window.setTimeout(() => instanceSizing.publish(null), 250);
+      return;
+    }
+    if (dragRef.current || heldRef.current) return;
+    const { shown: target, hit: picked, host: node } = latest.current;
+    if (!target || !picked || !node) return;
+    const filler = target.wrapper && node.parentElement instanceof HTMLElement ? node.parentElement : node;
+    const fits = crossFits(filler);
+    // Unwritten: what it does by itself, as Figma names it (it fills its parent there, or takes its own size).
+    const axis = (name: ResizeAxis): InstanceAxis | null => {
+      if (!target[name]) return null;
+      const mode = currentMode(target, name, node, picked.props);
+      const px = name === "width" ? node.offsetWidth : node.offsetHeight;
+      return mode ? { mode, written: true, px } : { mode: fits[name] ? "fill" : "hug", written: false, px };
+    };
+    instanceSizing.publish({ src: picked.src, name: picked.name, width: axis("width"), height: axis("height"), stacked: Boolean(target.wrapper), parent: parentLayout(filler), set: setSize });
+  }, [sizingKey, setSize]);
+  useEffect(() => () => { window.clearTimeout(unpublish.current); instanceSizing.publish(null); }, []);
 
   // The pill's rendered width, so a long reason stays inside the canvas (read after each render; set only on a change).
   const pillRef = useRef<HTMLSpanElement>(null);

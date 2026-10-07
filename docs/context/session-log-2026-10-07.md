@@ -110,3 +110,23 @@
 - E2E IN-12 (Avatar in Leading: Shape · Size · Theme · Background · Status · Focus; Size › Large writes the nested
   Avatar), IN-13 (Reset all: ListItem `selected` + nested Avatar `size` in one edit, one ⌘Z). Fixture ListItem gains
   `selected` and an Avatar `size`. Full matrix in 3 chunks: 124 works; build-check 15/15 (engine 135.6 KB).
+
+## Studio builder GĐ4 M4 (session "Studio builder tool planning", tier M)
+
+- User settled Q1: "(a) wrap in a Stack + 3 fixes"; and asked to fix the flaky I-15 in its test (waits for `sm · N`
+  before ⌫).
+- W / H for an instance: `select/instanceSizing.ts` (store the canvas publishes), ResizeLayer measures it (written mode,
+  else crossFits → Fill / Hug) and plans `set` with planResize (typed px: `corner` so never fullWidth), `planFill`,
+  `planHugAxis` (resize.ts: Hug unwraps a Studio wrap Stack that sizes nothing else, op unwrap). `write(…, keep)`
+  keeps the instance selected inside a new Stack; an unwrap selects it where the Stack was; WrapRecord `inverse` /
+  `keep` make ⌘Z / ⇧⌘Z re-select it. Inspector: `inspector/InstanceSizeGroup.tsx` (SizeField from SizingSection, new
+  `onInput`) in the Layout section of Zen instances.
+- The Stack follows: Layers fold it into the instance's row (`isStudioWrap`, alias, `data-wrapped`); `studioWrapOf`
+  (slots/actions.ts, from the source: `stackTagBefore` + studioWrapper) makes remove / duplicate / move (actions.ts) and
+  stepLayer / moveLayer (edit/arrange.ts) act on the Stack and select the instance inside (`insideWrap`);
+  moveAvailability reads the Stack's siblings.
+- Detach on builder pages: `tools/studio/browser-detach.mjs` (lazy chunk, 16.6 KB gzip; engine 136.9 KB with
+  jsx-source split into its own chunk), `loadDetach`, `localDetachPlan`; detach.mjs `pageLayout` turns the recipes'
+  inline styles into Layout props on *.zen.tsx (max-content → width="hug", flex 1 → Fill) and refuses the rest
+  (EmptyState, DescriptionList). Selftests: detach page cases, engine-iso graph of browser-detach.
+- E2E IN-14…IN-17 (128 rows); build-check 17 steps (detach chunk on its own; Detach on the build).

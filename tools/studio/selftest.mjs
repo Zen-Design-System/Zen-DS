@@ -1236,6 +1236,15 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     ok("tag: static box, the Ghost fill as Surface, pale border, label", /<Box\n  surface="surface"\n  border="pale"\n  radius="full"/.test(tag.code) && /textStyle="Body\/Base\/Medium" truncate>Design/.test(tag.code));
     const photo = detachAt("tag photo", page('export const A = ({ src }: { src: string }) => <Tag photoSrc={src} disabled>Alex</Tag>;'), "<Tag", "Tag");
     ok("tag photo + disabled: Avatar 2xsmall, disabled tone", /<Avatar size="2xsmall" theme="photo" background="subtle" src=\{src\} alt="" \/>/.test(photo.code) && /tone="disabled"/.test(photo.code) && importLines(photo).includes('import { Avatar } from "../../../components/Avatar";'));
+    // A builder page (*.zen.tsx, GĐ4 M4) takes no style: the Badge's max-content pill hugs through width="hug", the
+    // primitives join the package import; a recipe whose layout needs a style is refused there, saying so.
+    const builderPage = (element) => ['// @zen-page {"format":1,"title":"T"}', 'import { Board, Screen } from "@zen/design-system/builder";', `import { ${element.slice(1, element.search(/[\s>]/))}, Stack } from "@zen/design-system";`, "", "export default function Page() {", "  return (", "    <Board>", '      <Screen id="s" title="T" device="phone">', '        <Stack gap="md">', `          ${element}`, "        </Stack>", "      </Screen>", "    </Board>", "  );", "}", ""].join("\n");
+    const onPage = builderPage("<Badge>New</Badge>");
+    const pageBadge = applyOps(onPage, locOf(onPage, "<Badge"), "Badge", [{ op: "detach" }], { file: "local:p1.zen.tsx", typographyKeys });
+    ok("badge on a builder page: width=\"hug\", no style", !("error" in pageBadge) && !/style=/.test(pageBadge.code) && /<Box surface="subtle" radius="full" paddingX="xs" paddingY="2xs" width="hug">/.test(pageBadge.code));
+    check("badge on a builder page: primitives from the package", importLines(pageBadge).at(-1), 'import { Box, Icon, Stack, Text } from "@zen/design-system";');
+    const emptyOnPage = builderPage('<EmptyState title="Nothing here" />');
+    ok("empty state on a builder page: refused with the style it needs", /^EmptyState cannot be detached on a builder page yet: its layout needs an inline style/.test(detachPlan(emptyOnPage, locOf(emptyOnPage, "<EmptyState"), "EmptyState", { file: "local:p1.zen.tsx" }).reason ?? ""));
   }
 
   // Interactive instances and non-presentational components are refused with a reason.

@@ -11,6 +11,16 @@ const resetAll = (page) => page.locator("#studio-right").getByRole("button", { n
  *  update (a few hundred ms after the source), as a person sees it flip before pressing it again. */
 const switchShows = (page, prop, checked) => until(async () => (await inspectorRow(page, prop).getByRole("switch").getAttribute("aria-checked")) === String(checked), { message: `${prop} switch ${checked ? "on" : "off"}` });
 /** The option names of an Inspector row's select, in the order shown (the list closes again). */
+/** The instance Size group's W or H field (Inspector › Layout). */
+const sizeField = (page, axis) => page.locator(`#studio-right .studio-sizing[data-instance] .studio-sizing__field[data-axis="${axis}"]`);
+const sizeText = async (page, axis) => (await sizeField(page, axis).locator("input").inputValue().catch(() => "")).trim();
+/** Picks a W / H option ("Fill container", "Hug contents", "Fixed width…") from the field's list. */
+async function sizeChoice(page, axis, label) {
+  const field = sizeField(page, axis);
+  await field.waitFor({ state: "visible", timeout: 5000 });
+  await field.getByRole("button", { name: `${axis === "width" ? "Width" : "Height"} options` }).click();
+  await page.getByRole("listbox", { name: `${axis === "width" ? "Width" : "Height"} sizing` }).getByRole("option", { name: new RegExp(`^${label}`) }).first().click();
+}
 async function optionNames(page, prop) {
   await inspectorRow(page, prop).locator("button").first().click();
   const names = await page.getByRole("option").allInnerTexts();
@@ -198,6 +208,105 @@ export const rows = [
       await page.keyboard.press("ControlOrMeta+KeyZ");
       await until(async () => /title="Ava Tran" selected leading=\{<Avatar alt="Ava Tran" size="sm" \/>\}/.test(await ctx.text()), { message: "one ⌘Z brings both back" });
       return "ListItem selected + nested Avatar size reset in one edit → one ⌘Z restores both";
+    },
+  },
+  {
+    id: "IN-14", feature: "Width › Fill container wraps a Badge in a Stack it fills; the Badge stays selected; Hug takes the Stack away; ⌘Z", wp: "GĐ4 M4",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-badge", { frame: FRAME });
+      await sizeChoice(page, "width", "Fill container");
+      const wrapped = /<Stack direction="row" fillChildren width="fill">\s*<Badge data-e2e="inst-badge"/;
+      await until(async () => wrapped.test(await ctx.text()), { message: 'the Badge in <Stack direction="row" fillChildren width="fill">' });
+      await until(async () => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim() === "Badge", { message: "the Badge still selected" });
+      await until(async () => (await sizeText(page, "width")) === "Fill", { message: "W reads Fill" });
+      await sizeChoice(page, "width", "Hug contents");
+      const back = /<Badge data-e2e="inst-badge" leadingIcon leading="icon-heart-line">New<\/Badge>\n\s*<List/;
+      await until(async () => { const text = await ctx.text(); return back.test(text) && !/fillChildren width="fill"/.test(text); }, { message: "the Stack gone, the Badge where it was" });
+      await until(async () => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim() === "Badge", { message: "the Badge selected after Hug" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => wrapped.test(await ctx.text()), { message: "⌘Z puts the Stack back" });
+      await until(async () => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim() === "Badge", { message: "the Badge selected inside it" });
+      return "W › Fill container → <Stack direction=\"row\" fillChildren width=\"fill\"> around the Badge (Badge selected) → Hug → Stack gone → ⌘Z → back";
+    },
+  },
+  {
+    id: "IN-15", feature: "Width typed in px wraps a Button in a Stack that size; a second size edits that Stack; Fill makes it fill", wp: "GĐ4 M4",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-button", { frame: FRAME });
+      const typeWidth = async (value) => {
+        const input = sizeField(page, "width").locator("input");
+        await input.click();
+        await input.fill(value);
+        await input.press("Enter");
+      };
+      await sizeField(page, "width").waitFor({ state: "visible", timeout: 5000 });
+      await typeWidth("200");
+      await until(async () => /<Stack direction="row" fillChildren width=\{200\}>\s*<Button data-e2e="inst-button"/.test(await ctx.text()), { message: "the Button in a Stack 200 wide" });
+      await until(async () => (await sizeText(page, "width")) === "200", { message: "W reads 200" });
+      if (process.env.ZEN_E2E_SHOT) await page.screenshot({ path: process.env.ZEN_E2E_SHOT });
+      await typeWidth("240");
+      await until(async () => /<Stack direction="row" fillChildren width=\{240\}>\s*<Button data-e2e="inst-button"/.test(await ctx.text()), { message: "the same Stack 240 wide" });
+      if ((await ctx.text()).match(/fillChildren/g)?.length !== 1) throw new Error("a second Stack");
+      await sizeChoice(page, "width", "Fill container");
+      await until(async () => /<Stack direction="row" fillChildren width="fill">\s*<Button data-e2e="inst-button"/.test(await ctx.text()), { message: "its Stack fills" });
+      return "W 200 → <Stack direction=\"row\" fillChildren width={200}> → 240 edits it → Fill → width=\"fill\"";
+    },
+  },
+  {
+    id: "IN-16", feature: "A Badge in its Stack: Layers show one Badge row; ⌘D copies it with its Stack; ⌫ removes it with its Stack; ↑ moves both", wp: "GĐ4 M4",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-badge", { frame: FRAME });
+      await sizeChoice(page, "width", "Fill container");
+      const wraps = async () => ((await ctx.text()).match(/fillChildren width="fill">\s*<Badge data-e2e="inst-badge"/g) ?? []).length;
+      await until(async () => (await wraps()) === 1, { message: "the Badge in its Stack" });
+      // Layers: the Stack folds into the Badge's row (selected), right under the EmptyState.
+      const row = page.locator('#studio-left-panel-layers .studio-layers__row[data-wrapped="true"]');
+      await until(async () => (await row.count()) === 1 && (await row.getAttribute("aria-selected")) === "true", { message: "one selected Badge row standing for its Stack" });
+      const above = await row.evaluate((el) => el.previousElementSibling?.querySelector(".studio-layers__name")?.textContent?.trim());
+      const name = (await row.locator(".studio-layers__name").innerText()).trim();
+      if (name !== "Badge" || above !== "EmptyState") throw new Error(`the row reads ${name} under ${above}`);
+      const selected = () => until(async () => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim() === "Badge", { message: "the Badge selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyD");
+      await until(async () => (await wraps()) === 2, { message: "⌘D: two Stacks, each with a Badge" });
+      await selected();
+      await sleep(300);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Backspace");
+      await until(async () => (await wraps()) === 1 && ((await ctx.text()).match(/fillChildren/g) ?? []).length === 1, { message: "⌫: the copy gone with its Stack" });
+      await sleep(300);
+      await row.click();
+      await selected();
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ArrowUp");
+      await until(async () => /fillChildren width="fill">\s*<Badge data-e2e="inst-badge"[^\n]*\n\s*<\/Stack>\n\s*<EmptyState/.test(await ctx.text()), { message: "↑: the Stack and its Badge above the EmptyState" });
+      await selected();
+      return "one Badge row (its Stack folded) → ⌘D copies the Stack with it → ⌫ removes the copy's Stack too → ↑ moves the Stack";
+    },
+  },
+  {
+    id: "IN-17", feature: "Builder page: Detach a Badge into Zen primitives (the recipes load on first use), one ⌘Z", wp: "GĐ4 M4",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      await selectStack(page, id);
+      await showLeftTab(page, "assets");
+      await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("Badge");
+      await page.locator(".studio-assets__row", { hasText: /^Badge/ }).first().click();
+      await until(async () => /<Badge\b/.test((await pageText(page, id)) ?? ""), { message: "the Badge" });
+      await sleep(400);
+      await clickNamed(page, id, "Badge");
+      const detach = page.locator("#studio-right").getByRole("button", { name: /^Detach instance/ });
+      await detach.waitFor({ state: "visible", timeout: 5000 });
+      await until(async () => !(await detach.isDisabled()), { message: "Detach ready (its plan read in the browser)" });
+      await detach.click();
+      await until(async () => { const text = (await pageText(page, id)) ?? ""; return !/<Badge\b/.test(text) && /zen-detached: Badge/.test(text); }, { message: "the Badge detached into primitives" });
+      const text = (await pageText(page, id)) ?? "";
+      const root = /zen-detached: Badge[^\n]*\n\s*<(\w+)/.exec(text)?.[1] ?? "?";
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => /<Badge\b/.test((await pageText(page, id)) ?? ""), { message: "⌘Z brings the Badge back" });
+      return `Badge → <${root}> + zen-detached mark → ⌘Z → Badge`;
     },
   },
   {

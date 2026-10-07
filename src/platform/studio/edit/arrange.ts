@@ -4,7 +4,7 @@ import { canvasApi } from "../canvas/viewport";
 import { isTypingTarget } from "../select/picker";
 import { multiSelection } from "../select/multiSelection";
 import { expectRender, renderedNow } from "../select/remap";
-import { canStructurallyEdit, structuralBlock } from "../slots/actions";
+import { canStructurallyEdit, insideWrap, structuralBlock, studioWrapOf } from "../slots/actions";
 import { canEdit, flushStudioStore, studioStore } from "../store";
 import type { EditOp, StudioNodeRef } from "../types";
 import { textEditSession } from "./textEdit";
@@ -50,21 +50,24 @@ export async function stepLayer(layer: NodeSelection, to: "prev" | "next"): Prom
   if (busy) return false;
   const check = canStructurallyEdit(layer);
   if (!check.ok) { fail(check.reason); return false; }
-  const at = parseSrc(layer.src);
-  if (!at) return false;
   busy = true;
   try {
-    const block = await structuralBlock(layer, "move");
+    // A component in its Studio wrap Stack moves with that Stack (GĐ4 M4).
+    const wrap = await studioWrapOf(layer);
+    const moving = wrap ?? layer;
+    const at = parseSrc(moving.src);
+    if (!at) return false;
+    const block = await structuralBlock(moving, "move");
     if (block) { fail(block); return false; }
     const element = await studioApi.element(at.file, at.loc);
     if (!element) { fail(`${layer.name} is no longer there — select it again`); return false; }
     const before = renderedNow(canvasApi.getWorldElement());
-    const label = `Move ${element.name} ${to === "prev" ? "up" : "down"}`;
+    const label = `Move ${layer.name} ${to === "prev" ? "up" : "down"}`;
     const response = await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [{ op: "moveElement", to }], hash: element.hash }, label);
     if (!response.ok) return false;
     const loc = response.moved?.loc;
     const current = studioStore.getState().selection;
-    if (loc && current?.kind === "node" && current.src === layer.src) follow({ ...layer, src: `${response.file}:${loc}` }, before);
+    if (loc && current?.kind === "node" && current.src === layer.src) follow(wrap ? insideWrap(layer, response.file, response.after, loc) : { ...layer, src: `${response.file}:${loc}` }, before);
     return true;
   } finally {
     busy = false;
@@ -85,18 +88,24 @@ export async function moveLayer(layer: NodeSelection, target: DropTarget, copy: 
   }
   busy = true;
   try {
-    const element = await studioApi.element(from.file, from.loc);
+    // A component in its Studio wrap Stack moves (or is copied) with that Stack (GĐ4 M4); dropped into that very Stack,
+    // nothing moves.
+    const wrap = await studioWrapOf(layer);
+    if (wrap && (target.parentSrc === wrap.src || target.before === wrap.src || target.after === wrap.src)) return false;
+    const at = wrap ? parseSrc(wrap.src) ?? from : from;
+    const element = await studioApi.element(at.file, at.loc);
     if (!element) { fail(`${layer.name} is no longer there — select it again`); return false; }
     const op: Extract<EditOp, { op: "moveTo" }> = { op: "moveTo", parent: to.loc };
     if (target.before) op.before = parseSrc(target.before)?.loc;
     else if (target.after) op.after = parseSrc(target.after)?.loc;
     if (copy) op.copy = true;
-    const label = `${copy ? "Copy" : "Move"} ${element.name}${target.reparent || copy ? ` into ${target.parentName}` : ""}`;
+    const label = `${copy ? "Copy" : "Move"} ${layer.name}${target.reparent || copy ? ` into ${target.parentName}` : ""}`;
     const before = renderedNow(canvasApi.getWorldElement());
-    const response = await applyEdit({ file: from.file, loc: from.loc, name: element.name, ops: [op], hash: element.hash }, label);
+    const response = await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [op], hash: element.hash }, label);
     if (!response.ok) return false;
     const loc = response.moved?.loc ?? response.inserted?.loc;
-    if (loc) follow({ kind: "node", src: `${response.file}:${loc}`, name: layer.name, frameId: target.frameId, panelId: target.panelId, instance: 0 }, before);
+    const landed: NodeSelection = { kind: "node", src: `${response.file}:${loc}`, name: layer.name, frameId: target.frameId, panelId: target.panelId, instance: 0 };
+    if (loc) follow(wrap ? insideWrap(landed, response.file, response.after, loc) : landed, before);
     return true;
   } finally {
     busy = false;

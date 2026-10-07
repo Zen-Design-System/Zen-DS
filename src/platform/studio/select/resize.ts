@@ -246,6 +246,28 @@ export function wrappedChildLoc(text: string, loc: string): string | null {
   return `${text.slice(0, start).split("\n").length}:${start - lineStart}`;
 }
 
+/**
+ * "line:column" of the `<Stack …>` opening tag right before the element at `loc` of `text` (where a Studio wrap Stack
+ * opens: studioWrapper confirms it from the source), or null.
+ */
+export function stackTagBefore(text: string, loc: string): string | null {
+  const [line, column] = loc.split(":").map(Number);
+  if (!Number.isInteger(line) || !Number.isInteger(column) || line < 1) return null;
+  let offset = 0;
+  for (let index = 1; index < line; index++) {
+    offset = text.indexOf("\n", offset) + 1;
+    if (offset === 0) return null;
+  }
+  const start = offset + column;
+  if (text[start] !== "<") return null;
+  const before = text.slice(0, start).trimEnd();
+  if (!before.endsWith(">") || before.endsWith("/>")) return null;
+  const open = before.lastIndexOf("<");
+  if (open < 0 || !/^<Stack[\s>]/.test(text.slice(open))) return null;
+  const lineStart = text.lastIndexOf("\n", open - 1) + 1;
+  return `${text.slice(0, open).split("\n").length}:${open - lineStart}`;
+}
+
 /** The target of a component in a Studio wrap Stack: the axes that would wrap it (or set fullWidth) edit that Stack. */
 export function withWrapper(target: ResizeTarget, wrapper: ResizeWrapper): ResizeTarget {
   if (target.kind !== "component") return target;
@@ -578,6 +600,52 @@ export function planHug(name: string, target: ResizeTarget, axes: ResizeAxis[], 
   }
   if (!ops.length) return { none: axes.some((axis) => target[axis]?.kind === "column") ? `${name} fills its Grid column: drag the edge to resize the column` : `${name} already takes its own size` };
   return { ops, wrap: false, wrapper: null, label: `${name} ${changes.join(", ")}${all.label ? ` (${all.label})` : ""}`, announce: `${capitalize(done.join(" and "))} hug${all.announce}` };
+}
+
+/**
+ * Fill container on one axis (the Inspector's instance Width, GĐ4 M4): fullWidth, a sizing prop's "fill", or a Stack
+ * that fills on that axis with the component filling it (fillChildren along the Stack's main axis): a new wrap, or the
+ * Studio wrap Stack it already sits in (stretched across when that Stack sizes its other axis). `none`: nothing to write.
+ */
+export function planFill(name: string, target: ResizeTarget, axis: ResizeAxis, options: PlanOptions = {}): ResizePlan | { none: string } {
+  const rule = target[axis];
+  const all = every(options.count);
+  const label = (where: string) => `${name} ${axis} → fill${where}${all.label ? ` (${all.label})` : ""}`;
+  const announce = `${axisWord(axis)} fill${all.announce}`;
+  if (!rule) return { none: target.why?.join(" · ") ?? `${name}'s ${axis} cannot change here` };
+  if (rule.kind === "column") return { none: `${name} fills its Grid column already` };
+  if (rule.kind === "fullWidth") return { ops: [{ op: "setProp", name: "fullWidth", value: { kind: "boolean", value: true } }], wrap: false, wrapper: null, label: label(""), announce };
+  if (rule.kind === "prop") return rule.hug ? { ops: [{ op: "setProp", name: rule.prop, value: { kind: "string", value: "fill" } }], wrap: false, wrapper: null, label: label(""), announce } : { none: `${name}'s ${rule.prop} takes a size in px only` };
+  const main = axis === "width" ? "row" : "column";
+  if (rule.kind === "wrapper" && target.wrapper) {
+    const other = valueOf(target.wrapper.attributes, axis === "width" ? "height" : "width");
+    const otherSized = other.state === "literal" && (typeof other.value === "number" || other.value === "fill");
+    // The child fills along the Stack's main axis; with the other axis sized, the Stack keeps its direction and
+    // stretches the child across instead.
+    const ops = wrapperOps(target.wrapper, otherSized ? [[axis, "fill"], ["align", "stretch"]] : [["direction", main], [axis, "fill"]]);
+    if (!ops.length) return { none: `${name}'s Stack already fills its ${axis}` };
+    return { ops, wrap: false, wrapper: target.wrapper.src, label: label(" (its Stack)"), announce: `${announce} (in a Stack)` };
+  }
+  if (rule.kind === "wrapper" || target.noWrap) return { none: target.noWrap ?? `${name}'s Stack is still being read` };
+  const props: Record<string, EditValue> = { direction: { kind: "string", value: main }, fillChildren: { kind: "boolean", value: true }, [axis]: { kind: "string", value: "fill" } };
+  const what = all.many ? `${all.many} ${plural(name)}` : name;
+  return { ops: [{ op: "wrap", tag: "Stack", props }], wrap: true, wrapper: null, label: `Wrap ${what} in a Stack (${axis} fill)`, announce: `${announce} (in a Stack)` };
+}
+
+/**
+ * Hug on one axis from the Inspector (GĐ4 M4, the user's sizing choice): a Studio wrap Stack that would size nothing
+ * once this axis hugs goes (op unwrap: the component takes its own size, no Stack left in the code); else as planHug.
+ */
+export function planHugAxis(name: string, target: ResizeTarget, axis: ResizeAxis, attributes: SourceAttr[], options: PlanOptions = {}): ResizePlan | { none: string } {
+  if (target[axis]?.kind === "wrapper" && target.wrapper) {
+    const other = valueOf(target.wrapper.attributes, axis === "width" ? "height" : "width");
+    const otherSized = other.state === "literal" && (typeof other.value === "number" || other.value === "fill");
+    if (!otherSized) {
+      const all = every(options.count);
+      return { ops: [{ op: "unwrap" }], wrap: false, wrapper: target.wrapper.src, label: `${name} ${axis} → hug (its Stack goes${all.label ? `, ${all.label}` : ""})`, announce: `${axisWord(axis)} hug${all.announce}` };
+    }
+  }
+  return planHug(name, target, [axis], attributes, options);
 }
 
 /**

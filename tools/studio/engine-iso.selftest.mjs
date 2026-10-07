@@ -27,19 +27,26 @@ for (const name of ENGINE) {
   check(`${name}.mjs imports no Node module`, node, []);
 }
 
-// The browser engine's static import graph (GĐ2 M4): detach.mjs stays out of it (no Detach on builder pages; its recipes
-// would add ~20 KB gzip to the lazy chunk), so op "detach" only runs where detach.mjs is imported (the dev server).
+// The browser engine's static import graph (GĐ2 M4): detach.mjs stays out of it (its recipes would add ~20 KB gzip to
+// the lazy chunk). Builder pages load them on first use through browser-detach.mjs (GĐ4 M4), a chunk of their own.
 {
-  const seen = new Set();
-  const visit = (name) => {
-    if (seen.has(name)) return;
-    seen.add(name);
-    const text = fs.readFileSync(path.join(here, `${name}.mjs`), "utf8");
-    for (const match of text.matchAll(/^\s*(?:import|export)\s[^;]*?from\s+["']\.\/([\w-]+)\.mjs["']/gm)) visit(match[1]);
+  const graph = (entry) => {
+    const seen = new Set();
+    const visit = (name) => {
+      if (seen.has(name)) return;
+      seen.add(name);
+      const text = fs.readFileSync(path.join(here, `${name}.mjs`), "utf8");
+      for (const match of text.matchAll(/^\s*(?:import|export)\s[^;]*?from\s+["']\.\/([\w-]+)\.mjs["']/gm)) visit(match[1]);
+    };
+    visit(entry);
+    return seen;
   };
-  visit("browser-engine");
+  const seen = graph("browser-engine");
   check("browser-engine.mjs does not reach detach.mjs", seen.has("detach"), false);
   check("browser-engine.mjs reaches the shared helpers", seen.has("source-helpers"), true);
+  const detach = graph("browser-detach");
+  check("browser-detach.mjs reaches detach.mjs", detach.has("detach"), true);
+  check("browser-detach.mjs stays within the engine's modules", [...detach].filter((name) => name !== "browser-detach" && !ENGINE.includes(name)), []);
 }
 
 for (const text of ["", "abc", "a".repeat(55), "a".repeat(56), "a".repeat(64), "Tiếng Việt 🎉  ", fs.readFileSync(path.join(here, "jsx-source.mjs"), "utf8")]) {

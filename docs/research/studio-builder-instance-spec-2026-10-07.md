@@ -2,7 +2,8 @@
 
 **Trạng thái: user đã duyệt 2026-10-07** (Q2–Q4 theo đề xuất; Q1 xem §8, chốt trước M4). **M1 xong 2026-10-07**
 (E2E IN-01…IN-06); **M2 xong 2026-10-07** (IN-07…IN-11; Q3 đổi theo dữ liệu Figma: preferred values là cả bộ icon,
-user chọn "mặc định của Figma + icon đã dùng trong file"); **M3 xong 2026-10-07** (IN-12, IN-13). Chi tiết trong `docs/context/session-log-2026-10-07.md`. GĐ4 của
+user chọn "mặc định của Figma + icon đã dùng trong file"); **M3 xong 2026-10-07** (IN-12, IN-13); **M4 xong 2026-10-07** (Q1 = bọc Stack + 3 chỉnh sửa; IN-14…IN-17; Detach trên
+trang tự tạo cho 7/9 loại, EmptyState và DescriptionList bị từ chối kèm lý do). **GĐ4 hoàn tất.** Chi tiết trong `docs/context/session-log-2026-10-07.md`. GĐ4 của
 `docs/research/studio-builder-plan-2026-10-05.md`. GĐ0–GĐ3 đã xong; GĐ1 WP-E đã có Figma properties cho 54 component.
 Spec này đo những gì còn thiếu so với panel instance của Figma (§2), chốt phạm vi, và nêu 4 câu hỏi cho user (§8).
 
@@ -155,4 +156,4 @@ SLOT 59, INSTANCE_SWAP 36 (gần như toàn icon), TEXT 24. BACKLOG đang chờ:
   2. chọn Hug thì gỡ Stack (`unwrap` sẵn có);
   3. xoá, kéo, nhân bản instance thì Stack bọc đi theo.
 
-  Chỉ còn code xuất ra có thêm lớp Stack. Chờ user chốt trước M4.
+  Chỉ còn code xuất ra có thêm lớp Stack. **User chốt 2026-10-07: (a) kèm 3 chỉnh sửa** (đã làm ở M4).

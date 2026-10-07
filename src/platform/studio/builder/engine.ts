@@ -11,6 +11,14 @@ type Engine = typeof import("../../../../tools/studio/browser-engine.mjs");
 let loading: Promise<Engine> | null = null;
 export const loadEngine = (): Promise<Engine> => (loading ??= import("../../../../tools/studio/browser-engine.mjs"));
 
+type Detach = typeof import("../../../../tools/studio/browser-detach.mjs");
+let detaching: Promise<Detach> | null = null;
+/**
+ * The detach recipes (tools/studio/browser-detach.mjs, about 20 KB gzip), a chunk of their own loaded when a builder
+ * page first asks about Detach (GĐ4 M4): loading them registers op "detach" with the engine.
+ */
+export const loadDetach = (): Promise<Detach> => (detaching ??= loadEngine().then(() => import("../../../../tools/studio/browser-detach.mjs")));
+
 /** The Zen components a page may use: the library's exports whose name starts upper-case and that render. */
 export const zenComponents: ReadonlySet<string> = new Set(
   Object.entries(Zen).filter(([name, value]) => /^[A-Z]/.test(name) && (typeof value === "function" || (typeof value === "object" && value !== null && "$$typeof" in value))).map(([name]) => name),

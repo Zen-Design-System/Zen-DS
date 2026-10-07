@@ -40,6 +40,7 @@ import { InspectorItem, InspectorRow, InspectorSection } from "./Section";
 import { autoGroups, labelInGroup } from "./autoGroups";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { hasSizing, SizingSection, sizingPropNames } from "./SizingSection";
+import { InstanceSizeGroup, useInstanceSizing } from "./InstanceSizeGroup";
 import { SlotHost, useSlotFilled } from "./SlotHost";
 import { openQuickInsert } from "../builder/library/quickInsertState";
 import { resetAllProps } from "./resetAll";
@@ -576,6 +577,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   // Figma's nested instances of the selection (its props' Zen components), read once here: Properties and the Nested
   // instances section list them, and Reset all overrides resets theirs too.
   const nested = useNestedInstances(selection, element, api);
+  // W / H of a library component as the canvas resizes it (GĐ4 M4): Hug, Fill or Fixed through a Stack it fills.
+  const instanceSize = useInstanceSizing(selection.src);
 
   const name = element?.name ?? selection.name;
   const specs = useMemo(() => {
@@ -662,7 +665,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   const textFirst = textKind === "class" && !isComponent;
   const spreadNote = spreads.length ? `Set through ${spreads.map((spread) => spread.raw).join(", ")}: the props it sets are read-only here.` : undefined;
   // Layout components show Layout above Properties (Figma UI3 order): the bound and spread notes go on the first of the two.
-  const layoutShown = Boolean(element && (layoutSpecs.length || sizing));
+  const instanceSized = Boolean(instanceSize && !sizing && !isLayout && !isText && nodeKind(name) === "zen");
+  const layoutShown = Boolean(element && (layoutSpecs.length || sizing || instanceSized));
   // Bound values carry a ƒ in their own row (its tooltip names the expression), so no section repeats it.
   const sectionNote = spreadNote;
   const propertiesNote = layoutShown ? undefined : sectionNote;
@@ -676,7 +680,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       component={name}
       attributes={element?.attributes ?? []}
       host={sourceHost(selection)}
-      sizing={sizing ? <SizingSection api={api} specs={sizingSpecs} component={name} host={sourceHost(selection)} /> : null}
+      sizing={sizing ? <SizingSection api={api} specs={sizingSpecs} component={name} host={sourceHost(selection)} />
+        : instanceSized && instanceSize ? <InstanceSizeGroup sizing={instanceSize} disabled={!editable} /> : null}
     />
   ) : null;
 

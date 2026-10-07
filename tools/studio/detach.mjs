@@ -1413,6 +1413,34 @@ function referenceCount(ast, name) {
  * index parameter when it had none, and the import changes. Throws EditError (code "invalid", `refusal: true` for a
  * reason to show) when it cannot. `plan: true` checks everything for row 0 without needing `instance`.
  */
+/**
+ * Builder pages (GĐ4 M4: a *.zen.tsx page takes no `style`): the inline layouts the recipes write become Layout props
+ * that render the same (layout.css): `width: max-content` capped at 100% is width="hug" (fit-content); `flex: 1` (with
+ * `minWidth: 0`) in a recipe's Stack is Fill along that Stack (width in a row, height in a column). Any other style
+ * refuses the detach on a page, saying which.
+ */
+function pageLayout(node, component, parent = null) {
+  if (!node || node.type !== "el") return;
+  const at = node.props.findIndex((prop) => prop.name === "style");
+  if (at >= 0) {
+    const prop = node.props[at];
+    const style = prop.kind === "code" ? prop.code.replace(/\s+/g, " ").trim() : null;
+    const row = parent?.props.some((entry) => entry.kind === "str" && entry.name === "direction" && entry.value === "row");
+    const inStack = Boolean(parent && /Stack$/.test(parent.tag));
+    const props = style === '{ width: "max-content", maxWidth: "100%" }' ? [str("width", "hug")]
+      : (style === "{ flex: 1 }" || style === "{ flex: 1, minWidth: 0 }") && inStack ? [str(row ? "width" : "height", "fill")]
+        : null;
+    if (!props) refuse(`${component} cannot be detached on a builder page yet: its layout needs an inline style${style ? ` (${style})` : ""}, which pages do not take`);
+    node.props.splice(at, 1, ...props);
+  }
+  for (const child of node.children) {
+    if (child.type === "el") pageLayout(child, component, node);
+    else if (child.type === "guard") pageLayout(child.then, component, node);
+    else if (child.type === "map") pageLayout(child.item, component, node);
+    else if (child.type === "either") for (const side of [child.yes, child.no]) for (const item of side) pageLayout(item, component, node);
+  }
+}
+
 export function detachEdits(text, element, ast, { measured, instance, file, eol = text.includes("\r\n") ? "\r\n" : "\n", typographyKeys, plan = false, componentCss } = {}) {
   const name = jsxName(element.openingElement.name);
   const recipe = Object.hasOwn(RECIPES, name) ? RECIPES[name] : null;
@@ -1425,6 +1453,8 @@ export function detachEdits(text, element, ast, { measured, instance, file, eol 
   const keys = typographyKeys instanceof Set ? typographyKeys : Array.isArray(typographyKeys) ? new Set(typographyKeys) : null;
   const recipeContext = new Recipe(text, element, ast, nodePath, { measured: validMeasured(measured, keys), eol, file });
   const root = recipe.build(recipeContext);
+  // A builder page takes no style (dialect.mjs): the recipes' inline layouts become the Layout props that render them.
+  if (typeof file === "string" && /\.zen\.tsx$/.test(file)) pageLayout(root, name);
   const keyed = cssKeyedOnComponent(recipeContext, componentCss);
   for (const hit of keyed.slice(0, 4)) {
     recipeContext.approx(`CSS keyed on the ${name} class stops applying: ${hit.selector} (${hit.file}${hit.line ? `:${hit.line}` : ""}).`);

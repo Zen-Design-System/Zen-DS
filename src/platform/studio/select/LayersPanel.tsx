@@ -17,6 +17,7 @@ import { studioStore, useStudio } from "../store";
 import { elementFiber, hitOf, hostsOf, isHostFiber, isPortalFiber, layerHover, nameOf, onSourceUpdate, panelOf, rectOf, rendersPortal, shortSrc, srcOf, type Fiber, type FiberHit } from "./picker";
 import { classHint, elementAt, isComponentFiber, partChildren, type PartHit } from "./parts";
 import { toggleLayer, useExtraSelection } from "./multiSelection";
+import { wrapperCandidate } from "./resize";
 import { mapSrc, onStudioWrite } from "./remap";
 import { pressLayersRow } from "../edit/layersDrag";
 import "./select.css";
@@ -74,6 +75,8 @@ type LayerNode = {
   lazy?: boolean;
   /** slot: its prop and its container on the canvas (the row's hover outline). */
   slot?: { prop: string; container: Element | null };
+  /** node: the src of the Studio wrap Stack folded into this component's row (it takes the component's size). */
+  wrap?: string;
 };
 
 /** `aliases`: a folded wrapper's id → the panel row that stands for it (selecting the wrapper highlights the panel). */
@@ -194,9 +197,25 @@ function attachSlots(nodes: LayerNode[], byId: Map<string, LayerNode>) {
   }
 }
 
+/** What a Studio wrap Stack renders with (select/resize.ts studioWrapper reads the same from the source). */
+const WRAP_PROPS = new Set(["direction", "align", "fillChildren", "width", "height", "children"]);
+
+/**
+ * A Stack the Studio wrapped one library component in to size it (Fill, Fixed: GĐ4 M4): a fillChildren Stack with no
+ * other prop, whose only element is that component.
+ */
+function isStudioWrap(node: LayerNode, only: LayerNode): boolean {
+  if (node.name !== "Stack" || !node.isComponent || only.kind !== "node" || !only.isComponent || !only.fiber || !node.fiber) return false;
+  const host = hostsOf(only.fiber)[0];
+  if (!host || wrapperCandidate(host) !== node.src) return false;
+  const props = (node.fiber.memoizedProps ?? {}) as Record<string, unknown>;
+  return props.fillChildren === true && Object.keys(props).every((key) => WRAP_PROPS.has(key) || key.startsWith("data-"));
+}
+
 /*
- * Folds the wrappers that only add depth: an anonymous div/section with a single child, and any element whose single
- * child is a playground panel (the panel group stands for it). They stay selectable on the canvas.
+ * Folds the wrappers that only add depth: an anonymous div/section with a single child, any element whose single
+ * child is a playground panel (the panel group stands for it), and the Stack the Studio wrapped a component in to size
+ * it (its row stands for both, as Figma shows an instance's sizing on the instance). They stay selectable on the canvas.
  */
 function simplify(nodes: LayerNode[], aliases: Map<string, string>): LayerNode[] {
   return nodes.flatMap((node) => {
@@ -209,6 +228,11 @@ function simplify(nodes: LayerNode[], aliases: Map<string, string>): LayerNode[]
       return [only];
     }
     if (node.name === "div" || node.name === "section") return [only];
+    if (isStudioWrap(node, only)) {
+      only.wrap = node.src ?? undefined;
+      aliases.set(node.id, only.id);
+      return [only];
+    }
     return [node];
   });
 }
@@ -356,6 +380,7 @@ function rowTitle(node: LayerNode) {
   if (node.kind === "parts") return `What ${node.owner?.name ?? "this component"} renders inside itself (read-only)`;
   if (node.kind === "panel") return `Playground panel: ${node.name}`;
   if (node.kind === "slot") return `${node.name}: a slot of ${node.owner?.name ?? "the component"}${node.children.length ? "" : " (empty)"}`;
+  if (node.wrap) return `${shortSrc(node.src ?? "")} · in a Stack that sets its size (${shortSrc(node.wrap)})`;
   return node.src ? shortSrc(node.src) : undefined;
 }
 
@@ -627,6 +652,7 @@ export function LayersPanel() {
               data-layer-id={node.id}
               data-kind={node.kind}
               data-component={node.isComponent || undefined}
+              data-wrapped={node.wrap ? "true" : undefined}
               className={`studio-layers__row ${typographyStyles[node.kind === "frame" ? "Body/Small/Bold" : node.kind === "panel" ? "Body/Small/Medium" : "Body/Small/Regular"]}`}
               style={{ ["--studio-depth" as string]: node.depth }}
               onPointerEnter={() => layerHover.set(hitForNode(node))}

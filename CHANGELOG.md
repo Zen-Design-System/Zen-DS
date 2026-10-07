@@ -230,6 +230,17 @@ removed (four unused colour ramps were, see Removed).
     layer where it is written.
   - Reset all overrides on an instance resets its nested instances too, in one ⌘Z ("3 properties back to default (1 in
     nested instances)"). A nested instance written elsewhere (a const, a helper, another file) is shared code and stays.
+- **Zen Studio instance panel, GĐ4 M4: size and Detach (2026-10-07):**
+  - **W / H for an instance** (Inspector › Layout › Size): Hug, Fill or a Fixed px, as in Figma. A component with its
+    own size prop or `fullWidth` uses it; any other is wrapped in a Stack that it fills (`<Stack direction="row"
+    fillChildren width="fill">`), as a drag of its handles on the canvas does. The instance stays selected, later
+    sizes edit that Stack, Hug takes the Stack away again; one ⌘Z each.
+  - That Stack follows its instance: the Layers show only the instance's row, and Remove, Duplicate, Move up / down
+    and a drag take the Stack along.
+  - **Detach on pages made in the Studio:** Badge, Tag, Card, ListItem, MetricCard, Metric and InlineMessage become Zen
+    primitives there too (the recipes load the first time a page asks about Detach). EmptyState and DescriptionList are
+    refused on a page, saying why: their layout needs an inline style, which pages do not take.
+  - Fixed: the E2E row I-15 (Gap ⌫) no longer flakes.
 - **Zen Studio: shared demo code can be restructured, after a question (2026-10-06, GĐ1 WP-B2):**
   - Removing, duplicating, moving, inserting, pasting, dragging or wrapping layers whose code lives in shared demo files
     (PlatformDemoActions.tsx, chatDemo.tsx, PlatformChat…) used to be greyed out ("shared beyond this example").

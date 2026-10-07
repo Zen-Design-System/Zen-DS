@@ -85,11 +85,26 @@ await step(`engine chunk ≤ ${ENGINE_BUDGET_KB} KB gzip`, async () => {
   if (engineKb > ENGINE_BUDGET_KB) throw new Error(`${text}: over the budget`);
   return text;
 });
+// Detach on builder pages (GĐ4 M4): the recipes are a chunk of their own, loaded on first use, never in the engine's.
+const detachKey = keyOf("tools/studio/browser-detach.mjs");
+const engineClosure = closure(engineKey);
+const detachChunks = [...closure(detachKey)].filter((key) => !before.has(key) && !engineClosure.has(key)).map((key) => manifest[key].file);
+const detachFile = detachKey ? manifest[detachKey].file : null;
+await step("the detach recipes are a chunk of their own", async () => {
+  if (!detachFile) throw new Error("no chunk for tools/studio/browser-detach.mjs");
+  // A recipe's own words (slots.mjs also reads the zen-detached marker, so the marker says nothing).
+  const holds = (file) => fs.readFileSync(path.join(outDir, file), "utf8").includes("cannot be detached on a builder page yet");
+  const leaks = [...before, ...engineClosure].map((key) => manifest[key].file).filter((file) => file.endsWith(".js") && holds(file));
+  if (leaks.length) throw new Error(`the detach recipes are in ${leaks.join(", ")}`);
+  if (!detachChunks.some(holds)) throw new Error(`no detach recipes in ${detachChunks.join(", ")}`);
+  return `${detachChunks.reduce((sum, file) => sum + gzipKb(file), 0).toFixed(1)} KB gzip (${detachChunks.join(", ")})`;
+});
 await step("the parser loads with the engine only", async () => {
   const leaks = [...before].map((key) => manifest[key].file).filter((file) => file.endsWith(".js") && fs.readFileSync(path.join(outDir, file), "utf8").includes("This experimental syntax requires enabling"));
   if (leaks.length) throw new Error(`@babel/parser is in ${leaks.join(", ")}`);
-  if (!fs.readFileSync(path.join(outDir, engineFile), "utf8").includes("This experimental syntax requires enabling")) throw new Error("the parser is not in the engine chunk");
-  return "@babel/parser only in the engine chunk";
+  const parser = engineChunks.filter((file) => fs.readFileSync(path.join(outDir, file), "utf8").includes("This experimental syntax requires enabling"));
+  if (!parser.length) throw new Error("the parser is not in the engine's chunks");
+  return `@babel/parser only in the engine's chunks (${parser.join(", ")})`;
 });
 
 /* ── serve and drive ───────────────────────────────────────────────────────────────────────────────────────────── */
@@ -164,7 +179,11 @@ try {
   await page.reload({ waitUntil: "domcontentloaded" });
   await page.waitForSelector('[data-studio-frame="example:0"]', { timeout: 60_000 });
   const engineRequests = [];
-  page.on("request", (request) => { if (engineFile && request.url().endsWith(engineFile.split("/").pop())) engineRequests.push(request.url()); });
+  const detachRequests = [];
+  page.on("request", (request) => {
+    if (engineFile && request.url().endsWith(engineFile.split("/").pop())) engineRequests.push(request.url());
+    if (detachFile && request.url().endsWith(detachFile.split("/").pop())) detachRequests.push(request.url());
+  });
   let id = null;
   const title = `Build check ${Date.now().toString(36)}`;
 
@@ -224,6 +243,8 @@ try {
   });
 
   await step("Swap instance (canvas menu, op replaceElement in this build's engine), then ⌘Z", async () => {
+    // Only a Button was selected so far: nothing asked about Detach, so its chunk has not loaded.
+    if (detachRequests.length) throw new Error(`the detach chunk loaded with only a Button on the page (${detachRequests[0]})`);
     await clickNamed(page, id, "Button");
     const box = await named(page, id, "Button").boundingBox();
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "right" });
@@ -278,6 +299,22 @@ try {
     await page.keyboard.press("Enter");
     await until(async () => /<Badge/.test((await storedText(page, id)) ?? ""), { timeout: 10_000, message: "a Badge in the stored page" });
     return "previewed, added";
+  });
+
+  await step("Detach the Badge (the detach chunk loads now, op detach in this build's engine), then ⌘Z", async () => {
+    // The Prototype step left the Inspector on its Prototype tab.
+    await inspectorTab(page, "Design");
+    await clickNamed(page, id, "Badge");
+    const button = page.locator("#studio-right").getByRole("button", { name: /^Detach instance/ });
+    await button.waitFor({ state: "visible", timeout: 10_000 });
+    await until(async () => !(await button.isDisabled()), { timeout: 10_000, message: "Detach ready (its plan read in the browser)" });
+    await button.click();
+    await until(async () => { const text = (await storedText(page, id)) ?? ""; return /zen-detached: Badge/.test(text) && !/<Badge\b/.test(text); }, { timeout: 10_000, message: "the Badge detached into primitives" });
+    if (!detachRequests.length) throw new Error("detached without requesting the detach chunk");
+    await page.locator(".studio-viewport").focus();
+    await page.keyboard.press("ControlOrMeta+KeyZ");
+    await until(async () => /<Badge\b/.test((await storedText(page, id)) ?? ""), { timeout: 10_000, message: "⌘Z brings the Badge back" });
+    return `Badge → primitives (detach chunk requested ${detachRequests.length}×) → ⌘Z → Badge`;
   });
 
   await step("Assets › Photos and Icons: a zen-media photo shows this build's file; an Icon is added", async () => {

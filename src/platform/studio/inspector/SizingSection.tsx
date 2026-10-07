@@ -388,14 +388,16 @@ function SizeGroup({ api, specs, component, host, src }: LayoutGroupProps & { sr
 
 /* ── W / H ────────────────────────────────────────────────────────────────────────────────────────────────────── */
 
-function SizeField({ view, measured, parent, limits, disabled, align, onWrite }: {
+/** One W / H field. `onInput`: what the person chose goes there instead of `onWrite`'s props (an instance's Size group). */
+export function SizeField({ view, measured, parent, limits, disabled, align, onWrite, onInput }: {
   view: AxisView;
   measured: number | null;
   parent: ParentLayout;
   limits: string;
   disabled: boolean;
   align: "start" | "end";
-  onWrite: (ops: EditOp[] | null) => void;
+  onWrite?: (ops: EditOp[] | null) => void;
+  onInput?: (input: SizingInput) => void;
 }) {
   const { axis } = view;
   const name = axisName[axis];
@@ -421,7 +423,9 @@ function SizeField({ view, measured, parent, limits, disabled, align, onWrite }:
 
   const commit = (input: SizingInput) => {
     if (input.kind === "invalid") { inspectorStatus.set("neutral", input.message); return; }
-    if (input.kind !== "revert") onWrite(sizingOps(view, input, measured));
+    if (input.kind === "revert") return;
+    if (onInput) onInput(input);
+    else onWrite?.(sizingOps(view, input, measured));
   };
   const commitDraft = () => {
     if (draft === null) return;

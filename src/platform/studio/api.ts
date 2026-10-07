@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { HISTORY_LIMIT, applyHunks, locateHunks, makePatch, upgradeRecords } from "./history";
 import { askShared, sharedConfirmed } from "./sharedConfirm";
-import { isLocalFile, localEdit, localElement, localSource, localWrite } from "./builder/localApi";
+import { isLocalFile, localDetachPlan, localEdit, localElement, localSource, localWrite } from "./builder/localApi";
 import { canEdit, flushStudioStore, studioStore, useStudio } from "./store";
 import { STUDIO_API, STUDIO_ROLE_HEADER, STUDIO_TOKEN_HEADER } from "./types";
 import type { DetachPlan, DiscardResult, DraftConflict, DraftInfo, EditRequest, FrameDraft, FrameDraftsResponse, EditResponse, PingResponse, SaveResult, SavedDraft, SourceElement, SourceFile, StudioEditRecord, StudioSnippetSync, StudioWrite, WriteRequest, WriteResponse } from "./types";
@@ -150,9 +150,11 @@ export const studioApi = {
    * `instances`: how many times it renders in its frame (more than one outside a .map callback is refused).
    */
   async detachPlan(file: string, loc: string, name: string, instances?: number): Promise<DetachPlanReply> {
-    if (isLocalFile(file)) return { ok: false, reason: "Detach is not available on builder pages yet", unavailable: true };
     const count = instances !== undefined && Number.isInteger(instances) && instances > 0 ? `&instances=${instances}` : "";
-    const reply = await call<unknown>(`/detach-plan?file=${encodeURIComponent(file)}&loc=${encodeURIComponent(loc)}&name=${encodeURIComponent(name)}${count}`);
+    // A builder page: the same plan from the detach recipes in the browser (GĐ4 M4, loaded on first use).
+    const reply = isLocalFile(file)
+      ? await localDetachPlan(file, loc, name, count ? instances : undefined).then((body) => ({ status: 200, body: body as unknown }), (error: unknown) => ({ status: 500, body: { ok: false, reason: `Detach could not load (${error instanceof Error ? error.message : String(error)})` } as unknown }))
+      : await call<unknown>(`/detach-plan?file=${encodeURIComponent(file)}&loc=${encodeURIComponent(loc)}&name=${encodeURIComponent(name)}${count}`);
     if (!reply) return { ok: false, reason: DEV ? NO_SERVER : "Detaching needs the Studio dev server", unavailable: true };
     const body = reply.body as { ok?: unknown; component?: unknown; repeated?: unknown; slots?: unknown; reason?: unknown } | null;
     if (reply.status === 200 && body?.ok === true && typeof body.component === "string") {

@@ -20,6 +20,7 @@ plugins: [zenStudio(), react()],
 | `posix.mjs`, `sha1.mjs` | The engine's path and hash helpers without Node, so the engine runs in the browser (builder GĐ2); `engine-iso.selftest.mjs` checks no engine module imports Node |
 | `dialect.mjs` | Builder page dialect (`*.zen.tsx`): `parsePage` (neutral tree), `validateDialect`, `newPageText`; `dialect.selftest.mjs`; the engine on local pages: `builder.selftest.mjs` |
 | `browser-engine.mjs` (+ `.d.mts`) | What the Studio loads lazily for builder pages (`src/platform/studio/builder/engine.ts`) |
+| `browser-detach.mjs` (+ `.d.mts`) | The detach recipes for builder pages, a lazy chunk of their own (`loadDetach`); loading it registers op `detach` with the engine. On a `*.zen.tsx` page the recipes' inline styles become Layout props (`detach.mjs` pageLayout) or the detach is refused |
 | `shared-code.mjs` | WP-B2: `importersOf` (who imports a shared file), `PLAYGROUND_FILES` |
 | `drafts.mjs` | Pure admin-draft bookkeeping (§4): `nextDraft`, `planSave` / `rebaseDraft` (the hunks of `src/platform/studio/history.ts`), `followDisk`, `changedLines`, `draftInfo`, `serializeDrafts` / `parseDrafts` |
 | `frame-scope.mjs` | Save and Discard per canvas frame (§4): `frameRanges` (what a frame owns), `lineChanges`, `ownChanges`, `splitDraft` (a frame's changes with the imports they need); `frame-scope.selftest.mjs` |
