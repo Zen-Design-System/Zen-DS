@@ -425,3 +425,6 @@
   215 match, 48 skipped; a planted DockIcon.theme gap is caught); quality-checks.mjs §16 pairing → `roles` warn.
 - Gate --all (.qa/reports/2026-10-07T16-41-07): ✗ only cloud-only TabItem axe + chat emoji [fit]; design-tokens dark
   contrast ×11 is pre-existing (same on 63b458c); avatar outline-start and accordion@390 corners are known Backlog rows.
+- Backlog row "Design Tokens dark nav contrast" (2026-10-04) removed: a screenshot shows the nav labels white on the
+  dark canvas; the audit's bgOf falls back to white when no ancestor paints, so the 11 × 1.38:1 are a false positive
+  (user: "nhìn vào là thấy đủ nhầm rồi").

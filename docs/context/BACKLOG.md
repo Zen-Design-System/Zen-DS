@@ -266,9 +266,6 @@ Read this file only when picking up work or logging a follow-up.
 - ~~**P3 · Top Navigation Modal screen placeholder contrast (2026-10-04):**~~ **closed 2026-10-07 (backlog cleanup):** the placeholder token is kept on purpose (Content/Placeholder, see the examples-rebuild RESOLVED entry), like the other placeholder 1.92:1 lines. Was: `npm run qa` warns `[contrast] top-navigation@1512/390`
   "Choose a reviewer" / "Choose a slot" 1.92:1 (SelectField placeholders); seen while gating the Studio B2 change, which does not
   touch that page.
-- **P3 · Design Tokens dark nav contrast (2026-10-04):** `npm run qa` dark audit warns 11× `[contrast] design-tokens@1512-dark`
-  "page: <section>" 1.38:1 (Global Colors … Typography Configuration); first seen after the 2026-10-04 Global Colors
-  Dark-contrast sync, not from the Studio code view change that ran the gate. Check the classic token-page nav text in Dark. **Still open 2026-10-07:** the same 11 in `qa --all` before and after batch 6b (63b458c); Zen-High-Contrast is opt-in (`contrast="high"`), so it does not change this default-contrast Dark audit. Screenshot 2026-10-07 (Dark, 1512, private server): the nav labels are `span.zen-sidebar__item-label` rgb(253 253 253) on the dark canvas and read clearly, so 1.38:1 (white text on a background of about rgb(220 220 220)) is probably the audit measuring the wrong backdrop (no painted ancestor up to the page): check the dark audit's contrast backdrop before changing any colour.
 - **P3 · Empty State guideline vs Studio (2026-10-04):** the Search guideline says `illustration={false}` "in narrow
   panels such as sidebars and pickers", but the user wants the Studio tool's empty states illustrated (done for Code,
   Layers, Pages, Assets). Decide: Studio-only exception, or update the guideline (`guidelines.source.mjs` Search + Empty
