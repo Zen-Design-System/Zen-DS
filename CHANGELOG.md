@@ -603,6 +603,11 @@ removed (four unused colour ramps were, see Removed).
   (Lights-group Light on text, Light titles, colour Light body copy); Detach says where a bare handler comes from and
   works on namespace JSX; the "applies to all N rows" note is a .map's only; Save all leaves the toolbar below 1024px
   (the drafts panel has it); the frame chrome lays out on the next frame after a size change.
+- **Zen Studio decisions and multi-select (2026-10-07, backlog batch 5c):** a column with a minHeight sizes its Fill
+  children into it; a dropdown Chip keeps its width handle; the Pages panel drops the description the board shows; a
+  click on the Docs frame below 100% opens it at 100%, top-aligned; ⌘-click lands on a TopNavigation action, not its
+  icon. The arrow keys move several selected layers of one parent together (they stay selected); ⇧-click in Layers
+  selects the range of rows; Mixed properties edit text props on several layers.
 - **Uploader error text in Light (2026-10-07):** the field's error help text and a file item's error line (icon and text) use Content/Negative/Light like every help text but Warning (Input already did); they were Negative/Strongest.
 - **QA gate sees the example pages again (2026-10-07):** since the examples moved to `src/platform/examples/pages/<page>.tsx`, `npm run qa` mapped an edit there to no page and its example-coverage step (④) read no example list, so both passed without checking. Each page file (and its stylesheet) now scopes to its page, and step ④ reads the page's `examples` array.
 - **Zen Studio quick fixes (2026-10-07, backlog batch 2):** the Inspector's Frames list names the open builder page's

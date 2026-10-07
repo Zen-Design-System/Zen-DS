@@ -369,3 +369,17 @@
   ~700px with drafts, 463 unsure parts (width menu at 1024, Undo×2, GET /element 404), 438(f).
 - Gate PASS (.qa/reports/2026-10-07T13-31-32-e54a8cf5.md): Studio E2E 152 works · 0 broken in 891 s; audit 1512/390, dark and
   behaviour 0 new warnings; the AssetsPanel.tsx:153 `size="xs"` usage warning is pre-existing (baselined).
+
+## Backlog batch 5c: Studio decisions + multi-select (sessions "Studio builder tool planning" → "Session continuation check", tier M)
+
+- Item 1 (commit c65fc7e, the earlier session): the five batch 8 Studio decisions: minHeight column sizes Fill children,
+  dropdown Chip width handle (SE-10), Pages panel description dropped, Docs frame click → 100% top-aligned
+  (canvasApi.zoomToRead, SE-11), ⌘-click lands on a data-slot item (SelectionLayer + dataItemOfPart, SE-12). SE-12 was
+  re-run in this session on c65fc7e: works ("Action · in Top-Trailing of TopNavigation").
+- Item 2 (this session; the earlier one's local edits were not pushed, so it was redone from c65fc7e): op many
+  `move { to }` (arrange.mjs manyMovePlan: one parent, Figma's step, a run as a block; the answer maps each loc before →
+  after; selftest case 38) behind the arrow keys on a multi-selection (edit/multi.ts stepLayers; a wrapped component
+  moves alone); ⇧+click range in Layers (anchor = last row clicked while still selected, else the primary; ⌘ still
+  toggles); Mixed properties take plain text props (TextControl, "Mixed" placeholder). E2E K-13, SE-13, I-16.
+- Cloud session notes: Playwright 1.63 wants chromium_headless_shell-1243; the container has 1194, so the runs used a
+  scratch PLAYWRIGHT_BROWSERS_PATH aliasing it. No PostToolUse hook here: the gate ran with `--files=` (the 5c diff).

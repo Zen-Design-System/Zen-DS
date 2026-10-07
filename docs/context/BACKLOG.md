@@ -303,8 +303,8 @@ Read this file only when picking up work or logging a follow-up.
 
 The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - **Studio multi-select follow-ups (2026-10-03, session "Chọn nhiều element vào container"):**
-  - P3 · Marquee (drag) selection on the canvas; Shift+click in Layers toggles like ⌘ instead of Figma's range select. **Sweep 2026-10-07:** marquee selection is done (`edit/marquee.ts`, `MarqueeLayer.tsx`); Shift+click range select is still open.
-  - P3 · Delete / ⌘D / Move on a multi-selection (now one layer only, with a status line) and mixed-value property editing. **Sweep 2026-10-07:** Delete, ⌘D and mixed-value editing are done (`edit/multi.ts:55-75`, `MixedProperties.tsx`); Move on a multi-selection is still open (arrange.ts:131).
+  - P3 · Marquee (drag) selection on the canvas; Shift+click in Layers toggles like ⌘ instead of Figma's range select. **Sweep 2026-10-07:** marquee selection is done (`edit/marquee.ts`, `MarqueeLayer.tsx`); Shift+click range select is still open. **Done 2026-10-07 (backlog batch 5c):** ⇧+click in Layers selects the rows from the anchor to the clicked one (LayersPanel `activate`; E2E SE-13).
+  - P3 · Delete / ⌘D / Move on a multi-selection (now one layer only, with a status line) and mixed-value property editing. **Sweep 2026-10-07:** Delete, ⌘D and mixed-value editing are done (`edit/multi.ts:55-75`, `MixedProperties.tsx`); Move on a multi-selection is still open (arrange.ts:131). **2026-10-07 (backlog batch 5c):** the arrow keys move several layers of one parent (op many move, `edit/multi.ts` stepLayers; E2E K-13); dragging several layers is still open.
   - **Done (checked 2026-10-07, backlog batch 5b: Escape climbs to the ancestor that holds every selected layer, E2E SE-08):** ~~P3 · Escape on a multi-selection selects the primary's parent; Figma selects the layers' common parent.~~
   - P3 · Wrap's snippet sync needs the example's `code:` to show the same region; most example snippets differ ("Example code not updated").
 - **Studio nested booleans follow-ups (2026-10-03, session "Boolean lồng nhau trong Studio"):**
@@ -471,7 +471,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     heights (decide Figma parity); a px-capped component (number Chip, CSS max-width 40px) still offers width handles
     that only size its wrap Stack; after a wrapper edit, a child on the same source line keeps its old column and the
     selection drops ~2 s later; a `.map` drag previews only the pressed instance; a Hug double-click on an axis that is
-    already Hug still sends one no-op edit; a dropdown Chip hides both axes (decide whether width stays). **Sweep 2026-10-07:** done: a Hug double-click on an axis that is already Hug writes nothing (resize.ts:582, :601; ResizeLayer.tsx:978-982). The rest is still open (two of them are decisions). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** a minHeight-only Stack sizes Fill children as Figma does, and a dropdown Chip keeps its width handle → batch 5c.
+    already Hug still sends one no-op edit; a dropdown Chip hides both axes (decide whether width stays). **Sweep 2026-10-07:** done: a Hug double-click on an axis that is already Hug writes nothing (resize.ts:582, :601; ResizeLayer.tsx:978-982). The rest is still open (two of them are decisions). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** a minHeight-only Stack sizes Fill children as Figma does, and a dropdown Chip keeps its width handle → batch 5c. **Done 2026-10-07** (layout.css, chip.css; E2E SE-10).
   - **P3 · Studio wrap and child contracts:** the `wrap` op (resize of a component without a size prop) does not check
     parent/child contracts: wrapping a ListItem in List, a Tab in Tabs, menu/select items or Table parts may break the
     parent's semantics or ARIA (it already refuses table/svg/paragraph nesting). The wrap selftest runs no
@@ -1126,7 +1126,9 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - P3 (2026-10-03, session "Figma-like editing functionality"): multi-selection follow-ups — arrow keys and dragging move
   one layer only (several: one at a time); Mixed properties cover variants and booleans (not text, number, spacing or
   text style); ⌘D on several selects the first copy only (op many answers one loc); copying layers from two files is
-  refused ("one example at a time").
+  refused ("one example at a time"). **2026-10-07 (backlog batch 5c):** done: the arrow keys on several layers of one
+  parent (K-13) and Mixed text props (I-16). Still open: dragging several, Mixed number / spacing / text style, ⌘D's
+  first copy only, two files.
 - **Done 2026-10-07 (backlog batch 2: "Metric card · Value and trend in a card"):** ~~P3 (2026-10-03, session "Figma-like editing functionality"):~~ slots/palette.ts has two items labelled "Metric ·
   Value and trend" (ids metric and metric-card); the Assets tab and the slot picker show them as twins — label the
   card one "Metric card".
@@ -1150,9 +1152,9 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   - **Done 2026-10-05 (Studio builder plan GĐ1, Popover blur):** P2 · Quick actions (⌘/) palette: rgba(255,255,255,.898) fill with no backdrop blur → canvas text shows through.
   - **Done 2026-10-05 (Studio builder plan GĐ1, E2E row S-07):** P2 · Toolbar at 390: 690px of controls in 374px; Modes, theme, Undo/Redo, Role and Inspector are off-screen.
   - P2 · Two page descriptions on one screen (board ExamplePage description vs Inspector guideline purpose; 45 pages,
-    9 with Figma-mapping copy) — content decision. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** keep the board description and drop the second one → batch 5c.
+    9 with Figma-mapping copy) — content decision. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** keep the board description and drop the second one → batch 5c. **Done 2026-10-07** (PagePanel.tsx).
   - P2 · Docs on the canvas render 12–13.7px body at the default 75–86% zoom (1280–1512) — product decision
-    (open Docs at 100% or a reading view). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** clicking a Docs frame zooms it to 100%; no separate reading view → batch 5c.
+    (open Docs at 100% or a reading view). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** clicking a Docs frame zooms it to 100%; no separate reading view → batch 5c. **Done 2026-10-07** (canvasApi.zoomToRead; E2E SE-11).
   - P3 · Polish N1–N11 in the report (flat 56-item Pages list with one icon, triple page name, rule notes in the size
     badge, duplicated bound props, double import in Snippet, Shortcuts dialog layout, Modes subtitle, raw layer names,
     ⌘/Ctrl hint, 11px nav labels, 592px of side panels).
@@ -1164,7 +1166,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - P3 (same session): only TopNavigation is in `slots/dataSlots.ts`; other Figma slots the code takes as data (BottomNavigation
   items, ActionBar actions, Breadcrumbs items…) could join after a Figma SLOT-property check.
 - P3 (same session): ⌘-click on a TopNavigation action lands on its IconSvg (the deepest part); the action itself is one
-  "Select …" link (or a parent step) away. Decide whether deep select should stop at a data-slot item. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** deep select stops at the data-slot item → batch 5c.
+  "Select …" link (or a parent step) away. Decide whether deep select should stop at a data-slot item. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** deep select stops at the data-slot item → batch 5c. **Done 2026-10-07** (SelectionLayer dataItemOfPart; E2E SE-12).
 - **Done 2026-10-07 (backlog batch 2: a move past identical items writes nothing and says why, `slots/actions.ts` runDataItem):** ~~P3 (same session): moving one of two identical list items reports "No change" (the texts swap to the same file).~~
 - **Done (checked 2026-10-07, backlog sweep: components without hand-made groups fall back to groups generated from `figmaProps.generated.ts`, about 70 components (inspector/componentGroups.ts:5-13)):** ~~P2 (2026-10-05, session "Mở lại port preview"): Figma property groups exist for TopNavigation only~~
   (`src/platform/studio/inspector/propGroups.ts`). Each other component needs its Figma set read (componentPropertyDefinitions
