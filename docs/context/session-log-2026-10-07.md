@@ -218,3 +218,4 @@
   browser (check-usage.mjs reads files with node:fs): the file names `npx zen-usage <Page>.tsx` instead. Open questions:
   builder pages have no canvas notes yet, so the section says so.
 - Build-check 23/23: Mobile list's pictures on the build (780×2428, 370 KB; its overlay 1440×1280).
+- Gate PASS (.qa/reports/2026-10-07T07-44-17-e54a8cf5.md, E2E 139 works).
