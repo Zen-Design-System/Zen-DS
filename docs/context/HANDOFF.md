@@ -219,8 +219,8 @@ Last updated: 2026-10-06.
   quick fixes done (E2E B-19, 143 rows; data-slot `removeItem { all }`); batch 4 examples/docs P2 done (6 fixed, 10
   already fixed and closed); batch 5a Studio P2 done (frame Save/Discard ownership, example pages keep state through
   keepOnHotUpdate in src/platform/hotData.ts, Effect settings, object props: + and same-file consts; E2E 147 rows, the
-  gate's Studio E2E step now has 25 min); the CI Package step stays logged (P2, not approved). Batch 5b is a WIP commit
-  (b89020f, not gated). A backlog sweep (2026-10-07) checked the ~440 open items against the code: ~145 were done or
+  gate's Studio E2E step now has 25 min); the CI Package step stays logged (P2, not approved). Batch 5b (Studio P3 small items) is
+  done: 16 rows closed (E2E SE-08, SE-09, LB-13, LB-14, L-09; 152 rows), see the session log. A backlog sweep (2026-10-07) checked the ~440 open items against the code: ~145 were done or
   duplicates and are closed with evidence (4 more close with the 5b gate); ~290 stay open (~214 work, ~63 decisions,
   ~13 need a check by hand). New P2: qa step ④ (example coverage) reads no `examples/pages` source. Batch 8 (the
   decision list) answered the same day (user: "theo đề xuất"): 12 rows closed, the approved work is tagged

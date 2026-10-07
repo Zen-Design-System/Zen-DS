@@ -163,8 +163,8 @@ Read this file only when picking up work or logging a follow-up.
   open page A then page B (both new pages, Screen id `screen-1`): the Page panel's Frames shows A's title. Likely the
   frame registry keys `screen:screen-1` without the page. Pointer: `builder/BuilderBoard.tsx` frame ids,
   `inspector/PagePanel.tsx` Frames.
-- **P3 · Studio E2E I-11 is flaky too (2026-10-07, seen during GĐ3 M3):** "timed out after 20 s" once with
-  `--no-retry` right after the library group; 2/2 alone. Pointer: `tools/studio/e2e/scenarios/inspector.mjs` I-11.
+- **Closed (2026-10-07, backlog batch 5b: 3/3 alone again; the gate retries a failed row once and the E2E host-page reset between rows removed the inspector cascade):** ~~**P3 · Studio E2E I-11 is flaky too (2026-10-07, seen during GĐ3 M3):** "timed out after 20 s" once with
+  `--no-retry` right after the library group; 2/2 alone. Pointer: `tools/studio/e2e/scenarios/inspector.mjs` I-11.~~
 - ~~**P3 · Studio E2E I-15 is flaky**~~ done 2026-10-07 (GĐ4 M4, the user chose to fix the row: it waits for the field to
   read "sm · …" before ⌫; 5/5 alone, full matrix). Was: **(2026-10-06, session "Studio builder tool planning", seen during GĐ2 M2):** "Timed out
   waiting for ⌫ removes gap" on the first try in 2 of 3 full runs (passes on retry and alone, 2/2); the gate counts a
@@ -180,7 +180,7 @@ Read this file only when picking up work or logging a follow-up.
   width (a Studio wrap Stack `width={240}`) that is alone in a px Grid column still edits its own width on a drag, which
   can leave free space again; resizing the column and clearing that width needs one request touching two elements
   (server op). (2) Double-click (Hug) on a column item does nothing ("drag the edge"): could write the track as `auto`.
-  (3) No E2E row for the column drag / Fit yet (probe scripts were ad hoc).
+  (3) No E2E row for the column drag / Fit yet (probe scripts were ad hoc). **Batch 5b 2026-10-07:** (2) done: a Hug double-click on the only item of a px column writes that column's track as `auto` (planHug, gridTracks withTrack); (3) E2E L-09 covers the Hug; the drag has no row yet. (1) still open.
 - **P3 · Emoji in alpha text (2026-10-06, session "Emoji mờ trong text alpha"):** (1) proposed harness/audit check:
   a colour emoji in text whose colour has alpha < 1 (Neutral Base/Light, captions, DescriptionList terms) — wrap it in
   an opaque span; (2) proposed DS helper (e.g. an inline `Emoji` primitive) so apps need not know the trick;
@@ -257,7 +257,7 @@ Read this file only when picking up work or logging a follow-up.
   panels such as sidebars and pickers", but the user wants the Studio tool's empty states illustrated (done for Code,
   Layers, Pages, Assets). Decide: Studio-only exception, or update the guideline (`guidelines.source.mjs` Search + Empty
   State "Drop the illustration inside lists…"). Also: Assets "No components match" says "clear the search" but has no
-  Clear search action (Pages has one). **Sweep 2026-10-07:** the Assets "No components match" Clear search action is fixed in WIP b89020f (closes when the backlog batch 5b gate passes). The guideline question stays open. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** Studio panels keep their illustrations as a Studio-only exception; the app guideline stays (closed).
+  Clear search action (Pages has one). **Sweep 2026-10-07:** the Assets "No components match" Clear search action is done (backlog batch 5b, E2E LB-13). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** Studio panels keep their illustrations as a Studio-only exception; the app guideline stays (closed).
 - **P2 · DatePicker Date-Picker/Mobile composition (2026-10-04):** the mobile primitives are built (`device`); not built:
   the Bottom Sheet picker of Figma 9923:3576 (Heading + Close, Cancel / OK), Variant=Multiple's scrolling stacked months
   with one sticky weekday row (`.Primitives/Date-Picker` 9923:2323 Option 2, "Clear dates"), Footer-Actions 9923:2791
@@ -305,7 +305,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - **Studio multi-select follow-ups (2026-10-03, session "Chọn nhiều element vào container"):**
   - P3 · Marquee (drag) selection on the canvas; Shift+click in Layers toggles like ⌘ instead of Figma's range select. **Sweep 2026-10-07:** marquee selection is done (`edit/marquee.ts`, `MarqueeLayer.tsx`); Shift+click range select is still open.
   - P3 · Delete / ⌘D / Move on a multi-selection (now one layer only, with a status line) and mixed-value property editing. **Sweep 2026-10-07:** Delete, ⌘D and mixed-value editing are done (`edit/multi.ts:55-75`, `MixedProperties.tsx`); Move on a multi-selection is still open (arrange.ts:131).
-  - **Fixed in WIP b89020f (backlog batch 5b), closes when its gate passes.** P3 · Escape on a multi-selection selects the primary's parent; Figma selects the layers' common parent.
+  - **Done (checked 2026-10-07, backlog batch 5b: Escape climbs to the ancestor that holds every selected layer, E2E SE-08):** ~~P3 · Escape on a multi-selection selects the primary's parent; Figma selects the layers' common parent.~~
   - P3 · Wrap's snippet sync needs the example's `code:` to show the same region; most example snippets differ ("Example code not updated").
 - **Studio nested booleans follow-ups (2026-10-03, session "Boolean lồng nhau trong Studio"):**
   - ~~P3 · Props inherited from another Zen props type are not listed~~ done in the Studio 2026-10-07 (GĐ4 M1,
@@ -323,17 +323,17 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     text field, no switch), Help-Text's Figma names (set not in the capture: M2 read).
   - P2 · `scripts/build-api.mjs` drops intersection types: TextAreaField and NumberField list no label/helpText/label*
     props in the docs. The Studio lists them since 2026-10-07 (`inspector/inheritedProps.ts` ALIAS_EXTENDS).
-  - **Fixed in WIP b89020f (backlog batch 5b), closes when its gate passes.** P3 (2026-10-07, GĐ4 M1) · A layer switch (Figma boolean) reads the rendered props, so it flips ~0.3–0.5 s after the
+  - **Done (checked 2026-10-07, backlog batch 5b: ToggleRow holds an optimistic value for up to 3 s):** ~~P3 (2026-10-07, GĐ4 M1) · A layer switch (Figma boolean) reads the rendered props, so it flips ~0.3–0.5 s after the
     source changes (the canvas's hot update + a 250 ms debounce); a second press before that writes the same value again
-    ("No change"). Pointer: `inspector/GroupedProperties.tsx` ToggleRow `on`; an optimistic state would fix it.
+    ("No change"). Pointer: `inspector/GroupedProperties.tsx` ToggleRow `on`; an optimistic state would fix it.~~
   - P3 · Server `origin`: bindingOf ignores for-of/for-in/catch bindings; custom hooks returning state read as
     bound-value (a switch could fix their value); loop-bound `rows` is the innermost loop's length.
   - **Done 2026-10-07 (backlog batch 2: `jsx-source.mjs` setPropEdits inserts after the comment; 3 selftest checks):** ~~P3 · setProp after an attribute with a trailing `// comment` moves the comment; removeProp then leaves it on its own line.~~
   - **Closed (2026-10-07, backlog batch 5b: by design — ON brings the saved control bar back, as Figma shows a hidden layer again; the picker is for a bar the file never had):** ~~P3 · Control-Bar switch ON only opens the slot picker when the saved file has no control bar (no write until a pick).~~
-  - P3 · Non-component exports left in component modules (Toolbar `revealSection`, ShortcutsDialog `openShortcuts`,
+  - **Done (checked 2026-10-07, backlog batch 5b: revealSection → shell/layout.ts, shortcutsOpen.ts, modKey.ts, canvas/zoomToSelection.ts; FramePanel and inspector/frames import presentFrame):** ~~P3 · Non-component exports left in component modules (Toolbar `revealSection`, ShortcutsDialog `openShortcuts`,
     ZoomControls `modKey`): an edit to those modules cascades; FramePanel.tsx and frames.ts could import
-    board/presentFrame directly so Present.tsx can drop its re-export.
-  - **Fixed in WIP b89020f (backlog batch 5b), closes when its gate passes.** P3 · A bound switch reads `false` for one render until DesignPanel's live props arrive.
+    board/presentFrame directly so Present.tsx can drop its re-export.~~
+  - **Done (checked 2026-10-07, backlog batch 5b: no control until the live props arrive):** ~~P3 · A bound switch reads `false` for one render until DesignPanel's live props arrive.~~
   - **Done 2026-10-07 (batch 5a: a frame owns the module-level declarations its code names, list elements in ExampleMap / keepOnHotUpdate literals, a router's fallback statement; selftest frame-scope 23):** ~~P2 · Frame toolbar Discard (`tools/studio/frame-scope.mjs` frameRangesOf) misses edits whose JSX lives outside the
     frame's own JSX (a column const, a helper, a local component, hrDemo/HrShell): the frame shows no change and no
     Discard; only the toolbar's file-level Discard removes them. Nested groups now expose such edits ("Written in …").~~
@@ -348,16 +348,16 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     selected nested element disappears. The appLayer fix (`keepOnHotUpdate`) shows the way for example pages.~~
   - P3 · `origin` cannot see state that reaches a prop through a render-function parameter (Table cell
     `checked={feature.on}` with rows from useState): it reads bound-value, so a fixed value is offered and locks the toggle.
-  - P3 · The "a fixed value applies to all N rows" hint counts every rendered instance (5 frames for
-    PlatformChatHeader), not only .map rows.
+  - **Done (checked 2026-10-07, backlog batch 5b: rows are a .map's only; the panel header already counts the other places):** ~~P3 · The "a fixed value applies to all N rows" hint counts every rendered instance (5 frames for
+    PlatformChatHeader), not only .map rows.~~
   - **Done 2026-10-07 (batch 5a: frameLocs also walks the frame's React tree, portalled content included):** ~~P3 · Frame Save/Discard: `frameLocs` reads DOM data-zen-src only, which Zen components (TopNavigation, Avatar) do
     not forward, so their edits count as "outside" the frame (same fix area as the frame Discard item above).~~
   - **Duplicate (checked 2026-10-07, backlog sweep: closed as a probe artifact in the deadclick list-item@1512 "Pending invites" row):** ~~P3 · (observed in `npm run qa`, file unchanged since 2026-10-04) list-item › Pending invites › "Revoke invite for~~
     an.vu@…" reported as a dead click.
-  - P3 · While a nested instance is selected, hover still outlines the outer layer that covers it (ListItem's click target).
+  - **Done (checked 2026-10-07, backlog batch 5b: keepSelected applies to hover too, E2E SE-09):** ~~P3 · While a nested instance is selected, hover still outlines the outer layer that covers it (ListItem's click target).~~
   - ~~P2 · Enum/text props under a spread stay read-only~~ done 2026-10-04 (`ownValueOf`, user: "có").
   - ~~P2 · Studio edits to `PlatformExamples.tsx` reload the whole page~~ done 2026-10-04 (dead `isPlatformComponentPage` removed).
-  - P3 · (2026-10-04) Canvas resize and spacing handles still treat any prop not written on an element with a spread as read-only (`select/resize.ts`, `select/spacing.ts` call `valueOf` without live props); the inspector unlocks the ones the spread does not feed. Only 1 layout primitive in platform/templates has a spread today.
+  - **Done (checked 2026-10-07, backlog batch 5b: lockBound and areaState read the live props: a spread that does not set the prop leaves it editable):** ~~P3 · (2026-10-04) Canvas resize and spacing handles still treat any prop not written on an element with a spread as read-only (`select/resize.ts`, `select/spacing.ts` call `valueOf` without live props); the inspector unlocks the ones the spread does not feed. Only 1 layout primitive in platform/templates has a spread today.~~
   - **Duplicate (checked 2026-10-07, backlog sweep: kept by the user's choice, closed in the playground Avatar row of 2026-10-05):** ~~P3 · (2026-10-04, pre-existing) `PlatformExamples.tsx:728` Sidebar playground workspace Avatar: white initials on Solid green (usage-guard `avatar/solid-initials-contrast`).~~
 - **Studio Design tab: remaining items (2026-10-03; session "Cloud migration feasibility"; spec docs/research/studio-inspector-redesign-2026-10-03.md):**
   - **Approved phases still to do:**
@@ -421,7 +421,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     a Vite ws event (`zen-studio:drafts`) from the plugin would show it at once (verify 2026-10-03).
   - **P3 · Studio drafts and the standalone audit tools:** only `npm run qa` warns that 5173 renders unsaved drafts;
     `platform:audit`, `platform:shoot` and `visual-diff` run on 5173 without saying so (tools/platform-audit/*).
-  - **P3 · Studio toolbar under ~900px:** the drafts group (Unsaved · Save all) leaves no room for the breadcrumb.
+  - ~~**P3 · Studio toolbar under ~900px:** the drafts group (Unsaved · Save all) leaves no room for the breadcrumb.~~ **Done (checked 2026-10-07, backlog batch 5b):** Save all leaves the toolbar below 1024px (the count button opens the panel, which has Save all); with a draft the breadcrumb keeps its last crumb at 900 and 700px (42px, parents collapsed), where it had none before.
   - **Closed (checked 2026-10-07, backlog sweep: the placeholder colour is kept on purpose (Top Navigation placeholder row); the label tooltip has a 24px hit area (input.css:482-483)):** ~~**P3 · New gate warnings seen 2026-10-03 (not from the phone centring, owner to triage):**~~ placeholder contrast
     1.92:1 on "Choose a reviewer/slot" (top-navigation Modal screen) and "Choose a client" (input Create a project),
     `button.zen-input-label__tooltip` 12×12 target (input Label parts); report `.qa/reports/2026-10-03T04-58-39-47da80c2.md`.
@@ -450,7 +450,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     its Approximated notes. (d) Detaching or discarding in a template logs `ReferenceError: Cannot access 'pages' before
     initialization` (PlatformAppLayer.tsx:24 ↔ appLayer/templates.tsx import order). (e) `<Zen.ListItem>` (namespace
     JSX) is not found by detach ("Expected <ListItem>"). (f) 55 static ListItems need multi-step state to render and
-    were checked from source only. **Sweep 2026-10-07:** done: (b) overlay rows are hit-tested through `.studio-portal-root` (SelectionLayer.tsx:430-446, E2E O-02); (c) every example page uses `keepOnHotUpdate`, and a detach keeps its awaited selection and status; (d) no import cycle is left (import-graph script). Still open: (a), (e). (f) is a verification note, not a defect.
+    were checked from source only. **Sweep 2026-10-07:** done: (b) overlay rows are hit-tested through `.studio-portal-root` (SelectionLayer.tsx:430-446, E2E O-02); (c) every example page uses `keepOnHotUpdate`, and a detach keeps its awaited selection and status; (d) no import cycle is left (import-graph script). Still open: (a), (e). (f) is a verification note, not a defect. **Batch 5b 2026-10-07:** (a) done: a bare handler (`onClick={onClick}`) is refused with where it comes from and what to do; (e) done: namespace JSX finds its recipe on both sides (selftest).
   - **P3 · Structural audit warnings new on 2026-10-03 (not from the colour or Detach changes; owners to triage):**
     ~~ai-chat "Assistant on a phone" has no h1 (outline starts at h2 "What do you need, Alex?")~~ done 2026-10-07 (backlog batch 4: the bar title "Zen AI", as its code sample already had); button "Approve on a
     phone" styles "Chi Tran" heading-4 without a Heading, and "Hand off when ready" has a 2px Stack gap (not a ladder
@@ -465,7 +465,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     without changing the grid track); "ResizeObserver loop completed" still fires at zoom ≤ 0.5 when frame labels crowd
     (pre-existing: defer FrameChrome's RO-path style writes to the next frame); at 1024px a toolbar inside the frame
     top opens its width menu upward off the window; after Clear contents → Reset slot → Undo ×2 on card example:5 the
-    selection layer drops the selection; GET /element 404s for removed children after a slot Clear.
+    selection layer drops the selection; GET /element 404s for removed children after a slot Clear. **Batch 5b 2026-10-07:** the frame chrome lays out on the next frame after a size change (no observer loop; not reproduced before). Zoom-to-fit was done earlier (see the sweep). Still open: the section size with a width override; unsure: the width menu at 1024, Undo×2, GET /element 404.
   - **P3 · Resize follow-ups (2026-10-03):** a fillChildren column with `height="fill"` whose own parent gives it no
     height collapses its children to 0 (needs a parent-aware rule); a column/row with only a minHeight keeps content
     heights (decide Figma parity); a px-capped component (number Chip, CSS max-width 40px) still offers width handles
@@ -1176,7 +1176,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - P3 (2026-10-07, backlog batch 5a) · A Studio E2E run cut off during D-02 (the gate's time limit) leaves `src/platform/examples/e2e/StudioSaveFixture.tsx` saved with its edit, and the next run fails D-01 ("Unsaved · 1 file": the edit equals the disk). The harness could restore the save fixture from git at start. Pointer: `tools/studio/e2e/run.mjs`, rows D-01/D-02.
 - P3 (2026-10-07, backlog batch 5a) · The Studio E2E matrix (147 rows) runs about 15 min; the gate step's limit went from 15 to 25 min after a run was cut off at 900 s. Shard it (groups across two servers) or run a changed-groups subset before it outgrows 25. Pointer: `tools/qa/run.mjs` "Studio E2E", `tools/studio/e2e/run.mjs`.
 - **Closed (2026-10-07, user decision in backlog batch 8: the Studio hooks are accepted as they run):** ~~P3 (same session): the QA gate owner should review the Studio hooks in `tools/qa/lib.mjs` (`uiKind` "studio", `auxKind` tools/studio, `pagesForEdit` skips studio) and `tools/qa/run.mjs` ("Studio self-tests" static step, "Studio E2E" runtime step).~~
-- **P3 · Studio Tone picker warnings (2026-10-05, "Token màu cho content/chữ/icon"):** the picker lists all 81 tones but
+- **Done (checked 2026-10-07, backlog batch 5b: inspector/toneRules.ts captions "Not for text (fails contrast)", "Not for titles", "Short status or help text only" on Text/Heading; its selftest compares the Lights list with the harness rule):** ~~**P3 · Studio Tone picker warnings (2026-10-05, "Token màu cho content/chữ/icon"):**~~ the picker lists all 81 tones but
   shows no inline warning for a rule the pick would break (Lights-group `*-light` on Text/Heading, colour Light on body
   copy); the harness flags it only at Save. Add a per-option "Not for text" caption like the slot palette's warnings.
 - ✅ 2026-10-06 (built: `shared-code.mjs`, `SharedConfirm`, E2E ST-12) P2 (2026-10-05, session "Studio builder tool planning", plan WP-B2): structural edits in shared demo code (`PlatformDemoActions.tsx`, `chatDemo`, `PlatformChat*`) with a "used in N places" confirmation. Needs one confirmation choke point for remove / duplicate / move / insert / paste / drag / multi, and `isSlotFile` widened to annotated non-playground files; today they show disabled with the reason ("shared beyond this example").
@@ -1236,7 +1236,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - ~~P3 (2026-10-06, gate .qa/reports of session 7b329fe8, Sidebar width change, not from it):~~ **closed 2026-10-07 (backlog cleanup):** same as the 2026-10-03 Chats inbox "Hana Kim" dead-click line (a probe race on the open row). Was: behaviour ⚠ deadclick
   `chat@1512` Chats inbox — clicking the selected "Hana Kim" Conversation-List row has no visible effect (the row is
   already open; likely a false positive, or the selected row should not re-announce).
-- P3 (2026-10-06, Studio builder session, seen on a builder page; likely on examples too): undo of an Assets / clipboard insert does not go back to the previous selection (slot-picker inserts do, `slots/actions.ts` remember); a redo within ~2 s shifts the stale selection a line, and a reload then reports "Selection lost". `edit/clipboard.ts insertCode` could remember before/after like slot inserts.
+- **Done (checked 2026-10-07, backlog batch 5b: a paste or Assets insert is remembered like a slot insert (rememberInsert), E2E LB-14):** ~~P3 (2026-10-06, Studio builder session, seen on a builder page; likely on examples too): undo of an Assets / clipboard insert does not go back to the previous selection (slot-picker inserts do, `slots/actions.ts` remember); a redo within ~2 s shifts the stale selection a line, and a reload then reports "Selection lost". `edit/clipboard.ts insertCode` could remember before/after like slot inserts.~~
 - **Done 2026-10-07 (backlog batch 8, item 61: run.mjs reads each page's `examples` array from examples/pages, `isExampleSource` and `pagesForEdit` map examples/pages/<page>.tsx|.css to their page; a quick gate on side-panel and tooltip now warns):** ~~P2 (2026-10-07, backlog sweep)~~ · `npm run qa` step ④ (example coverage) reads only `src/platform/*Showcases.tsx` and `src/platform/appLayer/*.tsx` (`tools/qa/run.mjs:456`, `isExampleSource` in `tools/qa/lib.mjs:227`; the map regex at run.mjs:468 also misses the `keepOnHotUpdate(…)` wrapper). Since the examples moved to `src/platform/examples/pages/*.tsx` (`keepOnHotUpdate(import.meta.hot, "examples", [ … ])`), it finds no example list for those pages and reports them as "skip: no example map entry", so the coverage matrix checks nothing. Fix: read `examples/pages/<page>.tsx` and its `examples` array. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** approved; fix it before batch 5b.
 - P3 (2026-10-07, backlog sweep) · Stale leftovers seen while verifying: the comment at `src/platform/appLayer/layout.tsx:156` still says example cards force a breakpoint; the zen-allow at `src/templates/DetailTemplate.tsx:271` is no longer needed (`table/title-heading-4` accepts Subheading in a Card); the behaviour baseline's chat focus-ring entries and `quality-baseline.json` (only 2 of its 24 fit findings remain) look stale.
 - P3 (2026-10-07, backlog batch 8, found by the fixed qa step ④) · Example coverage gaps on the rebuilt pages: side-panel (edge cases, mobile), sidebar (states, mobile), tooltip (mobile). side-panel and tooltip have no phone example by design (their file headers say so), so the matrix warns each time they are edited: add the missing examples in an approved batch, or give run.mjs a per-page "no phone by design" exemption.

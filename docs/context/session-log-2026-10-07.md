@@ -351,3 +351,19 @@
 - Replica over all 55 pages: every page has examples; gaps: side-panel (edge cases, mobile), sidebar (states, mobile),
   tooltip (mobile), logged P3. Quick gate --only=side-panel,tooltip: step ④ warns as expected
   (.qa/reports/2026-10-07T13-07-50-e54a8cf5.md). The full gate runs with batch 5b.
+
+## Backlog batch 5b: Studio P3 small items (session "Studio builder tool planning", tier M)
+
+- Done: 259 Assets Clear search (E2E LB-13); 308 Escape → common parent (SE-08); 326 optimistic layer switch; 336 bound
+  switch waits for live props; 333 component-only modules (shell/layout.ts revealSection, shortcutsOpen.ts, modKey.ts,
+  canvas/zoomToSelection.ts; Present.tsx drops its re-export); 1239 undo after a paste / Assets insert (rememberInsert,
+  LB-14); 1179 tone picker warnings (inspector/toneRules.ts + selftest against the harness rule); 357 hover keeps a
+  selected nested instance (SE-09, fixture row with onClick); 351 "all N rows" only for a .map; 360 resize / spacing read
+  live props past a spread; 182 Hug on a px Grid column → `auto` (L-09, gridTracks withTrack); 445(a) bare-handler
+  refusal wording, 445(e) namespace JSX (localName on both sides); 463 frame chrome lays out on the next frame; 424
+  Save all hidden below 1024px; 332 Control-Bar switch closed as by design; 166 I-11 3/3 alone.
+- E2E harness: run.mjs returns to the host page between rows (the inspector cascade after a builder row is gone).
+- Uploader: the field's error help text and the File-Item error line use Negative/Light (user's rule: every help text
+  but Warning is Light); contrast 4.72:1 / 7.16:1 under the field, 4.01:1 / 5.88:1 on Negative/Subtle (user's call).
+- Still open from the 5b list: 179(1) fixed-width item in a px column, 183 column-drag E2E row, 424 breadcrumb at
+  ~700px with drafts, 463 unsure parts (width menu at 1024, Undo×2, GET /element 404), 438(f).

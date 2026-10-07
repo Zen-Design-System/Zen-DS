@@ -594,6 +594,15 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Zen Studio small fixes (2026-10-07, backlog batch 5b):** Escape on several layers selects their common parent;
+  a layer switch flips at once (optimistic) and a bound switch shows no control until the live props arrive; Assets
+  "No components match" has Clear search; ⌘Z after a paste or an Assets insert returns to the layout it went into;
+  hovering a selected nested instance under a row's click target no longer outlines the row; a Hug double-click on
+  the only item of a px Grid column writes that column as `auto`; resize handles and spacing areas read the live props
+  (a spread that does not set the prop leaves it editable); the tone picker captions what the harness would flag
+  (Lights-group Light on text, Light titles, colour Light body copy); Detach says where a bare handler comes from and
+  works on namespace JSX; the "applies to all N rows" note is a .map's only; Save all leaves the toolbar below 1024px
+  (the drafts panel has it); the frame chrome lays out on the next frame after a size change.
 - **Uploader error text in Light (2026-10-07):** the field's error help text and a file item's error line (icon and text) use Content/Negative/Light like every help text but Warning (Input already did); they were Negative/Strongest.
 - **QA gate sees the example pages again (2026-10-07):** since the examples moved to `src/platform/examples/pages/<page>.tsx`, `npm run qa` mapped an edit there to no page and its example-coverage step (④) read no example list, so both passed without checking. Each page file (and its stylesheet) now scopes to its page, and step ④ reads the page's `examples` array.
 - **Zen Studio quick fixes (2026-10-07, backlog batch 2):** the Inspector's Frames list names the open builder page's
