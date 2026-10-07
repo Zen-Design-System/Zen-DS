@@ -18,6 +18,7 @@ import { zoomToSelection } from "./canvas/ZoomControls";
 import { CodeView } from "./code/CodeView";
 import { detachSelection } from "./inspector/detach";
 import { DetachDialog } from "./inspector/DetachAction";
+import { ExportDialog } from "./builder/export/ExportDialog";
 import { Inspector } from "./inspector/Inspector";
 import { LayersPanel } from "./select/LayersPanel";
 import { AssetsPanel } from "./edit/assets/AssetsPanel";
@@ -513,6 +514,7 @@ export function StudioApp() {
           <ShortcutsDialog />
           <QuickInsert />
           <DetachDialog />
+          <ExportDialog />
           <SlotConfirm />
           <SharedConfirm />
           <DraftsDialog />

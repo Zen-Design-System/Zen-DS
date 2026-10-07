@@ -11,6 +11,7 @@ import { useStudio } from "../store";
 import { focusFrame, frameIcon, useFrames } from "./frames";
 import { InspectorItem, InspectorSection } from "./Section";
 
+import { openExport } from "../builder/export/exportState";
 import { pagesPersist, usePage, useStorage } from "../builder/store/pageStore";
 /*
  * Inspector with nothing selected (spec §6): the page, a one-line summary of the canvas preview modes (the toolbar
@@ -60,6 +61,12 @@ export function PagePanel() {
         <p className={`studio-inspector__eyebrow ${typographyStyles["Body/Small/Medium"]}`}>Page</p>
         <Heading level={2} textStyle="Body/Small/Bold">{localPage ? builderPage?.title ?? localPage : pageLabels[page] ?? page}</Heading>
         {description ? <p className={`studio-inspector__description ${typographyStyles["Body/Small/Regular"]}`}>{description}</p> : null}
+        {/* GĐ5: the page as React code or its design file. */}
+        {localPage ? (
+          <div className="studio-inspector__actions">
+            <Button level="tertiary" size="sm" startIcon="icon-code-02-line" onClick={() => openExport(localPage)}>Export…</Button>
+          </div>
+        ) : null}
       </header>
       <InspectorSection
         title="Preview modes"

@@ -18,14 +18,17 @@ const root = path.resolve(here, "../../..");
 const flag = (name) => process.argv.find((arg) => arg.startsWith(`--${name}=`))?.split("=")[1];
 const all = [...fs.readdirSync(path.join(root, "src/platform/examples/pages")).filter((file) => file.endsWith(".tsx")).map((file) => file.replace(/\.tsx$/, "")), "templates"];
 const pages = flag("pages")?.split(",").filter(Boolean) ?? all;
+/** --compile: also compile every page to React (tools/studio/compile.mjs) and run tsc + the usage harness on them. */
+const compile = process.argv.includes("--compile");
 
 /** In the page: every example frame → snapshot → page text → dialect check (the Studio's own modules). */
 async function measure(page) {
-  return page.evaluate(async () => {
+  return page.evaluate(async (compile) => {
     const { snapshotFrame } = await import("/src/platform/studio/builder/starters/snapshot.ts");
     const { starterPage } = await import("/src/platform/studio/builder/starters/toDialect.ts");
     const { loadEngine, zenComponents } = await import("/src/platform/studio/builder/engine.ts");
     const { overlayIds } = await import("/src/platform/studio/builder/starters/newPageFromFrame.ts");
+    const { compileReact } = compile ? await import("/tools/studio/compile.mjs") : { compileReact: null };
     const engine = await loadEngine();
     const components = new Set(zenComponents);
     const out = [];
@@ -35,13 +38,14 @@ async function measure(page) {
         const shot = snapshotFrame(frame);
         const text = starterPage({ title: "Coverage", device: shot.device, nodes: shot.nodes, padding: shot.padding, overlays: overlayIds(shot.overlays) });
         const errors = shot.nodes.length ? engine.validateDialect(text, { components }) : [{ line: 0, message: "no library components" }];
-        out.push({ id, label: frame.getAttribute("aria-label"), nodes: shot.nodes.length, overlays: shot.overlays.length, elements: (text.match(/^\s*<[A-Z]/gm) ?? []).length, notes: shot.notes, error: errors[0] ? `line ${errors[0].line}: ${errors[0].message}` : null });
+        const compiled = compileReact && !errors.length ? compileReact(text, { file: "coverage.zen.tsx" }) : null;
+        out.push({ id, label: frame.getAttribute("aria-label"), nodes: shot.nodes.length, overlays: shot.overlays.length, elements: (text.match(/^\s*<[A-Z]/gm) ?? []).length, notes: shot.notes, error: errors[0] ? `line ${errors[0].line}: ${errors[0].message}` : compiled?.error ? `compile: ${compiled.error}` : null, react: compiled?.code ?? null });
       } catch (error) {
         out.push({ id, label: frame.getAttribute("aria-label"), nodes: 0, elements: 0, notes: [], error: `threw: ${error?.message ?? error}` });
       }
     }
     return out;
-  });
+  }, compile);
 }
 
 const server = await startServer(root, {});
@@ -67,6 +71,37 @@ try {
 } finally {
   await browser.close();
   await server.close?.();
+}
+
+// --compile: the React of every valid frame, type-checked at once (the repo's tsconfig, noUnusedLocals) and harnessed.
+if (compile) {
+  const dir = path.join(root, "node_modules/.cache/zen-studio/export-check");
+  fs.rmSync(dir, { recursive: true, force: true });
+  fs.mkdirSync(dir, { recursive: true });
+  const files = new Map();
+  rows.forEach((row, index) => {
+    if (!row.react) return;
+    const file = `${row.page.replace(/[^a-z0-9]+/gi, "-")}-${String(row.id).replace(/[^a-z0-9]+/gi, "-")}-${index}.tsx`;
+    fs.writeFileSync(path.join(dir, file), row.react);
+    files.set(file, row);
+  });
+  fs.writeFileSync(path.join(dir, "tsconfig.json"), JSON.stringify({ extends: path.relative(dir, path.join(root, "tsconfig.json")), compilerOptions: { noUnusedLocals: true, noUnusedParameters: true }, include: [...files.keys(), path.relative(dir, path.join(root, "src/vite-env.d.ts"))] }));
+  const { spawnSync } = await import("node:child_process");
+  const tsc = spawnSync(process.execPath, [path.join(root, "node_modules/typescript/bin/tsc"), "-p", path.join(dir, "tsconfig.json")], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  for (const line of (tsc.stdout + tsc.stderr).split("\n")) {
+    const match = /export-check\/([^(]+)\((\d+),\d+\): error (TS\d+: .*)$/.exec(line);
+    const row = match ? files.get(match[1]) : null;
+    if (row && !row.error) row.error = `tsc: line ${match[2]}: ${match[3]}`.slice(0, 240);
+  }
+  const { pathToFileURL } = await import("node:url");
+  const { rules } = await import(pathToFileURL(path.join(root, "tools/usage-guard/check-usage.mjs")).href);
+  const { createChecker } = await import(pathToFileURL(path.join(root, "tools/usage-guard/engine.mjs")).href);
+  const usage = createChecker(rules, { consumer: true, css: false });
+  for (const [file, row] of files) {
+    const errors = usage.checkFile(row.react, `src/${file}`).filter((finding) => (finding.severity ?? finding.rule?.severity) === "error");
+    if (errors.length && !row.error) row.error = `usage-guard: ${errors[0].rule?.id ?? errors[0].rule}`;
+  }
+  console.log(`  compiled ${files.size} pages to React: tsc and usage-guard checked (${path.relative(root, dir)})`);
 }
 
 const ok = rows.filter((row) => !row.error);

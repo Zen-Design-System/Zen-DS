@@ -19,6 +19,11 @@ let detaching: Promise<Detach> | null = null;
  */
 export const loadDetach = (): Promise<Detach> => (detaching ??= loadEngine().then(() => import("../../../../tools/studio/browser-detach.mjs")));
 
+type Compile = typeof import("../../../../tools/studio/browser-compile.mjs");
+let compiling: Promise<Compile> | null = null;
+/** The page → React compiler (tools/studio/browser-compile.mjs), a chunk of its own loaded by the Export dialog (GĐ5). */
+export const loadCompile = (): Promise<Compile> => (compiling ??= import("../../../../tools/studio/browser-compile.mjs"));
+
 /** The Zen components a page may use: the library's exports whose name starts upper-case and that render. */
 export const zenComponents: ReadonlySet<string> = new Set(
   Object.entries(Zen).filter(([name, value]) => /^[A-Z]/.test(name) && (typeof value === "function" || (typeof value === "object" && value !== null && "$$typeof" in value))).map(([name]) => name),

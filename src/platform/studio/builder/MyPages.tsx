@@ -10,6 +10,7 @@ import { announceEditStatus } from "../api";
 import { navigate, openLocalPage } from "../shell/navigation";
 import { studioStore, useStudio } from "../store";
 import { loadEngine, zenComponents } from "./engine";
+import { openExport } from "./export/exportState";
 import { canLinkFolder, linkFolder, reconnectFolder, resyncPages, unlinkFolder } from "./store/mirrors";
 import { idFromFileName, trashDaysLeft, type RevisionReason } from "./store/pageModel";
 import { deleteForever, duplicatePage, getPage, importPage, listRevisions, renamePage, restorePage, restoreRevision, trashPage, useStorage, useTrash, type PageMeta, type Revision } from "./store/pageStore";
@@ -129,6 +130,7 @@ export function MyPageRow({ item, current, tabIndex }: { item: PageMeta; current
   const items: MenuEntry[] = [
     { id: "rename", label: "Rename…", icon: "icon-pencil-line", disabled: !admin, onSelect: () => setDialog("rename") },
     { id: "duplicate", label: "Duplicate", icon: "icon-copy-line", disabled: !admin, onSelect: () => void duplicatePage(item.id).then(openLocalPage, fail) },
+    { id: "export-code", label: "Export…", icon: "icon-code-02-line", caption: "React code or the design file", onSelect: () => openExport(item.id) },
     { id: "export", label: "Export file", icon: "icon-download-01-line", caption: `${item.id}.zen.tsx`, onSelect: () => void exportPage(item.id).catch(fail) },
     { id: "history", label: "Version history…", icon: "icon-clock-rewind-line", onSelect: () => setDialog("history") },
     { type: "separator" },
