@@ -15,6 +15,7 @@ import path from "node:path";
 import zlib from "node:zlib";
 import { fileURLToPath } from "node:url";
 import { build, preview } from "vite";
+import { unzipFiles } from "../zip.mjs";
 import { launchBrowser, openStudio, showLeftTab, sleep, until } from "./lib/studio.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -444,6 +445,26 @@ try {
     const name = /export function (\w+Page)\(/.exec(code)[1];
     await page.keyboard.press("Escape");
     return `${name}: ${code.split("\n").length} lines (compiler chunk requested ${compileRequests.length}×)`;
+  });
+
+  await step("Export as HTML: the zip's styles.css holds this build's Zen rules (one bundled sheet) and its font files", async () => {
+    await page.locator("#studio-right").getByRole("button", { name: "Export…" }).click();
+    const panel = page.locator(".studio-export");
+    await panel.waitFor({ state: "visible", timeout: 10_000 });
+    await panel.getByRole("button", { name: "HTML", exact: true }).click();
+    await until(async () => /screens\/[\w.-]+\.html/.test(await panel.innerText()), { timeout: 30_000, message: "the HTML files listed" });
+    const downloading = page.waitForEvent("download");
+    await panel.getByRole("button", { name: /^Download .*-html\.zip$/ }).click();
+    const download = await downloading;
+    const files = new Map(unzipFiles(new Uint8Array(fs.readFileSync(await download.path()))).map((file) => [file.path, new TextDecoder().decode(file.data)]));
+    const css = files.get("styles.css") ?? "";
+    const screens = [...files.keys()].filter((file) => /^screens\/.*\.html$/.test(file));
+    const fonts = [...files.keys()].filter((file) => /^fonts\//.test(file));
+    if (!screens.length || !/\.zen-/.test(css) || !/@font-face/.test(css) || !fonts.length) throw new Error(`incomplete export: ${[...files.keys()].join(", ")}; styles.css ${css.length} chars`);
+    if (/\.(studio|platform|pe)-[\w-]/.test(css)) throw new Error("styles.css holds Studio or docs rules");
+    if (/data-zen-src/.test(files.get(screens[0]) ?? "")) throw new Error("Studio attributes in the markup");
+    await page.keyboard.press("Escape");
+    return `${files.size} files: ${screens.length} screens, styles.css ${Math.round(css.length / 1024)} KB, ${fonts.join(", ")}`;
   });
 
   await step("no page errors", async () => {

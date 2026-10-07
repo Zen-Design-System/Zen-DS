@@ -192,3 +192,15 @@
   top-navigation, uploader) 46/46 after the fixes above; every page again: 323/323 (tsc + harness).
 - Gate PASS (.qa/reports/2026-10-07T06-32-15-e54a8cf5.md, E2E 136 works); build-check 21/21 (compiler chunk 4.3 KB,
   engine 137.6 / 140 KB: the stand-in list is in the renderer).
+
+## Studio builder GĐ5 M2 (session "Studio builder tool planning", tier M)
+
+- User: "tiếp" → M2. HTML from an off-screen render (renderFrame in a ZenProvider, theme light, the device's
+  breakpoint, syncDocument off; its data-zen-src file is `export:<id>` so it never reads as the canvas page).
+- styles.css from document.styleSheets: a rule is the library's when every class is `zen-*` (or a :root / data-attribute
+  token rule, kept with its `--zen-*` declarations), and it is kept when its selector without states matches a screen;
+  @media / @supports / @layer wrap what they keep; fonts named by the kept CSS go in the zip (`fonts/`), others stay
+  links; reset.css comes from `?inline` (its `*` / `body` rules cannot be told from the docs' own in the build).
+- HO-03 first failed at 33%: off screen a lazy Image never loads, so its markup kept the 4:3 loading frame; images now
+  load before the markup is read. Then 0.00% on the screen, its empty state and the Dialog overlay.
+- Zip writer: store only, UTF-8 names, CRC-32; `unzipFiles` reads it back for E2E and build-check.

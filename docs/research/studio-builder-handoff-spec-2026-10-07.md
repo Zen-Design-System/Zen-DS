@@ -151,6 +151,11 @@ docs/api (`compile-api.generated.mjs`). Hàm mà component bắt buộc nhưng t
 TODO(dev). Renderer dùng cùng danh sách: cột Table không có `cell` hiện field cùng id của hàng (trước đó trang có Table
 làm canvas dừng).
 
+**M2 xong 2026-10-07.** Bộ ghi zip (`tools/studio/zip.mjs`, vốn của M3) làm luôn ở M2. Lý do: HTML cần `styles.css`,
+ảnh và font đi kèm thì mới mở được, nên tab HTML tải về `<page>-html.zip`. Font của site cũng được đưa vào zip: font
+nạp từ origin khác bị CORS chặn khi mở file trên máy. `reset.css` lấy từ file nguồn (`?inline`): trong bản build, rule
+`*` / `body` của thư viện và của docs nằm chung một file, không tách được.
+
 ## 6. File
 
 - **Mới:**

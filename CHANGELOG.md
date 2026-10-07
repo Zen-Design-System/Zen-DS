@@ -265,6 +265,14 @@ removed (four unused colour ramps were, see Removed).
     this frame, a date given to a prop (DateField `today`, a DatePicker range) is left out instead of becoming text the
     component cannot read, and a router link (`as={RouterLink} to="/x"`) becomes a plain link (`href="/x"`).
   - The React of every template and example frame passes TypeScript and the usage harness.
+- **Zen Studio export, GĐ5 M2: a page as static HTML (2026-10-07):**
+  - Export › **HTML**: each screen, state variant and overlay as an HTML file (`screens/<id>.html`, an overlay drawn
+    open), with `styles.css`: the Zen rules those screens use (tokens and their modes, the components' rules, the fonts
+    and animations they name), read from the styles the Studio has loaded. **Download `<page>-html.zip`** holds them, an
+    `index.html` that lists the screens, the library photos and the font files; open `index.html` in a browser.
+  - The markup is what the canvas draws, without the Studio's attributes; form fields keep what they show. Measured on a
+    page with a list, a photo, a form, a state variant and a Dialog: each file matches its frame on the canvas at 100%.
+  - Static markup: menus, dialogs, tabs and fields do not open or change; the React code has them.
 - **Zen Studio instance panel, GĐ4 M4: size and Detach (2026-10-07):**
   - **W / H for an instance** (Inspector › Layout › Size): Hug, Fill or a Fixed px, as in Figma. A component with its
     own size prop or `fullWidth` uses it; any other is wrapped in a Stack that it fills (`<Stack direction="row"

@@ -186,7 +186,15 @@ Last updated: 2026-10-06.
   leaves out a date outside a list (a prop, a DatePicker range) and a component value (`as={RouterLink}`, `to` → `href`).
   `starters-coverage.mjs --compile` (tsc + harness on every frame's React; a
   harness finding the design has too is noted, not failed). E2E SP-07 (Admin list's Table renders), HO-01 (136 rows);
-  build-check 21 steps (compiler chunk, Export on the build). Next: M2 HTML export.
+  build-check 21 steps (compiler chunk, Export on the build). M2 done 2026-10-07:
+  `builder/export/htmlExport.tsx` (lazy with the HTML tab: frames rendered off screen by renderFrame inside a
+  ZenProvider, lazy photos loaded first; markup without data-zen-*/data-studio-*, runtime wrappers renamed `.screen` /
+  `.overlay`; styles.css = reset.css (?inline) + the loaded rules whose classes are all `zen-*` and are used by the
+  screens, token rules with their `--zen-*` only, the @font-face / @keyframes they name; fonts and library photos in
+  the zip), `tools/studio/zip.mjs` (store-only writer + reader, selftest with unzip -t and Python zipfile),
+  `builder/render/frames.ts` (frameOf shared with the board), CodeView language "html". E2E HO-02 (zip content),
+  HO-03 (each HTML frame vs its canvas frame at 100%: 0.00% of pixels differ); build-check 22 steps. Next: M3 handoff
+  zip.
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers
