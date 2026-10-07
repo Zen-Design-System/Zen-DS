@@ -9,6 +9,7 @@ import { studioStore, useStudio } from "../../store";
 import { renderNode, type PageNode, type PageTree } from "../render/renderPage";
 import { pageFile, usePage } from "../store/pageStore";
 import { usePageTree } from "../usePageTree";
+import { useUploadsVersion } from "../assets/uploads";
 import { DEVICE_WIDTH, ProtoContext, type PageDevice, type ProtoActions } from "./runtime";
 
 /*
@@ -49,6 +50,8 @@ export function Player() {
 function PlayLayer({ id, start }: { id: string; start: string | null }) {
   const page = usePage(id);
   const tree = usePageTree(page?.text);
+  // Uploaded photos show once they have loaded.
+  useUploadsVersion();
   const frames = useMemo(() => elements(tree), [tree]);
   const screens = frames.filter((node) => node.name === "Screen");
   const first = start && screens.some((node) => literal(node, "id") === start) ? start : String(literal(screens[0] ?? { props: {} } as PageNode, "id") ?? "");

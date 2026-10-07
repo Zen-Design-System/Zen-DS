@@ -9,7 +9,8 @@ import { connectMirror, needsReconnect, run, SETTINGS, syncMirror, type PageMirr
  *     tools/studio/pages-folder.mjs), the pages' source of truth;
  *   - on a build (no dev server): a folder the person links with File System Access (Chromium), whose handle is kept in
  *     IndexedDB; after a reload the browser asks again, through Reconnect.
- * Without either, pages live in this browser only (Export keeps a copy).
+ * Without either, pages live in this browser only (Export keeps a copy). A linked folder also keeps the uploaded photos in
+ * its assets/ (GĐ5 M4); the dev server's folder does not (Promote carries them into the repo).
  */
 
 const DEV = import.meta.env.DEV;
@@ -18,7 +19,7 @@ const SUFFIX = ".zen.tsx";
 
 /* File System Access, as far as the Studio uses it (lib.dom lacks the iteration and permission parts). */
 type Permission = "granted" | "denied" | "prompt";
-type FileHandle = { kind: "file"; name: string; getFile(): Promise<File>; createWritable(): Promise<{ write(data: string): Promise<void>; close(): Promise<void> }> };
+type FileHandle = { kind: "file"; name: string; getFile(): Promise<File>; createWritable(): Promise<{ write(data: string | Blob): Promise<void>; close(): Promise<void> }> };
 type DirHandle = {
   kind: "directory";
   name: string;
@@ -88,6 +89,20 @@ function folderMirror(handle: DirHandle): PageMirror {
       await copy.write(text);
       await copy.close();
       await handle.removeEntry(`${id}${SUFFIX}`);
+    },
+    // Uploaded photos (GĐ5 M4) in assets/ beside the pages.
+    async writeAsset(id, blob) {
+      const assets = await handle.getDirectoryHandle("assets", { create: true });
+      const out = await (await assets.getFileHandle(id, { create: true })).createWritable();
+      await out.write(blob);
+      await out.close();
+    },
+    async readAsset(id) {
+      try {
+        return await (await (await handle.getDirectoryHandle("assets")).getFileHandle(id)).getFile();
+      } catch {
+        return null;
+      }
     },
   };
 }

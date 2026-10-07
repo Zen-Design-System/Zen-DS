@@ -1,4 +1,5 @@
 import { platformMedia, type PlatformPhoto } from "../../../PlatformMedia";
+import { ASSET_PREFIX, assetUrl } from "../assets/uploads";
 
 /*
  * The library's photos (Studio builder GĐ3 M3, spec docs/research/studio-builder-library-spec-2026-10-06.md §3f): the
@@ -29,9 +30,17 @@ export const LIBRARY_PHOTOS: readonly LibraryPhoto[] = [
 
 const byKey = new Map(LIBRARY_PHOTOS.map((entry) => [entry.key, entry]));
 
-/** `zen-media:<key>` → this build's URL of that photo; any other value unchanged. */
+/** What an uploaded photo this browser lacks shows (canvas, Play, exports): a pale picture that says so. */
+export const MISSING_PHOTO = `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="black" fill-opacity="0.06"/><text x="200" y="158" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="20" fill="black" fill-opacity="0.55">Missing photo</text></svg>')}`;
+
+/**
+ * `zen-media:<key>` → this build's URL of that library photo; `zen-asset:<id>` → the uploaded photo's object URL
+ * (builder/assets/uploads.ts), or MISSING_PHOTO; any other value unchanged.
+ */
 export function resolveMedia<T>(value: T): T | string {
-  if (typeof value !== "string" || !value.startsWith(MEDIA_PREFIX)) return value;
+  if (typeof value !== "string") return value;
+  if (value.startsWith(ASSET_PREFIX)) return assetUrl(value.slice(ASSET_PREFIX.length)) ?? MISSING_PHOTO;
+  if (!value.startsWith(MEDIA_PREFIX)) return value;
   return byKey.get(value.slice(MEDIA_PREFIX.length))?.photo.src ?? value;
 }
 

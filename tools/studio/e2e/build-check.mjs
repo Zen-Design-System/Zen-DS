@@ -337,7 +337,7 @@ try {
     const assets = page.locator("#studio-left-panel-assets");
     await assets.getByRole("button", { name: "Photos", exact: true }).click();
     await assets.getByLabel("Search photos").fill("coffee");
-    await assets.locator(".studio-assets__photo").first().click();
+    await assets.locator(".studio-assets__photo[data-photo]").first().click();
     await until(async () => /src="zen-media:site-cafe"/.test((await storedText(page, id)) ?? ""), { timeout: 10_000, message: "the zen-media Image in the stored page" });
     const img = page.locator(`img[data-zen-src^="local:${id}.zen.tsx:"], [data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Image"] img`).first();
     await img.waitFor({ state: "attached", timeout: 10_000 });

@@ -6,6 +6,7 @@ import { zipFiles, type ZipInput } from "../../../../../tools/studio/zip.mjs";
 import packageJson from "../../../../../package.json";
 import { componentSlug } from "../../inspector/propSchema";
 import { loadCompile, loadEngine, zenComponents } from "../engine";
+import { assetBlob, assetOfUrl, loadUploads } from "../assets/uploads";
 import { LIBRARY_PHOTOS } from "../library/media";
 import { ProtoContext, type PageDevice, type ProtoActions } from "../proto/runtime";
 import { frameOf, literalOf, type PageFrame } from "../render/frames";
@@ -62,9 +63,19 @@ type Assets = Map<string, HtmlAsset>;
 const absolute = (url: string, base = document.baseURI) => { try { return new URL(url, base).href; } catch { return url; } };
 const photoKeys = new Map(LIBRARY_PHOTOS.map((entry) => [absolute(entry.photo.src), entry.key]));
 
-/** A URL in the markup as the export writes it: a library photo → `../assets/<key>.webp` (in the zip), any other absolute. */
+/**
+ * A URL in the markup as the export writes it: a library photo → `../assets/<key>.webp`, an uploaded photo (its object
+ * URL) → `../assets/<id>` (both in the zip), any other absolute.
+ */
 function exportUrl(url: string, assets: Assets): string {
-  if (/^(data:|blob:|#)/.test(url)) return url;
+  if (url.startsWith("blob:")) {
+    const upload = assetOfUrl(url);
+    if (!upload) return url;
+    const path = `assets/${upload.id}`;
+    assets.set(path, { path, url });
+    return `../${path}`;
+  }
+  if (/^(data:|#)/.test(url)) return url;
   const href = absolute(url);
   const key = photoKeys.get(href);
   if (!key) return href;
@@ -251,6 +262,8 @@ export function canvasModes(id: string, frameId?: string) {
 
 /** Renders the page's frames off screen, as the canvas draws them; `dispose` unmounts them. */
 async function renderFrames(id: string, text: string): Promise<Rendered | { error: string }> {
+  // Uploaded photos resolve to their object URLs only once loaded.
+  await loadUploads();
   const engine = await loadEngine();
   const tree = engine.parsePage(text, { components: new Set(zenComponents) }) as unknown as PageTree;
   if (tree.errors.length || !tree.board) return { error: tree.errors[0] ? `line ${tree.errors[0].line}: ${tree.errors[0].message}` : "The page has no board" };
@@ -490,8 +503,8 @@ export async function prepareHandoff({ id, title, text }: { id: string; title: s
     const reactAssets: ZipInput[] = [];
     for (const media of compiled.media) {
       const photo = media.kind === "media" ? LIBRARY_PHOTOS.find((entry) => entry.key === media.key) : undefined;
-      const file = photo ? await fetchFile(absolute(photo.photo.src)) : null;
-      if (file) reactAssets.push({ path: `assets/${media.file}`, data: file.bytes });
+      const bytes = photo ? (await fetchFile(absolute(photo.photo.src)))?.bytes : media.kind === "asset" ? await assetBlob(media.key).then((blob) => (blob ? blob.arrayBuffer() : null)).then((buffer) => (buffer ? new Uint8Array(buffer) : null)) : null;
+      if (bytes) reactAssets.push({ path: `assets/${media.file}`, data: bytes });
       else missing.push(`assets/${media.file}`);
     }
     const components = await Promise.all(compiled.components.map(async (name) => { const slug = componentSlug(name); return { name, slug, notes: await guidelineFor(slug) }; }));

@@ -10,6 +10,7 @@ import { usePageTree } from "./usePageTree";
 import { ProtoLinks } from "./proto/ProtoLinks";
 import { ProtoContext, type ProtoActions } from "./proto/runtime";
 import { frameOf } from "./render/frames";
+import { assetIdsOf, missingAssets, useUploadsVersion } from "./assets/uploads";
 import { renderFrame, type PageNode } from "./render/renderPage";
 import { Button } from "../../../components/Button";
 import { useStudio } from "../store";
@@ -59,6 +60,17 @@ export function BuilderBoard({ id }: { id: string }) {
   const admin = useStudio((state) => state.role === "admin");
   const text = page?.text;
   const tree = usePageTree(text);
+  // Uploaded photos resolve once they have loaded (the frames render again); one this browser lacks is named.
+  useUploadsVersion();
+  const assets = text ? assetIdsOf(text).join(" ") : "";
+  useEffect(() => {
+    if (!assets) return undefined;
+    let alive = true;
+    void missingAssets(assets.split(" ")).then((missing) => {
+      if (alive && missing.length) announceEditStatus({ kind: "warning", message: `Missing photo${missing.length === 1 ? "" : "s"}: ${missing.join(", ")}. Select the Image and pick another photo in Assets › Photos.`, at: Date.now() });
+    });
+    return () => { alive = false; };
+  }, [id, assets]);
   // The new text is on the canvas: what read the old one reads again (Vite's afterUpdate for example code).
   useEffect(() => { if (tree) notifySourceUpdate(); }, [tree]);
 

@@ -9,6 +9,8 @@ import { typographyStyles } from "../../../tokens/typography.generated";
 import { announceEditStatus } from "../api";
 import { navigate, openLocalPage } from "../shell/navigation";
 import { studioStore, useStudio } from "../store";
+import { unzipFiles } from "../../../../tools/studio/zip.mjs";
+import { assetIdsOf, putAsset } from "./assets/uploads";
 import { loadEngine, zenComponents } from "./engine";
 import { openExport } from "./export/exportState";
 import { canLinkFolder, linkFolder, reconnectFolder, resyncPages, unlinkFolder } from "./store/mirrors";
@@ -66,11 +68,30 @@ export function MyPagesHeader({ onNew }: { onNew: () => void }) {
     const engine = await loadEngine();
     const opened: string[] = [];
     const refused: string[] = [];
+    // A handoff package (.zip, GĐ5 M4) brings its design file and the uploaded photos it uses (assets/<id>).
+    const entries: Array<{ name: string; text: string; assets: Map<string, Uint8Array> }> = [];
     for (const file of files) {
-      const text = await file.text();
-      const errors = engine.validateDialect(text, { components: new Set(zenComponents) });
-      if (errors.length) { refused.push(`${file.name} (line ${errors[0].line}: ${errors[0].message})`); continue; }
-      opened.push(await importPage(text, idFromFileName(file.name)));
+      if (!/\.zip$/i.test(file.name)) { entries.push({ name: file.name, text: await file.text(), assets: new Map() }); continue; }
+      let unpacked: Array<{ path: string; data: Uint8Array }>;
+      try {
+        unpacked = unzipFiles(new Uint8Array(await file.arrayBuffer()));
+      } catch {
+        refused.push(`${file.name} (not a zip Zen Studio wrote)`);
+        continue;
+      }
+      const assets = new Map(unpacked.filter((entry) => /^assets\/[\w.-]+$/.test(entry.path)).map((entry) => [entry.path.slice("assets/".length), entry.data]));
+      const pages = unpacked.filter((entry) => /^[^/]+\.zen\.tsx$/.test(entry.path));
+      if (!pages.length) refused.push(`${file.name} (no .zen.tsx in it)`);
+      for (const page of pages) entries.push({ name: page.path, text: new TextDecoder().decode(page.data), assets });
+    }
+    for (const entry of entries) {
+      const errors = engine.validateDialect(entry.text, { components: new Set(zenComponents) });
+      if (errors.length) { refused.push(`${entry.name} (line ${errors[0].line}: ${errors[0].message})`); continue; }
+      for (const id of assetIdsOf(entry.text)) {
+        const data = entry.assets.get(id);
+        if (data) await putAsset(id, new Blob([data as Uint8Array<ArrayBuffer>]));
+      }
+      opened.push(await importPage(entry.text, idFromFileName(entry.name)));
     }
     if (opened.length === 1) openLocalPage(opened[0]);
     if (refused.length) say("error", `Not imported: ${refused.join("; ")}`);
@@ -93,7 +114,7 @@ export function MyPagesHeader({ onNew }: { onNew: () => void }) {
         <Menu align="end" aria-label="My pages options" items={items} trigger={<IconButton icon="icon-dots-horizontal-line" aria-label="My pages options" appearance="flat" level="primary" size="xs" />} />
       </div>
       <StorageLine />
-      <input ref={input} type="file" accept=".tsx" multiple hidden data-e2e="import-pages" onChange={(event) => {
+      <input ref={input} type="file" accept=".tsx,.zip" multiple hidden data-e2e="import-pages" onChange={(event) => {
         // Copied first: clearing the input (so the same file can be picked again) empties its live FileList.
         const files = Array.from(event.target.files ?? []);
         event.target.value = "";

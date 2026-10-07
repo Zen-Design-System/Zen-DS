@@ -3,7 +3,8 @@ import { canvasApi, getViewportBox } from "../../canvas/viewport";
 import { multiSelection } from "../../select/multiSelection";
 import { expectRender, renderedNow } from "../../select/remap";
 import { canStructurallyEdit, swapSelection } from "../../slots/actions";
-import { photoCode, type LibraryPhoto } from "../../builder/library/media";
+import { altOf, ASSET_PREFIX, type Upload } from "../../builder/assets/uploads";
+import { MEDIA_PREFIX, photoCode, type LibraryPhoto } from "../../builder/library/media";
 import { insertTarget } from "../../builder/library/target";
 import { builderCode, type PaletteContext, type PaletteItem } from "../../slots/palette";
 import type { ContentSlot } from "../../slots/registry";
@@ -17,7 +18,8 @@ import { dropTargetAt, publishDragView, type DropContext } from "../drag";
  * Assets, Figma-like (docs/research/studio-figma-editing-plan-2026-10-03.md, Phase 6): the Zen components of the slot
  * palette (slots/palette.ts), and since GĐ3 M3 icons and photos (Insertable), inserted by a click (into the selected
  * layout, else after the selected layer, else into the frame in view; an icon on a selected Icon swaps its glyph) or
- * dragged onto the canvas, where the insertion line of a layer drag shows where it lands. Op pasteCode: Zen components join
+ * dragged onto the canvas, where the insertion line of a layer drag shows where it lands. A photo on a selected Image of a
+ * page swaps its picture (GĐ5 M4: an uploaded photo, or the way to replace a missing one). Op pasteCode: Zen components join
  * the imports, an action's toast gets its useToast(). One undo step; the new layer gets selected.
  */
 
@@ -50,11 +52,36 @@ export type Insertable = {
   state?: readonly StateDecl[];
   /** An icon's name: with an Icon selected, the click swaps that Icon's glyph instead of adding one. */
   icon?: string;
+  /** A photo's source on a builder page: with an Image of a page selected, the click swaps its picture instead. */
+  photo?: string;
 };
 
 export const paletteInsertable = (item: PaletteItem): Insertable => ({ label: item.label, root: item.root, state: item.state, code: (file) => codeOf(item, file), refusal: builderRefusal(item) });
 export const iconInsertable = (name: string, title: string): Insertable => ({ label: title, root: "Icon", icon: name, code: () => `<Icon name="${name}" title=${JSON.stringify(title)} />`, refusal: "" });
-export const photoInsertable = (entry: LibraryPhoto): Insertable => ({ label: entry.photo.alt, root: "Image", code: (file) => photoCode(entry, Boolean(file?.startsWith("local:"))), refusal: "" });
+export const photoInsertable = (entry: LibraryPhoto): Insertable => ({ label: entry.photo.alt, root: "Image", photo: `${MEDIA_PREFIX}${entry.key}`, code: (file) => photoCode(entry, Boolean(file?.startsWith("local:"))), refusal: "" });
+/** An uploaded photo (GĐ5 M4): on pages you made only (example code takes the library's photos). */
+export const uploadInsertable = (upload: Upload): Insertable => ({
+  label: altOf(upload.name),
+  root: "Image",
+  photo: `${ASSET_PREFIX}${upload.id}`,
+  code: (file) => (file?.startsWith("local:") ? `<Image src="${ASSET_PREFIX}${upload.id}" alt=${JSON.stringify(altOf(upload.name))} ratio="4:3" />` : null),
+  refusal: "An uploaded photo goes on a page you made (Pages › New page); example code takes the library's photos",
+});
+
+/** The selected Image of a page you made (a photo click swaps its picture), or null. */
+export function selectedImage(): NodeSelection | null {
+  const selection = studioStore.getState().selection;
+  return selection?.kind === "node" && !selection.part && selection.name === "Image" && parseSrc(selection.src)?.file.startsWith("local:") ? selection : null;
+}
+
+/** Gives the selected Image another picture (one undo step): how a page's missing photo is replaced. */
+async function swapPhoto(selection: NodeSelection, src: string, label: string) {
+  const at = parseSrc(selection.src);
+  if (!at) return;
+  const element = await studioApi.element(at.file, at.loc);
+  if (!element) { fail("The selected Image is no longer there"); return; }
+  await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [{ op: "setProp", name: "src", value: { kind: "string", value: src } } as EditOp], hash: element.hash }, `Image → ${label}`);
+}
 
 /** The selected Icon layer (an icon from the library swaps its glyph), or null. */
 export function selectedIcon(): NodeSelection | null {
@@ -79,6 +106,8 @@ export function insertItem(item: Insertable) {
   if (!canEdit()) { fail("View only — switch to Admin to edit"); return; }
   const icon = item.icon ? selectedIcon() : null;
   if (icon && item.icon) { void swapIcon(icon, item.icon); return; }
+  const image = item.photo ? selectedImage() : null;
+  if (image && item.photo) { void swapPhoto(image, item.photo, item.label); return; }
   const target = insertTarget();
   if (typeof target === "string") { fail(target); return; }
   const code = item.code(parseSrc(target.src)?.file);

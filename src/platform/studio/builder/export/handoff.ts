@@ -133,7 +133,7 @@ export function handoffMarkdown(input: HandoffInput): string {
 
   add("## In this package", "");
   add(`- ${code(`${input.component}.tsx`)}: the page as one React component.`);
-  add(`- ${code(`${input.id}.zen.tsx`)}: the design file (Zen Studio › Pages › Import).`);
+  add(`- ${code(`${input.id}.zen.tsx`)}: the design file. Zen Studio › Pages › Import pages… opens it, or this whole zip with its uploaded photos.`);
   if (input.media.length) add(`- ${code("assets/")}: the photos the code imports (${input.media.map(code).join(", ")}).`);
   add(`- ${code("screens/")}: a picture of each screen and overlay as the canvas draws it (PNG, 2×).`);
   add(`- ${code("html/")}: static HTML of each screen with the Zen styles it uses (open ${code("html/index.html")}).`);

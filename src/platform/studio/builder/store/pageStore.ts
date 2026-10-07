@@ -7,6 +7,7 @@ import { headerTitle, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, t
  *   pages      { id, title, text, createdAt, updatedAt, trashedAt?, sync? }  the working copy of every page
  *   revisions  { key, page, text, at, reason }                              earlier texts, MAX_REVISIONS per page
  *   settings   { key, value }                                                the linked folder's handle (mirrors.ts)
+ *   assets     { id, name, type, size, createdAt, blob }                     uploaded photos (builder/assets/uploads.ts)
  * Reads are cached so the board renders synchronously; writes update the cache at once, then IndexedDB, tell other tabs
  * (BroadcastChannel) and the folder mirror, if one is connected (mirrors.ts: the dev server's .zen-studio/pages/ or a
  * folder linked with File System Access). A mirror is the source of truth: `syncMirror` follows pageModel.planSync, and
@@ -40,6 +41,10 @@ export interface PageMirror {
   write(id: string, text: string): Promise<void>;
   /** Moves the page to the folder's trash (never deletes). */
   trash(id: string): Promise<void>;
+  /** An uploaded photo, kept in the folder's assets/ beside the pages (a linked folder only). */
+  writeAsset?(id: string, blob: Blob): Promise<void>;
+  /** An uploaded photo from the folder's assets/; null when it has none. */
+  readAsset?(id: string): Promise<Blob | null>;
 }
 
 /** Where the pages are kept, for the Pages panel. */
@@ -53,6 +58,7 @@ const DB = "zen-studio-builder";
 const PAGES = "pages";
 const REVISIONS = "revisions";
 export const SETTINGS = "settings";
+export const ASSETS = "assets";
 export const isPageId = (id: string) => PAGE_ID.test(id);
 /** The engine's file name of a page ("local:<id>.zen.tsx"), and back. */
 export const pageFile = (id: string) => `local:${id}.zen.tsx`;
@@ -75,12 +81,13 @@ let opening: Promise<IDBDatabase | null> | null = null;
 function open(): Promise<IDBDatabase | null> {
   opening ??= new Promise((resolve) => {
     try {
-      const request = indexedDB.open(DB, 2);
+      const request = indexedDB.open(DB, 3);
       request.onupgradeneeded = () => {
         const db = request.result;
         if (!db.objectStoreNames.contains(PAGES)) db.createObjectStore(PAGES, { keyPath: "id" });
         if (!db.objectStoreNames.contains(REVISIONS)) db.createObjectStore(REVISIONS, { keyPath: "key", autoIncrement: true }).createIndex("page", "page");
         if (!db.objectStoreNames.contains(SETTINGS)) db.createObjectStore(SETTINGS, { keyPath: "key" });
+        if (!db.objectStoreNames.contains(ASSETS)) db.createObjectStore(ASSETS, { keyPath: "id" });
       };
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => { persistent = false; resolve(null); };
@@ -277,6 +284,8 @@ export async function freeId(title: string): Promise<string> {
 /* ── mirror ─────────────────────────────────────────────────────────────────────────────────────────────────────── */
 
 let mirror: PageMirror | null = null;
+/** The folder connected now (uploaded photos go to its assets/ too), or null. */
+export const activeMirror = () => mirror;
 let storage: StorageState = { kind: "browser" };
 const setStorage = (next: StorageState) => { storage = next; notify(); };
 const setMirrorError = (error: unknown) => {

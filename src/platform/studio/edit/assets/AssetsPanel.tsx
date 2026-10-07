@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { IconButton } from "../../../../components/Button";
+import { useMemo, useRef, useState } from "react";
+import { Button, IconButton } from "../../../../components/Button";
 import { EmptyState } from "../../../../components/EmptyState";
 import { Icon } from "../../../../components/Icon";
 import { Search } from "../../../../components/Search";
@@ -11,12 +11,14 @@ import { GROUP_ICON, searchCatalog } from "../../builder/library/catalog";
 import { iconTitle, searchIconGlyphs, searchLibraryPhotos } from "../../builder/library/icons";
 import { PALETTE, PALETTE_GROUPS, type PaletteItem } from "../../slots/palette";
 import { useStudio } from "../../store";
-import { iconInsertable, insertAsset, insertItem, paletteInsertable, photoInsertable, pressAsset, type Insertable } from "./assets";
+import { announceEditStatus } from "../../api";
+import { altOf, UPLOAD_ACCEPT, uploadPhotos, useUploads } from "../../builder/assets/uploads";
+import { iconInsertable, insertAsset, insertItem, paletteInsertable, photoInsertable, pressAsset, uploadInsertable, type Insertable } from "./assets";
 import "./assets.css";
 
 /*
  * The left panel's Assets tab (Figma's Assets): the Zen components the Studio can add, by group, and since GĐ3 M3 the
- * icons (a line or solid glyph per drawing) and the sample photos, each with its search (best first, synonyms in English
+ * icons (a line or solid glyph per drawing) and the photos (since GĐ5 M4 your uploads first: Upload or drop), each with its search (best first, synonyms in English
  * and Vietnamese: builder/library). A click adds one into the selected layout (else right after the selected layer, else
  * into the frame in view); an icon on a selected Icon swaps its glyph; dragging one onto the canvas shows where it lands.
  * Keyboard: Tab to a row or tile, Enter adds it.
@@ -123,19 +125,69 @@ function IconGrid({ query }: { query: string }) {
 
 function PhotoGrid({ query }: { query: string }) {
   const photos = useMemo(() => searchLibraryPhotos(query), [query]);
+  const uploads = useUploads();
+  const admin = useStudio((state) => state.role === "admin");
+  const input = useRef<HTMLInputElement>(null);
+  const [dropping, setDropping] = useState(false);
+  const words = query.trim().toLowerCase();
+  const mine = words ? uploads.filter((upload) => `${upload.name} ${altOf(upload.name)}`.toLowerCase().includes(words)) : uploads;
+  const add = (files: File[]) => {
+    if (!files.length) return;
+    void uploadPhotos(files).then(({ added, refused }) => {
+      if (refused.length) announceEditStatus({ kind: "error", message: `Not uploaded: ${refused.join("; ")}`, at: Date.now() });
+      else announceEditStatus({ kind: "saved", message: `Uploaded ${plural(added.length, "photo")}: click one to add it to a page you made, or drag it there`, at: Date.now() });
+    });
+  };
+  const withFiles = (event: React.DragEvent) => Array.from(event.dataTransfer.types).includes("Files");
   return (
-    <div className="studio-assets__scroll">
-      {photos.length ? (
-        <ul className="studio-assets__photos" aria-label="Photos">
-          {photos.map((entry) => (
-            <li key={entry.key}>
-              <button type="button" className="studio-assets__photo" aria-label={entry.photo.alt} title={`${entry.photo.alt} — drag onto the canvas, or click to add at the selection`} data-photo={entry.key} {...pressProps(photoInsertable(entry))}>
-                <img src={entry.photo.src} alt="" loading="lazy" draggable={false} />
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : <Empty what="photos" />}
+    <div
+      className="studio-assets__scroll"
+      data-dropping={dropping ? "true" : undefined}
+      onDragOver={(event) => { if (!withFiles(event) || !admin) return; event.preventDefault(); event.dataTransfer.dropEffect = "copy"; setDropping(true); }}
+      onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDropping(false); }}
+      onDrop={(event) => { if (!withFiles(event) || !admin) return; event.preventDefault(); setDropping(false); add(Array.from(event.dataTransfer.files)); }}
+    >
+      <section className="studio-assets__section" aria-label="Your photos">
+        <div className="studio-assets__bar">
+          <p className={`studio-assets__label ${typographyStyles["Caption/Medium"]}`}>Your photos</p>
+          <Button appearance="flat" level="primary" size="xs" startIcon="icon-upload-01-line" disabled={!admin} onClick={() => input.current?.click()}>Upload</Button>
+        </div>
+        <input ref={input} type="file" accept={UPLOAD_ACCEPT} multiple hidden data-e2e="upload-photos" onChange={(event) => {
+          // Copied first: clearing the input (so the same file can be picked again) empties its live FileList.
+          const files = Array.from(event.target.files ?? []);
+          event.target.value = "";
+          add(files);
+        }} />
+        {mine.length ? (
+          <ul className="studio-assets__photos" aria-label="Your photos">
+            {mine.map((upload) => (
+              <li key={upload.id}>
+                <button type="button" className="studio-assets__photo" aria-label={altOf(upload.name)} title={`${upload.name} — drag onto a page you made, or click to add at the selection (on a selected Image: replace its picture)`} data-upload={upload.id} {...pressProps(uploadInsertable(upload))}>
+                  <img src={upload.url} alt="" draggable={false} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <Text as="p" textStyle="Caption/Regular" tone="base" className="studio-assets__hint">
+            {words ? "None of your photos match." : "Upload or drop PNG, JPEG, WebP, GIF or SVG files, up to 5 MB each. They stay in this browser and go with the page's exports."}
+          </Text>
+        )}
+      </section>
+      <section className="studio-assets__section" aria-label="Library">
+        <p className={`studio-assets__kicker ${typographyStyles["Caption/Medium"]}`}>Library</p>
+        {photos.length ? (
+          <ul className="studio-assets__photos" aria-label="Photos">
+            {photos.map((entry) => (
+              <li key={entry.key}>
+                <button type="button" className="studio-assets__photo" aria-label={entry.photo.alt} title={`${entry.photo.alt} — drag onto the canvas, or click to add at the selection`} data-photo={entry.key} {...pressProps(photoInsertable(entry))}>
+                  <img src={entry.photo.src} alt="" loading="lazy" draggable={false} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : <Empty what="photos" />}
+      </section>
     </div>
   );
 }

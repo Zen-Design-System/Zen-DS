@@ -2,8 +2,9 @@
 // exported as React code (tools/studio/compile.mjs) or as its design file, from the Export panel.
 import fs from "node:fs";
 import { unzipFiles } from "../../zip.mjs";
-import { showLeftTab, sleep, until } from "../lib/studio.mjs";
-import { newPage, pageText } from "./builder.mjs";
+import path from "node:path";
+import { showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { clickNamed, focusScreen, newPage, pageText, selectStack } from "./builder.mjs";
 
 /** A phone page with every kind of frame the HTML export writes: a screen, its state variant, an overlay; a photo, a form. */
 const HTML_PAGE = `// @zen-page {"format":1,"title":"HTML check"}
@@ -105,10 +106,15 @@ const pngSize = (bytes) => { const view = Buffer.from(bytes); return { width: vi
 
 /** Opens the Export panel from the page's Inspector panel (nothing selected). */
 async function openExport(page) {
-  await page.locator(".studio-viewport").focus();
-  for (let i = 0; i < 3; i += 1) await page.keyboard.press("Escape");
   await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click().catch(() => {});
-  await page.locator("#studio-right").getByRole("button", { name: "Export…" }).click();
+  const button = page.locator("#studio-right").getByRole("button", { name: "Export…" });
+  // Escape walks the selection up to nothing selected: the page's own panel, with Export….
+  for (let i = 0; i < 8 && !(await button.isVisible().catch(() => false)); i += 1) {
+    await page.locator(".studio-viewport").focus();
+    await page.keyboard.press("Escape");
+    await sleep(120);
+  }
+  await button.click();
   const panel = page.locator(".studio-export");
   await panel.waitFor({ state: "visible", timeout: 5000 });
   return panel;
@@ -217,6 +223,82 @@ export const rows = [
       } finally {
         await ctx.studio({ fresh: true });
       }
+    },
+  },
+  {
+    id: "HO-05", feature: "Upload a photo: it is kept, goes on the page as zen-asset, shows on the canvas, travels in the handoff zip and comes back with Import", wp: "GĐ5 M4",
+    timeout: 120_000,
+    async run(ctx) {
+      const photo = fs.readFileSync(path.join(ctx.root, "src/assets/media/site-bridge.webp"));
+      const { page, id } = await newPage(ctx, { title: "Upload check" });
+      await selectStack(page, id);
+      await showLeftTab(page, "assets");
+      const assets = page.locator("#studio-left-panel-assets");
+      await assets.getByRole("button", { name: "Photos", exact: true }).click();
+      // A file that is not an image is refused, with the reason.
+      await assets.locator('[data-e2e="upload-photos"]').setInputFiles({ name: "notes.txt", mimeType: "text/plain", buffer: Buffer.from("hello") });
+      await until(async () => /Not uploaded: notes\.txt \(not a PNG/.test(await statusText(page)), { message: "a text file refused" });
+      await assets.locator('[data-e2e="upload-photos"]').setInputFiles({ name: "Team photo.webp", mimeType: "image/webp", buffer: photo });
+      const tile = assets.locator('.studio-assets__photo[data-upload^="team-photo-"]');
+      await tile.waitFor({ state: "visible", timeout: 10_000 });
+      const asset = await tile.getAttribute("data-upload");
+      await tile.click();
+      await until(async () => (await pageText(page, id))?.includes(`<Image src="zen-asset:${asset}" alt="Team photo" ratio="4:3" />`), { message: "the zen-asset Image in the page" });
+      const img = page.locator(`img[data-zen-src^="local:${id}.zen.tsx:"], [data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Image"] img`).first();
+      await until(async () => img.evaluate((element) => element.src.startsWith("blob:") && element.complete && element.naturalWidth > 0).catch(() => false), { timeout: 10_000, message: "the uploaded photo on the canvas" });
+      // The handoff zip carries it for the code and for the HTML.
+      const panel = await openExport(page);
+      await panel.getByRole("button", { name: "Handoff", exact: true }).click();
+      await until(async () => /## Prototype flow/.test(await panel.innerText()), { timeout: 40_000, message: "handoff.md in the panel" });
+      const downloading = page.waitForEvent("download");
+      await panel.getByRole("button", { name: /^Download .*-handoff\.zip$/ }).click();
+      // Kept outside the browser context, which deletes its downloads when it closes.
+      const zipPath = path.join(ctx.outDir, `HO-05-${id}-handoff.zip`);
+      fs.copyFileSync(await (await downloading).path(), zipPath);
+      const files = new Map(unzipFiles(new Uint8Array(fs.readFileSync(zipPath))).map((file) => [file.path, file.data]));
+      const missing = [`assets/${asset}`, `html/assets/${asset}`].filter((file) => !files.has(file));
+      if (missing.length) throw new Error(`the zip lacks ${missing.join(", ")}`);
+      if (!Buffer.from(files.get(`assets/${asset}`)).equals(photo)) throw new Error("the photo in the zip differs from the upload");
+      if (!text(files, "UploadCheckPage.tsx").includes(`from "./assets/${asset}";`)) throw new Error("the code does not import the photo");
+      if (!text(files, "html/screens/screen-1.html").includes(`src="../assets/${asset}"`)) throw new Error("the HTML does not show the photo from assets/");
+      await page.keyboard.press("Escape");
+      // Another browser (a fresh one): Import the zip, the page comes with its photo.
+      const fresh = await ctx.studio({ fresh: true });
+      await showLeftTab(fresh.page, "pages");
+      await fresh.page.locator('[data-e2e="import-pages"]').setInputFiles(zipPath);
+      // The dev server's pages folder already holds the page (it syncs every browser): the copy gets an id of its own.
+      const copy = await until(async () => /page=local:([a-z0-9-]+)/.exec(decodeURIComponent(fresh.page.url()))?.[1] ?? null, { timeout: 10_000, message: "the imported page opened" });
+      const again = fresh.page.locator(`img[data-zen-src^="local:${copy}.zen.tsx:"], [data-zen-src^="local:${copy}.zen.tsx:"][data-zen-name="Image"] img`).first();
+      await until(async () => again.evaluate((element) => element.src.startsWith("blob:") && element.complete && element.naturalWidth > 0).catch(() => false), { timeout: 10_000, message: "the photo back with the imported page" });
+      if (/Missing photo/.test(await statusText(fresh.page))) throw new Error("a photo of the imported zip is missing");
+      return `${asset} (${Math.round(photo.length / 1024)} KB): page, canvas (blob:), zip (code + HTML), back with Import (${copy})`;
+    },
+  },
+  {
+    id: "HO-06", feature: "A page whose uploaded photo this browser lacks: \"Missing photo\" on the canvas and in the status; a library photo on the selected Image replaces it", wp: "GĐ5 M4",
+    timeout: 60_000,
+    async run(ctx) {
+      const { page } = await ctx.studio({ fresh: true });
+      const id = `missing-photo-${Date.now().toString(36)}`;
+      const text = HTML_PAGE.replace("HTML check", "Missing photo check").replace('src="zen-media:site-cafe"', 'src="zen-asset:gone-0badc0de.png"');
+      await showLeftTab(page, "pages");
+      await page.locator('[data-e2e="import-pages"]').setInputFiles({ name: `${id}.zen.tsx`, mimeType: "text/plain", buffer: Buffer.from(text, "utf8") });
+      await until(async () => decodeURIComponent(page.url()).includes(`page=local:${id}`), { timeout: 10_000, message: "the imported page opened" });
+      await until(async () => /Missing photo: gone-0badc0de\.png/.test(await statusText(page)), { timeout: 10_000, message: "the missing photo named" });
+      const img = page.locator(`img[data-zen-src^="local:${id}.zen.tsx:"], [data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Image"] img`).first();
+      await until(async () => (await img.getAttribute("src"))?.startsWith("data:image/svg+xml"), { message: "the Missing photo picture on the canvas" });
+      await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+      await focusScreen(page);
+      await clickNamed(page, id, "Image");
+      await showLeftTab(page, "assets");
+      const assets = page.locator("#studio-left-panel-assets");
+      await assets.getByRole("button", { name: "Photos", exact: true }).click();
+      await assets.locator('.studio-assets__photo[data-photo="site-bridge"]').click();
+      await until(async () => (await pageText(page, id))?.includes('<Image src="zen-media:site-bridge" alt="Office" />'), { message: "the Image's photo replaced" }).catch(async (error) => {
+        throw new Error(`${error.message}: selected ${await page.locator("#studio-right h2").first().innerText().catch(() => "?")}; status ${await statusText(page)}; page ${((await pageText(page, id)) ?? "").match(/<Image[^>]*>/g)?.join(" ")}`);
+      });
+      await until(async () => img.evaluate((element) => !element.src.startsWith("data:") && element.complete && element.naturalWidth > 0).catch(() => false), { timeout: 10_000, message: "the new photo on the canvas" });
+      return "Missing photo named and drawn; site-bridge replaced it (src only, one edit)";
     },
   },
   {

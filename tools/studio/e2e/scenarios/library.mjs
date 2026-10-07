@@ -197,7 +197,7 @@ export const rows = [
       const { page, id } = await newPage(ctx);
       await selectStack(page, id);
       await library(page, "Photos", "cà phê");
-      await assets(page).locator(".studio-assets__photo").first().click();
+      await assets(page).locator(".studio-assets__photo[data-photo]").first().click();
       await until(async () => /<Image src="zen-media:site-cafe" alt="Café table with a coffee" ratio="4:3" \/>/.test((await pageText(page, id)) ?? ""), { message: "the zen-media Image in the page" });
       const img = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Image"] img, img[data-zen-src^="local:${id}.zen.tsx:"]`).first();
       await img.waitFor({ state: "attached", timeout: 10_000 });
@@ -232,7 +232,7 @@ export const rows = [
       for (let i = 0; i < 4; i += 1) await page.keyboard.press("Escape");
       const before = tagCount(await ctx.text(), "Image");
       await library(page, "Photos", "coffee");
-      await assets(page).locator(".studio-assets__photo").first().click();
+      await assets(page).locator(".studio-assets__photo[data-photo]").first().click();
       await until(async () => tagCount(await ctx.text(), "Image") > before, { timeout: 5000, message: "an Image in the host page" });
       const text = await ctx.text();
       if (!/<Image src=\{platformMedia\.site\[5\]\.src\}/.test(text)) throw new Error("not written with platformMedia");
