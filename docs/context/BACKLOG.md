@@ -154,6 +154,11 @@ Read this file only when picking up work or logging a follow-up.
     and Tabs only, so there is no slot for a banner under the bar.
 
 ## Backlog (plan before opening sessions)
+- **P2 · CI "Package" step fails on every run of the 0.4.0 branch (2026-10-07, seen when merging PR #1):** 14 of 14
+  finished CI runs since 2026-09-29 failed, almost all in "Package (pack, install in a temp app, budgets, zen-usage,
+  MCP, zen-ds)" (twice Browser tests, twice Platform audit); `npm run verify:package` passes locally ("Package OK").
+  The job log could not be read from the cloud session (its storage host is blocked). PR #1 was merged with it on the
+  user's call. Pointer: `.github/workflows/ci.yml` step "Package", `scripts/verify-package.mjs`.
 - **P2 · Builder: Inspector Frames list keeps the previous local page's frames (2026-10-06, seen during GĐ2 M2):**
   open page A then page B (both new pages, Screen id `screen-1`): the Page panel's Frames shows A's title. Likely the
   frame registry keys `screen:screen-1` without the page. Pointer: `builder/BuilderBoard.tsx` frame ids,
