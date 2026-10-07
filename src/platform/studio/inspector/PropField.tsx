@@ -13,6 +13,7 @@ import { usePendingDraft } from "./drafts";
 import { iconGroups, iconsIn } from "./iconSuggestions";
 import { figmaOptions } from "./propGroups";
 import { allIconNames, dataEditable, dataSourceLabel, fixableBinding, inSentence, matchOption, propLabel, typographyFamily, typographyKeys, type Literal, type PropSpec, type PropValue } from "./propSchema";
+import { useObjectStarter } from "./useObjectStarter";
 import { ScaleField } from "./controls/ScaleField";
 import { scaleOfType } from "./controls/scale";
 import { InspectorRow } from "./Section";
@@ -692,12 +693,14 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
  * data lives, or a fixed value that ↺ (Restore) turns back into the binding. A value that reads state stays read-only
  * (the keep-behaviour rule), in a field's frame so the column reads the same.
  */
-export function PropField({ spec, value, disabled, onSet, onReset, boundHint, label = propLabel(spec.name), autoFocusToken, resettable = true, restore, repeats, hint, optionLabels, defaultIcon }: {
+export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, boundHint, label = propLabel(spec.name), autoFocusToken, resettable = true, restore, repeats, hint, optionLabels, defaultIcon }: {
   spec: PropSpec;
   value: PropValue;
   disabled: boolean;
   onSet: (value: Literal) => void;
   onReset: () => void;
+  /** An unset object prop whose type starts from values (objectStarter.ts): "+" writes that object as code. */
+  onAddObject?: (code: string) => void;
   /** Code value → Figma option name (generated groups): a select lists Figma's options first, by their Figma names. */
   optionLabels?: Readonly<Record<string, string>>;
   /** An icon swap's default in Figma (generated groups): its icon picker lists it first. */
@@ -718,6 +721,7 @@ export function PropField({ spec, value, disabled, onSet, onReset, boundHint, la
   // The label's tooltip: the whole label (it may truncate) and the prop's own name.
   // Only when it adds something: "Theme" for theme needs no "Theme · theme".
   const labelTitle = label.toLowerCase() === spec.name.toLowerCase() ? undefined : `${label} · ${spec.name}`;
+  const starter = useObjectStarter(spec.name, spec.type, Boolean(onAddObject) && !disabled && value.state === "unset" && spec.editor.kind === "readonly");
   const restoreAction = restore && !disabled
     ? <IconButton icon="icon-reverse-left-line" aria-label={`Restore ${inSentence(label)} to {${restore.expression}}`} appearance="flat" level="primary" size="xs" onClick={restore.onRestore} />
     : null;
@@ -760,7 +764,9 @@ export function PropField({ spec, value, disabled, onSet, onReset, boundHint, la
   // that replaced a saved binding resets to that binding instead.
   const action = restoreAction ?? (value.state === "literal" && !disabled && !shownOnly && resettable
     ? <IconButton icon="icon-reverse-left-line" aria-label={`Reset ${inSentence(label)} to default`} appearance="flat" level="primary" size="xs" onClick={onReset} />
-    : null);
+    : starter && onAddObject
+      ? <IconButton icon="icon-plus-line" aria-label={`Add ${inSentence(label)}`} tooltip={`Add ${inSentence(label)}: ${starter}`} appearance="flat" level="primary" size="xs" onClick={() => onAddObject(starter)} />
+      : null);
   const common = { label, disabled: locked };
   if (editor.kind === "truncate" && !(viaSpread && value.live !== undefined && !isLiteral(value.live))) {
     // Figma's Truncate text + Max lines: true is one line, a number that many (Text keeps it ≥ 1); off shows it all.

@@ -297,7 +297,8 @@ export const FIGMA_PROPS = {
   Toast: {
     sets: { "Toast-Message": null },
     props: {
-      Actions: skip("an action object (Object properties)"),
+      // On: the Small action button with its label (onClick is optional: pressing it dismisses the toast).
+      Actions: { toggle: "action", on: ACTION },
       "Title-Text": "title",
       "Caption-Text": skip("the message is the element's content"),
       Title: skip("a toast without a title omits title"),

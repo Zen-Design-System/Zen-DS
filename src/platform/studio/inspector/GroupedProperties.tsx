@@ -141,6 +141,7 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
               boundHint={api.boundHint}
               onSet={(value) => api.setProp(spec.name, value)}
               onReset={() => api.removeProp(spec.name)}
+              onAddObject={(code) => { void api.apply([{ op: "setProp", name: spec.name, value: { kind: "expression", code } }], `${component} ${spec.name} added`); }}
               restore={api.restoreFor?.(spec.name)}
               repeats={api.repeats}
             />

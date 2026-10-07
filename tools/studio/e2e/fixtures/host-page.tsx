@@ -16,6 +16,7 @@ import { EmptyState } from "../../../components/EmptyState";
 import { NumberField } from "../../../components/Input";
 import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListItem } from "../../../components/ListItem";
+import { Segmented } from "../../../components/Segmented";
 import { Heading, Text } from "../../../components/Text";
 import type { PlatformPage } from "../../PlatformExamples";
 import { people } from "../data";
@@ -132,6 +133,21 @@ function InstanceFixture() {
   );
 }
 
+/** A list a same-file const holds (`options={views}`): the Inspector edits the const's fields. */
+const views = [
+  { value: "list", label: "List" },
+  { value: "board", label: "Board" },
+];
+
+function ConstFixture() {
+  const [view, setView] = useState("list");
+  return (
+    <Stack data-e2e="const" gap="md" padding="lg">
+      <Segmented data-e2e="const-views" aria-label="View" options={views} value={view} onValueChange={setView} />
+    </Stack>
+  );
+}
+
 /** An example's own HTML (GĐ3b M2): a flex column, a heading and a paragraph with a link, a flex row, a 3-column grid, a
  *  tinted note. "New page from this frame" turns them into Stack, Heading, Text, Link, Grid and Box by token. */
 function HtmlFixture() {
@@ -164,4 +180,5 @@ export const examples: ExampleDef[] = [
   { title: "E2E grid", description: "A counted Grid (with a minColumnWidth it ignores) and a Grid per breakpoint.", code: "<GridFixture />", render: () => <GridFixture /> },
   { title: "E2E instance", description: "Zen instances with design props, a field's label, an alert's icon and an empty state.", code: "<InstanceFixture />", render: () => <InstanceFixture /> },
   { title: "E2E html", description: "An example's own HTML: flex and grid boxes, a heading, a paragraph with a link, a tinted note.", code: "<HtmlFixture />", render: () => <HtmlFixture /> },
+  { title: "E2E const", description: "A Segmented whose options a same-file const holds.", code: "<ConstFixture />", render: () => <ConstFixture /> },
 ];

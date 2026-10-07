@@ -349,6 +349,18 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
   check("setField: not an object → stale", edit("<A x={data} />;", "1:0", "A", [{ op: "setField", name: "x", key: "n", value: { kind: "number", value: 1 } }]).code, "stale");
   check("setField: index out of range → stale", edit("<A x={[{ a: 1 }]} />;", "1:0", "A", [{ op: "setField", name: "x", index: 3, key: "a", value: { kind: "number", value: 2 } }]).code, "stale");
   check("setField: missing attribute → stale", edit("<A />;", "1:0", "A", [{ op: "setField", name: "x", key: "a", value: { kind: "number", value: 2 } }]).code, "stale");
+  // A same-file const (`options={countries}`): its literal is the shape, and setField edits it there.
+  const held = lines('const roles = [{ id: "admin", label: "Admin" }, { id: "member", label: "Member" }];', "export function F() {", "  return <A options={roles} />;", "}");
+  const heldAttr = describe(held, "3:9").attributes[0];
+  check("const shape: the literal's items, with where it is written", [heldAttr.shape?.items.map((item) => item.fields.map((field) => field.value).join("/")), heldAttr.shapeVia], [["admin/Admin", "member/Member"], { name: "roles", line: 1 }]);
+  check("const setField: edits the const's item", edit(held, "3:9", "A", [{ op: "setField", name: "options", index: 1, key: "label", value: { kind: "string", value: "Editor" } }]), held.replace('label: "Member"', 'label: "Editor"'));
+  const inner = lines("export function F() {", '  const action = { label: "Invite" };', "  return <A primaryAction={action} />;", "}");
+  check("const setField: a const in the component body", edit(inner, "3:9", "A", [{ op: "setField", name: "primaryAction", key: "label", value: { kind: "string", value: "Send" } }]), inner.replace('"Invite"', '"Send"'));
+  const shadowed = lines('const roles = [{ id: "admin" }];', "export function F({ roles }: { roles: { id: string }[] }) {", "  return <A options={roles} />;", "}");
+  check("const shape: a parameter of the same name hides the const", describe(shadowed, "3:9").attributes[0].shape, undefined);
+  check("const shape: let and computed values stay bound", [describe(lines("let r = [{ a: 1 }];", "<A x={r} />;"), "2:0").attributes[0].shape, describe(lines("const r = make();", "<A x={r} />;"), "2:0").attributes[0].shape], [undefined, undefined]);
+  const long = lines(`const many = [${Array.from({ length: 21 }, (_, i) => `{ id: "${i}" }`).join(", ")}];`, "<A x={many} />;");
+  check("const shape: a list over 20 items stays bound", describe(long, "2:0").attributes[0].shape, undefined);
   check("setField: two fields in one apply", edit("<A x={{ a: 1 }} />;", "1:0", "A", [{ op: "setField", name: "x", key: "b", value: { kind: "number", value: 2 } }, { op: "setField", name: "x", key: "c", value: { kind: "number", value: 3 } }]), "<A x={{ a: 1, b: 2, c: 3 }} />;");
 }
 
@@ -2548,6 +2560,12 @@ const resetAll = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/p
 process.stdout.write(resetAll.stdout);
 process.stderr.write(resetAll.stderr);
 if (resetAll.status !== 0) process.exit(1);
+
+// The object a "+" writes for an unset object prop (inspector/objectStarter.ts) has its own test next to it.
+const objectStarterTest = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/inspector/objectStarter.selftest.mjs", import.meta.url))], { encoding: "utf8" });
+process.stdout.write(objectStarterTest.stdout);
+process.stderr.write(objectStarterTest.stderr);
+if (objectStarterTest.status !== 0) process.exit(1);
 
 // The icon picker's suggestions (inspector/iconSuggestions.ts: Figma default, the file's icons) have their own test.
 const iconSuggestions = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/inspector/iconSuggestions.selftest.mjs", import.meta.url))], { encoding: "utf8" });

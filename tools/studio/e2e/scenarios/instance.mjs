@@ -332,4 +332,34 @@ export const rows = [
       return 'Level reads "Primary"; Reset all → <Button onClick…> → ⌘Z → level="primary"';
     },
   },
+  {
+    id: "IN-18", feature: "An unset object prop (EmptyState secondaryAction): + writes a starting object, then its fields edit", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-empty", { frame: FRAME });
+      await page.locator("#studio-right").getByRole("button", { name: "Add secondary action" }).click();
+      await expectSource(ctx, "inst-empty", (el) => /label: "Secondary action"/.test(el.attr("secondaryAction") ?? ""), 'secondaryAction={{ label: "Secondary action" }}');
+      const group = page.locator("#studio-right").getByRole("group", { name: /^Secondary action/ });
+      await group.waitFor({ state: "visible", timeout: 5000 });
+      const input = group.locator('[data-prop="label"] input').first();
+      await input.fill("Learn more");
+      await input.press("Enter");
+      const done = await expectSource(ctx, "inst-empty", (el) => /label: "Learn more"/.test(el.attr("secondaryAction") ?? ""), "the label edited in Object properties");
+      return `secondaryAction=${done.attr("secondaryAction")}`;
+    },
+  },
+  {
+    id: "IN-19", feature: "options={views} held by a same-file const: its items edit there, with where the const is written", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "const-views", { frame: 8 });
+      const panel = page.locator("#studio-right");
+      await until(async () => (await panel.innerText()).includes("Written in const views"), { message: "the const note" });
+      if (await panel.getByRole("button", { name: /^Remove / }).count()) throw new Error("a const's items offer Remove (item ops edit lists written in place only)");
+      const item = panel.getByRole("group", { name: /^Options · 2/ });
+      const input = item.locator('[data-prop="label"] input').first();
+      await input.fill("Kanban");
+      await input.press("Enter");
+      await until(async () => /\{ value: "board", label: "Kanban" \}/.test(await ctx.text()), { message: "views[1].label in the const" });
+      return 'const views[1].label → "Kanban"';
+    },
+  },
 ];

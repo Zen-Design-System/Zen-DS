@@ -1832,7 +1832,15 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       }
     ],
-    "toggles": []
+    "toggles": [
+      {
+        "label": "Actions",
+        "prop": "action",
+        "on": {
+          "code": "{ label: \"Action\" }"
+        }
+      }
+    ]
   },
   "FileUpload": {
     "figma": "1581:22708",

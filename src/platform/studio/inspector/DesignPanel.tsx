@@ -145,6 +145,7 @@ function Field({ spec, api, label, component, hint }: { spec: PropSpec; api: Fie
       boundHint={api.boundHint}
       onSet={(value) => api.setProp(spec.name, value)}
       onReset={() => api.removeProp(spec.name)}
+      onAddObject={(code) => { void api.apply([{ op: "setProp", name: spec.name, value: { kind: "expression", code } }], `${component ? `${component} ` : ""}${spec.name} added`); }}
       restore={api.restoreFor?.(spec.name)}
       repeats={api.repeats}
     />
@@ -603,7 +604,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   // Object and array literals written in place (leading={{ … }}, trailing={[{ … }]}): edited field by field below the rows.
   const shapedProps: ShapedProp[] = propertySpecs.flatMap((spec) => {
     const attr = element?.attributes.filter((attribute) => attribute.kind === "expression" && attribute.name === spec.name).at(-1);
-    return attr?.shape && !(spec.name in overrides) ? [{ spec, shape: attr.shape }] : [];
+    return attr?.shape && !(spec.name in overrides) ? [{ spec, shape: attr.shape, ...(attr.shapeVia ? { via: attr.shapeVia } : {}) }] : [];
   });
   const shapedNames = new Set(shapedProps.map((entry) => entry.spec.name));
   // A component whose JSX children are a content slot lists them in the Slots section, not again under Content.

@@ -554,10 +554,17 @@ export function describeAttrsIn(ast, element, text, attrs = element.openingEleme
   const pathOf = () => (path ??= ancestry(ast, element));
   const arraysOf = () => (arrays ??= topLevelArrays(ast));
   return attrs.map((attr) => {
-    const described = describeAttr(attr, text);
+    let described = describeAttr(attr, text);
     if (described.kind !== "expression") return described;
     const state = IDENTIFIER.test(described.value ?? "") ? attrState(attr, pathOf()) : null;
     if (state) return { ...described, state };
+    // `options={countries}` with `const countries = [{ … }]` in this file: its fields edit there (op setField).
+    if (!described.shape && IDENTIFIER.test(described.value ?? "")) {
+      const held = constLiteralFor(pathOf(), described.value);
+      // A long list (countries, a table's rows) stays bound: field by field it would bury the panel.
+      const shape = held && !(held.init.type === "ArrayExpression" && held.init.elements.length > MAX_CONST_ITEMS) ? shapeOf(held.init, text) : null;
+      if (shape) described = { ...described, shape, shapeVia: { name: described.value, line: held.declarator.loc.start.line } };
+    }
     const origin = attrOrigin(attr, pathOf, arraysOf);
     return origin ? { ...described, origin } : described;
   });
@@ -825,13 +832,18 @@ function sameField(node, value, text) {
  * `{ icon }` becomes `icon: …`) or appends the field in the object's own layout (one per line, or inline); null removes
  * the field with its comma. Spreads and other fields stay as written.
  */
-function setFieldEdits(element, text, op, eol) {
+function setFieldEdits(element, text, op, eol, ast) {
   if (!ATTR_NAME.test(op.name ?? "")) throw new EditError("invalid", `"${op.name}" is not a JSX attribute name`);
   if (typeof op.key !== "string" || !op.key || op.key === "…" || /[\r\n]/.test(op.key) || LINE_SEPARATOR.test(op.key)) throw new EditError("invalid", "setField needs a field `key`");
   if (op.index !== undefined && !(Number.isInteger(op.index) && op.index >= 0)) throw new EditError("invalid", "setField `index` must be an item index (0 or more)");
   const attr = element.openingElement.attributes.findLast((candidate) => attrName(candidate) === op.name);
   if (!attr || attr.value?.type !== "JSXExpressionContainer" || attr.value.expression.type === "JSXEmptyExpression") throw new EditError("stale", `<${jsxName(element.openingElement.name)}> has no ${op.name}={…} written in place`);
   let target = unwrapTs(attr.value.expression);
+  if (target.type === "Identifier" && ast) {
+    // Held by a same-file const (`options={countries}`): the edit goes to its literal.
+    const held = constLiteralFor(ancestry(ast, element) ?? [], target.name);
+    if (held) target = held.init;
+  }
   if (op.index !== undefined) {
     if (target.type !== "ArrayExpression") throw new EditError("stale", `${op.name} is not a list written in place`);
     const item = target.elements[op.index];
@@ -977,6 +989,49 @@ function ancestry(root, target) {
     return false;
   };
   return visit(root) ? path : null;
+}
+
+/** The names a function's parameters bind (`({ a, b: [c] }, ...rest)` → a, c, rest). */
+function paramNames(fn) {
+  const out = [];
+  const visit = (pattern) => {
+    if (!pattern) return;
+    if (pattern.type === "Identifier") out.push(pattern.name);
+    else if (pattern.type === "ObjectPattern") pattern.properties.forEach((prop) => visit(prop.type === "RestElement" ? prop.argument : prop.value));
+    else if (pattern.type === "ArrayPattern") pattern.elements.forEach(visit);
+    else if (pattern.type === "AssignmentPattern") visit(pattern.left);
+    else if (pattern.type === "RestElement") visit(pattern.argument);
+    else if (pattern.type === "TSParameterProperty") visit(pattern.parameter);
+  };
+  (fn.params ?? []).forEach(visit);
+  return out;
+}
+
+/** A same-file const list longer than this is not edited item by item from the inspector. */
+const MAX_CONST_ITEMS = 20;
+
+/**
+ * `prop={NAME}` held by a same-file `const NAME = [ … ]` or `{ … }` (BACKLOG "Studio object props, next steps"): the
+ * literal and its declarator, from the nearest scope out (a function body's own statements, then the module); null when
+ * a parameter on the way binds NAME, or the const holds anything else. The Studio edits that literal field by field.
+ */
+function constLiteralFor(path, name) {
+  for (let index = path.length - 1; index >= 0; index -= 1) {
+    const node = path[index];
+    const fn = node.type === "ArrowFunctionExpression" || node.type === "FunctionExpression" || node.type === "FunctionDeclaration" ? node : null;
+    if (fn && paramNames(fn).includes(name)) return null;
+    const statements = node.type === "Program" ? node.body : fn?.body?.type === "BlockStatement" ? fn.body.body : null;
+    if (!statements) continue;
+    for (const statement of statements) {
+      const declaration = statement.type === "ExportNamedDeclaration" ? statement.declaration : statement;
+      if (declaration?.type !== "VariableDeclaration") continue;
+      const declarator = declaration.declarations.find((item) => item.id.type === "Identifier" && item.id.name === name);
+      if (!declarator) continue;
+      const init = unwrapTs(declarator.init);
+      return declaration.kind === "const" && (init?.type === "ArrayExpression" || init?.type === "ObjectExpression") ? { init, declarator } : null;
+    }
+  }
+  return null;
 }
 
 /** A value that adds no class: "", ``, undefined, null, false. */
@@ -1490,7 +1545,7 @@ export function applyOps(code, loc, name, ops, { snippets = true, typographyKeys
       if (op?.op === "setProp") edits.push(...setPropEdits(element, text, op, eol, true));
       else if (op?.op === "removeProp") edits.push(...removePropEdits(element, text, op, lineCommentEnds));
       else if (op?.op === "setStateInit") edits.push(...setStateInitEdits(ast, element, text, op));
-      else if (op?.op === "setField") edits.push(...setFieldEdits(element, text, op, eol));
+      else if (op?.op === "setField") edits.push(...setFieldEdits(element, text, op, eol, ast));
       else if (op?.op === "setText") edits.push(...setTextEdits(element, text, op));
       else if (op?.op === "setTypography") edits.push(...setTypographyEdits(element, text, op, keys));
       else if (op?.op === "setTextStyle") {

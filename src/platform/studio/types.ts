@@ -134,6 +134,8 @@ export type SourceAttr = {
   line: number;
   /** An object or array literal written in place (`leading={{ … }}`, `trailing={[{ … }]}`): its fields, edited by op setField. */
   shape?: AttrShape;
+  /** The shape is a same-file const's literal (`options={countries}`): its name and line (op setField edits it there). */
+  shapeVia?: { name: string; line: number };
   /**
    * A bare identifier that reads `const [name, setName] = useState(<literal>)` in an enclosing function: its initial state,
    * which op setStateInit edits (the binding, and so the component's behaviour, stays).
