@@ -219,8 +219,10 @@ Last updated: 2026-10-06.
   quick fixes done (E2E B-19, 143 rows; data-slot `removeItem { all }`); batch 4 examples/docs P2 done (6 fixed, 10
   already fixed and closed); batch 5a Studio P2 done (frame Save/Discard ownership, example pages keep state through
   keepOnHotUpdate in src/platform/hotData.ts, Effect settings, object props: + and same-file consts; E2E 147 rows, the
-  gate's Studio E2E step now has 25 min); the CI Package step stays logged (P2, not approved). About 255 Backlog rows stay open
-  (~164 doable, ~80 decisions, 4 blocked, 8 manual).
+  gate's Studio E2E step now has 25 min); the CI Package step stays logged (P2, not approved). Batch 5b is a WIP commit
+  (b89020f, not gated). A backlog sweep (2026-10-07) checked the ~440 open items against the code: ~145 were done or
+  duplicates and are closed with evidence (4 more close with the 5b gate); ~290 stay open (~214 work, ~63 decisions,
+  ~13 need a check by hand). New P2: qa step ④ (example coverage) reads no `examples/pages` source.
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers

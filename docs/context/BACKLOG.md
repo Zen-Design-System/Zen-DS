@@ -46,7 +46,7 @@ Read this file only when picking up work or logging a follow-up.
     no ring); code follows. Still open: the set description lists props that do not exist, and the Hover stroke
     weight of Field-Only and Search/Default is no longer bound to Emphasis/Border-Weight/Active/Primary (code keeps
     the binding there). The set now sits in a frame with an explicit Component Theme mode, so its previews resolve
-    in that mode.
+    in that mode. **Sweep 2026-10-07:** the live Field-Only node is 374:103464 (was the separate 2026-10-03 evening designer line).
   - **Checkbox / Radio:** Checkbox/Text centres the mark on label + caption (Radio top-aligns; code top-aligns both);
     Checkbox/Text has a dead Caption prop and a root gap on a single child; neither set says what colour a Disabled
     caption is (code: Content/Disabled).
@@ -1022,12 +1022,12 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     workspace, the Detail, HR Home and HR Expense overview templates, and the My expenses / My leaves panels. A real page
     uses 8 styles (h1, h4, Subheading, body regular/medium/bold, small, caption). Exempt `screen: true` examples and
     templates, or raise their limit.
-  - **P3 · Example coverage gaps flagged by the gate (2026-10-01):**
-    - action-bar: keyboard / a11y.
-    - visually-hidden: edge cases.
-    - page-header: states, edge cases, mobile.
-    - side-panel: mobile.
-    - text: states.
+  - **Done (checked 2026-10-07, backlog sweep: every item below is closed):** ~~**P3 · Example coverage gaps flagged by the gate (2026-10-01):**~~
+    - **Duplicate (checked 2026-10-07, backlog sweep: same as the action-bar line of the "Example coverage gaps" list above):** ~~action-bar: keyboard / a11y.~~
+    - **Done (checked 2026-10-07, backlog sweep: 6 examples; "Icon-only columns" covers the narrow case and "Unique button names" is another edge case):** ~~visually-hidden: edge cases.~~
+    - **Done (checked 2026-10-07, backlog sweep: "Long title", "First use" with an empty state, "List page" (actions wrap on a phone)):** ~~page-header: states, edge cases, mobile.~~
+    - **Duplicate (checked 2026-10-07, backlog sweep: same as the side-panel line above (no phone example by design)):** ~~side-panel: mobile.~~
+    - **Done (checked 2026-10-07, backlog sweep: "Counts that agree" and "Status text" (text.tsx:401, :429)):** ~~text: states.~~
     Add examples only in an approved batch.
 - **From the AI-readiness re-evaluation of 2026-10-02** (session "Đánh giá khả năng AI với library hiện tại"; blind trial on
   the packed tarball + memory-vs-repo audit; session log 2026-10-02, "AI-readiness re-evaluation"). Proposal, nothing fixed:
@@ -1039,7 +1039,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     inverse · on-color · pale · surface · emoji; the real `DockIconTheme` also has every hue (green, blue…). Check every
     `(typeof x)[number]` prop in docs/api and make `guidelines:check` compare documented unions with the TS type.
   - **Done 2026-10-05 (session "Dark/light mode sync và UI present", backlog batch 1): AGENTS.md step 3 already points at `examples/pages/<page>.tsx`; the dead example code is the separate cleanup.** ~~P1 · AGENTS.md DoD step 3~~ still sends examples to `PlatformShowcases.tsx` (dead since 2026-10-02); delete the dead
-    example code (≈6,400 lines) so greps stop landing there.
+    example code (≈6,400 lines) so greps stop landing there. **Sweep 2026-10-07:** the dead example code cleanup is done too (PlatformShowcases.tsx is 118 lines).
   - **Done 2026-10-05 (user: "zen-ds-audit: Làm luôn"):** `npx zen-ds audit <url…> [--routes] [--viewports=1440,390] [--dark] [--out] [--strict] [--wcag-contrast]` (tools/zen-audit/audit.mjs + app-checks.mjs, quality-checks.mjs `regionSel: "body"`; axe-core when installed, its 4.5:1 color-contrast rule opt-in; screenshots + report.md/json; shipped in package `files`; AGENTS.consumer.md §8 and the `zen-ds init` AGENTS section mention it). Not ported: density (Comfortable) and the behaviour probes. Was: ~~P1 · No rendered check for apps (trial blocker since 2026-09-28):~~ `zen-ds` has init/doctor/check only. Port the
     platform audit (axe, overflow, fit, ladder, rhythm, surfaces, outline, 1440/390 light/dark shots) as `zen-ds audit <url>`.
   - **P2 · App checks are weaker than repo checks:** CSS rules run only with `zen-usage --css` (init/ACM say plain
@@ -1052,15 +1052,15 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   - **P2 · MCP answers too big:** `get_component` 8–15 KB with Figma ids and repo notes, `get_template` 39 KB; 5 guideline
     lines cite `component-usage-rules.md §n`, which the package does not ship. Add a brief mode; drop repo-only notes.
   - **P2 · Contrast in light mode (designer decision):** Content/Neutral/Tertiary #828282 on white 3.84:1 (ListItem and
-    Table captions, chart axis), Table header 3.78:1, tonal destructive Button 3.8:1; every app inherits them (axe AA).
+    Table captions, chart axis), Table header 3.78:1, tonal destructive Button 3.8:1; every app inherits them (axe AA). **Sweep 2026-10-07:** the Tabs inactive label, Light kickers and Table headers (3.74–3.79:1) and the Danger button text (3.74:1) from the Studio polish list are the same question.
   - **P2 · Memory-only rules → repo:** token-sync gotchas (skills/zen-token-sync points to private memory), playground empty
     slots, backup naming on APFS; 15 more rules are documented but unchecked (elevation follows Sidebar, grouped lists,
     table without container, phone Chips not Segmented…).
-  - **P2 · Distribution:** `private: true`, 22 local commits not pushed, CI never ran; apps outside this Mac cannot install.
+  - **P2 · Distribution:** `private: true`, 22 local commits not pushed, CI never ran; apps outside this Mac cannot install. **Sweep 2026-10-07:** done: the branch is pushed and CI runs (its Package failure is the CI row at the top of the Backlog). Still open: `private: true` (a decision: publish, and where).
   - **P3 · Figma:** search_design_system sees 7 Zen libraries with the same names (Official-Sep2026, Kate, Starnest, Paid,
     Pokeslide, Archived, Glea); document `includeLibraryKeys` for the official key or archive the forks; published assets
     date from 2026-09-10. Stale counts in HANDOFF (49 slugs / 154 rules; now 62 / 157); `zen-usage --help` runs the check.
-- P3 (2026-10-03, gate .qa/reports/2026-10-02T18-13-34-74c53b07.md, found by "Component Size tokens and corner radius", not from its change): new ⚠ outside ai-chat — Select placeholder contrast 1.92:1 ("Choose a reviewer/slot" top-navigation@1512/390, "Choose a client" input@1512/390); input@390 `button.zen-input-label__tooltip` 12×12 target; dead clicks: app-shell "Activity, new", inline-message "Copy value", uploader "Retry desert-trail-lookbook.jpg".
+- **Closed (checked 2026-10-07, backlog sweep: the placeholder colour is kept on purpose; the label tooltip has a 24px hit area (input.css:481-483); "Activity, new" is the probe-order artifact; "Copy value" and "Retry" have 0 findings in the 2026-10-07 behaviour run):** ~~P3 (2026-10-03, gate .qa/reports/2026-10-02T18-13-34-74c53b07.md, found by "Component Size tokens and corner radius", not from its change): new ⚠ outside ai-chat — Select placeholder contrast 1.92:1 ("Choose a reviewer/slot" top-navigation@1512/390, "Choose a client" input@1512/390); input@390 `button.zen-input-label__tooltip` 12×12 target; dead clicks: app-shell "Activity, new", inline-message "Copy value", uploader "Retry desert-trail-lookbook.jpg".~~
 - P3 (2026-10-03, session "Component Theme tokens update"): re-capture the Input/Search contracts. `figma-kit status` on
   Field-Only, Text-Area, Search/Popover, Search/Default, Autocomplete-Field and Text-Field: 152 variants differ. Real
   rebindings: Focused/Typing → `Input/Border/Focus` / `Input/Border/Popover-Search` (code follows), Search/Popover Hover
@@ -1076,7 +1076,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   opacity 0" in S1–S6, which the export writes as `#NANNANNAN`: a plain transparent value would export cleanly. Also
   `.Primitives/Input/Text-Area` Focused has a 2px Focus/Neutral/Subtle outer ring, Field-Only a 3px
   Border/Active/Neutral/Subtle one (code uses the 3px ring on both).
-- P3 (2026-10-03 evening, session "Token JSON và Search component", for the designer; user chose to keep the code):
+- **Duplicate (checked 2026-10-07, backlog sweep: the Hover binding question is the Search/Popover designer row under Open items; the stale contracts are the re-capture line above):** ~~P3 (2026-10-03 evening, session "Token JSON và Search component", for the designer; user chose to keep the code):~~
   live Field-Only (374:103464) Hover Container stroke is a fixed 2px, no longer bound to Emphasis/Border-Weight/Active/Primary
   (the contracts still bind it). Code keeps the variable (`input.css` Hover rule: Medium 2px, Strong 3px, Light 1px); only
   Strong/Light in the outlined themes (Neutral S4, S6) differ. Ask whether the unbinding was intended. Search/Default and
@@ -1088,8 +1088,8 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   and on the rerun.
   Seen again 2026-10-05 (gate .qa/reports/2026-10-04T18-19-01-8298399d.md, TopNavigation dual action); a manual click
   on Hana Kim opens the thread with its header, so the probe likely races the open (peers' HMR running at the time). Again
-  2026-10-05 (.qa/reports/2026-10-04T18-56-56-1c7e4092.md, Chat composer radius, CSS only).
-- P3 (2026-10-03, gate .qa/reports/2026-10-03T08-03-04-bd171ca9.md, session "Component Theme tokens update", not from its
+  2026-10-05 (.qa/reports/2026-10-04T18-56-56-1c7e4092.md, Chat composer radius, CSS only). **Sweep 2026-10-07:** done: the flaky scale test renders inside `pointerEvents: "none"` (tests/scale.test.tsx:58). Still open: the probe should skip the already-open "Hana Kim" row.
+- **Duplicate (checked 2026-10-07, backlog sweep: "Chi Tran" and the 2px gap are the Structural audit warnings row; the HR · Home sibling h2s are the AiChatBlock row):** ~~P3 (2026-10-03, gate .qa/reports/2026-10-03T08-03-04-bd171ca9.md, session "Component Theme tokens update", not from its~~
   change): new ⚠ on example pages — button "Approve on a phone": "Chi Tran" styled Heading/4 but not a heading; button "Hand
   off when ready": Stack gap 2px off the spacing ladder; templates HR · Home: sibling h2 titles in Heading/1 and Heading/4
   (rhythm "8 text styles" on the HR templates is already listed above).
@@ -1133,7 +1133,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - **Done 2026-10-05 (Studio builder plan GĐ1, E2E row ST-11):** P3 (2026-10-03, session "Figma-like editing functionality"): Studio menu "Move up/down" (slots/actions.ts runMove) drops
   the selection after the swap: the new loc still shows the sibling until React re-renders and SelectionLayer's
   name check runs before awaitingWriteRender covers it; edit/arrange.ts stepLayer avoids it with expectRender(…, 1500).
-- P3 (2026-10-03, session "Slot Component phân biệt"): Studio board reflows frames (masonry) when a frame's height changes (e.g. Clear contents then Reset slot): example frames jump columns and the selection leaves the viewport; Figma never moves frames on content edits (board/frameLayout.ts, Studio owner).
+- **Done (checked 2026-10-07, backlog sweep: a frame never moves sideways or to another column; only frames below it in the same column shift (board/boardLayout.ts:6-12)):** ~~P3 (2026-10-03, session "Slot Component phân biệt"): Studio board reflows frames (masonry) when a frame's height changes (e.g. Clear contents then Reset slot): example frames jump columns and the selection leaves the viewport; Figma never moves frames on content edits (board/frameLayout.ts, Studio owner).~~
 - **Done 2026-10-05 (Studio builder plan GĐ1, E2E row ST-10):** P2 (2026-10-04, session "Giới hạn component trong slot"): removing, clearing or resetting a stateful slot item (Dialog, Tabs, Chip row…) leaves its `const [x, setX] = useState(…)` behind unused; tools/studio/slots.mjs has toastHookRemovals for useToast but no state counterpart (tsc passes, no noUnusedLocals).
 - P3 (2026-10-04, same session): ⌘C/⌘V of a stateful item into another file is refused (its state names are not bound there); the clipboard could carry the item's `state` like the Assets path does (edit/clipboard.ts pasteAt).
 - P3 (2026-10-04, same session): a stateful item inserted into a `.map` row (Studio "Repeats N×") shares one state across the rows, so every row's Dialog opens together; per-row state needs a row component.
@@ -1156,7 +1156,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   - P3 · Polish N1–N11 in the report (flat 56-item Pages list with one icon, triple page name, rule notes in the size
     badge, duplicated bound props, double import in Snippet, Shortcuts dialog layout, Modes subtitle, raw layer names,
     ⌘/Ctrl hint, 11px nav labels, 592px of side panels).
-  - Library-wide decisions (not Studio): Tabs inactive label and Light kickers/Table headers at 3.74–3.79:1; Danger
+  - **Duplicate (checked 2026-10-07, backlog sweep: same as the "Contrast in light mode (designer decision)" row):** ~~Library-wide decisions (not Studio): Tabs inactive label and Light kickers/Table headers at 3.74–3.79:1; Danger~~
     button text 3.74:1 (Negative/Solid + On-Colors).
 - P3 (2026-10-04, session "Mở lại port preview", Studio data slots): the Layers panel lists no data-slot items (Figma shows
   the Action instances inside Trailing-Slot) and the canvas draws no outline or + chip for a data slot (SlotLayer knows
@@ -1166,13 +1166,13 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - P3 (same session): ⌘-click on a TopNavigation action lands on its IconSvg (the deepest part); the action itself is one
   "Select …" link (or a parent step) away. Decide whether deep select should stop at a data-slot item.
 - **Done 2026-10-07 (backlog batch 2: a move past identical items writes nothing and says why, `slots/actions.ts` runDataItem):** ~~P3 (same session): moving one of two identical list items reports "No change" (the texts swap to the same file).~~
-- P2 (2026-10-05, session "Mở lại port preview"): Figma property groups exist for TopNavigation only
+- **Done (checked 2026-10-07, backlog sweep: components without hand-made groups fall back to groups generated from `figmaProps.generated.ts`, about 70 components (inspector/componentGroups.ts:5-13)):** ~~P2 (2026-10-05, session "Mở lại port preview"): Figma property groups exist for TopNavigation only~~
   (`src/platform/studio/inspector/propGroups.ts`). Each other component needs its Figma set read (componentPropertyDefinitions
   + which layers each boolean hides) before it gets groups; propose the order (most-used first) to the user.
 - **Done 2026-10-07 (backlog batch 2: `removeItem { all: true }` takes every item and the prop, the toast hook with them; items selftest):** ~~P3 (same session): switching a list toggle off (Top-Trailing with 2+ actions) removes the prop, so a useToast() line an
   inserted action brought can stay unused; one item, or an object prop, goes through removeItem and cleans it.~~
 - ~~P3 (2026-10-05, session "Studio builder tool planning", E2E):~~ **closed 2026-10-07 (backlog cleanup):** same as (3) of the TopNavigation groups follow-ups line. Was: add harness rows for TopNavigation data-slot items (drag to reorder, drop onto another action to group, Inspector Slots `[data-item-index]` rows, "Group X with Y" / "Take X out of its group"); gestures listed by session "Dual action trên top navigation Figma". Needs a TopNavigation in `tools/studio/e2e/fixtures/host-page.tsx`.
-- P3 (same session): intermittent HMR error during Studio E2E runs: `[vite] ReferenceError: Cannot access 'appLayerExamples' before initialization` then "Failed to reload /src/platform/PlatformShowcases.tsx" (import cycle PlatformShowcases ↔ appLayer). Not tied to one row (D-03/D-06 pass); the report's "Vite errors" lists it.
+- **Done (checked 2026-10-07, backlog sweep: a cycle scan of src finds no platform import cycle, and no "before initialization" error appears in the 2026-10-06/07 gate reports):** ~~P3 (same session): intermittent HMR error during Studio E2E runs: `[vite] ReferenceError: Cannot access 'appLayerExamples' before initialization` then "Failed to reload /src/platform/PlatformShowcases.tsx" (import cycle PlatformShowcases ↔ appLayer). Not tied to one row (D-03/D-06 pass); the report's "Vite errors" lists it.~~
 - P3 (2026-10-07, backlog batch 5a) · A Studio E2E run cut off during D-02 (the gate's time limit) leaves `src/platform/examples/e2e/StudioSaveFixture.tsx` saved with its edit, and the next run fails D-01 ("Unsaved · 1 file": the edit equals the disk). The harness could restore the save fixture from git at start. Pointer: `tools/studio/e2e/run.mjs`, rows D-01/D-02.
 - P3 (2026-10-07, backlog batch 5a) · The Studio E2E matrix (147 rows) runs about 15 min; the gate step's limit went from 15 to 25 min after a run was cut off at 900 s. Shard it (groups across two servers) or run a changed-groups subset before it outgrows 25. Pointer: `tools/qa/run.mjs` "Studio E2E", `tools/studio/e2e/run.mjs`.
 - P3 (same session): the QA gate owner should review the Studio hooks in `tools/qa/lib.mjs` (`uiKind` "studio", `auxKind` tools/studio, `pagesForEdit` skips studio) and `tools/qa/run.mjs` ("Studio self-tests" static step, "Studio E2E" runtime step).
@@ -1187,14 +1187,14 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - **P3 · Colour Light text contrast (2026-10-05, "Token màu cho content/chữ/icon"):** on white (light mode) these Light levels
   are under 4.5:1: Positive/Green 3.97, Orange 3.69, Teal 3.64, Cyan 3.52, Golden 3.49 (Negative/Red 5.06 and Info/Blue
   4.87 pass). Small help text in them (Input success help uses positive-light) misses AA. Decide: Base for small help
-  text in those families, or accept for short status lines.
-- Done 2026-10-05 (session "Dark/light mode sync và UI present", backlog batch 1) for the Open navigation part (see the app-shell line above); the example-content ⚠ below stay open. Batch 3 note: app-shell "Activity, new" is a probe-order artifact, not a dead handler — the behaviour pass clicks the Sidebar's Activity first, so the bell then opens the page already shown (from People it navigates and clears the dot); fix in the probe (reset between clicks) if it keeps flagging. Was: P2 (2026-10-05, gate .qa/reports/2026-10-04T20-04-34-28eea406.md, found by "Dark/light mode sync và UI present", not from
+  text in those families, or accept for short status lines. **Sweep 2026-10-07:** the numbers moved: Positive/Green is 4.71:1 now (passes); Orange 4.02, Cyan 3.98, Teal 3.64 and Golden 3.49 are still under 4.5:1.
+- Done 2026-10-05 (session "Dark/light mode sync và UI present", backlog batch 1) for the Open navigation part (see the app-shell line above); ~~the example-content ⚠ below stay open.~~ (backlog sweep 2026-10-07: each is tracked in its own row: "Activity, new" and "Hana Kim" in the probe rows, the HR 8 text styles and the 90 s budget in "Gate warnings left from batch 5", "Chi Tran" and the 2px gap in "Structural audit warnings") Batch 3 note: app-shell "Activity, new" is a probe-order artifact, not a dead handler — the behaviour pass clicks the Sidebar's Activity first, so the bell then opens the page already shown (from People it navigates and clears the dot); fix in the probe (reset between clicks) if it keeps flagging. Was: P2 (2026-10-05, gate .qa/reports/2026-10-04T20-04-34-28eea406.md, found by "Dark/light mode sync và UI present", not from
   its change): app-shell "Narrow window" example (`examples/pages/app-shell.tsx` `<StudioApp narrowWindow />`): the
   "Open navigation" menu button (aria-haspopup=dialog) opens nothing on click or Enter, at 1100 and 900 px windows
   (behaviour ✗ apg + ⚠ deadclick). Same run, example content: ⚠ deadclick app-shell "Activity, new", chat "Hana Kim" inbox
   row; ⚠ rhythm 8 text styles in HR templates; button "Approve on a phone" "Chi Tran" heading-4 not a heading; button
   "Hand off when ready" Stack gap 2px; templates behaviour exceeded its 90 s budget.
-- P2 (2026-10-05, session "Studio builder tool planning", WP-E follow-ups, for GĐ4): ~~option labels in Figma words~~ done 2026-10-07 (GĐ4 M1); nested groups for generated entries: a field's Label / Help-Text done in M1, the rest (Button in Card…) is GĐ4 M3; ~~icon-presence toggles start from a fixed icon~~ done 2026-10-07 (GĐ4 M2: Figma's default icon).
+- **Done (checked 2026-10-07, backlog sweep: the rest shipped in GĐ4 M3: nested instances show every property type (inspector/nestedInstances.ts:112, E2E IN-12/13)):** ~~P2 (2026-10-05, session "Studio builder tool planning", WP-E follow-ups, for GĐ4): ~~option labels in Figma words~~ done 2026-10-07 (GĐ4 M1); nested groups for generated entries: a field's Label / Help-Text done in M1, the rest (Button in Card…) is GĐ4 M3; ~~icon-presence toggles start from a fixed icon~~ done 2026-10-07 (GĐ4 M2: Figma's default icon).~~
 - P3 (2026-10-07, GĐ4 M2) · Help-Text's Figma names: no Primitives/Input/Help-Text set in the capture or found by the swap read; the Help-Text group keeps code labels (Theme, Icon, Character limit) until the set is read.
 - P3 (2026-10-07, GĐ3b M2) · Starters: a Table whose columns draw their cells with `cell` functions copies its rows but not what the cells draw (46 frames). Since GĐ5 M1 a column without a cell shows its rows' field named by its id (Role → "Member"), and a column with no such field (Admin list "Member": photo + name + email) draws nothing. Pointer: `src/platform/studio/builder/starters/snapshot.ts` valueOf (functions are left out); the coverage report lists them (`node tools/studio/e2e/starters-coverage.mjs`).
 - P3 (2026-10-07, GĐ5 M4) · Uploaded photos: no way to delete one from Assets › Photos (they stay in IndexedDB); photos uploaded before a folder is linked are not copied into its assets/ (only later uploads and imports are); the dev server's pages folder keeps no photos (a page opened in another browser on the dev server shows "Missing photo"). Pointer: `builder/assets/uploads.ts`, `builder/store/mirrors.ts` (devMirror has no writeAsset / readAsset).
@@ -1208,7 +1208,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - **Done 2026-10-07 (backlog batch 2: a chip on the size pill moves just below it, `slots/SlotLayer.tsx` clearOfPill):** ~~P3 (2026-10-05, Studio builder session): on a selected Box (layout primitive with slots) the SlotLayer "+" chip sits
   on the selection's size pill ("28 × 28") below small layers, so the size is hidden (`slots/SlotLayer.tsx` chip vs
   `.studio-resize__pill`).~~
-- P3 (2026-10-05, gate .qa/reports/2026-10-05T07-49-39-28eea406.md, backlog batch 3, not from its change): behaviour ⚠
+- **Closed (checked 2026-10-07, backlog sweep: list-item@1512 has 0 behaviour findings on 2026-10-07; the card playground corners are the "Card playground slot corners" row):** ~~P3 (2026-10-05, gate .qa/reports/2026-10-05T07-49-39-28eea406.md, backlog batch 3, not from its change): behaviour ⚠~~
   deadclick list-item › Pending invites "Revoke invite for an.vu@dizai.studio" is a probe artifact — by hand it removes the
   row and shows the Undo toast; the pass revoked the row above first (the list shifts, the toast may cover the next
   button). New ⚠ in the same run, not from it: card › playground Spacing=small corners (Card 16 vs platform-slot 12 + 16).
@@ -1237,5 +1237,5 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   `chat@1512` Chats inbox — clicking the selected "Hana Kim" Conversation-List row has no visible effect (the row is
   already open; likely a false positive, or the selected row should not re-announce).
 - P3 (2026-10-06, Studio builder session, seen on a builder page; likely on examples too): undo of an Assets / clipboard insert does not go back to the previous selection (slot-picker inserts do, `slots/actions.ts` remember); a redo within ~2 s shifts the stale selection a line, and a reload then reports "Selection lost". `edit/clipboard.ts insertCode` could remember before/after like slot inserts.
-- P2 (2026-10-07, backlog sweep) · `npm run qa` step ④ (example coverage) reads only `src/platform/*Showcases.tsx` and `src/platform/appLayer/*.tsx` (`tools/qa/run.mjs:456`). Since the examples moved to `src/platform/examples/pages/*.tsx` (`keepOnHotUpdate(import.meta.hot, "examples", [ … ])`), it finds no example list for those pages and reports them as "skip: no example map entry", so the coverage matrix checks nothing. Fix: read `examples/pages/<page>.tsx` and its `examples` array.
+- P2 (2026-10-07, backlog sweep) · `npm run qa` step ④ (example coverage) reads only `src/platform/*Showcases.tsx` and `src/platform/appLayer/*.tsx` (`tools/qa/run.mjs:456`, `isExampleSource` in `tools/qa/lib.mjs:227`; the map regex at run.mjs:468 also misses the `keepOnHotUpdate(…)` wrapper). Since the examples moved to `src/platform/examples/pages/*.tsx` (`keepOnHotUpdate(import.meta.hot, "examples", [ … ])`), it finds no example list for those pages and reports them as "skip: no example map entry", so the coverage matrix checks nothing. Fix: read `examples/pages/<page>.tsx` and its `examples` array.
 - P3 (2026-10-07, backlog sweep) · Stale leftovers seen while verifying: the comment at `src/platform/appLayer/layout.tsx:156` still says example cards force a breakpoint; the zen-allow at `src/templates/DetailTemplate.tsx:271` is no longer needed (`table/title-heading-4` accepts Subheading in a Card); the behaviour baseline's chat focus-ring entries and `quality-baseline.json` (only 2 of its 24 fit findings remain) look stale.

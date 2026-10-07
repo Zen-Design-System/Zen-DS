@@ -323,3 +323,14 @@
   (tools/qa/run.mjs; the matrix runs ~15). Both logged in the Backlog (shard the matrix; restore the fixture at start).
 - Gate PASS (.qa/reports/2026-10-07T11-40-19-e54a8cf5.md): Studio E2E 147 works · 0 broken in 946 s (past the old
   900 s limit); the scoped run before it covered the runtime audit (templates ⚠ pre-existing, same lines as before).
+
+## Backlog sweep (session "Studio builder tool planning", tier XS)
+
+- Five read-only agents checked every open item (lines 157–1239, ~440 items split from 326 lines) against the code,
+  audits and probes: ~111 done, ~37 duplicates, ~214 still open, ~63 decisions, ~13 unsure.
+- BACKLOG.md: done rows carry "Done (checked 2026-10-07, backlog sweep: evidence)", duplicates point to the kept row,
+  rows with some parts done get a "Sweep 2026-10-07" note (done / still open). No line added or removed in the body.
+- Rows fixed only by the ungated WIP b89020f (Escape to the common parent, optimistic switches, Assets Clear search)
+  stay open with a note until the batch 5b gate passes.
+- New: P2 qa step ④ reads only *Showcases.tsx and appLayer/ (run.mjs:456, lib.mjs:227), so pages in examples/pages
+  skip the coverage matrix; P3 stale leftovers (a layout.tsx comment, a DetailTemplate zen-allow, stale baselines).
