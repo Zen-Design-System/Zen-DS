@@ -4,6 +4,7 @@ import { Chip } from "../components/Chip";
 import { Icon, type IconName } from "../components/Icon";
 import { Segmented } from "../components/Segmented";
 import { typographyStyles } from "../tokens/typography.generated";
+import { AccountMenu } from "./auth/AuthGate";
 
 export type PlatformBreadcrumb = {
   label: string;
@@ -178,6 +179,7 @@ export function PlatformTopbar({ breadcrumbs, settings, onSettingsChange, showSe
           onChange={(theme) => onSettingsChange({ theme: theme as PlatformViewMode })}
           options={viewModes.map((item) => ({ id: item.mode, label: null, leading: <Icon name={item.icon} size="base" title={item.label} decorative={false} /> }))}
         />
+        <AccountMenu />
       </div>
     </header>
     {/* Not sticky: on a phone the five chips wrap to two or three rows, which as part of the sticky bar covered a
