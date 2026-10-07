@@ -594,6 +594,7 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **QA gate sees the example pages again (2026-10-07):** since the examples moved to `src/platform/examples/pages/<page>.tsx`, `npm run qa` mapped an edit there to no page and its example-coverage step (④) read no example list, so both passed without checking. Each page file (and its stylesheet) now scopes to its page, and step ④ reads the page's `examples` array.
 - **Zen Studio quick fixes (2026-10-07, backlog batch 2):** the Inspector's Frames list names the open builder page's
   Screens after switching pages (two pages both have `screen-1`); the first view zooms down to 50% so the Playground
   clears the Inspector at 1024–1280 px; setting a prop after an attribute with a trailing `// comment` keeps the comment

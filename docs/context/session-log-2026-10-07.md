@@ -341,3 +341,13 @@
 - BACKLOG.md: 12 rows closed ("Closed (2026-10-07, user decision in backlog batch 8: …)"); the others carry
   "Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8): … → batch N". No recommendation, still open: the Code
   Connect seat (Org/Enterprise) and package publishing; the nine designer questions are unchanged.
+
+## QA gate step ④ and example-page scoping (session "Studio builder tool planning", tier S, batch 8 item 61)
+
+- tools/qa/run.mjs: step ④ reads `src/platform/examples/pages/<page>.tsx`'s `examples` array (plain or
+  `keepOnHotUpdate(…, "examples", [ … ])`) for pages that have one; the app-layer maps stay for the others.
+- tools/qa/lib.mjs: `isExampleSource` takes examples/pages/*.tsx; `pagesForEdit` maps examples/pages/<page>.tsx|.css to
+  `<page>` (all 55 file names equal their `page` export). Before, such edits mapped to no page without `--pages`.
+- Replica over all 55 pages: every page has examples; gaps: side-panel (edge cases, mobile), sidebar (states, mobile),
+  tooltip (mobile), logged P3. Quick gate --only=side-panel,tooltip: step ④ warns as expected
+  (.qa/reports/2026-10-07T13-07-50-e54a8cf5.md). The full gate runs with batch 5b.

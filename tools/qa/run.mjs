@@ -462,17 +462,25 @@ const MATRIX = [
   ["keyboard / a11y", /\b(keyboard|screen reader|aria-?\w*|focus\w*|shortcut|a11y|accessib\w*|announce\w*|live region|arrow keys|escape)\b/i],
 ];
 const coverage = [];
+const titledEntries = (body, entries) => {
+  for (const t of body.matchAll(/\btitle:\s*(["'`])((?:\\.|(?!\1).)*)\1/g)) {
+    const from = t.index; const next = body.slice(from + 1).search(/\btitle:\s*["'`]/);
+    const chunk = body.slice(from, next < 0 ? undefined : from + 1 + next);
+    entries.push({ title: t[2], text: chunk });
+  }
+};
 for (const page of P) {
   const entries = [];
-  sources.forEach((src) => {
+  // A page with its own examples/pages/<page>.tsx shows only that file's `examples` array (examples/registry.ts).
+  const own = path.join(root, `src/platform/examples/pages/${page}.tsx`);
+  if (fs.existsSync(own)) {
+    const src = fs.readFileSync(own, "utf8");
+    const m = /\nexport const examples\b[^=]*=\s*(?:keepOnHotUpdate\([^,]+,\s*"examples",\s*)?\[/.exec(src);
+    if (m) titledEntries(arrayAt(src, m.index + m[0].length - 1), entries);
+  } else sources.forEach((src) => {
     const start = src.search(/\n(export )?const \w*[eE]xamples\w*\s*(:[^=]+)?=\s*\{/); if (start < 0) return;
     const m = new RegExp(`\\n {2}"?${page}"?:\\s*\\[`).exec(src.slice(start)); if (!m) return;
-    const body = arrayAt(src, start + m.index + m[0].length - 1);
-    for (const t of body.matchAll(/\btitle:\s*(["'`])((?:\\.|(?!\1).)*)\1/g)) {
-      const from = t.index; const next = body.slice(from + 1).search(/\btitle:\s*["'`]/);
-      const chunk = body.slice(from, next < 0 ? undefined : from + 1 + next);
-      entries.push({ title: t[2], text: chunk });
-    }
+    titledEntries(arrayAt(src, start + m.index + m[0].length - 1), entries);
   });
   if (!entries.length) { coverage.push({ page, count: 0, missing: [] }); continue; }
   const missing = MATRIX.filter(([, re]) => !entries.some((e) => re.test(e.text))).map(([n]) => n);
