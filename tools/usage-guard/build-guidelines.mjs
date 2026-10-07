@@ -7,6 +7,7 @@ import path from "node:path";
 import { guidelines, keyboard } from "./guidelines.source.mjs";
 import { rules, setDeprecatedProps } from "./check-usage.mjs";
 import { buildApi, compactProps } from "../../scripts/build-api.mjs";
+import { checkUnions } from "./check-unions.mjs";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const outDir = path.join(root, "docs/guidelines");
@@ -167,7 +168,11 @@ if (orphans.length) { console.error(`✗ Rules without a guideline file: ${orpha
 if (process.argv.includes("--check")) {
   const stale = [...files].filter(([file, content]) => !fs.existsSync(file) || fs.readFileSync(file, "utf8") !== content).map(([file]) => path.relative(root, file));
   if (stale.length) { console.error(`✗ Guidelines are stale: ${stale.join(", ")}. Run npm run guidelines:build.`); process.exit(1); }
-  console.log(`✓ Guidelines up to date (${guidelines.length} components).`);
+  // Documented unions must list exactly the TS type's members (check-unions.mjs, backlog batch 9).
+  const types = Object.assign({}, ...[...api.bySlug.values()].map((entry) => entry.types ?? {}));
+  const unions = checkUnions(api.components, types, root);
+  if (unions.mismatches.length) { console.error(`✗ Documented unions differ from the TypeScript source:\n  ${unions.mismatches.join("\n  ")}\nFix scripts/build-api.mjs (or the type), then npm run guidelines:build.`); process.exit(1); }
+  console.log(`✓ Guidelines up to date (${guidelines.length} components; ${unions.checked} documented unions match the source, ${unions.skipped} not resolvable).`);
 } else {
   fs.mkdirSync(outDir, { recursive: true });
   for (const [file, content] of files) { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, content); }

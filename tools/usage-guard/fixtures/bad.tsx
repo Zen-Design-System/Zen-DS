@@ -212,6 +212,8 @@ export const Bad = () => <>
   <TopNavigation title="Files" largeTitle="Files" largeTitleAction={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, { icon: "icon-star-01-line", label: "Favourite", onClick: favourite }, { icon: "icon-trash-line", label: "Delete", onClick: remove }]} />
   {/* expect: bottom-navigation/destinations */}
   <BottomNavigation value="a" onValueChange={go} items={[{ id: "a", label: "Home", icon: "icon-home-smile-line" }, { id: "b", label: "Me", icon: "icon-user-line" }]} />
+  {/* expect: bottom-sheet/choice-uses-list-item */}
+  <BottomSheet open={open} onOpenChange={setOpen} title="Sort by" type="action" items={sorts} selectedId={sort} onSelect={pick} />
   {/* expect: bottom-sheet/action-needs-items */}
   <BottomSheet open={open} onOpenChange={setOpen} type="action" title="Share" />
   {/* expect: chat/others-need-author */}

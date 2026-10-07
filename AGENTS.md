@@ -23,6 +23,8 @@ with the QA loop below.
 
 - **Source of truth:** the live Figma file `9nZv4uW2LT21yuHabMTCh1` (the older key `yhWJ…` in some docs has no MCP
   access). Match node, tokens and states exactly; never invent a token. Skills: `skills/zen-figma-component-audit`.
+  Figma MCP `search_design_system` sees several Zen libraries with the same names (forks): scope it to the official
+  one with `includeLibraryKeys` (the key is in that skill; `get_libraries` on the file returns it).
 - **Definition of done** (`docs/component-usage-rules.md`, skill `skills/zen-component-usage`):
   1. `src/components/<Name>/{Name.tsx, name.css, index.ts, Name.stories.tsx}`; JSDoc cites the Figma node and tokens.
   2. `export *` in `src/index.ts`.

@@ -2947,6 +2947,7 @@
       "rules": [
         "segmented/control-bar-full-width",
         "bottom-sheet/action-needs-items",
+        "bottom-sheet/choice-uses-list-item",
         "api/deprecated-prop",
         "mobile/full-size-controls",
         "interaction/no-noop-handler",

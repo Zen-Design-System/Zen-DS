@@ -54,7 +54,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Icon](icon.md) | `icon/unknown-name`, `icon/size-token`, `interaction/no-noop-handler` |
 | [Top Navigation](top-navigation.md) | `navigation/back-chevron`, `segmented/control-bar-full-width`, `top-navigation/max-three-trailing`, `top-navigation/search-folds-to-action`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Bottom Navigation](bottom-navigation.md) | `bottom-navigation/destinations`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `interaction/action-without-handler` |
-| [Bottom Sheet](bottom-sheet.md) | `segmented/control-bar-full-width`, `bottom-sheet/action-needs-items`, `api/deprecated-prop`, `mobile/full-size-controls`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `interaction/action-without-handler` |
+| [Bottom Sheet](bottom-sheet.md) | `segmented/control-bar-full-width`, `bottom-sheet/action-needs-items`, `bottom-sheet/choice-uses-list-item`, `api/deprecated-prop`, `mobile/full-size-controls`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `interaction/action-without-handler` |
 | [Chat](chat.md) | `chat/reply-cancellable`, `chat/others-need-author`, `chat/no-locked-interaction`, `chat/reactions-name-people`, `chat/hold-delete-destructive`, `layout/scroll-anchor-flex-end`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [AI Chat](ai-chat.md) | `ai-chat/no-actions-while-streaming`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Chart](chart.md) | `chart/stack-needs-legend`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |

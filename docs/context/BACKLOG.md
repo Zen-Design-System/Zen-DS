@@ -154,6 +154,10 @@ Read this file only when picking up work or logging a follow-up.
     and Tabs only, so there is no slot for a banner under the bar.
 
 ## Backlog (plan before opening sessions)
+- **P2 · Bordered boxes in phone screens (2026-10-07, after batch 6b):** phone screens now paint Canvas/Default, so the
+  cards and ListBoxes inside them that took §11 borders for the old white screen (card Choose on a phone, progress
+  Loyalty stamps, metric Drill in on a phone, …) should go flat per §16, or their phone takes `canvas="surface"`; then the
+  §16 audit check can stop skipping phones (quality-checks.mjs).
 - **P2 · Figma check for ToggleListItem and ChipGroup (2026-10-07, batch 6):** both were composed in a cloud session
   with no Figma MCP (user's choice); compare them with the live file 9nZv4uW2LT21yuHabMTCh1 (a List-Item with a
   Toggle-Button trailing slot, a single-select Chip row) and add their Do/Don't visuals (PlatformGuidelineVisuals.tsx).
@@ -715,7 +719,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - **P3 · Package weight:** every app loads the whole 63 KB gz stylesheet. Consider per-component CSS entry points.
 - **Done 2026-10-05:** see `zen-ds audit` (P1 above). ~~P3 · A rendered-page check for apps~~ (a blocker from the final blind trial, score 8.5).
 - **P3 · Official Inter WOFF2** (with the glyf transform, about 10% smaller than today's conversion): needs the user's
-  approval to download it. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** use the official Inter WOFF2 → batch 7.
+  approval to download it. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** use the official Inter WOFF2 → batch 7 · **Done 2026-10-07 (batch 7)** (src/assets/fonts/Inter: the v4.1 release web/ files, same build 4.001 git-9221beed3, about 4% smaller, not 10%).
 - **P3 · `-shadow-off` leaks into nested component themes** (found 2026-09-29, token update): companions are emitted
   only in the modes whose fill is tinted, so a Neutral-S4 scope inside a Neutral-S3 scope inherits S3's `0 0 #0000`
   and its selected chip loses the Figma shadow. Nothing in the repo nests component themes, but `ZenProvider` allows
@@ -1043,10 +1047,10 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   - **Done 2026-10-05 (session "Dark/light mode sync và UI present", backlog batch 1):** AGENTS.consumer.md rule 3 + Fields row now say `disabled` (not Autocomplete/RichText); bottom-sheet use/do and the chip phone line now say List + ListItem for a single choice (guidelines rebuilt). The harness idea stays open (new rule needs the user's OK). Was: ~~P1 · Two doc contradictions agents follow literally:~~ AGENTS.consumer.md §3 rule 3 says fields have `readOnly`, not
     `disabled` (Disabled is back since 2026-09-30, g/input:30); g/bottom-sheet "Use Action type with `selectedId` for single
     choice" (+ AGENTS.consumer.md §3.12, g/chip) vs the house rule "pick-one = List + ListItem selected" that the templates
-    follow; the trial agent picked the Action sheet. Harness idea `bottom-sheet/choice-uses-list-item`. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** the harness rule `bottom-sheet/choice-uses-list-item` is approved → batch 9 (tooling).
+    follow; the trial agent picked the Action sheet. Harness idea `bottom-sheet/choice-uses-list-item`. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** the harness rule `bottom-sheet/choice-uses-list-item` is approved → batch 9 · **Done 2026-10-07 (batch 9)** (check-usage.mjs, warn; fixture) (tooling).
   - **Done 2026-10-05 (session "Dark/light mode sync và UI present", backlog batch 2):** `scripts/build-api.mjs` resolves spreads in `as const` arrays (`dockIconThemes` was the only one), so Metric/MetricCard `iconTheme` and DockIcon `theme` list all 22 members; the `guidelines:check` union comparison stays an idea (a new check needs the user's OK). Was: ~~P1 · Props generator drops union members:~~ `iconTheme` on Metric/MetricCard is documented as neutral · accent ·
     inverse · on-color · pale · surface · emoji; the real `DockIconTheme` also has every hue (green, blue…). Check every
-    `(typeof x)[number]` prop in docs/api and make `guidelines:check` compare documented unions with the TS type. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** `guidelines:check` comparing documented unions with the TS type is approved → batch 9 (tooling).
+    `(typeof x)[number]` prop in docs/api and make `guidelines:check` compare documented unions with the TS type. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** `guidelines:check` comparing documented unions with the TS type is approved → batch 9 · **Done 2026-10-07 (batch 9)** (tools/usage-guard/check-unions.mjs in guidelines:check: 215 unions match, 48 not resolvable) (tooling).
   - **Done 2026-10-05 (session "Dark/light mode sync và UI present", backlog batch 1): AGENTS.md step 3 already points at `examples/pages/<page>.tsx`; the dead example code is the separate cleanup.** ~~P1 · AGENTS.md DoD step 3~~ still sends examples to `PlatformShowcases.tsx` (dead since 2026-10-02); delete the dead
     example code (≈6,400 lines) so greps stop landing there. **Sweep 2026-10-07:** the dead example code cleanup is done too (PlatformShowcases.tsx is 118 lines).
   - **Done 2026-10-05 (user: "zen-ds-audit: Làm luôn"):** `npx zen-ds audit <url…> [--routes] [--viewports=1440,390] [--dark] [--out] [--strict] [--wcag-contrast]` (tools/zen-audit/audit.mjs + app-checks.mjs, quality-checks.mjs `regionSel: "body"`; axe-core when installed, its 4.5:1 color-contrast rule opt-in; screenshots + report.md/json; shipped in package `files`; AGENTS.consumer.md §8 and the `zen-ds init` AGENTS section mention it). Not ported: density (Comfortable) and the behaviour probes. Was: ~~P1 · No rendered check for apps (trial blocker since 2026-09-28):~~ `zen-ds` has init/doctor/check only. Port the
@@ -1068,7 +1072,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   - **P2 · Distribution:** `private: true`, 22 local commits not pushed, CI never ran; apps outside this Mac cannot install. **Sweep 2026-10-07:** done: the branch is pushed and CI runs (its Package failure is the CI row at the top of the Backlog). Still open: `private: true` (a decision: publish, and where).
   - **P3 · Figma:** search_design_system sees 7 Zen libraries with the same names (Official-Sep2026, Kate, Starnest, Paid,
     Pokeslide, Archived, Glea); document `includeLibraryKeys` for the official key or archive the forks; published assets
-    date from 2026-09-10. Stale counts in HANDOFF (49 slugs / 154 rules; now 62 / 157); `zen-usage --help` runs the check. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** (a) document the official library key (`includeLibraryKeys`) → batch 7; archiving the forks is the designer's step.
+    date from 2026-09-10. Stale counts in HANDOFF (49 slugs / 154 rules; now 62 / 157); `zen-usage --help` runs the check. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** (a) document the official library key (`includeLibraryKeys`) → batch 7 · **Done 2026-10-07 (batch 7)** (AGENTS.md source-of-truth line + skills/zen-figma-component-audit: ZEN Kaiz (Official-Sep2026) key, via get_libraries); archiving the forks is the designer's step.
 - **Closed (checked 2026-10-07, backlog sweep: the placeholder colour is kept on purpose; the label tooltip has a 24px hit area (input.css:481-483); "Activity, new" is the probe-order artifact; "Copy value" and "Retry" have 0 findings in the 2026-10-07 behaviour run):** ~~P3 (2026-10-03, gate .qa/reports/2026-10-02T18-13-34-74c53b07.md, found by "Component Size tokens and corner radius", not from its change): new ⚠ outside ai-chat — Select placeholder contrast 1.92:1 ("Choose a reviewer/slot" top-navigation@1512/390, "Choose a client" input@1512/390); input@390 `button.zen-input-label__tooltip` 12×12 target; dead clicks: app-shell "Activity, new", inline-message "Copy value", uploader "Retry desert-trail-lookbook.jpg".~~
 - P3 (2026-10-03, session "Component Theme tokens update"): re-capture the Input/Search contracts. `figma-kit status` on
   Field-Only, Text-Area, Search/Popover, Search/Default, Autocomplete-Field and Text-Field: 152 variants differ. Real
@@ -1231,7 +1235,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - P3 (2026-10-06, session "Canvas và surface mặc định", usage rules §16): **audit check for the default pairing** —
   proposal, needs the user's OK and the tools/qa owner: in `tools/platform-audit/audit.mjs`, warn on a Surface/Default
   box whose backdrop is the Canvas/Default stage and that carries a closed border or a drop shadow, outside phones,
-  shells, Surface-in-Surface, clickable (`data-interactive`) and selected cards. Today §16 is documented only. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** the audit check is approved → batch 9 (tooling).
+  shells, Surface-in-Surface, clickable (`data-interactive`) and selected cards. Today §16 is documented only. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** the audit check is approved → batch 9 · **Done 2026-10-07 (batch 9)** (quality-checks.mjs `roles` warn: Surface/Default box on Canvas/Default with a border or shadow; phones and shells skipped) (tooling).
 - P3 (2026-10-06, same session): **playground stages** still paint Neutral/Pale
   (`.platform-example-panel--stack > .platform-input-preview`, platform.css ~369; `.platform-example-row` beside it):
   decide whether playgrounds follow §16 (Canvas/Default) like the example stages. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** playground stages follow §16 → batch 6b · **Done 2026-10-07 (batch 6b)** (platform.css .platform-input-preview → Canvas/Default).
