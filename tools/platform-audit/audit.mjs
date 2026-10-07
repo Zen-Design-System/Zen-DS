@@ -206,6 +206,9 @@ function pageChecks({ scopeSel, mobile }) {
     const el = n.parentElement; if (!el || checked.has(el) || !n.textContent.trim() || !visible(el)) continue; checked.add(el);
     // Emoji are colour glyphs: their `color` is irrelevant, so a pure-emoji run is not text contrast.
     if (/^[\p{Extended_Pictographic}\p{Emoji_Component}️‍\s]+$/u.test(n.textContent.trim()) && !/^[\d#*\s]+$/.test(n.textContent.trim())) continue;
+    // The docs' own navigation (.official-nav) is skipped: in the Dark pass it reported 11 × 1.38:1 on design-tokens that
+    // the page does not show (white labels on the dark Sidebar surface; user decision 2026-10-07: skip, do not chase).
+    if (el.closest(".official-nav")) continue;
     if (el.closest("[disabled], [aria-disabled='true'], [data-state='disabled'], [data-disabled='true'], input, textarea, .zen-skeleton, pre, code, svg, [data-audit-skip-contrast], .zen-chart__svg") || el.closest(".platform-guideline-visual__dont, [data-verdict='dont']")) continue;
     // Labels of disabled controls are exempt (WCAG 1.4.3 "inactive UI component").
     const control = el.closest("label, .zen-checkbox, .zen-radio, .zen-toggle, .zen-field, .zen-input-field, [class*='-field']");
