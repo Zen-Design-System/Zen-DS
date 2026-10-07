@@ -116,7 +116,13 @@ function valueOf(raw: unknown, ctx: Context, where: string): SnapValue | undefin
       const items = raw.map((item) => valueOf(item, ctx, where)).filter((item): item is SnapValue => item !== undefined);
       return { kind: "array", items };
     }
-    if (raw instanceof Date) return literal(raw.toISOString());
+    if (raw instanceof Date) {
+      // In data (a row's due date) a date is kept as its ISO text; a prop that takes a Date (DateField `today`) cannot
+      // be written on a page, so it is left out (the component's default).
+      if (where.includes(".")) return literal(raw.toISOString());
+      note(ctx, `${where} is a date: left out`);
+      return undefined;
+    }
     if (!isPlainObject(raw)) {
       note(ctx, `${where}: a ${(raw as { constructor?: { name?: string } }).constructor?.name ?? "class"} value left out`);
       return undefined;

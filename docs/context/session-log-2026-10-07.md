@@ -173,3 +173,17 @@
   Coverage on templates / dialog / side-panel / bottom-sheet: 33/33 valid, 65 Overlay frames.
 - E2E SP-05 (Start from Sign in), SP-06 (fixture Dialog → `<Overlay id="fixture-dialog">`, Done closes it); toDialect
   selftest 18; build-check 19 (Start from Mobile list on the build → phone page).
+
+## Studio builder GĐ5 spec + M1 (session "Studio builder tool planning", tier M)
+
+- User: "tiếp" → GĐ5. Spec `docs/research/studio-builder-handoff-spec-2026-10-07.md`; answers: React and HTML, Promote
+  into `src/templates/studio`, PNG in the browser, uploads in the browser (IndexedDB).
+- `tools/studio/compile.mjs`: screens → branches on a history (state variants first), overlays → `overlay` state, proto →
+  code, mock → `export const mock` + inferred type, `zen-media:` → `./assets` imports; only used state is declared.
+  Selftest 27 (tsc with noUnusedLocals, usage-guard consumer mode). Lazy chunk `browser-compile.mjs`.
+- Export panel (SidePanel modal, Segmented React / Design file, CodeView Copy, Download). HO-01.
+- Found while compiling the starters: a Table column without `cell` threw in Table (`column.cell is not a function`),
+  so a page from Admin list / Dashboard / the HR lists stopped the canvas (GĐ3b's SP rows used Sign in and Mobile list).
+  Fix: `standins.mjs` + generated `compile-api.generated.mjs` (12 components); renderer and compiler share them. SP-07.
+- Snapshot: a Date given to a prop (DateField `today`) is left out (it became ISO text, which the prop does not take).
+- Coverage `--compile` on templates, button, card, dialog, list-item: 26/40 → 40/40 (tsc + harness).

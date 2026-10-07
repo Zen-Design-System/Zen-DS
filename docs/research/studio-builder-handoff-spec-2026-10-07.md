@@ -146,6 +146,11 @@ viết một file `.tsx`:
 | M4 | Ảnh tải lên: Upload, `zen-asset:`, renderer, Export / Import | M | Dùng ảnh của mình |
 | M5 | Promote vào `src/templates/studio/` với `tsc` + harness (dev server) | S/M | Trang thành template trong repo |
 
+**M1 xong 2026-10-07.** Thêm ngoài spec (vì code xuất phải qua `tsc`): `tools/studio/standins.mjs` cùng danh sách sinh từ
+docs/api (`compile-api.generated.mjs`). Hàm mà component bắt buộc nhưng trang không viết được thì có hàm thay, ghi trong
+TODO(dev). Renderer dùng cùng danh sách: cột Table không có `cell` hiện field cùng id của hàng (trước đó trang có Table
+làm canvas dừng).
+
 ## 6. File
 
 - **Mới:**

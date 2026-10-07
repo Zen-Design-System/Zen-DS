@@ -2551,6 +2551,16 @@ process.stdout.write(starters.stdout);
 process.stderr.write(starters.stderr);
 if (starters.status !== 0) process.exit(1);
 
+// Export (compile.mjs: a builder page as React, type-checked and harnessed) and its stand-in list have their own test.
+const compiled = spawnSync(process.execPath, [fileURLToPath(new URL("./compile.selftest.mjs", import.meta.url))], { encoding: "utf8" });
+process.stdout.write(compiled.stdout);
+process.stderr.write(compiled.stderr);
+if (compiled.status !== 0) process.exit(1);
+const compileApi = spawnSync(process.execPath, [fileURLToPath(new URL("./compile-api-build.mjs", import.meta.url)), "--check"], { encoding: "utf8" });
+process.stdout.write(compileApi.stdout);
+process.stderr.write(compileApi.stderr);
+if (compileApi.status !== 0) process.exit(1);
+
 // The Position section's model (Ignore auto layout, constraints, token offsets) has its own test next to it.
 const position = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/position/positionModel.selftest.mjs", import.meta.url))], { encoding: "utf8" });
 process.stdout.write(position.stdout);

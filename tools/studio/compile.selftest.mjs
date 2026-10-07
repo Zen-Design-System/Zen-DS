@@ -89,8 +89,24 @@ ok("full: the photo is an import", code.includes('import siteCafePhoto from "./a
 check("full: media and handlers listed", [team.media, team.handlers.length], [[{ key: "site-cafe", kind: "media", file: "site-cafe.webp", name: "siteCafePhoto" }], 3]);
 ok("full: the TODO block", code.includes(" * TODO(dev): the design's interactions, to wire to the app:"));
 
+// What a component requires but a page cannot write (standins.mjs): a stand-in, and a Table column shows its row's field.
+const required = compileReact(page("Orders", "AiChatField, Table, TopNavigation", [
+  '<Screen id="orders" title="Orders" device="phone">',
+  '  <TopNavigation title="Orders" searchAction={{ label: "Search orders" }} />',
+  '  <Table aria-label="Orders" columns={[{ id: "name", header: "Name" }, { id: "total", header: "Total" }, { id: "note", header: "Note" }]} rows={mock.orders} />',
+  '  <Table aria-label="Lines" columns={[{ id: "item", header: "Item" }]} rows={[{ id: "1", item: "Tea" }, { id: "2", item: "Cake" }]} />',
+  '  <AiChatField placeholder="Ask" />',
+  "</Screen>",
+], '{ orders: [{ id: "o1", name: "Ava", total: 12, tags: ["new"] }] }'), { file: "orders.zen.tsx" });
+const requiredCode = required.code ?? "";
+ok("stand-ins: an action object's onClick", requiredCode.includes('searchAction={{ label: "Search orders", onClick: () => {} }}'));
+ok("stand-ins: a column shows its row's field (mock rows, rows in place)", ['{ id: "name", header: "Name", cell: (row) => row.name }', '{ id: "total", header: "Total", cell: (row) => row.total }', '{ id: "item", header: "Item", cell: (row) => row.item }'].every((line) => requiredCode.includes(line)));
+ok("stand-ins: a column without such a field draws nothing", requiredCode.includes('{ id: "note", header: "Note", cell: () => null }'));
+ok("stand-ins: a required handler", requiredCode.includes('<AiChatField placeholder="Ask" onSubmit={() => {}} />'));
+check("stand-ins: listed for the developer", required.handlers, ["<TopNavigation> searchAction.onClick: not in the design (a stand-in does nothing)", '<Table> column "note" draws nothing yet: write its cell', "<AiChatField> onSubmit: not in the design (a stand-in does nothing)"]);
+
 // The outputs as app code: the usage harness (consumer mode) and TypeScript with the repo's settings.
-const outputs = { "Checkout.tsx": blank.code, "Team.tsx": code };
+const outputs = { "Checkout.tsx": blank.code, "Team.tsx": code, "Orders.tsx": requiredCode };
 {
   const { rules } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/check-usage.mjs")).href);
   const { createChecker } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/engine.mjs")).href);

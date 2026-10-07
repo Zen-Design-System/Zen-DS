@@ -39,7 +39,7 @@ async function measure(page) {
         const text = starterPage({ title: "Coverage", device: shot.device, nodes: shot.nodes, padding: shot.padding, overlays: overlayIds(shot.overlays) });
         const errors = shot.nodes.length ? engine.validateDialect(text, { components }) : [{ line: 0, message: "no library components" }];
         const compiled = compileReact && !errors.length ? compileReact(text, { file: "coverage.zen.tsx" }) : null;
-        out.push({ id, label: frame.getAttribute("aria-label"), nodes: shot.nodes.length, overlays: shot.overlays.length, elements: (text.match(/^\s*<[A-Z]/gm) ?? []).length, notes: shot.notes, error: errors[0] ? `line ${errors[0].line}: ${errors[0].message}` : compiled?.error ? `compile: ${compiled.error}` : null, react: compiled?.code ?? null });
+        out.push({ id, label: frame.getAttribute("aria-label"), nodes: shot.nodes.length, overlays: shot.overlays.length, elements: (text.match(/^\s*<[A-Z]/gm) ?? []).length, notes: shot.notes, error: errors[0] ? `line ${errors[0].line}: ${errors[0].message}` : compiled?.error ? `compile: ${compiled.error}` : null, react: compiled?.code ?? null, text: compiled ? text : null });
       } catch (error) {
         out.push({ id, label: frame.getAttribute("aria-label"), nodes: 0, elements: 0, notes: [], error: `threw: ${error?.message ?? error}` });
       }
@@ -97,9 +97,14 @@ if (compile) {
   const { rules } = await import(pathToFileURL(path.join(root, "tools/usage-guard/check-usage.mjs")).href);
   const { createChecker } = await import(pathToFileURL(path.join(root, "tools/usage-guard/engine.mjs")).href);
   const usage = createChecker(rules, { consumer: true, css: false });
+  const harnessErrors = (text, file) => usage.checkFile(text, file).filter((finding) => (finding.severity ?? finding.rule?.severity) === "error").map((finding) => finding.rule?.id ?? finding.rule);
   for (const [file, row] of files) {
-    const errors = usage.checkFile(row.react, `src/${file}`).filter((finding) => (finding.severity ?? finding.rule?.severity) === "error");
-    if (errors.length && !row.error) row.error = `usage-guard: ${errors[0].rule?.id ?? errors[0].rule}`;
+    // A finding the design itself has (an initials Avatar without alt) is the design's, not the export's.
+    const own = new Set(harnessErrors(row.text, `src/${file.replace(/\.tsx$/, ".zen.tsx")}`));
+    const errors = harnessErrors(row.react, `src/${file}`);
+    const added = errors.filter((id) => !own.has(id));
+    if (added.length && !row.error) row.error = `usage-guard: ${added[0]}`;
+    else if (errors.length) row.notes.push(`harness, as in the design: ${[...new Set(errors)].join(", ")}`);
   }
   console.log(`  compiled ${files.size} pages to React: tsc and usage-guard checked (${path.relative(root, dir)})`);
 }

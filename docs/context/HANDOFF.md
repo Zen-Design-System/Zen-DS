@@ -174,8 +174,17 @@ Last updated: 2026-10-06.
   page's Start from (SelectField above Title; device from the template); overlays → `<Overlay id=…>` frames
   (`overlayNode`: open state dropped, an action object's onClick → `proto.close()`, SnapValue kind "proto";
   `pageFromSnapshot` / `overlayIds` in newPageFromFrame.ts shared by both); E2E SP-05, SP-06 (134 rows); build-check 19
-  steps (Start from a phone template on the build). **GĐ3b is complete.** Next: GĐ5 export (+ photo uploads), with a
-  spec and the user's approval.
+  steps (Start from a phone template on the build). **GĐ3b is complete.** GĐ5 export: spec
+  `docs/research/studio-builder-handoff-spec-2026-10-07.md`, approved 2026-10-07 (Q1 React and HTML, Q2 Promote into
+  `src/templates/studio`, Q3 PNG in the browser, Q4 uploads in the browser). M1 done 2026-10-07: `tools/studio/compile.mjs`
+  (page → one React component; isomorphic, lazy chunk `browser-compile.mjs` via `builder/engine.ts` loadCompile; selftest
+  runs tsc noUnusedLocals + usage-guard consumer mode on its outputs), `tools/studio/standins.mjs` + generated
+  `compile-api.generated.mjs` (`compile-api-build.mjs --check` in studio selftest: required function props / object
+  fields from docs/api; the renderer `builder/render/renderPage.tsx` passes the same stand-ins, a Table column without
+  `cell` shows `row[id]`), `builder/export/{ExportDialog.tsx, exportState.ts}` (PagePanel and My pages "Export…");
+  snapshot drops a top-level Date prop. `starters-coverage.mjs --compile` (tsc + harness on every frame's React; a
+  harness finding the design has too is noted, not failed). E2E SP-07 (Admin list's Table renders), HO-01 (136 rows);
+  build-check 21 steps (compiler chunk, Export on the build). Next: M2 HTML export.
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers

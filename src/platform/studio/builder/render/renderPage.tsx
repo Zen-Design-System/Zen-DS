@@ -1,4 +1,5 @@
-import { createElement, type ReactNode } from "react";
+import { createElement, isValidElement, type ReactNode } from "react";
+import { isColumnCell, requiredFunctions, showsAsText, standInKind } from "../../../../../tools/studio/standins.mjs";
 import * as Zen from "../../../../index";
 import { resolveMedia } from "../library/media";
 import { Board, Overlay, protoHandler, Screen, type ProtoActions } from "../proto/runtime";
@@ -55,6 +56,41 @@ function valueOf(value: PageValue, scope: Scope, ctx: RenderContext): unknown {
   }
 }
 
+const STAND_IN = { void: () => undefined, null: () => null, string: () => "" };
+
+/**
+ * A function the component requires but a page cannot write (tools/studio/standins.mjs: AiChatField onSubmit, a Table
+ * column's cell) gets a stand-in, so the component renders and does nothing; a Table column shows its row's field named
+ * by its id, as the exported React does.
+ */
+function withStandIns(name: string, props: Record<string, unknown>) {
+  const required = requiredFunctions(name);
+  if (!required) return;
+  for (const [prop, signature] of Object.entries(required.props ?? {})) {
+    const kind = props[prop] === undefined ? standInKind(signature) : null;
+    if (kind) props[prop] = STAND_IN[kind];
+  }
+  for (const [prop, fields] of Object.entries(required.fields ?? {})) {
+    const fill = (object: unknown) => {
+      if (!object || typeof object !== "object" || Array.isArray(object) || isValidElement(object)) return object;
+      const added: Record<string, unknown> = {};
+      for (const [field, signature] of Object.entries(fields)) {
+        if ((object as Record<string, unknown>)[field] !== undefined) continue;
+        if (isColumnCell(name, prop, field)) {
+          const id = String((object as { id?: unknown }).id);
+          added[field] = (row: Record<string, unknown>) => (showsAsText(row?.[id]) ? row[id] : null);
+          continue;
+        }
+        const kind = standInKind(signature);
+        if (kind) added[field] = STAND_IN[kind];
+      }
+      return Object.keys(added).length ? { ...object, ...added } : object;
+    };
+    const value = props[prop];
+    props[prop] = Array.isArray(value) ? value.map(fill) : fill(value);
+  }
+}
+
 /** One element of the page (`key`: its place among its siblings, or its row in a list). */
 export function renderNode(node: PageNode, scope: Scope, ctx: RenderContext, key?: string | number, extra?: Record<string, unknown>): ReactNode {
   const component = componentOf(node.name);
@@ -62,6 +98,7 @@ export function renderNode(node: PageNode, scope: Scope, ctx: RenderContext, key
   const props: Record<string, unknown> = { key, "data-zen-src": `${ctx.file}:${node.loc}`, "data-zen-name": node.name, ...extra };
   // A builder page's photo is `zen-media:<key>` (builder/library/media.ts): this build's URL.
   for (const [name, value] of Object.entries(node.props)) props[name] = resolveMedia(valueOf(value, scope, ctx));
+  withStandIns(node.name, props);
   const children = node.children.flatMap((child, index): ReactNode[] => {
     if (child.kind === "text") return [child.value];
     if (child.kind === "ref") { const value = read(scope[child.root], child.path); return value === undefined || value === null ? [] : [String(value)]; }

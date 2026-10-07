@@ -249,6 +249,20 @@ removed (four unused colour ramps were, see Removed).
     template makes a phone page). Works without a dev server.
   - A Dialog, ModalForm, SidePanel or BottomSheet in what you copy becomes an Overlay frame of the page, drawn open; its
     own buttons close it (`proto.close()`). Link the button that opens it in the Prototype tab (Open overlay).
+- **Zen Studio export, GĐ5 M1: a page as React code (2026-10-07):**
+  - **Export…** (a page's Inspector panel, or its menu in My pages): the page as one React component for an app that
+    uses `@zen/design-system` (Copy code, or Download `<Name>Page.tsx`), or as its design file (`.zen.tsx`). No dev
+    server needed.
+  - Each screen is a branch (Back works through its history), a state variant shows while the `state` prop names it,
+    overlays open and close from their own state, the sample data becomes `export const mock` with its type (the
+    `data` prop replaces it). Prototype links become code (navigate, open / close an overlay, back, a toast, a link),
+    library photos imports from `./assets`. A TODO(dev) block lists what to wire.
+  - What a component requires but a design cannot hold (a chat field's `onSubmit`, a Table column's `cell`, an action's
+    `onClick`) gets a stand-in, listed in the TODO block. On the canvas a Table column without a cell now shows its
+    rows' field named by its id; before, a page made from a template with a Table (Admin list, Dashboard, the HR lists)
+    stopped the canvas.
+  - The React of every template and of the button, card, dialog and list-item examples passes TypeScript and the usage
+    harness.
 - **Zen Studio instance panel, GĐ4 M4: size and Detach (2026-10-07):**
   - **W / H for an instance** (Inspector › Layout › Size): Hug, Fill or a Fixed px, as in Figma. A component with its
     own size prop or `fullWidth` uses it; any other is wrapped in a Stack that it fills (`<Stack direction="row"

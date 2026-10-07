@@ -107,6 +107,27 @@ export const rows = [
       return `${id}: Screen › Button "Open dialog" · Overlay fixture-dialog › Dialog (Done closes it)`;
     },
   },
+  {
+    id: "SP-07", feature: "New page from the Admin list template: its Table renders, a column without a cell shows its rows' field", wp: "GĐ5 M1",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page, id: pageId, text, newErrors } = await pageFromFrame(ctx, 0, { on: "templates" });
+        if (!/<Table\b/.test(text) || /\bcell:/.test(text)) throw new Error(`expected a Table without cells:\n${text.slice(0, 800)}`);
+        const table = page.locator(`[data-zen-src^="local:${pageId}.zen.tsx:"][data-zen-name="Table"]`).first();
+        await table.waitFor({ state: "attached", timeout: 10_000 });
+        // The selection column's cells say "Select row n"; the others show their row's field (Role → "Member").
+        const shown = (all) => all.map((cell) => cell.trim()).filter((cell) => cell && !/^Select row/.test(cell));
+        const cells = await until(async () => { const all = await table.locator("td.zen-table__cell").allInnerTexts(); return shown(all).length ? all : null; }, { timeout: 10_000, message: "Table cells showing their row's field" });
+        if (!shown(cells).includes("Member")) throw new Error(`no Role cell shows "Member": ${shown(cells).slice(0, 8).join(", ")}`);
+        await sleep(300);
+        if (newErrors().length) throw new Error(`console errors on the new page: ${newErrors().slice(0, 2).join(" | ").slice(0, 300)}`);
+        return `${cells.length} cells, ${shown(cells).length} show their row's field (${[...new Set(shown(cells))].slice(0, 4).join(", ")})`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
   ...[["SP-02", 4, "Sign in", "desktop"], ["SP-03", 5, "Mobile list", "phone"]].map(([id, frame, name, device]) => ({
     id, feature: `New page from the ${name} template: a ${device} page that renders`, wp: "GĐ3b M1",
     // The first row opens the Templates page, which the server compiles then (about 20 s).

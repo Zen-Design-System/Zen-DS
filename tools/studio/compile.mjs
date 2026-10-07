@@ -12,7 +12,10 @@
 // - The mock becomes `export const mock` with a type inferred from it; `{mock.x}` reads the `data` prop (default: mock).
 // - `zen-media:` / `zen-asset:` photos become imports from ./assets (the handoff zip carries the files; `mediaFile(kind,
 //   key)` names each); `media` lists them.
+// - A function the component requires but a page cannot write (standins.mjs) gets a stand-in and a TODO(dev) line; a
+//   Table column shows its row's field named by its id.
 import { parsePage } from "./dialect.mjs";
+import { isColumnCell, requiredFunctions, showsAsText, standInKind } from "./standins.mjs";
 
 const UNIT = "  ";
 const WIDTH = 110;
@@ -76,8 +79,8 @@ function dataLiteral(value, indent) {
  * The compiler's state for one page: what the output uses (components, handlers, media) so the imports and the
  * component's body hold exactly that.
  */
-function createContext(mediaFile) {
-  return { components: new Set(), uses: new Set(), media: new Map(), handlers: [], mediaFile };
+function createContext(mediaFile, mock) {
+  return { components: new Set(), uses: new Set(), media: new Map(), handlers: [], mediaFile, mock };
 }
 
 /** The file a photo has in the export's assets/: a library photo is a .webp named after its key; an upload keeps its name. */
@@ -131,6 +134,7 @@ function valueCode(value, ctx, indent, where) {
     case "element": return elementCode(value.node, ctx, indent);
     case "proto": return protoCode(value, ctx, where);
     case "ref": return refCode(value);
+    case "code": return value.code;
     default: return "undefined";
   }
 }
@@ -152,13 +156,70 @@ function childCode(child, ctx, indent) {
   return elementCode(child, ctx, indent);
 }
 
+const STAND_IN = { void: "() => {}", null: "() => null", string: '() => ""' };
+const NOT_TEXT = Symbol("not text");
+
+/** The rows a Table shows as data (`rows` / `data`, written in place or read from the mock); null when not known here. */
+function rowsOf(node, ctx) {
+  const value = node.props.rows ?? node.props.data;
+  if (value?.kind === "ref" && value.root === "mock") {
+    const rows = value.path.reduce((data, key) => (data && typeof data === "object" ? data[key] : undefined), ctx.mock);
+    return Array.isArray(rows) ? rows.filter((row) => row && typeof row === "object") : null;
+  }
+  if (value?.kind !== "array") return null;
+  return value.items.filter((item) => item.kind === "object").map((item) => Object.fromEntries(Object.entries(item.fields).map(([key, field]) => [key, field.kind === "literal" ? field.value : NOT_TEXT])));
+}
+
+/** A Table column's stand-in cell: its row's field named by its id when every row holds text there, else nothing. */
+function cellStandIn(column, rows, ctx) {
+  const id = column.fields.id?.kind === "literal" ? String(column.fields.id.value) : null;
+  const values = id === null || !rows ? [] : rows.filter((row) => id in row).map((row) => row[id]);
+  if (values.length && values.every((value) => value === null || showsAsText(value)) && values.some(showsAsText)) {
+    return `(row) => row${IDENTIFIER.test(id) ? `.${id}` : `[${json(id)}]`}`;
+  }
+  ctx.handlers.push(`<Table> column ${id === null ? "" : `"${id}" `}draws nothing yet: write its cell`);
+  return STAND_IN.null;
+}
+
+/** The element's props with a stand-in for each function its component requires that the page lacks (standins.mjs). */
+function withStandIns(node, ctx) {
+  const required = requiredFunctions(node.name);
+  if (!required) return node.props;
+  const props = { ...node.props };
+  for (const [name, signature] of Object.entries(required.props ?? {})) {
+    const kind = props[name] === undefined ? standInKind(signature) : null;
+    if (!kind) continue;
+    props[name] = { kind: "code", code: STAND_IN[kind] };
+    ctx.handlers.push(`<${node.name}> ${name}: not in the design (a stand-in ${kind === "void" ? "does" : "draws"} nothing)`);
+  }
+  for (const [name, fields] of Object.entries(required.fields ?? {})) {
+    const value = props[name];
+    const fill = (object) => {
+      if (object.kind !== "object") return object;
+      const added = {};
+      for (const [field, signature] of Object.entries(fields)) {
+        if (object.fields[field] !== undefined) continue;
+        if (isColumnCell(node.name, name, field)) { added[field] = { kind: "code", code: cellStandIn(object, rowsOf(node, ctx), ctx) }; continue; }
+        const kind = standInKind(signature);
+        if (!kind) continue;
+        added[field] = { kind: "code", code: STAND_IN[kind] };
+        ctx.handlers.push(`<${node.name}> ${name}.${field}: not in the design (a stand-in ${kind === "void" ? "does" : "draws"} nothing)`);
+      }
+      return Object.keys(added).length ? { kind: "object", fields: { ...object.fields, ...added } } : object;
+    };
+    if (value?.kind === "object") props[name] = fill(value);
+    else if (value?.kind === "array") props[name] = { kind: "array", items: value.items.map(fill) };
+  }
+  return props;
+}
+
 /** An element; `extra`: [name, code] props written first (a list row's key, an overlay's open state). */
 function elementCode(node, ctx, indent, extra = []) {
   ctx.components.add(node.name.split(".")[0]);
   const inner = indent + UNIT;
   const props = [
     ...extra.map(([name, code]) => `${name}={${code}}`),
-    ...Object.entries(node.props).map(([name, value]) => attribute(name, value, ctx, inner, `<${node.name}> ${name}`)),
+    ...Object.entries(withStandIns(node, ctx)).map(([name, value]) => attribute(name, value, ctx, inner, `<${node.name}> ${name}`)),
   ];
   const oneLine = props.every((prop) => !prop.includes("\n")) && indent.length + node.name.length + 2 + props.join(" ").length <= WIDTH;
   const open = !props.length ? `<${node.name}` : oneLine ? `<${node.name} ${props.join(" ")}` : `<${node.name}\n${props.map((prop) => `${inner}${prop}`).join("\n")}\n${indent}`;
@@ -186,7 +247,7 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile } = {}) 
   const screens = frames.filter((node) => node.name === "Screen");
   const overlays = frames.filter((node) => node.name === "Overlay");
   if (!screens.length) return { error: "The page has no Screen" };
-  const ctx = createContext(mediaFile);
+  const ctx = createContext(mediaFile, page.mock ?? {});
   const ids = [...new Set(screens.map((node) => String(literalOf(node, "id"))))];
   const states = [...new Set(screens.map((node) => literalOf(node, "state")).filter((state) => typeof state === "string"))];
   const hasMock = page.mock && Object.keys(page.mock).length > 0;
