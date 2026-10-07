@@ -270,11 +270,14 @@ export const rows = [
       await page.keyboard.press("ControlOrMeta+KeyD");
       await until(async () => (await wraps()) === 2, { message: "⌘D: two Stacks, each with a Badge" });
       await selected();
+      // The Layers rebuild after the canvas re-renders: wait for the copy's row before going on.
+      await until(async () => (await row.count()) === 2, { message: "two wrapped rows in Layers" });
       await sleep(300);
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Backspace");
       await until(async () => (await wraps()) === 1 && ((await ctx.text()).match(/fillChildren/g) ?? []).length === 1, { message: "⌫: the copy gone with its Stack" });
-      await sleep(300);
+      // The Layers rebuild after the canvas re-renders: the copy's row goes a moment after the source.
+      await until(async () => (await row.count()) === 1, { message: "one wrapped row left in Layers" });
       await row.click();
       await selected();
       await page.locator(".studio-viewport").focus();
