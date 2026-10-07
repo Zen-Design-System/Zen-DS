@@ -221,7 +221,7 @@ export const rows = [
       await until(async () => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim() === "Badge", { message: "the Badge still selected" });
       await until(async () => (await sizeText(page, "width")) === "Fill", { message: "W reads Fill" });
       await sizeChoice(page, "width", "Hug contents");
-      const back = /<Badge data-e2e="inst-badge" leadingIcon leading="icon-heart-line">New<\/Badge>\n\s*<List/;
+      const back = /<Badge data-e2e="inst-badge" leadingIcon leading="icon-heart-line">New<\/Badge>\n\s*<Chip data-e2e="inst-chip"/;
       await until(async () => { const text = await ctx.text(); return back.test(text) && !/fillChildren width="fill"/.test(text); }, { message: "the Stack gone, the Badge where it was" });
       await until(async () => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim() === "Badge", { message: "the Badge selected after Hug" });
       await page.locator(".studio-viewport").focus();

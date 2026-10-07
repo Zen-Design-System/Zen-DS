@@ -383,3 +383,8 @@
   toggles); Mixed properties take plain text props (TextControl, "Mixed" placeholder). E2E K-13, SE-13, I-16.
 - Cloud session notes: Playwright 1.63 wants chromium_headless_shell-1243; the container has 1194, so the runs used a
   scratch PLAYWRIGHT_BROWSERS_PATH aliasing it. No PostToolUse hook here: the gate ran with `--files=` (the 5c diff).
+- IN-14 broke from c65fc7e: its "Badge where it was" regex expected `<List` next, and the fixture now has the Chip there
+  (test fixed, not the Studio). SE-13 now selects Alpha on the canvas first (Layers opens to it whatever ran before).
+- Full Studio E2E 157/158 before the IN-14 fix, then the 7 rows + select/keyboard groups (26) all work; baseline
+  recorded (158 rows, all works). The gate's other ✗ are environment-only and fail the same on 29305b4: TabItem axe
+  baseline (color-contrast no longer found) and 36 chat-picker emoji [fit] errors (the container's emoji font).

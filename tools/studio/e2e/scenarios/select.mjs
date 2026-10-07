@@ -175,7 +175,10 @@ export const rows = [
       await focusFrame(page, 0);
       const [a, b, c] = [await at(ctx, "btn-a"), await at(ctx, "btn-b"), await at(ctx, "btn-c")];
       const rowOf = (loc) => page.locator(`[data-layer-id^="${ctx.file}:${loc}#"]`).first();
-      await until(() => rowOf(a).count(), { message: "the Alpha row in Layers" });
+      // Selected on the canvas first: Layers opens down to it, so its siblings' rows show whatever ran before.
+      await clickLoc(page, ctx.file, a);
+      await expectSelected(page, ctx.file, a);
+      await until(() => rowOf(c).count(), { message: "the Gamma row in Layers" });
       await rowOf(a).scrollIntoViewIfNeeded();
       await rowOf(a).click();
       await expectSelected(page, ctx.file, a);
