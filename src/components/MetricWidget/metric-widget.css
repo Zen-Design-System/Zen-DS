@@ -22,5 +22,12 @@
 .zen-metric[data-variant="title-highlight"][data-icon="large"] .zen-metric__content { padding-inline-end: calc(var(--zen-image-size-xlarge, 56px) + var(--zen-spacing-gap-medium, 16px)); }
 .zen-metric[data-variant="title-highlight"][data-icon="medium"] .zen-metric__content { padding-inline-end: calc(var(--zen-image-size-medium, 40px) + var(--zen-spacing-gap-small, 12px)); }
 .zen-metric[data-variant="title-highlight"] > .zen-metric__icon { position: absolute; right: 0; bottom: 0; }
+/* Custom=Yes (Figma Custom-Slot, 2026-10-07): the metric stacks its body (contents + corner icon, laid out as above) over
+   the slot, Spacing/Gap/Medium apart at XLarge/Large and Spacing/Gap/Small at Medium–XSmall. */
+.zen-metric[data-variant="title-highlight"][data-custom="true"] { flex-direction: column; }
+.zen-metric[data-variant="title-highlight"][data-custom="true"]:is([data-size="medium"], [data-size="small"], [data-size="xsmall"]) { gap: var(--zen-spacing-gap-small, 12px); }
+.zen-metric__body { position: relative; display: flex; min-width: 0; flex: 1 1 auto; align-items: stretch; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-metric__body > .zen-metric__icon { position: absolute; right: 0; bottom: 0; }
+.zen-metric__custom { display: flex; min-width: 0; flex-direction: column; }
 /* A Metric Card stretched by its grid row keeps the number at the bottom (Figma Contents: Space between, Fill). */
 .zen-metric-card > .zen-card__content { flex: 1 1 auto; }

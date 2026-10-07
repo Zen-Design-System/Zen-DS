@@ -154,6 +154,9 @@ Read this file only when picking up work or logging a follow-up.
     and Tabs only, so there is no slot for a banner under the bar.
 
 ## Backlog (plan before opening sessions)
+- **P3 · Metric-Inline props not in code (2026-10-07, read from Figma 595:55188 / 7523:507049):** Icon-Highlight
+  Counter (a Small Neutral Subtle Badge after the label, XLarge/Large) and Metric-Color (an accent square before the
+  label); Title-Highlight Hint (info icon) and Label-Icon (24px icon before the title). `custom` (Custom-Slot) is done.
 - **P3 · usage:selftest fails now and then while another gate runs (2026-10-07):** twice a fixture rule reported 0 hits
   (`alert-banner/small-no-action`…, then `content/lights-no-light-text`) and passed 3/3 right after; both times a
   `npm run qa` ran in parallel. Find the shared state (a cache or a file the gate rewrites) before trusting a red run.

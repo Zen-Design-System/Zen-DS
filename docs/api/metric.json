@@ -99,6 +99,14 @@
           "deprecated": null
         },
         {
+          "name": "custom",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight: Figma Custom-Slot (Custom=Yes, added 2026-10-07): your own content under the contents — a sparkline,\na ProgressBar, a breakdown — Spacing/Gap/Medium below at XLarge/Large, Spacing/Gap/Small at Medium–XSmall. The\nDock-Icon stays at the contents' bottom-right corner.",
+          "deprecated": null
+        },
+        {
           "name": "className",
           "type": "string",
           "required": false,
@@ -201,6 +209,14 @@
           "required": false,
           "default": null,
           "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below.",
+          "deprecated": null
+        },
+        {
+          "name": "custom",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight: Figma Custom-Slot (Custom=Yes, added 2026-10-07): your own content under the contents — a sparkline,\na ProgressBar, a breakdown — Spacing/Gap/Medium below at XLarge/Large, Spacing/Gap/Small at Medium–XSmall. The\nDock-Icon stays at the contents' bottom-right corner.",
           "deprecated": null
         },
         {

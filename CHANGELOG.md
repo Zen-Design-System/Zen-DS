@@ -19,6 +19,8 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- **Metric Title-Highlight `custom` (2026-10-07, Figma Custom-Slot):** your own content under the number (a
+  ProgressBar, a sparkline), the corner Dock-Icon staying beside the number. Metric page: "Budget with progress".
 - **Tooltip `closable` (2026-10-07, Figma Close=Yes added the same day):** a dismiss X after the label for a tooltip open
   from the start — `defaultOpen`, or `open` + the new `onOpenChange` — such as a tip on a phone, where touch never opens
   a tooltip. It stays until its X or Escape closes it and is a `note`. The Tooltip page has a phone example.

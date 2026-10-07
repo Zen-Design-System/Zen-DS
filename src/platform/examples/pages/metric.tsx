@@ -14,6 +14,7 @@ import { List, ListItem } from "../../../components/ListItem";
 import { Menu } from "../../../components/Menu";
 import { Metric, MetricCard, type MetricTrendDirection } from "../../../components/MetricWidget";
 import { PageHeader } from "../../../components/PageHeader";
+import { ProgressBar } from "../../../components/Progress";
 import { Segmented } from "../../../components/Segmented";
 import { SidePanel } from "../../../components/SidePanel";
 import { SkeletonHeading, SkeletonShape, SkeletonText } from "../../../components/Skeleton";
@@ -505,6 +506,27 @@ function PhoneDrillInExample() {
 
 /* ───────────── Examples ───────────── */
 
+/** Title-Highlight with its Custom-Slot (Figma Custom=Yes): each budget's spend as a ProgressBar under the number. */
+const budgets = [
+  { id: "loyalty", label: "Loyalty app", spent: 28400, budget: 36000, icon: "icon-phone-line" as IconName, theme: "orange" as DockIconTheme },
+  { id: "banking", label: "Online banking", spent: 51200, budget: 48000, icon: "icon-bank-line" as IconName, theme: "blue" as DockIconTheme },
+];
+function BudgetProgress() {
+  return (
+    <Grid columns="repeat(auto-fit, minmax(min(100%, 260px), 1fr))" gap="md">
+      {budgets.map((item) => {
+        const used = Math.round((item.spent / item.budget) * 100);
+        return (
+          <MetricCard key={item.id} theme="flat" variant="title-highlight" size="md" label={item.label} value={`$${item.spent.toLocaleString("en-US")}`}
+            icon={item.icon} iconTheme={item.theme}
+            trend={{ direction: used > 100 ? "negative" : "normal", label: `of $${item.budget.toLocaleString("en-US")}` }}
+            custom={<ProgressBar value={Math.min(used, 100)} theme="status" scale="quota" label={`${used}%`} aria-label={`${item.label} budget used`} />} />
+        );
+      })}
+    </Grid>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Studio overview",
@@ -701,5 +723,13 @@ const paid = sumOf(rows, ["Paid"]);
 // Actions column: record a payment, then offer Undo
 <IconButton appearance="flat" level="primary" size="md" icon="icon-check-circle-line"
   aria-label={\`Record payment for \${row.number}\`} onClick={() => change(row, "Paid", "Payment recorded")} />`,
+  },
+  {
+    title: "Budget with progress",
+    description: "Title-Highlight takes your own content under the number in its Custom slot (Figma Custom-Slot): here each project's spend as a ProgressBar. The corner icon stays beside the number; the bar uses the quota scale, so it turns Warning from 75% and Negative from 90%.",
+    render: () => <BudgetProgress />,
+    code: `<MetricCard theme="flat" variant="title-highlight" size="md" label="Loyalty app" value="$28,400"
+  icon="icon-phone-line" iconTheme="orange" trend={{ direction: "normal", label: "of $36,000" }}
+  custom={<ProgressBar value={79} theme="status" scale="quota" label="79%" aria-label="Loyalty app budget used" />} />`,
   },
 ]);

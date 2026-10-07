@@ -444,3 +444,12 @@
   Tooltip `closable`, `defaultOpen`, `onOpenChange` (setOpen reads the rendered open through a ref, so a controlled
   tooltip reports its X); closable = role note, hover/focus/press no longer hide it. Guideline rows, story, tests
   (tests/interaction/tooltip-closable.test.tsx), "A tip on a phone" example. `npm test` 32 files / 534 tests pass.
+- Tooltip re-read from Figma after the user's edit: the X now sits in a Wrapper Element-Size/Popular/Small high with the
+  XSmall icon (12px in this mode) centred, Close drives the Wrapper; tooltip.css follows (wrapper height, hit area).
+- Metric (user: "phần update là primitive inline metric"): Figma Metric-Inline/Title-Highlight (7523:507049) gained
+  Custom (BOOLEAN) + Custom-Slot (SLOT) under Contents (root gap Medium at XL/L, Small at M–XS; the Dock-Icon is absolute
+  inside Contents). Code: Metric `custom` (zen-metric__body + zen-metric__custom only when set, so existing layouts are
+  untouched); component-properties.json gains the two props (compact format kept); MetricCard measured equal to Figma
+  6643:64008. usage rule metric/formatted-value reads only the element's own `value` (ownExpr), not a nested
+  ProgressBar's. Icon-Highlight Counter / Metric-Color and Title-Highlight Hint / Label-Icon are still not in code
+  (Backlog).

@@ -45,7 +45,7 @@ Shows a TooltipSurface next to its trigger on hover (after `delay`) and keyboard
 | `className` | `string` | — |  |
 
 ### TooltipSurface
-Figma Tooltip (1595:2220): Color × Size bubble with the Simple-Label primitive (Caption/Medium). Close (boolean, added 2026-10-07): an icon-x-medium-line at Element-Size/Popular/XSmall, Spacing/Gap/XSmall after the label, in the label's content colour, for a tooltip shown open by default.
+Figma Tooltip (1595:2220): Color × Size bubble with the Simple-Label primitive (Caption/Medium). Close (boolean, added 2026-10-07): a Wrapper Element-Size/Popular/Small high, Spacing/Gap/XSmall after the label, holding an icon-x-medium-line at Element-Size/Popular/XSmall centred, in the label's content colour; for a tooltip shown open by default.
 
 Also accepts `HTMLAttributes<HTMLSpanElement>`.
 

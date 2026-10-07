@@ -53,6 +53,12 @@ export interface MetricProps {
   action?: ReactNode;
   /** Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below. */
   iconSize?: "md" | "lg" | "medium" | "large";
+  /**
+   * Title-Highlight: Figma Custom-Slot (Custom=Yes, added 2026-10-07): your own content under the contents — a sparkline,
+   * a ProgressBar, a breakdown — Spacing/Gap/Medium below at XLarge/Large, Spacing/Gap/Small at Medium–XSmall. The
+   * Dock-Icon stays at the contents' bottom-right corner.
+   */
+  custom?: ReactNode;
   className?: string;
 }
 
@@ -60,7 +66,7 @@ export interface MetricProps {
  * Figma Primitives/Metric/Metric-Inline/Icon-Highlight (595:55188): Dock-Icon + Contents (gap 2XSmall) of
  * Label (Neutral/Light) over the Metric-Number (Neutral/Strongest), then the trend.
  */
-export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconTheme = "neutral", iconBackground = "subtle", iconEmoji, size: sizeProp = "xl", variant = "icon-highlight", action, iconSize, className }: MetricProps) {
+export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconTheme = "neutral", iconBackground = "subtle", iconEmoji, size: sizeProp = "xl", variant = "icon-highlight", action, iconSize, custom, className }: MetricProps) {
   const size = scaleKey(sizeProp, metricSizes);
   const stacked = size === "xlarge" || size === "large";
   if (variant === "title-highlight") {
@@ -69,8 +75,8 @@ export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconT
     const dock = iconSize ? (iconSize === "lg" || iconSize === "large" ? "large" : "medium") : stacked ? "large" : "medium";
     const mark = iconEmoji ? <DockIcon className="zen-metric__icon" theme="emoji" emoji={iconEmoji} background={iconBackground} size={dock} />
       : icon ? <DockIcon className="zen-metric__icon" icon={icon} theme={iconTheme} background={iconBackground} size={dock} /> : null;
-    return (
-      <div className={["zen-metric", className].filter(Boolean).join(" ")} data-size={size} data-variant="title-highlight" data-icon={mark ? dock : undefined}>
+    const body = (
+      <>
         <div className="zen-metric__contents">
           {titled ? <div className="zen-metric__header"><span className={`zen-metric__title ${typographyStyles["Heading/Subheading"]}`}>{label}</span>{action}</div> : null}
           <div className="zen-metric__content">
@@ -80,6 +86,12 @@ export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconT
           </div>
         </div>
         {mark}
+      </>
+    );
+    return (
+      <div className={["zen-metric", className].filter(Boolean).join(" ")} data-size={size} data-variant="title-highlight" data-icon={mark ? dock : undefined} data-custom={custom ? "true" : undefined}>
+        {/* Figma: the Dock-Icon is absolute inside Contents, so with a Custom-Slot it stays above the slot. */}
+        {custom ? <><div className="zen-metric__body">{body}</div><div className="zen-metric__custom">{custom}</div></> : body}
       </div>
     );
   }

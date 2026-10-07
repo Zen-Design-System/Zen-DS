@@ -32,6 +32,21 @@ const literal = (attrs, name) => attrs.match(new RegExp(`(?:^|\\s)${name}="([^"]
 const expr = (attrs, name) => { const i = attrs.search(new RegExp(`(?:^|\\s)${name}=\\{`)); if (i < 0) return undefined; let d = 0, j = attrs.indexOf("{", i); const s = j; for (; j < attrs.length; j++) { if (attrs[j] === "{") d++; else if (attrs[j] === "}" && --d === 0) break; } return attrs.slice(s + 1, j); };
 const value = (attrs, name) => literal(attrs, name) ?? expr(attrs, name);
 // Top-level attributes only: every {…} expression is collapsed so props of nested elements don't count.
+/** The `{…}` expression of the element's OWN attribute `name` (depth 0 of its attribute text), or null. */
+const ownExpr = (attrs, name) => {
+  let depth = 0;
+  for (let k = 0; k < attrs.length; k++) {
+    const ch = attrs[k];
+    if (ch === "{") depth++;
+    else if (ch === "}") depth--;
+    else if (depth === 0 && attrs.startsWith(`${name}={`, k) && !/[\w-]/.test(attrs[k - 1] ?? " ")) {
+      let d = 0;
+      for (let j = k + name.length + 1; j < attrs.length; j++) { if (attrs[j] === "{") d++; else if (attrs[j] === "}" && --d === 0) return attrs.slice(k + name.length + 2, j); }
+      return null;
+    }
+  }
+  return null;
+};
 const topLevel = (attrs) => { let out = "", depth = 0; for (const ch of attrs) { if (ch === "{") { if (depth++ === 0) out += "{"; } else if (ch === "}") { if (--depth === 0) out += "}"; } else if (depth === 0) out += ch; } return out; };
 const named = (a) => present(a, "aria-label") || present(a, "aria-labelledby");
 const text = (children) => children.replace(/<[^>]*>/g, " ").replace(/\{[^}]*\}/g, " x ").replace(/\s+/g, " ").trim();
@@ -960,7 +975,8 @@ export const rules = [
     check: ({ attrs }) => !named(attrs) && "has no aria-label — screen readers would only hear a generic group name." },
   { id: "metric/formatted-value", components: ["Metric", "MetricCard"], severity: "warn", allow: "metric-format", guideline: "docs/guidelines/metric.md",
     summary: "Metric values are passed pre-formatted with units and separators (\"$1,680.68\", \"2.1%\"), never a raw number.",
-    check: ({ attrs }) => /^\s*-?\d+(\.\d+)?\s*$/.test(expr(attrs, "value") ?? "") && `passes a raw number (${expr(attrs, "value")?.trim()}) — format it with units and separators.` },
+    // Only the Metric's own value: a ProgressBar `value={79}` inside `custom` (or any other nested element) is not it.
+    check: ({ attrs }) => { const own = ownExpr(attrs, "value"); return /^\s*-?\d+(\.\d+)?\s*$/.test(own ?? "") && `passes a raw number (${own.trim()}) — format it with units and separators.`; } },
   { id: "uploader/needs-label", components: ["FileUpload"], severity: "warn", allow: "upload-label", guideline: "docs/guidelines/uploader.md",
     summary: "A File Upload has a visible label saying what to upload.",
     check: ({ attrs }) => !present(attrs, "label") && "has no label." },

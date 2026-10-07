@@ -2344,6 +2344,7 @@
           "variant?: icon-highlight|title-highlight = icon-highlight",
           "action?: ReactNode",
           "iconSize?: md|lg|medium|large",
+          "custom?: ReactNode",
           "className?: string"
         ],
         "MetricCard": [
@@ -2358,6 +2359,7 @@
           "variant?: icon-highlight|title-highlight",
           "action?: ReactNode",
           "iconSize?: md|lg|medium|large",
+          "custom?: ReactNode",
           "className?: string",
           "theme?: shadow|flat|pale|border|semi-pale = shadow",
           "subAction?: CardSubAction|ReactNode"
