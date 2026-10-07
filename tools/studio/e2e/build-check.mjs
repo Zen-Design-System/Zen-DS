@@ -208,14 +208,19 @@ try {
     return "inserted and rendered";
   });
 
-  await step("Inspector edit, then ⌘Z", async () => {
+  await step("Inspector edit (Figma's option names), Reset all overrides, then ⌘Z", async () => {
     await clickNamed(page, id, "Button");
-    await pick(page, "level", "primary");
+    // The select lists Figma's names ("Primary"); the file gets the code value (GĐ4 M1).
+    await pick(page, "level", "Primary");
     await until(async () => /<Button level="primary"/.test((await storedText(page, id)) ?? ""), { message: 'level="primary"' });
+    await page.locator("#studio-right").getByRole("button", { name: "Reset all overrides" }).click();
+    await until(async () => /<Button onClick/.test((await storedText(page, id)) ?? ""), { message: "Reset all overrides removed level" });
     await page.locator(".studio-viewport").focus();
     await page.keyboard.press("ControlOrMeta+KeyZ");
+    await until(async () => /<Button level="primary"/.test((await storedText(page, id)) ?? ""), { message: "⌘Z brings level back" });
+    await page.keyboard.press("ControlOrMeta+KeyZ");
     await until(async () => !/<Button level="primary"/.test((await storedText(page, id)) ?? ""), { message: "⌘Z undone" });
-    return "level primary → undone";
+    return "level Primary → Reset all → ⌘Z → ⌘Z";
   });
 
   await step("the page survives a reload", async () => {

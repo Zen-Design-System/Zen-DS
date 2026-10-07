@@ -8,8 +8,12 @@ export type FigmaPropsEntry = {
   /** Its properties in Figma order: the code prop, the Figma name and property type ("SET": which of its Figma sets),
    *  and Figma option name → code value. */
   own: ReadonlyArray<{ prop: string; label?: string; type: string; options?: Readonly<Record<string, string>> }>;
-  /** Figma booleans that show a layer: on writes `on` ("slot": the content-slot picker), off removes the prop. */
-  toggles: ReadonlyArray<{ label: string; prop: string; on: string }>;
+  /** Figma booleans that show a layer: on writes `on` (a text; "slot": the content-slot picker; { code }: an object or a
+   *  list written as code), off removes the prop. */
+  toggles: ReadonlyArray<{ label: string; prop: string; on: string | { code: string } }>;
+  /** Nested layers (an Input's Label): shown while `when` is set, with their properties ("CODE": a code prop the
+   *  nested Figma set has no property for, labelled here). */
+  nested?: ReadonlyArray<{ name: string; figma?: string; when: string; own: ReadonlyArray<{ prop: string; label?: string; type: string }> }>;
 };
 
 export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
@@ -333,7 +337,15 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       }
     ],
-    "toggles": []
+    "toggles": [
+      {
+        "label": "Action",
+        "prop": "action",
+        "on": {
+          "code": "{ label: \"Action\" }"
+        }
+      }
+    ]
   },
   "Badge": {
     "figma": "260:4825",
@@ -775,6 +787,61 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "prop": "label",
         "on": "Label"
       }
+    ],
+    "nested": [
+      {
+        "name": "Label",
+        "figma": "387:3651",
+        "when": "label",
+        "own": [
+          {
+            "prop": "labelOptional",
+            "label": "Optional",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "labelTooltip",
+            "label": "Tooltip-Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "labelAction",
+            "label": "Action",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "label",
+            "label": "Label",
+            "type": "TEXT"
+          }
+        ]
+      },
+      {
+        "name": "Help-Text",
+        "when": "helpText",
+        "own": [
+          {
+            "prop": "helpText",
+            "label": "Text",
+            "type": "CODE"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "CODE"
+          },
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "CODE"
+          },
+          {
+            "prop": "characterLimit",
+            "label": "Character limit",
+            "type": "CODE"
+          }
+        ]
+      }
     ]
   },
   "SelectField": {
@@ -818,6 +885,61 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "label": "Label",
         "prop": "label",
         "on": "Label"
+      }
+    ],
+    "nested": [
+      {
+        "name": "Label",
+        "figma": "387:3651",
+        "when": "label",
+        "own": [
+          {
+            "prop": "labelOptional",
+            "label": "Optional",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "labelTooltip",
+            "label": "Tooltip-Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "labelAction",
+            "label": "Action",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "label",
+            "label": "Label",
+            "type": "TEXT"
+          }
+        ]
+      },
+      {
+        "name": "Help-Text",
+        "when": "helpText",
+        "own": [
+          {
+            "prop": "helpText",
+            "label": "Text",
+            "type": "CODE"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "CODE"
+          },
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "CODE"
+          },
+          {
+            "prop": "characterLimit",
+            "label": "Character limit",
+            "type": "CODE"
+          }
+        ]
       }
     ]
   },
@@ -863,6 +985,61 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "prop": "label",
         "on": "Label"
       }
+    ],
+    "nested": [
+      {
+        "name": "Label",
+        "figma": "387:3651",
+        "when": "label",
+        "own": [
+          {
+            "prop": "labelOptional",
+            "label": "Optional",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "labelTooltip",
+            "label": "Tooltip-Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "labelAction",
+            "label": "Action",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "label",
+            "label": "Label",
+            "type": "TEXT"
+          }
+        ]
+      },
+      {
+        "name": "Help-Text",
+        "when": "helpText",
+        "own": [
+          {
+            "prop": "helpText",
+            "label": "Text",
+            "type": "CODE"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "CODE"
+          },
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "CODE"
+          },
+          {
+            "prop": "characterLimit",
+            "label": "Character limit",
+            "type": "CODE"
+          }
+        ]
+      }
     ]
   },
   "AutocompleteField": {
@@ -873,6 +1050,29 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "label": "Help-Text",
         "prop": "helpText",
         "on": "Help text"
+      }
+    ],
+    "nested": [
+      {
+        "name": "Help-Text",
+        "when": "helpText",
+        "own": [
+          {
+            "prop": "helpText",
+            "label": "Text",
+            "type": "CODE"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "CODE"
+          },
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "CODE"
+          }
+        ]
       }
     ]
   },
@@ -934,6 +1134,13 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       }
     ],
     "toggles": [
+      {
+        "label": "Action",
+        "prop": "action",
+        "on": {
+          "code": "{ label: \"Action\" }"
+        }
+      },
       {
         "label": "Title",
         "prop": "title",
@@ -1762,6 +1969,61 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "prop": "label",
         "on": "Label"
       }
+    ],
+    "nested": [
+      {
+        "name": "Label",
+        "figma": "387:3651",
+        "when": "label",
+        "own": [
+          {
+            "prop": "labelOptional",
+            "label": "Optional",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "labelTooltip",
+            "label": "Tooltip-Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "labelAction",
+            "label": "Action",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "label",
+            "label": "Label",
+            "type": "TEXT"
+          }
+        ]
+      },
+      {
+        "name": "Help-Text",
+        "when": "helpText",
+        "own": [
+          {
+            "prop": "helpText",
+            "label": "Text",
+            "type": "CODE"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "CODE"
+          },
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "CODE"
+          },
+          {
+            "prop": "characterLimit",
+            "label": "Character limit",
+            "type": "CODE"
+          }
+        ]
+      }
     ]
   },
   "TextAreaField": {
@@ -1804,6 +2066,61 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "label": "Label",
         "prop": "label",
         "on": "Label"
+      }
+    ],
+    "nested": [
+      {
+        "name": "Label",
+        "figma": "387:3651",
+        "when": "label",
+        "own": [
+          {
+            "prop": "labelOptional",
+            "label": "Optional",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "labelTooltip",
+            "label": "Tooltip-Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "labelAction",
+            "label": "Action",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "label",
+            "label": "Label",
+            "type": "TEXT"
+          }
+        ]
+      },
+      {
+        "name": "Help-Text",
+        "when": "helpText",
+        "own": [
+          {
+            "prop": "helpText",
+            "label": "Text",
+            "type": "CODE"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "CODE"
+          },
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "CODE"
+          },
+          {
+            "prop": "characterLimit",
+            "label": "Character limit",
+            "type": "CODE"
+          }
+        ]
       }
     ]
   },
@@ -2026,6 +2343,19 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       }
     ],
     "toggles": []
+  },
+  "EmptyState": {
+    "figma": "6085:25796",
+    "own": [],
+    "toggles": [
+      {
+        "label": "CTA",
+        "prop": "primaryAction",
+        "on": {
+          "code": "{ label: \"Action\" }"
+        }
+      }
+    ]
   },
   "InputConditionItem": {
     "figma": "373:97437",

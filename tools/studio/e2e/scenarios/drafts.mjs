@@ -12,7 +12,7 @@ export const rows = [
     async run(ctx) {
       const before = disk(ctx, ctx.saveFile);
       const page = await freshSelect(ctx, "save-a", { frame: 4, file: ctx.saveFile });
-      await pickOption(page, "level", "primary");
+      await pickOption(page, "level", "Primary");
       await expectSource(ctx, "save-a", (el) => el.attr("level") === "primary", "the draft edit", { file: ctx.saveFile });
       if (disk(ctx, ctx.saveFile) !== before) throw new Error("the edit reached the disk before Save");
       const toolbar = async () => (await page.locator("header").first().innerText({ timeout: 2000 }).catch(() => "")).replace(/\s+/g, " ");
@@ -31,7 +31,7 @@ export const rows = [
     id: "D-02", feature: "Save writes the file and runs the harness on it", wp: "GĐ0",
     async run(ctx) {
       const page = await freshSelect(ctx, "save-a", { frame: 4, file: ctx.saveFile });
-      await pickOption(page, "level", "primary");
+      await pickOption(page, "level", "Primary");
       await expectSource(ctx, "save-a", (el) => el.attr("level") === "primary", "the draft edit", { file: ctx.saveFile });
       const result = await ctx.api.save([ctx.saveFile]);
       const written = disk(ctx, ctx.saveFile);
@@ -45,7 +45,7 @@ export const rows = [
     async run(ctx) {
       const page = await freshSelect(ctx, "btn-a");
       const before = ctx.server.errors.length;
-      await pickOption(page, "level", "tertiary");
+      await pickOption(page, "level", "Tertiary");
       await expectSource(ctx, "btn-a", (el) => el.attr("level") === "tertiary", "the edit");
       await sleep(1500);
       const fresh = ctx.server.errors.slice(before);
@@ -58,7 +58,7 @@ export const rows = [
     async run(ctx) {
       const page = await freshSelect(ctx, "save-a", { frame: 4, file: ctx.saveFile });
       const before = ctx.server.errors.length;
-      await pickOption(page, "level", "primary");
+      await pickOption(page, "level", "Primary");
       await expectSource(ctx, "save-a", (el) => el.attr("level") === "primary", "the edit", { file: ctx.saveFile });
       await sleep(1500);
       const fresh = ctx.server.errors.slice(before);
@@ -86,7 +86,7 @@ export const rows = [
     id: "D-05", feature: "Undo across a reload (history survives the page reload)", wp: "GĐ0",
     async run(ctx) {
       const page = await freshSelect(ctx, "btn-a");
-      await pickOption(page, "level", "tertiary");
+      await pickOption(page, "level", "Tertiary");
       await expectSource(ctx, "btn-a", (el) => el.attr("level") === "tertiary", "the edit");
       await page.reload({ waitUntil: "domcontentloaded" });
       await waitSeed(page, ctx.seed());

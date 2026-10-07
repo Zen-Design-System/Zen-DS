@@ -19,7 +19,7 @@ const APPEARANCE = /size|variant|theme|level|appearance|background|tone|surface|
 
 const rules: { id: string; title: string; claims: (spec: PropSpec) => boolean }[] = [
   { id: "content", title: "Content", claims: (spec) => CONTENT.test(spec.name) },
-  { id: "icon", title: "Icon", claims: (spec) => spec.editor.kind === "icon" || ICON.test(spec.name) },
+  { id: "icon", title: "Icon", claims: (spec) => spec.editor.kind === "icon" || spec.editor.kind === "icon-toggle" || ICON.test(spec.name) },
   { id: "actions", title: "Actions", claims: (spec) => ACTIONS.test(spec.name) },
   { id: "appearance", title: "Appearance", claims: (spec) => ["enum", "number-enum", "typography", "text-align"].includes(spec.editor.kind) || APPEARANCE.test(spec.name) },
   { id: "state", title: "State", claims: (spec) => spec.editor.kind === "boolean" || spec.editor.kind === "truncate" },

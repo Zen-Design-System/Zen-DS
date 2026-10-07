@@ -12,8 +12,12 @@
 //     { prop, bool: true }                  a Yes/No (or True/False) variant held as a boolean
 //     { prop, trust: "why" }                the code type is wider than api.generated.json says: options are not checked
 //     { toggle: "startIcon", on: … }        a Figma boolean that shows a layer = the presence of a code prop: on writes
-//                                           `on` (a text value, or "slot" for the content-slot picker), off removes it
+//                                           `on` (a text value, "slot" for the content-slot picker, or { code } for an
+//                                           object written as code: `{ label: "Action" }`), off removes it
 //     { skip: "why" }                       Figma-only (a preview state, a device frame, content written elsewhere)
+//   nested: Figma nested layer name → { when, set?, props?, code? }: a group shown while code prop `when` is set, with
+//           the nested set's properties mapped as above, then `code` rows ({ prop, label }) for code props that set has
+//           no property for.
 // TopNavigation keeps its hand-written groups (inspector/propGroups.ts); it is not listed here.
 
 const skip = (why) => ({ skip: why });
@@ -21,6 +25,25 @@ const DEVICE = skip("device frame: the platform renders phones and desktops itse
 const CHILDREN = skip("the label is the element's text (Content section)");
 const HOVER = skip("preview state: hover comes from the pointer");
 const NO_PROP = skip("no code prop");
+
+/** A field's Label and Help-Text layers (Primitives/Input/Label): the text and its options, shown while the field's Label
+ *  or Help-Text boolean is on. The Help-Text set is not in the read yet: its rows are the code props, labelled here. */
+const LABEL = {
+  when: "label",
+  set: "Primitives/Input/Label",
+  props: {
+    Optional: "labelOptional",
+    "Tooltip-Icon": "labelTooltip",
+    // A node: plain text here (a link or a button needs the code until it has a content slot).
+    Action: "labelAction",
+    Label: "label",
+    State: skip("the field's State disables it"),
+  },
+};
+const HELP_TEXT = { when: "helpText", code: [{ prop: "helpText", label: "Text" }, { prop: "helpTheme", label: "Theme" }, { prop: "helpIcon", label: "Icon" }, { prop: "characterLimit", label: "Character limit" }] };
+const FIELD_NESTED = { Label: LABEL, "Help-Text": HELP_TEXT };
+/** An action written as an object (`action={{ label: "Action" }}`): its label and handler are edited in Object properties. */
+const ACTION = { code: '{ label: "Action" }' };
 
 /** Metric and MetricCard (a card holding a Metric-Inline instance, with the same props). */
 const METRIC = {
@@ -74,7 +97,7 @@ export const FIGMA_PROPS = {
   },
   AlertBanner: {
     sets: { "Alert-Banner": null },
-    props: { Leading: "leading", Action: skip("an action object (Object properties)"), Size: "size", Theme: "theme" },
+    props: { Leading: "leading", Action: { toggle: "action", on: ACTION }, Size: "size", Theme: "theme" },
   },
   Badge: {
     sets: { Badge: null },
@@ -123,25 +146,29 @@ export const FIGMA_PROPS = {
   InputField: {
     sets: { "Input/Text-Field": null },
     props: { "Help-Text": { toggle: "helpText", on: "Help text" }, Label: { toggle: "label", on: "Label" }, Size: "size", State: "state" },
+    nested: FIELD_NESTED,
   },
   SelectField: {
     sets: { "Input/Select-Field": null },
     props: { "Help-Text": { toggle: "helpText", on: "Help text" }, Label: { toggle: "label", on: "Label" }, Size: "size", State: "state" },
+    nested: FIELD_NESTED,
   },
   DateField: {
     sets: { "Input/Date-Field": null },
     props: { "Help-Text": { toggle: "helpText", on: "Help text" }, Label: { toggle: "label", on: "Label" }, Size: "size", State: "state" },
+    nested: FIELD_NESTED,
   },
   AutocompleteField: {
     sets: { "Input/Autocomplete-Field": null },
     props: { "Help-Text": { toggle: "helpText", on: "Help text" }, State: skip("preview state: the code shows it through interaction") },
+    nested: { "Help-Text": { when: "helpText", code: [{ prop: "helpText", label: "Text" }, { prop: "helpTheme", label: "Theme" }, { prop: "helpIcon", label: "Icon" }] } },
   },
   RichTextField: { sets: { "Input/Richtext": null }, props: { "Control-Bar": "editorBar" } },
   HeadingField: { sets: { "Input/Heading": null }, props: { Status: "status", Size: "headingSize" } },
   InlineMessage: {
     sets: { "Inline-Message": null },
     props: {
-      Action: skip("an action object (Object properties)"),
+      Action: { toggle: "action", on: ACTION },
       Close: skip("closing is onClose in the code"),
       Caption: skip("the message text is the element's content"),
       Title: { toggle: "title", on: "Title" },
@@ -305,6 +332,7 @@ export const FIGMA_PROPS = {
     sets: { "Input/Number-Align-Left": "left", "Input/Number-Align-Center": "center" },
     setProp: "align",
     props: { "Help-Text": { toggle: "helpText", on: "Help text" }, Label: { toggle: "label", on: "Label" }, Size: "size", State: "state" },
+    nested: FIELD_NESTED,
   },
   TextAreaField: {
     sets: { "Input/Text-Area": null },
@@ -314,6 +342,7 @@ export const FIGMA_PROPS = {
       Size: { prop: "size", trust: "Exclude<InputSize, \"xlarge\" | \"xl\">: the docs type names only the excluded sizes" },
       State: "state",
     },
+    nested: FIELD_NESTED,
   },
   DatePicker: {
     // Date-Picker/Mobile is the device prop (device="mobile"), not a third calendar: left out.
@@ -366,6 +395,7 @@ export const FIGMA_PROPS = {
     sets: { "AI/Chat-Bubble": null },
     props: { "Chat-Content": skip("the bubble's content"), Items: skip("the actions list"), Side: "side", State: HOVER },
   },
+  EmptyState: { sets: { "Empty-State": null }, props: { CTA: { toggle: "primaryAction", on: ACTION } } },
   InputConditionItem: { sets: { "Primitives/Input/Input-Conditions/Condition-Item": null }, props: { State: "state" } },
   ControlBarSelectItem: { sets: { "Control-Bar/Select-Item": null }, props: { "Icon-Src": "icon", Theme: "theme", State: "state" } },
 };

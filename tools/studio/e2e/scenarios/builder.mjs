@@ -176,7 +176,7 @@ export const rows = [
       await until(async () => /<Button level="tertiary"/.test((await pageText(page, id)) ?? ""), { message: "the Button" });
       await sleep(400);
       await clickNamed(page, id, "Button");
-      await pickOption(page, "level", "primary");
+      await pickOption(page, "level", "Primary");
       await until(async () => /<Button level="primary"/.test((await pageText(page, id)) ?? ""), { message: 'level="primary"' });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+KeyZ");

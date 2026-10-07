@@ -61,6 +61,8 @@ function ToggleRow({ toggle, on, count, value, api, selection, element }: { togg
     // The host stays selected after an item add, so this row stays reachable to switch the layer off again.
     if (start.kind === "item") { if (slot) void editDataItem(selection, slot, "add", 0, 0, { keepHost: true }); return; }
     if (start.kind === "slot") { openSlotPicker(selection, toggle.prop); return; }
+    // An object written as code (an action: `{ label: "Action" }`), then edited field by field in Object properties.
+    if (start.kind === "code") { void api.apply([{ op: "setProp", name: toggle.prop, value: { kind: "expression", code: start.code } }], `${element.name} ${toggle.label} on`); return; }
     const from = (start.from ?? []).map((prop) => api.valueFor(prop)).find((candidate) => candidate.state === "literal" && typeof candidate.value === "string" && candidate.value.trim());
     api.setProp(toggle.prop, from?.state === "literal" ? from.value : start.value);
   };

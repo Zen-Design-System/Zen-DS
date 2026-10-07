@@ -5,10 +5,13 @@
 // "Seed <n>" changes on every reseed, so the harness can wait until the canvas shows the new text.
 // Keep it a valid example page module: { page, examples }.
 import { useState } from "react";
+import { AlertBanner } from "../../../components/AlertBanner";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Checkbox } from "../../../components/Checkbox";
 import { Dialog } from "../../../components/Dialog";
+import { EmptyState } from "../../../components/EmptyState";
+import { NumberField } from "../../../components/Input";
 import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListItem } from "../../../components/ListItem";
 import { Heading, Text } from "../../../components/Text";
@@ -111,6 +114,18 @@ function GridFixture() {
   );
 }
 
+/** Instances customised as in Figma's instance panel (GĐ4): option names, Reset all overrides, nested groups, switches. */
+function InstanceFixture() {
+  return (
+    <Stack data-e2e="instance" gap="md" padding="lg">
+      <Button data-e2e="inst-button" level="accent" size="lg" startIcon="icon-plus-line" onClick={() => undefined}>Save</Button>
+      <NumberField data-e2e="inst-number" label="Guests" defaultValue={2} />
+      <AlertBanner data-e2e="inst-alert">Heads up</AlertBanner>
+      <EmptyState data-e2e="inst-empty" title="Nothing here" illustration={false} />
+    </Stack>
+  );
+}
+
 export const examples: ExampleDef[] = [
   { title: "E2E layout", description: "Stacks, buttons, text and a checkbox written as literals.", code: "<LayoutFixture />", render: () => <LayoutFixture /> },
   { title: "E2E data", description: "Rows from a .map over a const and over data.ts, a state-bound and a conditional prop.", code: "<DataFixture />", render: () => <DataFixture /> },
@@ -118,4 +133,5 @@ export const examples: ExampleDef[] = [
   { title: "E2E overlay", description: "A button that opens a Dialog.", code: "<OverlayFixture />", render: () => <OverlayFixture /> },
   { title: "E2E save", description: "A component from another file, the one file the harness saves.", code: "<StudioSaveFixture />", render: () => <StudioSaveFixture /> },
   { title: "E2E grid", description: "A counted Grid (with a minColumnWidth it ignores) and a Grid per breakpoint.", code: "<GridFixture />", render: () => <GridFixture /> },
+  { title: "E2E instance", description: "Zen instances with design props, a field's label, an alert's icon and an empty state.", code: "<InstanceFixture />", render: () => <InstanceFixture /> },
 ];

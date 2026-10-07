@@ -144,6 +144,10 @@
 .studio-icon-control > .zen-button > :last-child { margin-inline-start: auto; color: var(--zen-color-content-neutral-base); }
 .studio-icon-control[data-empty="true"] .studio-icon-control__label { color: var(--zen-color-content-neutral-light); }
 .studio-icon-control__label { min-width: 0; flex: 1 1 auto; overflow: hidden; text-align: start; text-overflow: ellipsis; white-space: nowrap; }
+/* An icon that can be switched off (boolean | IconName): the switch, then the picker while it is on (GĐ4 M1). */
+.studio-inspector__row-control > .studio-icon-toggle { width: 100%; min-width: 0; }
+.studio-icon-toggle { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-icon-toggle > .studio-icon-control { flex: 1 1 auto; }
 
 /* Text style picker: a SelectField trigger that opens the grouped list below it. */
 .studio-type-control { position: relative; display: flex; width: 100%; min-width: 0; }

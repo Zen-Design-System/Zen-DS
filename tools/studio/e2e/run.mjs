@@ -25,7 +25,7 @@ const args = process.argv.slice(2);
 const flag = (name) => args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 const has = (name) => args.includes(`--${name}`);
 
-const GROUPS = ["shell", "select", "inspector", "appearance", "layout", "builder", "library", "keyboard", "structural", "data", "overlays", "drafts", "gate"];
+const GROUPS = ["shell", "select", "inspector", "appearance", "layout", "builder", "library", "instance", "keyboard", "structural", "data", "overlays", "drafts", "gate"];
 const only = flag("only")?.split(",").map((g) => g.trim()).filter(Boolean) ?? GROUPS;
 const unknown = only.filter((g) => !GROUPS.includes(g));
 if (unknown.length) {

@@ -138,8 +138,15 @@ Last updated: 2026-10-06.
   glyphs, icon + photo search), iconSynonyms.ts, icons.ts, media.ts (LIBRARY_PHOTOS, `zen-media:` keys, resolveMedia,
   photoCode)}`; edit/assets/assets.ts `Insertable` (palette / icon / photo; an icon on a selected Icon swaps its name);
   Assets kinds Components · Icons · Photos; Quick insert groups; renderPage resolves `zen-media:`; E2E LB-08…LB-12;
-  build-check 14 steps; baseline 111 works / 0 broken. **GĐ3 is complete.** Next: GĐ4 instance panel like Figma: spec
-  `docs/research/studio-builder-instance-spec-2026-10-07.md` written, waiting for the user's OK (Q1–Q4); then GĐ3b
+  build-check 14 steps; baseline 111 works / 0 broken. **GĐ3 is complete.** GĐ4 instance panel like Figma: spec
+  `docs/research/studio-builder-instance-spec-2026-10-07.md`, approved 2026-10-07 (Q2–Q4 as proposed; Q1 sizing: the
+  user asked which is friendlier, proposal "(a) wrap in a Stack + 3 fixes" recorded in the spec §8, to settle before
+  M4). M1 done 2026-10-07: Figma option names (`propGroups.ts` figmaOptions / entryOptions → PropField optionLabels,
+  MixedProperties too); 70 mapped components (`figma-props.map.mjs`, nested groups `nested`, object toggles `on: { code }`);
+  `inspector/inheritedProps.ts` (props from another component's props type, ALIAS_EXTENDS checked against the source);
+  editor `icon-toggle` (boolean | IconName); Reset all overrides (`inspector/resetAll.ts`, DesignPanel header, one
+  runPlan); E2E group `instance` IN-01…IN-06, build-check step 6 picks "Primary" + Reset all; baseline 117 works. Next:
+  M2 (preferred icons read from Figma, component swap in props/slots, Swap instance via Quick insert), M3, M4; then GĐ3b
   starters (needs a spec), GĐ5 export (+ photo uploads).
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.

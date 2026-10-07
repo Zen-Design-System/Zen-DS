@@ -33,9 +33,9 @@ export type GroupToggle = {
   /**
    * What switching it on writes: a text (the first set prop of `from`, else `value`), an item through the data-slot ops
    * (a working handler, examples and templates only; `slot` absent: the component's data slot for the prop,
-   * dataSlots.ts), or the content-slot picker (Control-Slot).
+   * dataSlots.ts), the content-slot picker (Control-Slot), or an object written as code (`{ label: "Action" }`).
    */
-  on: { kind: "text"; value: string; from?: readonly string[] } | { kind: "item"; slot?: DataSlot } | { kind: "slot" };
+  on: { kind: "text"; value: string; from?: readonly string[] } | { kind: "item"; slot?: DataSlot } | { kind: "slot" } | { kind: "code"; code: string };
 };
 
 /** A reason shown under a prop's field while its conditions hold: the prop stays editable (Studio editing is free, user
@@ -185,8 +185,8 @@ export function placedProps(groups: ComponentGroups): Set<string> {
 /**
  * Groups from the Figma read (figmaProps.generated.ts, tools/studio/figma-props-build.mjs) for a component without
  * hand-written groups: its Figma properties in Figma order with Figma names, and its layer booleans as toggles (an
- * instance-swap row such as Leading-Icon-Src shows only while its boolean's prop is set, as in Figma). No nested
- * groups: those need the layer structure (hand-written, like TopNavigation's).
+ * instance-swap row such as Leading-Icon-Src shows only while its boolean's prop is set, as in Figma). Nested groups
+ * where the map names a layer (an Input's Label and Help-Text), each shown while its prop is set.
  */
 export function groupsFromFigma(entry: FigmaPropsEntry): ComponentGroups {
   const toggled = new Set(entry.toggles.map((toggle) => toggle.prop));
@@ -197,11 +197,14 @@ export function groupsFromFigma(entry: FigmaPropsEntry): ComponentGroups {
   };
   // Figma's instance panel: the variants (and which set) first, then the booleans, then instance swaps and texts.
   const variant = (item: FigmaPropsEntry["own"][number]) => item.type === "VARIANT" || item.type === "SET";
+  const on = (start: FigmaPropsEntry["toggles"][number]["on"]): GroupToggle["on"] => (typeof start === "object" ? { kind: "code", code: start.code } : start === "slot" ? { kind: "slot" } : { kind: "text", value: start });
+  // An object a boolean writes (EmptyState CTA → primaryAction): its fields show while it is set, never a "Not set" row.
+  const objects = entry.toggles.filter((toggle) => typeof toggle.on === "object" && !entry.own.some((item) => item.prop === toggle.prop)).map((toggle): PropEntry => ({ prop: toggle.prop, when: [set(toggle.prop)] }));
   return {
     figma: entry.figma,
     own: entry.own.filter(variant).map(row),
-    toggles: entry.toggles.map((toggle) => ({ label: toggle.label, prop: toggle.prop, on: toggle.on === "slot" ? { kind: "slot" } : { kind: "text", value: toggle.on } })),
-    after: entry.own.filter((item) => !variant(item)).map(row),
-    nested: [],
+    toggles: entry.toggles.map((toggle) => ({ label: toggle.label, prop: toggle.prop, on: on(toggle.on) })),
+    after: [...entry.own.filter((item) => !variant(item)).map(row), ...objects],
+    nested: (entry.nested ?? []).map((group) => ({ name: group.name, ...(group.figma ? { figma: group.figma } : {}), when: [set(group.when)], props: group.own.map((item) => ({ prop: item.prop, ...(item.label ? { label: item.label } : {}) })) })),
   };
 }

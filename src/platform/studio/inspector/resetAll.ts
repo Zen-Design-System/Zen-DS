@@ -11,7 +11,7 @@ import type { SourceAttr } from "../types";
  */
 
 /** The editors of design props: what Figma shows as variants, booleans and instance swaps. */
-const DESIGN_EDITORS = new Set(["enum", "number-enum", "boolean", "icon", "typography", "truncate", "text-align"]);
+const DESIGN_EDITORS = new Set(["enum", "number-enum", "boolean", "icon", "icon-toggle", "typography", "truncate", "text-align"]);
 
 /** Props that hold what the instance shows, does or is (its element, its heading level), never reset although their
  *  editor is a choice or a switch. */

@@ -68,7 +68,7 @@ for (const [name, entry] of Object.entries(FIGMA_PROPS)) {
   // Documented: its own props and those its props type takes from another component's (inheritedProps.ts).
   const schema = apiOf(name);
   const documented = new Set(schema ? [...schema.props, ...inheritedProps(schema, (other) => apiOf(other) ?? null)].map((prop) => prop.name) : []);
-  const rows = [...groups.own, ...groups.after].map(entryProp);
+  const rows = [...groups.own, ...groups.after, ...groups.nested.flatMap((group) => group.props)].map(entryProp);
   check(`${name} (Figma): rows are documented props`, rows.filter((prop) => !documented.has(prop)), []);
   check(`${name} (Figma): each prop once`, rows.length, new Set(rows).size);
   check(`${name} (Figma): toggles are documented props`, groups.toggles.map((toggle) => toggle.prop).filter((prop) => !documented.has(prop)), []);
@@ -93,6 +93,21 @@ for (const [name, entry] of Object.entries(FIGMA_PROPS)) {
   check("a Yes/No variant held as a boolean has no option names", entryOptions(groupsFromFigma(FIGMA_PROPS.Accordion).own.find((entry) => entryProp(entry) === "expanded")), undefined);
   check("SkeletonShape size keeps Figma's px names", entryOptions(groupsFromFigma(FIGMA_PROPS.SkeletonShape).own.find((entry) => entryProp(entry) === "size")).large, "Large - 48px");
   check("no option names: the options as they are", figmaOptions(["a", "b"], {}, match), { options: ["a", "b"], labels: {} });
+
+  // Nested layers (GĐ4 M1): an Input's Label and Help-Text groups, each while its text is set.
+  const input = groupsFromFigma(FIGMA_PROPS.InputField);
+  check("InputField: Label and Help-Text groups hold the text and its options", input.nested.map((group) => [group.name, group.props.map((entry) => [entryProp(entry), entryLabel(entry)])]), [
+    ["Label", [["labelOptional", "Optional"], ["labelTooltip", "Tooltip-Icon"], ["labelAction", "Action"], ["label", "Label"]]],
+    ["Help-Text", [["helpText", "Text"], ["helpTheme", "Theme"], ["helpIcon", "Icon"], ["characterLimit", "Character limit"]]],
+  ]);
+  check("InputField: the label text is not also a row of its own", placedProps(input).has("label") && !input.after.some((entry) => entryProp(entry) === "label"), true);
+  check("InputField: a group shows while its text is set", input.nested.map((group) => [holds(group.when, {}), holds(group.when, { label: "Email", helpText: "Hint" })]), [[false, true], [false, true]]);
+  check("NumberField and TextAreaField get the same groups", ["NumberField", "TextAreaField"].map((component) => groupsFromFigma(FIGMA_PROPS[component]).nested.map((group) => group.name)), [["Label", "Help-Text"], ["Label", "Help-Text"]]);
+  // An object toggle (an action) writes code.
+  const empty = groupsFromFigma(FIGMA_PROPS.EmptyState);
+  check("EmptyState CTA writes an action object", empty.toggles, [{ label: "CTA", prop: "primaryAction", on: { kind: "code", code: '{ label: "Action" }' } }]);
+  const action = empty.after.find((entry) => entryProp(entry) === "primaryAction");
+  check("EmptyState primaryAction shows only while set (its fields)", [entryShown(action, {}), entryShown(action, { primaryAction: { label: "Go" } })], [false, true]);
 }
 
 if (failures.length) {

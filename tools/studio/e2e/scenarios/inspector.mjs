@@ -62,7 +62,7 @@ export const rows = [
     id: "I-01", feature: "Variant (enum) select writes the prop", wp: "GĐ0",
     async run(ctx) {
       const page = await freshSelect(ctx, "btn-a");
-      await pickOption(page, "level", "secondary");
+      await pickOption(page, "level", "Secondary");
       await expectSource(ctx, "btn-a", (el) => el.attr("level") === "secondary", "level=secondary in the source");
       return "level primary → secondary";
     },
@@ -166,7 +166,7 @@ export const rows = [
     id: "I-08", feature: "⌘Z undoes an Inspector edit, ⇧⌘Z redoes it", wp: "GĐ0",
     async run(ctx) {
       const page = await freshSelect(ctx, "btn-a");
-      await pickOption(page, "level", "tertiary");
+      await pickOption(page, "level", "Tertiary");
       await expectSource(ctx, "btn-a", (el) => el.attr("level") === "tertiary", "the edit");
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+KeyZ");
@@ -180,7 +180,7 @@ export const rows = [
     id: "I-09", feature: "State-bound prop edits the useState initializer", wp: "keep-behaviour",
     async run(ctx) {
       const page = await freshSelect(ctx, "bound", { frame: 1 });
-      await pickOption(page, "size", "sm");
+      await pickOption(page, "size", "Small");
       await until(async () => /useState<"sm" \| "md">\("sm"\)/.test(await ctx.text()), { message: 'useState("sm")' });
       const el = await read(ctx, "bound");
       if (el.attr("size") !== "{size}") throw new Error(`the binding was replaced: size=${el.attr("size")}`);
@@ -211,7 +211,7 @@ export const rows = [
       // (Design panel UI3, 2026-10-06: no "Set fixed value" step).
       page = await freshSelect(ctx, "cond-const", { frame: 1 });
       if (!(await inspectorRow(page, "level").locator(".studio-inspector__bound-mark").count())) throw new Error(`no ƒ binding mark (${await rowText(page)})`);
-      await pickOption(page, "level", "tertiary");
+      await pickOption(page, "level", "Tertiary");
       await expectSource(ctx, "cond-const", (el) => el.attr("level") === "tertiary", 'level="tertiary" (a fixed value)');
       return "state condition read-only; const condition fixed from its control";
     },
@@ -237,7 +237,7 @@ export const rows = [
       const page = await freshSelect(ctx, "btn-a");
       await clickLoc(page, ctx.file, await at(ctx, "btn-b"), { modifiers: ["Shift"] });
       await until(async () => (await inspectorRow(page, "level").count()) > 0, { message: "a shared level row" });
-      await pickOption(page, "level", "tertiary");
+      await pickOption(page, "level", "Tertiary");
       await expectSource(ctx, "btn-a", (el) => el.attr("level") === "tertiary", "btn-a tertiary");
       await expectSource(ctx, "btn-b", (el) => el.attr("level") === "tertiary", "btn-b tertiary");
       return "both buttons → tertiary";
@@ -250,7 +250,7 @@ export const rows = [
       const b = locOf((await ctx.api.source(ctx.saveFile)).content, "save-b").loc;
       await clickLoc(page, ctx.saveFile, b, { modifiers: ["Shift"] });
       await until(async () => (await inspectorRow(page, "level").count()) > 0, { message: "a shared level row" });
-      await pickOption(page, "level", "primary");
+      await pickOption(page, "level", "Primary");
       try {
         await expectSource(ctx, "save-a", (el) => el.attr("level") === "primary", "save-a primary", { file: ctx.saveFile });
       } catch (error) {

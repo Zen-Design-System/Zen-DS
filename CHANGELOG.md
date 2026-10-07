@@ -198,6 +198,21 @@ removed (four unused colour ramps were, see Removed).
   - On a page you made a photo is written `src="zen-media:<name>"`, the same text in every build; the canvas, Play and
     the previews show this build's file. Example code keeps `platformMedia`, with its import.
   - Quick insert (⇧I) lists Components, Icons and Photos in groups, and previews an icon or a photo as itself.
+- **Zen Studio instance panel, GĐ4 M1: like Figma's (2026-10-07):**
+  - A variant select lists Figma's options first, in Figma's order and by Figma's names ("Medium (Base)", "Danger
+    Subtle"); options only the code has come last. The file still gets the code value (`size="md"`). Selecting several
+    layers of one component shows the same names.
+  - 70 components follow their Figma set (54 before): NumberField, TextAreaField, DatePicker, Stepper, Metric,
+    MetricCard, EmptyState, the chat bubbles and more. NumberField and TextAreaField now list the field props they take
+    from InputField (Label, Help text, Size, State), and AvatarStack and BadgeCounter their Theme and Background.
+  - A field's Label and Help-Text are groups, as Figma's nested layers: the text with Optional, Tooltip-Icon and Action,
+    or with Theme, Icon and Character limit, shown while the Label or Help-Text switch is on.
+  - Switches for layers held as objects: EmptyState CTA, AlertBanner and InlineMessage Action write `{ label: "Action" }`,
+    then its fields; off removes it. An icon that can be hidden (Dialog and Toast icon, AlertBanner Leading, Metric's
+    dock icon) is a switch plus the icon picker in one row.
+  - **Reset all overrides** (↺ in the Inspector header): the variants, switches and icons written on a Zen instance go
+    back to their defaults in one step, and one ⌘Z brings them all back. The text, handlers, data, value and open state
+    stay.
 - **Zen Studio: shared demo code can be restructured, after a question (2026-10-06, GĐ1 WP-B2):**
   - Removing, duplicating, moving, inserting, pasting, dragging or wrapping layers whose code lives in shared demo files
     (PlatformDemoActions.tsx, chatDemo.tsx, PlatformChat…) used to be greyed out ("shared beyond this example").

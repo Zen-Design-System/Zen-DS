@@ -53,3 +53,25 @@
 - Spec `docs/research/studio-builder-instance-spec-2026-10-07.md` (M1 panel parity + Reset all, M2 swaps, M3 nested
   props + one undo step across owner and nested, M4 sizing + Detach on builder pages; Q1 sizing approach, Q2 swap the
   whole layer, Q3 preferred values from Figma, Q4 what Reset all keeps). Waiting for the user's OK.
+
+## Studio builder GĐ4 M1 (session "Studio builder tool planning", tier M)
+
+- User approved the GĐ4 spec: Q2 Swap instance via Quick insert, Q3 preferred icons read from Figma, Q4 Reset all keeps
+  the content. Q1 (sizing) asked "which is friendlier?": answered (b) is cleaner in Layers and code but an L library
+  change; proposed (a) wrap in a Stack + fold the wrapper in Layers, unwrap on Hug, move/delete it with the instance.
+  Recorded in the spec §8, to settle before M4.
+- Figma option names: generated rows carry `options` (code value → Figma name; a set by its last path part); PropField
+  `optionLabels` → EnumControl lists Figma's options first in Figma order (`figmaOptions`, matchOption maps md ↔ medium),
+  code-only options last. MixedProperties uses the same names and labels.
+- Coverage: 15 more Figma sets mapped (70 components). `inheritedProps.ts` adds props a component takes from another
+  component's props type (`extends` clause, or ALIAS_EXTENDS for type aliases build-api does not read: NumberField,
+  TextAreaField; BadgeCounter's leadingIcon is set by the component and left out); shared by propSchema and
+  figma-props-build; selftest 11 (ALIAS_EXTENDS matched against the source).
+- BACKLOG 306–310: nested groups in the map (`nested`: Label from Primitives/Input/Label, Help-Text from code props
+  until the Figma set is read in M2), object toggles (`on: { code }` → setProp expression; the object's row shows only
+  while set), editor `icon-toggle` (switch + picker; off writes false, on resets to the default).
+- Reset all overrides: `resetAll.ts` (design editors, fixed values only, KEEP value/open/type/as/headingLevel…, required
+  props kept), DesignPanel header ↺ (zen instances), one runPlan of every planPropReset; selftest 12.
+- E2E `instance` IN-01…IN-06 (fixture frame "E2E instance"); the rows that picked "primary"/"sm" now pick the Figma
+  names; IN-04/05 wait for the switch to flip (layer switches read the rendered props, ~0.3–0.5 s after the source).
+  build-check step 6: "Primary" + Reset all + 2× ⌘Z. Full matrix 117 works except the known flaky I-15 (3/5 alone).

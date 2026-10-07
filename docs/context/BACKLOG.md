@@ -163,6 +163,9 @@ Read this file only when picking up work or logging a follow-up.
 - **P3 · Studio E2E I-15 is flaky (2026-10-06, session "Studio builder tool planning", seen during GĐ2 M2):** "Timed out
   waiting for ⌫ removes gap" on the first try in 2 of 3 full runs (passes on retry and alone, 2/2); the gate counts a
   failed try as a regression. Pointer: `tools/studio/e2e/scenarios/inspector.mjs` I-15, ScaleField ⌫ reset.
+  2026-10-07 (GĐ4 M1): 3/5 alone, both tries failed once in a gate run. Likely race: ⌫ right after ⌘Z is planned from
+  the element and hash read before the undo's refetch, so the server refuses it as stale; the row could wait for the
+  field to read "sm · …" again before ⌫.
 - **P3 · Builder Link folder: the permission prompt of a real folder is untested (2026-10-06, GĐ2 M4):**
   `npm run studio:build-check` covers link, write, Trash (trash/ copy), Restore and the reconnect after a reload through
   an OPFS folder, which the browser always grants; a folder the person picks is usually "prompt" after a reload, so the
@@ -299,17 +302,22 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   - P3 · Escape on a multi-selection selects the primary's parent; Figma selects the layers' common parent.
   - P3 · Wrap's snippet sync needs the example's `code:` to show the same region; most example snippets differ ("Example code not updated").
 - **Studio nested booleans follow-ups (2026-10-03, session "Boolean lồng nhau trong Studio"):**
-  - P3 · Props inherited from another Zen props type are not listed (build-api lists own props only): AvatarStack extends AvatarProps (no status/focus), BadgeCounter extends BadgeProps (no leadingIcon), MetricCard, Skeleton*; `propSchema.ts` only adds inherited HTML booleans.
-  - P3 · Nested instances show booleans only; Figma also exposes a nested instance's variants and text — ask before widening.
+  - ~~P3 · Props inherited from another Zen props type are not listed~~ done in the Studio 2026-10-07 (GĐ4 M1,
+    `inspector/inheritedProps.ts`: AvatarStack, BadgeCounter, NumberField, TextAreaField, PopoverManualAddNew); the docs
+    (build-api) still list own props only.
+  - P3 · Nested instances show booleans only; Figma also exposes a nested instance's variants and text — GĐ4 M3.
   - ~~P3 · A nested element passed through a variable (`leading={avatar}`) is not listed~~ done 2026-10-05 (fiber ownership).
 - **Studio nested booleans, after the 2026-10-05 fix (session "Nested boolean không hoạt động"):**
-  - P2 · Figma-model gaps (fits builder WP-E): Input Label {Optional, Tooltip-Icon, Action} / Help-Text {Icon,
-    Character-Limitation} groups; presence switches (Figma boolean = prop present) for components other than
-    TopNavigation (ListItem Leading/Trailing, Button icons, EmptyState CTA, InlineMessage/Toast Action/Close, Toggle
-    Subtext…); props typed `boolean | IconName | ReactNode` get the icon editor so true/false can't be switched (Dialog
-    icon, AlertBanner leading, characterLimit); handler-backed booleans (onClose) are hidden.
+  - ~~P2 · Figma-model gaps (fits builder WP-E)~~ mostly done 2026-10-07 (GĐ4 M1): Input Label / Help-Text groups,
+    switches for EmptyState CTA and AlertBanner / InlineMessage Action (object written as code), `icon-toggle` for
+    `boolean | IconName` (Dialog, Toast, AlertBanner, InlineMessage icon; Slider / Metric icon). Left: Toast Action /
+    Close and other handler-backed booleans (onClose: needs a builder-dialect handler), Toggle Subtext (no Figma read),
+    characterLimit (`ReactNode | true`: a text field, no switch), Help-Text's Figma names (set not in the capture: M2 read).
   - P2 · `scripts/build-api.mjs` drops intersection types: TextAreaField and NumberField list no label/helpText/label*
-    props, so Studio shows none of them.
+    props in the docs. The Studio lists them since 2026-10-07 (`inspector/inheritedProps.ts` ALIAS_EXTENDS).
+  - P3 (2026-10-07, GĐ4 M1) · A layer switch (Figma boolean) reads the rendered props, so it flips ~0.3–0.5 s after the
+    source changes (the canvas's hot update + a 250 ms debounce); a second press before that writes the same value again
+    ("No change"). Pointer: `inspector/GroupedProperties.tsx` ToggleRow `on`; an optimistic state would fix it.
   - P3 · Server `origin`: bindingOf ignores for-of/for-in/catch bindings; custom hooks returning state read as
     bound-value (a switch could fix their value); loop-bound `rows` is the innermost loop's length.
   - P3 · setProp after an attribute with a trailing `// comment` moves the comment; removeProp then leaves it on its own line.
@@ -1176,7 +1184,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   (behaviour ✗ apg + ⚠ deadclick). Same run, example content: ⚠ deadclick app-shell "Activity, new", chat "Hana Kim" inbox
   row; ⚠ rhythm 8 text styles in HR templates; button "Approve on a phone" "Chi Tran" heading-4 not a heading; button
   "Hand off when ready" Stack gap 2px; templates behaviour exceeded its 90 s budget.
-- P2 (2026-10-05, session "Studio builder tool planning", WP-E follow-ups, for GĐ4): option labels in Figma words (Size shows "md", Figma "Medium (Base)"; `figmaProps.generated.ts` already holds Figma option → code value) need a PropField change; nested groups (Figma layers) exist for TopNavigation only — the generated groups have none; icon-presence toggles start from a fixed icon (Button Leading-Icon → icon-check-line).
+- P2 (2026-10-05, session "Studio builder tool planning", WP-E follow-ups, for GĐ4): ~~option labels in Figma words~~ done 2026-10-07 (GĐ4 M1); nested groups for generated entries: a field's Label / Help-Text done in M1, the rest (Button in Card…) is GĐ4 M3; icon-presence toggles start from a fixed icon (Button Leading-Icon → icon-check-line): GĐ4 M2 reads Figma's default and preferred icons.
 - P3 (2026-10-05, Studio builder session): on a selected Box (layout primitive with slots) the SlotLayer "+" chip sits
   on the selection's size pill ("28 × 28") below small layers, so the size is hidden (`slots/SlotLayer.tsx` chip vs
   `.studio-resize__pill`).

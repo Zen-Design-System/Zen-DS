@@ -24,6 +24,9 @@ export type PropEditor =
   | { kind: "node" }
   | { kind: "typography" }
   | { kind: "icon" }
+  /** An icon that can also be switched off (`boolean | IconName`, `IconName | false`): Figma's boolean plus its instance
+   *  swap in one row. */
+  | { kind: "icon-toggle" }
   /** Text / Heading `align` in the Text section: Figma's icon-only Align left / center / right (never from editorFor). */
   | { kind: "text-align"; options: string[] }
   /** Text / Heading `truncate` (boolean | number) in the Text section: Figma's Truncate text switch plus Max lines. `state`
@@ -187,7 +190,7 @@ function scaleMembers(member: string): string[] | null {
 export function editorFor(type: string): PropEditor {
   const members = splitUnion(type);
   if (members.some((member) => member === "keyof typeof typographyStyles" || member === "TypographyStyleName")) return { kind: "typography" };
-  if (members.includes("IconName")) return { kind: "icon" };
+  if (members.includes("IconName")) return members.some((member) => member === "boolean" || member === "false" || member === "true") ? { kind: "icon-toggle" } : { kind: "icon" };
   // The long Color/Content tone list (Text, Heading, Icon) is named in the API docs instead of spelled out.
   if (members.includes("ContentTone") || members.includes("(typeof contentTones)[number]")) return { kind: "enum", options: [...contentTones] };
   if (members.includes("(typeof headingLevels)[number]") || members.includes("HeadingLevel")) return { kind: "number-enum", options: [1, 2, 3, 4, 5, 6] };

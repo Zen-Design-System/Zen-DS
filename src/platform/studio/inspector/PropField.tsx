@@ -470,8 +470,8 @@ export function rankIcons(query: string, names: readonly string[] = allIconNames
     .map((entry) => entry.name);
 }
 
-/** Icon names with a searchable list (at most 200 shown). */
-export function IconControl({ label, value, fallback, disabled, onSet }: ControlProps<string>) {
+/** Icon names with a searchable list (at most 200 shown). `emptyLabel`: what the field reads with no icon ("None"). */
+export function IconControl({ label, value, fallback, disabled, onSet, emptyLabel = "None" }: ControlProps<string> & { emptyLabel?: string }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -494,10 +494,10 @@ export function IconControl({ label, value, fallback, disabled, onSet }: Control
         endIcon="icon-chevron-down-line"
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={`${label}: ${shown ?? "none"}`}
+        aria-label={`${label}: ${shown ?? emptyLabel.toLowerCase()}`}
         onClick={() => setOpen((current) => !current)}
       >
-        <span className={`studio-icon-control__label ${typographyStyles["Body/Small/Medium"]}`}>{shown ?? "None"}</span>
+        <span className={`studio-icon-control__label ${typographyStyles["Body/Small/Medium"]}`}>{shown ?? emptyLabel}</span>
       </Button>
       <Popover
         open={open}
@@ -516,6 +516,28 @@ export function IconControl({ label, value, fallback, disabled, onSet }: Control
           if (item.id !== value) onSet(item.id);
         }}
       />
+    </div>
+  );
+}
+
+/**
+ * An icon that can be switched off (`boolean | IconName`: Dialog's icon, AlertBanner's leading; `IconName | false`:
+ * Metric's dock icon), Figma's boolean and its instance swap in one row: off writes `false`; on goes back to the
+ * default (the theme's icon, or the component's own), and the picker sets another icon.
+ */
+export function IconToggleControl({ label, value, fallback, disabled, onSet, onReset, takesTrue }: ControlProps<string | boolean> & { onReset?: () => void; takesTrue: boolean }) {
+  const on = value === undefined ? fallback !== false : value !== false;
+  // The icon it shows: the one written, else the component's default icon; `true` (the theme's icon) reads "Default".
+  const icon = typeof value === "string" ? value : value === undefined && typeof fallback === "string" ? fallback : undefined;
+  const switchOn = () => {
+    if (onReset) onReset();
+    else if (takesTrue) onSet(true);
+    else if (typeof fallback === "string") onSet(fallback);
+  };
+  return (
+    <div className="studio-icon-toggle">
+      <ToggleButton aria-label={`Show ${inSentence(label)}`} size="sm" checked={on} disabled={disabled} onCheckedChange={(next) => { if (!next) onSet(false); else switchOn(); }} />
+      {on ? <IconControl label={label} value={typeof value === "string" ? value : undefined} fallback={icon} emptyLabel="Default" disabled={disabled} onSet={onSet} /> : null}
     </div>
   );
 }
@@ -612,6 +634,17 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
       return <TypographyControl {...common} value={typeof literal === "string" ? literal : undefined} fallback={typeof fallback === "string" ? fallback : undefined} onSet={onSet} />;
     case "icon":
       return <IconControl {...common} value={typeof literal === "string" ? literal : undefined} fallback={typeof fallback === "string" ? fallback : undefined} onSet={onSet} />;
+    case "icon-toggle":
+      return (
+        <IconToggleControl
+          {...common}
+          value={typeof literal === "string" || typeof literal === "boolean" ? literal : undefined}
+          fallback={typeof fallback === "string" || typeof fallback === "boolean" ? fallback : undefined}
+          takesTrue={/(^|\|)\s*(boolean|true)\s*(\||$)/.test(spec.type)}
+          onSet={onSet}
+          onReset={extra.onReset}
+        />
+      );
     case "text-align":
       return <TextAlignControl {...common} options={editor.options} value={typeof literal === "string" ? literal : undefined} fallback={typeof fallback === "string" ? fallback : undefined} onSet={onSet} />;
     default:

@@ -71,6 +71,7 @@ for (const [component, spec] of Object.entries(FIGMA_PROPS)) {
     if (mapping.toggle) {
       if (!own.has(mapping.toggle)) errors.push(`${component}: toggle "${prop.name}" → "${mapping.toggle}" is not a code prop`);
       if (prop.type !== "BOOLEAN") notes.push(`${component}: "${prop.name}" is a ${prop.type}, mapped as a toggle`);
+      if (typeof mapping.on === "object" && !/^\s*[{[]/.test(mapping.on.code ?? "")) errors.push(`${component}: toggle "${prop.name}" writes code that is not an object or a list`);
       entry.toggles.push({ label: prop.name, prop: mapping.toggle, on: mapping.on ?? "" });
       continue;
     }
@@ -95,6 +96,29 @@ for (const [component, spec] of Object.entries(FIGMA_PROPS)) {
     // Two Figma properties on one code prop (Badge Leading-Icon-Src + a boolean): one row, the first label.
     if (!entry.own.some((other) => other.prop === codeProp)) entry.own.push(row);
   }
+  // Nested layers (Figma's nested instances, such as an Input's Label): a group shown while its prop is set, with the
+  // nested set's properties mapped like the component's own, then code props that set has no property for (`code`).
+  for (const [name, group] of Object.entries(spec.nested ?? {})) {
+    if (!own.has(group.when)) errors.push(`${component}: nested ${name} shows while "${group.when}", not a code prop`);
+    const set = group.set ? sets.get(group.set) : null;
+    if (group.set && !set) { errors.push(`${component}: nested ${name}: Figma set "${group.set}" not found`); continue; }
+    const rows = [];
+    for (const prop of set?.props ?? []) {
+      const mapping = group.props?.[prop.name];
+      if (mapping === undefined) { errors.push(`${component}: nested ${name} property "${prop.name}" (${prop.type}) is not mapped`); continue; }
+      if (mapping.skip) continue;
+      const codeProp = typeof mapping === "string" ? mapping : mapping.prop;
+      if (!own.has(codeProp)) { errors.push(`${component}: nested ${name} "${prop.name}" → "${codeProp}" is not a code prop`); continue; }
+      rows.push({ prop: codeProp, label: prop.name, type: prop.type });
+    }
+    for (const item of group.code ?? []) {
+      if (!own.has(item.prop)) { errors.push(`${component}: nested ${name} code prop "${item.prop}" is not a code prop`); continue; }
+      rows.push({ prop: item.prop, label: item.label, type: "CODE" });
+    }
+    // A boolean of the component may show the layer whose text the group edits (Label → label); a row may not be in both.
+    for (const row of rows) if (entry.own.some((other) => other.prop === row.prop)) errors.push(`${component}: "${row.prop}" is both the component's and nested ${name}'s`);
+    (entry.nested ??= []).push({ name, ...(set ? { figma: set.id } : {}), when: group.when, own: rows });
+  }
   out[component] = entry;
 }
 
@@ -107,8 +131,12 @@ export type FigmaPropsEntry = {
   /** Its properties in Figma order: the code prop, the Figma name and property type ("SET": which of its Figma sets),
    *  and Figma option name → code value. */
   own: ReadonlyArray<{ prop: string; label?: string; type: string; options?: Readonly<Record<string, string>> }>;
-  /** Figma booleans that show a layer: on writes \`on\` ("slot": the content-slot picker), off removes the prop. */
-  toggles: ReadonlyArray<{ label: string; prop: string; on: string }>;
+  /** Figma booleans that show a layer: on writes \`on\` (a text; "slot": the content-slot picker; { code }: an object or a
+   *  list written as code), off removes the prop. */
+  toggles: ReadonlyArray<{ label: string; prop: string; on: string | { code: string } }>;
+  /** Nested layers (an Input's Label): shown while \`when\` is set, with their properties ("CODE": a code prop the
+   *  nested Figma set has no property for, labelled here). */
+  nested?: ReadonlyArray<{ name: string; figma?: string; when: string; own: ReadonlyArray<{ prop: string; label?: string; type: string }> }>;
 };
 
 export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = ${JSON.stringify(out, null, 2)};
@@ -116,7 +144,7 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = ${JSON.str
 
 const target = path.join(root, OUT);
 const current = fs.existsSync(target) ? fs.readFileSync(target, "utf8") : null;
-const counts = `${Object.keys(out).length} components, ${Object.values(out).reduce((n, entry) => n + entry.own.length, 0)} props, ${Object.values(out).reduce((n, entry) => n + entry.toggles.length, 0)} toggles`;
+const counts = `${Object.keys(out).length} components, ${Object.values(out).reduce((n, entry) => n + entry.own.length, 0)} props, ${Object.values(out).reduce((n, entry) => n + entry.toggles.length, 0)} toggles, ${Object.values(out).reduce((n, entry) => n + (entry.nested?.length ?? 0), 0)} nested groups`;
 for (const note of notes) console.log(`  · ${note}`);
 for (const error of errors) console.log(`  ✗ ${error}`);
 if (check) {

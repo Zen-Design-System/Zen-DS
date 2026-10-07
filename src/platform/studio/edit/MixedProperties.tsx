@@ -3,7 +3,9 @@ import { SelectField } from "../../../components/Input";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { parseSrc, studioApi } from "../api";
 import { InspectorRow, InspectorSection } from "../inspector/Section";
-import { propSpecs, valueOf, type Literal, type PropSpec } from "../inspector/propSchema";
+import { componentGroupsOf } from "../inspector/componentGroups";
+import { entryLabel, entryOptions, entryProp, figmaOptions } from "../inspector/propGroups";
+import { matchOption, propSpecs, valueOf, type Literal, type PropSpec } from "../inspector/propSchema";
 import { onSourceUpdate } from "../select/picker";
 import type { ExtraLayer } from "../select/multiSelection";
 import { useStudio } from "../store";
@@ -57,18 +59,25 @@ export function MixedProperties({ layers, editable }: { layers: ExtraLayer[]; ed
   const write = (spec: PropSpec, value: Literal) => {
     void setPropsOnLayers(layers, [{ op: "setProp", name: spec.name, value: typeof value === "boolean" ? { kind: "boolean", value } : { kind: "string", value: String(value) } }], `${layers.length} × ${component} ${spec.name} → ${String(value)}`);
   };
+  // The rows and options by their Figma names, as the one-layer panel shows them (generated groups, propGroups.ts).
+  const groups = componentGroupsOf(component);
+  const entries = groups ? [...groups.own, ...groups.after, ...groups.nested.flatMap((group) => group.props)] : [];
+  const entryOf = (prop: string) => entries.find((entry) => entryProp(entry) === prop);
   return (
     <InspectorSection title={`${component} properties`} note={`A value set here goes to all ${layers.length} layers (one undo step). Mixed: they differ.`}>
       {rows.map(({ spec, value, mixed, bound }) => {
-        const options = spec.editor.kind === "enum" ? spec.editor.options : ["true", "false"];
-        const label = (option: string) => (spec.editor.kind === "boolean" ? (option === "true" ? "Yes" : "No") : option);
+        const entry = entryOf(spec.name);
+        const names = entry && spec.editor.kind === "enum" ? entryOptions(entry) : undefined;
+        const named = spec.editor.kind === "enum" ? (names ? figmaOptions(spec.editor.options, names, matchOption) : { options: spec.editor.options, labels: undefined }) : { options: ["true", "false"], labels: undefined };
+        const options = named.options;
+        const label = (option: string) => (spec.editor.kind === "boolean" ? (option === "true" ? "Yes" : "No") : named.labels?.[option] ?? option);
         return (
-          <InspectorRow key={spec.name} label={spec.name} name={spec.name} hint={bound ? "Bound to code in some layers — change it there" : undefined}>
+          <InspectorRow key={spec.name} label={(entry && entryLabel(entry)) ?? spec.name} name={spec.name} hint={bound ? "Bound to code in some layers — change it there" : undefined}>
             <SelectField
               aria-label={`${spec.name} for ${layers.length} layers`}
               size="sm"
               disabled={!editable || bound}
-              value={mixed || value === null ? "" : String(value)}
+              value={mixed || value === null ? "" : spec.editor.kind === "enum" ? matchOption(String(value), options) : String(value)}
               placeholder={mixed ? "Mixed" : "—"}
               onValueChange={(next) => write(spec, spec.editor.kind === "boolean" ? next === "true" : next)}
               options={options.map((option) => ({ value: String(option), label: label(String(option)) }))}
