@@ -21,6 +21,7 @@ import { Sidebar, SidebarSubMenu, type SidebarItem, type SidebarSection } from "
 import { Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
+import { PlatformPhone } from "../../PlatformPhone";
 import {
   activity, daysFromToday, files, formatBytes, formatDate, formatDay, formatDue, formatMoney, formatRelative, initials, invoiceStatusTheme,
   invoices, people, peopleList, plans, priorityTheme, projectById, projectStatusTheme, projects, studio, taskStatusTheme, tasks, workspacePlan,
@@ -584,6 +585,39 @@ function LinksForRoutingExample() {
   );
 }
 
+/** On a phone the Sidebar is the AppShell drawer: the menu button slides it in over a scrim; a pick closes it. */
+const phonePages: Record<string, { title: string; caption: string }> = {
+  home: { title: "Home", caption: "Due this week across your projects" },
+  inbox: { title: "Inbox", caption: "Mentions, approvals and comments" },
+  projects: { title: "Projects", caption: "Everything the studio is working on" },
+  reports: { title: "Reports", caption: "Hours and budgets by project" },
+};
+function SidebarOnPhone() {
+  const [page, setPage] = useState("home");
+  const sections: SidebarSection[] = [{ items: [
+    { id: "home", label: "Home", icon: "icon-home-03-line" },
+    { id: "inbox", label: "Inbox", icon: "ic-inbox-01-line", counter: 3 },
+    { id: "projects", label: "Projects", icon: "icon-folder-line" },
+    { id: "reports", label: "Reports", icon: "icon-bar-chart-01-line" },
+  ] }];
+  const current = phonePages[page];
+  const due = tasks.filter((t) => t.status !== "Done").slice(0, 4);
+  return (
+    <PlatformPhone label="Zen app">
+      <AppShell layout="drawer" sidebar={<Sidebar logo={studioLogo} sections={sections} selectedId={page} onItemClick={(item) => setPage(item.id)} />}>
+        <Container>
+          <Stack gap="lg" paddingY="md">
+            <PageHeader title={current.title} description={current.caption} />
+            <List aria-label={`${current.title} tasks`}>
+              {due.map((t) => <ListItem key={t.id} title={t.title} caption={`${projectById(t.project).name} · ${formatDue(t.due)}`} />)}
+            </List>
+          </Stack>
+        </Container>
+      </AppShell>
+    </PlatformPhone>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Studio navigation",
@@ -757,6 +791,19 @@ const section = pathname.split("/")[1]; // "/projects/lumen-banking" → "projec
   />
 }>
   <Routes />
+</AppShell>`,
+  },
+  {
+    title: "On a phone",
+    description: "On a phone the same Sidebar is the AppShell drawer: the menu button slides it in, floating over a scrim, with focus on the current page; a pick, Escape or the scrim closes it and the page below changes.",
+    render: () => <SidebarOnPhone />,
+    code: `// Under 1024px the shell does this by itself (layout="auto"); "drawer" pins it for a phone-only app.
+<AppShell layout="drawer"
+  sidebar={<Sidebar logo={logo} sections={sections} selectedId={page} onItemClick={(item) => setPage(item.id)} />}>
+  <Container>
+    <PageHeader title={current.title} description={current.caption} />
+    <List aria-label={\`\${current.title} tasks\`}>{/* rows */}</List>
+  </Container>
 </AppShell>`,
   },
 ]);

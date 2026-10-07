@@ -453,3 +453,6 @@
   6643:64008. usage rule metric/formatted-value reads only the element's own `value` (ownExpr), not a nested
   ProgressBar's. Icon-Highlight Counter / Metric-Color and Title-Highlight Hint / Label-Icon are still not in code
   (Backlog).
+- Sidebar "On a phone": AppShell layout="drawer" inside PlatformPhone; the open drawer covered the status bar, so
+  .zen-app-shell__drawer insets by --zen-safe-area-top/-bottom (env() fallback; 0 off phones). Screenshots
+  .platform-shots/sidebar-on-a-phone-{closed,open}.png. AppShell/Sidebar tests 20/20.

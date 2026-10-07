@@ -80,7 +80,8 @@
 .zen-app-shell__overlay[data-state="closing"] { pointer-events: none; }
 .zen-app-shell__scrim { position: absolute; inset: 0; background: var(--zen-color-background-overlay); animation: zen-motion-scrim-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease) both; }
 .zen-app-shell__overlay[data-state="closing"] .zen-app-shell__scrim { animation: zen-motion-scrim-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; }
-.zen-app-shell__drawer { position: absolute; inset: 0 auto 0 0; display: flex; max-width: 100%; align-items: flex-start; outline: none; }
+/* The drawer keeps clear of a phone's status bar and home indicator (safe areas; 0 on desktop and tablet). */
+.zen-app-shell__drawer { position: absolute; inset: var(--zen-safe-area-top, env(safe-area-inset-top, 0px)) auto var(--zen-safe-area-bottom, env(safe-area-inset-bottom, 0px)) 0; display: flex; max-width: 100%; align-items: flex-start; outline: none; }
 .zen-app-shell__drawer-panel { display: flex; min-width: 0; max-width: calc(100% - var(--zen-button-size-medium, 40px) - 2 * var(--zen-spacing-padding-xsmall, 8px)); height: 100%; animation: zen-app-shell-drawer-in var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, ease-out) both; }
 /* A shell narrower than the Sidebar plus the Close column: the Sidebar gives up width, never the Close button. */
 .zen-app-shell__drawer-panel > * { max-width: 100%; height: 100%; }
