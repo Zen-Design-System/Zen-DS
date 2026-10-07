@@ -36,7 +36,7 @@ export type SpacingArea = Box & {
 };
 
 /** The selected element whose spacing is shown, and whether its areas edit props (a Zen layout component). */
-export type SpacingOwner = { src: string; name: string; host: Element; editable: boolean };
+export type SpacingOwner = { src: string; name: string; host: Element; editable: boolean; /** The rendered props (a spread's live values). */ props?: Record<string, unknown> };
 
 type LayoutRule = {
   /** Gap areas between rows / between columns → props (first written wins, last is the fallback). */
@@ -254,7 +254,7 @@ export function spacingAreas(hit: FiberHit, part: boolean, toBox: (rect: DOMRect
       }
     }
     const editable = Boolean(rule) && areas.some((area) => area.props.length > 0);
-    return { owner: { src: hit.src, name: hit.name, host, editable }, areas };
+    return { owner: { src: hit.src, name: hit.name, host, editable, props: hit.props }, areas };
   } catch {
     return none;
   }
@@ -385,10 +385,12 @@ export function areaState(area: SpacingArea, owner: SpacingOwner, attributes: So
     return { prop: null, value: null, key, px: area.px, bound: false, boundBy: null, mixed: false, clears: [], options: [] };
   }
   const options = spacingOptions(owner.name, prop, owner.host, area.scale);
-  const value = attributes ? valueOf(attributes, prop) : null;
+  // A spread that the live props show not to set the prop ({...rest} carrying a className) leaves it unset, editable.
+  const read = (name: string): PropValue => { const found = valueOf(attributes ?? [], name, owner.props); return found.state === "spread" && owner.props && found.live === undefined ? { state: "unset" } : found; };
+  const value = attributes ? read(prop) : null;
   // Alt edits `padding` on every side: the side props written beside it give way (an expression never does).
   const otherProp = alt && area.altProp === prop && !area.props.includes(prop);
-  const sides = otherProp && attributes ? (area.altClears ?? []).map((name) => ({ name, value: valueOf(attributes, name) })).filter((side) => side.value.state !== "unset") : [];
+  const sides = otherProp && attributes ? (area.altClears ?? []).map((name) => ({ name, value: read(name) })).filter((side) => side.value.state !== "unset") : [];
   const boundSide = sides.find((side) => side.value.state !== "literal");
   const boundBy = value && (value.state === "bound" || value.state === "spread") ? { prop, value } : boundSide ? { prop: boundSide.name, value: boundSide.value } : null;
   const bound = Boolean(boundBy);

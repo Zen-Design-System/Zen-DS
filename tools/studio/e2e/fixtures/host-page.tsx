@@ -113,6 +113,10 @@ function GridFixture() {
         <Box surface="pale" padding="sm"><Text>Main</Text></Box>
         <Box surface="pale" padding="sm"><Text>Aside</Text></Box>
       </Grid>
+      <Grid data-e2e="grid-px" columns="240px 1fr" gap="sm" padding="xs">
+        <Box data-e2e="grid-px-item" surface="pale" padding="sm"><Text>Side</Text></Box>
+        <Box surface="pale" padding="sm"><Text>Main</Text></Box>
+      </Grid>
     </Stack>
   );
 }

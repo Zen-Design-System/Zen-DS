@@ -134,7 +134,7 @@ export function DraftsControls({ density }: { density: "wide" | "compact" | "nar
       >
         {label}
       </Button>
-      {density === "phone" ? null : (
+      {density === "phone" || density === "narrow" ? null : (
         <Button appearance="main" level="primary" size="sm" aria-keyshortcuts="Meta+S Control+S" disabled={busy !== null} onClick={() => { void saveAll(); }}>
           {saving}
         </Button>

@@ -624,7 +624,7 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
   const wrapperSrc = enabled && !specimen && host && base?.kind === "component" ? wrapperCandidate(host) : null;
   const wrapperElement = useSourceElement(wrapperSrc, Boolean(wrapperSrc));
   const at = hit ? parseSrc(hit.src) : null;
-  let target = base && element && hit && element.name === hit.name ? lockBound(base, element.attributes) : null;
+  let target = base && element && hit && element.name === hit.name ? lockBound(base, element.attributes, hit.props) : null;
   if (target && specimen) target = specimenOnly(target);
   else if (target && wrapperSrc) {
     // Until that Stack is read there is nothing to drag (a drag must never wrap a wrapped component again).

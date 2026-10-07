@@ -57,6 +57,9 @@ const PRIMITIVES = new Set(["Box", "Stack", "Grid", "Container", "Text", "Headin
 /* ── refusals ─────────────────────────────────────────────────────────────────────────────────────────────────────── */
 
 
+/** The component's own name: namespace JSX (`<Zen.ListItem>`) is the same component. */
+const localName = (name) => name.slice(name.lastIndexOf(".") + 1);
+
 function notDetachable(name) {
   if (!/^[A-Z]/.test(name)) return `<${name}> is plain markup already; only Zen components detach.`;
   if (PRIMITIVES.has(name)) return `<${name}> is a layout primitive already.`;
@@ -306,11 +309,14 @@ class Recipe {
       if (!attr) continue;
       // {false}, {null} and {undefined} turn the prop off: the instance is presentational.
       if (attr.kind === "expr" && NULLISH(attr.expression)) { this.consume(name); continue; }
+      // A bare identifier (`onClick={onClick}`, a handler passed in): the instance may render static here, but the
+      // detached markup would drop the handler; say where it comes from instead of calling the instance interactive.
+      if (attr.kind === "expr" && attr.expression?.type === "Identifier" && /^on[A-Z]/.test(name)) refuse(`This ${this.name} takes ${name} from \`${attr.expression.name}\` (a handler passed in): ${what}. It may render static here, but detaching would drop the handler; pass nothing for ${name} where the row is static, then detach.`);
       refuse(`This ${this.name} is interactive (${name}${attr.kind === "true" ? "" : "={…}"}): ${what}. Only presentational instances detach.`);
     }
   }
 
-  get name() { return jsxName(this.element.openingElement.name); }
+  get name() { return localName(jsxName(this.element.openingElement.name)); }
 
   /** A measured token key for `key` when it is valid for `kind`, else `fallback`. */
   m(key, kind, fallback) {
@@ -1442,7 +1448,7 @@ function pageLayout(node, component, parent = null) {
 }
 
 export function detachEdits(text, element, ast, { measured, instance, file, eol = text.includes("\r\n") ? "\r\n" : "\n", typographyKeys, plan = false, componentCss } = {}) {
-  const name = jsxName(element.openingElement.name);
+  const name = localName(jsxName(element.openingElement.name));
   const recipe = Object.hasOwn(RECIPES, name) ? RECIPES[name] : null;
   if (!recipe) refuse(notDetachable(name));
   const nodePath = pathTo(ast.program, element);

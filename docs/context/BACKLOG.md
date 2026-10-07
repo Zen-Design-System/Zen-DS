@@ -329,7 +329,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   - P3 · Server `origin`: bindingOf ignores for-of/for-in/catch bindings; custom hooks returning state read as
     bound-value (a switch could fix their value); loop-bound `rows` is the innermost loop's length.
   - **Done 2026-10-07 (backlog batch 2: `jsx-source.mjs` setPropEdits inserts after the comment; 3 selftest checks):** ~~P3 · setProp after an attribute with a trailing `// comment` moves the comment; removeProp then leaves it on its own line.~~
-  - P3 · Control-Bar switch ON only opens the slot picker when the saved file has no control bar (no write until a pick).
+  - **Closed (2026-10-07, backlog batch 5b: by design — ON brings the saved control bar back, as Figma shows a hidden layer again; the picker is for a bar the file never had):** ~~P3 · Control-Bar switch ON only opens the slot picker when the saved file has no control bar (no write until a pick).~~
   - P3 · Non-component exports left in component modules (Toolbar `revealSection`, ShortcutsDialog `openShortcuts`,
     ZoomControls `modKey`): an edit to those modules cascades; FramePanel.tsx and frames.ts could import
     board/presentFrame directly so Present.tsx can drop its re-export.

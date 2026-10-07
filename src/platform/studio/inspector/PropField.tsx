@@ -740,7 +740,8 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
     if (fixableBinding(value, boundHint)) {
       // A binding that reads no state (data, a condition on a const, a helper's parameter): the control shows what this
       // instance renders and an edit writes a fixed value; one source line renders every row of a .map.
-      const rows = value.origin?.kind === "loop-bound" ? value.origin.rows ?? repeats : repeats;
+      // Rows are a .map's; an element rendered in several places shows its count in the panel header instead.
+      const rows = value.origin?.kind === "loop-bound" ? value.origin.rows ?? repeats : undefined;
       const note = rows && rows > 1 ? `An edit sets a fixed value for all ${rows} rows; Restore brings the binding back.` : "An edit sets a fixed value; Restore brings the binding back.";
       // A switch shows what renders once the live props arrived; before that (one render) the read-only binding, not a
       // false it may not be.
