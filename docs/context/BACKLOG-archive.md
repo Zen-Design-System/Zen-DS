@@ -692,3 +692,7 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   a Sidebar change.
 - [DONE A3: build-api probes an Omit<SameFileType, keys> base with react-docgen; NumberField and TextAreaField list the field props; Studio ALIAS_EXTENDS retired] P2 · `scripts/build-api.mjs` drops intersection types: TextAreaField and NumberField list no label/helpText/label*
   props in the docs. The Studio lists them since 2026-10-07 (`inspector/inheritedProps.ts` ALIAS_EXTENDS).
+- [DONE A3: a left-aligned text cell keeps --zen-table-text-min-width (120px) in tables without fixed widths; the table scrolls (tests/interaction/table-narrow)] **P2 · Narrow tables without fixed widths (pre-existing):** when a Table's min-content is wider than its box it
+  both scrolls and crushes text columns to min-content (Sidebar "Projects flyout" at 390: "Token rename for Selected"
+  on 4 lines, table 345 in 246). Proposal: a readable minimum for text columns (as the fixed-column tables now have,
+  `--zen-table-fill-min-width`), in line with the research overflow matrix (docs/research/ui-patterns-and-rules-2026-09-30.md B1 L11–L13).

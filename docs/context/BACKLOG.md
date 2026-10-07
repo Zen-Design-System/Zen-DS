@@ -317,10 +317,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
     Spacing Small 16/16 vs Figma ticket 12/12; ModalForm Big 960 vs 800, no action icon (Attach File), TextAreaField
     fixed 112 vs 240; PageHeader title-to-chevron gap 12 vs 8; ProgressCircle Done shows a check vs a full disc; flag
     text tone Base vs Light.
-  - **P2 · Narrow tables without fixed widths (pre-existing):** when a Table's min-content is wider than its box it
-    both scrolls and crushes text columns to min-content (Sidebar "Projects flyout" at 390: "Token rename for Selected"
-    on 4 lines, table 345 in 246). Proposal: a readable minimum for text columns (as the fixed-column tables now have,
-    `--zen-table-fill-min-width`), in line with the research overflow matrix (docs/research/ui-patterns-and-rules-2026-09-30.md B1 L11–L13).
 - **Review batch 5 follow-ups (2026-09-30, items 13–17; log: session-log-2026-09-30.md "Review batch 5"):**
   - **P2 · Thin examples sweep (item 13 rest):** Dialog "Form · 1-3 with preview" and ModalForm "Basic" still open from
     a one-line row; scan other overlay/trigger examples the same way (script in the session log). **Sweep 2026-10-07:** done: "Form · 1-3 with preview" and "Basic" are gone; dialog.tsx:667-794 are scenario examples. The scan of the other overlay examples has not been re-run.

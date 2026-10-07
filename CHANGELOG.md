@@ -606,6 +606,9 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Table in a narrow box (2026-10-07):** a table without fixed column widths no longer crushes a text column to one word
+  per line: left-aligned text cells keep a readable minimum (`--zen-table-text-min-width`, 120px) and the table scrolls
+  sideways instead.
 - **Props docs (2026-10-07):** NumberField and TextAreaField now list the label, help-text and state props they take
   from the field (docs/api, guidelines, MCP); `scripts/build-api.mjs` reads an `Omit<…>` base declared in the same file.
 - **Backlog batch A, App Shell (2026-10-07):** a Sidebar inside AppShell follows the shell's rail and drawer even when it
