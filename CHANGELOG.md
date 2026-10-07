@@ -19,6 +19,8 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- Docs platform and Zen Studio: required sign-in with Google through PocketBase (`src/platform/auth/`); Log out in the
+  platform topbar's account menu and in the Studio brand menu. Automated browsers (QA gate, E2E) skip the sign-in screen.
 - **Zen-High-Contrast (2026-10-05, prototype):** `<ZenProvider contrast="high">` (or `"system"`, which follows the OS
   Increase Contrast setting, `prefers-contrast: more`) switches the Global Colors to a high-contrast mode. Subtle borders
   (Checkbox, Radio, Subtle controls) reach 3:1, the placeholder and Light text 4.5:1, a colour's Light text 4.5:1 and its

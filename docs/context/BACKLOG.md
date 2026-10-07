@@ -154,6 +154,11 @@ Read this file only when picking up work or logging a follow-up.
     and Tabs only, so there is no slot for a banner under the bar.
 
 ## Backlog (plan before opening sessions)
+- **P2 · CI "Package" step fails on every run of the 0.4.0 branch (2026-10-07, seen when merging PR #1):** 14 of 14
+  finished CI runs since 2026-09-29 failed, almost all in "Package (pack, install in a temp app, budgets, zen-usage,
+  MCP, zen-ds)" (twice Browser tests, twice Platform audit); `npm run verify:package` passes locally ("Package OK").
+  The job log could not be read from the cloud session (its storage host is blocked). PR #1 was merged with it on the
+  user's call. Pointer: `.github/workflows/ci.yml` step "Package", `scripts/verify-package.mjs`.
 - **P2 · Builder: Inspector Frames list keeps the previous local page's frames (2026-10-06, seen during GĐ2 M2):**
   open page A then page B (both new pages, Screen id `screen-1`): the Page panel's Frames shows A's title. Likely the
   frame registry keys `screen:screen-1` without the page. Pointer: `builder/BuilderBoard.tsx` frame ids,
@@ -242,7 +247,7 @@ Read this file only when picking up work or logging a follow-up.
   same-file const (86 props, `editability-audit.mjs --class=data-const`). Then B3 (nested non-boolean props), B4 (override
   for loop-bound/bound/conditional props, 3,087), B5 (tests per class). Add/remove/reorder list items: done 2026-10-04 by
   session "Mở lại port preview" (`tools/studio/items.mjs`, ObjectProperties `selection`/`only`, DataItemPanel).
-- **P3 · Top Navigation Modal screen placeholder contrast (2026-10-04):** `npm run qa` warns `[contrast] top-navigation@1512/390`
+- ~~**P3 · Top Navigation Modal screen placeholder contrast (2026-10-04):**~~ **closed 2026-10-07 (backlog cleanup):** the placeholder token is kept on purpose (Content/Placeholder, see the examples-rebuild RESOLVED entry), like the other placeholder 1.92:1 lines. Was: `npm run qa` warns `[contrast] top-navigation@1512/390`
   "Choose a reviewer" / "Choose a slot" 1.92:1 (SelectField placeholders); seen while gating the Studio B2 change, which does not
   touch that page.
 - **P3 · Design Tokens dark nav contrast (2026-10-04):** `npm run qa` dark audit warns 11× `[contrast] design-tokens@1512-dark`
@@ -688,7 +693,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - **Done, verified 2026-10-05:** ExampleCard's ZenProvider inherits the docs breakpoint (no `breakpoint` prop; PageHeader examples reorder at 390). ~~P2 · Example cards pin `breakpoint="desktop"`~~ (`PlatformShowcases.tsx` example card ZenProvider): responsive Grid
   columns never change in examples at 390. Layout wraps its responsive examples in `ZenProvider breakpoint="auto"`,
   Metric uses intrinsic `auto-fit` tracks / a container query. Decide at platform level (user/designer decision).
-- **P3 · Top Navigation scrollRef adoption:** Typography › "Master screen · phone" (`PlatformTypographyHierarchy.tsx`
+- ~~**P3 · Top Navigation scrollRef adoption:**~~ **closed 2026-10-07 (backlog cleanup):** done: Master screen · phone uses `scrollRef` + `headerOverlay screenRef` (PlatformTypographyHierarchy.tsx). Was: Typography › "Master screen · phone" (`PlatformTypographyHierarchy.tsx`
   ~161) still sets `collapsed` from an onScroll > 24 threshold; move it to `scrollRef` + `headerOverlay screenRef`.
 - **Done 2026-10-05 (session "Dark/light mode sync và UI present", backlog batch 6):** the appLayer cycle was already gone; the one cycle left in src/platform (PlatformExamples ↔ PlatformMobilePlaygrounds) is broken — PlaygroundSlot moved to appLayer/playgroundParts.tsx (re-exported), MobilePlaygrounds imports the leaf; a Tarjan scan of src/platform (static + eager glob) finds no cycles. Was: ~~P2 · appLayer import cycle:~~ `appLayer/shared.tsx` ↔ `PlatformExamples` / `PlatformTemplate`. It can throw
   "Cannot access 'option' before initialization" under HMR. Move `option` and `Panel` into a leaf module (Open items
@@ -761,7 +766,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - **P3 · Phone List inset:** Chip "Mobile filter row" and Button "Mobile footer CTA" keep List at its default inset
   (Margin/Comfortable 24px) while the rest of the screen sits on Margin/Compact (20px), so rows start 4px right of the
   chips and the Back chevron. `List inset="compact"` lines them up (as in the new Segmented phone example).
-- **Blocked:** Code Connect needs a Figma Organization or Enterprise plan.
+- ~~**Blocked:**~~ **closed 2026-10-07 (backlog cleanup):** same blocker as the Code Connect for Description List line. Was: Code Connect needs a Figma Organization or Enterprise plan.
 - **Done 2026-10-05 (session "Dark/light mode sync và UI present", backlog batch 5):** DateField writes the pick in DatePicker `onApply` when `datePickerActions` (Cancel/Escape keep the date; the zen-allow-date-apply exception is gone; test in input-popups). Was: ~~P2 · DateField `datePickerActions` commits on pick:~~ `handleDateChange` (onValueChange) writes the field and closes
   at once, so Cancel and Submit can never differ. Make the pick a draft and commit in the new DatePicker `onApply`
   (Cancel and Escape keep the old date). `zen-allow-date-apply` in `Input.tsx` marks the spot; session log
@@ -842,7 +847,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
       example. Use an inline SVG in currentColor.
     - **P3 · Rail counters:** a collapsed Sidebar hides an item's counter ("Approvals 3") without showing a Dot. This is
       a Sidebar change.
-    - **P3 · PageHeader when its actions wrap:** the order becomes title → buttons → description, so the description is
+    - ~~**P3 · PageHeader when its actions wrap:**~~ **closed 2026-10-07 (backlog cleanup):** done 2026-10-05 (backlog batch 6): on the mobile breakpoint the order is title, description, actions. Was: the order becomes title → buttons → description, so the description is
       split from its title. Example cards force `breakpoint="desktop"`, so at 390 they never show the mobile order
       (Primary first).
     - **P3 · Dashboard template:** the "Recent activity" title sits outside its card while "Revenue"'s sits inside, so
@@ -879,7 +884,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     (6.16:1), Dark 9→10 now 1.16:1 like Light. Run the plugin's Check → Update in the live file, then
     `skills/zen-token-sync`. Consumers: `Color/Background|Border/Support/Neutral/Solid` (Dark) and
     `Color/Content/On-Black-Overlay/Light` (Dark/Neutral-Alpha/9).
-  - **P2 · Light Neutral step 10 follows the raw input lightness, not step 9** (`L10_nl = L9 - 0.032`): Color Generator
+  - ~~**P2 · Light Neutral step 10 follows the raw input lightness, not step 9**~~ **closed 2026-10-07 (backlog cleanup):** decided 2026-09-29: the user keeps Light as is. Was: (`L10_nl = L9 - 0.032`): Color Generator
     palettes get Light 9→10 anywhere from 1.08 to 1.98:1 (Slate hsl(220,10,50): 1.47; Gray at 70% makes step 10
     lighter than step 9), and Check regenerates another step 10 from the saved step 9 (Gray #828282 vs #838383).
     **Decided 2026-09-29: the user keeps Light as is, no change.** Check's ±1-per-channel tolerance treats #828282
@@ -971,7 +976,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     - FileUpload's button is 32px and has no size prop.
     - Menu and Chip popovers have no phone (sheet) mode, so templates build their own sheets.
   - **P3 · RadioButton** cannot take `data-autofocus`, so Change role focuses the first radio, not the checked one.
-  - **P3 · PageHeader** on phones puts the Primary button between the title and the description.
+  - ~~**P3 · PageHeader**~~ **closed 2026-10-07 (backlog cleanup):** done 2026-10-05 (backlog batch 6): the description sits under the title on phones. Was: on phones puts the Primary button between the title and the description.
   - **P3 · Docs frames:**
     - Toasts from phone templates appear in the docs page's stack under the phone.
     - In the 1512 card, SidePanels open as modals because the frame is too narrow to dock them.
@@ -1086,7 +1091,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   change): new ⚠ on example pages — button "Approve on a phone": "Chi Tran" styled Heading/4 but not a heading; button "Hand
   off when ready": Stack gap 2px off the spacing ladder; templates HR · Home: sibling h2 titles in Heading/1 and Heading/4
   (rhythm "8 text styles" on the HR templates is already listed above).
-- P3 (2026-10-03, gate .qa/reports/2026-10-03T08-38-12-bd171ca9.md, same session, not from its change): design-tokens
+- ~~P3 (2026-10-03, gate .qa/reports/2026-10-03T08-38-12-bd171ca9.md, same session, not from its change):~~ **closed 2026-10-07 (backlog cleanup):** each part is tracked in its own line: Design Tokens dark nav contrast, Card playground slot corners, the chat Audio call dead click, the Templates 90 s budget. Was: design-tokens
   dark: the 11 collection headings measure 1.29:1; card playground Spacing=small: Card corner 16 vs slot 12 + inset 16
   (not concentric; card.css was being edited by "Slot Component phân biệt" during the run); chat "First message" Audio
   call dead click; templates exceeds the 90s behaviour budget.
@@ -1097,7 +1102,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   section was built 2026-10-04, see below); waits for the inspector owner's ScaleField + `FieldApi.apply` response
   (`docs/research/studio-position-effects-radius-spec-2026-10-03.md` §4, §6 C–E). Also resize.ts: an "inset" kind for
   absolute layers (ask the resize owner).
-- P2 (2026-10-04, session "Cho phép edit element floating", not from its change): behaviour ✗ on app-shell@1512 "Narrow
+- ~~P2 (2026-10-04, session "Cho phép edit element floating", not from its change):~~ **closed 2026-10-07 (backlog cleanup):** done 2026-10-05 (backlog batch 1): Narrow window › Open navigation opens the drawer. Was: behaviour ✗ on app-shell@1512 "Narrow
   window": "Open navigation" does not open with Enter and its click shows no visible effect (APG + dead click). Already
   in `.qa/reports/2026-10-03T17-00-38-710219c7.md` (00:00, before the AppShell measuring fix); fails every gate that
   includes app-shell. Probably the drawer inside `.px-app-shell-window` (overflow: clip) — needs a look.
@@ -1164,7 +1169,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   + which layers each boolean hides) before it gets groups; propose the order (most-used first) to the user.
 - P3 (same session): switching a list toggle off (Top-Trailing with 2+ actions) removes the prop, so a useToast() line an
   inserted action brought can stay unused; one item, or an object prop, goes through removeItem and cleans it.
-- P3 (2026-10-05, session "Studio builder tool planning", E2E): add harness rows for TopNavigation data-slot items (drag to reorder, drop onto another action to group, Inspector Slots `[data-item-index]` rows, "Group X with Y" / "Take X out of its group"); gestures listed by session "Dual action trên top navigation Figma". Needs a TopNavigation in `tools/studio/e2e/fixtures/host-page.tsx`.
+- ~~P3 (2026-10-05, session "Studio builder tool planning", E2E):~~ **closed 2026-10-07 (backlog cleanup):** same as (3) of the TopNavigation groups follow-ups line. Was: add harness rows for TopNavigation data-slot items (drag to reorder, drop onto another action to group, Inspector Slots `[data-item-index]` rows, "Group X with Y" / "Take X out of its group"); gestures listed by session "Dual action trên top navigation Figma". Needs a TopNavigation in `tools/studio/e2e/fixtures/host-page.tsx`.
 - P3 (same session): intermittent HMR error during Studio E2E runs: `[vite] ReferenceError: Cannot access 'appLayerExamples' before initialization` then "Failed to reload /src/platform/PlatformShowcases.tsx" (import cycle PlatformShowcases ↔ appLayer). Not tied to one row (D-03/D-06 pass); the report's "Vite errors" lists it.
 - P3 (same session): the QA gate owner should review the Studio hooks in `tools/qa/lib.mjs` (`uiKind` "studio", `auxKind` tools/studio, `pagesForEdit` skips studio) and `tools/qa/run.mjs` ("Studio self-tests" static step, "Studio E2E" runtime step).
 - **P3 · Studio Tone picker warnings (2026-10-05, "Token màu cho content/chữ/icon"):** the picker lists all 81 tones but
@@ -1172,7 +1177,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   copy); the harness flags it only at Save. Add a per-option "Not for text" caption like the slot palette's warnings.
 - ✅ 2026-10-06 (built: `shared-code.mjs`, `SharedConfirm`, E2E ST-12) P2 (2026-10-05, session "Studio builder tool planning", plan WP-B2): structural edits in shared demo code (`PlatformDemoActions.tsx`, `chatDemo`, `PlatformChat*`) with a "used in N places" confirmation. Needs one confirmation choke point for remove / duplicate / move / insert / paste / drag / multi, and `isSlotFile` widened to annotated non-playground files; today they show disabled with the reason ("shared beyond this example").
 - P3 (same session): the Studio E2E server watches the shared tree, so peers' edits to Studio files mid-run cause hot-update errors; rows retry once on a fresh page ("passed on retry" in the evidence). A run in a quiet window gives the cleanest matrix.
-- **P3 · deadclick list-item@1512 "Pending invites" (2026-10-05, seen by "Token màu cho content/chữ/icon"'s gate):** the
+- ~~**P3 · deadclick list-item@1512 "Pending invites" (2026-10-05, seen by "Token màu cho content/chữ/icon"'s gate):**~~ **closed 2026-10-07 (backlog cleanup):** a probe artifact: by hand Revoke removes the row and shows Undo (the batch 3 line below). Was: the
   "Revoke invite for an.vu@dizai.studio" Button click had no visible effect (no-op handler or a race); not caused by the
   tone change, example not touched.
 - **P3 · Colour Light text contrast (2026-10-05, "Token màu cho content/chữ/icon"):** on white (light mode) these Light levels
@@ -1203,7 +1208,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   deadclick list-item › Pending invites "Revoke invite for an.vu@dizai.studio" is a probe artifact — by hand it removes the
   row and shows the Undo toast; the pass revoked the row above first (the list shifts, the toast may cover the next
   button). New ⚠ in the same run, not from it: card › playground Spacing=small corners (Card 16 vs platform-slot 12 + 16).
-- P3 (2026-10-05, gate .qa/reports/2026-10-05T09-47-59-28eea406.md, backlog batch 6, not from its change): usage ⚠
+- ~~P3 (2026-10-05, gate .qa/reports/2026-10-05T09-47-59-28eea406.md, backlog batch 6, not from its change):~~ **closed 2026-10-07 (backlog cleanup):** the playground Avatar keeps white initials on Solid green by the user's choice (Avatar colours kept; the Playground Avatar line). Was: usage ⚠
   `src/platform/PlatformExamples.tsx:635` avatar/solid-initials-contrast (white initials on Solid green in a playground);
   the same run saw one file rendering from an unsaved Studio draft on 5173 (gone a minute later, not this session's).
 - P3 (2026-10-05, seen in the 390 contact sheets of session 2984c6e6, not from its token change): Table at 390 cuts the
@@ -1224,7 +1229,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - P3 (2026-10-06, same session): **Card Flat has no hover/pressed** when clickable (`card.css` only styles Border's
   interactive states), so clickable cards stay `theme="border"` under §16; a Flat interactive state would let them
   follow the default mood.
-- P3 (2026-10-06, gate .qa/reports of session 7b329fe8, Sidebar width change, not from it): behaviour ⚠ deadclick
+- ~~P3 (2026-10-06, gate .qa/reports of session 7b329fe8, Sidebar width change, not from it):~~ **closed 2026-10-07 (backlog cleanup):** same as the 2026-10-03 Chats inbox "Hana Kim" dead-click line (a probe race on the open row). Was: behaviour ⚠ deadclick
   `chat@1512` Chats inbox — clicking the selected "Hana Kim" Conversation-List row has no visible effect (the row is
   already open; likely a false positive, or the selected row should not re-announce).
 - P3 (2026-10-06, Studio builder session, seen on a builder page; likely on examples too): undo of an Assets / clipboard insert does not go back to the previous selection (slot-picker inserts do, `slots/actions.ts` remember); a redo within ~2 s shifts the stale selection a line, and a reload then reports "Selection lost". `edit/clipboard.ts insertCode` could remember before/after like slot inserts.

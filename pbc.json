@@ -1,0 +1,23 @@
+{
+  "build": {
+    "command": "npm run build:platform",
+    "outputDir": "dist-platform"
+  },
+  "defaultEnvironment": "dev",
+  "projectId": "t4309893piaszm7",
+  "kind": "frontends",
+  "environments": {
+    "dev": {
+      "id": "19kf53qj4bamsnz",
+      "name": "zen-docs-dev"
+    },
+    "staging": {
+      "id": "4vg0dbjqfpeh2rn",
+      "name": "zen-docs-staging"
+    },
+    "production": {
+      "id": "ozt2hd2nqzmsig8",
+      "name": "zen-docs-production"
+    }
+  }
+}

@@ -243,3 +243,14 @@
   Replace → the page's code again.
 - GĐ5 complete: M1 React, M2 HTML, M3 handoff, M4 uploads, M5 Promote.
 - The first M5 gate failed one promote selftest check (not reproduced alone or under load; its detail was not listed). tsc now runs with --pretty false (its error lines are what the filter reads) and each failing check prints ✗ lines the gate shows. Rerun: gate PASS (.qa/reports/2026-10-07T08-40-11-e54a8cf5.md, E2E 142 works).
+
+## Backlog cleanup (session "Studio builder tool planning", tier XS)
+
+- User: "Khoan xử backlog trước", then approved batches 1 (cleanup), 2 (Studio quick fixes), 4 (examples/docs P2); the
+  CI Package step stays logged (P2). An inventory pass counted 297 open rows (194 actionable, 80 decisions, 4 blocked,
+  8 manual, 11 maybe done).
+- Closed 12 rows that are done or duplicated, each struck with a dated reason: placeholder contrast (kept token),
+  Typography scrollRef (done), the second Code Connect line, PageHeader mobile order ×2 (done 2026-10-05), Light
+  Neutral step 10 (decided), the 2026-10-03 design-tokens gate line (all parts tracked), Narrow window navigation
+  (done), Pending invites and Hana Kim dead clicks (probe), TopNavigation E2E rows (duplicate), playground Avatar
+  (kept). The other overlaps are fragments inside multi-topic lines and stay as written.

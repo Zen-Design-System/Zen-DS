@@ -120,6 +120,7 @@
     "eslint": "10.11.0",
     "magic-string": "^1.4.1",
     "playwright": "1.63.0",
+    "pocketbase": "^0.26.9",
     "react": "19.3.0",
     "react-docgen": "8.0.4",
     "react-dom": "19.3.0",
