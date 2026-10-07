@@ -1,0 +1,139 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "skeleton",
+  "import": "import { SkeletonText, SkeletonHeading, SkeletonShape } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "SkeletonText",
+      "file": "src/components/Skeleton/Skeleton.tsx",
+      "description": "Figma Skeleton/Body-Text (1556:17566): 8px rounded bars, gap 8; the last of several lines is 40px shorter.",
+      "deprecated": null,
+      "extends": "SkeletonBaseProps",
+      "props": [
+        {
+          "name": "animated",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Pulse while loading (off for reduced motion).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "lines",
+          "type": "number",
+          "required": false,
+          "default": "3",
+          "description": "Figma No. of line: 1 · 2 · 3 · 5 (any positive number works).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "SkeletonHeading",
+      "file": "src/components/Skeleton/Skeleton.tsx",
+      "description": "Figma Skeleton/Heading-Text (1556:17593): a single rounded bar (Large 99px, Medium/Small 70px wide by default).",
+      "deprecated": null,
+      "extends": "SkeletonBaseProps",
+      "props": [
+        {
+          "name": "animated",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Pulse while loading (off for reduced motion).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Figma Size: Large 32 · Medium 24 · Small 16 high. Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "SkeletonShape",
+      "file": "src/components/Skeleton/Skeleton.tsx",
+      "description": "Figma Skeleton/Shapes (1556:17525): Rectangle/Square Corner-Radius/Base, Pill/Round fully rounded.",
+      "deprecated": null,
+      "extends": "SkeletonBaseProps",
+      "props": [
+        {
+          "name": "animated",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Pulse while loading (off for reduced motion).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "shape",
+          "type": "\"rectangle\" | \"pill\" | \"round\" | \"square\"",
+          "required": false,
+          "default": "\"rectangle\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"2xsmall\" | \"xsmall\" | \"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Figma Size: Large 48 · Medium 40 · Small 32 · XSmall 24 · 2XSmall 20 high. Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

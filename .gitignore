@@ -1,7 +1,18 @@
 node_modules/
 dist/
+dist-platform/
+dist-pack/
 storybook-static/
 .DS_Store
 *.log
 
 tools/figma-contract/.out/
+.platform-shots/
+# Ad-hoc debug screenshots some sessions write at the repo root; no tool reads them.
+/.out/
+
+# Build-QA gate: per-session ledgers, run artefacts and reports (tools/qa)
+.qa/
+
+# Zen Studio builder pages on the dev server (tools/studio/pages-folder.mjs): private to each machine
+/.zen-studio/

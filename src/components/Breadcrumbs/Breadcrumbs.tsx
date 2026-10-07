@@ -1,15 +1,18 @@
-import { useState, type MouseEvent, type ReactNode } from "react";
-import { Icon } from "../Icon";
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { Icon, type IconName } from "../Icon";
+import { renderIcon } from "../_shared/icon";
+import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./breadcrumbs.css";
+import "../Icon/core";
 
 export type BreadcrumbEmphasis = "default" | "medium";
 export type BreadcrumbItemData = {
   id: string;
   label: ReactNode;
   href?: string;
-  /** Leading icon; Figma shows it on the Master (first) level. */
-  icon?: ReactNode;
+  /** Leading icon — an icon name (`"icon-home-03-line"`, the default) or a node; Figma shows it on the Master (first) level. */
+  icon?: IconName | ReactNode;
 };
 
 export interface BreadcrumbItemProps {
@@ -26,7 +29,7 @@ export interface BreadcrumbItemProps {
 export function BreadcrumbItem({ item, level = "sub", emphasis = "default", current = false, state = "default", onNavigate }: BreadcrumbItemProps) {
   const content = (
     <>
-      {level === "master" ? <span className="zen-breadcrumb__icon" aria-hidden="true">{item.icon ?? <Icon name="icon-home-03-line" />}</span> : null}
+      {level === "master" ? <span className="zen-breadcrumb__icon" aria-hidden="true">{renderIcon(item.icon ?? "icon-home-03-line")}</span> : null}
       <span className={`zen-breadcrumb__label ${typographyStyles[emphasis === "medium" ? "Body/Base/Medium" : "Body/Base/Regular"]}`}>{item.label}</span>
     </>
   );
@@ -41,28 +44,41 @@ export interface BreadcrumbsProps {
   emphasis?: BreadcrumbEmphasis;
   /** Show the first item as the Master level (with icon). Default true. */
   master?: boolean;
-  /** Collapse middle items behind an ellipsis button when there are more than this many. */
+  /** Collapse middle items behind an ellipsis button when there are more than this many. Activating the ellipsis
+   *  shows them all and moves focus to the first crumb it revealed. */
   maxItems?: number;
   /** Called for every non-current item; call `event.preventDefault()` for client-side routing. */
   onNavigate?: (item: BreadcrumbItemData, event: MouseEvent) => void;
+  /** Names the navigation landmark (default "Breadcrumb", from the locale's labels). */
   "aria-label"?: string;
   className?: string;
 }
 
 /** Figma Breadcrumbs (4031:20161): Item-List with chevron separators (icon-chevron-right-line-small, Neutral/Light). */
-export function Breadcrumbs({ items, emphasis = "default", master = true, maxItems, onNavigate, "aria-label": ariaLabel = "Breadcrumb", className }: BreadcrumbsProps) {
+export function Breadcrumbs({ items, emphasis = "default", master = true, maxItems, onNavigate, "aria-label": ariaLabelProp, className }: BreadcrumbsProps) {
+  const t = useZenLabels();
+  const ariaLabel = ariaLabelProp ?? t.breadcrumb;
   const [expanded, setExpanded] = useState(false);
+  const listRef = useRef<HTMLOListElement>(null);
+  // Activating "…" removes it, so focus would drop to <body>: move it to the first crumb it revealed (items[1]), which is
+  // a link or a button (the current page is always the last crumb, never a revealed one).
+  const focusRevealed = useRef(false);
+  useEffect(() => {
+    if (!expanded || !focusRevealed.current) return;
+    focusRevealed.current = false;
+    listRef.current?.children[1]?.querySelector<HTMLElement>(".zen-breadcrumb")?.focus();
+  }, [expanded]);
   const collapse = !expanded && maxItems !== undefined && maxItems >= 2 && items.length > maxItems;
   const visible: Array<BreadcrumbItemData | "ellipsis"> = collapse ? [items[0], "ellipsis", ...items.slice(items.length - (maxItems - 1))] : items;
   return (
     <nav aria-label={ariaLabel} className={["zen-breadcrumbs", className].filter(Boolean).join(" ")}>
-      <ol className="zen-breadcrumbs__list">
+      <ol ref={listRef} className="zen-breadcrumbs__list">
         {visible.map((entry, index) => {
           const last = index === visible.length - 1;
           return (
               <li key={entry === "ellipsis" ? "ellipsis" : entry.id} className="zen-breadcrumbs__item">
                 {entry === "ellipsis"
-                  ? <button type="button" className="zen-breadcrumb" data-level="sub" aria-label={`Show ${items.length - maxItems!} more`} onClick={() => setExpanded(true)}><span className={`zen-breadcrumb__label ${typographyStyles["Body/Base/Regular"]}`}>…</span></button>
+                  ? <button type="button" className="zen-breadcrumb" data-level="sub" aria-label={t.showMore(items.length - maxItems!)} onClick={() => { focusRevealed.current = true; setExpanded(true); }}><span className={`zen-breadcrumb__label ${typographyStyles["Body/Base/Regular"]}`}>…</span></button>
                   : <BreadcrumbItem item={entry} level={master && index === 0 ? "master" : "sub"} emphasis={emphasis} current={last} onNavigate={onNavigate} />}
                 {!last ? <span className="zen-breadcrumbs__separator" aria-hidden="true"><Icon name="icon-chevron-right-line-small" /></span> : null}
               </li>

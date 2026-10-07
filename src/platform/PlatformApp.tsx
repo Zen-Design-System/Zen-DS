@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, IconButton } from "../components/Button";
-import { Sidebar, type SidebarSection } from "../components/Sidebar";
+import { ZenPortalProvider } from "../components/Portal";
+import { Button } from "../components/Button";
+import { Sidebar, type SidebarItem, type SidebarSection } from "../components/Sidebar";
+import { EmptyState } from "../components/EmptyState";
+import { Search } from "../components/Search";
 import { Icon, type IconName } from "../components/Icon";
 import coverVectorLeft from "../assets/figma/official/cover-vector-left.svg";
 import coverVectorRight from "../assets/figma/official/cover-vector-right.svg";
 import { collections } from "../foundations/collections";
 import { PlatformComponentPage, type PlatformPage } from "./PlatformExamples";
+import { appLayerPages } from "./PlatformAppLayer";
+import { appLayerPageIds, type AppLayerPage } from "./appLayer/types";
 import { PlatformTopbar, PlatformTypographyContext, type PlatformBreadcrumb, type PlatformShellSettings } from "./PlatformTemplate";
 import { typographyStyles } from "../tokens/typography.generated";
 import "./platform.css";
@@ -19,16 +24,33 @@ const cards: Array<{ title: string; description: string; icon: IconName; page?: 
 ];
 
 /** Component pages shown in the sidebar (sorted A–Z at render time). */
-const componentNavigation: Array<{ id: PlatformPage; label: string }> = [
+export const componentNavigation: Array<{ id: PlatformPage; label: string }> = [
+  { id: "color-selector", label: "Color Selector" },
+  { id: "metric", label: "Metric Widget" },
+  { id: "rating", label: "Rating" },
+  { id: "side-panel", label: "Side Panel" },
+  { id: "uploader", label: "Uploader" },
+  { id: "ai-chat", label: "AI Chat" },
+  { id: "bottom-navigation", label: "Bottom Navigation" },
+  { id: "bottom-sheet", label: "Bottom Sheet" },
+  { id: "chart", label: "Chart" },
+  { id: "chat", label: "Chat" },
+  { id: "top-navigation", label: "Top Navigation" },
   { id: "accordion", label: "Accordion" },
   { id: "alert-banner", label: "Alert Banner" },
   { id: "avatar", label: "Avatar" },
   { id: "badge", label: "Badge" },
   { id: "breadcrumbs", label: "Breadcrumbs" },
   { id: "button", label: "Button" },
+  { id: "card", label: "Card" },
   { id: "checkbox", label: "Checkbox" },
   { id: "chip", label: "Chip/Pill" },
   { id: "date-picker", label: "Date Picker" },
+  { id: "divider", label: "Divider" },
+  { id: "dock-icon", label: "Dock Icon" },
+  { id: "empty-state", label: "Empty State" },
+  { id: "inline-message", label: "Inline Message" },
+  { id: "list-item", label: "List Item" },
   { id: "input", label: "Input" },
   { id: "dialog", label: "Modal & Dialog" },
   { id: "pagination", label: "Pagination" },
@@ -39,11 +61,16 @@ const componentNavigation: Array<{ id: PlatformPage; label: string }> = [
   { id: "segmented", label: "Segmented" },
   { id: "sidebar", label: "Sidebar" },
   { id: "skeleton", label: "Skeleton" },
+  { id: "slider", label: "Slider" },
+  { id: "stepper", label: "Stepper" },
+  { id: "table", label: "Table" },
   { id: "tabs", label: "Tabs" },
   { id: "tag", label: "Tag" },
   { id: "toast", label: "Toast Message" },
   { id: "toggle", label: "Toggle" },
   { id: "tooltip", label: "Tooltip" },
+  // Phase-2 app layer (src/platform/appLayer/*): each page appears once its group module defines it.
+  ...Object.entries(appLayerPages).map(([id, meta]) => ({ id: id as PlatformPage, label: meta!.label })),
 ];
 const componentPageIds = componentNavigation.map((item) => item.id);
 
@@ -65,7 +92,40 @@ function getSidebarSections(activePage: PlatformPage, activeCollection: string |
   ];
 }
 
-function OverviewPage({ onCardClick }: { onCardClick: (page: PlatformPage) => void }) {
+/** Case- and accent-insensitive text for matching ("Tokens", "tokens", "Tóken" all match "token"). */
+const searchable = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+/**
+ * Navigation search: keeps the items whose label matches every word of the query, per section.
+ * A query word matches the start of a label word ("to" → Toast, Toggle, Design Tokens — not Button);
+ * when that finds nothing, any substring counts. Nested pages (Design Tokens collections) match on their
+ * own label and are listed on their own while searching, since a collapsed group would hide the match.
+ */
+function filterSidebarSections(sections: SidebarSection[], query: string): SidebarSection[] {
+  const words = searchable(query).split(/\s+/).filter(Boolean);
+  if (!words.length) return sections;
+  const prefix = (label: string) => { const parts = searchable(label).split(/[^a-z0-9]+/); return words.every((word) => parts.some((part) => part.startsWith(word))); };
+  const substring = (label: string) => words.every((word) => searchable(label).includes(word));
+  const byPrefix = filterWith(sections, prefix);
+  return byPrefix.length ? byPrefix : filterWith(sections, substring);
+}
+
+function filterWith(sections: SidebarSection[], matches: (label: string) => boolean): SidebarSection[] {
+  return sections
+    .map((section) => ({
+      ...section,
+      action: undefined,
+      items: section.items.flatMap((item): SidebarItem[] => {
+        const own = matches(item.label) ? [{ ...item, children: undefined, dropdown: false }] : [];
+        const children = (item.children ?? []).filter((child) => matches(child.label))
+          .map((child) => ({ ...child, icon: item.icon }));
+        return [...own, ...children];
+      }),
+    }))
+    .filter((section) => section.items.length);
+}
+
+export function OverviewPage({ onCardClick }: { onCardClick: (page: PlatformPage) => void }) {
   return (
     <div className="official-overview">
       <section className="official-cover" aria-labelledby="official-cover-title">
@@ -106,7 +166,7 @@ function OverviewPage({ onCardClick }: { onCardClick: (page: PlatformPage) => vo
   );
 }
 
-const pageLabels: Record<PlatformPage, string> = {
+export const pageLabels: Record<PlatformPage, string> = {
   overviews: "Overviews",
   installation: "Installation",
   "design-tokens": "Design Tokens",
@@ -136,6 +196,27 @@ const pageLabels: Record<PlatformPage, string> = {
   pagination: "Pagination",
   skeleton: "Skeleton",
   toast: "Toast Message",
+  divider: "Divider",
+  "empty-state": "Empty State",
+  "inline-message": "Inline Message",
+  slider: "Slider",
+  stepper: "Stepper",
+  card: "Card",
+  "dock-icon": "Dock Icon",
+  "list-item": "List Item",
+  table: "Table",
+  "color-selector": "Color Selector",
+  metric: "Metric Widget",
+  rating: "Rating",
+  "side-panel": "Side Panel",
+  uploader: "Uploader",
+  "ai-chat": "AI Chat",
+  "bottom-navigation": "Bottom Navigation",
+  "bottom-sheet": "Bottom Sheet",
+  chart: "Chart",
+  chat: "Chat",
+  "top-navigation": "Top Navigation",
+  ...(Object.fromEntries(appLayerPageIds.map((id) => [id, appLayerPages[id]?.label ?? id])) as Record<AppLayerPage, string>),
 };
 
 function getBreadcrumbs(activePage: PlatformPage, activeCollection: string | null): PlatformBreadcrumb[] {
@@ -156,22 +237,86 @@ function getInitialPage(): PlatformPage {
   return requestedPage && requestedPage in pageLabels ? requestedPage as PlatformPage : "overviews";
 }
 
+function getInitialCollection(): string | null {
+  const requested = new URLSearchParams(window.location.search).get("collection");
+  return requested && collections.some((collection) => collection.slug === requested) ? requested : null;
+}
+
 export function PlatformApp() {
   const [activePage, setActivePage] = useState<PlatformPage>(getInitialPage);
-  const [activeCollection, setActiveCollection] = useState<string | null>(null);
-  const [settings, setSettings] = useState<PlatformShellSettings>({ theme: "light", density: "compact", componentTheme: "neutral-s1", typography: "dashboard", radius: "rounded", emphasis: "medium" });
+  const [activeCollection, setActiveCollection] = useState<string | null>(getInitialCollection);
+  const [navOpen, setNavOpen] = useState(false);
+  // `?contrast=high` opens the docs in Zen-High-Contrast (the QA scripts' --contrast=high).
+  const [settings, setSettings] = useState<PlatformShellSettings>(() => ({ theme: "light", density: "compact", componentTheme: "neutral-s1", typography: "dashboard", radius: "rounded", emphasis: "medium", contrast: typeof window !== "undefined" && new URLSearchParams(window.location.search).get("contrast") === "high" ? "high" : "standard" }));
+  const [navQuery, setNavQuery] = useState("");
   const sidebarSections = useMemo(() => getSidebarSections(activePage, activeCollection), [activePage, activeCollection]);
+  const visibleSections = useMemo(() => filterSidebarSections(sidebarSections, navQuery), [sidebarSections, navQuery]);
+  const navResults = visibleSections.reduce((total, section) => total + section.items.length, 0);
 
+  // Each page is a history entry, so Back/Forward and shared links work; a new page starts at the top.
   useEffect(() => {
     const url = new URL(window.location.href);
     url.searchParams.set("page", activePage);
-    window.history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}`);
-  }, [activePage]);
+    if (activePage === "design-tokens" && activeCollection) url.searchParams.set("collection", activeCollection);
+    else url.searchParams.delete("collection");
+    const next = `${url.pathname}?${url.searchParams.toString()}`;
+    if (next !== `${window.location.pathname}${window.location.search}`) {
+      window.history.pushState(null, "", next);
+      window.scrollTo({ top: 0 });
+    }
+    const collectionName = activeCollection ? collections.find((collection) => collection.slug === activeCollection)?.name : undefined;
+    document.title = `${collectionName ?? pageLabels[activePage]} · Zen DS`;
+  }, [activePage, activeCollection]);
+
+  // Keep the current page's item visible in the scrolling rail (deep links to pages low in the list).
+  useEffect(() => {
+    document.querySelector('.official-sidebar [aria-current="page"]')?.scrollIntoView({ block: "nearest" });
+  }, [activePage, activeCollection]);
+
+  // Search's `shortcut` focuses the field on ⌘/Ctrl+K; on narrow screens the drawer must open too.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") setNavOpen(true);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  const openNavItem = (item: SidebarItem) => {
+    if (!item.children?.length) setNavOpen(false);
+    if (collections.some((collection) => collection.slug === item.id)) {
+      setActiveCollection(item.id);
+      setActivePage("design-tokens");
+    } else if (item.id in pageLabels) {
+      setActiveCollection(null);
+      setActivePage(item.id as PlatformPage);
+    }
+  };
+
+  useEffect(() => {
+    const onPopState =() => { setActivePage(getInitialPage()); setActiveCollection(getInitialCollection()); };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  // Narrow viewports: the navigation is a drawer; Escape closes it.
+  useEffect(() => {
+    if (!navOpen) return undefined;
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") setNavOpen(false); };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [navOpen]);
+
+  // Overlays (Modal, Dialog, Side Panel, tooltips) portal into this node inside <main>, so they inherit the
+  // platform's data-theme (light/dark), component theme, density, radius and emphasis.
+  const [portalRoot, setPortalRoot] = useState<HTMLDivElement | null>(null);
 
   return (
-    // The shell is Typography Configuration Dashboard plus the platform-only Zen-Platform
-    // overrides (platform.css); component previews apply the chip's mode themselves.
-    <main className="official-platform" aria-label="Zen Design System platform" data-brand="zen" data-theme={settings.theme} data-component-theme={settings.componentTheme} data-density={settings.density} data-radius={settings.radius} data-emphasis={settings.emphasis} data-typography="dashboard">
+    <ZenPortalProvider container={portalRoot}>
+    {/* The shell is Typography Configuration Dashboard plus the platform-only Zen-Platform
+        overrides (platform.css); component previews apply the chip's mode themselves. */}
+    <main className="official-platform" aria-label="Zen Design System platform" data-nav-open={navOpen ? "true" : undefined} data-brand="zen" data-theme={settings.theme} data-component-theme={settings.componentTheme} data-density={settings.density} data-radius={settings.radius} data-emphasis={settings.emphasis} data-contrast={settings.contrast} data-typography="dashboard">
+      <div id="official-navigation" className="official-nav">
       <Sidebar
         className="official-sidebar"
         density="medium"
@@ -181,16 +326,37 @@ export function PlatformApp() {
             <span className="official-sidebar__brand-name">Zen DS</span>
           </div>
         )}
-        sections={sidebarSections}
-        onItemClick={(item) => {
-          if (collections.some((collection) => collection.slug === item.id)) {
-            setActiveCollection(item.id);
-            setActivePage("design-tokens");
-          } else if (item.id in pageLabels) {
-            setActiveCollection(null);
-            setActivePage(item.id as PlatformPage);
-          }
-        }}
+        search={(
+          <div className="official-sidebar__search" role="search">
+            <Search
+              size="small"
+              placeholder="Search pages"
+              aria-label="Search components and pages"
+              shortcut="k"
+              value={navQuery}
+              onChange={(event) => setNavQuery(event.target.value)}
+              onClear={() => setNavQuery("")}
+              onKeyDown={(event) => {
+                // Enter opens the first match; Escape clears the query.
+                if (event.key === "Enter") {
+                  const first = visibleSections[0]?.items[0];
+                  if (first) { openNavItem(first); setNavQuery(""); }
+                }
+                if (event.key === "Escape" && navQuery) { event.preventDefault(); event.stopPropagation(); setNavQuery(""); }
+              }}
+            />
+            <span className="official-sidebar__search-status" role="status" aria-live="polite" data-empty={navQuery.trim() && !navResults ? "true" : undefined}>
+              {navQuery.trim() ? (navResults ? `${navResults} result${navResults === 1 ? "" : "s"}` : `No pages match “${navQuery.trim()}”`) : ""}
+            </span>
+            {navQuery.trim() && !navResults ? (
+              <EmptyState className="official-sidebar__empty" title="No pages found" illustration={false} secondaryAction={{ label: "Clear search", onClick: () => setNavQuery("") }}>
+                Nothing matches “{navQuery.trim()}”. Try a component name like “Button”.
+              </EmptyState>
+            ) : null}
+          </div>
+        )}
+        sections={visibleSections}
+        onItemClick={openNavItem}
         footer={(
           <>
             <button aria-label="Download Figma"><Icon name="ic-figma-line" size="base" /><span>Download Figma</span></button>
@@ -198,9 +364,11 @@ export function PlatformApp() {
           </>
         )}
       />
+      </div>
+      {navOpen ? <button type="button" className="official-scrim" aria-label="Close navigation" tabIndex={-1} onClick={() => setNavOpen(false)} /> : null}
 
       <section className="official-content">
-        <PlatformTopbar breadcrumbs={getBreadcrumbs(activePage, activeCollection)} settings={settings} showSettingsControls={componentPageIds.includes(activePage)} onSettingsChange={(changes) => setSettings((current) => ({ ...current, ...changes }))} />
+        <PlatformTopbar breadcrumbs={getBreadcrumbs(activePage, activeCollection)} settings={settings} showSettingsControls={componentPageIds.includes(activePage)} onSettingsChange={(changes) => setSettings((current) => ({ ...current, ...changes }))} navOpen={navOpen} onMenuClick={() => setNavOpen((open) => !open)} />
 
         <div className="official-page">
           <PlatformTypographyContext value={settings.typography}>
@@ -212,10 +380,11 @@ export function PlatformApp() {
           </PlatformTypographyContext>
         </div>
 
-        {/* Figma Floating-Actions: Button/Icon-Main Medium Accent with icon-zen, 24px from the corner.
-            zen-allow-accent: the floating feedback action is a promoted CTA by design. */}
-        <IconButton className="official-feedback" appearance="main" level="accent" size="md" aria-label="Open feedback" icon={<Icon name="icon-zen" decorative />} />
       </section>
+      {/* Portalled overlays (Dialog, Side Panel, Toast, Tooltip, Popover…) belong to the component previews, so they take the
+          preview typography (the topbar chip, Dashboard by default) — never the shell's Zen-Platform overrides. */}
+      <div ref={setPortalRoot} className="official-portal-root" data-typography={settings.typography} />
     </main>
+    </ZenPortalProvider>
   );
 }

@@ -1,0 +1,12 @@
+/* Top Navigation examples (src/platform/examples/pages/top-navigation.tsx). Tokens only. */
+
+/* Moodboard tiles: each photo is one button that opens the viewer. */
+.px-top-navigation-tile {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: var(--zen-corner-radius-small, 8px);
+  background: none;
+  cursor: pointer;
+}
+.px-top-navigation-tile:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }

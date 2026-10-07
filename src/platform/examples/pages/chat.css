@@ -1,0 +1,19 @@
+/* Chat examples. The emoji panel (ChatEmojiPicker, its own Popover surface) floats above the composer's emoji button,
+   over the thread, like the Reaction-Bar's "+" panel; the composer keeps its own layout. */
+.px-chat-composer { position: relative; }
+.px-chat-emoji { position: absolute; z-index: 5; right: var(--zen-spacing-padding-xsmall, 8px); bottom: calc(100% + var(--zen-spacing-padding-xsmall, 8px)); }
+
+/* A single desktop chat window: one column, the thread pane only (the messenger adds the chat list beside it). */
+.pe-chat-desktop.px-chat-single { grid-template-columns: minmax(0, 1fr); }
+
+/* A chat with no messages yet: the Empty State sits in the middle of the phone screen, above the composer. */
+.px-chat-empty { min-height: 100%; }
+
+/* Narrow pages: the platform keeps a desktop chat window at 560px and scrolls it sideways (logged for platform.css), which
+   leaves its bubbles and composer cut at the card edge. These windows fit the card instead: the desktop thread wraps
+   its bubbles and keeps its hover toolbar, and the composer keeps its controls on one row. */
+@media (max-width: 620px) {
+  .pe-chat-desktop.px-chat-window { min-width: 0; }
+  /* The chat's name is the window's title: it wraps instead of cutting off. */
+  .px-chat-window .pe-chat-desktop__name { white-space: normal; }
+}

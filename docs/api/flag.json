@@ -1,0 +1,43 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "flag",
+  "import": "import { Flag } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Flag",
+      "file": "src/components/Flag/Flag.tsx",
+      "description": "Figma Flag (7063:63834, 🍑 Iconography): 260 round country and region flags, 24×24 in Figma. A flag identifies a\ncountry next to its name (locale pickers, phone codes, addresses, holiday calendars); it is never the only label.\nUntil the flag data has loaded, the same circle shows in Neutral/Subtle.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "name",
+          "type": "FlagName",
+          "required": true,
+          "default": null,
+          "description": "Figma Flag `Name`: the country or region, spelled as in Figma (e.g. \"Vietnam\", \"United Kingdom\").",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Figma Size: Small 16 · Medium 24 (default) · Large 32, on the Image-Size scale (Avatar XSmall = Medium).",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name for a flag that stands alone. Omit it when the country name sits next to the flag (decorative).",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "FlagName": "type FlagName = (typeof flagNames)[number]"
+  }
+}

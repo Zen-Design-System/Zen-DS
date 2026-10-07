@@ -1,0 +1,75 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "color-selector",
+  "import": "import { ColorSelector } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "ColorSelector",
+      "file": "src/components/ColorSelector/ColorSelector.tsx",
+      "description": "Figma Color-Selector (373:97252): 32px round swatches (Corner-Radius/Rounded, padding XSmall, 1px inside\nBorder/Neutral/Subtle/Hover so light colours stay visible). Select=Yes shows a 16px check; Hover draws a 2px\nFocus/Neutral/Solid ring (40px); keyboard focus shows the 48px Neutral/Flat/Hover halo. One radio per swatch.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "colors",
+          "type": "ColorOption[]",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the chosen colour's `value`.",
+          "deprecated": null
+        },
+        {
+          "name": "onChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use onValueChange (same arguments)."
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the group (default \"Colour\", from the locale's labels).",
+          "deprecated": null
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "ColorOption": "interface ColorOption { value: string; label: string; contrast?: \"light\" | \"dark\"; }"
+  }
+}

@@ -6,21 +6,21 @@
     "capturedFrom": "Figma Variables JSON export",
     "capturedAt": "2026-09-21",
     "previousAuditVariableCount": 2356,
-    "exportVariableCount": 2367,
-    "lastSynchronizedAt": "2026-09-24",
-    "synchronizationNote": "Component Theme was re-synced from the user-provided JSON export; the two selected-hover aliases for Segmented were added."
+    "exportVariableCount": 2199,
+    "lastSynchronizedAt": "2026-10-05",
+    "synchronizationNote": "Zen-Variables.zip (2026-09-28): Global Colors, Component Theme, Emphasis Level and Typography Configuration re-synced. Component Theme adds mode Neutral - S4 and Input/Border/Disabled; Emphasis Level adds mode Light; Typography Dashboard/Mobile values and four Light/*/11 greys changed. Text-style snapshots re-derived from the bound variables. Zen-Variables.zip (2026-09-29): Component Theme (export holds mode Neutral - S4 only) Chip-Secondary selected background, selected border and active border weight; Corner Radius Input/Small 12 / 12 / 8 / 2. Component Theme.json (2026-09-29, mode Neutral - S3 only) sets Chip-Secondary selected background to Neutral/Pale/Default; by the user's decision the repo keeps S3 at Active/Neutral/Subtle, and the live file was set to the same value (read 2026-09-29 02:55). Global Colors.json (2026-09-29, mode Zen): step 3 of every Light and Dark ramp and its Alpha twin re-synced (79 values; Light slightly darker, Dark slightly lighter); no names added, removed or renamed. Global Colors.json (2026-09-29, second export): Dark/Gray/9 #656565 → #929292 and Dark/Gray-Alpha/9 → #FFFFFF8B (the Zen Plugin Dark Neutral step 9). At the user's request the VT, Chat, Brand-Ananas and Neutral-Ananas ramps (Light/Dark and Alpha, 192 variables, no aliases or CSS consumers) were removed from the repo, so Global Colors has 960 variables and the repo 2,176. The Figma file and its exports still hold these ramps, so drop them again on the next sync or delete them in Figma. The hidden count assumes they were hidden. Global Colors.json (2026-09-29, third export): 69 Dark/*-Alpha values at steps 1–9 re-synced (step 3 only in Golden, Mint, Orange and Yellow). Most old ones were near-opaque dark colours (alpha F5 at steps 4–8), the new ones bright hues at low alpha, e.g. Dark/Teal-Alpha/5 #003F37F5 → #00FFDB2F. The 192 removed ramps in the export stay out. Global Colors.json (2026-09-29, fourth export): 264 Dark values re-synced, Light unchanged. Steps 1–8 of the Dark solid ramps move slightly (mostly lighter, e.g. Dark/Gray/1 #0F0F0F → #121212, Dark/Blue/1 #0C0F14 → #0F1217; Dark/Gray/2 #1B1B1B → #191919), plus Dark/Gray/11–12 and 110 small Dark Alpha adjustments. The 192 removed ramps stay out. Component Theme.json (2026-10-02, modes Neutral - S5, S6, S7 only): three new modes, no names added or removed. S5 = S4 with filled inputs (Input background Neutral/Subtle, hover Subtle/Hover, focused Neutral/Flat; no input border or shadow). S6 = S4 (outlined inputs) with filled Button-Tertiary and Chip-Secondary (Neutral/Subtle backgrounds, no border or shadow; selected chip border Active/Neutral/Subtle). S7 = S5 with the focused input on Neutral/Pale. Component Size.json (2026-10-02): one new token, AI-Chat/Field/Corner-Radius (Compact {Corner-Radius/Giant}, Comfortable {Corner-Radius/XGiant}), so Component Size has 195 variables and the repo 2,177; no names removed or values changed (the export lists the tokens in a different order; the repo keeps its order and appends the new one). Component Theme.json (2026-10-03): two new tokens, no values changed or names removed, so Component Theme has 115 variables and the repo 2,179. Input/Border/Focus is the Focused/Typing field border ({Color/Focus/Neutral/Solid}, {Color/Focus/Neutral/Subtle} in Neutral - S7). Input/Border/Popover-Search is the Focused/Typing border of Search/Popover ({Color/Focus/Neutral/Subtle} in Neutral - S7). In the other eight modes Figma aliases Color/Focus/Neutral/Solid at opacity 0, which the export writes as #NANNANNAN; the repo stores the resolved value, transparent #FFFFFF00 (live file read 2026-10-03). User request (2026-10-03, repo only): Bubble-Chat-Others-Business/Background/Default now aliases {Color/Background/Surface/Default} in all nine modes (was {Color/Background/Popover/Default}); the live Figma file still has Popover, so change it there too or the next sync reverts it. Component Theme.json (2026-10-03 evening, export holds mode Neutral - S7 only): Input/Border/Focus in Neutral - S7 is now {Color/Focus/Neutral/Solid} (was {Color/Focus/Neutral/Subtle}), so the Focused/Typing field border is Color/Focus/Neutral/Solid in all nine modes (live file read 2026-10-03); no other value, name or count changed. Global Colors.json (2026-10-03, mode Zen): 258 values re-synced (109 solid, 149 Alpha); no names added, removed or renamed, and the 192 removed ramps stay out. Light: Gray/4–6 slightly darker (Gray/4 #EAEAEA → #E5E5E5, Gray/5 #E2E2E2 → #DEDEDE, Gray/6 #DBDBDB → #D7D7D7), Gray/10 #828282 → #838383, Gray/12 #111111 → #121212 and their Alpha twins, plus one-step rounding on Orange/8, Orange-Alpha/8 and Brown/7. Dark: step 2 of every ramp slightly lighter (Dark/Gray/2 #191919 → #1A1A1A), steps 4–7 of the hue ramps slightly darker (e.g. Dark/Blue/6 #003E80 → #003B7C), Dark/Gray/4–10 slightly lighter (Dark/Gray/4 #262626 → #2A2A2A), Dark/Teal/8, and the Alpha twins (mostly steps 2 and 4–7). Global Colors.json (2026-10-04, mode Zen): 420 values re-synced (210 solid, 210 Alpha) from the Zen Plugin’s Dark-contrast revision; no names added, removed or renamed, and the 192 removed ramps stay out. Dark: steps 2–8 sit further from the canvas (Dark/Gray/2 #1A1A1A → #1C1C1C, Dark/Gray/3 #222222 → #262626, Dark/Gray/8 #646464 → #696969; Dark/Blue/3 #122339 → #16253D), Dark/Gray/9 #939393 → #8D8D8D (Neutral step 9 → 10 now 1.25:1, step 10 unchanged), and accent steps 10–11: hover lighter and Base text at about 9.5:1 and more saturated (Dark/Blue/10 #499BFF → #5EA5FF, Dark/Blue/11 #CAE2FF → #86BCFF); bright solids (Sky, Mint, Yellow) darken on hover and step 11 matches step 9 (Dark/Sky/10 #72E1FF → #1DAFCE, Dark/Sky/11 #BFF0FF → #4ECFF0). Light: accent step 10 slightly darker (Light/Blue/10 #0074E0 → #0070D8), one-step rounding at step 2, Light/Gray unchanged; plus the Alpha twins. Global Colors.json (2026-10-05, mode Zen): 235 values re-synced in six ramps and their Alpha twins, Light and Dark: Cyan, Grass, Blue and Bronze (steps 2–12), Orange (Light 4 and 6–12, Dark 2–4, 6 and 9–12) and Zen (Light 3 and 8–12, Dark 4–12). Step 9 moves in all six (Light/Cyan/9 #10AEDA → #12A2CE, Light/Grass/9 #3FAB53 → #3A9C4C, Light/Orange/9 #ED8002 → #E37A02, Light/Bronze/9 #DC754C → #D76F37, Light/Blue/9 #0A85FF → #0F73FF, Light/Zen/9 #FF66D4 → #FF6BD5; Dark step 9 equals Light), and Zen step 10 sits closer to step 9 (Light/Zen/10 #E34BBC → #F663CE, Dark/Zen/10 #FF7AD8 → #FFA7E2). No names added, removed or renamed; the 192 VT, Chat and Ananas variables in the export stay out. User request (2026-10-05): Color/Content/Placeholder now aliases {Light/Neutral-Alpha/9} / {Dark/Neutral-Alpha/9} (was step 8, the same as Color/Content/Disabled), as in the live Figma file (read 2026-10-05); later that day (user request) the overlay Placeholder tokens followed: Color/Content/On-White-Overlay/Placeholder → {Light/Neutral-Alpha/9} and Color/Content/On-Black-Overlay/Placeholder → {Dark/Neutral-Alpha/9} in both modes (were step 8), as in the live Figma file (read 2026-10-05 22:17). Disabled stays at step 8. Zen-Variables 2 (2026-10-05 evening): Global Colors.json now holds a second mode, Zen-High-Contrast (151 values differ from Zen: alpha 5–7 of every ramp, Light/Gray-Alpha/9–10 and some colour steps 10–11). It equals what scripts/high-contrast.mjs generates (all 960 values), and tokens:build now takes [data-contrast=\"high\"] from Figma instead of the algorithm. The Mint ramp is re-synced in mode Zen (46 values: Light Mint and Mint-Alpha 2–12, Dark Mint and Mint-Alpha 1–12); no names added, removed or renamed, and the 192 VT, Chat and Ananas variables in the export stay out. Mode Colors (Semantic).json adds 20 tokens, the Support Sky and Mint sets (Content Light/Base/Strongest, Background Solid/Subtle/Soft/Deep/Pale, Border Solid/Subtle; the same steps as the other Support colours), so Mode Colors (Semantic) has 427 variables and the repo 2,199; no other value changed."
   },
   "collections": [
     {
       "slug": "global-colors",
       "name": "Global Colors",
       "layer": "primitive",
-      "variableCount": 1152,
-      "modes": ["Zen"],
-      "types": { "COLOR": 1152 },
-      "hiddenVariableCount": 1056,
+      "variableCount": 960,
+      "modes": ["Zen", "Zen-High-Contrast"],
+      "types": { "COLOR": 960 },
+      "hiddenVariableCount": 864,
       "purpose": "Raw color ramps and primitive palette values.",
-      "codeAxis": null
+      "codeAxis": "data-contrast"
     },
     {
       "slug": "global-dimensions",
@@ -48,9 +48,9 @@
       "slug": "mode-colors-semantic",
       "name": "Mode Colors (Semantic)",
       "layer": "semantic",
-      "variableCount": 407,
+      "variableCount": 427,
       "modes": ["Light", "Dark"],
-      "types": { "COLOR": 406, "BOOLEAN": 1 },
+      "types": { "COLOR": 426, "BOOLEAN": 1 },
       "hiddenVariableCount": 0,
       "purpose": "Intent-based colors consumed by UI and switched by color mode.",
       "codeAxis": "data-theme"
@@ -59,9 +59,9 @@
       "slug": "component-colors-theme",
       "name": "Component Theme",
       "layer": "component",
-      "variableCount": 112,
-      "modes": ["Neutral - S1", "Brand - S1", "Neutral - S2", "Brand - S2", "Neutral - S3"],
-      "types": { "COLOR": 111, "FLOAT": 1 },
+      "variableCount": 115,
+      "modes": ["Neutral - S1", "Brand - S1", "Neutral - S2", "Brand - S2", "Neutral - S3", "Neutral - S4", "Neutral - S5", "Neutral - S6", "Neutral - S7"],
+      "types": { "COLOR": 114, "FLOAT": 1 },
       "hiddenVariableCount": 96,
       "purpose": "Theme-level aliases for component colors.",
       "codeAxis": "data-component-theme"
@@ -70,9 +70,9 @@
       "slug": "component-size",
       "name": "Component Size",
       "layer": "component",
-      "variableCount": 194,
+      "variableCount": 195,
       "modes": ["Compact", "Comfortable"],
-      "types": { "FLOAT": 194 },
+      "types": { "FLOAT": 195 },
       "hiddenVariableCount": 171,
       "purpose": "Control heights, paddings, gaps and icon sizes by density.",
       "codeAxis": "data-density"
@@ -104,7 +104,7 @@
       "name": "Emphasis Level",
       "layer": "semantic",
       "variableCount": 6,
-      "modes": ["Medium", "Strong"],
+      "modes": ["Medium", "Strong", "Light"],
       "types": { "FLOAT": 6 },
       "hiddenVariableCount": 4,
       "purpose": "Font-weight and stroke emphasis decisions.",

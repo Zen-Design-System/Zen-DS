@@ -1,0 +1,204 @@
+/* Zen Studio code view (spec §7). Always dark: the root carries data-theme="dark", so every Content/Background token
+   below resolves to its dark value; the surface is the fixed primitive the classic .platform-code uses. Rows are one
+   line-height (1lh of Body/Code) tall so the virtualised list can compute positions. */
+.studio-code {
+  --studio-code-surface: var(--zen-light-neutral-12, #111111);
+  --studio-code-tint: transparent;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  /* A static closed container: Pale hairline (it separates the dark block from a dark chrome panel). */
+  border: 1px solid var(--zen-color-border-neutral-pale-default);
+  border-radius: var(--zen-corner-radius-small);
+  background: var(--studio-code-surface);
+  color: var(--zen-color-content-neutral-strongest);
+  color-scheme: dark;
+}
+
+.studio-code__header {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--zen-spacing-gap-xsmall);
+  padding: var(--zen-spacing-padding-2-xsmall) var(--zen-spacing-padding-2-xsmall) var(--zen-spacing-padding-2-xsmall) var(--zen-spacing-padding-small);
+  border-bottom: 1px solid var(--zen-color-border-neutral-pale-default);
+}
+
+.studio-code__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--zen-color-content-neutral-strongest);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Language badge (Badge xs neutral subtle): after the title, or first when the header has none. */
+.studio-code__language {
+  flex: none;
+  white-space: nowrap;
+}
+
+/* Right-aligned with or without a title before it. */
+.studio-code__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--zen-spacing-gap-2-xsmall);
+  margin-inline-start: auto;
+}
+
+.studio-code__scroller {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  /* Body/Code family with the classic .platform-code fallbacks (JetBrains Mono is not a bundled web font). */
+  font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace;
+  tab-size: 2;
+}
+
+.studio-code__scroller:focus-visible {
+  outline: 2px solid var(--zen-color-focus-neutral-solid);
+  outline-offset: -2px;
+}
+
+.studio-code__rows {
+  position: relative;
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 100%;
+  padding-block: var(--zen-spacing-padding-xsmall);
+}
+
+.studio-code__row {
+  display: flex;
+  height: 1lh;
+  background: var(--studio-code-tint);
+  white-space: pre;
+}
+
+/* Sticky while the code scrolls sideways: opaque surface under the row tint. */
+.studio-code__num {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  flex: none;
+  box-sizing: content-box;
+  min-width: calc(var(--studio-code-digits) * 1ch);
+  padding-inline: var(--zen-spacing-padding-small) var(--zen-spacing-padding-2-xsmall);
+  border-left: 2px solid transparent;
+  background: linear-gradient(var(--studio-code-tint), var(--studio-code-tint)), var(--studio-code-surface);
+  color: var(--zen-color-content-neutral-light);
+  text-align: right;
+  user-select: none;
+}
+
+.studio-code__mark {
+  flex: none;
+  width: 2ch;
+  color: var(--zen-color-content-neutral-light);
+  text-align: center;
+  user-select: none;
+}
+
+/* Every row as wide as the longest line, so the virtualised window never changes the scroll width. */
+.studio-code__text {
+  flex: none;
+  min-width: calc(var(--studio-code-columns) * 1ch);
+  padding-right: var(--zen-spacing-padding-medium);
+}
+
+/* Highlight first: an added or removed line inside the highlighted range keeps its diff tint (and the accent bar). */
+.studio-code__row--highlight { --studio-code-tint: var(--zen-color-background-accent-subtle-default); }
+.studio-code__row--added { --studio-code-tint: var(--zen-color-background-positive-subtle-default); }
+.studio-code__row--added .studio-code__mark { color: var(--zen-color-content-positive-base); }
+.studio-code__row--removed { --studio-code-tint: var(--zen-color-background-negative-subtle-default); }
+.studio-code__row--removed .studio-code__mark { color: var(--zen-color-content-negative-base); }
+
+.studio-code__row--highlight .studio-code__num {
+  border-left-color: var(--zen-color-border-accent-solid-default);
+  color: var(--zen-color-content-neutral-strongest);
+}
+
+/* Scrolled sideways: a hairline on the sticky gutter's edge, so code passing under it never reads as its neighbour. */
+.studio-code--scrolled-x .studio-code__num {
+  box-shadow: inset -1px 0 0 var(--zen-color-border-neutral-subtle-default);
+}
+
+/* Measures 1ch of the code font (CodeView's sideways scroll to a column); never visible. */
+.studio-code__probe {
+  position: absolute;
+  visibility: hidden;
+  white-space: pre;
+  pointer-events: none;
+}
+
+.studio-code--wrap .studio-code__rows { width: auto; }
+.studio-code--wrap .studio-code__row { height: auto; min-height: 1lh; white-space: pre-wrap; }
+.studio-code--wrap .studio-code__num { position: static; }
+.studio-code--wrap .studio-code__text { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+
+.studio-code__more {
+  display: flex;
+  justify-content: center;
+  padding-block: var(--zen-spacing-padding-2-xsmall);
+}
+
+/* Syntax colours: Base of each colour family (text); identifiers and punctuation Neutral Base so the colours read
+   against them, JSX text Strongest, Light only for comments and the gutter. GitHub-dark hierarchy: keywords pink,
+   strings green, numbers blue, components/types amber, props cyan, functions purple. */
+.studio-code__text { color: var(--zen-color-content-neutral-base); }
+.studio-code__t--text { color: var(--zen-color-content-neutral-strongest); }
+.studio-code__t--punct { color: var(--zen-color-content-neutral-base); }
+.studio-code__t--comment { color: var(--zen-color-content-neutral-light); }
+.studio-code__t--keyword,
+.studio-code__t--interp { color: var(--zen-color-content-support-pink-base); }
+.studio-code__t--string { color: var(--zen-color-content-positive-base); }
+.studio-code__t--number,
+.studio-code__t--literal,
+.studio-code__t--value { color: var(--zen-color-content-info-base); }
+.studio-code__t--regex { color: var(--zen-color-content-support-crimson-base); }
+.studio-code__t--function { color: var(--zen-color-content-support-purple-base); }
+.studio-code__t--type,
+.studio-code__t--component { color: var(--zen-color-content-warning-base); }
+.studio-code__t--tag,
+.studio-code__t--selector { color: var(--zen-color-content-support-teal-base); }
+.studio-code__t--attr,
+.studio-code__t--property { color: var(--zen-color-content-support-cyan-base); }
+.studio-code__t--variable { color: var(--zen-color-content-support-orange-base); }
+
+/* SourcePanel: fills its (height-bounded) parent; the path truncates from the left so the file name stays. */
+.studio-source {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.studio-source > .studio-code { flex: 1 1 auto; }
+
+.studio-source__title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--zen-spacing-gap-xsmall);
+  min-width: 0;
+}
+
+.studio-source__path {
+  min-width: 0;
+  overflow: hidden;
+  direction: rtl;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.studio-source__range { flex: none; color: var(--zen-color-content-neutral-light); }
+/* The Draft badge sits on the title's centre line (the title aligns its texts on the baseline). */
+.studio-source__draft { flex: none; align-self: center; }
+.studio-source__body { padding: var(--zen-spacing-padding-small); }

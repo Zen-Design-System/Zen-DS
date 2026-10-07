@@ -1,0 +1,20 @@
+/* Divider examples. */
+
+/* Settings sections: heading column beside the fields. Grid's `columns.mobile` stacks them on a phone; the page also
+   stacks them whenever its own width drops under 640px (a tablet, a narrow docs window). */
+.px-divider-settings { container-type: inline-size; }
+@container (max-width: 640px) {
+  .px-divider-section.zen-grid[data-mode] { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* File viewer: the zoom and page readouts keep their width so the toolbar never jumps. On a narrow card the zoom group
+   and the divider after it step aside (phones pinch to zoom); the toolbar still scrolls rather than wrap if it must,
+   with a little block padding so focus rings are not clipped by the scroll box. */
+.px-divider-file { container-type: inline-size; }
+@container (max-width: 379px) { .px-divider-file .px-divider-zoom { display: none; } }
+.px-divider-toolbar { overflow-x: auto; scrollbar-width: thin; }
+.px-divider-toolbar > * { flex: 0 0 auto; }
+.px-divider-readout { min-inline-size: 7ch; text-align: center; font-variant-numeric: tabular-nums; }
+.px-divider-sheet[data-zoom="75"] { zoom: 0.75; }
+.px-divider-sheet[data-zoom="125"] { zoom: 1.25; }
+.px-divider-sheet[data-zoom="150"] { zoom: 1.5; }

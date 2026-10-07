@@ -1,0 +1,186 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "toggle",
+  "import": "import { Toggle, ToggleButton } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Toggle",
+      "file": "src/components/Toggle/Toggle.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": "ToggleButtonProps",
+      "props": [
+        {
+          "name": "checked",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "On (true) or off (false) — controlled.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultChecked",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Initial state when uncontrolled.",
+          "deprecated": null
+        },
+        {
+          "name": "onCheckedChange",
+          "type": "(checked: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the new state when the switch is flipped.",
+          "deprecated": null
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use checked."
+        },
+        {
+          "name": "defaultSelected",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use defaultChecked."
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"sm\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"disabled\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onSelectedChange",
+          "type": "(selected: boolean, event: ChangeEvent<HTMLInputElement>) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use onCheckedChange (or read event.target.checked)."
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "caption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Toggle (1526:5703) Content Subtext: short help under the label (Caption/Regular 11/16, Content/Neutral/Light).",
+          "deprecated": null
+        },
+        {
+          "name": "bold",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"text-first\" | \"toggle-first\"",
+          "required": false,
+          "default": "\"text-first\"",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ToggleButton",
+      "file": "src/components/Toggle/Toggle.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": "Omit<InputHTMLAttributes<HTMLInputElement>, \"size\" | \"type\">",
+      "props": [
+        {
+          "name": "checked",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "On (true) or off (false) — controlled.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultChecked",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Initial state when uncontrolled.",
+          "deprecated": null
+        },
+        {
+          "name": "onCheckedChange",
+          "type": "(checked: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the new state when the switch is flipped.",
+          "deprecated": null
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use checked."
+        },
+        {
+          "name": "defaultSelected",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use defaultChecked."
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"disabled\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onSelectedChange",
+          "type": "(selected: boolean, event: ChangeEvent<HTMLInputElement>) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use onCheckedChange (or read event.target.checked)."
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

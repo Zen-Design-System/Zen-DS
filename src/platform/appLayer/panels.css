@@ -1,0 +1,30 @@
+/* Side Panel examples (platform only): small HR-Platform screens on Canvas/Default; a page's table sits straight on the
+   page (usage rules §14). */
+.psp-screen { display: grid; width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-spacing-padding-large, 20px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-canvas-default); }
+/* A desktop table keeps its columns in a narrow frame and scrolls sideways (its root is the scroll box). */
+.psp-screen .zen-table__table { min-width: 640px; }
+
+/* A toolbar row (controls in one row: Gap/XSmall, usage rules §13): the search field grows up to a width, the last item
+   (a count or an action) sits at the end. */
+.psp-toolbar { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.psp-toolbar > .zen-search { flex: 0 1 280px; min-width: 200px; }
+.psp-toolbar > :last-child:not(:first-child) { margin-inline-start: auto; }
+
+/* Page builder with a docked (Standard) inspector: the panel is the right column of the frame and wraps under the page
+   when the frame is narrow. */
+.psp-studio { display: flex; width: 100%; min-height: 520px; flex-wrap: wrap; overflow: hidden; container-type: inline-size; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-alt); }
+.psp-studio__main { display: grid; min-width: 0; flex: 1 1 0; align-content: start; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-spacing-padding-large, 20px); }
+.psp-studio__body { display: grid; grid-template-columns: minmax(160px, 200px) minmax(0, 1fr); align-items: start; gap: var(--zen-spacing-gap-medium, 16px); }
+.psp-studio__layers { min-width: 0; }
+/* The docked panel runs the full height of the frame (its own height: 100% has no definite parent height here). */
+.psp-studio > .zen-side-panel { height: auto; align-self: stretch; }
+.psp-artboard { display: grid; min-width: 0; align-content: start; justify-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-medium, 16px); border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default); }
+.psp-artboard__layer { display: grid; max-inline-size: 100%; place-items: center; overflow: hidden; background: var(--zen-color-background-neutral-subtle-default); box-shadow: inset 0 0 0 2px transparent; transition: box-shadow var(--zen-motion-duration-fast, 120ms) ease-out; }
+.psp-artboard__layer[data-selected] { box-shadow: inset 0 0 0 2px var(--zen-color-border-accent-solid-default); }
+.psp-artboard__layer[data-hidden] { opacity: 0.4; }
+@media (prefers-reduced-motion: reduce) { .psp-artboard__layer { transition: none; } }
+@container (max-width: 760px) {
+  .psp-studio__main { flex-basis: 100%; }
+  .psp-studio__body { grid-template-columns: minmax(0, 1fr); }
+  .psp-studio .zen-side-panel { flex: 1 1 100%; width: auto; border-top: 1px solid var(--zen-color-border-neutral-pale-default); border-left: 0; }
+}

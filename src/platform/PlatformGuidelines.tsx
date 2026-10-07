@@ -1,8 +1,10 @@
+import { useContext } from "react";
 import { Icon } from "../components/Icon";
 import { typographyStyles } from "../tokens/typography.generated";
 import guidelinesData from "./guidelines.generated.json";
 import { guidelineVisuals, type GuidelineExample } from "./PlatformGuidelineVisuals";
 import type { PlatformPage } from "./PlatformExamples";
+import { PlatformTypographyContext } from "./PlatformTemplate";
 
 /* Usage guidelines on each component page. Text comes from tools/usage-guard/guidelines.source.mjs
  * (npm run guidelines:build) — the same source as docs/guidelines/*.md and the harness — and the
@@ -13,7 +15,9 @@ type Guideline = { title: string; purpose: string; use: string[]; avoid: string[
 const guidelines = guidelinesData as unknown as Record<string, Guideline>;
 
 /** Platform page id → guideline slug (most are identical). */
-const slugFor: Partial<Record<PlatformPage, string>> = { iconography: "icon" };
+const slugFor: Partial<Record<PlatformPage, string>> = { iconography: "icon", "design-tokens": "borders" };
+/** Guideline slug for a platform page (shared with the Keyboard/API reference sections). */
+export const guidelineSlugFor = (page: PlatformPage) => slugFor[page] ?? page;
 
 /** Render `inline code` and "<Tag>" spans from the plain-text guideline strings. */
 function RichText({ text }: { text: string }) {
@@ -26,10 +30,13 @@ function Verdict({ kind }: { kind: "do" | "dont" }) {
 }
 
 function Example({ kind, example }: { kind: "do" | "dont"; example: GuidelineExample }) {
+  // The Do/Don't stage renders real components, so it takes the preview typography (Dashboard by default, the topbar
+  // chip) — never the shell's Zen-Platform overrides, which turned a TopNavigation Heading/1 into TASA Explorer.
+  const typography = useContext(PlatformTypographyContext);
   return (
     <figure className="pg-example" data-kind={kind}>
       {/* Illustrations only: inert keeps demo controls out of the tab order and screen-reader flow. */}
-      <div className="pg-example__stage" inert>{example.preview}</div>
+      <div className="pg-example__stage" inert data-typography={typography}>{example.preview}</div>
       <figcaption className="pg-example__caption">
         <Verdict kind={kind} />
         <span className={typographyStyles["Body/Small/Regular"]}>{example.caption}</span>
@@ -46,16 +53,16 @@ function Alternative({ text }: { text: string }) {
     : <RichText text={text} />;
 }
 
-export function ComponentGuidelines({ page }: { page: PlatformPage }) {
-  const slug = slugFor[page] ?? page;
+export function ComponentGuidelines({ page, title = "Usage guidelines", slug: slugOverride }: { page: PlatformPage; title?: string; slug?: string }) {
+  const slug = slugOverride ?? slugFor[page] ?? page;
   const guideline = guidelines[slug];
   if (!guideline) return null;
   const pairs = guidelineVisuals[slug] ?? [];
-  const headingId = `pg-${page}-guidelines`;
+  const headingId = `pg-${slug}-guidelines`;
   return (
     <section className="pg" aria-labelledby={headingId}>
       <header className="pg-head">
-        <h2 id={headingId} className={typographyStyles["Heading/3"]}>Usage guidelines</h2>
+        <h2 id={headingId} className={typographyStyles["Heading/3"]}>{title}</h2>
         <p className={`pg-muted ${typographyStyles["Body/Base/Regular"]}`}><RichText text={guideline.purpose} /></p>
       </header>
 

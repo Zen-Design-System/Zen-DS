@@ -1,0 +1,43 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "file-icon",
+  "import": "import { FileIcon } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "FileIcon",
+      "file": "src/components/FileIcon/FileIcon.tsx",
+      "description": "Figma `icon-media-file` (Iconography → Special Icons → File): a coloured file shape (Content/Support/…/Light,\nFigma uses Background/Support/Violet/Solid) with an On-Colors glyph. Identifies content types — never an action icon.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "format",
+          "type": "unknown",
+          "required": true,
+          "default": null,
+          "description": "Figma `icon-media-file` Format.",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "IconSize | number",
+          "required": false,
+          "default": "\"base\"",
+          "description": "Same scale as Icon (Element-Size/Popular); Figma draws it at 20 (base).",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name; without it the icon is decorative (the file name usually sits next to it).",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "IconSize": "type IconSize = \"2xs\" | \"xs\" | \"sm\" | \"base\" | \"md\" | \"lg\" | \"xl\" | \"2xl\" | \"3xl\""
+  }
+}

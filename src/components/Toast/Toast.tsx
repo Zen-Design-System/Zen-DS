@@ -1,8 +1,13 @@
 import type { ReactNode } from "react";
 import { Button, type ButtonAppearance, type ButtonLevel } from "../Button";
 import { Icon, type IconName } from "../Icon";
+import { useIconTooltip } from "../Tooltip";
+import { renderIcon } from "../_shared/icon";
+import { toneFromStatus, type StatusAlias } from "../_shared/status";
+import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./toast.css";
+import "../Icon/core";
 
 export const toastTypes = ["neutral", "subtle", "info", "positive", "warning", "negative"] as const;
 export type ToastType = (typeof toastTypes)[number];
@@ -29,16 +34,21 @@ const actionButton: Record<ToastType, { appearance: ButtonAppearance; level: But
 
 export interface ToastProps {
   type?: ToastType;
+  /** @deprecated Use type: success → positive, error → negative (warning and info are the same). */
+  status?: StatusAlias;
   /** Figma Title (Body/Base/Bold). */
   title?: ReactNode;
   /** Figma Caption (Body/Small/Regular). */
   children?: ReactNode;
-  /** `false` hides the leading icon; a node replaces it. */
-  icon?: boolean | ReactNode;
-  /** Figma Actions: one Small button. */
-  action?: { label: ReactNode; onClick?: () => void };
+  /** `true` (default) shows the type's icon, `false` hides it; an icon name or a node replaces it. */
+  icon?: boolean | IconName | ReactNode;
+  /** Figma Actions: one Small button. Pressing it runs `onClick`, then dismisses the toast through `onClose` (which
+   *  useToast and ToastStack provide), so Undo or View never leaves a stale toast. `keepOpen: true` leaves it open,
+   *  e.g. when the action updates this toast in place; calling dismiss(id) in `onClick` as well is harmless. */
+  action?: { label: ReactNode; onClick?: () => void; keepOpen?: boolean };
   /** Shows the close control (icon-x-small-line). */
   onClose?: () => void;
+  /** Accessible name of the close control. Default: the locale's “Dismiss”. */
   closeLabel?: string;
   className?: string;
 }
@@ -48,10 +58,19 @@ export interface ToastProps {
  * gap Medium; the Body groups the Title/Caption stack (gap 3XSmall) with the action (gap XSmall).
  * Subtle is the Popover surface with a 1px OUTSIDE Border/Popover/Subtle stroke.
  */
-export function Toast({ type = "neutral", title, children, icon = true, action, onClose, closeLabel = "Dismiss", className }: ToastProps) {
-  const leading = icon === true ? <Icon name={typeIcon[type]} decorative /> : icon || null;
+export function Toast({ type: typeProp, status, title, children, icon = true, action, onClose, closeLabel: closeLabelProp, className }: ToastProps) {
+  const type: ToastType = typeProp ?? toneFromStatus(status) ?? "neutral";
+  const t = useZenLabels();
+  const closeLabel = closeLabelProp ?? t.dismiss;
+  const leading = icon === true ? <Icon name={typeIcon[type]} decorative /> : icon ? renderIcon(icon) : null;
   const urgent = type === "negative" || type === "warning";
   const button = actionButton[type];
+  const closeTip = useIconTooltip(onClose ? closeLabel : false);
+  // The action finishes the toast's job: run it, then dismiss (unless the caller keeps it open).
+  const runAction = () => {
+    action?.onClick?.();
+    if (!action?.keepOpen) onClose?.();
+  };
   return (
     <div className={["zen-toast", className].filter(Boolean).join(" ")} data-type={type} role={urgent ? "alert" : "status"}>
       {leading ? <span className="zen-toast__icon" aria-hidden="true">{leading}</span> : null}
@@ -60,11 +79,11 @@ export function Toast({ type = "neutral", title, children, icon = true, action, 
           {title ? <span className={`zen-toast__title ${typographyStyles["Body/Base/Bold"]}`}>{title}</span> : null}
           {children ? <span className={`zen-toast__caption ${typographyStyles["Body/Small/Regular"]}`}>{children}</span> : null}
         </div>
-        {action ? <Button className="zen-toast__action" appearance={button.appearance} level={button.level} size="sm" onClick={action.onClick}>{action.label}</Button> : null}
+        {action ? <Button className="zen-toast__action" appearance={button.appearance} level={button.level} size="sm" onClick={runAction}>{action.label}</Button> : null}
       </div>
       {onClose ? (
-        <button type="button" className="zen-toast__close" aria-label={closeLabel} onClick={onClose}>
-          <Icon name="icon-x-small-line" decorative />
+        <button type="button" className="zen-toast__close" aria-label={closeLabel} {...closeTip.bind({ onClick: onClose })}>
+          <Icon name="icon-x-small-line" decorative />{closeTip.tooltip}
         </button>
       ) : null}
     </div>

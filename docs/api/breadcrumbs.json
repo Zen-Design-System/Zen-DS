@@ -1,0 +1,132 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "breadcrumbs",
+  "import": "import { Breadcrumbs, BreadcrumbItem } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Breadcrumbs",
+      "file": "src/components/Breadcrumbs/Breadcrumbs.tsx",
+      "description": "Figma Breadcrumbs (4031:20161): Item-List with chevron separators (icon-chevron-right-line-small, Neutral/Light).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "items",
+          "type": "BreadcrumbItemData[]",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "emphasis",
+          "type": "\"default\" | \"medium\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "master",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Show the first item as the Master level (with icon). Default true.",
+          "deprecated": null
+        },
+        {
+          "name": "maxItems",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Collapse middle items behind an ellipsis button when there are more than this many. Activating the ellipsis\n shows them all and moves focus to the first crumb it revealed.",
+          "deprecated": null
+        },
+        {
+          "name": "onNavigate",
+          "type": "(item: BreadcrumbItemData, event: MouseEvent) => void",
+          "required": false,
+          "default": null,
+          "description": "Called for every non-current item; call `event.preventDefault()` for client-side routing.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the navigation landmark (default \"Breadcrumb\", from the locale's labels).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "BreadcrumbItem",
+      "file": "src/components/Breadcrumbs/Breadcrumbs.tsx",
+      "description": "Figma .Primitives/Breadcrumbs/Item (292:43787): Level × State × Emphasis.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "item",
+          "type": "{ id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`\"icon-home-03-line\"`, the default) or a node; Figma shows it on the Master (first) level. */ icon?: IconName | ReactNode; }",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "level",
+          "type": "\"master\" | \"sub\"",
+          "required": false,
+          "default": "\"sub\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "emphasis",
+          "type": "\"default\" | \"medium\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "current",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "Deterministic Figma State for matrices; real hover applies natively.",
+          "deprecated": null
+        },
+        {
+          "name": "onNavigate",
+          "type": "(item: BreadcrumbItemData, event: MouseEvent) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "BreadcrumbItemData": "type BreadcrumbItemData = { id: string; label: ReactNode; href?: string; icon?: IconName | ReactNode; }"
+  }
+}

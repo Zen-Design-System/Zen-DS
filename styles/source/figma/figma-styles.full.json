@@ -931,14 +931,14 @@
      "wght": 600
     }
    },
-   "fontSize": 78,
+   "fontSize": 65,
    "lineHeight": {
     "unit": "PIXELS",
-    "value": 88
+    "value": 72
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -3.119999885559082
+    "value": -2.880000114440918
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -966,14 +966,14 @@
      "wght": 600
     }
    },
-   "fontSize": 68,
+   "fontSize": 58,
    "lineHeight": {
     "unit": "PIXELS",
-    "value": 72
+    "value": 60
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -2.7200000286102295
+    "value": -2.380000114440918
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -1001,14 +1001,14 @@
      "wght": 600
     }
    },
-   "fontSize": 60,
+   "fontSize": 51,
    "lineHeight": {
     "unit": "PIXELS",
-    "value": 68
+    "value": 58
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -2.4000000953674316
+    "value": -1.899999976158142
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -1036,14 +1036,14 @@
      "wght": 600
     }
    },
-   "fontSize": 52,
+   "fontSize": 45,
    "lineHeight": {
     "unit": "PIXELS",
-    "value": 60
+    "value": 52
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -1.559999942779541
+    "value": -1.5199999809265137
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -1071,14 +1071,14 @@
      "wght": 600
     }
    },
-   "fontSize": 46,
+   "fontSize": 40,
    "lineHeight": {
     "unit": "PIXELS",
-    "value": 52
+    "value": 44
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -1.3799999952316284
+    "value": -1.2100000381469727
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -1106,14 +1106,14 @@
      "wght": 600
     }
    },
-   "fontSize": 40,
+   "fontSize": 36,
    "lineHeight": {
     "unit": "PIXELS",
-    "value": 48
+    "value": 44
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -1.2000000476837158
+    "value": -0.9800000190734863
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -1141,14 +1141,14 @@
      "wght": 600
     }
    },
-   "fontSize": 36,
+   "fontSize": 32,
    "lineHeight": {
     "unit": "PIXELS",
-    "value": 44
+    "value": 40
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -1.0800000429153442
+    "value": -0.7599999904632568
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -1176,16 +1176,16 @@
      "wght": 600
     }
    },
-   "fontSize": 32,
+   "fontSize": 28,
    "lineHeight": {
     "unit": "PIXELS",
-    "value": 40
+    "value": 36
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.9599999785423279
+    "value": -0.5600000023841858
    },
-   "paragraphSpacing": 32,
+   "paragraphSpacing": 28,
    "paragraphIndent": 0,
    "textCase": "ORIGINAL",
    "textDecoration": "NONE",
@@ -1212,16 +1212,16 @@
      "wght": 600
     }
    },
-   "fontSize": 28,
+   "fontSize": 25,
    "lineHeight": {
     "unit": "PIXELS",
-    "value": 36
+    "value": 32
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.8399999737739563
+    "value": -0.5
    },
-   "paragraphSpacing": 28,
+   "paragraphSpacing": 25,
    "paragraphIndent": 0,
    "textCase": "ORIGINAL",
    "textDecoration": "NONE",
@@ -1248,16 +1248,16 @@
      "wght": 600
     }
    },
-   "fontSize": 24,
+   "fontSize": 22,
    "lineHeight": {
     "unit": "PIXELS",
-    "value": 32
+    "value": 28
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.7200000286102295
+    "value": -0.4399999976158142
    },
-   "paragraphSpacing": 24,
+   "paragraphSpacing": 22,
    "paragraphIndent": 0,
    "textCase": "ORIGINAL",
    "textDecoration": "NONE",
@@ -1291,7 +1291,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.6000000238418579
+    "value": -0.4000000059604645
    },
    "paragraphSpacing": 20,
    "paragraphIndent": 0,
@@ -1327,7 +1327,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.5400000214576721
+    "value": -0.36000001430511475
    },
    "paragraphSpacing": 20,
    "paragraphIndent": 0,
@@ -1747,16 +1747,16 @@
      "wght": 400
     }
    },
-   "fontSize": 10,
+   "fontSize": 11,
    "lineHeight": {
     "unit": "PIXELS",
-    "value": 12
+    "value": 16
    },
    "letterSpacing": {
     "unit": "PIXELS",
     "value": 0
    },
-   "paragraphSpacing": 10,
+   "paragraphSpacing": 11,
    "paragraphIndent": 0,
    "textCase": "ORIGINAL",
    "textDecoration": "NONE",
@@ -1783,16 +1783,16 @@
      "wght": 500
     }
    },
-   "fontSize": 10,
+   "fontSize": 11,
    "lineHeight": {
     "unit": "PIXELS",
-    "value": 12
+    "value": 16
    },
    "letterSpacing": {
     "unit": "PIXELS",
     "value": 0
    },
-   "paragraphSpacing": 10,
+   "paragraphSpacing": 11,
    "paragraphIndent": 0,
    "textCase": "ORIGINAL",
    "textDecoration": "NONE",
@@ -1819,16 +1819,16 @@
      "wght": 600
     }
    },
-   "fontSize": 10,
+   "fontSize": 11,
    "lineHeight": {
     "unit": "PIXELS",
-    "value": 12
+    "value": 16
    },
    "letterSpacing": {
     "unit": "PIXELS",
     "value": 0
    },
-   "paragraphSpacing": 10,
+   "paragraphSpacing": 11,
    "paragraphIndent": 0,
    "textCase": "ORIGINAL",
    "textDecoration": "NONE",
@@ -1855,7 +1855,7 @@
      "wght": 500
     }
    },
-   "fontSize": 8,
+   "fontSize": 9,
    "lineHeight": {
     "unit": "PIXELS",
     "value": 12
@@ -1890,7 +1890,7 @@
      "wght": 600
     }
    },
-   "fontSize": 8,
+   "fontSize": 9,
    "lineHeight": {
     "unit": "PIXELS",
     "value": 12
@@ -1932,7 +1932,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.3199999928474426
+    "value": 0
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -1967,7 +1967,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.2800000011920929
+    "value": 0
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -2002,7 +2002,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.2800000011920929
+    "value": 0
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -2037,7 +2037,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.14000000059604645
+    "value": 0
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,

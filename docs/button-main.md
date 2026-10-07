@@ -1,16 +1,16 @@
 # Button (Main + Icon)
 
-`Button` is the first component pilot for the Figma-to-code workflow. The platform page keeps the two Figma component sets together: `Button/Main` and `Button/Icon-Main`.
+`Button` was the first component built through the Figma-to-code workflow. The platform page keeps the two Figma component sets together: `Button/Main` and `Button/Icon-Main`. Usage rules and the generated props table live in [guidelines/button.md](guidelines/button.md).
 
 ## React API
 
 ```tsx
-<Button variant="primary" size="md">
+<Button level="primary" size="md">
   Button
 </Button>
 
 <Button
-  variant="accent"
+  level="accent"
   size="lg"
   startIcon={<Icon name="icon-plus-line" decorative />}
   endIcon={<Icon name="icon-arrow-right-line" decorative />}
@@ -30,8 +30,8 @@
 | React property | Figma property | Values |
 | --- | --- | --- |
 | `children` | `Text` | React content |
-| `size` | `Size` | `xs`, `sm`, `md`, `lg`, `xl` |
-| `variant` | `Level` | `primary`, `accent`, `secondary`, `tertiary`, `danger`, `danger-subtle`, `positive`, `positive-subtle` |
+| `size` | `Size` | `2xs`, `xs`, `sm`, `md`, `lg`, `xl` |
+| `level` (`variant` is a compatibility alias) | `Level` | `primary`, `accent`, `secondary`, `tertiary`, `danger`, `danger-subtle`, `positive`, `positive-subtle`, `surface` |
 | `startIcon` | `Leading-Icon` and `Leading-Icon-Src` | React node |
 | `endIcon` | `Trailing-Icon` and `Trailing-Icon-Src` | React node |
 | `disabled` | `State=Disabled` | Native button attribute |
@@ -41,7 +41,7 @@
 | React property | Figma property | Values |
 | --- | --- | --- |
 | `icon` | `Icon-Src` | React node; use the shared `Icon` primitive |
-| `size` | `Size` | `xs`, `sm`, `md`, `lg`, `xl` |
+| `size` | `Size` | `2xs`, `xs`, `sm`, `md`, `lg`, `xl` |
 | `level` / `variant` | `Level` | Same levels as `Button/Main` |
 | `state` | `State` | `default`, `hover`, `pressed`, `focused`, `disabled` |
 | `aria-label` | Accessible name | Required when the icon has no visible text |

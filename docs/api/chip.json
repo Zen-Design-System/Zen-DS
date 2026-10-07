@@ -1,0 +1,284 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "chip",
+  "import": "import { Chip } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Chip",
+      "file": "src/components/Chip/Chip.tsx",
+      "description": "Figma Chip/Pill: `Chip/Advanced` (512:7659, the filter control that owns a Popover), `Chip/Normal` (512:6843, toggle\npills) and `Chip/Number-Only` (1536:26687). A chip is a `<button>`. A Number-only chip with nothing to do (no\n`onClick` or other press handler, no `selected`, not `disabled`) is a count, which Figma describes as a \"numeric-only\ncompact indicator for counts or rankings\": it renders a `<span>` in the Default state, with no hover, no focus stop\nand no dead click, and the ref points at that span. Give it `onClick` or `selected` to make it a pressable number\n(Hover, Focused, Selected). Normal and Advanced chips always do something; Figma: a read-only label is a Tag.",
+      "deprecated": null,
+      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "variant",
+          "type": "\"advanced\" | \"normal\" | \"number-only\"",
+          "required": false,
+          "default": "\"advanced\"",
+          "description": "Component set: Advanced, Normal, or Number-only.",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"md\" | \"xsmall\" | \"small\" | \"medium\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Medium by default, on desktop and phones (a filter row lines up with Search and Buttons at 40px); small only inside a\n genuinely narrow component space. Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "level",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"secondary\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"text-only\" | \"leading-icon\" | \"leading-photo\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"press\" | \"focused\" | \"placeholder\" | \"disabled\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Selected (Figma Select=Yes): Advanced chips show the close affordance, Normal chips the selected styling.",
+          "deprecated": null
+        },
+        {
+          "name": "select",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma's Select property. Selected chips show the close affordance in Advanced.",
+          "deprecated": "Use selected."
+        },
+        {
+          "name": "dropdown",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma's Dropdown property. Advanced chips show a chevron when enabled.",
+          "deprecated": null
+        },
+        {
+          "name": "selectionMode",
+          "type": "\"single\" | \"multiple\"",
+          "required": false,
+          "default": null,
+          "description": "Filter behavior: single keeps the dropdown affordance; multiple uses the\nFigma Chip/Trailing counter and changes to remove on hover.",
+          "deprecated": null
+        },
+        {
+          "name": "selectionCount",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Number of selected options for a multiple filter. Shown from 2 as the Chip/Trailing Badge-Counter; the chip is\n then named \"Owner, 3 applied\" (the locale's `appliedCount`).",
+          "deprecated": null
+        },
+        {
+          "name": "counter",
+          "type": "number | string",
+          "required": false,
+          "default": null,
+          "description": "Figma Chip/Advanced Counter: a Badge-Counter after the label. The chip is then named \"Filters, 2 applied\" (the\n locale's `appliedCount`; a Normal chip reads \"Unread, 4\"), never the run-together \"Filters2\".",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "number | string",
+          "required": false,
+          "default": null,
+          "description": "Alias used by the Number-only component set.",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Leading icon: an icon name (`\"icon-grid-01-line\"`) or a node.",
+          "deprecated": null
+        },
+        {
+          "name": "photoSrc",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Leading-Photo theme: image rendered through the shared Avatar/Single (Photo, Subtle) primitive,\nsized per Figma (XSmall → 2XSmall 20, Small → XSmall 24, Medium → Small 32).",
+          "deprecated": null
+        },
+        {
+          "name": "photoAlt",
+          "type": "string",
+          "required": false,
+          "default": "\"\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Trailing slot: an icon name or a node; replaces the dropdown chevron / remove affordance.",
+          "deprecated": null
+        },
+        {
+          "name": "popoverItems",
+          "type": "PopoverItemData[]",
+          "required": false,
+          "default": null,
+          "description": "Items rendered by the shared Figma Popover/Default composition.",
+          "deprecated": null
+        },
+        {
+          "name": "popoverOpen",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Controlled open state for the advanced chip menu.",
+          "deprecated": null
+        },
+        {
+          "name": "popoverMultiple",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Keep the shared Popover open while selected options are toggled.",
+          "deprecated": null
+        },
+        {
+          "name": "onPopoverOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onPopoverSelect",
+          "type": "(item: PopoverItemData) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onClearSelection",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Clear the current single or multiple filter selection.",
+          "deprecated": null
+        },
+        {
+          "name": "popoverLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "popoverSearch",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "popoverSearchValue",
+          "type": "string",
+          "required": false,
+          "default": "\"\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onPopoverSearchChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "popoverSearchPlaceholder",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "popoverScrollBar",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onPopoverCreate",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Figma Popover/Manual-Add-New: lets users create a value that isn't listed (labels, tags).\nThe popover gets a Search row; a \"Create\" + Accent Badge row appears only for a new value, Enter creates it.",
+          "deprecated": null
+        },
+        {
+          "name": "popoverCreateLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "popoverPortal",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Renders the Popover in the page's overlay layer (ZenPortal), anchored under the chip, instead of inside it: a chip in\na row that scrolls sideways (`overflow-x: auto` clips both axes) or in any box that clips its overflow keeps a whole,\nvisible menu. Light dismiss, Escape and focus return work the same. Leave it off inside a Dialog or Bottom Sheet.",
+          "deprecated": null
+        },
+        {
+          "name": "type",
+          "type": "unknown",
+          "required": false,
+          "default": "\"button\"",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "BadgeTheme": "type BadgeTheme = \"accent\" | \"neutral\" | \"yellow\" | \"orange\" | \"red\" | \"crimson\" | \"pink\" | \"plum\" | \"purple\" | \"violet\" | \"indigo\" | \"blue\" | \"cyan\" | \"teal\" | \"green\" | \"brown\" | \"inverse\" | \"on-color\" | \"sky\" | \"mint\" | \"bronze\" | \"golden\"",
+    "PopoverItemData": "type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?: ReactNode; leading?: IconName | ReactNode; trailing?: IconName | ReactNode; disabled?: boolean; selected?: boolean; photoSrc?: string; photoAlt?: string; badgeTheme?: BadgeTheme; theme?: \"icon\" | \"text-only\" | \"photo-small\" | \"photo-big\" | \"avatar-small\" | \"avatar-big\" | \"dock-icon\" | \"badge\"; function?: \"default\" | \"manual-add-new\"; }"
+  }
+}

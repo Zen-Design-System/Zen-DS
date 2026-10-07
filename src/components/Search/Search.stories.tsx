@@ -54,7 +54,7 @@ export const States: Story = {
   ),
   parameters: {
     docs: {
-      description: { story: "State matrix verifies Search against Input's default, hover, focus, typing, inputted and disabled contracts." },
+      description: { story: "State matrix verifies Search against Input's default, hover, focus, typing and inputted contracts." },
     },
   },
 };
@@ -79,7 +79,7 @@ export const PopoverVariant: Story = {
   ),
   parameters: {
     docs: {
-      description: { story: "Figma Search/Popover: always Small with Corner-Radius/Input/Medium; Focused/Typing show only the focused fill (no stroke, no ring). Popover uses it with Icon-Search=No." },
+      description: { story: "Figma Search/Popover: always Small with Corner-Radius/Input/Medium; every state keeps a 1px Input/Border stroke (Hover: Input/Border/Hover) and Focused/Typing add no ring; the border is visible only in Neutral S4. Popover uses it with Icon-Search=No." },
     },
   },
 };

@@ -1,0 +1,44 @@
+/* Image & Thumbnail examples (src/platform/examples/pages/image.tsx). Tokens only. */
+
+/* A Thumbnail radio in the moodboard strip: the button is the target and carries the name; its corners follow the
+   Thumbnail's (lg = Corner-Radius/Base), so the checked ring and the focus ring wrap it evenly. */
+.px-image-thumb {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: var(--zen-corner-radius-base, 12px);
+  background: none;
+  cursor: pointer;
+}
+.px-image-thumb[aria-checked="true"] { outline: 2px solid var(--zen-color-border-active-neutral-solid, #111); outline-offset: 2px; }
+.px-image-thumb:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
+.px-image-thumb > .zen-thumbnail { display: block; }
+
+/* A button in a column keeps its label width. */
+.px-image-start { align-self: flex-start; }
+
+/* A Flat Medium Icon Button at the start of a row, pulled back by its inset ((button − icon) / 2), so its glyph lines up
+   with the text and pictures above it; the hover circle overhangs into the screen's margin. */
+.px-image-like { margin-inline-start: calc((var(--zen-button-icon-size-medium, 20px) - var(--zen-button-size-medium, 40px)) / 2); }
+
+/* The author's name takes focus while a reloaded photo arrives (tabIndex -1): its ring hugs the name (not the wider
+   caption line under it) with room around the text, and the feed scrolls it clear of the pinned bar, ring included. */
+.px-image-focus-target { position: relative; scroll-margin-block: var(--zen-spacing-padding-small, 12px); }
+.px-image-focus-target:focus { outline: none; }
+.px-image-focus-target:focus-visible::after {
+  position: absolute;
+  inset: calc(-1 * var(--zen-spacing-padding-3-xsmall, 2px)) calc(-1 * var(--zen-spacing-padding-xsmall, 8px));
+  border-radius: var(--zen-corner-radius-small, 8px);
+  box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #ff66d4);
+  content: "";
+  pointer-events: none;
+}
+
+/* Narrower than a tablet, the wide hero takes its own row and the square and the story share the next one, their
+   columns again as wide as their ratios (1 : 0.5625) so the two frames keep one height. */
+.px-image-scope { container-type: inline-size; }
+/* (Specific enough to win over Grid's own mobile columns.) */
+@container (max-width: 640px) {
+  .px-image-scope .zen-grid.px-image-channels[data-mode] { grid-template-columns: minmax(0, 1fr) minmax(0, 0.5625fr); }
+  .px-image-scope .zen-grid.px-image-channels > :first-child { grid-column: 1 / -1; }
+}

@@ -1,0 +1,21 @@
+/* Navigation group (platform only): Link and Menu pages, and the Sidebar links example. Prefix pan- (app layer · navigation). */
+
+/* Playground previews: a readable measure for running text; the menu trigger row stays compact. */
+.pan-stage { width: min(100%, 560px); }
+.pan-file-row { width: min(100%, 360px); }
+
+/* Card header menu example: cards in a responsive grid, the title row leaves room for the pinned Sub-Action. */
+.pan-card-title { padding-inline-end: var(--zen-spacing-padding-2-xlarge, 32px); }
+/* Three equal columns while the preview is wide enough, one below that: a container query, since example cards keep the
+   desktop breakpoint and the Grid's own responsive columns never switch inside them. */
+.pan-card-menu { container-type: inline-size; }
+@container (max-width: 440px) { .zen-grid.pan-card-grid[data-mode] { grid-template-columns: minmax(0, 1fr); } }
+
+/* Keyboard log: fixed height so the card does not jump while entries arrive. */
+.pan-log { min-height: 128px; margin: 0; padding: 0; list-style: none; }
+
+/* Table example: an invoice ID and its due date never break (on a narrow screen the table scrolls sideways instead). */
+.pan-nowrap { white-space: nowrap; }
+
+/* Sidebar links example: the page column next to the rail. */
+.pan-shell-page { display: grid; align-content: start; gap: var(--zen-spacing-gap-large, 24px); min-width: 0; flex: 1 1 auto; padding: var(--zen-spacing-padding-2-xlarge, 32px); }

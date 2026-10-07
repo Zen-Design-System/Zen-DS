@@ -1,0 +1,109 @@
+/* Figma Rating (page 1536:355). */
+.zen-rating, .zen-rating-display {
+  --zen-rating-star: var(--zen-element-size-popular-base, 20px);
+  --zen-rating-on: var(--zen-color-content-support-yellow-light);
+  --zen-rating-off: var(--zen-color-content-placeholder, rgb(0 0 0 / 25%));
+}
+:is(.zen-rating, .zen-rating-display)[data-size="xsmall"] { --zen-rating-star: var(--zen-element-size-popular-xsmall, 12px); }
+:is(.zen-rating, .zen-rating-display)[data-size="small"] { --zen-rating-star: var(--zen-element-size-popular-small, 16px); }
+:is(.zen-rating, .zen-rating-display)[data-size="large"] { --zen-rating-star: var(--zen-element-size-popular-large, 28px); }
+:is(.zen-rating, .zen-rating-display)[data-size="xlarge"] { --zen-rating-star: var(--zen-element-size-popular-2-xlarge, 44px); }
+:is(.zen-rating, .zen-rating-display)[data-tone="neutral"] { --zen-rating-on: var(--zen-color-content-neutral-strongest, #111); }
+:is(.zen-rating, .zen-rating-display)[data-tone="accent"] { --zen-rating-on: var(--zen-color-content-accent-light); }
+
+/* Input: one radio per star, gap 3XSmall. */
+.zen-rating { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-rating__star { position: relative; display: inline-flex; color: var(--zen-rating-off); cursor: pointer; transition: color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), transform var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); }
+.zen-rating__star[data-filled="true"] { color: var(--zen-rating-on); }
+.zen-rating__star > .zen-icon { width: var(--zen-rating-star); height: var(--zen-rating-star); }
+.zen-rating__star input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: inherit; }
+.zen-rating__star:has(input:focus-visible) { border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 1px; }
+.zen-rating__star:hover { transform: scale(1.08); }
+.zen-rating[aria-disabled="true"] .zen-rating__star { cursor: not-allowed; opacity: 0.5; transform: none; }
+
+/* Display: filled row clipped to the value over the empty base row. */
+.zen-rating-display { position: relative; display: inline-flex; vertical-align: middle; }
+.zen-rating-display__base, .zen-rating-display__fill { display: inline-flex; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-rating-display__base { color: var(--zen-rating-off); }
+.zen-rating-display__fill { position: absolute; inset: 0 auto 0 0; overflow: hidden; width: var(--zen-rating-fill); color: var(--zen-rating-on); white-space: nowrap; }
+.zen-rating-display .zen-icon { width: var(--zen-rating-star); height: var(--zen-rating-star); flex: 0 0 auto; }
+
+/* Opinion scale (Rating/Opinion-Scale 1536:25762): one row, never wraps (Figma No-Wrap); the items Fill, so the faces
+   share the row equally (gap XSmall). The scale is an inline-size container: the faces drop their visible labels when
+   the row gets too narrow for them (see the @container rules below). */
+.zen-opinion-scale { display: flex; box-sizing: border-box; width: 100%; flex-wrap: nowrap; gap: var(--zen-spacing-gap-xsmall, 8px); container: zen-opinion-scale / inline-size; }
+.zen-opinion-item {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  min-width: 0;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--zen-spacing-gap-2-xsmall, 4px);
+  padding: var(--zen-spacing-padding-xsmall, 8px);
+  border-radius: var(--zen-corner-radius-base, 12px);
+  background: var(--zen-color-background-neutral-flat-default, transparent);
+  color: var(--zen-color-content-neutral-strongest, #111);
+  cursor: pointer;
+  text-align: center;
+}
+.zen-opinion-item:hover { background: var(--zen-color-background-neutral-flat-hover); }
+.zen-opinion-item[data-selected="true"] { background: var(--zen-color-background-active-neutral-subtle); }
+.zen-opinion-item:has(input:focus-visible) { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
+.zen-opinion-item input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: inherit; }
+/* .Primitives/Rating/Emoji (1536:25750): the emoji is Heading/4 text in a slot whose height Figma binds to dm-32. */
+/* Figma Text: Caption, Fill width, centred, one line in the 68px item. Code limit: two lines — a longer custom label is
+   clamped with an ellipsis (the full text stays in the DOM, so it still names the radio) and a long word breaks. */
+.zen-opinion-item__label { display: -webkit-box; max-width: 100%; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow-wrap: break-word; }
+.zen-opinion-item__emoji { display: inline-flex; height: var(--zen-dm-32, 32px); align-items: center; font-family: var(--zen-typography-font-family-heading); font-size: var(--zen-typography-font-size-heading-4, 20px); font-weight: var(--zen-emphasis-font-weight-bold); line-height: var(--zen-typography-line-height-heading-4, 28px); letter-spacing: var(--zen-typography-letter-spacing-heading-4); }
+
+/* Code-only narrow layout (Figma has no narrow variant). A face needs about 96px for its Caption label (Very Disappointed
+   on two lines inside Padding/XSmall); below N × 96 + (N − 1) × Gap/XSmall the labels are visually hidden — they still
+   name each radio — and the faces shrink. Five faces in 246px are ~43 × 48px targets (WCAG 2.5.8: ≥ 24 × 24). */
+@container zen-opinion-scale (width < 200px) { .zen-opinion-scale[data-scale="2"] .zen-opinion-item__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } }
+@container zen-opinion-scale (width < 304px) { .zen-opinion-scale[data-scale="3"] .zen-opinion-item__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } }
+@container zen-opinion-scale (width < 512px) { .zen-opinion-scale[data-scale="5"] .zen-opinion-item__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } }
+
+/* NPS scale (Rating/NPS-Scale 1536:26034): one row of Chip/Number-Only Small, gap 2XSmall, no wrap (Figma No-Wrap);
+   the end labels under the first and last chip (gap Medium). The scale is Figma's width (count × Chip/Size/Small +
+   gaps: 0–10 = 392, 0–5 = 212) or its container's, whichever is narrower. In a narrower one the chips shrink as equal
+   circles; the gap closes only when a chip would go under the 24 × 24 minimum target (WCAG 2.5.8), so 0–10 keeps
+   ≥ 24px targets in one row down to 264px; under that it switches to two rows (the @container rule below).
+   --zen-nps-count is set inline; the scale is an inline-size container. */
+.zen-nps-scale {
+  --zen-nps-chip: var(--zen-chip-size-small, 32px);
+  --zen-nps-gap: var(--zen-spacing-gap-2-xsmall, 4px);
+  /* WCAG 2.5.8 Target Size (Minimum): 24 × 24 CSS px, the same floor the hit-area layers of AlertBanner/Tag/Toast use. */
+  --zen-nps-target-min: 24px;
+  display: inline-flex;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: calc(var(--zen-nps-count, 11) * var(--zen-nps-chip) + (var(--zen-nps-count, 11) - 1) * var(--zen-nps-gap));
+  flex-direction: column;
+  gap: var(--zen-spacing-gap-medium, 16px);
+  container: zen-nps-scale / inline-size;
+}
+.zen-nps-scale__numbers {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  /* Gap/2XSmall while every chip can stay ≥ 24px, then whatever is left over, down to 0. */
+  column-gap: clamp(0px, calc((100% - var(--zen-nps-count, 11) * var(--zen-nps-target-min)) / (var(--zen-nps-count, 11) - 1)), var(--zen-nps-gap));
+}
+/* The number chip keeps Chip/Size/Small as its maximum and shrinks as a circle (height follows the width). */
+.zen-nps-scale__numbers > .zen-chip[data-variant="number-only"] { width: auto; min-width: 0; max-width: var(--zen-nps-chip); height: auto; flex: 1 1 0; aspect-ratio: 1; padding-block: 0; }
+.zen-nps-scale__labels { display: flex; justify-content: space-between; gap: var(--zen-spacing-gap-medium, 16px); color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-nps-scale__label[data-end="high"] { text-align: end; }
+/* Code-only narrow layout (Figma has no narrow variant): under 264px (11 × 24) one row of 0–10 cannot keep 24px
+   targets, so the chips form two balanced rows, 0–5 over 6–10, on a 6-column grid (Gap/2XSmall both ways) at up to
+   Chip/Size/Small (212px wide; columns shrink below that, ≥ 24px down to 164px). The labels row dissolves: the low label
+   moves above 0 and the high label ends under 10 (5 columns + 4 gaps), so each label sits next to its end value. */
+@container zen-nps-scale (width < 264px) {
+  .zen-nps-scale[data-scale="10"] .zen-nps-scale__numbers { display: grid; grid-template-columns: repeat(6, minmax(0, var(--zen-nps-chip))); gap: var(--zen-nps-gap); }
+  .zen-nps-scale[data-scale="10"] .zen-nps-scale__numbers > .zen-chip[data-variant="number-only"] { width: 100%; }
+  .zen-nps-scale[data-scale="10"] .zen-nps-scale__labels { display: contents; }
+  .zen-nps-scale[data-scale="10"] .zen-nps-scale__label[data-end="low"] { order: -1; }
+  .zen-nps-scale[data-scale="10"] .zen-nps-scale__label[data-end="high"] { width: calc(5 * min(var(--zen-nps-chip), (100% - 5 * var(--zen-nps-gap)) / 6) + 4 * var(--zen-nps-gap)); }
+}
+@media (prefers-reduced-motion: reduce) { .zen-rating__star { transition-property: color; } .zen-rating__star:hover { transform: none; } }

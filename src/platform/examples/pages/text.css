@@ -1,0 +1,13 @@
+/* Text & Heading examples (src/platform/examples/pages/text.tsx). Tokens only. */
+
+/* Lists built with Stack as="ul": no bullets or indent, the Stack gap spaces the rows. */
+.px-text-checks { margin: 0; padding: 0; list-style: none; }
+
+/* Takes the room the action leaves in the row and lets long text wrap. */
+.px-text-grow { flex: 1 1 auto; min-width: 0; }
+
+/* A status icon sits on the first line of its text: as tall as a Body/Base line, centred in it. */
+.px-text-icon { display: inline-flex; height: var(--zen-typography-line-height-body-base, 24px); flex: none; align-items: center; }
+
+/* A small button in a column keeps its label width. */
+.px-text-start { align-self: flex-start; }

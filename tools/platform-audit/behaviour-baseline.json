@@ -1,0 +1,24 @@
+{
+  "generated": "2026-09-28T18:42:10.652Z",
+  "keys": {
+    "chat@1512|focus|Chat / Conversation|textarea \"Message\": text field shows no focus indicator besides the caret": 1,
+    "chat@1512|focus|Desktop group media|textarea \"Message\": text field shows no focus indicator besides the caret": 1,
+    "chat@1512|focus|Desktop messenger|textarea \"Message\": text field shows no focus indicator besides the caret": 1,
+    "chat@1512|focus|Desktop support (Business)|textarea \"Message\": text field shows no focus indicator besides the caret": 1,
+    "chat@1512|focus|Failed to send|textarea \"Message\": text field shows no focus indicator besides the caret": 1,
+    "chat@1512|focus|Group media|textarea \"Message\": text field shows no focus indicator besides the caret": 1,
+    "chat@1512|focus|Hold to react|textarea \"Message\": text field shows no focus indicator besides the caret": 1,
+    "chat@1512|focus|Reply to any message|textarea \"Message\": text field shows no focus indicator besides the caret": 1,
+    "chat@1512|focus|Support chat|textarea \"Message\": text field shows no focus indicator besides the caret": 1,
+    "dialog@1512|focus|Form · Big with steps|input[type=text].zen-input__native \"File\" (in the dialog of button.zen-button \"Import tokens\"): text field shows no focus indicator besides the caret while read-only": 1,
+    "inline-message@1512|focus|Result of an action|input[type=text].zen-input__native \"Custom domain\": text field shows no focus indicator besides the caret while read-only": 1,
+    "popover@1512|focus|Popover|input[type=search].zen-input__native \"Search\": text field shows no focus indicator besides the caret": 1,
+    "search@1512|focus|Icon picker|input[type=search].zen-input__native \"Search icons\": text field shows no focus indicator besides the caret": 1,
+    "side-panel@1512|focus|Row details|input[type=text].zen-input__native \"Email\" (in the dialog of button.zen-list-item__wrapper \"Ava Chen Product Designer\"): text field shows no focus indicator besides the caret while read-only": 1,
+    "side-panel@1512|focus|Row details|input[type=text].zen-input__native \"Email\" (in the dialog of button.zen-list-item__wrapper \"Bao Nguyen Frontend Engineer\"): text field shows no focus indicator besides the caret while read-only": 1,
+    "side-panel@1512|focus|Row details|input[type=text].zen-input__native \"Email\" (in the dialog of button.zen-list-item__wrapper \"Chi Tran Design Ops\"): text field shows no focus indicator besides the caret while read-only": 1,
+    "sidebar@1512|focus|Flat · knowledge base|input[type=search].zen-input__native \"Search the wiki\": text field shows no focus indicator besides the caret": 1,
+    "tooltip@1512|focus|Copy feedback|input[type=text].zen-input__native \"Share link\": text field shows no focus indicator besides the caret while read-only": 1,
+    "visually-hidden@1512|focus|Announce a status|input[type=text].zen-input__native \"Link to this print\": text field shows no focus indicator besides the caret while read-only": 1
+  }
+}

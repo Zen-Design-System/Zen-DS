@@ -21,8 +21,51 @@ Triggers an action on the current surface (save, submit, open, delete). Navigati
 | Appearance | `appearance` | main · flat · overlay (overlay only on imagery/dark media) |
 | Level | `level` | primary · tertiary (default pair) · secondary (rare) · accent (promoted) · danger · danger-subtle · positive · positive-subtle · surface |
 | Size | `size` | 2xs · xs · sm · md · lg · xl |
-| Leading/Trailing icon | `startIcon / endIcon` | Icon nodes |
+| Leading/Trailing icon | `startIcon / endIcon · icon (IconButton)` | an icon name ("icon-plus-line") or a node (<Icon name size />) |
 | State=Disabled | `disabled` | Hover/Pressed/Focused come from real interaction |
+| Tooltip (IconButton) | `tooltip` | defaults to aria-label: shown after 1s of hover, at once on keyboard focus, never on touch; text for a longer hint; false only beside a visible label |
+
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/button.json`.
+
+### Button
+Also accepts `ButtonHTMLAttributes<HTMLButtonElement>`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `level` | `"primary" \| "accent" \| "secondary" \| "tertiary" \| "danger" \| "danger-subtle" \| "positive" \| "positive-subtle" \| "surface" \| "danger-secondary" \| "positive-secondary" \| "inverse" \| "white" \| "white-overlay" \| "black-overlay"` | — | Canonical Figma prop. `variant` remains as a compatibility alias. |
+| `variant` | `"primary" \| "accent" \| "secondary" \| "tertiary" \| "danger" \| "danger-subtle" \| "positive" \| "positive-subtle" \| "surface" \| "danger-secondary" \| "positive-secondary" \| "inverse" \| "white" \| "white-overlay" \| "black-overlay"` | — | **Deprecated:** Use level.  |
+| `size` | `"2xs" \| "xs" \| "sm" \| "md" \| "lg" \| "xl" \| "2xsmall" \| "xsmall" \| "small" \| "medium" \| "large" \| "xlarge"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `appearance` | `"main" \| "flat" \| "overlay"` | `"main"` | Figma component set: Button/Main, Button/Flat or Button/Overlay. |
+| `state` | `"default" \| "hover" \| "pressed" \| "focused" \| "disabled"` | — | Optional deterministic state for component matrices; native interaction states still work. |
+| `startIcon` | `IconName \| ReactNode` | — | Leading icon: an icon name (`"icon-plus-line"`) or a node; the slot sizes it to the button. |
+| `endIcon` | `IconName \| ReactNode` | — | Trailing icon: an icon name (`"icon-chevron-right-line-small"`) or a node; the slot sizes it to the button. |
+| `leftIcon` | `IconName \| ReactNode` | — | **Deprecated:** Use startIcon (same values).  |
+| `rightIcon` | `IconName \| ReactNode` | — | **Deprecated:** Use endIcon (same values).  |
+| `children` (required) | `ReactNode` | — |  |
+| `type` | _HTML attribute_ | `"button"` |  |
+
+### IconButton
+Figma Button/Icon-Main: a square, icon-only action that reuses the Button level/state tokens and the shared Icon primitive. Shows its name as a tooltip (see `tooltip`).
+
+Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `icon` (required) | `IconName \| ReactNode` | — | Figma Button/Icon-Main glyph: an icon name (`"icon-plus-line"`) or a node. The icon-only primitive is intentionally separate from Button/Main. |
+| `level` | `"primary" \| "accent" \| "secondary" \| "tertiary" \| "danger" \| "danger-subtle" \| "positive" \| "positive-subtle" \| "surface" \| "danger-secondary" \| "positive-secondary" \| "inverse" \| "white" \| "white-overlay" \| "black-overlay"` | — | Default `tertiary` for Icon-Main (toolbar and row actions) and `primary` for Icon-Flat (close/dismiss in headers). Accent is only for a promoted action (docs/guidelines/button.md). |
+| `variant` | `"primary" \| "accent" \| "secondary" \| "tertiary" \| "danger" \| "danger-subtle" \| "positive" \| "positive-subtle" \| "surface" \| "danger-secondary" \| "positive-secondary" \| "inverse" \| "white" \| "white-overlay" \| "black-overlay"` | — | **Deprecated:** Use level. Compatibility alias of `level`. |
+| `size` | `"2xs" \| "xs" \| "sm" \| "md" \| "lg" \| "xl" \| "2xsmall" \| "xsmall" \| "small" \| "medium" \| "large" \| "xlarge"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `appearance` | `"main" \| "flat" \| "overlay"` | `"main"` | Figma component set: Button/Icon-Main, Button/Icon-Flat or Button/Icon-Overlay. |
+| `state` | `"default" \| "hover" \| "pressed" \| "focused" \| "disabled"` | — |  |
+| `tooltip` | `ReactNode \| false` | — | Zen rule: an icon-only button shows its name as a tooltip after 1s of hover (at once on keyboard focus). Defaults to `aria-label`; pass text for a longer hint, or `false` only when a visible label already sits beside it. |
+| `type` | _HTML attribute_ | `"button"` |  |
+
+## Keyboard
+| Keys | Action |
+| --- | --- |
+| Enter / Space | Activate the button |
+| Tab / Shift+Tab | Move focus |
 
 ## ✅ Do
 - Give each surface exactly one Primary button, the main CTA.
@@ -32,6 +75,10 @@ Triggers an action on the current surface (save, submit, open, delete). Navigati
 - Start labels with a verb and keep them to 1–3 words ("Save changes", "Invite").
 - Disable a button only while its precondition is unmet, and explain why nearby (help text, validation).
 - Show progress on the button itself ("Deleting…") and disable siblings while it runs.
+- Use Flat Primary (Button/Icon-Flat Small) for close and dismiss icon buttons in Dialog, ModalForm and Side Panel headers (harness: button/flat-level).
+- Size buttons by layout: a full-width button (mobile CTA, empty state, stacked form footer) is Medium or larger; Small buttons (2xs · xs · sm) hug their label and align to the start.
+- On a phone, put the main action in the footer as Large (lg) full-width buttons, Primary on top and at most one Tertiary alternative below; small sizes (2xs–sm) always hug their label (harness: button/small-full-width).
+- Let every icon-only action show its name as a tooltip after 1s of hover (IconButton does it by default; custom icon-only controls spread useIconTooltip(label).bind() and render .tooltip) (harness: icon-button/tooltip, button/icon-only-raw).
 
 ## ❌ Don't
 - Don't use Secondary as the default second button. It is a rare highlight (e.g. a pressed toolbar toggle); justify it with zen-allow-secondary.
@@ -40,6 +87,12 @@ Triggers an action on the current surface (save, submit, open, delete). Navigati
 - Don't use a Button to open a filter/sort list.
 - Don't ship an IconButton without aria-label.
 - Don't use vague labels ("OK", "Click here") for consequential actions.
+- Don't use "OK", "Yes", "Submit" or "Click here"; name the outcome (harness: button/vague-label).
+- Don't stretch a Small button (2xs · xs · sm) across its container: a thin, wide button reads as a divider or input, and the label floats in empty space. Use size md, or let it hug (harness: button/small-full-width).
+- Don't label a Button "Filters" or give it a filter icon to open filters; that trigger is a Chip (harness: button/filter-is-chip).
+- Don't draw a Back button or IconButton with a left arrow on mobile/tablet; use icon-chevron-left-line-medium (harness: navigation/back-chevron).
+- Don't build an icon-only action from a raw `<button>` + `<Icon>`, and don't pass tooltip={false} unless a visible label sits right beside it.
+- Don't use XSmall / 2XSmall text buttons for ordinary actions (examples, cards, toolbars, forms, footers) — use sm or larger. XSmall/2XSmall are only for special compact pills beside a row, like the App Store's Get · Install · Open (harness: button/compact-size-special).
 
 ## Accessibility
 - Native `<button>`; Enter/Space activate. Focus ring is Focus/Accent (3px).
@@ -59,6 +112,21 @@ Triggers an action on the current surface (save, submit, open, delete). Navigati
 | `button/accent-is-promoted` | warn | Accent is for promoted CTAs (upsell, onboarding) only. | `zen-allow-accent: <reason>` |
 | `button/destructive-is-danger` | warn | Irreversible actions (Delete, Remove, Discard) use Danger or Danger-Subtle. | `zen-allow-destructive: <reason>` |
 | `icon-button/needs-name` | error | Icon-only buttons need an aria-label. | `zen-allow-unnamed: <reason>` |
+| `icon-button/needs-action` | warn | An IconButton does something: it has onClick (or href, or type="submit"), unless it is a Menu trigger (the Menu wires it). | `zen-allow-no-action: <reason>` |
+| `icon-button/tooltip` | warn | Icon-only buttons show their name as a tooltip after 1s of hover (at once on keyboard focus); IconButton does it by default — turn it off only when a visible label sits right beside it. | `zen-allow-no-tooltip: <reason>` |
+| `button/icon-only-raw` | warn | An icon-only action is an IconButton (or uses useIconTooltip), so it gets the Zen tokens, focus ring and the 1s name tooltip — not a hand-built <button> with just an <Icon>. | `zen-allow-raw-icon-button: <reason>` |
+| `navigation/back-chevron` | error | Back actions on mobile and tablet use a left chevron (icon-chevron-left-line-medium), never a left arrow. | `zen-allow-back-arrow: <reason>` |
+| `button/flat-level` | error | Button/Flat has levels primary · secondary · accent · danger · positive only; any other level falls back to the Main look (border + shadow). Close / dismiss icon buttons are Flat Primary. | `zen-allow-flat-level: <reason>` |
+| `button/small-full-width` | error | Small buttons (2xs · xs · sm) always hug their label; a full-width button is size md or larger (Figma CTA = Medium, full width). | `zen-allow-small-full-width: <reason>` |
+| `file-icon/not-an-action` | error | FileIcon identifies a file's type; it is never the icon of a button or action. | `zen-allow-file-icon-action: <reason>` |
+| `button/vague-label` | warn | Labels start with a verb and name the outcome ("Save changes"), never "OK", "Submit" or "Click here". | `zen-allow-vague-label: <reason>` |
+| `button/one-primary` | warn | One Main Primary per surface: never two Primary buttons side by side (Flat/Overlay levels are exempt). | `zen-allow-two-primary: <reason>` |
+| `button/compact-size-special` | warn | Text buttons at XSmall/2XSmall are for special compact pills only — like the App Store's Get / Install / Open next to a list row. Actions in examples, cards, toolbars and forms use sm or larger. | `zen-allow-compact-button: <reason>` |
+| `focus/visible-ring` | error | Removing the outline on focus requires a replacement ring (Focus/Accent) on the same element. | `zen-allow-focus-ring: <reason>` |
+| `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `icon/unknown-name` | error | Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page). | `zen-allow-icon-name: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
+| `interaction/action-without-handler` | warn | Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
 
 ## References
 - [Material 3 — Buttons](https://m3.material.io/components/buttons/guidelines)

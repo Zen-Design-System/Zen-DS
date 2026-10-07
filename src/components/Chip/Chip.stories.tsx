@@ -131,9 +131,9 @@ export const States: Story = {
         {chipStates.map((state) => <Chip key={state} variant="advanced" state={state}>{state}</Chip>)}
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
-        <Chip variant="advanced" select counter={3}>Selected + counter</Chip>
+        <Chip variant="advanced" selected counter={3}>Selected + counter</Chip>
         <Chip variant="advanced" theme="leading-icon" leading={<Icon name="icon-grid-01-line" size="sm" />} trailing={<Icon name="icon-x-small-line" size="2xs" />}>Leading + trailing</Chip>
-        <Chip variant="normal" level="primary" select>Normal selected</Chip>
+        <Chip variant="normal" level="primary" selected>Normal selected</Chip>
         <Chip variant="number-only" value={12} state="focused" />
       </div>
     </div>
@@ -149,7 +149,7 @@ export const NormalMatrix: Story = {
           <Chip variant="normal" level={level} size="xsmall">XSmall</Chip>
           <Chip variant="normal" level={level} size="small">Small</Chip>
           <Chip variant="normal" level={level} size="medium">Medium</Chip>
-          <Chip variant="normal" level={level} size="small" select>Selected</Chip>
+          <Chip variant="normal" level={level} size="small" selected>Selected</Chip>
           <Chip variant="normal" level={level} size="small" state="focused">Focused</Chip>
           <Chip variant="normal" level={level} size="small" theme="leading-icon" leading={<Icon name="icon-grid-01-line" size="sm" />}>Icon</Chip>
         </div>
@@ -165,7 +165,7 @@ export const AdvancedMatrix: Story = {
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
         <Chip variant="advanced" theme="leading-icon" leading={<Icon name="icon-marker-pin-01-line" size="sm" />}>Leading icon</Chip>
         <Chip variant="advanced" photoSrc={storyPhoto}>Leading photo</Chip>
-        <Chip variant="advanced" select>Select</Chip>
+        <Chip variant="advanced" selected>Select</Chip>
         <Chip variant="advanced" state="focused">Focused</Chip>
         <Chip variant="advanced" state="disabled">Disabled</Chip>
       </div>

@@ -1,0 +1,91 @@
+/* Zen Studio canvas (spec §3): Canvas/Default with a dot grid that follows pan and zoom; the world holds the board in
+   world coordinates (translate + scale from the top-left); chrome above it stays in screen space. */
+/* zen-allow-canvas-layer: the canvas is the page layer of the Studio's work area (the frames on it are Surface). */
+.studio-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--zen-color-background-canvas-default, #f7f7f7);
+  cursor: default;
+  outline: none;
+  overscroll-behavior: none;
+}
+.studio-viewport:focus-visible:not([data-pointer-focus="true"]) { box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid, #121212); }
+
+/* Spacing and offset are set inline by the viewport controller (24px at 100%, doubling while denser than 12px). */
+.studio-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle at center, var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 11%)) 1px, transparent 1.5px);
+  transition: opacity var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease);
+}
+.studio-grid[data-hidden="true"] { opacity: 0; }
+
+.studio-world {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  width: max-content;
+  transform-origin: 0 0;
+  color: var(--zen-color-content-neutral-strongest, #111);
+  font-family: var(--zen-typography-font-family-sans, Inter), Arial, sans-serif;
+}
+
+/* Tools: Hand (and Space held) pans everywhere, so the examples take no pointer events meanwhile. */
+.studio-viewport:is([data-tool="hand"], [data-space="true"]) { cursor: grab; }
+.studio-viewport:is([data-tool="hand"], [data-space="true"]) .studio-world { pointer-events: none; }
+.studio-viewport[data-space="true"] * { cursor: grab !important; }
+.studio-viewport[data-panning="true"],
+.studio-viewport[data-panning="true"] * { cursor: grabbing !important; user-select: none; }
+
+/* A full-screen screen inside the world (the App Shell playground) is position: fixed, so nothing above it may
+   transform, isolate or clip it while it is open; the canvas chrome steps aside. StudioCanvas mirrors "a
+   [data-fullscreen] is open in the world" as data-world-fullscreen on the viewport — not :has(): a :has() subject that
+   is an ancestor of the world made every style write (each pan/zoom frame) restyle the whole world (~8ms on App Shell). */
+.studio-viewport[data-world-fullscreen="true"] > .studio-world { z-index: auto; transform: none !important; }
+.studio-viewport[data-world-fullscreen="true"] { isolation: auto; }
+.studio-viewport[data-world-fullscreen="true"] > :not(.studio-world) { visibility: hidden; }
+
+/* ── Floating pills, placed as in Figma: zoom (top-right, the percentage menu only), tools (bottom-centre), tip "?" (bottom-right) ──
+   Children of the canvas area (CanvasChrome), above the examples' overlay layer (z 20, studio.css) so an open Dialog's
+   scrim never covers them; below the drawer scrim (23). Popover surfaces: the popover border and shadow, so they keep an
+   edge over the dark canvas too (a shadow alone does not). */
+.studio-zoom,
+.studio-canvas-tools,
+.studio-status {
+  position: absolute;
+  z-index: 21;
+  display: flex;
+  align-items: center;
+  gap: var(--zen-spacing-gap-3-xsmall, 2px);
+  padding: var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
+  background: var(--zen-popover-background, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+}
+.studio-zoom {
+  top: var(--zen-spacing-padding-medium, 16px);
+  right: var(--zen-spacing-padding-medium, 16px);
+  padding: var(--zen-spacing-padding-3-xsmall, 2px);
+}
+/* zen-allow-slot-size: the percentage keeps one width while it changes (35% → 100%), so the pill does not jump. */
+.studio-zoom__value { min-width: 60px; font-variant-numeric: tabular-nums; }
+/* Centred on the canvas by auto margins, not translateX(-50%), which can land the 1px outline on a half pixel. */
+.studio-canvas-tools {
+  right: 0;
+  bottom: var(--zen-spacing-padding-medium, 16px);
+  left: 0;
+  width: max-content;
+  margin-inline: auto;
+}
+.studio-status {
+  right: var(--zen-spacing-padding-medium, 16px);
+  bottom: var(--zen-spacing-padding-medium, 16px);
+}
+/* The App Shell playground's own full screen covers the canvas: the pills step aside with the rest of the canvas chrome. */
+.studio-canvas-area[data-world-fullscreen="true"] > :is(.studio-zoom, .studio-canvas-tools, .studio-status) { visibility: hidden; }

@@ -1,0 +1,115 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "card",
+  "import": "import { Card } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Card",
+      "file": "src/components/Card/Card.tsx",
+      "description": "Figma Card (6643:51021): a Content slot on one of five surfaces, padded Card-padding-medium/small.\nA clickable card is an actionable container: Border theme steps its stroke up to Border/Neutral/Subtle (§6).",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"children\" | \"onClick\">",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The root element.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
+          "required": false,
+          "default": "\"shadow\"",
+          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border · Semi-Pale (Pale→Subtle gradient).",
+          "deprecated": null
+        },
+        {
+          "name": "spacing",
+          "type": "\"md\" | \"sm\" | \"medium\" | \"small\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large). Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Active=Yes: the selected card — Surface fill with a 2px Card/Border/Active stroke.",
+          "deprecated": null
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Active=Yes (the selected card).",
+          "deprecated": "Use selected."
+        },
+        {
+          "name": "surface",
+          "type": "\"default\" | \"alt\"",
+          "required": false,
+          "default": null,
+          "description": "Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface\n (a page scope can set it once), else Surface/Default. Pale / Semi-Pale keep their own fill. With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)\n on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
+          "deprecated": null
+        },
+        {
+          "name": "onClick",
+          "type": "(event: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>) => void",
+          "required": false,
+          "default": null,
+          "description": "Makes the whole card one action (role=button, Enter/Space). Keep other controls out of clickable cards.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name for a clickable card when its content does not start with a clear title.",
+          "deprecated": null
+        },
+        {
+          "name": "subAction",
+          "type": "CardSubAction | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Sub-Action: an absolute layer over the top-right corner holding Button/Icon-Flat Small Secondary (default ⋮).\n It takes no room: the Content slot keeps the full width. A node (e.g. a Menu) should use the same trigger.",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "\"div\" | \"article\" | \"section\" | \"li\"",
+          "required": false,
+          "default": "\"div\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "CardSubAction": "interface CardSubAction { label: string; icon?: IconName | ReactElement; onClick?: () => void; }"
+  }
+}

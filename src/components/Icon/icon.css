@@ -1,4 +1,6 @@
-:root {
+/* Declared on every density scope, not only :root: a custom property is resolved where it is declared, so at :root alone
+   these aliases froze at the root density and named icon sizes never followed Component Size (Compact / Comfortable). */
+:root, [data-density] {
   --zen-icon-size-2xs: var(--zen-element-size-popular-2-xsmall);
   --zen-icon-size-xs: var(--zen-element-size-popular-xsmall);
   --zen-icon-size-sm: var(--zen-element-size-popular-small);

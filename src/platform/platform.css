@@ -66,14 +66,11 @@
 }
 
 .official-platform {
-  /* Codebase Platform uses the Basic sidebar token from the referenced Figma node. */
-  --zen-sidebar-default-width: 260px;
   --platform-code-font: "JetBrains Mono";
   --official-canvas: var(--zen-color-background-canvas-default, #f7f7f7);
   --official-surface: var(--zen-color-background-surface-default, #fff);
   --official-ink: var(--zen-color-content-neutral-strongest, #111);
   --official-muted: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%));
-  --official-line: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%));
   --official-accent: var(--zen-color-background-accent-solid-default, #ff66d4);
   /* Surface contract of the component pages (playground panel, Example cards). Every other platform
      container uses the same values so all pages read as one system. */
@@ -97,34 +94,120 @@
   font-family: var(--zen-typography-font-family-sans, Inter), Arial, sans-serif;
 }
 
-/* Platform-only typography: Figma Typography Configuration mode "Zen-Platform", pinned on the
-   Codebase Platform canvas (14240:26923). It is NOT a system mode, so it is not in the token
-   source. It is Dashboard (set on the shell by data-typography="dashboard") plus these 6 values.
-   Component previews carry their own data-typography (the topbar chip), which redeclares every
-   typography variable and so ignores these overrides. */
+/* A nested token-mode scope (e.g. an example card switched to dark) must re-resolve the platform's colour
+   aliases: custom properties resolve where they are declared, so the values above stay in the page's mode. */
+.official-platform [data-theme] {
+  --official-canvas: var(--zen-color-background-canvas-default, #f7f7f7);
+  --official-surface: var(--zen-color-background-surface-default, #fff);
+  --official-ink: var(--zen-color-content-neutral-strongest, #111);
+  --official-muted: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%));
+  --official-accent: var(--zen-color-background-accent-solid-default, #ff66d4);
+  --platform-surface-background: var(--zen-color-background-surface-default, #fff);
+  --platform-surface-shadow: var(--zen-style-shadow-bottom-level-1-shadow);
+  --platform-surface-divider: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  --platform-inset-background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%));
+}
+
+/* Platform-only typography: Figma Typography Configuration mode "Zen-Platform" (export "Typography Configuration.json",
+   2026-09-27), pinned on the Codebase Platform canvas (14240:26923). It is NOT a system mode, so it is not in the token
+   source; the shell sets data-typography="dashboard" and this block redeclares all 78 Zen-Platform values on top.
+   Component previews (and the portal root) carry their own data-typography (the topbar chip), which redeclares every
+   typography variable and so ignores these overrides. Re-export the mode and regenerate this block when Figma changes. */
 .official-platform[data-typography] {
   --zen-typography-font-family-display: "TASA Explorer";
   --zen-typography-font-family-heading: "TASA Explorer";
-  --zen-typography-letter-spacing-display-1: -2.08px;
-  --zen-typography-letter-spacing-display-2: -1.84px;
-  --zen-typography-letter-spacing-display-3: -1.6px;
-  --zen-typography-letter-spacing-display-4: -1.44px;
+  /* Generic fallbacks: with "Inter" alone, chips and body text drew in the browser's serif until the font loaded. */
+  --zen-typography-font-family-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --zen-typography-font-family-button: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --zen-typography-font-family-dev: "JetBrains Mono";
+  --zen-typography-font-size-display-1: 52px;
+  --zen-typography-line-height-display-1: 60px;
+  --zen-typography-letter-spacing-display-1: -1.3px;
+  --zen-typography-font-size-display-2: 46px;
+  --zen-typography-line-height-display-2: 52px;
+  --zen-typography-letter-spacing-display-2: -1.15px;
+  --zen-typography-font-size-display-3: 40px;
+  --zen-typography-line-height-display-3: 48px;
+  --zen-typography-letter-spacing-display-3: -1px;
+  --zen-typography-font-size-display-4: 36px;
+  --zen-typography-line-height-display-4: 44px;
+  --zen-typography-letter-spacing-display-4: -0.9px;
+  --zen-typography-font-size-heading-1: 32px;
+  --zen-typography-line-height-heading-1: 40px;
+  --zen-typography-letter-spacing-heading-1: -0.64px;
+  --zen-typography-font-size-heading-4: 20px;
+  --zen-typography-line-height-heading-4: 28px;
+  --zen-typography-letter-spacing-heading-4: -0.4px;
+  --zen-typography-font-size-subheading: 18px;
+  --zen-typography-line-height-subheading: 24px;
+  --zen-typography-letter-spacing-subheading: -0.36px;
+  --zen-typography-font-size-body-base: 14px;
+  --zen-typography-line-height-body-base: 20px;
+  --zen-typography-letter-spacing-body-base: -0.14px;
+  --zen-typography-font-size-body-small: 12px;
+  --zen-typography-line-height-body-small: 16px;
+  --zen-typography-letter-spacing-body-small: 0px;
+  --zen-typography-font-size-caption: 10px;
+  --zen-typography-line-height-caption: 12px;
+  --zen-typography-letter-spacing-caption: 0px;
+  --zen-typography-font-size-label-small: 8px;
+  --zen-typography-line-height-label-small: 12px;
+  --zen-typography-letter-spacing-label-small: 0px;
+  --zen-typography-font-size-button-label-l: 14px;
+  --zen-typography-line-height-button-label-l: 20px;
+  --zen-typography-letter-spacing-button-label-l: -0.28px;
+  --zen-typography-font-size-button-label-m: 14px;
+  --zen-typography-line-height-button-label-m: 20px;
+  --zen-typography-letter-spacing-button-label-m: -0.28px;
+  --zen-typography-font-size-button-label-s: 14px;
+  --zen-typography-line-height-button-label-s: 20px;
+  --zen-typography-letter-spacing-button-label-s: -0.14px;
+  --zen-typography-font-size-button-label-xs: 12px;
+  --zen-typography-line-height-button-label-xs: 12px;
+  --zen-typography-letter-spacing-button-label-xs: 0px;
+  --zen-typography-font-size-all-caps-m: 14px;
+  --zen-typography-line-height-all-caps-m: 16px;
+  --zen-typography-letter-spacing-all-caps-m: 0px;
+  --zen-typography-font-size-all-caps-s: 12px;
+  --zen-typography-line-height-all-caps-s: 16px;
+  --zen-typography-letter-spacing-all-caps-s: 0px;
+  --zen-typography-font-size-heading-3: 24px;
+  --zen-typography-line-height-heading-3: 32px;
+  --zen-typography-letter-spacing-heading-3: -0.48px;
+  --zen-typography-font-size-button-label-xl: 16px;
+  --zen-typography-line-height-button-label-xl: 24px;
+  --zen-typography-letter-spacing-button-label-xl: -0.32px;
+  --zen-typography-font-size-heading-2: 28px;
+  --zen-typography-line-height-heading-2: 36px;
+  --zen-typography-letter-spacing-heading-2: -0.56px;
+  --zen-typography-font-size-body-extra: 16px;
+  --zen-typography-line-height-body-extra: 24px;
+  --zen-typography-letter-spacing-body-extra: -0.16px;
+  --zen-typography-font-size-display-extra-1: 78px;
+  --zen-typography-line-height-display-extra-1: 88px;
+  --zen-typography-letter-spacing-display-extra-1: -2.34px;
+  --zen-typography-font-size-display-extra-2: 68px;
+  --zen-typography-line-height-display-extra-2: 72px;
+  --zen-typography-letter-spacing-display-extra-2: -2.04px;
+  --zen-typography-font-size-display-extra-3: 60px;
+  --zen-typography-line-height-display-extra-3: 68px;
+  --zen-typography-letter-spacing-display-extra-3: -1.8px;
+  --zen-typography-letter-spacing-body-code: 0px;
 }
 
-/* The platform template is a fixed 260px rail even when the global density mode
-   resolves Sidebar/Default-Width to its Comfortable value (280px). */
-.official-platform[data-brand="zen"] { --zen-sidebar-default-width: 260px; }
+/* The docs rail and every Sidebar in the examples take Sidebar/Default-Width as the density mode resolves it (Compact
+   240px, Comfortable 260px; user, 2026-10-06): the platform no longer pins its own width. */
 
 :where(.official-platform) button:where(:not(.zen-button):not(.zen-chip)) { border: 0; cursor: pointer; font: inherit; }
 .official-platform .zen-button { cursor: pointer; }
 .official-sidebar {
   position: sticky;
   top: 0;
-  width: var(--zen-sidebar-default-width, 260px);
-  min-width: var(--zen-sidebar-default-width, 260px);
-  max-width: var(--zen-sidebar-default-width, 260px);
+  width: var(--zen-sidebar-default-width, 240px);
+  min-width: var(--zen-sidebar-default-width, 240px);
+  max-width: var(--zen-sidebar-default-width, 240px);
   height: 100vh;
-  flex: 0 0 var(--zen-sidebar-default-width, 260px);
+  flex: 0 0 var(--zen-sidebar-default-width, 240px);
   align-self: flex-start;
 }
 .official-sidebar .zen-sidebar__surface {
@@ -133,10 +216,21 @@
 }
 .official-sidebar .zen-sidebar__items { gap: var(--zen-spacing-gap-xsmall, 8px); }
 .official-sidebar__brand { display: flex; width: 100%; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Navigation search: filters the rail; the status line announces the count and shows the empty result. */
+/* Aligned with the menu items: the slot gets the body's Center-Container inset (Spacing/Padding/XSmall). */
+.official-sidebar .zen-sidebar__search { padding: 0 var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px); }
+.official-sidebar__search { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.official-sidebar__search > .zen-search { width: 100%; }
+.official-sidebar__search-status:empty { display: none; }
+.official-sidebar__search-status { padding-inline: var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); font: var(--zen-emphasis-font-weight-regular, 400) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter, sans-serif); }
+/* zen-allow-slot-size: holds the Zen logo artwork at its Figma 28px (platform sidebar header), not a token-sized icon. */
 .official-sidebar__brand-mark { display: inline-flex; width: 28px; height: 28px; flex: 0 0 28px; align-items: center; justify-content: center; color: var(--zen-color-content-neutral-strongest, #111); }
 .official-sidebar__brand-name { min-width: 0; flex: 1 1 auto; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-semi-bold, 600) var(--zen-typography-font-size-body-extra, 16px)/var(--zen-typography-line-height-body-extra, 24px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-extra, -0.16px); }
 
-.official-content { position: relative; display: flex; min-width: 1000px; flex: 1; flex-direction: column; }
+/* Desktop: the wrapper is transparent to layout, so the rail stays a sticky flex child. */
+.official-nav { display: contents; }
+.official-topbar__menu, .official-scrim { display: none; }
+.official-content { position: relative; display: flex; min-width: 0; flex: 1; flex-direction: column; }
 /* Sticky content inside a page (e.g. the Iconography toolbar) docks 8px below the 72px topbar. */
 .official-platform { --zen-sticky-offset: calc(72px + var(--zen-spacing-gap-xsmall, 8px)); }
 .official-topbar { position: sticky; z-index: 20; top: 0; box-sizing: border-box; display: flex; height: 72px; flex: 0 0 72px; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px); background: var(--official-canvas); }
@@ -147,9 +241,10 @@
 .official-topbar__breadcrumb[aria-current="page"] { background: var(--zen-color-background-neutral-flat-default, transparent); }
 .official-topbar__trailing { display: inline-flex; min-width: 0; flex: 0 1 auto; align-items: center; justify-content: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .official-topbar__controls { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.official-topbar__controls .zen-chip { --zen-chip-icon: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); flex: 0 0 auto; box-shadow: 0 1px .5px var(--zen-button-tertiary-shadow-default, rgb(0 0 0 / 4%)); backdrop-filter: blur(20px); }
+.official-topbar__controls .zen-chip { --zen-chip-icon: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); flex: 0 0 auto; box-shadow: var(--zen-style-shadow-action-tertiary-shadow); backdrop-filter: var(--zen-style-shadow-action-tertiary-backdrop-filter, blur(20px)); }
 .official-topbar__controls .zen-chip__dropdown { flex: 0 0 auto; }
 .official-topbar__segmented { flex: 0 0 auto; }
+/* zen-allow-raw-spacing: the page's end space under the last section (platform layout; beyond the 48px padding scale). */
 .official-page { display: flex; width: calc(100% - 48px); margin: 0 auto; flex-direction: column; gap: var(--zen-spacing-gap-giant, 64px); padding-bottom: 120px; }
 
 .official-overview { display: flex; width: 100%; flex-direction: column; padding-top: var(--zen-spacing-padding-small, 12px); }
@@ -157,14 +252,21 @@
    Body Content is the full 1204 column (x=24 already comes from .official-page) and centres its children. */
 .official-overview__content { display: flex; width: 100%; max-width: 1600px; box-sizing: border-box; margin: 0 auto; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-giant, 64px); padding: calc(var(--zen-spacing-padding-small, 12px) + var(--zen-margin-comfortable, 24px)) 0 var(--zen-margin-comfortable, 24px); }
 .official-cover { position: relative; display: flex; width: min(1204px, 100%); height: 492px; box-sizing: border-box; overflow: hidden; padding: var(--zen-spacing-padding-2-xlarge, 32px); border-radius: var(--zen-corner-radius-2-xlarge, 24px); background: var(--official-accent); }
+/* Cover art (Codebase Platform 14240:26923, _Cover): Figma draws it with raw values — the 37×34 .logo-Zen, the rotated
+   202×233 vectors, the 30px Frame gap, TASA Explorer Black 120px (78% line, −4% tracking) and a black 20% divider.
+   zen-allow-slot-size zen-allow-raw-spacing zen-allow-raw-type zen-allow-raw-colour: the cover rules below copy them. */
 .official-cover__logo { position: absolute; top: 32px; left: 32px; width: 37px; height: 34px; background: var(--zen-color-content-on-brights, #000000db); mask: url("../assets/figma/official/logo-zen.svg") center / contain no-repeat; }
 .official-cover__kaiz { position: absolute; top: 32px; right: 32px; color: var(--zen-color-content-on-brights, #000000db); font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-all-caps-m, 14px)/var(--zen-typography-line-height-all-caps-m, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-all-caps-m, 0); text-transform: uppercase; }
 .official-cover__vector { position: absolute; top: calc(50% + .6px); display: flex; width: 291.707px; height: 302.986px; align-items: center; justify-content: center; transform: translateY(-50%); }
 .official-cover__vector--left { left: 30.46px; }
 .official-cover__vector--right { right: 19.83px; }
+/* zen-allow-slot-size: Figma vector artwork size (see the cover note above). */
 .official-cover__vector img { display: block; width: 202.266px; height: 233.08px; transform: rotate(30deg); }
+/* zen-allow-raw-spacing: Figma cover Frame gap 30 (raw). */
 .official-cover__body { display: flex; width: 100%; height: 428px; box-sizing: border-box; flex-direction: column; align-items: center; gap: 30px; padding: 0; }
+/* zen-allow-raw-type: Figma cover title, TASA Explorer Black 120px / 78% / −4% (raw, not a text style). */
 .official-cover h1 { width: 396px; max-width: 100%; margin: 0; color: var(--zen-color-content-on-brights, #000000db); font-family: var(--zen-typography-font-family-display), sans-serif; font-size: 120px; font-weight: 900; letter-spacing: -4.8px; line-height: .78; text-align: center; text-transform: uppercase; white-space: nowrap; }
+/* zen-allow-raw-colour: Figma cover divider fill is black at 20% (raw, 14263:98631). */
 .official-cover__divider { width: 2px; min-height: 0; flex: 1 1 auto; background: rgb(0 0 0 / 20%); }
 .official-cover__meta { display: grid; width: 100%; flex: 0 0 auto; grid-template-columns: repeat(3, minmax(0, 1fr)); color: var(--zen-color-content-on-brights, #000000db); font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-all-caps-m, 14px)/var(--zen-typography-line-height-all-caps-m, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-all-caps-m, 0px); text-transform: uppercase; }
 .official-cover__meta span:nth-child(2) { text-align: center; }
@@ -176,7 +278,7 @@
 
 .official-card-grid { display: grid; width: 100%; max-width: 1600px; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: var(--zen-spacing-gap-medium, 16px); margin: 0 auto; }
 .official-card { min-height: 232px; padding: var(--zen-card-padding-medium, 24px); border: 0; border-radius: var(--zen-corner-radius-2-xlarge, 24px); background: var(--official-surface); box-shadow: var(--platform-surface-shadow); text-align: left; }
-.official-card:hover { box-shadow: 0 4px 12px rgb(0 0 0 / 9%); transform: translateY(-1px); }
+.official-card:hover { box-shadow: var(--zen-style-shadow-bottom-level-2-shadow); transform: translateY(-1px); }
 .official-card--foundation,
 .official-card--components,
 .official-card--patterns,
@@ -193,18 +295,23 @@
 .official-card__texts { display: flex; width: 100%; flex-direction: column; align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .official-card h3 { width: 100%; margin: 0; color: var(--official-ink); font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-heading-4, 20px)/var(--zen-typography-line-height-heading-4, 28px) var(--zen-typography-font-family-heading, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-heading-4, -.6px); }
 .official-card p { width: 100%; margin: 0; color: var(--official-muted); font: var(--zen-emphasis-font-weight-regular, 400) var(--zen-typography-font-size-body-base, 14px)/var(--zen-typography-line-height-body-base, 20px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-base, -.14px); }
-.official-feedback { position: fixed; z-index: 20; right: var(--zen-margin-comfortable, 24px); bottom: var(--zen-margin-comfortable, 24px); }
 
 .platform-page-template { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding-top: var(--zen-spacing-padding-small, 12px); }
 .platform-page-hero { position: relative; display: flex; box-sizing: border-box; height: 400px; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); align-items: flex-start; overflow: hidden; padding: var(--zen-spacing-padding-3-xlarge, 40px); border-radius: var(--zen-corner-radius-2-xlarge, 24px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); }
+/* Page hero (Codebase Platform template covers, e.g. 14257:57020 "Global Colors"): raw Figma values like the Overview cover —
+   the 28px logo art, Frame 78 gap 30, TASA Explorer Black 120px (86% line, −2% tracking).
+   zen-allow-slot-size zen-allow-raw-spacing zen-allow-raw-type: the hero rules below copy them. */
 .platform-page-hero__logo { position: absolute; top: var(--zen-spacing-padding-3-xlarge, 40px); left: var(--zen-spacing-padding-3-xlarge, 40px); width: 28px; height: 28px; background: var(--zen-color-content-neutral-strongest, #111); mask: url("../assets/figma/official/logo-zen.svg") center / contain no-repeat; }
 .platform-page-hero__kaiz { position: absolute; top: var(--zen-spacing-padding-3-xlarge, 40px); right: var(--zen-spacing-padding-3-xlarge, 40px); color: var(--zen-color-content-neutral-strongest, #111); font-family: var(--zen-typography-font-family-sans, Inter), sans-serif; font-size: var(--zen-typography-font-size-all-caps-m, 14px); font-weight: var(--zen-emphasis-font-weight-bold, 600); letter-spacing: var(--zen-typography-letter-spacing-all-caps-m, 0); line-height: var(--zen-typography-line-height-all-caps-m, 16px); text-transform: uppercase; }
+/* zen-allow-raw-spacing: Figma hero Frame 78 gap 30 (raw). */
 .platform-page-hero__main { display: flex; width: 100%; min-height: 0; flex: 1 1 auto; flex-direction: column; gap: 30px; align-items: center; }
+/* zen-allow-raw-type: Figma hero title, TASA Explorer Black 120px / 86% / −2% (raw). */
 .platform-page-hero h1 { width: 100%; max-width: 900px; margin: 0; color: var(--zen-color-content-neutral-strongest, #111); font-family: var(--zen-typography-font-family-display), sans-serif; font-size: 120px; font-weight: 900; letter-spacing: -2.4px; line-height: .86; text-align: center; text-transform: uppercase; }
 .platform-page-hero h1 span { display: block; }
 .platform-page-hero__divider { width: 2px; min-height: 0; flex: 1 1 auto; background: var(--zen-color-content-neutral-strongest, #111); opacity: .2; }
 .platform-page-hero__meta { display: flex; width: 100%; flex: 0 0 auto; justify-content: space-between; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-all-caps-m, 14px)/var(--zen-typography-line-height-all-caps-m, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-all-caps-m, 0); text-transform: uppercase; }
-.platform-page-template__body { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-3-xlarge, 48px); padding: var(--zen-spacing-gap-3-xlarge, 48px) 0 96px; }
+/* zen-allow-raw-spacing: 96px end space under the page body (platform layout; beyond the 48px padding scale). */
+.platform-page-template__body { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-3-xlarge, 48px); padding: var(--zen-spacing-padding-4-xlarge, 48px) 0 96px; }
 .platform-page-intro { width: min(800px, 100%); margin: 0 auto; text-align: center; }
 .platform-page-intro p { margin: 0; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
 .platform-page-template__body > .foundation-shell,
@@ -216,10 +323,13 @@
 .platform-code__language-group { display: flex; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
 .platform-code__language { width: 196px; }
 .platform-code__language .zen-input__control { width: 196px; }
-.platform-code pre { min-height: 228px; box-sizing: border-box; margin: 0; padding: var(--zen-spacing-padding-medium, 16px); overflow: auto; border-radius: var(--zen-corner-radius-small, 8px); background: var(--platform-code-background); color: var(--platform-code-foreground); color-scheme: dark; font-family: var(--platform-code-font, monospace); font-size: 13px; line-height: 1.6; }
+.platform-code pre { min-height: 228px; box-sizing: border-box; margin: 0; padding: var(--zen-spacing-padding-medium, 16px); overflow: auto; border-radius: var(--zen-corner-radius-small, 8px); background: var(--platform-code-background); color: var(--platform-code-foreground); color-scheme: dark; font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); }
+/* zen-allow-raw-colour: syntax hues of the always-dark code view (a code theme, not UI colour roles; the surface itself uses
+   fixed Global primitives, see --platform-code-background). */
 .platform-code__token--keyword { color: #c792ea; }
 .platform-code__token--string { color: #c3e88d; }
 .platform-code__token--tag { color: #82aaff; }
+/* zen-allow-raw-colour: code theme hues, continued. */
 .platform-code__token--comment { color: #697386; font-style: italic; }
 .platform-code__token--number { color: #f78c6c; }
 .platform-code code { white-space: pre; }
@@ -230,14 +340,18 @@
 .platform-component-section__heading { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .platform-component-section__heading h2 { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-heading-4, 20px)/var(--zen-typography-line-height-heading-4, 28px) var(--zen-typography-font-family-heading, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-heading-4, -.6px); }
 .platform-component-section__heading p:last-child { max-width: 720px; margin: 0; color: var(--official-muted); font: var(--zen-emphasis-font-weight-regular, 400) var(--zen-typography-font-size-body-base, 14px)/var(--zen-typography-line-height-body-base, 20px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-base, -.14px); }
-.platform-example-page__header { max-width: 720px; padding: 24px 0 32px; }
-.platform-example-page__header h1 { margin: 10px 0 14px; }
-.platform-example-page__header > p:last-child { max-width: 560px; margin: 0; color: var(--official-muted); }
 .platform-example-panel { padding: var(--platform-surface-padding); border: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
+/* Installation page: one panel per step; commands use the always-dark code surface. */
+.platform-install { display: grid; gap: var(--zen-spacing-gap-medium, 16px); }
+.platform-install__step { display: grid; gap: var(--zen-spacing-gap-small, 12px); }
+.platform-install__step h2, .platform-install__step p { margin: 0; }
+.platform-install__step p { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
+.platform-install__command { margin: 0; overflow-x: auto; padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--platform-code-background); color: var(--platform-code-foreground); font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); white-space: pre-wrap; }
 .platform-component-preview { box-sizing: border-box; }
 .platform-example-panel--stack { display: grid; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); grid-template-rows: 88px auto auto; grid-template-areas: "title controls" "preview controls" "code controls"; gap: 0; padding: 0; overflow: visible; border: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
 .platform-main-component__title { grid-area: title; box-sizing: border-box; width: 100%; margin: 0; padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-heading-3, 24px)/var(--zen-typography-line-height-heading-3, 32px) var(--zen-typography-font-family-heading, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-heading-3, -.72px); }
-.platform-playground-controls { display: flex; grid-area: controls; min-width: 0; flex-direction: column; flex-wrap: nowrap; gap: var(--zen-spacing-gap-xsmall, 8px); align-items: stretch; align-self: stretch; padding: var(--zen-spacing-padding-xlarge, 24px); border-left: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.platform-playground-controls { display: flex; grid-area: controls; min-width: 0; flex-direction: column; flex-wrap: nowrap; gap: var(--zen-spacing-gap-medium, 16px); align-items: stretch; align-self: stretch; padding: var(--zen-spacing-padding-xlarge, 24px); border-left: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+/* Property rows are stacked fields (label + control): Gap/Medium, the spacing ladder's step for them (usage rules §13). */
 .platform-playground-controls::before { display: block; margin-bottom: var(--zen-spacing-gap-medium, 16px); color: var(--zen-color-content-neutral-strongest, #111); content: "Select Property & Variant"; font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-subheading, 18px)/var(--zen-typography-line-height-subheading, 24px) var(--zen-typography-font-family-heading, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-subheading, -.54px); }
 .platform-property-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px); align-items: center; min-width: 0; }
 .platform-property-row[data-kind="boolean"] { padding-block: var(--zen-spacing-padding-xsmall, 8px); }
@@ -251,43 +365,30 @@
 .platform-example-panel--stack > .platform-example-row,
 .platform-example-panel--stack > .platform-input-preview { grid-area: preview; min-width: 0; min-height: 152px; box-sizing: border-box; justify-content: center; margin: 0 var(--zen-spacing-padding-xlarge, 24px); padding: var(--zen-spacing-padding-4-xlarge, 48px) var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); }
 .platform-example-panel--stack > .platform-code { grid-area: code; min-width: 0; margin: var(--zen-spacing-gap-xlarge, 32px) var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px); }
-.platform-code { display: grid; gap: 8px; }
+.platform-code { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .platform-code > summary { width: max-content; cursor: pointer; color: var(--official-muted); font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; }
 .platform-code pre { margin-top: 0; }
-.platform-example-panel--sidebar { width: min(420px, 100%); min-height: 560px; padding: 0; overflow: hidden; }
-.platform-sidebar-matrix { display: grid; grid-template-columns: repeat(2, minmax(260px, 1fr)); gap: 24px; align-items: start; }
-.platform-sidebar-matrix .platform-example-panel--sidebar { width: auto; min-height: 620px; }
-.platform-sidebar-matrix .platform-example-panel--sidebar-collapsed { min-width: 260px; }
-.platform-sidebar-matrix .platform-example-panel--workspace { grid-column: 1 / -1; overflow-x: auto; }
-.platform-sidebar-demo__brand { display: flex; width: 100%; align-items: center; gap: 8px; }
-.platform-sidebar-demo__brand-mark { display: inline-flex; width: 28px; height: 28px; flex: 0 0 28px; align-items: center; justify-content: center; color: var(--zen-color-content-neutral-strongest, #111); }
-.platform-sidebar-demo__brand-name { min-width: 0; flex: 1 1 auto; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-semi-bold, 600) var(--zen-typography-font-size-body-extra, 16px)/var(--zen-typography-line-height-body-extra, 24px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-extra, -0.16px); }
-.zen-sidebar[data-collapsed="true"] .platform-sidebar-demo__brand { flex-direction: column; gap: var(--zen-spacing-gap-large, 24px); }
-.zen-sidebar[data-collapsed="true"] .platform-sidebar-demo__brand-name { display: none; }
-.platform-sidebar-demo__brand > button { display: inline-flex; width: 32px; height: 32px; align-items: center; justify-content: center; margin-left: auto; border-radius: 999px; background: transparent; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
-.platform-sidebar-demo__brand > button:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
-.platform-sidebar-demo__workspace-mark { display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; }
-.platform-sidebar-demo__workspace-mark img { width: 28px; height: 28px; object-fit: contain; }
-.platform-sidebar-demo__workspace-tile { display: inline-flex; width: 38px; height: 38px; align-items: center; justify-content: center; border-radius: 12px; background: var(--zen-color-background-support-brown-solid, #9f6838); color: #fff; font-weight: 600; }
-.platform-sidebar-demo__workspace-tile--indigo { background: var(--zen-color-background-support-indigo-solid, #4752f0); }
-.platform-sidebar-demo__submenu { display: flex; height: 100%; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); box-sizing: border-box; padding: var(--zen-spacing-padding-large, 24px); border-radius: var(--zen-corner-radius-xlarge, 20px); background: var(--zen-color-background-surface-default, #fff); box-shadow: 0 4px 16px var(--zen-color-shadow-neutral-base, rgb(0 0 0 / 8%)); color: var(--zen-color-content-neutral-strongest, #111); }
-.platform-sidebar-demo__submenu > span { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
-.platform-input-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
-.platform-input-grid > :nth-child(5) { grid-column: 1 / -1; }
-.platform-input-preview { width: min(520px, 100%); }
-.platform-example-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+/* The preview well fills the column like every other playground; the field inside keeps a readable width. */
+.platform-input-preview > * { width: min(520px, 100%); margin-inline: auto; }
+/* Rich text is a full-width composition (Figma 920px Editor-Bar). */
+.platform-input-preview > .zen-rich-text-field { width: 100%; }
+.platform-input-conditions-demo { display: grid; width: 100%; gap: var(--zen-spacing-gap-small, 12px); }
+.platform-example-row { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-small, 12px); align-items: center; }
 /* Room for the open Popover (Search + Label + 4 items) below the Chip / Select trigger. */
 .platform-example-panel--stack > .platform-popover-preview { min-height: 340px; align-items: flex-start; }
 .platform-popover-select { width: min(240px, 100%); }
-.platform-example-row--overlay { min-height: 96px; padding: 24px; border-radius: var(--zen-corner-radius-base, 12px); background: linear-gradient(135deg, #202020, #747474); }
+/* A dark stand-in photo for overlay components, the same in both themes: fixed Global grey primitives. */
+.platform-example-row--overlay { min-height: 96px; padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-base, 12px); background: linear-gradient(135deg, var(--zen-dark-gray-3, #202020), var(--zen-dark-gray-8, #636363)); }
 .platform-search-row > .zen-search { width: min(250px, 100%); }
-.platform-example-panel pre { overflow: auto; margin: 0; padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--platform-code-background); color: var(--platform-code-foreground); color-scheme: dark; font: 13px/1.6 var(--platform-code-font), "JetBrains Mono", monospace; }
-.platform-placeholder { color: var(--official-muted); font-size: 15px; }
-.platform-token-links { margin: 24px 0 0; padding: var(--platform-surface-padding); border: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
-.platform-token-links > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
-.platform-token-links button { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: var(--platform-inset-radius); background: var(--platform-inset-background); font-size: 13px; text-align: left; }
+.platform-example-panel pre { overflow: auto; margin: 0; padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--platform-code-background); color: var(--platform-code-foreground); color-scheme: dark; font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); }
+.platform-token-links { margin: var(--zen-spacing-gap-large, 24px) 0 0; padding: var(--platform-surface-padding); border: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
+.platform-token-links > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px); margin-top: var(--zen-spacing-gap-small, 12px); }
+.platform-token-links button { display: flex; align-items: center; justify-content: space-between; padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px); border-radius: var(--platform-inset-radius); background: var(--platform-inset-background); font-size: var(--zen-typography-font-size-body-base, 14px); line-height: var(--zen-typography-line-height-body-base, 20px); letter-spacing: var(--zen-typography-letter-spacing-body-base, -0.14px); text-align: left; }
 .platform-token-links button:hover { background: color-mix(in srgb, var(--official-accent) 18%, transparent); }
-.platform-token-links span { color: var(--official-muted); font-size: 11px; }
+/* Design Tokens › Motion (code-owned tokens): same surface as the collection links. */
+.foundation-motion { display: grid; gap: var(--zen-spacing-gap-small, 12px); margin: var(--zen-spacing-gap-large, 24px) 0 0; padding: var(--platform-surface-padding); border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
+.foundation-motion__rules { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding-left: var(--zen-spacing-padding-large, 20px); }
+.platform-token-links span { color: var(--official-muted); font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-small, 0px); }
 
 @media (max-width: 1100px) {
   .official-cover__vector { transform: translateY(-50%) scale(.86); transform-origin: center; }
@@ -302,15 +403,55 @@
   .official-card--development { grid-column: auto; grid-row: auto; }
 }
 
+/* Below 1024px the rail becomes an off-canvas drawer opened from the topbar menu button,
+   and the settings chips move out of the sticky bar into their own row (PlatformTopbar), which wraps and scrolls away. */
+@media (max-width: 1024px) {
+  .official-nav { position: fixed; z-index: 40; inset: 0 auto 0 0; display: block; transform: translateX(-100%); transition: transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .official-platform[data-nav-open="true"] .official-nav { transform: none; box-shadow: var(--zen-style-effect-popover-shadow); }
+  .official-sidebar { position: relative; }
+  .official-scrim { position: fixed; z-index: 30; inset: 0; display: block; padding: 0; background: var(--zen-color-background-overlay, rgb(0 0 0 / 25%)); cursor: default; }
+  .official-topbar__menu { display: inline-flex; flex: 0 0 auto; }
+  .official-topbar { height: auto; min-height: 72px; flex-basis: auto; flex-wrap: wrap; justify-content: flex-start; row-gap: var(--zen-spacing-gap-xsmall, 8px); padding-inline: var(--zen-spacing-padding-medium, 16px); }
+  .official-topbar__breadcrumbs { flex: 1 1 0; }
+  .official-topbar__trailing { max-width: 100%; margin-inline-start: auto; }
+  /* The chips wrap instead of scrolling: a horizontal scroll box (overflow-x: auto makes overflow-y auto too) clipped
+     every chip's Popover. The row is not sticky, so two or three rows of chips never cover the page or its popovers;
+     it sits above the content (its popovers open over the first cards) and below the sticky bar. */
+  .official-topbar-settings { position: relative; z-index: 15; padding: 0 var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-xsmall, 8px); }
+  .official-topbar-settings .official-topbar__controls { display: flex; flex-wrap: wrap; }
+}
+@media (max-width: 1024px) and (prefers-reduced-motion: reduce) { .official-nav { transition: none; } }
+@media (max-width: 1024px) {
+  /* Playground: preview, then properties, then code in one column. */
+  .platform-example-panel--stack { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "title" "preview" "controls" "code"; }
+  .platform-example-panel--stack > .platform-main-component__title { padding-bottom: var(--zen-spacing-padding-medium, 16px); }
+  .platform-playground-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--zen-spacing-gap-xlarge, 32px); align-content: start; border-top: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); border-left: 0; }
+  .platform-playground-controls::before { grid-column: 1 / -1; }
+}
 @media (max-width: 620px) {
-  /* The Codebase Platform shell keeps the 260px navigation rail fixed.
-     Only the content column adapts at narrow viewports. */
-  .official-platform { overflow-x: auto; }
+  .platform-playground-controls { grid-template-columns: minmax(0, 1fr); }
+  /* Phones: the playground preview insets like an example stage (16 + 16), not 24 + 24, so Comfortable content fits. */
+  .platform-example-panel--stack > :is(.platform-example-row, .platform-input-preview) { margin-inline: var(--zen-spacing-padding-medium, 16px); padding-inline: var(--zen-spacing-padding-medium, 16px); }
+}
+@media (max-width: 760px) {
+  /* Hero and cover titles scale with the viewport instead of clipping. */
+  .platform-page-hero { height: 280px; padding: var(--zen-spacing-padding-xlarge, 24px); }
+  .platform-page-hero__logo { top: var(--zen-spacing-padding-xlarge, 24px); left: var(--zen-spacing-padding-xlarge, 24px); }
+  .platform-page-hero__kaiz { top: var(--zen-spacing-padding-xlarge, 24px); right: var(--zen-spacing-padding-xlarge, 24px); }
+  .platform-page-hero__main { padding-top: var(--zen-spacing-padding-3-xlarge, 40px); gap: var(--zen-spacing-gap-medium, 16px); }
+  /* zen-allow-raw-type: the raw Figma hero/cover titles scale with the viewport (see the cover and hero notes above). */
+  .platform-page-hero h1 { font-size: clamp(36px, 10vw, 120px); letter-spacing: -0.02em; }
+  .official-cover { height: auto; min-height: 360px; }
+  .official-cover h1 { width: auto; font-size: clamp(56px, 19vw, 120px); letter-spacing: -0.04em; }
+  .official-intro h2 { line-height: var(--zen-typography-line-height-heading-2, 36px); }
+}
+
+@media (max-width: 620px) {
   .official-content { min-height: 100vh; }
   .official-topbar__breadcrumbs { overflow: hidden; }
   .official-topbar__breadcrumb { max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
-  .official-intro { padding-inline: 10px; }
-  .official-intro h2 { font-size: 28px; }
+  .official-intro { padding-inline: var(--zen-spacing-padding-small, 12px); }
+  .official-intro h2 { font-size: var(--zen-typography-font-size-heading-2, 28px); letter-spacing: var(--zen-typography-letter-spacing-heading-2, -0.56px); }
   .official-card-grid { grid-template-columns: 1fr; }
   .official-card--foundation,
   .official-card--components,
@@ -319,16 +460,18 @@
   .official-card--development { grid-column: auto; grid-row: auto; }
   .official-card--center { grid-column: auto; width: auto; }
   .platform-token-links > div { grid-template-columns: 1fr; }
-  .platform-input-grid { grid-template-columns: 1fr; }
-  .platform-input-grid > :nth-child(5) { grid-column: auto; }
-  .platform-sidebar-matrix { grid-template-columns: 1fr; }
-  .platform-sidebar-matrix .platform-example-panel--workspace { grid-column: auto; }
 }
 
 /* ── Playground additions ── */
 .platform-radio-group { display: grid; gap: var(--zen-spacing-gap-small, 12px); width: min(360px, 100%); }
 .platform-date-picker-preview { flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
 .platform-date-picker-inline .zen-date-picker, .pe-inline-picker .zen-date-picker { position: static; }
+/* Device=Mobile: the calendar fills a phone's content width (Date-Picker/Mobile 9923:3576: 390 − 2 × Modal-Padding = 350). */
+.platform-date-picker-inline[data-device="mobile"] { width: min(350px, 100%); }
+/* A dual calendar (≈492px) scrolls inside its card on narrow screens instead of widening the page. */
+/* The scroll box is padded by the picker's shadow reach (and pulled back with a negative margin) so
+   overflow-x can scroll a wide dual calendar without clipping the Effect/Popover shadow. */
+.pe-inline-picker { --pe-shadow-room: var(--zen-spacing-padding-xlarge, 24px); box-sizing: border-box; max-width: calc(100% + 2 * var(--pe-shadow-room)); margin: calc(-1 * var(--pe-shadow-room)); padding: var(--pe-shadow-room); overflow-x: auto; }
 .platform-date-picker-summary { margin: 0; color: var(--official-muted); }
 
 /* ── Examples: real-world compositions under each playground ── */
@@ -336,15 +479,110 @@
 .pe-section__head { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .pe-section__head h2 { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
 .pe-section__head p { margin: 0; color: var(--official-muted); }
-.pe-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-large, 24px); align-items: start; }
+.pe-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-large, 24px); align-items: stretch; }
 .pe-card { display: grid; min-width: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
+/* Cards in one row share their tracks (subgrid): head · stage · code line up, so neighbouring cards and their stages are the
+   same height and the layout never steps. The preview is centred in a stage taller than it needs. */
+.pe-grid > .pe-card { grid-row: span 3; grid-template-rows: subgrid; row-gap: 0; }
+/* Stages in one row share a height: a shorter preview sits at the top of its stage, never floating in the middle of a
+   tall grey area beside a phone (2026-10-01 examples review). */
+.pe-card__stage { display: flex; flex-direction: column; justify-content: flex-start; }
+/* A card whose control is open (a Select list, a picker, a menu rendered in place) rises above the cards after it, so
+   the next card's stage never covers the open list. A full-screen card is left alone: focus sits inside it, and this
+   rule's specificity would otherwise put it back in the flow as a thin strip. */
+.pe-card:not([data-fullscreen="true"]):is(:focus-within, :has(:is([aria-haspopup], [role="combobox"])[aria-expanded="true"])) { position: relative; z-index: 1; }
+.pe-card__preview { min-width: 0; }
+/* An example card can switch token mode (data-theme). Inherited colour was resolved above it, so the card sets its own. */
+.pe-card[data-theme] { color: var(--zen-color-content-neutral-strongest, #111); }
 .pe-card[data-wide="true"] { grid-column: 1 / -1; }
 .pe-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
 .pe-card__titles { display: grid; min-width: 0; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .pe-card__titles h3 { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
 .pe-card__titles p { margin: 0; color: var(--official-muted); }
-.pe-card__stage { min-width: 0; margin: var(--zen-spacing-gap-medium, 16px) var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px); padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); }
+/* The stage is the page the example lives on: Canvas/Default, so every example shares one mood — flat Surface/Default
+   boxes (no border, no shadow) on a grey canvas, unless a condition picks another pairing (usage rules §16, 2026-10-06). */
+.pe-card__stage { min-width: 0; margin: var(--zen-spacing-gap-medium, 16px) var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px); padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-canvas-default, #f7f7f7); }
 .pe-card__code { min-width: 0; margin: 0 var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px); }
+.pe-card__actions { display: flex; flex: 0 0 auto; flex-wrap: wrap; justify-content: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Full screen (examples flagged `screen` and the App Shell playground): the screen alone covers the viewport like the
+   real web app — no docs header, description, Code button or code panel, no stage inset or frame — under the platform's
+   overlays (portal z ≥ 30). Frames that scroll inside (shells, chat windows, templates) fill the viewport's height; a
+   page without a frame scrolls in the stage. The title stays for the dialog's name, visually hidden. */
+.pe-card[data-fullscreen="true"] { position: fixed; z-index: 25; inset: 0; display: flex; flex-direction: column; border-radius: 0; background: var(--official-canvas); box-shadow: none; }
+.pe-card[data-fullscreen="true"] .pe-card__head { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.pe-card[data-fullscreen="true"] .pe-card__stage.pe-card__stage { flex: 1 1 auto; min-height: 0; justify-content: flex-start; margin: 0; padding: 0; overflow: auto; border: 0; border-radius: 0; }
+.pe-card[data-fullscreen="true"] .pe-card__preview { display: flex; flex: 1 0 auto; flex-direction: column; }
+.pe-card[data-fullscreen="true"] .pe-card__preview > * { flex: 1 0 auto; width: 100%; max-width: none; }
+/* A Container straight in the preview is content-box with its gutter as padding: width 100% overflowed the stage by both
+   gutters (a 48px sideways scroll in full screen, the table lost its right gutter; 2026-10-03). */
+.pe-card[data-fullscreen="true"] .pe-card__preview > .zen-container { width: calc(100% - 2 * var(--zen-container-gutter)); }
+.pe-card[data-fullscreen="true"] :is(.pe-shell--tall, .pe-chat-desktop, .patpl-frame, .pash-frame, .psp-studio) { flex: 1 1 0; height: auto !important; min-height: 0; max-width: none; border: 0; border-radius: 0; }
+.platform-example-row[data-fullscreen="true"] { position: fixed; z-index: 25; inset: 0; display: flex; min-height: 0; flex-direction: column; align-items: stretch; justify-content: flex-start; margin: 0; padding: 0; overflow: auto; border-radius: 0; background: var(--official-canvas); }
+.platform-example-row[data-fullscreen="true"] > .pash-frame { flex: 1 1 0; height: auto !important; min-height: 0; border: 0; border-radius: 0; }
+/* The one docs control left on a full-screen page (FullScreenBar; also the Zen Studio's Present): a pill at the bottom
+   centre on the popover surface, above the screen (25) and under its overlays (30). It fades out after a pause of the
+   pointer and comes back on movement or keyboard focus; hidden, it takes no presses. */
+.platform-fullscreen-bar {
+  position: fixed;
+  z-index: 26;
+  bottom: var(--zen-spacing-padding-medium, 16px);
+  left: 50%;
+  display: flex;
+  max-width: calc(100% - 2 * var(--zen-spacing-padding-medium, 16px));
+  box-sizing: border-box;
+  align-items: center;
+  gap: var(--zen-spacing-gap-3-xsmall, 2px);
+  padding: var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
+  background: var(--zen-popover-background, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+  translate: -50% 0;
+  transition: opacity var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease), translate var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease);
+}
+.platform-fullscreen-bar[data-shown="false"]:not(:has(:focus-visible)) { opacity: 0; translate: -50% calc(var(--zen-spacing-gap-xsmall, 8px) * var(--zen-motion-movement, 1)); pointer-events: none; }
+/* zen-allow-slot-size: the screen's name truncates before the controls do. */
+.platform-fullscreen-bar__title { min-width: 0; max-width: 280px; overflow: hidden; padding-inline: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-2-xsmall, 4px); text-overflow: ellipsis; white-space: nowrap; }
+.platform-fullscreen-bar__divider { align-self: stretch; margin-block: var(--zen-spacing-padding-2-xsmall, 4px); margin-inline: var(--zen-spacing-gap-2-xsmall, 4px); }
+.platform-fullscreen-bar__key {
+  margin-inline-start: var(--zen-spacing-gap-2-xsmall, 4px);
+  padding: 0 var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%));
+  font: inherit;
+  font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace;
+  font-size: var(--zen-typography-font-size-caption);
+  line-height: var(--zen-typography-line-height-caption);
+}
+/* A panel a caller opens above the pill (the Studio's Modes): the popover surface. */
+.platform-fullscreen-bar__panel {
+  position: absolute;
+  bottom: calc(100% + var(--zen-spacing-gap-xsmall, 8px));
+  left: 50%;
+  display: grid;
+  width: min(320px, calc(100vw - 2 * var(--zen-spacing-padding-medium, 16px)));
+  box-sizing: border-box;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-small, 12px);
+  border-radius: var(--zen-corner-radius-large, 16px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 6%));
+  background: var(--zen-popover-background, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+  translate: -50% 0;
+}
+/* The App Shell playground opens full screen from its title row. */
+.platform-playground-screen { display: flex; grid-area: title; align-self: start; justify-self: end; padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
+/* Desktop screens (`screen`: templates, app shells, page layouts, desktop chat) bleed to the card's edges: the page is the
+   preview, so it gets no inset and no frame of its own and sits on the stage's Canvas/Default (a shell paints its own
+   canvas); a Pale rule separates it from the card head and the card's corners clip it. The same in full screen. */
+.pe-card[data-screen="true"] { overflow: hidden; }
+.pe-card[data-screen="true"] .pe-card__stage { margin: var(--zen-spacing-gap-medium, 16px) 0 0; padding: 0; border-top: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: 0; }
+.pe-card[data-screen="true"] .pe-card__preview > * { max-width: none; }
+.pe-card[data-screen="true"] :is(.patpl-frame, .pash-frame, .pe-shell, .psp-studio, .pe-chat-desktop) { max-width: none; border: 0; border-radius: 0; }
+.pe-card[data-screen="true"] .pe-card__code { margin-top: var(--zen-spacing-padding-xlarge, 24px); }
 
 .pe-text { margin: 0; }
 .pe-text--strongest { color: var(--zen-color-content-neutral-strongest, #111); }
@@ -361,35 +599,25 @@
 .pe-grow { flex: 1 1 auto; }
 .pe-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .pe-indent { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding-left: var(--zen-spacing-padding-xlarge, 24px); }
-.pe-divider { height: 1px; background: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
 .pe-form { display: grid; width: min(380px, 100%); gap: var(--zen-spacing-gap-medium, 16px); }
 .pe-dialog { display: grid; width: min(380px, 100%); gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-xlarge, 20px); background: var(--zen-color-background-surface-default, #fff); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
 .pe-dialog .pe-actions { margin-top: var(--zen-spacing-gap-xsmall, 8px); }
 .pe-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default, #fff); }
-.pe-toolbar__divider { width: 1px; height: 20px; margin-inline: var(--zen-spacing-gap-2-xsmall, 4px); background: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
-.pe-list { display: grid; margin: 0; padding: 0; list-style: none; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default, #fff); }
-.pe-list__row { display: flex; min-height: 44px; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-medium, 16px); }
-.pe-list__row + .pe-list__row { box-shadow: inset 0 1px 0 var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
-.pe-list__row--start { justify-content: flex-start; }
+.pe-toolbar--nowrap { flex-wrap: nowrap; }
 .pe-empty { padding: var(--zen-spacing-padding-medium, 16px); text-align: center; }
 .pe-person-meta { display: grid; min-width: 0; }
 .pe-people-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px); }
 .pe-person-tile { display: grid; justify-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default, #fff); text-align: center; }
-.pe-results { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding: var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default, #fff); }
-.pe-result, .pe-nav-row { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); min-height: 36px; padding: 0 var(--zen-spacing-padding-xsmall, 8px); border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: transparent; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); text-align: left; cursor: pointer; }
-.pe-nav-row { min-height: 40px; background: var(--zen-color-background-surface-default, #fff); }
-.pe-result:hover, .pe-nav-row:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
-.pe-result:focus-visible, .pe-nav-row:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 0; }
-.pe-mark { border-radius: 2px; background: var(--zen-color-background-accent-subtle-default, rgb(255 102 212 / 16%)); color: inherit; }
+.pe-nav-row { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); min-height: 36px; padding: 0 var(--zen-spacing-padding-xsmall, 8px); border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: transparent; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); text-align: left; cursor: pointer; }
+.pe-nav-row:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+.pe-nav-row:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 0; }
+.pe-mark { border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-background-accent-subtle-default, rgb(255 102 212 / 16%)); color: inherit; }
 .pe-search-sm { width: min(220px, 100%); }
 .pe-search-sm .zen-search { width: 100%; }
 .pe-settings { display: grid; width: min(420px, 100%); gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-spacing-padding-large, 20px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); }
 .pe-settings .zen-toggle, .pe-settings .zen-radio-button { width: 100%; }
-.pe-preview-card { display: grid; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-large, 20px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); color: var(--zen-color-content-neutral-strongest, #111); transition: background-color .2s ease; }
+/* Text-first toggles inside a settings card span the card: label/caption left, switch on the right edge. */
 .pe-radio-cards { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.pe-radio-card { padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default, #fff); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
-.pe-radio-card[data-selected="true"] { box-shadow: inset 0 0 0 2px var(--zen-color-border-neutral-solid-default, #111); }
-.pe-radio-card .zen-radio-button { width: 100%; }
 .pe-anchor { position: relative; display: inline-grid; justify-items: start; }
 .pe-anchor__popover { top: calc(100% + 4px); left: 0; }
 .pe-inline { display: inline-flex; }
@@ -415,39 +643,36 @@
 .platform-progress-preview > .zen-progress-bar { width: min(360px, 100%); }
 .platform-breadcrumbs-preview, .platform-dialog-preview { flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); }
 .pe-truncate { display: block; min-width: 0; max-width: 220px; overflow: hidden; padding: 0; border: 0; background: none; color: var(--zen-color-content-neutral-strongest, #111); font: inherit; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: default; }
-.pe-truncate:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); border-radius: 4px; }
-.pe-list__row--start .zen-tooltip-anchor { min-width: 0; }
-.pe-metric { display: grid; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-large, 20px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); }
-.pe-nav-row--full { width: 100%; box-sizing: border-box; }
+.pe-truncate:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); border-radius: var(--zen-corner-radius-xsmall, 4px); }
 
 /* ── Usage guidelines ─────────────────────────────────────────────────
    Visual Do/Don't pairs (real components on a pale stage, verdict bar underneath), then a two-column
    checklist and a quiet meta row (accessibility, harness, references). */
-.pg { display: grid; gap: var(--zen-spacing-gap-2-xlarge, 40px); margin-top: var(--zen-spacing-gap-3-xlarge, 48px); padding-top: var(--zen-spacing-gap-3-xlarge, 48px); border-top: 1px solid var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); color: var(--zen-color-content-neutral-strongest, #111); }
+.pg { display: grid; gap: var(--zen-spacing-gap-2-xlarge, 40px); margin-top: var(--zen-spacing-gap-3-xlarge, 48px); padding-top: var(--zen-spacing-padding-4-xlarge, 48px); border-top: 1px solid var(--zen-color-border-neutral-pale-default, #01010110); color: var(--zen-color-content-neutral-strongest, #111); }
 .pg h2, .pg h3, .pg p, .pg ul, .pg figure { margin: 0; }
 .pg-head { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); max-width: 760px; }
 .pg-muted { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
-.pg code { padding: 1px 5px; border-radius: 6px; background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); font-family: var(--zen-typography-font-family-dev, ui-monospace, monospace); font-size: .9em; }
+.pg code { padding: 1px var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); }
 
 /* When to use */
 .pg-when { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-large, 24px); }
 .pg-when__col { display: grid; align-content: start; gap: var(--zen-spacing-gap-small, 12px); }
-.pg-when__col h3, .pg-meta h3 { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); letter-spacing: .02em; text-transform: uppercase; }
+.pg-when__col h3, .pg-meta h3 { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); letter-spacing: var(--zen-typography-letter-spacing-all-caps-s, 0px); text-transform: uppercase; }
 .pg-when__col ul { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0; list-style: none; }
-.pg-when__col li { position: relative; padding-left: 16px; }
+.pg-when__col li { position: relative; padding-left: var(--zen-spacing-padding-medium, 16px); }
 .pg-when__col li::before { position: absolute; top: .6em; left: 2px; width: 5px; height: 5px; border-radius: 50%; background: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); content: ""; }
-.pg-arrow { margin: 0 6px; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.pg-arrow { margin: 0 var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .pg-target { font-weight: var(--zen-emphasis-font-weight-semi-bold, 600); }
 
 /* Verdict label */
-.pg-verdict { display: inline-flex; align-items: center; gap: 6px; }
+.pg-verdict { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .pg-verdict[data-kind="do"] { color: var(--zen-color-content-positive-base); }
 .pg-verdict[data-kind="dont"] { color: var(--zen-color-content-negative-base); }
 
 /* Visual pairs */
 .pg-pairs { display: grid; gap: var(--zen-spacing-gap-large, 24px); }
 .pg-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-large, 24px); }
-.pg-example { display: grid; grid-template-rows: 1fr auto; overflow: hidden; border-radius: var(--zen-corner-radius-xlarge, 20px); background: var(--zen-color-background-surface-default, #fff); box-shadow: 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
+.pg-example { display: grid; grid-template-rows: 1fr auto; overflow: hidden; border-radius: var(--zen-corner-radius-xlarge, 20px); background: var(--zen-color-background-surface-default, #fff); box-shadow: 0 0 0 1px var(--zen-color-border-neutral-pale-default, #01010110); }
 .pg-example__stage { display: flex; min-height: 184px; box-sizing: border-box; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-2-xlarge, 32px) var(--zen-spacing-padding-xlarge, 24px); overflow: hidden; background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); }
 .pg-example__caption { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-large, 20px) var(--zen-spacing-padding-large, 20px); border-top: 3px solid; }
 .pg-example[data-kind="do"] .pg-example__caption { border-top-color: var(--zen-color-border-positive-solid-default); }
@@ -459,18 +684,24 @@
 .pgv-field { width: min(280px, 100%); }
 .pgv-field .zen-toggle { width: 100%; }
 .pgv-narrow { width: 220px; }
-.pgv-note { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); font-size: 13px; }
+.pgv-wide { width: 100%; }
+.pgv-wide.pgv-stack { justify-items: stretch; }
+.pgv-grow { flex: 1 1 auto; min-width: 0; }
+.pgv-skeleton-card { display: flex; width: min(320px, 100%); align-items: center; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); }
+.pgv-skeleton-card .zen-skeleton-text { width: 100%; }
+.pgv-note { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-small, 0px); }
 .pgv-popover .zen-popover { position: relative; top: auto; left: auto; }
 .pgv-popover-form { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px); }
 .pgv-popover-form .zen-button { justify-self: end; }
+/* zen-allow-raw-spacing: room under the anchor for the open Tooltip inside the Do/Don't stage. */
 .pg-example__stage .zen-tooltip-anchor { margin-bottom: 56px; }
 
 /* Checklist */
 .pg-checklist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-large, 24px); }
 .pg-checklist__col { display: grid; align-content: start; gap: var(--zen-spacing-gap-small, 12px); }
 .pg-checklist__col ul { padding: 0; list-style: none; }
-.pg-checklist__col li { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-small, 12px) 0; border-top: 1px solid var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
-.pg-checklist__col li > .zen-icon { margin-top: 2px; }
+.pg-checklist__col li { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-small, 12px) 0; border-top: 1px solid var(--zen-color-border-neutral-pale-default, #01010110); }
+.pg-checklist__col li > .zen-icon { margin-top: var(--zen-spacing-gap-3-xsmall, 2px); }
 .pg-checklist__col[data-kind="do"] li > .zen-icon { color: var(--zen-color-content-positive-base); }
 .pg-checklist__col[data-kind="dont"] li > .zen-icon { color: var(--zen-color-content-negative-base); }
 
@@ -480,12 +711,13 @@
 .pg-meta ul { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0; list-style: none; }
 .pg-meta h3 code { text-transform: none; letter-spacing: 0; }
 .pg-rules li { display: grid; grid-template-columns: 8px minmax(0, 1fr); gap: var(--zen-spacing-gap-xsmall, 8px); align-items: start; }
+/* zen-allow-raw-spacing: centres the 8px dot on the first 20px Body/Base line. */
 .pg-rules__dot { width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; }
 .pg-rules__dot[data-severity="error"] { background: var(--zen-color-background-negative-solid-default); }
 .pg-rules__dot[data-severity="warn"] { background: var(--zen-color-background-warning-solid-default); }
-.pg-refs a { display: inline-flex; align-items: center; gap: 2px; color: var(--zen-color-content-neutral-strongest, #111); text-decoration: underline; text-decoration-color: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); text-underline-offset: 3px; }
+.pg-refs a { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); color: var(--zen-color-content-neutral-strongest, #111); text-decoration: underline; text-decoration-color: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); text-underline-offset: 3px; }
 .pg-refs a:hover { text-decoration-color: currentColor; }
-.pg-refs a:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid); border-radius: 4px; }
+.pg-refs a:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid); border-radius: var(--zen-corner-radius-xsmall, 4px); }
 
 @media (max-width: 1100px) {
   .pg-meta { grid-template-columns: 1fr 1fr; }
@@ -503,14 +735,543 @@
 .official-platform .text-style-row { background: transparent; }
 .official-platform .text-style-row + .text-style-row { border-top-color: var(--platform-surface-divider); }
 .official-platform .icon-gallery__toolbar { z-index: 3; padding: var(--platform-surface-padding); border: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); backdrop-filter: none; }
-.official-platform .icon-card { padding: 12px; border: 0; border-radius: var(--platform-surface-radius-compact); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
+.official-platform .icon-card { padding: var(--zen-spacing-padding-small, 12px); border: 0; border-radius: var(--platform-surface-radius-compact); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
 .official-platform .icon-card > div { border-radius: var(--platform-inset-radius); background: var(--platform-inset-background); }
 .official-platform .icon-card code { border-top-color: var(--platform-surface-divider); }
-.official-platform .collection-card__meta { margin: 16px 0; }
+.official-platform .collection-card__meta { margin: var(--zen-spacing-gap-medium, 16px) 0; }
 
 /* New component previews */
 .platform-accordion-stack { display: flex; width: min(643px, 100%); flex-direction: column; }
-.platform-accordion-stack[data-theme="box"] { gap: var(--zen-spacing-gap-xsmall, 8px); }
-.platform-banner-preview { width: 100%; }
+.platform-accordion-stack[data-tone="box"] { gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* No explicit width: the stacked preview row already stretches to its grid area (its 24px side margins would otherwise overflow into the controls column). */
+.platform-banner-preview { min-width: 0; }
 .platform-banner-preview > .zen-alert-banner, .platform-banner-preview > .zen-toast { width: 100%; }
 .platform-skeleton-text { width: min(320px, 100%); }
+
+/* Sidebar examples: taller shell, richer right-hand page (header + stat tiles + list), ⌘K shortcut hint. */
+.pe-shell { position: relative; isolation: isolate; }
+/* The shell is a mock app page, so it follows the background layers: Canvas (layer 1) → the Sidebar and the cards
+   on it are Surface (layer 2). Pairings: Canvas/Default + Surface/Default, Canvas/Alt (white page) + Surface/Alt,
+   Canvas/Flat + Surface/Flat navigation (seamless in both modes) with Surface/Default cards. */
+/* zen-allow-canvas-layer: the example shell stands in for an app page */
+.pe-shell[data-canvas] { background: var(--zen-color-background-canvas-default, #f7f7f7); }
+/* zen-allow-canvas-layer: the example shell stands in for an app page */
+.pe-shell[data-canvas="alt"] { --zen-card-surface: var(--zen-color-background-surface-alt, #f7f7f7); background: var(--zen-color-background-canvas-alt, #fff); }
+/* zen-allow-canvas-layer: the example shell stands in for an app page */
+.pe-shell[data-canvas="flat"] { background: var(--zen-color-background-canvas-flat, #fff); }
+/* Sidebar playground stage = the page Canvas the sidebar sits on. */
+/* zen-allow-canvas-layer: the playground stage stands in for an app page */
+.platform-sidebar-stage[data-canvas] { border-radius: var(--platform-surface-radius, 24px); background: var(--zen-color-background-canvas-default, #f7f7f7); }
+/* zen-allow-canvas-layer: the playground stage stands in for an app page */
+.platform-sidebar-stage[data-canvas="alt"] { background: var(--zen-color-background-canvas-alt, #fff); }
+/* zen-allow-canvas-layer: the playground stage stands in for an app page */
+.platform-sidebar-stage[data-canvas="flat"] { background: var(--zen-color-background-canvas-flat, #fff); }
+/* A flat page has no fill contrast for its cards (white on white in light), so static cards frame with Neutral/Pale. */
+/* App-shell previews behave like a real app window: a fixed height tied to the viewport (under the 72px docs topbar,
+   capped at 760), the Sidebar fills it and scrolls its own menu (.zen-sidebar__body), and the page scrolls on its own. */
+.pe-shell--tall { height: clamp(520px, calc(100dvh - 120px), 760px); }
+.pe-shell--tall > .zen-sidebar { height: 100%; min-height: 0; }
+.pe-shell--tall > .pe-shell__main { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+@media (max-width: 620px) {
+  /* Stacked on phones: the sidebar sits above the page, so let the shell grow again. */
+  .pe-shell--tall { height: auto; }
+  .pe-shell--tall > .pe-shell__main { overflow: visible; }
+}
+.pe-shell__main { gap: var(--zen-spacing-gap-large, 24px); }
+/* Inbox rows: time over the New badge, so the subject keeps the width in narrow shells. */
+.pe-inbox-meta { display: flex; flex-direction: column; align-items: flex-end; gap: var(--zen-spacing-gap-2-xsmall, 4px); white-space: nowrap; }
+@media (max-width: 620px) { .pe-shell__main { padding: var(--zen-spacing-padding-medium, 16px); } }
+.pe-shell .zen-sidebar__sub-content > .zen-button { align-self: flex-start; }
+
+/* Help-Text variants matrix: 3 columns (Icon · No icon · Character limit), one row per theme. */
+.pe-help-matrix { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: var(--zen-spacing-gap-medium, 16px) var(--zen-spacing-gap-large, 24px); }
+@media (max-width: 760px) { .pe-help-matrix { grid-template-columns: minmax(0, 1fr); } }
+
+/* Input Label variants matrix: Variant · Default · Disabled. */
+.pe-label-matrix { display: grid; grid-template-columns: 120px repeat(2, minmax(0, 1fr)); align-items: center; gap: var(--zen-spacing-gap-medium, 16px) var(--zen-spacing-gap-large, 24px); }
+@media (max-width: 760px) { .pe-label-matrix { grid-template-columns: 96px minmax(0, 1fr); } .pe-label-matrix > :nth-child(3n) { grid-column: 2; } }
+
+/* New component playgrounds (Divider, Inline Message, Empty State, Stepper, Slider): the row is the preview well;
+   width limits go on the component inside it. */
+.platform-divider-preview { flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+.platform-divider-preview > .zen-divider { width: min(420px, 100%); }
+.platform-divider-preview[data-orientation="vertical"] { flex-direction: row; }
+.platform-divider-preview[data-orientation="vertical"] > .zen-divider { width: 0; height: 40px; align-self: center; }
+.platform-inline-message-preview > .zen-inline-message { width: min(420px, 100%); }
+.platform-stepper-preview > .zen-stepper { width: min(640px, 100%); }
+.platform-stepper-preview[data-orientation="vertical"] > .zen-stepper { width: min(320px, 100%); }
+.platform-slider-preview { gap: var(--zen-spacing-gap-small, 12px); }
+.platform-slider-preview > .zen-slider { width: min(360px, 100%); }
+/* White theme on the Canvas surface (not a dark fill) so its white track reads as in Figma. */
+.platform-slider-preview[data-tone="white"] { background: var(--zen-color-background-canvas-default, #f4f4f4); }
+.platform-slider-readout { min-width: 40px; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); font-variant-numeric: tabular-nums; text-align: end; }
+/* zen-allow-slot-size: a picture area for the media slider, not a token-sized child. */
+.pe-media-slider { display: flex; box-sizing: border-box; width: 100%; min-height: 140px; align-items: flex-end; padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-base, 12px); background: linear-gradient(135deg, var(--zen-color-background-support-indigo-solid, #3e63dd), var(--zen-color-background-support-pink-solid, #d6409f)); }
+.pe-stepper-rail { width: 220px; flex: 0 0 auto; }
+
+/* Stepper vertical onboarding: rail + content panel; the panel hugs its content and its actions hug their labels. */
+.pe-stepper-layout { display: flex; width: 100%; align-items: flex-start; gap: var(--zen-spacing-gap-large, 24px); }
+/* Must beat `.zen-stepper { width: 100% }` regardless of stylesheet order (same specificity otherwise). */
+.pe-stepper-layout > .zen-stepper.pe-stepper-rail { width: 220px; max-width: 45%; flex: 0 0 auto; }
+.pe-stepper-panel { display: grid; min-width: 0; flex: 1 1 auto; align-content: start; justify-items: start; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default, #fff); }
+.pe-stepper-panel__actions { margin-top: var(--zen-spacing-gap-xsmall, 8px); }
+@media (max-width: 620px) { .pe-stepper-layout { flex-direction: column; } .pe-stepper-layout > .zen-stepper.pe-stepper-rail { width: 100%; max-width: none; } .pe-stepper-panel { align-self: stretch; } }
+/* Card / Dock Icon / List Item / Table playgrounds. */
+.platform-card-preview > .zen-card { width: min(260px, 100%); }
+.platform-card-demo { display: flex; flex-direction: column; align-items: flex-start; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.platform-card-demo .zen-dock-icon { margin-bottom: var(--zen-spacing-gap-xsmall, 8px); }
+.platform-card-demo__caption { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.platform-dock-preview { gap: var(--zen-spacing-gap-medium, 16px); }
+.platform-dock-preview[data-tone="on-color"] { padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-accent-solid-default); }
+.platform-dock-preview__current { outline: 2px dashed var(--zen-color-border-neutral-subtle-default); outline-offset: 4px; }
+/* The playground shows the list in a ListBox (Figma Component/List-Box), at a readable width. */
+.platform-list-preview > .zen-list-box { width: min(420px, 100%); }
+.platform-table-preview { display: block; }
+.platform-table-preview > .zen-table { border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default, #fff); }
+
+/* Compositions with Card / List (replacing the old pe-list, pe-radio-card, pe-metric and pe-preview-card helpers). */
+/* A bare List on the stage reads as a white card. Lists inside a surface that already frames them (sheet, popover, panel,
+   dialog, card) keep that surface's own padding — painting them white made their inset-0 rows touch the edge. */
+/* Loose List examples sit on a Surface card; templates, phones and full-bleed screen examples are real screens, so their
+   lists keep the look the app gives them, and a List already inside a painted Box (surface or border) gets no second one. */
+/* A bare List on the stage gets the List-Box frame: flat Surface/Default on the stage's Canvas/Default, no border and no
+   shadow (usage rules §16). */
+.pe-card__stage .zen-list:not(:is(.zen-list-box, .zen-bottom-sheet, .zen-popover, .zen-side-panel, .zen-modal, [role="dialog"], .zen-card, .patpl-frame, .patpl-phone, .platform-phone, .pe-card[data-screen="true"], .zen-box[data-surface], .zen-box[data-border]) .zen-list) { box-sizing: border-box; padding: var(--zen-list-container-vertical-padding, 12px) var(--zen-card-padding-medium, 24px); border-radius: var(--zen-corner-radius-2-xlarge, 24px); background: var(--zen-color-background-surface-default, #fff); }
+.pe-card__stage .zen-list { width: 100%; }
+.pe-choice-card .zen-radio-button { width: 100%; }
+.pe-choice-card .zen-radio-button.pe-radio-card__main { width: auto; min-width: 0; flex: 1 1 auto; }
+.pe-theme-scope { width: 100%; }
+.pe-metric-card { width: 100%; }
+
+/* Modal/Forms playground side content. */
+.platform-modal-side { display: flex; height: 100%; box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); color: var(--zen-color-content-neutral-strongest, #111); }
+.platform-modal-side p { margin: 0; }
+.platform-modal-side ul { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding-left: var(--zen-spacing-padding-large, 20px); color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
+.platform-modal-side__icon { display: inline-flex; width: var(--zen-image-size-medium, 40px); height: var(--zen-image-size-medium, 40px); align-items: center; justify-content: center; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default, #fff); }
+.platform-modal-side__icon > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
+.pe-anchor > .zen-card { justify-self: stretch; }
+/* An empty Figma slot in a playground (PlaygroundSlot): the area a component leaves for your own content, named, on a
+   dashed Border/Neutral/Subtle outline; examples fill it with real content. */
+.platform-slot { display: flex; min-width: 0; min-height: var(--zen-image-size-3-xlarge, 112px); box-sizing: border-box; flex: 1 1 auto; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-small, 12px); border: 1px dashed var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); border-radius: var(--zen-corner-radius-base, 12px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: center; }
+.platform-slot--tall { min-height: calc(2 * var(--zen-image-size-3-xlarge, 112px)); }
+.platform-slot--fill { align-self: stretch; height: 100%; }
+.pe-card-grid { display: grid; width: 100%; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
+/* 120px: "Theme=semi-pale" in Caption (11px since the 2026-09-28 variables) plus Spacing=Small padding, unbroken. */
+.pe-card-grid--surfaces { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+.pe-app-grid { display: grid; grid-template-columns: repeat(3, 80px); gap: var(--zen-spacing-gap-medium, 16px); }
+.pe-app-tile { display: grid; justify-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-xsmall, 8px) 0; border-radius: var(--zen-corner-radius-base, 12px); background: transparent; }
+.pe-app-tile:hover { background: var(--zen-color-background-neutral-flat-hover); }
+.pe-app-tile:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); }
+.pe-emoji-choice { padding: var(--zen-spacing-padding-3-xsmall, 2px); border-radius: var(--zen-corner-radius-rounded, 1000px); background: transparent; }
+.pe-emoji-choice[aria-checked="true"] { background: var(--zen-color-background-active-neutral-subtle); }
+.pe-emoji-choice:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); }
+.pe-on-color { display: flex; width: 100%; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-accent-solid-default); color: var(--zen-color-content-on-accent-default); }
+.pe-on-color .pe-text, .pe-on-color .zen-text[data-tone] { color: inherit; }
+
+/* Modal/Forms examples: side previews and a two-column field row. */
+.pe-modal-preview { display: flex; height: 100%; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); text-align: center; }
+.pe-modal-preview--card { align-items: flex-start; justify-content: flex-end; text-align: start; }
+.pe-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-medium, 16px); }
+
+/* Empty State in platform search flows. */
+.official-sidebar__search-status[data-empty="true"] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.official-sidebar__empty { width: 100%; margin-top: var(--zen-spacing-gap-small, 12px); padding-bottom: var(--zen-spacing-padding-medium, 16px); }
+.official-sidebar__empty .zen-empty-state__body { gap: var(--zen-spacing-gap-medium, 16px); }
+.pe-empty-compact { width: 100%; padding-bottom: var(--zen-spacing-padding-xsmall, 8px); }
+/* Icon picker (a Popover surface: padding 4, gap 4): a text line sits like a Popover item, 8px inside. */
+.pe-icon-picker__meta { padding: var(--zen-spacing-padding-xsmall, 8px); }
+.pe-empty-compact .zen-empty-state__body { gap: var(--zen-spacing-gap-small, 12px); }
+
+/* Table editable playground: tags wrap inside the cell. */
+.platform-table-preview--editable { flex-direction: column; align-items: stretch; }
+
+/* Rating / Color Selector / Metric / Uploader / Side Panel playgrounds. */
+.platform-rating-preview { gap: var(--zen-spacing-gap-medium, 16px); }
+.platform-rating-readout, .platform-color-readout { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); font-variant-numeric: tabular-nums; }
+.platform-rating-preview > .zen-opinion-scale { width: min(560px, 100%); }
+.platform-color-preview { flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+.platform-metric-preview > .zen-metric-card { width: min(345px, 100%); }
+.platform-uploader-preview > .zen-file-upload { width: min(360px, 100%); }
+.platform-side-panel-shell { display: flex; width: 100%; height: 520px; overflow: hidden; border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-alt, #f7f7f7); }
+.platform-side-panel-shell__page { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; align-items: flex-start; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-large, 20px); }
+.platform-side-panel-shell__muted { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.pe-brand-preview { display: flex; min-height: 56px; box-sizing: border-box; align-items: center; padding: 0 var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-base, 12px); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
+.pe-brand-preview :is(.pe-text, .zen-text[data-tone]) { color: var(--zen-color-content-on-colors, #fff); }
+.pe-brand-preview[data-contrast="dark"] :is(.pe-text, .zen-text[data-tone]) { color: var(--zen-color-content-neutral-strongest, #111); }
+/* Metric cells split by Pale rules (Metric › Service health, Inline metrics): equal cells in one row with a rule before
+   each but the first; in a card narrower than 480px (a phone) they stack with the rule above instead. A container
+   query, because example cards always render at the desktop breakpoint. */
+.pe-metric-split-host { container-type: inline-size; }
+.zen-grid.pe-metric-split { grid-template-columns: none; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; }
+.pe-metric-split > * + * { padding-inline-start: var(--zen-spacing-padding-xlarge, 24px); border-inline-start: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+@container (max-width: 479.98px) {
+  .zen-grid.pe-metric-split { grid-template-columns: minmax(0, 1fr); grid-auto-flow: row; }
+  .pe-metric-split > * + * { padding-inline-start: 0; border-inline-start: 0; padding-top: var(--zen-spacing-padding-xlarge, 24px); border-top: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+}
+.pe-media-upload { width: 100%; box-sizing: border-box; padding: var(--zen-spacing-padding-large, 20px); border-radius: var(--zen-corner-radius-large, 16px); background: linear-gradient(135deg, var(--zen-color-background-support-indigo-solid, #3e63dd), var(--zen-color-background-support-pink-solid, #d6409f)); }
+.pe-toast-well { display: grid; min-height: 120px; align-content: end; justify-items: center; }
+
+/* ───────────── Component page template: sticky "On this page" (Figma Codebase Platform 14260:96953) ───────────── */
+.platform-component-page { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; column-gap: var(--zen-spacing-gap-medium, 16px); }
+.platform-component-page__content { display: grid; min-width: 0; gap: inherit; }
+.platform-component-page__content > .platform-anchor:empty { display: none; }
+/* Anchored sections stop under the 72px sticky topbar. */
+.platform-anchor { scroll-margin-top: calc(72px + var(--zen-spacing-padding-xlarge, 24px)); }
+/* zen-allow-focus-ring: headings focused by the "On this page" jump (tabindex=-1) are not interactive; the pill's aria-current shows the location. */
+.platform-anchor :is(h2, h3)[tabindex="-1"]:focus { outline: none; }
+/* Figma "Sticky" (14366:142238): 28px rail of 4×20 pills, gap 4. Each link is the full 28×24 cell (pill + gap) so the pointer target is not the 4px pill. */
+/* Once stuck, the rail is centred vertically in the visible area under the 72px topbar (never above topbar + 24). */
+.platform-toc { position: sticky; top: max(calc(72px + var(--zen-spacing-padding-xlarge, 24px)), calc(50vh + 36px - var(--platform-toc-height, 0px) / 2)); width: 28px; }
+.platform-toc ul { display: grid; margin: 0; padding: 0; list-style: none; }
+.platform-toc li { display: flex; height: 24px; }
+.platform-toc__link { position: relative; display: block; width: 28px; height: 24px; border-radius: var(--zen-corner-radius-2-xsmall, 4px); }
+.platform-toc__link::before { position: absolute; top: 2px; left: 12px; width: 4px; height: 20px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); content: ""; }
+.platform-toc__link:hover::before { background: var(--zen-color-background-neutral-subtle-hover, rgb(1 1 1 / 11%)); }
+.platform-toc__link[aria-current="location"]::before { background: var(--zen-color-background-active-neutral-solid, #111); }
+.platform-toc__link:focus-visible { outline: 2px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: -2px; }
+@media (prefers-reduced-motion: no-preference) { .platform-toc__link::before { transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
+/* Phones: no room beside the content; sections stay linkable by #hash. */
+@media (max-width: 760px) {
+  .platform-component-page { grid-template-columns: minmax(0, 1fr); }
+  .platform-toc { display: none; }
+}
+
+/* Keyboard / API reference sections. */
+.platform-ref__keys { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.platform-ref__keys kbd { display: inline-flex; min-width: 20px; height: 22px; box-sizing: border-box; align-items: center; justify-content: center; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-2-xsmall, 4px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)), inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); font-weight: var(--zen-emphasis-font-weight-medium, 500); font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); }
+.platform-ref__sep { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-small, 0px); }
+.platform-ref__code { color: var(--zen-color-content-neutral-strongest, #111); font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); }
+/* Props reference: one titled table per component; long unions and signatures wrap inside their cell. */
+.platform-ref__component { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); margin-top: var(--zen-spacing-gap-large, 24px); }
+.platform-ref__component h3, .platform-ref__component p { margin: 0; }
+/* Narrow screens scroll the table sideways (.zen-table overflow-x) instead of squeezing four columns into 342px. */
+.platform-ref__component .zen-table__table { min-width: 680px; }
+.platform-ref__component .platform-ref__code { overflow-wrap: break-word; white-space: normal; }
+
+
+/* ───────────── Mobile / conversation / chart batch (Top & Bottom Navigation, Bottom Sheet, Chat, AI Chat, Chart) ───────────── */
+.platform-mobile-preview { justify-content: center; }
+/* PlatformPhone: a 390px device frame; the page Canvas follows `canvas`, overlays (inline BottomSheet) anchor to it. */
+
+
+.platform-ai-stage { display: flex; width: 100%; min-height: 420px; box-sizing: border-box; align-items: flex-end; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-xlarge, 20px); }
+/* The stage is the page the chat sits on, so its Canvas follows the Chat-Field Style (background layers):
+   Default — the Input-filled field on a white Canvas/Alt page; Surface — a Surface/Default field (+ Shadow/Bottom/Level-1)
+   on the grey Canvas/Default page so the card reads; Liquid Glass — a translucent field over imagery, simulated with
+   Support Pink/Violet/Cyan Subtle tints over Canvas/Default. Subtle tints keep Content/Neutral/Strongest text ≥ 4.5:1 in light and dark,
+   so no text colour is overridden. */
+/* zen-allow-canvas-layer: the playground stage stands in for the app page */
+.platform-ai-stage[data-style="default"] { background: var(--zen-color-background-canvas-alt, #fff); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+/* zen-allow-canvas-layer: the playground stage stands in for the app page */
+.platform-ai-stage[data-style="surface"] { background: var(--zen-color-background-canvas-default, #f7f7f7); }
+/* zen-allow-canvas-layer: the playground stage stands in for the app page */
+.platform-ai-stage[data-style="liquid-glass"] { background: linear-gradient(160deg, var(--zen-color-background-support-pink-subtle, rgb(255 102 212 / 16%)) 0%, var(--zen-color-background-support-violet-subtle, rgb(122 90 248 / 16%)) 55%, var(--zen-color-background-support-cyan-subtle, rgb(33 184 216 / 16%)) 100%), var(--zen-color-background-canvas-default, #f7f7f7); }
+.platform-ai-stage .zen-ai-block { align-self: center; }
+
+.platform-chart-preview { width: min(345px, 100%); }
+.platform-chart-preview__bare { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+.platform-chart-preview__bare .zen-segmented { width: 100%; }
+.pe-phone-scroll { height: 100%; overflow: auto; }
+.pgv-mobile { width: min(360px, 100%); overflow: hidden; border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.pgv-mobile .zen-chat-thread { padding: var(--zen-spacing-padding-small, 12px); }
+.pgv-sheet { display: flex; width: min(320px, 100%); box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-2-xlarge, 24px) var(--zen-corner-radius-2-xlarge, 24px) 0 0; background: var(--zen-color-background-container, #f7f7f7); box-shadow: var(--zen-style-shadow-top-level-2-shadow, 0 -8px 24px rgb(0 0 0 / 10%)); }
+.pgv-sheet__grab { width: 40px; height: 5px; align-self: center; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); }
+.pe-chart-dash { display: grid; width: 100%; grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr); align-items: start; gap: var(--zen-spacing-gap-medium, 16px); }
+@media (max-width: 760px) { .pe-chart-dash { grid-template-columns: minmax(0, 1fr); } }
+
+/* ───────────── QA audit 2026-09-27: narrow-viewport fixes (tools/platform-audit) ───────────── */
+@media (max-width: 620px) {
+  /* Anchored overlays open from the trigger's start edge; a centred trigger pushed a 240px Popover out of the stage. */
+  .platform-example-panel--stack > .platform-popover-preview { justify-content: flex-start; }
+  /* Inline date pickers keep a shadow gutter that fits inside the 16px mobile stage padding. */
+  .pe-inline-picker { --pe-shadow-room: var(--zen-spacing-padding-medium, 16px); }
+  /* Desktop-only patterns (Sidebar shells, 3XLarge avatar stacks) scroll inside their preview instead of the page. */
+  .platform-sidebar-stage, .platform-avatar-preview { overflow-x: auto; overscroll-behavior-x: contain; padding-block: var(--zen-spacing-padding-xsmall, 8px); }
+}
+/* The Sidebar Sub Menu flyout is absolutely positioned: reserve its Sidebar/Default-Width (+8 gap) so the centred preview holds both. */
+/* Room for the flyout: it is the default sidebar width, Padding/XSmall off the rail (.zen-sidebar__submenu). */
+.platform-sidebar-stage > .zen-sidebar:has(.zen-sidebar__submenu) { margin-inline-end: calc(var(--zen-sidebar-default-width, 240px) + var(--zen-spacing-padding-xsmall, 8px)); }
+@media (max-width: 620px) { .platform-sidebar-stage > .zen-sidebar:has(.zen-sidebar__submenu) { margin-inline-end: 0; } }
+/* Truncated-text tooltip triggers are buttons: keep a 24px pointer target. */
+.pe-truncate { min-height: 24px; }
+
+/* ── QA 2026-09-27 pattern examples ── */
+/* Mobile footer CTA: Large buttons fill the footer, Primary first (Figma Bottom-Sheet footer padding 12/20). */
+/* Mobile footer CTA: a Surface bar pinned under the scrolling screen, split from the content by a Pale hairline, that
+   clears the home indicator (safe area + Padding/XSmall) so the last button is never cut or covered. */
+.pe-phone-cta { display: grid; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-compact, 20px) calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)); border-top: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); background: var(--zen-color-background-surface-default, #fff); }
+.pe-order-summary { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0 var(--zen-margin-compact, 20px); }
+.pe-order-summary > div { display: flex; justify-content: space-between; gap: var(--zen-spacing-gap-small, 12px); }
+.pe-order-summary dt, .pe-order-summary dd { flex: 0 0 auto; }
+.pe-order-summary dt { color: var(--zen-color-content-neutral-light, #6b6b6b); font: inherit; }
+.pe-order-summary dd { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; }
+.pe-order-summary > div:last-child dt, .pe-order-summary > div:last-child dd { color: var(--zen-color-content-neutral-strongest, #111); font-weight: var(--zen-emphasis-font-weight-bold, 600); }
+/* Pricing plans: equal-height cards, the CTA pinned to the bottom of each. */
+.pe-plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
+.pe-plan-grid > .zen-card > .zen-card__content { flex: 1 1 auto; }
+.pe-plan-grid .pe-plan { flex: 1 1 auto; }
+.pe-plan { display: grid; width: 100%; grid-template-rows: auto auto auto 1fr auto; gap: var(--zen-spacing-gap-small, 12px); }
+.pe-plan__price { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.pe-checklist { display: grid; align-content: start; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; list-style: none; }
+.pe-checklist li { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.pe-checklist .zen-icon { flex: 0 0 auto; color: var(--zen-color-content-positive-base, #2e7d32); }
+/* Grouped list sections. */
+.pe-list-groups { display: grid; width: 100%; gap: var(--zen-spacing-gap-large, 24px); }
+.pe-list-group { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.pe-list-group__title { margin: 0; padding-inline: var(--zen-spacing-padding-medium, 16px); color: var(--zen-color-content-neutral-strongest, #111); }
+/* Mobile filter row: one line that scrolls sideways, edge to edge, no visible scrollbar. */
+.pe-chip-scroll { display: flex; flex-wrap: nowrap; gap: var(--zen-spacing-gap-xsmall, 8px); overflow-x: auto; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-margin-compact, 20px); scroll-padding-inline: var(--zen-margin-compact, 20px); scrollbar-width: none; }
+.pe-chip-scroll::-webkit-scrollbar { display: none; }
+.pe-chip-scroll > * { flex: 0 0 auto; }
+
+/* Filter panel example (Accordion): a Border card on the page with head · facets · primary action. */
+.pe-filter-panel { width: min(320px, 100%); }
+.pe-filter-panel > .zen-card__content { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+.pe-filter-panel__head { display: flex; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.pe-filter-panel__facets { display: flex; flex-direction: column; }
+.pe-filter-panel__facet-title { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.pe-filter-panel__options { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); padding-bottom: var(--zen-spacing-padding-2-xsmall, 4px); }
+.pe-filter-panel__submit { width: 100%; }
+
+/* ───────────── PlatformPhone: device simulator (iPhone 15 390×844 · Pro Max 430×932 · iPad Air 820×1180) ─────────────
+   The "OS" (status bar, Dynamic Island, home indicator) is drawn above the app; the app runs underneath and pads by
+   --zen-safe-area-top/-bottom, so a Top/Bottom Navigation, Bottom Sheet or composer carries its own background under them. */
+/* The device centres itself in a host whose width does not depend on it (an example stage, a playground, Present):
+   auto inline margins; PlatformPhone scales it to leave 16px each side for the bezel ring. A host sized by its content
+   (a grid or inline box around the phone) needs a definite width, like the Chat demo below, or the phone loops. */
+.platform-phone-fit { position: relative; flex: 0 0 auto; margin: var(--zen-spacing-gap-medium, 16px) auto; }
+/* overflow-anchor: none keeps the whole phone out of the docs page's scroll-anchor choice: a demo that re-pins its chat
+   thread (a call card flipping) made the page jump ~38px at 390 with no input (2026-10-02). The screen inside keeps its own
+   scroll anchoring. */
+.platform-phone { position: absolute; top: 0; left: 0; display: flex; box-sizing: border-box; flex-direction: column; overflow: hidden; overflow-anchor: none; background: var(--zen-color-background-surface-default, #fff); box-shadow: 0 0 0 12px var(--platform-phone-bezel), 0 0 0 13.5px var(--platform-phone-frame), 0 0 0 14.5px var(--platform-phone-frame-edge); transform-origin: top left; isolation: isolate; }
+/* Device hardware (not a theme surface): a black glass bezel and a thin titanium frame, identical in every
+   token mode, like the real phone. zen-allow-raw-colour: physical device colours are not part of the colour system. */
+.platform-phone-fit { --platform-phone-bezel: #050505; --platform-phone-frame: #2c2c2e; --platform-phone-frame-edge: #8e8e93; }
+.platform-phone[data-canvas="canvas"] { background: var(--zen-color-background-canvas-default, #f7f7f7); }
+.platform-phone[data-canvas="alt"] { background: var(--zen-color-background-surface-alt, #f7f7f7); }
+.platform-phone[data-canvas="flat"] { background: var(--zen-color-background-canvas-flat, #fff); }
+.platform-phone[data-canvas="media"] { background: var(--zen-color-background-inverse-solid-default, #111); }
+/* Screen layout: header (runs under the status bar) · scrolling screen · footer (runs under the home indicator). */
+.platform-phone__header, .platform-phone__footer { position: relative; z-index: 2; flex: 0 0 auto; }
+.platform-phone__screen { position: relative; min-height: 0; flex: 1 1 auto; overflow: auto; overscroll-behavior: contain; }
+.platform-phone:not(:has(> .platform-phone__header)) .platform-phone__screen { padding-top: var(--zen-safe-area-top); }
+.platform-phone:not([data-footer="true"]) .platform-phone__screen { padding-bottom: var(--zen-safe-area-bottom); }
+/* Media screens and floating bars overlay the content instead of pushing it. */
+.platform-phone[data-canvas="media"] .platform-phone__header { position: absolute; top: 0; right: 0; left: 0; }
+/* Translucent headers float over the screen so content scrolls under their progressive blur; the screen keeps the
+   first row below the header by its measured height. */
+.platform-phone[data-header-overlay="true"] .platform-phone__header { position: absolute; top: 0; right: 0; left: 0; }
+.platform-phone[data-header-overlay="true"]:not([data-canvas="media"]) .platform-phone__screen { padding-top: var(--platform-phone-header-height, 0px); }
+/* Keyboard focus never lands under the overlaid header: scrolling a focused row into view keeps it below the part of the
+   header that stays put (the bar, its status bar and a pinned control bar; the fold slides away). WCAG 2.2 SC 2.4.11. */
+.platform-phone[data-header-overlay="true"] .platform-phone__screen { scroll-padding-top: var(--platform-phone-header-pinned, 0px); }
+.platform-phone[data-canvas="media"] .platform-phone__screen { padding-top: 0; }
+.platform-phone__footer:has(> .zen-bottom-nav:not([data-type="default"])) { position: absolute; right: 0; bottom: 0; left: 0; }
+/* zen-allow-raw-spacing: room for the floating Bottom Navigation row, 64px in Figma (9017:26128). */
+.platform-phone:has(> .platform-phone__footer > .zen-bottom-nav:not([data-type="default"])) .platform-phone__screen { padding-bottom: calc(64px + var(--zen-safe-area-bottom)); }
+.platform-phone[data-canvas="canvas"] .platform-phone__header > .zen-top-nav { --zen-top-nav-fill: var(--zen-color-background-canvas-default, #f7f7f7); }
+/* Status bar: Figma Status-bar/IOS/Mobile 390×50 — 21px top padding, 22px row, time (17/22 semibold) centred in the left
+   133px, a 124px Dynamic Island gap, levels (gap 7) in the right 133px. The island itself is 125×37 at 11px. */
+/* Device chrome, not Zen UI: the iOS status bar, Dynamic Island and home indicator keep Apple's metrics (SF Pro 17/22,
+   21px top inset, 7px level gap, 125×37 island at radius 20, iPad 24px bar).
+   zen-allow-raw-spacing zen-allow-raw-type zen-allow-raw-radius zen-allow-raw-colour: the rules below copy them. */
+.platform-phone__status { position: absolute; z-index: 20; top: 0; right: 0; left: 0; display: flex; height: var(--zen-safe-area-top); box-sizing: border-box; align-items: flex-start; justify-content: space-between; padding-top: 21px; color: var(--zen-color-content-neutral-strongest, #111); pointer-events: none; }
+.platform-phone__status[data-tone="light"] { color: var(--zen-color-content-on-black-overlay-strongest, #fff); }
+.platform-phone__time { display: flex; width: 133px; height: 22px; box-sizing: border-box; align-items: center; justify-content: center; padding: 0 6px 0 16px; font: 600 17px/22px -apple-system, "SF Pro Text", "SF Pro", system-ui, sans-serif; letter-spacing: -0.4px; }
+/* zen-allow-raw-spacing: iOS status bar metrics (device chrome). */
+.platform-phone__levels { display: flex; width: 133px; height: 22px; box-sizing: border-box; align-items: center; justify-content: center; gap: 7px; padding: 0 16px 0 6px; }
+.platform-phone__levels svg { flex: 0 0 auto; }
+/* zen-allow-raw-radius zen-allow-raw-colour: the Dynamic Island is hardware black (device chrome). */
+.platform-phone__island { position: absolute; top: 11px; left: 50%; width: 125px; height: 37px; border-radius: 20px; background: #000; transform: translateX(-50%); }
+/* iPad: 24px status bar, time on the left, levels on the right, no island. */
+/* zen-allow-raw-spacing zen-allow-raw-type: iPad status bar metrics (device chrome). */
+.platform-phone__status[data-device="ipad"] { padding: 4px 20px 0; }
+.platform-phone__status[data-device="ipad"] .platform-phone__time { width: auto; height: 16px; justify-content: flex-start; padding: 0; font-size: 14px; line-height: 16px; }
+.platform-phone__status[data-device="ipad"] .platform-phone__levels { width: auto; height: 16px; padding: 0; }
+/* Home indicator: 134×5, 8px from the bottom, drawn over the app (dark on light screens, light on media). */
+/* zen-allow-colour-role: the home indicator is a solid OS glyph in the content colour (device chrome; Figma's
+   System/Bottom-Indicator 308:46297 is a 6% Background/Neutral/Subtle bar). */
+.platform-phone__home { position: absolute; z-index: 20; bottom: 8px; left: 50%; width: 134px; height: 5px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-content-neutral-strongest, #111); pointer-events: none; transform: translateX(-50%); }
+.platform-phone__home[data-tone="light"] { background: var(--zen-color-content-on-black-overlay-strongest, #fff); }
+.platform-phone[data-device="ipad"] .platform-phone__home { width: 320px; }
+/* Helpers used inside the screen. */
+.platform-phone__center { display: flex; height: 100%; box-sizing: border-box; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px); }
+/* zen-allow-slot-size: the phone's photo/video area, not a token-sized child. */
+.platform-phone__media { position: relative; height: 100%; min-height: 520px; overflow: hidden; background: var(--platform-phone-bezel, #050505); }
+/* Real photos / video fill the screen edge to edge (src/assets/media); the video's Pause control clears the status bar. */
+.platform-phone__media > img, .platform-phone__media > video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+.platform-phone__media-control { position: absolute; z-index: 1; top: calc(var(--zen-safe-area-top, 0px) + var(--zen-spacing-padding-small, 12px)); right: var(--zen-spacing-padding-medium, 16px); }
+/* Photo feed in phone examples: 4:3 photos in Cards; a floating bottom bar needs room under the last card. */
+.pe-phone-feed__img { display: block; width: 100%; aspect-ratio: 4 / 3; border-radius: var(--zen-corner-radius-base, 12px); object-fit: cover; }
+/* Media card: the photo runs edge to edge under the card's own radius (clipped), the caption sits in the card padding
+   (Small 16 / 12 above) — no inset photo with a second, smaller radius. */
+.pe-phone-feed { gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-card.pe-phone-feed__card { overflow: hidden; padding: 0; }
+.pe-phone-feed__card .pe-phone-feed__img { border-radius: 0; }
+.pe-phone-feed__caption { padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-medium, 16px); }
+/* Room under the last item for a floating Bottom Navigation: a spacer, not padding (it is not spacing on the scale). */
+.pe-phone-feed[data-bottom-room="true"]::after, .pe-floating-room::after { content: ""; display: block; flex: 0 0 auto; height: 96px; }
+/* Media card (Button example): a 160px video tile; the overlay buttons sit on it. */
+/* zen-allow-slot-size: a picture area for the media card, not a token-sized child. */
+.pe-media-card { position: relative; height: 160px; overflow: hidden; border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-inverse-solid-default, #111); }
+.pe-media-card > video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* A light scrim at the top and bottom edges keeps the overlay buttons readable on bright footage. */
+.pe-media-card::after { position: absolute; inset: 0; background: linear-gradient(180deg, var(--zen-color-background-black-overlay-default, rgb(0 0 0 / 30%)) 0%, transparent 40%, transparent 60%, var(--zen-color-background-black-overlay-default, rgb(0 0 0 / 30%)) 100%); content: ""; pointer-events: none; }
+.pe-media-card > :not(video) { z-index: 1; }
+.platform-phone .zen-chat-thread { min-height: 100%; box-sizing: border-box; }
+/* Inline overlays (BottomSheet inline) anchor to the whole device, above the header / footer, below the OS status bar. */
+.platform-phone__screen { position: static; }
+.platform-phone .zen-bottom-sheet-overlay[data-inline="true"] { z-index: 10; border-radius: 0; }
+/* Media screens: the photo / video fills the whole display edge to edge (under the status bar and the floating bar), and
+   the canvas behind it is the device black in every token mode. */
+.platform-phone[data-canvas="media"] { background: var(--platform-phone-bezel, #050505); }
+.platform-phone.platform-phone.platform-phone[data-canvas="media"] .platform-phone__screen.platform-phone__screen { padding-block: 0; }
+.platform-phone[data-canvas="media"] .platform-phone__media { height: 100%; min-height: 0; }
+
+/* Popover / Bulk-Action examples: the bar floats over the content it acts on. */
+.pe-bulk-stage { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; gap: var(--zen-spacing-gap-medium, 16px); width: min(460px, 100%); padding-top: var(--zen-spacing-padding-2-xsmall, 4px); }
+/* The selection bar stays one row (it floats over the selection); it is narrower than a phone column. */
+.pe-bulk-stage__bar { flex-wrap: nowrap; max-width: 100%; }
+.pe-bulk-stage__text { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
+.pe-bulk-stage__selection { border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-accent-subtle-default, rgb(255 102 212 / 16%)); color: inherit; }
+.pe-bulk-list { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-small, 12px); width: 100%; }
+/* The bar floats centred on the card's bottom edge, over the rows it acts on. */
+.pe-bulk-list__area { position: relative; padding-bottom: var(--zen-spacing-padding-large, 24px); }
+.pe-bulk-list__bar { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); }
+/* Room under the last row so the floating bar (56px) never covers it: the bar overlaps the area's bottom padding. */
+.pe-bulk-list__area { min-width: 0; padding-bottom: var(--zen-spacing-padding-3-xlarge, 40px); }
+
+/* ── Desktop chat examples (Figma Chat Device=Desktop): list pane + thread pane in one Surface window. ── */
+.pe-chat-desktop { display: grid; width: 100%; max-width: 960px; height: 600px; grid-template-columns: 320px auto minmax(0, 1fr); overflow: hidden; border-radius: var(--zen-corner-radius-xlarge, 20px); background: var(--zen-color-background-surface-default, #fff); }
+/* Lines only where they separate something: no frame on the two-pane messenger (its Surface already reads on the
+   Canvas stage), the single-thread windows keep a Pale frame (static closed container), one vertical Divider
+   between the list and the thread, one Divider under the thread header. No composer top line, no doubled edges. */
+.pe-chat-desktop--single { max-width: 760px; grid-template-columns: minmax(0, 1fr); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+/* The Chat playground: at Device=Desktop the window takes the preview width (up to 760) instead of shrinking to its
+   messages; at Device=Mobile the phone's host gets the same definite width, so the phone's auto margins centre it
+   instead of collapsing the grid to the phone (PlatformPhone then shrank the phone on every resize, 2026-10-03). */
+.pe-chat-demo:is(:has(> .pe-chat-desktop), :has(> .platform-phone-fit)) { width: 100%; justify-items: center; }
+/* Business sits on Canvas/Default so its Surface bubbles read (Figma 6349:59878). */
+/* zen-allow-canvas-layer: the example window stands in for the app page */
+.pe-chat-desktop[data-domain="business"] { background: var(--zen-color-background-canvas-default, #f7f7f7); }
+.pe-chat-desktop__list { display: flex; min-height: 0; flex-direction: column; overflow: auto; overscroll-behavior: contain; }
+.pe-chat-desktop__list-head { position: sticky; z-index: 1; top: 0; display: flex; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-xsmall, 8px); background: var(--zen-color-background-surface-default, #fff); }
+.pe-chat-desktop__title { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
+.pe-chat-desktop__main { display: flex; min-width: 0; min-height: 0; flex-direction: column; }
+.pe-chat-desktop__main > .zen-chat-thread { min-height: 0; flex: 1; }
+.pe-chat-desktop__header { display: flex; align-items: center; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px); }
+.pe-chat-desktop__who { display: flex; min-width: 0; flex: 1; flex-direction: column; }
+.pe-chat-desktop__name { overflow: hidden; color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
+/* Presence stays on one line under the name ("Active 2 minutes ago" wrapped to two in a narrow window): it ellipsizes. */
+.pe-chat-desktop__status { overflow: hidden; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-overflow: ellipsis; white-space: nowrap; }
+.pe-chat-desktop__actions { display: flex; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+@media (max-width: 760px) {
+  .pe-chat-desktop { height: auto; grid-template-columns: minmax(0, 1fr); }
+  /* Stacked: the conversation list hugs its rows above the thread (no fixed height: 280px cut a row in half), and the
+     list/thread split turns into a horizontal Divider. */
+  .pe-chat-desktop__split.zen-divider { width: auto; height: 0; min-height: 0; border-left: 0; border-top: 1px solid var(--zen-divider-color); }
+  .pe-chat-desktop__main { height: 600px; }
+}
+/* Desktop-only pattern on a narrow page (same policy as Sidebar shells): the window keeps a desktop width (560) and scrolls
+   inside its stage instead of squeezing the header, the reaction bar and the composer into a phone-sized column. */
+@media (max-width: 620px) {
+  .pe-card__stage:has(.pe-chat-desktop),
+  .platform-mobile-preview:has(.pe-chat-desktop) { overflow-x: auto; overscroll-behavior-x: contain; justify-content: flex-start; }
+  .pe-chat-desktop { min-width: 560px; }
+  .pe-chat-demo:has(> .pe-chat-desktop) { width: auto; justify-items: start; }
+}
+
+/* Desktop chat examples: the last hover-toolbar action, read out politely. */
+/* Demo status lines (what an action did / how to trigger it) are not part of the chat UI: screen-reader only (role=status). */
+.pe-chat-desktop__note { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Chat examples: the status line under a demo that reports what the last interaction did (chatDemo.tsx). */
+.pe-chat-note { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ── Platform UI typography: every chrome text sits on the Zen-Platform scale (Figma Typography Configuration, mode
+   "Zen-Platform"; its values live in `.official-platform[data-typography]` above). Scoped to the Platform so Storybook
+   and the Zen docs keep their own styles. Untouched on purpose: the covers (Figma's raw 120px heroes) and the component
+   previews / type specimens, which follow the system mode picked in the topbar. ── */
+/* Code = Body/Code: the Dev family (JetBrains Mono) at Body-Small size with Body-Code tracking. */
+.official-platform :is(.platform-code pre, .platform-code code, .platform-ref__code, .platform-ref__keys kbd, .pg code, .text-style-row__meta code, .icon-card code, .icon-gallery__special-header code) {
+  font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace;
+  font-size: var(--zen-typography-font-size-body-small);
+  line-height: var(--zen-typography-line-height-body-small);
+  letter-spacing: var(--zen-typography-letter-spacing-body-code);
+}
+/* Uppercase guideline labels ("When to use") = All-Caps/S metrics (no extra tracking). */
+.official-platform :is(.pg-when__col h3, .pg-meta h3) { letter-spacing: var(--zen-typography-letter-spacing-all-caps-s); }
+.official-platform :is(.platform-ref__sep, .icon-gallery__toolbar p, .text-style-row__meta span, .text-style-group__heading span, .icon-card span) {
+  font-size: var(--zen-typography-font-size-body-small);
+  line-height: var(--zen-typography-line-height-body-small);
+  letter-spacing: var(--zen-typography-letter-spacing-body-small);
+}
+.official-platform .text-style-row__meta small {
+  font-size: var(--zen-typography-font-size-caption);
+  line-height: var(--zen-typography-line-height-caption);
+  letter-spacing: var(--zen-typography-letter-spacing-caption);
+}
+.official-platform :is(.text-style-row__meta strong, .icon-gallery__special-header h2, .icon-gallery__section-title) {
+  font-size: var(--zen-typography-font-size-body-extra);
+  line-height: var(--zen-typography-line-height-body-extra);
+  letter-spacing: var(--zen-typography-letter-spacing-body-extra);
+}
+.official-platform .icon-card strong {
+  font-size: var(--zen-typography-font-size-body-base);
+  line-height: var(--zen-typography-line-height-body-base);
+  letter-spacing: var(--zen-typography-letter-spacing-body-base);
+}
+.official-platform .icon-gallery__more {
+  font-size: var(--zen-typography-font-size-button-label-s);
+  line-height: var(--zen-typography-line-height-button-label-s);
+  letter-spacing: var(--zen-typography-letter-spacing-button-label-s);
+}
+
+/* Pagination examples: one page of real content scrolls inside a Surface box (about five table rows), the table header
+   sticks, and the Pagination under it stays put. */
+.pe-scroll-box { max-height: calc(36px + 5 * 52px); overflow: auto; overscroll-behavior: contain; border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); }
+.pe-scroll-box > .zen-table { overflow: visible; }
+.pe-scroll-box thead th { position: sticky; z-index: 1; top: 0; background: var(--zen-color-background-surface-default, #fff); box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.pe-scroll-box:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
+/* Photo gallery page: four real photos per page. */
+.pe-photo-page { display: grid; width: 100%; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; list-style: none; }
+.pe-photo-page img { display: block; width: 100%; aspect-ratio: 1; border-radius: var(--zen-corner-radius-base, 12px); object-fit: cover; }
+@media (max-width: 480px) { .pe-photo-page { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Device corners clip the bars' blur. With GPU compositing, masked backdrop-filter layers (the Bottom/Top Navigation
+   progressive blur) ignore the phone's rounded overflow clip and paint as rectangles over the bezel corners, so the blur
+   layers round themselves (backdrop-filter respects its own radius). Never clip-path / mask / filter / opacity the
+   header or footer: any of them makes it a backdrop root, and every backdrop-filter inside (Liquid Glass pills and
+   buttons, the progressive blur) then sees only the bar itself, not the screen behind it — the glass stops blurring. */
+/* zen-allow-raw-radius: device corner radii (iPhone 55, iPad 18) — hardware, not the Corner Radius scale. */
+.platform-phone { --platform-phone-radius: 55px; }
+.platform-phone[data-device="ipad"] { --platform-phone-radius: 18px; }
+.platform-phone .zen-bottom-nav__progressive > i { border-radius: 0 0 var(--platform-phone-radius) var(--platform-phone-radius); }
+.platform-phone > .platform-phone__header .zen-top-nav__progressive > i { border-radius: var(--platform-phone-radius) var(--platform-phone-radius) 0 0; }
+
+/* Typography › Content hierarchy (PlatformTypographyHierarchy.tsx): the rules table and the examples with their live outline. */
+.pth-rules { display: grid; gap: var(--zen-spacing-gap-large, 20px); }
+.pth-table-wrap { overflow-x: auto; overscroll-behavior-x: contain; border-radius: var(--zen-corner-radius-large, 16px); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.pth-table { width: 100%; min-width: 720px; border-collapse: collapse; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-regular, 400) var(--zen-typography-font-size-body-base, 14px)/var(--zen-typography-line-height-body-base, 20px) var(--zen-typography-font-family-sans, Inter), sans-serif; }
+.pth-table th, .pth-table td { padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px); border-top: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); text-align: start; vertical-align: top; }
+.pth-table thead th { border-top: 0; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); font-weight: var(--zen-emphasis-font-weight-medium, 500); }
+.pth-table tbody th { font-weight: var(--zen-emphasis-font-weight-medium, 500); }
+.pth-table td:nth-child(4) { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
+.pth-table tbody th.pth-table__group { background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); font-weight: var(--zen-emphasis-font-weight-bold, 600); }
+.pth-rules__list { display: grid; margin: 0; padding-inline-start: var(--zen-spacing-padding-xlarge, 24px); gap: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-neutral-strongest, #111); }
+
+.pth-demo { display: grid; width: 100%; grid-template-columns: minmax(0, 1fr) 240px; gap: var(--zen-spacing-gap-large, 20px); align-items: start; }
+.pth-demo__ui { display: flex; min-width: 0; justify-content: center; }
+.pth-page { display: grid; width: 100%; box-sizing: border-box; gap: var(--zen-spacing-gap-xlarge, 24px); padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-canvas-default, #f7f7f7); }
+.pth-section { display: grid; min-width: 0; gap: var(--zen-spacing-gap-small, 12px); }
+.pth-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--zen-spacing-gap-medium, 16px); }
+/* Phone screens (mobile breakpoint tokens) line up on the Top Navigation's 20px margin: blocks with the title. */
+.pth-screen { display: grid; align-content: start; gap: var(--zen-spacing-gap-xlarge, 24px); padding: var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-large, 20px); }
+.pth-outline { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); color: var(--zen-color-content-neutral-strongest, #111); }
+.pth-outline__list { display: grid; margin: 0; padding: 0; gap: var(--zen-spacing-gap-xsmall, 8px); list-style: none; }
+.pth-outline__row { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--zen-spacing-gap-xsmall, 8px); align-items: baseline; }
+.pth-outline__row > :last-child { grid-column: 2; }
+.pth-outline__tag { min-width: 28px; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-accent-subtle-default, rgb(255 2 152 / 9%)); color: var(--zen-color-content-accent-base, #95197b); text-align: center; }
+.pth-outline__text { overflow: hidden; font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 900px) { .pth-demo { grid-template-columns: minmax(0, 1fr); } }
+

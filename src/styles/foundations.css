@@ -319,7 +319,7 @@
   gap: 24px;
   margin-top: 28px;
   padding: clamp(48px, 10vw, 120px) 24px;
-  border: 1px dashed #0101012f;
+  border: 1px dashed var(--zen-color-border-neutral-subtle-default, #0101012f);
   border-radius: var(--zen-corner-radius-base, 12px);
   background: #01010103;
 }
@@ -514,7 +514,7 @@
   min-width: 220px;
   height: 44px;
   margin: 28px auto 0;
-  border: 1px solid var(--zen-color-border-neutral-pale-default, #0101011f);
+  border: 1px solid var(--zen-color-border-neutral-subtle-default, #0000001c);
   border-radius: var(--zen-corner-radius-rounded, 1000px);
   padding: 0 20px;
   background: var(--zen-color-background-surface-default, #fff);
@@ -526,6 +526,7 @@
 }
 
 .icon-gallery__more:hover {
+  border-color: var(--zen-color-border-neutral-subtle-hover, #0000002b);
   background: var(--zen-color-background-neutral-pale-default, #01010108);
 }
 
@@ -534,46 +535,10 @@
   outline-offset: 3px;
 }
 
-.icon-gallery__empty {
-  display: flex;
-  gap: 20px;
-  align-items: start;
-  margin-top: 32px;
-  padding: 28px;
-  border: 1px dashed var(--zen-color-border-neutral-pale-default, #0101011f);
-  border-radius: var(--zen-corner-radius-base, 12px);
-  background: var(--zen-color-background-neutral-pale-default, #01010108);
-}
 
-.icon-gallery__empty > span {
-  display: grid;
-  width: 48px;
-  height: 48px;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: 50%;
-  background: #6b8cff1f;
-  color: #3d5fd6;
-  font-size: 24px;
-}
 
-.icon-gallery__empty h2 {
-  margin: 0 0 8px;
-  font-size: 22px;
-  letter-spacing: -0.025em;
-}
 
-.icon-gallery__empty p {
-  max-width: 720px;
-  margin: 0;
-  color: var(--zen-color-content-neutral-base, #000000a8);
-  line-height: 1.6;
-}
 
-.icon-gallery__empty code {
-  color: inherit;
-  font-size: 0.9em;
-}
 
 @media (max-width: 900px) {
   .icon-gallery__header {
@@ -658,7 +623,6 @@
 .token-table-view__dimension { max-width: 100%; height: 40px; box-sizing: border-box; flex: 0 0 auto; border-inline: 2px solid var(--zen-color-border-accent-solid-default, #ff66d4); background: var(--zen-color-background-accent-subtle-default, rgb(255 2 152 / 9%)); }
 .token-table-view__sample { overflow: hidden; color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
 .token-table-view__radius { width: 40px; height: 40px; flex: 0 0 40px; box-sizing: border-box; border-top: 2px solid var(--zen-color-border-accent-solid-default, #ff66d4); border-left: 2px solid var(--zen-color-border-accent-solid-default, #ff66d4); background: var(--zen-color-background-accent-subtle-default, rgb(255 2 152 / 9%)); }
-.token-table-view__empty { margin: 0; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); text-align: center; }
 @media (max-width: 760px) {
   .token-table-view__schemes,
   .token-table-view__search,
@@ -666,3 +630,13 @@
   .token-table-view__table { overflow-x: auto; }
   .token-table-view__head, .token-table-view__row { min-width: 640px; }
 }
+
+/* Icon gallery “no matches” state (EmptyState). */
+.icon-gallery__no-results { margin-block: var(--zen-spacing-gap-2-xlarge, 40px); }
+
+/* Iconography → File icons (Figma Special Icons → File) above the system icon grid. */
+.icon-gallery__special { display: grid; gap: 12px; margin-bottom: 24px; }
+.icon-gallery__special-header { display: grid; gap: 4px; }
+.icon-gallery__special-header h2, .icon-gallery__section-title { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); font-size: 16px; font-weight: 600; line-height: 24px; }
+.icon-gallery__special-header p { margin: 0; color: var(--zen-color-content-neutral-base, #000000a8); font-size: 12px; line-height: 16px; }
+.icon-gallery__section-title { margin-bottom: 12px; }

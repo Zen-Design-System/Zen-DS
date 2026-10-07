@@ -1,0 +1,233 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "menu",
+  "import": "import { Menu, MenuItem, MenuSeparator, MenuGroup } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Menu",
+      "file": "src/components/Menu/Menu.tsx",
+      "description": "An action menu (WAI-ARIA menu button): a trigger opens a list of actions on the Popover surface — Duplicate, Rename,\nMove to…, Delete. It is not a selection list: to pick a value use SelectField, or Chip + Popover for filters.\nThe menu renders in the overlay portal (inside a device frame marked `data-zen-overlay-root`, in that frame), so a\ntable or card that clips its overflow never cuts it off; it attaches 4px below the trigger and flips above it (or to\nthe other edge) when there is no room.\n\n  <Menu trigger={<IconButton aria-label=\"Actions for Invoice 1024\" icon={<Icon name=\"icon-dots-horizontal-line\" />} />}\n    items={[{ id: \"duplicate\", label: \"Duplicate\" }, { type: \"separator\" }, { id: \"delete\", label: \"Delete\", danger: true }]}\n    onSelect={(item) => run(item.id)} />",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "trigger",
+          "type": "ReactElement",
+          "required": true,
+          "default": null,
+          "description": "The control that opens the menu: a Button or an IconButton with an aria-label (it names the menu too). It receives\naria-haspopup=\"menu\", aria-expanded and aria-controls, and the opening keys (Enter · Space · ↓ first item, ↑ last item).",
+          "deprecated": null
+        },
+        {
+          "name": "items",
+          "type": "MenuEntry[]",
+          "required": false,
+          "default": null,
+          "description": "The actions: items, `{ type: \"separator\" }` and `{ type: \"group\", label, items }`. Without it, compose `children`.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Composable entries (`MenuItem`, `MenuSeparator`, `MenuGroup`), used when `items` is not given.",
+          "deprecated": null
+        },
+        {
+          "name": "onSelect",
+          "type": "(item: MenuItemData) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the chosen item (after the item's own `onSelect`); then the menu closes and focus returns to the trigger.",
+          "deprecated": null
+        },
+        {
+          "name": "align",
+          "type": "\"start\" | \"end\"",
+          "required": false,
+          "default": "\"start\"",
+          "description": "Which edge of the trigger the menu lines up with: `start` (default) or `end` (a trigger at the right end of a row or card). Flips when it would leave the viewport.",
+          "deprecated": null
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Controlled open state; pair it with `onOpenChange`. Default: uncontrolled and closed.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Initial state when uncontrolled. Default false.",
+          "deprecated": null
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with `true` when the trigger opens the menu and `false` when it closes (choice, Escape, Tab, outside press).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the menu. Default: the trigger's name (aria-labelledby).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Extra class on the floating surface.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "MenuItem",
+      "file": "src/components/Menu/Menu.tsx",
+      "description": "One action row (role=menuitem) on the Popover/Item primitive. Use it inside `<Menu>` when you compose children.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Stable id, handed back to the Menu's `onSelect`. Default: the label.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "The action, verb first (“Duplicate”, “Move to…”). One line: a long label ends in “…”.",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactElement",
+          "required": false,
+          "default": null,
+          "description": "Leading icon: an icon name (drawn at 20px) or an element. Give every item of a menu an icon, or none.",
+          "deprecated": null
+        },
+        {
+          "name": "caption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "A second line with a short consequence (“Anyone with the link can view”).",
+          "deprecated": null
+        },
+        {
+          "name": "shortcut",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Keyboard shortcut shown on the right (“⌘D”). Display only: the app wires the shortcut itself.",
+          "deprecated": null
+        },
+        {
+          "name": "danger",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Destructive action (Delete, Remove): Content/Negative text. Put it last, after a separator.",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Not available right now: dimmed and skipped by the arrow keys.",
+          "deprecated": null
+        },
+        {
+          "name": "onSelect",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Runs when the item is chosen (click, Enter or Space); then the Menu's `onSelect` runs and the menu closes.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Extra class on the row.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "MenuSeparator",
+      "file": "src/components/Menu/Menu.tsx",
+      "description": "A Divider between groups of items (role=separator).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Extra class on the line.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "MenuGroup",
+      "file": "src/components/Menu/Menu.tsx",
+      "description": "Items under a label (Figma .Primitives/Popover/Label): role=group, named by the label through aria-labelledby (APG\n menu). The label is a plain element, never a heading (h1–h6 or role=heading).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "Small label above the items (“Share”, “Move to”); it names the group for screen readers (aria-labelledby). It is a\n label, not a heading, so a menu never adds to the page outline.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "MenuItem and MenuSeparator elements.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Extra class on the group.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "MenuEntry": "type MenuEntry = MenuItemData | MenuSeparatorData | MenuGroupData",
+    "MenuGroupData": "type MenuGroupData = { type: \"group\"; id?: string; label: string; items: Array<MenuItemData | MenuSeparatorData> }",
+    "MenuItemData": "type MenuItemData = { type?: \"item\"; id: string; label: string; icon?: IconName | ReactElement; caption?: ReactNode; shortcut?: string; danger?: boolean; disabled?: boolean; onSelect?: () => void; }",
+    "MenuSeparatorData": "type MenuSeparatorData = { type: \"separator\"; id?: string }"
+  }
+}

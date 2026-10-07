@@ -1,0 +1,178 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "button",
+  "import": "import { Button, IconButton } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Button",
+      "file": "src/components/Button/Button.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": "ButtonHTMLAttributes<HTMLButtonElement>",
+      "props": [
+        {
+          "name": "level",
+          "type": "\"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\"",
+          "required": false,
+          "default": null,
+          "description": "Canonical Figma prop. `variant` remains as a compatibility alias.",
+          "deprecated": null
+        },
+        {
+          "name": "variant",
+          "type": "\"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use level."
+        },
+        {
+          "name": "size",
+          "type": "\"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xsmall\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "appearance",
+          "type": "\"main\" | \"flat\" | \"overlay\"",
+          "required": false,
+          "default": "\"main\"",
+          "description": "Figma component set: Button/Main, Button/Flat or Button/Overlay.",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"pressed\" | \"focused\" | \"disabled\"",
+          "required": false,
+          "default": null,
+          "description": "Optional deterministic state for component matrices; native interaction states still work.",
+          "deprecated": null
+        },
+        {
+          "name": "startIcon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Leading icon: an icon name (`\"icon-plus-line\"`) or a node; the slot sizes it to the button.",
+          "deprecated": null
+        },
+        {
+          "name": "endIcon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Trailing icon: an icon name (`\"icon-chevron-right-line-small\"`) or a node; the slot sizes it to the button.",
+          "deprecated": null
+        },
+        {
+          "name": "leftIcon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use startIcon (same values)."
+        },
+        {
+          "name": "rightIcon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use endIcon (same values)."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "type",
+          "type": "unknown",
+          "required": false,
+          "default": "\"button\"",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "IconButton",
+      "file": "src/components/Button/Button.tsx",
+      "description": "Figma Button/Icon-Main: a square, icon-only action that reuses the Button\nlevel/state tokens and the shared Icon primitive. Shows its name as a tooltip (see `tooltip`).",
+      "deprecated": null,
+      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
+      "props": [
+        {
+          "name": "icon",
+          "type": "IconName | ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Button/Icon-Main glyph: an icon name (`\"icon-plus-line\"`) or a node. The icon-only primitive is intentionally separate from Button/Main.",
+          "deprecated": null
+        },
+        {
+          "name": "level",
+          "type": "\"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\"",
+          "required": false,
+          "default": null,
+          "description": "Default `tertiary` for Icon-Main (toolbar and row actions) and `primary` for Icon-Flat (close/dismiss in headers).\nAccent is only for a promoted action (docs/guidelines/button.md).",
+          "deprecated": null
+        },
+        {
+          "name": "variant",
+          "type": "\"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\"",
+          "required": false,
+          "default": null,
+          "description": "Compatibility alias of `level`.",
+          "deprecated": "Use level."
+        },
+        {
+          "name": "size",
+          "type": "\"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xsmall\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "appearance",
+          "type": "\"main\" | \"flat\" | \"overlay\"",
+          "required": false,
+          "default": "\"main\"",
+          "description": "Figma component set: Button/Icon-Main, Button/Icon-Flat or Button/Icon-Overlay.",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"pressed\" | \"focused\" | \"disabled\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "tooltip",
+          "type": "ReactNode | false",
+          "required": false,
+          "default": null,
+          "description": "Zen rule: an icon-only button shows its name as a tooltip after 1s of hover (at once on keyboard focus).\nDefaults to `aria-label`; pass text for a longer hint, or `false` only when a visible label already sits beside it.",
+          "deprecated": null
+        },
+        {
+          "name": "type",
+          "type": "unknown",
+          "required": false,
+          "default": "\"button\"",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

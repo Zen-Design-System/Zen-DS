@@ -1,3 +1,14 @@
+/* Motion (tokens/source/motion.json): a floating surface fades in with a 4px slide away from its anchor and a 2% scale
+   (Base, Emphasized), and fades out one step faster when its owner keeps it mounted with data-state="closing" (Menu, the
+   SelectField dropdown). The slide and scale are multiplied by --zen-motion-movement, so reduced motion only fades.
+   Inline surfaces (Bunk-Action bars) do not animate. */
+.zen-popover:not(.zen-popover--bunk-action) {
+  --zen-motion-from-y: -1;
+  transform-origin: top center;
+  animation: zen-motion-pop-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-emphasized, ease-out) both;
+}
+.zen-popover:not(.zen-popover--bunk-action)[data-side="top"] { --zen-motion-from-y: 1; transform-origin: bottom center; }
+.zen-popover:not(.zen-popover--bunk-action)[data-state="closing"] { animation: zen-motion-pop-out var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-exit, ease-in) both; pointer-events: none; }
 .zen-popover {
   position: absolute;
   z-index: 30;
@@ -17,8 +28,9 @@
   outline-offset: 0;
   border-radius: var(--zen-corner-radius-large);
   background: var(--zen-popover-background);
-  /* Effect/Popover style (shadows + background blur 40 → CSS blur(20px)). */
-  box-shadow: var(--zen-style-effect-popover-shadow);
+  /* Effect/Popover style (shadows + background blur 40 → CSS blur(20px)). The Figma Container does not clip
+     content, so Figma ignores the style's spread: use the -unclipped (spread 0) shadow to render the same. */
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
   backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
 }
 
@@ -33,7 +45,9 @@
 
 .zen-popover__search { display: flex; min-width: 0; }
 
-.zen-popover__items { display: grid; max-height: 240px; gap: var(--zen-spacing-gap-2-xsmall); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--zen-color-background-neutral-subtle-default) transparent; }
+/* Rows hug their item: with a min-height on the item, a capped grid would squeeze rows to fit 240px instead of scrolling —
+   an avatar item grown by Comfortable stayed 45px tall. */
+.zen-popover__items { display: grid; max-height: 240px; grid-auto-rows: max-content; gap: var(--zen-spacing-gap-2-xsmall); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--zen-color-background-neutral-subtle-default) transparent; }
 /* Figma Scroll-Bar: 4px rounded thumb, Background/Neutral/Subtle/Default, no track. */
 .zen-popover__items::-webkit-scrollbar { width: 4px; }
 .zen-popover__items::-webkit-scrollbar-track { background: transparent; }
@@ -49,7 +63,11 @@
 .zen-popover__item[data-function="manual-add-new"] .zen-popover__item-content { flex: 0 1 auto; padding-inline: var(--zen-spacing-padding-2-xsmall) 0; }
 .zen-popover__item[data-function="manual-add-new"] .zen-popover__item-trailing { width: auto; height: auto; min-width: 0; flex: 0 1 auto; margin-right: var(--zen-spacing-padding-2-xsmall); }
 .zen-popover__item[data-function="manual-add-new"] .zen-popover__item-trailing > .zen-badge { max-width: 100%; }
-.zen-popover__item:hover:not(:disabled), .zen-popover__item[data-state="hover"], .zen-popover__item:focus-visible { outline: 0; background: var(--zen-color-background-neutral-flat-hover); }
+.zen-popover__item:hover:not(:disabled), .zen-popover__item[data-state="hover"], .zen-popover__item:focus-visible { background: var(--zen-color-background-neutral-flat-hover); }
+/* Keyboard focus is the 3px Focus/Accent ring (Figma Popover/Item has no Focus state). A fill cannot show it: Flat/Hover,
+   Flat/Pressed and the Selected fill (Active/Neutral/Subtle) are the same alpha, so focus on a selected row — or on a row
+   next to it — changed nothing. Drawn inside the row, because the scrolling list clips anything outside it. */
+.zen-popover__item:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid); outline-offset: -3px; }
 /* Figma State=Single-Selected (updated 2026-09-26): Active/Neutral/Subtle fill + Neutral/Strongest check, 12px right padding. */
 .zen-popover__item.is-selected { padding-right: var(--zen-spacing-padding-small); background: var(--zen-color-background-active-neutral-subtle); }
 .zen-popover__item:disabled { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); cursor: not-allowed; }
@@ -58,35 +76,46 @@
 /* Figma Trailing: Element-Size/Popular/Small (16) for an icon; it hugs a Button/Icon-Flat XSmall (24) or a Badge. */
 .zen-popover__item-trailing { width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex-basis: var(--zen-element-size-popular-small, 16px); }
 .zen-popover__item-trailing:has(> .zen-button, > .zen-badge) { width: auto; height: auto; flex-basis: auto; }
-.zen-popover__item[data-theme="badge"] .zen-popover__item-trailing { width: auto; min-width: 20px; flex-basis: auto; }
+.zen-popover__item[data-tone="badge"] .zen-popover__item-trailing { width: auto; min-width: var(--zen-element-size-popular-base, 20px); flex-basis: auto; }
 /* .Primitives/Popover/Item/Content themes: leading sizes and the icon→content gap
    (Spacing/Gap/Small = 8 + 4 margin; Avatar Big uses Spacing/Gap/Medium). */
-.zen-popover__item:is([data-theme="photo-small"], [data-theme="avatar-small"]) .zen-popover__item-leading { width: var(--zen-image-size-2-xsmall); height: var(--zen-image-size-2-xsmall); flex-basis: var(--zen-image-size-2-xsmall); }
+.zen-popover__item[data-tone="photo-small"] .zen-popover__item-leading { width: var(--zen-image-size-2-xsmall); height: var(--zen-image-size-2-xsmall); flex-basis: var(--zen-image-size-2-xsmall); }
+/* Theme=Avatar Small: Avatar Size=Small (32px, Image-Size/Small), centred on the content. */
+.zen-popover__item[data-tone="avatar-small"] .zen-popover__item-leading { width: var(--zen-image-size-small, 32px); height: var(--zen-image-size-small, 32px); flex-basis: var(--zen-image-size-small, 32px); }
 /* Theme=Dock Icon: Dock-Icon XSmall / Neutral / Subtle — 24px rounded tile, 12px icon in Content/Neutral/Base. */
-.zen-popover__item[data-theme="dock-icon"] .zen-popover__item-leading { width: var(--zen-image-size-xsmall); height: var(--zen-image-size-xsmall); flex-basis: var(--zen-image-size-xsmall); border-radius: var(--zen-corner-radius-rounded); background: var(--zen-color-background-neutral-subtle-default); color: var(--zen-color-content-neutral-base); }
-.zen-popover__item[data-theme="dock-icon"] .zen-popover__item-leading > .zen-icon { width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); }
+.zen-popover__item[data-tone="dock-icon"] .zen-popover__item-leading { width: var(--zen-image-size-xsmall); height: var(--zen-image-size-xsmall); flex-basis: var(--zen-image-size-xsmall); border-radius: var(--zen-corner-radius-rounded); background: var(--zen-color-background-neutral-subtle-default); color: var(--zen-color-content-neutral-base); }
+.zen-popover__item[data-tone="dock-icon"] .zen-popover__item-leading > .zen-icon { width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); }
 /* Theme=Badge: a Medium Badge is the whole content (no label); the slot hugs it. */
-.zen-popover__item[data-theme="badge"] .zen-popover__item-leading { width: auto; height: auto; flex-basis: auto; }
-.zen-popover__item[data-theme="photo-big"] .zen-popover__item-leading { width: var(--zen-image-size-small); height: var(--zen-image-size-small); flex-basis: var(--zen-image-size-small); }
-.zen-popover__item[data-theme="avatar-big"] .zen-popover__item-leading { width: var(--zen-image-size-medium); height: var(--zen-image-size-medium); flex-basis: var(--zen-image-size-medium); margin-right: var(--zen-spacing-gap-xsmall); }
-.zen-popover__item:is([data-theme="photo-small"], [data-theme="photo-big"]) .zen-popover__item-leading > img { width: 100%; height: 100%; border-radius: var(--zen-corner-radius-xsmall); object-fit: cover; }
+.zen-popover__item[data-tone="badge"] .zen-popover__item-leading { width: auto; height: auto; flex-basis: auto; }
+.zen-popover__item[data-tone="photo-big"] .zen-popover__item-leading { width: var(--zen-image-size-small); height: var(--zen-image-size-small); flex-basis: var(--zen-image-size-small); }
+.zen-popover__item[data-tone="avatar-big"] .zen-popover__item-leading { width: var(--zen-image-size-medium); height: var(--zen-image-size-medium); flex-basis: var(--zen-image-size-medium); margin-right: var(--zen-spacing-gap-xsmall); }
+.zen-popover__item:is([data-tone="photo-small"], [data-tone="photo-big"]) .zen-popover__item-leading > img { width: 100%; height: 100%; border-radius: var(--zen-corner-radius-xsmall); object-fit: cover; }
 .zen-popover__item-leading > .zen-icon, .zen-popover__item-trailing > .zen-icon { width: 100%; height: 100%; }
-/* Any Avatar placed in an Avatar theme fills the Figma slot (20 / 40) instead of overflowing it. */
-.zen-popover__item:is([data-theme="avatar-small"], [data-theme="avatar-big"]) .zen-popover__item-leading > .zen-avatar { --zen-avatar-size: 100%; }
+/* Any Avatar placed in an Avatar theme fills the Figma slot (32 / 40) instead of overflowing it. */
+.zen-popover__item:is([data-tone="avatar-small"], [data-tone="avatar-big"]) .zen-popover__item-leading > .zen-avatar { --zen-avatar-size: 100%; }
 .zen-popover__item-leading > img { display: block; }
-/* Content primitive aligns MIN for the 20px themes: with a caption the leading sits on the first line. */
-.zen-popover__item:is([data-theme="icon"], [data-theme="photo-small"])[data-has-caption="true"] .zen-popover__item-leading { align-self: flex-start; }
-/* Zen rule: with a caption, Avatar Small grows to Avatar Small (32px, Image-Size/Small) and centres on both lines. */
-.zen-popover__item[data-theme="avatar-small"][data-has-caption="true"] .zen-popover__item-leading { width: var(--zen-image-size-small, 32px); height: var(--zen-image-size-small, 32px); flex-basis: var(--zen-image-size-small, 32px); }
+/* Content primitive: Icon and Photo Small align MIN (the 20px leading sits on the first line of a wrapped label or caption);
+   Avatar, Photo Big and Dock Icon centre (Figma counter-axis CENTER). */
+.zen-popover__item:is([data-tone="icon"], [data-tone="photo-small"]) .zen-popover__item-leading { align-self: flex-start; }
+/* …centred on that first line: a type scale whose Body/Base line is taller than the leading (Mobile and Marketing, 24px
+   line around a 20px icon) drops it by half the difference, so the icon no longer sits 2px above the label. A
+   leading-only item has no line to centre on and keeps the plain centring. */
+.zen-popover__item[data-tone="icon"]:has(> .zen-popover__item-content) .zen-popover__item-leading { margin-block-start: max(0px, calc((var(--zen-typography-line-height-body-base, 20px) - var(--zen-element-size-popular-base, 20px)) / 2)); }
+.zen-popover__item[data-tone="photo-small"]:has(> .zen-popover__item-content) .zen-popover__item-leading { margin-block-start: max(0px, calc((var(--zen-typography-line-height-body-base, 20px) - var(--zen-image-size-2-xsmall, 20px)) / 2)); }
 .zen-popover__item-content--badge { display: flex; flex: 1 1 auto; }
 .zen-popover__item-content { display: grid; min-width: 0; flex: 1; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+/* Label / Subtext: one line each, long text ends in "…" (Zen rule, 2026-09-27 — overrides Figma's auto-height).
+   The full text stays in the accessible name. */
 .zen-popover__item-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .zen-popover__item-caption { overflow: hidden; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-overflow: ellipsis; white-space: nowrap; }
 .zen-popover__empty { padding: var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 /* Popover/Bunk-Action: Color/Background/Popover/Default + 1px OUTSIDE Color/Border/Popover/Subtle,
    padding 4, radius Large, Effect/Popover; Item-List gap 4; groups gap 2; 40px vertical dividers. */
 .zen-popover--bunk-action { position: relative; top: auto; left: auto; display: inline-flex; width: max-content; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall); padding: var(--zen-spacing-padding-2-xsmall); background: var(--zen-color-background-popover-default); outline-color: var(--zen-color-border-popover-subtle); }
-.zen-popover__bunk-list { display: flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall); }
+/* Never clip the actions: focus rings (3px) and hover fills must paint past the list, so the bar stays overflow
+   visible. In a container narrower than the bar, groups wrap onto a second row instead of scrolling or overflowing. */
+.zen-popover--bunk-action { max-width: 100%; overflow: visible; }
+.zen-popover__bunk-list { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--zen-spacing-gap-2-xsmall); }
 .zen-popover__bunk-group { display: flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall); }
 .zen-popover__bunk-divider { display: block; width: 1px; height: var(--zen-button-size-medium); flex: 0 0 1px; background: var(--zen-color-border-neutral-pale-default); }
 

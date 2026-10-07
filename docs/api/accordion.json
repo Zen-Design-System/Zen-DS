@@ -1,0 +1,97 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "accordion",
+  "import": "import { Accordion } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Accordion",
+      "file": "src/components/Accordion/Accordion.tsx",
+      "description": "Figma Accordion/Text (239:16847): Size XLarge/Large/Medium × Theme Divider/Box × Expanded.\nThe whole header row is the toggle button, wrapped in an `h{headingLevel}` so the outline lists every section;\nthe chevron turns 180° when expanded and the panel height animates open (disabled for reduced motion).\nTheme=Divider: the root keeps Figma's block padding and a hit layer on the trigger covers it (open: down to the\ncontent only), so a press anywhere on the header row toggles, as in Box; the layout and focus ring are unchanged.\nTheme=Box: the trigger covers the whole box header, not just the title line. The box padding (Padding/Medium,\nXLarge Padding/XLarge) splits into a box inset of padding − header gap and a trigger padding of the header gap, so the\nlayout matches Figma; the trigger radius is box radius − inset (concentric corners), and the focus ring sits inside it.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "headingLevel",
+          "type": "2 | 3 | 4 | 5 | 6",
+          "required": false,
+          "default": "3",
+          "description": "Heading level around the header button (WAI-ARIA APG Accordion: `<h{n}><button>`), default 3. Take it from where\nthe accordion sits: one level below the nearest heading above (2 directly under the page h1, 3 under an h2\nsection, 4 inside an h3 card). Only the tag changes; the look follows `size`. Pick the size so the title is never\nlarger than the heading it sits under: Medium (Heading/Subheading) and Large (Heading/4) fit under an h2 section;\nXLarge (Heading/3) only directly under the page h1.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Content slot (Figma .Primitives/Accordion/Content/Text is Body/Base/Regular, Neutral/Base).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"md\" | \"lg\" | \"xl\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"divider\" | \"box\"",
+          "required": false,
+          "default": "\"divider\"",
+          "description": "Divider: bottom Border/Neutral/Subtle rule; the whole header row, its block padding included, is the toggle. Box:\nSupport/Neutral/Pale surface with radius (Corner-Radius/Large, XLarge 2XLarge); the whole box header is the toggle,\nand its focus ring is concentric with the box corner.",
+          "deprecated": null
+        },
+        {
+          "name": "contentWidth",
+          "type": "\"title\" | \"full\"",
+          "required": false,
+          "default": "\"title\"",
+          "description": "Where the content column ends. title (default, Figma): at the end of the title, before the chevron column, which keeps\ntext lines short. full: under the chevron too, to the box padding (Box) or the row's end (Divider), for rows with\nend-aligned values (a receipt, specs, a DescriptionList or a List with trailing values), so the values line up with\nthe edge instead of stopping before an empty column. Figma Content Width=Title|Full (added 2026-10-03).",
+          "deprecated": null
+        },
+        {
+          "name": "expanded",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Controlled open state (Figma Expanded).",
+          "deprecated": null
+        },
+        {
+          "name": "defaultExpanded",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onExpandedChange",
+          "type": "(expanded: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

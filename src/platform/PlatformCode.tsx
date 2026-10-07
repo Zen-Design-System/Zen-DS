@@ -1,7 +1,9 @@
 import { useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "../components/Button";
 import { Icon, type IconName } from "../components/Icon";
 import { SelectField } from "../components/Input";
+import { useStudioBridge, useStudioPanel } from "./studio/bridge";
 
 const codeLanguages = ["React", "Vue", "Svelte", "HTML", "Swift", "Flutter"] as const;
 
@@ -33,6 +35,16 @@ function highlightCode(source: string): ReactNode {
 }
 
 export function PlatformCode({ code }: { code: string }) {
+  const studio = useStudioBridge();
+  const panel = useStudioPanel();
+  // Zen Studio: a playground's code shows in the inspector while its panel is active; other code (Installation) renders
+  // in place. Both use the Studio's git-style code view.
+  if (studio && panel) return panel.active && panel.codeSlot ? createPortal(studio.renderCode(code), panel.codeSlot) : null;
+  if (studio) return <>{studio.renderCode(code)}</>;
+  return <PlatformCodeView code={code} />;
+}
+
+function PlatformCodeView({ code }: { code: string }) {
   const [language, setLanguage] = useState<(typeof codeLanguages)[number]>("React");
   const [copied, setCopied] = useState(false);
   const output = language === "React" ? code : `// ${language} — Coming Soon\n// React is the reference implementation for this component.`;

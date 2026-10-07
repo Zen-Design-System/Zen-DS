@@ -2,7 +2,8 @@
   "Emphasis Level": {
     "modes": [
       "Medium",
-      "Strong"
+      "Strong",
+      "Light"
     ],
     "tokens": [
       {
@@ -10,7 +11,8 @@
         "type": "FLOAT",
         "valuesByMode": {
           "Medium": 600,
-          "Strong": 700
+          "Strong": 700,
+          "Light": 500
         }
       },
       {
@@ -18,7 +20,8 @@
         "type": "FLOAT",
         "valuesByMode": {
           "Medium": 500,
-          "Strong": 550
+          "Strong": 550,
+          "Light": 450
         }
       },
       {
@@ -26,7 +29,8 @@
         "type": "FLOAT",
         "valuesByMode": {
           "Medium": 400,
-          "Strong": 450
+          "Strong": 450,
+          "Light": 400
         }
       },
       {
@@ -34,7 +38,8 @@
         "type": "FLOAT",
         "valuesByMode": {
           "Medium": 2,
-          "Strong": 3
+          "Strong": 3,
+          "Light": 1
         }
       },
       {
@@ -42,7 +47,8 @@
         "type": "FLOAT",
         "valuesByMode": {
           "Medium": 550,
-          "Strong": 650
+          "Strong": 650,
+          "Light": 450
         }
       },
       {
@@ -50,7 +56,8 @@
         "type": "FLOAT",
         "valuesByMode": {
           "Medium": 1,
-          "Strong": 2
+          "Strong": 2,
+          "Light": 1
         }
       }
     ]

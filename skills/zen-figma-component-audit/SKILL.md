@@ -17,7 +17,7 @@ Read [the repository workflow](../../docs/figma-to-platform-workflow.md) for the
 4. **Reuse the codebase.** Inspect the existing React component, generated tokens (`src/styles/tokens.css`), text styles (`src/tokens/typography.generated.ts`), icon catalog, and current platform shell. Change the smallest shared component or page layer that owns the discrepancy. Keep page-specific geometry separate from the locked shell. Use the component's production implementation for previews and playgrounds.
 5. **Verify the changed slice.** Build once after a coherent edit. Run targeted token/style/icon checks only for the affected sources, not every check for every CSS change. Inspect the local platform at the Figma frame's viewport and mode. Compare DOM computed size, padding, border, typography, shadow, icon name/size and layout position for the rows that changed; inspect a screenshot for visual changes. Exercise the relevant interactive states. Fix measured discrepancies, then record the result in the same evidence table.
 
-For a small correction such as one icon/token, the evidence table can be a few rows and verification can be one focused browser check. For a new component set or full page, inventory all exposed axes and verify representative default, selected, focus, disabled and error cases that exist in that component. Do not run a full cross-product of variants unless the request or a specific risk requires it.
+How much evidence and verification a change needs follows the tier table in `AGENTS.md` §C (**Pick your tier**). For a small correction such as one icon/token, the evidence table can be a few rows and verification can be one focused browser check. For a new component set or full page, inventory all exposed axes and verify representative default, selected, focus, disabled and error cases that exist in that component. Do not run a full cross-product of variants unless the request or a specific risk requires it.
 
 Deliver the changed files, checks performed, and unresolved evidence gaps. Never describe an unmeasured screen as an exact Figma match. Reuse a prior verified node/contract when the design has not changed, so later fixes do not repeat large Figma reads.
 
@@ -27,9 +27,9 @@ Deliver the changed files, checks performed, and unresolved evidence gaps. Never
 - Add a new primitive only when the exact function is absent from both the codebase and the referenced Figma component set. Record that absence and the new owner in the evidence table.
 - Typography or asset additions needed only by the Codebase Platform (for example JetBrains Mono for code samples) stay in the platform layer. Do not add platform-only fonts, styles or variables to the Zen component/token contract unless the Figma system itself defines them for Zen.
 - The shared `.Primitives/Popover/Label` is a semantic group label for the options below, not the selected value. Map it to the control group name (`Component Size`, `Component Theme`, `Typography`, `Corner Radius`, `Emphasis Level`, `Icon Size`, etc.) while the trigger displays the current value.
-- A token update is not complete when generated CSS changes: audit every consumer component and page that reads the token, rebuild the production preview, and record the before/after alias in the audit.
+- A token update is not complete when generated CSS changes: audit every consumer component and page that reads the token (`npm run qa` prints the consumer pages), rebuild the production preview, and record the before/after alias in the audit.
 - Interaction focus is not the same as a clicked/selected state: native focus rings for Checkbox, Radio, Toggle and similar controls must use `:focus-visible` (keyboard Tab navigation), while deterministic Figma matrix props may still expose an explicit `focus` state for documentation.
-- Playarounds are consumer-facing composition previews, not primitive inventories:
+- Playgrounds are consumer-facing composition previews, not primitive inventories:
   keep Figma primitive owners nested inside their production component and do
   not expose primitive rows as selectable previews. Do not add a static State
   chip when the component can exercise hover, pressed, typing, selection and
@@ -37,11 +37,11 @@ Deliver the changed files, checks performed, and unresolved evidence gaps. Never
   state and verify those interactions in the browser. Disabled is the sole
   exception: expose it as a boolean toggle because it cannot be reached
   through normal interaction. Never expose runtime states as a picker.
-- Persist new decisions, verified measurements, and unresolved Figma rows in `docs/platform-json-audit.md` and this workflow/skill when they are reusable. Do not rely on conversation memory for future runs.
+- Record decisions, verified measurements, and unresolved Figma rows of this task in `docs/platform-json-audit.md`. Do not rely on conversation memory for future runs. A reusable new rule for this workflow/skill: write one Backlog line (priority + pointer) in `docs/context/BACKLOG.md`; do it only if it is in the approved task.
 
 ## Variant completeness gate
 
-For every component/page implementation, create a **three-level manifest before editing**:
+For a tier-L implementation (`AGENTS.md` §C, **Pick your tier**), create a **three-level manifest before editing** (lower tiers use the evidence table for the rows they change):
 
 1. **Page manifest:** every component set and standalone primitive on the relevant Figma page, including sets only reached through a nested instance.
 2. **Component-set manifest:** set name/key/node, current variant count, every property axis/value and every exposed slot.
@@ -76,7 +76,17 @@ paint branch (default, hover/pressed where CSS changes, and disabled) and for
 the main template geometry. If browser evidence is unavailable, label the row
 `Chưa xác minh`; do not report a source-level mapping as a visual match.
 
+## Screenshot parity and stale contracts
+
+- For a visual parity check, `get_screenshot` the exact Figma node, capture the matching platform example with `npm run platform:shoot -- <page> --title="…" [--click="…"] [--width=390]`, and place the two side by side with `npm run platform:shoot -- --compose=out.png "Figma=a.png" "Platform=b.png"`. Compare sizes (avatar, icon, hit area), text style, token colour, state (selected/unread/failed), spacing and shadow row by row; record differences in the evidence table.
+- Mobile components (Top/Bottom Navigation, Bottom Sheet, Chat, AI Chat, Chart) are compared at 390px inside `PlatformPhone`, section by section of their Figma page (for example Chat 6331:34480 for the conversation list).
+- When `node tools/figma-contract/run-all.mjs` fails because Figma changed, not the code, re-extract only the affected variants: `tools/figma-contract/figma-console-extract.js` runs unchanged in `use_figma` and in the Figma desktop console (see `tools/figma-contract/README.md` for both paths and the slicing/hashing recipe). Call `__HASHES(ids)` to find the variants that changed, extract only those (`use_figma` output is capped at about 20 KB), patch `docs/figma-contracts/<component>.json`, and re-run the contracts. Figma stays read-only.
+- Deliberate differences decided by the user (for example, Popover labels truncate on one line with "…") are recorded as decisions, not mismatches. Figma-side defects (for example, a variant that is an accidental copy of another) are reported to the user, never "fixed" in code. When Figma is fixed later, re-sync generated asset data (icons, FileIcon paths) by exporting each variant with `exportAsync({ format: "SVG_STRING" })`, hashing each path on both sides, updating only the variants whose hash differs, and re-checking the hashes after writing. This avoids hand-copying long path strings.
+
 ## End-of-run checklist
+
+Finish every implementation with the Build-QA gate (`skills/zen-build-qa`): `npm run qa`, then open the contact sheets
+the gate asks for. The items below are the Figma-specific part of that review.
 
 Before handing off every execution, confirm:
 
@@ -90,4 +100,4 @@ Before handing off every execution, confirm:
 8. All page filters use the shared Search owner. Do not wrap Search in a native label or introduce a page-local search input; controlled clear must update the owning query state.
 9. The affected build and targeted checks pass, and browser measurements cover default plus the changed interaction/state.
 10. Any unverified evidence or intentional platform-only addition is listed explicitly for the next run.
-11. Page, component-set and nested-owner manifests contain no unclassified row; the consumer substitution audit has no silent owner replacement.
+11. Tier L: page, component-set and nested-owner manifests contain no unclassified row; the consumer substitution audit has no silent owner replacement.

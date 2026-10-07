@@ -213,43 +213,14 @@ Khuyến nghị: chuyển `Modal-Radius` về component/semantic radius layer th
 
 #### Local text styles
 
-| Style | Font | Size | Line height | Letter spacing |
-|---|---|---:|---:|---:|
-| `Display-Extra/1` | Inter Semi Bold | 78 | 88 pixels | -4.400000095367432 pixels |
-| `Display-Extra/2` | Inter Semi Bold | 68 | 72 pixels | -4 pixels |
-| `Display-Extra/3` | Inter Semi Bold | 60 | 68 pixels | -3.4000000953674316 pixels |
-| `Display/1` | Inter Semi Bold | 52 | 60 pixels | -3 pixels |
-| `Display/2` | Inter Semi Bold | 46 | 52 pixels | -2.0799999237060547 pixels |
-| `Display/3` | Inter Semi Bold | 40 | 48 pixels | -1.840000033378601 pixels |
-| `Display/4` | Inter Semi Bold | 36 | 44 pixels | -1.600000023841858 pixels |
-| `Heading/1` | Inter Semi Bold | 32 | 40 pixels | -1.440000057220459 pixels |
-| `Heading/2` | Inter Semi Bold | 28 | 36 pixels | -0.9599999785423279 pixels |
-| `Heading/3` | Inter Semi Bold | 24 | 32 pixels | -0.8399999737739563 pixels |
-| `Heading/4` | Inter Semi Bold | 20 | 28 pixels | -0.7200000286102295 pixels |
-| `Heading/Subheading` | Inter Semi Bold | 18 | 24 pixels | -0.6000000238418579 pixels |
-| `Body/Extra/Regular` | Inter Regular | 16 | 24 pixels | -0.36000001430511475 pixels |
-| `Body/Base/Regular` | Inter Regular | 14 | 20 pixels | -0.3199999928474426 pixels |
-| `Body/Base/Medium` | Inter Medium | 14 | 20 pixels | -0.3199999928474426 pixels |
-| `Body/Base/Bold` | Inter Semi Bold | 14 | 20 pixels | -0.3199999928474426 pixels |
-| `Body/Small/Regular` | Inter Regular | 12 | 16 pixels | -0.2800000011920929 pixels |
-| `Body/Small/Medium` | Inter Medium | 12 | 16 pixels | -0.2800000011920929 pixels |
-| `Body/Small/Bold` | Inter Semi Bold | 12 | 16 pixels | -0.2800000011920929 pixels |
-| `Body/Code/Regular` | JetBrains Mono Regular | 12 | 16 pixels | 0 pixels |
-| `Body/Code/Bold` | JetBrains Mono Regular | 12 | 16 pixels | 0 pixels |
-| `Caption/Regular` | Inter Regular | 10 | 12 pixels | -0.11999999731779099 pixels |
-| `Caption/Medium` | Inter Medium | 10 | 12 pixels | -0.11999999731779099 pixels |
-| `Caption/Bold` | Inter Semi Bold | 10 | 12 pixels | -0.11999999731779099 pixels |
-| `Label/Small/Medium` | Inter Medium | 8 | 12 pixels | 0 pixels |
-| `Label/Small/Bold` | Inter Semi Bold | 8 | 12 pixels | 0 pixels |
-| `Button-Label/XL` | Inter Semi Bold | 16 | 24 pixels | -0.4000000059604645 pixels |
-| `Button-Label/L` | Inter Semi Bold | 14 | 20 pixels | -0.3199999928474426 pixels |
-| `Button-Label/M` | Inter Semi Bold | 14 | 20 pixels | -0.3199999928474426 pixels |
-| `Button-Label/S` | Inter Semi Bold | 14 | 20 pixels | -0.3199999928474426 pixels |
-| `Button-Label/XS` | Inter Semi Bold | 12 | 12 pixels | -0.2800000011920929 pixels |
-| `All-Caps/M` | Inter Regular | 14 | 16 pixels | 0 pixels |
-| `All-Caps/S` | Inter Regular | 12 | 16 pixels | 0 pixels |
-| `Body/Extra/Medium` | Inter Medium | 16 | 24 pixels | -0.36000001430511475 pixels |
-| `Body/Extra/Bold` | Inter Semi Bold | 16 | 24 pixels | -0.36000001430511475 pixels |
+Bảng snapshot font/size của lần audit 2026-09-08 (file cũ `yhWJ…`) đã lỗi thời và đã được gỡ: cỡ chữ đổi theo mode Typography (repo hiện có Dashboard, Popular và Mobile), và không mode nào khớp với bảng đó. Nguồn đúng là các file sinh từ Figma:
+
+- `src/styles/generated/text-style-manifest.json` — 36 text style (tên, class, font, token size/line-height/tracking/weight).
+- `src/tokens/typography.generated.ts` — tên style → class `.zen-type-*` (dùng qua `<Text textStyle>` / `<Heading textStyle>`).
+- `src/styles/typography.css` — class `.zen-type-*`, chỉ trỏ tới token.
+- `src/styles/tokens.css` — giá trị px của từng mode trong `[data-typography="dashboard" | "popular" | "mobile"]`.
+
+Sinh lại bằng `npm run styles:build`, kiểm bằng `npm run styles:check`. Cỡ chữ đang dùng xem trên trang Typography của platform; cấp heading dùng style nào xem ở Typography › Content hierarchy.
 
 Khoảng trống:
 

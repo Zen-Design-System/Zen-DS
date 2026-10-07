@@ -1,0 +1,108 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "stepper",
+  "import": "import { Stepper, StepperItem } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Stepper",
+      "file": "src/components/Stepper/Stepper.tsx",
+      "description": "Figma Stepper-Bar/Horizontal (1625:8328) and Stepper-Bar/Vertical (1625:8656) built from Step-Horizontal /\nStep-Vertical: a marker between two 2px progress lines (Neutral/Subtle ahead, Neutral/Solid behind, Negative/Solid\non error) with Title + Caption (gap 3XSmall, padding-inline XSmall).",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLOListElement>",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLOListElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<ol>`.",
+          "deprecated": null
+        },
+        {
+          "name": "steps",
+          "type": "StepperStep[]",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "current",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": "Index of the current step (State=Focused). Earlier steps are Passed, later ones Default.",
+          "deprecated": null
+        },
+        {
+          "name": "orientation",
+          "type": "\"horizontal\" | \"vertical\"",
+          "required": false,
+          "default": "\"horizontal\"",
+          "description": "Figma Stepper-Bar/Horizontal or Stepper-Bar/Vertical.",
+          "deprecated": null
+        },
+        {
+          "name": "onStepClick",
+          "type": "(step: StepperStep, index: number) => void",
+          "required": false,
+          "default": null,
+          "description": "Makes Passed/Focused/Error steps clickable (e.g. to go back and edit). Default steps stay inert.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the list (default \"Progress\", from the locale's labels).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "StepperItem",
+      "file": "src/components/Stepper/Stepper.tsx",
+      "description": "Figma .Primitives/Stepper/Item (1625:4827): 24px marker — number (Style=Text) or icon (Style=Icon).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "state",
+          "type": "\"default\" | \"focused\" | \"passed\" | \"error\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "index",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactElement",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "StepperStep": "interface StepperStep { id: string; title: ReactNode; caption?: ReactNode; icon?: IconName | ReactElement; error?: boolean; }"
+  }
+}

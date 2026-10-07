@@ -1,6 +1,8 @@
 .zen-chip {
   --zen-chip-background: var(--zen-chip-secondary-background-unselected-default, #fff);
+  --zen-chip-shadow-off: var(--zen-chip-secondary-background-unselected-default-shadow-off);
   --zen-chip-background-hover: var(--zen-chip-secondary-background-unselected-hover, #05050508);
+  --zen-chip-shadow-off-hover: var(--zen-chip-secondary-background-unselected-hover-shadow-off);
   --zen-chip-border: var(--zen-chip-secondary-border-default, #0101011c);
   --zen-chip-content: var(--zen-color-content-neutral-strongest, #111);
   --zen-chip-stroke-width: 1px;
@@ -19,13 +21,14 @@
   border-radius: var(--zen-corner-radius-rounded, 1000px);
   appearance: none;
   background: var(--zen-chip-background);
-  /* Figma Shadow/Action/Tertiary effect style (shadow + background blur 40 → CSS 20px). */
-  box-shadow: var(--zen-style-shadow-action-tertiary-shadow);
+  /* Figma Shadow/Action/Tertiary effect style (shadow + background blur 40 → CSS 20px). House rule: no drop shadow on a
+     Subtle / Pale / Surface-Alt background — `--zen-chip-shadow-off` is `none` in the themes where the state's background is one. */
+  box-shadow: var(--zen-chip-shadow-off, var(--zen-style-shadow-action-tertiary-shadow));
   color: var(--zen-chip-content);
   cursor: pointer;
   backdrop-filter: var(--zen-style-shadow-action-tertiary-backdrop-filter);
   white-space: nowrap;
-  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), border-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), box-shadow var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease);
 }
 
 /* A dropdown owns the Popover positioning context without changing the
@@ -69,18 +72,18 @@
 .zen-chip[data-variant="advanced"] { padding-right: var(--zen-chip-spacing-small-customized-padding, 8px); }
 .zen-chip[data-variant="advanced"][data-size="xsmall"] { padding-right: var(--zen-chip-spacing-xsmall-customized-padding, 6px); }
 .zen-chip[data-variant="advanced"][data-size="medium"] { padding-right: var(--zen-chip-spacing-medium-customized-padding, 10px); }
-.zen-chip[data-variant="advanced"][data-theme="leading-icon"] { padding-left: var(--zen-chip-spacing-small-customized-padding, 8px); }
-.zen-chip[data-variant="advanced"][data-theme="leading-icon"][data-size="xsmall"] { padding-left: var(--zen-chip-spacing-xsmall-customized-padding, 6px); }
-.zen-chip[data-variant="advanced"][data-theme="leading-icon"][data-size="medium"] { padding-left: var(--zen-chip-spacing-medium-customized-padding, 10px); }
-.zen-chip[data-variant="advanced"][data-theme="leading-photo"] { padding-left: var(--zen-chip-spacing-small-minimum-padding, 4px); }
-.zen-chip[data-variant="advanced"][data-theme="leading-photo"][data-size="xsmall"] { padding-left: var(--zen-chip-spacing-xsmall-minimum-padding, 4px); }
-.zen-chip[data-variant="advanced"][data-theme="leading-photo"][data-size="medium"] { padding-left: var(--zen-chip-spacing-medium-minimum-padding, 4px); }
-.zen-chip[data-variant="normal"][data-theme="leading-icon"] { padding-left: var(--zen-chip-spacing-small-customized-padding, 8px); }
-.zen-chip[data-variant="normal"][data-theme="leading-icon"][data-size="xsmall"] { padding-left: var(--zen-chip-spacing-xsmall-customized-padding, 6px); }
-.zen-chip[data-variant="normal"][data-theme="leading-icon"][data-size="medium"] { padding-left: var(--zen-chip-spacing-medium-customized-padding, 10px); }
-.zen-chip[data-variant="normal"][data-theme="leading-photo"] { padding-left: var(--zen-chip-spacing-small-minimum-padding, 4px); }
-.zen-chip[data-variant="normal"][data-theme="leading-photo"][data-size="xsmall"] { padding-left: var(--zen-chip-spacing-xsmall-minimum-padding, 4px); }
-.zen-chip[data-variant="normal"][data-theme="leading-photo"][data-size="medium"] { padding-left: var(--zen-chip-spacing-medium-minimum-padding, 4px); }
+.zen-chip[data-variant="advanced"][data-tone="leading-icon"] { padding-left: var(--zen-chip-spacing-small-customized-padding, 8px); }
+.zen-chip[data-variant="advanced"][data-tone="leading-icon"][data-size="xsmall"] { padding-left: var(--zen-chip-spacing-xsmall-customized-padding, 6px); }
+.zen-chip[data-variant="advanced"][data-tone="leading-icon"][data-size="medium"] { padding-left: var(--zen-chip-spacing-medium-customized-padding, 10px); }
+.zen-chip[data-variant="advanced"][data-tone="leading-photo"] { padding-left: var(--zen-chip-spacing-small-minimum-padding, 4px); }
+.zen-chip[data-variant="advanced"][data-tone="leading-photo"][data-size="xsmall"] { padding-left: var(--zen-chip-spacing-xsmall-minimum-padding, 4px); }
+.zen-chip[data-variant="advanced"][data-tone="leading-photo"][data-size="medium"] { padding-left: var(--zen-chip-spacing-medium-minimum-padding, 4px); }
+.zen-chip[data-variant="normal"][data-tone="leading-icon"] { padding-left: var(--zen-chip-spacing-small-customized-padding, 8px); }
+.zen-chip[data-variant="normal"][data-tone="leading-icon"][data-size="xsmall"] { padding-left: var(--zen-chip-spacing-xsmall-customized-padding, 6px); }
+.zen-chip[data-variant="normal"][data-tone="leading-icon"][data-size="medium"] { padding-left: var(--zen-chip-spacing-medium-customized-padding, 10px); }
+.zen-chip[data-variant="normal"][data-tone="leading-photo"] { padding-left: var(--zen-chip-spacing-small-minimum-padding, 4px); }
+.zen-chip[data-variant="normal"][data-tone="leading-photo"][data-size="xsmall"] { padding-left: var(--zen-chip-spacing-xsmall-minimum-padding, 4px); }
+.zen-chip[data-variant="normal"][data-tone="leading-photo"][data-size="medium"] { padding-left: var(--zen-chip-spacing-medium-minimum-padding, 4px); }
 
 .zen-chip[data-size="medium"] .zen-chip__slot {
   width: var(--zen-element-size-popular-base, 20px);
@@ -93,13 +96,17 @@
 
 .zen-chip[data-level="primary"] {
   --zen-chip-background: var(--zen-chip-primary-background-unselected-default, #fff);
+  --zen-chip-shadow-off: var(--zen-chip-primary-background-unselected-default-shadow-off);
   --zen-chip-background-hover: var(--zen-chip-primary-background-unselected-hover, #05050508);
+  --zen-chip-shadow-off-hover: var(--zen-chip-primary-background-unselected-hover-shadow-off);
   --zen-chip-border: var(--zen-chip-primary-border-default, #0101011c);
 }
 
 .zen-chip[data-select="true"] {
   --zen-chip-background: var(--zen-chip-secondary-background-seclected-default, #fff);
+  --zen-chip-shadow-off: var(--zen-chip-secondary-background-seclected-default-shadow-off);
   --zen-chip-background-hover: var(--zen-chip-secondary-background-seclected-hover, #05050508);
+  --zen-chip-shadow-off-hover: var(--zen-chip-secondary-background-seclected-hover-shadow-off);
   --zen-chip-border: var(--zen-chip-secondary-border-selected, #111);
   --zen-chip-content: var(--zen-chip-secondary-content-selected, #111);
   --zen-chip-icon: var(--zen-chip-secondary-content-selected, #111);
@@ -108,20 +115,28 @@
 
 .zen-chip[data-level="primary"][data-select="true"] {
   --zen-chip-background: var(--zen-chip-primary-background-seclected-default, #111);
+  --zen-chip-shadow-off: var(--zen-chip-primary-background-seclected-default-shadow-off);
   --zen-chip-background-hover: var(--zen-chip-primary-background-seclected-hover, #111);
+  --zen-chip-shadow-off-hover: var(--zen-chip-primary-background-seclected-hover-shadow-off);
   --zen-chip-border: transparent;
   --zen-chip-content: var(--zen-chip-primary-content-selected, #fff);
   --zen-chip-icon: var(--zen-chip-primary-content-selected, #fff);
 }
 
+/* A Number-only chip with nothing to do is a count (a <span>, Chip.tsx): the Default state only — no pointer, and the
+   pointer hover / press below skip it. A forced data-state still draws that state for specimens. */
+.zen-chip[data-static="true"] { cursor: default; }
+
 .zen-chip[data-state="hover"],
-.zen-chip:hover:not(:disabled) {
+.zen-chip:hover:not(:disabled, [data-static="true"]) {
   background: var(--zen-chip-background-hover);
+  box-shadow: var(--zen-chip-shadow-off-hover, var(--zen-style-shadow-action-tertiary-shadow));
 }
 
 .zen-chip[data-state="press"],
-.zen-chip:active:not(:disabled) {
+.zen-chip:active:not(:disabled, [data-static="true"]) {
   background: var(--zen-chip-background-hover);
+  box-shadow: var(--zen-chip-shadow-off-hover, var(--zen-style-shadow-action-tertiary-shadow));
 }
 
 .zen-chip[data-select="false"]:is([data-state="hover"], [data-state="press"], :hover, :active):not(:disabled) {
@@ -150,10 +165,10 @@
 .zen-chip__value { flex: 1 1 auto; min-width: 0; text-align: center; }
 .zen-chip__slot { display: inline-flex; width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); align-items: center; justify-content: center; }
 .zen-chip__slot > .zen-icon { width: 100% !important; height: 100% !important; color: var(--zen-chip-icon, var(--zen-color-content-neutral-light, #0000007d)); }
-.zen-chip[data-variant="normal"][data-theme="leading-icon"][data-size="small"] > .zen-chip__slot:not(.zen-chip__trailing) { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
-.zen-chip[data-theme="leading-photo"][data-size="xsmall"] > .zen-chip__slot:not(.zen-chip__trailing) { width: var(--zen-image-size-2-xsmall, 20px); height: var(--zen-image-size-2-xsmall, 20px); }
-.zen-chip[data-theme="leading-photo"][data-size="small"] > .zen-chip__slot:not(.zen-chip__trailing) { width: var(--zen-image-size-xsmall, 24px); height: var(--zen-image-size-xsmall, 24px); }
-.zen-chip[data-theme="leading-photo"][data-size="medium"] > .zen-chip__slot:not(.zen-chip__trailing) { width: var(--zen-image-size-small, 32px); height: var(--zen-image-size-small, 32px); }
+.zen-chip[data-variant="normal"][data-tone="leading-icon"][data-size="small"] > .zen-chip__slot:not(.zen-chip__trailing) { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
+.zen-chip[data-tone="leading-photo"][data-size="xsmall"] > .zen-chip__slot:not(.zen-chip__trailing) { width: var(--zen-image-size-2-xsmall, 20px); height: var(--zen-image-size-2-xsmall, 20px); }
+.zen-chip[data-tone="leading-photo"][data-size="small"] > .zen-chip__slot:not(.zen-chip__trailing) { width: var(--zen-image-size-xsmall, 24px); height: var(--zen-image-size-xsmall, 24px); }
+.zen-chip[data-tone="leading-photo"][data-size="medium"] > .zen-chip__slot:not(.zen-chip__trailing) { width: var(--zen-image-size-small, 32px); height: var(--zen-image-size-small, 32px); }
 .zen-chip__photo:not(:has(> .zen-avatar)) { overflow: hidden; border-radius: 50%; }
 .zen-chip__photo > :not(.zen-avatar) { width: 100%; height: 100%; object-fit: cover; }
 /* .Chip/Trailing Single: icon-x-circle-solid, Content/Neutral/Strongest in every state. */

@@ -1,0 +1,14 @@
+/* Action Bar examples (src/platform/examples/pages/action-bar.tsx). Tokens only; class prefix .px-action-bar-. */
+
+/* Unsaved changes: an app window of a fixed height whose page (Canvas) scrolls, so the sticky bar (Surface with its
+   Pale top rule) stays at its bottom edge while the sections scroll under it. In Full screen the window fills the
+   viewport. */
+.px-action-bar-frame { display: flex; height: clamp(520px, calc(100dvh - 200px), 640px); flex-direction: column; overflow: hidden; background: var(--zen-color-background-canvas-default); }
+.px-action-bar-frame__scroll { min-height: 0; flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; }
+.pe-card[data-fullscreen="true"] .pe-card__preview > .px-action-bar-frame { flex: 1 1 0; height: auto; min-height: 0; }
+
+/* A text column that takes the room beside an Avatar and a Badge. */
+.px-action-bar-grow { min-width: 0; flex: 1 1 auto; }
+
+/* Quantity between − and +: the width of two digits, so the buttons don't move as the number changes. */
+.px-action-bar-qty { min-width: 2ch; font-variant-numeric: tabular-nums; text-align: center; }

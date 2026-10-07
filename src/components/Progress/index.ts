@@ -1,1 +1,1 @@
-export { ProgressBar, ProgressCircle, progressBarThemes, progressCircleThemes, progressStatus, type ProgressBarProps, type ProgressBarTheme, type ProgressCircleProps, type ProgressCircleTheme } from "./Progress";
+export { ProgressBar, ProgressCircle, progressBarThemes, progressCircleThemes, progressStatus, type ProgressBarProps, type ProgressStatusScale, type ProgressBarTheme, type ProgressCircleProps, type ProgressCircleTheme } from "./Progress";

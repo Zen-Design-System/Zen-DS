@@ -1,0 +1,86 @@
+/* Figma List-Item (4080:11700) and Component/List-Box (14922:75297). */
+/* min-width 0: as a grid/flex item the list must shrink so nowrap titles truncate instead of widening the parent.
+   Gap between rows: Spacing/Gap/3XSmall (2px), static and clickable rows alike (List-Box Body-Slot): every row carries its
+   own Padding/Small above and below, so two fills stay 2px apart. */
+.zen-list { display: flex; min-width: 0; margin: 0; padding: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); list-style: none; }
+/* @deprecated List inset: gives the rows a horizontal padding (kept for existing apps; the Chat conversation item sets
+   --zen-list-inset itself, as its Figma instance pads Margin-Compact). */
+.zen-list[data-inset="comfortable"] { --zen-list-inset: var(--zen-margin-comfortable, 24px); }
+.zen-list[data-inset="compact"] { --zen-list-inset: var(--zen-margin-compact, 16px); }
+.zen-list[data-inset="none"] { --zen-list-inset: 0px; }
+/* Interactive=Yes and Interactive=No: padding Spacing/Padding/Small (12px) above and below, none at the sides (one set for
+   every device); the container around the List insets it sideways. --zen-list-item-fill-x / -y: how far the
+   Interactive-Background reaches outside the row box (Padding/Small sideways, 0 above and below). */
+.zen-list-item {
+  --zen-list-item-background: transparent;
+  --zen-list-item-fill-x: var(--zen-spacing-padding-small, 12px);
+  --zen-list-item-fill-y: 0px;
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  min-width: 0;
+  align-items: center;
+  gap: var(--zen-spacing-gap-medium, 16px);
+  padding: var(--zen-spacing-padding-small, 12px) var(--zen-list-inset, 0px);
+  list-style: none;
+}
+/* Interactive-Background: the row's full height (its Padding/Small above and below) and Padding/Small (12px) outside the
+   content at the sides, so it hangs 12px past the row box sideways (the container leaves at least 12px there); corners
+   Interactive-List-Item-Radius (Breakpoint & Grids: Corner-Radius/Base 12px desktop, Large 16px tablet and mobile),
+   concentric with a List-Box, which puts the fill 12px / 8px from its 2XLarge corners (Card-padding-medium sideways,
+   List-Container-Vertical-Padding above and below); Neutral/Flat Hover · Pressed, Active/Neutral/Subtle when selected. */
+.zen-list-item[data-interactive="true"]::before { position: absolute; z-index: 0; inset: calc(-1 * var(--zen-list-item-fill-y)) calc(var(--zen-list-inset, 0px) - var(--zen-list-item-fill-x)); border-radius: var(--zen-interactive-list-item-radius, 12px); background: var(--zen-list-item-background); content: ""; transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); pointer-events: none; }
+.zen-list-item[data-interactive="true"]:hover { --zen-list-item-background: var(--zen-color-background-neutral-flat-hover); }
+.zen-list-item[data-interactive="true"]:has(.zen-list-item__wrapper:active) { --zen-list-item-background: var(--zen-color-background-neutral-flat-pressed); }
+.zen-list-item[data-interactive="true"][data-selected="true"] { --zen-list-item-background: var(--zen-color-background-active-neutral-subtle); }
+
+.zen-list-item__wrapper {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--zen-spacing-gap-medium, 16px);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+}
+:is(button, a).zen-list-item__wrapper { cursor: pointer; }
+/* The whole row is the hit target: stretch the button over the Interactive-Background (12px around the content). */
+:is(button, a).zen-list-item__wrapper::after { position: absolute; inset: calc(-1 * var(--zen-spacing-padding-small, 12px)) calc(-1 * var(--zen-list-item-fill-x)); border-radius: var(--zen-interactive-list-item-radius, 12px); content: ""; }
+:is(button, a).zen-list-item__wrapper:focus-visible { outline: none; }
+:is(button, a).zen-list-item__wrapper:focus-visible::after { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #ff66d4); }
+.zen-list-item__leading { display: inline-flex; flex: 0 0 auto; }
+/* Figma .Primitives/List-Item/Mobile/Slot/Info-Content: its Content slot stacks Title and Subtitle Spacing/Gap/3XSmall (2px) apart. */
+.zen-list-item__contents { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+/* Figma Title: one line that truncates (the caption may wrap). */
+.zen-list-item__title { overflow: hidden; color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
+/* titleLines={2} (code-only; Figma's Title is one line): the title wraps to a second line before it truncates, for titles
+   that must be read in full. Same text style and colour; the row grows and Leading/Trailing stay centred on it. */
+.zen-list-item[data-title-lines="2"] .zen-list-item__title { display: -webkit-box; white-space: normal; overflow-wrap: break-word; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+.zen-list-item__caption { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-list-item__trailing { position: relative; z-index: 1; display: inline-flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+
+/* Figma Component/List-Box (14922:75297): a Surface/Default box, Corner-Radius/2XLarge, holding Header-Slot · Body-Slot ·
+   Footer-Slot (Header and Footer optional). Every part pads Card-padding-medium sideways (Breakpoint & Grids: 24px
+   desktop, 20px tablet and mobile); the header pads it on top and Padding/XSmall (8px) below, the footer on every side,
+   the body List-Container-Vertical-Padding above and below (12px desktop, 8px tablet and mobile) and stacks its rows
+   Spacing/Gap/3XSmall (2px); header and footer stack their content Spacing/Gap/Medium (16px). One box for every device:
+   only the tokens change by mode. */
+.zen-list-box { display: flex; box-sizing: border-box; min-width: 0; flex-direction: column; border-radius: var(--zen-corner-radius-2-xlarge, 24px); background: var(--zen-color-background-surface-default, #fff); color: var(--zen-color-content-neutral-strongest, #111); }
+/* Theme (Card's Figma Theme without Semi-Pale; the same tokens as Card so the two match side by side): Flat = Surface
+   alone (default, §16) · Shadow = Shadow/Bottom/Level-1 · Pale = Support/Neutral/Pale + Effect/Overlay blur · Border =
+   a 1px Border/Neutral/Pale ring inside.
+   zen-allow-pale-actionable-box: the box is a static container; its clickable rows carry their own states. */
+.zen-list-box[data-tone="shadow"] { box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
+.zen-list-box[data-tone="border"] { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.zen-list-box[data-tone="pale"] { background: var(--zen-color-background-support-neutral-pale); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
+.zen-list-box__header { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-card-padding-medium, 24px) var(--zen-card-padding-medium, 24px) var(--zen-spacing-padding-xsmall, 8px); }
+.zen-list-box__body { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding: var(--zen-list-container-vertical-padding, 12px) var(--zen-card-padding-medium, 24px); }
+.zen-list-box__footer { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-card-padding-medium, 24px); }

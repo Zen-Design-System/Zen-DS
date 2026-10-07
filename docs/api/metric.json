@@ -1,0 +1,263 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "metric",
+  "import": "import { Metric, MetricCard, MetricTrend } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Metric",
+      "file": "src/components/MetricWidget/MetricWidget.tsx",
+      "description": "Figma Primitives/Metric/Metric-Inline/Icon-Highlight (595:55188): Dock-Icon + Contents (gap 2XSmall) of\nLabel (Neutral/Light) over the Metric-Number (Neutral/Strongest), then the trend.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Metric-Title.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Metric-Number — pass it already formatted (\"$1,680.68\").",
+          "deprecated": null
+        },
+        {
+          "name": "trend",
+          "type": "{ direction: MetricTrendDirection; label: ReactNode }",
+          "required": false,
+          "default": null,
+          "description": "Figma Trend: { direction, label } → Metric-Trend badge.",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | false",
+          "required": false,
+          "default": "\"icon-home-02-solid\"",
+          "description": "Figma Dock-Icon: Neutral Subtle (Large at XLarge/Large, Medium below). `false` hides it.",
+          "deprecated": null
+        },
+        {
+          "name": "iconTheme",
+          "type": "DockIconTheme",
+          "required": false,
+          "default": "\"neutral\"",
+          "description": "Dock-Icon Theme — colour-code the metric's category (Figma instance swap). Default Neutral.",
+          "deprecated": null
+        },
+        {
+          "name": "iconBackground",
+          "type": "\"solid\" | \"subtle\"",
+          "required": false,
+          "default": "\"subtle\"",
+          "description": "Dock-Icon Background: Subtle (default) or Solid for the one metric that should lead.",
+          "deprecated": null
+        },
+        {
+          "name": "iconEmoji",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Dock-Icon Theme=Emoji: an emoji instead of an icon (e.g. team mood).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": "\"xl\"",
+          "description": "Figma Size: XLarge/Large stack the icon above the text; Medium–XSmall put it on the left. Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "variant",
+          "type": "\"icon-highlight\" | \"title-highlight\"",
+          "required": false,
+          "default": "\"icon-highlight\"",
+          "description": "Figma Metric-Inline type. Icon-Highlight (default, 595:55188): the Dock-Icon leads, the label sits over the number.\nTitle-Highlight (7523:507049): the title on top (Heading/Subheading at XLarge–Medium, Caption above the number at\nSmall/XSmall), the number and trend under it, the Dock-Icon pinned to the bottom-right corner.",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: the title row's action (Figma Button/Icon-Main XSmall Tertiary, e.g. a chevron that opens the breakdown).",
+          "deprecated": null
+        },
+        {
+          "name": "iconSize",
+          "type": "\"md\" | \"lg\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": null,
+          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "MetricCard",
+      "file": "src/components/MetricWidget/MetricWidget.tsx",
+      "description": "Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding an XLarge Metric and a ⋮ Sub-Action.",
+      "deprecated": null,
+      "extends": "MetricProps",
+      "props": [
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Metric-Title.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Metric-Number — pass it already formatted (\"$1,680.68\").",
+          "deprecated": null
+        },
+        {
+          "name": "trend",
+          "type": "{ direction: MetricTrendDirection; label: ReactNode }",
+          "required": false,
+          "default": null,
+          "description": "Figma Trend: { direction, label } → Metric-Trend badge.",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | false",
+          "required": false,
+          "default": null,
+          "description": "Figma Dock-Icon: Neutral Subtle (Large at XLarge/Large, Medium below). `false` hides it.",
+          "deprecated": null
+        },
+        {
+          "name": "iconTheme",
+          "type": "DockIconTheme",
+          "required": false,
+          "default": null,
+          "description": "Dock-Icon Theme — colour-code the metric's category (Figma instance swap). Default Neutral.",
+          "deprecated": null
+        },
+        {
+          "name": "iconBackground",
+          "type": "\"solid\" | \"subtle\"",
+          "required": false,
+          "default": null,
+          "description": "Dock-Icon Background: Subtle (default) or Solid for the one metric that should lead.",
+          "deprecated": null
+        },
+        {
+          "name": "iconEmoji",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Dock-Icon Theme=Emoji: an emoji instead of an icon (e.g. team mood).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Size: XLarge/Large stack the icon above the text; Medium–XSmall put it on the left. Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "variant",
+          "type": "\"icon-highlight\" | \"title-highlight\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Metric-Inline type. Icon-Highlight (default, 595:55188): the Dock-Icon leads, the label sits over the number.\nTitle-Highlight (7523:507049): the title on top (Heading/Subheading at XLarge–Medium, Caption above the number at\nSmall/XSmall), the number and trend under it, the Dock-Icon pinned to the bottom-right corner.",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: the title row's action (Figma Button/Icon-Main XSmall Tertiary, e.g. a chevron that opens the breakdown).",
+          "deprecated": null
+        },
+        {
+          "name": "iconSize",
+          "type": "\"md\" | \"lg\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": null,
+          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
+          "required": false,
+          "default": "\"shadow\"",
+          "description": "Card theme (Figma Metric-Card uses Shadow).",
+          "deprecated": null
+        },
+        {
+          "name": "subAction",
+          "type": "CardSubAction | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Card Sub-Action (Figma: ⋮ Button/Icon-Flat).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "MetricTrend",
+      "file": "src/components/MetricWidget/MetricWidget.tsx",
+      "description": "Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Subtle Badge — Positive green (arrow-circle-up), Negative red (arrow-circle-down), Normal neutral.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "trend",
+          "type": "\"positive\" | \"negative\" | \"normal\"",
+          "required": false,
+          "default": "\"normal\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "CardSubAction": "interface CardSubAction { label: string; icon?: IconName | ReactElement; onClick?: () => void; }",
+    "DockIconTheme": "type DockIconTheme = (typeof dockIconThemes)[number]",
+    "MetricTrendDirection": "type MetricTrendDirection = \"positive\" | \"negative\" | \"normal\""
+  }
+}

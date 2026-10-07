@@ -206,9 +206,9 @@
         "description": "Display style. Used outside the standard typographic hierarchy. Ideal for highlighting metrics, key insights, or strongly emphasized content on widgets and dashboards. Applied with a heavy weight for maximum emphasis.",
         "fontFamily": "Inter",
         "fontWeight": "700",
-        "fontSize": "78px",
-        "lineHeight": "88px",
-        "letterSpacing": "-3.119999885559082px"
+        "fontSize": "65px",
+        "lineHeight": "72px",
+        "letterSpacing": "-2.880000114440918px"
       },
       {
         "name": "Display-Extra/2",
@@ -217,9 +217,9 @@
         "description": "Display style. Used outside the standard typographic hierarchy. Ideal for highlighting metrics, key insights, or strongly emphasized content on widgets and dashboards. Applied with a heavy weight for maximum emphasis.",
         "fontFamily": "Inter",
         "fontWeight": "700",
-        "fontSize": "68px",
-        "lineHeight": "72px",
-        "letterSpacing": "-2.7200000286102295px"
+        "fontSize": "58px",
+        "lineHeight": "60px",
+        "letterSpacing": "-2.380000114440918px"
       },
       {
         "name": "Display-Extra/3",
@@ -228,9 +228,9 @@
         "description": "Display style. Used outside the standard typographic hierarchy. Ideal for highlighting metrics, key insights, or strongly emphasized content on widgets and dashboards. Applied with a heavy weight for maximum emphasis.",
         "fontFamily": "Inter",
         "fontWeight": "700",
-        "fontSize": "60px",
-        "lineHeight": "68px",
-        "letterSpacing": "-2.4000000953674316px"
+        "fontSize": "51px",
+        "lineHeight": "58px",
+        "letterSpacing": "-1.899999976158142px"
       },
       {
         "name": "Display/1",
@@ -239,9 +239,9 @@
         "description": "Display style. Used outside the standard typographic hierarchy. Ideal for highlighting metrics, key insights, or strongly emphasized content on widgets and dashboards. Applied with a heavy weight for maximum emphasis.",
         "fontFamily": "Inter",
         "fontWeight": "700",
-        "fontSize": "52px",
-        "lineHeight": "60px",
-        "letterSpacing": "-1.559999942779541px"
+        "fontSize": "45px",
+        "lineHeight": "52px",
+        "letterSpacing": "-1.5199999809265137px"
       },
       {
         "name": "Display/2",
@@ -250,9 +250,9 @@
         "description": "Display style. Used outside the standard typographic hierarchy. Ideal for highlighting metrics, key insights, or strongly emphasized content on widgets and dashboards. Applied with a heavy weight for maximum emphasis.",
         "fontFamily": "Inter",
         "fontWeight": "700",
-        "fontSize": "46px",
-        "lineHeight": "52px",
-        "letterSpacing": "-1.3799999952316284px"
+        "fontSize": "40px",
+        "lineHeight": "44px",
+        "letterSpacing": "-1.2100000381469727px"
       },
       {
         "name": "Display/3",
@@ -261,9 +261,9 @@
         "description": "Display style. Used outside the standard typographic hierarchy. Ideal for highlighting metrics, key insights, or strongly emphasized content on widgets and dashboards. Applied with a heavy weight for maximum emphasis.",
         "fontFamily": "Inter",
         "fontWeight": "700",
-        "fontSize": "40px",
-        "lineHeight": "48px",
-        "letterSpacing": "-1.2000000476837158px"
+        "fontSize": "36px",
+        "lineHeight": "44px",
+        "letterSpacing": "-0.9800000190734863px"
       },
       {
         "name": "Display/4",
@@ -272,9 +272,9 @@
         "description": "Display style. Used outside the standard typographic hierarchy. Ideal for highlighting metrics, key insights, or strongly emphasized content on widgets and dashboards. Applied with a heavy weight for maximum emphasis.",
         "fontFamily": "Inter",
         "fontWeight": "700",
-        "fontSize": "36px",
-        "lineHeight": "44px",
-        "letterSpacing": "-1.0800000429153442px"
+        "fontSize": "32px",
+        "lineHeight": "40px",
+        "letterSpacing": "-0.7599999904632568px"
       },
       {
         "name": "Heading/1",
@@ -283,9 +283,9 @@
         "description": "Heading style. Used for structural hierarchy, page titles, and section headers to guide the user's eye. Applied with a heavy weight for maximum emphasis.",
         "fontFamily": "Inter",
         "fontWeight": "700",
-        "fontSize": "32px",
-        "lineHeight": "40px",
-        "letterSpacing": "-0.9599999785423279px"
+        "fontSize": "28px",
+        "lineHeight": "36px",
+        "letterSpacing": "-0.5600000023841858px"
       },
       {
         "name": "Heading/2",
@@ -294,9 +294,9 @@
         "description": "Heading style. Used for structural hierarchy, page titles, and section headers to guide the user's eye. Applied with a heavy weight for maximum emphasis.",
         "fontFamily": "Inter",
         "fontWeight": "700",
-        "fontSize": "28px",
-        "lineHeight": "36px",
-        "letterSpacing": "-0.8399999737739563px"
+        "fontSize": "25px",
+        "lineHeight": "32px",
+        "letterSpacing": "-0.5px"
       },
       {
         "name": "Heading/3",
@@ -305,9 +305,9 @@
         "description": "Heading style. Used for structural hierarchy, page titles, and section headers to guide the user's eye. Applied with a heavy weight for maximum emphasis.",
         "fontFamily": "Inter",
         "fontWeight": "700",
-        "fontSize": "24px",
-        "lineHeight": "32px",
-        "letterSpacing": "-0.7200000286102295px"
+        "fontSize": "22px",
+        "lineHeight": "28px",
+        "letterSpacing": "-0.4399999976158142px"
       },
       {
         "name": "Heading/4",
@@ -318,7 +318,7 @@
         "fontWeight": "700",
         "fontSize": "20px",
         "lineHeight": "28px",
-        "letterSpacing": "-0.6000000238418579px"
+        "letterSpacing": "-0.4000000059604645px"
       },
       {
         "name": "Heading/Subheading",
@@ -329,7 +329,7 @@
         "fontWeight": "700",
         "fontSize": "18px",
         "lineHeight": "24px",
-        "letterSpacing": "-0.5400000214576721px"
+        "letterSpacing": "-0.36000001430511475px"
       },
       {
         "name": "Body/Extra/Regular",
@@ -459,8 +459,8 @@
         "description": "Caption style. Used for auxiliary text, helper texts, footnotes, or secondary metadata.",
         "fontFamily": "Inter",
         "fontWeight": "400",
-        "fontSize": "10px",
-        "lineHeight": "12px",
+        "fontSize": "11px",
+        "lineHeight": "16px",
         "letterSpacing": "0px"
       },
       {
@@ -470,8 +470,8 @@
         "description": "Caption style. Used for auxiliary text, helper texts, footnotes, or secondary metadata. Applied with a medium weight for balanced emphasis.",
         "fontFamily": "Inter",
         "fontWeight": "500",
-        "fontSize": "10px",
-        "lineHeight": "12px",
+        "fontSize": "11px",
+        "lineHeight": "16px",
         "letterSpacing": "0px"
       },
       {
@@ -481,8 +481,8 @@
         "description": "Caption style. Used for auxiliary text, helper texts, footnotes, or secondary metadata. Applied with a heavy weight for maximum emphasis.",
         "fontFamily": "Inter",
         "fontWeight": "700",
-        "fontSize": "10px",
-        "lineHeight": "12px",
+        "fontSize": "11px",
+        "lineHeight": "16px",
         "letterSpacing": "0px"
       },
       {
@@ -492,7 +492,7 @@
         "description": "Small label style. Specifically used for auxiliary labels beneath icons in navigation bars, toolbars, or functional actions. Applied with a medium weight for balanced emphasis.",
         "fontFamily": "Inter",
         "fontWeight": "500",
-        "fontSize": "8px",
+        "fontSize": "9px",
         "lineHeight": "12px",
         "letterSpacing": "0px"
       },
@@ -503,7 +503,7 @@
         "description": "Small label style. Specifically used for auxiliary labels beneath icons in navigation bars, toolbars, or functional actions. Applied with a heavy weight for maximum emphasis.",
         "fontFamily": "Inter",
         "fontWeight": "700",
-        "fontSize": "8px",
+        "fontSize": "9px",
         "lineHeight": "12px",
         "letterSpacing": "0px"
       },
@@ -516,7 +516,7 @@
         "fontWeight": "700",
         "fontSize": "16px",
         "lineHeight": "24px",
-        "letterSpacing": "-0.3199999928474426px"
+        "letterSpacing": "0px"
       },
       {
         "name": "Button-Label/L",
@@ -527,7 +527,7 @@
         "fontWeight": "700",
         "fontSize": "14px",
         "lineHeight": "20px",
-        "letterSpacing": "-0.2800000011920929px"
+        "letterSpacing": "0px"
       },
       {
         "name": "Button-Label/M",
@@ -538,7 +538,7 @@
         "fontWeight": "700",
         "fontSize": "14px",
         "lineHeight": "20px",
-        "letterSpacing": "-0.2800000011920929px"
+        "letterSpacing": "0px"
       },
       {
         "name": "Button-Label/S",
@@ -549,7 +549,7 @@
         "fontWeight": "700",
         "fontSize": "14px",
         "lineHeight": "20px",
-        "letterSpacing": "-0.14000000059604645px"
+        "letterSpacing": "0px"
       },
       {
         "name": "Button-Label/XS",

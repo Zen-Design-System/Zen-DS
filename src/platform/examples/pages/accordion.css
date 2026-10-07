@@ -1,0 +1,4 @@
+/* Accordion examples. Title row of the mobile order summary: the label on the left, the total at the end. */
+.px-accordion-summary { display: flex; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Filter sections: the facet name with its count right after it (a Badge beside a title: Gap/2XSmall). */
+.px-accordion-facet { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }

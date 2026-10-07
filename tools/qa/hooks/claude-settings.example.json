@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "d=\"${CLAUDE_PROJECT_DIR:-$PWD}\"; f=\"$d/tools/qa/hooks/post-edit.mjs\"; [ -f \"$f\" ] || f=\"$d/Zen-DS/tools/qa/hooks/post-edit.mjs\"; [ -f \"$f\" ] && node \"$f\" || true",
+            "timeout": 30,
+            "statusMessage": "Zen Build-QA: checking the edit"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "d=\"${CLAUDE_PROJECT_DIR:-$PWD}\"; f=\"$d/tools/qa/hooks/stop-gate.mjs\"; [ -f \"$f\" ] || f=\"$d/Zen-DS/tools/qa/hooks/stop-gate.mjs\"; [ -f \"$f\" ] && node \"$f\" || true",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

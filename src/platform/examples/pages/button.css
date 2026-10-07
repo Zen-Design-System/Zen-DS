@@ -1,0 +1,14 @@
+/* Button examples (src/platform/examples/pages/button.tsx). Tokens only. */
+
+/* A desktop page without an app shell paints the Canvas and keeps the page margin (Margin-Comfortable). */
+.px-button-page { padding: var(--zen-margin-comfortable, 24px); background: var(--zen-color-background-canvas-default); }
+
+/* Cards in the two-column grid keep a readable width and sit in the middle of the stage. */
+.px-button-card { width: 100%; max-width: 440px; margin-inline: auto; }
+
+/* Photo viewer: the photo zooms inside the frame (Box radius="lg" clip); the controls are Box/Stack layers pinned with
+   position="absolute" and constraints, so only the zoom stays here. */
+.px-button-viewer__photo { transform: scale(var(--px-button-zoom, 1)); }
+
+/* A status Badge never shrinks or truncates beside a long title. */
+.px-button-status { flex: none; }

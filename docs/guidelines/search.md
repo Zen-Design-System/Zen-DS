@@ -4,7 +4,7 @@
 **Figma:** Search (page 846:37480)  
 **Import:** `import { Search } from "@zen/design-system";`
 
-Find or filter content by typing. The only input with a Disabled state.
+Find or filter content by typing.
 
 ## Use it for
 - Filtering a visible list or table as the user types.
@@ -21,21 +21,78 @@ Find or filter content by typing. The only input with a Disabled state.
 | Size | `size` | small · medium |
 | Icon-Search | `iconSearch` | magnifier on/off |
 | Clear | `clearable / onClear` | × appears once there is a value |
-| Disabled | `disabled` | allowed for Search only |
+| Filter | `onFilterClick · filterOptions / filterValue / onFilterChange · filterInteractive` | filter-icon / filter-dropdown trailing is clickable by default (Input Leading/Trailing) |
+| Filter popup | `filterHasPopup / filterExpanded` | aria-haspopup / aria-expanded on the filter affordance when onFilterClick opens a Bottom Sheet, panel or menu (a filterOptions picker manages its own listbox) |
+| Shortcut | `shortcut` | ⌘K hint in the trailing slot; ⌘/Ctrl + key focuses the field |
+| Disabled | `disabled` | Search/Default is a Field-Only instance, so it takes Field-Only State=Disabled: Content/Disabled text and icons, Input/Border/Disabled; the filter is locked, the clear button and shortcut hint are hidden |
+
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/search.json`.
+
+### Search
+Also accepts `Omit<InputHTMLAttributes<HTMLInputElement>, "size">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `variant` | `"default" \| "popover"` | `"default"` | `popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, no focus ring. Its border is Input/Border/Default (Hover: Input/Border/Hover), visible only in outlined component themes (Neutral S4, S6); Focused/Typing use Input/Border/Popover-Search, visible only in Neutral S7. `size` is ignored. |
+| `size` | `"sm" \| "md" \| "small" \| "medium"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `label` | `ReactNode` | — | Optional Input label above the field; when set it also names the input. |
+| `theme` | `"default" \| "filter-icon" \| "filter-dropdown"` | `"default"` |  |
+| `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted"` | — |  |
+| `iconSearch` | `boolean` | `true` | Figma's `Icon-Search` property. |
+| `leading` | `IconName \| ReactNode` | — | Replaces the search icon: an icon name (`"icon-filter-lines-line"`, sized to the field) or any node. |
+| `trailing` | `IconName \| ReactNode` | — | Replaces the whole trailing group (clear button, shortcut, filter): an icon name (sized to the field) or any node. |
+| `clearable` | `boolean` | `true` | Shows the Figma Inputted clear affordance when the field has a value. |
+| `onValueChange` | `(value: string) => void` | — | Called with the text on every change, and with "" when the clear button empties the field. |
+| `placeholder` | `string` | — | What is searched ("Search members"); also the accessible name without `label`/`aria-label`. Default: the locale's "Search". |
+| `filterLabel` | `ReactNode` | — | Label paired with the chevron in the Filter-Dropdown variant. Default: the locale's "All". |
+| `filterInteractive` | `boolean` | `true` | Filter-Icon / Filter-Dropdown trailing is an `InputLeadingTrailing`: clickable by default, `false` makes it decorative. |
+| `onFilterClick` | `(event: MouseEvent<HTMLButtonElement>) => void` | — | Action for the filter affordance (e.g. open a filter panel or your own menu). |
+| `filterHasPopup` | `ButtonHTMLAttributes<HTMLButtonElement>["aria-haspopup"]` | — | `aria-haspopup` of the filter affordance when `onFilterClick` opens your own surface: `"dialog"` for a Bottom Sheet, Side Panel or Modal, `"menu"` or `"listbox"` for a menu or Popover list. Filter-Dropdown with `filterOptions` manages its own listbox and ignores it. (`aria-haspopup` on Search itself goes to the input.) |
+| `filterExpanded` | `boolean` | — | `aria-expanded` of that filter affordance: whether the surface it opens is open now. Pair it with `filterHasPopup`. |
+| `filterOptions` | `InputLeadingTrailingOption[]` | — | Filter-Dropdown picker: options open the shared Popover and replace `filterLabel` with the selected label. |
+| `filterValue` | `string` | — |  |
+| `onFilterChange` | `(value: string, option: InputLeadingTrailingOption) => void` | — |  |
+| `filterActionLabel` | `string` | — | Accessible name / Popover heading for the filter affordance. Default: the locale's "Filter". |
+| `disabled` | `boolean` | `false` | Search/Default is a `.Primitives/Input/Field-Only` instance, so Disabled is Field-Only State=Disabled (Input/Border/Disabled, Content/Disabled text) with its Leading/Trailing at Active=No. The clear button and the shortcut hint are hidden and the filter is locked. Use it when searching is unavailable for a reason the page shows. |
+| `shortcut` | `string` | — | Keyboard shortcut key shown as `⌘K` in the trailing slot (Figma Side-Bar Small-Density search); pressing ⌘/Ctrl + key focuses the field. Hidden while the field has a value (the clear button takes the slot). |
+| `onClear` | `() => void` | — |  |
+
+### Types
+Object shapes the props above refer to.
+
+```ts
+type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: ReactNode; icon?: IconName | ReactNode; flag?: ReactNode; }
+```
+
+## Keyboard
+| Keys | Action |
+| --- | --- |
+| Type | Filter as you type |
+| Tab | Reach the clear button |
+| Enter / Space on × | Clear the query; focus stays in the field |
 
 ## ✅ Do
 - Describe the scope in the placeholder ("Search components").
 - Filter live and show an empty state that echoes the query.
 - Let Enter open the first result; the clear button resets to recent items.
-- Pair Search with Chip filters in table toolbars.
+- Pair Search with Chip filters in table toolbars. Search fills its container, so give it a Grid column: columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} with the chips in the second cell.
+- Debounce remote search (~250ms) and keep the query when results refresh.
+- Show the result count in an aria-live region ("12 results").
+- When the filter opens a Bottom Sheet, panel or Popover, pass filterHasPopup ("dialog", "menu", "listbox") and filterExpanded={open}; aria-expanded on Search itself lands on the input.
+- When nothing matches, show an EmptyState that echoes the query and offers “Clear search” (illustration={false} in narrow panels such as sidebars and pickers).
 
 ## ❌ Don't
 - Don't hide search behind an icon on desktop when search is a primary task.
 - Don't clear the query when results update.
+- Don't disable Search because there is nothing to find yet; keep it with an empty state, or hide it where search never applies. Disable it only while something blocks searching (a bulk edit, a sync), and say why.
+- Don't trigger search only on Enter for small, local lists; filter as the user types.
+- Don't use a vague placeholder ("Type here…").
 
 ## Accessibility
 - type=search; aria-label defaults to the placeholder.
 - Announce result counts with aria-live.
+- Clearing with × keeps focus in the field. The filter affordance announces its popup (filterHasPopup / filterExpanded); its hit area is at least 24×24.
 
 ## Content
 - Placeholder: "Search `<things>`"; empty state: "No `<things>` match “query”."
@@ -44,6 +101,7 @@ Find or filter content by typing. The only input with a Disabled state.
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `search/needs-name` | warn | Search needs a placeholder that says what is searched, or an aria-label. | `zen-allow-unnamed: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 
 ## References
 - [Material 3 — Search](https://m3.material.io/components/search/guidelines)

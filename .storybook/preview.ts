@@ -5,6 +5,7 @@ import "../src/styles/tokens.css";
 import "../src/styles/typography.css";
 import "../src/styles/style-effects.css";
 import "../src/styles/foundations.css";
+import "../src/icons/all";
 
 const preview: Preview = {
   parameters: {
@@ -38,7 +39,7 @@ const preview: Preview = {
       defaultValue: "neutral-s1",
       toolbar: {
         icon: "paintbrush",
-        items: ["neutral-s1", "brand-s1", "neutral-s2", "brand-s2", "neutral-s3"],
+        items: ["neutral-s1", "brand-s1", "neutral-s2", "brand-s2", "neutral-s3", "neutral-s4", "neutral-s5", "neutral-s6", "neutral-s7"],
       },
     },
     typography: {
@@ -62,7 +63,15 @@ const preview: Preview = {
       defaultValue: "medium",
       toolbar: {
         icon: "bold",
-        items: ["medium", "strong"],
+        items: ["medium", "strong", "light"],
+      },
+    },
+    contrast: {
+      description: "Contrast (Global Colors mode Zen-High-Contrast)",
+      defaultValue: "standard",
+      toolbar: {
+        icon: "contrast",
+        items: ["standard", "high"],
       },
     },
   },
@@ -74,6 +83,7 @@ const preview: Preview = {
       document.documentElement.dataset.typography = context.globals.typography;
       document.documentElement.dataset.radius = context.globals.radius;
       document.documentElement.dataset.emphasis = context.globals.emphasis;
+      document.documentElement.dataset.contrast = context.globals.contrast;
       return Story();
     },
   ],

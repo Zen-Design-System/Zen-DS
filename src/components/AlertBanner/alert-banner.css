@@ -19,10 +19,10 @@
   gap: var(--zen-spacing-gap-xsmall, 8px);
   padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-medium, 16px);
 }
-.zen-alert-banner[data-theme="info"] { --zen-alert-banner-background: var(--zen-color-background-info-solid-default); --zen-alert-banner-content: var(--zen-color-content-on-colors); }
-.zen-alert-banner[data-theme="positive"] { --zen-alert-banner-background: var(--zen-color-background-positive-solid-default); --zen-alert-banner-content: var(--zen-color-content-on-colors); }
-.zen-alert-banner[data-theme="warning"] { --zen-alert-banner-background: var(--zen-color-background-warning-solid-default); --zen-alert-banner-content: var(--zen-color-content-on-brights); }
-.zen-alert-banner[data-theme="negative"] { --zen-alert-banner-background: var(--zen-color-background-negative-solid-default); --zen-alert-banner-content: var(--zen-color-content-on-colors); }
+.zen-alert-banner[data-tone="info"] { --zen-alert-banner-background: var(--zen-color-background-info-solid-default); --zen-alert-banner-content: var(--zen-color-content-on-colors); }
+.zen-alert-banner[data-tone="positive"] { --zen-alert-banner-background: var(--zen-color-background-positive-solid-default); --zen-alert-banner-content: var(--zen-color-content-on-colors); }
+.zen-alert-banner[data-tone="warning"] { --zen-alert-banner-background: var(--zen-color-background-warning-solid-default); --zen-alert-banner-content: var(--zen-color-content-on-brights); }
+.zen-alert-banner[data-tone="negative"] { --zen-alert-banner-background: var(--zen-color-background-negative-solid-default); --zen-alert-banner-content: var(--zen-color-content-on-colors); }
 
 .zen-alert-banner__icon { display: inline-flex; flex: 0 0 auto; }
 .zen-alert-banner__icon > .zen-icon { width: var(--zen-alert-banner-icon); height: var(--zen-alert-banner-icon); }
@@ -43,3 +43,16 @@
 .zen-alert-banner__close > .zen-icon { width: var(--zen-alert-banner-icon); height: var(--zen-alert-banner-icon); }
 .zen-alert-banner__close:hover { opacity: 0.72; }
 .zen-alert-banner__close:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+/* Phones: a Medium banner with an action puts the action on its own line under the message (aligned with the text),
+   the close stays top-right — icon, text, action and close no longer squeeze into one 390px row. */
+@media (max-width: 480px) {
+  .zen-alert-banner[data-size="medium"]:has(> .zen-alert-banner__action) { flex-wrap: wrap; align-items: flex-start; row-gap: var(--zen-spacing-gap-xsmall, 8px); }
+  .zen-alert-banner[data-size="medium"]:has(> .zen-alert-banner__action) .zen-alert-banner__message { flex: 1 1 0; }
+  .zen-alert-banner[data-size="medium"]:has(> .zen-alert-banner__action) .zen-alert-banner__close { order: 2; }
+  .zen-alert-banner[data-size="medium"]:has(> .zen-alert-banner__action)::after { order: 3; flex-basis: 100%; height: 0; content: ""; }
+  .zen-alert-banner[data-size="medium"] > .zen-alert-banner__action { order: 4; }
+  .zen-alert-banner[data-size="medium"]:has(> .zen-alert-banner__icon) > .zen-alert-banner__action { margin-inline-start: calc(var(--zen-alert-banner-icon) + var(--zen-spacing-gap-small, 12px)); }
+}
+/* Hit area ≥ 24×24 (WCAG 2.5.8) around the Figma-sized glyph: an invisible, centred layer; the visual size is unchanged. */
+.zen-alert-banner__close { position: relative; }
+.zen-alert-banner__close::after { position: absolute; top: 50%; left: 50%; width: max(100%, 24px); height: max(100%, 24px); content: ""; transform: translate(-50%, -50%); }

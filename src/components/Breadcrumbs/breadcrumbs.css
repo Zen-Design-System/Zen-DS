@@ -1,35 +1,52 @@
-/* Figma Breadcrumbs (4031:20161) / .Primitives/Breadcrumbs/Item (292:43787).
-   Sub: 28px, padding 4/8, radius Small, Neutral/Flat Default|Hover, label Body/Base Regular|Medium, Neutral/Strongest.
-   Master: padding-right 8, gap 8, 28px Icon-Wrapper (padding 4, radius Small) that turns Inverse/Solid on hover.
-   Separator: icon-chevron-right-line-small at Popular/Base (20), Neutral/Light; list gap 3XSmall (2). */
+/* Figma Breadcrumbs (4031:20161) / .Primitives/Breadcrumbs/Item (292:43787), live file 9nZv4uW2LT21yuHabMTCh1.
+   Item: hugs its content at 20px (Body/Base line), no padding and no fill; Master = icon-home-03-line
+   (Element-Size/Popular/Base 20) + Spacing/Gap/XSmall (8) + label; label Body/Base Regular|Medium, Neutral/Strongest.
+   Hover: an absolute Hover-Base plate (Neutral/Flat/Hover, Corner-Radius/Small) that bleeds past the item without
+   moving the layout — Sub −8 / −4 (52×28 around a 36×20 label), Master −4 left, −8 right, −4 top/bottom (76×28).
+   The plate is a ::before, so it is also the pointer target (28px tall) and carries the focus ring.
+   Primitives/Breadcrumbs/Item/Slot (4031:20158): the item and its Dash (icon-chevron-right-line-small, Popular/Base 20,
+   Neutral/Light) sit Spacing/Gap/2XSmall (4) apart; the Item-List slot spaces slots by Spacing/Gap/XSmall (8).
+   (Breadcrumbs' own Spacing/Gap/3XSmall (2) only spaces the single Item-List child, so it never renders.) */
 .zen-breadcrumbs { min-width: 0; max-width: 100%; }
-.zen-breadcrumbs__list { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); margin: 0; padding: 0; list-style: none; }
-.zen-breadcrumbs__item { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+/* The trail hugs its 20px items like Figma (Breadcrumbs Size=Small 4031:20194 is 140 × 20): the Hover-Base plate bleeds
+   4px above and below outside it, as in Figma, so a clipping parent needs 4px (7px with the focus ring) of room. Figma's
+   Item-List does not wrap; wrapped rows sit Spacing/Gap/2XSmall apart (the same 4px as the plate's bleed). */
+.zen-breadcrumbs__list { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px) var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; list-style: none; }
+.zen-breadcrumbs__item { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-breadcrumbs__separator { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; color: var(--zen-color-content-neutral-light); }
 .zen-breadcrumbs__separator > .zen-icon { width: 100%; height: 100%; }
 
 .zen-breadcrumb {
+  position: relative;
+  isolation: isolate;
   display: inline-flex;
-  height: 28px;
+  height: var(--zen-element-size-popular-base, 20px);
   min-width: 0;
   box-sizing: border-box;
   align-items: center;
   gap: var(--zen-spacing-gap-xsmall, 8px);
-  padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px);
+  margin: 0;
+  padding: 0;
   border: 0;
-  border-radius: var(--zen-corner-radius-small, 8px);
-  background: var(--zen-color-background-neutral-flat-default);
+  background: none;
   color: var(--zen-color-content-neutral-strongest);
+  font: inherit;
   text-decoration: none;
   cursor: pointer;
   outline: none;
 }
-.zen-breadcrumb[data-level="master"] { padding: 0 var(--zen-spacing-padding-xsmall, 8px) 0 0; }
+.zen-breadcrumb::before {
+  position: absolute;
+  z-index: -1;
+  inset: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)) calc(-1 * var(--zen-spacing-padding-xsmall, 8px));
+  border-radius: var(--zen-corner-radius-small, 8px);
+  background: transparent;
+  content: "";
+}
+.zen-breadcrumb[data-level="master"]::before { left: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)); }
 .zen-breadcrumb__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.zen-breadcrumb__icon { display: inline-flex; color: var(--zen-color-content-neutral-strongest); width: 28px; height: 28px; box-sizing: border-box; flex: 0 0 auto; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-small, 8px); }
-.zen-breadcrumb__icon .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
-.zen-breadcrumb:is(a, button):hover, .zen-breadcrumb[data-state="hover"] { background: var(--zen-color-background-neutral-flat-hover); }
-/* Figma Master Hover: only the Icon-Wrapper fill changes (Inverse/Solid = white in light mode); the icon stays Neutral/Strongest. */
-.zen-breadcrumb:is(a, button):hover .zen-breadcrumb__icon, .zen-breadcrumb[data-state="hover"] .zen-breadcrumb__icon { background: var(--zen-color-background-inverse-solid-default); }
+.zen-breadcrumb__icon { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; color: var(--zen-color-content-neutral-strongest); }
+.zen-breadcrumb__icon > .zen-icon, .zen-breadcrumb__icon > svg { width: 100%; height: 100%; }
+.zen-breadcrumb:is(a, button):hover::before, .zen-breadcrumb[data-state="hover"]::before { background: var(--zen-color-background-neutral-flat-hover); }
 .zen-breadcrumb[data-current="true"] { cursor: default; }
-.zen-breadcrumb:focus-visible { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid); }
+.zen-breadcrumb:focus-visible::before { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid); }

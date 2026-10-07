@@ -1,0 +1,689 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "layout",
+  "import": "import { Stack, Grid, Box, Container } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Stack",
+      "file": "src/components/Layout/Layout.tsx",
+      "description": "One-dimensional layout with token spacing. Use it instead of hand-written flex CSS.\n\n  <Stack gap=\"lg\">…sections…</Stack>\n  <Stack direction=\"row\" gap=\"sm\" align=\"center\" justify=\"between\">…toolbar…</Stack>",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps",
+      "props": [
+        {
+          "name": "width",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width.\n`\"hug\"` (Hug contents): as wide as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding\nand may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full\nwidth. Fill children in a wrapping row need a `minWidth` to wrap.\nA number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box).\n(Container's `maxWidth` is a different prop: a token width, sm…full.)\nPrefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame).",
+          "deprecated": null
+        },
+        {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum width in px (Figma min width). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text.",
+          "deprecated": null
+        },
+        {
+          "name": "alignSelf",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "required": false,
+          "default": null,
+          "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "height",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Vertical resizing, as in Figma auto layout. Unset keeps the element's usual height.\n`\"hug\"` (Hug contents): as tall as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a column Stack it takes an equal share of the free height; it shrinks below its\ncontent only when the column has a height of its own (Fixed, Fill or maxHeight), else it keeps its content height\n(pass `minHeight={0}` for a scrolling child of a column sized from outside). In a row Stack it stretches to the\nrow's height; in a Grid cell it fills the cell (over alignSelf); in a plain block it takes 100% (the parent needs\na height).\nA number: Fixed height in px, which does not shrink in a column Stack.",
+          "deprecated": null
+        },
+        {
+          "name": "minHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum height in px (Figma min height). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum height in px (Figma max height).",
+          "deprecated": null
+        },
+        {
+          "name": "position",
+          "type": "\"static\" | \"absolute\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Ignore auto layout\" (layoutPositioning ABSOLUTE). `\"absolute\"` takes the element out of its parent's flow\nand pins it to the parent Stack, Grid, Box or Card with `constraintX` / `constraintY`; siblings, `gap`, `justify`\nand the parent's Hug size ignore it, as in Figma. Siblings written after it paint above it (Figma auto layout\n\"Last on top\"), so put background media first. Default `\"static\"` (in flow). Only Stack, Grid and Box take it:\nwrap a Text or a component in a Box. Badges, status dots and a Card sub-action are component props, never insets.",
+          "deprecated": null
+        },
+        {
+          "name": "constraintX",
+          "type": "\"left\" | \"right\" | \"left-right\" | \"center\"",
+          "required": false,
+          "default": null,
+          "description": "Figma horizontal constraint, read only with `position=\"absolute\"`: `left` (default, Figma Left) · `right` (Right)\n· `left-right` (Left & right: stretches between the two offsets, `width` is ignored) · `center` (Center: exact\ncentre, the X offsets are ignored). Figma Scale is not offered (it needs percentages, which are not tokens).",
+          "deprecated": null
+        },
+        {
+          "name": "constraintY",
+          "type": "\"top\" | \"bottom\" | \"top-bottom\" | \"center\"",
+          "required": false,
+          "default": null,
+          "description": "Figma vertical constraint, read only with `position=\"absolute\"`: `top` (default) · `bottom` · `top-bottom`\n(Top & bottom: stretches between the two offsets, `height` is ignored) · `center` (exact centre).",
+          "deprecated": null
+        },
+        {
+          "name": "insetTop",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children.",
+          "deprecated": null
+        },
+        {
+          "name": "insetRight",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's right edge on Spacing/Padding. Read only when `constraintX` is `right` or `left-right`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "insetBottom",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's bottom edge on Spacing/Padding. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "insetLeft",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder). Read only when `constraintX` is `left` or `left-right`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "direction",
+          "type": "\"column\" | \"row\"",
+          "required": false,
+          "default": "\"column\"",
+          "description": "column (default) stacks top to bottom; row lays items side by side.",
+          "deprecated": null
+        },
+        {
+          "name": "gap",
+          "type": "\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Space between items (Figma Spacing/Gap). Default md (16px).",
+          "deprecated": null
+        },
+        {
+          "name": "align",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\" | \"baseline\"",
+          "required": false,
+          "default": null,
+          "description": "Cross-axis alignment. Default: rows center their items; columns stretch fields, cards and lists to the full width\nwhile buttons, chips, badges, tags and avatars keep their own width (pass `align=\"stretch\"` to stretch those too,\ne.g. full-width buttons in a mobile footer).",
+          "deprecated": null
+        },
+        {
+          "name": "justify",
+          "type": "\"start\" | \"center\" | \"end\" | \"between\" | \"around\"",
+          "required": false,
+          "default": null,
+          "description": "Main-axis distribution. `between` pushes the first and last items to the edges.",
+          "deprecated": null
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Let row items wrap onto new lines.",
+          "deprecated": null
+        },
+        {
+          "name": "fillChildren",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Every child takes an equal share along the direction (Figma: all children Fill container), for children that have\nno sizing props of their own (Button, Input, Card… but also a Divider or an Icon: wrap those in `<Box width=\"hug\">`).\nA child's own `width` (row) or `height` (column) wins; in a row children keep their own minimum width (a Button\nnever shrinks below its label). A column shares equally only when its height is Fixed or Fill (Buttons get\ntaller); with only a maxHeight the children keep their content height and shrink once it caps; without a height\nthey keep their content height.",
+          "deprecated": null
+        },
+        {
+          "name": "padding",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Space inside the stack (Figma Spacing/Padding).",
+          "deprecated": null
+        },
+        {
+          "name": "paddingX",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Horizontal padding (overrides `padding` on the sides).",
+          "deprecated": null
+        },
+        {
+          "name": "paddingY",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Vertical padding (overrides `padding` top and bottom), e.g. page content inside a Container that already has side margins.",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "\"div\" | \"section\" | \"article\" | \"aside\" | \"header\" | \"footer\" | \"main\" | \"nav\" | \"form\" | \"fieldset\" | \"ul\" | \"ol\" | \"li\"",
+          "required": false,
+          "default": "\"div\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "Grid",
+      "file": "src/components/Layout/Layout.tsx",
+      "description": "Two-dimensional layout for cards, tiles and form columns.\n\n  <Grid minColumnWidth={280}>…cards…</Grid>\n  <Grid columns={{ mobile: 1, desktop: 2 }} gap=\"lg\">…fields…</Grid>\n  <Grid columns={{ mobile: 1, desktop: \"2fr 1fr\" }} gap=\"lg\" align=\"start\">…main…aside…</Grid>",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps",
+      "props": [
+        {
+          "name": "width",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width.\n`\"hug\"` (Hug contents): as wide as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding\nand may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full\nwidth. Fill children in a wrapping row need a `minWidth` to wrap.\nA number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box).\n(Container's `maxWidth` is a different prop: a token width, sm…full.)\nPrefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame).",
+          "deprecated": null
+        },
+        {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum width in px (Figma min width). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text.",
+          "deprecated": null
+        },
+        {
+          "name": "alignSelf",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "required": false,
+          "default": null,
+          "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "height",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Vertical resizing, as in Figma auto layout. Unset keeps the element's usual height.\n`\"hug\"` (Hug contents): as tall as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a column Stack it takes an equal share of the free height; it shrinks below its\ncontent only when the column has a height of its own (Fixed, Fill or maxHeight), else it keeps its content height\n(pass `minHeight={0}` for a scrolling child of a column sized from outside). In a row Stack it stretches to the\nrow's height; in a Grid cell it fills the cell (over alignSelf); in a plain block it takes 100% (the parent needs\na height).\nA number: Fixed height in px, which does not shrink in a column Stack.",
+          "deprecated": null
+        },
+        {
+          "name": "minHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum height in px (Figma min height). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum height in px (Figma max height).",
+          "deprecated": null
+        },
+        {
+          "name": "position",
+          "type": "\"static\" | \"absolute\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Ignore auto layout\" (layoutPositioning ABSOLUTE). `\"absolute\"` takes the element out of its parent's flow\nand pins it to the parent Stack, Grid, Box or Card with `constraintX` / `constraintY`; siblings, `gap`, `justify`\nand the parent's Hug size ignore it, as in Figma. Siblings written after it paint above it (Figma auto layout\n\"Last on top\"), so put background media first. Default `\"static\"` (in flow). Only Stack, Grid and Box take it:\nwrap a Text or a component in a Box. Badges, status dots and a Card sub-action are component props, never insets.",
+          "deprecated": null
+        },
+        {
+          "name": "constraintX",
+          "type": "\"left\" | \"right\" | \"left-right\" | \"center\"",
+          "required": false,
+          "default": null,
+          "description": "Figma horizontal constraint, read only with `position=\"absolute\"`: `left` (default, Figma Left) · `right` (Right)\n· `left-right` (Left & right: stretches between the two offsets, `width` is ignored) · `center` (Center: exact\ncentre, the X offsets are ignored). Figma Scale is not offered (it needs percentages, which are not tokens).",
+          "deprecated": null
+        },
+        {
+          "name": "constraintY",
+          "type": "\"top\" | \"bottom\" | \"top-bottom\" | \"center\"",
+          "required": false,
+          "default": null,
+          "description": "Figma vertical constraint, read only with `position=\"absolute\"`: `top` (default) · `bottom` · `top-bottom`\n(Top & bottom: stretches between the two offsets, `height` is ignored) · `center` (exact centre).",
+          "deprecated": null
+        },
+        {
+          "name": "insetTop",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children.",
+          "deprecated": null
+        },
+        {
+          "name": "insetRight",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's right edge on Spacing/Padding. Read only when `constraintX` is `right` or `left-right`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "insetBottom",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's bottom edge on Spacing/Padding. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "insetLeft",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder). Read only when `constraintX` is `left` or `left-right`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "columns",
+          "type": "GridTracks | { mobile?: GridTracks; tablet?: GridTracks; desktop?: GridTracks }",
+          "required": false,
+          "default": null,
+          "description": "Fixed column count, or per breakpoint (`{ mobile: 1, tablet: 2, desktop: 3 }`, following ZenProvider's\nbreakpoint). A string is a track list for unequal columns: `{ mobile: 1, desktop: \"2fr 1fr\" }` puts a main column\nnext to an aside. Omit it to fit as many `minColumnWidth` columns as the width allows.",
+          "deprecated": null
+        },
+        {
+          "name": "minColumnWidth",
+          "type": "number | string",
+          "required": false,
+          "default": "240",
+          "description": "Responsive auto-fill: every column is at least this wide (px or CSS length). Default 240.",
+          "deprecated": null
+        },
+        {
+          "name": "gap",
+          "type": "\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Space between cells. Default md (16px).",
+          "deprecated": null
+        },
+        {
+          "name": "rowGap",
+          "type": "\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "columnGap",
+          "type": "\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "align",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "required": false,
+          "default": null,
+          "description": "Vertical alignment of cells. Default stretch (equal-height cards).",
+          "deprecated": null
+        },
+        {
+          "name": "padding",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "\"div\" | \"section\" | \"article\" | \"aside\" | \"header\" | \"footer\" | \"main\" | \"nav\" | \"form\" | \"fieldset\" | \"ul\" | \"ol\" | \"li\"",
+          "required": false,
+          "default": "\"div\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "Box",
+      "file": "src/components/Layout/Layout.tsx",
+      "description": "A plain container with token padding, background layer, border and radius. For clickable or selectable tiles use\nCard; for page width use Container.",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, CornerRadiusProps",
+      "props": [
+        {
+          "name": "width",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width.\n`\"hug\"` (Hug contents): as wide as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding\nand may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full\nwidth. Fill children in a wrapping row need a `minWidth` to wrap.\nA number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box).\n(Container's `maxWidth` is a different prop: a token width, sm…full.)\nPrefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame).",
+          "deprecated": null
+        },
+        {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum width in px (Figma min width). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text.",
+          "deprecated": null
+        },
+        {
+          "name": "alignSelf",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "required": false,
+          "default": null,
+          "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "height",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Vertical resizing, as in Figma auto layout. Unset keeps the element's usual height.\n`\"hug\"` (Hug contents): as tall as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a column Stack it takes an equal share of the free height; it shrinks below its\ncontent only when the column has a height of its own (Fixed, Fill or maxHeight), else it keeps its content height\n(pass `minHeight={0}` for a scrolling child of a column sized from outside). In a row Stack it stretches to the\nrow's height; in a Grid cell it fills the cell (over alignSelf); in a plain block it takes 100% (the parent needs\na height).\nA number: Fixed height in px, which does not shrink in a column Stack.",
+          "deprecated": null
+        },
+        {
+          "name": "minHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum height in px (Figma min height). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxHeight",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum height in px (Figma max height).",
+          "deprecated": null
+        },
+        {
+          "name": "position",
+          "type": "\"static\" | \"absolute\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Ignore auto layout\" (layoutPositioning ABSOLUTE). `\"absolute\"` takes the element out of its parent's flow\nand pins it to the parent Stack, Grid, Box or Card with `constraintX` / `constraintY`; siblings, `gap`, `justify`\nand the parent's Hug size ignore it, as in Figma. Siblings written after it paint above it (Figma auto layout\n\"Last on top\"), so put background media first. Default `\"static\"` (in flow). Only Stack, Grid and Box take it:\nwrap a Text or a component in a Box. Badges, status dots and a Card sub-action are component props, never insets.",
+          "deprecated": null
+        },
+        {
+          "name": "constraintX",
+          "type": "\"left\" | \"right\" | \"left-right\" | \"center\"",
+          "required": false,
+          "default": null,
+          "description": "Figma horizontal constraint, read only with `position=\"absolute\"`: `left` (default, Figma Left) · `right` (Right)\n· `left-right` (Left & right: stretches between the two offsets, `width` is ignored) · `center` (Center: exact\ncentre, the X offsets are ignored). Figma Scale is not offered (it needs percentages, which are not tokens).",
+          "deprecated": null
+        },
+        {
+          "name": "constraintY",
+          "type": "\"top\" | \"bottom\" | \"top-bottom\" | \"center\"",
+          "required": false,
+          "default": null,
+          "description": "Figma vertical constraint, read only with `position=\"absolute\"`: `top` (default) · `bottom` · `top-bottom`\n(Top & bottom: stretches between the two offsets, `height` is ignored) · `center` (exact centre).",
+          "deprecated": null
+        },
+        {
+          "name": "insetTop",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's top edge on Spacing/Padding (none 0 · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 ·\nxl 24 · 2xl 32 · 3xl 40 · 4xl 48; Figma Y snapped to the padding ladder). Read only when `constraintY` pins the\ntop edge (`top`, `top-bottom`). Default none (flush). Measured from the parent's padding box, as Figma ignores the\nframe's padding for absolute children.",
+          "deprecated": null
+        },
+        {
+          "name": "insetRight",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's right edge on Spacing/Padding. Read only when `constraintX` is `right` or `left-right`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "insetBottom",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's bottom edge on Spacing/Padding. Read only when `constraintY` is `bottom` or `top-bottom`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "insetLeft",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder). Read only when `constraintX` is `left` or `left-right`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "effectStyle",
+          "type": "\"Shadow/Bottom/Level-1\" | \"Shadow/Bottom/Level-2\" | \"Shadow/Bottom/Level-3\" | \"Shadow/Bottom/Level-4\" | \"Shadow/Top/Level-1\" | \"Shadow/Top/Level-2\" | \"Shadow/Top/Level-3\" | \"Shadow/Top/Level-4\" | \"Effect/Overlay\"",
+          "required": false,
+          "default": null,
+          "description": "Figma effect style (the whole style is the token, one per layer as in Figma). Drop shadows\n(`Shadow/Bottom/Level-1…4`, `Shadow/Top/Level-1…4`) render only on `surface=\"surface\"`, never on Subtle, Pale or\nSurface-Alt (component-usage-rules §9) nor without a fill, and a shadowed surface takes no border (elevation follows\nthe Sidebar). `Shadow/Bottom/Level-1` is the Card (Theme=Shadow 7063:62203) and Sidebar elevation; the Top levels\ncast upward for bottom-pinned bars (Bottom-Sheet 4059:14162 uses Top/Level-2). `Effect/Overlay` is the background\nblur behind a translucent fill and renders only on `surface=\"subtle\"` or `\"pale\"`. The shadows use the spread\ntokens, which Figma draws on a filled, clipped frame: pair them with `clip` when children could overflow.",
+          "deprecated": null
+        },
+        {
+          "name": "clip",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Clip content\" (frame clipsContent): children are clipped to the box's padding box and its corner radius, so\nfull-bleed media or an absolute layer keeps the box's rounded corners. Uses `overflow: clip`, which makes no scroll\ncontainer (a sticky child still sticks to the page scroller). Default false (content may overflow).",
+          "deprecated": null
+        },
+        {
+          "name": "radiusTopLeft",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Top-left corner on the Corner-Radius tokens (Figma topLeftRadius; none · 2xs 2 · xs 4 · sm 8 · md 12 · lg 16 ·\nxl 20 · 2xl 24 · 3xl 28 · full), following the radius mode. A set corner wins over `radius`, as `paddingX` wins\nover `padding`; unset corners keep `radius`. Don't mix `full` with a finite corner (`radius=\"full\"\nradiusBottomRight=\"xs\"`): `full` is Corner-Radius/Rounded (1000px), so the browser scales every corner down to fit\nthe box and the small one renders square. Use a finite radius (a chat tail: `radius=\"xl\" radiusBottomRight=\"xs\"`);\n`full` mixes only with `none`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusTopRight",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Top-right corner on the Corner-Radius tokens (Figma topRightRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusBottomRight",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "radiusBottomLeft",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "padding",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "paddingX",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "paddingY",
+          "type": "\"none\" | ZenScaleInput | \"4xl\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "surface",
+          "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\"",
+          "required": false,
+          "default": "\"none\"",
+          "description": "Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page,\n`surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. Never Canvas (the page), Flat (navigation) or\nContainer (modals and sheets use Dialog / BottomSheet).",
+          "deprecated": null
+        },
+        {
+          "name": "border",
+          "type": "\"none\" | \"pale\" | \"subtle\"",
+          "required": false,
+          "default": "\"none\"",
+          "description": "Closed-box border: `subtle` when the box is actionable, `pale` when it is static (docs/guidelines/borders.md).",
+          "deprecated": null
+        },
+        {
+          "name": "radius",
+          "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
+          "required": false,
+          "default": null,
+          "description": "Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners.",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "\"div\" | \"section\" | \"article\" | \"aside\" | \"header\" | \"footer\" | \"main\" | \"nav\" | \"form\" | \"fieldset\" | \"ul\" | \"ol\" | \"li\"",
+          "required": false,
+          "default": "\"div\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "Container",
+      "file": "src/components/Layout/Layout.tsx",
+      "description": "Centres page content at a readable width with the breakpoint's page margin.",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLElement>",
+      "props": [
+        {
+          "name": "maxWidth",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"full\"",
+          "required": false,
+          "default": "\"lg\"",
+          "description": "Content width: sm 640 (forms) · md 960 (settings, reading) · lg 1280 (dashboards, default) · xl 1440 · full (list and\ntable pages: a page whose content is a non-widget Table spans the whole width, no max).",
+          "deprecated": null
+        },
+        {
+          "name": "gutter",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Page margin on both sides from the breakpoint tokens (24 desktop/tablet, 20 mobile). Default true.",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "\"div\" | \"section\" | \"article\" | \"aside\" | \"header\" | \"footer\" | \"main\" | \"nav\" | \"form\" | \"fieldset\" | \"ul\" | \"ol\" | \"li\"",
+          "required": false,
+          "default": "\"div\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "GridTracks": "type GridTracks = number | string",
+    "ZenScale": "type ZenScale = \"3xs\" | \"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\" | \"3xl\"",
+    "ZenScaleInput": "type ZenScaleInput = ZenScale | ZenScaleLong",
+    "ZenScaleLong": "type ZenScaleLong = \"3xsmall\" | \"2xsmall\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\" | \"2xlarge\" | \"3xlarge\""
+  }
+}

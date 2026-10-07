@@ -1,0 +1,9 @@
+/* Figma icon-media-file: Base = Content/Support/<tone>/Light (Figma format: Background/Support/Violet/Solid),
+   Visual glyph = Content/On-Colors. */
+.zen-file-icon { --zen-file-icon-base: var(--zen-color-content-support-red-light, #d03e19); }
+.zen-file-icon[data-tone="orange"] { --zen-file-icon-base: var(--zen-color-content-support-orange-light, #d47000); }
+.zen-file-icon[data-tone="green"] { --zen-file-icon-base: var(--zen-color-content-support-green-light, #259842); }
+.zen-file-icon[data-tone="blue"] { --zen-file-icon-base: var(--zen-color-content-support-blue-light, #0074e0); }
+.zen-file-icon[data-tone="violet"] { --zen-file-icon-base: var(--zen-color-background-support-violet-solid, #7755e7); }
+.zen-file-icon__base { fill: var(--zen-file-icon-base); }
+.zen-file-icon__glyph { fill: var(--zen-color-content-on-colors, #fff); }

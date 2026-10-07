@@ -18,24 +18,86 @@ Switch between 2–5 mutually exclusive views or sections of the same content.
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Level | `level` | primary · secondary |
-| Size | `size` | small · medium |
+| Level | `level` | secondary (default, the common case) · primary (stronger emphasis, e.g. a pricing toggle) |
+| Size | `size` | sm · md (or small · medium) |
+| Value | `value / defaultValue / onValueChange(id)` | controlled or not (onChange is the deprecated alias) |
 | Item | `options[] {id, label, leading, badge, disabled}` | icon, label or both; Badge-Counter |
 | Disabled | `disabled` | whole control |
+| Icon-only item | `options[] {id, label: null, "aria-label", leading}` | the option's aria-label names the segment and shows as its name tooltip after 1s of hover (at once on keyboard focus), like IconButton |
+| Full width | `fullWidth` | fills the container; items share it equally and labels ellipsize (automatic inside a Top Navigation control bar) |
+| Overflow | `—` | code only (the Figma container hugs and clips): in a container narrower than its options, e.g. a phone, the control scrolls sideways like Tabs; items keep their width and the selected segment scrolls into view |
+
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/segmented.json`.
+
+### Segmented
+Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a Neutral/Subtle pill track (Spacing/Padding/ 2XSmall) of toggle segments, Secondary (default) or Primary, Small or Medium. An icon-only segment (Item Label=false: `label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `options` | `SegmentedOption[]` | — |  |
+| `value` | `string` | — |  |
+| `defaultValue` | `string` | — |  |
+| `onValueChange` | `(value: string) => void` | — | Called with the selected option's id. |
+| `onChange` | `(value: string) => void` | — | **Deprecated:** Use onValueChange (same arguments).  |
+| `level` | `"primary" \| "secondary"` | `"secondary"` | Secondary (default) is the common case; Primary adds emphasis. |
+| `size` | `"sm" \| "md" \| "small" \| "medium"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `children` | `ReactNode` | — |  |
+| `className` | `string` | — |  |
+| `disabled` | `boolean` | `false` |  |
+| `fullWidth` | `boolean` | `false` | Stretch to the container and split it into equal items (mobile control bars, sheets, narrow panels). |
+| `aria-label` | `string` | — | Names the group (default "Segmented control", from the locale's labels). |
+
+### SegmentedItem
+One `Primitives/Segmented/Item` (1204:11690). Without a visible label, its `aria-label` shows as the 1s name tooltip.
+
+Also accepts `ButtonHTMLAttributes<HTMLButtonElement>`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `selected` | `boolean` | `false` |  |
+| `leading` | `IconName \| ReactNode` | — | Leading icon: an icon name (`"icon-grid-01-line"`) or a node. |
+| `badge` | `ReactNode` | — | Figma Badge slot = Badge-Counter XSmall. A number/string renders the counter; pass a node to supply your own. |
+| `level` | `"primary" \| "secondary"` | `"secondary"` | Level of the parent Segmented; selects the counter colour when this item is selected. |
+| `size` | `"sm" \| "md" \| "small" \| "medium"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `state` | `"default" \| "hover" \| "focused" \| "disabled"` | `"default"` |  |
+
+### Types
+Object shapes the props above refer to.
+
+```ts
+type SegmentedOption = { id: string; label: ReactNode; leading?: IconName | ReactNode; badge?: ReactNode; state?: SegmentedState; disabled?: boolean; "aria-label"?: string; }
+type SegmentedState = "default" | "hover" | "focused" | "disabled"
+```
+
+## Keyboard
+| Keys | Action |
+| --- | --- |
+| Tab / Shift+Tab | Move between segments |
+| Enter / Space | Select the focused segment |
 
 ## ✅ Do
+- Use size medium (the default) on desktop and on phones; small only inside a genuinely narrow component space (a dense card header or table toolbar), never just to save room on a page.
+- Keep the default level (Secondary), the most common case; set level="primary" only when the switch needs extra emphasis (e.g. a billing-period toggle).
 - Name the control with aria-label.
 - Keep labels to one or two words; icon-only items still need a label for assistive tech.
 - Use badges for counts and hide them at zero.
 - Keep the selected segment static: no hover and a default cursor, because one option is always selected and re-clicking it does nothing.
+- Keep 2–5 options (harness: segmented/option-count).
+- Name icon-only segments with "aria-label" on the option and mark the icon decorative (harness: segmented/icon-only-needs-name).
+- On mobile, stretch a Segmented to its container (fullWidth) in a Top Navigation control bar, a Bottom Sheet or a narrow panel, so the items share the width equally (harness: segmented/control-bar-full-width).
+- On a phone, use a Segmented only when every label fits its equal share (fullWidth). When the options are wider than the screen (four periods, long labels), switch to a single-choice row of Normal Chips (Medium, the pressed one Primary) that scrolls sideways, not a sliding Segmented.
 
 ## ❌ Don't
 - Don't use Segmented as a filter.
+- Don't abbreviate labels or shrink the text to squeeze a Segmented onto a phone, and don't let it slide sideways there; use a Chip row instead (or Tabs / SelectField past 5 options).
 - Don't mix icon-only and labelled items in one control.
 - Don't add a hover or pressed state to the selected segment; it suggests the choice can be undone by clicking it again.
 
 ## Accessibility
-- Radiogroup semantics; arrow keys move the selection.
+- A labelled group of toggle buttons (aria-pressed); Tab moves between segments, Enter/Space selects.
+- When the control scrolls, focusing a segment brings it into view; no scrollbar is drawn, as in Tabs.
+- Icon-only segments show their name as a tooltip after 1s of hover and at once on keyboard focus (Zen icon-only rule).
 
 ## Content
 - Nouns for sections, no verbs.
@@ -44,6 +106,12 @@ Switch between 2–5 mutually exclusive views or sections of the same content.
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `segmented/needs-label` | warn | Segmented needs an aria-label naming what it switches. | `zen-allow-segmented-label: <reason>` |
+| `segmented/option-count` | warn | Segmented holds 2–5 options; more → Tabs or SelectField. | `zen-allow-segment-count: <reason>` |
+| `segmented/control-bar-full-width` | warn | On mobile, a Segmented in a Top Navigation control bar or a Bottom Sheet spans the container with equal items (fullWidth). | `zen-allow-segmented-hug: <reason>` |
+| `segmented/icon-only-needs-name` | error | Icon-only segments (label null / empty) carry an "aria-label" in their option. | `zen-allow-segment-name: <reason>` |
+| `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
+| `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 
 ## References
 - [Material 3 — Segmented buttons](https://m3.material.io/components/segmented-buttons/guidelines)

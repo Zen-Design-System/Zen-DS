@@ -1,0 +1,89 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "tag",
+  "import": "import { Tag } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Tag",
+      "file": "src/components/Tag/Tag.tsx",
+      "description": "Figma Tag (288:32046): Medium only — Theme × State × Remove. With `onClick` the tag is a button; a tag that toggles\n(a filter) also passes `aria-pressed`, and `aria-pressed={true}` draws it selected (code-only: Figma Tag has no Selected\nstate, so it uses the default Chip's selected tokens — Surface fill, Border/Active 2px, Content Strongest).",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLSpanElement>, \"children\">",
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Leading icon (Theme=Leading-Icon): an icon name (`\"icon-tag-line\"`) or a node.",
+          "deprecated": null
+        },
+        {
+          "name": "photoSrc",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Leading photo (Theme=Leading-Photo) rendered as Avatar 2XSmall.",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"error\" | \"disabled\"",
+          "required": false,
+          "default": null,
+          "description": "Deterministic Figma State for matrices; hover and keyboard focus also apply natively.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "remove",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Remove=Yes: trailing icon-x-circle-solid button.",
+          "deprecated": null
+        },
+        {
+          "name": "onRemove",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "removeLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Name of the remove button (default \"Remove\" and the tag text, from the locale's labels).",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

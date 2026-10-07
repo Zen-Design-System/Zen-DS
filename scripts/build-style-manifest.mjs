@@ -14,6 +14,10 @@ import { fileURLToPath } from "node:url";
  *   - BACKGROUND_BLUR radius r → backdrop-filter: blur(r / 2); LAYER_BLUR r → filter: blur(r / 2).
  *   - GLASS has no CSS equivalent in Figma codegen; parameters are kept in the manifest only.
  *   - Paint layers are listed top-most first; bound colours use their variable.
+ *   - Figma applies shadow `spread` only on rectangles/ellipses or on frames, components and instances with a
+ *     visible fill AND clipsContent (Plugin API DropShadowEffect.spread). On any other node the spread is ignored,
+ *     so a style with spread also gets `--zen-style-<token>-shadow-unclipped` (same shadows, spread 0). Components
+ *     whose Figma surface does not clip content must use the -unclipped variable to render like Figma.
  */
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -47,7 +51,7 @@ const colorRef = (color, variableName, opacity = 1) => {
   return opacity < 1 ? `color-mix(in srgb, ${reference} ${Number((opacity * 100).toFixed(2))}%, transparent)` : reference;
 };
 
-const effectCss = (style) => {
+const effectCss = (style, { ignoreSpread = false } = {}) => {
   const visible = style.effects.filter((effect) => effect.visible !== false);
   const shadows = visible
     .filter((effect) => effect.type === "DROP_SHADOW" || effect.type === "INNER_SHADOW")
@@ -58,7 +62,7 @@ const effectCss = (style) => {
         px(effect.offset?.x ?? 0),
         px(effect.offset?.y ?? 0),
         px(effect.radius ?? 0),
-        px(effect.spread ?? 0),
+        px(ignoreSpread ? 0 : (effect.spread ?? 0)),
         colorRef(effect.color, effect.bound?.color),
       ]
         .filter(Boolean)
@@ -113,6 +117,9 @@ const effectStyles = full.effect.map((style) => {
     effects: style.effects,
     cssVariable: `--zen-style-${token}-shadow`,
     ...effectCss(style),
+    // Rendered shadow on a Figma node that does not clip content (spread ignored); null when no spread is set.
+    unclippedBoxShadow: style.effects.some((effect) => effect.visible !== false && /SHADOW$/.test(effect.type) && effect.spread)
+      ? effectCss(style, { ignoreSpread: true }).boxShadow : null,
   };
 });
 
@@ -162,6 +169,7 @@ const css = [
   `:root,\n${modeScopes.map((attribute) => `[${attribute}]`).join(",\n")} {`,
   ...effectStyles.flatMap((effect) => [
     `  ${effect.cssVariable}: ${effect.boxShadow};`,
+    ...(effect.unclippedBoxShadow ? [`  ${effect.cssVariable}-unclipped: ${effect.unclippedBoxShadow};`] : []),
     ...(effect.backdropFilter ? [`  --zen-style-${effect.token}-backdrop-filter: ${effect.backdropFilter};`] : []),
     ...(effect.filter ? [`  --zen-style-${effect.token}-filter: ${effect.filter};`] : []),
   ]),

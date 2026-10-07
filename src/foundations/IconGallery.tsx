@@ -2,7 +2,11 @@ import { useDeferredValue, useEffect, useState } from "react";
 import { Icon, iconSizes, type IconSize } from "../components/Icon";
 import { Search } from "../components/Search";
 import { SelectField } from "../components/Input";
-import { getIconData, iconNames } from "../icons/generated/iconData";
+import { EmptyState } from "../components/EmptyState";
+import { Text } from "../components/Text";
+import { FileIcon, fileIconData, fileIconFormats } from "../components/FileIcon";
+import { Flag, flagNames } from "../components/Flag";
+import { getIconData, iconNames } from "../icons/all";
 
 export function IconGallery({ embedded = false }: { embedded?: boolean }) {
   const pageSize = 120;
@@ -12,6 +16,10 @@ export function IconGallery({ embedded = false }: { embedded?: boolean }) {
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
   const matches = iconNames.filter((name) => name.includes(deferredQuery));
   const visibleIcons = matches.slice(0, visibleCount);
+  // Figma Special Icons → File (icon-media-file): matched by format, label or "file".
+  const fileMatches = fileIconFormats.filter((format) => !deferredQuery || `file media ${format} ${fileIconData[format].label}`.toLowerCase().includes(deferredQuery));
+  // Figma Flag (7063:63834): matched by country name or "flag".
+  const flagMatches = flagNames.filter((name) => !deferredQuery || `flag country ${name}`.toLowerCase().includes(deferredQuery));
 
   useEffect(() => setVisibleCount(pageSize), [deferredQuery]);
 
@@ -63,6 +71,51 @@ export function IconGallery({ embedded = false }: { embedded?: boolean }) {
             <p aria-live="polite">{matches.length.toLocaleString("en-US")} matches</p>
           </section>
 
+          {fileMatches.length ? (
+            <section className="icon-gallery__special" aria-labelledby="icon-gallery-file-title">
+              <header className="icon-gallery__special-header">
+                <h2 id="icon-gallery-file-title">File icons</h2>
+                <p>Figma <code>icon-media-file</code> · identifies a file type next to its name (uploads, attachments, file lists). Not an action icon.</p>
+              </header>
+              <div className="icon-grid">
+                {fileMatches.map((format) => (
+                  <article className="icon-card" key={format}>
+                    <div><FileIcon format={format} size={size} /></div>
+                    <strong>{fileIconData[format].label}</strong>
+                    <span>{fileIconData[format].tone}</span>
+                    <code>{`<FileIcon format="${format}" />`}</code>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {flagMatches.length ? (
+            <section className="icon-gallery__special" aria-labelledby="icon-gallery-flag-title">
+              <header className="icon-gallery__special-header">
+                <h2 id="icon-gallery-flag-title">Flags</h2>
+                <p>Figma <code>Flag</code> · {flagNames.length} round country and region flags, always next to the country name (locale pickers, phone codes, addresses, holiday calendars).</p>
+              </header>
+              <div className="icon-grid">
+                {flagMatches.slice(0, deferredQuery ? flagMatches.length : 24).map((name) => (
+                  <article className="icon-card" key={name}>
+                    <div><Flag name={name} size="lg" /></div>
+                    <strong>{name}</strong>
+                    <span>flag</span>
+                    <code>{`<Flag name="${name}" />`}</code>
+                  </article>
+                ))}
+              </div>
+              {!deferredQuery && flagMatches.length > 24 ? <Text as="p" textStyle="Body/Small/Regular" tone="base">Search a country to see the other {flagMatches.length - 24} flags.</Text> : null}
+            </section>
+          ) : null}
+
+          {matches.length === 0 && fileMatches.length === 0 && flagMatches.length === 0 ? (
+            <EmptyState className="icon-gallery__no-results" title={`No icons match “${query.trim()}”`} icon="icon-search-medium-line" secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>
+              Try a shorter name such as “arrow” or “user”, or browse all {iconNames.length.toLocaleString("en-US")} icons.
+            </EmptyState>
+          ) : null}
+          {matches.length && (fileMatches.length || flagMatches.length) ? <h2 className="icon-gallery__section-title">System icons</h2> : null}
           <section className="icon-grid" aria-label="Available icons">
             {visibleIcons.map((name) => (
               <article className="icon-card" key={name}>
@@ -86,17 +139,9 @@ export function IconGallery({ embedded = false }: { embedded?: boolean }) {
           ) : null}
         </>
       ) : (
-        <section className="icon-gallery__empty">
-          <span aria-hidden="true">◇</span>
-          <div>
-            <h2>SVG source folder is ready</h2>
-            <p>
-              Export Figma icons into <code>icons/source/</code>, then run{" "}
-              <code>npm run icons:build</code>. The gallery and TypeScript names update
-              automatically.
-            </p>
-          </div>
-        </section>
+        <EmptyState title="SVG source folder is ready" icon="icon-folder-line">
+          Export Figma icons into <code>icons/source/</code>, then run <code>npm run icons:build</code>. The gallery and TypeScript names update automatically.
+        </EmptyState>
       )}
     </main>
   );

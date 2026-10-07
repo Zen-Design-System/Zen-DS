@@ -1,0 +1,15 @@
+/* Templates page (platform only): a desktop-sized frame that scrolls inside, with the template's own AppShell. The frame
+   is a size container, so the shell and its sticky Sidebar fill the frame (100cqh) here and in full screen; contain: layout
+   makes it the box the fixed navigation drawer covers; the inner box scrolls. */
+.patpl-preview { align-items: stretch; }
+.patpl-frame { width: 100%; height: 720px; overflow: hidden; contain: layout; container-type: size; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-large, 16px); }
+.patpl-frame__scroll { height: 100%; overflow: auto; }
+.patpl-app { min-height: 100%; }
+.patpl-app .zen-app-shell { --zen-app-shell-height: 100cqh; }
+/* Mobile templates render their overlays (Bottom Sheets) through their own ZenProvider portal, as in an app; layout
+   containment makes the phone the containing block of those fixed overlays, so they cover the phone, not the page. */
+.platform-phone.patpl-phone { contain: layout; }
+/* Mobile templates are whole screens: their TopNavigation clears the status bar and their ActionBar the home indicator,
+   so the phone frame doesn't pad for them again. */
+.platform-phone.patpl-phone .platform-phone__screen.platform-phone__screen { padding-top: 0; }
+.platform-phone.patpl-phone .platform-phone__screen.platform-phone__screen:has(.zen-action-bar) { padding-bottom: 0; }

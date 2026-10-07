@@ -1137,8 +1137,8 @@
         "name": "Sidebar/Default-Width",
         "type": "FLOAT",
         "valuesByMode": {
-          "Compact": 260,
-          "Comfortable": 280
+          "Compact": 240,
+          "Comfortable": 260
         }
       },
       {
@@ -1555,6 +1555,14 @@
         "valuesByMode": {
           "Compact": "{dm-12}",
           "Comfortable": "{dm-16}"
+        }
+      },
+      {
+        "name": "AI-Chat/Field/Corner-Radius",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{Corner-Radius/Giant}",
+          "Comfortable": "{Corner-Radius/XGiant}"
         }
       }
     ]

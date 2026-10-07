@@ -1,0 +1,57 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "divider",
+  "import": "import { Divider } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Divider",
+      "file": "src/components/Divider/Divider.tsx",
+      "description": "Figma Divider (460:38361): a 1px INSIDE stroke line. Default (Pale) is the everyday rule; Medium (Subtle) and\nHigh (Solid) add emphasis only when the design calls for it.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "color",
+          "type": "\"default\" | \"medium\" | \"high\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "Figma Color: Default → Border/Neutral/Pale · Medium → Subtle · High → Solid.",
+          "deprecated": null
+        },
+        {
+          "name": "orientation",
+          "type": "\"horizontal\" | \"vertical\"",
+          "required": false,
+          "default": "\"horizontal\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "dashed",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Dashed line; a Default dashed line steps up to Border/Neutral/Subtle (Pale is too faint when dashed).",
+          "deprecated": null
+        },
+        {
+          "name": "decorative",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Purely visual: hidden from assistive tech (e.g. between toolbar groups that are already labelled).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

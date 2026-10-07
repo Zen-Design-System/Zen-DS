@@ -382,3 +382,52 @@ File `9nZv4uW2LT21yuHabMTCh1` was read directly (read-only). Every variant's vis
     - The pulse animation is optional and off for reduced motion.
 - Verified with Playwright: A–Z order (24 items). Accordion 56px collapsed with single-open toggling. Alert 56px, dismissible. Pagination 272×24, matching Figma, with correct ranges after navigation. Toast 648×70 r24. Skeleton bars correct. No console errors; build, Storybook and contracts pass.
 - Not done: Storybook stories for the new components; Inline Message, Slider and Divider pages.
+- Follow-up:
+  - Storybook stories for Accordion (Playground + full Matrix), Alert Banner (Playground + Matrix), Pagination (Playground + Themes), Toast Message (Playground + Types) and Skeleton (Body Text + All Variants).
+  - Platform Examples (two per page): Accordion FAQ (Box) and Settings sections (Divider, one open, count Badge); Alert page notice (Warning + action) and Connection status (Small, theme follows state); Pagination table footer (Inline, 137 rows) and Search results (Primary Small, 24 pages); Toast stacked (auto-dismiss 4 s, max 3) and Undo delete; Skeleton loading card and loading list.
+  - Verified with Playwright: 2 cards per page; the Toast stack, Undo restore and pagination range update all work; no console errors. Build and Storybook pass.
+- Conflict: another session ("Tiếp tục công việc") was editing src/components/Toast concurrently. It switched to a ToastProvider/useToast + `description` API, then the files reverted to this session's `children` API within seconds. Usages now follow the file on disk (`children` caption; `action.onClick` passed everywhere). A coordination message was sent to that session; its ToastProvider variant had dropped the Subtle 1px OUTSIDE Border/Popover/Subtle stroke.
+- Usage harness (rules maintained by the "Tiếp tục công việc" session): the Alert "Connection status" example uses Segmented instead of secondary/tertiary Buttons; the Toast stack triggers are Tertiary; the "Delete" in Undo delete is Danger-Subtle. `npm run usage:check` passes (7 files, 24 rules).
+- Toast / Alert Banner playground overflow: `.platform-banner-preview { width: 100% }` plus the stacked row's 24px side margins pushed the grey preview 48px into the controls column. The width was removed (the row stretches to its grid area). Scanned all 24 component pages at 1512: every preview ends flush with the code block, with no overflow (Input is intentionally narrower, max 520px). Toast/Alert also verified at 1280 and 1100.
+- Toast "Stacked notifications" example: a single toast rendered 90px high, because the grid stack (min-height 90) stretched its only row. `alignContent: start` keeps every toast at 70px (1, 2 and 3 toasts measured) while the area keeps its 90px minimum.
+- Cleanup after the peer's Input change (the leading/trailing slot now hugs its content): removed the redundant width:auto slot overrides in pagination.css and search.css. Before/after measurements are identical: Manually "results" slot 44×20 unclipped; Search filter-icon/-dropdown × small/medium slots 40/48/59/69 px.
+
+## More varied Examples (variant coverage)
+
+- An audit of the props used in Examples showed uncovered variants. New examples (now 3–5 per page):
+  - Search: **Search with scope** (Filter-Dropdown with `filterOptions` → scope picker filters the results), **Advanced filters** (Filter-Icon → `onFilterClick` opens a multi-select Popover with checkbox marks; Badge shows the filter count), **Icon picker** (variant Popover inside a custom popover surface).
+  - Button **Media card** (Overlay White-Overlay/Black-Overlay icon buttons, Overlay White label button, Flat footer actions).
+  - Segmented **Billing period** (Primary, Medium, Badge).
+  - Toggle **Feature flags** (ToggleButton in rows).
+  - Avatar **Workspace switcher** (Square initials).
+  - Date Picker **Report period** (Dual + range + actions).
+  - Dialog **Invite teammates** (Info + Input in the Custom slot).
+  - Pagination **Photo gallery** (Secondary, Small items).
+  - Toast **Inline confirmations** (Subtle + Warning with action).
+  - Accordion **Release notes** (XLarge Divider).
+  - Skeleton **Loading dashboard** (Heading Large, Rectangle, Square).
+  - Input **Compose announcement** (HeadingField + RichTextField; wide card).
+  - Tooltip **Image annotations** (Black-/White-Overlay, right/left).
+  - Alert Banner **Product announcement** (Info Medium with action + Small Positive without leading).
+- Usage harness: the picker's selected IconButton carries `zen-allow-secondary`, and the Flat footer uses Primary, not Accent. usage:check passes with no warnings.
+- Regression fixed: the peer's new Input focus selector (`…:focus-within:not(:has(.zen-input-leading-trailing__picker :focus))`, 0,6,0) outranked Search/Popover's no-ring rule (0,4,0), so every Popover search again showed the 3px ring and a dark stroke. The Search/Popover rule is now 0,7,0, and the Popover playground and Icon picker show no ring or stroke on focus again.
+- Verified with Playwright: all 13 new cards render with no stage overflow; Billing price, Invite (email → sent) and flag toggling work; no console errors. Build, contracts and usage pass.
+- Follow-up (component): RichTextEditorBar does not wrap or scroll in narrow containers (it clipped in a half-width card).
+- Peer lowered the Input focus selector to 0,4,0 (`:not(:where(:has(…)))`). Re-verified: popover searches show no ring or stroke on focus; a regular Search shows the 3px ring and dark stroke. The 0,7,0 Search/Popover rule stays as a safeguard.
+
+## Border rule for AI / vibe coding (user)
+
+- Rule: `Border/Neutral/Subtle` (+Hover/Pressed) for **actionable** elements; `Border/Neutral/Pale/Default` for **non-actionable** structure.
+  - Written as §6 of `docs/component-usage-rules.md`: definition, 3-question checklist, token table, do/don't CSS, component-token preference and Figma exceptions.
+  - Also a house-rule bullet in `skills/zen-component-usage/SKILL.md` and a "Border contract" in `docs/context/design-system-context.md`.
+- Evidence it matches the system: every actionable component border token aliases Neutral/Subtle (Button-Tertiary, Chip-Primary/Secondary, Tag, Checkbox, Radio-Button, Segmented-Item-Secondary), and Figma `Divider` Color=Default is Pale (Medium = Subtle, High = Solid, for emphasis only).
+- Read-only fields stay Subtle: they are form controls (focusable, selectable).
+- Figma exceptions kept for designer review: the Sidebar Tree-Line (Subtle, non-actionable) and the Avatar Photo image-edge hairline (Subtle).
+- Fixed in this session's files: `.pe-divider`, `.pe-toolbar__divider` and `.pe-list__row` dividers → Pale; Sidebar story logo tile → Pale; removed the unused `--official-line` (Subtle).
+- Asked the peer session (owner of tools/usage-guard and the guideline CSS) to add harness rules and to move `.pg`, `.pg-example` and `.pg-checklist` borders to Pale.
+- Border rule narrowed (user): it applies only to the border of a **closed container** (Subtle for actionable, Pale for static). Stand-alone lines (dividers, separators, row rules, Tab baseline, tree-lines, single-edge rules, Divider Default/Medium/High) and strokes around avatars/photos/visuals/graphics are not covered and follow Figma. The Sidebar tree-line and Avatar Photo are therefore no longer exceptions.
+  - Rewrote §6 of component-usage-rules.md (scope, "Not covered" list, 3-question checklist, examples), the SKILL.md bullet and the design-system-context Border contract.
+  - Reverted `.pe-divider`, `.pe-toolbar__divider` and `.pe-list__row` to their original Subtle (they are lines). The Sidebar story logo tile stays Pale (a static closed box).
+  - The peer's new harness rule `border/subtle-on-divider` now contradicts the rule (3 warnings: .pe-divider, .pe-toolbar__divider, Accordion Divider). The peer was asked to replace it with closed-container checks and to regenerate docs/guidelines/borders.md.
+- Divider and dashed rule (user): `Divider` defaults to Pale (Medium = Subtle, High = Solid for extra emphasis). Any **dashed** line or stroke steps up to `Border/Neutral/Subtle`, which overrides static container → Pale. The Read-only field dash (Subtle) already complied. Fixed `.token-empty-state` (raw #0101012f → neutral-subtle) and `.icon-gallery__empty` (Pale → Subtle) in foundations.css. Docs updated (§6 now has a 4-question checklist). The peer was asked to add a dashed+Pale harness check.
+- The peer rebuilt the border harness for the closed-container scope: border/subtle-static-box, border/pale-actionable-box and border/dashed-is-subtle (all warn; CSS in src/platform, src/components, src/styles). Its draft divider rules were withdrawn. Real catch: the Iconography "Load more" `.icon-gallery__more` had a Pale border and is now Subtle (+Subtle/Hover). `.pg-example` → Pale. Verified: my dashed empty-state fixes are intact; usage:check shows 40 files, 27 rules, 0 findings; the self-test and build pass.

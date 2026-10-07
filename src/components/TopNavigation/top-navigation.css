@@ -1,0 +1,203 @@
+/* Figma Top-Navigation/Mobile (12014:45167). */
+/* Figma Margin (Breakpoint & Grids, Mobile mode): Comfortable = Margin-Comfortable → Spacing/Padding/Large (20);
+   Compact = Margin-Compact → Spacing/Padding/Medium (16). Bound to the Spacing tokens, not --zen-margin-*, because those
+   follow the page breakpoint (Comfortable would collapse to 16 = Compact under [data-breakpoint="mobile"]). */
+.zen-top-nav {
+  --zen-top-nav-side: var(--zen-spacing-padding-large, 20px);
+  --zen-top-nav-content: var(--zen-color-content-neutral-strongest, #111);
+  position: relative;
+  z-index: 2;
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  flex-direction: column;
+  padding-top: var(--zen-safe-area-top, env(safe-area-inset-top, 0px));
+  /* The fill lives in a variable so the scroll-linked mode can paint it on a layer that shrinks with the fold. */
+  --zen-top-nav-fill: var(--zen-color-background-surface-default, #fff);
+  background: var(--zen-top-nav-fill);
+  color: var(--zen-top-nav-content);
+}
+.zen-top-nav[data-margin="compact"] { --zen-top-nav-side: var(--zen-spacing-padding-medium, 16px); }
+.zen-top-nav[data-sticky="true"] { position: sticky; top: 0; }
+
+/* Backgrounds (Figma Type). The gradient types paint their fill at 80% (Figma gradient paint opacity 0.8, 12014:45358 …
+   12053:56882): the opaque stop is 80% of its token, so the bar stays a little see-through over the blur. */
+.zen-top-nav:is([data-type="alt"], [data-type="compact-alt"]) { --zen-top-nav-fill: var(--zen-color-background-surface-alt, #f7f7f7); }
+.zen-top-nav[data-type="default-blurring"] {
+  --zen-top-nav-blur: 5px;
+  --zen-top-nav-fill: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-surface-default, #fff) 80%, transparent) 50%, var(--zen-color-background-surface-default-bluring-end, rgb(255 255 255 / 0%)) 100%);
+}
+.zen-top-nav:is([data-type="alt-blurring"], [data-type="liquid-glass"]) {
+  --zen-top-nav-fill: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-surface-alt, #f7f7f7) 80%, transparent) 0%, var(--zen-color-background-surface-alt-bluring-end, rgb(247 247 247 / 0%)) 100%);
+}
+.zen-top-nav:is([data-type="default-overlay"], [data-type="liquid-overlay"], [data-type="compact-overlay"]) {
+  --zen-top-nav-content: var(--zen-color-content-on-black-overlay-strongest, #fff);
+  --zen-top-nav-fill: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-black-overlay-hover, rgb(0 0 0 / 50%)) 80%, transparent) 0%, transparent 100%);
+}
+.zen-top-nav[data-type="compact-overlay"] { --zen-top-nav-fill: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-black-overlay-pressed, rgb(0 0 0 / 60%)) 80%, transparent) 0%, transparent 100%); }
+
+/* Scroll-linked collapse (scrollRef). The fold (Expand-Heading, plus a Search Control-Bar that folds into searchAction)
+   slides up by --zen-top-nav-fold with the content, 1:1, and is cut where it passes under the bar; a pinned Control-Bar
+   moves up with it. The fill and the blur end at that edge (the ::before layer), so content scrolling up shows below the
+   header instead of behind its old height. Once content runs under the bar, the opaque types show a Border/Neutral/Pale
+   rule (the iOS standard appearance); the blurring, glass and overlay types keep their own edge (fade + blur). */
+.zen-top-nav[data-scroll-linked="true"] { background: none; }
+.zen-top-nav[data-scroll-linked="true"]::before { position: absolute; z-index: -1; box-sizing: border-box; inset: 0 0 var(--zen-top-nav-shrink, var(--zen-top-nav-fold, 0px)); border-bottom: 1px solid transparent; background: var(--zen-top-nav-fill); content: ""; pointer-events: none; }
+.zen-top-nav[data-scroll-linked="true"] > .zen-top-nav__progressive { bottom: var(--zen-top-nav-shrink, var(--zen-top-nav-fold, 0px)); }
+.zen-top-nav[data-scrolled="true"]:is([data-type="default"], [data-type="alt"], [data-type="compact"], [data-type="compact-alt"])::before { border-bottom-color: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.zen-top-nav__fold { transform: translateY(calc(-1 * var(--zen-top-nav-fold, 0px))); }
+/* What stays under the fold (a pinned Control-Bar, a banner) moves up with the header's edge (--zen-top-nav-shrink: the
+   fold, less the bar row when that row overlays the large title). */
+.zen-top-nav__control--pinned, .zen-top-nav__banner--pinned { transform: translateY(calc(-1 * var(--zen-top-nav-shrink, var(--zen-top-nav-fold, 0px)))); }
+.zen-top-nav__fold { clip-path: inset(var(--zen-top-nav-fold, 0px) 0 0 0); }
+@media (prefers-reduced-motion: no-preference) { .zen-top-nav[data-scroll-linked="true"]::before { transition: border-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
+
+/* Progressive background blur (Figma blurType=PROGRESSIVE, start radius at the top → 0 at the bottom). CSS has one
+   backdrop-filter per element, so five stacked layers each blur the backdrop and are masked to a band that ends
+   1/5 higher than the previous one: the top edge sits under all five (strongest), the bottom under none (sharp).
+   Figma radius ≈ 2 × CSS blur(): Default-Bluring 10 → 5px, Alt-Bluring / Liquid Glass / Overlays 20 → 10px.
+   Each layer blurs by R/√5 so the stacked top edge adds up to ≈ R. Layers sit under the gradient fill and content. */
+.zen-top-nav { --zen-top-nav-blur: 10px; }
+.zen-top-nav__progressive { position: absolute; z-index: -1; inset: 0; pointer-events: none; }
+.zen-top-nav__progressive > i { position: absolute; inset: 0; -webkit-backdrop-filter: blur(calc(var(--zen-top-nav-blur) / 2.236)); backdrop-filter: blur(calc(var(--zen-top-nav-blur) / 2.236)); }
+.zen-top-nav__progressive > i:nth-child(1) { -webkit-mask-image: linear-gradient(180deg, #000 80%, transparent 100%); mask-image: linear-gradient(180deg, #000 80%, transparent 100%); }
+.zen-top-nav__progressive > i:nth-child(2) { -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent 80%); mask-image: linear-gradient(180deg, #000 60%, transparent 80%); }
+.zen-top-nav__progressive > i:nth-child(3) { -webkit-mask-image: linear-gradient(180deg, #000 40%, transparent 60%); mask-image: linear-gradient(180deg, #000 40%, transparent 60%); }
+.zen-top-nav__progressive > i:nth-child(4) { -webkit-mask-image: linear-gradient(180deg, #000 20%, transparent 40%); mask-image: linear-gradient(180deg, #000 20%, transparent 40%); }
+.zen-top-nav__progressive > i:nth-child(5) { -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 20%); mask-image: linear-gradient(180deg, #000 0%, transparent 20%); }
+
+/* Navigator bar: 64px, leading · centred Sub heading · trailing. */
+/* The sides are equal while both fit, so the title stays centred; a side never shrinks below its actions (three Tertiary
+   actions are 180px, more than half a 390px bar), so then the title gives way and ellipsizes instead of running under them. */
+.zen-top-nav__bar { display: grid; min-height: 64px; grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr); align-items: center; }
+.zen-top-nav__leading, .zen-top-nav__trailing { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding-block: var(--zen-spacing-padding-xsmall, 8px); }
+/* Figma Leading-Slot gap = Spacing/Gap/Medium (16). Trailing-Slot gap between actions:
+   Style=Default/Glass 44px buttons = Navigation-Mobile/Top/Action-Button-Gap (8);
+   Style=Flat 24px icons (Type=Compact*) = Navigation-Mobile/Top/Action-Icon-Gap (20). Same in both Margin variants. */
+.zen-top-nav__leading { gap: var(--zen-spacing-gap-medium, 16px); }
+/* Header-Trailing is the same Trailing primitive (up to 3 actions), so it takes the same gaps. */
+.zen-top-nav__trailing, .zen-top-nav__expand-trailing { gap: var(--zen-navigation-mobile-top-action-button-gap, 8px); }
+.zen-top-nav__trailing:has(> .zen-top-nav__action[data-style="flat"]), .zen-top-nav__expand-trailing:has(> .zen-top-nav__action[data-style="flat"]) { gap: var(--zen-navigation-mobile-top-action-icon-gap, 20px); }
+.zen-top-nav__leading { padding-inline: var(--zen-top-nav-side) var(--zen-spacing-padding-small, 12px); }
+.zen-top-nav__trailing { justify-content: flex-end; padding-inline: var(--zen-spacing-padding-small, 12px) var(--zen-top-nav-side); }
+/* Top-Heading-Text (12014:44793): Padding/XSmall × Padding/2XSmall. */
+/* The visible bar title is the screen's heading (role=heading, level 1 by default) in its own bar style. */
+.zen-top-nav__title { overflow: hidden; max-width: 100%; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-2-xsmall, 4px); color: var(--zen-top-nav-content); text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.zen-top-nav__title[data-visible="false"] { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) { .zen-top-nav__title { transition: opacity var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
+
+/* Expand-Heading: 64px, Main-Heading-Text (Navigation-Mobile/Top/Bar-Padding-H1…H3 × the side margin, 12005:30073) +
+   Header-Trailing; the row centres the heading. */
+.zen-top-nav__expand { display: flex; min-height: 64px; align-items: center; }
+.zen-top-nav__heading { overflow: hidden; min-width: 0; flex: 1; margin: 0; padding: var(--zen-navigation-mobile-top-bar-padding-h1, 12px) var(--zen-top-nav-side); color: var(--zen-top-nav-content); text-overflow: ellipsis; white-space: nowrap; }
+.zen-top-nav__heading[data-level="h2"] { padding-block: var(--zen-navigation-mobile-top-bar-padding-h2, 12px); }
+.zen-top-nav__heading[data-level="h3"] { padding-block: var(--zen-navigation-mobile-top-bar-padding-h3, 16px); }
+.zen-top-nav__expand-trailing { display: flex; align-items: center; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-top-nav-side) var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); }
+.zen-top-nav__control { display: flex; min-height: 48px; box-sizing: border-box; align-items: center; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-top-nav-side) var(--zen-spacing-padding-xsmall, 8px); }
+.zen-top-nav__control > * { min-width: 0; flex: 1; }
+/* A Segmented in the Control-Bar always spans the bar with equal items (mobile pattern), even without fullWidth. */
+.zen-top-nav__control > .zen-segmented { display: flex; width: 100%; }
+.zen-top-nav__control > .zen-segmented > .zen-segmented__item { flex: 1 1 0; }
+
+/* Nav-Action (Nav-Action/Icon-Main 6085:34010): Navigation-Action/Size circle (Corner-Radius/Rounded), Navigation-Action/Icon
+   padding around a Navigation-Mobile/Top/Icon-Size icon (Icon-Main Tertiary · Flat · Liquid-Glass). */
+.zen-top-nav__action {
+  position: relative;
+  display: inline-flex;
+  width: var(--zen-navigation-action-size, 44px);
+  height: var(--zen-navigation-action-size, 44px);
+  flex: 0 0 var(--zen-navigation-action-size, 44px);
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  padding: var(--zen-navigation-action-icon-spacing-vertical-padding, 10px) var(--zen-navigation-action-icon-spacing-horizontal-padding, 10px);
+  border: 0;
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  background: var(--zen-button-tertiary-background-default, #fff);
+  box-shadow: inset 0 0 0 1px var(--zen-button-tertiary-border-default, rgb(1 1 1 / 11%)), var(--zen-style-shadow-action-tertiary-shadow, 0 1px 1px rgb(0 0 0 / 6%));
+  color: var(--zen-top-nav-content);
+  cursor: pointer;
+  --zen-icon-size: var(--zen-navigation-mobile-top-icon-size, 24px);
+}
+.zen-top-nav__action .zen-icon, .zen-top-nav__action svg { width: var(--zen-navigation-mobile-top-icon-size, 24px); height: var(--zen-navigation-mobile-top-icon-size, 24px); }
+.zen-top-nav__action:hover:not(:disabled) { background: var(--zen-button-tertiary-background-hover, #f7f7f7); }
+.zen-top-nav__action:active:not(:disabled) { background: var(--zen-button-tertiary-background-pressed, #efefef); box-shadow: inset 0 0 0 1px var(--zen-button-tertiary-border-default, rgb(1 1 1 / 11%)); }
+.zen-top-nav__action:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 2px; }
+.zen-top-nav__action:disabled { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); cursor: not-allowed; }
+/* Flat: no container; the 44px target stays but only the 24px icon takes layout room (Figma Style=Flat 12012:36254: an
+   Icon-Size slot with the Navigation-Action/Size button at −10px). */
+.zen-top-nav__action[data-style="flat"] { margin: calc((var(--zen-navigation-mobile-top-icon-size, 24px) - var(--zen-navigation-action-size, 44px)) / 2); background: transparent; box-shadow: none; }
+.zen-top-nav__action[data-style="flat"]:hover:not(:disabled) { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+/* Effect style Liquid-Glass/Normal on both (Figma GLASS frost 4 → blur 2px, light −45° → a lit top-left rim and a fainter
+   bottom-right one; refraction and dispersion have no CSS equivalent) plus its 0 4 24 −8 shadow. */
+.zen-top-nav__action:is([data-style="glass"], [data-style="glass-dark"]) {
+  box-shadow: inset 1px 1px 0 0 var(--zen-color-background-liquid-glass-white-overlay-pressed, rgb(255 255 255 / 70%)), inset -1px -1px 0 0 var(--zen-color-background-liquid-glass-white-overlay-default, rgb(255 255 255 / 40%)), var(--zen-style-liquid-glass-normal-shadow, 0 4px 24px -8px rgb(0 0 0 / 16%));
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.zen-top-nav__action[data-style="glass"] { background: var(--zen-color-background-liquid-glass-normal-default, rgb(255 255 255 / 70%)); }
+.zen-top-nav__action[data-style="glass"]:hover:not(:disabled) { background: var(--zen-color-background-liquid-glass-normal-hover, rgb(255 255 255 / 80%)); }
+.zen-top-nav__action[data-style="glass-dark"] { background: var(--zen-color-background-liquid-glass-black-overlay-default, rgb(0 0 0 / 30%)); }
+.zen-top-nav__action[data-style="glass-dark"]:hover:not(:disabled) { background: var(--zen-color-background-liquid-glass-black-overlay-hover, rgb(0 0 0 / 40%)); }
+/* Noti (Nav-Slot/Action 6085:44062, every Style incl. Flat): 8px at x 26 · y 10 of the 44px button, i.e. pinned to the
+   icon's top-right corner, so it sits one icon padding in from the top and the end. */
+.zen-top-nav__dot { position: absolute; top: var(--zen-navigation-action-icon-spacing-vertical-padding, 10px); right: var(--zen-navigation-action-icon-spacing-horizontal-padding, 10px); width: 8px; height: 8px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-negative-solid-default, #e5532e); box-shadow: 0 0 0 2px var(--zen-color-border-inverse, #fff); }
+@media (prefers-reduced-motion: no-preference) { .zen-top-nav__action { transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
+
+/* searchAction: the Search control bar folds into a trailing Search action while collapsed (and back). */
+.zen-top-nav__search { animation: zen-top-nav-search-in var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-emphasized, ease-out) both; }
+.zen-top-nav__search[data-state="closing"] { animation: zen-top-nav-search-out var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-exit, ease-in) both; pointer-events: none; }
+@keyframes zen-top-nav-search-in { from { opacity: 0; transform: scale(calc(1 - 0.2 * var(--zen-motion-movement, 1))); } }
+@keyframes zen-top-nav-search-out { to { opacity: 0; transform: scale(calc(1 - 0.2 * var(--zen-motion-movement, 1))); } }
+/* Reduced motion: the Search control crossfades (its scale step is multiplied by --zen-motion-movement, 0 there). */
+
+/* Identity title (Figma ◆ Social conversation header: Heading-Text Type=Sub + Leading + Subheading). The bar switches to
+   leading · identity (fills, left-aligned) · trailing; the identity keeps the Heading-Text padding 8/4. */
+.zen-top-nav__bar:has(> :is(.zen-top-nav__identity, .zen-top-nav__identity-heading)) { grid-template-columns: auto minmax(0, 1fr) auto; }
+.zen-top-nav__bar:has(> :is(.zen-top-nav__identity, .zen-top-nav__identity-heading)) > .zen-top-nav__leading { padding-inline-end: var(--zen-spacing-padding-small, 12px); }
+/* A clickable identity sits inside its heading (a heading cannot sit inside a button); the heading only lays it out. */
+.zen-top-nav__identity-heading { display: flex; min-width: 0; align-items: center; margin: 0; font: inherit; }
+.zen-top-nav__identity { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-base, 12px); background: transparent; color: var(--zen-top-nav-content); font: inherit; text-align: start; }
+button.zen-top-nav__identity { cursor: pointer; }
+button.zen-top-nav__identity:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+button.zen-top-nav__identity:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: -3px; }
+.zen-top-nav__identity-leading { display: inline-flex; width: var(--zen-image-size-large, 48px); height: var(--zen-image-size-large, 48px); flex: 0 0 var(--zen-image-size-large, 48px); align-items: center; justify-content: center; }
+.zen-top-nav__identity-text { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-top-nav__identity-title, .zen-top-nav__identity-subtitle { overflow: hidden; margin: 0; text-overflow: ellipsis; white-space: nowrap; }
+.zen-top-nav__identity-subtitle { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-top-nav[data-type$="overlay"] .zen-top-nav__identity-subtitle { color: var(--zen-color-content-on-black-overlay-base, rgb(255 255 255 / 70%)); }
+
+/* Grouped trailing actions: the dual Nav-Action (Figma Trailing-Icon on Nav-Action/Icon-Main 6085:33688 · Liquid-Glass
+   12015:46174 · Icon-Overlay 6085:33284, 92×44 — padding 10, two 24px icons 24 apart) made of two 44px flat halves, so
+   each icon keeps its own target and name. The pill takes the bar's action style: Tertiary by default. */
+.zen-top-nav__group { display: inline-flex; box-sizing: border-box; align-items: center; padding: 0 var(--zen-spacing-padding-3-xsmall, 2px); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-button-tertiary-background-default, #fff); box-shadow: inset 0 0 0 1px var(--zen-button-tertiary-border-default, rgb(1 1 1 / 11%)), var(--zen-style-shadow-action-tertiary-shadow, 0 1px 1px rgb(0 0 0 / 6%)); -webkit-backdrop-filter: var(--zen-style-shadow-action-tertiary-backdrop-filter, none); backdrop-filter: var(--zen-style-shadow-action-tertiary-backdrop-filter, none); }
+.zen-top-nav__action[data-style="flat-group"] { background: transparent; box-shadow: none; }
+.zen-top-nav__action[data-style="flat-group"]:hover:not(:disabled) { background: var(--zen-button-tertiary-background-hover, rgb(1 1 1 / 4%)); }
+.zen-top-nav__action[data-style="flat-group"]:active:not(:disabled) { background: var(--zen-button-tertiary-background-pressed, rgb(1 1 1 / 8%)); box-shadow: none; }
+/* Liquid Glass (liquid-glass: Level=Secondary) and Liquid Glass Black Overlay (the overlay types): the glass of the single
+   actions on the whole pill; each half answers with a flat tint that reads on that glass. */
+.zen-top-nav__group:is([data-style="glass"], [data-style="glass-dark"]) {
+  box-shadow: inset 1px 1px 0 0 var(--zen-color-background-liquid-glass-white-overlay-pressed, rgb(255 255 255 / 70%)), inset -1px -1px 0 0 var(--zen-color-background-liquid-glass-white-overlay-default, rgb(255 255 255 / 40%)), var(--zen-style-liquid-glass-normal-shadow, 0 4px 24px -8px rgb(0 0 0 / 16%));
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.zen-top-nav__group[data-style="glass"] { background: var(--zen-color-background-liquid-glass-normal-default, rgb(255 255 255 / 70%)); }
+.zen-top-nav__group[data-style="glass-dark"] { background: var(--zen-color-background-liquid-glass-black-overlay-default, rgb(0 0 0 / 30%)); }
+.zen-top-nav__group[data-style="glass"] > .zen-top-nav__action:hover:not(:disabled) { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+.zen-top-nav__group[data-style="glass"] > .zen-top-nav__action:active:not(:disabled) { background: var(--zen-color-background-neutral-flat-pressed, rgb(1 1 1 / 10%)); }
+.zen-top-nav__group[data-style="glass-dark"] > .zen-top-nav__action:hover:not(:disabled) { background: var(--zen-color-background-inverse-flat-hover, rgb(255 255 255 / 10%)); }
+.zen-top-nav__group[data-style="glass-dark"] > .zen-top-nav__action:active:not(:disabled) { background: var(--zen-color-background-inverse-flat-pressed, rgb(255 255 255 / 16%)); }
+
+/* Top-bar=false (Figma root screens, `topBar`): the navigator bar overlays the large-title row instead of sitting above
+   it, so a root header is the status inset + the 64px large-title row (+ control bar). The bar's actions sit at the right
+   of that row (Figma Expand-Trailing); its title stays hidden until the large title folds, then shows in the same row,
+   which takes the fill so nothing that still slides under it shows through. */
+.zen-top-nav[data-bar="overlay"] > .zen-top-nav__bar { position: absolute; z-index: 1; top: var(--zen-safe-area-top, env(safe-area-inset-top, 0px)); right: 0; left: 0; pointer-events: none; }
+.zen-top-nav[data-bar="overlay"] > .zen-top-nav__bar .zen-top-nav__action { pointer-events: auto; }
+.zen-top-nav[data-bar="overlay"][data-collapsed="true"] > .zen-top-nav__bar { background: var(--zen-top-nav-fill); }
+/* The room the overlaid actions take, kept free in the large-title row (invisible placeholders of the same size). */
+.zen-top-nav__trailing--room { flex: 0 0 auto; visibility: hidden; }
+
+/* banner: a status pinned under the bar and the control bar, edge to edge (a Small AlertBanner). */
+.zen-top-nav__banner { display: flex; flex-direction: column; }
+

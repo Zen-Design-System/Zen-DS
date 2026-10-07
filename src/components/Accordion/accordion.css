@@ -7,6 +7,8 @@
   --zen-accordion-icon: var(--zen-element-size-popular-base, 20px);
   --zen-accordion-icon-inset: var(--zen-spacing-padding-3-xsmall, 2px);
   --zen-accordion-radius: var(--zen-corner-radius-large, 16px);
+  /* Container itemSpacing (239:10693): Title ↔ chevron column, every size. The content column stops at the same edge. */
+  --zen-accordion-header-gap: var(--zen-spacing-gap-medium, 16px);
   display: flex;
   box-sizing: border-box;
   width: 100%;
@@ -27,15 +29,26 @@
 }
 /* Theme=Divider: 1px Border/Neutral/Subtle rule under the item. Figma centres the stroke on the edge
    without growing the 56/88/116px box, so it is drawn as an inset shadow instead of a border. */
-.zen-accordion[data-theme="divider"] { box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
-/* Theme=Box: Support/Neutral/Pale surface, padding on every side, Corner-Radius Large (XLarge: 2XLarge). */
-.zen-accordion[data-theme="box"] { padding: var(--zen-accordion-padding); border-radius: var(--zen-accordion-radius); background: var(--zen-color-background-support-neutral-pale, rgb(5 5 5 / 3%)); }
+.zen-accordion[data-tone="divider"] { box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
+/* Theme=Box (239:16847 Theme=Box): Support/Neutral/Pale surface, padding Padding/Medium (XLarge: Padding/XLarge) on every
+   side, Corner-Radius/Large (XLarge: 2XLarge). The whole header is the toggle's hit area, so the box padding is split:
+   the box keeps an inset of padding − header gap (Medium 16 − 8 = 8 · Large 16 − 12 = 4 · XLarge 24 − 16 = 8) and the
+   trigger takes the header gap on every side. Title, chevron and content land exactly where Figma puts them, collapsed
+   and open, and the trigger's bottom padding is the Title → Contents gap, so opening does not move the header. */
+.zen-accordion[data-tone="box"] {
+  --zen-accordion-box-inset: calc(var(--zen-accordion-padding) - var(--zen-accordion-gap));
+  padding: var(--zen-accordion-box-inset);
+  border-radius: var(--zen-accordion-radius);
+  background: var(--zen-color-background-support-neutral-pale, rgb(5 5 5 / 3%));
+}
 
+/* APG: the header button sits in an h{n}. The heading only carries the level; the title span keeps the size's text style. */
+.zen-accordion__heading { margin: 0; font: inherit; }
 .zen-accordion__trigger {
   display: flex;
   width: 100%;
   align-items: flex-start;
-  gap: var(--zen-spacing-gap-medium, 16px);
+  gap: var(--zen-accordion-header-gap);
   margin: 0;
   padding: 0;
   border: 0;
@@ -46,6 +59,22 @@
   text-align: start;
 }
 .zen-accordion__trigger:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 4px; }
+/* Theme=Divider: the whole header row is the toggle's hit area, block padding included (as in Theme=Box). The root keeps
+   Figma's block padding (Padding/Medium, XLarge Padding/XLarge; no inline padding), so a hit layer on the trigger reaches
+   up through the top padding and down through the bottom padding; open, only down through the Title → Contents gap, so
+   the content stays selectable. Layout, divider rule and focus ring do not change. */
+.zen-accordion[data-tone="divider"] .zen-accordion__trigger { position: relative; }
+.zen-accordion[data-tone="divider"] .zen-accordion__trigger::before { position: absolute; inset: calc(-1 * var(--zen-accordion-padding)) 0; content: ""; }
+.zen-accordion[data-tone="divider"][data-expanded="true"] .zen-accordion__trigger::before { inset-block-end: calc(-1 * var(--zen-accordion-gap)); }
+/* Box: concentric corners — box radius = trigger radius + inset (Medium 16 = 8 + 8 · Large 16 = 12 + 4 · XLarge
+   24 = 16 + 8 in Rounded; calc keeps it true in every Corner Radius mode, floored at 0 for Luxury). Figma has no focus
+   state for the Accordion: the ring sits inside the trigger (offset −3, like Popover and Sheet items), so it follows the
+   trigger radius and stays clear of the box edge and the title. */
+.zen-accordion[data-tone="box"] .zen-accordion__trigger {
+  padding: var(--zen-accordion-gap);
+  border-radius: max(0px, calc(var(--zen-accordion-radius) - var(--zen-accordion-box-inset)));
+}
+.zen-accordion[data-tone="box"] .zen-accordion__trigger:focus-visible { outline-offset: -3px; }
 .zen-accordion__title { min-width: 0; flex: 1 1 auto; color: var(--zen-color-content-neutral-strongest, #111); }
 /* XLarge Content has Padding/3XSmall above the title. */
 .zen-accordion[data-size="xlarge"] .zen-accordion__title { padding-top: var(--zen-spacing-padding-3-xsmall, 2px); }
@@ -54,7 +83,7 @@
   flex: 0 0 auto;
   padding-block: var(--zen-accordion-icon-inset);
   color: var(--zen-color-content-neutral-strongest, #111);
-  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease);
 }
 .zen-accordion__icon > .zen-icon { width: var(--zen-accordion-icon); height: var(--zen-accordion-icon); }
 .zen-accordion[data-expanded="true"] .zen-accordion__icon { transform: rotate(180deg); }
@@ -63,15 +92,30 @@
 .zen-accordion__panel {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: grid-template-rows var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-standard, ease);
 }
 .zen-accordion[data-expanded="true"] .zen-accordion__panel { grid-template-rows: 1fr; }
 .zen-accordion__panel-inner { min-height: 0; overflow: hidden; }
+/* Clip only while collapsed or animating: once open, content may paint outside the panel — hover halos
+   (Checkbox/Radio −8px), focus rings (−4px) and shadows must not be cut. The 240ms animation keeps the clip
+   for the duration of the height transition, then releases it. */
+.zen-accordion[data-expanded="true"] .zen-accordion__panel-inner { overflow: visible; animation: zen-accordion-clip var(--zen-motion-duration-slow, 280ms); }
+@keyframes zen-accordion-clip { from, to { overflow: hidden; } }
 .zen-accordion__content {
   padding-top: var(--zen-accordion-gap);
-  padding-inline-end: calc(var(--zen-accordion-icon) + var(--zen-spacing-gap-medium, 16px));
+  padding-inline-end: calc(var(--zen-accordion-icon) + var(--zen-accordion-header-gap));
   color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%));
 }
+/* Box: the trigger's bottom padding already is the Title → Contents gap; the content takes the trigger's side insets
+   and the rest of the box padding below it (inset + gap = Figma padding). */
+.zen-accordion[data-tone="box"] .zen-accordion__content {
+  padding: 0 calc(var(--zen-accordion-gap) + var(--zen-accordion-icon) + var(--zen-accordion-header-gap)) var(--zen-accordion-gap) var(--zen-accordion-gap);
+}
+/* contentWidth="full" (Figma Content Width=Full): the content also takes the chevron column, so end-aligned values (a receipt's prices)
+   reach the row's end (Divider) or the box padding (Box: the trigger's side inset, as on the start side). */
+.zen-accordion[data-content-width="full"] .zen-accordion__content { padding-inline-end: 0; }
+.zen-accordion[data-tone="box"][data-content-width="full"] .zen-accordion__content { padding-inline-end: var(--zen-accordion-gap); }
 @media (prefers-reduced-motion: reduce) {
   .zen-accordion__panel, .zen-accordion__icon { transition: none; }
+  .zen-accordion[data-expanded="true"] .zen-accordion__panel-inner { animation: none; }
 }

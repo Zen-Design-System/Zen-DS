@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { SelectField } from "../../src/components/Input";
+import { HeadingField, SelectField } from "../../src/components/Input";
 import { Checkbox } from "../../src/components/Checkbox";
 import { RadioButton } from "../../src/components/RadioButton";
 import { Chip } from "../../src/components/Chip";
@@ -7,7 +7,7 @@ import { Icon } from "../../src/components/Icon";
 import { Popover, PopoverItem, PopoverManualAddNew, PopoverBunkAction, PopoverBunkActionGroup, PopoverBunkActionDivider } from "../../src/components/Popover";
 import { Avatar } from "../../src/components/Avatar";
 import { Badge } from "../../src/components/Badge";
-import { IconButton } from "../../src/components/Button";
+import { Button, IconButton } from "../../src/components/Button";
 
 type Props = Record<string, any>;
 const photo = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="#c8a"/></svg>');
@@ -35,6 +35,7 @@ export const cases: Record<string, (props: Props) => ReactNode> = {
   popover: ({ items = 1, ...p }) => (
     <div style={{ position: "relative", width: 240, height: 10 }}>
       <Popover
+        open
         {...p}
         style={{ position: "static" }}
         items={Array.from({ length: items }, (_, index) => ({ id: String(index), label: "Popover Item", leading: <Icon name="icon-star-01-line" decorative /> }))}
@@ -43,7 +44,7 @@ export const cases: Record<string, (props: Props) => ReactNode> = {
   ),
   manualAddNew: (p) => (
     <div style={{ position: "relative", width: 240 }}>
-      <PopoverManualAddNew {...p} style={{ position: "static" }} />
+      <PopoverManualAddNew open {...p} style={{ position: "static" }} />
     </div>
   ),
   bunkAction: () => {
@@ -67,6 +68,13 @@ export const cases: Record<string, (props: Props) => ReactNode> = {
     return <div style={{ width: 240 }}><PopoverItem label="Popover Item" caption={caption} theme={theme} leading={leading} /></div>;
   },
   badge: (p) => <Badge {...p} />,
+  // Figma Input/Heading fills a 389.33px frame.
+  headingField: (p) => <div style={{ width: 389.33 }}><HeadingField aria-label="Heading" onChange={() => {}} {...p} /></div>,
+  // Figma's Leading/Trailing-Icon default to hidden; `withIcons` renders both to measure the icon slots.
+  button: ({ label = "Button", withIcons, ...p }) => (
+    <Button {...p} startIcon={withIcons ? <Icon name="icon-plus-line" decorative /> : undefined} endIcon={withIcons ? <Icon name="icon-plus-line" decorative /> : undefined}>{label}</Button>
+  ),
+  iconButton: (p) => <IconButton {...p} aria-label="Add" tooltip={false} icon={<Icon name="icon-plus-line" decorative />} />,
   // Stateful demos used by interactions.mjs (behaviour, not visuals).
   interactive: () => <InteractiveDemo />,
 };
@@ -91,8 +99,8 @@ function InteractiveDemo() {
           {picked ? items.find((item) => item.id === picked)?.label : "Fruit"}
         </Chip>
       </div>
-      <div style={{ position: "relative", height: 10 }}><Popover id="search-pop" style={{ position: "static" }} search items={items} /></div>
-      <div style={{ position: "relative" }}><PopoverManualAddNew id="manual" style={{ position: "static" }} items={items} onCreate={setCreated} /></div>
+      <div style={{ position: "relative", height: 10 }}><Popover open id="search-pop" style={{ position: "static" }} search items={items} /></div>
+      <div style={{ position: "relative" }}><PopoverManualAddNew open id="manual" style={{ position: "static" }} items={items} onCreate={setCreated} /></div>
       <output id="created">{created}</output>
       <SelectField id="fruit" label="Fruit" value={fruit} onChange={(event) => setFruit(event.target.value)} options={[{ label: "Apple", value: "a" }, { label: "Banana", value: "b" }, { label: "Durian", value: "d" }]} />
       <output id="fruit-value">{fruit}</output>

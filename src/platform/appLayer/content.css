@@ -1,0 +1,105 @@
+/* App-layer group "content" (platform only): Description List, Action Bar, Image, Visually Hidden pages. Prefix pac-. */
+.pac-preview { justify-content: center; }
+.pac-card-fill { width: min(440px, 100%); }
+.pac-stack-start { align-self: flex-start; justify-self: start; }
+.pac-nowrap { white-space: nowrap; }
+
+/* ── Description List ── */
+.pac-dl-frame { width: min(420px, 100%); }
+.pac-dl-frame[data-width="narrow"] { width: min(300px, 100%); }
+.pac-dl-skeleton { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.pac-dl-skeleton > div { display: flex; min-height: 24px; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-medium, 16px); }
+.pac-dl-skeleton > div > .zen-skeleton-text:first-child { width: 32%; }
+.pac-dl-skeleton > div > .zen-skeleton-text:last-child { width: 44%; }
+.pac-inline-edit { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding-top: var(--zen-spacing-padding-2-xsmall, 4px); }
+.pac-inline-edit__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.pac-edge-grid { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: var(--zen-spacing-gap-medium, 16px); }
+.pac-edge-grid[data-narrow="true"] { grid-template-columns: minmax(0, 280px) minmax(0, 1fr); }
+@media (max-width: 760px) { .pac-edge-grid, .pac-edge-grid[data-narrow="true"] { grid-template-columns: minmax(0, 1fr); } }
+.pac-sheet-body { display: grid; gap: var(--zen-spacing-gap-large, 24px); }
+/* A table whose columns never squeeze: on a narrow card it scrolls sideways inside its own box instead. */
+.zen-table.pac-scroll-table > .zen-table__table { min-width: max-content; }
+
+/* ── Action Bar: a page preview (the frame is the "viewport" a fixed bar pins to) ── */
+/* zen-allow-canvas-layer: the frame stands in for the app page behind the bar */
+.pac-frame {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 440px;
+  overflow: hidden;
+  contain: layout;
+  border-radius: var(--zen-corner-radius-xlarge, 20px);
+  background: var(--zen-color-background-canvas-default, #f7f7f7);
+  box-shadow: 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+}
+.pac-frame[data-device="phone"] { --zen-safe-area-bottom: 28px; width: min(390px, 100%); height: 600px; border-radius: var(--zen-corner-radius-3-xlarge, 28px); }
+.pac-frame[data-size="short"] { height: 380px; }
+.pac-frame[data-device="phone"][data-size="short"] { height: 480px; }
+/* The phone frame's home indicator, drawn by the "OS" above the app (like PlatformPhone).
+   zen-allow-colour-role: a solid OS glyph in the content colour, as PlatformPhone draws it; Figma's System/Bottom-Indicator
+   (308:46297) fills it with Background/Neutral/Subtle, which reads as a 6% bar on the frame. */
+.pac-frame[data-device="phone"]::after { position: absolute; z-index: 20; bottom: 8px; left: 50%; width: 134px; height: 5px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-content-neutral-strongest, #111); content: ""; pointer-events: none; transform: translateX(-50%); }
+.pac-frame__scroll { display: flex; height: 100%; box-sizing: border-box; flex-direction: column; margin: 0; overflow: auto; overscroll-behavior: contain; }
+.pac-frame__page { display: flex; box-sizing: border-box; flex: 1 0 auto; flex-direction: column; gap: var(--zen-spacing-gap-large, 24px); padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-margin-comfortable, 24px); }
+.pac-frame[data-device="phone"] .pac-frame__page { padding-top: var(--zen-spacing-padding-large, 20px); }
+.pac-frame-stack { display: flex; width: 100%; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+.pac-product { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-large, 24px); }
+.pac-product__head { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.pac-form { display: grid; gap: var(--zen-spacing-gap-medium, 16px); }
+.pac-form__row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--zen-spacing-gap-medium, 16px); }
+/* Status line: the icon carries the colour (Light is for icons, §7); the text stays Neutral/Base. */
+.pac-status { --pac-status-icon: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.pac-status[data-tone="positive"] { --pac-status-icon: var(--zen-color-content-positive-light, #2e7d32); }
+.pac-status[data-tone="warning"] { --pac-status-icon: var(--zen-color-content-warning-light, #b26a00); }
+.pac-status > .zen-icon { color: var(--pac-status-icon); }
+/* Cart row: the price line ends in Remove; the quantity stepper sits under it. */
+.pac-cart-line { display: flex; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-input-field.pac-cart-qty { width: 128px; }
+/* Edit page bar: under 480px the component puts the buttons side by side at equal widths, which cuts longer labels
+   ("Undo c…"). Here each button keeps its whole label: when the two do not fit they wrap to full-width rows, Primary on top. */
+.zen-action-bar.pac-bar-whole-labels[data-narrow="true"] > .zen-action-bar__actions > * { flex: 1 1 auto; }
+
+/* ── Image ── */
+.pac-image-stage { width: min(440px, 100%); }
+.pac-image-stage[data-kind="thumbnail"] { display: flex; width: auto; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+.pac-gallery { display: flex; width: min(480px, 100%); flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); }
+.pac-gallery__stage { position: relative; }
+.pac-gallery__nav { position: absolute; z-index: 2; top: 50%; transform: translateY(-50%); }
+.pac-gallery__nav[data-side="previous"] { left: var(--zen-spacing-padding-small, 12px); }
+.pac-gallery__nav[data-side="next"] { right: var(--zen-spacing-padding-small, 12px); }
+.pac-thumbs { display: flex; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: var(--zen-spacing-padding-2-xsmall, 4px); overflow-x: auto; list-style: none; scrollbar-width: thin; }
+.pac-thumb { display: inline-flex; flex: 0 0 auto; padding: 0; border: 0; border-radius: var(--zen-corner-radius-large, 16px); background: transparent; cursor: pointer; opacity: .72; transition: opacity 120ms ease; }
+.pac-thumb:hover { opacity: 1; }
+.pac-thumb[aria-pressed="true"] { opacity: 1; outline: 2px solid var(--zen-color-border-active-neutral-solid, #111); outline-offset: 2px; }
+.pac-thumb:focus-visible { opacity: 1; outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .pac-thumb { transition: none; } }
+.pac-proofs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: var(--zen-spacing-gap-small, 12px); }
+.pac-ratio-grid { display: grid; width: 100%; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); align-items: start; gap: var(--zen-spacing-gap-medium, 16px); }
+.pac-feed { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px) var(--zen-spacing-padding-xlarge, 24px); }
+.zen-card.pac-feed__card { overflow: hidden; padding: 0; }
+.pac-feed__meta { display: flex; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px); }
+.pac-feed__like { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+
+/* ── Visually Hidden ── */
+/* Playground "Reveal hidden text": show what only assistive technology gets, outlined (a teaching view, never in product). */
+.pac-vh-reveal .zen-visually-hidden:not([data-focusable="true"]:focus-within) { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; clip-path: none; padding: 0 var(--zen-spacing-padding-3-xsmall, 2px); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-accent-subtle-default, rgb(255 102 212 / 16%)); color: var(--zen-color-content-accent-base, #95197b); outline: 1px dashed var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); white-space: normal; }
+.pac-vh-stage { display: flex; width: min(520px, 100%); flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+.pac-vh-output { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default, #fff); box-shadow: 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.pac-site { position: relative; display: flex; width: 100%; flex-direction: column; overflow: hidden; border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); box-shadow: 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.pac-site__header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-large, 20px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.pac-site__nav ul { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: 0; list-style: none; }
+.pac-site__nav a { display: inline-flex; min-height: 32px; box-sizing: border-box; align-items: center; padding: 0 var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-small, 8px); color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); text-decoration: none; }
+.pac-site__nav a:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); }
+.pac-site__nav a[aria-current="page"] { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); }
+.pac-site__nav a:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 0; }
+.pac-site__main { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-large, 20px); outline: 0; }
+.pac-site__main:focus-visible { box-shadow: inset 0 0 0 3px var(--zen-color-focus-accent-solid, #ff66d4); }
+/* Three equal-height columns while the preview is wide enough, one below that (a container query: examples keep the desktop breakpoint). */
+.pac-articles { width: 100%; container-type: inline-size; }
+.pac-articles__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
+@container (max-width: 420px) { .pac-articles__grid { grid-template-columns: minmax(0, 1fr); } }
+.pac-articles__body { flex: 1 1 auto; }
+.pac-share { display: flex; align-items: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.pac-share > :first-child { min-width: 0; flex: 1 1 auto; }
+.pac-metrics { display: grid; width: 100%; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--zen-spacing-gap-medium, 16px); }

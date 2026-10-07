@@ -1,0 +1,9 @@
+/* Page Header examples. Each one is a desktop page (screen card): it paints the Canvas, Container gives its side
+   margin and the page adds the same margin above and below, as an app's main area does. */
+.px-page-header-page { padding-block: var(--zen-margin-comfortable, 24px); background: var(--zen-color-background-canvas-default); }
+
+/* A details card keeps a readable width, so each term stays near its value on a wide page (full width on a phone). */
+.px-page-header-details { width: min(100%, 440px); }
+
+/* One value of a row caption (a date, a range, a name): it never breaks inside, so the caption wraps between values. */
+.px-page-header-value { white-space: nowrap; }

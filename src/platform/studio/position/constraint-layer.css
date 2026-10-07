@@ -1,0 +1,10 @@
+/* Constraint lines on the canvas (ConstraintLayer.tsx; spec docs/research/studio-position-effects-radius-spec-2026-10-03.md
+   §4.4). Same plane as the selection overlay (z 10), below the slot layer (11). The owner outline and the pills reuse
+   the selection's classes (select.css). */
+.studio-constraint-layer { position: absolute; z-index: 10; inset: 0; overflow: clip; pointer-events: none; }
+.studio-constraint-layer__frame { position: absolute; inset: 0; }
+.studio-constraint-layer__line { position: absolute; top: 0; left: 0; box-sizing: border-box; pointer-events: none; }
+/* zen-allow-dashed-color: selection chrome (Figma's constraint lines), not a content divider — Info blue like the selection. */
+.studio-constraint-layer__line[data-axis="x"] { border-top: 1px dashed var(--zen-color-border-info-solid-default); margin-top: -0.5px; }
+/* zen-allow-dashed-color: selection chrome (Figma's constraint lines), not a content divider — Info blue like the selection. */
+.studio-constraint-layer__line[data-axis="y"] { border-left: 1px dashed var(--zen-color-border-info-solid-default); margin-left: -0.5px; }

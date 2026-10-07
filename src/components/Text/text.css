@@ -1,0 +1,17 @@
+/* Text & Heading: Figma text styles (typography.css classes) + Color/Content roles (tones: _shared/content-tone.css). */
+.zen-text { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); overflow-wrap: break-word; }
+/* align="start" is written too: it puts a text back at the start inside a parent that centres its text. */
+.zen-text[data-align="start"] { text-align: start; }
+.zen-text[data-align="center"] { text-align: center; }
+.zen-text[data-align="end"] { text-align: end; }
+.zen-text[data-align="justify"] { text-align: justify; }
+/* Vertical alignment inside a box taller than its text (a Fixed or Fill height, Figma's Fixed size text box): the block
+   aligns its lines (align-content); a clamped text (-webkit-box) packs them instead. */
+.zen-text[data-valign="top"] { align-content: start; -webkit-box-pack: start; }
+.zen-text[data-valign="middle"] { align-content: center; -webkit-box-pack: center; }
+.zen-text[data-valign="bottom"] { align-content: end; -webkit-box-pack: end; }
+/* Truncation needs a box: even an inline span (as="span") becomes a block so the ellipsis can show. */
+.zen-text[data-truncate="line"] { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zen-text[data-truncate="lines"] { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: var(--zen-text-lines, 2); line-clamp: var(--zen-text-lines, 2); }
+/* Inline code inside copy uses the Dev font family (JetBrains Mono in Zen; the app loads it, else the system mono). */
+.zen-text code { font: inherit; font-family: var(--zen-typography-font-family-dev, ui-monospace), ui-monospace, monospace; }

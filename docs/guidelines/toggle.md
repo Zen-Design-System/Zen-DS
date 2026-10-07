@@ -16,20 +16,63 @@ Turn a setting on or off with immediate effect.
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Size | `size` | small · medium · large |
+| Size | `size` | small · medium · large (phones: large; small and medium for dense desktop rows, tables and panels) |
 | Theme | `theme` | text-first · toggle-first |
-| Select | `selected / onSelectedChange` | controlled |
+| Select | `checked / defaultChecked / onCheckedChange` | controlled or not (selected / onSelectedChange still work, deprecated) |
 | Caption / Bold | `caption / bold` | supporting text |
 | Disabled | `disabled` | dependent settings |
 
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/toggle.json`.
+
+### Toggle
+Also accepts `ToggleButtonProps`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `checked` | `boolean` | — | On (true) or off (false) — controlled. |
+| `defaultChecked` | `boolean` | — | Initial state when uncontrolled. |
+| `onCheckedChange` | `(checked: boolean) => void` | — | Called with the new state when the switch is flipped. |
+| `selected` | `boolean` | — | **Deprecated:** Use checked.  |
+| `defaultSelected` | `boolean` | — | **Deprecated:** Use defaultChecked.  |
+| `size` | `"sm" \| "md" \| "lg" \| "small" \| "medium" \| "large"` | `"sm"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `state` | `"default" \| "hover" \| "disabled"` | `"default"` |  |
+| `onSelectedChange` | `(selected: boolean, event: ChangeEvent<HTMLInputElement>) => void` | — | **Deprecated:** Use onCheckedChange (or read event.target.checked).  |
+| `label` (required) | `ReactNode` | — |  |
+| `caption` | `ReactNode` | — | Toggle (1526:5703) Content Subtext: short help under the label (Caption/Regular 11/16, Content/Neutral/Light). |
+| `bold` | `boolean` | `false` |  |
+| `theme` | `"text-first" \| "toggle-first"` | `"text-first"` |  |
+
+### ToggleButton
+Also accepts `Omit<InputHTMLAttributes<HTMLInputElement>, "size" | "type">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `checked` | `boolean` | — | On (true) or off (false) — controlled. |
+| `defaultChecked` | `boolean` | — | Initial state when uncontrolled. |
+| `onCheckedChange` | `(checked: boolean) => void` | — | Called with the new state when the switch is flipped. |
+| `selected` | `boolean` | — | **Deprecated:** Use checked.  |
+| `defaultSelected` | `boolean` | — | **Deprecated:** Use defaultChecked.  |
+| `size` | `"sm" \| "md" \| "lg" \| "small" \| "medium" \| "large"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `state` | `"default" \| "hover" \| "disabled"` | `"default"` |  |
+| `onSelectedChange` | `(selected: boolean, event: ChangeEvent<HTMLInputElement>) => void` | — | **Deprecated:** Use onCheckedChange (or read event.target.checked).  |
+
+## Keyboard
+| Keys | Action |
+| --- | --- |
+| Space | Switch on / off |
+
 ## ✅ Do
 - Apply the change immediately; no confirm button.
+- On phones use size large: components keep their full size on mobile, the smaller sizes are for dense desktop rows, tables and panels (harness: mobile/full-size-controls).
 - Use a master toggle to disable dependent toggles, and explain in its caption.
 - Label the setting, not the state ("Email notifications", not "On").
 
 ## ❌ Don't
 - Don't use a Toggle inside a form that is submitted later.
 - Don't add a forced hover state; real hover is built in.
+- Don't label a toggle with its state ("On", "Enabled") (harness: toggle/label-names-setting).
+- Don't use a Toggle for a one-off action ("Export now") → Button.
 
 ## Accessibility
 - role=switch semantics via the native checkbox; Space toggles.
@@ -42,6 +85,11 @@ Turn a setting on or off with immediate effect.
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `choice/needs-label` | error | Checkbox, Radio and Toggle always carry a label. | `zen-allow-unlabelled-choice: <reason>` |
+| `toggle/label-names-setting` | error | A Toggle's label names the setting ("Email notifications"), never its state ("On"). | `zen-allow-toggle-label: <reason>` |
+| `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `mobile/full-size-controls` | error | On phones components keep their full size: Toggle and ToggleButton are size large, inputs medium or larger; the small sizes are for dense desktop rows, tables and panels. | `zen-allow-mobile-size: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
+| `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 
 ## References
 - [Material 3 — Switch](https://m3.material.io/components/switch/guidelines)

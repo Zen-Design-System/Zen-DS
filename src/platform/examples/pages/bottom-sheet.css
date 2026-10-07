@@ -1,0 +1,4 @@
+/* Bottom Sheet examples (src/platform/examples/pages/bottom-sheet.tsx). Tokens only. */
+
+/* Hours line up at the end of their rows and never wrap. */
+.px-bottom-sheet-hours { font-variant-numeric: tabular-nums; white-space: nowrap; }

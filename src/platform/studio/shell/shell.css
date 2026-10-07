@@ -1,0 +1,218 @@
+/* Zen Studio chrome: toolbar, side panels, Pages panel, preview-modes panel, shortcuts dialog. Neutral-S7 · Compact ·
+   Dashboard (ChromeScope); panels are Surface/Default with a Pale hairline toward the canvas. */
+.studio-chrome {
+  color: var(--zen-color-content-neutral-strongest, #111);
+  font-family: var(--zen-typography-font-family-sans, Inter), ui-sans-serif, system-ui, sans-serif;
+}
+.studio-chrome[data-theme="dark"] { color-scheme: dark; }
+
+/* ── Toolbar ── */
+.studio-toolbar {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  padding: 0 var(--zen-spacing-padding-xsmall, 8px);
+  border-bottom: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  background: var(--zen-color-background-surface-default, #fff);
+}
+/* Start · breadcrumb · end: the two side tracks share the free space equally, so the breadcrumb sits on the window's
+   centre (not the centre of the room between the groups) and only shifts when a side group needs more than its half. */
+.studio-toolbar__inner {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: var(--zen-spacing-gap-small, 12px);
+  grid-template-columns: minmax(max-content, 1fr) minmax(0, auto) minmax(max-content, 1fr);
+}
+.studio-toolbar__start,
+.studio-toolbar__end { display: flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-toolbar__start { justify-self: start; }
+.studio-toolbar__end { justify-self: end; }
+.studio-toolbar__crumbs { display: flex; min-width: 0; justify-content: center; overflow: hidden; }
+.studio-toolbar__crumbs .zen-breadcrumbs__list { flex-wrap: nowrap; min-width: 0; }
+.studio-toolbar__crumbs .zen-breadcrumb__label { white-space: nowrap; }
+/* Toolbar groups are told apart by space, not rules: 4px inside a group, 8px (Gap/XSmall) between groups. */
+.studio-toolbar__group-start,
+.studio-toolbar__end > .studio-drafts { margin-inline-start: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-brand .zen-icon { color: var(--zen-color-content-neutral-strongest, #111); }
+.studio-role .zen-badge { pointer-events: none; }
+
+/* ── Side panels ── */
+.studio-left,
+.studio-right {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  background: var(--zen-color-background-surface-default, #fff);
+}
+.studio-left { border-right: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.studio-right { overflow: auto; border-left: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+/* The Tabs bar draws its own Pale track line. */
+.studio-left__tabs { flex: 0 0 auto; padding: var(--zen-spacing-padding-xsmall, 8px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
+.studio-left__panel { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; overflow: auto; }
+.studio-left__panel[hidden] { display: none; }
+.studio-left__panel:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid, #121212); }
+
+/* ── Resize handles (on the border line between a docked panel and the canvas) ── */
+/* zen-allow-slot-size: an 8px hit strip centred on the 1px border (structural, not component spacing). */
+.studio-resizer {
+  position: relative;
+  z-index: 6;
+  width: 8px;
+  align-self: stretch;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+.studio-resizer[data-side="left"] { grid-area: left; justify-self: end; margin-right: calc(-1 * var(--zen-spacing-gap-2-xsmall, 4px)); }
+.studio-resizer[data-side="right"] { grid-area: right; justify-self: start; margin-left: calc(-1 * var(--zen-spacing-gap-2-xsmall, 4px)); }
+.studio-resizer::after {
+  position: absolute;
+  inset: 0 3px;
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  background: transparent;
+  content: "";
+  transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease);
+}
+.studio-resizer:hover::after { background: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
+.studio-app[data-resizing="true"] .studio-resizer::after,
+.studio-resizer:focus-visible::after { background: var(--zen-color-focus-neutral-solid, #121212); }
+.studio-app[data-resizing="true"],
+.studio-app[data-resizing="true"] * { cursor: col-resize !important; user-select: none; }
+
+/* ── Pages (compact rows, like the Layers tab) ── */
+.studio-pages { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; }
+.studio-pages__search { display: flex; flex: 0 0 auto; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); }
+.studio-pages__search > .zen-search { width: 100%; }
+.studio-pages__status:empty { display: none; }
+.studio-pages__status { display: block; flex: 0 0 auto; padding: 0 var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-2-xsmall, 4px); }
+.studio-pages__scroll { min-height: 0; flex: 1 1 auto; overflow-y: auto; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-small, 12px); overscroll-behavior: contain; }
+.studio-pages__section + .studio-pages__section { margin-top: var(--zen-spacing-gap-small, 12px); }
+.studio-pages__kicker { margin: 0; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-2-xsmall, 4px); }
+.studio-pages__list { display: grid; margin: 0; padding: 0; gap: var(--zen-spacing-gap-3-xsmall, 2px); list-style: none; }
+.studio-pages__row {
+  display: flex;
+  width: 100%;
+  height: 32px;
+  box-sizing: border-box;
+  align-items: center;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: 0 var(--zen-spacing-padding-xsmall, 8px);
+  border: 0;
+  border-radius: var(--zen-corner-radius-small, 8px);
+  background: transparent;
+  color: var(--zen-color-content-neutral-strongest, #111);
+  cursor: pointer;
+  text-align: start;
+}
+.studio-pages__row > .zen-icon { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
+/* Row states follow Zen's list rows (ListItem / Sidebar): Neutral/Flat hover and pressed, Active/Neutral/Subtle selected,
+   Neutral/Subtle/Hover on a selected row. */
+.studio-pages__row:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+.studio-pages__row:active { background: var(--zen-color-background-neutral-flat-pressed, rgb(1 1 1 / 9%)); }
+.studio-pages__row[aria-current="page"] { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 11%)); }
+.studio-pages__row[aria-current="page"]:hover { background: var(--zen-color-background-neutral-subtle-hover); }
+.studio-pages__row[aria-current="page"] > .zen-icon { color: var(--zen-color-content-neutral-strongest, #111); }
+.studio-pages__row:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid, #121212); }
+.studio-pages__name { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* A token collection lines its title up with Design Tokens' title: an empty slot the size of the parent's icon. */
+.studio-pages__indent { display: inline-block; width: var(--zen-icon-size-sm, 16px); height: var(--zen-icon-size-sm, 16px); flex: 0 0 auto; }
+.studio-pages__empty { padding: var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-xsmall, 8px); }
+
+/* ── Preview modes panel (anchored under the toolbar button) ── */
+/* Read-only chip (ReadOnlyChip.tsx): why the Studio cannot edit, and the fix. Same surface as the Modes panel. */
+.studio-gate { position: relative; }
+.studio-gate__panel {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + var(--zen-spacing-gap-2-xsmall, 4px));
+  right: 0;
+  display: grid;
+  width: min(320px, calc(100vw - 32px));
+  gap: var(--zen-spacing-gap-small, 12px);
+  padding: var(--zen-spacing-padding-small, 12px);
+  border-radius: var(--zen-corner-radius-large, 16px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 6%));
+  background: var(--zen-popover-background, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+}
+.studio-gate__head { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-gate__head > p { margin: 0; }
+.studio-gate__actions { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); }
+
+.studio-modes { position: relative; }
+.studio-modes__panel {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + var(--zen-spacing-gap-2-xsmall, 4px));
+  right: 0;
+  display: grid;
+  width: 320px;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-small, 12px);
+  border-radius: var(--zen-corner-radius-large, 16px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 6%));
+  background: var(--zen-popover-background, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+}
+.studio-modes__head { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-bottom: var(--zen-spacing-padding-2-xsmall, 4px); }
+.studio-modes__head > p { margin: 0; }
+.studio-modes__row { display: grid; grid-template-columns: 112px minmax(0, 1fr); align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-modes__field { min-width: 0; }
+
+/* ── Admin drafts (DraftsControls): "Unsaved · N files" (opens the drafted-files panel) · Save all ── */
+.studio-drafts { position: relative; display: flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-drafts__count,
+.studio-drafts__note { white-space: nowrap; }
+.studio-drafts__count { margin-inline-end: var(--zen-spacing-gap-2-xsmall, 4px); }
+/* The unsaved mark: a warning dot (also on each frame label with changes, board.css). */
+.studio-drafts__dot { display: inline-block; width: 8px; height: 8px; flex: none; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-warning-solid-default); }
+.studio-drafts__panel {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + var(--zen-spacing-gap-2-xsmall, 4px));
+  right: 0;
+  display: grid;
+  width: 360px;
+  max-width: calc(100vw - 2 * var(--zen-spacing-padding-xsmall, 8px));
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-small, 12px);
+  border-radius: var(--zen-corner-radius-large, 16px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 6%));
+  background: var(--zen-popover-background, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+}
+.studio-drafts__head { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-bottom: var(--zen-spacing-padding-2-xsmall, 4px); }
+.studio-drafts__head > p { margin: 0; }
+.studio-drafts__list { max-height: min(50vh, 360px); overflow-y: auto; }
+.studio-drafts__stale { display: block; }
+.studio-drafts__actions { display: flex; justify-content: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); padding-top: var(--zen-spacing-padding-2-xsmall, 4px); }
+
+/* ── Keyboard shortcuts dialog ── */
+.studio-shortcuts__groups { display: grid; gap: var(--zen-spacing-gap-large, 24px); }
+.studio-shortcuts__group { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-shortcuts__group > p { margin: 0; }
+.studio-kbd {
+  display: inline-flex;
+  min-width: var(--zen-icon-size-md, 24px);
+  justify-content: center;
+  padding: 0 var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  background: var(--zen-color-background-surface-default, #fff);
+  color: var(--zen-color-content-neutral-strongest, #111);
+  white-space: nowrap;
+}
+
+/* The canvas context menu (CanvasMenu) anchors to an invisible point at the pointer; focus may return to it on Escape. */
+.studio-canvas-menu__anchor { position: fixed; width: 1px; height: 1px; padding: 0; border: 0; margin: 0; opacity: 0; pointer-events: none; }
+.studio-canvas-menu__layer { position: fixed; inset: 0; z-index: 40; pointer-events: none; }
+.studio-canvas-menu__layer > * { pointer-events: auto; }
+/* The canvas menu shows every action at once, as Figma's does (Menu's list scrolls past 400px): only the window caps
+   it, and CanvasMenu moves its anchor up so the whole menu stays on screen (E2E ST-03). */
+.studio-canvas-menu__layer .zen-menu__list { max-height: calc(100vh - 16px); }

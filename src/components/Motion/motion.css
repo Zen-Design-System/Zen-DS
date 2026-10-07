@@ -1,0 +1,18 @@
+/* Zen motion keyframes. The tokens (--zen-motion-duration-*, --zen-motion-ease-*, --zen-motion-movement) are generated
+   into tokens.css from tokens/source/motion.json. Enter uses the decelerating "emphasized" curve, exit the accelerating
+   "exit" curve and one duration step shorter, so overlays arrive gently and leave quickly. Every distance or scale step
+   is multiplied by --zen-motion-movement, which reduced motion sets to 0: the surface then only crossfades. */
+@keyframes zen-motion-fade-in { from { opacity: 0; } }
+@keyframes zen-motion-fade-out { to { opacity: 0; } }
+/* Scrims fade their background only — never opacity, which would also fade the panel inside them. */
+@keyframes zen-motion-scrim-in { from { background-color: transparent; } }
+@keyframes zen-motion-scrim-out { to { background-color: transparent; } }
+/* Anchored surfaces (Popover, Menu, the Select dropdown): fade plus a 4px slide from the anchor and a 2% scale. The
+   surface sets --zen-motion-from-y (-1 below the anchor, 1 above it) and transform-origin on the anchor side. */
+@keyframes zen-motion-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(4px * var(--zen-motion-from-y, -1) * var(--zen-motion-movement, 1))) scale(calc(1 - 0.02 * var(--zen-motion-movement, 1)));
+  }
+}
+@keyframes zen-motion-pop-out { to { opacity: 0; transform: scale(calc(1 - 0.02 * var(--zen-motion-movement, 1))); } }

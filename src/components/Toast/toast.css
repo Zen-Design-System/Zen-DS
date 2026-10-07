@@ -47,3 +47,71 @@
 }
 .zen-toast__close:hover { opacity: 0.72; }
 .zen-toast__close:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+/* ToastStack. A fixed stack portals into one layer per placement and portal container, shared by every stack there
+   (sibling ZenProviders each host a queue), so their toasts stack instead of overlapping. The layer keeps the page
+   margin (Margin/Comfortable: 24, 20 on a phone) and the safe area from the viewport edges and is at most Figma's 648
+   wide (1579:13277); every toast fills that width, so a stack shares both edges. Newest at the bottom (bottom
+   placements) / top (top placements). */
+.zen-toast-layer {
+  --zen-toast-inset: var(--zen-margin-comfortable, 24px);
+  position: fixed;
+  z-index: 1100;
+  right: calc(var(--zen-toast-inset) + env(safe-area-inset-right, 0px));
+  left: calc(var(--zen-toast-inset) + env(safe-area-inset-left, 0px));
+  display: flex;
+  max-width: 648px;
+  flex-direction: column;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  margin-inline: auto;
+  pointer-events: none;
+}
+.zen-toast-layer[data-placement^="bottom"] { bottom: calc(var(--zen-toast-inset) + env(safe-area-inset-bottom, 0px)); }
+/* The stack mounted last sits nearest the screen edge (column-reverse at the top). */
+.zen-toast-layer[data-placement^="top"] { top: calc(var(--zen-toast-inset) + env(safe-area-inset-top, 0px)); flex-direction: column-reverse; }
+.zen-toast-layer[data-placement$="right"] { margin-right: 0; }
+/* Toasts sit Gap/XSmall apart: each carries half of it above and below (inside its row, so the space closes with a
+   closing row), and the stack trims the outer halves so its edges are the toasts' edges. */
+.zen-toast-stack { --zen-toast-stack-gap: var(--zen-spacing-gap-xsmall, 8px); display: flex; width: 100%; flex-direction: column; margin-block: calc(var(--zen-toast-stack-gap) / -2); pointer-events: none; }
+.zen-toast-stack[data-empty="true"] { display: none; }
+.zen-toast-stack[data-placement^="top"] { flex-direction: column-reverse; }
+/* Each row animates its height (grid 0fr ↔ 1fr) so neighbours slide instead of jumping. While it opens, the new toast
+   hangs off the row's outer end (below it at the bottom, above it at the top), so it rises in from the screen edge and
+   never covers its neighbours. */
+.zen-toast-stack__item {
+  display: grid;
+  grid-template-rows: 1fr;
+  align-items: start;
+  pointer-events: auto;
+  animation: zen-toast-row-in var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, cubic-bezier(.16, 1, .3, 1)) both;
+}
+.zen-toast-stack[data-placement^="top"] .zen-toast-stack__item { align-items: end; }
+.zen-toast-stack__clip { min-width: 0; min-height: 0; }
+/* Positioned so toasts paint in DOM order: a toast entering an inner stack of a shared layer slides out from behind
+   the outer stack's toasts instead of over them. */
+.zen-toast-stack__clip > .zen-toast {
+  position: relative;
+  margin-block: calc(var(--zen-toast-stack-gap) / 2);
+  animation: zen-toast-in var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, cubic-bezier(.16, 1, .3, 1)) both;
+}
+.zen-toast-stack[data-placement^="top"] .zen-toast-stack__clip > .zen-toast { --zen-toast-enter-y: -16px; }
+/* Leaving: the toast fades and shrinks in place (Fast, exit curve); then its row closes (Base) and the others slide
+   over. Nothing is clipped, so the toast never shows a cut edge or a cropped shadow. */
+.zen-toast-stack__item[data-state="closing"] {
+  animation: zen-toast-row-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, cubic-bezier(.2, 0, 0, 1)) var(--zen-motion-duration-fast, 120ms) both;
+  pointer-events: none;
+}
+.zen-toast-stack__item[data-state="closing"] .zen-toast { animation: zen-toast-out var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-exit, ease-in) both; }
+@keyframes zen-toast-row-in { from { grid-template-rows: 0fr; } }
+@keyframes zen-toast-row-out { to { grid-template-rows: 0fr; } }
+@keyframes zen-toast-in { from { opacity: 0; transform: translateY(calc(var(--zen-toast-enter-y, 16px) * var(--zen-motion-movement, 1))) scale(calc(1 - .04 * var(--zen-motion-movement, 1))); } }
+@keyframes zen-toast-out { to { opacity: 0; transform: scale(calc(1 - .04 * var(--zen-motion-movement, 1))); } }
+@media (prefers-reduced-motion: reduce) {
+  /* Rows open and close at once (no height animation); the toast itself crossfades at Fast (its slide is scaled by
+     --zen-motion-movement), and the end of that fade removes its row. */
+  .zen-toast-stack__item, .zen-toast-stack__item[data-state="closing"] { animation: none; }
+  .zen-toast-stack__clip > .zen-toast, .zen-toast-stack__item[data-state="closing"] .zen-toast { animation-duration: var(--zen-motion-duration-fast, 120ms); }
+}
+/* Hit area ≥ 24×24 (WCAG 2.5.8) around the Figma-sized glyph: an invisible, centred layer; the visual size is unchanged. */
+.zen-toast__close { position: relative; }
+.zen-toast__close::after { position: absolute; top: 50%; left: 50%; width: max(100%, 24px); height: max(100%, 24px); content: ""; transform: translate(-50%, -50%); }

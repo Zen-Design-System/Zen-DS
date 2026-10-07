@@ -1,0 +1,27 @@
+/* PageHeader: type and spacing from the Figma scales; it paints nothing (sits on the page Canvas). */
+.zen-page-header { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-page-header__back { display: flex; margin-inline-start: calc(-1 * var(--zen-spacing-padding-xsmall, 8px)); }
+.zen-page-header__breadcrumbs, .zen-page-header__eyebrow { min-width: 0; }
+.zen-page-header__row { display: var(--zen-page-header-row-display, flex); min-width: 0; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-small, 12px) var(--zen-spacing-gap-medium, 16px); }
+.zen-page-header__titles { display: flex; min-width: 0; flex: var(--zen-page-header-titles-flex, 1 1 280px); flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px) var(--zen-spacing-gap-small, 12px); }
+.zen-page-header__titles > .zen-heading { min-width: 0; overflow-wrap: anywhere; }
+.zen-page-header__meta { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-page-header__actions { display: flex; order: var(--zen-page-header-actions-order, 0); flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-small, 12px); margin-top: var(--zen-page-header-actions-offset, 0px); }
+.zen-page-header__description { max-width: 72ch; }
+.zen-page-header__tabs { order: var(--zen-page-header-tabs-order, 0); margin-top: var(--zen-spacing-gap-xsmall, 8px); }
+/* Phones: the actions wrap under the title, so the one Primary leads them; desktop and tablet keep Tertiary → Primary.
+   Only the visual order changes (DOM and focus order stay). Set per ZenProvider breakpoint, like the breakpoint tokens,
+   so the nearest provider wins (a desktop preview inside a phone frame keeps the desktop order). */
+[data-breakpoint] { --zen-page-header-primary-order: 0; --zen-page-header-row-display: flex; --zen-page-header-titles-flex: 1 1 280px; --zen-page-header-actions-order: 0; --zen-page-header-tabs-order: 0; --zen-page-header-actions-offset: 0px; }
+[data-breakpoint="mobile"] { --zen-page-header-primary-order: -1; }
+/* Phones, too: the actions would wrap between the title and the description, so the one line that explains the title
+   sat under the buttons. The title row dissolves into the column (display: contents) and the description comes first,
+   then the actions (12px under it, Gap/Small as in the row), then the tabs — visual order only. */
+[data-breakpoint="mobile"] {
+  --zen-page-header-row-display: contents;
+  --zen-page-header-titles-flex: none;
+  --zen-page-header-actions-order: 1;
+  --zen-page-header-tabs-order: 2;
+  --zen-page-header-actions-offset: calc(var(--zen-spacing-gap-small, 12px) - var(--zen-spacing-gap-xsmall, 8px));
+}
+.zen-page-header__actions > .zen-button[data-level="primary"] { order: var(--zen-page-header-primary-order, 0); }

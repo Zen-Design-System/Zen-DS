@@ -1,0 +1,43 @@
+/* Quick insert (QuickInsert.tsx, ⇧I): a floating search over the top of the canvas, the list and the focused item's
+   preview (ItemPreview.tsx). Chrome surface (Popover layer), above the canvas and below the chrome portal. */
+/* zen-allow-popover-layer: Quick insert floats over the canvas (position: fixed, the Popover layer), like Figma's. */
+.studio-qi {
+  position: fixed;
+  z-index: 35;
+  top: calc(var(--studio-toolbar-height, 48px) + var(--zen-spacing-padding-medium, 16px));
+  left: 50%;
+  display: flex;
+  width: min(640px, calc(100vw - 2 * var(--zen-spacing-padding-medium, 16px)));
+  max-height: min(480px, calc(100vh - 120px));
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--zen-corner-radius-large, 16px);
+  /* The Popover surface (components/Popover/popover.css): translucent Popover background, its blur, the outside 1px
+     Popover border and the Effect/Popover shadow. */
+  outline: 1px solid var(--zen-color-border-popover-subtle);
+  background: var(--zen-color-background-popover-default);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+  transform: translateX(-50%);
+}
+.studio-qi__search { padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px) 0; }
+.studio-qi__target { margin: 0; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-xsmall, 8px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-qi__body { display: flex; min-height: 0; flex: 1 1 auto; border-top: 1px solid var(--zen-color-border-neutral-subtle-default); }
+.studio-qi__list { min-width: 0; flex: 1 1 50%; margin: 0; padding: var(--zen-spacing-padding-2-xsmall, 4px); overflow: auto; list-style: none; }
+.studio-qi__option { display: flex; min-width: 0; height: 32px; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0 var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-small, 8px); color: var(--zen-color-content-neutral-strongest); cursor: pointer; }
+.studio-qi__option > .zen-icon { flex: 0 0 auto; color: var(--zen-color-content-neutral-base); }
+.studio-qi__option[aria-selected="true"] { background: var(--zen-color-background-active-neutral-subtle); }
+.studio-qi__name { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-qi__caption { flex: 0 1 auto; overflow: hidden; color: var(--zen-color-content-neutral-base); text-overflow: ellipsis; white-space: nowrap; }
+.studio-qi__empty { margin: 0; padding: var(--zen-spacing-padding-small, 12px); }
+.studio-qi__preview { position: relative; display: flex; min-width: 0; flex: 1 1 50%; align-items: flex-start; justify-content: center; overflow: hidden; padding: var(--zen-spacing-padding-small, 12px); border-left: 1px solid var(--zen-color-border-neutral-subtle-default); background: var(--zen-color-background-canvas-default); pointer-events: none; }
+.studio-qi__stage { flex: 0 0 auto; transform-origin: top center; }
+.studio-qi__stage { position: relative; }
+.studio-qi__portal { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.studio-qi__group { margin: 0; padding: 0; list-style: none; }
+.studio-qi__group + .studio-qi__group { margin-top: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-qi__kicker { display: block; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-base); }
+.studio-qi__options { margin: 0; padding: 0; list-style: none; }
+.studio-qi__thumb { width: var(--zen-image-size-2-xsmall); height: var(--zen-image-size-2-xsmall); flex: 0 0 auto; border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }
+.studio-qi__glyph { align-self: center; margin: auto; color: var(--zen-color-content-neutral-strongest); }
+.studio-qi__photo { display: block; width: 100%; max-height: 100%; border-radius: var(--zen-corner-radius-small, 8px); object-fit: cover; }

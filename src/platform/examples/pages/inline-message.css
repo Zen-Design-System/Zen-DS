@@ -1,0 +1,12 @@
+/* Inline Message examples (brief 2026-09-30). Tokens only; class prefix .px-inline-message-. */
+
+/* "Editing a sent invoice" is a whole page (screen card): it paints the Canvas and keeps the page margin. */
+.px-inline-message-screen { min-height: 100%; background: var(--zen-color-background-canvas-default); }
+/* Margin/Comfortable follows the breakpoint: 24 on desktop, 20 on a phone. */
+.px-inline-message-page { box-sizing: border-box; padding: var(--zen-margin-comfortable, 24px); }
+
+/* Width limits sit on the component: a form keeps a readable measure, a settings card stays card-sized. */
+.px-inline-message-measure { width: min(100%, 640px); }
+.px-inline-message-narrow { width: min(100%, 480px); }
+/* Show message again, in a column Stack, hugs its label. */
+.px-inline-message-start { align-self: flex-start; }

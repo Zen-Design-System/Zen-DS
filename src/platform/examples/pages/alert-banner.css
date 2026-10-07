@@ -1,0 +1,20 @@
+/* Alert Banner examples (brief 2026-09-30). Tokens only; class prefix .px-alert-banner-.
+   A page without a shell paints the Canvas (screen card, edge to edge); its banner runs full width above the page
+   margin, the way AppShell's banner slot does. */
+.px-alert-banner-screen { min-height: 100%; background: var(--zen-color-background-canvas-default); }
+/* Margin/Comfortable follows the breakpoint: 24 on desktop, 20 on a phone. */
+.px-alert-banner-page { box-sizing: border-box; padding: var(--zen-margin-comfortable, 24px); }
+
+/* The app window of "Payment failed": a fixed-height size container, so the AppShell fills it (100cqh) and its
+   navigation drawer (below 1024px) covers the window instead of the docs page. Full screen gives it the viewport. */
+.px-alert-banner-frame { height: clamp(560px, calc(100dvh - 120px), 720px); overflow: hidden; contain: layout; container-type: size; }
+.px-alert-banner-frame__scroll { height: 100%; overflow: auto; overscroll-behavior: contain; }
+.px-alert-banner-frame__scroll > .zen-app-shell { --zen-app-shell-height: 100cqh; }
+.pe-card[data-fullscreen="true"] .pe-card__preview > .px-alert-banner-frame { flex: 1 1 0; height: auto; min-height: 0; }
+
+/* The Sidebar logo: the studio mark follows the header slot's height (24px), then the studio name. */
+.px-alert-banner-brand { display: inline-flex; height: 100%; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); white-space: nowrap; }
+.px-alert-banner-brand > img { display: block; height: 100%; aspect-ratio: 1; border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }
+
+/* The billing card keeps a readable measure. */
+.px-alert-banner-billing { width: min(100%, 560px); }

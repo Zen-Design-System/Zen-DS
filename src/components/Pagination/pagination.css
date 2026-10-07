@@ -1,5 +1,14 @@
 /* Figma Pagination (774:29083) + .Primitives/Pagination/Item (774:15999). */
-.zen-pagination { display: inline-flex; max-width: 100%; align-items: center; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-pagination { display: inline-flex; max-width: 100%; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-small, 12px) var(--zen-spacing-gap-medium, 16px); }
+/* Numbered themes never wrap: on phones the optional pages fold away instead (1 … 5 … 12), so the row stays one line. */
+.zen-pagination:is([data-tone="primary"], [data-tone="secondary"]) { flex-wrap: nowrap; }
+@media (max-width: 480px) {
+  .zen-pagination__item[data-optional="true"] { display: none; }
+  /* Phones also tighten the row so Comfortable density (40px items) still fits one line: the arrows sit 4px from the
+     pages and the "…" gaps take the XSmall item width. */
+  .zen-pagination:is([data-tone="primary"], [data-tone="secondary"]) { column-gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+  .zen-pagination:is([data-tone="primary"], [data-tone="secondary"]) span.zen-pagination__item { min-width: var(--zen-select-item-size-small, 24px); }
+}
 .zen-pagination__pages { display: flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-pagination__navigator { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-pagination__range { color: var(--zen-color-content-neutral-strongest, #111); white-space: nowrap; }
@@ -34,7 +43,6 @@ button.zen-pagination__item:focus-visible { outline: 0; box-shadow: 0 0 0 3px va
 .zen-pagination__item[data-level="secondary"][data-selected="true"] { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 11%)); }
 span.zen-pagination__item { cursor: default; }
 
-/* Manually: Input/Text-Field Small at 133px; the "results" unit sits in the trailing slot. */
+/* Manually: Input/Text-Field Small at 133px; the "results" unit sits in the trailing slot (the slot hugs its content). */
 .zen-pagination__page-size { width: 133px; flex: 0 0 auto; }
-.zen-pagination__page-size .zen-input__affordance--trailing { width: auto; height: auto; flex-basis: auto; }
 .zen-pagination__page-size-unit { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); white-space: nowrap; }

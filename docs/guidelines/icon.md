@@ -16,21 +16,54 @@ Render a system icon from the generated set at a token size.
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Name | `name` | icon-*-line / -solid |
-| Size | `size` | 2xs · xs · sm · base · md · lg (Element-Size tokens) |
+| Size | `size` | 2xs · xs · sm · base · md · lg · xl · 2xl · 3xl (Element-Size tokens) or a number of px |
+| Colour | `tone` | a Color/Content token by its path, as on Text (light · positive-base · support-blue-light); default: the parent's colour; a colour family's Light level is fine for icons |
 | Decorative | `decorative` | aria-hidden |
+
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/icon.json`.
+
+### Icon
+Zen icon. Icons used by Zen components draw synchronously; any other name loads its bucket on first use (an empty box of the same size shows for that first frame — `preloadIcons()` or `@zen/design-system/icons/all` avoid it).
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `name` (required) | `IconName` | — | One of the 1,598 Zen icon names (`IconName` autocompletes them), e.g. `icon-home-03-line`, `icon-search-medium-line`. Icons that only come in cuts also take their plain name (`icon-search-line`, `icon-x-line`, `icon-chevron-left-line`, `icon-chevron-right-line`), which draws the Medium cut. |
+| `size` | `IconSize \| number \| string` | — | A token size (`2xs`…`3xl`, default `base` = 20px) or a px number. |
+| `tone` | `ContentTone` | — | Colour: a Color/Content token by its path, as on Text ("light", "positive-base", "support-blue-light"). Default: the parent's colour (most icons sit in a component that colours them). Icons may use a colour family's Light level. |
+| `title` | `string` | — | Accessible name; without it the icon is decorative (aria-hidden). |
+| `decorative` | `boolean` | — |  |
+
+### Types
+Object shapes the props above refer to.
+
+```ts
+type ContentTone = (typeof contentTones)[number]
+type IconSize = "2xs" | "xs" | "sm" | "base" | "md" | "lg" | "xl" | "2xl" | "3xl"
+```
 
 ## ✅ Do
 - Use line icons by default and solid for selected/filled states and remove affordances (icon-x-circle-solid).
 - Mark icons decorative when a text label is present.
+- Pair a meaningful standalone icon with aria-label or title.
+- Match icon size to the text beside it (base 20px next to Body/Base).
 
 ## ❌ Don't
 - Don't use an icon alone as the only label of an action without aria-label.
+- Don't mix line and solid icons in one toolbar.
+- Don't recolour icons with raw values; use Content tokens (harness: color/token-only in component CSS).
+- Don't scale icons with CSS transforms; use the size prop.
+- Don't pass size names from other components ("small", "medium"); any other string reaches CSS and the SVG falls back to its intrinsic size (harness: icon/size-token).
 
 ## Accessibility
 - Decorative icons are aria-hidden; meaningful icons need a text alternative.
 
 ## Harness (`npm run usage:check`)
-_No machine-checkable rules yet. Follow the Do/Don't lists above._
+| Rule | Severity | Checks | Suppress with |
+| --- | --- | --- | --- |
+| `icon/unknown-name` | error | Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page). | `zen-allow-icon-name: <reason>` |
+| `icon/size-token` | error | Icon size is a size token (2xs · xs · sm · base · md · lg · xl · 2xl · 3xl) or a number of pixels; any other string is passed to CSS and the SVG falls back to its intrinsic size. | `zen-allow-icon-size: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 
 ## References
 - [Material — Icons guidance](https://m3.material.io/styles/icons/overview)

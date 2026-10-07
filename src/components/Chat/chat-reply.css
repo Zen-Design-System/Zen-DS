@@ -1,0 +1,53 @@
+/* Reply to a message (Zen tokens; no Figma set yet). Quote above a reply bubble + "Replying to" bar in the composer. */
+
+/* Quote: caption "Ava replied to you" + a muted, clipped preview of the original that tucks under the reply bubble.
+   Neutral/Pale keeps it one step quieter than a real bubble in both modes; it caps at the bubble's text width. */
+/* Messenger rhythm: caption → 4 → quote; the quote's text keeps 8 above and 8 below its visible part, and the reply
+   bubble tucks exactly over the extra 12px of padding (the message stack adds its own 4px gap, so the pull is 16). */
+.zen-chat-reply { --zen-chat-reply-tuck: 12px; display: flex; max-width: var(--zen-chat-text-max, 220px); flex-direction: column; align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-chat-reply[data-side="you"] { align-self: flex-end; align-items: flex-end; }
+.zen-chat-reply__caption { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding-inline: var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-chat-reply__quote {
+  display: flex; max-width: 100%; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px);
+  margin-bottom: calc(-1 * (var(--zen-chat-reply-tuck) + var(--zen-spacing-gap-2-xsmall, 4px))); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px) calc(var(--zen-spacing-padding-xsmall, 8px) + var(--zen-chat-reply-tuck));
+  border: 0; border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-neutral-pale-default, rgb(1 1 1 / 6%));
+  color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); cursor: pointer; font: inherit; text-align: start;
+}
+.zen-chat-reply__quote:not([data-static="true"]):hover { background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 11%)); }
+/* The quote of a deleted message is plain text (ChatReply.tsx): nothing to jump to, so no pointer and no hover. */
+.zen-chat-reply__quote[data-static="true"] { cursor: default; }
+.zen-chat-reply__quote:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
+/* The reply bubble sits on top of the quote's lower edge (Messenger-style tuck). */
+.zen-chat-reply + .zen-chat-message__content { z-index: 1; }
+
+.zen-chat-reply__glyph { display: inline-flex; flex: 0 0 auto; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-chat-reply__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: anywhere; }
+.zen-chat-reply__text[data-lines="2"] { display: -webkit-box; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.zen-chat-reply__text[data-deleted="true"] { font-style: italic; }
+.zen-chat-reply__thumb { width: var(--zen-image-size-small, 32px); height: var(--zen-image-size-small, 32px); flex: 0 0 var(--zen-image-size-small, 32px); border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }
+.zen-chat-reply__quote .zen-chat-reply__thumb { width: var(--zen-image-size-medium, 40px); height: var(--zen-image-size-medium, 40px); flex-basis: var(--zen-image-size-medium, 40px); border-radius: var(--zen-corner-radius-small, 8px); }
+
+/* Composer bar: spans the composer's full width above the field (the form wraps only while replying). */
+.zen-chat-composer[data-replying="true"] { flex-wrap: wrap; }
+/* Messenger: a full-width strip on top of the composer (hairline above it, not between it and the field); text starts at
+   the 16px screen margin, ✕ lines up with the composer's last 44px action (its centre sits 30px from the edge). */
+.zen-chat-composer-reply {
+  display: flex; min-width: 0; flex: 1 0 100%; order: -1; align-items: center; gap: var(--zen-spacing-gap-small, 12px);
+  box-sizing: border-box; margin: calc(-1 * var(--zen-spacing-padding-xsmall, 8px)) calc(-1 * var(--zen-spacing-padding-xsmall, 8px)) 0;
+  padding: var(--zen-spacing-padding-xsmall, 8px) calc(var(--zen-spacing-padding-xsmall, 8px) + (var(--zen-navigation-action-size, 44px) - var(--zen-button-size-small, 32px)) / 2) var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-medium, 16px);
+  border-top: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+}
+.zen-chat-composer-reply__body { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-chat-composer-reply__title { color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-chat-composer-reply__preview { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-chat-composer-reply__preview .zen-chat-reply__glyph { color: inherit; }
+.zen-chat-composer-reply__preview .zen-dock-icon { transform: scale(.67); margin: calc(-1 * var(--zen-spacing-gap-2-xsmall, 4px)); }
+
+/* Jump-to-original: the target message flashes once. */
+/* zen-allow-motion-token: a one-shot 1.6s highlight, a component constant like the Skeleton pulse (motion review 2026-10-01). */
+.zen-chat-message[data-flash="true"] .zen-chat-message__content > :first-child { animation: zen-chat-reply-flash 1.6s var(--zen-motion-ease-standard, ease); }
+@keyframes zen-chat-reply-flash { 0%, 30% { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-subtle, rgb(255 1 158 / 18%)); } 100% { box-shadow: 0 0 0 3px transparent; } }
+@media (prefers-reduced-motion: reduce) { .zen-chat-message[data-flash="true"] .zen-chat-message__content > :first-child { animation: none; box-shadow: 0 0 0 3px var(--zen-color-focus-accent-subtle, rgb(255 1 158 / 18%)); } }
+
+/* A reply opens its own turn: the caption needs air from the message above (16 instead of the 4 / 12 of a run). */
+.zen-chat-thread > .zen-chat-message.zen-chat-message[data-side]:has(> .zen-chat-message__stack > .zen-chat-reply):not(:first-child) { margin-top: var(--zen-spacing-gap-medium, 16px); }

@@ -1,0 +1,115 @@
+/* Layout primitives: Figma Spacing/Gap, Spacing/Padding, Corner-Radius and background/border tokens only. */
+.zen-stack { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-stack-gap, var(--zen-spacing-gap-medium, 16px)); padding-block: var(--zen-stack-padding-block, 0); padding-inline: var(--zen-stack-padding-inline, 0); }
+.zen-stack[data-direction="row"] { flex-direction: row; }
+.zen-stack[data-wrap="true"] { flex-wrap: wrap; }
+.zen-stack[data-align="start"] { align-items: flex-start; }
+.zen-stack[data-align="center"] { align-items: center; }
+.zen-stack[data-align="end"] { align-items: flex-end; }
+.zen-stack[data-align="stretch"] { align-items: stretch; }
+.zen-stack[data-align="baseline"] { align-items: baseline; }
+/* Column stacks give children the full width, even components that align themselves to start (Input fields)… */
+.zen-stack[data-direction="column"]:is(:not([data-align]), [data-align="stretch"]) > * { align-self: stretch; }
+/* …except label-sized controls, which keep their own width unless align="stretch" is explicit. */
+.zen-stack[data-direction="column"]:not([data-align]) > :is(.zen-button, .zen-chip, .zen-badge, .zen-badge--counter, .zen-tag, .zen-avatar, .zen-avatar-stack, img) { align-self: flex-start; }
+.zen-stack[data-justify="start"] { justify-content: flex-start; }
+.zen-stack[data-justify="center"] { justify-content: center; }
+.zen-stack[data-justify="end"] { justify-content: flex-end; }
+.zen-stack[data-justify="between"] { justify-content: space-between; }
+.zen-stack[data-justify="around"] { justify-content: space-around; }
+:is(ul, ol).zen-stack, :is(ul, ol).zen-grid { margin: 0; list-style: none; }
+
+.zen-grid { display: grid; min-width: 0; row-gap: var(--zen-grid-row-gap, var(--zen-spacing-gap-medium, 16px)); column-gap: var(--zen-grid-column-gap, var(--zen-spacing-gap-medium, 16px)); padding: var(--zen-grid-padding, 0); }
+.zen-grid[data-mode="fill"] { grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--zen-grid-min, 240px)), 1fr)); }
+/* --zen-grid-cols* hold whole track lists (Grid writes a count as repeat(n, minmax(0, 1fr))). */
+.zen-grid:is([data-mode="fixed"], [data-mode="responsive"]) { grid-template-columns: var(--zen-grid-cols, minmax(0, 1fr)); }
+[data-breakpoint="tablet"] .zen-grid[data-mode="responsive"] { grid-template-columns: var(--zen-grid-cols-tablet, var(--zen-grid-cols, minmax(0, 1fr))); }
+[data-breakpoint="mobile"] .zen-grid[data-mode="responsive"] { grid-template-columns: var(--zen-grid-cols-mobile, minmax(0, 1fr)); }
+.zen-grid[data-align="start"] { align-items: start; }
+.zen-grid[data-align="center"] { align-items: center; }
+.zen-grid[data-align="end"] { align-items: end; }
+
+.zen-box { min-width: 0; padding-block: var(--zen-box-padding-block, 0); padding-inline: var(--zen-box-padding-inline, 0); border-radius: var(--zen-box-radius, 0); }
+.zen-box[data-surface="surface"] { background: var(--zen-color-background-surface-default, #fff); }
+.zen-box[data-surface="surface-alt"] { background: var(--zen-color-background-surface-alt); }
+.zen-box[data-surface="subtle"] { background: var(--zen-color-background-neutral-subtle-default); }
+.zen-box[data-surface="pale"] { background: var(--zen-color-background-neutral-pale-default); }
+.zen-box[data-border="pale"] { border: 1px solid var(--zen-color-border-neutral-pale-default); }
+/* zen-allow-subtle-static-box: border="subtle" is for actionable boxes; the JSX rule box/border-matches-action checks each use. */
+.zen-box[data-border="subtle"] { border: 1px solid var(--zen-color-border-neutral-subtle-default); }
+
+/* Content-box: max-width is the content width and the page margin (gutter) sits outside it. */
+.zen-container { --zen-container-gutter: 0px; box-sizing: content-box; max-width: var(--zen-container-max, none); margin-inline: auto; padding-inline: var(--zen-container-gutter); }
+.zen-container[data-gutter="true"] { --zen-container-gutter: var(--zen-margin-comfortable, 24px); }
+.zen-container[data-width="sm"] { --zen-container-max: 640px; }
+.zen-container[data-width="md"] { --zen-container-max: 960px; }
+.zen-container[data-width="lg"] { --zen-container-max: 1280px; }
+.zen-container[data-width="xl"] { --zen-container-max: 1440px; }
+
+/* ───────────── Sizing (Figma auto-layout resizing, sizing.ts) ─────────────
+   Only elements that carry the data attributes are touched; unset props render no attribute. Numbers arrive as the
+   element's own --zen-layout-* custom properties, read only next to their attribute (so an inherited value never leaks). */
+/* Sizes include padding and border, as in Figma, whether or not the app loads reset.css. */
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text):is([data-w], [data-h], [data-min-w], [data-max-w], [data-min-h], [data-max-h]) { box-sizing: border-box; }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-w="fixed"] { width: var(--zen-layout-width); }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-h="fixed"] { height: var(--zen-layout-height); }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-w="hug"] { width: fit-content; }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-h="hug"] { height: fit-content; }
+/* Fill outside a Stack or Grid: the parent's full size (a height needs a parent with a height). */
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-w="fill"] { width: 100%; }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-h="fill"] { height: 100%; }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-min-w] { min-width: var(--zen-layout-min-width); }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-max-w] { max-width: var(--zen-layout-max-width); }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-min-h] { min-height: var(--zen-layout-min-height); }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-max-h] { max-height: var(--zen-layout-max-height); }
+/* A set max width wins over truncation's max-width: 100% (text.css). */
+.zen-text[data-truncate][data-max-w] { max-width: var(--zen-layout-max-width); }
+/* A Fixed width is fixed on truncating Text too, as on a Box (only a set maxWidth caps it). */
+.zen-text[data-truncate][data-w="fixed"]:not([data-max-w]) { max-width: none; }
+/* Fixed never shrinks in any flex row, also outside a Stack (a component's own slots, a custom flex container). */
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-w="fixed"] { flex-shrink: 0; }
+/* Inline Text (span, label…) becomes an inline box so a width or height applies; any display rule of its own (truncate) wins. */
+:where(.zen-text:is(span, strong, em, small, label, code, time):is([data-w], [data-min-w], [data-max-w], [data-h], [data-min-h], [data-max-h])) { display: inline-block; }
+
+/* The rules below size a child by its parent's flow; an absolute layer (position.css, data-position="absolute") is out
+   of the flow, so none of them touch it (its own width/height and insets size it). */
+/* Row Stack: width is the main axis. Hug and Fixed keep their size; Fill takes an equal share and may shrink to 0. */
+.zen-stack[data-direction="row"] > :is([data-w="hug"], [data-w="fixed"]):not([data-position="absolute"]) { flex: none; }
+.zen-stack[data-direction="row"] > [data-w="fill"]:not([data-position="absolute"]) { flex: 1 1 0; width: auto; }
+.zen-stack[data-direction="row"] > [data-w="fill"]:not([data-min-w], [data-position="absolute"]) { min-width: 0; }
+/* Column Stack: height is the main axis. */
+.zen-stack[data-direction="column"] > :is([data-h="hug"], [data-h="fixed"]):not([data-position="absolute"]) { flex: none; }
+.zen-stack[data-direction="column"] > [data-h="fill"]:not([data-position="absolute"]) { flex: 1 1 0; height: auto; }
+/* In a column without a height of its own (Hug or unset, or only a min or max) it starts from its content height
+   (flex-basis auto) and grows into any room left: from 0 it would sit at its content minimum, below a height it sets
+   itself, and a column with only a max would collapse to 0. */
+.zen-stack[data-direction="column"]:not([data-h="fixed"], [data-h="fill"]) > [data-h="fill"]:not([data-position="absolute"]) { flex-basis: auto; }
+/* It may shrink below its content only when the column has a height of its own (Fixed, Fill or a max); in a Hug
+   column it keeps its content height (Figma never lets a Fill child collapse a Hug parent). A column sized from
+   outside (a panel at 100%) passes minHeight={0} for a scrolling child. */
+.zen-stack[data-direction="column"]:is([data-h="fixed"], [data-h="fill"], [data-max-h]) > [data-h="fill"]:not([data-min-h], [data-position="absolute"]) { min-height: 0; }
+/* alignSelf: the child's alignment across its Stack (over the Stack's align) or vertically in its Grid cell. */
+:is(.zen-stack[data-direction], .zen-grid) > [data-self="start"] { align-self: flex-start; }
+:is(.zen-stack[data-direction], .zen-grid) > [data-self="center"] { align-self: center; }
+:is(.zen-stack[data-direction], .zen-grid) > [data-self="end"] { align-self: flex-end; }
+:is(.zen-stack[data-direction], .zen-grid) > [data-self="stretch"] { align-self: stretch; }
+/* Fill across the parent's direction (Figma Fill container on the counter axis). Across a column it is the generic
+   width 100%, so the column's align or alignSelf still places it once maxWidth stops it; a height stretches. */
+/* :is() takes its most specific argument, so in a Grid too this beats alignSelf (same specificity, later). */
+:is(.zen-stack[data-direction="row"], .zen-grid) > [data-h="fill"]:not([data-position="absolute"]) { align-self: stretch; height: auto; }
+
+/* fillChildren: every child without its own size on that axis takes an equal share (Figma: all children Fill
+   container). The zero minimum has no specificity, so a component's own minimum (a Button's label) still wins. In a
+   column the children keep their content height unless the column has a height of its own (as a Fill child above):
+   without a Fixed or Fill height they start from it (flex-basis auto), so a Button keeps its 40px in a Hug wrapper. */
+.zen-stack[data-fill-children="true"][data-direction="row"] > :not([data-w], [data-position="absolute"]) { flex: 1 1 0; }
+.zen-stack[data-fill-children="true"][data-direction="column"] > :not([data-h], [data-position="absolute"]) { flex: 1 1 0; }
+.zen-stack[data-fill-children="true"][data-direction="column"]:not([data-h="fixed"], [data-h="fill"]) > :not([data-h], [data-position="absolute"]) { flex-basis: auto; }
+:where(.zen-stack[data-fill-children="true"][data-direction="row"] > :not([data-w], [data-position="absolute"])) { min-width: 0; }
+:where(.zen-stack[data-fill-children="true"][data-direction="column"]:is([data-h="fixed"], [data-h="fill"], [data-max-h]) > :not([data-h], [data-position="absolute"])) { min-height: 0; }
+/* …and with align="stretch" also across it: stretch only reaches an auto size, so a child that sizes itself on the
+   cross axis (Badge and Chip width: max-content, a Button's or Chip's height) gives that size up. Its own minimum (a
+   Button's min-width: max-content) still holds; a child with its own width (column) or height (row) keeps it. A row
+   gives its height up only when it has one of its own (Fixed or Fill, as a column above): in a Hug or unset row the
+   line is as tall as its content, so a Button would drop its 40px to its label's height. */
+.zen-stack[data-fill-children="true"][data-direction="column"][data-align="stretch"] > :not([data-w], [data-position="absolute"]) { width: auto; }
+.zen-stack[data-fill-children="true"][data-direction="row"][data-align="stretch"]:is([data-h="fixed"], [data-h="fill"]) > :not([data-h], [data-position="absolute"]) { height: auto; }

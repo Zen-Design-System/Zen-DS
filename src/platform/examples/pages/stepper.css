@@ -1,0 +1,18 @@
+/* Stepper examples. */
+
+/* New project: the step content is a readable column under the full-width stepper. Container centres itself with
+   auto margins, which would shrink it to its content inside a flex column; the column takes the width up to 640px. */
+.px-stepper-column { inline-size: 100%; }
+
+/* Headings and status lines that take focus after a step change (tabIndex -1) keep the
+   focus ring, drawn like ListItem's on a pseudo-element with room around the text instead of flush on it. */
+.px-stepper-focus-target { position: relative; }
+.px-stepper-focus-target:focus { outline: none; }
+.px-stepper-focus-target:focus-visible::after {
+  position: absolute;
+  inset: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)) calc(-1 * var(--zen-spacing-padding-xsmall, 8px));
+  border-radius: var(--zen-corner-radius-small, 8px);
+  box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #ff66d4);
+  content: "";
+  pointer-events: none;
+}

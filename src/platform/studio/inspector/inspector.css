@@ -1,0 +1,270 @@
+/* Zen Studio inspector (spec §6): compact rows, label left, control right, sections split by Pale hairlines. */
+
+/* The panel is resizable (280–720px): the label column grows with it, within readable bounds. */
+.studio-inspector { --studio-inspector-label: clamp(80px, 28%, 120px); display: flex; height: 100%; min-height: 0; flex-direction: column; background: var(--zen-color-background-surface-default); color: var(--zen-color-content-neutral-strongest); }
+/* Paragraphs follow the blocks' gaps (the spacing ladder), not the browser's default margins. */
+.studio-inspector p { margin: 0; }
+/* The Tabs track is the only line under the tabs; tab text lines up with the panel content (12px). */
+.studio-inspector__tabs { flex: 0 0 auto; padding: var(--zen-spacing-padding-xsmall, 8px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
+/* Figma UI3 tabs (Design · Code; Pages · Layers · Assets in shell.css): text tabs, the selected one on a quiet fill, no
+   underline; labels in Body/Small like the rest of the panel, the Small tab height (32px) kept so the bar breathes. */
+:is(.studio-inspector__tabs, .studio-left__tabs) .zen-tab__label {
+  font-size: var(--zen-typography-font-size-body-small);
+  line-height: var(--zen-typography-line-height-body-small);
+  letter-spacing: var(--zen-typography-letter-spacing-body-small);
+}
+:is(.studio-inspector__tabs, .studio-left__tabs) .zen-tab__container { border-radius: var(--zen-corner-radius-small, 8px); }
+.studio-inspector__body { flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.studio-inspector__body:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid); }
+.studio-inspector__panel { display: flex; min-width: 0; flex-direction: column; }
+/* Code tab: the source view fills what the snippet leaves (at least a readable block), scrolling inside itself. */
+.studio-inspector__panel--code { min-height: 100%; box-sizing: border-box; }
+.studio-inspector__panel--center { padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-small, 12px); }
+
+/* Header: what is selected (Design panel UI3, user 2026-10-06): name, count and the Detach / Remove icons on one row,
+   the kind and its Docs link under it, then the file. */
+.studio-inspector__head-block { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-small, 12px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
+/* Icon + name sit 2xs apart (ladder: item); 24px tall so every header's first row has the same height. */
+.studio-inspector__title-row { display: flex; min-width: 0; min-height: var(--zen-button-size-xsmall, 24px); align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-inspector__title-row > h2 { min-width: 0; flex: 0 1 auto; }
+/* "×4": how many elements this line renders; the full sentence is its tooltip and read with it. */
+.studio-inspector__count { flex: 0 0 auto; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-neutral-pale-default); color: var(--zen-color-content-neutral-base); cursor: help; }
+.studio-inspector__head-actions { display: inline-flex; flex: 0 0 auto; margin-inline-start: auto; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+/* An action that cannot run yet keeps its place and its tooltip (why); a press says why in the status line. */
+.studio-inspector__head-action[data-blocked="true"] { color: var(--zen-color-content-neutral-light); }
+.studio-inspector__meta-row { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; column-gap: var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-neutral-base); }
+.studio-inspector__src-row { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-inspector__src-row > .studio-inspector__src.zen-button { min-width: 0; flex: 0 1 auto; }
+.studio-inspector__kind-icon { display: inline-flex; flex: 0 0 auto; color: var(--zen-color-content-neutral-base); }
+.studio-inspector__kind-icon[data-component="true"] { color: var(--zen-color-content-support-purple-base); }
+/* The file link: a quiet xs button whose icon lines up with the text above it (the flat button's own inset pulled back). */
+.studio-inspector__src.zen-button { justify-self: start; max-width: calc(100% + var(--zen-button-horizontal-padding, 6px)); margin-inline-start: calc(-1 * var(--zen-button-horizontal-padding, 6px)); color: var(--zen-color-content-neutral-base); }
+.studio-inspector__src.zen-button:hover { color: var(--zen-color-content-neutral-strongest); }
+/* Header label/value rows (Type, Docs, Used in, Repeats): values in Content/Neutral/Strongest; long ones wrap. */
+.studio-inspector__head-value { min-width: 0; color: var(--zen-color-content-neutral-strongest); overflow-wrap: anywhere; }
+.studio-inspector__head-link { min-width: 0; overflow-wrap: anywhere; }
+.studio-inspector__row-control > .studio-inspector__src.zen-button { min-width: 0; flex: 0 1 auto; }
+/* "PlatformExamples.tsx:1134": the file name truncates, ":<line>" always stays visible. */
+.studio-inspector__src > .zen-button__label { display: flex; min-width: 0; }
+.studio-inspector__src-file { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-inspector__src-line { flex: 0 0 auto; white-space: nowrap; }
+/* Detach instance: a full-width button with what happens (or why it is blocked for now) in visible text under it. */
+.studio-inspector__detach { display: grid; min-width: 0; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-inspector__detach-button.zen-button { width: 100%; }
+.studio-inspector__detach-caption { color: var(--zen-color-content-neutral-light); }
+/* The usual caption keeps its place under a reason (both in one cell), so Checking… → ready → refused never changes the
+   header's height; a reason is clamped to two lines (the full sentence is in the status line and the tooltip). */
+.studio-inspector__detach-caption-box { display: grid; min-width: 0; }
+.studio-inspector__detach-caption-box > * { grid-area: 1 / 1; min-width: 0; }
+.studio-inspector__detach-caption[data-hidden="true"] { visibility: hidden; }
+.studio-inspector__detach-reason { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.studio-inspector__nowrap { white-space: nowrap; }
+.studio-inspector__eyebrow { color: var(--zen-color-content-neutral-base); }
+.studio-inspector__description { color: var(--zen-color-content-neutral-base); }
+.studio-inspector__meta { color: var(--zen-color-content-neutral-base); white-space: nowrap; }
+.studio-inspector__note { color: var(--zen-color-content-neutral-base); }
+.studio-inspector__empty { padding: var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-base); }
+
+/* One text size in the panel (Design panel UI3, user 2026-10-06): a Small button keeps its 32px height (the panel must
+   not feel cramped) and reads Button-Label/XS (12px) like every other line here. */
+.studio-inspector .zen-button[data-size="sm"] .zen-button__label {
+  font-size: var(--zen-typography-font-size-button-label-xs);
+  line-height: var(--zen-typography-line-height-button-label-xs);
+  letter-spacing: var(--zen-typography-letter-spacing-button-label-xs);
+}
+
+/* Sections and rows. */
+.studio-inspector__section { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-small, 12px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
+.studio-inspector__section-head { display: flex; min-height: 24px; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-inspector__section-actions { display: flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-inspector__section-body { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-inspector__section.studio-inspector__section--fill { display: flex; min-height: 320px; flex: 1 1 0; flex-direction: column; }
+.studio-inspector__section--fill > .studio-inspector__section-body { display: flex; min-height: 0; flex: 1 1 0; flex-direction: column; }
+.studio-inspector__section--fill > .studio-inspector__section-body > * { min-height: 0; flex: 1 1 0; }
+/* The trailing slot is a fixed column sized like an xs IconButton (density-safe), so a control's width never changes
+   with its value state (a reset appearing or not). */
+.studio-inspector__row { display: grid; min-width: 0; min-height: 32px; grid-template-columns: var(--studio-inspector-label) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Header rows: one xs-button height; a value that wraps (Repeats) keeps its label on its first line. */
+.studio-inspector__row[data-compact="true"] { min-height: var(--zen-button-size-xsmall, 24px); align-items: start; }
+.studio-inspector__row[data-compact="true"] > .studio-inspector__row-label,
+.studio-inspector__row[data-compact="true"] .studio-inspector__head-value,
+.studio-inspector__row[data-compact="true"] .studio-inspector__head-link { padding-block: calc((var(--zen-button-size-xsmall, 24px) - var(--zen-typography-line-height-body-small, 16px)) / 2); }
+/* Labels wrap to a second line rather than truncate ("Horizontal / padding" at 280–320px); the tooltip names the prop. */
+.studio-inspector__row-label { display: -webkit-box; min-width: 0; overflow: hidden; color: var(--zen-color-content-neutral-base); overflow-wrap: break-word; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.studio-inspector__row-control { display: flex; min-width: 0; align-items: center; transition: opacity var(--zen-motion-duration-fast) var(--zen-motion-ease-standard); }
+.studio-inspector__row-control > .zen-input-field,
+.studio-inspector__row-control > .zen-segmented,
+.studio-inspector__row-control > .studio-icon-control,
+.studio-inspector__row-control > .studio-enum { width: 100%; min-width: 0; }
+.studio-enum { position: relative; display: flex; min-width: 0; }
+.studio-enum > .zen-input-field,
+.studio-enum > .zen-segmented { width: 100%; min-width: 0; }
+/* Off-screen text probe: measures option labels to choose between Segmented and a select. */
+.studio-inspector__measure { position: absolute; top: 0; left: 0; visibility: hidden; white-space: nowrap; pointer-events: none; }
+.studio-inspector__row-action { display: flex; justify-content: flex-end; }
+/* Long values ("Heading/Subheading") truncate before the chevron instead of running under it. */
+.studio-inspector .zen-select__trigger { display: block; min-width: 0; overflow: hidden; align-content: center; text-overflow: ellipsis; white-space: nowrap; }
+/* Value text one step below the Small field's Body/Base/Medium (user, 2026-10-04): Body/Small/Medium (12px/16px), the
+   field keeps its Small height (32px); only inside the Studio inspector, the library Input is unchanged. */
+.studio-inspector .zen-input__native,
+.studio-inspector .zen-select__trigger {
+  font-size: var(--zen-typography-font-size-body-small);
+  font-weight: var(--zen-emphasis-font-weight-medium);
+  line-height: var(--zen-typography-line-height-body-small);
+  letter-spacing: var(--zen-typography-letter-spacing-body-small);
+}
+.studio-inspector__row-hint { grid-column: 2 / -1; color: var(--zen-color-content-neutral-base); }
+/* An unset prop: full strength (disabled is only for Viewer and read-only), its effective default value in the base
+   tone; the trailing slot stays empty. */
+.studio-inspector__row[data-default="true"] .zen-select__trigger:not(:disabled) { color: var(--zen-color-content-neutral-base); }
+.studio-inspector__unset { color: var(--zen-color-content-neutral-base); }
+/* A literal shown without an editor (Grid columns={2}). */
+.studio-inspector__value { min-width: 0; overflow: hidden; color: var(--zen-color-content-neutral-strongest); text-overflow: ellipsis; white-space: nowrap; }
+/* A value the inspector shows but cannot edit ({…}, ƒ()). */
+.studio-inspector__chip { display: inline-flex; min-width: 0; max-width: 100%; padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); overflow: hidden; border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-neutral-pale-default); color: var(--zen-color-content-neutral-base); text-overflow: ellipsis; white-space: nowrap; }
+
+/* A value bound to code (Design panel UI3, user 2026-10-06): a ƒ after the label, never a line of its own; the control
+   shows what the element renders. Info tone, the code font at the label's size. */
+.studio-inspector__bound-mark { display: inline-flex; margin-inline-start: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-info-subtle-default); color: var(--zen-color-content-info-strongest); font-family: var(--zen-typography-font-family-dev, ui-monospace, monospace); vertical-align: baseline; cursor: help; }
+/* A value shown without an editor (read-only binding, a literal with no editor, "Not set"): a field's frame and height,
+   so every row of the column reads the same; the text truncates, the whole value is its tooltip. */
+/* zen-allow-radius-role: drawn as an inspector field (the read-only twin of the fields in the same column) */
+.studio-inspector__static { display: flex; width: 100%; min-width: 0; height: var(--zen-input-size-small, 32px); box-sizing: border-box; align-items: center; padding: 0 var(--zen-input-spacing-small-horizontal-padding, 8px); border-radius: var(--zen-corner-radius-input-small, 8px); background: var(--zen-input-background-default); color: var(--zen-color-content-neutral-strongest); }
+.studio-inspector__static[data-placeholder="true"] { color: var(--zen-color-content-neutral-light); }
+.studio-inspector__static[data-code="true"] { font-family: var(--zen-typography-font-family-dev, ui-monospace, monospace); }
+.studio-inspector__static-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Icon picker trigger: a full-width value button whose name truncates. */
+/* It wears a field's frame like the selects around it (Design panel UI3): the field's fill, radius and inset, the
+   value in Body/Small/Medium, the chevron at the end; no icon yet reads "None" in the placeholder tone. */
+.studio-icon-control { position: relative; display: flex; min-width: 0; }
+/* zen-allow-radius-role: drawn as an inspector field (the read-only twin of the fields in the same column) */
+.studio-icon-control > .zen-button { width: 100%; min-width: 0; justify-content: flex-start; padding-inline: var(--zen-input-spacing-small-horizontal-padding, 8px); border-radius: var(--zen-corner-radius-input-small, 8px); background: var(--zen-input-background-default); box-shadow: none; color: var(--zen-color-content-neutral-strongest); }
+.studio-icon-control > .zen-button:hover:not(:disabled) { background: var(--zen-input-background-hover, var(--zen-input-background-default)); }
+.studio-icon-control > .zen-button > :last-child { margin-inline-start: auto; color: var(--zen-color-content-neutral-base); }
+.studio-icon-control[data-empty="true"] .studio-icon-control__label { color: var(--zen-color-content-neutral-light); }
+.studio-icon-control__label { min-width: 0; flex: 1 1 auto; overflow: hidden; text-align: start; text-overflow: ellipsis; white-space: nowrap; }
+/* An icon that can be switched off (boolean | IconName): the switch, then the picker while it is on (GĐ4 M1). */
+.studio-inspector__row-control > .studio-icon-toggle { width: 100%; min-width: 0; }
+.studio-icon-toggle { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-icon-toggle > .studio-icon-control { flex: 1 1 auto; }
+
+/* Text style picker: a SelectField trigger that opens the grouped list below it. */
+.studio-type-control { position: relative; display: flex; width: 100%; min-width: 0; }
+.studio-type-control > .zen-input-field { width: 100%; min-width: 0; }
+/* The list: one group per family, its name a kicker above its styles (Caption/Medium, neutral light). */
+.studio-type-control__group { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-type-control__family { padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px) 0; color: var(--zen-color-content-neutral-light); }
+.studio-type-control__empty { padding: var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-base); }
+/* Tone control (PropField ToneControl): a select whose trigger and options lead with a swatch of the tone's colour. The
+   swatch is painted with currentColor so each tone keeps its own Color/Content token; a Pale ring keeps white and very
+   light tones visible on the white panel, and `inherit` (no colour of its own) is a dashed ring. */
+.studio-tone-control { position: relative; display: flex; width: 100%; min-width: 0; }
+.studio-tone-control > .zen-input-field { width: 100%; min-width: 0; }
+/* zen-allow-pale-actionable-box: the swatch is a static colour chip inside the select (the select is the target), so its
+   ring is the static Pale edge that keeps white and very light tones visible. */
+.studio-tone-swatch { display: inline-block; width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 1000px); background: currentColor; box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
+.studio-tone-swatch[data-swatch="none"] { background: none; box-shadow: none; outline: 1px dashed var(--zen-color-border-neutral-subtle-default); outline-offset: -1px; }
+/* A tone's swatch takes its token as an inline colour (ToneSwatch, contentTone.ts): 81 tones, no rule each. */
+
+/* "Text style comes from Button · size md" and the jump to that prop's control. */
+.studio-text-source { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-text-source__text { min-width: 0; flex: 1 1 auto; color: var(--zen-color-content-neutral-base); }
+.studio-text-source__action.zen-button { flex: 0 0 auto; margin-inline-end: calc(-1 * var(--zen-button-horizontal-padding, 6px)); }
+/* A row "Edit size" jumped to: a short tint so the eye finds it (a colour change, kept under reduced motion). */
+.studio-inspector__row[data-flash="true"],
+.studio-inspector .platform-property-row[data-flash="true"] { border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-info-subtle-default); box-shadow: 0 0 0 var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-color-background-info-subtle-default); }
+.studio-inspector__row,
+.studio-inspector .platform-property-row { transition: background-color var(--zen-motion-duration-base) var(--zen-motion-ease-standard), box-shadow var(--zen-motion-duration-base) var(--zen-motion-ease-standard); }
+
+/* The alignment box (controls/AlignmentBox.tsx) is styled in controls/controls.css. */
+
+/* Compact rows (frames, child elements), like the Layers rows: 28px, 16px icon, Body/Small/Medium, Caption meta. The
+   hover fill reaches 4px past the content, which stays aligned with the section heading. */
+.studio-inspector__items { display: grid; margin: 0; padding: 0; list-style: none; }
+.studio-inspector__item-wrap { display: flex; min-width: 0; }
+.studio-inspector__item { display: flex; width: calc(100% + 2 * var(--zen-spacing-padding-2-xsmall, 4px)); min-width: 0; height: 28px; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); margin-inline: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)); padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: transparent; color: var(--zen-color-content-neutral-strongest); cursor: pointer; text-align: start; }
+.studio-inspector__item:hover { background: var(--zen-color-background-surface-hover); }
+.studio-inspector__item:active { background: var(--zen-color-background-surface-pressed); }
+.studio-inspector__item:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid); }
+.studio-inspector__item-icon { display: inline-flex; flex: 0 0 auto; color: var(--zen-color-content-neutral-base); }
+.studio-inspector__item[data-component="true"] .studio-inspector__item-icon { color: var(--zen-color-content-support-purple-base); }
+.studio-inspector__item-name { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-inspector__item-meta { flex: 0 0 auto; color: var(--zen-color-content-neutral-base); white-space: nowrap; }
+.studio-inspector__summary { color: var(--zen-color-content-neutral-strongest); }
+.studio-inspector__actions { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); padding-top: var(--zen-spacing-padding-2-xsmall, 4px); }
+
+/* Part (deep select, read-only): "SidebarItem · part of Sidebar", the owner links, values with the token they equal. */
+/* The name wraps (a long part name and its owner never truncate to "Sid…"). */
+.studio-inspector__title-row > h2.studio-part__title { overflow-wrap: anywhere; }
+.studio-part__owner { color: var(--zen-color-content-neutral-base); }
+.studio-part__links { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-part__code.zen-button { min-width: 0; color: var(--zen-color-content-neutral-base); }
+.studio-part__code.zen-button:hover { color: var(--zen-color-content-neutral-strongest); }
+.studio-part__edit { padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-info-subtle-default); color: var(--zen-color-content-info-strongest); }
+/* A data-slot item (TopNavigation's trailing action, DataItemPanel): its move / duplicate / remove buttons in one row,
+   and, for a part inside an item, the note with its "Select {item}" link under it. */
+.studio-item__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-item__banner { display: grid; min-width: 0; justify-items: start; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+/* A long value (a className, a string) ends in an ellipsis inside the chip; the whole value is its tooltip. */
+.studio-inspector__chip.studio-part__chip { display: block; }
+.studio-part__cell { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; justify-content: center; }
+.studio-part__value { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-part__text { min-width: 0; overflow: hidden; color: var(--zen-color-content-neutral-strongest); text-overflow: ellipsis; white-space: nowrap; }
+/* zen-allow-slot-size: a colour sample drawn at the text's height, not a slot that holds content */
+.studio-part__swatch { flex: 0 0 auto; width: 16px; height: 16px; box-sizing: border-box; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--studio-swatch, transparent); }
+.studio-part__token { min-width: 0; overflow: hidden; color: var(--zen-color-content-neutral-base); text-overflow: ellipsis; white-space: nowrap; }
+
+/* Footer status line. */
+.studio-inspector__status { display: flex; flex: 0 0 auto; min-width: 0; min-height: 36px; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); border-top: 1px solid var(--zen-color-border-neutral-pale-default); color: var(--zen-color-content-neutral-base); }
+.studio-inspector__status[data-tone="positive"] { color: var(--zen-color-content-positive-strongest); }
+.studio-inspector__status[data-tone="negative"] { color: var(--zen-color-content-negative-strongest); }
+.studio-inspector__status[data-tone="warning"] { color: var(--zen-color-content-warning-strongest); }
+.studio-inspector__status-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* A Save's findings and conflicts: up to five lines under the message, aligned with its text (16px icon + Gap/XSmall). */
+.studio-inspector__status[data-details="true"] { flex-wrap: wrap; }
+.studio-inspector__status-details {
+  display: grid;
+  flex: 1 0 100%;
+  min-width: 0;
+  gap: var(--zen-spacing-gap-3-xsmall, 2px);
+  padding: 0 0 0 calc(var(--zen-spacing-padding-medium, 16px) + var(--zen-spacing-padding-xsmall, 8px));
+  margin: 0;
+  color: var(--zen-color-content-neutral-base);
+  list-style: none;
+}
+/* Each finding gets two lines before it is cut (the whole line is its title). */
+.studio-inspector__status-details > li { display: -webkit-box; min-width: 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow-wrap: anywhere; }
+
+/* Portalled slots: the playground's own controls, restyled as inspector rows. */
+.studio-inspector__slot { min-width: 0; }
+/* One column at every width (the classic page switches to two columns on narrow screens). */
+.studio-inspector .platform-playground-controls { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-xsmall, 8px); align-content: start; padding: 0; border: 0; grid-area: auto; }
+.studio-inspector .platform-playground-controls::before { display: none; content: none; }
+.studio-inspector .platform-playground-controls > * { grid-column: auto; }
+.studio-inspector .platform-property-row { display: grid; min-height: 32px; grid-template-columns: var(--studio-inspector-label) minmax(0, 1fr); gap: var(--zen-spacing-gap-xsmall, 8px); align-items: center; }
+.studio-inspector .platform-property-row[data-kind="boolean"] { padding-block: 0; }
+/* The playground's own labels read as inspector row labels (Body/Small/Regular, as the Modes popover). */
+.studio-inspector .platform-property-row__label {
+  grid-column: auto;
+  color: var(--zen-color-content-neutral-base);
+  font-family: var(--zen-typography-font-family-sans);
+  font-size: var(--zen-typography-font-size-body-small);
+  font-weight: var(--zen-emphasis-font-weight-regular);
+  line-height: var(--zen-typography-line-height-body-small);
+  letter-spacing: var(--zen-typography-letter-spacing-body-small);
+  /* Long property names ("Trailing Clickable") wrap in a narrow inspector instead of losing their end. */
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+}
+.studio-inspector .platform-property-row__control,
+.studio-inspector .platform-property-row__chip { grid-column: auto; min-width: 0; }
+.studio-inspector .platform-property-row > .zen-toggle { justify-self: start; }
+.studio-inspector .platform-playground-controls > .zen-toggle { width: auto; min-width: 0; }
+.studio-inspector__slot--code .platform-code { min-width: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-inspector__row-control { transition: none; }
+}

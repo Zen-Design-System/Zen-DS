@@ -1,0 +1,1487 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "input",
+  "import": "import { InputField, SelectField, DateField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "InputField",
+      "file": "src/components/Input/Input.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": "Omit<InputHTMLAttributes<HTMLInputElement>, \"size\">",
+      "props": [
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelOptional",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel).",
+          "deprecated": null
+        },
+        {
+          "name": "labelTooltip",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpTheme",
+          "type": "\"neutral\" | \"negative\" | \"warning\" | \"positive\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative.",
+          "deprecated": null
+        },
+        {
+          "name": "helpIcon",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Icon` axis (default on).",
+          "deprecated": null
+        },
+        {
+          "name": "characterLimit",
+          "type": "ReactNode | true",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Character-Limitation`: custom text (e.g. \"12/100\"), or `true` to count the value against `maxLength`.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "errorMessage",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use error (same meaning)."
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"typing\" | \"inputted\" | \"read-only\" | \"disabled\" | \"inputted-error\" | \"blank-error\" | \"error\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Before the value: an icon name (`\"icon-mail-01-line\"`, sized to the field) or any node (a unit, a picker).",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "After the value: an icon name (sized to the field) or any node (a unit, a picker, an action).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the new text on every change (next to the native `onChange(event)`, which still runs).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "SelectField",
+      "file": "src/components/Input/Input.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": "Omit<SelectHTMLAttributes<HTMLSelectElement>, \"size\">",
+      "props": [
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelOptional",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel).",
+          "deprecated": null
+        },
+        {
+          "name": "labelTooltip",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpTheme",
+          "type": "\"neutral\" | \"negative\" | \"warning\" | \"positive\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative.",
+          "deprecated": null
+        },
+        {
+          "name": "helpIcon",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Icon` axis (default on).",
+          "deprecated": null
+        },
+        {
+          "name": "characterLimit",
+          "type": "ReactNode | true",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Character-Limitation`: custom text (e.g. \"12/100\"), or `true` to count the value against `maxLength`.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "errorMessage",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use error (same meaning)."
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"typing\" | \"inputted\" | \"read-only\" | \"disabled\" | \"inputted-error\" | \"blank-error\" | \"error\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Before the value: an icon name (`\"icon-mail-01-line\"`, sized to the field) or any node (a unit, a picker).",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "After the value: an icon name (sized to the field) or any node (a unit, a picker, an action).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "options",
+          "type": "SelectFieldOption[]",
+          "required": false,
+          "default": "[]",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string, option: SelectFieldOption) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the picked value and its option, next to the native `onChange(event)` (which still runs).",
+          "deprecated": null
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Shown (Content/Placeholder) while no option is selected, e.g. \"Choose a role\". With a placeholder and no\n`value` / `defaultValue`, nothing is preselected; without one the first option is selected, like a native select.",
+          "deprecated": null
+        },
+        {
+          "name": "onFocus",
+          "type": "FocusEventHandler<HTMLSelectElement>",
+          "required": false,
+          "default": null,
+          "description": "Focus entered the field (its trigger or option list) from outside. The event targets the native select (name, value).",
+          "deprecated": null
+        },
+        {
+          "name": "onBlur",
+          "type": "FocusEventHandler<HTMLSelectElement>",
+          "required": false,
+          "default": null,
+          "description": "Focus left the field — the trigger and its option list — as on a native select. The event targets the native select.",
+          "deprecated": null
+        },
+        {
+          "name": "popoverLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Popover/Label above the options: it names the option list, not the value (a label, not a heading).",
+          "deprecated": null
+        },
+        {
+          "name": "popoverSearch",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Adds the Popover Search row; options are filtered by the query.",
+          "deprecated": null
+        },
+        {
+          "name": "popoverSearchPlaceholder",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "popoverOpen",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself.",
+          "deprecated": null
+        },
+        {
+          "name": "onPopoverOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the next open state: the trigger, Escape, a pick, a click outside or focus leaving the field.",
+          "deprecated": null
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma State=Read-Only: shows the value, keeps the chevron, never opens.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "DateField",
+      "file": "src/components/Input/Input.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelOptional",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel).",
+          "deprecated": null
+        },
+        {
+          "name": "labelTooltip",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpTheme",
+          "type": "\"neutral\" | \"negative\" | \"warning\" | \"positive\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative.",
+          "deprecated": null
+        },
+        {
+          "name": "helpIcon",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Icon` axis (default on).",
+          "deprecated": null
+        },
+        {
+          "name": "characterLimit",
+          "type": "ReactNode | true",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Character-Limitation`: custom text (e.g. \"12/100\"), or `true` to count the value against `maxLength`.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "errorMessage",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use error (same meaning)."
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": null,
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"typing\" | \"inputted\" | \"read-only\" | \"disabled\" | \"inputted-error\" | \"blank-error\" | \"error\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Before the value: an icon name (`\"icon-mail-01-line\"`, sized to the field) or any node (a unit, a picker).",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "After the value: an icon name (sized to the field) or any node (a unit, a picker, an action).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the new text on every change (next to the native `onChange(event)`, which still runs).",
+          "deprecated": null
+        },
+        {
+          "name": "datePicker",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "datePickerActions",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "The calendar's Cancel + Submit (Figma Actions): a picked day is a draft until Submit writes it to the field; Cancel and\n Escape keep the date the field had.",
+          "deprecated": null
+        },
+        {
+          "name": "onDateChange",
+          "type": "(date: Date | null) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "minDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "Earliest day the calendar lets people pick (DatePicker `minDate`); earlier days are disabled. A typed date before\nit stays in the field and reaches `onValueChange` as usual, and the input is marked `aria-invalid` (Form and\nModalForm count it and focus it after a blocked submit). The field shows no message of its own: validate the value\nand pass `error` (\"Pick a date from 1 October\").",
+          "deprecated": null
+        },
+        {
+          "name": "maxDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "Latest day the calendar lets people pick (DatePicker `maxDate`); later days are disabled. A typed date after it is\nkept, reported and marked `aria-invalid` as for `minDate`: pass `error` to say why.",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "The day the calendar treats as today (DatePicker `today`): its Today ring and the month it opens on while empty.\nDefault: the device clock.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "NumberField",
+      "file": "src/components/Input/Input.tsx",
+      "description": "Figma Input/Number-Align-Left (421:10057) and Number-Align-Center (450:7900): Button/Icon-Main 2XSmall Tertiary\nsteppers (24px) after or around the value. Read-Only hides the steppers; Disabled keeps them, disabled (Figma still\ndraws State=Default steppers in the Disabled variant). Keyboard: ↑/↓ step; Enter/blur clamps.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "align",
+          "type": "\"left\" | \"center\"",
+          "required": false,
+          "default": "\"left\"",
+          "description": "Figma Input/Number-Align-Left (steppers trailing) or Number-Align-Center (− value +).",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "number | null",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "number | null",
+          "required": false,
+          "default": "null",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: number | null) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "min",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "step",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "decrementLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the − stepper. Default: the locale's \"Decrease\".",
+          "deprecated": null
+        },
+        {
+          "name": "incrementLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the + stepper. Default: the locale's \"Increase\".",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "TextAreaField",
+      "file": "src/components/Input/Input.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": "Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, \"size\">",
+      "props": [
+        {
+          "name": "size",
+          "type": "Exclude<InputSize, \"xlarge\" | \"xl\">",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the new text on every change (next to the native `onChange(event)`, which still runs).",
+          "deprecated": null
+        },
+        {
+          "name": "rows",
+          "type": "unknown",
+          "required": false,
+          "default": "4",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "AutocompleteField",
+      "file": "src/components/Input/Input.tsx",
+      "description": "Figma Input/Autocomplete-Field (1241:5616): Label, a wrapping Tag list (gap 4, Tag Remove=Yes) and an\n\"Add Item\" Button/Main XSmall Secondary that opens Popover/Default (Search + \"Search and select\" label + items)\nover the Add slot. Selected options become tags; the popover closes on outside pointer-down or Escape. Removing a tag\nmoves focus to the next tag's Remove button, else the previous tag's, else Add Item.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpTheme",
+          "type": "\"neutral\" | \"negative\" | \"warning\" | \"positive\"",
+          "required": false,
+          "default": "\"neutral\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpIcon",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Blank-Error / Inputted-Error message (Help-Text Theme=Negative).",
+          "deprecated": null
+        },
+        {
+          "name": "errorMessage",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use error (same meaning)."
+        },
+        {
+          "name": "options",
+          "type": "AutocompleteOption[]",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string[]",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "string[]",
+          "required": false,
+          "default": "[]",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string[]) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the selected option ids when a tag is added, created or removed.",
+          "deprecated": null
+        },
+        {
+          "name": "onChange",
+          "type": "(value: string[]) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use onValueChange (same arguments)."
+        },
+        {
+          "name": "invalidValues",
+          "type": "string[]",
+          "required": false,
+          "default": "[]",
+          "description": "Ids rendered as Tag State=Error (Inputted-Error).",
+          "deprecated": null
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma State=View-Only: tags without Remove and no Add button.",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "addLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Text of the Add button. Default: the locale's \"Add Item\".",
+          "deprecated": null
+        },
+        {
+          "name": "popoverLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Label above the option list (it names the list; not a heading). Default: the locale's \"Search and select\".",
+          "deprecated": null
+        },
+        {
+          "name": "searchPlaceholder",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Placeholder of the Search row. Default: the locale's \"Search\".",
+          "deprecated": null
+        },
+        {
+          "name": "onCreate",
+          "type": "(label: string) => string | void",
+          "required": false,
+          "default": null,
+          "description": "Figma Popover/Manual-Add-New: create a value that isn't in `options`. Add the new option to `options`\nand return its id; the field then selects it as a Tag. A typed value that matches an option shows no Create row:\nan option already added as a Tag is listed as selected (disabled) instead.",
+          "deprecated": null
+        },
+        {
+          "name": "createLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "RichTextField",
+      "file": "src/components/Input/Input.tsx",
+      "description": "Figma `Input/Richtext` (6385:17480): the Editor-Bar (Control-Bar, optional) above a Text-Area field, gap Spacing/Gap/XSmall.\nThe field is a content-editable editor inside the regular Input shell, so hover/focus/Read-only/error states match\nText-Area. Output is HTML via `onValueChange(html, text)`. Undo / Redo (the Editor-Bar, ⌘Z, ⇧⌘Z, Ctrl+Y) step\nthrough this field's own history and are disabled while there is nothing to undo or redo; a new `value` from\noutside (clearing the field after it was posted) starts a new history.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "Exclude<InputSize, \"xlarge\" | \"xl\">",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "HTML content (controlled).",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(html: string, text: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the editor HTML and its plain text on every edit.",
+          "deprecated": null
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "maxLength",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Counted against `characterLimit={true}` (plain text length); not enforced.",
+          "deprecated": null
+        },
+        {
+          "name": "editorBar",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Figma `Control-Bar` boolean: show the Editor-Bar above the field.",
+          "deprecated": null
+        },
+        {
+          "name": "editorBarTheme",
+          "type": "\"subtle\" | \"solid\" | \"inverse\"",
+          "required": false,
+          "default": "\"subtle\"",
+          "description": "Control-Bar/Select-Item Theme of the bar.",
+          "deprecated": null
+        },
+        {
+          "name": "onFocus",
+          "type": "(event: FocusEvent<HTMLDivElement>) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onBlur",
+          "type": "(event: FocusEvent<HTMLDivElement>) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "InputLabel",
+      "file": "src/components/Input/Input.tsx",
+      "description": "Public implementation of Figma's `Primitives/Input/Label` (387:3651): Content (label · optional · tooltip icon,\ngap 2XSmall) + an optional right-aligned Action. The tooltip icon sits outside the <label> so hovering or\nfocusing it never activates the field.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelId",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "id of the <label> element itself, for controls that are named with aria-labelledby (e.g. a rich text editor).",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "optional",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma `Optional`: appends the locale's \"(Optional)\" in Content/Neutral/Light.",
+          "deprecated": null
+        },
+        {
+          "name": "tooltip",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": "false",
+          "description": "Figma `Tooltip-Icon`: `true` shows the 12px info icon; text/nodes also show it as a hover/focus Tooltip.",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma `Action`: right-aligned Body/Small/Bold slot — a link or a text button (e.g. \"Forgot password?\").",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma `State=Disabled`: every part (label, optional, icon, action) turns Content/Disabled.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "InputHelpText",
+      "file": "src/components/Input/Input.tsx",
+      "description": "Public implementation of Figma's `.Primitives/Input/Help-Text` owner.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"neutral\" | \"negative\" | \"warning\" | \"positive\"",
+          "required": false,
+          "default": "\"neutral\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "characterLimit",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "InputLeadingTrailing",
+      "file": "src/components/Input/Input.tsx",
+      "description": "Slot-compatible implementation of `.Primitives/Input/Leading-Trailing`. Three behaviours, chosen per use case:\n- picker: `options` → a button (label + chevron) that opens the shared Popover;\n- action: `onClick` → a button that runs the caller's action (filter, show password…);\n- decorative: neither, or `interactive={false}` → a plain slot; a click on it focuses the field.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "size",
+          "type": "Exclude<InputSize, \"xlarge\" | \"xl\">",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "An icon name (`\"icon-settings-03-line\"`, drawn at the slot's icon size) or any node.",
+          "deprecated": null
+        },
+        {
+          "name": "flag",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "showLabel",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Explicit Figma Label axis. Omit the label while keeping the slot/icon.",
+          "deprecated": null
+        },
+        {
+          "name": "dropdown",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "showDropdown",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Explicit Figma Dropdown axis.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "options",
+          "type": "InputLeadingTrailingOption[]",
+          "required": false,
+          "default": null,
+          "description": "Makes a labelled slot a picker: clicking it opens a Popover with these options (e.g. country code, unit, currency).",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string, option: InputLeadingTrailingOption) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "popoverLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Popover/Label above the options, e.g. \"Country code\" (a label, not a heading). Also the button's accessible name prefix.",
+          "deprecated": null
+        },
+        {
+          "name": "align",
+          "type": "\"start\" | \"end\"",
+          "required": false,
+          "default": "\"end\"",
+          "description": "Open the picker towards the start (leading) or end (trailing) of the field.",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "interactive",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Whether the slot is clickable. Defaults to `true` for a labelled slot with `options` (picker) or any slot with\n`onClick` (action); otherwise `false` (decorative: a click focuses the field). Set it explicitly per use case.",
+          "deprecated": null
+        },
+        {
+          "name": "onClick",
+          "type": "(event: MouseEvent<HTMLButtonElement>) => void",
+          "required": false,
+          "default": null,
+          "description": "Action slot (no popover), e.g. a filter or visibility toggle. Makes the slot clickable unless `interactive={false}`.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name for a clickable slot; required when it has no visible label (icon-only).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-haspopup",
+          "type": "ButtonHTMLAttributes<HTMLButtonElement>[\"aria-haspopup\"]",
+          "required": false,
+          "default": null,
+          "description": "Marks an action slot that opens a menu/popover owned by the caller.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-expanded",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "InputContent",
+      "file": "src/components/Input/Input.tsx",
+      "description": "Public implementation of Figma's `.Primitives/Input/Input-Content/Default`.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "size",
+          "type": "Exclude<InputSize, \"xlarge\" | \"xl\">",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"focused\" | \"typing\" | \"inputted\" | \"disabled\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "text",
+          "type": "ReactNode",
+          "required": false,
+          "default": "\"Content\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "cursor",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ControlBarSelectItem",
+      "file": "src/components/Input/Input.tsx",
+      "description": "Public implementation of Figma's `Control-Bar/Select-Item` primitive.",
+      "deprecated": null,
+      "extends": "ButtonHTMLAttributes<HTMLButtonElement>",
+      "props": [
+        {
+          "name": "theme",
+          "type": "\"subtle\" | \"solid\" | \"inverse\"",
+          "required": false,
+          "default": "\"subtle\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"selected\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactNode",
+          "required": true,
+          "default": null,
+          "description": "An icon name (`\"icon-bold-02-line\"`, drawn at 20px) or any node. Name the item with aria-label.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "RichTextEditorBar",
+      "file": "src/components/Input/Input.tsx",
+      "description": "Figma `.Primitives/Rich-Text/Editor-Bar`: Undo/Redo · Text style Select (Small) · Bold/Underline/Italic/Strikethrough ·\nalignment · lists and indent · link/image/video · clear formatting, gap Spacing/Gap/2XSmall between blocks and\n3XSmall inside a block. Items keep the editor's selection (mouse-down does not steal focus); arrow keys move\nbetween items (ARIA toolbar pattern).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "theme",
+          "type": "\"subtle\" | \"solid\" | \"inverse\"",
+          "required": false,
+          "default": "\"subtle\"",
+          "description": "Figma Control-Bar/Select-Item Theme used by every item.",
+          "deprecated": null
+        },
+        {
+          "name": "active",
+          "type": "Partial<Record<RichTextCommand, boolean>>",
+          "required": false,
+          "default": "{}",
+          "description": "Commands shown as Selected (aria-pressed) — the formatting at the caret.",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean | Partial<Record<RichTextCommand, boolean>>",
+          "required": false,
+          "default": null,
+          "description": "`true` disables the whole bar (Read-only field); a map disables single commands (e.g. undo with no history).",
+          "deprecated": null
+        },
+        {
+          "name": "blockType",
+          "type": "\"p\" | \"h1\" | \"h2\" | \"h3\"",
+          "required": false,
+          "default": "\"p\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onBlockTypeChange",
+          "type": "(blockType: RichTextBlockType) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onCommand",
+          "type": "(command: RichTextCommand, trigger: HTMLButtonElement) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "controls",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "id of the editor the bar formats.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the toolbar. Default: the locale's \"Formatting\".",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "HeadingField",
+      "file": "src/components/Input/Input.tsx",
+      "description": "Figma Input/Heading (694:13062): an inline-editable heading (no field chrome). Heading/1–3 text, an 8px pad that\nsits outside the text box (−8px), radius 12, and a Neutral/Subtle surface on hover/focus/typing. One line by\ndefault; `multiline` wraps long headings and grows with them (Status=Inputted-Multi-Line).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "headingSize",
+          "type": "\"h1\" | \"h2\" | \"h3\"",
+          "required": false,
+          "default": "\"h3\"",
+          "description": "Heading/1–3 text style.",
+          "deprecated": null
+        },
+        {
+          "name": "multiline",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "`false` (default): one line, for short names (a board, a file, a section); a long heading scrolls inside the field.\n`true`: long headings wrap and the field grows with them (Figma Status=Inputted-Multi-Line), for document,\nannouncement or task titles. It renders a `<textarea>`: Enter never adds a line break (handle it in `onKeyDown`,\ne.g. to move on) and pasted line breaks become spaces.",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the text on every change, in both variants.",
+          "deprecated": null
+        },
+        {
+          "name": "status",
+          "type": "\"default\" | \"hover\" | \"focus\" | \"typing\" | \"inputted-single-line\" | \"inputted-multi-line\" | \"inputted-hover\"",
+          "required": false,
+          "default": null,
+          "description": "Deterministic Figma Status for matrices; native hover/focus still apply.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "InputConditionItem",
+      "file": "src/components/Input/Input.tsx",
+      "description": "Figma Primitives/Input/Input-Conditions/Condition-Item: 16px icon (Element-Size/Popular/Small) + Body/Small/Regular,\ngap 2XSmall. Default Content/Neutral/Base (minus), Success Positive/Light (check), Wrong Negative/Light (x-small).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"success\" | \"wrong\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "InputConditions",
+      "file": "src/components/Input/Input.tsx",
+      "description": "Figma Input-Conditions: an Item-List slot stacking Condition-Items with gap XSmall.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "AutocompleteOption": "type AutocompleteOption = { id: string; label: string; leading?: ReactNode; photoSrc?: string }",
+    "InputLeadingTrailingOption": "type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: ReactNode; icon?: IconName | ReactNode; flag?: ReactNode; }",
+    "InputSize": "type InputSize = \"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+    "RichTextBlockType": "type RichTextBlockType = \"p\" | \"h1\" | \"h2\" | \"h3\"",
+    "RichTextCommand": "type RichTextCommand = | \"undo\" | \"redo\" | \"bold\" | \"underline\" | \"italic\" | \"strikethrough\" | \"align-left\" | \"align-center\" | \"align-right\" | \"align-justify\" | \"bulleted-list\" | \"numbered-list\" | \"outdent\" | \"indent\" | \"link\" | \"image\" | \"video\" | \"clear-format\"",
+    "SelectFieldOption": "type SelectFieldOption = { label: string; value: string; disabled?: boolean }"
+  }
+}

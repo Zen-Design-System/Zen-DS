@@ -12,6 +12,9 @@ export default {
     state: vp.State.toLowerCase(),
     radioSide: vp["Radio-Side"].toLowerCase(),
   })),
+  figmaExceptions: [
+    { layer: `${mark}/Container`, prop: "fx", vp: { Select: "No" }, note: "house rule §9 (docs/component-usage-rules.md): the unselected mark sits on Neutral/Pale, so the code drops Figma\'s Shadow/Action/Basic" },
+  ],
   map: [
     { figma: "", dom: ":root", check: ["h"], when: (vp, props) => !props.caption },
     { figma: `${mark}/Container`, dom: ".zen-radio-button__ring", check: ["size", "y", "fill", "stroke", "radius", "fx"] },

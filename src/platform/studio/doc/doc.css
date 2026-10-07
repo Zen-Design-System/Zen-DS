@@ -1,0 +1,21 @@
+/* Document pages of Zen Studio (doc/DocumentPage.tsx): a normal scrolling page in the canvas area, laid out like the
+   classic `.official-page` column. The platform content contract (surface variables, foundation surfaces, code font)
+   comes from board.css, which scopes it to `.studio-doc__page` too. */
+.studio-doc {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.studio-doc:focus-visible { outline: var(--zen-emphasis-border-weight-active-primary, 2px) solid var(--zen-color-focus-neutral-solid, #121212); outline-offset: calc(-1 * var(--zen-emphasis-border-weight-active-primary, 2px)); }
+/* zen-allow-canvas-layer: the document page itself paints the page Canvas, in the preview modes (its own data-theme). */
+.studio-doc__page {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: var(--zen-spacing-gap-giant, 64px);
+  padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-4-xlarge, 48px);
+  background: var(--zen-color-background-canvas-default, #f7f7f7);
+  color: var(--zen-color-content-neutral-strongest, #111);
+  font-family: var(--zen-typography-font-family-sans);
+}

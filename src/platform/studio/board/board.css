@@ -1,0 +1,325 @@
+/* Zen Studio board (spec §4): the world's content — board title, frames, sections — and the Present layer.
+   World sizes (frame widths, the gaps between frames and rows) are canvas coordinates, not component spacing: they stay
+   fixed in every Component Size so a saved viewport keeps pointing at the same place. */
+
+/* ── The classic shell's content contract, for the canvas ──
+   The examples, playgrounds and docs were styled under the classic `.official-platform` main. Copied here for the world,
+   the examples' overlay portal and Present: the platform surface variables, their re-resolution inside a nested
+   [data-theme], the plain-button reset, the foundation-page surfaces and the code font rules. NOT copied: the shell layout
+   (rail, topbar, page column) and the "Zen-Platform" typography block on `.official-platform[data-typography]`, which
+   restyles the docs chrome only — previews follow the preview Typography mode. */
+.studio-world,
+.studio-doc__page,
+.studio-portal-root,
+.studio-present {
+  --zen-sticky-offset: 0px;
+  --platform-code-font: "JetBrains Mono";
+  --official-canvas: var(--zen-color-background-canvas-default, #f7f7f7);
+  --official-surface: var(--zen-color-background-surface-default, #fff);
+  --official-ink: var(--zen-color-content-neutral-strongest, #111);
+  --official-muted: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%));
+  --official-accent: var(--zen-color-background-accent-solid-default, #ff66d4);
+  --platform-surface-background: var(--zen-color-background-surface-default, #fff);
+  --platform-surface-radius: var(--zen-corner-radius-2-xlarge, 24px);
+  --platform-surface-radius-compact: var(--zen-corner-radius-large, 16px);
+  --platform-surface-shadow: var(--zen-style-shadow-bottom-level-1-shadow);
+  --platform-surface-padding: var(--zen-spacing-padding-xlarge, 24px);
+  --platform-surface-divider: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  --platform-inset-background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%));
+  --platform-inset-radius: var(--zen-corner-radius-small, 8px);
+  --platform-code-background: var(--zen-light-neutral-12, #111111);
+  --platform-code-foreground: var(--zen-dark-neutral-12, #ffffff);
+}
+:is(.studio-world, .studio-doc__page, .studio-portal-root, .studio-present) [data-theme] {
+  --official-canvas: var(--zen-color-background-canvas-default, #f7f7f7);
+  --official-surface: var(--zen-color-background-surface-default, #fff);
+  --official-ink: var(--zen-color-content-neutral-strongest, #111);
+  --official-muted: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%));
+  --official-accent: var(--zen-color-background-accent-solid-default, #ff66d4);
+  --platform-surface-background: var(--zen-color-background-surface-default, #fff);
+  --platform-surface-shadow: var(--zen-style-shadow-bottom-level-1-shadow);
+  --platform-surface-divider: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  --platform-inset-background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%));
+}
+:where(.studio-world, .studio-doc__page, .studio-portal-root, .studio-present) button:where(:not(.zen-button):not(.zen-chip)) { border: 0; cursor: pointer; font: inherit; }
+:is(.studio-world, .studio-doc__page, .studio-portal-root, .studio-present) .zen-button { cursor: pointer; }
+:is(.studio-world, .studio-doc__page) .collection-card { display: grid; grid-template-rows: auto auto 1fr auto auto auto; border: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
+:is(.studio-world, .studio-doc__page) .collection-card > p { align-self: start; }
+:is(.studio-world, .studio-doc__page) .collection-card .code-axis[data-empty="true"] { visibility: hidden; }
+:is(.studio-world, .studio-doc__page) .collection-card__meta { margin: var(--zen-spacing-gap-medium, 16px) 0; }
+:is(.studio-world, .studio-doc__page) .foundation-flow { border-radius: var(--platform-surface-radius); }
+:is(.studio-world, .studio-doc__page) .text-style-list { border: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
+:is(.studio-world, .studio-doc__page) .text-style-row { background: transparent; }
+:is(.studio-world, .studio-doc__page) .text-style-row + .text-style-row { border-top-color: var(--platform-surface-divider); }
+:is(.studio-world, .studio-doc__page) .icon-gallery__toolbar { z-index: 3; padding: var(--platform-surface-padding); border: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); backdrop-filter: none; }
+:is(.studio-world, .studio-doc__page) .icon-card { padding: var(--zen-spacing-padding-small, 12px); border: 0; border-radius: var(--platform-surface-radius-compact); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
+:is(.studio-world, .studio-doc__page) .icon-card > div { border-radius: var(--platform-inset-radius); background: var(--platform-inset-background); }
+:is(.studio-world, .studio-doc__page) .icon-card code { border-top-color: var(--platform-surface-divider); }
+/* Code = Body/Code: the Dev family at Body-Small size with Body-Code tracking. */
+:is(.studio-world, .studio-doc__page) :is(.platform-code pre, .platform-code code, .platform-ref__code, .platform-ref__keys kbd, .pg code, .text-style-row__meta code, .icon-card code, .icon-gallery__special-header code) {
+  font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace;
+  font-size: var(--zen-typography-font-size-body-small);
+  line-height: var(--zen-typography-line-height-body-small);
+  letter-spacing: var(--zen-typography-letter-spacing-body-code);
+}
+:is(.studio-world, .studio-doc__page) :is(.pg-when__col h3, .pg-meta h3) { letter-spacing: var(--zen-typography-letter-spacing-all-caps-s); }
+:is(.studio-world, .studio-doc__page) :is(.platform-ref__sep, .icon-gallery__toolbar p, .text-style-row__meta span, .text-style-group__heading span, .icon-card span) {
+  font-size: var(--zen-typography-font-size-body-small);
+  line-height: var(--zen-typography-line-height-body-small);
+  letter-spacing: var(--zen-typography-letter-spacing-body-small);
+}
+:is(.studio-world, .studio-doc__page) .text-style-row__meta small {
+  font-size: var(--zen-typography-font-size-caption);
+  line-height: var(--zen-typography-line-height-caption);
+  letter-spacing: var(--zen-typography-letter-spacing-caption);
+}
+:is(.studio-world, .studio-doc__page) :is(.text-style-row__meta strong, .icon-gallery__special-header h2, .icon-gallery__section-title) {
+  font-size: var(--zen-typography-font-size-body-extra);
+  line-height: var(--zen-typography-line-height-body-extra);
+  letter-spacing: var(--zen-typography-letter-spacing-body-extra);
+}
+:is(.studio-world, .studio-doc__page) .icon-card strong {
+  font-size: var(--zen-typography-font-size-body-base);
+  line-height: var(--zen-typography-line-height-body-base);
+  letter-spacing: var(--zen-typography-letter-spacing-body-base);
+}
+:is(.studio-world, .studio-doc__page) .icon-gallery__more {
+  font-size: var(--zen-typography-font-size-button-label-s);
+  line-height: var(--zen-typography-line-height-button-label-s);
+  letter-spacing: var(--zen-typography-letter-spacing-button-label-s);
+}
+
+/* ── Board layout (world coordinates) ──
+   Two columns: the Playground with the Examples section right under it, and the Docs reading column beside both, so the
+   examples sit one short pan below the playground instead of under a 7000px Docs frame. Docs spans both rows; the
+   flexible last row keeps the playground row exactly as tall as the playground. */
+.studio-board {
+  display: grid;
+  align-items: start;
+  justify-items: start;
+  /* zen-allow-raw-spacing: canvas coordinates — 128 between the title, the columns and the rows (room for frame labels when zoomed out). */
+  gap: 128px;
+  grid-template-columns: max-content max-content;
+  grid-template-rows: auto auto 1fr;
+  grid-template-areas: "title title" "playground docs" "examples docs";
+}
+.studio-board > .studio-board__title { grid-area: title; }
+.studio-board > [data-studio-frame="playground"] { grid-area: playground; }
+.studio-board > [data-studio-frame="docs"] { grid-area: docs; }
+.studio-board > .studio-section { grid-area: examples; }
+.studio-board--document { display: flex; }
+.studio-board__title { display: grid; max-width: 720px; gap: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-neutral-strongest, #111); }
+.studio-board__title > * { margin: 0; }
+/* World-scaled text is unreadable below 20% and would print over the frame labels (screen-space chrome). */
+.studio-viewport[data-zoom-band="low"] .studio-board__title { visibility: hidden; }
+
+/* A FigJam-like section: a tinted region behind its frames (the name tab is screen-space chrome). */
+/* zen-allow-raw-spacing: canvas coordinates — the section's 64 inset and the 64 gaps between its frames. */
+.studio-section { position: relative; padding: 64px; }
+.studio-section__surface {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--zen-corner-radius-xgiant, 36px);
+  background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%));
+  box-shadow: inset 0 0 0 calc(1px / var(--studio-zoom, 1)) var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+}
+/* The frames sit where boardLayout.ts puts them (StudioBoard writes left/top and the frames' extent): columns from the
+   rule widths, so a frame never moves sideways or re-wraps when another changes size; only its column below moves. */
+/* zen-allow-raw-spacing: canvas coordinates; the width holds two 1440 screens side by side (until the layout sizes it). */
+.studio-section__frames { position: relative; width: 2944px; }
+.studio-section__frames > .studio-frame { position: absolute; top: 0; left: 0; }
+
+/* ── Frames ── */
+.studio-frame {
+  position: relative;
+  box-sizing: border-box;
+  width: var(--studio-frame-width, 640px);
+  flex: 0 0 auto;
+  border-radius: var(--zen-corner-radius-large, 16px);
+  background: var(--zen-color-background-surface-default, #fff);
+  /* The 1px Pale border stays one screen pixel at every zoom. */
+  box-shadow: 0 0 0 calc(1px / var(--studio-zoom, 1)) var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  color: var(--zen-color-content-neutral-strongest, #111);
+}
+/* One selection colour on the canvas: Info blue, as the layer outlines (select.css), never the examples' own accent. */
+.studio-frame[data-hovered="true"] { outline: calc(1px / var(--studio-zoom, 1)) solid var(--zen-color-border-info-solid-default, #0a85ff); }
+.studio-frame[data-selected="true"] { outline: calc(2px / var(--studio-zoom, 1)) solid var(--zen-color-border-info-solid-default, #0a85ff); }
+/* Every frame is Surface/Default with its Pale hairline, so it reads as a page against the Canvas workspace (dark or light
+   chrome). The page's own cards (playground panels, docs tables, foundation cards) sit on that Surface: a Pale ring
+   replaces their drop shadow (a shadow is no edge between two Surfaces). */
+.studio-frame:is([data-kind="playground"], [data-kind="docs"], [data-kind="document"]) {
+  --platform-surface-shadow: 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+}
+.studio-frame:is([data-kind="playground"], [data-kind="docs"], [data-kind="document"]) [data-theme] {
+  --platform-surface-shadow: 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+}
+.studio-frame__page { padding: var(--zen-spacing-padding-3-xlarge, 40px); }
+.studio-frame__document { padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-4-xlarge, 48px); }
+.studio-frame__docs > .platform-anchor:first-child > .pe-section { margin-top: 0; }
+
+/* Playground: the panel's controls and code live in the Inspector, so the specimen takes the whole frame width. The frame
+   is the card: a panel inside it drops its own card (Surface, ring, inset), so the grey stage sits on the frame — never a
+   white card inside a grey stage inside a card. */
+.studio-frame[data-kind="playground"] .platform-example-panel { padding: 0; border-radius: 0; background: none; box-shadow: none; }
+.studio-frame[data-kind="playground"] .platform-example-panel--stack { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; grid-template-areas: "title" "preview"; }
+.studio-frame[data-kind="playground"] .platform-example-panel--stack > .platform-main-component__title { padding: 0 0 var(--zen-spacing-padding-medium, 16px); }
+.studio-frame[data-kind="playground"] .platform-example-panel--stack > :is(.platform-example-row, .platform-input-preview):not([data-fullscreen="true"]) { margin: 0; }
+/* The panel whose properties the Inspector shows: a quiet 1px dashed Info line around it (hidden while the whole
+   Playground frame is selected, whose own outline says it). */
+/* zen-allow-dashed-color: selection chrome, not a content divider — the Studio marks selection in Info blue only. */
+.studio-world [data-studio-panel][data-studio-active="true"] { outline: calc(1px / var(--studio-zoom, 1)) dashed var(--zen-color-border-info-solid-default, #0a85ff); outline-offset: calc(var(--zen-spacing-gap-small, 12px) / var(--studio-zoom, 1)); }
+.studio-frame[data-selected="true"] [data-studio-panel][data-studio-active="true"] { outline: none; }
+
+/* Example frames: the card is the frame (no second radius or shadow); its stage keeps its inset on every side. */
+.studio-frame[data-kind="example"] > .pe-card { border-radius: inherit; box-shadow: none; }
+.studio-frame[data-kind="example"] > .pe-card:not([data-screen="true"]) > .pe-card__stage { margin: var(--zen-spacing-padding-xlarge, 24px); }
+/* A desktop screen bleeds to the frame's edges. */
+.studio-frame[data-kind="example"] > .pe-card[data-screen="true"] > .pe-card__stage { margin: 0; border-top: 0; }
+
+/* ── Present (full screen at 100%) ── */
+/* zen-allow-canvas-layer: Present is a page of its own. */
+.studio-present {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  overflow: auto;
+  background: var(--zen-color-background-canvas-default, #f7f7f7);
+  color: var(--zen-color-content-neutral-strongest, #111);
+  font-family: var(--zen-typography-font-family-sans, Inter), Arial, sans-serif;
+}
+/* zen-allow-raw-spacing: room below a presented card for the floating Present bar (40 + its 16 inset + 16), so the card's end scrolls clear of it. */
+.studio-present__stage { display: flex; min-height: 100%; box-sizing: border-box; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 72px; }
+/* zen-allow-focus-ring: the full-window Present dialog takes focus when it opens so Escape and Tab start inside it; it is
+   not a control (a ring would frame the whole window), and every control in it (PresentBar first) keeps its own ring. */
+.studio-present:focus-visible { outline: none; }
+/* Present's ‹ 3 / 7 › counter (PresentBar, inside the platform's full-screen bar): steady width while it counts. */
+.studio-present-bar__count { padding-inline: var(--zen-spacing-padding-2-xsmall, 4px); font-variant-numeric: tabular-nums; text-align: center; white-space: nowrap; }
+/* A card presented at its frame width (a desktop screen instead fills the window: the card's own full-screen rules). */
+/* Present's canvas is the stage: the card and its grey stage step aside, so the example sits on the page directly (never
+   a white card inside a grey stage inside a card). */
+.studio-present__stage > .pe-card:not([data-screen="true"]) { width: min(var(--studio-frame-width, 640px), 100%); align-self: flex-start; background: none; box-shadow: none; }
+.studio-present__stage > .pe-card:not([data-screen="true"]) > .pe-card__stage { margin: 0; padding: 0; border-radius: 0; background: none; }
+/* The presented example's overlays stack above its full-screen card (25) and the Exit pill (26), like the classic portal (z ≥ 30). */
+.studio-present .studio-portal-root { position: relative; z-index: 30; }
+/* A presented desktop screen stays full screen while focus is inside it. platform.css raises a focused card
+   (`.pe-card:is(:focus-within, …) { position: relative }`, specificity 0,3,0), which beat the full-screen rule (0,2,0): the
+   card jumped back to an inline card on the first press, so the press missed its target. This rule out-specifies both. */
+.studio-present .pe-card.pe-card[data-fullscreen="true"] { position: fixed; z-index: 25; inset: 0; }
+
+/* ── Frame chrome (screen space, above the selection layer) ──
+   FrameChrome places each label and toolbar by its top-left (transform), from their measured sizes. */
+/* overflow: clip, not hidden: a focused label outside the canvas (Tab) must not scroll this layer away from the world
+   (the label pans the canvas to itself instead, FrameChrome). */
+.studio-frame-chrome { position: absolute; z-index: 20; inset: 0; overflow: clip; pointer-events: none; }
+.studio-frame-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-flex;
+  box-sizing: border-box;
+  align-items: center;
+  gap: var(--zen-spacing-gap-2-xsmall, 4px);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%));
+  cursor: pointer;
+  pointer-events: auto;
+  white-space: nowrap;
+}
+/* The selected frame's name inside its top (no room above on the canvas): a small pill, legible over the frame. */
+.studio-frame-label[data-place="inside"] {
+  padding: 0 var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
+  background: var(--zen-popover-background, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+}
+.studio-frame-label__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* A frame with unsaved draft changes: a warning dot after its name (shell.css .studio-drafts__dot, same mark). */
+.studio-frame-label__dot { display: inline-block; width: 6px; height: 6px; flex: none; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-warning-solid-default); }
+.studio-frame-label:hover { color: var(--zen-color-content-neutral-strongest, #111); }
+.studio-frame-label[data-selected="true"] { color: var(--zen-color-content-info-base, #0a6fd6); }
+.studio-frame-label:focus-visible { border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 2px solid var(--zen-color-focus-neutral-solid, #121212); outline-offset: 2px; }
+.studio-frame-label[data-hidden="true"],
+.studio-section-tab[data-hidden="true"],
+.studio-frame-toolbar[data-hidden="true"] { visibility: hidden; }
+.studio-frame-toolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--zen-spacing-gap-3-xsmall, 2px);
+  padding: var(--zen-spacing-padding-3-xsmall, 2px);
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
+  background: var(--zen-popover-background, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+  pointer-events: auto;
+}
+/* The frame tools, then the frame's own Save · Discard (FrameChrome FrameDraftActions) at the toolbar's right end. */
+.studio-frame-toolbar__tools { display: flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-frame-drafts { display: flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-frame-drafts__count {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--zen-spacing-gap-2-xsmall, 4px);
+  padding: 0 var(--zen-spacing-padding-xsmall, 8px);
+  color: var(--zen-color-content-neutral-strongest, #111);
+  white-space: nowrap;
+}
+.studio-frame-toolbar__divider { width: 1px; height: 16px; flex: none; margin: 0 var(--zen-spacing-gap-2-xsmall, 4px); background: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+/* The selected frame's right edge (FrameChrome FrameEdge): a strip centred on the edge, along the frame's visible height
+   (placed by FrameChrome). A drag sets a free frame width (view only); hover shows the edge in Info blue. */
+.studio-frame-edge { position: absolute; top: 0; left: 0; width: 8px; translate: -50% 0; pointer-events: none; }
+.studio-frame-edge[data-hidden="true"] { visibility: hidden; }
+.studio-frame-edge__hit { position: absolute; inset: 0; cursor: ew-resize; pointer-events: auto; touch-action: none; }
+.studio-frame-edge__hit::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: var(--zen-color-background-info-solid-default, #0a85ff);
+  content: "";
+  opacity: 0;
+  transition: opacity var(--zen-motion-duration-fast) var(--zen-motion-ease-standard);
+  translate: -50% 0;
+}
+.studio-frame-edge__hit:hover::after,
+.studio-frame-edge[data-dragging="true"] .studio-frame-edge__hit::after { opacity: 1; }
+/* "Width 812" beside the edge at the pointer: the selection tag's pill (Info/Solid/Pressed + Content/Inverse/Strongest). */
+.studio-frame-edge__label {
+  position: absolute;
+  top: 0;
+  left: calc(100% + var(--zen-spacing-gap-xsmall, 8px));
+  padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: var(--zen-color-background-info-solid-pressed);
+  color: var(--zen-color-content-inverse-strongest);
+  white-space: nowrap;
+  pointer-events: none;
+  translate: 0 -50%;
+}
+.studio-frame-edge__label[data-side="left"] { right: calc(100% + var(--zen-spacing-gap-xsmall, 8px)); left: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .studio-frame-edge__hit::after { transition: none; }
+}
+.studio-section-tab {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-small, 12px);
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
+  background: var(--zen-popover-background, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+  color: var(--zen-color-content-neutral-strongest, #111);
+  translate: 0 calc(-100% - var(--zen-spacing-gap-xsmall, 8px));
+}

@@ -36,32 +36,57 @@ Figma sources:
 
 The current attached token source is `/Users/vuduong/Documents/Component Theme.json`. It is data, not an instruction document. The checked-in source is `tokens/source/figma/component-theme.json`.
 
-## Token contract (2026-09-24)
+## Token contract (2026-09-28)
 
-The repository contains 11 Figma collections and 2,367 variables:
+The repository contains 11 Figma collections and 2,179 variables:
 
 | Collection | Tokens | Runtime axis |
 | --- | ---: | --- |
-| Global Colors | 1,152 | `:root` |
+| Global Colors | 960 | `:root` |
 | Global Dimensions | 33 | `:root` |
 | Base Colors (Project) | 329 | `data-brand` |
 | Mode Colors (Semantic) | 407 | `data-theme` |
-| Component Theme | 112 | `data-component-theme` |
-| Component Size | 194 | `data-density` |
+| Component Theme | 115 | `data-component-theme` |
+| Component Size | 195 | `data-density` |
 | Spacing | 22 | `:root` |
 | Corner Radius | 25 | `data-radius` |
 | Emphasis Level | 6 | `data-emphasis` |
 | Breakpoint & Grids | 9 | media-query contract |
 | Typography Configuration | 78 | `data-typography` |
 
-The external Component Theme export and the checked-in source now match by token name and every mode value: 112/112, with no source-only tokens, target-only tokens, or value differences.
+The 2026-10-03 export (`Component Theme.json`) adds two tokens: `Input/Border/Focus`, the Focused/Typing field border
+(Color/Focus/Neutral/Solid; Focus/Neutral/Subtle in Neutral-S7), and `Input/Border/Popover-Search`, the Focused/Typing
+border of Search/Popover (transparent; Focus/Neutral/Subtle in Neutral-S7). The export writes the transparent modes as
+`#NANNANNAN`; the repo stores `#FFFFFF00`.
 
-This synchronization added the two Figma aliases that were missing from the repository:
+The 2026-09-28 export (`Zen-Variables.zip`: Global Colors, Component Theme, Emphasis Level, Typography Configuration)
+matches the checked-in source by token name and every mode value. It brought:
+
+- Component Theme mode `Neutral - S4` (`data-component-theme="neutral-s4"`): Neutral-S1 with outlined inputs (Surface
+  fill, Subtle border, no inner shadow). Since the 2026-09-29 export its selected Secondary chip matches S1 (Surface
+  fill, Border/Active/Neutral/Solid at the Primary active weight, Shadow/Action/Tertiary). New token
+  `Input/Border/Disabled`: transparent in S1–S3, `Color/Border/Disabled` in S4.
+- Emphasis Level mode `Light` (`data-emphasis="light"`): weights 400–500, active strokes 1px.
+- Typography Configuration: new Dashboard and Mobile sizes, line heights and tracking (Popular unchanged). The
+  text-style snapshots in `styles/source/figma/` were re-derived from the variables they bind.
+- Global Colors: `Light/Gray/11`, `Light/Gray-Alpha/11` (and the unused `Light/Neutral-Ananas*/11`) are darker, so
+  `Color/Content/Neutral/Base` and the Neutral Solid hover fills get darker in Light mode.
+
+The 2026-09-24 synchronization added the two Figma aliases that were missing from the repository:
 
 - `Segmented-Item-Primary/Background/Seclected/Hover`
 - `Segmented-Item-Secondary/Background/Seclected/Hover`
 
 The spelling `Seclected` is part of the Figma token name and must remain stable for compatibility. The generated CSS and TypeScript contracts are produced by `npm run tokens:build`; do not edit generated files directly.
+
+## Border contract (2026-09-26)
+
+- Scope: the border of a **closed container** only.
+- `Color/Border/Neutral/Subtle/{Default,Hover,Pressed}` goes on **actionable** containers. Every actionable component border token aliases it (Button-Tertiary, Chip, Tag, Checkbox, Radio-Button, Segmented-Item-Secondary). Selected states switch to `Color/Border/Active/*`.
+- `Color/Border/Neutral/Pale/Default` goes on **non-actionable** containers (static cards, panels, wells).
+- Not covered: stand-alone lines (dividers, separators, row rules, Tab baseline, tree-lines; `Divider` Default/Medium/High) and strokes around avatars, photos, visuals and graphics. These follow Figma.
+- `Divider` defaults to Pale (Medium = Subtle, High = Solid). **Dashed** lines and strokes step up to `Border/Neutral/Subtle` (dashed dividers, dashed empty states/drop zones, the Read-only field).
+- Full rule and checklist: `docs/component-usage-rules.md` §6.
 
 ## Platform shell lock
 
@@ -144,7 +169,8 @@ For Advanced Chip:
 `tools/figma-contract/` renders the production components and compares them with Plugin-API data in
 `docs/figma-contracts/*.json` (size/offsets, fills, strokes, radius, effect + text styles, bound
 variables resolved in light/neutral-s1 and dark/brand-s1) plus keyboard/pointer behaviour.
-Run `node tools/figma-contract/run-all.mjs` after touching Checkbox, Radio, Chip, Popover or their primitives.
+Run `node tools/figma-contract/run-all.mjs` after touching Button/IconButton (all six sets, every size, plus the Smooth
+radius mode), Input/Heading, Checkbox, Radio, Chip, Popover or their primitives.
 
 ## Verification gate
 
@@ -161,3 +187,13 @@ npm run build
 Then inspect the Vite Platform app at the Figma reference viewport. Measure computed styles for the changed state and record the node ID, mode, token, browser value, and result in `docs/platform-json-audit.md`. A row not measured is `Not verified`; never call it exact by visual inference.
 
 Known evidence gaps remain intentionally explicit: the full Date Picker dual-calendar/mobile/time/event matrix and complete per-level visual comparisons for every Button Overlay and Sidebar Workspace state still require targeted Figma child-node reads.
+
+## Content colour contract (2026-09-26)
+
+- **Neutral families** (Neutral, Inverse, On-Black-Overlay, On-White-Overlay): Strongest, Base and Light map to the Primary, Secondary and Tertiary text roles.
+- **Colour families** (Accent, Info, Positive, Negative, Warning, Support/*):
+  - Strongest and Base are regular text (Primary and Secondary) on that colour's Subtle background.
+  - Light is only for highlighted text or icons.
+- **Lights group** (families referencing Sky, Mint, Yellow or Zen; today Accent, Warning and Support/Yellow): text uses Base at most, never Light. Light is only for icons. Golden is not in the group.
+- **Solid fills** use On-Colors, or On-Brights on Lights-group solids.
+- Enforced by `content/*` rules in `tools/usage-guard/check-usage.mjs`. See `docs/component-usage-rules.md` §7.

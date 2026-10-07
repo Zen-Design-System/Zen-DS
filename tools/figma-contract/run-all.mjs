@@ -7,7 +7,7 @@ import { spawnSync } from "node:child_process";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 let failed = 0;
-for (const file of fs.readdirSync(path.join(here, "suites")).filter((name) => name.endsWith(".mjs")).sort()) {
+for (const file of fs.readdirSync(path.join(here, "suites")).filter((name) => name.endsWith(".mjs") && !name.startsWith("_")).sort()) {
   const run = spawnSync(process.execPath, [path.join(here, "check.mjs"), path.join(here, "suites", file)], { encoding: "utf8" });
   const summary = run.stdout.trim().split("\n").at(-1);
   console.log(`${run.status === 0 ? "✓" : "✗"} ${summary}`);

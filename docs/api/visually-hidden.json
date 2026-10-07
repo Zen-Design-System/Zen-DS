@@ -1,0 +1,57 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "visually-hidden",
+  "import": "import { VisuallyHidden } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "VisuallyHidden",
+      "file": "src/components/VisuallyHidden/VisuallyHidden.tsx",
+      "description": "Content for assistive technology only. It is clipped to a 1px box (no layout impact) but stays in the accessibility\ntree, so screen readers read it and in-page search finds it. Use it to name icon-only table headers, add context to\nrepeated links (\"Read more about …\"), announce status (role=\"status\") and build skip links (`focusable`).\nNo Figma node: this is an accessibility primitive with no visual design until a focusable one receives focus.\n\n  <VisuallyHidden>Actions</VisuallyHidden>\n  <VisuallyHidden as=\"a\" href=\"#main\" focusable>Skip to main content</VisuallyHidden>",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLElement>",
+      "props": [
+        {
+          "name": "as",
+          "type": "\"span\" | \"div\" | \"p\" | \"label\" | \"legend\" | \"a\" | \"h1\" | \"h2\" | \"h3\" | \"h4\" | \"h5\" | \"h6\"",
+          "required": false,
+          "default": "\"span\"",
+          "description": "Element to render. Default span: inline, so it is valid inside buttons, links and table headers. Use div or p for a\nblock, h2–h6 for a heading that names a region only screen readers need, label (with htmlFor) for a hidden field\nlabel, and a (with href and focusable) for a skip link.",
+          "deprecated": null
+        },
+        {
+          "name": "focusable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Shows the content while it, or a link or button inside it, has focus: a Surface pill (Body/Base/Medium, Subtle\nring) at the top-start corner of the nearest positioned ancestor, above the page. Use it for skip links. Default false.",
+          "deprecated": null
+        },
+        {
+          "name": "href",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "With `as=\"a\"`: the link target, e.g. \"#main\".",
+          "deprecated": null
+        },
+        {
+          "name": "htmlFor",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "With `as=\"label\"`: the id of the control it labels.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The text for assistive technology (and for the visible pill while a focusable one has focus).",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

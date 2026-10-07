@@ -1,0 +1,22 @@
+/* Form page (platform only). Classes are pef-* (Platform Example Form). Tokens only. */
+
+/* Playground: the preview well holds one form at a readable width. */
+.pef-preview { justify-content: center; }
+.pef-preview > .pef-stage { width: min(640px, 100%); }
+/* Sticky actions demo: the card is the scroll area, so the pinned bar is visible while the fields scroll under it. */
+.pef-scroll { max-height: 360px; overflow: auto; overscroll-behavior: contain; }
+.pef-card { overflow: hidden; }
+
+/* Phone screens: the form fills the screen so its sticky actions sit at the bottom; the bar pads for the home
+   indicator itself, so the screen drops its own safe-area padding. */
+.platform-phone.pef-phone:not([data-footer="true"]) .platform-phone__screen { padding-bottom: 0; }
+.pef-phone .zen-form { min-height: 100%; box-sizing: border-box; }
+/* Wide example cards centre the phone. */
+.pef-phone-stage { display: flex; justify-content: center; }
+
+/* Order summary rows (dt / dd) in the checkout. */
+.pef-summary { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; }
+.pef-summary dd { margin: 0; font-variant-numeric: tabular-nums; }
+
+/* Settings example: panels in a two-column grid keep equal height. */
+.pef-panel { height: 100%; box-sizing: border-box; }

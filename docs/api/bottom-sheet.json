@@ -1,0 +1,188 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "bottom-sheet",
+  "import": "import { BottomSheet } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "BottomSheet",
+      "file": "src/components/BottomSheet/BottomSheet.tsx",
+      "description": "Figma Bottom-Sheet (4059:14161, page ❖ Bottom Sheet): Background/Container, top corners 28, Shadow/Top/Level-2, over the\nOverlay scrim. Top-Indicator (40×5 Neutral/Subtle grabber) · Header-Bar (Heading/3 + 44px Tertiary close) · Search ·\nBody (Modal: padding 20, gap 16 · Action: padding 4, 48px items) · Footer (Large buttons, padding 12/20).\nFocus is trapped (shared Dialog `useModal`), Escape/scrim/drag-down close, and the sheet slides up/down with `usePresence`.\nInitial focus: `data-autofocus`, else the Search or first field of a form sheet, else the sheet itself.\nModal + `onSubmit`: body and footer become a `<form>` (Form rule: Enter submits; the primary action is the submit button).",
+      "deprecated": null,
+      "extends": "OverlayOpenProps",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Whether the overlay is shown: keep it in state and set it from `onOpenChange` (the exit animation then plays).\nWithout `open` the overlay shows while it is mounted, e.g. `{show && <Dialog … />}`.",
+          "deprecated": null
+        },
+        {
+          "name": "isOpen",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use open (same meaning)."
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with false on Escape, a scrim click, the close button, or an action without its own handler.",
+          "deprecated": null
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Called at the same moments as `onOpenChange(false)`: the overlay asks to close.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Header-Bar heading (Heading-Text H3).",
+          "deprecated": null
+        },
+        {
+          "name": "type",
+          "type": "\"modal\" | \"action\"",
+          "required": false,
+          "default": "\"modal\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"flex\" | \"max\"",
+          "required": false,
+          "default": "\"flex\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "search",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Search slot (a Search, under the header). The Search takes focus when the sheet opens (`data-autofocus` elsewhere wins).",
+          "deprecated": null
+        },
+        {
+          "name": "items",
+          "type": "BottomSheetItem[]",
+          "required": false,
+          "default": "[]",
+          "description": "Action type: Figma Items slot.",
+          "deprecated": null
+        },
+        {
+          "name": "selectedId",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Action type: the item shown as Single-Selected (Active/Accent/Subtle + check).",
+          "deprecated": null
+        },
+        {
+          "name": "onSelect",
+          "type": "(item: BottomSheetItem) => void",
+          "required": false,
+          "default": null,
+          "description": "Action type: called with the item; the sheet closes unless `keepOpen` is set.",
+          "deprecated": null
+        },
+        {
+          "name": "keepOpen",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Modal type: Figma Contents slot.",
+          "deprecated": null
+        },
+        {
+          "name": "primaryAction",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "secondaryAction",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "actionsDirection",
+          "type": "\"horizontal\" | \"vertical\"",
+          "required": false,
+          "default": "\"horizontal\"",
+          "description": "Figma .Primitives/Bottom-Sheet/Actions Direction.",
+          "deprecated": null
+        },
+        {
+          "name": "onSubmit",
+          "type": "(event: FormEvent<HTMLFormElement>) => void",
+          "required": false,
+          "default": null,
+          "description": "Modal type: makes the sheet a form (same contract as ModalForm `onSubmit`). The body and the Actions footer are\nwrapped in a `<form>`: Enter in a field submits it and the primary action becomes `type=\"submit\"`, so it submits\ninstead of closing (its `onClick`, if any, still runs first). The default is prevented; close the sheet from the\nhandler when the submit succeeds. Pass `form.handleSubmit` from useFormState so a failed submit focuses the first\ninvalid field. Don't nest a `<Form>` in the children. The Search slot stays outside the form. The first field (the\nSearch, when there is one) takes focus when the sheet opens; put `data-autofocus` on another control to start there.",
+          "deprecated": null
+        },
+        {
+          "name": "dismissible",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Scrim tap, Escape and drag-down dismiss (default true).",
+          "deprecated": null
+        },
+        {
+          "name": "inline",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Render inside the nearest positioned ancestor instead of the viewport (device previews, embedded demos).",
+          "deprecated": null
+        },
+        {
+          "name": "closeLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the close button. Default: the locale's “Close”.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "BottomSheetItem": "interface BottomSheetItem { id: string; label: ReactNode; icon?: IconName | ReactElement; trailing?: ReactNode; disabled?: boolean; destructive?: boolean; }",
+    "ButtonLevel": "type ButtonLevel = \"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\""
+  }
+}

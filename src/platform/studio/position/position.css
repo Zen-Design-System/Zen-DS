@@ -1,0 +1,54 @@
+/* Zen Studio inspector, Position section (PositionSection.tsx; spec docs/research/studio-position-effects-radius-spec-2026-10-03.md
+   §4.1). Same geometry as the Size group (sizing.css): fields in a pair, a fixed trailing slot sized like an xs IconButton. */
+
+/* Align: two groups of three xs icon buttons (horizontal, vertical), Figma's alignment row. */
+.studio-position__align { display: flex; min-width: 0; align-items: center; justify-content: space-between; }
+
+/* [X][Y][toggle]: two equal read-only fields and the slot column, as Size's [W][H][menu]. */
+.studio-position__pair { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-position__slot { display: inline-flex; width: var(--zen-button-size-xsmall, 24px); min-width: var(--zen-button-size-xsmall, 24px); align-items: center; justify-content: center; }
+.studio-position__field { display: flex; min-width: 0; }
+.studio-position__field > .zen-input-field { width: 100%; min-width: 0; }
+.studio-position__field .zen-input__native { color: var(--zen-color-content-neutral-base); }
+.studio-position__axis { display: inline-flex; min-width: var(--zen-element-size-popular-small, 16px); justify-content: center; color: var(--zen-color-content-neutral-base); }
+
+.studio-position__caption { margin: 0; color: var(--zen-color-content-neutral-base); }
+.studio-position__via { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-position__via > .zen-button { flex: 0 0 auto; }
+
+/* Constraints: the caption, then the diagram beside the two selects. */
+.studio-position__constraints { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-position__label { color: var(--zen-color-content-neutral-base); }
+.studio-position__constraint-body { display: grid; min-width: 0; grid-template-columns: 72px minmax(0, 1fr); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-position__selects { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
+
+/* The diagram (72 × 72, the two sm selects and their gap): the parent's frame, the layer's square, arms and centre ticks. */
+.studio-constraints { position: relative; width: 72px; height: 72px; box-sizing: border-box; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-surface-default); }
+.studio-constraints__inner { position: absolute; top: 23px; left: 23px; box-sizing: border-box; width: 24px; height: 24px; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-background-neutral-pale-default); }
+.studio-constraints__hit { position: absolute; display: flex; padding: 0; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--zen-color-content-placeholder); cursor: pointer; }
+.studio-constraints__hit:hover:not(:disabled) { color: var(--zen-color-content-neutral-base); }
+.studio-constraints__hit[data-on="true"] { color: var(--zen-color-content-accent-base); }
+.studio-constraints__hit:disabled { cursor: default; }
+.studio-constraints__line { display: block; border-radius: var(--zen-corner-radius-rounded, 999px); background: currentColor; }
+/* Arms: a 2px line in a 12px-wide hit area between the frame and the layer's square. */
+.studio-constraints__hit[data-part="top"], .studio-constraints__hit[data-part="bottom"] { left: 29px; width: 12px; height: 20px; }
+.studio-constraints__hit[data-part="top"] { top: 2px; }
+.studio-constraints__hit[data-part="bottom"] { bottom: 2px; }
+.studio-constraints__hit[data-part="left"], .studio-constraints__hit[data-part="right"] { top: 29px; width: 20px; height: 12px; }
+.studio-constraints__hit[data-part="left"] { left: 2px; }
+.studio-constraints__hit[data-part="right"] { right: 2px; }
+.studio-constraints__hit:is([data-part="top"], [data-part="bottom"]) .studio-constraints__line { width: 2px; height: 14px; }
+.studio-constraints__hit:is([data-part="left"], [data-part="right"]) .studio-constraints__line { width: 14px; height: 2px; }
+/* Centre ticks inside the layer's square: | sets Center horizontally, — vertically. */
+.studio-constraints__hit[data-part="center-x"] { top: 27px; left: 31px; width: 8px; height: 16px; }
+.studio-constraints__hit[data-part="center-x"] .studio-constraints__line { width: 2px; height: 10px; }
+.studio-constraints__hit[data-part="center-y"] { top: 31px; left: 27px; width: 16px; height: 8px; }
+.studio-constraints__hit[data-part="center-y"] .studio-constraints__line { width: 10px; height: 2px; }
+.studio-constraints[data-disabled="true"] .studio-constraints__hit { color: var(--zen-color-content-disabled); }
+
+/* Warnings and notes, with their action (Remove…), as the Size group's. */
+.studio-position__note-row { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-position__note-row > .zen-button { flex: 0 0 auto; }
+.studio-position__note { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; color: var(--zen-color-content-neutral-base); }
+.studio-position__note[data-tone="warning"] { padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
+.studio-position__note > .zen-icon { flex: 0 0 auto; }

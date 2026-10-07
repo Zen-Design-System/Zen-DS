@@ -1,0 +1,75 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "dock-icon",
+  "import": "import { DockIcon } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "DockIcon",
+      "file": "src/components/DockIcon/DockIcon.tsx",
+      "description": "Figma Dock-Icon (308:45902): a round, fully filled icon tile (Corner-Radius/Rounded) — app, category or file-type\nmarks in lists, tables and cards. Solid → Content/On-Colors (Accent: On-Accent, Neutral: Inverse); Subtle → Content/<colour>/Light.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "icon",
+          "type": "IconName",
+          "required": false,
+          "default": "\"icon-star-93-solid\"",
+          "description": "Figma Icon-Src.",
+          "deprecated": null
+        },
+        {
+          "name": "emoji",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Theme=Emoji: the emoji (or any glyph) shown instead of an icon.",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Figma Size: XSmall 24 · Small 32 · Medium 40 · Large 56 · XLarge 80 (Image-Size tokens); Theme=Emoji draws Medium 40 with a 28px glyph (Heading/1) and Large 48 with a 36px glyph (Display/3). Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "DockIconTheme",
+          "required": false,
+          "default": "\"neutral\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "background",
+          "type": "\"solid\" | \"subtle\"",
+          "required": false,
+          "default": "\"solid\"",
+          "description": "Solid (default) or Subtle; Pale is always subtle, Inverse / On-Color / Surface / Emoji always solid.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name when the icon carries meaning on its own; omit when a text label sits next to it.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "DockIconTheme": "type DockIconTheme = (typeof dockIconThemes)[number]"
+  }
+}

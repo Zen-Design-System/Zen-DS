@@ -1,0 +1,89 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "alert-banner",
+  "import": "import { AlertBanner } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "AlertBanner",
+      "file": "src/components/AlertBanner/AlertBanner.tsx",
+      "description": "Figma Alert-Banner (6828:9393): a full-width Solid strip for page-level messages.\nMedium 56px (padding Small/Large, gap Small, 20px icons) · Small 32px (padding XSmall/Medium, gap XSmall, 16px icons).\nWarning uses Content/On-Brights; Info/Positive/Negative use Content/On-Colors; Default is Neutral/Solid + Inverse.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "The alert message (Body/Base/Medium; Small: Body/Small/Medium).",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"default\" | \"info\" | \"positive\" | \"warning\" | \"negative\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "status",
+          "type": "\"success\" | \"error\" | \"warning\" | \"info\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use theme: success → positive, error → negative (warning and info are the same)."
+        },
+        {
+          "name": "size",
+          "type": "\"md\" | \"sm\" | \"medium\" | \"small\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "boolean | IconName | ReactNode",
+          "required": false,
+          "default": "true",
+          "description": "Figma Leading: `true` shows the theme icon, `false` hides it, or pass a custom icon (an icon name or a node).",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "{ label: ReactNode; onClick?: () => void }",
+          "required": false,
+          "default": null,
+          "description": "Figma Action (Medium only): Button/Overlay Small Inverse.",
+          "deprecated": null
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Shows the close control (icon-x-small-line).",
+          "deprecated": null
+        },
+        {
+          "name": "closeLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the close control. Default: the locale's “Dismiss”.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

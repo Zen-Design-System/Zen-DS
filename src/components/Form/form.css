@@ -1,0 +1,89 @@
+/* Form, FormField, FormFieldset, FormActions. No Figma component of their own: they compose Input/Label and
+   Help-Text (Figma .Primitives/Input), the Spacing/Gap scale and the Modal/Actions button pairing. Tokens only. */
+
+.zen-form { min-width: 0; margin: 0; }
+
+/* FormField: Label → control → Help-Text, like every Zen input (Input/Outside-Field gap, 8px). */
+.zen-form-field {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: var(--zen-input-spacing-medium-outside-field-gap, 8px);
+}
+
+/* FormFieldset: a reset <fieldset>; the floated legend becomes an ordinary grid row (no notch in a border). */
+.zen-form-fieldset {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: var(--zen-input-spacing-medium-outside-field-gap, 8px);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.zen-form-fieldset__legend {
+  float: left;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  color: var(--zen-color-content-neutral-strongest, #111);
+}
+.zen-form-fieldset__optional { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-form-fieldset__legend[data-hidden="true"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.zen-form-fieldset__options {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--zen-form-fieldset-gap, var(--zen-spacing-gap-small, 12px));
+}
+.zen-form-fieldset__options[data-direction="row"] {
+  flex-direction: row;
+  flex-wrap: wrap;
+  column-gap: var(--zen-spacing-gap-large, 24px);
+}
+/* Choice rows keep their own width in a column: the label, not empty space, is the click target. */
+.zen-form-fieldset__options[data-direction="column"] > :is(.zen-checkbox, .zen-radio-button) { align-self: flex-start; max-width: 100%; }
+
+/* FormActions: Figma Modal/Actions pairing — Tertiary then Primary, Button/Main Medium, gap Small, on the right. */
+.zen-form-actions {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--zen-spacing-gap-small, 12px);
+}
+.zen-form-actions[data-align="start"] { justify-content: flex-start; }
+.zen-form-actions[data-align="between"] > :first-child { margin-inline-end: auto; }
+
+/* Narrow form (< 480px) or breakpoint mobile: full-width Large buttons, Primary (written last) on top. */
+.zen-form-actions[data-stacked="true"] {
+  flex-direction: column-reverse;
+  flex-wrap: nowrap;
+  align-items: stretch;
+}
+.zen-form-actions[data-stacked="true"] > * { width: 100%; margin-inline-end: 0; }
+
+/* Sticky: pinned to the bottom of the scrolling area, split from the content by a Pale line, clear of the home indicator. */
+.zen-form-actions[data-sticky="true"] {
+  position: sticky;
+  z-index: 1;
+  bottom: 0;
+  /* In a form that fills its screen, the bar sits at the bottom even when the fields are short. */
+  margin-block-start: auto;
+  padding-block: var(--zen-spacing-padding-small, 12px) max(var(--zen-spacing-padding-small, 12px), calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)));
+  padding-inline: var(--zen-form-actions-inset, 0px);
+  border-top: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  background: var(--zen-form-actions-background, var(--zen-color-background-surface-default, #fff));
+}
+
+/* Toggle rows fill a toggle group, so every switch lines up on the right edge (Toggle alone is 232px wide). */
+.zen-form-fieldset[data-kind="toggle"] .zen-form-fieldset__options[data-direction="column"] > .zen-toggle { width: 100%; }

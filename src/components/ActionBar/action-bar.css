@@ -1,0 +1,42 @@
+/* ActionBar: a bottom bar (not a closed box) on Surface/Default, split from the content above by a single Pale top rule.
+   Bottom padding clears the device safe area: the home indicator on phones (PlatformPhone publishes
+   --zen-safe-area-bottom; a real device gives env(safe-area-inset-bottom)), Padding/Small elsewhere. No drop shadow. */
+.zen-action-bar {
+  --zen-action-bar-safe-bottom: var(--zen-safe-area-bottom, env(safe-area-inset-bottom, 0px));
+  position: sticky;
+  /* Above content layers (input strokes and button hit areas use 2), below a field whose popover is open (4), so a
+     dropdown near the bottom of the page opens over the bar instead of under it. */
+  z-index: 3;
+  bottom: 0;
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--zen-spacing-gap-small, 12px);
+  padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px) max(var(--zen-spacing-padding-small, 12px), calc(var(--zen-action-bar-safe-bottom) + var(--zen-spacing-padding-xsmall, 8px)));
+  border-top: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  background: var(--zen-color-background-surface-default, #fff);
+}
+.zen-action-bar[data-surface="alt"] { background: var(--zen-color-background-surface-alt, #f7f7f7); }
+.zen-action-bar[data-surface="none"] { border-top: 0; background: transparent; }
+.zen-action-bar[data-position="static"] { position: relative; z-index: auto; }
+.zen-action-bar[data-position="fixed"] { position: fixed; right: 0; bottom: 0; left: 0; width: auto; }
+.zen-action-bar-spacer { flex: 0 0 auto; pointer-events: none; }
+
+.zen-action-bar__summary { min-width: 0; }
+/* Vertical (default): the buttons fill the width, stacked in DOM order (Primary on top), Gap/Small apart. */
+.zen-action-bar__actions { display: grid; min-width: 0; gap: var(--zen-spacing-gap-small, 12px); }
+
+/* Horizontal: the summary takes the start, the buttons hug their labels at the end (Tertiary · Primary); on a narrow bar
+   the button group wraps under the summary and stays end-aligned. */
+.zen-action-bar[data-direction="horizontal"] { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: var(--zen-spacing-gap-medium, 16px); row-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-action-bar[data-direction="horizontal"] > .zen-action-bar__summary { flex: 1 1 12rem; }
+.zen-action-bar[data-direction="horizontal"] > .zen-action-bar__actions { display: flex; flex: 0 1 auto; flex-wrap: wrap; align-items: center; justify-content: flex-end; margin-inline-start: auto; }
+/* A horizontal bar narrower than 480px (a phone-width window or a panel): the summary takes the first row and the Large
+   buttons share the next one equally, Tertiary · Primary (Figma Bottom-Sheet dual footer). Labels too long for half the
+   width wrap to full-width rows; wrap-reverse keeps the Primary (last in the DOM) on top, as Dialog's vertical actions do. */
+.zen-action-bar[data-direction="horizontal"][data-narrow="true"] { flex-direction: column; align-items: stretch; }
+.zen-action-bar[data-direction="horizontal"][data-narrow="true"] > .zen-action-bar__summary { flex: 0 0 auto; }
+.zen-action-bar[data-direction="horizontal"][data-narrow="true"] > .zen-action-bar__actions { flex-wrap: wrap-reverse; margin-inline-start: 0; }
+.zen-action-bar[data-direction="horizontal"][data-narrow="true"] > .zen-action-bar__actions > * { flex: 1 1 0; }

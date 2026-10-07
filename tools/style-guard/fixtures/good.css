@@ -1,0 +1,19 @@
+/* Style-guard fixture: correct usage, must report nothing (npm run style:selftest). */
+.pe-good-a { padding: var(--zen-spacing-padding-small) var(--zen-spacing-padding-medium); gap: var(--zen-spacing-gap-xsmall); margin: -1px; }
+.pe-good-b { border-radius: var(--zen-corner-radius-large); }
+.pe-good-field { border-radius: var(--zen-corner-radius-input-medium); }
+.pe-good-button { border-radius: var(--zen-corner-radius-action-medium); }
+.pe-good-c { font-size: var(--zen-typography-font-size-body-base); line-height: var(--zen-typography-line-height-body-base); letter-spacing: var(--zen-typography-letter-spacing-body-base); font-weight: var(--zen-emphasis-font-weight-medium); font-family: var(--zen-typography-font-family-sans, Inter), sans-serif; }
+/* Body/Code is defined as the body-small size with the body-code tracking. */
+.pe-good-code { font-size: var(--zen-typography-font-size-body-small); letter-spacing: var(--zen-typography-letter-spacing-body-code); }
+.pe-good-d { color: var(--zen-color-content-neutral-strongest, #111); background: var(--zen-color-background-surface-default, #fff); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow), inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
+.pe-good-dot::after { width: 6px; height: 6px; background: var(--zen-color-content-accent-light); content: ""; }
+.pe-good-icon { width: var(--zen-element-size-popular-medium); height: var(--zen-element-size-popular-medium); }
+.pe-good-e { line-height: 1; padding: 0; }
+/* zen-allow-raw-spacing: Figma 7342:1 draws a 6px tail offset. */
+.pe-good-f { gap: 6px; }
+.pe-good-separator { box-shadow: 0 -1px 0 0 var(--zen-color-border-neutral-pale-default); }
+.pe-good-g { padding-inline-end: calc(var(--zen-element-size-popular-base) + var(--zen-spacing-gap-xsmall)); }
+.pe-good-scope { --zen-typography-font-size-heading-1: 32px; --zen-spacing-gap-small: 12px; }
+.pe-good-media { position: absolute; inset: 0; }
+.pe-good-pin { position: absolute; right: var(--zen-spacing-padding-small); bottom: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)); top: auto; }

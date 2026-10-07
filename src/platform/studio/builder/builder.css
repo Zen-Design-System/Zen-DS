@@ -1,0 +1,62 @@
+/* A builder page on the canvas (BuilderBoard.tsx) and its runtime (proto/runtime.tsx). World coordinates. */
+.studio-builder-board { display: grid; grid-template-areas: none; grid-template-columns: max-content; grid-template-rows: none; }
+/* zen-allow-raw-spacing: canvas coordinates — frames sit 96 apart, room for their labels when zoomed out (as the board's 128). */
+.studio-builder-board__frames { display: flex; align-items: flex-start; gap: 96px; }
+.studio-builder-board__errors { display: flex; max-width: 720px; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
+
+/* A Screen is a page: the Canvas layer, at least a device's height. */
+.studio-builder-screen { display: flow-root; min-height: 900px; border-radius: inherit; background: var(--zen-color-background-canvas-default); color: var(--zen-color-content-neutral-strongest); }
+.studio-builder-screen[data-device="phone"] { min-height: 844px; }
+.studio-builder-screen[data-device="tablet"] { min-height: 1024px; }
+/* An Overlay frame holds its overlay open; its portal node is where the overlay renders, inside the frame. */
+.studio-builder-overlay { position: relative; min-height: 640px; overflow: hidden; border-radius: inherit; }
+.studio-builder-overlay__portal { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; }
+
+/* Pages panel: the "My pages" kicker with its New page button (shell/PagesPanel.tsx). */
+.studio-pages__kicker-row { display: flex; min-width: 0; align-items: center; justify-content: space-between; padding-inline-end: var(--zen-spacing-padding-2-xsmall, 4px); }
+.studio-pages__kicker-row > .studio-pages__kicker { min-width: 0; flex: 1 1 auto; }
+
+/* My pages (MyPages.tsx): where the pages are kept, and each row's actions (shown on hover, focus and the open page). */
+.studio-pages__storage { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0 var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-2-xsmall, 4px); }
+.studio-pages__storage-text { min-width: 0; flex: 1 1 auto; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-pages__item { position: relative; }
+.studio-pages__item > .studio-pages__row { padding-inline-end: calc(var(--zen-spacing-padding-xsmall, 8px) + var(--zen-icon-size-md, 20px) + var(--zen-spacing-gap-2-xsmall, 4px)); }
+.studio-pages__actions { position: absolute; top: 50%; right: var(--zen-spacing-padding-2-xsmall, 4px); display: flex; opacity: 0; transform: translateY(-50%); }
+.studio-pages__item:hover > .studio-pages__actions,
+.studio-pages__item:focus-within > .studio-pages__actions,
+.studio-pages__item:has(> .studio-pages__row[aria-current="page"]) > .studio-pages__actions,
+.studio-pages__actions:has([aria-expanded="true"]) { opacity: 1; }
+@media (hover: none) { .studio-pages__actions { opacity: 1; } }
+
+/* Version history and Trash lists inside their Dialogs. */
+.studio-page-list { display: flex; max-height: 360px; flex-direction: column; margin: 0; padding: 0; overflow: auto; list-style: none; }
+.studio-page-list__row { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) 0; border-bottom: 1px solid var(--zen-color-border-neutral-subtle-default); }
+.studio-page-list__row:last-child { border-bottom: 0; }
+.studio-page-list__text { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; }
+.studio-page-list__text > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Play (proto/Player.tsx): the page's current Screen at its device width, its overlays inside that device. */
+/* zen-allow-raw-spacing: room below the device for the floating Play bar (40 + its 16 inset + 16), as Present's stage. */
+.studio-player__stage { display: flex; min-height: 100%; box-sizing: border-box; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 72px; }
+.studio-player__device { position: relative; overflow: hidden; align-self: flex-start; border-radius: var(--zen-corner-radius-large, 16px); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
+.studio-player__screen { animation: studio-player-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease) both; }
+@keyframes studio-player-in { from { opacity: 0; } to { opacity: 1; } }
+.studio-player__empty { margin: 0; padding: var(--zen-spacing-padding-xlarge, 24px); }
+
+/* Prototype tab (proto/PrototypePanel.tsx). */
+.studio-prototype__frames { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: 0; list-style: none; }
+.studio-prototype__frame { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-prototype__frame > .zen-icon { flex: 0 0 auto; color: var(--zen-color-content-neutral-base); }
+.studio-prototype__frame-name { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-prototype__add { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); margin-top: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-prototype__trigger + .studio-prototype__trigger { margin-top: var(--zen-spacing-gap-small, 12px); }
+.studio-prototype__note { margin: 0; }
+
+/* Prototype links (proto/ProtoLinks.tsx): arrows from an action to its frame, in board coordinates, while the Prototype tab is open. */
+.studio-builder-board { position: relative; }
+.studio-proto-links { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.studio-proto-links path { fill: none; stroke: var(--zen-color-border-accent-solid-default); stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; }
+.studio-proto-links circle { fill: var(--zen-color-background-accent-solid-default); }
+
+/* Export (GĐ5): a side panel wide enough to read the code. */
+.studio-export { --zen-side-panel-width: 760px; }

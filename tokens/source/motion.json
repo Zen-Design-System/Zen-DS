@@ -1,0 +1,22 @@
+{
+  "Motion": {
+    "owner": "code",
+    "description": "Code-owned motion tokens (durations, easing curves, movement). Figma variables cannot hold easing curves, so code is the source; the Figma file mirrors the durations in a FLOAT collection named Motion. A Figma variables sync must leave this file alone. Reviewed in docs/context/motion-transitions-review-2026-10-01.md.",
+    "rules": [
+      "Exit is one step shorter than enter: slow → base, base → fast, fast → xfast.",
+      "Animate transform, opacity and colours; expand and collapse with grid-template-rows. Never width, height, top, left or margin.",
+      "Productive by default: emphasized only for surfaces entering the screen, exit for surfaces leaving it."
+    ],
+    "tokens": [
+      { "name": "Motion/Duration/Xfast", "type": "DURATION", "value": 80, "use": "Press and release, a check or dot appearing, tooltip and small overlay exit." },
+      { "name": "Motion/Duration/Fast", "type": "DURATION", "value": 120, "use": "Hover, colour and opacity state changes, tooltip enter." },
+      { "name": "Motion/Duration/Base", "type": "DURATION", "value": 200, "use": "Small movement (indicators, toggle thumb, chevrons), popover and menu enter, large overlay exit." },
+      { "name": "Motion/Duration/Slow", "type": "DURATION", "value": 280, "use": "Large surfaces entering: dialog, sheets, side panel, drawer, toast, accordion expand." },
+      { "name": "Motion/Ease/Standard", "type": "EASING", "value": [0.2, 0, 0, 1], "use": "On-screen movement and state changes." },
+      { "name": "Motion/Ease/Emphasized", "type": "EASING", "value": [0.16, 1, 0.3, 1], "use": "Surfaces entering the screen." },
+      { "name": "Motion/Ease/Exit", "type": "EASING", "value": [0.4, 0, 1, 1], "use": "Surfaces leaving the screen." },
+      { "name": "Motion/Ease/Linear", "type": "EASING", "value": [0, 0, 1, 1], "use": "Progress, loops and opacity-only crossfades." },
+      { "name": "Motion/Movement", "type": "FACTOR", "value": 1, "reducedMotion": 0, "use": "Multiplies every animated distance, scale step and rotation. 0 under prefers-reduced-motion: surfaces crossfade instead of moving, colour and opacity still change (WCAG 2.3.3 covers motion, not fades)." }
+    ]
+  }
+}

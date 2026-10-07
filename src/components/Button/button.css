@@ -35,7 +35,7 @@
   text-align: center;
   text-decoration: none;
   touch-action: manipulation;
-  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease, color 120ms ease;
+  transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), border-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), box-shadow var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease);
   user-select: none;
   white-space: nowrap;
 }
@@ -67,6 +67,10 @@
 .zen-button[data-state="focused"]::before {
   display: block;
 }
+/* The ::before ring above is the Zen focus indicator (3px Focus/Accent), so drop the UA outline — otherwise keyboard
+   focus paints two rings (browser blue + Zen accent).
+   zen-allow-focus-ring: the replacement ring is .zen-button::before (display:block on :focus-visible, line 43/66). */
+.zen-button:focus-visible { outline: none; }
 
 .zen-button:disabled,
 .zen-button[data-state="disabled"] {
@@ -130,6 +134,7 @@
   --zen-button-gap: var(--zen-button-spacing-xsmall-gap);
   --zen-button-icon-size: var(--zen-button-icon-size-2-xsmall);
   --zen-button-radius: var(--zen-corner-radius-action-xsmall);
+  --zen-button-focus-radius: var(--zen-corner-radius-action-focus-xsmall);
   height: var(--zen-button-size-2-xsmall);
   border-radius: var(--zen-button-radius);
 }
@@ -140,6 +145,7 @@
   --zen-button-gap: var(--zen-button-spacing-xsmall-gap);
   --zen-button-icon-size: var(--zen-button-icon-size-xsmall);
   --zen-button-radius: var(--zen-corner-radius-action-xsmall);
+  --zen-button-focus-radius: var(--zen-corner-radius-action-focus-xsmall);
   height: var(--zen-button-size-xsmall);
   border-radius: var(--zen-button-radius);
 }
@@ -150,6 +156,7 @@
   --zen-button-gap: var(--zen-button-spacing-small-gap);
   --zen-button-icon-size: var(--zen-button-icon-size-small);
   --zen-button-radius: var(--zen-corner-radius-action-small);
+  --zen-button-focus-radius: var(--zen-corner-radius-action-focus-small);
   height: var(--zen-button-size-small);
   border-radius: var(--zen-button-radius);
 }
@@ -160,6 +167,7 @@
   --zen-button-gap: var(--zen-button-spacing-medium-gap);
   --zen-button-icon-size: var(--zen-button-icon-size-medium);
   --zen-button-radius: var(--zen-corner-radius-action-medium);
+  --zen-button-focus-radius: var(--zen-corner-radius-action-focus-medium);
   height: var(--zen-button-size-medium);
   border-radius: var(--zen-button-radius);
 }
@@ -170,6 +178,7 @@
   --zen-button-gap: var(--zen-button-spacing-large-gap);
   --zen-button-icon-size: var(--zen-button-icon-size-large);
   --zen-button-radius: var(--zen-corner-radius-action-large);
+  --zen-button-focus-radius: var(--zen-corner-radius-action-focus-large);
   height: var(--zen-button-size-large);
   border-radius: var(--zen-button-radius);
 }
@@ -180,6 +189,7 @@
   --zen-button-gap: var(--zen-button-spacing-xlarge-gap);
   --zen-button-icon-size: var(--zen-button-icon-size-xlarge);
   --zen-button-radius: var(--zen-corner-radius-action-xlarge);
+  --zen-button-focus-radius: var(--zen-corner-radius-action-focus-xlarge);
   height: var(--zen-button-size-xlarge);
   border-radius: var(--zen-button-radius);
 }
@@ -241,8 +251,21 @@
   min-height: var(--zen-button-size-xlarge, 56px);
 }
 
-.zen-button:not(.zen-button--icon-only):is(:active:not(:disabled), [data-state="pressed"]:not(:disabled)),
+/* Figma Button/Icon-Main, Icon-Flat and Icon-Overlay bind Container to Corner-Radius/Rounded on every size: a circle in
+   every Corner Radius mode. Their Focus-Ring binds Action/Focus-<Size>, which is only concentric with Action/<Size>, so
+   the ring follows the circle instead (figmaExceptions in tools/figma-contract/suites/_button-shared.mjs). */
+.zen-button--icon-only[data-size] {
+  --zen-button-radius: var(--zen-corner-radius-rounded, 1000px);
+  --zen-button-focus-radius: var(--zen-corner-radius-rounded, 1000px);
+}
+
+/* Figma Button/Main State=Pressed carries no Shadow/Action on any level; Button/Icon-Main keeps Shadow/Action/Basic on the
+   solid levels (tools/figma-contract/suites/button-*.mjs). */
+.zen-button:not(.zen-button--icon-only):is(:active:not(:disabled), [data-state="pressed"]:not(:disabled)) { --zen-button-shadow: 0 0 #0000; }
+.zen-button[data-level="tertiary"]:is(:hover:not(:disabled), [data-state="hover"]:not(:disabled)) { --zen-button-shadow: var(--zen-button-tertiary-background-hover-shadow-off, var(--zen-style-shadow-action-tertiary-shadow)); }
+/* Tertiary and Surface Pressed are flat in both sets; Tertiary Pressed also drops the Shadow/Action/Tertiary blur. */
 .zen-button:is([data-level="tertiary"], [data-level="surface"]):is(:active:not(:disabled), [data-state="pressed"]:not(:disabled)) { --zen-button-shadow: 0 0 #0000; }
+.zen-button[data-level="tertiary"]:is(:active:not(:disabled), [data-state="pressed"]:not(:disabled)) { backdrop-filter: none; }
 
 /* Icon-Main keeps Shadow/Action/Basic while disabled on the solid levels. */
 .zen-button--icon-only[data-appearance="main"]:is([data-level="primary"], [data-level="accent"], [data-level="danger"], [data-level="positive"]) { --zen-button-shadow-disabled: var(--zen-style-shadow-action-basic-shadow); }
@@ -278,9 +301,14 @@
   --zen-button-border: var(--zen-button-tertiary-border-default);
   --zen-button-border-disabled: var(--zen-color-border-disabled);
   /* Figma Shadow/Action/Tertiary (drop shadow + background blur 40 → CSS 20px). */
-  --zen-button-shadow: var(--zen-style-shadow-action-tertiary-shadow);
+  /* House rule: no drop shadow on a Subtle/Pale/Surface-Alt background — the tertiary background is Neutral/Subtle in
+     some component themes, where the token build sets `…-shadow-off` to an empty shadow. */
+  --zen-button-shadow: var(--zen-button-tertiary-background-default-shadow-off, var(--zen-style-shadow-action-tertiary-shadow));
   backdrop-filter: var(--zen-style-shadow-action-tertiary-backdrop-filter);
 }
+/* Figma Button/Main + Button/Icon-Main Tertiary State=Disabled: transparent fill + Color/Border/Disabled and no effects —
+   the level rule above sets Shadow/Action/Tertiary with the same specificity as `.zen-button:disabled`, so reset it here. */
+.zen-button[data-level="tertiary"]:is(:disabled, [data-state="disabled"]) { --zen-button-shadow: 0 0 #0000; backdrop-filter: none; }
 
 .zen-button[data-level="danger"] {
   --zen-button-background: var(--zen-color-background-negative-solid-default);
@@ -361,11 +389,11 @@
   border-color: transparent;
 }
 .zen-button[data-appearance="flat"][data-level="accent"] { --zen-button-background: var(--zen-color-background-accent-flat-default); --zen-button-background-hover: var(--zen-color-background-accent-flat-hover); --zen-button-background-pressed: var(--zen-color-background-accent-flat-pressed); --zen-button-content: var(--zen-color-content-accent-base, #b6007e); --zen-button-content-hover: var(--zen-color-content-accent-base, #b6007e); --zen-button-content-pressed: var(--zen-color-content-accent-base, #b6007e); }
-.zen-button[data-appearance="flat"][data-level="secondary"] { --zen-button-content: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); --zen-button-content-hover: var(--zen-color-content-neutral-strongest, #111); --zen-button-content-pressed: var(--zen-color-content-neutral-strongest, #111); }
+.zen-button[data-appearance="flat"][data-level="secondary"] { --zen-button-content: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); --zen-button-content-hover: var(--zen-color-content-neutral-strongest, #111); --zen-button-content-pressed: var(--zen-color-content-neutral-strongest, #111); }
 .zen-button[data-appearance="flat"][data-level="danger"] { --zen-button-background: var(--zen-color-background-negative-flat-default); --zen-button-background-hover: var(--zen-color-background-negative-flat-hover); --zen-button-background-pressed: var(--zen-color-background-negative-flat-pressed); }
-.zen-button[data-appearance="flat"][data-level="danger"] { --zen-button-content: var(--zen-color-content-negative-light, #d03e19); --zen-button-content-hover: var(--zen-color-content-negative-strongest, #5c271f); --zen-button-content-pressed: var(--zen-color-content-negative-strongest, #5c271f); }
+.zen-button[data-appearance="flat"][data-level="danger"] { --zen-button-content: var(--zen-color-content-negative-light, #d03e19); --zen-button-content-hover: var(--zen-color-content-negative-light, #d03e19); --zen-button-content-pressed: var(--zen-color-content-negative-base, #941b00); }
 .zen-button[data-appearance="flat"][data-level="positive"] { --zen-button-background: var(--zen-color-background-positive-flat-default); --zen-button-background-hover: var(--zen-color-background-positive-flat-hover); --zen-button-background-pressed: var(--zen-color-background-positive-flat-pressed); }
-.zen-button[data-appearance="flat"][data-level="positive"] { --zen-button-content: var(--zen-color-content-positive-light, #16845b); --zen-button-content-hover: var(--zen-color-content-positive-strongest, #0d3d2c); --zen-button-content-pressed: var(--zen-color-content-positive-strongest, #0d3d2c); }
+.zen-button[data-appearance="flat"][data-level="positive"] { --zen-button-content: var(--zen-color-content-positive-light, #16845b); --zen-button-content-hover: var(--zen-color-content-positive-light, #16845b); --zen-button-content-pressed: var(--zen-color-content-positive-base, #006425); }
 
 /* Figma Button/Overlay and Button/Icon-Overlay. */
 /* Figma Button/Overlay + Icon-Overlay carry Effect/Overlay (background blur 100 → CSS 50px). */
@@ -391,11 +419,7 @@
 .zen-button[data-appearance="overlay"][data-level="white-overlay"] { --zen-button-background: var(--zen-color-background-white-overlay-default, rgb(255 255 255 / 40%)); --zen-button-background-hover: var(--zen-color-background-white-overlay-hover, rgb(255 255 255 / 50%)); --zen-button-background-pressed: var(--zen-color-background-white-overlay-pressed, rgb(255 255 255 / 60%)); --zen-button-background-disabled: var(--zen-color-background-white-disabled, rgb(255 255 255 / 14%)); --zen-button-content: var(--zen-white, #fff); --zen-button-content-hover: var(--zen-white, #fff); --zen-button-content-pressed: var(--zen-white, #fff); --zen-button-content-disabled: var(--zen-color-content-on-black-overlay-disabled, rgb(0 0 0 / 27%)); }
 .zen-button[data-appearance="overlay"][data-level="black-overlay"] { --zen-button-background: var(--zen-color-background-black-overlay-default, rgb(0 0 0 / 40%)); --zen-button-background-hover: var(--zen-color-background-black-overlay-hover, rgb(0 0 0 / 50%)); --zen-button-background-pressed: var(--zen-color-background-black-overlay-pressed, rgb(0 0 0 / 60%)); --zen-button-background-disabled: var(--zen-color-background-inverse-disabled, rgb(255 255 255 / 14%)); --zen-button-content: var(--zen-white, #fff); --zen-button-content-hover: var(--zen-white, #fff); --zen-button-content-pressed: var(--zen-white, #fff); --zen-button-content-disabled: var(--zen-color-content-on-black-overlay-disabled, rgb(0 0 0 / 27%)); }
 
-.zen-button[data-level="danger-secondary"] { --zen-button-background: var(--zen-color-background-negative-subtle-default, rgb(229 83 46 / 10%)); --zen-button-background-hover: var(--zen-color-background-negative-subtle-hover, rgb(229 83 46 / 16%)); --zen-button-background-pressed: var(--zen-color-background-negative-subtle-pressed, rgb(229 83 46 / 22%)); --zen-button-content: var(--zen-color-content-negative-light, #d03e19); --zen-button-content-hover: var(--zen-color-content-negative-light, #d03e19); --zen-button-content-pressed: var(--zen-color-content-negative-light, #d03e19); --zen-button-background-disabled: var(--zen-color-background-subtle-disabled); --zen-button-shadow: 0 0 #0000; }
-.zen-button[data-level="positive-secondary"] { --zen-button-background: var(--zen-color-background-positive-subtle-default, rgb(63 171 83 / 10%)); --zen-button-background-hover: var(--zen-color-background-positive-subtle-hover, rgb(63 171 83 / 16%)); --zen-button-background-pressed: var(--zen-color-background-positive-subtle-pressed, rgb(63 171 83 / 22%)); --zen-button-content: var(--zen-color-content-positive-light, #16845b); --zen-button-content-hover: var(--zen-color-content-positive-light, #16845b); --zen-button-content-pressed: var(--zen-color-content-positive-light, #16845b); --zen-button-background-disabled: var(--zen-color-background-subtle-disabled); --zen-button-shadow: 0 0 #0000; }
+.zen-button[data-level="danger-secondary"] { --zen-button-background: var(--zen-color-background-negative-subtle-default, rgb(229 83 46 / 10%)); --zen-button-background-hover: var(--zen-color-background-negative-subtle-hover, rgb(229 83 46 / 16%)); --zen-button-background-pressed: var(--zen-color-background-negative-subtle-pressed, rgb(229 83 46 / 22%)); --zen-button-content: var(--zen-color-content-negative-light, #d03e19); --zen-button-content-hover: var(--zen-color-content-negative-light, #d03e19); --zen-button-content-pressed: var(--zen-color-content-negative-base, #941b00); --zen-button-background-disabled: var(--zen-color-background-subtle-disabled); --zen-button-shadow: 0 0 #0000; }
+.zen-button[data-level="positive-secondary"] { --zen-button-background: var(--zen-color-background-positive-subtle-default, rgb(63 171 83 / 10%)); --zen-button-background-hover: var(--zen-color-background-positive-subtle-hover, rgb(63 171 83 / 16%)); --zen-button-background-pressed: var(--zen-color-background-positive-subtle-pressed, rgb(63 171 83 / 22%)); --zen-button-content: var(--zen-color-content-positive-light, #16845b); --zen-button-content-hover: var(--zen-color-content-positive-light, #16845b); --zen-button-content-pressed: var(--zen-color-content-positive-base, #006425); --zen-button-background-disabled: var(--zen-color-background-subtle-disabled); --zen-button-shadow: 0 0 #0000; }
 
-@media (prefers-reduced-motion: reduce) {
-  .zen-button {
-    transition: none;
-  }
-}
+/* Colour-only transitions stay under reduced motion (WCAG 2.3.3 covers movement, not colour). */

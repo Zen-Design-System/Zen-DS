@@ -1,0 +1,162 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "pagination",
+  "import": "import { Pagination, PaginationItem } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Pagination",
+      "file": "src/components/Pagination/Pagination.tsx",
+      "description": "Figma Pagination (774:29083). Button/Icon-Main XSmall Tertiary ‹ › (icon-chevron-*-line-small) around the\ncontent, Spacing/Gap/Medium between groups; Pages gap Spacing/Gap/2XSmall; Inline/Manually navigator gap XSmall.\nThe arrows follow `size` (Figma draws XSmall only): XSmall items (24, Select-Item/Size/Small) keep Icon-Main XSmall\n(Button/Size/XSmall), Small items (32, Select-Item/Size/Medium) take Icon-Main Small (Button/Size/Small), so the\narrows always match the items in both densities.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "page",
+          "type": "number",
+          "required": true,
+          "default": null,
+          "description": "1-based current page.",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(page: number) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the new 1-based page when ‹ › or a page item is pressed.",
+          "deprecated": null
+        },
+        {
+          "name": "onPageChange",
+          "type": "(page: number) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the new page number (1-based). `onValueChange` is the same callback under the name value controls share.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"primary\" | \"secondary\" | \"inline\" | \"manually\"",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Primary/Secondary: numbered items. Inline: page-size Chip + range label. Manually: page-size Input + range label.",
+          "deprecated": null
+        },
+        {
+          "name": "pageCount",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Number of pages (Primary/Secondary). For Inline/Manually it is derived from `total` / `pageSize`.",
+          "deprecated": null
+        },
+        {
+          "name": "pageSize",
+          "type": "number",
+          "required": false,
+          "default": "50",
+          "description": "Items per page and total items (Inline/Manually).",
+          "deprecated": null
+        },
+        {
+          "name": "total",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "pageSizeOptions",
+          "type": "number[]",
+          "required": false,
+          "default": "[10, 25, 50, 100]",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onPageSizeChange",
+          "type": "(pageSize: number) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"xsmall\" | \"small\"",
+          "required": false,
+          "default": "\"xs\"",
+          "description": "Page items and the ‹ › arrows: xs = 24px (Figma) · sm = 32px. Short (xs, sm) or Figma (xsmall, small) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the navigation landmark. Default: the locale's “Pagination”.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "PaginationItem",
+      "file": "src/components/Pagination/Pagination.tsx",
+      "description": "Figma .Primitives/Pagination/Item (774:15999). The ellipsis renders as a non-interactive item.",
+      "deprecated": null,
+      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
+      "props": [
+        {
+          "name": "page",
+          "type": "number | \"…\"",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"xsmall\" | \"small\"",
+          "required": false,
+          "default": "\"xs\"",
+          "description": "Figma Size: XSmall 24 (Select-Item/Size/Small) · Small 32 (Select-Item/Size/Medium). Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "level",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Selected fill: Primary Active/Neutral/Solid (Inverse label) · Secondary Active/Neutral/Subtle.",
+          "deprecated": null
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "optional",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Narrow screens hide optional pages (everything but first, last and current), keeping `1 … 5 … 12`.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

@@ -1,0 +1,27 @@
+/* Nested instances (NestedProperties.tsx): one group per nested Zen component, groups apart by the spacing ladder's
+   group step, rows inside a group by the section's row gap. */
+.studio-nested { display: grid; min-width: 0; gap: var(--zen-spacing-gap-small, 12px); }
+.studio-nested__group { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Where a nested instance written outside the owner lives (a helper, a const, another file): an edit changes it there. */
+.studio-nested__where { min-width: 0; margin: 0; overflow: hidden; color: var(--zen-color-content-neutral-base); text-overflow: ellipsis; white-space: nowrap; }
+
+/* Object and array props written in place (ObjectProperties.tsx): a static group header (nothing to select), laid out
+   like the nested instance header row. */
+.studio-object__header { display: flex; min-width: 0; height: 28px; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-neutral-strongest); }
+.studio-object__icon { display: inline-flex; flex: 0 0 auto; color: var(--zen-color-content-neutral-base); }
+.studio-object__title { min-width: 0; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-object__meta { min-width: 0; flex: 1 1 auto; overflow: hidden; color: var(--zen-color-content-neutral-base); text-overflow: ellipsis; white-space: nowrap; }
+/* An array item's move / remove buttons at the end of its header, and "Add item" (a copy of the last) after the list. */
+.studio-object__actions { display: inline-flex; flex: 0 0 auto; margin-inline-start: auto; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-object__add { justify-self: start; }
+
+/* Figma groups (GroupedProperties.tsx): a nested layer's group under the component's own properties, its header like
+   Figma's nested instance header (component icon + layer name), its rows below. */
+.studio-group { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); padding-top: var(--zen-spacing-padding-xsmall, 8px); }
+.studio-group__header { display: flex; min-width: 0; height: 28px; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-neutral-strongest); }
+/* A Figma nested instance: the component hue, as in Layers and the nested instance rows. */
+.studio-group__icon { display: inline-flex; flex: 0 0 auto; color: var(--zen-color-content-support-purple-base); }
+.studio-group__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* A prop that does nothing in this state stays editable; its reason sits under it (sizing.css .studio-sizing__note look). */
+.studio-group__warning { display: flex; min-width: 0; align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
+.studio-group__warning > .zen-icon { flex: 0 0 auto; margin-top: var(--zen-spacing-padding-3-xsmall, 2px); }

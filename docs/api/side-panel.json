@@ -1,0 +1,147 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "side-panel",
+  "import": "import { SidePanel } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "SidePanel",
+      "file": "src/components/SidePanel/SidePanel.tsx",
+      "description": "Figma Side-Panel (1573:3128). Standard: a full-height Surface column with a 1px Border/Neutral/Pale left edge, rendered\nin place (the page layout docks it). Modal: a floating Background/Container panel (Corner-Radius/XLarge, Container\nborder, Effect/Container) 8px from the viewport edge over the scrim; focus is trapped and returns to the opener.\nHeader (Modal-Padding, gap Medium): title (Standard Heading/3, Modal Heading/4 under the 44px icon) · caption; the close\nbutton is pinned to the header's top-right corner; Contents; Modal/Actions footer.",
+      "deprecated": null,
+      "extends": "OverlayOpenProps",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Whether the overlay is shown: keep it in state and set it from `onOpenChange` (the exit animation then plays).\nWithout `open` the overlay shows while it is mounted, e.g. `{show && <Dialog … />}`.",
+          "deprecated": null
+        },
+        {
+          "name": "isOpen",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use open (same meaning)."
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with false on Escape, a scrim click, the close button, or an action without its own handler.",
+          "deprecated": null
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Called at the same moments as `onOpenChange(false)`: the overlay asks to close.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Header Heading (Heading/3).",
+          "deprecated": null
+        },
+        {
+          "name": "headingLevel",
+          "type": "1 | 2 | 3",
+          "required": false,
+          "default": "2",
+          "description": "Heading level of the title: 2 (default, an h2), or 1 / 3 to fit the page outline. Only the tag changes, not the text style.",
+          "deprecated": null
+        },
+        {
+          "name": "description",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Caption (Body/Base/Regular, Neutral/Base).",
+          "deprecated": null
+        },
+        {
+          "name": "type",
+          "type": "\"standard\" | \"modal\"",
+          "required": false,
+          "default": "\"standard\"",
+          "description": "Figma Type: Standard (docked beside the page, non-modal) · Modal (floating over a scrim, traps focus).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"default\" | \"small\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "Figma Size: Default 440 · Small 360.",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactElement",
+          "required": false,
+          "default": null,
+          "description": "Modal only: the 44px heading icon, an icon name (Figma shows icon-info-circle-solid) or an element.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Contents slot.",
+          "deprecated": null
+        },
+        {
+          "name": "primaryAction",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "secondaryAction",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "dismissible",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Escape / scrim click close a modal panel (default true).",
+          "deprecated": null
+        },
+        {
+          "name": "closeLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the close button. Default: the locale's “Close panel”.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "ButtonLevel": "type ButtonLevel = \"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\""
+  }
+}

@@ -1,0 +1,277 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "app-shell",
+  "import": "import { AppShell, AppShellAction, AppShellAccount } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "AppShell",
+      "file": "src/components/AppShell/AppShell.tsx",
+      "description": "The frame of a web app (Figma ◇ Master-Layout Patterns/Pages/Density-Medium 4122:41886, as used by ◆ HR-Platform):\nSidebar navigation, a sticky top bar (Header/Dashboard Type=Navigation 4122:33400), the page, and optional banner,\ndocked side panel and floating action, with a \"Skip to content\" link. From 1024px the Sidebar sits beside the page\nand the toggle at the start of the top bar collapses it to its rail; narrower, it opens as a modal drawer.\n\nTop bar: Margin-Comfortable top and sides, Spacing/Padding/XSmall bottom, a Button/Size/Medium row; toggle → content\nSpacing/Gap/XSmall, leading → trailing Spacing/Gap/Medium, trailing actions Spacing/Gap/Small.\n\n  <AppShell sidebar={<Sidebar … />} header={<Breadcrumbs … />} headerActions={<AppShellAction … />}>\n    <Container><PageHeader title=\"Team members\" /> …</Container>\n  </AppShell>",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">",
+      "props": [
+        {
+          "name": "sidebar",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Left navigation, usually <Sidebar>. When the shell is 1024px or wider it sits beside the content, expanded or\ncollapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button.",
+          "deprecated": null
+        },
+        {
+          "name": "header",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Top bar content after the toggle (it grows): Breadcrumbs (Figma HR-Platform) or a Search.",
+          "deprecated": null
+        },
+        {
+          "name": "headerActions",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Top bar actions on the right, in this order: a plan Badge, AppShellAction buttons (notifications, settings, help),\nthen the account menu (`<Menu trigger={<AppShellAccount … />}>`). Page actions belong in the PageHeader.",
+          "deprecated": null
+        },
+        {
+          "name": "banner",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "A full-width message strip above the whole shell, usually <AlertBanner> (trial ending, maintenance, offline). It stays in view while the page scrolls.",
+          "deprecated": null
+        },
+        {
+          "name": "aside",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "A right panel docked beside the content (Figma Side-Panel), usually <SidePanel type=\"standard\">. It docks while the\npage keeps at least a Tablet width (744px) beside it; otherwise a SidePanel opens as the modal panel and other\ncontent stacks under the page.",
+          "deprecated": null
+        },
+        {
+          "name": "floatingAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it.",
+          "deprecated": null
+        },
+        {
+          "name": "footer",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "A sticky bar at the bottom of the main column, e.g. an ActionBar.",
+          "deprecated": null
+        },
+        {
+          "name": "canvas",
+          "type": "\"default\" | \"alt\" | \"flat\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "Page background layer: default Canvas, alt (a white page) or flat (pair it with Sidebar background=\"flat\").",
+          "deprecated": null
+        },
+        {
+          "name": "sidebarCollapsed",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Sidebar rail state when controlled; pair it with `onSidebarCollapsedChange`.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultSidebarCollapsed",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded.",
+          "deprecated": null
+        },
+        {
+          "name": "onSidebarCollapsedChange",
+          "type": "(collapsed: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called when the toggle (or `useAppShell().setSidebarCollapsed`) collapses or expands the Sidebar. Store it (e.g. localStorage) to keep the choice between visits.",
+          "deprecated": null
+        },
+        {
+          "name": "sidebarToggle",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "The collapse toggle at the start of the top bar (Figma HR-Platform: icon-layout-left before the Breadcrumbs).\nDefault true: shown when the shell has a top bar (`header` or `headerActions`) and a Sidebar that can collapse.\nA Sidebar with its own `onCollapsedChange` keeps its header control instead.",
+          "deprecated": null
+        },
+        {
+          "name": "navOpen",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Drawer state when controlled (narrow shells).",
+          "deprecated": null
+        },
+        {
+          "name": "defaultNavOpen",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onNavOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "navLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the navigation drawer. Default: the locale's “Navigation”.",
+          "deprecated": null
+        },
+        {
+          "name": "mainId",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "id of <main>, the target of the \"Skip to content\" link. Default: a generated unique id.",
+          "deprecated": null
+        },
+        {
+          "name": "layout",
+          "type": "\"auto\" | \"sidebar\" | \"drawer\"",
+          "required": false,
+          "default": "\"auto\"",
+          "description": "Force the layout. By default (`auto`) the shell's own width decides: narrower than 1024px uses the drawer. Force it only for previews and tests.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The page.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "AppShellAction",
+      "file": "src/components/AppShell/AppShell.tsx",
+      "description": "Figma Primitives/Dashboard/Header/Action-Item (12280:19532): a top-bar icon action with an optional\nPrimitives/Notification-Dot (4116:21789). Dot 8px, Number Badge/Size/2XSmall high with Label/Small/Medium text, both on\nColor/Background/{Negative|Positive|Accent}/Solid with a 2px Color/Border/Inverse ring, at the button's top-right.\nIt forwards its ref and props to the button, so it can be a <Menu trigger>.",
+      "deprecated": null,
+      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
+      "props": [
+        {
+          "name": "icon",
+          "type": "IconName | ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Leading-Icon: an icon name (`\"icon-bell-01-line\"`) or a node.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "The action's name (“Notifications”): its accessible name, with the unread count added, and its 1s tooltip.",
+          "deprecated": null
+        },
+        {
+          "name": "count",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Figma Noti-type=Number: the unread count on a badge. 0 hides it; above 99 it reads \"99+\" (the accessible name keeps the exact number).",
+          "deprecated": null
+        },
+        {
+          "name": "dot",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Noti-type=Dot: something new without a count. Hidden while a count shows.",
+          "deprecated": null
+        },
+        {
+          "name": "tone",
+          "type": "\"default\" | \"active\" | \"accent\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "Figma Notification-Dot Theme: `default` Negative (needs attention) · `active` Positive · `accent`.",
+          "deprecated": null
+        },
+        {
+          "name": "appearance",
+          "type": "\"tertiary\" | \"flat\"",
+          "required": false,
+          "default": "\"tertiary\"",
+          "description": "Figma Theme: `tertiary` (Button/Icon-Main Medium Tertiary, 40px) · `flat` (Button/Icon-Flat Medium Primary: a 20px glyph with a 40px hit area).",
+          "deprecated": null
+        },
+        {
+          "name": "tooltip",
+          "type": "ReactNode | false",
+          "required": false,
+          "default": null,
+          "description": "Tooltip text. Default: `aria-label` (without the count).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "AppShellAccount",
+      "file": "src/components/AppShell/AppShell.tsx",
+      "description": "The account button at the end of the top bar: Figma Avatar/Single Circle Medium (Image-Size/Medium) as a button. Put\nit in a Menu for the account actions: `<Menu align=\"end\" trigger={<AppShellAccount name=\"Ava Chen\" src={photo} />} items={…} />`.\nKeyboard focus shows the Avatar's own focus ring.",
+      "deprecated": null,
+      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
+      "props": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "The signed-in person's name: the accessible name (“Account: Ava Chen”), the tooltip and the initials without a photo.",
+          "deprecated": null
+        },
+        {
+          "name": "src",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Photo URL (Figma Avatar/Single Theme=Photo).",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "Exclude<AvatarTheme, \"photo\">",
+          "required": false,
+          "default": "\"neutral\"",
+          "description": "Initials colour without a photo. Default neutral.",
+          "deprecated": null
+        },
+        {
+          "name": "type",
+          "type": "unknown",
+          "required": false,
+          "default": "\"button\"",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "AvatarTheme": "type AvatarTheme = \"photo\" | \"accent\" | \"blue\" | \"brown\" | \"crimson\" | \"cyan\" | \"green\" | \"indigo\" | \"neutral\" | \"orange\" | \"pink\" | \"plum\" | \"purple\" | \"red\" | \"teal\" | \"violet\" | \"yellow\" | \"sky\" | \"mint\" | \"bronze\" | \"golden\""
+  }
+}

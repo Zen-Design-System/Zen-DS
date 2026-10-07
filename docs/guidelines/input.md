@@ -10,7 +10,8 @@ Collect a single value from the user. All fields share Label → Field → Help-
 - Free text → InputField; long text → TextAreaField.
 - One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField.
 - Dates → DateField; quantities → NumberField (steppers).
-- Inline editable titles → HeadingField.
+- Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).
+- Formatted long text (announcements, descriptions) → RichTextField.
 
 ## Use something else for
 - Searching/filtering content → Search.
@@ -20,33 +21,345 @@ Collect a single value from the user. All fields share Label → Field → Help-
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Size | `size` | small · medium · large · xlarge (xlarge uses Heading/4 text) |
+| Size | `size` | small · medium · large · xlarge (xlarge uses Heading/4 text); phones use medium or larger (harness: mobile/full-size-controls), small is for dense desktop toolbars, filters and table cells |
 | Label / Help-Text | `label / helpText` | always label; help text under the field |
+| Label | `label · labelOptional · labelTooltip · labelAction (InputLabel optional / tooltip / action / disabled)` | (Optional) marker, 12px info icon with a Tooltip, right-aligned Body/Small/Bold action |
 | Error (Blank/Inputted-Error) | `error` | wins over interaction states |
+| Help-Text | `helpText · helpTheme · helpIcon · characterLimit` | Theme neutral · warning · positive (error = negative); Icon on/off; Character-Limitation text or `true` + maxLength |
 | Read-Only | `readOnly` | shows the value, no fill, Border/Neutral/Subtle |
-| Leading/Trailing | `leading / trailing + InputLeadingTrailing` | decorative icon, or picker when it has a label + options |
+| Disabled | `disabled` | Figma State=Disabled on Text, Select, Date, Number and Text-Area: same fill, Input/Border/Disabled, label, value and slot icons in Content/Disabled, Leading/Trailing Active=No and locked; Number steppers disabled; none on Autocomplete or Rich-Text |
+| Leading/Trailing | `leading / trailing + InputLeadingTrailing` | decorative, picker (options) or action (onClick); interactive overrides per use case |
 | Number | `align · value · onValueChange · min · max · step` | left: [− +] trailing, center: − value + |
+| RichTextField | `value / defaultValue (HTML) · onValueChange(html, text) · editorBar · editorBarTheme · characterLimit` | Figma Input/Richtext + Control-Bar; label above the bar |
+| Input-Conditions | `<InputConditions> + <InputConditionItem label state>` | default (minus) · success (check) · wrong (x); Body/Small/Regular, list gap XSmall |
+| Heading | `<HeadingField headingSize multiline onValueChange>` | h1–h3 (Heading/1–3); one line by default, multiline wraps and grows (Figma Inputted-Multi-Line) |
+
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/input.json`.
+
+### InputField
+Also accepts `Omit<InputHTMLAttributes<HTMLInputElement>, "size">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` | `ReactNode` | — |  |
+| `helpText` | `ReactNode` | — |  |
+| `labelOptional` | `boolean` | — | Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel). |
+| `labelTooltip` | `boolean \| ReactNode` | — |  |
+| `labelAction` | `ReactNode` | — |  |
+| `helpTheme` | `"neutral" \| "negative" \| "warning" \| "positive"` | — | Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative. |
+| `helpIcon` | `boolean` | — | Figma Help-Text `Icon` axis (default on). |
+| `characterLimit` | `ReactNode \| true` | — | Figma Help-Text `Character-Limitation`: custom text (e.g. "12/100"), or `true` to count the value against `maxLength`. |
+| `error` | `ReactNode` | — |  |
+| `errorMessage` | `ReactNode` | — | **Deprecated:** Use error (same meaning).  |
+| `size` | `"sm" \| "md" \| "lg" \| "xl" \| "small" \| "medium" \| "large" \| "xlarge"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted" \| "read-only" \| "disabled" \| "inputted-error" \| "blank-error" \| "error"` | — |  |
+| `leading` | `IconName \| ReactNode` | — | Before the value: an icon name (`"icon-mail-01-line"`, sized to the field) or any node (a unit, a picker). |
+| `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
+| `className` | `string` | — |  |
+| `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |
+
+### SelectField
+Also accepts `Omit<SelectHTMLAttributes<HTMLSelectElement>, "size">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` | `ReactNode` | — |  |
+| `helpText` | `ReactNode` | — |  |
+| `labelOptional` | `boolean` | — | Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel). |
+| `labelTooltip` | `boolean \| ReactNode` | — |  |
+| `labelAction` | `ReactNode` | — |  |
+| `helpTheme` | `"neutral" \| "negative" \| "warning" \| "positive"` | — | Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative. |
+| `helpIcon` | `boolean` | — | Figma Help-Text `Icon` axis (default on). |
+| `characterLimit` | `ReactNode \| true` | — | Figma Help-Text `Character-Limitation`: custom text (e.g. "12/100"), or `true` to count the value against `maxLength`. |
+| `error` | `ReactNode` | — |  |
+| `errorMessage` | `ReactNode` | — | **Deprecated:** Use error (same meaning).  |
+| `size` | `"sm" \| "md" \| "lg" \| "xl" \| "small" \| "medium" \| "large" \| "xlarge"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted" \| "read-only" \| "disabled" \| "inputted-error" \| "blank-error" \| "error"` | — |  |
+| `leading` | `IconName \| ReactNode` | — | Before the value: an icon name (`"icon-mail-01-line"`, sized to the field) or any node (a unit, a picker). |
+| `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
+| `className` | `string` | — |  |
+| `options` | `SelectFieldOption[]` | `[]` |  |
+| `onValueChange` | `(value: string, option: SelectFieldOption) => void` | — | Called with the picked value and its option, next to the native `onChange(event)` (which still runs). |
+| `placeholder` | `string` | — | Shown (Content/Placeholder) while no option is selected, e.g. "Choose a role". With a placeholder and no `value` / `defaultValue`, nothing is preselected; without one the first option is selected, like a native select. |
+| `onFocus` | `FocusEventHandler<HTMLSelectElement>` | — | Focus entered the field (its trigger or option list) from outside. The event targets the native select (name, value). |
+| `onBlur` | `FocusEventHandler<HTMLSelectElement>` | — | Focus left the field — the trigger and its option list — as on a native select. The event targets the native select. |
+| `popoverLabel` | `ReactNode` | — | Popover/Label above the options: it names the option list, not the value (a label, not a heading). |
+| `popoverSearch` | `boolean` | `false` | Adds the Popover Search row; options are filtered by the query. |
+| `popoverSearchPlaceholder` | `string` | — |  |
+| `popoverOpen` | `boolean` | — | Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself. |
+| `onPopoverOpenChange` | `(open: boolean) => void` | — | Called with the next open state: the trigger, Escape, a pick, a click outside or focus leaving the field. |
+| `readOnly` | `boolean` | `false` | Figma State=Read-Only: shows the value, keeps the chevron, never opens. |
+
+### DateField
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` | `ReactNode` | — |  |
+| `helpText` | `ReactNode` | — |  |
+| `labelOptional` | `boolean` | — | Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel). |
+| `labelTooltip` | `boolean \| ReactNode` | — |  |
+| `labelAction` | `ReactNode` | — |  |
+| `helpTheme` | `"neutral" \| "negative" \| "warning" \| "positive"` | — | Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative. |
+| `helpIcon` | `boolean` | — | Figma Help-Text `Icon` axis (default on). |
+| `characterLimit` | `ReactNode \| true` | — | Figma Help-Text `Character-Limitation`: custom text (e.g. "12/100"), or `true` to count the value against `maxLength`. |
+| `error` | `ReactNode` | — |  |
+| `errorMessage` | `ReactNode` | — | **Deprecated:** Use error (same meaning).  |
+| `size` | `"sm" \| "md" \| "lg" \| "xl" \| "small" \| "medium" \| "large" \| "xlarge"` | — | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted" \| "read-only" \| "disabled" \| "inputted-error" \| "blank-error" \| "error"` | — |  |
+| `leading` | `IconName \| ReactNode` | — | Before the value: an icon name (`"icon-mail-01-line"`, sized to the field) or any node (a unit, a picker). |
+| `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
+| `className` | `string` | — |  |
+| `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |
+| `datePicker` | `boolean` | `true` |  |
+| `datePickerActions` | `boolean` | `false` | The calendar's Cancel + Submit (Figma Actions): a picked day is a draft until Submit writes it to the field; Cancel and Escape keep the date the field had. |
+| `onDateChange` | `(date: Date \| null) => void` | — |  |
+| `minDate` | `Date` | — | Earliest day the calendar lets people pick (DatePicker `minDate`); earlier days are disabled. A typed date before it stays in the field and reaches `onValueChange` as usual, and the input is marked `aria-invalid` (Form and ModalForm count it and focus it after a blocked submit). The field shows no message of its own: validate the value and pass `error` ("Pick a date from 1 October"). |
+| `maxDate` | `Date` | — | Latest day the calendar lets people pick (DatePicker `maxDate`); later days are disabled. A typed date after it is kept, reported and marked `aria-invalid` as for `minDate`: pass `error` to say why. |
+| `today` | `Date` | — | The day the calendar treats as today (DatePicker `today`): its Today ring and the month it opens on while empty. Default: the device clock. |
+
+### NumberField
+Figma Input/Number-Align-Left (421:10057) and Number-Align-Center (450:7900): Button/Icon-Main 2XSmall Tertiary steppers (24px) after or around the value. Read-Only hides the steppers; Disabled keeps them, disabled (Figma still draws State=Default steppers in the Disabled variant). Keyboard: ↑/↓ step; Enter/blur clamps.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `align` | `"left" \| "center"` | `"left"` | Figma Input/Number-Align-Left (steppers trailing) or Number-Align-Center (− value +). |
+| `value` | `number \| null` | — |  |
+| `defaultValue` | `number \| null` | `null` |  |
+| `onValueChange` | `(value: number \| null) => void` | — |  |
+| `min` | `number` | — |  |
+| `max` | `number` | — |  |
+| `step` | `number` | `1` |  |
+| `decrementLabel` | `string` | — | Accessible name of the − stepper. Default: the locale's "Decrease". |
+| `incrementLabel` | `string` | — | Accessible name of the + stepper. Default: the locale's "Increase". |
+
+### TextAreaField
+Also accepts `Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "size">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `size` | `Exclude<InputSize, "xlarge" \| "xl">` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |
+| `rows` | _HTML attribute_ | `4` |  |
+
+### AutocompleteField
+Figma Input/Autocomplete-Field (1241:5616): Label, a wrapping Tag list (gap 4, Tag Remove=Yes) and an "Add Item" Button/Main XSmall Secondary that opens Popover/Default (Search + "Search and select" label + items) over the Add slot. Selected options become tags; the popover closes on outside pointer-down or Escape. Removing a tag moves focus to the next tag's Remove button, else the previous tag's, else Add Item.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | — |  |
+| `label` | `ReactNode` | — |  |
+| `helpText` | `ReactNode` | — |  |
+| `helpTheme` | `"neutral" \| "negative" \| "warning" \| "positive"` | `"neutral"` |  |
+| `helpIcon` | `boolean` | `true` |  |
+| `error` | `ReactNode` | — | Blank-Error / Inputted-Error message (Help-Text Theme=Negative). |
+| `errorMessage` | `ReactNode` | — | **Deprecated:** Use error (same meaning).  |
+| `options` (required) | `AutocompleteOption[]` | — |  |
+| `value` | `string[]` | — |  |
+| `defaultValue` | `string[]` | `[]` |  |
+| `onValueChange` | `(value: string[]) => void` | — | Called with the selected option ids when a tag is added, created or removed. |
+| `onChange` | `(value: string[]) => void` | — | **Deprecated:** Use onValueChange (same arguments).  |
+| `invalidValues` | `string[]` | `[]` | Ids rendered as Tag State=Error (Inputted-Error). |
+| `readOnly` | `boolean` | `false` | Figma State=View-Only: tags without Remove and no Add button. |
+| `disabled` | `boolean` | `false` |  |
+| `addLabel` | `ReactNode` | — | Text of the Add button. Default: the locale's "Add Item". |
+| `popoverLabel` | `ReactNode` | — | Label above the option list (it names the list; not a heading). Default: the locale's "Search and select". |
+| `searchPlaceholder` | `string` | — | Placeholder of the Search row. Default: the locale's "Search". |
+| `onCreate` | `(label: string) => string \| void` | — | Figma Popover/Manual-Add-New: create a value that isn't in `options`. Add the new option to `options` and return its id; the field then selects it as a Tag. A typed value that matches an option shows no Create row: an option already added as a Tag is listed as selected (disabled) instead. |
+| `createLabel` | `ReactNode` | — |  |
+| `className` | `string` | — |  |
+
+### RichTextField
+Figma `Input/Richtext` (6385:17480): the Editor-Bar (Control-Bar, optional) above a Text-Area field, gap Spacing/Gap/XSmall. The field is a content-editable editor inside the regular Input shell, so hover/focus/Read-only/error states match Text-Area. Output is HTML via `onValueChange(html, text)`. Undo / Redo (the Editor-Bar, ⌘Z, ⇧⌘Z, Ctrl+Y) step through this field's own history and are disabled while there is nothing to undo or redo; a new `value` from outside (clearing the field after it was posted) starts a new history.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | — |  |
+| `size` | `Exclude<InputSize, "xlarge" \| "xl">` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `value` | `string` | — | HTML content (controlled). |
+| `defaultValue` | `string` | — |  |
+| `onValueChange` | `(html: string, text: string) => void` | — | Called with the editor HTML and its plain text on every edit. |
+| `placeholder` | `string` | — |  |
+| `readOnly` | `boolean` | `false` |  |
+| `required` | `boolean` | — |  |
+| `maxLength` | `number` | — | Counted against `characterLimit={true}` (plain text length); not enforced. |
+| `editorBar` | `boolean` | `true` | Figma `Control-Bar` boolean: show the Editor-Bar above the field. |
+| `editorBarTheme` | `"subtle" \| "solid" \| "inverse"` | `"subtle"` | Control-Bar/Select-Item Theme of the bar. |
+| `onFocus` | `(event: FocusEvent<HTMLDivElement>) => void` | — |  |
+| `onBlur` | `(event: FocusEvent<HTMLDivElement>) => void` | — |  |
+
+### InputLabel
+Public implementation of Figma's `Primitives/Input/Label` (387:3651): Content (label · optional · tooltip icon, gap 2XSmall) + an optional right-aligned Action. The tooltip icon sits outside the `<label>` so hovering or focusing it never activates the field.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | — |  |
+| `labelId` | `string` | — | id of the `<label>` element itself, for controls that are named with aria-labelledby (e.g. a rich text editor). |
+| `children` (required) | `ReactNode` | — |  |
+| `optional` | `boolean` | `false` | Figma `Optional`: appends the locale's "(Optional)" in Content/Neutral/Light. |
+| `tooltip` | `boolean \| ReactNode` | `false` | Figma `Tooltip-Icon`: `true` shows the 12px info icon; text/nodes also show it as a hover/focus Tooltip. |
+| `action` | `ReactNode` | — | Figma `Action`: right-aligned Body/Small/Bold slot — a link or a text button (e.g. "Forgot password?"). |
+| `disabled` | `boolean` | `false` | Figma `State=Disabled`: every part (label, optional, icon, action) turns Content/Disabled. |
+
+### InputHelpText
+Public implementation of Figma's `.Primitives/Input/Help-Text` owner.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | — |  |
+| `children` (required) | `ReactNode` | — |  |
+| `theme` | `"neutral" \| "negative" \| "warning" \| "positive"` | `"neutral"` |  |
+| `icon` | `boolean` | `true` |  |
+| `characterLimit` | `ReactNode` | — |  |
+
+### InputLeadingTrailing
+Slot-compatible implementation of `.Primitives/Input/Leading-Trailing`. Three behaviours, chosen per use case: - picker: `options` → a button (label + chevron) that opens the shared Popover; - action: `onClick` → a button that runs the caller's action (filter, show password…); - decorative: neither, or `interactive={false}` → a plain slot; a click on it focuses the field.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `size` | `Exclude<InputSize, "xlarge" \| "xl">` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `active` | `boolean` | `true` |  |
+| `icon` | `IconName \| ReactNode` | — | An icon name (`"icon-settings-03-line"`, drawn at the slot's icon size) or any node. |
+| `flag` | `ReactNode` | — |  |
+| `label` | `ReactNode` | — |  |
+| `showLabel` | `boolean` | `true` | Explicit Figma Label axis. Omit the label while keeping the slot/icon. |
+| `dropdown` | `boolean` | `false` |  |
+| `showDropdown` | `boolean` | — | Explicit Figma Dropdown axis. |
+| `children` | `ReactNode` | — |  |
+| `options` | `InputLeadingTrailingOption[]` | — | Makes a labelled slot a picker: clicking it opens a Popover with these options (e.g. country code, unit, currency). |
+| `value` | `string` | — |  |
+| `onValueChange` | `(value: string, option: InputLeadingTrailingOption) => void` | — |  |
+| `popoverLabel` | `string` | — | Popover/Label above the options, e.g. "Country code" (a label, not a heading). Also the button's accessible name prefix. |
+| `align` | `"start" \| "end"` | `"end"` | Open the picker towards the start (leading) or end (trailing) of the field. |
+| `disabled` | `boolean` | `false` |  |
+| `interactive` | `boolean` | — | Whether the slot is clickable. Defaults to `true` for a labelled slot with `options` (picker) or any slot with `onClick` (action); otherwise `false` (decorative: a click focuses the field). Set it explicitly per use case. |
+| `onClick` | `(event: MouseEvent<HTMLButtonElement>) => void` | — | Action slot (no popover), e.g. a filter or visibility toggle. Makes the slot clickable unless `interactive={false}`. |
+| `aria-label` | `string` | — | Accessible name for a clickable slot; required when it has no visible label (icon-only). |
+| `aria-haspopup` | `ButtonHTMLAttributes<HTMLButtonElement>["aria-haspopup"]` | — | Marks an action slot that opens a menu/popover owned by the caller. |
+| `aria-expanded` | `boolean` | — |  |
+
+### InputContent
+Public implementation of Figma's `.Primitives/Input/Input-Content/Default`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `size` | `Exclude<InputSize, "xlarge" \| "xl">` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `state` | `"default" \| "focused" \| "typing" \| "inputted" \| "disabled"` | `"default"` |  |
+| `text` | `ReactNode` | `"Content"` |  |
+| `cursor` | `boolean` | `true` |  |
+
+### ControlBarSelectItem
+Public implementation of Figma's `Control-Bar/Select-Item` primitive.
+
+Also accepts `ButtonHTMLAttributes<HTMLButtonElement>`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `theme` | `"subtle" \| "solid" \| "inverse"` | `"subtle"` |  |
+| `state` | `"default" \| "hover" \| "selected"` | `"default"` |  |
+| `icon` (required) | `IconName \| ReactNode` | — | An icon name (`"icon-bold-02-line"`, drawn at 20px) or any node. Name the item with aria-label. |
+
+### RichTextEditorBar
+Figma `.Primitives/Rich-Text/Editor-Bar`: Undo/Redo · Text style Select (Small) · Bold/Underline/Italic/Strikethrough · alignment · lists and indent · link/image/video · clear formatting, gap Spacing/Gap/2XSmall between blocks and 3XSmall inside a block. Items keep the editor's selection (mouse-down does not steal focus); arrow keys move between items (ARIA toolbar pattern).
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `theme` | `"subtle" \| "solid" \| "inverse"` | `"subtle"` | Figma Control-Bar/Select-Item Theme used by every item. |
+| `active` | `Partial<Record<RichTextCommand, boolean>>` | `{}` | Commands shown as Selected (aria-pressed) — the formatting at the caret. |
+| `disabled` | `boolean \| Partial<Record<RichTextCommand, boolean>>` | — | `true` disables the whole bar (Read-only field); a map disables single commands (e.g. undo with no history). |
+| `blockType` | `"p" \| "h1" \| "h2" \| "h3"` | `"p"` |  |
+| `onBlockTypeChange` | `(blockType: RichTextBlockType) => void` | — |  |
+| `onCommand` | `(command: RichTextCommand, trigger: HTMLButtonElement) => void` | — |  |
+| `controls` | `string` | — | id of the editor the bar formats. |
+| `aria-label` | `string` | — | Accessible name of the toolbar. Default: the locale's "Formatting". |
+| `className` | `string` | — |  |
+
+### HeadingField
+Figma Input/Heading (694:13062): an inline-editable heading (no field chrome). Heading/1–3 text, an 8px pad that sits outside the text box (−8px), radius 12, and a Neutral/Subtle surface on hover/focus/typing. One line by default; `multiline` wraps long headings and grows with them (Status=Inputted-Multi-Line).
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `headingSize` | `"h1" \| "h2" \| "h3"` | `"h3"` | Heading/1–3 text style. |
+| `multiline` | `boolean` | `false` | `false` (default): one line, for short names (a board, a file, a section); a long heading scrolls inside the field. `true`: long headings wrap and the field grows with them (Figma Status=Inputted-Multi-Line), for document, announcement or task titles. It renders a `<textarea>`: Enter never adds a line break (handle it in `onKeyDown`, e.g. to move on) and pasted line breaks become spaces. |
+| `onValueChange` | `(value: string) => void` | — | Called with the text on every change, in both variants. |
+| `status` | `"default" \| "hover" \| "focus" \| "typing" \| "inputted-single-line" \| "inputted-multi-line" \| "inputted-hover"` | — | Deterministic Figma Status for matrices; native hover/focus still apply. |
+
+### InputConditionItem
+Figma Primitives/Input/Input-Conditions/Condition-Item: 16px icon (Element-Size/Popular/Small) + Body/Small/Regular, gap 2XSmall. Default Content/Neutral/Base (minus), Success Positive/Light (check), Wrong Negative/Light (x-small).
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` (required) | `ReactNode` | — |  |
+| `state` | `"default" \| "success" \| "wrong"` | `"default"` |  |
+
+### InputConditions
+Figma Input-Conditions: an Item-List slot stacking Condition-Items with gap XSmall.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` | — |  |
+| `state` | `"default"` | `"default"` |  |
+
+### Types
+Object shapes the props above refer to.
+
+```ts
+type AutocompleteOption = { id: string; label: string; leading?: ReactNode; photoSrc?: string }
+type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: ReactNode; icon?: IconName | ReactNode; flag?: ReactNode; }
+type InputSize = "sm" | "md" | "lg" | "xl" | "small" | "medium" | "large" | "xlarge"
+type RichTextBlockType = "p" | "h1" | "h2" | "h3"
+type RichTextCommand = | "undo" | "redo" | "bold" | "underline" | "italic" | "strikethrough" | "align-left" | "align-center" | "align-right" | "align-justify" | "bulleted-list" | "numbered-list" | "outdent" | "indent" | "link" | "image" | "video" | "clear-format"
+type SelectFieldOption = { label: string; value: string; disabled?: boolean }
+```
+
+## Keyboard
+| Keys | Action |
+| --- | --- |
+| Tab / Shift+Tab | Move between fields |
+| ↓ / ↑ | Select & Date: open the picker |
+| ↑ / ↓ | Number: step the value |
+| Enter / blur | Number: clamp to min / max |
+| Escape | Close the open list, calendar or picker and return focus to its trigger (the surrounding Dialog stays open) |
 
 ## ✅ Do
 - Always render a visible label; use aria-label only when the context already labels the field (e.g. a Share link row).
 - Validate on blur or submit, then show error text that says how to fix it.
 - Use Read-only for values the user may see but not change.
-- Make a labelled Leading/Trailing slot a picker (options) for units, country codes or account types.
+- Read-only fields stay focusable (to read, select and copy) and show the Focused 3px ring around the dashed Read-Only border, whose dashes take Color/Focus/Neutral/Solid while focused.
+- Use Disabled for a field that is unavailable until something else changes (a toggle, a plan, a permission), and say why in the help text.
+- Use helpTheme="warning" for a soft caution and "positive" to confirm a check passed; reserve Negative for `error`.
+- Make a labelled Leading/Trailing slot a picker (options) for units, country codes or account types, or an action (onClick) such as show password; set interactive={false} when it is purely informative.
+- Escape closes only an open SelectField list, DateField calendar, Leading/Trailing picker or AutocompleteField list and returns focus to its trigger; a Dialog, ModalForm or Side Panel around the field stays open. On a closed field, Escape goes to that overlay.
+- DateField opens its calendar when a person tabs to or clicks the field, never on a script's focus (a blocked submit's focusFirstInvalidField, a Dialog's or BottomSheet's first focus), so an error focus never covers the form with the calendar.
+- A typed date outside minDate / maxDate stays in the DateField, reaches onValueChange and marks the input aria-invalid (Form and ModalForm count it and focus it after a blocked submit), but the field shows no message of its own: validate it and pass `error` that names the allowed range ("Pick a date from 1 October").
+- AutocompleteField: with onCreate, Create appears only for a value that is not an option yet; typing an option that is already a Tag lists it as selected (disabled) instead.
 - Clamp NumberField with min/max; steppers disable at the bounds.
 - Keep help text to one line; move long guidance to InputConditions or docs.
+- Show requirement rules (passwords, handles) as InputConditions under the field: Default before typing, then Success/Wrong live as the value changes.
+- RichTextField: read content through onValueChange(html, text), store the HTML and render it through your sanitizer.
+- RichTextField: keep the Control-Bar (editorBar) unless the surface is tiny.
+- RichTextField keeps its own undo history: Undo / Redo (⌘Z, ⇧⌘Z, Ctrl+Y) step through this field's edits only and are disabled while there is nothing to undo or redo; replacing `value` from outside (clearing after Post) starts a new history.
+- HeadingField: set multiline when a title can run past one line, so it wraps instead of scrolling out of view.
 
 ## ❌ Don't
-- Don't use Disabled on inputs; Zen inputs have Read-only only (Search is the exception).
+- Don't disable a field whose value people need to read or copy; use Read-only (disabled text is faint, skipped by Tab and not submitted).
+- Don't use Disabled on AutocompleteField or RichTextField: Figma gives them Read-only only (harness: input/no-disabled).
 - Don't use placeholder text as the label.
 - Don't show an error before the user has interacted with the field.
-- Don't give an icon-only Leading/Trailing slot click behaviour; clicks focus the field.
-- Don't open a Date/Select popover on a read-only field.
+- Don't make an icon-only Leading/Trailing slot clickable without an aria-label; decorative slots pass clicks to the field.
+- Don't open a Date/Select popover on a read-only or disabled field.
+- Don't repeat the label as placeholder; show an example or the format (harness: input/placeholder-not-label).
+- Don't use RichTextField for plain notes (→ TextAreaField) or single-line input (→ InputField).
+- Don't wire onChange on RichTextField; it reports content through onValueChange (harness: richtext/value-not-onchange).
 
 ## Accessibility
 - The whole field is the click target (padding/icons focus the native field; Select opens).
 - Errors set aria-invalid and link the message via aria-describedby.
 - NumberField is role=spinbutton: ↑/↓ step, Enter/blur clamp.
 - Select and Date pickers: ↓ opens, Escape closes, focus returns to the trigger.
+- HeadingField multiline is a textarea: Enter never adds a line break; handle it in onKeyDown when Enter should move on.
+- An invalid field keeps its Negative border while focused and adds the 3px focus ring: error styling never hides focus (WCAG 2.4.7; harness: focus/state-parity).
+- A disabled field leaves the tab order and is not submitted: put the reason in visible help text, never only in a tooltip.
+- AutocompleteField: removing a tag moves focus to the next tag's Remove button, else the previous one, else Add Item; focus never falls back to the page.
 
 ## Content
 - Labels are nouns ("Work email"); errors are sentences with the fix ("Enter a valid email address, like name@company.com").
@@ -54,8 +367,14 @@ Collect a single value from the user. All fields share Label → Field → Help-
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
-| `input/no-disabled` | error | Inputs use Read-only, never Disabled (Search is the only exception). | `zen-allow-disabled-input: <reason>` |
+| `input/no-disabled` | error | Autocomplete and Rich-Text fields have no Disabled state in Figma; use Read-only. | `zen-allow-disabled-input: <reason>` |
 | `input/needs-label` | error | Every field has a visible label (or an aria-label when the context labels it). | `zen-allow-unlabelled-input: <reason>` |
+| `input/placeholder-not-label` | warn | Placeholder shows an example or format, never repeats the label. | `zen-allow-placeholder-label: <reason>` |
+| `richtext/value-not-onchange` | error | RichTextField reports content through onValueChange(html, text); it has no onChange(event). | `zen-allow-richtext-onchange: <reason>` |
+| `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
+| `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
+| `focus/state-parity` | error | Focus never looks like the state it starts from: a :focus / :focus-visible / :focus-within selector is not listed in the same rule as its resting state (an error field whose focus changed nothing). Give focus its own rule with the ring (WCAG 2.4.7). | `zen-allow-focus-parity: <reason>` |
 
 ## References
 - [Material 3 — Text fields](https://m3.material.io/components/text-fields/guidelines)

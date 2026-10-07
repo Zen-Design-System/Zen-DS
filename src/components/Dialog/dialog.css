@@ -15,7 +15,7 @@
   padding: var(--zen-spacing-padding-medium, 16px);
   overflow-y: auto;
   background: var(--zen-color-background-overlay);
-  animation: zen-dialog-fade .16s ease-out;
+  animation: zen-motion-scrim-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease-out) both;
 }
 .zen-dialog {
   --zen-dialog-icon: var(--zen-color-content-neutral-base);
@@ -30,36 +30,148 @@
   box-shadow: inset 0 0 0 1px var(--zen-container-border), var(--zen-style-effect-container-shadow);
   color: var(--zen-color-content-neutral-strongest);
   outline: none;
-  animation: zen-dialog-in .2s cubic-bezier(.2, .8, .2, 1);
+  animation: zen-dialog-in var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, cubic-bezier(.16, 1, .3, 1)) both;
 }
-.zen-dialog[data-theme="info"] { --zen-dialog-icon: var(--zen-color-content-info-light); }
-.zen-dialog[data-theme="positive"] { --zen-dialog-icon: var(--zen-color-content-positive-light); }
-.zen-dialog[data-theme="warning"] { --zen-dialog-icon: var(--zen-color-content-warning-light); }
-.zen-dialog[data-theme="negative"] { --zen-dialog-icon: var(--zen-color-content-negative-light); }
+.zen-dialog[data-tone="info"] { --zen-dialog-icon: var(--zen-color-content-info-light); }
+.zen-dialog[data-tone="positive"] { --zen-dialog-icon: var(--zen-color-content-positive-light); }
+.zen-dialog[data-tone="warning"] { --zen-dialog-icon: var(--zen-color-content-warning-light); }
+.zen-dialog[data-tone="negative"] { --zen-dialog-icon: var(--zen-color-content-negative-light); }
 .zen-dialog__content { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-modal-padding, 24px); }
 .zen-dialog__heading { display: flex; flex-direction: column; align-items: flex-start; gap: var(--zen-spacing-gap-medium, 16px); }
-.zen-dialog__icon { display: inline-flex; width: 44px; height: 44px; color: var(--zen-dialog-icon); }
+/* Icon-Wrapper hugs the themed icon, Element-Size/Popular/2XLarge (10153:7695). */
+.zen-dialog__icon { display: inline-flex; width: var(--zen-element-size-popular-2-xlarge, 44px); height: var(--zen-element-size-popular-2-xlarge, 44px); color: var(--zen-dialog-icon); }
 .zen-dialog__icon > .zen-icon { width: 100%; height: 100%; }
 .zen-dialog__title { margin: 0; color: var(--zen-color-content-neutral-strongest); }
 .zen-dialog__description { margin: 0; color: var(--zen-color-content-neutral-base); }
 .zen-dialog__custom { padding: 0 var(--zen-modal-padding, 24px) var(--zen-modal-padding, 24px); }
 .zen-dialog__content + .zen-dialog__custom { margin-top: calc(-1 * var(--zen-spacing-gap-xsmall, 8px)); }
-.zen-dialog__actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--zen-spacing-gap-small, 12px); margin-top: auto; padding: var(--zen-spacing-padding-small, 12px) var(--zen-modal-padding, 24px) var(--zen-modal-padding, 24px); }
-.zen-dialog__actions[data-count="3"] { justify-content: space-between; }
-.zen-dialog__actions-main { display: flex; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+/* .Primitives/Modal/Actions (694:9383): Direction=Horizontal → right-aligned [Secondary][Primary], Triple puts the
+   Tertiary on the far left; Direction=Vertical → full-width Primary, Secondary, Tertiary stacked 12px apart. */
+.zen-modal-actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-modal-actions[data-count="3"] { justify-content: space-between; }
+.zen-modal-actions__main { display: flex; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+/* column-reverse on both levels: actions-main goes above the Tertiary, and inside it Primary goes above Secondary. */
+.zen-modal-actions[data-direction="vertical"],
+.zen-modal-actions[data-direction="vertical"] .zen-modal-actions__main { flex-direction: column-reverse; align-items: stretch; }
+.zen-modal-actions[data-direction="vertical"] .zen-button { width: 100%; }
+.zen-dialog__actions { margin-top: auto; padding: var(--zen-spacing-padding-small, 12px) var(--zen-modal-padding, 24px) var(--zen-modal-padding, 24px); }
 .zen-dialog__content + .zen-dialog__actions { padding-top: 0; }
 .zen-dialog__custom + .zen-dialog__actions { padding-top: var(--zen-spacing-padding-small, 12px); }
 
+/* Device=Mobile (10153:7277) is a fixed 350 wide, i.e. 20px side margins on a 390 screen: Spacing/Padding/Large, the value
+   Modal-Padding and Margin-Comfortable take in the Mobile mode (Margin-Compact resolves to Padding/Medium 16 there, so it
+   is not used). Padding/Large is used directly so the margin does not depend on a data-breakpoint ancestor. Above 480px
+   the 440px dialog is centred and the side padding never shows. */
+.zen-dialog-overlay[data-modal="dialog"] { padding-inline: var(--zen-spacing-padding-large, 20px); }
+
 /* Device=Mobile */
 @media (max-width: 480px) {
-  .zen-dialog-overlay { align-items: flex-end; }
+  /* The panel sits at the bottom of the screen and clears the home indicator and the status bar (safe areas), as it does
+     inside a device frame (below); Padding/Medium stays the floor. Code-only: Figma has no placement for the Mobile device. */
+  .zen-dialog-overlay {
+    align-items: flex-end;
+    padding-top: max(var(--zen-spacing-padding-medium, 16px), var(--zen-safe-area-top, env(safe-area-inset-top, 0px)));
+    padding-bottom: max(var(--zen-spacing-padding-medium, 16px), var(--zen-safe-area-bottom, env(safe-area-inset-bottom, 0px)));
+  }
   .zen-dialog__content { gap: var(--zen-spacing-gap-2-xsmall, 4px); }
   /* Device=Mobile uses Heading/4; out-rank the generated .zen-type-heading-3 class. */
   .zen-dialog .zen-dialog__title { font-size: var(--zen-typography-font-size-heading-4, 20px); line-height: var(--zen-typography-line-height-heading-4, 28px); letter-spacing: var(--zen-typography-letter-spacing-heading-4, normal); }
-  /* column-reverse puts actions-main (Primary, then Secondary) above the Tertiary button. */
-  .zen-dialog__actions, .zen-dialog__actions-main { flex-direction: column-reverse; align-items: stretch; }
+  /* Device=Mobile always uses Direction=Vertical. */
+  .zen-dialog__actions.zen-modal-actions { flex-direction: column-reverse; align-items: stretch; }
+  .zen-dialog__actions .zen-modal-actions__main { flex-direction: column-reverse; align-items: stretch; }
   .zen-dialog__actions .zen-button { width: 100%; }
 }
-@keyframes zen-dialog-fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes zen-dialog-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .zen-dialog-overlay, .zen-dialog { animation: none; } }
+@keyframes zen-dialog-in { from { opacity: 0; transform: translateY(calc(12px * var(--zen-motion-movement, 1))) scale(calc(1 - .04 * var(--zen-motion-movement, 1))); } to { opacity: 1; transform: none; } }
+@keyframes zen-dialog-out { to { opacity: 0; transform: translateY(calc(6px * var(--zen-motion-movement, 1))) scale(calc(1 - .02 * var(--zen-motion-movement, 1))); } }
+/* Exit (usePresence holds data-state="closing" for 200ms): one step shorter than the enter, accelerating, and inert. */
+.zen-dialog-overlay[data-state="closing"] { animation: zen-motion-scrim-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; pointer-events: none; }
+:is(.zen-dialog, .zen-modal-form)[data-state="closing"] { animation: zen-dialog-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; }
+/* Reduced motion: see the end of the file (it must come after every animated rule, incl. .zen-modal-form). */
+
+/* Figma Modal/Forms (841:17182). Container: radius Modal-Radius, Background/Container, 1px inside Container/Border,
+   Effect/Container. Header: 24/24/8 padding, Heading/2 + Body/Base caption (gap XSmall, max 720). Body: Modal-Padding,
+   Main-Contents gap Medium. Footer: 12 / Modal-Padding / Modal-Padding. Close: 32px Button/Icon-Flat, 20px from the corner.
+   Layouts: Basic 440 · Big 960 (single column) · 1-3 876 (240px side) · Half-Half 876 (1fr 1fr) · 3-4 767 (3fr 4fr),
+   the Side-Content column is 24px padded on top/left/bottom and 4px from the form column. */
+.zen-modal-form {
+  position: relative;
+  display: flex;
+  width: min(var(--zen-modal-form-width, 440px), 100%);
+  max-height: 100%;
+  box-sizing: border-box;
+  flex-direction: column;
+  overflow: auto;
+  border-radius: var(--zen-modal-radius, 36px);
+  background: var(--zen-color-background-container);
+  box-shadow: inset 0 0 0 1px var(--zen-container-border), var(--zen-style-effect-container-shadow);
+  color: var(--zen-color-content-neutral-strongest);
+  outline: none;
+  animation: zen-dialog-in var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, cubic-bezier(.16, 1, .3, 1)) both;
+}
+.zen-modal-form[data-layout="1-3"], .zen-modal-form[data-layout="half-half"] { --zen-modal-form-width: 876px; }
+.zen-modal-form[data-layout="3-4"] { --zen-modal-form-width: 767px; }
+.zen-modal-form[data-layout="big"] { --zen-modal-form-width: 960px; }
+.zen-modal-form__content { display: grid; min-height: 0; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; }
+.zen-modal-form[data-side="true"][data-layout="1-3"] .zen-modal-form__content { grid-template-columns: 240px minmax(0, 1fr); }
+.zen-modal-form[data-side="true"][data-layout="half-half"] .zen-modal-form__content { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.zen-modal-form[data-side="true"][data-layout="3-4"] .zen-modal-form__content { grid-template-columns: minmax(0, 3fr) minmax(0, 4fr); }
+.zen-modal-form__side { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-spacing-padding-xlarge, 24px) 0 var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px); }
+.zen-modal-form__main { position: relative; display: flex; min-width: 0; flex-direction: column; }
+.zen-modal-form__top { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-modal-padding, 24px); }
+.zen-modal-form__top + .zen-modal-form__header { padding-top: 0; }
+.zen-modal-form__header { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-modal-padding, 24px) var(--zen-modal-padding, 24px) var(--zen-spacing-padding-xsmall, 8px); }
+/* The title keeps Gap/Medium clear of the Close (12048:10078: a Button/Size/Small icon button in a Padding/Large frame at the
+   top-right corner), past the header's Modal-Padding. */
+.zen-modal-form__title { margin: 0; padding-right: calc(var(--zen-button-size-small, 32px) + var(--zen-spacing-padding-large, 20px) - var(--zen-modal-padding, 24px) + var(--zen-spacing-gap-medium, 16px)); color: var(--zen-color-content-neutral-strongest); }
+.zen-modal-form__description { max-width: 720px; margin: 0; color: var(--zen-color-content-neutral-base); }
+.zen-modal-form__body { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-modal-padding, 24px); }
+/* Fields fill the Main-Contents width (Input fields default to align-self: start). */
+.zen-modal-form__body > *, .zen-modal-form__top > *, .zen-dialog__custom > * { align-self: stretch; }
+.zen-modal-form__footer { margin-top: auto; padding: var(--zen-spacing-padding-small, 12px) var(--zen-modal-padding, 24px) var(--zen-modal-padding, 24px); }
+.zen-modal-form__close { position: absolute; top: var(--zen-spacing-padding-large, 20px); right: var(--zen-spacing-padding-large, 20px); }
+/* Figma: "DO NOT use for mobile" — below 720px the side column stacks above the form so it still works. */
+@media (max-width: 720px) {
+  .zen-modal-form[data-side="true"] .zen-modal-form__content { grid-template-columns: minmax(0, 1fr) !important; }
+  .zen-modal-form__side { padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
+  .zen-modal-form__footer.zen-modal-actions { flex-direction: column-reverse; align-items: stretch; }
+  .zen-modal-form__footer .zen-modal-actions__main { flex-direction: column-reverse; align-items: stretch; }
+  .zen-modal-form__footer .zen-button { width: 100%; }
+}
+
+/* Device frame ([data-zen-overlay-root]: PlatformPhone and app device previews). Dialog and ModalForm open inside the
+   frame, as Menu and the Chat hold layer do: the scrim fills the frame instead of the viewport and sits under its status
+   bar and home indicator (device chrome, z-index 20), like the inline Bottom Sheet. The panel keeps the frame's safe areas
+   clear (--zen-safe-area-top/-bottom, else Padding/Medium). Code-only: Figma's Overlay (1248:1393) has Device=Desktop only. */
+.zen-dialog-overlay[data-contained="true"] {
+  position: absolute;
+  z-index: 5;
+  padding-top: max(var(--zen-spacing-padding-medium, 16px), var(--zen-safe-area-top, 0px));
+  padding-bottom: max(var(--zen-spacing-padding-medium, 16px), var(--zen-safe-area-bottom, 0px));
+  container: zen-modal-frame / inline-size;
+}
+/* The frame's width, not the page viewport, picks the Device: the 480px and 720px switches above, measured on the
+   overlay's content box (the frame minus its side padding: Padding/Large for Dialog, so 440 = a 480px frame; Padding/Medium
+   for ModalForm, so 688 = 720). A phone frame gets Device=Mobile (10153:7277: 350 of 390, Heading/4, stacked full-width
+   actions, at the bottom of the screen); a tablet keeps Desktop. */
+@container zen-modal-frame (max-width: 440px) {
+  .zen-dialog { align-self: flex-end; }
+  .zen-dialog__content { gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+  .zen-dialog .zen-dialog__title { font-size: var(--zen-typography-font-size-heading-4, 20px); line-height: var(--zen-typography-line-height-heading-4, 28px); letter-spacing: var(--zen-typography-letter-spacing-heading-4, normal); }
+  .zen-dialog__actions.zen-modal-actions { flex-direction: column-reverse; align-items: stretch; }
+  .zen-dialog__actions .zen-modal-actions__main { flex-direction: column-reverse; align-items: stretch; }
+  .zen-dialog__actions .zen-button { width: 100%; }
+}
+@container zen-modal-frame (max-width: 688px) {
+  .zen-modal-form[data-side="true"] .zen-modal-form__content { grid-template-columns: minmax(0, 1fr) !important; }
+  .zen-modal-form__side { padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
+  .zen-modal-form__footer.zen-modal-actions { flex-direction: column-reverse; align-items: stretch; }
+  .zen-modal-form__footer .zen-modal-actions__main { flex-direction: column-reverse; align-items: stretch; }
+  .zen-modal-form__footer .zen-button { width: 100%; }
+}
+
+/* Reduced motion: the dialog crossfades at Fast (its slide and scale are multiplied by --zen-motion-movement, 0 here); the
+   scrim keeps its colour fade. Declared after ModalForm's own animation so it wins. */
+@media (prefers-reduced-motion: reduce) {
+  :is(.zen-dialog, .zen-modal-form),
+  :is(.zen-dialog, .zen-modal-form)[data-state="closing"] { animation-duration: var(--zen-motion-duration-fast, 120ms); }
+}

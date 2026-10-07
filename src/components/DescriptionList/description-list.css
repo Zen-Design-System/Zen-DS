@@ -1,0 +1,59 @@
+/* DescriptionList: dl > div (row) > dt (term) + dd (value) [+ dd (action)]. Rows are not closed containers; the rules
+   between them are single edges (Pale, like Divider Default) and the total's rule is Solid (Divider High). */
+.zen-description-list {
+  --zen-description-list-gap: var(--zen-spacing-gap-xsmall, 8px);
+  display: grid;
+  box-sizing: border-box;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: var(--zen-description-list-gap);
+  margin: 0;
+  padding: 0;
+}
+.zen-description-list:is([data-layout="stacked"], [data-stacked="true"]) { --zen-description-list-gap: var(--zen-spacing-gap-medium, 16px); display: flex; flex-direction: column; gap: var(--zen-description-list-gap); }
+.zen-description-list[data-divider="true"] { --zen-description-list-gap: 0px; }
+
+/* Inline (default): term at the start, value at the end of the same line; long values wrap and stay end-aligned.
+   Each row lays out on its own, as Figma's Item (Content · Action) and an iOS value cell with an accessory: an action
+   takes room only in its own row, so a row without one keeps its value on the list's end edge. */
+.zen-description-list__item { display: grid; min-width: 0; grid-column: 1 / -1; grid-template-columns: fit-content(50%) minmax(0, 1fr); column-gap: var(--zen-spacing-gap-medium, 16px); align-items: baseline; }
+.zen-description-list__item[data-action="true"] { grid-template-columns: fit-content(50%) minmax(0, 1fr) auto; }
+.zen-description-list__term { min-width: 0; }
+.zen-description-list__description { min-width: 0; margin: 0; grid-column: 2; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; text-align: end; }
+/* The action is centred on the value's first line and may overhang the row's padding; it never makes the row taller.
+   It belongs to its value, so it sits Gap/XSmall (8px) after it, not the Gap/Medium between term and value. */
+.zen-description-list__action { display: flex; height: var(--zen-typography-line-height-body-base, 24px); align-items: center; align-self: start; justify-content: flex-end; margin: 0; margin-inline-start: calc(var(--zen-spacing-gap-xsmall, 8px) - var(--zen-spacing-gap-medium, 16px)); grid-column: 3; }
+/* A flat icon-only action (Copy, Remove) has no visible box at rest: its icon, not its 32px box, lines up with the list's
+   end edge (the rules, a total, a footer button), so the button overhangs by its own padding ((size − icon) / 2). */
+.zen-description-list__action > .zen-button--icon-only[data-appearance="flat"][data-size="xs"] { margin-inline-end: calc((var(--zen-button-icon-size-xsmall, 12px) - var(--zen-button-size-xsmall, 24px)) / 2); }
+.zen-description-list__action > .zen-button--icon-only[data-appearance="flat"][data-size="sm"] { margin-inline-end: calc((var(--zen-button-icon-size-small, 20px) - var(--zen-button-size-small, 32px)) / 2); }
+.zen-description-list__action > .zen-button--icon-only[data-appearance="flat"][data-size="md"] { margin-inline-end: calc((var(--zen-button-icon-size-medium, 20px) - var(--zen-button-size-medium, 40px)) / 2); }
+
+/* Stacked (layout="stacked", or an inline list narrower than stackBelow): term above value, the action centred at the end. */
+.zen-description-list:is([data-layout="stacked"], [data-stacked="true"]) > .zen-description-list__item {
+  grid-template-areas: "term" "description";
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  column-gap: var(--zen-spacing-gap-medium, 16px);
+  row-gap: var(--zen-spacing-gap-2-xsmall, 4px);
+}
+.zen-description-list:is([data-layout="stacked"], [data-stacked="true"]) > .zen-description-list__item[data-action="true"] { grid-template-areas: "term action" "description action"; grid-template-columns: minmax(0, 1fr) auto; }
+.zen-description-list:is([data-layout="stacked"], [data-stacked="true"]) .zen-description-list__term { grid-area: term; }
+.zen-description-list:is([data-layout="stacked"], [data-stacked="true"]) .zen-description-list__description { grid-area: description; text-align: start; }
+.zen-description-list:is([data-layout="stacked"], [data-stacked="true"]) .zen-description-list__action { height: auto; align-self: center; grid-area: action; }
+
+/* Divider: Pale rules between rows (never above the first or below the last), Padding/Small on each side of a rule. */
+.zen-description-list[data-divider="true"] > .zen-description-list__item { padding-block: var(--zen-spacing-padding-small, 12px); }
+.zen-description-list[data-divider="true"] > .zen-description-list__item:first-child { padding-top: 0; }
+.zen-description-list[data-divider="true"] > .zen-description-list__item:last-child { padding-bottom: 0; }
+.zen-description-list[data-divider="true"] > .zen-description-list__item + .zen-description-list__item { border-top: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+
+/* Emphasis (a receipt total): Body/Base/Bold (set in TSX) under a High rule with Padding/Small on both sides. */
+.zen-description-list > .zen-description-list__item[data-emphasis="true"] {
+  margin-top: calc(var(--zen-spacing-padding-small, 12px) - var(--zen-description-list-gap));
+  padding-top: var(--zen-spacing-padding-small, 12px);
+  border-top: 1px solid var(--zen-color-border-neutral-solid-default, #111);
+}
+.zen-description-list[data-divider="true"] > .zen-description-list__item[data-emphasis="true"] { margin-top: 0; border-top-color: var(--zen-color-border-neutral-solid-default, #111); }
+/* A total on its own has nothing to close: no rule. */
+.zen-description-list > .zen-description-list__item[data-emphasis="true"]:first-child { margin-top: 0; padding-top: 0; border-top: 0; }

@@ -1,0 +1,405 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "dialog",
+  "import": "import { Dialog, ModalForm, ModalActions } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Dialog",
+      "file": "src/components/Dialog/Dialog.tsx",
+      "description": "Figma Modal/Dialog (841:17177): Theme × Device. Desktop 440px, Heading/3; ≤ 480px viewport switches to the Mobile\nlayout (10153:7277: 350 of a 390 screen, so Padding/Large side margins; Heading/4, stacked full-width actions, at the\nbottom clear of the safe area). Focus is trapped while open and restored to the opener on close.\nInside a device frame (`[data-zen-overlay-root]`, e.g. a phone preview) it opens in that frame, and the frame's width\npicks the Device (an unsaved-changes guard on a phone screen).",
+      "deprecated": null,
+      "extends": "OverlayOpenProps",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Whether the overlay is shown: keep it in state and set it from `onOpenChange` (the exit animation then plays).\nWithout `open` the overlay shows while it is mounted, e.g. `{show && <Dialog … />}`.",
+          "deprecated": null
+        },
+        {
+          "name": "isOpen",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use open (same meaning)."
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with false on Escape, a scrim click, the close button, or an action without its own handler.",
+          "deprecated": null
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Called at the same moments as `onOpenChange(false)`: the overlay asks to close.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "headingLevel",
+          "type": "1 | 2 | 3",
+          "required": false,
+          "default": "2",
+          "description": "Heading level of the title: 2 (default, an h2), or 1 / 3 to fit the page outline. Only the tag changes, not the text style.",
+          "deprecated": null
+        },
+        {
+          "name": "description",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Caption (Body/Base/Regular, Neutral/Base).",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"default\" | \"info\" | \"positive\" | \"warning\" | \"negative\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "boolean | IconName | ReactNode",
+          "required": false,
+          "default": "true",
+          "description": "Figma Modal-Icon. Defaults to true (the theme's icon); `false` hides it; an icon name or a node replaces it.",
+          "deprecated": null
+        },
+        {
+          "name": "primaryAction",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
+          "required": false,
+          "default": null,
+          "description": "Primary action (Level=Primary by default).",
+          "deprecated": null
+        },
+        {
+          "name": "secondaryAction",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
+          "required": false,
+          "default": null,
+          "description": "Secondary action beside the primary (Level=Tertiary).",
+          "deprecated": null
+        },
+        {
+          "name": "tertiaryAction",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
+          "required": false,
+          "default": null,
+          "description": "Third action, placed on the far left on desktop (Button=Triple).",
+          "deprecated": null
+        },
+        {
+          "name": "actionsDirection",
+          "type": "\"horizontal\" | \"vertical\"",
+          "required": false,
+          "default": "\"horizontal\"",
+          "description": "Figma .Primitives/Modal/Actions `Direction`. Mobile (≤ 480px) is always vertical.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Custom slot, rendered between the heading and the actions.",
+          "deprecated": null
+        },
+        {
+          "name": "dismissible",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Close when the overlay is clicked. Default true; set false for destructive confirmations in progress.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ModalForm",
+      "file": "src/components/Dialog/Dialog.tsx",
+      "description": "Figma Modal/Forms (841:17182): a Container (radius Modal-Radius, Background/Container, 1px Container/Border,\nEffect/Container) with Header (Heading/2 + caption), Body (Main-Contents) and Footer (Modal/Actions); the 1-3,\nHalf-Half and 3-4 layouts add a Side-Content column 4px apart. Below 720px the side column stacks above the form.\nInside a device frame (`[data-zen-overlay-root]`) it opens in that frame, like Dialog. With `onSubmit` it is a\n`<form noValidate>` that behaves like Form: a blocked submit focuses the first invalid field and announces the count.",
+      "deprecated": null,
+      "extends": "OverlayOpenProps",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Whether the overlay is shown: keep it in state and set it from `onOpenChange` (the exit animation then plays).\nWithout `open` the overlay shows while it is mounted, e.g. `{show && <Dialog … />}`.",
+          "deprecated": null
+        },
+        {
+          "name": "isOpen",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use open (same meaning)."
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with false on Escape, a scrim click, the close button, or an action without its own handler.",
+          "deprecated": null
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Called at the same moments as `onOpenChange(false)`: the overlay asks to close.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "headingLevel",
+          "type": "1 | 2 | 3",
+          "required": false,
+          "default": "2",
+          "description": "Heading level of the title: 2 (default, an h2), or 1 / 3 to fit the page outline. Only the tag changes, not the text style.",
+          "deprecated": null
+        },
+        {
+          "name": "description",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Caption (Body/Base/Regular, Neutral/Base, max 720px).",
+          "deprecated": null
+        },
+        {
+          "name": "layout",
+          "type": "\"basic\" | \"1-3\" | \"half-half\" | \"3-4\" | \"big\"",
+          "required": false,
+          "default": "\"basic\"",
+          "description": "Figma `Layout`: Basic 440 · 1-3 876 (240px side) · Half-Half 876 · 3-4 767 · Big 960.",
+          "deprecated": null
+        },
+        {
+          "name": "side",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Side-Content slot (1-3, Half-Half, 3-4): an illustration, preview, steps or summary beside the form.",
+          "deprecated": null
+        },
+        {
+          "name": "top",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Top-Customize slot, rendered above the header (e.g. a Stepper or a banner).",
+          "deprecated": null
+        },
+        {
+          "name": "header",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Figma Default-Header.",
+          "deprecated": null
+        },
+        {
+          "name": "closeButton",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Figma Close: the 32px Button/Icon-Flat in the top-right corner.",
+          "deprecated": null
+        },
+        {
+          "name": "closeLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the close button. Default: the locale's “Close”.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Main-Contents slot: the form fields (gap Medium).",
+          "deprecated": null
+        },
+        {
+          "name": "primaryAction",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "secondaryAction",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "tertiaryAction",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "actionsDirection",
+          "type": "\"horizontal\" | \"vertical\"",
+          "required": false,
+          "default": "\"horizontal\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onSubmit",
+          "type": "(event: FormEvent<HTMLFormElement>) => unknown",
+          "required": false,
+          "default": null,
+          "description": "Wraps the modal in a <form noValidate>: Enter or the primary button submits; the primary action becomes type=submit.\nThe handler may return a promise and ModalForm waits for it; then, if any field is invalid (aria-invalid, as Form\nreads it), focus moves to the first one and \"N fields need attention\" is announced, so a blocked submit lands on what\nneeds fixing.",
+          "deprecated": null
+        },
+        {
+          "name": "noValidate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Skip the browser's own validation bubbles, as Form does: `required` fields don't block the submit, so `onSubmit`\nalways runs and shows the errors under each field. Default true; only applies with `onSubmit`.",
+          "deprecated": null
+        },
+        {
+          "name": "invalidMessage",
+          "type": "(count: number) => string",
+          "required": false,
+          "default": null,
+          "description": "Screen-reader message after a blocked submit. Default: the locale's \"1 field needs attention\" / \"3 fields need attention\".",
+          "deprecated": null
+        },
+        {
+          "name": "dismissible",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ModalActions",
+      "file": "src/components/Dialog/Dialog.tsx",
+      "description": "Figma .Primitives/Modal/Actions (694:9383): Direction × Button (Single · Dual · Triple), Button/Main Medium, gap Small.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "primaryAction",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "secondaryAction",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "tertiaryAction",
+          "type": "{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: \"button\" | \"submit\"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "direction",
+          "type": "\"horizontal\" | \"vertical\"",
+          "required": false,
+          "default": "\"horizontal\"",
+          "description": "Figma `Direction`: Horizontal = [Tertiary] … [Secondary][Primary]; Vertical = full-width Primary, Secondary, Tertiary.",
+          "deprecated": null
+        },
+        {
+          "name": "onDefault",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Runs for an action without its own onClick (usually closes the modal).",
+          "deprecated": null
+        },
+        {
+          "name": "submitPrimary",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Makes the primary button submit the surrounding <form>.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "ButtonLevel": "type ButtonLevel = \"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\""
+  }
+}

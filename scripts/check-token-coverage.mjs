@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { HIGH_CONTRAST_MODE, highContrastValues, neutralRampsOf, verifyHighContrast } from "./high-contrast.mjs";
 
 const sourceDir = "tokens/source/figma";
 const files = fs.readdirSync(sourceDir).filter((name) => name.endsWith(".json")).sort();
@@ -98,6 +99,17 @@ console.log(`Missing aliases: ${missingAliases.length}`);
 console.log(`Alias cycles: ${cycles.length}`);
 console.log(`Invalid typed values: ${invalidTypedValues.length}`);
 
+// Zen-High-Contrast: Figma's Global Colors mode when it has one, else the values scripts/high-contrast.mjs generates.
+const globalSource = JSON.parse(fs.readFileSync(`${sourceDir}/global-colors.json`, "utf8"))["Global Colors"];
+const baseSource = JSON.parse(fs.readFileSync(`${sourceDir}/base-colors-project.json`, "utf8"))["Base Colors (Project)"];
+const figmaHighContrast = globalSource.modes.includes(HIGH_CONTRAST_MODE);
+const highContrast = figmaHighContrast
+  ? new Map(globalSource.tokens.map((token) => [token.name, token.valuesByMode[HIGH_CONTRAST_MODE]]))
+  : highContrastValues(globalSource, neutralRampsOf(baseSource));
+const highContrastFailures = verifyHighContrast(globalSource, highContrast, neutralRampsOf(baseSource));
+console.log(`${HIGH_CONTRAST_MODE} (${figmaHighContrast ? "Figma" : "generated"}): ${highContrastFailures.length} rule failure(s)`);
+for (const failure of highContrastFailures.slice(0, 20)) console.log(`  ${failure}`);
+
 if (
   collections.length !== 11 ||
   duplicateNames.length ||
@@ -105,7 +117,8 @@ if (
   missingModes.length ||
   missingAliases.length ||
   cycles.length ||
-  invalidTypedValues.length
+  invalidTypedValues.length ||
+  highContrastFailures.length
 ) {
   process.exitCode = 1;
 }

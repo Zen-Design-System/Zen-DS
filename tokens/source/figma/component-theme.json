@@ -5,7 +5,11 @@
       "Brand - S1",
       "Neutral - S2",
       "Brand - S2",
-      "Neutral - S3"
+      "Neutral - S3",
+      "Neutral - S4",
+      "Neutral - S5",
+      "Neutral - S6",
+      "Neutral - S7"
     ],
     "tokens": [
       {
@@ -16,7 +20,11 @@
           "Brand - S1": "{Color/Background/Accent/Solid/Default}",
           "Neutral - S2": "{Color/Background/Neutral/Solid/Default}",
           "Brand - S2": "{Color/Background/Accent/Solid/Default}",
-          "Neutral - S3": "{Color/Background/Neutral/Solid/Default}"
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Default}",
+          "Neutral - S4": "{Color/Background/Neutral/Solid/Default}",
+          "Neutral - S5": "{Color/Background/Neutral/Solid/Default}",
+          "Neutral - S6": "{Color/Background/Neutral/Solid/Default}",
+          "Neutral - S7": "{Color/Background/Neutral/Solid/Default}"
         }
       },
       {
@@ -27,7 +35,11 @@
           "Brand - S1": "{Color/Content/On-Accent/Default}",
           "Neutral - S2": "{Color/Content/Inverse/Strongest}",
           "Brand - S2": "{Color/Content/On-Accent/Default}",
-          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S4": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S5": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S6": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S7": "{Color/Content/Inverse/Strongest}"
         }
       },
       {
@@ -38,7 +50,11 @@
           "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
           "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Solid/Hover}"
         }
       },
       {
@@ -49,7 +65,11 @@
           "Brand - S1": "{Color/Background/Accent/Solid/Pressed}",
           "Neutral - S2": "{Color/Background/Neutral/Solid/Pressed}",
           "Brand - S2": "{Color/Background/Accent/Solid/Pressed}",
-          "Neutral - S3": "{Color/Background/Neutral/Solid/Pressed}"
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Pressed}",
+          "Neutral - S4": "{Color/Background/Neutral/Solid/Pressed}",
+          "Neutral - S5": "{Color/Background/Neutral/Solid/Pressed}",
+          "Neutral - S6": "{Color/Background/Neutral/Solid/Pressed}",
+          "Neutral - S7": "{Color/Background/Neutral/Solid/Pressed}"
         }
       },
       {
@@ -60,7 +80,11 @@
           "Brand - S1": "{Color/Content/Inverse/Strongest}",
           "Neutral - S2": "{Color/Content/On-Accent/Default}",
           "Brand - S2": "{Color/Content/Inverse/Strongest}",
-          "Neutral - S3": "{Color/Content/On-Accent/Default}"
+          "Neutral - S3": "{Color/Content/On-Accent/Default}",
+          "Neutral - S4": "{Color/Content/On-Accent/Default}",
+          "Neutral - S5": "{Color/Content/On-Accent/Default}",
+          "Neutral - S6": "{Color/Content/On-Accent/Default}",
+          "Neutral - S7": "{Color/Content/On-Accent/Default}"
         }
       },
       {
@@ -71,7 +95,11 @@
           "Brand - S1": "{Color/Background/Neutral/Solid/Default}",
           "Neutral - S2": "{Color/Background/Accent/Solid/Default}",
           "Brand - S2": "{Color/Background/Neutral/Solid/Default}",
-          "Neutral - S3": "{Color/Background/Accent/Solid/Default}"
+          "Neutral - S3": "{Color/Background/Accent/Solid/Default}",
+          "Neutral - S4": "{Color/Background/Accent/Solid/Default}",
+          "Neutral - S5": "{Color/Background/Accent/Solid/Default}",
+          "Neutral - S6": "{Color/Background/Accent/Solid/Default}",
+          "Neutral - S7": "{Color/Background/Accent/Solid/Default}"
         }
       },
       {
@@ -82,7 +110,11 @@
           "Brand - S1": "{Color/Background/Neutral/Solid/Hover}",
           "Neutral - S2": "{Color/Background/Accent/Solid/Hover}",
           "Brand - S2": "{Color/Background/Neutral/Solid/Hover}",
-          "Neutral - S3": "{Color/Background/Accent/Solid/Hover}"
+          "Neutral - S3": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S4": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S5": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S6": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S7": "{Color/Background/Accent/Solid/Hover}"
         }
       },
       {
@@ -93,7 +125,11 @@
           "Brand - S1": "{Color/Background/Neutral/Solid/Pressed}",
           "Neutral - S2": "{Color/Background/Accent/Solid/Pressed}",
           "Brand - S2": "{Color/Background/Neutral/Solid/Pressed}",
-          "Neutral - S3": "{Color/Background/Accent/Solid/Pressed}"
+          "Neutral - S3": "{Color/Background/Accent/Solid/Pressed}",
+          "Neutral - S4": "{Color/Background/Accent/Solid/Pressed}",
+          "Neutral - S5": "{Color/Background/Accent/Solid/Pressed}",
+          "Neutral - S6": "{Color/Background/Accent/Solid/Pressed}",
+          "Neutral - S7": "{Color/Background/Accent/Solid/Pressed}"
         }
       },
       {
@@ -104,7 +140,11 @@
           "Brand - S1": "{Color/Content/On-Accent/Default}",
           "Neutral - S2": "{Color/Content/Inverse/Strongest}",
           "Brand - S2": "{Color/Content/On-Accent/Default}",
-          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S4": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S5": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S6": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S7": "{Color/Content/Inverse/Strongest}"
         }
       },
       {
@@ -115,7 +155,11 @@
           "Brand - S1": "{Color/Background/Neutral/Pale/Default}",
           "Neutral - S2": "{Color/Background/Neutral/Pale/Default}",
           "Brand - S2": "{Color/Background/Neutral/Pale/Default}",
-          "Neutral - S3": "{Color/Background/Neutral/Pale/Default}"
+          "Neutral - S3": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S4": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S5": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S6": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S7": "{Color/Background/Neutral/Pale/Default}"
         }
       },
       {
@@ -126,7 +170,11 @@
           "Brand - S1": "{Color/Background/Neutral/Pale/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Pale/Hover}",
           "Brand - S2": "{Color/Background/Neutral/Pale/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Pale/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Pale/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Pale/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Pale/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Pale/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Pale/Hover}"
         }
       },
       {
@@ -137,7 +185,11 @@
           "Brand - S1": "{Color/Background/Active/Accent/Solid}",
           "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
           "Brand - S2": "{Color/Background/Active/Accent/Solid}",
-          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
+          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S4": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S5": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S6": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S7": "{Color/Background/Active/Neutral/Solid}"
         }
       },
       {
@@ -148,7 +200,11 @@
           "Brand - S1": "{Color/Background/Neutral/Ghost/Default}",
           "Neutral - S2": "{Color/Background/Neutral/Subtle/Default}",
           "Brand - S2": "{Color/Background/Neutral/Subtle/Default}",
-          "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}"
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S4": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S5": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S6": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S7": "{Color/Background/Neutral/Ghost/Default}"
         }
       },
       {
@@ -159,7 +215,11 @@
           "Brand - S1": "{Color/Background/Neutral/Ghost/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Subtle/Hover}",
           "Brand - S2": "{Color/Background/Neutral/Subtle/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Ghost/Hover}"
         }
       },
       {
@@ -170,7 +230,11 @@
           "Brand - S1": "{Color/Background/Active/Accent/Solid}",
           "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
           "Brand - S2": "{Color/Background/Active/Accent/Solid}",
-          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
+          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S4": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S5": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S6": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S7": "{Color/Background/Active/Neutral/Solid}"
         }
       },
       {
@@ -181,7 +245,11 @@
           "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
           "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Solid/Hover}"
         }
       },
       {
@@ -192,7 +260,11 @@
           "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
           "Neutral - S2": "#FFFFFF00",
           "Brand - S2": "#FFFFFF00",
-          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S5": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S6": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S7": "{Color/Border/Neutral/Subtle/Default}"
         }
       },
       {
@@ -203,7 +275,11 @@
           "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
           "Neutral - S2": "{Color/Border/Neutral/Subtle/Default}",
           "Brand - S2": "{Color/Border/Neutral/Subtle/Default}",
-          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S5": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S6": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S7": "{Color/Border/Neutral/Subtle/Default}"
         }
       },
       {
@@ -214,7 +290,11 @@
           "Brand - S1": "{Color/Border/Neutral/Subtle/Hover}",
           "Neutral - S2": "{Color/Border/Neutral/Subtle/Hover}",
           "Brand - S2": "{Color/Border/Neutral/Subtle/Hover}",
-          "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}"
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S4": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S5": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S6": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S7": "{Color/Border/Neutral/Subtle/Hover}"
         }
       },
       {
@@ -225,7 +305,11 @@
           "Brand - S1": "{Color/Content/On-Accent/Default}",
           "Neutral - S2": "{Color/Content/Inverse/Strongest}",
           "Brand - S2": "{Color/Content/On-Accent/Default}",
-          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S4": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S5": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S6": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S7": "{Color/Content/Inverse/Strongest}"
         }
       },
       {
@@ -236,7 +320,11 @@
           "Brand - S1": "{Color/Background/Neutral/Pale/Default}",
           "Neutral - S2": "{Color/Background/Neutral/Pale/Default}",
           "Brand - S2": "{Color/Background/Neutral/Pale/Default}",
-          "Neutral - S3": "{Color/Background/Neutral/Pale/Default}"
+          "Neutral - S3": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S4": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S5": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S6": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S7": "{Color/Background/Neutral/Pale/Default}"
         }
       },
       {
@@ -247,7 +335,11 @@
           "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
           "Neutral - S2": "{Color/Border/Neutral/Subtle/Default}",
           "Brand - S2": "{Color/Border/Neutral/Subtle/Default}",
-          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S5": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S6": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S7": "{Color/Border/Neutral/Subtle/Default}"
         }
       },
       {
@@ -258,7 +350,11 @@
           "Brand - S1": "{Color/Border/Neutral/Subtle/Hover}",
           "Neutral - S2": "{Color/Border/Neutral/Subtle/Hover}",
           "Brand - S2": "{Color/Border/Neutral/Subtle/Hover}",
-          "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}"
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S4": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S5": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S6": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S7": "{Color/Border/Neutral/Subtle/Hover}"
         }
       },
       {
@@ -269,7 +365,11 @@
           "Brand - S1": "{Color/Border/Neutral/Subtle/Pressed}",
           "Neutral - S2": "{Color/Border/Neutral/Subtle/Pressed}",
           "Brand - S2": "{Color/Border/Neutral/Subtle/Pressed}",
-          "Neutral - S3": "{Color/Border/Neutral/Subtle/Pressed}"
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Pressed}",
+          "Neutral - S4": "{Color/Border/Neutral/Subtle/Pressed}",
+          "Neutral - S5": "{Color/Border/Neutral/Subtle/Pressed}",
+          "Neutral - S6": "{Color/Border/Neutral/Subtle/Pressed}",
+          "Neutral - S7": "{Color/Border/Neutral/Subtle/Pressed}"
         }
       },
       {
@@ -280,7 +380,11 @@
           "Brand - S1": "{Color/Background/Neutral/Pale/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Pale/Hover}",
           "Brand - S2": "{Color/Background/Neutral/Pale/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Pale/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Pale/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Pale/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Pale/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Pale/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Pale/Hover}"
         }
       },
       {
@@ -291,7 +395,11 @@
           "Brand - S1": "{Color/Background/Active/Accent/Solid}",
           "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
           "Brand - S2": "{Color/Background/Active/Accent/Solid}",
-          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
+          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S4": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S5": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S6": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S7": "{Color/Background/Active/Neutral/Solid}"
         }
       },
       {
@@ -302,7 +410,11 @@
           "Brand - S1": "{Color/Content/On-Accent/Default}",
           "Neutral - S2": "{Color/Content/Inverse/Strongest}",
           "Brand - S2": "{Color/Content/On-Accent/Default}",
-          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S4": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S5": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S6": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S7": "{Color/Content/Inverse/Strongest}"
         }
       },
       {
@@ -313,7 +425,11 @@
           "Brand - S1": "{Color/Background/Neutral/Ghost/Default}",
           "Neutral - S2": "{Color/Background/Neutral/Subtle/Default}",
           "Brand - S2": "{Color/Background/Neutral/Subtle/Default}",
-          "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}"
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S4": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S5": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S6": "{Color/Background/Neutral/Subtle/Default}",
+          "Neutral - S7": "{Color/Background/Neutral/Ghost/Default}"
         }
       },
       {
@@ -324,7 +440,11 @@
           "Brand - S1": "{Color/Background/Neutral/Ghost/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Subtle/Hover}",
           "Brand - S2": "{Color/Background/Neutral/Subtle/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Subtle/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Ghost/Hover}"
         }
       },
       {
@@ -335,7 +455,11 @@
           "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
           "Neutral - S2": "#FFFFFF00",
           "Brand - S2": "#FFFFFF00",
-          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S5": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S6": "#00000000",
+          "Neutral - S7": "{Color/Border/Neutral/Subtle/Default}"
         }
       },
       {
@@ -346,7 +470,11 @@
           "Brand - S1": "{Color/Content/Accent/Strongest}",
           "Neutral - S2": "{Color/Content/Neutral/Strongest}",
           "Brand - S2": "{Color/Content/Accent/Strongest}",
-          "Neutral - S3": "{Color/Content/Neutral/Strongest}"
+          "Neutral - S3": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S4": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S5": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S6": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S7": "{Color/Content/Neutral/Strongest}"
         }
       },
       {
@@ -357,7 +485,11 @@
           "Brand - S1": "{Color/Background/Surface/Default}",
           "Neutral - S2": "{Color/Background/Surface/Default}",
           "Brand - S2": "{Color/Background/Surface/Default}",
-          "Neutral - S3": "{Color/Background/Active/Neutral/Subtle}"
+          "Neutral - S3": "{Color/Background/Active/Neutral/Subtle}",
+          "Neutral - S4": "{Color/Background/Surface/Default}",
+          "Neutral - S5": "{Color/Background/Surface/Default}",
+          "Neutral - S6": "{Color/Background/Neutral/Subtle/Default}",
+          "Neutral - S7": "{Color/Background/Surface/Default}"
         }
       },
       {
@@ -368,7 +500,11 @@
           "Brand - S1": "{Color/Background/Accent/Ghost/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Ghost/Hover}",
           "Brand - S2": "{Color/Background/Accent/Ghost/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Subtle/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Ghost/Hover}"
         }
       },
       {
@@ -379,7 +515,11 @@
           "Brand - S1": "{Color/Background/Neutral/Flat/Default}",
           "Neutral - S2": "{Color/Background/Neutral/Flat/Default}",
           "Brand - S2": "{Color/Background/Neutral/Flat/Default}",
-          "Neutral - S3": "{Color/Background/Neutral/Flat/Default}"
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S4": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S5": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S6": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S7": "{Color/Background/Neutral/Flat/Default}"
         }
       },
       {
@@ -390,7 +530,11 @@
           "Brand - S1": "{Color/Background/Neutral/Flat/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Flat/Hover}",
           "Brand - S2": "{Color/Background/Neutral/Flat/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Flat/Hover}"
         }
       },
       {
@@ -401,18 +545,11 @@
           "Brand - S1": "{Color/Background/Active/Accent/Solid}",
           "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
           "Brand - S2": "{Color/Background/Active/Accent/Solid}",
-          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
-        }
-      },
-      {
-        "name": "Segmented-Item-Primary/Background/Seclected/Hover",
-        "type": "COLOR",
-        "valuesByMode": {
-          "Neutral - S1": "{Color/Background/Neutral/Solid/Hover}",
-          "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
-          "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
-          "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S4": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S5": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S6": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S7": "{Color/Background/Active/Neutral/Solid}"
         }
       },
       {
@@ -423,7 +560,11 @@
           "Brand - S1": "{Color/Background/Neutral/Flat/Default}",
           "Neutral - S2": "{Color/Background/Neutral/Flat/Default}",
           "Brand - S2": "{Color/Background/Neutral/Flat/Default}",
-          "Neutral - S3": "{Color/Background/Neutral/Flat/Default}"
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S4": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S5": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S6": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S7": "{Color/Background/Neutral/Flat/Default}"
         }
       },
       {
@@ -434,7 +575,11 @@
           "Brand - S1": "{Color/Background/Neutral/Flat/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Flat/Hover}",
           "Brand - S2": "{Color/Background/Neutral/Flat/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Flat/Hover}"
         }
       },
       {
@@ -445,18 +590,11 @@
           "Brand - S1": "{Color/Background/Inverse/Solid/Default}",
           "Neutral - S2": "{Color/Background/Inverse/Solid/Default}",
           "Brand - S2": "{Color/Background/Inverse/Solid/Default}",
-          "Neutral - S3": "{Color/Background/Inverse/Solid/Default}"
-        }
-      },
-      {
-        "name": "Segmented-Item-Secondary/Background/Seclected/Hover",
-        "type": "COLOR",
-        "valuesByMode": {
-          "Neutral - S1": "{Color/Background/Neutral/Flat/Hover}",
-          "Brand - S1": "{Color/Background/Neutral/Flat/Hover}",
-          "Neutral - S2": "{Color/Background/Neutral/Flat/Hover}",
-          "Brand - S2": "{Color/Background/Neutral/Flat/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}"
+          "Neutral - S3": "{Color/Background/Inverse/Solid/Default}",
+          "Neutral - S4": "{Color/Background/Inverse/Solid/Default}",
+          "Neutral - S5": "{Color/Background/Inverse/Solid/Default}",
+          "Neutral - S6": "{Color/Background/Inverse/Solid/Default}",
+          "Neutral - S7": "{Color/Background/Inverse/Solid/Default}"
         }
       },
       {
@@ -467,7 +605,11 @@
           "Brand - S1": "{Color/Border/Active/Accent/Solid}",
           "Neutral - S2": "{Color/Border/Active/Neutral/Solid}",
           "Brand - S2": "{Color/Border/Active/Accent/Solid}",
-          "Neutral - S3": "{Color/Border/Active/Neutral/Solid}"
+          "Neutral - S3": "{Color/Border/Active/Neutral/Solid}",
+          "Neutral - S4": "{Color/Border/Active/Neutral/Solid}",
+          "Neutral - S5": "{Color/Border/Active/Neutral/Solid}",
+          "Neutral - S6": "{Color/Border/Active/Neutral/Solid}",
+          "Neutral - S7": "{Color/Border/Active/Neutral/Solid}"
         }
       },
       {
@@ -478,7 +620,11 @@
           "Brand - S1": "{Color/Background/Neutral/Flat/Default}",
           "Neutral - S2": "{Color/Background/Neutral/Flat/Default}",
           "Brand - S2": "{Color/Background/Neutral/Flat/Default}",
-          "Neutral - S3": "{Color/Background/Neutral/Flat/Default}"
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S4": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S5": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S6": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S7": "{Color/Background/Neutral/Flat/Default}"
         }
       },
       {
@@ -489,7 +635,11 @@
           "Brand - S1": "{Color/Background/Neutral/Flat/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Flat/Hover}",
           "Brand - S2": "{Color/Background/Neutral/Flat/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Flat/Hover}"
         }
       },
       {
@@ -500,7 +650,11 @@
           "Brand - S1": "{Color/Background/Active/Accent/Solid}",
           "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
           "Brand - S2": "{Color/Background/Active/Accent/Solid}",
-          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
+          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S4": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S5": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S6": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S7": "{Color/Background/Active/Neutral/Solid}"
         }
       },
       {
@@ -511,7 +665,11 @@
           "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
           "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Solid/Hover}"
         }
       },
       {
@@ -522,7 +680,11 @@
           "Brand - S1": "{Color/Border/Active/Accent/Subtle}",
           "Neutral - S2": "{Color/Border/Active/Neutral/Subtle}",
           "Brand - S2": "{Color/Border/Active/Accent/Subtle}",
-          "Neutral - S3": "{Color/Border/Active/Neutral/Subtle}"
+          "Neutral - S3": "{Color/Border/Active/Neutral/Subtle}",
+          "Neutral - S4": "{Color/Border/Active/Neutral/Subtle}",
+          "Neutral - S5": "{Color/Border/Active/Neutral/Subtle}",
+          "Neutral - S6": "{Color/Border/Active/Neutral/Subtle}",
+          "Neutral - S7": "{Color/Border/Active/Neutral/Subtle}"
         }
       },
       {
@@ -533,7 +695,11 @@
           "Brand - S1": "{Color/Content/On-Accent/Default}",
           "Neutral - S2": "{Color/Content/Inverse/Strongest}",
           "Brand - S2": "{Color/Content/On-Accent/Default}",
-          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S4": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S5": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S6": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S7": "{Color/Content/Inverse/Strongest}"
         }
       },
       {
@@ -544,7 +710,11 @@
           "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
           "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Solid/Hover}"
         }
       },
       {
@@ -555,7 +725,11 @@
           "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
           "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Solid/Hover}"
         }
       },
       {
@@ -566,7 +740,11 @@
           "Brand - S1": "{Color/Background/Neutral/Ghost/Default}",
           "Neutral - S2": "{Color/Background/Neutral/Ghost/Default}",
           "Brand - S2": "{Color/Background/Neutral/Ghost/Default}",
-          "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}"
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S4": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S5": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S6": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S7": "{Color/Background/Neutral/Ghost/Default}"
         }
       },
       {
@@ -577,7 +755,11 @@
           "Brand - S1": "{Color/Background/Neutral/Ghost/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Ghost/Hover}",
           "Brand - S2": "{Color/Background/Neutral/Ghost/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Ghost/Hover}"
         }
       },
       {
@@ -588,7 +770,11 @@
           "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
           "Neutral - S2": "{Color/Border/Neutral/Subtle/Default}",
           "Brand - S2": "{Color/Border/Neutral/Subtle/Default}",
-          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S5": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S6": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S7": "{Color/Border/Neutral/Subtle/Default}"
         }
       },
       {
@@ -599,7 +785,11 @@
           "Brand - S1": "{Color/Border/Neutral/Subtle/Hover}",
           "Neutral - S2": "{Color/Border/Neutral/Subtle/Hover}",
           "Brand - S2": "{Color/Border/Neutral/Subtle/Hover}",
-          "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}"
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S4": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S5": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S6": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S7": "{Color/Border/Neutral/Subtle/Hover}"
         }
       },
       {
@@ -610,7 +800,11 @@
           "Brand - S1": "{Color/Content/Inverse/Strongest}",
           "Neutral - S2": "{Color/Content/Inverse/Strongest}",
           "Brand - S2": "{Color/Content/Inverse/Strongest}",
-          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S4": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S5": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S6": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S7": "{Color/Content/Inverse/Strongest}"
         }
       },
       {
@@ -621,7 +815,11 @@
           "Brand - S1": "{Color/Background/Active/Accent/Subtle}",
           "Neutral - S2": "{Color/Background/Active/Neutral/Subtle}",
           "Brand - S2": "{Color/Background/Active/Accent/Subtle}",
-          "Neutral - S3": "{Color/Background/Active/Neutral/Subtle}"
+          "Neutral - S3": "{Color/Background/Active/Neutral/Subtle}",
+          "Neutral - S4": "{Color/Background/Active/Neutral/Subtle}",
+          "Neutral - S5": "{Color/Background/Active/Neutral/Subtle}",
+          "Neutral - S6": "{Color/Background/Active/Neutral/Subtle}",
+          "Neutral - S7": "{Color/Background/Active/Neutral/Subtle}"
         }
       },
       {
@@ -632,7 +830,11 @@
           "Brand - S1": "{Color/Background/Accent/Subtle/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Subtle/Hover}",
           "Brand - S2": "{Color/Background/Accent/Subtle/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Subtle/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Subtle/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Subtle/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Subtle/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Subtle/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Subtle/Hover}"
         }
       },
       {
@@ -643,7 +845,11 @@
           "Brand - S1": "{Color/Content/On-Accent/Default}",
           "Neutral - S2": "{Color/Content/Inverse/Strongest}",
           "Brand - S2": "{Color/Content/On-Accent/Default}",
-          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S4": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S5": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S6": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S7": "{Color/Content/Inverse/Strongest}"
         }
       },
       {
@@ -654,7 +860,11 @@
           "Brand - S1": "{Color/Content/Neutral/Strongest}",
           "Neutral - S2": "{Color/Content/Neutral/Strongest}",
           "Brand - S2": "{Color/Content/Neutral/Strongest}",
-          "Neutral - S3": "{Color/Content/Neutral/Strongest}"
+          "Neutral - S3": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S4": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S5": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S6": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S7": "{Color/Content/Neutral/Strongest}"
         }
       },
       {
@@ -665,7 +875,11 @@
           "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
           "Neutral - S2": "{Color/Border/Neutral/Subtle/Default}",
           "Brand - S2": "{Color/Border/Neutral/Subtle/Default}",
-          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S5": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S6": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S7": "{Color/Border/Neutral/Subtle/Default}"
         }
       },
       {
@@ -676,7 +890,11 @@
           "Brand - S1": "{Color/Border/Neutral/Subtle/Hover}",
           "Neutral - S2": "{Color/Border/Neutral/Subtle/Hover}",
           "Brand - S2": "{Color/Border/Neutral/Subtle/Hover}",
-          "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}"
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S4": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S5": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S6": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S7": "{Color/Border/Neutral/Subtle/Hover}"
         }
       },
       {
@@ -687,7 +905,11 @@
           "Brand - S1": "{Color/Border/Active/Accent/Solid}",
           "Neutral - S2": "{Color/Border/Active/Neutral/Solid}",
           "Brand - S2": "{Color/Border/Active/Accent/Solid}",
-          "Neutral - S3": "{Color/Border/Active/Neutral/Solid}"
+          "Neutral - S3": "{Color/Border/Active/Neutral/Solid}",
+          "Neutral - S4": "{Color/Border/Active/Neutral/Solid}",
+          "Neutral - S5": "{Color/Border/Active/Neutral/Solid}",
+          "Neutral - S6": "{Color/Border/Active/Neutral/Solid}",
+          "Neutral - S7": "{Color/Border/Active/Neutral/Solid}"
         }
       },
       {
@@ -698,7 +920,11 @@
           "Brand - S1": "{Color/Background/Neutral/Subtle/Default}",
           "Neutral - S2": "{Color/Background/Neutral/Subtle/Default}",
           "Brand - S2": "{Color/Background/Neutral/Subtle/Default}",
-          "Neutral - S3": "{Color/Background/Neutral/Subtle/Default}"
+          "Neutral - S3": "{Color/Background/Neutral/Subtle/Default}",
+          "Neutral - S4": "{Color/Background/Neutral/Subtle/Default}",
+          "Neutral - S5": "{Color/Background/Neutral/Subtle/Default}",
+          "Neutral - S6": "{Color/Background/Neutral/Subtle/Default}",
+          "Neutral - S7": "{Color/Background/Neutral/Subtle/Default}"
         }
       },
       {
@@ -709,7 +935,11 @@
           "Brand - S1": "{Color/Background/Neutral/Subtle/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Subtle/Hover}",
           "Brand - S2": "{Color/Background/Neutral/Subtle/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Subtle/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Subtle/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Subtle/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Subtle/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Subtle/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Subtle/Hover}"
         }
       },
       {
@@ -720,7 +950,11 @@
           "Brand - S1": "{Color/Background/Active/Accent/Solid}",
           "Neutral - S2": "{Color/Background/Active/Neutral/Solid}",
           "Brand - S2": "{Color/Background/Active/Accent/Solid}",
-          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}"
+          "Neutral - S3": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S4": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S5": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S6": "{Color/Background/Active/Neutral/Solid}",
+          "Neutral - S7": "{Color/Background/Active/Neutral/Solid}"
         }
       },
       {
@@ -731,7 +965,11 @@
           "Brand - S1": "{Color/Background/White-Solid/Default}",
           "Neutral - S2": "{Color/Background/White-Solid/Default}",
           "Brand - S2": "{Color/Background/White-Solid/Default}",
-          "Neutral - S3": "{Color/Background/White-Solid/Default}"
+          "Neutral - S3": "{Color/Background/White-Solid/Default}",
+          "Neutral - S4": "{Color/Background/White-Solid/Default}",
+          "Neutral - S5": "{Color/Background/White-Solid/Default}",
+          "Neutral - S6": "{Color/Background/White-Solid/Default}",
+          "Neutral - S7": "{Color/Background/White-Solid/Default}"
         }
       },
       {
@@ -742,7 +980,11 @@
           "Brand - S1": "{Color/Background/White-Solid/Default}",
           "Neutral - S2": "{Color/Background/Inverse/Solid/Default}",
           "Brand - S2": "{Color/Background/White-Solid/Default}",
-          "Neutral - S3": "{Color/Background/Inverse/Solid/Default}"
+          "Neutral - S3": "{Color/Background/Inverse/Solid/Default}",
+          "Neutral - S4": "{Color/Background/Inverse/Solid/Default}",
+          "Neutral - S5": "{Color/Background/Inverse/Solid/Default}",
+          "Neutral - S6": "{Color/Background/Inverse/Solid/Default}",
+          "Neutral - S7": "{Color/Background/Inverse/Solid/Default}"
         }
       },
       {
@@ -753,7 +995,11 @@
           "Brand - S1": "{Color/Background/Subtle-Disabled}",
           "Neutral - S2": "{Color/Background/Subtle-Disabled}",
           "Brand - S2": "{Color/Background/Subtle-Disabled}",
-          "Neutral - S3": "{Color/Background/Subtle-Disabled}"
+          "Neutral - S3": "{Color/Background/Subtle-Disabled}",
+          "Neutral - S4": "{Color/Background/Subtle-Disabled}",
+          "Neutral - S5": "{Color/Background/Subtle-Disabled}",
+          "Neutral - S6": "{Color/Background/Subtle-Disabled}",
+          "Neutral - S7": "{Color/Background/Subtle-Disabled}"
         }
       },
       {
@@ -764,7 +1010,11 @@
           "Brand - S1": "{Color/Background/Surface/Default}",
           "Neutral - S2": "{Color/Background/Surface/Default}",
           "Brand - S2": "{Color/Background/Surface/Default}",
-          "Neutral - S3": "{Color/Background/Surface/Default}"
+          "Neutral - S3": "{Color/Background/Surface/Default}",
+          "Neutral - S4": "{Color/Background/Surface/Default}",
+          "Neutral - S5": "{Color/Background/Surface/Default}",
+          "Neutral - S6": "{Color/Background/Surface/Default}",
+          "Neutral - S7": "{Color/Background/Surface/Default}"
         }
       },
       {
@@ -775,7 +1025,11 @@
           "Brand - S1": "{Color/Background/Solid-Disabled}",
           "Neutral - S2": "{Color/Background/Solid-Disabled}",
           "Brand - S2": "{Color/Background/Solid-Disabled}",
-          "Neutral - S3": "{Color/Background/Solid-Disabled}"
+          "Neutral - S3": "{Color/Background/Solid-Disabled}",
+          "Neutral - S4": "{Color/Background/Solid-Disabled}",
+          "Neutral - S5": "{Color/Background/Solid-Disabled}",
+          "Neutral - S6": "{Color/Background/Solid-Disabled}",
+          "Neutral - S7": "{Color/Background/Solid-Disabled}"
         }
       },
       {
@@ -786,7 +1040,11 @@
           "Brand - S1": "{Color/Background/Subtle-Disabled}",
           "Neutral - S2": "{Color/Background/Subtle-Disabled}",
           "Brand - S2": "{Color/Background/Subtle-Disabled}",
-          "Neutral - S3": "{Color/Background/Subtle-Disabled}"
+          "Neutral - S3": "{Color/Background/Subtle-Disabled}",
+          "Neutral - S4": "{Color/Background/Subtle-Disabled}",
+          "Neutral - S5": "{Color/Background/Subtle-Disabled}",
+          "Neutral - S6": "{Color/Background/Subtle-Disabled}",
+          "Neutral - S7": "{Color/Background/Subtle-Disabled}"
         }
       },
       {
@@ -797,7 +1055,11 @@
           "Brand - S1": "{Color/Background/Neutral/Flat/Default}",
           "Neutral - S2": "{Color/Background/Neutral/Flat/Default}",
           "Brand - S2": "{Color/Background/Neutral/Flat/Default}",
-          "Neutral - S3": "{Color/Background/Neutral/Flat/Default}"
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S4": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S5": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S6": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S7": "{Color/Background/Neutral/Flat/Default}"
         }
       },
       {
@@ -808,7 +1070,11 @@
           "Brand - S1": "{Color/Background/Neutral/Flat/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Flat/Hover}",
           "Brand - S2": "{Color/Background/Neutral/Flat/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Flat/Hover}"
         }
       },
       {
@@ -819,7 +1085,11 @@
           "Brand - S1": "{Color/Background/Active/Accent/Subtle}",
           "Neutral - S2": "{Color/Background/Active/Neutral/Subtle}",
           "Brand - S2": "{Color/Background/Active/Accent/Subtle}",
-          "Neutral - S3": "{Color/Background/Active/Neutral/Subtle}"
+          "Neutral - S3": "{Color/Background/Active/Neutral/Subtle}",
+          "Neutral - S4": "{Color/Background/Active/Neutral/Subtle}",
+          "Neutral - S5": "{Color/Background/Active/Neutral/Subtle}",
+          "Neutral - S6": "{Color/Background/Active/Neutral/Subtle}",
+          "Neutral - S7": "{Color/Background/Active/Neutral/Subtle}"
         }
       },
       {
@@ -830,7 +1100,11 @@
           "Brand - S1": "{Color/Content/Neutral/Light}",
           "Neutral - S2": "{Color/Content/Neutral/Light}",
           "Brand - S2": "{Color/Content/Neutral/Light}",
-          "Neutral - S3": "{Color/Content/Neutral/Light}"
+          "Neutral - S3": "{Color/Content/Neutral/Light}",
+          "Neutral - S4": "{Color/Content/Neutral/Light}",
+          "Neutral - S5": "{Color/Content/Neutral/Light}",
+          "Neutral - S6": "{Color/Content/Neutral/Light}",
+          "Neutral - S7": "{Color/Content/Neutral/Light}"
         }
       },
       {
@@ -841,7 +1115,11 @@
           "Brand - S1": "{Color/Content/Neutral/Base}",
           "Neutral - S2": "{Color/Content/Neutral/Base}",
           "Brand - S2": "{Color/Content/Neutral/Base}",
-          "Neutral - S3": "{Color/Content/Neutral/Base}"
+          "Neutral - S3": "{Color/Content/Neutral/Base}",
+          "Neutral - S4": "{Color/Content/Neutral/Base}",
+          "Neutral - S5": "{Color/Content/Neutral/Base}",
+          "Neutral - S6": "{Color/Content/Neutral/Base}",
+          "Neutral - S7": "{Color/Content/Neutral/Base}"
         }
       },
       {
@@ -852,7 +1130,11 @@
           "Brand - S1": "{Color/Content/Neutral/Strongest}",
           "Neutral - S2": "{Color/Content/Neutral/Strongest}",
           "Brand - S2": "{Color/Content/Neutral/Strongest}",
-          "Neutral - S3": "{Color/Content/Neutral/Strongest}"
+          "Neutral - S3": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S4": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S5": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S6": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S7": "{Color/Content/Neutral/Strongest}"
         }
       },
       {
@@ -863,7 +1145,11 @@
           "Brand - S1": "{Color/Background/Neutral/Flat/Default}",
           "Neutral - S2": "{Color/Background/Neutral/Flat/Default}",
           "Brand - S2": "{Color/Background/Neutral/Flat/Default}",
-          "Neutral - S3": "{Color/Background/Neutral/Flat/Default}"
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S4": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S5": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S6": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S7": "{Color/Background/Neutral/Flat/Default}"
         }
       },
       {
@@ -874,7 +1160,11 @@
           "Brand - S1": "{Color/Background/Support/Neutral/Pale}",
           "Neutral - S2": "{Color/Background/Support/Neutral/Pale}",
           "Brand - S2": "{Color/Background/Support/Neutral/Pale}",
-          "Neutral - S3": "{Color/Background/Support/Neutral/Pale}"
+          "Neutral - S3": "{Color/Background/Support/Neutral/Pale}",
+          "Neutral - S4": "{Color/Background/Support/Neutral/Pale}",
+          "Neutral - S5": "{Color/Background/Support/Neutral/Pale}",
+          "Neutral - S6": "{Color/Background/Support/Neutral/Pale}",
+          "Neutral - S7": "{Color/Background/Support/Neutral/Pale}"
         }
       },
       {
@@ -885,7 +1175,11 @@
           "Brand - S1": "{Color/Background/Support/Brand/Pale}",
           "Neutral - S2": "{Color/Background/Support/Neutral/Pale}",
           "Brand - S2": "{Color/Background/Support/Brand/Pale}",
-          "Neutral - S3": "{Color/Background/Support/Neutral/Pale}"
+          "Neutral - S3": "{Color/Background/Support/Neutral/Pale}",
+          "Neutral - S4": "{Color/Background/Support/Neutral/Pale}",
+          "Neutral - S5": "{Color/Background/Support/Neutral/Pale}",
+          "Neutral - S6": "{Color/Background/Support/Neutral/Pale}",
+          "Neutral - S7": "{Color/Background/Support/Neutral/Pale}"
         }
       },
       {
@@ -896,7 +1190,11 @@
           "Brand - S1": "{Color/Content/Neutral/Strongest}",
           "Neutral - S2": "{Color/Content/Neutral/Strongest}",
           "Brand - S2": "{Color/Content/Neutral/Strongest}",
-          "Neutral - S3": "{Color/Content/Neutral/Strongest}"
+          "Neutral - S3": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S4": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S5": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S6": "{Color/Content/Neutral/Strongest}",
+          "Neutral - S7": "{Color/Content/Neutral/Strongest}"
         }
       },
       {
@@ -907,7 +1205,11 @@
           "Brand - S1": "{Color/Background/Neutral/Ghost/Default}",
           "Neutral - S2": "{Color/Background/Neutral/Subtle/Default}",
           "Brand - S2": "{Color/Background/Neutral/Subtle/Default}",
-          "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}"
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S4": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S5": "{Color/Background/Neutral/Ghost/Default}",
+          "Neutral - S6": "{Color/Background/Neutral/Subtle/Default}",
+          "Neutral - S7": "{Color/Background/Neutral/Ghost/Default}"
         }
       },
       {
@@ -918,7 +1220,11 @@
           "Brand - S1": "{Color/Background/Neutral/Ghost/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Subtle/Hover}",
           "Brand - S2": "{Color/Background/Neutral/Subtle/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Ghost/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Subtle/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Ghost/Hover}"
         }
       },
       {
@@ -929,7 +1235,11 @@
           "Brand - S1": "{Color/Background/Neutral/Ghost/Pressed}",
           "Neutral - S2": "{Color/Background/Neutral/Subtle/Pressed}",
           "Brand - S2": "{Color/Background/Neutral/Subtle/Pressed}",
-          "Neutral - S3": "{Color/Background/Neutral/Ghost/Pressed}"
+          "Neutral - S3": "{Color/Background/Neutral/Ghost/Pressed}",
+          "Neutral - S4": "{Color/Background/Neutral/Ghost/Pressed}",
+          "Neutral - S5": "{Color/Background/Neutral/Ghost/Pressed}",
+          "Neutral - S6": "{Color/Background/Neutral/Subtle/Pressed}",
+          "Neutral - S7": "{Color/Background/Neutral/Ghost/Pressed}"
         }
       },
       {
@@ -940,7 +1250,11 @@
           "Brand - S1": "{Color/Border/Neutral/Subtle/Default}",
           "Neutral - S2": "#FFFFFF00",
           "Brand - S2": "#FFFFFF00",
-          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S5": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S6": "#00000000",
+          "Neutral - S7": "{Color/Border/Neutral/Subtle/Default}"
         }
       },
       {
@@ -951,7 +1265,11 @@
           "Brand - S1": "{Color/Shadow/Neutral/Light}",
           "Neutral - S2": "#FFFFFF00",
           "Brand - S2": "#FFFFFF00",
-          "Neutral - S3": "{Color/Shadow/Neutral/Light}"
+          "Neutral - S3": "{Color/Shadow/Neutral/Light}",
+          "Neutral - S4": "{Color/Shadow/Neutral/Light}",
+          "Neutral - S5": "{Color/Shadow/Neutral/Light}",
+          "Neutral - S6": "#00000000",
+          "Neutral - S7": "{Color/Shadow/Neutral/Light}"
         }
       },
       {
@@ -962,7 +1280,11 @@
           "Brand - S1": "{Color/Background/Ghost-Disabled}",
           "Neutral - S2": "{Color/Background/Subtle-Disabled}",
           "Brand - S2": "{Color/Background/Subtle-Disabled}",
-          "Neutral - S3": "{Color/Background/Ghost-Disabled}"
+          "Neutral - S3": "{Color/Background/Ghost-Disabled}",
+          "Neutral - S4": "{Color/Background/Ghost-Disabled}",
+          "Neutral - S5": "{Color/Background/Ghost-Disabled}",
+          "Neutral - S6": "{Color/Background/Subtle-Disabled}",
+          "Neutral - S7": "{Color/Background/Ghost-Disabled}"
         }
       },
       {
@@ -973,7 +1295,11 @@
           "Brand - S1": "{Color/Border/Disabled}",
           "Neutral - S2": "#FFFFFF00",
           "Brand - S2": "#FFFFFF00",
-          "Neutral - S3": "{Color/Border/Disabled}"
+          "Neutral - S3": "{Color/Border/Disabled}",
+          "Neutral - S4": "{Color/Border/Disabled}",
+          "Neutral - S5": "{Color/Border/Disabled}",
+          "Neutral - S6": "#00000000",
+          "Neutral - S7": "{Color/Border/Disabled}"
         }
       },
       {
@@ -984,7 +1310,11 @@
           "Brand - S1": "{Color/Content/On-Accent/Default}",
           "Neutral - S2": "{Color/Content/Inverse/Strongest}",
           "Brand - S2": "{Color/Content/On-Accent/Default}",
-          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S4": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S5": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S6": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S7": "{Color/Content/Inverse/Strongest}"
         }
       },
       {
@@ -995,18 +1325,26 @@
           "Brand - S1": "{Color/Background/Accent/Solid/Default}",
           "Neutral - S2": "{Color/Background/Neutral/Solid/Default}",
           "Brand - S2": "{Color/Background/Accent/Solid/Default}",
-          "Neutral - S3": "{Color/Background/Neutral/Solid/Default}"
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Default}",
+          "Neutral - S4": "{Color/Background/Neutral/Solid/Default}",
+          "Neutral - S5": "{Color/Background/Neutral/Solid/Default}",
+          "Neutral - S6": "{Color/Background/Neutral/Solid/Default}",
+          "Neutral - S7": "{Color/Background/Neutral/Solid/Default}"
         }
       },
       {
         "name": "Bubble-Chat-Others-Business/Background/Default",
         "type": "COLOR",
         "valuesByMode": {
-          "Neutral - S1": "{Color/Background/Popover/Default}",
-          "Brand - S1": "{Color/Background/Popover/Default}",
-          "Neutral - S2": "{Color/Background/Popover/Default}",
-          "Brand - S2": "{Color/Background/Popover/Default}",
-          "Neutral - S3": "{Color/Background/Popover/Default}"
+          "Neutral - S1": "{Color/Background/Surface/Default}",
+          "Brand - S1": "{Color/Background/Surface/Default}",
+          "Neutral - S2": "{Color/Background/Surface/Default}",
+          "Brand - S2": "{Color/Background/Surface/Default}",
+          "Neutral - S3": "{Color/Background/Surface/Default}",
+          "Neutral - S4": "{Color/Background/Surface/Default}",
+          "Neutral - S5": "{Color/Background/Surface/Default}",
+          "Neutral - S6": "{Color/Background/Surface/Default}",
+          "Neutral - S7": "{Color/Background/Surface/Default}"
         }
       },
       {
@@ -1017,7 +1355,11 @@
           "Brand - S1": "{Color/Content/Inverse/Strongest}",
           "Neutral - S2": "{Color/Content/On-Accent/Pressed}",
           "Brand - S2": "{Color/Content/Inverse/Strongest}",
-          "Neutral - S3": "{Color/Content/On-Accent/Pressed}"
+          "Neutral - S3": "{Color/Content/On-Accent/Pressed}",
+          "Neutral - S4": "{Color/Content/On-Accent/Pressed}",
+          "Neutral - S5": "{Color/Content/On-Accent/Pressed}",
+          "Neutral - S6": "{Color/Content/On-Accent/Pressed}",
+          "Neutral - S7": "{Color/Content/On-Accent/Pressed}"
         }
       },
       {
@@ -1028,7 +1370,11 @@
           "Brand - S1": "{Color/Content/On-Accent/Pressed}",
           "Neutral - S2": "{Color/Content/Inverse/Strongest}",
           "Brand - S2": "{Color/Content/On-Accent/Pressed}",
-          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S4": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S5": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S6": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S7": "{Color/Content/Inverse/Strongest}"
         }
       },
       {
@@ -1039,7 +1385,11 @@
           "Brand - S1": "{Color/Content/Inverse/Strongest}",
           "Neutral - S2": "{Color/Content/On-Accent/Hover}",
           "Brand - S2": "{Color/Content/Inverse/Strongest}",
-          "Neutral - S3": "{Color/Content/On-Accent/Hover}"
+          "Neutral - S3": "{Color/Content/On-Accent/Hover}",
+          "Neutral - S4": "{Color/Content/On-Accent/Hover}",
+          "Neutral - S5": "{Color/Content/On-Accent/Hover}",
+          "Neutral - S6": "{Color/Content/On-Accent/Hover}",
+          "Neutral - S7": "{Color/Content/On-Accent/Hover}"
         }
       },
       {
@@ -1050,7 +1400,11 @@
           "Brand - S1": "{Color/Content/On-Accent/Hover}",
           "Neutral - S2": "{Color/Content/Inverse/Strongest}",
           "Brand - S2": "{Color/Content/On-Accent/Hover}",
-          "Neutral - S3": "{Color/Content/Inverse/Strongest}"
+          "Neutral - S3": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S4": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S5": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S6": "{Color/Content/Inverse/Strongest}",
+          "Neutral - S7": "{Color/Content/Inverse/Strongest}"
         }
       },
       {
@@ -1061,7 +1415,11 @@
           "Brand - S1": "{Color/Background/Neutral/Pale/Default}",
           "Neutral - S2": "{Color/Background/Neutral/Pale/Default}",
           "Brand - S2": "{Color/Background/Neutral/Pale/Default}",
-          "Neutral - S3": "{Color/Background/Neutral/Pale/Default}"
+          "Neutral - S3": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S4": "{Color/Background/Surface/Default}",
+          "Neutral - S5": "{Color/Background/Neutral/Subtle/Default}",
+          "Neutral - S6": "{Color/Background/Surface/Default}",
+          "Neutral - S7": "{Color/Background/Neutral/Subtle/Default}"
         }
       },
       {
@@ -1072,7 +1430,11 @@
           "Brand - S1": "{Color/Background/Neutral/Pale/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Pale/Hover}",
           "Brand - S2": "{Color/Background/Neutral/Pale/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Pale/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Pale/Hover}",
+          "Neutral - S4": "{Color/Background/Surface/Default}",
+          "Neutral - S5": "{Color/Background/Neutral/Subtle/Hover}",
+          "Neutral - S6": "{Color/Background/Surface/Default}",
+          "Neutral - S7": "{Color/Background/Neutral/Subtle/Hover}"
         }
       },
       {
@@ -1083,7 +1445,11 @@
           "Brand - S1": "#FFFFFF00",
           "Neutral - S2": "#FFFFFF00",
           "Brand - S2": "#FFFFFF00",
-          "Neutral - S3": "#FFFFFF00"
+          "Neutral - S3": "#FFFFFF00",
+          "Neutral - S4": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S5": "#FFFFFF00",
+          "Neutral - S6": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S7": "#FFFFFF00"
         }
       },
       {
@@ -1094,7 +1460,11 @@
           "Brand - S1": "#FFFFFF00",
           "Neutral - S2": "#FFFFFF00",
           "Brand - S2": "#FFFFFF00",
-          "Neutral - S3": "#FFFFFF00"
+          "Neutral - S3": "#FFFFFF00",
+          "Neutral - S4": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S5": "#FFFFFF00",
+          "Neutral - S6": "{Color/Border/Neutral/Subtle/Hover}",
+          "Neutral - S7": "#FFFFFF00"
         }
       },
       {
@@ -1105,7 +1475,11 @@
           "Brand - S1": "{Color/Shadow/Inverse/Base}",
           "Neutral - S2": "{Color/Shadow/Inverse/Base}",
           "Brand - S2": "{Color/Shadow/Inverse/Base}",
-          "Neutral - S3": "{Color/Shadow/Inverse/Base}"
+          "Neutral - S3": "{Color/Shadow/Inverse/Base}",
+          "Neutral - S4": "#00000000",
+          "Neutral - S5": "#00000000",
+          "Neutral - S6": "#00000000",
+          "Neutral - S7": "#00000000"
         }
       },
       {
@@ -1116,7 +1490,11 @@
           "Brand - S1": "{Color/Shadow/Inverse/Strong}",
           "Neutral - S2": "{Color/Shadow/Inverse/Strong}",
           "Brand - S2": "{Color/Shadow/Inverse/Strong}",
-          "Neutral - S3": "{Color/Shadow/Inverse/Strong}"
+          "Neutral - S3": "{Color/Shadow/Inverse/Strong}",
+          "Neutral - S4": "#00000000",
+          "Neutral - S5": "#00000000",
+          "Neutral - S6": "#00000000",
+          "Neutral - S7": "#00000000"
         }
       },
       {
@@ -1127,7 +1505,11 @@
           "Brand - S1": "{Color/Border/Container/Subtle}",
           "Neutral - S2": "{Color/Border/Container/Subtle}",
           "Brand - S2": "{Color/Border/Container/Subtle}",
-          "Neutral - S3": "{Color/Border/Container/Subtle}"
+          "Neutral - S3": "{Color/Border/Container/Subtle}",
+          "Neutral - S4": "{Color/Border/Container/Subtle}",
+          "Neutral - S5": "{Color/Border/Container/Subtle}",
+          "Neutral - S6": "{Color/Border/Container/Subtle}",
+          "Neutral - S7": "{Color/Border/Container/Subtle}"
         }
       },
       {
@@ -1138,7 +1520,11 @@
           "Brand - S1": "{Color/Border/Popover/Subtle}",
           "Neutral - S2": "{Color/Border/Popover/Subtle}",
           "Brand - S2": "{Color/Border/Popover/Subtle}",
-          "Neutral - S3": "{Color/Border/Popover/Subtle}"
+          "Neutral - S3": "{Color/Border/Popover/Subtle}",
+          "Neutral - S4": "{Color/Border/Popover/Subtle}",
+          "Neutral - S5": "{Color/Border/Popover/Subtle}",
+          "Neutral - S6": "{Color/Border/Popover/Subtle}",
+          "Neutral - S7": "{Color/Border/Popover/Subtle}"
         }
       },
       {
@@ -1149,7 +1535,11 @@
           "Brand - S1": "{Color/Background/Popover/Default}",
           "Neutral - S2": "{Color/Background/Popover/Default}",
           "Brand - S2": "{Color/Background/Popover/Default}",
-          "Neutral - S3": "{Color/Background/Popover/Default}"
+          "Neutral - S3": "{Color/Background/Popover/Default}",
+          "Neutral - S4": "{Color/Background/Popover/Default}",
+          "Neutral - S5": "{Color/Background/Popover/Default}",
+          "Neutral - S6": "{Color/Background/Popover/Default}",
+          "Neutral - S7": "{Color/Background/Popover/Default}"
         }
       },
       {
@@ -1160,7 +1550,11 @@
           "Brand - S1": "{Color/Background/Neutral/Pale/Default}",
           "Neutral - S2": "{Color/Background/Neutral/Pale/Default}",
           "Brand - S2": "{Color/Background/Neutral/Pale/Default}",
-          "Neutral - S3": "{Color/Background/Neutral/Pale/Default}"
+          "Neutral - S3": "{Color/Background/Neutral/Pale/Default}",
+          "Neutral - S4": "{Color/Background/Surface/Default}",
+          "Neutral - S5": "{Color/Background/Neutral/Flat/Default}",
+          "Neutral - S6": "{Color/Background/Surface/Default}",
+          "Neutral - S7": "{Color/Background/Neutral/Pale/Default}"
         }
       },
       {
@@ -1171,7 +1565,11 @@
           "Brand - S1": "#FFFFFF",
           "Neutral - S2": "#FFFFFF",
           "Brand - S2": "#FFFFFF",
-          "Neutral - S3": "#FFFFFF"
+          "Neutral - S3": "#FFFFFF",
+          "Neutral - S4": "#FFFFFF",
+          "Neutral - S5": "#FFFFFF",
+          "Neutral - S6": "#FFFFFF",
+          "Neutral - S7": "#FFFFFF"
         }
       },
       {
@@ -1182,7 +1580,11 @@
           "Brand - S1": "{Color/Background/Support/Brand/Solid}",
           "Neutral - S2": "{Color/Background/Support/Neutral/Deep}",
           "Brand - S2": "{Color/Background/Support/Brand/Solid}",
-          "Neutral - S3": "{Color/Background/Support/Neutral/Deep}"
+          "Neutral - S3": "{Color/Background/Support/Neutral/Deep}",
+          "Neutral - S4": "{Color/Background/Support/Neutral/Deep}",
+          "Neutral - S5": "{Color/Background/Support/Neutral/Deep}",
+          "Neutral - S6": "{Color/Background/Support/Neutral/Deep}",
+          "Neutral - S7": "{Color/Background/Support/Neutral/Deep}"
         }
       },
       {
@@ -1193,7 +1595,11 @@
           "Brand - S1": "{Color/Background/Support/Neutral/Deep}",
           "Neutral - S2": "{Color/Background/Support/Brand/Solid}",
           "Brand - S2": "{Color/Background/Support/Neutral/Deep}",
-          "Neutral - S3": "{Color/Background/Support/Brand/Solid}"
+          "Neutral - S3": "{Color/Background/Support/Brand/Solid}",
+          "Neutral - S4": "{Color/Background/Support/Brand/Solid}",
+          "Neutral - S5": "{Color/Background/Support/Brand/Solid}",
+          "Neutral - S6": "{Color/Background/Support/Brand/Solid}",
+          "Neutral - S7": "{Color/Background/Support/Brand/Solid}"
         }
       },
       {
@@ -1204,7 +1610,11 @@
           "Brand - S1": "{Color/Border/Active/Accent/Solid}",
           "Neutral - S2": "{Color/Border/Active/Neutral/Solid}",
           "Brand - S2": "{Color/Border/Active/Accent/Solid}",
-          "Neutral - S3": "{Color/Border/Active/Neutral/Solid}"
+          "Neutral - S3": "{Color/Border/Active/Neutral/Solid}",
+          "Neutral - S4": "{Color/Border/Active/Neutral/Solid}",
+          "Neutral - S5": "{Color/Border/Active/Neutral/Solid}",
+          "Neutral - S6": "{Color/Border/Active/Neutral/Solid}",
+          "Neutral - S7": "{Color/Border/Active/Neutral/Solid}"
         }
       },
       {
@@ -1215,7 +1625,11 @@
           "Brand - S1": "{Color/Border/Active/Accent/Solid}",
           "Neutral - S2": "{Color/Border/Active/Neutral/Solid}",
           "Brand - S2": "{Color/Border/Active/Accent/Solid}",
-          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}"
+          "Neutral - S3": "{Color/Border/Neutral/Subtle/Default}",
+          "Neutral - S4": "{Color/Border/Active/Neutral/Solid}",
+          "Neutral - S5": "{Color/Border/Active/Neutral/Solid}",
+          "Neutral - S6": "{Color/Border/Active/Neutral/Subtle}",
+          "Neutral - S7": "{Color/Border/Active/Neutral/Solid}"
         }
       },
       {
@@ -1226,7 +1640,11 @@
           "Brand - S1": "{Emphasis/Border-Weight/Active/Primary}",
           "Neutral - S2": "{Emphasis/Border-Weight/Active/Primary}",
           "Brand - S2": "{Emphasis/Border-Weight/Active/Primary}",
-          "Neutral - S3": "{Emphasis/Border-Weight/Active/Secondary}"
+          "Neutral - S3": "{Emphasis/Border-Weight/Active/Secondary}",
+          "Neutral - S4": "{Emphasis/Border-Weight/Active/Primary}",
+          "Neutral - S5": "{Emphasis/Border-Weight/Active/Primary}",
+          "Neutral - S6": "{Emphasis/Border-Weight/Active/Primary}",
+          "Neutral - S7": "{Emphasis/Border-Weight/Active/Primary}"
         }
       },
       {
@@ -1237,7 +1655,86 @@
           "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
           "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
           "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
-          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}"
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Solid/Hover}"
+        }
+      },
+      {
+        "name": "Segmented-Item-Primary/Background/Seclected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Solid/Hover}",
+          "Brand - S1": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Solid/Hover}",
+          "Brand - S2": "{Color/Background/Accent/Solid/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Solid/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Solid/Hover}"
+        }
+      },
+      {
+        "name": "Segmented-Item-Secondary/Background/Seclected/Hover",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Background/Neutral/Flat/Hover}",
+          "Brand - S1": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S2": "{Color/Background/Neutral/Flat/Hover}",
+          "Brand - S2": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S3": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S4": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S5": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S6": "{Color/Background/Neutral/Flat/Hover}",
+          "Neutral - S7": "{Color/Background/Neutral/Flat/Hover}"
+        }
+      },
+      {
+        "name": "Input/Border/Disabled",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "#FFFFFF00",
+          "Brand - S1": "#FFFFFF00",
+          "Neutral - S2": "#FFFFFF00",
+          "Brand - S2": "#FFFFFF00",
+          "Neutral - S3": "#FFFFFF00",
+          "Neutral - S4": "{Color/Border/Disabled}",
+          "Neutral - S5": "#FFFFFF00",
+          "Neutral - S6": "{Color/Border/Disabled}",
+          "Neutral - S7": "#FFFFFF00"
+        }
+      },
+      {
+        "name": "Input/Border/Focus",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "{Color/Focus/Neutral/Solid}",
+          "Brand - S1": "{Color/Focus/Neutral/Solid}",
+          "Neutral - S2": "{Color/Focus/Neutral/Solid}",
+          "Brand - S2": "{Color/Focus/Neutral/Solid}",
+          "Neutral - S3": "{Color/Focus/Neutral/Solid}",
+          "Neutral - S4": "{Color/Focus/Neutral/Solid}",
+          "Neutral - S5": "{Color/Focus/Neutral/Solid}",
+          "Neutral - S6": "{Color/Focus/Neutral/Solid}",
+          "Neutral - S7": "{Color/Focus/Neutral/Solid}"
+        }
+      },
+      {
+        "name": "Input/Border/Popover-Search",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Neutral - S1": "#FFFFFF00",
+          "Brand - S1": "#FFFFFF00",
+          "Neutral - S2": "#FFFFFF00",
+          "Brand - S2": "#FFFFFF00",
+          "Neutral - S3": "#FFFFFF00",
+          "Neutral - S4": "#FFFFFF00",
+          "Neutral - S5": "#FFFFFF00",
+          "Neutral - S6": "#FFFFFF00",
+          "Neutral - S7": "{Color/Focus/Neutral/Subtle}"
         }
       }
     ]

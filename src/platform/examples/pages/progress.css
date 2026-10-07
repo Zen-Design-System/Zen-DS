@@ -1,0 +1,16 @@
+/* Progress examples. In a column of list rows the circles line up and the percentages right-align ("62%" under
+   "100%"): each Progress-Circle takes the width of the widest label and pushes its label to the end. */
+.px-progress-circle-column { min-inline-size: 7ch; justify-content: space-between; }
+
+/* The list heading takes focus once the last large file is deleted (tabIndex -1); it keeps a focus ring, drawn on a
+   pseudo-element with room around the text instead of flush on it. */
+.px-progress-focus-target { position: relative; }
+.px-progress-focus-target:focus { outline: none; }
+.px-progress-focus-target:focus-visible::after {
+  position: absolute;
+  inset: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)) calc(-1 * var(--zen-spacing-padding-xsmall, 8px));
+  border-radius: var(--zen-corner-radius-small, 8px);
+  box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #ff66d4);
+  content: "";
+  pointer-events: none;
+}

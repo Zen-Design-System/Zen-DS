@@ -44,12 +44,12 @@ export const textStyleDefinitions = [
     "className": "zen-type-display-extra-1",
     "fontFamily": "Inter",
     "fontWeight": "Semi Bold",
-    "fontSize": 78,
+    "fontSize": 65,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -3.119999885559082
+      "value": -2.880000114440918
     },
-    "letterSpacingPercent": -4,
+    "letterSpacingPercent": -4.43,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Display",
@@ -64,12 +64,12 @@ export const textStyleDefinitions = [
     "className": "zen-type-display-extra-2",
     "fontFamily": "Inter",
     "fontWeight": "Semi Bold",
-    "fontSize": 68,
+    "fontSize": 58,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -2.7200000286102295
+      "value": -2.380000114440918
     },
-    "letterSpacingPercent": -4,
+    "letterSpacingPercent": -4.1,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Display",
@@ -84,12 +84,12 @@ export const textStyleDefinitions = [
     "className": "zen-type-display-extra-3",
     "fontFamily": "Inter",
     "fontWeight": "Semi Bold",
-    "fontSize": 60,
+    "fontSize": 51,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -2.4000000953674316
+      "value": -1.899999976158142
     },
-    "letterSpacingPercent": -4,
+    "letterSpacingPercent": -3.73,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Display",
@@ -104,12 +104,12 @@ export const textStyleDefinitions = [
     "className": "zen-type-display-1",
     "fontFamily": "Inter",
     "fontWeight": "Semi Bold",
-    "fontSize": 52,
+    "fontSize": 45,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -1.559999942779541
+      "value": -1.5199999809265137
     },
-    "letterSpacingPercent": -3,
+    "letterSpacingPercent": -3.38,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Display",
@@ -124,12 +124,12 @@ export const textStyleDefinitions = [
     "className": "zen-type-display-2",
     "fontFamily": "Inter",
     "fontWeight": "Semi Bold",
-    "fontSize": 46,
+    "fontSize": 40,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -1.3799999952316284
+      "value": -1.2100000381469727
     },
-    "letterSpacingPercent": -3,
+    "letterSpacingPercent": -3.03,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Display",
@@ -144,12 +144,12 @@ export const textStyleDefinitions = [
     "className": "zen-type-display-3",
     "fontFamily": "Inter",
     "fontWeight": "Semi Bold",
-    "fontSize": 40,
+    "fontSize": 36,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -1.2000000476837158
+      "value": -0.9800000190734863
     },
-    "letterSpacingPercent": -3,
+    "letterSpacingPercent": -2.72,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Display",
@@ -164,12 +164,12 @@ export const textStyleDefinitions = [
     "className": "zen-type-display-4",
     "fontFamily": "Inter",
     "fontWeight": "Semi Bold",
-    "fontSize": 36,
+    "fontSize": 32,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -1.0800000429153442
+      "value": -0.7599999904632568
     },
-    "letterSpacingPercent": -3,
+    "letterSpacingPercent": -2.37,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Display",
@@ -184,12 +184,12 @@ export const textStyleDefinitions = [
     "className": "zen-type-heading-1",
     "fontFamily": "Inter",
     "fontWeight": "Semi Bold",
-    "fontSize": 32,
+    "fontSize": 28,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -0.9599999785423279
+      "value": -0.5600000023841858
     },
-    "letterSpacingPercent": -3,
+    "letterSpacingPercent": -2,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Heading",
@@ -205,12 +205,12 @@ export const textStyleDefinitions = [
     "className": "zen-type-heading-2",
     "fontFamily": "Inter",
     "fontWeight": "Semi Bold",
-    "fontSize": 28,
+    "fontSize": 25,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -0.8399999737739563
+      "value": -0.5
     },
-    "letterSpacingPercent": -3,
+    "letterSpacingPercent": -2,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Heading",
@@ -226,12 +226,12 @@ export const textStyleDefinitions = [
     "className": "zen-type-heading-3",
     "fontFamily": "Inter",
     "fontWeight": "Semi Bold",
-    "fontSize": 24,
+    "fontSize": 22,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -0.7200000286102295
+      "value": -0.4399999976158142
     },
-    "letterSpacingPercent": -3,
+    "letterSpacingPercent": -2,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Heading",
@@ -250,9 +250,9 @@ export const textStyleDefinitions = [
     "fontSize": 20,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -0.6000000238418579
+      "value": -0.4000000059604645
     },
-    "letterSpacingPercent": -3,
+    "letterSpacingPercent": -2,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Heading",
@@ -271,9 +271,9 @@ export const textStyleDefinitions = [
     "fontSize": 18,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -0.5400000214576721
+      "value": -0.36000001430511475
     },
-    "letterSpacingPercent": -3,
+    "letterSpacingPercent": -2,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Heading",
@@ -517,7 +517,7 @@ export const textStyleDefinitions = [
     "className": "zen-type-caption-regular",
     "fontFamily": "Inter",
     "fontWeight": "Regular",
-    "fontSize": 10,
+    "fontSize": 11,
     "letterSpacing": {
       "unit": "PIXELS",
       "value": 0
@@ -538,7 +538,7 @@ export const textStyleDefinitions = [
     "className": "zen-type-caption-medium",
     "fontFamily": "Inter",
     "fontWeight": "Medium",
-    "fontSize": 10,
+    "fontSize": 11,
     "letterSpacing": {
       "unit": "PIXELS",
       "value": 0
@@ -559,7 +559,7 @@ export const textStyleDefinitions = [
     "className": "zen-type-caption-bold",
     "fontFamily": "Inter",
     "fontWeight": "Semi Bold",
-    "fontSize": 10,
+    "fontSize": 11,
     "letterSpacing": {
       "unit": "PIXELS",
       "value": 0
@@ -580,7 +580,7 @@ export const textStyleDefinitions = [
     "className": "zen-type-label-small-medium",
     "fontFamily": "Inter",
     "fontWeight": "Medium",
-    "fontSize": 8,
+    "fontSize": 9,
     "letterSpacing": {
       "unit": "PIXELS",
       "value": 0
@@ -600,7 +600,7 @@ export const textStyleDefinitions = [
     "className": "zen-type-label-small-bold",
     "fontFamily": "Inter",
     "fontWeight": "Semi Bold",
-    "fontSize": 8,
+    "fontSize": 9,
     "letterSpacing": {
       "unit": "PIXELS",
       "value": 0
@@ -623,9 +623,9 @@ export const textStyleDefinitions = [
     "fontSize": 16,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -0.3199999928474426
+      "value": 0
     },
-    "letterSpacingPercent": -2,
+    "letterSpacingPercent": 0,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Button",
@@ -643,9 +643,9 @@ export const textStyleDefinitions = [
     "fontSize": 14,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -0.2800000011920929
+      "value": 0
     },
-    "letterSpacingPercent": -2,
+    "letterSpacingPercent": 0,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Button",
@@ -663,9 +663,9 @@ export const textStyleDefinitions = [
     "fontSize": 14,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -0.2800000011920929
+      "value": 0
     },
-    "letterSpacingPercent": -2,
+    "letterSpacingPercent": 0,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Button",
@@ -683,9 +683,9 @@ export const textStyleDefinitions = [
     "fontSize": 14,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -0.14000000059604645
+      "value": 0
     },
-    "letterSpacingPercent": -1,
+    "letterSpacingPercent": 0,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Button",

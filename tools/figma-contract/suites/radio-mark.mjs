@@ -5,6 +5,9 @@ export default {
   kind: "radio",
   root: ".zen-radio-button__mark",
   cases: (vp) => ({ label: "Label", checked: vp.Select === "Yes", state: vp.State.toLowerCase() }),
+  figmaExceptions: [
+    { layer: "Container", prop: "fx", vp: { Select: "No" }, note: "house rule §9 (docs/component-usage-rules.md): the unselected mark sits on Neutral/Pale, so the code drops Figma\'s Shadow/Action/Basic" },
+  ],
   map: [
     { figma: "Container", dom: ".zen-radio-button__ring", check: ["size", "x", "y", "fill", "stroke", "radius", "fx"] },
     { figma: "Focus-Ring", dom: ".zen-radio-button__mark::before", check: ["size", "x", "y", "fill", "stroke", "radius"], when: (vp) => vp.State === "Hover" || vp.State === "Focus" },

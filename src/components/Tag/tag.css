@@ -20,10 +20,25 @@
   color: var(--zen-color-content-neutral-strongest, #111);
   white-space: nowrap;
 }
-.zen-tag[data-theme="leading-photo"] { padding-left: var(--zen-tag-spacing-medium-minimum-padding, 4px); }
+.zen-tag[data-tone="leading-photo"] { padding-left: var(--zen-tag-spacing-medium-minimum-padding, 4px); }
 .zen-tag:is(:hover, [data-state="hover"]):not([data-state="disabled"], [data-state="error"]) { --zen-tag-fill: var(--zen-tag-background-hover); --zen-tag-stroke: var(--zen-tag-border-hover); }
-.zen-tag:is([data-state="focused"], :has(.zen-tag__remove:focus-visible)):not([data-state="disabled"]) { --zen-tag-stroke: var(--zen-color-focus-accent-solid, #ff66d4); --zen-tag-stroke-width: 2px; }
-.zen-tag[data-state="error"] { --zen-tag-fill: var(--zen-color-background-negative-subtle-default); --zen-tag-stroke: var(--zen-color-border-negative-solid-default); }
+.zen-tag[data-interactive] { cursor: pointer; outline: none; }
+/* Selected: a clickable Tag with aria-pressed="true" (a toggle filter). Figma Tag has no Selected state (State = Default ·
+   Hover · Focused · Error · Disabled; Tag/Content/Selected exists but no variant binds it and there is no Tag background
+   for it), so it borrows the default Chip's (Secondary) selected paint: Surface fill, Border/Active 2px, Content
+   Strongest. The shadow is dropped where that fill is tinted (house rule). Focused, Error and Disabled still win. */
+.zen-tag[data-interactive][aria-pressed="true"]:not([data-state="disabled"], [data-state="error"]) {
+  --zen-tag-fill: var(--zen-chip-secondary-background-seclected-default);
+  --zen-tag-stroke: var(--zen-chip-secondary-border-selected);
+  --zen-tag-stroke-width: var(--zen-chip-secondary-border-weigth-active, 2px);
+  --zen-tag-shadow: var(--zen-chip-secondary-background-seclected-default-shadow-off, var(--zen-style-shadow-action-tertiary-shadow, 0 1px 1px 0 rgba(0, 0, 0, 0.04)));
+  color: var(--zen-chip-secondary-content-selected);
+}
+.zen-tag[data-interactive][aria-pressed="true"]:is(:hover, [data-state="hover"]):not([data-state="disabled"], [data-state="error"]) { --zen-tag-fill: var(--zen-chip-secondary-background-seclected-hover); }
+.zen-tag[data-interactive][aria-pressed="true"]:not([data-state="disabled"], [data-state="error"]) .zen-tag__leading { color: var(--zen-chip-secondary-content-selected); }
+.zen-tag:is([data-state="focused"], [data-interactive]:focus-visible, :has(.zen-tag__remove:focus-visible)):not([data-state="disabled"]) { --zen-tag-stroke: var(--zen-color-focus-accent-solid, #ff66d4); --zen-tag-stroke-width: 2px; }
+/* House rule: Negative/Subtle fill → no drop shadow (Figma Tag State=Error still has Shadow/Action/Tertiary). */
+.zen-tag[data-state="error"] { --zen-tag-fill: var(--zen-color-background-negative-subtle-default); --zen-tag-stroke: var(--zen-color-border-negative-solid-default); --zen-tag-shadow: 0 0 #0000; }
 .zen-tag[data-state="disabled"] { --zen-tag-stroke: var(--zen-color-border-disabled); --zen-tag-shadow: 0 0 #0000; backdrop-filter: none; color: var(--zen-color-content-disabled); }
 .zen-tag__label { min-width: 0; overflow: hidden; padding-inline: var(--zen-tag-spacing-medium-text-wrapper-padding, 4px); text-overflow: ellipsis; }
 .zen-tag__leading, .zen-tag__remove { display: inline-flex; width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex: 0 0 var(--zen-element-size-popular-small, 16px); align-items: center; justify-content: center; }
@@ -34,3 +49,6 @@
 .zen-tag__remove { padding: 0; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); outline: 0; background: transparent; color: var(--zen-color-content-placeholder); cursor: pointer; }
 .zen-tag[data-state="error"] .zen-tag__remove { color: var(--zen-color-content-negative-light); }
 .zen-tag__remove:disabled { cursor: not-allowed; }
+/* Hit area ≥ 24×24 (WCAG 2.5.8) around the Figma-sized glyph: an invisible, centred layer; the visual size is unchanged. */
+.zen-tag__remove { position: relative; }
+.zen-tag__remove::after { position: absolute; top: 50%; left: 50%; width: max(100%, 24px); height: max(100%, 24px); content: ""; transform: translate(-50%, -50%); }

@@ -1,0 +1,173 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "segmented",
+  "import": "import { Segmented, SegmentedItem } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Segmented",
+      "file": "src/components/Segmented/Segmented.tsx",
+      "description": "Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a Neutral/Subtle pill track (Spacing/Padding/\n2XSmall) of toggle segments, Secondary (default) or Primary, Small or Medium. An icon-only segment (Item Label=false:\n`label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "options",
+          "type": "SegmentedOption[]",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the selected option's id.",
+          "deprecated": null
+        },
+        {
+          "name": "onChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use onValueChange (same arguments)."
+        },
+        {
+          "name": "level",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"secondary\"",
+          "description": "Secondary (default) is the common case; Primary adds emphasis.",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"small\" | \"medium\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "fullWidth",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Stretch to the container and split it into equal items (mobile control bars, sheets, narrow panels).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the group (default \"Segmented control\", from the locale's labels).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "SegmentedItem",
+      "file": "src/components/Segmented/Segmented.tsx",
+      "description": "One `Primitives/Segmented/Item` (1204:11690). Without a visible label, its `aria-label` shows as the 1s name tooltip.",
+      "deprecated": null,
+      "extends": "ButtonHTMLAttributes<HTMLButtonElement>",
+      "props": [
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Leading icon: an icon name (`\"icon-grid-01-line\"`) or a node.",
+          "deprecated": null
+        },
+        {
+          "name": "badge",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Badge slot = Badge-Counter XSmall. A number/string renders the counter; pass a node to supply your own.",
+          "deprecated": null
+        },
+        {
+          "name": "level",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"secondary\"",
+          "description": "Level of the parent Segmented; selects the counter colour when this item is selected.",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"small\" | \"medium\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"disabled\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "SegmentedOption": "type SegmentedOption = { id: string; label: ReactNode; leading?: IconName | ReactNode; badge?: ReactNode; state?: SegmentedState; disabled?: boolean; \"aria-label\"?: string; }",
+    "SegmentedState": "type SegmentedState = \"default\" | \"hover\" | \"focused\" | \"disabled\""
+  }
+}

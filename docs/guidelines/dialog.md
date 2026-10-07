@@ -17,33 +17,141 @@ Interrupt to confirm a decision or deliver critical information.
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
+| Title | `title · headingLevel` | h2 by default (h1 also accepted); the style follows Figma per overlay: Dialog Heading/3, ModalForm Heading/2, never Heading/1 |
+| Actions direction | `actionsDirection` | horizontal (default) · vertical — full-width Primary → Secondary → Tertiary; Mobile is always vertical |
+| Modal/Forms | `<ModalForm layout title description side top closeButton onSubmit …actions>` | Layout basic 440 · 1-3 876 (240px side) · half-half 876 · 3-4 767 · big 960; onSubmit makes Enter / primary submit, may return a promise, and a blocked submit (fields left aria-invalid) focuses the first invalid field, as Form does |
 | Theme | `theme` | default · info · positive · warning · negative |
 | Icon | `icon` | themed 44px icon |
 | Actions | `primaryAction / secondaryAction / tertiaryAction` | Dual: Tertiary + Primary; Triple: tertiary action on the left |
 | Custom | `children` | slot between heading and actions |
 | Dismiss | `dismissible` | Escape + overlay click |
+| Device frame | `— (automatic)` | inside a [data-zen-overlay-root] frame (PlatformPhone, app device previews) Dialog and ModalForm open in that frame like Menu: the scrim fills the frame under its status bar, the panel keeps --zen-safe-area-top/-bottom clear, and the frame's width (not the viewport) picks Device=Mobile (≤ 480) / the stacked ModalForm (≤ 720) |
+
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/dialog.json`.
+
+### Dialog
+Figma Modal/Dialog (841:17177): Theme × Device. Desktop 440px, Heading/3; ≤ 480px viewport switches to the Mobile layout (10153:7277: 350 of a 390 screen, so Padding/Large side margins; Heading/4, stacked full-width actions, at the bottom clear of the safe area). Focus is trapped while open and restored to the opener on close. Inside a device frame (`[data-zen-overlay-root]`, e.g. a phone preview) it opens in that frame, and the frame's width picks the Device (an unsaved-changes guard on a phone screen).
+
+Also accepts `OverlayOpenProps`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `open` | `boolean` | — | Whether the overlay is shown: keep it in state and set it from `onOpenChange` (the exit animation then plays). Without `open` the overlay shows while it is mounted, e.g. `{show && <Dialog … />}`. |
+| `isOpen` | `boolean` | — | **Deprecated:** Use open (same meaning).  |
+| `onOpenChange` | `(open: boolean) => void` | — | Called with false on Escape, a scrim click, the close button, or an action without its own handler. |
+| `onClose` | `() => void` | — | Called at the same moments as `onOpenChange(false)`: the overlay asks to close. |
+| `title` (required) | `ReactNode` | — |  |
+| `headingLevel` | `1 \| 2 \| 3` | `2` | Heading level of the title: 2 (default, an h2), or 1 / 3 to fit the page outline. Only the tag changes, not the text style. |
+| `description` | `ReactNode` | — | Figma Caption (Body/Base/Regular, Neutral/Base). |
+| `theme` | `"default" \| "info" \| "positive" \| "warning" \| "negative"` | `"default"` |  |
+| `icon` | `boolean \| IconName \| ReactNode` | `true` | Figma Modal-Icon. Defaults to true (the theme's icon); `false` hides it; an icon name or a node replaces it. |
+| `primaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — | Primary action (Level=Primary by default). |
+| `secondaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — | Secondary action beside the primary (Level=Tertiary). |
+| `tertiaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — | Third action, placed on the far left on desktop (Button=Triple). |
+| `actionsDirection` | `"horizontal" \| "vertical"` | `"horizontal"` | Figma .Primitives/Modal/Actions `Direction`. Mobile (≤ 480px) is always vertical. |
+| `children` | `ReactNode` | — | Figma Custom slot, rendered between the heading and the actions. |
+| `dismissible` | `boolean` | `true` | Close when the overlay is clicked. Default true; set false for destructive confirmations in progress. |
+| `className` | `string` | — |  |
+
+### ModalForm
+Figma Modal/Forms (841:17182): a Container (radius Modal-Radius, Background/Container, 1px Container/Border, Effect/Container) with Header (Heading/2 + caption), Body (Main-Contents) and Footer (Modal/Actions); the 1-3, Half-Half and 3-4 layouts add a Side-Content column 4px apart. Below 720px the side column stacks above the form. Inside a device frame (`[data-zen-overlay-root]`) it opens in that frame, like Dialog. With `onSubmit` it is a `<form noValidate>` that behaves like Form: a blocked submit focuses the first invalid field and announces the count.
+
+Also accepts `OverlayOpenProps`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `open` | `boolean` | — | Whether the overlay is shown: keep it in state and set it from `onOpenChange` (the exit animation then plays). Without `open` the overlay shows while it is mounted, e.g. `{show && <Dialog … />}`. |
+| `isOpen` | `boolean` | — | **Deprecated:** Use open (same meaning).  |
+| `onOpenChange` | `(open: boolean) => void` | — | Called with false on Escape, a scrim click, the close button, or an action without its own handler. |
+| `onClose` | `() => void` | — | Called at the same moments as `onOpenChange(false)`: the overlay asks to close. |
+| `title` | `ReactNode` | — |  |
+| `headingLevel` | `1 \| 2 \| 3` | `2` | Heading level of the title: 2 (default, an h2), or 1 / 3 to fit the page outline. Only the tag changes, not the text style. |
+| `description` | `ReactNode` | — | Figma Caption (Body/Base/Regular, Neutral/Base, max 720px). |
+| `layout` | `"basic" \| "1-3" \| "half-half" \| "3-4" \| "big"` | `"basic"` | Figma `Layout`: Basic 440 · 1-3 876 (240px side) · Half-Half 876 · 3-4 767 · Big 960. |
+| `side` | `ReactNode` | — | Figma Side-Content slot (1-3, Half-Half, 3-4): an illustration, preview, steps or summary beside the form. |
+| `top` | `ReactNode` | — | Figma Top-Customize slot, rendered above the header (e.g. a Stepper or a banner). |
+| `header` | `boolean` | `true` | Figma Default-Header. |
+| `closeButton` | `boolean` | `true` | Figma Close: the 32px Button/Icon-Flat in the top-right corner. |
+| `closeLabel` | `string` | — | Accessible name of the close button. Default: the locale's “Close”. |
+| `children` | `ReactNode` | — | Figma Main-Contents slot: the form fields (gap Medium). |
+| `primaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
+| `secondaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
+| `tertiaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
+| `actionsDirection` | `"horizontal" \| "vertical"` | `"horizontal"` |  |
+| `onSubmit` | `(event: FormEvent<HTMLFormElement>) => unknown` | — | Wraps the modal in a <form noValidate>: Enter or the primary button submits; the primary action becomes type=submit. The handler may return a promise and ModalForm waits for it; then, if any field is invalid (aria-invalid, as Form reads it), focus moves to the first one and "N fields need attention" is announced, so a blocked submit lands on what needs fixing. |
+| `noValidate` | `boolean` | `true` | Skip the browser's own validation bubbles, as Form does: `required` fields don't block the submit, so `onSubmit` always runs and shows the errors under each field. Default true; only applies with `onSubmit`. |
+| `invalidMessage` | `(count: number) => string` | — | Screen-reader message after a blocked submit. Default: the locale's "1 field needs attention" / "3 fields need attention". |
+| `dismissible` | `boolean` | `true` |  |
+| `className` | `string` | — |  |
+
+### ModalActions
+Figma .Primitives/Modal/Actions (694:9383): Direction × Button (Single · Dual · Triple), Button/Main Medium, gap Small.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `primaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
+| `secondaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
+| `tertiaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
+| `direction` | `"horizontal" \| "vertical"` | `"horizontal"` | Figma `Direction`: Horizontal = [Tertiary] … [Secondary][Primary]; Vertical = full-width Primary, Secondary, Tertiary. |
+| `onDefault` | `() => void` | — | Runs for an action without its own onClick (usually closes the modal). |
+| `submitPrimary` | `boolean` | `false` | Makes the primary button submit the surrounding `<form>`. |
+| `className` | `string` | — |  |
+
+### Types
+Object shapes the props above refer to.
+
+```ts
+type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | "danger-subtle" | "positive" | "positive-subtle" | "surface" | "danger-secondary" | "positive-secondary" | "inverse" | "white" | "white-overlay" | "black-overlay"
+```
+
+## Keyboard
+| Keys | Action |
+| --- | --- |
+| (open) | Focus goes to the first field: a SelectField's trigger, or the checked radio of a RadioButton group or ColorSelector (where Tab lands); without a field, the primary action. DialogAction.autoFocus or data-autofocus starts on another control |
+| Tab / Shift+Tab | Cycle focus inside the dialog; a radio group is one Tab stop, so Shift+Tab from it wraps inside the modal |
+| Escape | Close (when dismissible) |
+| Enter | Submit a ModalForm |
 
 ## ✅ Do
+- Use ModalForm for 3–8 field create/edit flows; keep Dialog for confirmations.
+- Use actionsDirection="vertical" when the choices deserve equal weight or labels are long.
 - Phrase the title as the question ("Delete “Marketing site”?") and repeat the verb in the primary action.
-- Use theme negative + level danger for irreversible actions; give Cancel initial focus.
+- Use theme negative + level danger for irreversible actions; give Cancel initial focus with `secondaryAction={{ label: "Cancel", autoFocus: true }}` (otherwise the primary action takes it).
 - Require typing the name for high-impact deletes.
+- Keep one primary action; a third (tertiary) action sits on the left.
+- Return focus to the element that opened the dialog.
+- Overlays portal through ZenPortal: when light/dark and the other modes are set on an inner element instead of `<html>`, wrap the app in <ZenPortalProvider container={el}> with an element inside that scope, so Modal, Dialog and Side Panel follow the mode. Inside a [data-zen-overlay-root] device frame the frame wins (as for Menu).
+- On a phone screen, put the unsaved-changes guard Dialog inside the PlatformPhone (any [data-zen-overlay-root] frame): it opens in the frame, with no ZenPortalProvider layer.
+- On a phone (viewport ≤ 480px or a phone frame) Dialog uses Device=Mobile (10153:7277): 350 of 390, with 20px side margins (Padding/Large), at the bottom of the screen above the home indicator, Heading/4 title and stacked full-width actions.
+- With onSubmit, ModalForm is a <form noValidate> like Form. Validate in onSubmit and set each field's `error`; `required` alone never blocks the submit. A blocked submit focuses the first invalid field and announces "N fields need attention" (invalidMessage overrides the text).
 
 ## ❌ Don't
 - Don't stack dialogs.
 - Don't use a dialog for information the user can ignore.
 - Don't hide the only way out (always Escape or a cancel action).
+- Don't open a dialog from a dialog (harness: dialog/no-nested).
+- Don't open a dialog on page load without a user action.
+- Don't rely on the browser's required bubbles in a ModalForm. They are off by default; noValidate={false} only when you deliberately hand validation to the browser.
 
 ## Accessibility
 - role=dialog/alertdialog, aria-modal, labelled by the title; focus is trapped and restored to the opener.
+- Escape closes the innermost open thing: an open Select list, date picker, Menu or Popover inside the modal closes first (it calls preventDefault, or the focused control has aria-expanded="true" with aria-haspopup / role=combobox), the next Escape closes the modal. With a modal over a modal (an unsaved-changes guard over a ModalForm) only the topmost one answers Escape and traps Tab.
+- Motion: enters with the emphasized curve (Slow 280ms) and exits faster (Base/160–200ms, exit curve); while closing it is inert and focus has already returned to the opener; prefers-reduced-motion removes the animation and the exit delay.
 
 ## Content
 - Title ≤ 1 line; description states the consequence.
+- Title the overlay through its title prop: an h2 by default (h1 is also accepted), in the overlay's own Figma style, never Heading/1. It is compared only with headings inside the overlay, not with the page behind.
 
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `dialog/needs-title` | error | Dialogs always have a title. | `zen-allow-dialog-title: <reason>` |
 | `dialog/negative-uses-danger` | error | A negative (destructive) dialog's primary action uses level danger. | `zen-allow-dialog-danger: <reason>` |
+| `dialog/no-nested` | error | Never stack dialogs: a Dialog does not open another Dialog. | `zen-allow-nested-dialog: <reason>` |
+| `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
+| `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 
 ## References
 - [WAI-ARIA APG — Dialog (modal)](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/)

@@ -1,0 +1,203 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "search",
+  "import": "import { Search } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "Search",
+      "file": "src/components/Search/Search.tsx",
+      "description": "",
+      "deprecated": null,
+      "extends": "Omit<InputHTMLAttributes<HTMLInputElement>, \"size\">",
+      "props": [
+        {
+          "name": "variant",
+          "type": "\"default\" | \"popover\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "`popover` is Figma Search/Popover: always Small, Corner-Radius/Input/Medium, no focus ring. Its border is\nInput/Border/Default (Hover: Input/Border/Hover), visible only in outlined component themes (Neutral S4, S6);\nFocused/Typing use Input/Border/Popover-Search, visible only in Neutral S7. `size` is ignored.",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"small\" | \"medium\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Optional Input label above the field; when set it also names the input.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"default\" | \"filter-icon\" | \"filter-dropdown\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"typing\" | \"inputted\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "iconSearch",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Figma's `Icon-Search` property.",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Replaces the search icon: an icon name (`\"icon-filter-lines-line\"`, sized to the field) or any node.",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Replaces the whole trailing group (clear button, shortcut, filter): an icon name (sized to the field) or any node.",
+          "deprecated": null
+        },
+        {
+          "name": "clearable",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Shows the Figma Inputted clear affordance when the field has a value.",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the text on every change, and with \"\" when the clear button empties the field.",
+          "deprecated": null
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "What is searched (\"Search members\"); also the accessible name without `label`/`aria-label`. Default: the locale's \"Search\".",
+          "deprecated": null
+        },
+        {
+          "name": "filterLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Label paired with the chevron in the Filter-Dropdown variant. Default: the locale's \"All\".",
+          "deprecated": null
+        },
+        {
+          "name": "filterInteractive",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Filter-Icon / Filter-Dropdown trailing is an `InputLeadingTrailing`: clickable by default, `false` makes it decorative.",
+          "deprecated": null
+        },
+        {
+          "name": "onFilterClick",
+          "type": "(event: MouseEvent<HTMLButtonElement>) => void",
+          "required": false,
+          "default": null,
+          "description": "Action for the filter affordance (e.g. open a filter panel or your own menu).",
+          "deprecated": null
+        },
+        {
+          "name": "filterHasPopup",
+          "type": "ButtonHTMLAttributes<HTMLButtonElement>[\"aria-haspopup\"]",
+          "required": false,
+          "default": null,
+          "description": "`aria-haspopup` of the filter affordance when `onFilterClick` opens your own surface: `\"dialog\"` for a Bottom Sheet,\n Side Panel or Modal, `\"menu\"` or `\"listbox\"` for a menu or Popover list. Filter-Dropdown with `filterOptions`\n manages its own listbox and ignores it. (`aria-haspopup` on Search itself goes to the input.)",
+          "deprecated": null
+        },
+        {
+          "name": "filterExpanded",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "`aria-expanded` of that filter affordance: whether the surface it opens is open now. Pair it with `filterHasPopup`.",
+          "deprecated": null
+        },
+        {
+          "name": "filterOptions",
+          "type": "InputLeadingTrailingOption[]",
+          "required": false,
+          "default": null,
+          "description": "Filter-Dropdown picker: options open the shared Popover and replace `filterLabel` with the selected label.",
+          "deprecated": null
+        },
+        {
+          "name": "filterValue",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onFilterChange",
+          "type": "(value: string, option: InputLeadingTrailingOption) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "filterActionLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name / Popover heading for the filter affordance. Default: the locale's \"Filter\".",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Search/Default is a `.Primitives/Input/Field-Only` instance, so Disabled is Field-Only State=Disabled\n(Input/Border/Disabled, Content/Disabled text) with its Leading/Trailing at Active=No. The clear button and the\nshortcut hint are hidden and the filter is locked. Use it when searching is unavailable for a reason the page shows.",
+          "deprecated": null
+        },
+        {
+          "name": "shortcut",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Keyboard shortcut key shown as `⌘K` in the trailing slot (Figma Side-Bar Small-Density search); pressing\n⌘/Ctrl + key focuses the field. Hidden while the field has a value (the clear button takes the slot).",
+          "deprecated": null
+        },
+        {
+          "name": "onClear",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "InputLeadingTrailingOption": "type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: ReactNode; icon?: IconName | ReactNode; flag?: ReactNode; }"
+  }
+}

@@ -55,124 +55,124 @@
         "name": "Typography/Font-Size/Display-1",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 52,
+          "Dashboard": 45,
           "Popular": 60,
-          "Mobile": 57
+          "Mobile": 52
         }
       },
       {
         "name": "Typography/Line-Height/Display-1",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 60,
+          "Dashboard": 52,
           "Popular": 68,
-          "Mobile": 64
+          "Mobile": 60
         }
       },
       {
         "name": "Typography/Letter-Spacing/Display-1",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": -1.559999942779541,
+          "Dashboard": -1.5199999809265137,
           "Popular": -3,
-          "Mobile": -1.7100000381469727
+          "Mobile": -2.0799999237060547
         }
       },
       {
         "name": "Typography/Font-Size/Display-2",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 46,
+          "Dashboard": 40,
           "Popular": 52,
-          "Mobile": 50
+          "Mobile": 46
         }
       },
       {
         "name": "Typography/Line-Height/Display-2",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 52,
+          "Dashboard": 44,
           "Popular": 60,
-          "Mobile": 56
+          "Mobile": 52
         }
       },
       {
         "name": "Typography/Letter-Spacing/Display-2",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": -1.3799999952316284,
+          "Dashboard": -1.2100000381469727,
           "Popular": -2.0799999237060547,
-          "Mobile": -1.5
+          "Mobile": -1.840000033378601
         }
       },
       {
         "name": "Typography/Font-Size/Display-3",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 40,
+          "Dashboard": 36,
           "Popular": 46,
-          "Mobile": 44
+          "Mobile": 41
         }
       },
       {
         "name": "Typography/Line-Height/Display-3",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 48,
+          "Dashboard": 44,
           "Popular": 52,
-          "Mobile": 52
+          "Mobile": 48
         }
       },
       {
         "name": "Typography/Letter-Spacing/Display-3",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": -1.2000000476837158,
+          "Dashboard": -0.9800000190734863,
           "Popular": -1.840000033378601,
-          "Mobile": -1.3200000524520874
+          "Mobile": -1.6399999856948853
         }
       },
       {
         "name": "Typography/Font-Size/Display-4",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 36,
+          "Dashboard": 32,
           "Popular": 40,
-          "Mobile": 39
+          "Mobile": 36
         }
       },
       {
         "name": "Typography/Line-Height/Display-4",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 44,
+          "Dashboard": 40,
           "Popular": 48,
-          "Mobile": 48
+          "Mobile": 44
         }
       },
       {
         "name": "Typography/Letter-Spacing/Display-4",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": -1.0800000429153442,
+          "Dashboard": -0.7599999904632568,
           "Popular": -1.600000023841858,
-          "Mobile": -1.1699999570846558
+          "Mobile": -1.0800000429153442
         }
       },
       {
         "name": "Typography/Font-Size/Heading-1",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 32,
+          "Dashboard": 28,
           "Popular": 36,
-          "Mobile": 34
+          "Mobile": 32
         }
       },
       {
         "name": "Typography/Line-Height/Heading-1",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 40,
+          "Dashboard": 36,
           "Popular": 44,
           "Mobile": 40
         }
@@ -181,9 +181,9 @@
         "name": "Typography/Letter-Spacing/Heading-1",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": -0.9599999785423279,
+          "Dashboard": -0.5600000023841858,
           "Popular": -1.2599999904632568,
-          "Mobile": -1.0199999809265137
+          "Mobile": -0.9599999785423279
         }
       },
       {
@@ -201,14 +201,14 @@
         "valuesByMode": {
           "Dashboard": 28,
           "Popular": 32,
-          "Mobile": 28
+          "Mobile": 32
         }
       },
       {
         "name": "Typography/Letter-Spacing/Heading-4",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": -0.6000000238418579,
+          "Dashboard": -0.4000000059604645,
           "Popular": -0.7200000286102295,
           "Mobile": -0.6899999976158142
         }
@@ -228,14 +228,14 @@
         "valuesByMode": {
           "Dashboard": 24,
           "Popular": 28,
-          "Mobile": 24
+          "Mobile": 28
         }
       },
       {
         "name": "Typography/Letter-Spacing/Subheading",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": -0.5400000214576721,
+          "Dashboard": -0.36000001430511475,
           "Popular": -0.6000000238418579,
           "Mobile": -0.6000000238418579
         }
@@ -298,16 +298,16 @@
         "name": "Typography/Font-Size/Caption",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 10,
+          "Dashboard": 11,
           "Popular": 12,
-          "Mobile": 12
+          "Mobile": 13
         }
       },
       {
         "name": "Typography/Line-Height/Caption",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 12,
+          "Dashboard": 16,
           "Popular": 16,
           "Mobile": 16
         }
@@ -325,9 +325,9 @@
         "name": "Typography/Font-Size/Label-Small",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 8,
+          "Dashboard": 9,
           "Popular": 10,
-          "Mobile": 9
+          "Mobile": 10
         }
       },
       {
@@ -370,9 +370,9 @@
         "name": "Typography/Letter-Spacing/Button-Label-L",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": -0.2800000011920929,
+          "Dashboard": 0,
           "Popular": -0.3199999928474426,
-          "Mobile": -0.3199999928474426
+          "Mobile": 0
         }
       },
       {
@@ -397,9 +397,9 @@
         "name": "Typography/Letter-Spacing/Button-Label-M",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": -0.2800000011920929,
+          "Dashboard": 0,
           "Popular": -0.3199999928474426,
-          "Mobile": -0.3199999928474426
+          "Mobile": 0
         }
       },
       {
@@ -424,9 +424,9 @@
         "name": "Typography/Letter-Spacing/Button-Label-S",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": -0.14000000059604645,
+          "Dashboard": 0,
           "Popular": -0.3199999928474426,
-          "Mobile": -0.1599999964237213
+          "Mobile": 0
         }
       },
       {
@@ -444,7 +444,7 @@
         "valuesByMode": {
           "Dashboard": 12,
           "Popular": 16,
-          "Mobile": 16
+          "Mobile": 14
         }
       },
       {
@@ -514,7 +514,7 @@
         "name": "Typography/Font-Size/Heading-3",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 24,
+          "Dashboard": 22,
           "Popular": 28,
           "Mobile": 26
         }
@@ -523,16 +523,16 @@
         "name": "Typography/Line-Height/Heading-3",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 32,
+          "Dashboard": 28,
           "Popular": 36,
-          "Mobile": 32
+          "Mobile": 36
         }
       },
       {
         "name": "Typography/Letter-Spacing/Heading-3",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": -0.7200000286102295,
+          "Dashboard": -0.4399999976158142,
           "Popular": -0.8399999737739563,
           "Mobile": -0.7799999713897705
         }
@@ -559,25 +559,25 @@
         "name": "Typography/Letter-Spacing/Button-Label-XL",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": -0.3199999928474426,
+          "Dashboard": 0,
           "Popular": -0.4000000059604645,
-          "Mobile": -0.36000001430511475
+          "Mobile": 0
         }
       },
       {
         "name": "Typography/Font-Size/Heading-2",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 28,
+          "Dashboard": 25,
           "Popular": 32,
-          "Mobile": 30
+          "Mobile": 29
         }
       },
       {
         "name": "Typography/Line-Height/Heading-2",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 36,
+          "Dashboard": 32,
           "Popular": 40,
           "Mobile": 36
         }
@@ -586,9 +586,9 @@
         "name": "Typography/Letter-Spacing/Heading-2",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": -0.8399999737739563,
+          "Dashboard": -0.5,
           "Popular": -0.9599999785423279,
-          "Mobile": -0.8999999761581421
+          "Mobile": -0.8700000047683716
         }
       },
       {
@@ -615,88 +615,88 @@
         "valuesByMode": {
           "Dashboard": -0.1599999964237213,
           "Popular": -0.36000001430511475,
-          "Mobile": -0.18000000715255737
+          "Mobile": -0.27000001072883606
         }
       },
       {
         "name": "Typography/Font-Size/Display-Extra-1",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 78,
+          "Dashboard": 65,
           "Popular": 88,
-          "Mobile": 85
+          "Mobile": 74
         }
       },
       {
         "name": "Typography/Line-Height/Display-Extra-1",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 88,
+          "Dashboard": 72,
           "Popular": 100,
-          "Mobile": 96
+          "Mobile": 84
         }
       },
       {
         "name": "Typography/Letter-Spacing/Display-Extra-1",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": -3.119999885559082,
+          "Dashboard": -2.880000114440918,
           "Popular": -3.5199999809265137,
-          "Mobile": -3.4000000953674316
+          "Mobile": -3.2699999809265137
         }
       },
       {
         "name": "Typography/Font-Size/Display-Extra-2",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 68,
+          "Dashboard": 58,
           "Popular": 78,
-          "Mobile": 75
+          "Mobile": 66
         }
       },
       {
         "name": "Typography/Line-Height/Display-Extra-2",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 72,
+          "Dashboard": 60,
           "Popular": 88,
-          "Mobile": 80
+          "Mobile": 70
         }
       },
       {
         "name": "Typography/Letter-Spacing/Display-Extra-2",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": -2.7200000286102295,
+          "Dashboard": -2.380000114440918,
           "Popular": -3.119999885559082,
-          "Mobile": -3
+          "Mobile": -2.700000047683716
         }
       },
       {
         "name": "Typography/Font-Size/Display-Extra-3",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 60,
+          "Dashboard": 51,
           "Popular": 68,
-          "Mobile": 66
+          "Mobile": 58
         }
       },
       {
         "name": "Typography/Line-Height/Display-Extra-3",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": 68,
+          "Dashboard": 58,
           "Popular": 72,
-          "Mobile": 76
+          "Mobile": 66
         }
       },
       {
         "name": "Typography/Letter-Spacing/Display-Extra-3",
         "type": "FLOAT",
         "valuesByMode": {
-          "Dashboard": -2.4000000953674316,
+          "Dashboard": -1.899999976158142,
           "Popular": -2.7200000286102295,
-          "Mobile": -2.640000104904175
+          "Mobile": -2.319999933242798
         }
       },
       {

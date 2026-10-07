@@ -22,14 +22,54 @@ Name or briefly describe a control on hover and keyboard focus.
 | Open | `open` | controlled (e.g. "Copied!") |
 | Delay | `delay` | hover delay, focus is immediate |
 
+## Props
+Generated from the TypeScript source; full JSON in `docs/api/tooltip.json`.
+
+### Tooltip
+Shows a TooltipSurface next to its trigger on hover (after `delay`) and keyboard focus; Escape dismisses.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `content` (required) | `ReactNode` | — | Tooltip text. Keep it short and non-interactive; use Popover for rich content. |
+| `children` (required) | `ReactElement` | — | A single focusable element (Button, IconButton, link…). It receives aria-describedby. |
+| `color` | `"default" \| "accent" \| "white-overlay" \| "black-overlay"` | `"default"` |  |
+| `size` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `placement` | `"top" \| "bottom" \| "left" \| "right"` | `"top"` |  |
+| `delay` | `number` | `1000` | Hover delay in ms before showing (focus shows immediately). Zen rule: 1s (`TOOLTIP_HOVER_DELAY`). |
+| `open` | `boolean` | — | Controlled visibility; omit for hover/focus behavior. |
+| `disabled` | `boolean` | `false` |  |
+| `className` | `string` | — |  |
+
+### TooltipSurface
+Figma Tooltip (1595:2220): Color × Size bubble with the Simple-Label primitive (Caption/Medium).
+
+Also accepts `HTMLAttributes<HTMLSpanElement>`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `color` | `"default" \| "accent" \| "white-overlay" \| "black-overlay"` | `"default"` |  |
+| `size` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `children` (required) | `ReactNode` | — |  |
+
+## Keyboard
+| Keys | Action |
+| --- | --- |
+| Tab (focus) | Show the tooltip |
+| Escape | Hide the tooltip |
+
 ## ✅ Do
 - Wrap a focusable trigger (Button, IconButton, link).
 - Keep text under ~80 characters, no punctuation for single phrases.
 - Use Accent briefly for confirmations ("Copied!").
+- Explain disabled controls in visible text; a disabled control can't be focused to reveal a tooltip.
+- Use a 1s hover delay (TOOLTIP_HOVER_DELAY, the default) and show at once on keyboard focus; moving to a neighbouring control within 600ms opens its tooltip without waiting.
+- Icon-only controls get their name tooltip for free (IconButton, Top/Bottom Navigation actions, close and remove buttons); add an explicit `<Tooltip>` only for a longer hint — the built-in one then stays silent.
 
 ## ❌ Don't
 - Don't put links or buttons inside a tooltip.
 - Don't repeat the visible label word for word.
+- Don't wrap a disabled control (harness: tooltip/disabled-trigger).
+- Don't use a tooltip on touch-first surfaces or for error messages.
 
 ## Accessibility
 - role=tooltip linked with aria-describedby; Escape dismisses; appears on focus.
@@ -42,6 +82,9 @@ Name or briefly describe a control on hover and keyboard focus.
 | --- | --- | --- | --- |
 | `tooltip/focusable-trigger` | error | Tooltips wrap a focusable element so keyboard users can reach them. | `zen-allow-tooltip-trigger: <reason>` |
 | `tooltip/short` | warn | Tooltip text stays under ~80 characters and holds no interactive content. | `zen-allow-tooltip-length: <reason>` |
+| `tooltip/no-interactive-content` | error | Tooltip content is plain text: no buttons, links or handlers (it disappears on blur). | `zen-allow-tooltip-content: <reason>` |
+| `tooltip/disabled-trigger` | warn | A disabled control cannot receive focus, so a tooltip on it is unreachable by keyboard; explain the reason inline. | `zen-allow-tooltip-disabled: <reason>` |
+| `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 
 ## References
 - [WAI-ARIA APG — Tooltip](https://www.w3.org/WAI/ARIA/apg/patterns/tooltip/)
