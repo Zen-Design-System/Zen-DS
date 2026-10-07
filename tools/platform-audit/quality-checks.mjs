@@ -282,6 +282,10 @@ export function qualityChecks({ scopeSel, regionSel }) {
       for (const kid of kids) {
         if (legacy) break;
         if (!visible(kid)) continue;
+        // A modal overlay (AppShell's drawer, its modal aside) is inset from the viewport, not from the preview frame
+        // that holds it in the docs (batch A2: the aside renders in place, as the drawer does): no concentric pair.
+        const overlay = kid.closest(".zen-side-panel-overlay, .zen-app-shell__overlay");
+        if (overlay && !outer.closest(".zen-side-panel-overlay, .zen-app-shell__overlay") && outer.contains(overlay)) continue;
         const interactive = kid.matches("button, a[href], [role='button'], [role='option'], [role='menuitem'], .zen-list-item, .zen-card");
         if (!(paints(kid) || interactive)) continue;
         const ks = getComputedStyle(kid); const kr = kid.getBoundingClientRect();

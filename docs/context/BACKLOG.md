@@ -476,7 +476,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
     - The "Who's out" chips wrap onto 2 lines.
     - Delete task cannot be reached on a phone.
 - **From the example polish pass + its gate (2026-10-01) — RESOLVED 2026-10-01/02 (components, platform.css, data.ts, audit tools by "Add audit check…"). ~~Still open: useChatDemo Delete has a confirm but no Undo toast yet (partly)~~ Undo done (checked 2026-10-07, backlog sweep: chatDemo.tsx:61-73 deleteWithUndo); every line below is closed:**
-  - **P3 · rhythm "> 7 text styles in one example"** flags full screens and their overlays: App Shell Banner and HR
+  - **P3 · rhythm "> 7 text styles in one example"** flags full screens and their overlays (since batch A2 also App Shell "Side panel toggled": the modal aside now renders in the frame): App Shell Banner and HR
     workspace, the Detail, HR Home and HR Expense overview templates, and the My expenses / My leaves panels. A real page
     uses 8 styles (h1, h4, Subheading, body regular/medium/bold, small, caption). Exempt `screen: true` examples and
     templates, or raise their limit.
@@ -509,7 +509,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   and on the rerun.
   Seen again 2026-10-05 (gate .qa/reports/2026-10-04T18-19-01-8298399d.md, TopNavigation dual action); a manual click
   on Hana Kim opens the thread with its header, so the probe likely races the open (peers' HMR running at the time). Again
-  2026-10-05 (.qa/reports/2026-10-04T18-56-56-1c7e4092.md, Chat composer radius, CSS only). **Sweep 2026-10-07:** done: the flaky scale test renders inside `pointerEvents: "none"` (tests/scale.test.tsx:58). Still open: the probe should skip the already-open "Hana Kim" row.
+  2026-10-05 (.qa/reports/2026-10-04T18-56-56-1c7e4092.md, Chat composer radius, CSS only). **Sweep 2026-10-07:** done: the flaky scale test renders inside `pointerEvents: "none"` (tests/scale.test.tsx:58). Still open: the probe should skip the already-open "Hana Kim" row. Same class (batch A2 gate): app-shell@1512 "Search in the top bar" — the bell "Activity, new" goes to the Activity page the probe already opened through the Sidebar, so it changes nothing.
 - P2 (2026-10-03, session "Slot Component phân biệt"): Figma file — set `Bubble-Chat-Others-Business/Background/Default`
   to Color/Background/Surface/Default in all nine Component Theme modes (repo changed at the user's request); the next
   Component Theme sync reverts it otherwise.

@@ -208,8 +208,8 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section { gap: 0; }
 /* Figma HR Sidebar-List Expand=No (7373:57684): the rail's groups sit Spacing/Gap/XSmall (8px) apart and each later
    group opens with a 1px Divider as wide as an item (44px), 2px above its first item. */
-.zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section + .zen-sidebar__section { position: relative; margin-top: var(--zen-spacing-gap-xsmall, 8px); padding-top: calc(1px + var(--zen-spacing-gap-3-xsmall, 2px)); }
-.zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section + .zen-sidebar__section::before { position: absolute; top: 0; left: 50%; width: calc(var(--zen-element-size-popular-base, 20px) + 2 * var(--zen-sidebar-item-padding, 12px)); height: 1px; background: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); content: ""; transform: translateX(-50%); }
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section + .zen-sidebar__section { margin-top: var(--zen-spacing-gap-xsmall, 8px); gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section + .zen-sidebar__section::before { width: calc(var(--zen-element-size-popular-base, 20px) + 2 * var(--zen-sidebar-item-padding, 12px)); height: 1px; justify-self: center; background: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); content: ""; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__footer { padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__footer-content > button { justify-content: center; gap: 0; padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
 /* The rail hides the footer buttons' label span visually only: it stays in the accessibility tree, so an app's
