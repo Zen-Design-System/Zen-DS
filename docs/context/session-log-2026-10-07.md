@@ -334,3 +334,10 @@
   stay open with a note until the batch 5b gate passes.
 - New: P2 qa step ④ reads only *Showcases.tsx and appLayer/ (run.mjs:456, lib.mjs:227), so pages in examples/pages
   skip the coverage matrix; P3 stale leftovers (a layout.tsx comment, a DetailTemplate zen-allow, stale baselines).
+
+## Backlog batch 8: decisions (session "Studio builder tool planning", tier XS)
+
+- 61 questions from the sweep's DECISION rows, each with a recommendation; the user took every recommendation.
+- BACKLOG.md: 12 rows closed ("Closed (2026-10-07, user decision in backlog batch 8: …)"); the others carry
+  "Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8): … → batch N". No recommendation, still open: the Code
+  Connect seat (Org/Enterprise) and package publishing; the nine designer questions are unchanged.
