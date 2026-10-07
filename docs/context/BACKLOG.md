@@ -199,7 +199,7 @@ Read this file only when picking up work or logging a follow-up.
   `sidebar/untitled-section`: a `sections` entry after the first without `label` (renders a bare 16px gap); fixtures
   in `tools/usage-guard/fixtures`. (2) Titled one-item groups await the user's call (merge or keep):
   `appLayer/navigation.tsx` "Workspace › Settings", `examples/pages/alert-banner.tsx` "Workspace › Billing",
-  `appLayer/shellScreens.tsx` "Settings › Roles & access". **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** (2) one-item groups lose their title (merged) → batch 6b.
+  `appLayer/shellScreens.tsx` "Settings › Roles & access". **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** (2) one-item groups lose their title (merged) → batch 6b · **Done 2026-10-07 (batch 6b)** (navigation.tsx, alert-banner.tsx, shellScreens.tsx).
 - **P3 · Sidebar rail follow-ups (2026-10-06, found by "Sidebar rail align", not changed):** (1) App Shell example
   screens (`src/platform/appLayer/shellScreens.tsx` People/Time off/Settings, `shell.tsx`) pass `brand` without
   `logoCollapsed`: their rails are 84px (fallback, centred) vs 88px on the Modules screen. (2) HR module rails turn
@@ -392,10 +392,10 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     and Files use "full" (+4 snippets); Home and Notifications keep lg. (The Studio draft that held it was discarded.)
   - **P3 · Harness rule:** flag a bare `<Container>` whose subtree holds a non-Card Table (new rule = new scope).
   - **P3 · HR · Home** is the only HR page still capped at lg; moving Home → a table page shifts the content edge above
-    ~1500px. Decide whether app shells use one width. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** HR · Home uses `maxWidth="full"` like the other HR pages → batch 6b.
+    ~1500px. Decide whether app shells use one width. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** HR · Home uses `maxWidth="full"` like the other HR pages → batch 6b · **Done 2026-10-07 (batch 6b)** (HrHomeTemplate.tsx).
   - **P3 · Wide side content:** tabs › Project sections Overview DescriptionList card, My leaves Next leave card and
     Empty/Error InlineMessage now span up to ~2250px; layout › Main column and aside: the 1/3 aside grows too (fixed
-    track option). Cap them if they read too wide. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** side content is capped at `xl` → batch 6b.
+    track option). Cap them if they read too wide. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** side content is capped at `xl` → batch 6b · **Done 2026-10-07 (batch 6b)** (Box/Grid maxWidth 1440: tabs Overview card, layout Main column and aside, HR My leaves Next leave, EmptyError InlineMessage).
   - **Done 2026-10-07 (backlog batch 4: the table use case widens its stage to min(680px, 100%)):** ~~**P3 · Visually Hidden playground** table: the 520px stage + 64px star column cuts off the Archive column.~~
   - **Done 2026-10-07 (backlog batch 4):** ~~**P3 · HrPublicHolidayTemplate** section heading is `<Heading level={2}>` without textStyle Heading/4.~~
 
@@ -440,7 +440,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     the last scale instead of 1, or measure a host whose width does not depend on the phone.
   - **P3 · Mobile templates take a full row:** `appLayer/templates.tsx` sets `wide: true` for every template, so the
     two phone templates (Mobile list · Orders, Mobile detail · Order) sit centred in a 1064px grey stage; `wide:
-    !template.mobile` would put them two per row like the other phone examples (needs the user's OK). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** phone templates use `wide: !template.mobile` → batch 6b.
+    !template.mobile` would put them two per row like the other phone examples (needs the user's OK). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** phone templates use `wide: !template.mobile` → batch 6b · **Done 2026-10-07 (batch 6b)** (appLayer/templates.tsx).
   - **P3 · Phone on fractional pixels:** the fit box is `spec.width * scale` (e.g. 323.02px), so centred phones land on
     half pixels (1px gap differences, anti-aliasing in element screenshots); round the fit size in PlatformPhone.
   - ~~**P2 · Detach ListItem after the ListItem refactor (2026-10-03, session "Component List Item refactor"):**
@@ -1227,17 +1227,17 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   `src/platform/PlatformExamples.tsx:635` avatar/solid-initials-contrast (white initials on Solid green in a playground);
   the same run saw one file rendering from an unsaved Studio draft on 5173 (gone a minute later, not this session's).
 - P3 (2026-10-05, seen in the 390 contact sheets of session 2984c6e6, not from its token change): Table at 390 cuts the
-  Assignee column without an ellipsis — Badge › Task status ("Em I", "Alex") and Button › Page actions ("Chi Trar", "Bao Ngı"). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** the two examples are adapted for 390 → batch 6b.
+  Assignee column without an ellipsis — Badge › Task status ("Em I", "Alex") and Button › Page actions ("Chi Trar", "Bao Ngı"). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** the two examples are adapted for 390 → batch 6b · **Done 2026-10-07 (batch 6b)** (badge Task status and button Page actions: assignee in the task caption on a phone).
 - P3 (2026-10-06, session "Canvas và surface mặc định", usage rules §16): **audit check for the default pairing** —
   proposal, needs the user's OK and the tools/qa owner: in `tools/platform-audit/audit.mjs`, warn on a Surface/Default
   box whose backdrop is the Canvas/Default stage and that carries a closed border or a drop shadow, outside phones,
   shells, Surface-in-Surface, clickable (`data-interactive`) and selected cards. Today §16 is documented only. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** the audit check is approved → batch 9 (tooling).
 - P3 (2026-10-06, same session): **playground stages** still paint Neutral/Pale
   (`.platform-example-panel--stack > .platform-input-preview`, platform.css ~369; `.platform-example-row` beside it):
-  decide whether playgrounds follow §16 (Canvas/Default) like the example stages. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** playground stages follow §16 → batch 6b.
+  decide whether playgrounds follow §16 (Canvas/Default) like the example stages. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** playground stages follow §16 → batch 6b · **Done 2026-10-07 (batch 6b)** (platform.css .platform-input-preview → Canvas/Default).
 - P3 (2026-10-06, same session): **phone screens** paint Surface/Default (PlatformPhone), a white page, so cards in
   phones keep §11 borders (card Choose on a phone, progress Loyalty stamps, metric Drill in on a phone): decide whether
-  phone examples should default to Canvas/Default too. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** phone screens default to Canvas/Default → batch 6b.
+  phone examples should default to Canvas/Default too. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** phone screens default to Canvas/Default → batch 6b · **Done 2026-10-07 (batch 6b)** (PlatformPhone default; canvas="surface" for a white screen).
 - P3 (2026-10-06, same session): **elevation in shells** — alert-banner Billing card (`alert-banner.tsx` ~134,
   theme border) and breadcrumbs Top bar trail card (`breadcrumbs.tsx` ~201, theme border) sit in AppShells on
   Canvas/Default: check each Sidebar's style; a shadowed Sidebar means Shadow cards (elevation follows the Sidebar).

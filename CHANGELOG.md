@@ -875,6 +875,10 @@ removed (four unused colour ramps were, see Removed).
     which still bleeds outside the trail).
 
 ### Changed
+- **Docs platform examples (2026-10-07, backlog batch 6b):** phone screens and playground stages paint Canvas/Default
+  (§16; `PlatformPhone canvas="surface"` keeps a white screen); one-item Sidebar groups lose their title; HR · Home is
+  full width like the other HR pages, and side content on full-width pages stops at 1440px; the phone templates sit
+  two per row; the Badge and Button task tables fold the assignee into the task caption on a phone.
 - **Component decisions of backlog batch 8 (2026-10-07, batch 6):** `TableMedia` defaults to `bold={false}` like every
   Figma media cell — **behaviour change**: pass `bold` to keep a bold label. PageHeader `headingLevel={2}` renders
   Heading/4 (the house ladder's h2). AiChatField (all styles) and the chat composer take the standard Input focus ring.
