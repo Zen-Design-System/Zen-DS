@@ -612,6 +612,9 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **BottomSheet in a device frame (2026-10-07):** like Dialog and Menu, a BottomSheet inside a `[data-zen-overlay-root]`
+  frame (PlatformPhone, an app's device preview) now opens in that frame instead of over the whole page; `inline` is
+  only needed elsewhere. DatePicker's stacked month titles are `<h3>` headings under the sheet's title.
 - **MCP `get_component` is brief by default (2026-10-07):** the props of the component you name, Do/Don't, keyboard,
   accessibility and the rule ids, without the Figma mapping, node ids or the rule table (under half the size);
   `detail: "full"` returns the whole guideline. CI's Package step works again: `verify:package` found npm's JSON
