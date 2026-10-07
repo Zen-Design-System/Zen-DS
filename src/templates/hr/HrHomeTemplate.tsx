@@ -435,7 +435,8 @@ export function HrHomeTemplate() {
   return (
     <HrShell module="home" onNavigate={navigate} aside={aside}>
       <VisuallyHidden as="h1">Home</VisuallyHidden>
-      <Container>
+      {/* Full width like the other HR pages (backlog batch 6b, user 2026-10-07). */}
+      <Container maxWidth="full">
         <Stack gap="xl" paddingY="sm">
           {/* Zen AI: the greeting, a short thread once Alex asks, and the prompt. */}
           <AiChatBlock greeting={`${greeting}, ${me.name.split(" ")[0]}. How can I help?`} suggestions={suggestions}>

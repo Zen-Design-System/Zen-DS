@@ -341,9 +341,12 @@ export function EmptyErrorTemplate() {
     );
   } else if (request.status === "failed") {
     content = (
-      <InlineMessage theme="negative" title="Couldn't load projects" action={{ label: "Try again", onClick: retry }}>
-        The server didn't respond in time. Your projects are safe.
-      </InlineMessage>
+      // Side content stops at xl (1440px) on the full-width page (backlog batch 6b).
+      <Box maxWidth={1440}>
+        <InlineMessage theme="negative" title="Couldn't load projects" action={{ label: "Try again", onClick: retry }}>
+          The server didn't respond in time. Your projects are safe.
+        </InlineMessage>
+      </Box>
     );
   } else if (firstUse) {
     content = (

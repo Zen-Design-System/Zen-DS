@@ -92,5 +92,5 @@ export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = keepOnHotU
 });
 
 export const examples: ExampleMap = keepOnHotUpdate(import.meta.hot, "examples", {
-  templates: templates.map((template) => ({ title: template.title, description: `${template.description} File: ${template.file}.`, wide: true, screen: !template.mobile, render: () => <TemplateFrame template={template} />, code: template.source })),
+  templates: templates.map((template) => ({ title: template.title, description: `${template.description} File: ${template.file}.`, wide: !template.mobile, screen: !template.mobile, render: () => <TemplateFrame template={template} />, code: template.source })),
 });

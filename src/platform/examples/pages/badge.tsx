@@ -2,6 +2,7 @@
    Wednesday Sep 30, 2026, 10:30 am. Status is always a Badge from one vocabulary per domain (data.ts theme maps);
    counts are a BadgeCounter; removable labels are Badges with onRemove. */
 import { useEffect, useId, useRef, useState } from "react";
+import { useZen } from "../../../components/Provider";
 import { Avatar } from "../../../components/Avatar";
 import { Badge, BadgeCounter, type BadgeTheme } from "../../../components/Badge";
 import { BottomSheet } from "../../../components/BottomSheet";
@@ -49,7 +50,13 @@ function TaskStatusTable() {
       {picked ?? label}
     </Chip>
   );
-  const columns: TableColumn<Task>[] = [
+  // On a phone the assignee joins the task's caption and only Status stays beside it, so no fixed-width column is cut
+  // (backlog batch 6b).
+  const phone = useZen()?.breakpoint === "mobile";
+  const columns: TableColumn<Task>[] = phone ? [
+    { id: "task", header: "Task", cell: (task) => <TableText caption={`${task.key} · ${people[task.assignee].name}`}>{task.title}</TableText> },
+    { id: "status", header: "Status", cell: (task) => <TableBadges><Badge size="md" theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge></TableBadges> },
+  ] : [
     { id: "task", header: "Task", cell: (task) => <TableText caption={task.key}>{task.title}</TableText> },
     { id: "assignee", header: "Assignee", width: "180px", cell: (task) => {
       const person = people[task.assignee];

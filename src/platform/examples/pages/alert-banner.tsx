@@ -90,8 +90,9 @@ function PaymentFailedExample() {
       { id: "home", label: "Home", icon: "icon-home-03-line" },
       { id: "projects", label: "Projects", icon: "icon-folder-line" },
       { id: "team", label: "Team", icon: "icon-users-line" },
+      // A one-item group loses its title: Billing joins the list (backlog batch 6b, user 2026-10-07).
+      { id: "billing", label: "Billing", icon: "icon-credit-card-line", notificationDot: !paid },
     ] },
-    { label: "Workspace", items: [{ id: "billing", label: "Billing", icon: "icon-credit-card-line", notificationDot: !paid }] },
   ];
 
   let content: ReactNode;

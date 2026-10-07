@@ -110,7 +110,9 @@ function ProjectSectionsExample() {
                 <MetricCard label="Budget used" value={formatMoney(lumen.spent)} icon="icon-coins-line" iconTheme="green" theme="flat" />
                 <MetricCard label="Open tasks" value={`${open}`} icon="icon-check-square-line" iconTheme="orange" theme="flat" />
               </Grid>
-              {/* Flat Surfaces on the page's Canvas/Default: no border, no shadow (usage rules §16). */}
+              {/* Flat Surfaces on the page's Canvas/Default: no border, no shadow (usage rules §16). Side content stops at
+                  xl (1440px) on a full-width page (backlog batch 6b). */}
+              <Box maxWidth={1440}>
               <Card theme="flat">
                 <DescriptionList items={[
                   { term: "Account director", description: people.hana.name },
@@ -119,6 +121,7 @@ function ProjectSectionsExample() {
                   { term: "Due", description: formatDate(lumen.due) },
                 ]} />
               </Card>
+              </Box>
             </Stack>
           </TabPanel>
 

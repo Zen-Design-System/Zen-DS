@@ -301,8 +301,7 @@ const peopleNav: SidebarSection[] = [
     { id: "teams", label: "Teams", icon: "icon-building-02-line" },
     { id: "onboarding", label: "Onboarding", icon: "icon-user-plus-line", counter: 2 },
     { id: "org-chart", label: "Org chart", icon: "icon-dataflow-03-line" },
-  ] },
-  { label: "Settings", items: [
+    // A one-item group loses its title: Roles & access joins the list (backlog batch 6b, user 2026-10-07).
     { id: "roles", label: "Roles & access", icon: "icon-shield-tick-line" },
   ] },
 ];

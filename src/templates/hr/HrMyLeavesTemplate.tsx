@@ -17,6 +17,7 @@ import { useId, useMemo, useState, type ReactNode } from "react";
 import {
   Badge,
   BottomSheet,
+  Box,
   Button,
   Card,
   Chip,
@@ -333,7 +334,9 @@ export function HrMyLeavesTemplate() {
           <Stack gap="md">
             {/* The next leave opens its request; with nothing planned the card starts a new one. */}
             {next ? (
-              <Card onClick={() => setOpenId(next.id)} aria-label={`Next leave: ${reasonOf(next)}, ${formatRange(next.start, next.end)}`}>
+// Side content stops at xl (1440px) on the full-width page (backlog batch 6b).
+              <Box maxWidth={1440}>
+                            <Card onClick={() => setOpenId(next.id)} aria-label={`Next leave: ${reasonOf(next)}, ${formatRange(next.start, next.end)}`}>
                 <Grid columns={phone ? "auto minmax(0, 1fr)" : "auto minmax(0, 1fr) auto"} gap="md" align="center">
                   <DockIcon theme="emoji" emoji={leaveKinds[next.kind].emoji} size="lg" />
                   <Stack gap="2xs">
@@ -348,6 +351,7 @@ export function HrMyLeavesTemplate() {
                   {phone ? null : <Metric size="sm" icon={false} {...startsIn(next)} />}
                 </Grid>
               </Card>
+              </Box>
             ) : (
               <Card onClick={() => startRequest()} aria-label="No leave planned. Request leave">
                 <Grid columns="auto minmax(0, 1fr)" gap="md" align="center">

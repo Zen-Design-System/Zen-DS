@@ -744,8 +744,9 @@ function SidebarLinksExample() {
         { id: "mobile", label: "Mobile app", href: "/projects/mobile" },
       ] },
       { id: "reports", label: "Reports", href: "/reports", icon: navIcon("icon-bar-chart-01-line") },
+      // A one-item group loses its title: Settings joins the list (backlog batch 6b, user 2026-10-07).
+      { id: "settings", label: "Settings", href: "/settings", icon: navIcon("icon-settings-01-line") },
     ] },
-    { label: "Workspace", items: [{ id: "settings", label: "Settings", href: "/settings", icon: navIcon("icon-settings-01-line") }] },
   ];
   return (
     <DemoNavigate value={setPath}>

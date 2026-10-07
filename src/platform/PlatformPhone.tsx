@@ -48,8 +48,9 @@ export const PlatformPhoneModesContext = createContext<PlatformPhoneModes>({});
 export function PlatformPhone({ children, device = "iphone", canvas = "default", typography = "mobile", density = "comfortable", statusBar = "dark", homeIndicator, maxHeight, headerOverlay = false, screenRef, label = "Phone preview", header, footer, className }: {
   children?: ReactNode;
   device?: PlatformDevice;
-  /** default = Surface/Default · canvas = Canvas/Default (e.g. a Business chat) · alt · flat · media. */
-  canvas?: "default" | "canvas" | "alt" | "flat" | "media";
+  /** default = Canvas/Default, the page canvas cards sit on (usage rules §16; backlog batch 6b, user 2026-10-07) ·
+   *  canvas (the same) · surface = Surface/Default (a white screen) · alt · flat · media. */
+  canvas?: "default" | "canvas" | "surface" | "alt" | "flat" | "media";
   /** Typography Configuration mode of the screen. Default mobile: phone examples show the phone type sizes. */
   typography?: PlatformPhoneModes["typography"];
   /** Component Size mode of the screen. Default comfortable: phone examples show the phone component sizes. */

@@ -121,7 +121,8 @@ function ProjectOverview() {
             description={`${lumen.client} · ${lumen.progress}% done · Due ${formatDate(lumen.due)}`}
             actions={<><Button level="tertiary" onClick={() => setDialog("share")}>Share</Button><Button level="primary" onClick={() => setDialog("task")}>New task</Button></>} />
           {/* Main two-thirds, aside one-third, lg apart; on phones the aside moves under the main column. */}
-          <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="lg" align="start">
+          {/* The two columns stop at xl (1440px), so the 1/3 aside does not keep growing on a wide screen (backlog batch 6b). */}
+          <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="lg" align="start" maxWidth={1440}>
             <Stack as="section" gap="md" aria-labelledby={tasksId} ref={measure}>
               <Stack direction="row" gap="xs" align="center" justify="between" wrap>
                 <Heading level={2} id={tasksId} textStyle="Heading/4">Tasks</Heading>
@@ -739,7 +740,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       description="Lumen Bank · 38% done · Due Dec 15, 2026"
       actions={<><Button level="tertiary" onClick={share}>Share</Button><Button level="primary" onClick={newTask}>New task</Button></>} />
     {/* Layout columns: lg. One column on phones, the aside under the main column. */}
-    <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="lg" align="start">
+    <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="lg" align="start" maxWidth={1440}>
       <Stack as="section" gap="md" aria-labelledby="tasks">
         {/* Heading and its filter: one toolbar row, xs */}
         <Stack direction="row" gap="xs" align="center" justify="between" wrap>

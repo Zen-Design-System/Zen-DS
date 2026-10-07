@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import { useZen } from "../../../components/Provider";
 import { ActionBar } from "../../../components/ActionBar";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
@@ -49,6 +50,11 @@ const loyaltyTasks: TaskRow[] = [
   { id: "p2", key: "PHIN-208", title: "Draw the loyalty tier badges", assignee: "gia", status: "Done", due: daysFromToday(-4) },
 ];
 
+// On a phone the assignee joins the task's caption, so no fixed-width column is cut (backlog batch 6b).
+const phoneTaskColumns: TableColumn<TaskRow>[] = [
+  { id: "task", header: "Task", cell: (row) => <TableText bold caption={`${row.key} · ${people[row.assignee].name}`}>{row.title}</TableText> },
+  { id: "status", header: "Status", cell: (row) => <Badge theme={taskStatusTheme[row.status]} background="subtle">{row.status}</Badge> },
+];
 const taskColumns: TableColumn<TaskRow>[] = [
   { id: "task", header: "Task", cell: (row) => <TableText bold caption={row.key}>{row.title}</TableText> },
   { id: "assignee", header: "Assignee", width: "200px", cell: (row) => <TableMedia bold={false} media={<Avatar size="xs" {...avatarOf(people[row.assignee])} />}>{people[row.assignee].name}</TableMedia> },
@@ -62,6 +68,7 @@ function PageActionsExample() {
   const [status, setStatus] = useState<ProjectStatus>("Active");
   const [dialog, setDialog] = useState<"share" | "task" | null>(null);
   const tasksId = useId();
+  const phone = useZen()?.breakpoint === "mobile";
   // New task adds a row at the top; its key continues the project's sequence.
   const addTask = (title: string) => setRows((list) => [{ id: `new-${list.length}`, key: `PHIN-${224 + list.length}`, title, assignee: "alex", status: "To do", due: daysFromToday(7) }, ...list]);
   const putOnHold = () => {
@@ -88,7 +95,7 @@ function PageActionsExample() {
         {/* The task table is the section's content: it lies on the page under its h2, no Card. */}
         <Stack as="section" gap="lg" aria-labelledby={tasksId}>
           <Heading level={2} id={tasksId}>Tasks</Heading>
-          <Table aria-labelledby={tasksId} columns={taskColumns} rows={rows} />
+          <Table aria-labelledby={tasksId} columns={phone ? phoneTaskColumns : taskColumns} rows={rows} />
         </Stack>
       </Stack>
       <DemoFieldDialog open={dialog === "share"} onOpenChange={(open) => setDialog(open ? "share" : null)} title="Share Loyalty app"
