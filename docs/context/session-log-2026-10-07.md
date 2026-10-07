@@ -204,3 +204,5 @@
 - HO-03 first failed at 33%: off screen a lazy Image never loads, so its markup kept the 4:3 loading frame; images now
   load before the markup is read. Then 0.00% on the screen, its empty state and the Dialog overlay.
 - Zip writer: store only, UTF-8 names, CRC-32; `unzipFiles` reads it back for E2E and build-check.
+- Gate PASS (.qa/reports/2026-10-07T07-17-29-e54a8cf5.md, E2E 138 works); build-check 22/22 (the HTML step on the build:
+  one bundled sheet, styles.css 328 KB with the Inter and JetBrains Mono files).
