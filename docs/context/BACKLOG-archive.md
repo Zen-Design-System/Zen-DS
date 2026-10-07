@@ -559,3 +559,107 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   already open; likely a false positive, or the selected row should not re-announce).
 - **Done (checked 2026-10-07, backlog batch 5b: a paste or Assets insert is remembered like a slot insert (rememberInsert), E2E LB-14):** ~~P3 (2026-10-06, Studio builder session, seen on a builder page; likely on examples too): undo of an Assets / clipboard insert does not go back to the previous selection (slot-picker inserts do, `slots/actions.ts` remember); a redo within ~2 s shifts the stale selection a line, and a reload then reports "Selection lost". `edit/clipboard.ts insertCode` could remember before/after like slot inserts.~~
 - **Done 2026-10-07 (backlog batch 8, item 61: run.mjs reads each page's `examples` array from examples/pages, `isExampleSource` and `pagesForEdit` map examples/pages/<page>.tsx|.css to their page; a quick gate on side-panel and tooltip now warns):** ~~P2 (2026-10-07, backlog sweep)~~ · `npm run qa` step ④ (example coverage) reads only `src/platform/*Showcases.tsx` and `src/platform/appLayer/*.tsx` (`tools/qa/run.mjs:456`, `isExampleSource` in `tools/qa/lib.mjs:227`; the map regex at run.mjs:468 also misses the `keepOnHotUpdate(…)` wrapper). Since the examples moved to `src/platform/examples/pages/*.tsx` (`keepOnHotUpdate(import.meta.hot, "examples", [ … ])`), it finds no example list for those pages and reports them as "skip: no example map entry", so the coverage matrix checks nothing. Fix: read `examples/pages/<page>.tsx` and its `examples` array. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** approved; fix it before batch 5b.
+
+## Archived 2026-10-07 (backlog sweep: verified against the code)
+
+- [DONE: user decision 2026-10-05, nothing to build] Decided (user, 2026-10-05, after crisp crops at 2.2 / 2.5 / 3:1): Subtle borders stay 3:1 in HC. Chip, Checkbox,
+  Radio, Tertiary button, Segmented and Tag share Border/Neutral/Subtle, so they cannot differ.
+- [DONE: decision, no work] Known by decision: text on step-9 Solid fills (Avatar initials, Accent button text) stays under 4.5:1 in HC.
+- [DONE: PR #4 merged into main (cedce0e)] Push or open a PR for `claude/zen-ds-0.4.0`: waiting on the user.
+- [DONE: decision record (fixed sizes noted in the CSS)] Deliberately fixed sizes, which do not follow density:
+  - Mobile Top/Bottom Nav, Bottom Sheet and the Chat mobile composer
+  - 2xs buttons
+  - the Radio dot
+  - Progress and Slider icons
+  - hit-area slots
+- [DONE: FileIcon re-synced 2026-09-27, Photo has its own glyph] Known Figma issue: FileIcon Format=Photo was a copy of PDF. Check whether the designer's re-sync fixed it.
+- [DONE: behaviour-baseline has no deadclick entries; all 4 fixes in code] Dead clicks: none left in `tools/platform-audit/behaviour-baseline.json` (deadclick 75 → 5 on 2026-09-28, 5 → 0 on
+  2026-09-29; 24 → 19 keys). The 96 handler-less actions were wired on 2026-09-28 (session log "Handler-less
+  actions"); the last 5 were component behaviour, fixed on 2026-09-29 (session log "The last 5 dead clicks"):
+  - Chip: a Number-only chip without `onClick` or `selected` is a static count (`<span>`).
+  - DatePicker: with `showActions` picks are a draft; `onApply(value, range)`, `onCancel`, `range` / `defaultRange`.
+  - RichTextField: its own undo history; Undo / Redo are disabled with nothing to undo or redo.
+  - Chat: the quote of a deleted message is plain text. The other quotes already flashed the original; the Chat
+  owners' sessions were not running, so the change stayed inside `ChatReplyQuote`.
+- [STALE: no such scratch tests in the repo] Scratch tests written before the vibe-ready landing may still select component variants by `[data-theme=…]`.
+  Those now use `data-tone`, so re-check such selectors before trusting a failing scratch test.
+- [STALE: main is cedce0e; the release waits on the user (Decisions)] The work is committed on the local branch `claude/zen-ds-0.4.0` (see Current state); `main` is still `eafb0de`. Cut a
+  release (0.3.0 + 0.4.0) when the user asks, using CHANGELOG.md.
+- [DONE: PlatformPhone sets data-breakpoint="mobile"] **PlatformPhone tokens: decided 2026-10-01.** The user approved it in session "Disable input và search từ Figma":
+  `.platform-phone` now sets `data-breakpoint="mobile"`, and R10 became "keep the default inset". Phone rows, kicker
+  headers and the bar all sit on 20px.
+- [DONE: TopNavigation root folds the Top-bar row] **G4: done 2026-10-02 (user: match Figma).** Roots hide the empty top-bar row (Top-bar=false). Code always draws the 64px row, so roots are 64px
+  taller than Figma.
+- [DONE: TopNavigation `banner` prop] **G6: done 2026-10-02 (user: always under the Top Navigation).** TopNavigation `banner` now covers where the
+  "Offline on a phone" banner sits once the title folds. `controlBar` documents Search, Segmented
+  and Tabs only, so there is no slot for a banner under the bar.
+- [DUPLICATE of the side-panel coverage row (2026-10-07 batch 8)] **P3 · side-panel examples coverage (2026-10-07, gate ④):** no edge-case example
+  (src/platform/examples/pages/side-panel.tsx). No mobile one is owed: phones use a BottomSheet (gate ④ exempts it).
+- [DONE: clear search E2E LB-13; guideline decided] **P3 · Empty State guideline vs Studio (2026-10-04):** the Search guideline says `illustration={false}` "in narrow
+  panels such as sidebars and pickers", but the user wants the Studio tool's empty states illustrated (done for Code,
+  Layers, Pages, Assets). Decide: Studio-only exception, or update the guideline (`guidelines.source.mjs` Search + Empty
+  State "Drop the illustration inside lists…"). Also: Assets "No components match" says "clear the search" but has no
+  Clear search action (Pages has one). **Sweep 2026-10-07:** the Assets "No components match" Clear search action is done (backlog batch 5b, E2E LB-13). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** Studio panels keep their illustrations as a Studio-only exception; the app guideline stays (closed).
+- [DONE: marquee + Shift range select (SE-13)] P3 · Marquee (drag) selection on the canvas; Shift+click in Layers toggles like ⌘ instead of Figma's range select. **Sweep 2026-10-07:** marquee selection is done (`edit/marquee.ts`, `MarqueeLayer.tsx`); Shift+click range select is still open. **Done 2026-10-07 (backlog batch 5c):** ⇧+click in Layers selects the rows from the anchor to the clicked one (LayersPanel `activate`; E2E SE-13).
+- [DONE: (a)–(e) fixed, (f) a note] **P3 · Detach follow-ups seen while verifying the ListItem recipe (2026-10-03):** (a) a row whose `onClick={onClick}`
+  comes from a prop is refused as "interactive" although it renders static (HrHomeTemplate leaveRow); reword the
+  refusal for a bare identifier. (b) Rows in portalled overlays (Dialog, modal SidePanel, AppShell aside as a modal)
+  sit in `.studio-portal-root` outside the frames, so the canvas and Layers cannot select them. (c) The HMR after a
+  detach resets examples with interaction state, so "Selection lost after the file changed" replaces the outcome and
+  its Approximated notes. (d) Detaching or discarding in a template logs `ReferenceError: Cannot access 'pages' before
+  initialization` (PlatformAppLayer.tsx:24 ↔ appLayer/templates.tsx import order). (e) `<Zen.ListItem>` (namespace
+  JSX) is not found by detach ("Expected <ListItem>"). (f) 55 static ListItems need multi-step state to render and
+  were checked from source only. **Sweep 2026-10-07:** done: (b) overlay rows are hit-tested through `.studio-portal-root` (SelectionLayer.tsx:430-446, E2E O-02); (c) every example page uses `keepOnHotUpdate`, and a detach keeps its awaited selection and status; (d) no import cycle is left (import-graph script). Still open: (a), (e). (f) is a verification note, not a defect. **Batch 5b 2026-10-07:** (a) done: a bare handler (`onClick={onClick}`) is refused with where it comes from and what to do; (e) done: namespace JSX finds its recipe on both sides (selftest).
+- [DONE: closed by user decision] **Closed (2026-10-07, user decision in backlog batch 8: keep the Grid (the Dock Icon offset was done, see the sweep note)):** ~~**P2 · Home metric row:**~~ Figma is a masked, fading row of fixed 356px cards that runs past the edge (no carousel /
+  fade primitive in code; 4 equal columns now). Dock Icon sits 28px left of Figma because Card reserves the
+  Sub-Action padding. **Sweep 2026-10-07:** done: the Card Sub-Action is absolute and takes no room (card.css:43-45), and HR Home uses MetricCard title-highlight (not pixel-compared). Still open: the fading row (a decision).
+- [DONE: HR rhythm baselined; templates behaviour ~40 s of 90 s] **P3 · Gate warnings left from batch 5:** coverage — App Shell "states", Visually Hidden "edge cases", Page Header
+  "states / edge cases / mobile" (Action Bar keyboard/a11y was already open); rhythm — HR templates and App Shell › HR
+  workspace use 8 text styles (Figma pages); the Templates page runs past the 90s behaviour budget; deadclick on
+  App Shell › Flat canvas "Overviews" is not reproducible by a direct click (it switches the page) — likely the
+  probe clicking after the collapse button; Dialog "Form · Half-Half" styles "Workspace name" as heading-4 without a
+  heading (pre-existing); Action Bar at 390 (sheet of the shared content.tsx): "Edit page with a sticky bar"
+  truncates Undo changes / Save changes and "Cart with a total" truncates the print names (pre-existing). **Sweep 2026-10-07:** done: App Shell, Visually Hidden and Page Header coverage, the Flat canvas dead click (no longer on the page), Dialog "Form · Half-Half" (example gone), Action Bar 390 truncations. Still open: the HR rhythm (a decision) and the Templates page's 90 s behaviour budget. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** the HR text-style rhythm is baselined as Figma-faithful → batch 6b.
+- [DUPLICATE of "Figma vs code differences" (Open items)] **Duplicate (checked 2026-10-07, backlog sweep: the same four items as the "Figma vs code differences seen during the style-guard burn-down" list under Open items, which stays open for the designer):** ~~**P2 · Figma vs code differences found during the style-guard burn-down**~~ (Open items: Slider thumb shadows, Chart
+  bar corners, Bottom Navigation icon size, the phone home indicator). Fix them once the designer confirms the
+  behaviour.
+- [DONE: settings chips on their own row below 1024px] **RESOLVED 2026-10-02 (user: "Tôi sửa luôn"; settings chips moved to a non-sticky row below 1024px) · P2 · Docs topbar at 390 covers popovers (found 2026-10-02):** the uncommitted topbar change (settings chips wrap
+  instead of scrolling, CHANGELOG "Docs topbar settings chips work again below 1024px") makes the sticky topbar
+  216px tall at 390. `audit.mjs --pages=popover --viewports=390 --smoke` reports "Create a label #0: layer
+  official-topbar__controls paints over the open popover" in every run. Its session ("Zen Plugin Neutral color
+  contrast") has ended.
+- [DONE: DescriptionList inline grid keeps value in column 2] Inline DescriptionList amounts drop under their terms at 390.
+- [DONE: app-shell@390 audits clean] **Done (checked 2026-10-07, backlog sweep: app-shell@390 audits clean, fit 0):** ~~App Shell at 390: the desktop examples keep the sidebar open (the card sets `breakpoint="desktop"`), so `main` is~~
+  16px wide and the PageHeader title breaks one letter per line.
+- [DONE: TableActions md, Progress labels] **Actions column done 2026-10-05 (user: "dùng 40"):** the 5 `TableActions` IconButtons that forced `size="sm"` are md (40px, Figma Actions-Cell Button/Icon-Flat Medium); Progress cell done 2026-10-07 (backlog batch 4: Neutral with its % label, the code sample too). ~~**P2 · Platform Table example vs Figma:** the Actions column uses IconButton sm (32px, 16px icons), while Figma
+  Actions-Cell 1603:14291 is Button/Icon-Flat Medium (40px). The Progress column uses `theme="accent"` with no
+  label; Figma Progress-Cell 4081:19726 is Theme=Neutral with its label. `PlatformExamples.tsx:2055–2080`.~~
+- [EMPTY header] **From the Zen Plugin Neutral 9→10 fix of 2026-09-29** (plugin repo `zen-ds-figma-plugin-main`, session "Zen Plugin
+  Neutral color contrast"; the user chose to move Dark step 9, `NEUTRAL_STEP_9_10_CONTRAST = 1.16` in `src/ui/main.js`):
+- [EMPTY header] **From the Zen Plugin dark-alpha fix of 2026-09-29** (plugin `generateAlphaScale`; the user approved "all dark alphas";
+  backup `backups/zen-ds-before-dark-alpha-overlay-20260929-182719.tar.gz`):
+- [EMPTY header] **From the topbar chip fix of 2026-10-01** (session "Zen Plugin Neutral color contrast"; session log 2026-10-01):
+- [DONE: PlatformMobileShowcases holds only ChartReportPanel] **RESOLVED 2026-10-02 · P3 · G10:** the phone examples in `PlatformMobileShowcases.tsx` / `PlatformShowcases.tsx` are overridden by
+  `examples/pages` and never render. `ChartReportPanel` is still used.
+- [DUPLICATE (already marked)] **Duplicate (checked 2026-10-07, backlog sweep: same as the "Phone templates" toast row, which stays open):** ~~Toasts from phone templates appear in the docs page's stack under the phone.~~
+- [DUPLICATE (already marked)] **Duplicate (checked 2026-10-07, backlog sweep: same as the "Aside in a narrow preview" row, which stays open):** ~~In the 1512 card, SidePanels open as modals because the frame is too narrow to dock them.~~
+- [DONE: ModalForm renders in the phone overlay root] A portaled ModalForm ignores the phone breakpoint, so date fields stay in 2 columns at 390.
+- [DONE: banner prop; R14 tracked in the Bottom Navigation row] **Done (checked 2026-10-07, backlog sweep: R14 stays open in the HR templates' Bottom Navigation guideline line; TopNavigation has a `banner` prop (TopNavigation.tsx:107-112)):** ~~**P3 · Guidelines:**~~ Bottom Navigation should state R14 (re-tap scrolls to top); a slot for a Small AlertBanner
+  under the TopNavigation (G6).
+- [DONE: rule bottom-sheet/choice-uses-list-item; consumer docs say disabled] **Done 2026-10-05 (session "Dark/light mode sync và UI present", backlog batch 1):** AGENTS.consumer.md rule 3 + Fields row now say `disabled` (not Autocomplete/RichText); bottom-sheet use/do and the chip phone line now say List + ListItem for a single choice (guidelines rebuilt). The harness idea stays open (new rule needs the user's OK). Was: ~~P1 · Two doc contradictions agents follow literally:~~ AGENTS.consumer.md §3 rule 3 says fields have `readOnly`, not
+  `disabled` (Disabled is back since 2026-09-30, g/input:30); g/bottom-sheet "Use Action type with `selectedId` for single
+  choice" (+ AGENTS.consumer.md §3.12, g/chip) vs the house rule "pick-one = List + ListItem selected" that the templates
+  follow; the trial agent picked the Action sheet. Harness idea `bottom-sheet/choice-uses-list-item`. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** the harness rule `bottom-sheet/choice-uses-list-item` is approved → batch 9 · **Done 2026-10-07 (batch 9)** (check-usage.mjs, warn; fixture) (tooling).
+- [DONE: Shift+1 and first-view zoom] **Shift+1 part done 2026-10-05 (fits every frame, E2E S-04); first-view part done 2026-10-07 (backlog batch 2: the first view's zoom floor is 50%, `FIRST_VISIT_MIN_ZOOM` in `canvas/viewport.ts`):** ~~P2 · First view~~ clips the Playground under the Inspector (1280: 80px, 1024: 64px; zoom floors at 75%); Shift+1
+  "fit all" leaves the Docs frame 213px off-canvas and hides 3/8 frame labels.
+- [DONE: decided and built (PagePanel)] P2 · Two page descriptions on one screen (board ExamplePage description vs Inspector guideline purpose; 45 pages,
+  9 with Figma-mapping copy) — content decision. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** keep the board description and drop the second one → batch 5c. **Done 2026-10-07** (PagePanel.tsx).
+- [DONE: zoomToRead on Docs frames] P2 · Docs on the canvas render 12–13.7px body at the default 75–86% zoom (1280–1512) — product decision
+  (open Docs at 100% or a reading view). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** clicking a Docs frame zooms it to 100%; no separate reading view → batch 5c. **Done 2026-10-07** (canvasApi.zoomToRead; E2E SE-11).
+- [DONE: deep select stops at data items] P3 (same session): ⌘-click on a TopNavigation action lands on its IconSvg (the deepest part); the action itself is one
+  "Select …" link (or a parent step) away. Decide whether deep select should stop at a data-slot item. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** deep select stops at the data-slot item → batch 5c. **Done 2026-10-07** (SelectionLayer dataItemOfPart; E2E SE-12).
+- [DONE: shared-code.mjs, SharedConfirm, ST-12] ✅ 2026-10-06 (built: `shared-code.mjs`, `SharedConfirm`, E2E ST-12) P2 (2026-10-05, session "Studio builder tool planning", plan WP-B2): structural edits in shared demo code (`PlatformDemoActions.tsx`, `chatDemo`, `PlatformChat*`) with a "used in N places" confirmation. Needs one confirmation choke point for remove / duplicate / move / insert / paste / drag / multi, and `isSlotFile` widened to annotated non-playground files; today they show disabled with the reason ("shared beyond this example").
+- [DONE: closed by user decision] **Closed (2026-10-07, user decision: help text keeps the Light tone in every family but Warning):** ~~**P3 · Colour Light text contrast (2026-10-05, "Token màu cho content/chữ/icon"):**~~ on white (light mode) these Light levels
+  are under 4.5:1: Positive/Green 3.97, Orange 3.69, Teal 3.64, Cyan 3.52, Golden 3.49 (Negative/Red 5.06 and Info/Blue
+  4.87 pass). Small help text in them (Input success help uses positive-light) misses AA. Decide: Base for small help
+  text in those families, or accept for short status lines. **Sweep 2026-10-07:** the numbers moved: Positive/Green is 4.71:1 now (passes); Orange 4.02, Cyan 3.98, Teal 3.64 and Golden 3.49 are still under 4.5:1. **Decided 2026-10-07 (user, replacing the batch 8 recommendation):** every help text but Warning uses the Light tone for its icon and text (Warning, a Lights family, uses Base), the Uploader's error help text too, so these Light levels stay for help text (closed). Done the same day: the Uploader field's error help text and the File-Item's error line were Negative/Strongest, now Negative/Light (field 4.72:1 light / 7.16:1 dark; on Negative/Subtle 4.01:1 light / 5.88:1 dark, the user's call); Input help already followed the rule.
