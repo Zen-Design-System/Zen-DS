@@ -94,3 +94,4 @@
   SlotConfirm verb "swap".
 - E2E IN-07…IN-11 (fixture: Badge with a heart icon, ListItem with an Avatar), build-check 15 steps (Swap instance on
   the production engine, 135.5 KB).
+- I-14 (WP-E) expected the old fixed Leading-Icon (icon-check-line); it now expects Figma's default (icon-plus-line). Caught by the gate's full matrix.

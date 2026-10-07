@@ -226,7 +226,8 @@ export const rows = [
       if (labels.includes("Leading-Icon-Src")) throw new Error("Leading-Icon-Src shows while Leading-Icon is off");
       const toggle = page.locator("#studio-right [data-prop]").filter({ hasText: /^Leading-Icon$/ }).getByRole("switch").first();
       await toggle.click();
-      await expectSource(ctx, "btn-a", (el) => el.attr("startIcon") === "icon-check-line", "startIcon written");
+      // GĐ4 M2: the switch starts from the swap's default icon in Figma.
+      await expectSource(ctx, "btn-a", (el) => el.attr("startIcon") === "icon-plus-line", "startIcon written (Figma's default, icon-plus-line)");
       await until(async () => (await page.locator("#studio-right [data-prop]").filter({ hasText: "Leading-Icon-Src" }).count()) > 0, { message: "the Leading-Icon-Src row" });
       return "Figma order; Leading-Icon writes startIcon and shows Leading-Icon-Src";
     },
