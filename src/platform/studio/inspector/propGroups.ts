@@ -43,8 +43,9 @@ export type GroupToggle = {
 export type PropWarning = { when: readonly GroupCondition[]; text: string };
 
 /** `label`: the Figma property name shown for the row (generated groups); else the prop's own label (propSchema).
- *  `options`: code value → the Figma option's name ("medium" → "Medium (Base)"), in Figma's order (generated groups). */
-export type PropEntry = string | { prop: string; label?: string; options?: Readonly<Record<string, string>>; when?: readonly GroupCondition[]; warn?: readonly PropWarning[] };
+ *  `options`: code value → the Figma option's name ("medium" → "Medium (Base)"), in Figma's order (generated groups).
+ *  `defaultIcon`: an icon swap's default in Figma, which its icon picker lists first (generated groups). */
+export type PropEntry = string | { prop: string; label?: string; options?: Readonly<Record<string, string>>; defaultIcon?: string; when?: readonly GroupCondition[]; warn?: readonly PropWarning[] };
 
 export type PropGroup = {
   /** The Figma nested layer ("Top-Heading-Text"); absent for the component's own group. */
@@ -151,6 +152,7 @@ export function holds(conditions: readonly GroupCondition[] | undefined, props: 
 export const entryProp = (entry: PropEntry) => (typeof entry === "string" ? entry : entry.prop);
 export const entryLabel = (entry: PropEntry) => (typeof entry === "string" ? undefined : entry.label);
 export const entryOptions = (entry: PropEntry) => (typeof entry === "string" ? undefined : entry.options);
+export const entryDefaultIcon = (entry: PropEntry) => (typeof entry === "string" ? undefined : entry.defaultIcon);
 
 /**
  * A select's options with their Figma names: the options Figma has first, in Figma's order and named as in Figma, then
@@ -193,7 +195,7 @@ export function groupsFromFigma(entry: FigmaPropsEntry): ComponentGroups {
   const row = (item: FigmaPropsEntry["own"][number]): PropEntry => {
     // A Yes/No variant held as a boolean is a switch: its options need no names.
     const options = item.options && !Object.values(item.options).every((value) => value === "true" || value === "false") ? optionNames(item.options, item.type === "SET") : undefined;
-    return { prop: item.prop, label: item.label, ...(options ? { options } : {}), ...(toggled.has(item.prop) ? { when: [set(item.prop)] } : {}) };
+    return { prop: item.prop, label: item.label, ...(options ? { options } : {}), ...(item.default ? { defaultIcon: item.default } : {}), ...(toggled.has(item.prop) ? { when: [set(item.prop)] } : {}) };
   };
   // Figma's instance panel: the variants (and which set) first, then the booleans, then instance swaps and texts.
   const variant = (item: FigmaPropsEntry["own"][number]) => item.type === "VARIANT" || item.type === "SET";

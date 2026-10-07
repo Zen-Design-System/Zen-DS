@@ -213,6 +213,16 @@ removed (four unused colour ramps were, see Removed).
   - **Reset all overrides** (↺ in the Inspector header): the variants, switches and icons written on a Zen instance go
     back to their defaults in one step, and one ⌘Z brings them all back. The text, handlers, data, value and open state
     stay.
+- **Zen Studio instance panel, GĐ4 M2: swaps (2026-10-07):**
+  - The icon picker leads with the icon swap's default in Figma ("Default in Figma"), then the icons the file already
+    uses ("Used in this file"), then every icon. Figma's own preferred lists hold the whole icon set, so they add nothing.
+  - A layer switch that shows an icon (Button Leading-Icon, Trailing-Icon) starts from Figma's default icon
+    (`icon-plus-line`), not a fixed one. Slider's Icon is its icon row's switch.
+  - **Swap a component in a slot:** a ListItem's Leading (Avatar ↔ Dock icon) or Actions (Badge, Icon button, Button) has a
+    ⇄ menu on its layer row: the other component takes its place, imports follow, one ⌘Z.
+  - **Swap instance:** ⇄ in the Inspector header or the canvas menu's "Swap instance…" opens Quick insert in its Swap
+    mode. Enter puts the chosen component in the selected layer's place (a child, a prop's value or a list row; a `key`
+    stays), selects it, and one ⌘Z brings the old layer back. Works on pages made in the Studio too.
 - **Zen Studio: shared demo code can be restructured, after a question (2026-10-06, GĐ1 WP-B2):**
   - Removing, duplicating, moving, inserting, pasting, dragging or wrapping layers whose code lives in shared demo files
     (PlatformDemoActions.tsx, chatDemo.tsx, PlatformChat…) used to be greyed out ("shared beyond this example").

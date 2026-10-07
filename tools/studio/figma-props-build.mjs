@@ -15,6 +15,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { FIGMA_PROPS } from "./figma-props.map.mjs";
 import { inheritedProps } from "../../src/platform/studio/inspector/inheritedProps.ts";
+import { iconNames } from "../../src/icons/generated/names.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const OUT = "src/platform/studio/inspector/figmaProps.generated.ts";
@@ -35,6 +36,7 @@ const SHORT = { "2xsmall": "2xs", xsmall: "xs", small: "sm", medium: "md", large
 const normal = (option) => option.replace(/\(base\)/i, "").trim().toLowerCase().replace(/\s+/g, "-");
 const literals = (type) => new Set([...type.matchAll(/"([^"]+)"/g)].map((match) => match[1]));
 
+const icons = new Set(iconNames);
 const errors = [];
 const notes = [];
 const out = {};
@@ -71,14 +73,22 @@ for (const [component, spec] of Object.entries(FIGMA_PROPS)) {
     if (mapping.toggle) {
       if (!own.has(mapping.toggle)) errors.push(`${component}: toggle "${prop.name}" → "${mapping.toggle}" is not a code prop`);
       if (prop.type !== "BOOLEAN") notes.push(`${component}: "${prop.name}" is a ${prop.type}, mapped as a toggle`);
-      if (typeof mapping.on === "object" && !/^\s*[{[]/.test(mapping.on.code ?? "")) errors.push(`${component}: toggle "${prop.name}" writes code that is not an object or a list`);
-      entry.toggles.push({ label: prop.name, prop: mapping.toggle, on: mapping.on ?? "" });
+      let on = mapping.on ?? "";
+      // { swap: "Leading-Icon-Src" }: switched on, the layer starts from that swap property's default icon in Figma.
+      if (typeof on === "object" && on.swap) {
+        const swap = figmaProps.find((other) => other.name === on.swap && other.type === "INSTANCE_SWAP");
+        if (!swap?.default || !icons.has(swap.default)) { errors.push(`${component}: toggle "${prop.name}" starts from ${on.swap}'s default, which is not an icon (${swap?.default ?? "no such swap"})`); continue; }
+        on = swap.default;
+      } else if (typeof on === "object" && !/^\s*[{[]/.test(on.code ?? "")) errors.push(`${component}: toggle "${prop.name}" writes code that is not an object or a list`);
+      entry.toggles.push({ label: prop.name, prop: mapping.toggle, on });
       continue;
     }
     const codeProp = typeof mapping === "string" ? mapping : mapping.prop;
     const type = own.get(codeProp);
     if (type === undefined) { errors.push(`${component}: "${prop.name}" → "${codeProp}" is not a code prop`); continue; }
     const row = { prop: codeProp, label: prop.name, type: prop.type };
+    // An icon swap's default in Figma: the icon picker lists it first.
+    if (prop.type === "INSTANCE_SWAP" && icons.has(prop.default)) row.default = prop.default;
     if (prop.type === "VARIANT" && mapping.bool) {
       if (!/\bboolean\b/.test(type)) errors.push(`${component}: "${prop.name}" → "${codeProp}" is not boolean (${type.slice(0, 60)})`);
       row.options = Object.fromEntries(prop.options.map((option) => [option, /^(yes|true)$/i.test(option) ? "true" : "false"]));
@@ -129,8 +139,8 @@ export type FigmaPropsEntry = {
   /** The Figma component set the order and names follow (the first of its sets). */
   figma: string;
   /** Its properties in Figma order: the code prop, the Figma name and property type ("SET": which of its Figma sets),
-   *  and Figma option name → code value. */
-  own: ReadonlyArray<{ prop: string; label?: string; type: string; options?: Readonly<Record<string, string>> }>;
+   *  and Figma option name → code value; an icon swap's \`default\`: its default icon in Figma. */
+  own: ReadonlyArray<{ prop: string; label?: string; type: string; options?: Readonly<Record<string, string>>; default?: string }>;
   /** Figma booleans that show a layer: on writes \`on\` (a text; "slot": the content-slot picker; { code }: an object or a
    *  list written as code), off removes the prop. */
   toggles: ReadonlyArray<{ label: string; prop: string; on: string | { code: string } }>;

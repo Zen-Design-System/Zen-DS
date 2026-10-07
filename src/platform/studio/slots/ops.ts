@@ -75,7 +75,10 @@ export type GroupItemOp = { op: "groupItem"; prop: string; index: number; with: 
 export type UngroupItemOp = { op: "ungroupItem"; prop: string; index: number };
 export type ItemEditOp = InsertItemOp | RemoveItemOp | DuplicateItemOp | MoveItemOp | GroupItemOp | UngroupItemOp;
 
-export type SlotEditOp = InsertChildOp | RemoveElementOp | DuplicateElementOp | MoveElementOp | ClearSlotOp | ResetSlotOp | ItemEditOp;
+/** Swap instance (GĐ4 M2): `code` takes the place of the element the request names; the server requires the hash. */
+export type ReplaceElementOp = { op: "replaceElement"; code: string; state?: StateDecl[] };
+
+export type SlotEditOp = InsertChildOp | RemoveElementOp | DuplicateElementOp | MoveElementOp | ClearSlotOp | ResetSlotOp | ItemEditOp | ReplaceElementOp;
 
 /** An edit request carrying one slot op; `hash` (the file's effective text) is always sent. */
 export type SlotEditRequest = Omit<EditRequest, "ops" | "hash"> & { ops: [SlotEditOp]; hash: string };

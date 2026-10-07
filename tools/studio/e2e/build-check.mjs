@@ -223,6 +223,24 @@ try {
     return "level Primary → Reset all → ⌘Z → ⌘Z";
   });
 
+  await step("Swap instance (canvas menu, op replaceElement in this build's engine), then ⌘Z", async () => {
+    await clickNamed(page, id, "Button");
+    const box = await named(page, id, "Button").boundingBox();
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "right" });
+    await page.getByRole("menuitem", { name: /^Swap instance/ }).click();
+    const panel = page.locator('[data-e2e="quick-insert"][data-mode="swap"]');
+    await panel.waitFor({ state: "visible", timeout: 5000 });
+    await panel.getByLabel("Search components").fill("badge");
+    await sleep(300);
+    await page.keyboard.press("Enter");
+    await until(async () => { const text = (await storedText(page, id)) ?? ""; return /<Badge\b/.test(text) && !/<Button\b/.test(text); }, { timeout: 10_000, message: "the Badge instead of the Button" });
+    await page.locator(".studio-viewport").focus();
+    await page.keyboard.press("ControlOrMeta+KeyZ");
+    await until(async () => /<Button\b/.test((await storedText(page, id)) ?? ""), { timeout: 10_000, message: "⌘Z brings the Button back" });
+    await named(page, id, "Button").waitFor({ state: "attached", timeout: 10_000 });
+    return "Button → Badge → ⌘Z → Button";
+  });
+
   await step("the page survives a reload", async () => {
     await page.reload({ waitUntil: "domcontentloaded" });
     await named(page, id, "Button").waitFor({ state: "attached", timeout: 30_000 });

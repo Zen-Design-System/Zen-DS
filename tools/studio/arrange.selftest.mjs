@@ -330,4 +330,59 @@ test("many refuses a bad action, no locs, and a .map row", () => {
   assert.match(many(one, "Text", { action: "remove", locs: [locOf(SOURCE, "<Stack key")] }).error, /\.map/);
 });
 
-console.log(`✓ arrange (moveTo · pasteCode · many) self-test: ${passed} cases`);
+/* ── replaceElement (Swap instance, GĐ4 M2) ── */
+
+const swap = (loc, name, op, code = SOURCE) => applySlotOp(code, loc, name, { op: "replaceElement", ...op }, { file: FILE, hash: sha1(code) });
+
+test("replaceElement: the new layer in the old one's place, its components imported, the old import kept while used", () => {
+  const result = swap(locOf(SOURCE, "<Badge>Three"), "Badge", { code: "<Tag>New</Tag>" });
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /<Stack gap="sm">\n {8}<Tag>New<\/Tag>\n {6}<\/Stack>/);
+  assert.match(result.code, /import \{ Tag \} from "..\/..\/..\/components\/Tag";/);
+  assert.match(result.code, /import \{ Badge \}/, "Badge stays imported: the .map row still uses it");
+  assert.equal(result.inserted.loc, locOf(result.code, "<Tag>New"));
+});
+
+const LEADING = `import { Avatar } from "../../../components/Avatar";
+import { List, ListItem } from "../../../components/ListItem";
+
+export function People({ people }) {
+  return (
+    <List>
+      {people.map((one) => (
+        <ListItem key={one.id} title={one.name} leading={<Avatar key={one.id} alt={one.name} size="md" />} />
+      ))}
+    </List>
+  );
+}
+`;
+
+test("replaceElement in a prop: Avatar → DockIcon in ListItem leading, key kept, the unused Avatar import goes", () => {
+  const result = swap(locOf(LEADING, "<Avatar"), "Avatar", { code: '<DockIcon icon="icon-home-03-solid" />' }, LEADING);
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /leading=\{<DockIcon key=\{one\.id\} icon="icon-home-03-solid" \/>\}/);
+  assert.match(result.code, /import \{ DockIcon \} from "..\/..\/..\/components\/DockIcon";/);
+  assert.ok(!result.code.includes("Avatar"), "Avatar and its import are gone");
+});
+
+test("replaceElement: a .map row keeps its key; later lines take the row's indentation", () => {
+  const result = swap(locOf(SOURCE, "<Stack key"), "Stack", { code: '<Box padding="sm">\n  <Text>Row</Text>\n</Box>' });
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /\{items\.map\(\(item\) => \(\n {8}<Box key=\{item\} padding="sm">\n {10}<Text>Row<\/Text>\n {8}<\/Box>\n {6}\)\)\}/);
+});
+
+test("replaceElement refuses what is not one JSX element, unknown names, data-zen-src, a stale hash and a non-Button in FormActions", () => {
+  const badge = locOf(SOURCE, "<Badge>Three");
+  assert.ok(swap(badge, "Badge", { code: "hello" }).error);
+  assert.ok(swap(badge, "Badge", { code: "<Text>a</Text><Text>b</Text>" }).error);
+  assert.match(swap(badge, "Badge", { code: "<Button onClick={save}>Go</Button>" }).error, /`save`/);
+  assert.match(swap(badge, "Badge", { code: '<Text data-zen-src="x">a</Text>' }).error, /data-zen-src/);
+  assert.equal(applySlotOp(SOURCE, badge, "Badge", { op: "replaceElement", code: "<Tag>New</Tag>" }, { file: FILE, hash: "old" }).code, "stale");
+  // FormActions clones its Buttons (cloning.json: only Button); a Tooltip's trigger may be any one element.
+  const actions = applySlotOp(CLONES, locOf(CLONES, "<Button", 0), "Button", { op: "replaceElement", code: "<Text>x</Text>" }, { file: FILE, hash: sha1(CLONES) });
+  assert.match(actions.error ?? "", /FormActions/);
+  const trigger = applySlotOp(CLONES, locOf(CLONES, "<IconButton"), "IconButton", { op: "replaceElement", code: '<Button>Edit</Button>' }, { file: FILE, hash: sha1(CLONES) });
+  assert.ok(!trigger.error, trigger.error);
+});
+
+console.log(`✓ arrange (moveTo · pasteCode · replaceElement · many) self-test: ${passed} cases`);

@@ -302,6 +302,12 @@ export type EditOp =
    */
   | { op: "pasteCode"; code: string; before?: string; after?: string; replace?: string; state?: StateDecl[] }
   /**
+   * Swap instance (GĐ4 M2): `code`, one JSX element, takes the place of the element at loc wherever it is written (a
+   * child, a prop's value, a .map row); its key stays; Zen components are imported, the ones left unused go. `hash`
+   * required. Answer: `inserted.loc` (tools/studio/arrange.mjs replacePlan).
+   */
+  | { op: "replaceElement"; code: string; state?: StateDecl[] }
+  /**
    * A multi-selection in one file, one edit: every element at `locs` removed, duplicated (each copy after it) or given
    * the same setProp / removeProp `ops`. `hash` required. Answer: `removed`, `inserted.loc` (first copy) or `updated`.
    */

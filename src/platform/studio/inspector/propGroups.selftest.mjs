@@ -5,7 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { entryLabel, entryOptions, entryProp, entryShown, entryWarnings, figmaOptions, groupsFromFigma, holds, isSetValue, placedProps, propGroupsOf } from "./propGroups.ts";
+import { entryDefaultIcon, entryLabel, entryOptions, entryProp, entryShown, entryWarnings, figmaOptions, groupsFromFigma, holds, isSetValue, placedProps, propGroupsOf } from "./propGroups.ts";
 import { FIGMA_PROPS } from "./figmaProps.generated.ts";
 import { normalizeScale } from "../../../components/_shared/scale.ts";
 import { inheritedProps } from "./inheritedProps.ts";
@@ -78,6 +78,10 @@ for (const [name, entry] of Object.entries(FIGMA_PROPS)) {
   check("Button (Figma): set, then variants", button.own.map(entryProp), ["appearance", "size", "level", "state"]);
   check("Button (Figma): Figma names", button.own.slice(1).map(entryLabel), ["Size", "Level", "State"]);
   check("Button (Figma): Leading-Icon / Trailing-Icon booleans", button.toggles.map((toggle) => [toggle.label, toggle.prop]), [["Leading-Icon", "startIcon"], ["Trailing-Icon", "endIcon"]]);
+  // GĐ4 M2: a swap's default icon in Figma, which its picker lists first and its boolean starts from.
+  check("Button (Figma): Leading-Icon starts from Figma's default icon", button.toggles.map((toggle) => toggle.on), [{ kind: "text", value: "icon-plus-line" }, { kind: "text", value: "icon-plus-line" }]);
+  check("Button (Figma): the swap row carries its default icon", entryDefaultIcon(button.after.find((entry) => entryProp(entry) === "startIcon")), "icon-plus-line");
+  check("Badge (Figma): Leading-Icon-Src default", entryDefaultIcon(groupsFromFigma(FIGMA_PROPS.Badge).after.find((entry) => entryProp(entry) === "leading")), "icon-circle-small-solid");
   const icon = button.after.find((entry) => entryProp(entry) === "startIcon");
   check("Button (Figma): Leading-Icon-Src only while Leading-Icon is on", [entryShown(icon, {}), entryShown(icon, { startIcon: "icon-check-line" })], [false, true]);
   check("TopNavigation keeps its hand-written groups", propGroupsOf("TopNavigation").nested.length > 0 && !FIGMA_PROPS.TopNavigation, true);

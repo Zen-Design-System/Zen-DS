@@ -10,6 +10,7 @@
 //     copy    true: a copy goes there and the element stays (⌥-drag, ⌘V in the same file); `inserted`, else `moved`
 //     replace with copy: the copy takes the place of the child at that loc, which goes (⇧⌘R, paste to replace)
 //
+//   op "replaceElement" { code, state? }   on the element it replaces (Swap instance: a prop's or slot's component, a layer)
 //   op "pasteCode" { code, before?, after?, replace? }   on the element the code goes into (⌘V from another file or
 //     after a cut): `code` is one JSX element; names it reads must exist there, or be Zen components (imported) or
 //     `toast`; `inserted` = { loc }
@@ -28,7 +29,7 @@
 import cloning from "../../src/platform/studio/cloning.json" with { type: "json" };
 import { parseExpression } from "@babel/parser";
 import { applyEdits, applyOps, findElement, jsxName, parseLoc, parseSource } from "./jsx-source.mjs";
-import { pathTo, piece } from "./source-helpers.mjs";
+import { indentAt, pathTo, piece } from "./source-helpers.mjs";
 
 /** Self-closing elements a layer can be dropped into (they open: `<Stack />` → `<Stack>…</Stack>`). */
 const OPENABLE = new Set(["Stack", "Grid", "Box", "Container", "Card", "Form", "FormFieldset", "FormActions"]);
@@ -340,6 +341,72 @@ export function pasteCodePlan(ctx, nodePath, op, h) {
     focus: { edit, within, name },
     answer: "inserted",
     snippet: () => ({ reason: `a paste is not copied into the example snippet; update it by hand (<${name}>)` }),
+  };
+}
+
+/**
+ * The plan for op replaceElement { code, state? } on the element it replaces (Figma's Swap instance, Studio builder GĐ4
+ * M2): `code`, one JSX element (a palette item's code), takes its place wherever it is written: a child, a prop's value
+ * (`leading={<Avatar />}`), a .map row or what a function returns. The element's `key` goes onto the new one. Names the
+ * code reads follow pasteCode (Zen components imported, `toast`, `state`); the components the swap leaves unused go.
+ * One edit, one undo step. Answer: inserted: { loc } (the new element).
+ */
+export function replacePlan(ctx, nodePath, op, h) {
+  const { element, text } = ctx;
+  const raw = op.code;
+  if (typeof raw !== "string" || !raw.trim()) h.refuse("replaceElement needs `code`: one JSX element");
+  if (raw.length > 65536) h.refuse("The code is too long (64 KB at most)");
+  if (/[\u2028\u2029]/.test(raw)) h.refuse("The code holds a line separator (U+2028/U+2029)");
+  const state = h.stateFor(ctx, raw.replace(/\r\n|\r/g, "\n").trim(), op.state);
+  let node;
+  try {
+    node = parseExpression(state.src, { plugins: ["jsx", "typescript"] });
+  } catch (error) {
+    h.refuse(`The code is not one JSX element: ${error.message.replace(/\s*\(\d+:\d+\)$/, "")}`);
+  }
+  if (node.type !== "JSXElement") h.refuse("The code must be one JSX element");
+  const name = jsxName(node.openingElement.name);
+  if (node.openingElement.attributes.some((attr) => attr.type === "JSXAttribute" && jsxName(attr.name) === "data-zen-src")) h.refuse("The code carries data-zen-src; the Studio adds it");
+  // A parent that clones its only child (a Tooltip's trigger) takes the components cloning.json lists only.
+  const holder = nodePath.at(-2);
+  if (holder?.type === "JSXElement") {
+    const into = cloning.parents[lastSegment(jsxName(holder.openingElement.name))];
+    if (into && Array.isArray(into.only) && !into.only.includes(lastSegment(name))) h.refuse(`<${jsxName(holder.openingElement.name)}> holds ${into.only.map((only) => `<${only}>`).join(", ")} only.`);
+  }
+  const needed = [];
+  let toast = false;
+  let media = false;
+  for (const used of freeNames(node, h.patternNames, h.FUNCTION_TYPES)) {
+    if (state.names.has(used) || h.bindingOf(nodePath, used)) continue;
+    if (used === "toast") { toast = true; continue; }
+    if (used === "platformMedia") { media = true; continue; }
+    if (/^[A-Z]/.test(used) && ctx.folders.has(used)) { needed.push(used); continue; }
+    if (GLOBALS.has(used)) continue;
+    h.refuse(/^[A-Z]/.test(used) ? `<${used}> is not a Zen component this file can import` : `The new layer uses \`${used}\`, which does not exist here`);
+  }
+  // The element's key stays (a .map row keeps its identity), right after the new tag's name.
+  const key = element.openingElement.attributes.find((attr) => attr.type === "JSXAttribute" && jsxName(attr.name) === "key");
+  const hasKey = node.openingElement.attributes.some((attr) => attr.type === "JSXAttribute" && jsxName(attr.name) === "key");
+  let src = state.src;
+  if (key && !hasKey) {
+    const at = node.openingElement.name.end - node.start;
+    src = `${src.slice(0, at)} ${text.slice(key.start, key.end)}${src.slice(at)}`;
+  }
+  // Its later lines take the replaced element's indentation.
+  const indent = indentAt(text, element.start);
+  const body = src.split("\n").map((line, index) => (index === 0 || !line ? line : `${indent}${line}`)).join(ctx.eol);
+  const edit = { start: element.start, end: element.end, text: body };
+  const edits = [edit];
+  const hooks = h.hookEdits(ctx, nodePath, { toast, statements: state.statements });
+  edits.push(...hooks.edits);
+  if (hooks.useToast) needed.push("useToast");
+  if (media) edits.push(...h.mediaImportEdits(ctx));
+  edits.push(...tidyImports(ctx, h, edits, needed));
+  return {
+    edits,
+    focus: { edit, within: 0, name },
+    answer: "inserted",
+    snippet: () => ({ reason: `a swap is not copied into the example snippet; update it by hand (<${name}>)` }),
   };
 }
 

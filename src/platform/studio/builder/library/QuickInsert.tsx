@@ -5,7 +5,7 @@ import { Text } from "../../../../components/Text";
 import { typographyStyles } from "../../../../tokens/typography.generated";
 import type { IconName } from "../../../../icons/generated/names";
 import { canvasApi } from "../../canvas/viewport";
-import { iconInsertable, insertAsset, insertItem, photoInsertable, selectedIcon } from "../../edit/assets/assets";
+import { iconInsertable, insertAsset, insertItem, paletteInsertable, photoInsertable, selectedIcon, swapItem, swapTarget } from "../../edit/assets/assets";
 import { previewAttributes } from "../../shell/modes";
 import { useStudio } from "../../store";
 import type { PaletteItem } from "../../slots/palette";
@@ -13,6 +13,7 @@ import { GROUP_ICON, searchCatalog } from "./catalog";
 import { iconTitle, searchIconGlyphs, searchLibraryPhotos } from "./icons";
 import { ItemPreview } from "./ItemPreview";
 import type { LibraryPhoto } from "./media";
+import { closeQuickInsert, quickInsertMode, subscribeQuickInsert, type QuickInsertMode } from "./quickInsertState";
 import { describeTarget, insertTarget } from "./target";
 import "./library.css";
 
@@ -23,19 +24,16 @@ import "./library.css";
  * frame in view; an icon on a selected Icon swaps its glyph), Esc or a click outside closes. Results come in groups:
  * Components, then (GĐ3 M3) Icons and Photos. The focused item is drawn for real beside the list (ItemPreview; an icon or
  * a photo as itself).
+ * Its Swap mode (GĐ4 M2, Figma's Swap instance, from the canvas menu or the Inspector header) lists components only, and
+ * Enter puts the chosen one in the selected layer's place (one undo step).
  */
 
-let open = false;
-const listeners = new Set<() => void>();
-const emit = () => listeners.forEach((listener) => listener());
-export const openQuickInsert = () => { if (!open) { open = true; emit(); } };
-export const closeQuickInsert = () => { if (open) { open = false; emit(); } };
-const subscribe = (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; };
+export { closeQuickInsert, openQuickInsert } from "./quickInsertState";
 
 /** StudioApp mounts it once; it renders while open. */
 export function QuickInsert() {
-  const isOpen = useSyncExternalStore(subscribe, () => open, () => false);
-  return isOpen ? <QuickInsertPanel /> : null;
+  const mode = useSyncExternalStore(subscribeQuickInsert, quickInsertMode, () => null);
+  return mode ? <QuickInsertPanel key={mode} mode={mode} /> : null;
 }
 
 /** At most this many results per group (the search ranks them; a longer query narrows them). */
@@ -47,16 +45,16 @@ type Entry =
   | { kind: "photo"; id: string; label: string; caption: string; photo: LibraryPhoto };
 const GROUP_LABEL: Record<Entry["kind"], string> = { component: "Components", icon: "Icons", photo: "Photos" };
 
-/** The results for `query`: components only for an empty one (the whole palette), else every kind that matches. */
-function entriesFor(query: string): Entry[] {
+/** The results for `query`: components only for an empty one (the whole palette) or a swap, else every kind that matches. */
+function entriesFor(query: string, mode: QuickInsertMode): Entry[] {
   const components: Entry[] = searchCatalog(query).slice(0, query.trim() ? MAX.component : 40).map((entry) => ({ kind: "component", id: `c-${entry.id}`, label: entry.label, caption: entry.caption ?? entry.group, item: entry.item }));
-  if (!query.trim()) return components;
+  if (!query.trim() || mode === "swap") return components;
   const icons: Entry[] = searchIconGlyphs(query).slice(0, MAX.icon).map((glyph) => ({ kind: "icon", id: `i-${glyph.id}`, label: iconTitle(glyph), caption: "Icon", name: (glyph.line ?? glyph.solid) as IconName }));
   const photos: Entry[] = searchLibraryPhotos(query).slice(0, MAX.photo).map((entry) => ({ kind: "photo", id: `p-${entry.key}`, label: entry.photo.alt, caption: "Photo", photo: entry }));
   return [...components, ...icons, ...photos];
 }
 
-function QuickInsertPanel() {
+function QuickInsertPanel({ mode }: { mode: QuickInsertMode }) {
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -66,9 +64,11 @@ function QuickInsertPanel() {
   const pointer = useRef<{ x: number; y: number } | null>(null);
   const selection = useStudio((state) => state.selection);
   const preview = useStudio((state) => state.preview);
-  const results = useMemo(() => entriesFor(query), [query]);
+  const results = useMemo(() => entriesFor(query, mode), [query, mode]);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the target follows the selection (and is read again on open)
   const target = useMemo(() => insertTarget(), [selection]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- the same: the layer a swap replaces
+  const replaced = useMemo(() => (mode === "swap" ? swapTarget() : null), [selection, mode]);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the same: the selected Icon an icon would swap
   const swap = useMemo(() => selectedIcon(), [selection]);
   const entry: Entry | undefined = results[Math.min(active, results.length - 1)];
@@ -80,6 +80,7 @@ function QuickInsertPanel() {
   const choose = (next: Entry | undefined) => {
     if (!next) return;
     close();
+    if (mode === "swap") { if (next.kind === "component") swapItem(paletteInsertable(next.item)); return; }
     if (next.kind === "component") insertAsset(next.item);
     else if (next.kind === "icon") insertItem(iconInsertable(next.name, next.label));
     else insertItem(photoInsertable(next.photo));
@@ -114,17 +115,20 @@ function QuickInsertPanel() {
     }
   };
 
-  const blocked = typeof target === "string";
+  const blocked = mode === "swap" ? typeof replaced === "string" : typeof target === "string";
   const swapping = entry?.kind === "icon" && swap;
+  const where = mode === "swap"
+    ? (typeof replaced === "string" ? replaced : `Swap ${replaced?.name ?? "the layer"} for the chosen component`)
+    : swapping ? "Swap the selected Icon" : typeof target === "string" ? target : describeTarget(target);
   const optionId = (id: string) => `studio-qi-option-${id}`;
   const groups = (["component", "icon", "photo"] as const).map((kind) => ({ kind, entries: results.filter((row) => row.kind === kind) })).filter((group) => group.entries.length);
   return (
-    <div ref={panelRef} className="studio-qi" role="dialog" aria-label="Quick insert" data-e2e="quick-insert">
+    <div ref={panelRef} className="studio-qi" role="dialog" aria-label={mode === "swap" ? "Swap instance" : "Quick insert"} data-e2e="quick-insert" data-mode={mode}>
       <div className="studio-qi__search">
         <Search
           variant="popover"
           autoFocus
-          placeholder="Search components, icons and photos"
+          placeholder={mode === "swap" ? "Swap for a component" : "Search components, icons and photos"}
           aria-label="Search components"
           role="combobox"
           aria-expanded={results.length > 0}
@@ -138,7 +142,7 @@ function QuickInsertPanel() {
         />
       </div>
       <Text as="p" textStyle="Caption/Regular" tone={blocked && !swapping ? "negative" : "base"} className="studio-qi__target" data-e2e="quick-insert-target">
-        {swapping ? "Swap the selected Icon" : blocked ? target : describeTarget(target)}
+        {where}
       </Text>
       <div className="studio-qi__body">
         {results.length ? (

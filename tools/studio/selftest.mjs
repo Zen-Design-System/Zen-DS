@@ -2530,6 +2530,12 @@ process.stdout.write(resetAll.stdout);
 process.stderr.write(resetAll.stderr);
 if (resetAll.status !== 0) process.exit(1);
 
+// The icon picker's suggestions (inspector/iconSuggestions.ts: Figma default, the file's icons) have their own test.
+const iconSuggestions = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/inspector/iconSuggestions.selftest.mjs", import.meta.url))], { encoding: "utf8" });
+process.stdout.write(iconSuggestions.stdout);
+process.stderr.write(iconSuggestions.stderr);
+if (iconSuggestions.status !== 0) process.exit(1);
+
 // The Position section's model (Ignore auto layout, constraints, token offsets) has its own test next to it.
 const position = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/position/positionModel.selftest.mjs", import.meta.url))], { encoding: "utf8" });
 process.stdout.write(position.stdout);

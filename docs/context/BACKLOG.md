@@ -1184,7 +1184,9 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   (behaviour ✗ apg + ⚠ deadclick). Same run, example content: ⚠ deadclick app-shell "Activity, new", chat "Hana Kim" inbox
   row; ⚠ rhythm 8 text styles in HR templates; button "Approve on a phone" "Chi Tran" heading-4 not a heading; button
   "Hand off when ready" Stack gap 2px; templates behaviour exceeded its 90 s budget.
-- P2 (2026-10-05, session "Studio builder tool planning", WP-E follow-ups, for GĐ4): ~~option labels in Figma words~~ done 2026-10-07 (GĐ4 M1); nested groups for generated entries: a field's Label / Help-Text done in M1, the rest (Button in Card…) is GĐ4 M3; icon-presence toggles start from a fixed icon (Button Leading-Icon → icon-check-line): GĐ4 M2 reads Figma's default and preferred icons.
+- P2 (2026-10-05, session "Studio builder tool planning", WP-E follow-ups, for GĐ4): ~~option labels in Figma words~~ done 2026-10-07 (GĐ4 M1); nested groups for generated entries: a field's Label / Help-Text done in M1, the rest (Button in Card…) is GĐ4 M3; ~~icon-presence toggles start from a fixed icon~~ done 2026-10-07 (GĐ4 M2: Figma's default icon).
+- P3 (2026-10-07, GĐ4 M2) · Help-Text's Figma names: no Primitives/Input/Help-Text set in the capture or found by the swap read; the Help-Text group keeps code labels (Theme, Icon, Character limit) until the set is read.
+- P3 (2026-10-07, GĐ4 M2) · Component swap covers registered atom slots (ListItem leading / trailing) and whole layers; a ReactNode prop that is not a registered slot (Metric `action`, EmptyState `icon` as an element) shows its value read-only, with no ⇄.
 - P3 (2026-10-05, Studio builder session): on a selected Box (layout primitive with slots) the SlotLayer "+" chip sits
   on the selection's size pill ("28 × 28") below small layers, so the size is hidden (`slots/SlotLayer.tsx` chip vs
   `.studio-resize__pill`).

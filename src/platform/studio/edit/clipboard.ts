@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import type { MenuEntry } from "../../../components/Menu";
 import { announceEditStatus, applyEdit, parseSrc, studioApi, subscribeStudioWrites } from "../api";
 import { canvasApi } from "../canvas/viewport";
+import { openQuickInsert } from "../builder/library/quickInsertState";
 import { propSpecs } from "../inspector/propSchema";
 import { findBySrc, isTypingTarget, parentHit, type FiberHit } from "../select/picker";
 import { multiSelection, selectedLayers } from "../select/multiSelection";
@@ -358,6 +359,8 @@ export function clipboardMenuItems(selection: StudioSelection | null): MenuEntry
     { id: "clip-cut", label: "Cut", icon: "icon-scissors-line", shortcut: clipboardShortcuts.cut, disabled: !editable.ok, caption: reason, onSelect: () => { void copyLayer(node, null, true).then((copied) => { if (copied) void removeSelection(node); }); } },
     { id: "clip-paste", label: "Paste", icon: "icon-clipboard-line", shortcut: clipboardShortcuts.paste, disabled: !editable.ok, caption: reason, onSelect: () => { void pasteFromMenu(node, false); } },
     { id: "clip-replace", label: "Paste to replace", icon: "icon-switch-horizontal-01-line", shortcut: clipboardShortcuts.replace, disabled: !editable.ok, caption: reason, onSelect: () => { void pasteFromMenu(node, true); } },
+    // Figma's Swap instance (GĐ4 M2): Quick insert in its Swap mode, for a component layer.
+    ...(/^[A-Z]/.test(selectedName(node.name)) ? [{ id: "swap-instance", label: "Swap instance…", icon: "icon-switch-horizontal-01-line" as const, disabled: !editable.ok, caption: reason, onSelect: () => openQuickInsert("swap") }] : []),
     { id: "clip-copy-props", label: "Copy properties", icon: "icon-brush-01-line", shortcut: clipboardShortcuts.copyProps, onSelect: () => { void copyProperties(node); } },
     { id: "clip-paste-props", label: "Paste properties", icon: "icon-brush-02-line", shortcut: clipboardShortcuts.pasteProps, disabled: !propsClip || !canEdit(), caption: propsClip ? `From ${propsClip.name}` : undefined, onSelect: () => { void pasteProperties(node); } },
   ];

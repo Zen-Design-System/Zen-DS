@@ -5,3 +5,7 @@ import { createContext } from "react";
  * ScaleField reads "md · 16" there, with the frame's density, breakpoint and mode applied. Null: no canvas element.
  */
 export const InspectorHostContext = createContext<Element | null>(null);
+
+/** The source file of the selection (DesignPanel provides it): the icon picker lists the icons that file already uses
+ *  (iconSuggestions.ts). Null: none. */
+export const InspectorFileContext = createContext<string | null>(null);

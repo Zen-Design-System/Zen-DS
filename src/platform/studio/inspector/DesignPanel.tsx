@@ -23,7 +23,7 @@ import { copyText } from "./frames";
 import { GroupedProperties } from "./GroupedProperties";
 import { HostTextAlignment } from "./HostTextAlignment";
 import { LayoutSection } from "./LayoutSection";
-import { InspectorHostContext } from "./controls/hostContext";
+import { InspectorFileContext, InspectorHostContext } from "./controls/hostContext";
 import { componentGroupsOf } from "./componentGroups";
 import { AppearanceSection, appearancePropNames, EffectsSection } from "../appearance/AppearanceSection";
 import { NestedProperties } from "./NestedProperties";
@@ -40,6 +40,7 @@ import { autoGroups, labelInGroup } from "./autoGroups";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { hasSizing, SizingSection, sizingPropNames } from "./SizingSection";
 import { SlotHost, useSlotFilled } from "./SlotHost";
+import { openQuickInsert } from "../builder/library/quickInsertState";
 import { resetAllProps } from "./resetAll";
 import { fileName, inspectorStatus, saveShortcut, undoShortcut } from "./status";
 import { alignmentHint, hostTextTags, useRenderedText, type RenderedText } from "./textInfo";
@@ -711,6 +712,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   return (
     // Scale fields measure their tokens on the selected element (density, breakpoint and mode applied).
     <InspectorHostContext value={sourceHost(selection)}>
+    <InspectorFileContext value={element?.file ?? parsed?.file ?? null}>
     <div ref={panelRef} className="studio-inspector__panel">
       {/* Header (Design panel UI3, user 2026-10-06): the name with its count and the Detach / Remove icons on one row, then
           the kind with its Docs link, then where it is written. Every line in Body/Small. */}
@@ -735,6 +737,18 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
                 tooltip={`Reset all overrides · ${plural(resetNames.length, "property", "properties")} back to default · ${undoShortcut} to undo`}
                 className="studio-inspector__head-action"
                 onClick={resetAll}
+              />
+            ) : null}
+            {kind === "zen" && editable && element ? (
+              <IconButton
+                icon="icon-switch-horizontal-01-line"
+                appearance="flat"
+                level="primary"
+                size="xs"
+                aria-label="Swap instance"
+                tooltip="Swap instance · another component in this layer's place"
+                className="studio-inspector__head-action"
+                onClick={() => openQuickInsert("swap")}
               />
             ) : null}
             {detachOffered ? <DetachAction compact selection={selection} availability={detach} connecting={!server.ready} row={rowDetach} /> : null}
@@ -864,6 +878,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
         </InspectorSection>
       ) : null}
     </div>
+    </InspectorFileContext>
     </InspectorHostContext>
   );
 }

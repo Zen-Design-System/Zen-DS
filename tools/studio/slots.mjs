@@ -13,6 +13,7 @@
 //                                              (arrange.mjs); `moved` = { loc }, or `inserted` = { loc } for a copy;
 //                                              `replace` (with copy): paste to replace
 //        op "pasteCode" { code, before?, after?, replace? }  on the parent: ⌘V of code from another file (arrange.mjs)
+//        op "replaceElement" { code, state? }  on the element: Swap instance, `code` in its place (arrange.mjs)
 //        op "many" { action: remove|duplicate|setProps, locs, ops? }  a multi-selection in one file (arrange.mjs)
 //        op "clearSlot" { prop? }              on the host: empties the slot (Figma "Delete contents"); `cleared` = true
 //        op "resetSlot" { prop? }              on the host: the slot as the saved file has it (Figma "Reset slot"); `reset` = true
@@ -69,7 +70,7 @@ import { parseExpression } from "@babel/parser";
 import { CHROME_MARK, EditError, applyEdits, changedRange, chromeFunctions, collapseJsxText, describeAttr, describeAttrsIn, findElement, formatAttr, insideAny, isAnnotatedFile, jsxName, parseLoc, parseSource, sha1, snippetLiterals, staticString, walk } from "./jsx-source.mjs";
 import { isPlaygroundFile } from "./shared-code.mjs";
 import { UNIT, pathTo, piece } from "./source-helpers.mjs";
-import { manyPlan, moveToPlan, pasteCodePlan } from "./arrange.mjs";
+import { manyPlan, moveToPlan, pasteCodePlan, replacePlan } from "./arrange.mjs";
 import { ITEM_OPS, itemPlan } from "./items.mjs";
 
 const BOM = "\uFEFF";
@@ -101,7 +102,7 @@ const FALLBACK_FOLDERS = {
   RadioButton: "RadioButton", Tag: "Tag", Heading: "Text", Text: "Text", Toggle: "Toggle", useToast: "Toast",
 };
 
-export const SLOT_OPS = new Set(["insertChild", "removeElement", "duplicateElement", "moveElement", "moveTo", "pasteCode", "many", "clearSlot", "resetSlot", ...ITEM_OPS]);
+export const SLOT_OPS = new Set(["insertChild", "removeElement", "duplicateElement", "moveElement", "moveTo", "pasteCode", "replaceElement", "many", "clearSlot", "resetSlot", ...ITEM_OPS]);
 /** Ops sent on the slot's host (the parent), not on an element inside the slot. */
 const HOST_OPS = new Set(["insertChild", "pasteCode", "clearSlot", "resetSlot", ...ITEM_OPS]);
 
@@ -2530,7 +2531,7 @@ export function applySlotOp(code, loc, name, op, options = {}) {
     if (!shared) return sharedRefusal(file);
   }
   // Ops that take content away need the text they were chosen on.
-  const hashed = { removeElement: "Remove and move", moveElement: "Remove and move", moveTo: "Remove and move", pasteCode: "Paste and replace", many: "Changes to several layers", clearSlot: "Clear and reset", resetSlot: "Clear and reset", insertItem: "Item changes", removeItem: "Item changes", duplicateItem: "Item changes", moveItem: "Item changes", groupItem: "Item changes", ungroupItem: "Item changes" }[op.op];
+  const hashed = { removeElement: "Remove and move", moveElement: "Remove and move", moveTo: "Remove and move", pasteCode: "Paste and replace", replaceElement: "Paste and replace", many: "Changes to several layers", clearSlot: "Clear and reset", resetSlot: "Clear and reset", insertItem: "Item changes", removeItem: "Item changes", duplicateItem: "Item changes", moveItem: "Item changes", groupItem: "Item changes", ungroupItem: "Item changes" }[op.op];
   if (hashed) {
     if (typeof hash !== "string" || !hash) return fail("invalid", `${hashed} need the file's hash (send \`hash\` with the request)`);
     if (hash !== sha1(code)) return fail("stale", "The file changed since it was read; reload it and try again");
@@ -2569,6 +2570,7 @@ export function applySlotOp(code, loc, name, op, options = {}) {
     else if (op.op === "resetSlot") plan = resetPlan(ctx, nodePath, op, base);
     else if (op.op === "moveTo") plan = moveToPlan(ctx, nodePath, op, ARRANGE_HELPERS);
     else if (op.op === "pasteCode") plan = pasteCodePlan(ctx, nodePath, op, ARRANGE_HELPERS);
+    else if (op.op === "replaceElement") plan = replacePlan(ctx, nodePath, op, ARRANGE_HELPERS);
     else if (op.op === "many") plan = manyPlan(ctx, nodePath, op, ARRANGE_HELPERS);
     else if (ITEM_OPS.has(op.op)) plan = itemPlan(ctx, nodePath, op, ITEM_HELPERS);
     else plan = movePlan(ctx, nodePath, op.to);

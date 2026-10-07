@@ -109,7 +109,7 @@ Ops (applied back to front on the element at `loc`):
   carries `unwrapped: { loc }`, the element's opening tag in the new text.
 - `detach { measured?, instance? }` (alone in its request): §3.
 - `insertChild { code, prop?, index?, wrap?, requires? }`, `removeElement {}`, `duplicateElement {}`, `moveElement { to }`,
-  `moveTo { parent, before?, after?, copy?, replace? }`, `pasteCode { code, … }`, `many { action, locs, ops? }`,
+  `moveTo { parent, before?, after?, copy?, replace? }`, `pasteCode { code, … }`, `replaceElement { code, state? }`, `many { action, locs, ops? }`,
   `clearSlot { prop? }`, `resetSlot { prop? }` (each alone in its request): slot content, see "Slots" below.
 - `insertItem { prop, code, index?, single?, requires? }`, `removeItem { prop, index? }`, `duplicateItem { prop, index }`,
   `moveItem { prop, index, to }` (each alone, on the host, hash required; `items.mjs`, 2026-10-04): the objects of a
@@ -244,6 +244,11 @@ Slots (`slots.mjs`; spec docs/research/studio-slots-spec-2026-10-03.md "Source o
   the imports as an insert's do), `toast` (the component gains `useToast()`) or a global (Math, Date, Intl…). Answer
   `inserted: { loc }`. `GET /element` answers `range: { start, end }` (char offsets, BOM left out) so the client copies
   the exact code.
+- `replaceElement { code, state? }` (Swap instance, GĐ4 M2; `arrange.mjs` replacePlan), on the element it replaces:
+  `code` (one JSX element, a palette item's code) takes its place wherever it is written (a child, a prop's value such
+  as `leading={<Avatar />}`, a `.map` row, what a function returns); the element's `key` goes onto the new one; names
+  as `pasteCode` (Zen components imported, `toast`, `state`); components left unused leave the imports; a parent that
+  clones its children (cloning.json `only`) takes only those. Hash required. Answer `inserted: { loc }`.
   `code` may hold several sibling elements (layers copied together): they land in order at that place; the answer is the
   first one's loc.
 - `many { action: "remove" | "duplicate" | "setProps", locs, ops? }` (a multi-selection, `arrange.mjs`), on any one of

@@ -18,10 +18,11 @@ const titles: Record<SlotConfirmQuestion["verb"], (count: number, unit: string, 
   move: (count, unit) => `Move in all ${count} ${unit}?`,
   clear: (count, unit, name) => `Clear ${name} in all ${count} ${unit}?`,
   reset: (count, unit, name) => `Reset ${name} in all ${count} ${unit}?`,
+  swap: (count, unit, name) => `Swap ${name} in all ${count} ${unit}?`,
 };
 
 const actions: Record<SlotConfirmQuestion["verb"], string> = {
-  add: "Add to all", remove: "Remove from all", duplicate: "Duplicate in all", move: "Move in all", clear: "Clear in all", reset: "Reset in all",
+  add: "Add to all", remove: "Remove from all", duplicate: "Duplicate in all", move: "Move in all", clear: "Clear in all", reset: "Reset in all", swap: "Swap in all",
 };
 
 const outcomes: Record<SlotConfirmQuestion["verb"], (question: SlotConfirmQuestion) => string> = {
@@ -31,6 +32,7 @@ const outcomes: Record<SlotConfirmQuestion["verb"], (question: SlotConfirmQuesti
   move: ({ name }) => `${name} moves`,
   clear: ({ name, where }) => `${where ?? name} is emptied`,
   reset: ({ name, where }) => `${where ?? name} goes back to the saved file`,
+  swap: ({ name }) => `${name} is swapped`,
 };
 
 function descriptionOf(question: SlotConfirmQuestion): string {

@@ -145,9 +145,14 @@ Last updated: 2026-10-06.
   MixedProperties too); 70 mapped components (`figma-props.map.mjs`, nested groups `nested`, object toggles `on: { code }`);
   `inspector/inheritedProps.ts` (props from another component's props type, ALIAS_EXTENDS checked against the source);
   editor `icon-toggle` (boolean | IconName); Reset all overrides (`inspector/resetAll.ts`, DesignPanel header, one
-  runPlan); E2E group `instance` IN-01…IN-06, build-check step 6 picks "Primary" + Reset all; baseline 117 works. Next:
-  M2 (preferred icons read from Figma, component swap in props/slots, Swap instance via Quick insert), M3, M4; then GĐ3b
-  starters (needs a spec), GĐ5 export (+ photo uploads).
+  runPlan); E2E group `instance` IN-01…IN-06, build-check step 6 picks "Primary" + Reset all; baseline 117 works. M2 done
+  2026-10-07: Figma swap defaults read (component-properties.json `default` / `preferred` on INSTANCE_SWAP; preferred =
+  the whole icon set, so the user chose "default + icons used in this file": `inspector/iconSuggestions.ts`,
+  InspectorFileContext); toggles `on: { swap }` start from Figma's default; server op `replaceElement` (arrange.mjs
+  replacePlan, a slot op); Slots ⇄ menu on atom-slot rows (`swapSlotLayer`); Swap instance = Quick insert mode "swap"
+  (`builder/library/quickInsertState.ts`, Inspector header ⇄, canvas menu) → `swapSelection`; E2E IN-07…IN-11,
+  build-check 15 steps (Swap instance on the build). Next: M3 (nested instances: every property type, one undo step for
+  owner + nested), M4 (sizing per Q1, Detach on builder pages); then GĐ3b starters, GĐ5 export (+ photo uploads).
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers

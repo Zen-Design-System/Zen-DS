@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { InputField, NumberField, SelectField, TextAreaField } from "../../../components/Input";
 import { Popover, PopoverItem } from "../../../components/Popover";
@@ -7,7 +7,10 @@ import { ToggleButton } from "../../../components/Toggle";
 import { contentToneGroups, contentTones, contentToneToken, contentToneVar, resolveContentTone, type ContentTone } from "../../../components/_shared/contentTone";
 import type { IconName } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
+import { studioApi } from "../api";
+import { InspectorFileContext } from "./controls/hostContext";
 import { usePendingDraft } from "./drafts";
+import { iconGroups, iconsIn } from "./iconSuggestions";
 import { figmaOptions } from "./propGroups";
 import { allIconNames, dataEditable, dataSourceLabel, fixableBinding, inSentence, matchOption, propLabel, typographyFamily, typographyKeys, type Literal, type PropSpec, type PropValue } from "./propSchema";
 import { ScaleField } from "./controls/ScaleField";
@@ -470,18 +473,44 @@ export function rankIcons(query: string, names: readonly string[] = allIconNames
     .map((entry) => entry.name);
 }
 
-/** Icon names with a searchable list (at most 200 shown). `emptyLabel`: what the field reads with no icon ("None"). */
-export function IconControl({ label, value, fallback, disabled, onSet, emptyLabel = "None" }: ControlProps<string> & { emptyLabel?: string }) {
+/** The icons the selection's file writes (iconSuggestions.ts), read when the picker opens; [] until then or offline. */
+function useFileIcons(open: boolean): string[] {
+  const file = useContext(InspectorFileContext);
+  const [icons, setIcons] = useState<string[]>([]);
+  useEffect(() => {
+    if (!open || !file) return undefined;
+    let alive = true;
+    studioApi.source(file).then((source) => { if (alive) setIcons(iconsIn(source.content, iconSet)); }, () => undefined);
+    return () => { alive = false; };
+  }, [open, file]);
+  return icons;
+}
+
+/**
+ * Icon names with a searchable list (at most 200 shown). With no search it leads with `defaultIcon` (the swap's default
+ * in Figma) and the icons the file already uses, then every icon (user 2026-10-07: Figma's preferred values are the whole
+ * set). `emptyLabel`: what the field reads with no icon ("None").
+ */
+export function IconControl({ label, value, fallback, disabled, onSet, emptyLabel = "None", defaultIcon }: ControlProps<string> & { emptyLabel?: string; defaultIcon?: string }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const anchorRef = useRef<HTMLDivElement>(null);
+  const listId = useId();
   const shown = value ?? fallback;
+  const fileIcons = useFileIcons(open);
+  const searching = Boolean(query.trim());
   const items = useMemo(() => {
-    if (!open) return [];
+    if (!open || !searching) return undefined;
     return rankIcons(query)
       .slice(0, 200)
       .map((name) => ({ id: name, label: name, leading: name as IconName, selected: name === value }));
-  }, [open, query, value]);
+  }, [open, searching, query, value]);
+  const groups = useMemo(() => (open && !searching ? iconGroups(allIconNames.slice(0, 200), asIcon(defaultIcon), fileIcons) : []), [open, searching, defaultIcon, fileIcons]);
+  const pick = (name: string) => {
+    setOpen(false);
+    setQuery("");
+    if (name !== value) onSet(name);
+  };
   return (
     <div ref={anchorRef} className="studio-icon-control" data-empty={shown ? undefined : "true"}>
       {/* zen-allow-filter-button: an inspector value picker (an icon name for a prop), not a filter or sort control; it
@@ -501,7 +530,7 @@ export function IconControl({ label, value, fallback, disabled, onSet, emptyLabe
       </Button>
       <Popover
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={(next) => { setOpen(next); if (!next) setQuery(""); }}
         anchorRef={anchorRef}
         search
         searchValue={query}
@@ -511,11 +540,15 @@ export function IconControl({ label, value, fallback, disabled, onSet, emptyLabe
         items={items}
         autoFocus
         emptyState="No icon matches"
-        onSelect={(item) => {
-          setOpen(false);
-          if (item.id !== value) onSet(item.id);
-        }}
-      />
+        onSelect={(item) => pick(item.id)}
+      >
+        {groups.map((group) => (
+          <div key={group.id} role="group" aria-labelledby={`${listId}-${group.id}`} className="studio-type-control__group" data-icon-group={group.id}>
+            <div id={`${listId}-${group.id}`} role="presentation" className={`studio-type-control__family ${typographyStyles["Caption/Medium"]}`}>{group.title}</div>
+            {group.names.map((name) => <PopoverItem key={`${group.id}:${name}`} label={name} leading={name as IconName} selected={name === value} onSelect={() => pick(name)} />)}
+          </div>
+        ))}
+      </Popover>
     </div>
   );
 }
@@ -525,7 +558,7 @@ export function IconControl({ label, value, fallback, disabled, onSet, emptyLabe
  * Metric's dock icon), Figma's boolean and its instance swap in one row: off writes `false`; on goes back to the
  * default (the theme's icon, or the component's own), and the picker sets another icon.
  */
-export function IconToggleControl({ label, value, fallback, disabled, onSet, onReset, takesTrue }: ControlProps<string | boolean> & { onReset?: () => void; takesTrue: boolean }) {
+export function IconToggleControl({ label, value, fallback, disabled, onSet, onReset, takesTrue, defaultIcon }: ControlProps<string | boolean> & { onReset?: () => void; takesTrue: boolean; defaultIcon?: string }) {
   const on = value === undefined ? fallback !== false : value !== false;
   // The icon it shows: the one written, else the component's default icon; `true` (the theme's icon) reads "Default".
   const icon = typeof value === "string" ? value : value === undefined && typeof fallback === "string" ? fallback : undefined;
@@ -537,7 +570,7 @@ export function IconToggleControl({ label, value, fallback, disabled, onSet, onR
   return (
     <div className="studio-icon-toggle">
       <ToggleButton aria-label={`Show ${inSentence(label)}`} size="sm" checked={on} disabled={disabled} onCheckedChange={(next) => { if (!next) onSet(false); else switchOn(); }} />
-      {on ? <IconControl label={label} value={typeof value === "string" ? value : undefined} fallback={icon} emptyLabel="Default" disabled={disabled} onSet={onSet} /> : null}
+      {on ? <IconControl label={label} value={typeof value === "string" ? value : undefined} fallback={icon} emptyLabel="Default" defaultIcon={defaultIcon} disabled={disabled} onSet={onSet} /> : null}
     </div>
   );
 }
@@ -603,7 +636,7 @@ export type PropRestore = { expression: string; onRestore: () => void };
  * The control for a value of the prop's type (enum, number, text, icon…), or null for a kind without an editor. Shared by
  * a written or unset value and a binding a fixed value may replace (its live value shown in the same control).
  */
-function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Literal | null | undefined, common: { label: string; disabled: boolean }, onSet: (value: Literal) => void, extra: { autoFocusToken?: number; onReset?: () => void; optionLabels?: Readonly<Record<string, string>> } = {}): ReactNode {
+function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Literal | null | undefined, common: { label: string; disabled: boolean }, onSet: (value: Literal) => void, extra: { autoFocusToken?: number; onReset?: () => void; optionLabels?: Readonly<Record<string, string>>; defaultIcon?: string } = {}): ReactNode {
   const editor = spec.editor;
   switch (editor.kind) {
     case "enum": {
@@ -633,7 +666,7 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
     case "typography":
       return <TypographyControl {...common} value={typeof literal === "string" ? literal : undefined} fallback={typeof fallback === "string" ? fallback : undefined} onSet={onSet} />;
     case "icon":
-      return <IconControl {...common} value={typeof literal === "string" ? literal : undefined} fallback={typeof fallback === "string" ? fallback : undefined} onSet={onSet} />;
+      return <IconControl {...common} value={typeof literal === "string" ? literal : undefined} fallback={typeof fallback === "string" ? fallback : undefined} defaultIcon={extra.defaultIcon} onSet={onSet} />;
     case "icon-toggle":
       return (
         <IconToggleControl
@@ -643,6 +676,7 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
           takesTrue={/(^|\|)\s*(boolean|true)\s*(\||$)/.test(spec.type)}
           onSet={onSet}
           onReset={extra.onReset}
+          defaultIcon={extra.defaultIcon}
         />
       );
     case "text-align":
@@ -658,7 +692,7 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
  * data lives, or a fixed value that ↺ (Restore) turns back into the binding. A value that reads state stays read-only
  * (the keep-behaviour rule), in a field's frame so the column reads the same.
  */
-export function PropField({ spec, value, disabled, onSet, onReset, boundHint, label = propLabel(spec.name), autoFocusToken, resettable = true, restore, repeats, hint, optionLabels }: {
+export function PropField({ spec, value, disabled, onSet, onReset, boundHint, label = propLabel(spec.name), autoFocusToken, resettable = true, restore, repeats, hint, optionLabels, defaultIcon }: {
   spec: PropSpec;
   value: PropValue;
   disabled: boolean;
@@ -666,6 +700,8 @@ export function PropField({ spec, value, disabled, onSet, onReset, boundHint, la
   onReset: () => void;
   /** Code value → Figma option name (generated groups): a select lists Figma's options first, by their Figma names. */
   optionLabels?: Readonly<Record<string, string>>;
+  /** An icon swap's default in Figma (generated groups): its icon picker lists it first. */
+  defaultIcon?: string;
   /** Why a bound value is read-only here ("Use Playground properties"): in the ƒ tooltip. */
   boundHint?: string;
   label?: string;
@@ -701,7 +737,7 @@ export function PropField({ spec, value, disabled, onSet, onReset, boundHint, la
       const rows = value.origin?.kind === "loop-bound" ? value.origin.rows ?? repeats : repeats;
       const note = rows && rows > 1 ? `An edit sets a fixed value for all ${rows} rows; Restore brings the binding back.` : "An edit sets a fixed value; Restore brings the binding back.";
       const shown = spec.editor.kind === "boolean" ? Boolean(value.live) : live;
-      const control = shown === undefined ? null : editorFor(spec, shown, undefined, { label, disabled }, onSet, { autoFocusToken, optionLabels });
+      const control = shown === undefined ? null : editorFor(spec, shown, undefined, { label, disabled }, onSet, { autoFocusToken, optionLabels, defaultIcon });
       if (control) return <InspectorRow {...row} bound={{ expression: value.expression, note }}>{control}</InspectorRow>;
     }
     // State-bound (the keep-behaviour rule), or a playground's: read-only, what it renders now in a field's frame.
@@ -749,7 +785,7 @@ export function PropField({ spec, value, disabled, onSet, onReset, boundHint, la
   let control: ReactNode;
   if (viaSpread && value.live !== undefined && !isLiteral(value.live)) control = <ValueChip value={value.live} />;
   else {
-    control = editorFor(spec, literal, fallback, common, onSet, { autoFocusToken, onReset: value.state === "literal" && resettable && !restore ? onReset : undefined, optionLabels });
+    control = editorFor(spec, literal, fallback, common, onSet, { autoFocusToken, onReset: value.state === "literal" && resettable && !restore ? onReset : undefined, optionLabels, defaultIcon });
     if (control === null) {
       control = literal !== undefined && (value.state === "literal" || editor.kind === "string" || editor.kind === "node")
         ? (value.state === "literal" ? <LiteralValue value={literal} /> : <ValueChip value={literal} />)

@@ -6,6 +6,8 @@
 // Keep it a valid example page module: { page, examples }.
 import { useState } from "react";
 import { AlertBanner } from "../../../components/AlertBanner";
+import { Avatar } from "../../../components/Avatar";
+import { Badge } from "../../../components/Badge";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Checkbox } from "../../../components/Checkbox";
@@ -122,6 +124,10 @@ function InstanceFixture() {
       <NumberField data-e2e="inst-number" label="Guests" defaultValue={2} />
       <AlertBanner data-e2e="inst-alert">Heads up</AlertBanner>
       <EmptyState data-e2e="inst-empty" title="Nothing here" illustration={false} />
+      <Badge data-e2e="inst-badge" leadingIcon leading="icon-heart-line">New</Badge>
+      <List data-e2e="inst-list">
+        <ListItem data-e2e="inst-row" title="Ava Tran" leading={<Avatar alt="Ava Tran" />} />
+      </List>
     </Stack>
   );
 }

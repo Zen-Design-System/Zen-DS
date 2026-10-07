@@ -7,7 +7,7 @@ import type { FieldApi } from "./fieldApi";
 import { NestedInstanceGroup } from "./NestedProperties";
 import { useNestedInstances } from "./nestedInstances";
 import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
-import { entryLabel, entryOptions, entryProp, entryShown, entryWarnings, holds, isSetValue, placedProps, type ComponentGroups, type GroupToggle, type PropEntry } from "./propGroups";
+import { entryDefaultIcon, entryLabel, entryOptions, entryProp, entryShown, entryWarnings, holds, isSetValue, placedProps, type ComponentGroups, type GroupToggle, type PropEntry } from "./propGroups";
 import { PropField } from "./PropField";
 import { propLabel, type PropSpec, type PropValue } from "./propSchema";
 import { InspectorSection } from "./Section";
@@ -122,6 +122,7 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
     const labels = new Map(entries.map((entry) => [entryProp(entry), entryLabel(entry)]));
     // And its options by their Figma names ("Medium (Base)"), in Figma's order; the file still gets the code value.
     const optionNames = new Map(entries.map((entry) => [entryProp(entry), entryOptions(entry)]));
+    const defaultIcons = new Map(entries.map((entry) => [entryProp(entry), entryDefaultIcon(entry)]));
     const fields = shown.filter((prop) => !shapedOf.has(prop)).map(specOf).filter((spec): spec is PropSpec => Boolean(spec));
     const objects = shown.flatMap((prop) => (shapedOf.has(prop) ? [shapedOf.get(prop)!] : []));
     const instances = nested.items.filter((item) => shown.includes(item.prop));
@@ -133,6 +134,7 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
               spec={spec}
               label={labels.get(spec.name) ?? propLabel(spec.name, component)}
               optionLabels={optionNames.get(spec.name)}
+              defaultIcon={defaultIcons.get(spec.name)}
               value={api.valueFor(spec.name)}
               disabled={api.disabled}
               boundHint={api.boundHint}

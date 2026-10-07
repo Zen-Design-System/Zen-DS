@@ -75,3 +75,22 @@
 - E2E `instance` IN-01…IN-06 (fixture frame "E2E instance"); the rows that picked "primary"/"sm" now pick the Figma
   names; IN-04/05 wait for the switch to flip (layer switches read the rendered props, ~0.3–0.5 s after the source).
   build-check step 6: "Primary" + Reset all + 2× ⌘Z. Full matrix 117 works except the known flaky I-15 (3/5 alone).
+
+## Studio builder GĐ4 M2 (session "Studio builder tool planning", tier M)
+
+- Figma read (use_figma, read-only, 4 parallel calls; one call of 25 sets timed out at 60 s): every INSTANCE_SWAP's
+  default and preferred-value count. Preferred values hold the whole icon set (1,569–3,534; Chat bubble 4), so the
+  user picked "Figma's default + the icons this file uses" over a hand-written list. Stored in component-properties.json
+  (`default`, `preferred`, `swapRead`); figma-props-read.js reads them from now on.
+- figma-props-build: swap rows carry `default` (an icon name); toggles `on: { swap: "<Src prop>" }` start from it (Button
+  Leading/Trailing → icon-plus-line); Slider's Icon boolean skipped (its icon-toggle row switches it).
+- IconControl: grouped popover (Default in Figma · Used in this file · All icons) when not searching; the file's icons
+  come from studioApi.source via InspectorFileContext (iconSuggestions.ts pure, selftest 5).
+- Server op `replaceElement { code, state? }` (arrange.mjs replacePlan, slot op, hash required): the code takes the
+  element's place in a child, a prop value, a .map row; key kept; names as pasteCode; unused imports go; cloning `only`
+  respected. arrange.selftest +4 cases (36).
+- Client: slots `swapSlotLayer` (⇄ menu on atom-slot rows, palette items of accepts.only), `swapSelection` + assets
+  `swapItem` / `swapTarget`, Quick insert mode "swap" (quickInsertState.ts; header ⇄, canvas menu "Swap instance…"),
+  SlotConfirm verb "swap".
+- E2E IN-07…IN-11 (fixture: Badge with a heart icon, ListItem with an Avatar), build-check 15 steps (Swap instance on
+  the production engine, 135.5 KB).

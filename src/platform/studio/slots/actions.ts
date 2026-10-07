@@ -11,7 +11,7 @@ import { selectPart, withoutPart } from "../select/parts";
 import { expectRender, mapSrc, noteEditTarget, remapSelection, renderedNow, sameSelectedElement, type RenderWaitEnd } from "../select/remap";
 import { studioDrafts } from "../sourceDrafts";
 import { canEdit, flushStudioStore, studioStore } from "../store";
-import type { SourceElement, StudioSelection, StudioWrite } from "../types";
+import type { SourceElement, StateDecl, StudioSelection, StudioWrite } from "../types";
 import { attributeFormOf, clearCountOf, clearedLayers, formOf, hostLocAfter, lastElementName, locatedElements, onlyFrame, slotContentOf, slotModifiedOf, tagAt, type SlotContent, type SlotLayer, type SlotSourceElement } from "./content";
 import { itemParts, renderedSignature, slotGroupsAt, sourceItems, computedCaption } from "./dataItems";
 import { itemTitle, type DataSlot } from "./dataSlots";
@@ -111,7 +111,7 @@ export function canStructurallyEdit(selection: StudioSelection | null): Structur
 /* ───────────── Running state and the "all N rows" confirmation (SlotConfirm) ───────────── */
 
 export type SlotConfirmQuestion = {
-  verb: "add" | "remove" | "duplicate" | "move" | "clear" | "reset";
+  verb: "add" | "remove" | "duplicate" | "move" | "clear" | "reset" | "swap";
   /** What is added ("Button"), the element acted on ("Badge") or the slot reset or cleared ("Content"). */
   name: string;
   count: number;
@@ -688,6 +688,66 @@ async function runInsert({ selection, element, slot, item, context, warning }: I
   const next: NodeSelection = { kind: "node", src: `${response.file}:${loc}`, name: tagAt(response.after, loc) ?? item.root, frameId: selection.frameId, panelId: selection.panelId, instance: selection.instance };
   if (selectNew(selection, next, before, text, { away })) remember(response.file, response.after, selection, next, { before: false, after: true }, { before: false, after: away });
   return true;
+}
+
+export type SwapRequest = {
+  selection: NodeSelection;
+  element: SourceElement;
+  slot: ContentSlot;
+  /** The slot's layer to swap: its name and source (`file:line:col`). */
+  layer: { name: string; src: string };
+  item: PaletteItem;
+};
+
+/**
+ * Swaps a slot's layer for another component (Figma's instance swap, Studio builder GĐ4 M2): the palette item's code
+ * takes its place (op replaceElement on the layer; a key stays), one undo step. The host stays selected.
+ */
+export function swapSlotLayer(request: SwapRequest): Promise<boolean> {
+  return exclusive(() => runSwap(request));
+}
+
+async function runSwap({ selection, element, slot, layer, item }: SwapRequest): Promise<boolean> {
+  const check = canStructurallyEdit(selection);
+  if (!check.ok) return fail(check.reason);
+  const target = await readElement(layer.src, layer.name);
+  if (!target) return false;
+  const code = item.build(paletteFor(slotHostContext(selection, element, slot)).context);
+  const op: SlotEditOp = { op: "replaceElement", code, ...(item.state?.length ? { state: item.state.map((entry) => ({ ...entry })) } : {}) };
+  const where = `${element.name} › ${slot.name}`;
+  if (!(await confirmRepeats(selection, { verb: "swap", name: layer.name, where }))) return false;
+  writing("Swapping…");
+  const response = await write(targetOf(target), op, `Swap ${layer.name} for ${item.label} in ${where}`, [selection.src]);
+  if (!response) return false;
+  announce(outcomeOf(`Swapped ${layer.name} for ${item.label} in ${where}`, response));
+  return true;
+}
+
+/**
+ * Swap instance for a whole layer (Figma, GĐ4 M2: Quick insert in its Swap mode): `code` takes the selected layer's place
+ * wherever it is written (op replaceElement; a key stays), one undo step; the new layer is selected.
+ */
+export function swapSelection(selection: NodeSelection, code: string, label: string, state?: readonly StateDecl[]): Promise<boolean> {
+  return exclusive(async () => {
+    const check = canStructurallyEdit(selection);
+    if (!check.ok) return fail(check.reason);
+    const target = await readElement(selection.src, selection.name);
+    if (!target) return false;
+    if (!(await confirmRepeats(selection, { verb: "swap", name: selection.name }))) return false;
+    writing("Swapping…");
+    const before = renderedNow(canvasApi.getWorldElement());
+    const op: SlotEditOp = { op: "replaceElement", code, ...(state?.length ? { state: state.map((entry) => ({ ...entry })) } : {}) };
+    const response = await write(targetOf(target), op, `Swap ${target.name} for ${label}`);
+    if (!response) return false;
+    const text = outcomeOf(`Swapped ${target.name} for ${label}`, response);
+    announce(text);
+    const loc = answeredLoc(response, "inserted");
+    if (!loc) return true;
+    // Synchronously (no request in between): Vite may reload the page as soon as it sees the write.
+    const next: NodeSelection = { kind: "node", src: `${response.file}:${loc}`, name: tagAt(response.after, loc) ?? label, frameId: selection.frameId, panelId: selection.panelId, instance: selection.instance };
+    if (selectNew(selection, next, before, text)) remember(response.file, response.after, selection, next, { before: false, after: true });
+    return true;
+  });
 }
 
 /* The selection a removal left (its parent) and when: a held ⌫ (key repeat), a quick second press or a double click on

@@ -12,7 +12,7 @@ export { InsertPicker, type InsertPickerProps } from "./InsertPicker";
 export {
   answerSlotConfirm, canStructurallyEdit, clearSlot, duplicateKeys, duplicateSelection, duplicateShortcut, focusSlot, inPlayground, insertIntoSlot,
   isOffCanvasSelection, isSlotFile, isTemplateFile, moveAvailability, moveSelection, moveSlotLayer, openSlotPicker, removeKeys, removeSelection,
-  removeShortcut, removeSlotLayer, repeatsOf, resetSlot, selectSlotLayer, slotActionsOf, slotHostContext, slotPickerRequests, structuralBlock,
+  removeShortcut, removeSlotLayer, repeatsOf, resetSlot, selectSlotLayer, slotActionsOf, slotHostContext, slotPickerRequests, structuralBlock, swapSelection, swapSlotLayer,
   useSlotConfirm, useSlotFocusRequest, useSlotRunning, useSlotServer, useStructuralBlock, type InsertRequest, type SlotActions, type SlotConfirmQuestion,
   type SlotPickerRequest, type StructuralCheck, type StructuralVerb,
 } from "./actions";

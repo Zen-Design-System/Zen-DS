@@ -2,7 +2,7 @@ import { announceEditStatus, applyEdit, parseSrc, studioApi } from "../../api";
 import { canvasApi, getViewportBox } from "../../canvas/viewport";
 import { multiSelection } from "../../select/multiSelection";
 import { expectRender, renderedNow } from "../../select/remap";
-import { canStructurallyEdit } from "../../slots/actions";
+import { canStructurallyEdit, swapSelection } from "../../slots/actions";
 import { photoCode, type LibraryPhoto } from "../../builder/library/media";
 import { insertTarget } from "../../builder/library/target";
 import { builderCode, type PaletteContext, type PaletteItem } from "../../slots/palette";
@@ -88,6 +88,24 @@ export function insertItem(item: Insertable) {
 
 /** A palette item, as insertItem. */
 export const insertAsset = (item: PaletteItem) => insertItem(paletteInsertable(item));
+
+/** What Swap instance would replace: the selected layer, or why there is none to swap (GĐ4 M2). */
+export function swapTarget(): NodeSelection | string {
+  const selection = studioStore.getState().selection;
+  if (selection?.kind !== "node" || selection.part) return "Select a layer to swap";
+  const check = canStructurallyEdit(selection);
+  return check.ok ? selection : check.reason;
+}
+
+/** Swap instance (Figma, GĐ4 M2): the selected layer becomes `item`, in its place, one undo step (Quick insert's Swap mode). */
+export function swapItem(item: Insertable) {
+  if (!canEdit()) { fail("View only — switch to Admin to edit"); return; }
+  const target = swapTarget();
+  if (typeof target === "string") { fail(target); return; }
+  const code = item.code(parseSrc(target.src)?.file);
+  if (code === null) { fail(item.refusal); return; }
+  void swapSelection(target, code, item.label, item.state);
+}
 
 /** Why nothing can be dropped into `target` (a playground, docs, the role), or null. */
 function refusalFor(target: DropTarget): string | null {

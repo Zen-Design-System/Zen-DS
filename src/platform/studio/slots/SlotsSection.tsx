@@ -15,7 +15,7 @@ import { useStudioDrafts } from "../sourceDrafts";
 import { useStudio } from "../store";
 import type { SourceElement, StudioSelection } from "../types";
 import {
-  canStructurallyEdit, clearCaption, clearSlot, inPlayground, locateLayer, moveSlotLayer, removeSlotLayer, resetCaption, resetSlot, selectSlotLayer, slotActionsOf,
+  canStructurallyEdit, clearCaption, clearSlot, inPlayground, locateLayer, moveSlotLayer, removeSlotLayer, resetCaption, resetSlot, selectSlotLayer, slotActionsOf, swapSlotLayer,
   useSlotFocusRequest, useSlotRunning, useSlotServer,
 } from "./actions";
 import { onlyFrame, shortCode, slotContentOf, type SlotLayer } from "./content";
@@ -23,6 +23,7 @@ import { DataSlotBlock } from "./DataSlotBlock";
 import { dataSlotsOf } from "./dataSlots";
 import { slotShowsPlaceholder } from "./dom";
 import { InsertPicker } from "./InsertPicker";
+import { PALETTE, type PaletteItem } from "./palette";
 import { contentSummaryOf, hostPropsOf, inactiveCondition, isLayoutPrimitive, isSlotActive, slotsOf, type ContentSlot, type HostProps, type SlotCondition } from "./registry";
 import "./slots.css";
 
@@ -98,12 +99,14 @@ type LayerItemProps = {
   /** Move up / down among its siblings (offered for a sibling only), and which way it can go. */
   move?: { prev: boolean; next: boolean; onMove: (to: Move) => void };
   onRemove?: () => void;
+  /** Swap it for another component the slot takes (Figma's instance swap): the palette items offered. */
+  swap?: { items: readonly PaletteItem[]; onSwap: (item: PaletteItem) => void };
   /** Another slot edit runs. */
   busy: boolean;
 };
 
 /** A layer row (InspectorItem's look; InspectorItem has no trailing actions yet): select it, move or remove it. */
-function LayerItem({ name, src, meta, reason, onSelect, move, onRemove, busy }: LayerItemProps) {
+function LayerItem({ name, src, meta, reason, onSelect, move, onRemove, swap, busy }: LayerItemProps) {
   const component = /^[A-Z]/.test(name);
   const reasonId = useId();
   return (
@@ -118,6 +121,13 @@ function LayerItem({ name, src, meta, reason, onSelect, move, onRemove, busy }: 
           <IconButton appearance="flat" level="primary" size="xs" icon="icon-arrow-up-line" aria-label={`Move ${name} up`} data-move="prev" disabled={busy || !move.prev} onClick={() => move.onMove("prev")} />
           <IconButton appearance="flat" level="primary" size="xs" icon="icon-arrow-down-line" aria-label={`Move ${name} down`} data-move="next" disabled={busy || !move.next} onClick={() => move.onMove("next")} />
         </span>
+      ) : null}
+      {swap ? (
+        <Menu
+          align="end"
+          items={swap.items.map((item): MenuEntry => ({ id: `swap-${item.id}`, label: item.label, caption: item.caption, icon: "icon-switch-horizontal-01-line", disabled: busy, onSelect: () => swap.onSwap(item) }))}
+          trigger={<IconButton appearance="flat" level="primary" size="xs" icon="icon-switch-horizontal-01-line" aria-label={`Swap ${name}`} disabled={busy} />}
+        />
       ) : null}
       {onRemove ? <IconButton appearance="flat" level="primary" size="xs" icon="icon-trash-line" aria-label={`Remove ${name}`} disabled={busy} onClick={onRemove} /> : null}
       {reason ? <span id={reasonId} className={`studio-slots__item-reason ${typographyStyles["Body/Small/Regular"]}`}>{reason}</span> : null}
@@ -268,6 +278,14 @@ function SlotBlock({ selection, element, slot, hostProps, titled, editable, play
     },
   ];
 
+  // A small fixed place (ListItem leading / trailing) swaps its component for another it takes (Figma's instance swap,
+  // GĐ4 M2): the palette items of the other components in `accepts.only`.
+  const swapOf = (name: string, onSwap: (item: PaletteItem) => void) => {
+    const only = slot.kind === "atom" ? slot.accepts?.only ?? [] : [];
+    if (!only.includes(name)) return undefined;
+    const items = PALETTE.filter((item) => only.includes(item.root) && item.root !== name) as PaletteItem[];
+    return items.length ? { items, onSwap } : undefined;
+  };
   const row = (layer: SlotLayer, index: number) => {
     if (layer.kind === "text") return <StaticItem key={`t${index}`} icon="icon-type-01-line" value={`“${shortCode(layer.value, 48)}”`} />;
     if (layer.kind === "expression") return <StaticItem key={`x${index}`} icon="icon-code-02-line" value={`{${shortCode(layer.code, 40)}}`} reason={layer.reason} />;
@@ -286,6 +304,7 @@ function SlotBlock({ selection, element, slot, hostProps, titled, editable, play
         onSelect={() => selectSlotLayer(selection, src, layer.name)}
         move={writable && layer.sibling ? { prev: layer.sibling.index > 0, next: layer.sibling.index < layer.sibling.count - 1, onMove: (to) => moveLayer(target, to) } : undefined}
         onRemove={writable && layer.removable ? () => { void removeSlotLayer(selection, target); } : undefined}
+        swap={writable && layer.removable ? swapOf(layer.name, (item) => { void swapSlotLayer({ selection, element, slot, layer: target, item }); }) : undefined}
         busy={busy}
       />
     );

@@ -13,7 +13,8 @@
 //     { prop, trust: "why" }                the code type is wider than api.generated.json says: options are not checked
 //     { toggle: "startIcon", on: … }        a Figma boolean that shows a layer = the presence of a code prop: on writes
 //                                           `on` (a text value, "slot" for the content-slot picker, or { code } for an
-//                                           object written as code: `{ label: "Action" }`), off removes it
+//                                           object written as code: `{ label: "Action" }`, or { swap: "Leading-Icon-Src" }
+//                                           for that swap property's default icon in Figma), off removes it
 //     { skip: "why" }                       Figma-only (a preview state, a device frame, content written elsewhere)
 //   nested: Figma nested layer name → { when, set?, props?, code? }: a group shown while code prop `when` is set, with
 //           the nested set's properties mapped as above, then `code` rows ({ prop, label }) for code props that set has
@@ -67,8 +68,8 @@ export const FIGMA_PROPS = {
     sets: { "Button/Main": "main", "Button/Flat": "flat", "Button/Overlay": "overlay" },
     setProp: "appearance",
     props: {
-      "Leading-Icon": { toggle: "startIcon", on: "icon-check-line" },
-      "Trailing-Icon": { toggle: "endIcon", on: "icon-chevron-right-line-small" },
+      "Leading-Icon": { toggle: "startIcon", on: { swap: "Leading-Icon-Src" } },
+      "Trailing-Icon": { toggle: "endIcon", on: { swap: "Trailing-Icon-Src" } },
       Text: CHILDREN,
       "Leading-Icon-Src": "startIcon",
       "Trailing-Icon-Src": "endIcon",
@@ -246,7 +247,8 @@ export const FIGMA_PROPS = {
       Value: skip("the value label is valueText"),
       "Range-Line": skip("a range is the value's shape"),
       "Leading-Dot": skip("drawn by the value"),
-      Icon: { toggle: "icon", on: "icon-volume-max-line" },
+      // The icon shows by default (icon={false} hides it): the Icon-Src row's own switch does what this boolean does.
+      Icon: skip("the Icon-Src row's switch (icon={false} hides the icon, which shows by default)"),
       "Icon-Src": "icon",
       Theme: "theme",
       Size: "size",

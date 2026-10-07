@@ -6,8 +6,8 @@ export type FigmaPropsEntry = {
   /** The Figma component set the order and names follow (the first of its sets). */
   figma: string;
   /** Its properties in Figma order: the code prop, the Figma name and property type ("SET": which of its Figma sets),
-   *  and Figma option name → code value. */
-  own: ReadonlyArray<{ prop: string; label?: string; type: string; options?: Readonly<Record<string, string>> }>;
+   *  and Figma option name → code value; an icon swap's `default`: its default icon in Figma. */
+  own: ReadonlyArray<{ prop: string; label?: string; type: string; options?: Readonly<Record<string, string>>; default?: string }>;
   /** Figma booleans that show a layer: on writes `on` (a text; "slot": the content-slot picker; { code }: an object or a
    *  list written as code), off removes the prop. */
   toggles: ReadonlyArray<{ label: string; prop: string; on: string | { code: string } }>;
@@ -32,12 +32,14 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       {
         "prop": "startIcon",
         "label": "Leading-Icon-Src",
-        "type": "INSTANCE_SWAP"
+        "type": "INSTANCE_SWAP",
+        "default": "icon-plus-line"
       },
       {
         "prop": "endIcon",
         "label": "Trailing-Icon-Src",
-        "type": "INSTANCE_SWAP"
+        "type": "INSTANCE_SWAP",
+        "default": "icon-plus-line"
       },
       {
         "prop": "size",
@@ -88,12 +90,12 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       {
         "label": "Leading-Icon",
         "prop": "startIcon",
-        "on": "icon-check-line"
+        "on": "icon-plus-line"
       },
       {
         "label": "Trailing-Icon",
         "prop": "endIcon",
-        "on": "icon-chevron-right-line-small"
+        "on": "icon-plus-line"
       }
     ]
   },
@@ -112,7 +114,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       {
         "prop": "icon",
         "label": "Leading-Icon-Src",
-        "type": "INSTANCE_SWAP"
+        "type": "INSTANCE_SWAP",
+        "default": "icon-plus-line"
       },
       {
         "prop": "size",
@@ -363,7 +366,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       {
         "prop": "leading",
         "label": "Leading-Icon-Src",
-        "type": "INSTANCE_SWAP"
+        "type": "INSTANCE_SWAP",
+        "default": "icon-circle-small-solid"
       },
       {
         "prop": "size",
@@ -548,7 +552,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       {
         "prop": "leading",
         "label": "Icon-Src",
-        "type": "INSTANCE_SWAP"
+        "type": "INSTANCE_SWAP",
+        "default": "icon-marker-pin-01-solid"
       },
       {
         "prop": "size",
@@ -666,7 +671,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       {
         "prop": "icon",
         "label": "Icon-Src",
-        "type": "INSTANCE_SWAP"
+        "type": "INSTANCE_SWAP",
+        "default": "icon-home-03-solid"
       },
       {
         "prop": "size",
@@ -1507,7 +1513,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       {
         "prop": "icon",
         "label": "Icon-Src",
-        "type": "INSTANCE_SWAP"
+        "type": "INSTANCE_SWAP",
+        "default": "icon-star-93-solid"
       },
       {
         "prop": "theme",
@@ -1530,13 +1537,7 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       }
     ],
-    "toggles": [
-      {
-        "label": "Icon",
-        "prop": "icon",
-        "on": "icon-volume-max-line"
-      }
-    ]
+    "toggles": []
   },
   "Sidebar": {
     "figma": "4081:15234",
@@ -1678,7 +1679,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       {
         "prop": "leading",
         "label": "Icon-Src",
-        "type": "INSTANCE_SWAP"
+        "type": "INSTANCE_SWAP",
+        "default": "icon-marker-pin-01-solid"
       },
       {
         "prop": "state",
@@ -2379,7 +2381,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       {
         "prop": "icon",
         "label": "Icon-Src",
-        "type": "INSTANCE_SWAP"
+        "type": "INSTANCE_SWAP",
+        "default": "icon-star-93-line"
       },
       {
         "prop": "theme",
