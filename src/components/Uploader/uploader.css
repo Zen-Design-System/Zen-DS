@@ -7,7 +7,8 @@
 .zen-file-upload__input { display: none; }
 .zen-file-upload__button { display: flex; }
 .zen-file-upload__help { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
-.zen-file-upload__help[data-tone="negative"] { color: var(--zen-color-content-negative-strongest); }
+/* Help-Text Negative: icon and text in Light, like every help text but Warning (Lights group: Base). */
+.zen-file-upload__help[data-tone="negative"] { color: var(--zen-color-content-negative-light, #d03e19); }
 .zen-file-upload__help > .zen-icon { width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); }
 .zen-file-upload__list { display: flex; margin: 0; padding: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); list-style: none; }
 

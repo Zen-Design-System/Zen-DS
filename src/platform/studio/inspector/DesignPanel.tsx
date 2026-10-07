@@ -139,6 +139,7 @@ function Field({ spec, api, label, component, hint }: { spec: PropSpec; api: Fie
     <PropField
       spec={spec}
       hint={hint}
+      component={component}
       label={label ?? propLabel(spec.name, component)}
       value={api.valueFor(spec.name)}
       disabled={api.disabled}

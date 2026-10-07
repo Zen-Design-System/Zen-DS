@@ -17,6 +17,7 @@ import { useObjectStarter } from "./useObjectStarter";
 import { ScaleField } from "./controls/ScaleField";
 import { scaleOfType } from "./controls/scale";
 import { InspectorRow } from "./Section";
+import { toneWarning } from "./toneRules";
 
 /*
  * One editable prop (spec §6): the editor follows the prop's type; the row shows whether the source sets a literal
@@ -373,7 +374,6 @@ const toneSet = new Set<string>(contentTones);
 export const isToneOptions = (options: readonly string[]) => options.length > 0 && options.every((option) => toneSet.has(option));
 const toneOf = (option: string) => resolveContentTone(option as ContentTone);
 const toneCaption = (option: string) => contentToneToken(option as ContentTone) ?? "Parent's colour";
-
 /** A round swatch in the tone's colour (its token, inline); a dashed ring for `inherit` or nothing set. */
 function ToneSwatch({ tone }: { tone: string | undefined }) {
   const token = tone && toneSet.has(tone) ? contentToneVar(tone as ContentTone) : null;
@@ -386,7 +386,7 @@ function ToneSwatch({ tone }: { tone: string | undefined }) {
  * Accent … Support, overlays, on fills) and searches by name or token; aliases (secondary, accent, inverse) select the
  * tone they paint with. The SelectField's own list stays closed (as in TypographyControl).
  */
-export function ToneControl({ label, value, fallback, disabled, onSet, options }: ControlProps<string> & { options: string[] }) {
+export function ToneControl({ label, value, fallback, disabled, onSet, options, component }: ControlProps<string> & { options: string[]; component?: string }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -442,7 +442,7 @@ export function ToneControl({ label, value, fallback, disabled, onSet, options }
           <div key={name} role="group" aria-labelledby={`${listId}-${name}`} className="studio-type-control__group">
             <div id={`${listId}-${name}`} role="presentation" className={`studio-type-control__family ${typographyStyles["Caption/Medium"]}`}>{name}</div>
             {tones.map((tone) => (
-              <PopoverItem key={tone} label={tone} caption={toneCaption(tone)} leading={<ToneSwatch tone={tone} />}
+              <PopoverItem key={tone} label={tone} caption={[toneCaption(tone), toneWarning(toneOf(tone), component)].filter(Boolean).join(" · ")} leading={<ToneSwatch tone={tone} />}
                 selected={tone === current} onSelect={() => pick(tone)} />
             ))}
           </div>
@@ -637,7 +637,7 @@ export type PropRestore = { expression: string; onRestore: () => void };
  * The control for a value of the prop's type (enum, number, text, icon…), or null for a kind without an editor. Shared by
  * a written or unset value and a binding a fixed value may replace (its live value shown in the same control).
  */
-function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Literal | null | undefined, common: { label: string; disabled: boolean }, onSet: (value: Literal) => void, extra: { autoFocusToken?: number; onReset?: () => void; optionLabels?: Readonly<Record<string, string>>; defaultIcon?: string } = {}): ReactNode {
+function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Literal | null | undefined, common: { label: string; disabled: boolean }, onSet: (value: Literal) => void, extra: { autoFocusToken?: number; onReset?: () => void; optionLabels?: Readonly<Record<string, string>>; defaultIcon?: string; component?: string } = {}): ReactNode {
   const editor = spec.editor;
   switch (editor.kind) {
     case "enum": {
@@ -646,7 +646,7 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
       const enumValue = typeof literal === "string" ? literal : literal === undefined ? undefined : String(literal);
       const enumFallback = typeof fallback === "string" ? fallback : undefined;
       return spec.name === "tone" && isToneOptions(editor.options)
-        ? <ToneControl {...common} options={editor.options} value={enumValue} fallback={enumFallback} onSet={onSet} />
+        ? <ToneControl {...common} options={editor.options} value={enumValue} fallback={enumFallback} onSet={onSet} component={extra.component} />
         : scale
           ? <ScaleField {...common} prop={spec.name} scale={scale} options={editor.options} value={enumValue} fallback={enumFallback} onSet={onSet} onReset={extra.onReset} />
           : <EnumControl {...common} {...namedOptions(editor.options, extra.optionLabels)} value={enumValue} fallback={enumFallback} onSet={onSet} />;
@@ -693,7 +693,7 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
  * data lives, or a fixed value that ↺ (Restore) turns back into the binding. A value that reads state stays read-only
  * (the keep-behaviour rule), in a field's frame so the column reads the same.
  */
-export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, boundHint, label = propLabel(spec.name), autoFocusToken, resettable = true, restore, repeats, hint, optionLabels, defaultIcon }: {
+export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, boundHint, label = propLabel(spec.name), autoFocusToken, resettable = true, restore, repeats, hint, optionLabels, defaultIcon, component }: {
   spec: PropSpec;
   value: PropValue;
   disabled: boolean;
@@ -705,6 +705,8 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
   optionLabels?: Readonly<Record<string, string>>;
   /** An icon swap's default in Figma (generated groups): its icon picker lists it first. */
   defaultIcon?: string;
+  /** The selected element's component (the tone picker warns about picks its rules flag on Text and Heading). */
+  component?: string;
   /** Why a bound value is read-only here ("Use Playground properties"): in the ƒ tooltip. */
   boundHint?: string;
   label?: string;
@@ -743,7 +745,7 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
       // A switch shows what renders once the live props arrived; before that (one render) the read-only binding, not a
       // false it may not be.
       const shown = spec.editor.kind === "boolean" ? (value.live === undefined ? undefined : Boolean(value.live)) : live;
-      const control = shown === undefined ? null : editorFor(spec, shown, undefined, { label, disabled }, onSet, { autoFocusToken, optionLabels, defaultIcon });
+      const control = shown === undefined ? null : editorFor(spec, shown, undefined, { label, disabled }, onSet, { autoFocusToken, optionLabels, defaultIcon, component });
       if (control) return <InspectorRow {...row} bound={{ expression: value.expression, note }}>{control}</InspectorRow>;
     }
     // State-bound (the keep-behaviour rule), or a playground's: read-only, what it renders now in a field's frame.
@@ -793,7 +795,7 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
   let control: ReactNode;
   if (viaSpread && value.live !== undefined && !isLiteral(value.live)) control = <ValueChip value={value.live} />;
   else {
-    control = editorFor(spec, literal, fallback, common, onSet, { autoFocusToken, onReset: value.state === "literal" && resettable && !restore ? onReset : undefined, optionLabels, defaultIcon });
+    control = editorFor(spec, literal, fallback, common, onSet, { autoFocusToken, onReset: value.state === "literal" && resettable && !restore ? onReset : undefined, optionLabels, defaultIcon, component });
     if (control === null) {
       control = literal !== undefined && (value.state === "literal" || editor.kind === "string" || editor.kind === "node")
         ? (value.state === "literal" ? <LiteralValue value={literal} /> : <ValueChip value={literal} />)

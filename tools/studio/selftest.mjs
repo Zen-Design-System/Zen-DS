@@ -2567,6 +2567,12 @@ process.stdout.write(objectStarterTest.stdout);
 process.stderr.write(objectStarterTest.stderr);
 if (objectStarterTest.status !== 0) process.exit(1);
 
+// The tone picker's warnings (inspector/toneRules.ts) against the harness rule they announce.
+const toneRulesTest = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/inspector/toneRules.selftest.mjs", import.meta.url))], { encoding: "utf8" });
+process.stdout.write(toneRulesTest.stdout);
+process.stderr.write(toneRulesTest.stderr);
+if (toneRulesTest.status !== 0) process.exit(1);
+
 // The icon picker's suggestions (inspector/iconSuggestions.ts: Figma default, the file's icons) have their own test.
 const iconSuggestions = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/inspector/iconSuggestions.selftest.mjs", import.meta.url))], { encoding: "utf8" });
 process.stdout.write(iconSuggestions.stdout);
