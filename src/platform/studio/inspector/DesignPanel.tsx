@@ -25,7 +25,7 @@ import { HostTextAlignment } from "./HostTextAlignment";
 import { LayoutSection } from "./LayoutSection";
 import { InspectorFileContext, InspectorHostContext } from "./controls/hostContext";
 import { componentGroupsOf } from "./componentGroups";
-import { AppearanceSection, appearancePropNames, EffectsSection } from "../appearance/AppearanceSection";
+import { AppearanceSection, appearancePropNames, CardEffectsSection, EffectsSection } from "../appearance/AppearanceSection";
 import { NestedProperties } from "./NestedProperties";
 import { useNestedInstances } from "./nestedInstances";
 import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
@@ -847,6 +847,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
 
       {element && appearanceSpecs.length ? <AppearanceSection api={api} specs={appearanceSpecs} component={name} host={sourceHost(selection)} /> : null}
       {element && name === "Box" ? <EffectsSection api={api} src={selection.src} /> : null}
+      {element && (name === "Card" || name === "MetricCard" || name === "ChartCard") ? <CardEffectsSection api={api} component={name} /> : null}
 
       {element && propertySpecs.length && groups ? (
         <GroupedProperties groups={groups} selection={selection} element={element} api={api} specs={propertySpecs} shaped={shapedProps} note={propertiesNote} rendered={renderedProps} nested={nested} />
