@@ -200,7 +200,15 @@ Last updated: 2026-10-06.
   code (`compile.mjs` now returns `actions` per frame, `components`, `dataType`) and `export/handoff.ts` (pure:
   guideline notes from docs/guidelines/*.md, design names from the page tree, the markdown; `handoff.selftest.mjs` 15
   checks in studio selftest)); CodeView language "markdown". E2E HO-04 (zip content, handoff.md facts, each PNG vs its
-  canvas frame: ≤ 0.02%), 139 rows; build-check 23 steps (the handoff on the build). Next: M4 photo uploads.
+  canvas frame: ≤ 0.02%), 139 rows; build-check 23 steps (the handoff on the build). M4 done 2026-10-07:
+  `builder/assets/uploads.ts` (IndexedDB v3 store `assets`, id = name slug + FNV-1a of the bytes + extension, object
+  URLs, `missingAssets` asks the linked folder first), `zen-asset:` in media.ts resolveMedia (MISSING_PHOTO picture when
+  absent), BuilderBoard / Player re-render on `useUploadsVersion` and name missing photos (status "warning"), Assets ›
+  Photos (Upload, drop, Your photos above Library), assets.ts `uploadInsertable` + a photo on a selected page Image swaps
+  its `src`, exports (htmlExport maps an upload's object URL to `assets/<id>`; handoff code assets from the store),
+  Import pages… takes a .zip (its `*.zen.tsx` + the `assets/<id>` the pages name), the linked folder writes / reads
+  `assets/<id>` (mirrors.ts). E2E HO-05 (upload → page → canvas → zip → Import in a fresh browser), HO-06 (missing photo
+  → replaced), 141 rows; build-check 24 steps (upload on the build, the folder's assets/). Next: M5 Promote.
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers

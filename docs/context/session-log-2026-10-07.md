@@ -219,3 +219,15 @@
   builder pages have no canvas notes yet, so the section says so.
 - Build-check 23/23: Mobile list's pictures on the build (780×2428, 370 KB; its overlay 1440×1280).
 - Gate PASS (.qa/reports/2026-10-07T07-44-17-e54a8cf5.md, E2E 139 works).
+
+## Studio builder GĐ5 M4 (session "Studio builder tool planning", tier M)
+
+- User: "tiếp" → M4. Uploads in IndexedDB (pageStore v3 `assets`); ids hash the bytes with FNV-1a (crypto.subtle needs
+  a secure context, which the E2E host alias is not). The renderer resolves `zen-asset:` synchronously from loaded
+  object URLs; BuilderBoard and Player subscribe so a photo shows once loaded.
+- Replace a missing photo: a photo click on a selected Image of a page sets its `src` (as an icon click swaps an
+  Icon's glyph). This also changes a library photo click on a selected Image (was: add after it).
+- E2E: HO-05 found that the dev server's pages folder already holds the page in a fresh browser, so an imported copy
+  takes its own id; the row reads it from the address. LB-05 / LB-06 failed with --no-retry: after LB-04 a frame stays
+  selected and "New page from this frame" also matched getByRole("New page") (retries hid it): `exact: true` now.
+- Build-check 24/24: the upload on the build, its copy in the linked (OPFS) folder's assets/.

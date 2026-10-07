@@ -160,6 +160,10 @@ nạp từ origin khác bị CORS chặn khi mở file trên máy. `reset.css` l
 khung đầu. Usage-guard không chạy được trong trình duyệt nên `handoff.md` ghi lệnh `npx zen-usage`. Mục "Câu hỏi mở":
 trang builder chưa có ghi chú trên canvas.
 
+**M4 xong 2026-10-07.** Thay ảnh: chọn Image rồi bấm một ảnh (giống bấm icon thì đổi icon); vì vậy bấm ảnh thư viện khi
+đang chọn Image giờ là thay ảnh, không thêm Image mới. Import nhận cả zip handoff. Thư mục của dev server không giữ ảnh:
+chỉ thư mục liên kết giữ, còn M5 Promote mang ảnh vào repo.
+
 ## 6. File
 
 - **Mới:**

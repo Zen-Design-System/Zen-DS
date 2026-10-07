@@ -212,7 +212,7 @@ try {
   });
 
   await step("New page opens a phone page (the engine loads now)", async () => {
-    await page.getByRole("button", { name: "New page" }).click();
+    await page.getByRole("button", { name: "New page", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "New page" });
     await dialog.getByLabel("Title").fill(title);
     await dialog.getByRole("button", { name: "Phone" }).click();
@@ -360,6 +360,35 @@ try {
     return `"${await storageLine(page)}"`;
   });
 
+  await step("Upload a photo (GĐ5 M4): kept in this browser and in the linked folder's assets/, on the page as zen-asset", async () => {
+    await showLeftTab(page, "assets");
+    const assets = page.locator("#studio-left-panel-assets");
+    await assets.getByRole("button", { name: "Photos", exact: true }).click();
+    await assets.getByLabel("Search photos").fill("");
+    const photo = fs.readFileSync(path.join(root, "src/assets/media/site-bridge.webp"));
+    await assets.locator('[data-e2e="upload-photos"]').setInputFiles({ name: "Build photo.webp", mimeType: "image/webp", buffer: photo });
+    const tile = assets.locator('.studio-assets__photo[data-upload^="build-photo-"]');
+    await tile.waitFor({ state: "visible", timeout: 10_000 });
+    const asset = await tile.getAttribute("data-upload");
+    await tile.click();
+    await until(async () => ((await storedText(page, id)) ?? "").includes(`src="zen-asset:${asset}"`), { timeout: 10_000, message: "the zen-asset Image in the stored page" });
+    const img = page.locator(`img[src^="blob:"][data-zen-src^="local:${id}.zen.tsx:"]`).first();
+    await until(async () => img.evaluate((el) => el.complete && el.naturalWidth > 0).catch(() => false), { timeout: 10_000, message: "the uploaded photo on the canvas" });
+    const size = await until(async () => page.evaluate(async ({ folder, file }) => {
+      try {
+        const dir = await (await (await navigator.storage.getDirectory()).getDirectoryHandle(folder)).getDirectoryHandle("assets");
+        return (await (await dir.getFileHandle(file)).getFile()).size;
+      } catch {
+        return null;
+      }
+    }, { folder: FOLDER, file: asset }), { timeout: 10_000, message: "the photo in the folder's assets/" });
+    if (size !== photo.length) throw new Error(`the folder's copy is ${size} bytes, the upload ${photo.length}`);
+    await assets.getByRole("button", { name: "Components", exact: true }).click();
+    // The next steps work in the Pages tab.
+    await showLeftTab(page, "pages");
+    return `${asset}: page, canvas (blob:), ${FOLDER}/assets/ (${Math.round(size / 1024)} KB)`;
+  });
+
   await step("Move to Trash and Restore through the folder", async () => {
     const row = page.locator('[data-section="mine"] .studio-pages__item').filter({ hasText: title });
     await row.hover();
@@ -417,7 +446,7 @@ try {
   await step("New page › Start from a phone template (Mobile list, rendered off screen in this build)", async () => {
     await showLeftTab(page, "pages");
     const from = page.url();
-    await page.getByRole("button", { name: "New page" }).click();
+    await page.getByRole("button", { name: "New page", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "New page" });
     await dialog.waitFor({ state: "visible", timeout: 10_000 });
     await dialog.getByLabel("Start from").first().click();

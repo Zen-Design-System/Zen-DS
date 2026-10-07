@@ -25,7 +25,7 @@ export async function newPage(ctx, { title, device = "phone" } = {}) {
   const name = title ?? `Builder ${made} ${Date.now().toString(36)}`;
   const from = page.url();
   await showLeftTab(page, "pages");
-  await page.getByRole("button", { name: "New page" }).click();
+  await page.getByRole("button", { name: "New page", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "New page" });
   await dialog.waitFor({ state: "visible", timeout: 5000 });
   await dialog.getByLabel("Title").fill(name);

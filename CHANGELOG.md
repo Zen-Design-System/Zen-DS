@@ -285,6 +285,15 @@ removed (four unused colour ramps were, see Removed).
     accessibility (each frame's focus order with roles and names, and the guidelines' keyboard and accessibility notes).
   - The pictures match the canvas: measured on screens, a state variant and a Dialog overlay, under 0.1% of pixels
     differ. What a picture cannot draw (a video, a canvas) is listed in `handoff.md`.
+- **Zen Studio photos, GĐ5 M4: upload your own (2026-10-07):**
+  - Assets › Photos › **Upload** (or drop files on the panel): PNG, JPEG, WebP, GIF or SVG up to 5 MB each. Your photos
+    are listed above the library's; click one to add it to a page you made, or drag it there. They stay in this
+    browser and, when a folder is linked, in its `assets/` beside the pages. The same file uploaded twice is one photo.
+  - With an Image of a page selected, a photo (yours or the library's) replaces its picture in one step.
+  - The exports carry them: the React code imports them from `./assets`, the HTML and the pictures show them, the
+    handoff zip holds the files. Import pages… now takes a handoff zip too: the page comes back with its photos.
+  - A page whose photo this browser lacks (imported alone, from another browser) shows "Missing photo" in its place
+    and names it in the status line: select the Image and pick another photo.
 - **Zen Studio instance panel, GĐ4 M4: size and Detach (2026-10-07):**
   - **W / H for an instance** (Inspector › Layout › Size): Hug, Fill or a Fixed px, as in Figma. A component with its
     own size prop or `fullWidth` uses it; any other is wrapped in a Stack that it fills (`<Stack direction="row"

@@ -78,7 +78,7 @@ export const rows = [
       const { page, errors } = await ctx.studio({ fresh: true });
       await showLeftTab(page, "pages");
       const from = page.url();
-      await page.getByRole("button", { name: "New page" }).click();
+      await page.getByRole("button", { name: "New page", exact: true }).click();
       const dialog = page.getByRole("dialog", { name: "New page" });
       await dialog.waitFor({ state: "visible", timeout: 5000 });
       await dialog.getByLabel("Start from").first().click();
