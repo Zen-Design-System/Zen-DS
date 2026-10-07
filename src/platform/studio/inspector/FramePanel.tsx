@@ -7,7 +7,7 @@ import { Heading } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { frameWidthPresets, isCustomFrameWidth } from "../board/frameLayout";
 import { useStudioFrames } from "../board/frames";
-import { presentFrame } from "../board/Present";
+import { presentFrame } from "../board/presentFrame";
 import { pageKey, setFrameOverride, useStudio } from "../store";
 import type { StudioFrameWidth } from "../types";
 import { newPageFromFrame } from "../builder/starters/newPageFromFrame";

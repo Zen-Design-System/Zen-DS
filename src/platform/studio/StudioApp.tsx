@@ -14,7 +14,7 @@ import { setStudioActivePanel, StudioBridgeContext, type StudioBridge, type Stud
 import { CanvasChrome } from "./canvas/CanvasChrome";
 import { StudioCanvas } from "./canvas/StudioCanvas";
 import { canvasApi, zoomIn, zoomOut } from "./canvas/viewport";
-import { zoomToSelection } from "./canvas/ZoomControls";
+import { zoomToSelection } from "./canvas/zoomToSelection";
 import { CodeView } from "./code/CodeView";
 import { detachSelection } from "./inspector/detach";
 import { DetachDialog } from "./inspector/DetachAction";
@@ -43,7 +43,8 @@ import { PAGE_SEARCH_ID, PagesPanel } from "./shell/PagesPanel";
 import { CanvasMenu } from "./shell/CanvasMenu";
 import { DraftsDialog } from "./shell/DraftsControls";
 import { PanelResizer } from "./shell/PanelResizer";
-import { openShortcuts, ShortcutsDialog } from "./shell/ShortcutsDialog";
+import { ShortcutsDialog } from "./shell/ShortcutsDialog";
+import { openShortcuts } from "./shell/shortcutsOpen";
 import { Toolbar } from "./shell/Toolbar";
 import { requestSave } from "./sourceDrafts";
 import { canEdit, pageKey, studioStore, useStudio } from "./store";

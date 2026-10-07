@@ -251,4 +251,21 @@ export const rows = [
       return "No components match → Clear search → the list";
     },
   },
+  {
+    id: "LB-14", feature: "Assets insert, then ⌘Z: the layer goes and the selection returns to the layout it went into", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      await selectStack(page, id);
+      await showLeftTab(page, "assets");
+      await assets(page).getByLabel("Search components").fill("badge");
+      await assets(page).locator(".studio-assets__row", { hasText: /^Badge/ }).first().click();
+      await until(async () => tagCount(await pageText(page, id), "Badge") === 1, { message: "a Badge in the page" });
+      await until(async () => (await selectedName(page)) === "Badge", { message: "the Badge selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => tagCount(await pageText(page, id), "Badge") === 0, { message: "⌘Z removes the Badge" });
+      await until(async () => (await selectedName(page)) === "Stack", { message: "the Stack selected again" });
+      return "Badge in, selected → ⌘Z → Stack selected";
+    },
+  },
 ];

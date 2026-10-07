@@ -1,10 +1,10 @@
 import { redoEdit, undoEdit } from "../../api";
 import { presentFrame } from "../../board/presentFrame";
 import { canvasApi, zoomIn, zoomOut } from "../../canvas/viewport";
-import { modKey } from "../../canvas/ZoomControls";
+import { modKey } from "../../shell/modKey";
 import { detachSelection, detachShortcut, offersDetach } from "../../inspector/detach";
 import { autoLayoutShortcut, frameSelectionShortcut, wrapCheck, wrapSelection } from "../../select/wrapSelection";
-import { openShortcuts } from "../../shell/ShortcutsDialog";
+import { openShortcuts } from "../../shell/shortcutsOpen";
 import { toggleSidePanels } from "../../shell/layout";
 import { duplicateSelection, duplicateShortcut, removeSelection, removeShortcut } from "../../slots/actions";
 import { toggleStudioTheme } from "../../shell/modes";

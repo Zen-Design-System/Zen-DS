@@ -7,7 +7,7 @@ import { propSpecs } from "../inspector/propSchema";
 import { findBySrc, isTypingTarget, parentHit, type FiberHit } from "../select/picker";
 import { multiSelection, selectedLayers } from "../select/multiSelection";
 import { expectRender, mapSrc, renderedNow } from "../select/remap";
-import { canStructurallyEdit, removeSelection } from "../slots/actions";
+import { canStructurallyEdit, rememberInsert, removeSelection } from "../slots/actions";
 import { canEdit, flushStudioStore, studioStore } from "../store";
 import type { EditOp, EditValue, SourceElement, StateDecl, StudioSelection } from "../types";
 import type { NodeSelection } from "./arrange";
@@ -147,13 +147,14 @@ function spotFor(selection: NodeSelection, replace: boolean): Spot | string {
   return spot;
 }
 
-/** Selects the layer a paste created once the canvas shows it. */
-function follow(file: string, loc: string, name: string, spot: Spot, before: WeakSet<Element>) {
-  const next: StudioSelection = { kind: "node", src: `${file}:${loc}`, name, frameId: spot.frameId, panelId: spot.panelId, instance: 0 };
+/** Selects the layer a paste created once the canvas shows it; its undo goes back to `from` (the selection pasted at). */
+function follow(response: { file: string; after: string }, loc: string, name: string, spot: Spot, before: WeakSet<Element>, from: StudioSelection) {
+  const next: StudioSelection = { kind: "node", src: `${response.file}:${loc}`, name, frameId: spot.frameId, panelId: spot.panelId, instance: 0 };
   multiSelection.clear();
   expectRender(next, before, () => undefined, 1500);
   studioStore.setState({ selection: next });
   flushStudioStore();
+  rememberInsert(response.file, response.after, from, next, Boolean(spot.replace));
 }
 
 const textLayer = (text: string) => `<Text>{${JSON.stringify(text.trim())}}</Text>`;
@@ -183,7 +184,7 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
         if (spot.after) op.after = parseSrc(spot.after)?.loc;
         if (spot.replace) op.replace = parseSrc(spot.replace)?.loc;
         const response = await applyEdit({ file: own.file, loc: own.loc, name: origin.name, ops: [op], hash: origin.hash }, `${verb} ${origin.name}`);
-        if (response.ok && response.inserted) follow(response.file, response.inserted.loc, selectedName(origin.name), spot, before);
+        if (response.ok && response.inserted) follow(response, response.inserted.loc, selectedName(origin.name), spot, before, selection);
         return response.ok;
       }
     }
@@ -195,7 +196,7 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
     if (spot.replace) op.replace = parseSrc(spot.replace)?.loc;
     const name = /^<([\w.]+)/.exec(code)?.[1] ?? "layer";
     const response = await applyEdit({ file: at.file, loc: at.loc, name: parent.name, ops: [op], hash: parent.hash }, `${verb} ${name}`);
-    if (response.ok && response.inserted) follow(response.file, response.inserted.loc, selectedName(name), spot, before);
+    if (response.ok && response.inserted) follow(response, response.inserted.loc, selectedName(name), spot, before, selection);
     return response.ok;
   } finally {
     pasting = false;

@@ -15,10 +15,6 @@ import { PresentBar } from "./PresentBar";
 import { stepFocusFor, stepPresent, takeReturnFocus } from "./presentFrame";
 import "./board.css";
 
-// The actions live in presentFrame.ts (this module exports components only, so its hot update stays a Fast Refresh);
-// re-exported for the readers that still import them from here (inspector/FramePanel.tsx, inspector/frames.ts).
-export { presentFrame, zoomToFrame } from "./presentFrame";
-
 /** Present's own modes: what the user picked in its Modes panel. They hold while ‹ › step between examples and are
  *  forgotten when Present ends; the canvas never sees them. */
 type PresentModes = Partial<Omit<StudioPreviewSettings, "theme">>;

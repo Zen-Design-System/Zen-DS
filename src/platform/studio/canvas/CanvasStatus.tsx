@@ -1,7 +1,7 @@
 import { IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
-import { openShortcuts } from "../shell/ShortcutsDialog";
+import { openShortcuts } from "../shell/shortcutsOpen";
 import { ChromeScope } from "../shell/ChromeScope";
 import { useStudio } from "../store";
 import type { StudioTool } from "../types";

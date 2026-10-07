@@ -5,7 +5,7 @@ import { pageLabels } from "../../PlatformApp";
 import { getPageExamples } from "../../examples/pageExamples";
 import type { PlatformPage } from "../../PlatformExamples";
 import { findFrame, subscribeStudioFrames } from "../board/frames";
-import { zoomToFrame } from "../board/Present";
+import { zoomToFrame } from "../board/presentFrame";
 import { canvasApi } from "../canvas/viewport";
 import { onSourceUpdate } from "../select/picker";
 import { studioStore } from "../store";

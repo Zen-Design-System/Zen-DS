@@ -274,6 +274,12 @@ function remember(file: string, after: string, before: StudioSelection, next: St
   writeSession(LAST_KEY, lastEdit);
 }
 
+/** Remembers an insert made outside the slot picker (a paste, an Assets item) so its undo and redo restore the
+ *  selection too: undo goes back to `before`, redo awaits the inserted layer again. */
+export function rememberInsert(file: string, after: string, before: StudioSelection, inserted: StudioSelection, replaced = false) {
+  remember(file, after, before, inserted, { before: replaced, after: true });
+}
+
 /** Whether `current` is `from` (moved by writes since, or read back from the session after a reload). */
 function stillSelected(from: StudioSelection, current: StudioSelection | null, write: StudioWrite) {
   if (!current) return false;

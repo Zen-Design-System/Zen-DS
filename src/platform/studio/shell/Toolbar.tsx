@@ -3,27 +3,20 @@ import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Menu } from "../../../components/Menu";
 import { redoEdit, undoEdit, useStudioServer } from "../api";
-import { modKey } from "../canvas/ZoomControls";
 import { useStudioDrafts } from "../sourceDrafts";
 import { canEdit, studioStore, useStudio } from "../store";
-import { revealLeftPanel, toggleSidePanels, type PanelLayout } from "./layout";
+import { revealSection, toggleSidePanels, type PanelLayout } from "./layout";
+import { modKey } from "./modKey";
 import { DraftsControls, DraftsViewerNote } from "./DraftsControls";
 import { ModesMenu } from "./ModesMenu";
 import { toggleStudioTheme } from "./modes";
 import { breadcrumbsFor, navigate } from "./navigation";
 import { ReadOnlyChip } from "./ReadOnlyChip";
 import { RoleMenu } from "./RoleMenu";
-import { openShortcuts } from "./ShortcutsDialog";
+import { openShortcuts } from "./shortcutsOpen";
 import "./shell.css";
 import { usePage } from "../builder/store/pageStore";
 import { signOut, useAuthUser } from "../../auth/pocketbase";
-
-/** Opens a page group in the Pages tab (breadcrumb parents are groups, not pages). */
-export function revealSection(section: string) {
-  studioStore.setState({ leftTab: "pages" });
-  revealLeftPanel();
-  requestAnimationFrame(() => document.querySelector(`.studio-pages__section[data-section="${section}"]`)?.scrollIntoView({ block: "start", behavior: "smooth" }));
-}
 
 /**
  * The Studio toolbar (spec §2): brand menu · breadcrumb (centred on the window) · modes, chrome theme, undo/redo, the
