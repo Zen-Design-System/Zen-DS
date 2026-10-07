@@ -16,6 +16,7 @@ import { RoleMenu } from "./RoleMenu";
 import { openShortcuts } from "./ShortcutsDialog";
 import "./shell.css";
 import { usePage } from "../builder/store/pageStore";
+import { signOut, useAuthUser } from "../../auth/pocketbase";
 
 /** Opens a page group in the Pages tab (breadcrumb parents are groups, not pages). */
 export function revealSection(section: string) {
@@ -48,6 +49,7 @@ export function Toolbar({ layout }: { layout: PanelLayout }) {
   const drafts = useStudioDrafts();
   const drafted = drafts.available && drafts.drafts.length > 0;
   const draftsDensity = phone ? "phone" : narrow ? "narrow" : leftDocked ? "wide" : "compact";
+  const user = useAuthUser();
   const crumbs = breadcrumbsFor(page, collection, localPage ? { id: localPage, title: builderPage?.title ?? localPage } : null);
   const classicUrl = () => {
     const url = new URL(window.location.href);
@@ -78,6 +80,10 @@ export function Toolbar({ layout }: { layout: PanelLayout }) {
             { id: "panels", label: ui ? "Hide side panels" : "Show side panels", shortcut: `${modKey}\\`, onSelect: toggleSidePanels },
             { type: "separator" },
             { id: "classic", label: "Open classic docs", onSelect: () => window.location.assign(classicUrl()) },
+            ...(user ? [
+              { type: "separator" as const, id: "account-separator" },
+              { id: "log-out", label: "Log out", caption: user.email, icon: "icon-log-out-01-line" as const, onSelect: signOut },
+            ] : []),
           ]}
           trigger={phone
             // zen-allow-no-action: the Menu's trigger (Menu wires its click and keys, as for the Button below).

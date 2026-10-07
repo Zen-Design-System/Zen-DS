@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { AuthGate } from "../auth/AuthGate";
 import { StudioApp } from "./StudioApp";
 // Same global styles as src/main.tsx. This entry (studio.html) serves the Studio alone on the studio dev server
 // (vite.studio.config.ts, port 5180) while it is built; src/main.tsx picks the Studio or the classic platform.
@@ -13,6 +14,8 @@ import "../../styles/foundations.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <StudioApp />
+    <AuthGate>
+      <StudioApp />
+    </AuthGate>
   </StrictMode>,
 );

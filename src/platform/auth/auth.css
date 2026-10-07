@@ -1,0 +1,30 @@
+/* Sign-in screen (AuthGate): one flat Surface box centred on the Canvas, as the platform's one mood (usage rules §16). */
+.platform-auth {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--zen-spacing-padding-large, 16px);
+  background: var(--zen-color-background-canvas-default, #f7f7f8);
+}
+
+.platform-auth__card {
+  width: min(100%, 400px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--zen-spacing-gap-xlarge, 24px);
+  padding: var(--zen-spacing-padding-3-xlarge, 40px) var(--zen-spacing-padding-2-xlarge, 32px);
+  border-radius: var(--zen-corner-radius-xlarge, 16px);
+  background: var(--zen-color-background-surface-default, #fff);
+  text-align: center;
+}
+
+.platform-auth__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zen-spacing-gap-small, 8px);
+}
+
+.platform-auth__action {
+  align-self: stretch;
+}
