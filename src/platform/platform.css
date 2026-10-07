@@ -251,7 +251,7 @@
 /* Figma Overviews: Header/Dashboard Main bottom padding 12 + Body padding 24 above the Tagline;
    Body Content is the full 1204 column (x=24 already comes from .official-page) and centres its children. */
 .official-overview__content { display: flex; width: 100%; max-width: 1600px; box-sizing: border-box; margin: 0 auto; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-giant, 64px); padding: calc(var(--zen-spacing-padding-small, 12px) + var(--zen-margin-comfortable, 24px)) 0 var(--zen-margin-comfortable, 24px); }
-.official-cover { position: relative; display: flex; width: min(1204px, 100%); height: 492px; box-sizing: border-box; overflow: hidden; padding: var(--zen-spacing-padding-2-xlarge, 32px); border-radius: var(--zen-corner-radius-2-xlarge, 24px); background: var(--official-accent); }
+.official-cover { position: relative; display: flex; width: min(1600px, 100%); height: 492px; box-sizing: border-box; overflow: hidden; padding: var(--zen-spacing-padding-2-xlarge, 32px); border-radius: var(--zen-corner-radius-2-xlarge, 24px); background: var(--official-accent); }
 /* Cover art (Codebase Platform 14240:26923, _Cover): Figma draws it with raw values — the 37×34 .logo-Zen, the rotated
    202×233 vectors, the 30px Frame gap, TASA Explorer Black 120px (78% line, −4% tracking) and a black 20% divider.
    zen-allow-slot-size zen-allow-raw-spacing zen-allow-raw-type zen-allow-raw-colour: the cover rules below copy them. */
@@ -263,7 +263,7 @@
 /* zen-allow-slot-size: Figma vector artwork size (see the cover note above). */
 .official-cover__vector img { display: block; width: 202.266px; height: 233.08px; transform: rotate(30deg); }
 /* zen-allow-raw-spacing: Figma cover Frame gap 30 (raw). */
-.official-cover__body { display: flex; width: 100%; height: 428px; box-sizing: border-box; flex-direction: column; align-items: center; gap: 30px; padding: 0; }
+.official-cover__body { display: flex; width: 100%; height: 428px; align-items: center; box-sizing: border-box; flex-direction: column; align-items: center; gap: 30px; padding: 0; }
 /* zen-allow-raw-type: Figma cover title, TASA Explorer Black 120px / 78% / −4% (raw, not a text style). */
 .official-cover h1 { width: 396px; max-width: 100%; margin: 0; color: var(--zen-color-content-on-brights, #000000db); font-family: var(--zen-typography-font-family-display), sans-serif; font-size: 120px; font-weight: 900; letter-spacing: -4.8px; line-height: .78; text-align: center; text-transform: uppercase; white-space: nowrap; }
 /* zen-allow-raw-colour: Figma cover divider fill is black at 20% (raw, 14263:98631). */
@@ -1274,4 +1274,3 @@
 .pth-outline__tag { min-width: 28px; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-accent-subtle-default, rgb(255 2 152 / 9%)); color: var(--zen-color-content-accent-base, #95197b); text-align: center; }
 .pth-outline__text { overflow: hidden; font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 900px) { .pth-demo { grid-template-columns: minmax(0, 1fr); } }
-
