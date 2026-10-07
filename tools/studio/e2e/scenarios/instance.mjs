@@ -244,7 +244,6 @@ export const rows = [
       await typeWidth("200");
       await until(async () => /<Stack direction="row" fillChildren width=\{200\}>\s*<Button data-e2e="inst-button"/.test(await ctx.text()), { message: "the Button in a Stack 200 wide" });
       await until(async () => (await sizeText(page, "width")) === "200", { message: "W reads 200" });
-      if (process.env.ZEN_E2E_SHOT) await page.screenshot({ path: process.env.ZEN_E2E_SHOT });
       await typeWidth("240");
       await until(async () => /<Stack direction="row" fillChildren width=\{240\}>\s*<Button data-e2e="inst-button"/.test(await ctx.text()), { message: "the same Stack 240 wide" });
       if ((await ctx.text()).match(/fillChildren/g)?.length !== 1) throw new Error("a second Stack");
