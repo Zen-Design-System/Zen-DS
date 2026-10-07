@@ -12,6 +12,9 @@ import { useZen, useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "../Motion/motion.css";
 import "./app-shell.css";
+import { SidebarShellContext } from "../_shared/sidebar-shell";
+import { NotificationDot } from "../_shared/notification-dot";
+import { InlineOverlayContext } from "../_shared/overlay";
 import "../Icon/core";
 
 export type AppShellLayout = "sidebar" | "drawer";
@@ -34,6 +37,7 @@ export interface AppShellContextValue {
 }
 
 const AppShellContext = createContext<AppShellContextValue | null>(null);
+const DRAWER_SHELL = { drawer: true };
 
 /**
  * The nearest AppShell's layout and navigation state, or null outside one. For a navigation of your own: read
@@ -46,7 +50,8 @@ export function useAppShell(): AppShellContextValue | null {
 export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
   /**
    * Left navigation, usually <Sidebar>. When the shell is 1024px or wider it sits beside the content, expanded or
-   * collapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button.
+   * collapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button. A Zen Sidebar follows the
+   * shell's rail and drawer by itself, also when it is wrapped in a component of your own.
    */
   sidebar?: ReactNode;
   /** Top bar content after the toggle (it grows): Breadcrumbs (Figma HR-Platform) or a Search. */
@@ -323,9 +328,11 @@ export function AppShell({
   const stackedHeader = useStackedHeader(headerEl, header ? contentEl : null, toggleEl, headerActions ? actionsEl : null);
   const showCollapseToggle = !compact && hasTopBar && sidebarToggle && canCollapse && !ownCollapse;
   const showMenuButton = compact && Boolean(sidebar);
-  const inlineSidebar = sidebarElement && canCollapse && !ownCollapse ? cloneElement(sidebarElement, { collapsed: sidebarCollapsed }) : sidebar;
-  // The drawer always shows the whole navigation: never the rail, and no collapse control inside a modal.
-  const drawerSidebar = sidebarElement ? cloneElement(sidebarElement, { collapsed: false, onCollapsedChange: undefined }) : sidebar;
+  // Sidebar reads these through SidebarShellContext, so a Sidebar wrapped in an app component follows the rail too. The
+  // drawer always shows the whole navigation: never the rail, and no collapse control inside a modal.
+  const inlineShell = useMemo(() => ({ collapsed: canCollapse && !ownCollapse ? sidebarCollapsed : undefined, expand: canCollapse && !ownCollapse ? () => setSidebarCollapsed(false) : undefined }), [canCollapse, ownCollapse, sidebarCollapsed, setSidebarCollapsed]);
+  const inlineSidebar = <SidebarShellContext value={inlineShell}>{sidebar}</SidebarShellContext>;
+  const drawerSidebar = <SidebarShellContext value={DRAWER_SHELL}>{sidebar}</SidebarShellContext>;
   // The aside docks beside the page (Figma Side-Panel Type=Standard) only while the page keeps a Tablet width next to
   // it; otherwise a SidePanel opens as the modal panel (Type=Modal) and anything else stacks under the page.
   const asideElement = isValidElement<SidePanelProps>(aside) && aside.type === SidePanel ? aside : null;
@@ -378,7 +385,8 @@ export function AppShell({
           {aside && asideDocked ? <div ref={setAsideEl} className="zen-app-shell__aside">{aside}</div> : null}
         </div>
       </div>
-      {asideElement && !asideDocked ? cloneElement(asideElement, { type: "modal" }) : null}
+      {/* The modal panel renders next to the shell, as the drawer does (InlineOverlayContext), so a preview frame holds it. */}
+      {asideElement && !asideDocked ? <InlineOverlayContext value>{cloneElement(asideElement, { type: "modal" })}</InlineOverlayContext> : null}
       {/* The drawer sits next to the shell, outside its inert subtree and inside the provider (so it keeps the token
           modes). Fixed to the viewport in an app; a preview frame that contains layout (container-type) holds it. */}
       {sidebar && presence.mounted ? (
@@ -433,11 +441,11 @@ export const AppShellAction = forwardRef<HTMLButtonElement, AppShellActionProps>
   return (
     <span className={["zen-app-shell-action", className].filter(Boolean).join(" ")} data-appearance={appearance}>
       <IconButton {...buttonProps} ref={ref} appearance={appearance === "flat" ? "flat" : "main"} level={appearance === "flat" ? "primary" : "tertiary"} size="md" icon={icon} aria-label={name} tooltip={tooltip ?? label} />
-      {unread || dot ? (
-        <span className="zen-app-shell-action__notification" data-style={unread ? "number" : "dot"} data-tone={tone} aria-hidden="true">
-          {unread ? <span className={typographyStyles["Label/Small/Medium"]}>{unread > 99 ? "99+" : unread}</span> : null}
+      {unread ? (
+        <span className="zen-app-shell-action__notification" data-style="number" data-tone={tone} aria-hidden="true">
+          <span className={typographyStyles["Label/Small/Medium"]}>{unread > 99 ? "99+" : unread}</span>
         </span>
-      ) : null}
+      ) : dot ? <NotificationDot className="zen-app-shell-action__dot" tone={tone} /> : null}
     </span>
   );
 });

@@ -139,7 +139,7 @@
       {
         "id": "icon-button/needs-action",
         "severity": "warn",
-        "summary": "An IconButton does something: it has onClick (or href, or type=\"submit\"), unless it is a Menu trigger (the Menu wires it).",
+        "summary": "An IconButton (and AppShell's top-bar AppShellAction / AppShellAccount) does something: it has onClick (or href, or type=\"submit\"), unless it is a Menu trigger (the Menu wires it).",
         "allow": "no-action"
       },
       {
@@ -6637,6 +6637,12 @@
     ],
     "file": "docs/guidelines/app-shell.md",
     "rules": [
+      {
+        "id": "icon-button/needs-action",
+        "severity": "warn",
+        "summary": "An IconButton (and AppShell's top-bar AppShellAction / AppShellAccount) does something: it has onClick (or href, or type=\"submit\"), unless it is a Menu trigger (the Menu wires it).",
+        "allow": "no-action"
+      },
       {
         "id": "app-shell/primary-in-top-bar",
         "severity": "warn",

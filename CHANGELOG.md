@@ -606,6 +606,14 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Props docs (2026-10-07):** NumberField and TextAreaField now list the label, help-text and state props they take
+  from the field (docs/api, guidelines, MCP); `scripts/build-api.mjs` reads an `Omit<…>` base declared in the same file.
+- **Backlog batch A, App Shell (2026-10-07):** a Sidebar inside AppShell follows the shell's rail and drawer even when it
+  is wrapped in a component of your own (no `useAppShell()` by hand), and the rail's Search button expands it. The
+  collapsed rail separates groups with a Divider (Figma HR Sidebar-List) and shows a hidden counter as the
+  Notification-Dot ("Approvals, 3" stays in the name). Every Notification-Dot is Figma's 8px dot with a 2px ring outside
+  (the Sidebar's drew its ring inside, leaving 4px of red). An AppShell aside that opens as the modal SidePanel stays
+  inside a preview frame, like the drawer. The harness flags an AppShellAction or AppShellAccount that does nothing.
 - **Backlog batch A, components (2026-10-07):** a tap on a clickable ListItem's trailing Badge, value or chevron now
   opens the row (buttons in the slot keep their own action). A docked SidePanel closes on Escape from the page beside it
   (not from a text field) as well as from inside, and returns focus to what opened it; in docs full screen Escape closes

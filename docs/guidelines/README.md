@@ -60,7 +60,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Chart](chart.md) | `chart/stack-needs-legend`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Layout (Stack, Grid, Box, Container)](layout.md) | `box/border-matches-action`, `layout/constraint-needs-absolute`, `layout/inset-not-read`, `layout/absolute-fill`, `layout/stretch-ignores-size`, `layout/absolute-align-self`, `layout/absolute-parent`, `box/effect-needs-surface`, `box/blur-needs-tint`, `box/shadow-no-border`, `radius/redundant-corners`, `radius/full-mixed`, `layout/use-stack`, `interaction/no-noop-handler` |
 | [Text & Heading](text.md) | `flag/no-emoji-flag`, `content/lights-no-light-text`, `heading/h1-is-heading-1`, `heading/title-not-light`, `table/title-heading-4`, `text/use-text`, `copy/plural-count`, `interaction/no-noop-handler` |
-| [App Shell](app-shell.md) | `app-shell/primary-in-top-bar`, `app-shell/nested`, `app-shell/breadcrumbs-once`, `app-shell/forced-layout`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
+| [App Shell](app-shell.md) | `icon-button/needs-action`, `app-shell/primary-in-top-bar`, `app-shell/nested`, `app-shell/breadcrumbs-once`, `app-shell/forced-layout`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Page Header](page-header.md) | `page-header/one-primary`, `interaction/no-noop-handler` |
 | [Form](form.md) | `form/actions-order`, `form/submit-button`, `form/toggle-outside-form`, `form-fieldset/needs-legend`, `form-fieldset/radio-kind`, `interaction/no-noop-handler` |
 | [Link](link.md) | `link/needs-href`, `link/vague-text`, `link/new-tab-is-external`, `link/inherit-needs-underline`, `interaction/no-noop-handler` |

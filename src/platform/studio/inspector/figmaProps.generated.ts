@@ -2196,7 +2196,13 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       }
     ],
-    "toggles": []
+    "toggles": [
+      {
+        "label": "Custom",
+        "prop": "custom",
+        "on": "slot"
+      }
+    ]
   },
   "MetricCard": {
     "figma": "595:55188",
@@ -2222,7 +2228,13 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       }
     ],
-    "toggles": []
+    "toggles": [
+      {
+        "label": "Custom",
+        "prop": "custom",
+        "on": "slot"
+      }
+    ]
   },
   "ChatMessage": {
     "figma": "6349:64085",

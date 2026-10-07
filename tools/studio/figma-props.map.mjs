@@ -60,6 +60,8 @@ const METRIC = {
     Hint: NO_PROP,
     "Label-Icon": NO_PROP,
     Size: "size",
+    Custom: { toggle: "custom", on: "slot" },
+    "Custom-Slot": skip("content slot (Slots section)"),
   },
 };
 

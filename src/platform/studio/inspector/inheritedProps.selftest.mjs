@@ -31,9 +31,8 @@ check("omitOf: base and keys", (({ base, omitted }) => [base, [...omitted]])(omi
 check("omitOf: a plain type omits nothing", omitOf("ToggleButtonProps").omitted.size, 0);
 
 // What each component gains
-check("NumberField gets InputField's label, help text, size, state", has(names("NumberField"), ["label", "helpText", "labelOptional", "size", "state"]), []);
-check("NumberField: the omitted keys stay out", lacks(names("NumberField"), ["value", "defaultValue", "type", "min", "max", "step", "align"]), []);
-check("TextAreaField gets the field props, keeps its own size", [has(names("TextAreaField"), ["label", "helpText", "state"]), names("TextAreaField").includes("size")], [[], false]);
+// NumberField and TextAreaField document the field props themselves since 2026-10-07 (build-api reads their Omit base).
+check("NumberField and TextAreaField inherit nothing more (their API lists the field props)", [names("NumberField"), names("TextAreaField")], [[], []]);
 check("AvatarStack gets each avatar's props, not alt / src / children", [has(names("AvatarStack"), ["background", "theme", "status", "focus"]), lacks(names("AvatarStack"), ["alt", "src", "children", "size"])], [[], []]);
 check("BadgeCounter gets theme and background, not leading or the leadingIcon it sets itself", [has(names("BadgeCounter"), ["theme", "background"]), lacks(names("BadgeCounter"), ["leading", "leadingIcon", "remove"])], [[], []]);
 check("a component without a Zen parent gains nothing", [names("InputField"), names("Button")], [[], []]);

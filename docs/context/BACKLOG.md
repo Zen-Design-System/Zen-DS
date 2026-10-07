@@ -225,8 +225,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   - P3 · Delete / ⌘D / Move on a multi-selection (now one layer only, with a status line) and mixed-value property editing. **Sweep 2026-10-07:** Delete, ⌘D and mixed-value editing are done (`edit/multi.ts:55-75`, `MixedProperties.tsx`); Move on a multi-selection is still open (arrange.ts:131). **2026-10-07 (backlog batch 5c):** the arrow keys move several layers of one parent (op many move, `edit/multi.ts` stepLayers; E2E K-13); dragging several layers is still open.
   - P3 · Wrap's snippet sync needs the example's `code:` to show the same region; most example snippets differ ("Example code not updated").
 - **Studio nested booleans, after the 2026-10-05 fix (session "Nested boolean không hoạt động"):**
-  - P2 · `scripts/build-api.mjs` drops intersection types: TextAreaField and NumberField list no label/helpText/label*
-    props in the docs. The Studio lists them since 2026-10-07 (`inspector/inheritedProps.ts` ALIAS_EXTENDS).
   - P3 · Server `origin`: bindingOf ignores for-of/for-in/catch bindings; custom hooks returning state read as
     bound-value (a switch could fix their value); loop-bound `rows` is the innermost loop's length.
   - P3 · Presence switch off → on in a playground (resetSlot refused there) re-adds the prop at the end of the tag, so a
@@ -426,22 +424,8 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
       Subtext (a `subtext` alias would be new API). **Sweep 2026-10-07:** done: Figma has no Subtext property to rename (component-properties.json, 2026-10-07). Still open: the deprecated props in the showcases and the JSDoc node ids.
 
 - **From the App Shell rework of 2026-09-29** (session "App Shell kiểm tra lại"; session log 2026-09-29, "App Shell"):
-  - **P2 · Sidebar reads the shell:** AppShell passes the rail state and the drawer's expanded state to a direct
-    `<Sidebar>` with `cloneElement`. A wrapped Sidebar needs `useAppShell()` by hand. Letting Sidebar read an AppShell
-    context would cover both.
-  - **P2 · Rail group dividers:** the HR-Platform rail puts a Divider between groups. The collapsed Sidebar only hides
-    section titles, so its groups run together.
   - **P3 · Sidebar headers from HR-Platform:** a workspace/account switcher header (square Avatar, name, email,
     chevron-selector) and a drill-in module header (Back chevron + Heading/4 "Time Off").
-  - **P3 · Notification-Dot as one primitive** (Figma 4116:21789): Sidebar items, TopNavigation actions and
-    AppShellAction each draw their own dot today.
-  - **P3 · Harness for dead top-bar actions:** `icon-button/needs-action` and `interaction/action-without-handler` do
-    not look at AppShellAction or AppShellAccount yet.
-  - **P3 · Aside in a narrow preview:** a SidePanel in `aside` becomes SidePanel's own portalled modal, so in a docs
-    preview frame it covers the page rather than the frame. The drawer stays in the frame. **Sweep 2026-10-07:** also in the 1512 card: 1180 − 240 sidebar − 440 panel leaves 500px, under the 744px a docked panel needs (was the "Docs frames" SidePanel line).
-  - **From the UX review of the same session:**
-    - **P3 · Rail counters:** a collapsed Sidebar hides an item's counter ("Approvals 3") without showing a Dot. This is
-      a Sidebar change.
 - **From the DatePicker + Breadcrumbs Figma re-read of 2026-09-29** (session "App Shell kiểm tra lại"; session log
   2026-09-29, "DatePicker radius + Breadcrumbs"):
   - **P2 · `use_figma` captures drop hidden instance children:** `use_figma` runs with

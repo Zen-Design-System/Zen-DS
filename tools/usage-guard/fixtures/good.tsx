@@ -136,6 +136,8 @@ export const Good = () => <>
   <Icon name="icon-check-line" size="sm" decorative />
   <Icon name="icon-check-line" size={14} decorative />
   <Text tone="light">{plural(results.length, "place")}</Text>
+  <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot onClick={openInbox} />
+  <Menu align="end" trigger={<AppShellAccount name="Ava Chen" />} items={[{ id: "out", label: "Sign out" }]} onSelect={signOut} />
   <Text tone="light">{sessions.length} phiên đang mở</Text>
   <Text tone="light">{picked.length} selected · {future.length} to redo</Text>
   <Chip variant="advanced" size="small" selectionMode="multiple" selectionCount={statuses.length} select={statuses.length > 0}>Status</Chip>

@@ -677,3 +677,18 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   MM/DD/YYYY (`Input.tsx` DateField); Side Panel › Submit leave parses `onValueChange` instead.
 - [DONE: plural(n, one, many, locale); copy/plural-count reads whole Unicode words and skips Vietnamese] **P2 · Vietnamese:** `plural()` is English-only; `copy/plural-count` cuts words at the first non-ASCII letter
   ("phiên" → "phi") and fires under `locale="vi"`.
+- [DONE A2: SidebarShellContext (internal) replaces cloneElement; a wrapped Sidebar follows the rail and drawer; the rail Search expands through the shell] **P2 · Sidebar reads the shell:** AppShell passes the rail state and the drawer's expanded state to a direct
+  `<Sidebar>` with `cloneElement`. A wrapped Sidebar needs `useAppShell()` by hand. Letting Sidebar read an AppShell
+  context would cover both.
+- [DONE A2: Figma 7373:57684 — groups 8px apart, a 44px Divider 2px above the next group's first item] **P2 · Rail group dividers:** the HR-Platform rail puts a Divider between groups. The collapsed Sidebar only hides
+  section titles, so its groups run together.
+- [DONE A2: _shared NotificationDot (8px, 2px Border/Inverse OUTSIDE); the Sidebar dot drew its ring inside (4px of red) and now sits on the icon at Figma (16, −4)] **P3 · Notification-Dot as one primitive** (Figma 4116:21789): Sidebar items, TopNavigation actions and
+  AppShellAction each draw their own dot today.
+- [DONE A2: icon-button/needs-action covers AppShellAction and AppShellAccount] **P3 · Harness for dead top-bar actions:** `icon-button/needs-action` and `interaction/action-without-handler` do
+  not look at AppShellAction or AppShellAccount yet.
+- [DONE A2: the modal aside renders next to the shell (InlineOverlayContext), so a preview frame holds it like the drawer] **P3 · Aside in a narrow preview:** a SidePanel in `aside` becomes SidePanel's own portalled modal, so in a docs
+  preview frame it covers the page rather than the frame. The drawer stays in the frame. **Sweep 2026-10-07:** also in the 1512 card: 1180 − 240 sidebar − 440 panel leaves 500px, under the 744px a docked panel needs (was the "Docs frames" SidePanel line).
+- [DONE A2: a non-zero counter shows the Notification-Dot in the rail and joins the row's name] **P3 · Rail counters:** a collapsed Sidebar hides an item's counter ("Approvals 3") without showing a Dot. This is
+  a Sidebar change.
+- [DONE A3: build-api probes an Omit<SameFileType, keys> base with react-docgen; NumberField and TextAreaField list the field props; Studio ALIAS_EXTENDS retired] P2 · `scripts/build-api.mjs` drops intersection types: TextAreaField and NumberField list no label/helpText/label*
+  props in the docs. The Studio lists them since 2026-10-07 (`inspector/inheritedProps.ts` ALIAS_EXTENDS).

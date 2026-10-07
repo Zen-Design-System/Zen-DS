@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type ReactElement, type ReactNode } from "react";
+import { useContext, useEffect, useId, useRef, type ReactElement, type ReactNode } from "react";
 import { usePresence } from "../Motion";
 import { ZenPortal } from "../Portal";
 import { IconButton } from "../Button";
@@ -6,7 +6,7 @@ import { ModalActions, type DialogAction } from "../Dialog";
 import { modalIsOpen, openPopupTrigger, useModal } from "../Dialog/Dialog";
 import { Icon, type IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
-import { useOverlayOpen, type OverlayOpenProps } from "../_shared/overlay";
+import { InlineOverlayContext, useOverlayOpen, type OverlayOpenProps } from "../_shared/overlay";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./side-panel.css";
@@ -54,6 +54,7 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
   const id = useId().replace(/:/g, "");
   const panelRef = useRef<HTMLElement>(null);
   const modal = type === "modal";
+  const inline = useContext(InlineOverlayContext);
   // Modal: the shared Dialog/ModalForm focus trap (autofocus, Tab trap, Escape, scroll lock, focus return).
   useModal(open && modal, panelRef, dismissible, onOpenChange, "[data-autofocus], .zen-side-panel__close");
   // Standard (non-modal): Escape closes the docked panel from inside it and from the page beside it (the row that opened
@@ -124,7 +125,6 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
   );
   if (!modal) return panel;
   if (typeof document === "undefined") return null;
-  return (
-    <ZenPortal><div className="zen-side-panel-overlay" data-state={phase} onPointerDown={(event) => { if (!closing && dismissible && event.target === event.currentTarget) onOpenChange(false); }}>{panel}</div></ZenPortal>
-  );
+  const overlay = <div className="zen-side-panel-overlay" data-state={phase} onPointerDown={(event) => { if (!closing && dismissible && event.target === event.currentTarget) onOpenChange(false); }}>{panel}</div>;
+  return inline ? overlay : <ZenPortal>{overlay}</ZenPortal>;
 }

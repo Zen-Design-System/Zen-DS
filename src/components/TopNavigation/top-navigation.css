@@ -141,7 +141,8 @@
 .zen-top-nav__action[data-style="glass-dark"]:hover:not(:disabled) { background: var(--zen-color-background-liquid-glass-black-overlay-hover, rgb(0 0 0 / 40%)); }
 /* Noti (Nav-Slot/Action 6085:44062, every Style incl. Flat): 8px at x 26 · y 10 of the 44px button, i.e. pinned to the
    icon's top-right corner, so it sits one icon padding in from the top and the end. */
-.zen-top-nav__dot { position: absolute; top: var(--zen-navigation-action-icon-spacing-vertical-padding, 10px); right: var(--zen-navigation-action-icon-spacing-horizontal-padding, 10px); width: 8px; height: 8px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-negative-solid-default, #e5532e); box-shadow: 0 0 0 2px var(--zen-color-border-inverse, #fff); }
+/* The dot is the shared Notification-Dot (_shared/notification-dot.css); this places it on the icon. */
+.zen-top-nav__dot { top: var(--zen-navigation-action-icon-spacing-vertical-padding, 10px); right: var(--zen-navigation-action-icon-spacing-horizontal-padding, 10px); }
 @media (prefers-reduced-motion: no-preference) { .zen-top-nav__action { transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
 
 /* searchAction: the Search control bar folds into a trailing Search action while collapsed (and back). */

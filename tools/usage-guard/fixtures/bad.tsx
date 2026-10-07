@@ -238,6 +238,10 @@ export const Bad = () => <>
   <ColorSelector aria-label="Label colour" colors={[{ value: "#2563eb", label: "Blue" }, { value: "#16a34a", label: "Green" }]} />
   {/* expect: icon/size-token */}
   <Icon name="icon-check-line" size="small" decorative />
+  {/* expect: icon-button/needs-action */}
+  <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot />
+  {/* expect: icon-button/needs-action */}
+  <AppShellAccount name="Ava Chen" />
   {/* expect: copy/plural-count */}
   <Text tone="light">{results.length} places</Text>
   {/* expect: navigation/back-chevron */}

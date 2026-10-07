@@ -2,6 +2,7 @@ import type { ButtonHTMLAttributes, ReactElement } from "react";
 import type { IconName } from "../Icon";
 import { useIconTooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
+import { NotificationDot } from "../_shared/notification-dot";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./bottom-navigation.css";
@@ -90,7 +91,7 @@ export function BottomNavigation({ items, value, onValueChange, type = "default"
             <TipButton tip={showLabels ? false : item.label} className="zen-bottom-nav__item" aria-current={selected ? "page" : undefined} aria-label={showLabels ? undefined : item.label} data-selected={selected ? "true" : "false"} onClick={() => onValueChange(item.id)}>
               <span className="zen-bottom-nav__icon">
                 {renderIcon(selected && item.selectedIcon ? item.selectedIcon : item.icon)}
-                {item.dot ? <span className="zen-bottom-nav__dot" aria-hidden="true" /> : null}
+                {item.dot ? <NotificationDot className="zen-bottom-nav__dot" /> : null}
               </span>
               {showLabels ? <span className={`zen-bottom-nav__label ${typographyStyles[floating && selected ? "Label/Small/Bold" : "Label/Small/Medium"]}`}>{item.label}</span> : null}
             </TipButton>

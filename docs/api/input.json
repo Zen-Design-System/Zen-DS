@@ -620,6 +620,126 @@
           "default": null,
           "description": "Accessible name of the + stepper. Default: the locale's \"Increase\".",
           "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelOptional",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel).",
+          "deprecated": null
+        },
+        {
+          "name": "labelTooltip",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpTheme",
+          "type": "\"neutral\" | \"negative\" | \"warning\" | \"positive\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative.",
+          "deprecated": null
+        },
+        {
+          "name": "helpIcon",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Icon` axis (default on).",
+          "deprecated": null
+        },
+        {
+          "name": "characterLimit",
+          "type": "ReactNode | true",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Character-Limitation`: custom text (e.g. \"12/100\"), or `true` to count the value against `maxLength`.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "errorMessage",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use error (same meaning)."
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": null,
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"typing\" | \"inputted\" | \"read-only\" | \"disabled\" | \"inputted-error\" | \"blank-error\" | \"error\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Before the value: an icon name (`\"icon-mail-01-line\"`, sized to the field) or any node (a unit, a picker).",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "After the value: an icon name (sized to the field) or any node (a unit, a picker, an action).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
         }
       ]
     },
@@ -651,6 +771,118 @@
           "type": "unknown",
           "required": false,
           "default": "4",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelOptional",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel).",
+          "deprecated": null
+        },
+        {
+          "name": "labelTooltip",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpTheme",
+          "type": "\"neutral\" | \"negative\" | \"warning\" | \"positive\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative.",
+          "deprecated": null
+        },
+        {
+          "name": "helpIcon",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Icon` axis (default on).",
+          "deprecated": null
+        },
+        {
+          "name": "characterLimit",
+          "type": "ReactNode | true",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Character-Limitation`: custom text (e.g. \"12/100\"), or `true` to count the value against `maxLength`.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "errorMessage",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use error (same meaning)."
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"typing\" | \"inputted\" | \"read-only\" | \"disabled\" | \"inputted-error\" | \"blank-error\" | \"error\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Before the value: an icon name (`\"icon-mail-01-line\"`, sized to the field) or any node (a unit, a picker).",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "After the value: an icon name (sized to the field) or any node (a unit, a picker, an action).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
           "description": "",
           "deprecated": null
         }
@@ -939,6 +1171,102 @@
         {
           "name": "onBlur",
           "type": "(event: FocusEvent<HTMLDivElement>) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelOptional",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel).",
+          "deprecated": null
+        },
+        {
+          "name": "labelTooltip",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpTheme",
+          "type": "\"neutral\" | \"negative\" | \"warning\" | \"positive\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative.",
+          "deprecated": null
+        },
+        {
+          "name": "helpIcon",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Icon` axis (default on).",
+          "deprecated": null
+        },
+        {
+          "name": "characterLimit",
+          "type": "ReactNode | true",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Character-Limitation`: custom text (e.g. \"12/100\"), or `true` to count the value against `maxLength`.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "errorMessage",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use error (same meaning)."
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"typing\" | \"inputted\" | \"read-only\" | \"disabled\" | \"inputted-error\" | \"blank-error\" | \"error\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
           "required": false,
           "default": null,
           "description": "",

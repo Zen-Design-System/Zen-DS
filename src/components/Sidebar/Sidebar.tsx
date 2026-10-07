@@ -7,6 +7,8 @@ import { TOOLTIP_HOVER_DELAY, TooltipSurface, useIconTooltip } from "../Tooltip"
 import { Popover } from "../Popover";
 import { renderIcon } from "../_shared/icon";
 import { useZenLabels } from "../_shared/zen-context";
+import { useSidebarShell } from "../_shared/sidebar-shell";
+import { NotificationDot } from "../_shared/notification-dot";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./sidebar.css";
 import "../Icon/core";
@@ -33,7 +35,10 @@ export type SidebarItem = {
   theme?: SidebarItemTheme;
   dropdown?: boolean;
   indent?: boolean;
+  /** Figma Counter (a Small Neutral Subtle BadgeCounter). The collapsed rail has no room for it: a non-zero count shows
+   *  the Notification-Dot instead and joins the row's name ("Approvals, 3"). */
   counter?: ReactNode;
+  /** Figma Primitives/Notification-Dot on the icon. */
   notificationDot?: boolean;
   trailingAction?: ReactNode;
   children?: SidebarItem[];
@@ -287,6 +292,10 @@ function SidebarItemView({
   const theme = item.theme ?? "neutral";
   const state = item.disabled ? "disabled" : (item.state ?? "default");
   const tooltip = useRailTooltip(collapsed && !item.disabled);
+  // A counter the collapsed rail hides (Approvals 3): its text joins the row's name and a Notification-Dot shows it.
+  const railCount = collapsed && (typeof item.counter === "number" ? item.counter > 0 : typeof item.counter === "string" ? item.counter.trim() !== "" && item.counter.trim() !== "0" : false) ? String(item.counter) : "";
+  // The rail has no room for the counter: Figma's Notification-Dot (in every Item's Icon-Wrapper) marks it instead.
+  const dot = Boolean(item.notificationDot || railCount);
   // An item with a destination is a link (the Sidebar's router link when given); everything else stays a button.
   const isLink = Boolean(item.href) && !item.disabled;
   const Row: ElementType = isLink ? (linkAs ?? "a") : "button";
@@ -306,13 +315,13 @@ function SidebarItemView({
         }}
         aria-current={selected ? "page" : undefined}
         aria-expanded={hasChildren || item.dropdown ? isOpen : undefined}
-        aria-label={collapsed ? item.label : undefined}
+        aria-label={collapsed ? (railCount ? `${item.label}, ${railCount}` : item.label) : undefined}
         {...tooltip.triggerProps}
       >
-        {item.icon ? <span className="zen-sidebar__item-icon">{renderIcon(item.icon, { size: "base" })}</span> : null}
+        {item.icon ? <span className="zen-sidebar__item-icon">{renderIcon(item.icon, { size: "base" })}{dot ? <NotificationDot className="zen-sidebar__notification-dot" /> : null}</span> : null}
         <span className="zen-sidebar__item-label">{item.label}</span>
         {item.counter !== undefined ? <BadgeCounter className="zen-sidebar__counter" size="small" theme="neutral" background="subtle" value={item.counter} /> : null}
-        {item.notificationDot ? <span className="zen-sidebar__notification-dot" aria-hidden="true" /> : null}
+        {dot && !item.icon ? <NotificationDot className="zen-sidebar__notification-dot zen-sidebar__notification-dot--row" /> : null}
         {hasChildren || item.dropdown ? (
           <span className="zen-sidebar__item-dropdown" data-open={isOpen} aria-hidden="true">
             <Icon name="icon-chevron-down-01-line" size="base" />
@@ -362,7 +371,7 @@ function ItemList({ sections, collapsed, openItems, setOpenItems, onItemClick }:
   );
 }
 
-function SidebarPanel({ className, brand, brandSlots, sections, footer, search, searchCollapsed, collapsed, onCollapsedChange, openItems, setOpenItems, onItemClick }: {
+function SidebarPanel({ className, brand, brandSlots, sections, footer, search, searchCollapsed, collapsed, onCollapsedChange, expandRail, openItems, setOpenItems, onItemClick }: {
   className: string;
   brand?: ReactNode;
   brandSlots?: SidebarBrandSlots;
@@ -372,6 +381,8 @@ function SidebarPanel({ className, brand, brandSlots, sections, footer, search, 
   searchCollapsed?: ReactNode;
   collapsed: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
+  /** Expands the rail (its Search button): the Sidebar's own onCollapsedChange, or the AppShell's. */
+  expandRail?: () => void;
   openItems: Record<string, boolean>;
   setOpenItems: Dispatch<SetStateAction<Record<string, boolean>>>;
   onItemClick?: (item: SidebarItem) => void;
@@ -387,7 +398,7 @@ function SidebarPanel({ className, brand, brandSlots, sections, footer, search, 
         : <DefaultSidebarBrand {...brandSlots} collapsed={collapsed} onCollapsedChange={onCollapsedChange} />}</div>
       {search ? <div className="zen-sidebar__search">{collapsed
         // Figma collapsed rail: Search becomes Button/Icon-Main Small Tertiary; activating it expands the panel.
-        ? searchCollapsed ?? <IconButton appearance="main" level="tertiary" size="sm" aria-label={t.search} icon={<Icon name="icon-search-medium-line" />} onClick={() => onCollapsedChange?.(false)} />
+        ? searchCollapsed ?? <IconButton appearance="main" level="tertiary" size="sm" aria-label={t.search} icon={<Icon name="icon-search-medium-line" />} onClick={expandRail} />
         : search}</div> : null}
       <div className="zen-sidebar__body"><ItemList sections={sections} collapsed={collapsed} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick} /></div>
       {footer ? <><div className="zen-sidebar__divider" aria-hidden="true" /><div className="zen-sidebar__footer"><div className="zen-sidebar__footer-content" {...footerTooltip.footerProps}>{footer}</div></div></> : null}
@@ -426,8 +437,14 @@ function SidebarFlyout({ children, label, onClose, rootRef }: { children: ReactN
   return <div className="zen-sidebar__submenu" role="region" aria-label={label}>{children}</div>;
 }
 
-export function Sidebar({ variant: requestedVariant, density: requestedDensity, collapsed = false, onCollapsedChange, brand, logo, logoCollapsed, productName, "aria-label": ariaLabel, sections = [], selectedId, linkAs, footer, search, searchCollapsed, onItemClick, className, background = "default", divider = false, workspaceBrand, workspaceItems = [], workspaceFooter, workspaceAction, headerAction, workspaceBar = true, subMenu, subMenuLabel: subMenuLabelProp, onSubMenuClose }: SidebarProps) {
+export function Sidebar({ variant: requestedVariant, density: requestedDensity, collapsed: collapsedProp = false, onCollapsedChange: onCollapsedChangeProp, brand, logo, logoCollapsed, productName, "aria-label": ariaLabel, sections = [], selectedId, linkAs, footer, search, searchCollapsed, onItemClick, className, background = "default", divider = false, workspaceBrand, workspaceItems = [], workspaceFooter, workspaceAction, headerAction, workspaceBar = true, subMenu, subMenuLabel: subMenuLabelProp, onSubMenuClose }: SidebarProps) {
   const t = useZenLabels();
+  // Inside an AppShell (directly or wrapped in an app component) the shell owns the rail unless the Sidebar has its own
+  // onCollapsedChange; its drawer always shows the whole navigation with no collapse control.
+  const shell = useSidebarShell();
+  const collapsed = shell?.drawer ? false : onCollapsedChangeProp ? collapsedProp : (shell?.collapsed ?? collapsedProp);
+  const onCollapsedChange = shell?.drawer ? undefined : onCollapsedChangeProp;
+  const expandRail = onCollapsedChange ? () => onCollapsedChange(false) : shell?.expand;
   const subMenuLabel = subMenuLabelProp ?? t.subMenu;
   const rootRef = useRef<HTMLElement>(null);
   const flyout = subMenu ? <SidebarFlyout label={subMenuLabel} onClose={onSubMenuClose} rootRef={rootRef}>{subMenu}</SidebarFlyout> : null;
@@ -468,7 +485,7 @@ export function Sidebar({ variant: requestedVariant, density: requestedDensity, 
   return (
     <nav ref={rootRef} className={rootClassName} data-variant={variant} data-background={background} data-divider={divider ? "true" : undefined} data-collapsed={collapsed ? "true" : "false"} data-sidebar-density={requestedDensity ?? (variant === "small-density" ? "small" : "medium")} aria-label={ariaLabel ?? t.mainNavigation}>
       <SidebarNavContext value={nav}>
-        <SidebarPanel className="zen-sidebar__surface" brand={brand} brandSlots={{ logo, logoCollapsed, productName }} sections={sections} footer={footer} search={search} searchCollapsed={searchCollapsed} collapsed={collapsed} onCollapsedChange={onCollapsedChange} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick} />
+        <SidebarPanel className="zen-sidebar__surface" brand={brand} brandSlots={{ logo, logoCollapsed, productName }} sections={sections} footer={footer} search={search} searchCollapsed={searchCollapsed} collapsed={collapsed} onCollapsedChange={onCollapsedChange} expandRail={expandRail} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick} />
         {flyout}
       </SidebarNavContext>
     </nav>

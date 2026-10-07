@@ -100,10 +100,11 @@
 .zen-app-shell-action__notification[data-tone="active"] { --zen-app-shell-notification: var(--zen-color-background-positive-solid-default); }
 .zen-app-shell-action__notification[data-tone="accent"] { --zen-app-shell-notification: var(--zen-color-background-accent-solid-default); --zen-app-shell-notification-content: var(--zen-color-content-on-accent-default); }
 /* Tertiary (40px button): Dot 8×8 at Figma (30, 2); Number Badge/Size/2XSmall high at (28, 0), growing to the left. */
-.zen-app-shell-action__notification[data-style="dot"] { top: 2px; right: 2px; width: 8px; height: 8px; }
+/* Dot: the shared Notification-Dot (_shared/notification-dot.css), placed here. */
+.zen-app-shell-action__dot { top: 2px; right: 2px; }
 .zen-app-shell-action__notification[data-style="number"] { top: 0; right: 0; display: inline-flex; height: var(--zen-badge-size-2-xsmall, 12px); min-width: var(--zen-badge-size-2-xsmall, 12px); align-items: center; justify-content: center; padding: 0 var(--zen-badge-spacing-small-text-wrapper-padding, 4px); white-space: nowrap; }
 /* Flat: on the 20px glyph (Figma: dot at 14, −2 and number at 12, −4 of the wrapper). */
-.zen-app-shell-action[data-appearance="flat"] .zen-app-shell-action__notification[data-style="dot"] { top: -2px; right: -2px; }
+.zen-app-shell-action[data-appearance="flat"] .zen-app-shell-action__dot { top: -2px; right: -2px; }
 .zen-app-shell-action[data-appearance="flat"] .zen-app-shell-action__notification[data-style="number"] { top: -4px; right: -4px; }
 
 /* AppShellAccount: Figma Avatar/Single Circle Medium as a button. */

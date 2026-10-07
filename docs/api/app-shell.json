@@ -15,7 +15,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Left navigation, usually <Sidebar>. When the shell is 1024px or wider it sits beside the content, expanded or\ncollapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button.",
+          "description": "Left navigation, usually <Sidebar>. When the shell is 1024px or wider it sits beside the content, expanded or\ncollapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button. A Zen Sidebar follows the\nshell's rail and drawer by itself, also when it is wrapped in a component of your own.",
           "deprecated": null
         },
         {

@@ -290,11 +290,40 @@
           "max?: number",
           "step?: number = 1",
           "decrementLabel?: string",
-          "incrementLabel?: string"
+          "incrementLabel?: string",
+          "label?: ReactNode",
+          "helpText?: ReactNode",
+          "labelOptional?: boolean",
+          "labelTooltip?: boolean|ReactNode",
+          "labelAction?: ReactNode",
+          "helpTheme?: neutral|negative|warning|positive",
+          "helpIcon?: boolean",
+          "characterLimit?: ReactNode|true",
+          "error?: ReactNode",
+          "errorMessage?: ReactNode (deprecated)",
+          "size?: sm|md|lg|xl|small|medium|large|xlarge",
+          "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
+          "leading?: IconName|ReactNode",
+          "trailing?: IconName|ReactNode",
+          "className?: string"
         ],
         "TextAreaField": [
           "size?: Exclude<InputSize, xlarge|xl> = md",
-          "onValueChange?: (value: string) => void"
+          "onValueChange?: (value: string) => void",
+          "label?: ReactNode",
+          "helpText?: ReactNode",
+          "labelOptional?: boolean",
+          "labelTooltip?: boolean|ReactNode",
+          "labelAction?: ReactNode",
+          "helpTheme?: neutral|negative|warning|positive",
+          "helpIcon?: boolean",
+          "characterLimit?: ReactNode|true",
+          "error?: ReactNode",
+          "errorMessage?: ReactNode (deprecated)",
+          "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
+          "leading?: IconName|ReactNode",
+          "trailing?: IconName|ReactNode",
+          "className?: string"
         ],
         "AutocompleteField": [
           "id?: string",
@@ -332,7 +361,19 @@
           "editorBar?: boolean = true",
           "editorBarTheme?: subtle|solid|inverse = subtle",
           "onFocus?: (event: FocusEvent<HTMLDivElement>) => void",
-          "onBlur?: (event: FocusEvent<HTMLDivElement>) => void"
+          "onBlur?: (event: FocusEvent<HTMLDivElement>) => void",
+          "label?: ReactNode",
+          "helpText?: ReactNode",
+          "labelOptional?: boolean",
+          "labelTooltip?: boolean|ReactNode",
+          "labelAction?: ReactNode",
+          "helpTheme?: neutral|negative|warning|positive",
+          "helpIcon?: boolean",
+          "characterLimit?: ReactNode|true",
+          "error?: ReactNode",
+          "errorMessage?: ReactNode (deprecated)",
+          "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
+          "className?: string"
         ]
       },
       "do": [
@@ -3557,6 +3598,7 @@
         "Don't hand-build a bell with a red dot; use AppShellAction."
       ],
       "rules": [
+        "icon-button/needs-action",
         "app-shell/primary-in-top-bar",
         "app-shell/nested",
         "app-shell/breadcrumbs-once",

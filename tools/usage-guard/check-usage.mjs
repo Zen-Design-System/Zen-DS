@@ -528,8 +528,8 @@ export const rules = [
   { id: "icon-button/needs-name", components: ["IconButton"], severity: "error", allow: "unnamed", guideline: "docs/guidelines/button.md",
     summary: "Icon-only buttons need an aria-label.",
     check: ({ attrs }) => !named(attrs) && "has no aria-label." },
-  { id: "icon-button/needs-action", components: ["IconButton"], severity: "warn", allow: "no-action", guideline: "docs/guidelines/button.md",
-    summary: "An IconButton does something: it has onClick (or href, or type=\"submit\"), unless it is a Menu trigger (the Menu wires it).",
+  { id: "icon-button/needs-action", components: ["IconButton", "AppShellAction", "AppShellAccount"], severity: "warn", allow: "no-action", guideline: "docs/guidelines/button.md",
+    summary: "An IconButton (and AppShell's top-bar AppShellAction / AppShellAccount) does something: it has onClick (or href, or type=\"submit\"), unless it is a Menu trigger (the Menu wires it).",
     check: ({ attrs, parent, src, start }) => {
       // `${…}` and "…" only make a code sample opaque; in live code aria-label={`Edit ${name}`} is just a label.
       if (["onClick", "href", "onPointerDown", "onMouseDown"].some((name) => has(attrs, name)) || spreadsProps(attrs) || (opaque(attrs) && inTemplateText(src, start)) || /\btype="(submit|reset)"/.test(attrs)) return null;

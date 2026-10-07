@@ -112,7 +112,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `button/accent-is-promoted` | warn | Accent is for promoted CTAs (upsell, onboarding) only. | `zen-allow-accent: <reason>` |
 | `button/destructive-is-danger` | warn | Irreversible actions (Delete, Remove, Discard) use Danger or Danger-Subtle. | `zen-allow-destructive: <reason>` |
 | `icon-button/needs-name` | error | Icon-only buttons need an aria-label. | `zen-allow-unnamed: <reason>` |
-| `icon-button/needs-action` | warn | An IconButton does something: it has onClick (or href, or type="submit"), unless it is a Menu trigger (the Menu wires it). | `zen-allow-no-action: <reason>` |
+| `icon-button/needs-action` | warn | An IconButton (and AppShell's top-bar AppShellAction / AppShellAccount) does something: it has onClick (or href, or type="submit"), unless it is a Menu trigger (the Menu wires it). | `zen-allow-no-action: <reason>` |
 | `icon-button/tooltip` | warn | Icon-only buttons show their name as a tooltip after 1s of hover (at once on keyboard focus); IconButton does it by default — turn it off only when a visible label sits right beside it. | `zen-allow-no-tooltip: <reason>` |
 | `button/icon-only-raw` | warn | An icon-only action is an IconButton (or uses useIconTooltip), so it gets the Zen tokens, focus ring and the 1s name tooltip — not a hand-built <button> with just an <Icon>. | `zen-allow-raw-icon-button: <reason>` |
 | `navigation/back-chevron` | error | Back actions on mobile and tablet use a left chevron (icon-chevron-left-line-medium), never a left arrow. | `zen-allow-back-arrow: <reason>` |
