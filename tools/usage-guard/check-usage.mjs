@@ -1150,8 +1150,10 @@ export const rules = [
     summary: "Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`.",
     check: ({ attrs, children }) => {
       // Template literals in props (`${x.length} files`) and JSX text ({x.length} files); a word followed by "=" is the next prop, not copy.
-      const hits = [...`${attrs}`.matchAll(/\$\{\s*[\w.]+\.length\s*\}\s+([a-z]+)\b(?!\s*=)/gi), ...`${children}`.matchAll(/\{\s*[\w.]+\.length\s*\}\s+([a-z]+)\b(?!\s*=)/gi)];
-      const noun = hits.map((m) => m[1]).find((w) => !/^(of|to|in|on|at|by|for|from|with|and|or|selected|left|more|remaining|out|per|new|total|active|done|open|unread|online|pending|archived|completed|x)$/i.test(w));
+      // Whole words in any script (\p{L}): "phiên" is one word, not "phi". A word with Vietnamese letters is skipped —
+      // Vietnamese nouns do not inflect, so "{n} phiên" is right for every n.
+      const hits = [...`${attrs}`.matchAll(/\$\{\s*[\w.]+\.length\s*\}\s+(\p{L}+)(?!\p{L})(?!\s*=)/giu), ...`${children}`.matchAll(/\{\s*[\w.]+\.length\s*\}\s+(\p{L}+)(?!\p{L})(?!\s*=)/giu)];
+      const noun = hits.map((m) => m[1]).filter((w) => /^[a-z]+$/i.test(w)).find((w) => !/^(of|to|in|on|at|by|for|from|with|and|or|selected|left|more|remaining|out|per|new|total|active|done|open|unread|online|pending|archived|completed|x)$/i.test(w));
       return noun && `prints a count straight before "${noun}" — "1 ${noun}" / "2 ${noun}" can't both be right; use a plural helper (plural(n, "item")).`;
     } },
   { id: "form/actions-order", components: ["FormActions"], severity: "warn", allow: "actions-order", guideline: "docs/guidelines/form.md",

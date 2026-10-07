@@ -299,8 +299,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
     Heading/Subheading (Detail page used one zen-allow). **Sweep 2026-10-07:** done: `table/title-heading-4` accepts Heading/Subheading inside a Card (check-usage.mjs:900-901); the zen-allow at DetailTemplate.tsx:271 is no longer needed. Still open: the hover fill without onRowClick.
   - **P3 · HrShell:** the Approvals counter in the module sidebar is static data; it doesn't follow approvals made on
     the page.
-  - **P2 · ListItem:** on a clickable row the trailing slot (a Badge) sits outside the row's button, so tapping it does
-    nothing. (Done 2026-10-05 (session "Dark/light mode sync và UI present", backlog batch 3): the `aria-pressed` half — a button row now sets `aria-current="true"` when selected, nothing otherwise.)
   - **P3 · Phone templates:** their toasts appear at the bottom of the browser window, outside the phone frame (the
     docs ToastStack, not the template).
   - **P3 · AiChatBlock:** its greeting is an h2 in Heading/1, so a page that also has Heading/4 section h2s trips
@@ -326,8 +324,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
     on 4 lines, table 345 in 246). Proposal: a readable minimum for text columns (as the fixed-column tables now have,
     `--zen-table-fill-min-width`), in line with the research overflow matrix (docs/research/ui-patterns-and-rules-2026-09-30.md B1 L11–L13).
 - **Review batch 5 follow-ups (2026-09-30, items 13–17; log: session-log-2026-09-30.md "Review batch 5"):**
-  - **P2 · DateField typed dates:** `onDateChange` fires only when a day is picked in the calendar, not for a typed
-    MM/DD/YYYY (`Input.tsx` DateField); Side Panel › Submit leave parses `onValueChange` instead.
   - **P2 · Thin examples sweep (item 13 rest):** Dialog "Form · 1-3 with preview" and ModalForm "Basic" still open from
     a one-line row; scan other overlay/trigger examples the same way (script in the session log). **Sweep 2026-10-07:** done: "Form · 1-3 with preview" and "Basic" are gone; dialog.tsx:667-794 are scenario examples. The scan of the other overlay examples has not been re-run.
   - **P3 · Components seen by the template agents:** emoji DockIcon XSmall draws a 12px glyph (Figma 28px); ProgressCircle
@@ -469,12 +465,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
     guideline's "jump to page" wording and Enter row do not match the Manually theme (a page-size input). **Sweep 2026-10-07:** done: thousands separators through Intl.NumberFormat and an en dash (labels.ts:245-246, :280, :464). Still open: the guideline's "jump to page" wording.
 - **From the UX interaction pass and the Top Navigation research (2026-10-01; session "Component library review và
   fixes"; research §5):**
-  - **P2 · SidePanel `standard`:** a docked panel returns no focus when it closes, and Escape works only with focus
-    inside it. In docs full screen, Escape on a row exits full screen and leaves the panel open (`PlatformFullScreen`
-    Escape owners).
-  - **P2 · AiChatField** always renders "+", the microphone and Start voice mode, even without `onAttach` / `onVoice`,
-    so they are dead clicks unless an app passes both handlers. Fix: hide them without a handler, or add a harness rule.
-    Home and HrShell now pass both.
   - **P3 · G3 harness:** `top-navigation/search-folds-to-action` checks only `collapsed`. A `scrollRef` bar with a
     Search and no `searchAction` passes.
   - **P3 · G7 Figma Top Navigation features without props:**
@@ -510,8 +500,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   the packed tarball + memory-vs-repo audit; session log 2026-10-02, "AI-readiness re-evaluation"). Proposal, nothing fixed:
   - **P2 · App checks are weaker than repo checks:** CSS rules run only with `zen-usage --css` (init/ACM say plain
     `zen-usage`); `interaction/action-without-handler` is repo-only; `mobile/full-size-controls` keys on PlatformPhone.
-  - **P2 · Vietnamese:** `plural()` is English-only; `copy/plural-count` cuts words at the first non-ASCII letter
-    ("phiên" → "phi") and fires under `locale="vi"`.
   - **P2 · MCP answers too big:** `get_component` 8–15 KB with Figma ids and repo notes, `get_template` 39 KB; 5 guideline
     lines cite `component-usage-rules.md §n`, which the package does not ship. Add a brief mode; drop repo-only notes.
   - **P2 · Contrast in light mode (designer decision):** Content/Neutral/Tertiary #828282 on white 3.84:1 (ListItem and

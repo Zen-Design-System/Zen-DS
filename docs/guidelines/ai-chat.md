@@ -40,7 +40,7 @@ Figma AI/Chat-Bubble (4218:1270): You = a Neutral/Subtle bubble (radius 24, padd
 | `className` | `string` | — |  |
 
 ### AiChatField
-Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt Body/Extra/Medium · model · mic · Primary 40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and Send (arrow-up) once there is text. Enter sends, Shift+Enter adds a line. The whole field is the prompt's hit area: a click or tap anywhere outside its buttons puts the caret in the prompt.
+Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt Body/Extra/Medium · model · mic · Primary 40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and Send (arrow-up) once there is text. Enter sends, Shift+Enter adds a line. The whole field is the prompt's hit area: a click or tap anywhere outside its buttons puts the caret in the prompt. The +, the microphone and Voice appear only with their handler (`onAttach`, `onVoice`), so the field never shows a button that does nothing.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -49,8 +49,8 @@ Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt B
 | `fieldStyle` | `"default" \| "surface" \| "liquid-glass"` | `"default"` |  |
 | `model` | `ReactNode` | — | Figma Model: the model switch label (Body/Base/Medium + chevron) — open your model Popover from `onModelClick`. |
 | `onModelClick` | `() => void` | — |  |
-| `onAttach` | `() => void` | — | Figma Leading-Actions (+): attachments or tools. |
-| `onVoice` | `() => void` | — | Figma trailing microphone (Icon-Flat). |
+| `onAttach` | `() => void` | — | Figma Leading-Actions (+): attachments or tools. Without it the + is not drawn (it would do nothing). |
+| `onVoice` | `() => void` | — | Figma trailing microphone (Icon-Flat) and the empty field's Voice action. Without it neither is drawn: the empty field shows a disabled Send instead. |
 | `busy` | `boolean` | `false` | While the reply streams, the primary button becomes Stop. |
 | `onStop` | `() => void` | — |  |
 | `disabled` | `boolean` | `false` |  |

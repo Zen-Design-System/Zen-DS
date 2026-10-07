@@ -513,7 +513,7 @@
           "type": "(date: Date | null) => void",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "The day in the field: called when one is picked in the calendar and when a complete MM/DD/YYYY is typed; null when\n the field is emptied or a typed date stops being a real day.",
           "deprecated": null
         },
         {

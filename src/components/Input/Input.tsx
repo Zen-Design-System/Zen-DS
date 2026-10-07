@@ -648,6 +648,8 @@ export type DateFieldProps = InputFieldProps & {
   /** The calendar's Cancel + Submit (Figma Actions): a picked day is a draft until Submit writes it to the field; Cancel and
    *  Escape keep the date the field had. */
   datePickerActions?: boolean;
+  /** The day in the field: called when one is picked in the calendar and when a complete MM/DD/YYYY is typed; null when
+   *  the field is emptied or a typed date stops being a real day. */
   onDateChange?: (date: Date | null) => void;
   /** Earliest day the calendar lets people pick (DatePicker `minDate`); earlier days are disabled. A typed date before
    * it stays in the field and reaches `onValueChange` as usual, and the input is marked `aria-invalid` (Form and
@@ -671,6 +673,14 @@ function parseDateFieldValue(value: unknown): Date | null {
   }
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+/** A complete MM/DD/YYYY that names a real day (02/31/2026 is not one), as typed into a DateField. */
+function parseTypedDate(text: string): Date | null {
+  const match = /^\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\s*$/.exec(text);
+  if (!match) return null;
+  const [month, day, year] = [Number(match[1]), Number(match[2]), Number(match[3])];
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : null;
 }
 const calendarDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 /** A date outside `minDate` / `maxDate`. Text counts once it holds a 4-digit year: "10/01/202" (half-typed) would
@@ -710,9 +720,13 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
   // Error-ready: a typed date outside the range is kept and reported (onValueChange) like any text, and marked invalid for
   // assistive tech and Form's blocked-submit focus. The app's `error` gives the reason; an explicit aria-invalid wins.
   const outOfRange = isOutOfRange(currentValue, parsedValue, minDate, maxDate);
+  // Typing reports the date too: a complete, real MM/DD/YYYY gives that day; emptying the field or breaking a complete
+  // date gives null (once, not on every keystroke of a half-typed date).
+  const typedDate = useRef<number | null>(parsedValue ? calendarDay(parsedValue) : null);
   const handleDateChange = (date: Date | null) => {
     const text = date ? `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}/${date.getFullYear()}` : null;
     if (!controlledValue && text) setInternalValue(text);
+    typedDate.current = date ? calendarDay(date) : null;
     onDateChange?.(date);
     // A picked day is a new value too (the text the field shows, MM/DD/YYYY), like typing it.
     if (text) onValueChange?.(text);
@@ -721,6 +735,9 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (!controlledValue) setInternalValue(event.target.value);
     onChange?.(event);
+    const date = parseTypedDate(event.target.value);
+    const day = date ? calendarDay(date) : null;
+    if (day !== typedDate.current) { typedDate.current = day; onDateChange?.(date); }
   };
   return (
     <div

@@ -1025,7 +1025,7 @@
           "type": "(date: Date | null) => void",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "The day in the field: called when one is picked in the calendar and when a complete MM/DD/YYYY is typed; null when\n the field is emptied or a typed date stops being a real day.",
           "deprecated": null
         },
         {
@@ -4114,7 +4114,7 @@
           "type": "(date: Date | null) => void",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "The day in the field: called when one is picked in the calendar and when a complete MM/DD/YYYY is typed; null when\n the field is emptied or a typed date stops being a real day.",
           "deprecated": null
         },
         {
@@ -9714,7 +9714,7 @@
           "type": "() => void",
           "required": false,
           "default": null,
-          "description": "Figma Leading-Actions (+): attachments or tools.",
+          "description": "Figma Leading-Actions (+): attachments or tools. Without it the + is not drawn (it would do nothing).",
           "deprecated": null
         },
         {
@@ -9722,7 +9722,7 @@
           "type": "() => void",
           "required": false,
           "default": null,
-          "description": "Figma trailing microphone (Icon-Flat).",
+          "description": "Figma trailing microphone (Icon-Flat) and the empty field's Voice action. Without it neither is drawn: the empty\n field shows a disabled Send instead.",
           "deprecated": null
         },
         {

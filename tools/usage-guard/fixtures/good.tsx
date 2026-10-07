@@ -136,6 +136,7 @@ export const Good = () => <>
   <Icon name="icon-check-line" size="sm" decorative />
   <Icon name="icon-check-line" size={14} decorative />
   <Text tone="light">{plural(results.length, "place")}</Text>
+  <Text tone="light">{sessions.length} phiên đang mở</Text>
   <Text tone="light">{picked.length} selected · {future.length} to redo</Text>
   <Chip variant="advanced" size="small" selectionMode="multiple" selectionCount={statuses.length} select={statuses.length > 0}>Status</Chip>
   <TopNavigation type="compact" title="Files" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />

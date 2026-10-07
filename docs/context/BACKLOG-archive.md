@@ -663,3 +663,17 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   are under 4.5:1: Positive/Green 3.97, Orange 3.69, Teal 3.64, Cyan 3.52, Golden 3.49 (Negative/Red 5.06 and Info/Blue
   4.87 pass). Small help text in them (Input success help uses positive-light) misses AA. Decide: Base for small help
   text in those families, or accept for short status lines. **Sweep 2026-10-07:** the numbers moved: Positive/Green is 4.71:1 now (passes); Orange 4.02, Cyan 3.98, Teal 3.64 and Golden 3.49 are still under 4.5:1. **Decided 2026-10-07 (user, replacing the batch 8 recommendation):** every help text but Warning uses the Light tone for its icon and text (Warning, a Lights family, uses Base), the Uploader's error help text too, so these Light levels stay for help text (closed). Done the same day: the Uploader field's error help text and the File-Item's error line were Negative/Strongest, now Negative/Light (field 4.72:1 light / 7.16:1 dark; on Negative/Subtle 4.01:1 light / 5.88:1 dark, the user's call); Input help already followed the rule.
+
+## Done 2026-10-07 (backlog batch A: components)
+- [DONE: the row's hit area covers the trailing slot (tests/interaction/listitem-trailing)] **P2 · ListItem:** on a clickable row the trailing slot (a Badge) sits outside the row's button, so tapping it does
+  nothing. (Done 2026-10-05 (session "Dark/light mode sync và UI present", backlog batch 3): the `aria-pressed` half — a button row now sets `aria-current="true"` when selected, nothing otherwise.)
+- [DONE: Escape from the panel or the page, focus returns, full screen lets the panel take Escape first] **P2 · SidePanel `standard`:** a docked panel returns no focus when it closes, and Escape works only with focus
+  inside it. In docs full screen, Escape on a row exits full screen and leaves the panel open (`PlatformFullScreen`
+  Escape owners).
+- [DONE: +, microphone and Voice only with their handler] **P2 · AiChatField** always renders "+", the microphone and Start voice mode, even without `onAttach` / `onVoice`,
+  so they are dead clicks unless an app passes both handlers. Fix: hide them without a handler, or add a harness rule.
+  Home and HrShell now pass both.
+- [DONE: a typed MM/DD/YYYY calls onDateChange] **P2 · DateField typed dates:** `onDateChange` fires only when a day is picked in the calendar, not for a typed
+  MM/DD/YYYY (`Input.tsx` DateField); Side Panel › Submit leave parses `onValueChange` instead.
+- [DONE: plural(n, one, many, locale); copy/plural-count reads whole Unicode words and skips Vietnamese] **P2 · Vietnamese:** `plural()` is English-only; `copy/plural-count` cuts words at the first non-ASCII letter
+  ("phiên" → "phi") and fires under `locale="vi"`.

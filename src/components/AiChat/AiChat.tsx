@@ -20,9 +20,10 @@ export interface AiChatFieldProps {
   /** Figma Model: the model switch label (Body/Base/Medium + chevron) — open your model Popover from `onModelClick`. */
   model?: ReactNode;
   onModelClick?: () => void;
-  /** Figma Leading-Actions (+): attachments or tools. */
+  /** Figma Leading-Actions (+): attachments or tools. Without it the + is not drawn (it would do nothing). */
   onAttach?: () => void;
-  /** Figma trailing microphone (Icon-Flat). */
+  /** Figma trailing microphone (Icon-Flat) and the empty field's Voice action. Without it neither is drawn: the empty
+   *  field shows a disabled Send instead. */
   onVoice?: () => void;
   /** While the reply streams, the primary button becomes Stop. */
   busy?: boolean;
@@ -36,7 +37,8 @@ export interface AiChatFieldProps {
  * Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt Body/Extra/Medium · model · mic · Primary
  * 40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and
  * Send (arrow-up) once there is text. Enter sends, Shift+Enter adds a line. The whole field is the prompt's hit area: a
- * click or tap anywhere outside its buttons puts the caret in the prompt.
+ * click or tap anywhere outside its buttons puts the caret in the prompt. The +, the microphone and Voice appear only with
+ * their handler (`onAttach`, `onVoice`), so the field never shows a button that does nothing.
  */
 export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle = "default", model, onModelClick, onAttach, onVoice, busy = false, onStop, disabled = false, defaultValue = "", className }: AiChatFieldProps) {
   const t = useZenLabels();
@@ -60,24 +62,26 @@ export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle
   };
   const primary = busy
     ? <IconButton appearance="main" level="primary" size="md" aria-label={t.stopGenerating} onClick={onStop} icon={<Icon name="icon-stop-solid" />} />
-    : typing
-      ? <IconButton appearance="main" level="primary" size="md" type="submit" aria-label={t.send} disabled={disabled} icon={<Icon name="icon-arrow-up-line" />} />
+    : typing || !onVoice
+      ? <IconButton appearance="main" level="primary" size="md" type="submit" aria-label={t.send} disabled={disabled || !typing} icon={<Icon name="icon-arrow-up-line" />} />
       : <IconButton appearance="main" level="primary" size="md" aria-label={t.startVoiceMode} disabled={disabled} onClick={onVoice} icon={<Icon name="icon-recording-02-line" />} />;
   return (
-    <form className={["zen-ai-field", className].filter(Boolean).join(" ")} data-style={fieldStyle} data-long={long ? "true" : undefined} onSubmit={submit} onMouseDown={keepCaret} onClick={focusPrompt}>
+    <form className={["zen-ai-field", className].filter(Boolean).join(" ")} data-style={fieldStyle} data-long={long ? "true" : undefined} data-leading={onAttach ? undefined : "none"} onSubmit={submit} onMouseDown={keepCaret} onClick={focusPrompt}>
       <textarea ref={inputRef} className={`zen-ai-field__input ${typographyStyles["Body/Extra/Medium"]}`} rows={1} value={text} aria-label={placeholder} disabled={disabled} onChange={(event) => setText(event.target.value)} onKeyDown={onKeyDown} />
       {/* Figma Text (trunc): one line with an ellipsis — a textarea placeholder can only clip, so it is drawn here. */}
       {text ? null : <span className={`zen-ai-field__placeholder ${typographyStyles["Body/Extra/Medium"]}`} aria-hidden="true">{placeholder}</span>}
-      <div className="zen-ai-field__leading">
-        <IconButton appearance="flat" level="primary" size="md" aria-label={t.addFilesAndTools} disabled={disabled} onClick={onAttach} icon={<Icon name="icon-plus-line" />} />
-      </div>
+      {onAttach ? (
+        <div className="zen-ai-field__leading">
+          <IconButton appearance="flat" level="primary" size="md" aria-label={t.addFilesAndTools} disabled={disabled} onClick={onAttach} icon={<Icon name="icon-plus-line" />} />
+        </div>
+      ) : null}
       <div className="zen-ai-field__trailing">
         {model ? (
           <button type="button" className={`zen-ai-field__model ${typographyStyles["Body/Base/Medium"]}`} onClick={onModelClick} aria-haspopup="menu" disabled={disabled}>
             {model}<Icon name="icon-chevron-down-line" decorative />
           </button>
         ) : null}
-        <IconButton appearance="flat" level="primary" size="md" aria-label={t.dictate} disabled={disabled} onClick={onVoice} icon={<Icon name="icon-microphone-line" />} />
+        {onVoice ? <IconButton appearance="flat" level="primary" size="md" aria-label={t.dictate} disabled={disabled} onClick={onVoice} icon={<Icon name="icon-microphone-line" />} /> : null}
         {primary}
       </div>
     </form>

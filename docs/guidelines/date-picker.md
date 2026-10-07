@@ -83,7 +83,7 @@ Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` 
 | `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |
 | `datePicker` | `boolean` | `true` |  |
 | `datePickerActions` | `boolean` | `false` | The calendar's Cancel + Submit (Figma Actions): a picked day is a draft until Submit writes it to the field; Cancel and Escape keep the date the field had. |
-| `onDateChange` | `(date: Date \| null) => void` | — |  |
+| `onDateChange` | `(date: Date \| null) => void` | — | The day in the field: called when one is picked in the calendar and when a complete MM/DD/YYYY is typed; null when the field is emptied or a typed date stops being a real day. |
 | `minDate` | `Date` | — | Earliest day the calendar lets people pick (DatePicker `minDate`); earlier days are disabled. A typed date before it stays in the field and reaches `onValueChange` as usual, and the input is marked `aria-invalid` (Form and ModalForm count it and focus it after a blocked submit). The field shows no message of its own: validate the value and pass `error` ("Pick a date from 1 October"). |
 | `maxDate` | `Date` | — | Latest day the calendar lets people pick (DatePicker `maxDate`); later days are disabled. A typed date after it is kept, reported and marked `aria-invalid` as for `minDate`: pass `error` to say why. |
 | `today` | `Date` | — | The day the calendar treats as today (DatePicker `today`): its Today ring and the month it opens on while empty. Default: the device clock. |

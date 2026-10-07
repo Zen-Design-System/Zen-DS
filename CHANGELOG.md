@@ -606,6 +606,13 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Backlog batch A, components (2026-10-07):** a tap on a clickable ListItem's trailing Badge, value or chevron now
+  opens the row (buttons in the slot keep their own action). A docked SidePanel closes on Escape from the page beside it
+  (not from a text field) as well as from inside, and returns focus to what opened it; in docs full screen Escape closes
+  the panel before leaving. AiChatField draws +, the microphone and Voice only with `onAttach` / `onVoice` (the empty
+  field shows a disabled Send otherwise). DateField calls `onDateChange` for a typed MM/DD/YYYY too (null when it is
+  emptied or stops being a real day). `plural(n, one, many, locale)` takes a locale: Vietnamese keeps the noun ("3 tệp");
+  `copy/plural-count` reads whole Unicode words and skips Vietnamese ones.
 - **Zen Studio small fixes (2026-10-07, backlog batch 5b):** Escape on several layers selects their common parent;
   a layer switch flips at once (optimistic) and a bound switch shows no control until the live props arrive; Assets
   "No components match" has Clear search; ⌘Z after a paste or an Assets insert returns to the layout it went into;
