@@ -409,3 +409,19 @@
   Studio E2E 158/158; ✗ only the 36 chat emoji [fit] errors (same on 29305b4, cloud font); warnings pre-existing
   (templates rhythm/outline, button 2px gap, card slot corners, probe dead clicks). Contact sheets: Pick one and Email
   switches render as intended at 390.
+
+## Backlog batches 6b, 7, 9 (session "Session continuation check", tier L)
+
+- 6b (examples/docs): one-item Sidebar groups merged (3 sites); HR · Home `maxWidth="full"`; side content capped at 1440
+  (tabs Overview card, layout Main column and aside grid + snippet, HR My leaves Next leave, EmptyError InlineMessage);
+  phone templates `wide: !template.mobile`; Badge Task status and Button Page actions fold the assignee into the task
+  caption on a phone; playground stages and PlatformPhone default paint Canvas/Default (`canvas="surface"` = white);
+  15 HR rhythm keys added to quality-baseline.json by hand (not --baseline-update, which would absorb cloud-only errors).
+- 7: official Inter v4.1 WOFF2 (`web/`), same build 4.001 git-9221beed3 (fontTools: axes, glyph counts), 352/388 KB vs
+  367/405 KB (≈4%, the Backlog's 10% did not hold); the official Figma library key (get_libraries on the file) is in
+  AGENTS.md and skills/zen-figma-component-audit (Figma MCP became available mid-session).
+- 9: usage rule bottom-sheet/choice-uses-list-item (171 rules); tools/usage-guard/check-unions.mjs in guidelines:check
+  (the repo's TypeScript 7 has no JS API, so @babel/parser resolves literal unions, aliases, `(typeof x)[number]`;
+  215 match, 48 skipped; a planted DockIcon.theme gap is caught); quality-checks.mjs §16 pairing → `roles` warn.
+- Gate --all (.qa/reports/2026-10-07T16-41-07): ✗ only cloud-only TabItem axe + chat emoji [fit]; design-tokens dark
+  contrast ×11 is pre-existing (same on 63b458c); avatar outline-start and accordion@390 corners are known Backlog rows.

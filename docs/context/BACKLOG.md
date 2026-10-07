@@ -154,6 +154,8 @@ Read this file only when picking up work or logging a follow-up.
     and Tabs only, so there is no slot for a banner under the bar.
 
 ## Backlog (plan before opening sessions)
+- **P3 · design-tokens page in dark: 11 [contrast] warnings (2026-10-07, first `qa --all` in a while):** section titles
+  ("Global Colors", "Component Theme"…) read 1.38:1 in dark; the same 11 on 63b458c (before batch 6b), so not from it.
 - **P3 · usage:selftest fails now and then while another gate runs (2026-10-07):** twice a fixture rule reported 0 hits
   (`alert-banner/small-no-action`…, then `content/lights-no-light-text`) and passed 3/3 right after; both times a
   `npm run qa` ran in parallel. Find the shared state (a cache or a file the gate rewrites) before trusting a red run.
