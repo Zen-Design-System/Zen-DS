@@ -261,8 +261,10 @@ removed (four unused colour ramps were, see Removed).
     `onClick`) gets a stand-in, listed in the TODO block. On the canvas a Table column without a cell now shows its
     rows' field named by its id; before, a page made from a template with a Table (Admin list, Dashboard, the HR lists)
     stopped the canvas.
-  - The React of every template and of the button, card, dialog and list-item examples passes TypeScript and the usage
-    harness.
+  - Fields a component's object type does not have (an option's own `at`) are left out of the code. In New page from
+    this frame, a date given to a prop (DateField `today`, a DatePicker range) is left out instead of becoming text the
+    component cannot read, and a router link (`as={RouterLink} to="/x"`) becomes a plain link (`href="/x"`).
+  - The React of every template and example frame passes TypeScript and the usage harness.
 - **Zen Studio instance panel, GĐ4 M4: size and Detach (2026-10-07):**
   - **W / H for an instance** (Inspector › Layout › Size): Hug, Fill or a Fixed px, as in Figma. A component with its
     own size prop or `fullWidth` uses it; any other is wrapped in a Stack that it fills (`<Stack direction="row"

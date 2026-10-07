@@ -96,12 +96,14 @@ const required = compileReact(page("Orders", "AiChatField, Table, TopNavigation"
   '  <Table aria-label="Orders" columns={[{ id: "name", header: "Name" }, { id: "total", header: "Total" }, { id: "note", header: "Note" }]} rows={mock.orders} />',
   '  <Table aria-label="Lines" columns={[{ id: "item", header: "Item" }]} rows={[{ id: "1", item: "Tea" }, { id: "2", item: "Cake" }]} />',
   '  <AiChatField placeholder="Ask" />',
+  '  <SelectField label="Slot" options={[{ value: "a", label: "Thursday at 4 pm", at: "2026-10-01T16:00" }]} />',
   "</Screen>",
-], '{ orders: [{ id: "o1", name: "Ava", total: 12, tags: ["new"] }] }'), { file: "orders.zen.tsx" });
+], '{ orders: [{ id: "o1", name: "Ava", total: 12, tags: ["new"] }] }').replace("AiChatField, Table", "AiChatField, SelectField, Table"), { file: "orders.zen.tsx" });
 const requiredCode = required.code ?? "";
 ok("stand-ins: an action object's onClick", requiredCode.includes('searchAction={{ label: "Search orders", onClick: () => {} }}'));
 ok("stand-ins: a column shows its row's field (mock rows, rows in place)", ['{ id: "name", header: "Name", cell: (row) => row.name }', '{ id: "total", header: "Total", cell: (row) => row.total }', '{ id: "item", header: "Item", cell: (row) => row.item }'].every((line) => requiredCode.includes(line)));
 ok("stand-ins: a column without such a field draws nothing", requiredCode.includes('{ id: "note", header: "Note", cell: () => null }'));
+ok("known fields: an option's own data is left out", requiredCode.includes('options={[{ value: "a", label: "Thursday at 4 pm" }]}'));
 ok("stand-ins: a required handler", requiredCode.includes('<AiChatField placeholder="Ask" onSubmit={() => {}} />'));
 check("stand-ins: listed for the developer", required.handlers, ["<TopNavigation> searchAction.onClick: not in the design (a stand-in does nothing)", '<Table> column "note" draws nothing yet: write its cell', "<AiChatField> onSubmit: not in the design (a stand-in does nothing)"]);
 

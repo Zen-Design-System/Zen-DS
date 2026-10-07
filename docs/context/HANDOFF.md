@@ -182,7 +182,9 @@ Last updated: 2026-10-06.
   `compile-api.generated.mjs` (`compile-api-build.mjs --check` in studio selftest: required function props / object
   fields from docs/api; the renderer `builder/render/renderPage.tsx` passes the same stand-ins, a Table column without
   `cell` shows `row[id]`), `builder/export/{ExportDialog.tsx, exportState.ts}` (PagePanel and My pages "Export…");
-  snapshot drops a top-level Date prop. `starters-coverage.mjs --compile` (tsc + harness on every frame's React; a
+  `OBJECT_FIELDS` (closed object props: compile leaves out a design's own fields such as an option's `at`); snapshot
+  leaves out a date outside a list (a prop, a DatePicker range) and a component value (`as={RouterLink}`, `to` → `href`).
+  `starters-coverage.mjs --compile` (tsc + harness on every frame's React; a
   harness finding the design has too is noted, not failed). E2E SP-07 (Admin list's Table renders), HO-01 (136 rows);
   build-check 21 steps (compiler chunk, Export on the build). Next: M2 HTML export.
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).

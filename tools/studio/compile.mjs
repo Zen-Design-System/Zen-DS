@@ -13,9 +13,9 @@
 // - `zen-media:` / `zen-asset:` photos become imports from ./assets (the handoff zip carries the files; `mediaFile(kind,
 //   key)` names each); `media` lists them.
 // - A function the component requires but a page cannot write (standins.mjs) gets a stand-in and a TODO(dev) line; a
-//   Table column shows its row's field named by its id.
+//   Table column shows its row's field named by its id. Fields a component's object type lacks are left out.
 import { parsePage } from "./dialect.mjs";
-import { isColumnCell, requiredFunctions, showsAsText, standInKind } from "./standins.mjs";
+import { isColumnCell, objectFields, requiredFunctions, showsAsText, standInKind } from "./standins.mjs";
 
 const UNIT = "  ";
 const WIDTH = 110;
@@ -213,13 +213,31 @@ function withStandIns(node, ctx) {
   return props;
 }
 
+/**
+ * The element's props without the fields its component's object types do not have (an option's `at`: the design's own
+ * data, which the component ignores and TypeScript refuses in a literal).
+ */
+function knownFieldsOnly(node) {
+  const known = objectFields(node.name);
+  if (!known) return node;
+  const props = { ...node.props };
+  for (const [name, fields] of Object.entries(known)) {
+    const keep = new Set(fields);
+    const trim = (object) => (object.kind === "object" ? { kind: "object", fields: Object.fromEntries(Object.entries(object.fields).filter(([key]) => keep.has(key))) } : object);
+    const value = props[name];
+    if (value?.kind === "object") props[name] = trim(value);
+    else if (value?.kind === "array") props[name] = { kind: "array", items: value.items.map(trim) };
+  }
+  return { ...node, props };
+}
+
 /** An element; `extra`: [name, code] props written first (a list row's key, an overlay's open state). */
 function elementCode(node, ctx, indent, extra = []) {
   ctx.components.add(node.name.split(".")[0]);
   const inner = indent + UNIT;
   const props = [
     ...extra.map(([name, code]) => `${name}={${code}}`),
-    ...Object.entries(withStandIns(node, ctx)).map(([name, value]) => attribute(name, value, ctx, inner, `<${node.name}> ${name}`)),
+    ...Object.entries(withStandIns(knownFieldsOnly(node), ctx)).map(([name, value]) => attribute(name, value, ctx, inner, `<${node.name}> ${name}`)),
   ];
   const oneLine = props.every((prop) => !prop.includes("\n")) && indent.length + node.name.length + 2 + props.join(" ").length <= WIDTH;
   const open = !props.length ? `<${node.name}` : oneLine ? `<${node.name} ${props.join(" ")}` : `<${node.name}\n${props.map((prop) => `${inner}${prop}`).join("\n")}\n${indent}`;

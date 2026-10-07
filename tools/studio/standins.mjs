@@ -3,7 +3,7 @@
 // function (AiChatField `onSubmit`, a Table column's `cell`, TopNavigation `searchAction.onClick`) is missing: the page
 // renderer passes a stand-in so the component renders, and the exported React (compile.mjs) writes one with a TODO(dev).
 // Isomorphic, no imports beyond the generated list (compile-api-build.mjs).
-import { REQUIRED_FUNCTIONS } from "./compile-api.generated.mjs";
+import { OBJECT_FIELDS, REQUIRED_FUNCTIONS } from "./compile-api.generated.mjs";
 
 export { REQUIRED_FUNCTIONS };
 
@@ -33,6 +33,9 @@ export function standInKind(signature) {
 
 /** The required functions of `component` (props, and per prop the fields of each object it takes); null for none. */
 export const requiredFunctions = (component) => REQUIRED_FUNCTIONS[component] ?? null;
+
+/** Per prop of `component` whose type is closed objects: the fields those objects may have; null for none. */
+export const objectFields = (component) => OBJECT_FIELDS[component] ?? null;
 
 /**
  * A Table column without a `cell` shows its row's field named by the column's id (`{ id: "status" }` → row.status), when

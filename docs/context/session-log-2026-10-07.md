@@ -185,5 +185,8 @@
 - Found while compiling the starters: a Table column without `cell` threw in Table (`column.cell is not a function`),
   so a page from Admin list / Dashboard / the HR lists stopped the canvas (GĐ3b's SP rows used Sign in and Mobile list).
   Fix: `standins.mjs` + generated `compile-api.generated.mjs` (12 components); renderer and compiler share them. SP-07.
-- Snapshot: a Date given to a prop (DateField `today`) is left out (it became ISO text, which the prop does not take).
-- Coverage `--compile` on templates, button, card, dialog, list-item: 26/40 → 40/40 (tsc + harness).
+- Snapshot: a date outside a list (DateField `today`, a DatePicker range) is left out (it became ISO text, which the
+  prop does not take); a component value (`as={RouterLink}`) is left out, its `to` becomes `href`.
+- Generated `OBJECT_FIELDS` (44 components): compile leaves out fields a closed object type lacks (option `at`, file `bytes`).
+- Coverage `--compile`: templates + 4 pages 26/40 → 40/40; every page 314/323, then the 9 (date-picker, link,
+  top-navigation, uploader) 46/46 after the fixes above.

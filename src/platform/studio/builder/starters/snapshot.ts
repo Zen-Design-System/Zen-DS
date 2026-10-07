@@ -64,7 +64,8 @@ export type Snapshot = {
   notes: string[];
 };
 
-type Context = { byProps: WeakMap<object, Fiber>; notes: Map<string, number>; overlays: SnapNode[]; seen: WeakSet<object>; depth: number; frame: Element; host: HostContext };
+/** `lists`: how many lists the value being read is inside (a list's dates are its data, kept as text). */
+type Context = { byProps: WeakMap<object, Fiber>; notes: Map<string, number>; overlays: SnapNode[]; seen: WeakSet<object>; depth: number; lists: number; frame: Element; host: HostContext };
 
 const note = (ctx: Context, text: string) => ctx.notes.set(text, (ctx.notes.get(text) ?? 0) + 1);
 const literal = (value: string | number | boolean | null): SnapValue => ({ kind: "literal", value });
@@ -113,14 +114,24 @@ function valueOf(raw: unknown, ctx: Context, where: string): SnapValue | undefin
   ctx.depth += 1;
   try {
     if (Array.isArray(raw)) {
-      const items = raw.map((item) => valueOf(item, ctx, where)).filter((item): item is SnapValue => item !== undefined);
-      return { kind: "array", items };
+      ctx.lists += 1;
+      try {
+        const items = raw.map((item) => valueOf(item, ctx, where)).filter((item): item is SnapValue => item !== undefined);
+        return { kind: "array", items };
+      } finally {
+        ctx.lists -= 1;
+      }
     }
     if (raw instanceof Date) {
-      // In data (a row's due date) a date is kept as its ISO text; a prop that takes a Date (DateField `today`) cannot
-      // be written on a page, so it is left out (the component's default).
-      if (where.includes(".")) return literal(raw.toISOString());
+      // In a list (a row's due date) a date is data, kept as its ISO text; a prop or a field that takes a Date
+      // (DateField `today`) cannot be written on a page, so it is left out (the component's default).
+      if (ctx.lists) return literal(raw.toISOString());
       note(ctx, `${where} is a date: left out`);
+      return undefined;
+    }
+    // A component given as a value (Link `as={RouterLink}`: forwardRef / memo objects) is code, not something drawn.
+    if ("$$typeof" in raw) {
+      note(ctx, `${where} is a component: left out`);
       return undefined;
     }
     if (!isPlainObject(raw)) {
@@ -128,6 +139,11 @@ function valueOf(raw: unknown, ctx: Context, where: string): SnapValue | undefin
       return undefined;
     }
     const entries = Object.entries(raw);
+    // An object holding a date outside a list (a DatePicker range) is left out whole: without its dates it is not one.
+    if (!ctx.lists && entries.some(([, field]) => field instanceof Date)) {
+      note(ctx, `${where} holds a date: left out`);
+      return undefined;
+    }
     // A ref ({ current }) is the page's wiring, not something it shows.
     if (entries.length === 1 && entries[0][0] === "current") return undefined;
     // A controller (useForm's form, a table's state): more functions than values is the page's logic.
@@ -174,6 +190,11 @@ function zenNode(name: string, props: Record<string, unknown>, ctx: Context): Sn
     if (SKIPPED.has(key) || key.startsWith("data-")) continue;
     if (key === "className" || key === "style") {
       if (raw && !(key === "className" && host)) note(ctx, `${key} on library components: left out (a page takes their props and tokens)`);
+      continue;
+    }
+    // A router link (`as={RouterLink} to="/x"`) loses its component: it becomes a plain link to the same place.
+    if (key === "to" && typeof raw === "string" && props.as && typeof props.as !== "string") {
+      if (props.href === undefined) out.push(["href", literal(raw)]);
       continue;
     }
     const value = valueOf(raw, ctx, `${name} ${key}`);
@@ -329,7 +350,7 @@ function previewPadding(frame: Element, ctx: HostContext): string | null {
 /** What `frame` (a canvas frame's element) shows, as library components with literal props. */
 export function snapshotFrame(frame: Element): Snapshot {
   const host = elementFiber(frame);
-  const ctx: Context = { byProps: new WeakMap(), notes: new Map(), overlays: [], seen: new WeakSet(), depth: 0, frame, host: { note: () => undefined, rounded: { count: 0 } } };
+  const ctx: Context = { byProps: new WeakMap(), notes: new Map(), overlays: [], seen: new WeakSet(), depth: 0, lists: 0, frame, host: { note: () => undefined, rounded: { count: 0 } } };
   ctx.host.note = (text) => note(ctx, text);
   if (!host) return { nodes: [], padding: null, overlays: [], device: deviceOf(frame), notes: ["The frame has not rendered yet"] };
   const root = currentFiber(host);
