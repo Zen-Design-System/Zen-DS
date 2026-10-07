@@ -273,3 +273,6 @@
   switched off with 2+ items (GroupedProperties ToggleRow); a move past identical items writes nothing and says why
   (slots/actions.ts runDataItem). items selftest 21 cases.
 - SlotLayer clearOfPill: a + chip that lands on `.studio-resize__pill` moves just below it.
+- Gate PASS (.qa/reports/2026-10-07T09-23-28-e54a8cf5.md): Studio selftests, style/usage guard, TypeScript, Studio E2E
+  143 works · 0 broken. Not covered in a browser: the list-boolean switch-off path (no TopNavigation in the E2E
+  fixture) and the chip/pill move (measured by code only).
