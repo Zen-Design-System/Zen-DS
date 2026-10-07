@@ -9,7 +9,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | Component | Rules |
 | --- | --- |
 | [Button & IconButton](button.md) | `button/secondary-justified`, `button/filter-is-chip`, `button/accent-is-promoted`, `button/destructive-is-danger`, `icon-button/needs-name`, `icon-button/needs-action`, `icon-button/tooltip`, `button/icon-only-raw`, `navigation/back-chevron`, `button/flat-level`, `button/small-full-width`, `file-icon/not-an-action`, `button/vague-label`, `button/one-primary`, `button/compact-size-special`, `focus/visible-ring`, `api/deprecated-prop`, `icon/unknown-name`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
-| [Chip / Pill](chip.md) | `button/filter-is-chip`, `chip/popover-needs-advanced`, `flag/no-emoji-flag`, `chip/multiple-needs-count`, `api/deprecated-prop`, `copy/plural-count`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
+| [Chip / Pill](chip.md) | `button/filter-is-chip`, `chip/popover-needs-advanced`, `flag/no-emoji-flag`, `chip/multiple-needs-count`, `chip/radio-is-chip-group`, `api/deprecated-prop`, `copy/plural-count`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Input fields](input.md) | `input/no-disabled`, `input/needs-label`, `input/placeholder-not-label`, `richtext/value-not-onchange`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `focus/state-parity` |
 | [Search](search.md) | `search/needs-name`, `interaction/no-noop-handler` |
 | [Segmented](segmented.md) | `segmented/needs-label`, `segmented/option-count`, `segmented/control-bar-full-width`, `segmented/icon-only-needs-name`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
@@ -39,7 +39,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Slider](slider.md) | `slider/needs-name`, `slider/white-no-small`, `slider/solid-icon`, `api/deprecated-prop`, `icon/unknown-name`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Card](card.md) | `card/clickable-no-nested-controls`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Dock Icon](dock-icon.md) | `flag/no-emoji-flag`, `dock-icon/emoji-needs-glyph`, `icon/unknown-name`, `interaction/no-noop-handler` |
-| [List Item](list-item.md) | `flag/no-emoji-flag`, `list-item/inset-not-padding`, `list-item/clickable-row-toggle`, `list-item/trailing-button-medium`, `api/deprecated-prop`, `copy/plural-count`, `interaction/no-noop-handler` |
+| [List Item](list-item.md) | `flag/no-emoji-flag`, `list-item/inset-not-padding`, `list-item/clickable-row-toggle`, `list-item/switch-row`, `list-item/trailing-button-medium`, `api/deprecated-prop`, `copy/plural-count`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Table](table.md) | `table/actions-flat`, `table/title-heading-4`, `table/needs-name`, `table/interaction-needs-handler`, `table/media-size-by-subtext`, `table/editor-needs-commit`, `table/editor-number-right`, `table/editor-number-validate`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Rating](rating.md) | `rating/needs-name`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Color Selector](color-selector.md) | `rating/needs-name`, `color-selector/token-values`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |

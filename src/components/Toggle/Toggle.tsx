@@ -32,7 +32,7 @@ export interface ToggleButtonProps extends Omit<InputHTMLAttributes<HTMLInputEle
   onSelectedChange?: (selected: boolean, event: ChangeEvent<HTMLInputElement>) => void;
 }
 
-export function ToggleButton({ checked, defaultChecked, onCheckedChange, selected, defaultSelected, size: sizeProp = "md", state = "default", disabled, className, onSelectedChange, onChange, ...inputProps }: ToggleButtonProps) {
+export function ToggleButton({ checked, defaultChecked, onCheckedChange, selected, defaultSelected, size: sizeProp = "md", state = "default", disabled, className, onSelectedChange, onChange, "aria-labelledby": labelledBy, "aria-describedby": describedBy, ...inputProps }: ToggleButtonProps) {
   const size = scaleKey(sizeProp, toggleSizes);
   // `checked` / `defaultChecked` are the canonical names; `selected` / `defaultSelected` still work (the new name wins).
   const controlled = checked ?? selected;
@@ -50,6 +50,8 @@ export function ToggleButton({ checked, defaultChecked, onCheckedChange, selecte
       aria-checked={isSelected}
       aria-disabled={isDisabled || undefined}
       aria-label={inputProps["aria-label"]}
+      aria-labelledby={labelledBy}
+      aria-describedby={describedBy}
       tabIndex={isDisabled ? -1 : 0}
       onClick={(event) => {
         if (isDisabled) return;

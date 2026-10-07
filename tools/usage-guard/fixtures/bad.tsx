@@ -146,6 +146,10 @@ export const Bad = () => <>
   <RichTextField label="Announcement" onChange={handle} />
   {/* expect: card/clickable-no-nested-controls */}
   <Card onClick={open}><Button level="tertiary" onClick={edit}>Edit</Button></Card>
+  {/* expect: list-item/switch-row */}
+  <ListItem title="Daily digest" trailing={<ToggleButton aria-label="Daily digest" />} />
+  {/* expect: chip/radio-is-chip-group */}
+  <Chip variant="normal" role="radio" aria-checked onClick={act}>Daily</Chip>
   {/* expect: list-item/clickable-row-toggle */}
   <ListItem title="Wi-Fi" onClick={open} trailing={<ToggleButton aria-label="Wi-Fi" selected={on} onSelectedChange={setOn} />} />
   {/* expect: dock-icon/emoji-needs-glyph */}

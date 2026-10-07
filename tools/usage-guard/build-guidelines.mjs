@@ -17,13 +17,13 @@ const list = (items) => items.map((item) => `- ${safe(item)}`).join("\n");
 // JSX tags each guideline covers: a page lists every rule that checks its components,
 // not only the rules whose primary guideline is this file (e.g. Toggle shows choice/needs-label).
 const tagsFor = {
-  button: ["Button", "IconButton"], chip: ["Chip"], input: ["InputField", "SelectField", "DateField", "NumberField", "TextAreaField", "AutocompleteField", "RichTextField"],
+  button: ["Button", "IconButton"], chip: ["Chip", "ChipGroup"], input: ["InputField", "SelectField", "DateField", "NumberField", "TextAreaField", "AutocompleteField", "RichTextField"],
   search: ["Search"], segmented: ["Segmented"], toggle: ["Toggle"], checkbox: ["Checkbox"], "radio-button": ["RadioButton"], badge: ["Badge", "BadgeCounter"], tag: ["Tag"],
   avatar: ["Avatar", "AvatarStack"], popover: ["Popover"], sidebar: ["Sidebar"], "date-picker": ["DatePicker", "DateField"], tooltip: ["Tooltip"], tabs: ["Tabs"],
   breadcrumbs: ["Breadcrumbs"], progress: ["ProgressBar", "ProgressCircle"], dialog: ["Dialog", "ModalForm"], icon: ["Icon"],
   toast: ["Toast", "ToastStack", "ToastProvider"], "alert-banner": ["AlertBanner"], accordion: ["Accordion"], pagination: ["Pagination"], skeleton: ["SkeletonText", "SkeletonHeading", "SkeletonShape"],
   divider: ["Divider"], "inline-message": ["InlineMessage"], "empty-state": ["EmptyState"], stepper: ["Stepper"], slider: ["Slider"],
-  card: ["Card"], "dock-icon": ["DockIcon"], "list-item": ["List", "ListItem", "ListBox"], table: ["Table"],
+  card: ["Card"], "dock-icon": ["DockIcon"], "list-item": ["List", "ListItem", "ListBox", "ToggleListItem"], table: ["Table"],
   rating: ["Rating", "RatingDisplay", "OpinionScale", "NpsScale"], "color-selector": ["ColorSelector"], metric: ["Metric", "MetricCard", "MetricTrend"], uploader: ["FileUpload", "UploaderFileItem"], "side-panel": ["SidePanel"], "top-navigation": ["TopNavigation"], "bottom-navigation": ["BottomNavigation"], "bottom-sheet": ["BottomSheet"], chat: ["ChatMessage", "ChatComposer", "ChatThread", "ChatConversationItem", "ChatComposerReply", "ChatReplyQuote", "ChatEmojiPicker", "ChatReactorsPanel"], "ai-chat": ["AiChatBubble", "AiChatField", "AiChatBlock"], chart: ["LineChart", "StackBarChart", "ChartCard"], "file-icon": ["FileIcon"], flag: ["Flag"], provider: ["ZenProvider", "ZenPortalProvider"], layout: ["Stack", "Grid", "Box", "Container"], text: ["Text", "Heading"], "app-shell": ["AppShell", "AppShellAction", "AppShellAccount"], "page-header": ["PageHeader"], link: ["Link"], menu: ["Menu", "MenuItem", "MenuSeparator", "MenuGroup"], form: ["Form", "FormField", "FormFieldset", "FormActions"], "description-list": ["DescriptionList", "DescriptionItem"], "action-bar": ["ActionBar"], image: ["Image", "Thumbnail"], "visually-hidden": ["VisuallyHidden"],
 };
 // Props API from the TSX source (react-docgen): docs/api/<slug>.json, a Props table per page, compact lines in index.json.

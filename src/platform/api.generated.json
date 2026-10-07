@@ -435,6 +435,92 @@
           "deprecated": null
         }
       ]
+    },
+    {
+      "name": "ChipGroup",
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"defaultValue\" | \"onChange\">",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root element.",
+          "deprecated": null
+        },
+        {
+          "name": "options",
+          "type": "ChipGroupOption[]",
+          "required": true,
+          "default": null,
+          "description": "The chips, in order.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string | null",
+          "required": false,
+          "default": null,
+          "description": "Controlled picked value (null: none picked yet).",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "string | null",
+          "required": false,
+          "default": "null",
+          "description": "Initial picked value when uncontrolled.",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the picked chip's value (a press, or an arrow key moving the choice).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the group when no visible label does (or pass `aria-labelledby`).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"md\" | \"xsmall\" | \"small\" | \"medium\"",
+          "required": false,
+          "default": "\"sm\"",
+          "description": "Chip size (short or long spelling). Default sm.",
+          "deprecated": null
+        },
+        {
+          "name": "level",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Chip level. Default primary.",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Every chip does nothing.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
     }
   ],
   "input": [
@@ -6755,6 +6841,108 @@
           "required": false,
           "default": "\"div\"",
           "description": "\"div\" (default) or \"section\" when the box is a titled region (give it aria-labelledby).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ToggleListItem",
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\" | \"onChange\">",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The root row element.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "What the switch turns on or off (Body/Base/Bold, one line); it names the switch.",
+          "deprecated": null
+        },
+        {
+          "name": "caption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "One line under the title (Body/Small/Regular, Content/Neutral/Base): what the setting does. It describes the switch.",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Icon name or element before the text, as in ListItem.",
+          "deprecated": null
+        },
+        {
+          "name": "checked",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Controlled on/off state.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultChecked",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Initial state when uncontrolled. Default false.",
+          "deprecated": null
+        },
+        {
+          "name": "onCheckedChange",
+          "type": "(checked: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the new state on a press anywhere on the row, or Space / Enter on the switch.",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "The row and its switch do nothing; the switch shows Disabled.",
+          "deprecated": null
+        },
+        {
+          "name": "toggleSize",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Toggle-Button size. Default md.",
+          "deprecated": null
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Form field name of the switch's checkbox (submitted as \"on\" while checked).",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "\"li\" | \"div\"",
+          "required": false,
+          "default": "\"li\"",
+          "description": "Root element. Default `li` (inside a List); `div` outside one.",
           "deprecated": null
         },
         {

@@ -90,6 +90,7 @@ export const fixtures: Record<string, Fixture> = {
 
   // Parts that only exist inside their container.
   ListItem: { props: { title: "Ava Nguyen" }, wrap: (el) => <ul>{el}</ul> },
+  ToggleListItem: { props: { title: "Daily digest" }, wrap: (el) => <ul>{el}</ul> },
   MenuItem: { skip: "needs an open Menu; covered by the Menu interaction tests" },
   MenuSeparator: { skip: "needs an open Menu; covered by the Menu interaction tests" },
   MenuGroup: { skip: "needs an open Menu; covered by the Menu interaction tests" },
@@ -109,6 +110,7 @@ export const fixtures: Record<string, Fixture> = {
 
   // Content the synthesiser leaves empty.
   Chip: { props: { children: "Status" } },
+  ChipGroup: { props: { "aria-label": "Repeat", options: [{ value: "daily", label: "Daily" }, { value: "weekly", label: "Weekly" }], defaultValue: "daily" } },
   Heading: { props: { children: "Team members" } },
   List: { props: { children: <ListItem title="Ava Nguyen" /> } },
 

@@ -97,7 +97,7 @@
       "file": "docs/guidelines/chip.md",
       "apiFile": "docs/api/chip.json",
       "figma": "Chip/Advanced, Chip/Normal, Chip/Number-Only (page 320:79626)",
-      "import": "import { Chip } from \"@zen/design-system\";",
+      "import": "import { Chip, ChipGroup } from \"@zen/design-system\";",
       "purpose": "Compact, selectable tokens. Advanced chips are the Zen filter control: each owns a Popover of options.",
       "use": [
         "Filter/sort/scope/status/owner pickers (variant=\"advanced\" + popoverItems).",
@@ -143,9 +143,22 @@
           "onPopoverCreate?: (value: string) => void",
           "popoverCreateLabel?: ReactNode",
           "popoverPortal?: boolean = false"
+        ],
+        "ChipGroup": [
+          "ref?: Ref<HTMLDivElement>",
+          "options: ChipGroupOption[]",
+          "value?: string|null",
+          "defaultValue?: string|null = null",
+          "onValueChange?: (value: string) => void",
+          "aria-label?: string",
+          "size?: xs|sm|md|xsmall|small|medium = sm",
+          "level?: primary|secondary = primary",
+          "disabled?: boolean = false",
+          "className?: string"
         ]
       },
       "do": [
+        "When exactly one value applies (Repeat: Daily / Weekly / Monthly), use <ChipGroup>: it is a radio group with roving focus and aria-checked; never hand-set role=\"radio\" on Chips.",
         "Pick the level by how many can be on (user rule 2026-10-04): a multi-select group of toggles is Secondary for every chip (Selected = the 2px dark outline), a single-select group is Primary for every chip (Selected = the dark fill). Never switch a chip's level when it is selected.",
         "Put a group of chips in its own Stack (or chip row) with Spacing/Gap/XSmall (8px) between chips, never the gap of the form or fieldset around it.",
         "Keep the medium size (the default) on desktop and phones, so a filter row lines up with Search and Buttons (40px); small only inside a genuinely narrow component space.",
@@ -170,6 +183,7 @@
         "chip/popover-needs-advanced",
         "flag/no-emoji-flag",
         "chip/multiple-needs-count",
+        "chip/radio-is-chip-group",
         "api/deprecated-prop",
         "copy/plural-count",
         "interaction/no-noop-handler",
@@ -1986,7 +2000,7 @@
       "file": "docs/guidelines/list-item.md",
       "apiFile": "docs/api/list-item.json",
       "figma": "List-Item (4080:11700) + Component/List-Box (14922:75297) + .Primitives/List-Item/Mobile/* (page 4080:4632)",
-      "import": "import { List, ListItem, ListBox } from \"@zen/design-system\";",
+      "import": "import { List, ListItem, ListBox, ToggleListItem } from \"@zen/design-system\";",
       "purpose": "One row of a vertical list: a leading visual, a title with an optional caption, and a trailing slot for actions or a passive chevron / value.",
       "use": [
         "People, messages, files and settings lists.",
@@ -2029,9 +2043,24 @@
           "theme?: flat|shadow|pale|border = flat",
           "as?: div|section = div",
           "className?: string"
+        ],
+        "ToggleListItem": [
+          "ref?: Ref<HTMLElement>",
+          "title: ReactNode",
+          "caption?: ReactNode",
+          "leading?: IconName|ReactNode",
+          "checked?: boolean",
+          "defaultChecked?: boolean",
+          "onCheckedChange?: (checked: boolean) => void",
+          "disabled?: boolean = false",
+          "toggleSize?: sm|md|lg|small|medium|large = md",
+          "name?: string",
+          "as?: li|div = li",
+          "className?: string"
         ]
       },
       "do": [
+        "Make a settings row that is one on/off switch a <ToggleListItem>, not a ListItem with a Toggle in its trailing slot.",
         "Wrap rows in <List aria-label> so the group is named.",
         "Put a box of List-Item rows in <ListBox> (header and footer optional) instead of a Box or Card you pad yourself: its Card-padding-medium and 2XLarge corners are right on every device. Content that is not rows (a DescriptionList, labelled Toggles, a form) goes in a Card.",
         "Pick the ListBox theme by where it sits (usage rules §16): flat (default) on Canvas/Default and on a Surface-Alt phone screen; shadow beside a default Sidebar (elevation follows the Sidebar); border on a white page (Canvas/Alt, a white phone screen) or inside another Surface (a Card, Dialog, SidePanel, BottomSheet).",
@@ -2064,10 +2093,12 @@
         "flag/no-emoji-flag",
         "list-item/inset-not-padding",
         "list-item/clickable-row-toggle",
+        "list-item/switch-row",
         "list-item/trailing-button-medium",
         "api/deprecated-prop",
         "copy/plural-count",
-        "interaction/no-noop-handler"
+        "interaction/no-noop-handler",
+        "interaction/controlled-needs-handler"
       ]
     },
     {

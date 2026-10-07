@@ -243,6 +243,11 @@
     ],
     "api": [
       [
+        "Single choice",
+        "ChipGroup options · value · onValueChange",
+        "a radio group of Normal chips when exactly one value applies: one Tab stop, arrow keys move the choice, the picked chip is Selected (composed; no Figma master yet)"
+      ],
+      [
         "Variant",
         "variant",
         "advanced (default) · normal · number-only"
@@ -302,6 +307,7 @@
       ]
     ],
     "do": [
+      "When exactly one value applies (Repeat: Daily / Weekly / Monthly), use <ChipGroup>: it is a radio group with roving focus and aria-checked; never hand-set role=\"radio\" on Chips.",
       "Pick the level by how many can be on (user rule 2026-10-04): a multi-select group of toggles is Secondary for every chip (Selected = the 2px dark outline), a single-select group is Primary for every chip (Selected = the dark fill). Never switch a chip's level when it is selected.",
       "Put a group of chips in its own Stack (or chip row) with Spacing/Gap/XSmall (8px) between chips, never the gap of the form or fieldset around it.",
       "Keep the medium size (the default) on desktop and phones, so a filter row lines up with Search and Buttons (40px); small only inside a genuinely narrow component space.",
@@ -369,6 +375,12 @@
         "severity": "warn",
         "summary": "A multiple-selection Chip shows how many values are active with selectionCount.",
         "allow": "chip-count"
+      },
+      {
+        "id": "chip/radio-is-chip-group",
+        "severity": "warn",
+        "summary": "Chips where exactly one is picked are a <ChipGroup> (radio group: one Tab stop, arrow keys), not Chips given role=\"radio\" by hand.",
+        "allow": "chip-radio"
       },
       {
         "id": "api/deprecated-prop",
@@ -3775,6 +3787,11 @@
     ],
     "api": [
       [
+        "Switch row",
+        "ToggleListItem title · caption · checked · onCheckedChange",
+        "a settings row that is one switch: a press anywhere flips it, the title names it and the caption describes it (composed; no Figma master yet)"
+      ],
+      [
         "Leading",
         "leading",
         "Avatar (Image-Size/Medium, 40px), Dock Icon, thumbnail — Figma Leading on/off"
@@ -3821,6 +3838,7 @@
       ]
     ],
     "do": [
+      "Make a settings row that is one on/off switch a <ToggleListItem>, not a ListItem with a Toggle in its trailing slot.",
       "Wrap rows in <List aria-label> so the group is named.",
       "Put a box of List-Item rows in <ListBox> (header and footer optional) instead of a Box or Card you pad yourself: its Card-padding-medium and 2XLarge corners are right on every device. Content that is not rows (a DescriptionList, labelled Toggles, a form) goes in a Card.",
       "Pick the ListBox theme by where it sits (usage rules §16): flat (default) on Canvas/Default and on a Surface-Alt phone screen; shadow beside a default Sidebar (elevation follows the Sidebar); border on a white page (Canvas/Alt, a white phone screen) or inside another Surface (a Card, Dialog, SidePanel, BottomSheet).",
@@ -3887,6 +3905,12 @@
         "allow": "row-toggle"
       },
       {
+        "id": "list-item/switch-row",
+        "severity": "warn",
+        "summary": "A settings row that is one switch is <ToggleListItem>, not a ListItem with a Toggle in its trailing slot: a press anywhere on the row flips it and the title names the switch.",
+        "allow": "switch-row"
+      },
+      {
         "id": "list-item/trailing-button-medium",
         "severity": "warn",
         "summary": "Buttons in a List-Item trailing slot are size Medium (md).",
@@ -3909,6 +3933,12 @@
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
         "allow": "noop-handler"
+      },
+      {
+        "id": "interaction/controlled-needs-handler",
+        "severity": "warn",
+        "summary": "A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass.",
+        "allow": "controlled-handler"
       }
     ]
   },

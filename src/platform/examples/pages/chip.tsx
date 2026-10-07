@@ -1,10 +1,11 @@
-import { useMemo, useRef, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
 import { BottomSheet } from "../../../components/BottomSheet";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Chip } from "../../../components/Chip";
+import { ChipGroup } from "../../../components/ChipGroup";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
@@ -242,6 +243,33 @@ const quickFilters = [
   { id: "hanoi", label: "Hanoi", test: (person: Person) => person.location === "Hanoi" },
 ];
 
+const repeats = [
+  { value: "never", label: "Never" },
+  { value: "daily", label: "Daily" },
+  { value: "weekdays", label: "Weekdays" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+];
+const repeatSummary: Record<string, string> = {
+  never: "Sent once, on Friday at 9:00 am",
+  daily: "Every day at 9:00 am, starting Friday",
+  weekdays: "Monday to Friday at 9:00 am",
+  weekly: "Every Friday at 9:00 am",
+  monthly: "On the 10th of every month at 9:00 am",
+};
+
+function RepeatReminderExample() {
+  const labelId = useId();
+  const [repeat, setRepeat] = useState<string | null>("weekly");
+  return (
+    <Stack gap="sm">
+      <Text as="span" id={labelId} textStyle="Body/Base/Bold">Repeat</Text>
+      <ChipGroup aria-labelledby={labelId} options={repeats} value={repeat} onValueChange={setRepeat} />
+      <Text role="status" textStyle="Body/Small/Regular" tone="base">{repeat ? repeatSummary[repeat] : null}</Text>
+    </Stack>
+  );
+}
+
 function PhoneFiltersExample() {
   const screenRef = useRef<HTMLDivElement>(null);
   const [sort, setSort] = useState<SortId>("name");
@@ -407,5 +435,20 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     </List>
   </BottomSheet>
 </PlatformPhone>`,
+  },
+  {
+    title: "Pick one",
+    description: "When exactly one value applies, the chips form a ChipGroup: a radio group where the picked chip is Selected and checked. Tab reaches the group once, on the picked chip, and the arrow keys move the choice; the line under it says what the choice means.",
+    render: () => <RepeatReminderExample />,
+    code: `const [repeat, setRepeat] = useState<string | null>("weekly");
+
+<Stack gap="sm">
+  <Text as="span" id={labelId} textStyle="Body/Base/Bold">Repeat</Text>
+  {/* One value at a time: a radio group of Normal chips (not toggles with aria-pressed) */}
+  <ChipGroup aria-labelledby={labelId} value={repeat} onValueChange={setRepeat}
+    options={[{ value: "never", label: "Never" }, { value: "daily", label: "Daily" },
+      { value: "weekdays", label: "Weekdays" }, { value: "weekly", label: "Weekly" }, { value: "monthly", label: "Monthly" }]} />
+  <Text role="status" textStyle="Body/Small/Regular" tone="base">{summary[repeat]}</Text>
+</Stack>`,
   },
 ]);

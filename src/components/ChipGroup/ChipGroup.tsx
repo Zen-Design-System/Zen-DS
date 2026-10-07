@@ -71,6 +71,7 @@ export function ChipGroup({ ref, options, value: valueProp, defaultValue = null,
       {options.map((option) => {
         const checked = option.value === value;
         return (
+          // zen-allow-chip-radio: this is the radio group the rule points to.
           <Chip
             key={option.value}
             ref={(node) => { if (node) chips.current.set(option.value, node); else chips.current.delete(option.value); }}
