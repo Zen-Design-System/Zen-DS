@@ -3,6 +3,7 @@ import { plural } from "../../components/Text";
 import { afterPendingEdits, announceEditStatus, emitWrite, forgetDraftHistory, forgetOwnWrites, studioApi, StudioApiError, subscribeStudioWrites } from "./api";
 import { findFrame, getStudioFrames, subscribeStudioFrames } from "./board/frames";
 import { flushInspectorDrafts } from "./inspector/drafts";
+import { fiberOf, type Fiber } from "./select/picker";
 import { studioStore } from "./store";
 import type { DraftInfo, FrameDraft, SaveResult, SourceFile } from "./types";
 
@@ -316,12 +317,27 @@ function setFrames(next: FrameDraftsState) {
   frameListeners.forEach((listener) => listener());
 }
 
-/** The data-zen-src lines a frame renders ("src/…/button.tsx:84"), once each. */
+/** React elements a frame's walk reads at most (a page renders a few thousand). */
+const MAX_FRAME_FIBERS = 40_000;
+
+/**
+ * The data-zen-src lines a frame renders ("src/…/button.tsx:84"), once each: its DOM's, and its React elements' (a Zen
+ * component such as TopNavigation or Avatar does not pass the annotation on to the DOM; an overlay portals its content
+ * out of the frame's DOM).
+ */
 export function frameLocs(element: HTMLElement): string[] {
   const seen = new Set<string>();
   const own = element.getAttribute("data-zen-src");
   const sources = own ? [own] : [];
   element.querySelectorAll("[data-zen-src]").forEach((node) => { sources.push(node.getAttribute("data-zen-src") ?? ""); });
+  const stack: Array<Fiber | null> = [fiberOf(element)?.child ?? null];
+  for (let count = 0; stack.length && count < MAX_FRAME_FIBERS; count += 1) {
+    const fiber = stack.pop();
+    if (!fiber) continue;
+    const src = fiber.memoizedProps?.["data-zen-src"];
+    if (typeof src === "string") sources.push(src);
+    stack.push(fiber.sibling, fiber.child);
+  }
   for (const source of sources) {
     // A builder page kept in this browser has no server drafts.
     if (source.startsWith("local:")) continue;
