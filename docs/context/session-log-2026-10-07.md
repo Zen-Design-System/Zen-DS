@@ -130,3 +130,18 @@
   inline styles into Layout props on *.zen.tsx (max-content → width="hug", flex 1 → Fill) and refuses the rest
   (EmptyState, DescriptionList). Selftests: detach page cases, engine-iso graph of browser-detach.
 - E2E IN-14…IN-17 (128 rows); build-check 17 steps (detach chunk on its own; Detach on the build).
+
+## Studio builder GĐ3b spec + M1 (session "Studio builder tool planning", tier M)
+
+- User: "theo thứ tự đi" → GĐ3b first. Spec `docs/research/studio-builder-starters-spec-2026-10-07.md`; the user chose
+  every proposal (both sources, snapshot of what renders, HTML → Layout by token, overlays → Overlay frames).
+- M1: `builder/starters/snapshot.ts` walks the frame's fibers: library components by export identity (memo / forwardRef
+  objects too; providers walked through), props → literals (handlers dropped, refs and controller objects such as
+  useForm's `form` left out with one note, controlled props → their default twin, HTML field attributes add
+  defaultValue / defaultChecked, library photos → `zen-media:`), elements in props found by their props object in a
+  props → fiber index (page components walked through, unrendered ones read from props), `<br>` → a line break, a
+  single-child HTML wrapper unwrapped silently. `toDialect.ts` prints the page (selftest 16 checks, validateDialect).
+  `newPageFromFrame.ts`: validate, putPage, open, status "Not kept: …".
+- Canvas frame menu and FramePanel "New page from this frame". E2E SP-01 (fixture frame → page, edit level), SP-02 Sign
+  in (desktop), SP-03 Mobile list (phone), no console errors; run.mjs takes a row's own `timeout`. build-check step on
+  the minified build (templates page, frame label click: Layers shows 500 rows).

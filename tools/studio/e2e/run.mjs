@@ -25,7 +25,7 @@ const args = process.argv.slice(2);
 const flag = (name) => args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 const has = (name) => args.includes(`--${name}`);
 
-const GROUPS = ["shell", "select", "inspector", "appearance", "layout", "builder", "library", "instance", "keyboard", "structural", "data", "overlays", "drafts", "gate"];
+const GROUPS = ["shell", "select", "inspector", "appearance", "layout", "builder", "library", "instance", "starters", "keyboard", "structural", "data", "overlays", "drafts", "gate"];
 const only = flag("only")?.split(",").map((g) => g.trim()).filter(Boolean) ?? GROUPS;
 const unknown = only.filter((g) => !GROUPS.includes(g));
 if (unknown.length) {
@@ -152,9 +152,11 @@ try {
       let status = "works";
       let evidence = null;
       let error = null;
+      // A row that opens another platform page first (its first load compiles it) says how long it may take.
+      const limit = Number.isFinite(row.timeout) ? row.timeout : ROW_TIMEOUT;
       const attempt = () => Promise.race([
         row.run(ctx),
-        new Promise((_, reject) => setTimeout(() => reject(new Error(`timed out after ${ROW_TIMEOUT / 1000} s`)), ROW_TIMEOUT)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error(`timed out after ${limit / 1000} s`)), limit)),
       ]);
       try {
         try {

@@ -9,6 +9,7 @@ import { useSlotMenuItems } from "../slots/menu";
 import { clipboardActions, clipboardMenuItems, clipboardShortcuts } from "../edit/clipboard";
 import { duplicateLayers, removeLayers } from "../edit/multi";
 import { findFrame } from "../board/frames";
+import { newPageFromFrame } from "../builder/starters/newPageFromFrame";
 import { presentFrame, zoomToFrame } from "../board/presentFrame";
 import { canvasApi } from "../canvas/viewport";
 import { duplicateShortcut, removeShortcut } from "../slots/actions";
@@ -118,6 +119,8 @@ export function CanvasMenu() {
   const frameItems: MenuEntry[] = frame ? [
     { id: "frame-zoom", label: "Zoom to frame", icon: "icon-zoom-in-line", shortcut: "⇧2", onSelect: () => zoomToFrame(frame.element) },
     { id: "frame-present", label: "Present", icon: "icon-play-line", shortcut: "F", onSelect: () => presentFrame(frame.id) },
+    // A builder page that starts as this example or template (GĐ3b): kept in this browser, so it needs no dev server.
+    ...(frame.id.startsWith("example:") ? [{ id: "frame-new-page", label: "New page from this frame", icon: "icon-file-plus-line" as const, onSelect: () => { void newPageFromFrame(frame); } }] : []),
     { type: "separator", id: "frame-separator" },
     { id: "frame-fit", label: "Zoom to fit", icon: "icon-expand-04-line", shortcut: "⇧1", onSelect: () => canvasApi.fit() },
   ] : [];

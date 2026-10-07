@@ -230,6 +230,12 @@ removed (four unused colour ramps were, see Removed).
     layer where it is written.
   - Reset all overrides on an instance resets its nested instances too, in one ⌘Z ("3 properties back to default (1 in
     nested instances)"). A nested instance written elsewhere (a const, a helper, another file) is shared code and stays.
+- **Zen Studio starters, GĐ3b M1: a new page from any example or template (2026-10-07):**
+  - **New page from this frame** (right-click a frame on the canvas, or the frame's Inspector): the Studio copies what
+    the example or template shows into a new page of your own, kept in this browser. Every prop is a plain value you
+    can edit; the state it showed is kept (the open tab, what was typed, the list as filtered), its logic is not
+    (handlers, forms' wiring: add links in the Prototype tab).
+  - Works on the deployed docs too (no dev server). The status line lists what could not be kept.
 - **Zen Studio instance panel, GĐ4 M4: size and Detach (2026-10-07):**
   - **W / H for an instance** (Inspector › Layout › Size): Hug, Fill or a Fixed px, as in Figma. A component with its
     own size prop or `fullWidth` uses it; any other is wrapped in a Stack that it fills (`<Stack direction="row"

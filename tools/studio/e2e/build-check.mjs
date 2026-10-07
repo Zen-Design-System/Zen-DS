@@ -376,6 +376,29 @@ try {
     return `"${where}"`;
   });
 
+  await step("New page from a template frame (GĐ3b: library components told by identity in this minified build)", async () => {
+    await page.goto(`${url}/?ui=studio&page=templates`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector('[data-studio-frame="example:4"]', { timeout: 60_000 });
+    // The frame's label on the canvas selects it (Layers lists the first 500 rows: this page has more).
+    const label = page.locator('.studio-frame-label[data-chrome-key="label:example:4"]');
+    await label.waitFor({ state: "attached", timeout: 20_000 });
+    await label.evaluate((element) => element.click());
+    await inspectorTab(page, "Design");
+    const from = page.url();
+    const button = page.locator("#studio-right").getByRole("button", { name: "New page from this frame" });
+    await button.waitFor({ state: "visible", timeout: 10_000 }).catch(async (error) => {
+      await page.screenshot({ path: path.join(reportDir, `build-check-${stamp}-starter.png`) }).catch(() => {});
+      throw error;
+    });
+    await button.click();
+    await until(async () => page.url() !== from && /page=local(%3A|:)/.test(page.url()), { timeout: 20_000, message: "the new page opened" });
+    const starter = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
+    const text = (await storedText(page, starter)) ?? "";
+    if (!/device="desktop"/.test(text) || !/<Button\b/.test(text) || /onClick/.test(text)) throw new Error(`unexpected page:\n${text.slice(0, 600)}`);
+    await page.locator(`[data-zen-src^="local:${starter}.zen.tsx:"][data-zen-name="Button"]`).first().waitFor({ state: "attached", timeout: 20_000 });
+    return `${starter}: ${(text.match(/^\s*<[A-Z]/gm) ?? []).length} elements, rendered`;
+  });
+
   await step("no page errors", async () => {
     const real = errors.filter((line) => !/Failed to load resource|favicon/.test(line));
     if (real.length) throw new Error(real.slice(0, 3).join(" | "));

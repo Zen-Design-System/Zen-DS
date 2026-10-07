@@ -160,7 +160,12 @@ Last updated: 2026-10-06.
   planFill / planHugAxis: Hug unwraps); the Stack follows (Layers fold `isStudioWrap`, `studioWrapOf` in remove /
   duplicate / move / drag); Detach on builder pages (`tools/studio/browser-detach.mjs` lazy chunk, detach.mjs
   `pageLayout` for *.zen.tsx); E2E IN-14…IN-17 (128 rows), build-check 17 steps (engine 136.9 KB, detach 16.6 KB).
-  **GĐ4 is complete.** Next (each needs a spec and the user's approval): GĐ3b starters, GĐ5 export (+ photo uploads).
+  **GĐ4 is complete.** GĐ3b starters: spec `docs/research/studio-builder-starters-spec-2026-10-07.md`, approved
+  2026-10-07 (Q1 both sources, Q2 snapshot of what renders, Q3 HTML → Layout by token, Q4 overlays → Overlay frames). M1
+  done 2026-10-07: `builder/starters/{snapshot.ts (fibers → literal tree; library components by export identity, so it
+  runs on the build), toDialect.ts (pure, selftest), newPageFromFrame.ts}`; canvas frame menu + FramePanel button "New
+  page from this frame"; E2E group `starters` SP-01…SP-03 (rows may set `timeout`: opening the Templates page compiles
+  it); build-check 18 steps. Next: M2 (HTML → Stack / Grid / Box / Text), M3 (Start from, Overlay frames); then GĐ5.
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers

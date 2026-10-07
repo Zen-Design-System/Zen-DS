@@ -2545,6 +2545,12 @@ process.stdout.write(iconSuggestions.stdout);
 process.stderr.write(iconSuggestions.stderr);
 if (iconSuggestions.status !== 0) process.exit(1);
 
+// Starters (builder/starters/toDialect.ts: a frame's snapshot written as a builder page) have their own test.
+const starters = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/builder/starters/toDialect.selftest.mjs", import.meta.url))], { encoding: "utf8" });
+process.stdout.write(starters.stdout);
+process.stderr.write(starters.stderr);
+if (starters.status !== 0) process.exit(1);
+
 // The Position section's model (Ignore auto layout, constraints, token offsets) has its own test next to it.
 const position = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/position/positionModel.selftest.mjs", import.meta.url))], { encoding: "utf8" });
 process.stdout.write(position.stdout);

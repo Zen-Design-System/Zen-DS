@@ -10,6 +10,7 @@ import { useStudioFrames } from "../board/frames";
 import { presentFrame } from "../board/Present";
 import { pageKey, setFrameOverride, useStudio } from "../store";
 import type { StudioFrameWidth } from "../types";
+import { newPageFromFrame } from "../builder/starters/newPageFromFrame";
 import { copyText, exampleOf, frameKind, frameLabel } from "./frames";
 import { InspectorRow, InspectorSection } from "./Section";
 import { SlotHost, useSlotFilled } from "./SlotHost";
@@ -89,6 +90,8 @@ export function FramePanel({ frameId, controlsSlot }: { frameId: string; control
             {presentable ? "Present" : "Zoom to frame"}
           </Button>
           {example ? <Button level="tertiary" size="sm" startIcon="icon-copy-line" onClick={() => copyText(example.code, "the example code")}>Copy code</Button> : null}
+          {/* GĐ3b: a builder page that starts as this example (the canvas menu has it too). */}
+          {example && frame ? <Button level="tertiary" size="sm" startIcon="icon-file-plus-line" onClick={() => { void newPageFromFrame({ element: frame.element, label }); }}>New page from this frame</Button> : null}
         </div>
       </InspectorSection>
 
