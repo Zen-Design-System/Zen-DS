@@ -5636,6 +5636,12 @@
         "allow": "sheet-items"
       },
       {
+        "id": "bottom-sheet/choice-uses-list-item",
+        "severity": "warn",
+        "summary": "Picking one value in a sheet (Sort by, a time zone) is a Modal sheet holding a List of ListItem rows with the current one `selected` (the house rule the templates follow), not an Action sheet with `selectedId`: Action items are commands.",
+        "allow": "sheet-choice"
+      },
+      {
         "id": "api/deprecated-prop",
         "severity": "warn",
         "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
