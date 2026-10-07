@@ -1,7 +1,7 @@
 {
   "generated": "2026-10-03T08:38:58.513Z",
   "note": "Pre-existing Build-QA findings (audit.mjs --quality/--density). New findings fail; fix these when you touch the page, then re-run with --baseline-update.",
-  "total": 97,
+  "total": 112,
   "keys": {
     "sidebar@1512|scale|Variant=small-density: Patterns/Sidebar: \"Kaiz\" (span.zen-sidebar__default-brand-product) is 10/13.3333 — no Zen text style; nearest caption-bold 11/16 or label-small-bold 9/12": 1,
     "sidebar@390|scale|Variant=small-density: Patterns/Sidebar: \"Kaiz\" (span.zen-sidebar__default-brand-product) is 10/13.3333 — no Zen text style; nearest caption-bold 11/16 or label-small-bold 9/12": 1,
@@ -99,6 +99,24 @@
     "description-list@1512-dark|rhythm|Long values, one row, narrow: title \"Balance\" and \"Available credit\" share body-base-bold/600 in the same tone — the title does not stand out (use the title style, or Base tone / a smaller style for the description)": 1,
     "templates@1512-dark|rhythm|Dashboard: 9 text styles in one example (heading-4, body-small-medium, heading-1, body-base-regular, display-4, heading-subheading, body-base-bold, body-small-regular, caption-regular) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
     "card@1512|rhythm|Spacing=small: Card: div.zen-card top-left corner 16px vs inner div.platform-slot 12px + inset 16px — nested corners are concentric (outer = inner + inset = 28px)": 1,
-    "card@390|rhythm|Spacing=small: Card: div.zen-card top-left corner 16px vs inner div.platform-slot 12px + inset 16px — nested corners are concentric (outer = inner + inset = 28px)": 1
+    "card@390|rhythm|Spacing=small: Card: div.zen-card top-left corner 16px vs inner div.platform-slot 12px + inset 16px — nested corners are concentric (outer = inner + inset = 28px)": 1,
+    "templates@1512-dark|rhythm|HR · Expense overview: 8 text styles in one example (body-base-bold, caption-regular, heading-4, body-base-regular, heading-1, heading-subheading, display-4, body-small-regular) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "templates@1512-dark|rhythm|HR · Home: 8 text styles in one example (body-base-regular, heading-1, heading-4, body-small-regular, heading-subheading, body-small-bold, body-base-bold, display-4) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "templates@1512-dark|rhythm|HR · My expenses: 8 text styles in one example (body-base-bold, caption-regular, heading-4, body-base-regular, heading-1, heading-subheading, display-4, body-small-regular) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "templates@1512-dark|rhythm|HR · My leaves: 8 text styles in one example (body-base-bold, caption-regular, heading-4, body-base-regular, heading-1, heading-subheading, display-4, body-small-regular) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "templates@1512-dark|rhythm|HR · Public holidays: 8 text styles in one example (body-base-bold, caption-regular, heading-4, body-base-regular, heading-1, heading-subheading, display-4, body-small-regular) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "templates@1512|rhythm|HR · Expense overview: 8 text styles in one example (body-base-bold, caption-regular, heading-4, body-base-regular, heading-1, heading-subheading, display-4, body-small-regular) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "templates@1512|rhythm|HR · Home: 8 text styles in one example (body-base-regular, heading-1, heading-4, body-small-regular, heading-subheading, body-small-bold, body-base-bold, display-4) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "templates@1512|rhythm|HR · My expenses: 8 text styles in one example (body-base-bold, caption-regular, heading-4, body-base-regular, heading-1, heading-subheading, display-4, body-small-regular) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "templates@1512|rhythm|HR · My leaves: 8 text styles in one example (body-base-bold, caption-regular, heading-4, body-base-regular, heading-1, heading-subheading, display-4, body-small-regular) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "templates@1512|rhythm|HR · Public holidays: 8 text styles in one example (body-base-bold, caption-regular, heading-4, body-base-regular, heading-1, heading-subheading, display-4, body-small-regular) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "templates@390|rhythm|HR · Expense overview: 8 text styles in one example (body-base-regular, heading-1, heading-subheading, heading-3, caption-regular, heading-4, body-small-regular, body-base-bold) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "templates@390|rhythm|HR · Home: 8 text styles in one example (body-base-regular, heading-1, heading-4, body-small-regular, heading-subheading, body-small-bold, body-base-bold, heading-3) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "templates@390|rhythm|HR · My expenses → opened: overlay: 8 text styles in one example (heading-4, body-base-regular, body-small-regular, heading-3, body-base-medium, heading-subheading, body-base-bold, caption-regular) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "templates@390|rhythm|HR · My leaves → opened: overlay: 8 text styles in one example (heading-4, body-base-regular, body-small-regular, heading-3, body-base-bold, body-base-medium, heading-subheading, caption-regular) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1,
+    "templates@390|rhythm|HR · My leaves → opened: overlay: 8 text styles in one example (heading-4, body-base-regular, body-small-regular, heading-3, body-base-medium, heading-subheading, body-base-bold, caption-regular) — a calm hierarchy uses 3–5 (a full page up to ~7)": 1
+  },
+  "notes": {
+    "hr-rhythm": "HR template text-style rhythm (8 styles per page) is Figma-faithful: baselined by the user's decision (backlog batch 8 → 6b, 2026-10-07)."
   }
 }
