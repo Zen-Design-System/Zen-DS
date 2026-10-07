@@ -2,7 +2,7 @@
 
 **Trạng thái: user đã duyệt 2026-10-07** (Q2–Q4 theo đề xuất; Q1 xem §8, chốt trước M4). **M1 xong 2026-10-07**
 (E2E IN-01…IN-06); **M2 xong 2026-10-07** (IN-07…IN-11; Q3 đổi theo dữ liệu Figma: preferred values là cả bộ icon,
-user chọn "mặc định của Figma + icon đã dùng trong file"). Chi tiết trong `docs/context/session-log-2026-10-07.md`. GĐ4 của
+user chọn "mặc định của Figma + icon đã dùng trong file"); **M3 xong 2026-10-07** (IN-12, IN-13). Chi tiết trong `docs/context/session-log-2026-10-07.md`. GĐ4 của
 `docs/research/studio-builder-plan-2026-10-05.md`. GĐ0–GĐ3 đã xong; GĐ1 WP-E đã có Figma properties cho 54 component.
 Spec này đo những gì còn thiếu so với panel instance của Figma (§2), chốt phạm vi, và nêu 4 câu hỏi cho user (§8).
 

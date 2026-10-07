@@ -95,3 +95,18 @@
 - E2E IN-07…IN-11 (fixture: Badge with a heart icon, ListItem with an Avatar), build-check 15 steps (Swap instance on
   the production engine, 135.5 KB).
 - I-14 (WP-E) expected the old fixed Leading-Icon (icon-check-line); it now expects Figma's default (icon-plus-line). Caught by the gate's full matrix.
+
+## Studio builder GĐ4 M3 (session "Studio builder tool planning", tier M)
+
+- Nested instances: `nestedRows(name)` builds a nested component's rows from its Figma groups (own variants with option
+  names, text toggles such as Button Leading-Icon, then swaps / texts / booleans), else its design props (choices,
+  switches, icons); NestedInstanceGroup renders fields (PropField with optionLabels / defaultIcon) and toggles, `when`
+  read on the nested hit's props. Before: booleans only.
+- useNestedInstances takes a nullable element and is read once in DesignPanel (`nested` prop to GroupedProperties and
+  NestedProperties; `sourceOf(item)` added).
+- Reset all overrides: nested instances written inside the owner in its file join; one request `many` setProps with
+  `opsByLoc` (arrange.mjs manyPlan: each loc its own setProp / removeProp list; selftest case 37). Elsewhere-written
+  nested instances (shared code) are left alone. Tooltip counts the nested ones.
+- E2E IN-12 (Avatar in Leading: Shape · Size · Theme · Background · Status · Focus; Size › Large writes the nested
+  Avatar), IN-13 (Reset all: ListItem `selected` + nested Avatar `size` in one edit, one ⌘Z). Fixture ListItem gains
+  `selected` and an Avatar `size`. Full matrix in 3 chunks: 124 works; build-check 15/15 (engine 135.6 KB).

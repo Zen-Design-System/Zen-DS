@@ -223,6 +223,13 @@ removed (four unused colour ramps were, see Removed).
   - **Swap instance:** ⇄ in the Inspector header or the canvas menu's "Swap instance…" opens Quick insert in its Swap
     mode. Enter puts the chosen component in the selected layer's place (a child, a prop's value or a list row; a `key`
     stays), selects it, and one ⌘Z brings the old layer back. Works on pages made in the Studio too.
+- **Zen Studio instance panel, GĐ4 M3: nested instances (2026-10-07):**
+  - A Zen component inside another one's props (the Avatar in a ListItem's Leading, a Button in a Card's sub-action) now
+    shows all of its properties under its owner, as Figma's nested instances do: its variants by Figma's names, the
+    switches that show a layer, icon swaps and texts. Before, only its on/off switches showed. An edit writes the nested
+    layer where it is written.
+  - Reset all overrides on an instance resets its nested instances too, in one ⌘Z ("3 properties back to default (1 in
+    nested instances)"). A nested instance written elsewhere (a const, a helper, another file) is shared code and stays.
 - **Zen Studio: shared demo code can be restructured, after a question (2026-10-06, GĐ1 WP-B2):**
   - Removing, duplicating, moving, inserting, pasting, dragging or wrapping layers whose code lives in shared demo files
     (PlatformDemoActions.tsx, chatDemo.tsx, PlatformChat…) used to be greyed out ("shared beyond this example").

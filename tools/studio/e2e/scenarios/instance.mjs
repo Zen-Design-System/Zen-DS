@@ -173,6 +173,34 @@ export const rows = [
     },
   },
   {
+    id: "IN-12", feature: "Nested instance from the owner's panel: the Avatar in a ListItem's Leading shows Figma's Size and writes it", wp: "GĐ4 M3",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-row", { frame: FRAME });
+      const group = page.locator('#studio-right [role="group"][aria-label="Avatar in Leading"]');
+      await group.waitFor({ state: "visible", timeout: 5000 });
+      const labels = await group.locator("[data-prop]").evaluateAll((rows) => rows.map((row) => row.querySelector(".studio-inspector__row-label")?.textContent?.trim()));
+      for (const label of ["Shape", "Size", "Theme", "Status"]) if (!labels.includes(label)) throw new Error(`the nested Avatar lists ${labels.join(", ")}`);
+      await group.locator('[data-prop="size"] button').first().click();
+      await page.getByRole("option", { name: "Large", exact: true }).click();
+      await until(async () => /leading=\{<Avatar alt="Ava Tran" size="lg" \/>\}/.test(await ctx.text()), { message: 'the nested Avatar size="lg"' });
+      return `Avatar in Leading: ${labels.slice(0, 6).join(" · ")}; Size › Large writes size="lg" on the nested Avatar`;
+    },
+  },
+  {
+    id: "IN-13", feature: "Reset all overrides on an owner resets its nested instance too, in one ⌘Z", wp: "GĐ4 M3",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-row", { frame: FRAME });
+      const reset = page.locator("#studio-right").getByRole("button", { name: "Reset all overrides" });
+      await reset.waitFor({ state: "visible", timeout: 5000 });
+      await reset.click();
+      await until(async () => /<ListItem data-e2e="inst-row" title="Ava Tran" leading=\{<Avatar alt="Ava Tran" \/>\} \/>/.test(await ctx.text()), { message: "selected and the nested size removed together" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => /title="Ava Tran" selected leading=\{<Avatar alt="Ava Tran" size="sm" \/>\}/.test(await ctx.text()), { message: "one ⌘Z brings both back" });
+      return "ListItem selected + nested Avatar size reset in one edit → one ⌘Z restores both";
+    },
+  },
+  {
     id: "IN-06", feature: "Builder page: a Button from Assets shows Figma names; Reset all overrides is one ⌘Z", wp: "GĐ4 M1",
     async run(ctx) {
       const { page, id } = await newPage(ctx);

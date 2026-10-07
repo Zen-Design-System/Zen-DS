@@ -126,7 +126,7 @@ function InstanceFixture() {
       <EmptyState data-e2e="inst-empty" title="Nothing here" illustration={false} />
       <Badge data-e2e="inst-badge" leadingIcon leading="icon-heart-line">New</Badge>
       <List data-e2e="inst-list">
-        <ListItem data-e2e="inst-row" title="Ava Tran" leading={<Avatar alt="Ava Tran" />} />
+        <ListItem data-e2e="inst-row" title="Ava Tran" selected leading={<Avatar alt="Ava Tran" size="sm" />} />
       </List>
     </Stack>
   );

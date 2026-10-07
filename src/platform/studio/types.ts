@@ -311,7 +311,7 @@ export type EditOp =
    * A multi-selection in one file, one edit: every element at `locs` removed, duplicated (each copy after it) or given
    * the same setProp / removeProp `ops`. `hash` required. Answer: `removed`, `inserted.loc` (first copy) or `updated`.
    */
-  | { op: "many"; action: "remove" | "duplicate" | "setProps"; locs: string[]; ops?: EditOp[] }
+  | { op: "many"; action: "remove" | "duplicate" | "setProps"; locs: string[]; ops?: EditOp[]; opsByLoc?: Record<string, EditOp[]> }
   /** Figma "Delete contents": empty the host's `prop` slot (omitted: children); `hash` required. Answer: `cleared`. */
   | { op: "clearSlot"; prop?: string }
   /** Figma "Reset slot": the host's `prop` slot (omitted: children) back to the saved file; `hash` required. Answer: `reset`. */

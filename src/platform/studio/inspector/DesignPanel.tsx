@@ -27,6 +27,7 @@ import { InspectorFileContext, InspectorHostContext } from "./controls/hostConte
 import { componentGroupsOf } from "./componentGroups";
 import { AppearanceSection, appearancePropNames, EffectsSection } from "../appearance/AppearanceSection";
 import { NestedProperties } from "./NestedProperties";
+import { useNestedInstances } from "./nestedInstances";
 import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
 import { PositionSection, positionProps } from "../position";
 import { ValueCell } from "./PartPanel";
@@ -572,6 +573,10 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     },
   }), [overrides, element, live, send, runPlan, editable, selection.name, selection.panelId, instances, dataRow]);
 
+  // Figma's nested instances of the selection (its props' Zen components), read once here: Properties and the Nested
+  // instances section list them, and Reset all overrides resets theirs too.
+  const nested = useNestedInstances(selection, element, api);
+
   const name = element?.name ?? selection.name;
   const specs = useMemo(() => {
     const own = propSpecs(name);
@@ -698,8 +703,34 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   // request, so one ⌘Z brings them all back; the content stays (resetAll.ts).
   const resetSpecs = specs.map((spec) => ({ name: spec.name, editor: spec.editor.kind }));
   const resetNames = element && kind === "zen" && editable ? resetAllProps(element.attributes, resetSpecs, requiredProps(name)) : [];
+  // Its nested instances' design props too (GĐ4 M3), for those written inside it in this file; one written elsewhere (a
+  // const, a helper, another file) is shared code and stays.
+  const nestedResets = element && kind === "zen" && editable ? nested.items.flatMap((item) => {
+    const source = nested.sourceOf(item);
+    if (item.elsewhere || item.file !== element.file || !source) return [];
+    const names = resetAllProps(source.attributes, item.specs.map((spec) => ({ name: spec.name, editor: spec.editor.kind })), requiredProps(item.name));
+    return names.length ? [{ item, source, names }] : [];
+  }) : [];
+  const nestedCount = nestedResets.reduce((count, entry) => count + entry.names.length, 0);
   const resetAll = () => {
-    if (!element || !resetNames.length) return;
+    if (!element || !(resetNames.length || nestedResets.length)) return;
+    if (nestedResets.length) {
+      // One request for the instance and its nested instances (op many, each its own removals): one ⌘Z for all.
+      const removals = (component: string, attributes: SourceAttr[], names: string[], props?: Record<string, unknown>) => {
+        const ops = names.flatMap((prop) => planPropReset(component, attributes, prop, props).ops).filter((op) => op.op === "removeProp");
+        return ops.filter((op, index, all) => all.findIndex((other) => JSON.stringify(other) === JSON.stringify(op)) === index);
+      };
+      const opsByLoc: Record<string, EditOp[]> = {};
+      const own = removals(element.name, element.attributes, resetNames, live);
+      if (own.length) opsByLoc[element.loc] = own;
+      for (const entry of nestedResets) {
+        const ops = removals(entry.item.name, entry.source.attributes, entry.names, entry.item.hit.props);
+        if (ops.length) opsByLoc[entry.source.loc] = ops;
+      }
+      const optimistic = Object.fromEntries(resetNames.map((prop): [string, PropValue] => [prop, { state: "unset" }]));
+      void api.apply([{ op: "many", action: "setProps", locs: Object.keys(opsByLoc), opsByLoc }], `${element.name} reset all overrides (with ${plural(nestedResets.length, "nested instance")})`, optimistic);
+      return;
+    }
     const planFor = (attributes: SourceAttr[]): WritePlan => {
       const plans = resetAllProps(attributes, resetSpecs, requiredProps(element.name)).map((prop) => planPropReset(element.name, attributes, prop, live));
       const ops = plans.flatMap((plan) => plan.ops).filter((op, index, all) => all.findIndex((other) => JSON.stringify(other) === JSON.stringify(op)) === index);
@@ -727,14 +758,14 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
             </span>
           ) : null}
           <span className="studio-inspector__head-actions">
-            {resetNames.length ? (
+            {resetNames.length || nestedCount ? (
               <IconButton
                 icon="icon-reverse-left-line"
                 appearance="flat"
                 level="primary"
                 size="xs"
                 aria-label="Reset all overrides"
-                tooltip={`Reset all overrides · ${plural(resetNames.length, "property", "properties")} back to default · ${undoShortcut} to undo`}
+                tooltip={`Reset all overrides · ${plural(resetNames.length + nestedCount, "property", "properties")} back to default${nestedCount ? ` (${nestedCount} in nested instances)` : ""} · ${undoShortcut} to undo`}
                 className="studio-inspector__head-action"
                 onClick={resetAll}
               />
@@ -812,7 +843,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       {element && name === "Box" ? <EffectsSection api={api} src={selection.src} /> : null}
 
       {element && propertySpecs.length && groups ? (
-        <GroupedProperties groups={groups} selection={selection} element={element} api={api} specs={propertySpecs} shaped={shapedProps} note={propertiesNote} rendered={renderedProps} />
+        <GroupedProperties groups={groups} selection={selection} element={element} api={api} specs={propertySpecs} shaped={shapedProps} note={propertiesNote} rendered={renderedProps} nested={nested} />
       ) : element && propertySpecs.length ? (
         // Properties in titled groups with a divider between them (autoGroups.ts), then one section per object or array
         // prop (Trend, items), titled with its name; an object's fields need no header of their own there.
@@ -831,7 +862,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       ) : null}
 
       {/* Figma nested instances: the booleans of the Zen components written in this element's props. */}
-      {element && !groups ? <NestedProperties selection={selection} element={element} api={api} /> : null}
+      {element && !groups ? <NestedProperties element={element} api={api} nested={nested} /> : null}
 
       {/* Content slots (Children for Stack/Grid/Box): nothing for a component without slots. */}
       {element ? <SlotsSection api={api} selection={selection} element={element} /> : null}

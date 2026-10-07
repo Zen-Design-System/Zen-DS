@@ -6,16 +6,20 @@ import { elementFiber, findBySrc, hitOf, instanceOf, onSourceUpdate, rectOf, sel
 import { mapSrc, noteEditTarget, onStudioWrite, sameSelectedElement } from "../select/remap";
 import type { EditOp, SourceAttr, SourceElement, StudioNodeRef } from "../types";
 import type { FieldApi } from "./fieldApi";
-import { dataEditable, nodeKind, propSpecs, type Literal, type PropSpec, type PropValue } from "./propSchema";
+import { componentGroupsOf } from "./componentGroups";
+import { entryDefaultIcon, entryLabel, entryOptions, entryProp, type GroupCondition, type PropEntry } from "./propGroups";
+import { dataEditable, nodeKind, propLabel, propSpecs, type Literal, type PropSpec, type PropValue } from "./propSchema";
 import { rowOf } from "./detach";
 import { inspectorStatus } from "./status";
 import { displayValueOf, isTwinRow, planPropReset, planPropWrite, restorableBinding, restoreStep, savedWrite, toEditValue, type WritePlan } from "./writePlan";
 
 /*
- * Figma's nested instance properties: the boolean properties of the Zen components the selected element renders from
- * its props (the Avatar in a ListItem's leading, the IconButton in its trailing, the TableText a Table column's cell
- * returns), listed under the selection's own Properties and edited where they are written (their own file:line), so a
- * nested toggle is usable without selecting the nested layer first. The group name selects the nested instance. Only
+ * Figma's nested instance properties: the properties of the Zen components the selected element renders from its props
+ * (the Avatar in a ListItem's leading, the IconButton in its trailing, the TableText a Table column's cell returns),
+ * listed under the selection's own Properties and edited where they are written (their own file:line), so a nested
+ * instance is usable without selecting it first. Since GĐ4 M3 every kind of property, as Figma exposes a nested
+ * instance's: its Figma variants (Figma names and options), the booleans that show a layer, icon swaps and texts
+ * (nestedRows); a component without Figma groups lists its choices, switches and icons. The group name selects the nested instance. Only
  * elements the canvas renders now are listed: a nested instance its owner hides (a boolean off) has nothing to show, as
  * in Figma.
  *
@@ -36,6 +40,8 @@ export type Nested = {
   /** The owner prop it is rendered from ("leading", "columns"). */
   prop: string;
   hit: FiberHit;
+  /** Its rows (nestedRows), and the specs they edit. */
+  rows: NestedRow[];
   specs: PropSpec[];
   /** How many elements this source line renders on the canvas (a .map row, a helper used by several owners). */
   count: number;
@@ -88,7 +94,40 @@ function propSources(props: Record<string, unknown>): { sources: Map<string, str
   return { sources, functionProps };
 }
 
-const booleanSpecs = (name: string) => propSpecs(name).filter((spec) => spec.editor.kind === "boolean" && !HIDDEN_BOOLEANS.has(spec.name) && !isTwinRow(name, spec.name));
+/**
+ * A nested instance's row: a field of one of its props (with Figma's name, option names and default icon), or a Figma
+ * boolean that shows a layer by writing a starting value (Button Leading-Icon → startIcon). `when`: shown only while
+ * these hold for the nested instance's rendered props (Leading-Icon-Src while Leading-Icon is on).
+ */
+export type NestedRow =
+  | { kind: "field"; spec: PropSpec; label: string; optionLabels?: Readonly<Record<string, string>>; defaultIcon?: string; when?: readonly GroupCondition[] }
+  | { kind: "toggle"; spec: PropSpec; label: string; on: string; when?: readonly GroupCondition[] };
+
+/** The editors a nested row offers: choices, switches, icons, numbers and plain text (objects, lists and handlers are
+ *  edited on the nested layer itself). Without Figma groups: choices, switches and icons only. */
+const NESTED_EDITORS = new Set(["enum", "number-enum", "boolean", "icon", "icon-toggle", "string", "node", "number"]);
+const DESIGN_EDITORS = new Set(["enum", "number-enum", "boolean", "icon", "icon-toggle"]);
+
+/** The rows of a nested `name`: its Figma groups (variants, the text booleans, then swaps and texts), else its design props. */
+export function nestedRows(name: string): NestedRow[] {
+  const specs = propSpecs(name).filter((spec) => !HIDDEN_BOOLEANS.has(spec.name) && !isTwinRow(name, spec.name));
+  const specOf = new Map(specs.map((spec) => [spec.name, spec]));
+  const groups = componentGroupsOf(name);
+  if (!groups) return specs.filter((spec) => DESIGN_EDITORS.has(spec.editor.kind)).map((spec) => ({ kind: "field", spec, label: propLabel(spec.name, name) }));
+  const rows: NestedRow[] = [];
+  const field = (entry: PropEntry) => {
+    const spec = specOf.get(entryProp(entry));
+    if (!spec || !NESTED_EDITORS.has(spec.editor.kind) || rows.some((row) => row.kind === "field" && row.spec.name === spec.name)) return;
+    rows.push({ kind: "field", spec, label: entryLabel(entry) ?? propLabel(spec.name, name), optionLabels: entryOptions(entry), defaultIcon: entryDefaultIcon(entry), when: typeof entry === "string" ? undefined : entry.when });
+  };
+  groups.own.forEach(field);
+  for (const toggle of groups.toggles) {
+    const spec = specOf.get(toggle.prop);
+    if (spec && toggle.on.kind === "text") rows.push({ kind: "toggle", spec, label: toggle.label, on: toggle.on.value, when: toggle.when });
+  }
+  groups.after.forEach(field);
+  return rows;
+}
 
 /**
  * The Zen components the rendered `owner` draws from its props, with their boolean props. Fibers are walked below the
@@ -121,9 +160,9 @@ function nestedOf(owner: FiberHit, ownerElement: SourceElement, world: Element |
       if (listed.has(hit.src)) continue;
       listed.add(hit.src);
       const at = parseSrc(hit.src);
-      const specs = booleanSpecs(hit.name);
-      if (!at || !specs.length) continue;
-      out.push({ src: hit.src, file: at.file, loc: at.loc, name: hit.name, prop: via, hit, specs, count: 1, elsewhere: !inOwner(at.file, at.line) });
+      const rows = nestedRows(hit.name);
+      if (!at || !rows.length) continue;
+      out.push({ src: hit.src, file: at.file, loc: at.loc, name: hit.name, prop: via, hit, rows, specs: rows.map((row) => row.spec), count: 1, elsewhere: !inOwner(at.file, at.line) });
     }
   };
   try {
@@ -167,7 +206,7 @@ export function selectNested(nested: Nested) {
 const display = (value: Literal) => (typeof value === "string" ? `"${value}"` : String(value));
 
 /** The nested instances of the selection: read from the canvas and their sources, with a writer for their booleans. */
-export function useNestedInstances(selection: NodeSelection, element: SourceElement, api: FieldApi) {
+export function useNestedInstances(selection: NodeSelection, element: SourceElement | null | undefined, api: FieldApi) {
   const [nested, setNested] = useState<Nested[]>([]);
   const [sources, setSources] = useState<Record<string, SourceElement | null>>({});
   const [overrides, setOverrides] = useState<Record<string, Record<string, PropValue>>>({});
@@ -214,6 +253,7 @@ export function useNestedInstances(selection: NodeSelection, element: SourceElem
     if (fresh) setNested([]);
     let alive = true;
     void (async () => {
+      if (!elementRef.current) { setNested([]); return; }
       const owner = ownerHit(selection);
       // Mid hot-update the owner may be missing for a moment: keep the groups shown until the canvas has it again.
       if (!owner) return;
@@ -225,7 +265,7 @@ export function useNestedInstances(selection: NodeSelection, element: SourceElem
       if (inFlight.current === 0) setOverrides({});
     })();
     return () => { alive = false; };
-  }, [selection.src, selection.instance, element.hash, version]);
+  }, [selection.src, selection.instance, element?.hash, version]);
 
   /** What a nested row shows: an edit on its way, else the source (state props show their initial state). */
   const valueFor = (item: Nested, name: string): PropValue => overrides[item.src]?.[name] ?? displayValueOf(item.name, sources[item.src]?.attributes ?? [], name, item.hit.props);
@@ -334,7 +374,9 @@ export function useNestedInstances(selection: NodeSelection, element: SourceElem
     const saved = source ? restorableBinding(source, spec.name) : null;
     return saved ? { expression: saved.value ?? "", onRestore: () => { void restore(item, spec, saved); } } : null;
   };
-  return { items, valueFor, write, restoreFor };
+  /** The nested instance's source as last read (Reset all overrides plans its removals from it). */
+  const sourceOf = (item: Nested) => sources[item.src] ?? null;
+  return { items, valueFor, write, restoreFor, sourceOf };
 }
 
 export type NestedInstances = ReturnType<typeof useNestedInstances>;

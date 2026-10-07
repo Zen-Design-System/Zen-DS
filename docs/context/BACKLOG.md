@@ -305,7 +305,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   - ~~P3 · Props inherited from another Zen props type are not listed~~ done in the Studio 2026-10-07 (GĐ4 M1,
     `inspector/inheritedProps.ts`: AvatarStack, BadgeCounter, NumberField, TextAreaField, PopoverManualAddNew); the docs
     (build-api) still list own props only.
-  - P3 · Nested instances show booleans only; Figma also exposes a nested instance's variants and text — GĐ4 M3.
+  - ~~P3 · Nested instances show booleans only~~ done 2026-10-07 (GĐ4 M3: every property type, Figma names).
   - ~~P3 · A nested element passed through a variable (`leading={avatar}`) is not listed~~ done 2026-10-05 (fiber ownership).
 - **Studio nested booleans, after the 2026-10-05 fix (session "Nested boolean không hoạt động"):**
   - ~~P2 · Figma-model gaps (fits builder WP-E)~~ mostly done 2026-10-07 (GĐ4 M1): Input Label / Help-Text groups,

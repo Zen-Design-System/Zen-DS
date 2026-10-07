@@ -330,6 +330,16 @@ test("many refuses a bad action, no locs, and a .map row", () => {
   assert.match(many(one, "Text", { action: "remove", locs: [locOf(SOURCE, "<Stack key")] }).error, /\.map/);
 });
 
+test("many setProps with opsByLoc: each layer its own props, an outer and an inner one, one edit", () => {
+  const stack = locOf(SOURCE, '<Stack gap="sm">');
+  const badge = locOf(SOURCE, "<Badge>Three");
+  const result = many(stack, "Stack", { action: "setProps", locs: [stack, badge], opsByLoc: { [stack]: [{ op: "removeProp", name: "gap" }], [badge]: [{ op: "setProp", name: "size", value: { kind: "string", value: "sm" } }] } });
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /<Stack>\n {8}<Badge size="sm">Three<\/Badge>/);
+  assert.ok(result.updated);
+  assert.match(many(stack, "Stack", { action: "setProps", locs: [stack, badge], opsByLoc: { [stack]: [{ op: "removeProp", name: "gap" }] } }).error, /opsByLoc/);
+});
+
 /* ── replaceElement (Swap instance, GĐ4 M2) ── */
 
 const swap = (loc, name, op, code = SOURCE) => applySlotOp(code, loc, name, { op: "replaceElement", ...op }, { file: FILE, hash: sha1(code) });

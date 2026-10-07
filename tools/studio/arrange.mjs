@@ -413,10 +413,11 @@ export function replacePlan(ctx, nodePath, op, h) {
 /* ── several layers at once ──────────────────────────────────────────────────────────────────────────────────────── */
 
 /**
- * The plan for op many { action, locs, ops? } (a multi-selection, Figma: Delete / ⌘D / a property on several layers):
- * every element at `locs` (one file) is removed, duplicated (each copy right after it) or given the same `ops`
- * (setProp / removeProp) in one edit, one undo step. An element inside another listed one goes with it. The answer:
- * removed: true, inserted: { loc } (the first copy) or updated: true.
+ * The plan for op many { action, locs, ops?, opsByLoc? } (a multi-selection, Figma: Delete / ⌘D / a property on several
+ * layers): every element at `locs` (one file) is removed, duplicated (each copy right after it) or given the same `ops`
+ * (setProp / removeProp) in one edit, one undo step. `opsByLoc` gives an element its own ops instead (Reset all
+ * overrides on an instance and its nested instances, GĐ4 M3). An element inside another listed one goes with it. The
+ * answer: removed: true, inserted: { loc } (the first copy) or updated: true.
  */
 export function manyPlan(ctx, nodePath, op, h) {
   const { ast, text } = ctx;
@@ -432,12 +433,15 @@ export function manyPlan(ctx, nodePath, op, h) {
   const outer = elements.filter((element) => !elements.some((other) => other !== element && other.start <= element.start && element.end <= other.end));
   outer.sort((a, b) => a.start - b.start);
   if (action === "setProps") {
-    if (!Array.isArray(op.ops) || !op.ops.length || op.ops.some((inner) => inner?.op !== "setProp" && inner?.op !== "removeProp")) h.refuse("setProps takes `ops`: setProp / removeProp only");
-    // Bottom-up, so the places above stay where they are.
+    const propOps = (ops) => Array.isArray(ops) && ops.length > 0 && ops.every((inner) => inner?.op === "setProp" || inner?.op === "removeProp");
+    const byLoc = op.opsByLoc && typeof op.opsByLoc === "object" ? op.opsByLoc : null;
+    if (byLoc ? !op.locs.every((loc) => propOps(byLoc[loc])) : !propOps(op.ops)) h.refuse("setProps takes `ops` (or `opsByLoc`, one list per loc): setProp / removeProp only");
+    // Bottom-up, so the places above stay where they are; each element is found by its loc in the original text.
     let next = text;
     for (const element of [...elements].sort((a, b) => b.start - a.start)) {
       const loc = `${element.openingElement.loc.start.line}:${element.openingElement.loc.start.column}`;
-      const result = applyOps(next, loc, jsxName(element.openingElement.name), op.ops, { snippets: false, file: ctx.file });
+      const own = byLoc ? byLoc[op.locs.find((candidate) => findElement(ast, parseLoc(candidate)) === element)] : op.ops;
+      const result = applyOps(next, loc, jsxName(element.openingElement.name), own, { snippets: false, file: ctx.file });
       if (result.error) h.refuse(`<${jsxName(element.openingElement.name)}> at ${loc}: ${result.error}`);
       next = result.code;
     }

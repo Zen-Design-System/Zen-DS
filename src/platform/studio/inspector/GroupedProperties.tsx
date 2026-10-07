@@ -5,7 +5,7 @@ import { dataItemBlock, dataSlotOf, editDataItem, openSlotPicker, sourceItems, t
 import type { SourceElement, StudioSelection } from "../types";
 import type { FieldApi } from "./fieldApi";
 import { NestedInstanceGroup } from "./NestedProperties";
-import { useNestedInstances } from "./nestedInstances";
+import type { NestedInstances } from "./nestedInstances";
 import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
 import { entryDefaultIcon, entryLabel, entryOptions, entryProp, entryShown, entryWarnings, holds, isSetValue, placedProps, type ComponentGroups, type GroupToggle, type PropEntry } from "./propGroups";
 import { PropField } from "./PropField";
@@ -92,7 +92,7 @@ function ToggleRow({ toggle, on, count, value, api, selection, element }: { togg
   );
 }
 
-export function GroupedProperties({ groups, selection, element, api, specs, shaped, note, rendered }: {
+export function GroupedProperties({ groups, selection, element, api, specs, shaped, note, rendered, nested }: {
   groups: ComponentGroups;
   selection: NodeSelection;
   element: SourceElement;
@@ -104,8 +104,9 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
   note?: string;
   /** The element's props as rendered now (undefined: not on the canvas). */
   rendered: Record<string, unknown> | undefined;
+  /** Its nested instances (DesignPanel reads them once: Reset all overrides plans theirs too). */
+  nested: NestedInstances;
 }) {
-  const nested = useNestedInstances(selection, element, api);
   const props = conditionProps(rendered, element);
   const component = element.name;
   const specOf = (prop: string) => specs.find((spec) => spec.name === prop);

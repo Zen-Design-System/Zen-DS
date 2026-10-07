@@ -151,8 +151,12 @@ Last updated: 2026-10-06.
   InspectorFileContext); toggles `on: { swap }` start from Figma's default; server op `replaceElement` (arrange.mjs
   replacePlan, a slot op); Slots ⇄ menu on atom-slot rows (`swapSlotLayer`); Swap instance = Quick insert mode "swap"
   (`builder/library/quickInsertState.ts`, Inspector header ⇄, canvas menu) → `swapSelection`; E2E IN-07…IN-11,
-  build-check 15 steps (Swap instance on the build). Next: M3 (nested instances: every property type, one undo step for
-  owner + nested), M4 (sizing per Q1, Detach on builder pages); then GĐ3b starters, GĐ5 export (+ photo uploads).
+  build-check 15 steps (Swap instance on the build). M3 done 2026-10-07: `nestedInstances.ts` nestedRows (a nested
+  component's Figma groups: variants with option names, text toggles, swaps, texts; else its design props) rendered by
+  NestedInstanceGroup; the hook is read once in DesignPanel (`nested` passed to GroupedProperties / NestedProperties);
+  Reset all overrides adds the nested instances written inside the owner in its file, through op many setProps
+  `opsByLoc` (arrange.mjs) = one ⌘Z; E2E IN-12, IN-13 (124 rows). Next: M4 (sizing per Q1, still to settle with the
+  user; Detach on builder pages); then GĐ3b starters, GĐ5 export (+ photo uploads).
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers
