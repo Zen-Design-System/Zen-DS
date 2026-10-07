@@ -193,8 +193,14 @@ Last updated: 2026-10-06.
   screens, token rules with their `--zen-*` only, the @font-face / @keyframes they name; fonts and library photos in
   the zip), `tools/studio/zip.mjs` (store-only writer + reader, selftest with unzip -t and Python zipfile),
   `builder/render/frames.ts` (frameOf shared with the board), CodeView language "html". E2E HO-02 (zip content),
-  HO-03 (each HTML frame vs its canvas frame at 100%: 0.00% of pixels differ); build-check 22 steps. Next: M3 handoff
-  zip.
+  HO-03 (each HTML frame vs its canvas frame at 100%: 0.00% of pixels differ); build-check 22 steps. M3 done 2026-10-07:
+  Export › Handoff (`prepareHandoff` in htmlExport.tsx: one off-screen render in the Studio's preview modes
+  (`canvasModes`, a frame's own theme), the HTML files, a PNG per frame (`export/screenshot.ts`: exported markup in an
+  SVG foreignObject, fonts and photos as data URLs, animations off), each frame's Tab stops (role + name), the compiled
+  code (`compile.mjs` now returns `actions` per frame, `components`, `dataType`) and `export/handoff.ts` (pure:
+  guideline notes from docs/guidelines/*.md, design names from the page tree, the markdown; `handoff.selftest.mjs` 15
+  checks in studio selftest)); CodeView language "markdown". E2E HO-04 (zip content, handoff.md facts, each PNG vs its
+  canvas frame: ≤ 0.02%), 139 rows; build-check 23 steps (the handoff on the build). Next: M4 photo uploads.
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers

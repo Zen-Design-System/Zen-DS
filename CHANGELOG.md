@@ -273,6 +273,18 @@ removed (four unused colour ramps were, see Removed).
   - The markup is what the canvas draws, without the Studio's attributes; form fields keep what they show. Measured on a
     page with a list, a photo, a form, a state variant and a Dialog: each file matches its frame on the canvas at 100%.
   - Static markup: menus, dialogs, tabs and fields do not open or change; the React code has them.
+- **Zen Studio export, GĐ5 M3: the handoff package (2026-10-07):**
+  - Export › **Handoff** shows the page's `handoff.md`; **Download `<page>-handoff.zip`** packs everything a developer
+    needs: the React component, the design file (`.zen.tsx`), the photos the code imports, a picture of each screen and
+    overlay (`screens/*.png`, 2×, drawn in the browser as the canvas shows it), the HTML export (`html/`) and
+    `handoff.md`.
+  - `handoff.md` is written from the page, never by hand: setup (the library version, `styles.css`, the ZenProvider
+    props of the Studio's modes, the mobile modes of phone screens), the components with their purpose and the paths of
+    their guideline and API docs, the text styles and token names the design writes, the prototype flow (each frame,
+    each interaction and what it does in the code, what to wire), the data contract (the sample data's type) and
+    accessibility (each frame's focus order with roles and names, and the guidelines' keyboard and accessibility notes).
+  - The pictures match the canvas: measured on screens, a state variant and a Dialog overlay, under 0.1% of pixels
+    differ. What a picture cannot draw (a video, a canvas) is listed in `handoff.md`.
 - **Zen Studio instance panel, GĐ4 M4: size and Detach (2026-10-07):**
   - **W / H for an instance** (Inspector › Layout › Size): Hug, Fill or a Fixed px, as in Figma. A component with its
     own size prop or `fullWidth` uses it; any other is wrapped in a Stack that it fills (`<Stack direction="row"

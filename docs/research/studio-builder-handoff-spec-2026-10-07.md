@@ -156,6 +156,10 @@ làm canvas dừng).
 nạp từ origin khác bị CORS chặn khi mở file trên máy. `reset.css` lấy từ file nguồn (`?inline`): trong bản build, rule
 `*` / `body` của thư viện và của docs nằm chung một file, không tách được.
 
+**M3 xong 2026-10-07.** HTML/PNG render theo preview modes của Studio, như canvas. PNG tắt animation vì ảnh SVG chỉ vẽ
+khung đầu. Usage-guard không chạy được trong trình duyệt nên `handoff.md` ghi lệnh `npx zen-usage`. Mục "Câu hỏi mở":
+trang builder chưa có ghi chú trên canvas.
+
 ## 6. File
 
 - **Mới:**

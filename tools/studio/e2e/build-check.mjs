@@ -467,6 +467,28 @@ try {
     return `${files.size} files: ${screens.length} screens, styles.css ${Math.round(css.length / 1024)} KB, ${fonts.join(", ")}`;
   });
 
+  await step("Handoff zip: the code, handoff.md and a PNG of each frame drawn in this build (foreignObject)", async () => {
+    await page.locator("#studio-right").getByRole("button", { name: "Export…" }).click();
+    const panel = page.locator(".studio-export");
+    await panel.waitFor({ state: "visible", timeout: 10_000 });
+    await panel.getByRole("button", { name: "Handoff", exact: true }).click();
+    await until(async () => /## Prototype flow/.test(await panel.innerText()), { timeout: 60_000, message: "handoff.md in the panel" });
+    const downloading = page.waitForEvent("download");
+    await panel.getByRole("button", { name: /^Download .*-handoff\.zip$/ }).click();
+    const download = await downloading;
+    const files = new Map(unzipFiles(new Uint8Array(fs.readFileSync(await download.path()))).map((file) => [file.path, file.data]));
+    const markdown = new TextDecoder().decode(files.get("handoff.md") ?? new Uint8Array());
+    const pictures = [...files.keys()].filter((file) => /^screens\/.*\.png$/.test(file));
+    const code = [...files.keys()].find((file) => /^\w+Page\.tsx$/.test(file));
+    if (!code || !pictures.length || !/## Accessibility/.test(markdown) || ![...files.keys()].some((file) => file.startsWith("html/"))) throw new Error(`incomplete package: ${[...files.keys()].join(", ")}`);
+    const sizes = pictures.map((file) => { const bytes = Buffer.from(files.get(file)); return { file, width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20), kb: Math.round(bytes.length / 1024) }; });
+    // A phone frame is 390 px wide, an overlay frame 720: its picture twice that; an empty picture compresses to almost nothing.
+    const bad = sizes.filter((size) => size.width !== (/overlay-/.test(size.file) ? 1440 : 780) || size.kb < 8);
+    if (bad.length) throw new Error(`pictures: ${bad.map((size) => `${size.file} ${size.width}×${size.height} ${size.kb} KB`).join(", ")}`);
+    await page.keyboard.press("Escape");
+    return `${files.size} files: ${code}, ${sizes.map((size) => `${size.file} ${size.width}×${size.height} (${size.kb} KB)`).join(", ")}`;
+  });
+
   await step("no page errors", async () => {
     const real = errors.filter((line) => !/Failed to load resource|favicon/.test(line));
     if (real.length) throw new Error(real.slice(0, 3).join(" | "));

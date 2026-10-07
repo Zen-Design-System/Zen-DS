@@ -206,3 +206,15 @@
 - Zip writer: store only, UTF-8 names, CRC-32; `unzipFiles` reads it back for E2E and build-check.
 - Gate PASS (.qa/reports/2026-10-07T07-17-29-e54a8cf5.md, E2E 138 works); build-check 22/22 (the HTML step on the build:
   one bundled sheet, styles.css 328 KB with the Inter and JetBrains Mono files).
+
+## Studio builder GĐ5 M3 (session "Studio builder tool planning", tier M)
+
+- User: "tiếp" → M3. One render serves the HTML, the pictures and the focus order; it now uses the Studio's preview
+  modes (theme, component theme, density, typography, radius, emphasis, contrast; a frame's own theme), as the canvas.
+- Pictures: XMLSerializer (XHTML inside the SVG), fonts and photos as data URLs (an SVG image loads nothing). The first
+  overlay picture was blank: an SVG image draws every animation at its start (the Dialog and scrim at opacity 0); the
+  picture CSS turns animations and transitions off. Then ≤ 0.02% of pixels differ from the canvas (HO-04).
+- handoff.md sections follow docs/research/studio-builder-export-2026-10-05.md §6. The usage harness cannot run in the
+  browser (check-usage.mjs reads files with node:fs): the file names `npx zen-usage <Page>.tsx` instead. Open questions:
+  builder pages have no canvas notes yet, so the section says so.
+- Build-check 23/23: Mobile list's pictures on the build (780×2428, 370 KB; its overlay 1440×1280).
