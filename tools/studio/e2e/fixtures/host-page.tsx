@@ -135,8 +135,8 @@ function InstanceFixture() {
 
 /** A list a same-file const holds (`options={views}`): the Inspector edits the const's fields. */
 const views = [
-  { value: "list", label: "List" },
-  { value: "board", label: "Board" },
+  { id: "list", label: "List" },
+  { id: "board", label: "Board" },
 ];
 
 function ConstFixture() {

@@ -293,3 +293,28 @@
 - Gate PASS (.qa/reports/2026-10-07T09-50-16-e54a8cf5.md): 0 errors; the ⚠ are the templates page's existing rhythm /
   outline-siblings (the same lines as the audit before the edits; AiChatBlock row in the Backlog) and its known 90 s
   behaviour budget. Contact sheets templates-390/1512 reviewed.
+
+## Backlog batch 5a: Studio P2 (session "Studio builder tool planning", tier M)
+
+- User: "theo thứ tự" (Studio medium → component P2 → Figma contracts → the decision list). 5a = the Studio P2 rows.
+- Frame Save/Discard: `sourceDrafts.ts` frameLocs reads the frame's React tree too (Zen components keep data-zen-src
+  off the DOM; overlays portal out); `frame-scope.mjs` owns the module-level declarations the owned code names
+  (closure; routers never), list elements inside ExampleMap / keepOnHotUpdate(…) literals, and a router's fallback
+  statement (templates playground: 2237 → 28 of PlatformExamples.tsx's 2409 lines). Real pages: an example owns
+  ~100/812 lines of top-navigation.tsx; chat examples ~45% of chat.tsx (shared messenger code). Selftest 23.
+  An E2E row was dropped: the fixture is itself a draft of the host page, so a frame Discard there reverts the fixture.
+- Remount: reproduced on 5173 (open a thread in chat › Chats inbox, write a prop through the API): Vite "Could not Fast
+  Refresh ("examples" export is incompatible)". Fix: keepOnHotUpdate moved to src/platform/hotData.ts and wraps all 55
+  example pages (script with @babel/parser; one import line each); registry keeps the records (isWideExample);
+  readers re-render on useHotDataVersion, notified after React Refresh (plugin-react's before-refresh hook + a 0 ms
+  timer: a render before the refresh met an unknown type and remounted); example frames keyed by place (a title edit
+  kept remounting); a setDataField write restarts the selected frame (data read into initial state).
+- Effects/CornerRadius (1096) were already built (AppearanceSection); added the spec's Effect settings and the card
+  theme effect row (E2E AP-05, AP-06; layout fixed after a screenshot: the settings toggle in the section header).
+- 312 leftovers: Toast Actions → toggle; Close stays skipped (a no-op handler fails the harness); Toggle has no Figma
+  Subtext property; characterLimit/Help-Text wait for the read.
+- 240: objectStarter.ts (+ for an unset object prop; named types from docs/api via import.meta.glob, E2E IN-18);
+  jsx-source constLiteralFor: shape and setField through a same-file const of ≤ 20 items (selftest +6, E2E IN-19 on a
+  new "E2E const" fixture example, appended last so frame indexes stay).
+- Gate: the first run failed S-01 (React key warning): the new "E2E const" fixture wrote Segmented options with
+  `value` instead of `id` (the fixture is outside tsc). Fixed; S-01 and IN-19 pass. studio:build-check 24/24.

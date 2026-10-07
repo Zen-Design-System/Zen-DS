@@ -604,6 +604,14 @@ removed (four unused colour ramps were, see Removed).
   `useToast()` line those actions brought; moving an item past an identical one says the code stays the same instead of
   "No change"; a slot's + chip no longer covers the selection's size pill. The Studio selftest no longer breaks a
   parallel `tsc` (its samples are excluded) and runs the detach-type selftest.
+- **Zen Studio: frames and examples keep up with edits (2026-10-07, backlog batch 5a):** a frame's Save and Discard
+  take the edits to code it reads outside its JSX (sample data, a column const, a helper, a Zen component that keeps
+  its source line off the DOM, a portalled overlay); an edit to an example page no longer restarts its examples (an
+  opened chat thread stays open: example pages export their list through `keepOnHotUpdate`); a data edit still restarts
+  its frame so new initial data shows. Effects gains Effect settings (the style's layers, read-only) and Card,
+  MetricCard and ChartCard show the effect their theme draws. An unset object prop (EmptyState `secondaryAction`) gets
+  a "+" that writes a starting object, a prop held by a same-file const (`options={views}`) edits that const field by
+  field, and Toast's Figma Actions boolean is a switch.
 - **Docs example fixes (2026-10-07, backlog batch 4):** the Visually Hidden playground shows the invoice table's Archive
   column (its stage widens for the table); AI Chat › "Assistant on a phone" names the screen with its bar title (h1);
   HR · Public holidays' "Holidays in …" is Heading/4 like the other HR sections; the Table playground's Progress column is

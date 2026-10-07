@@ -358,7 +358,7 @@ export const rows = [
       const input = item.locator('[data-prop="label"] input').first();
       await input.fill("Kanban");
       await input.press("Enter");
-      await until(async () => /\{ value: "board", label: "Kanban" \}/.test(await ctx.text()), { message: "views[1].label in the const" });
+      await until(async () => /\{ id: "board", label: "Kanban" \}/.test(await ctx.text()), { message: "views[1].label in the const" });
       return 'const views[1].label → "Kanban"';
     },
   },

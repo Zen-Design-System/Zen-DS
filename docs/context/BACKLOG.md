@@ -242,7 +242,7 @@ Read this file only when picking up work or logging a follow-up.
   rule or a Studio drop warning); (3) Studio E2E rows for drag/group (gestures sent to "Studio builder tool planning");
   (4) the 5173 dev server needs a restart before the Studio item ops `groupItem` / `ungroupItem` work there.
 - **P3 · Input Small text style vs Figma (2026-10-04):** `InputContent` uses Body/Small/Medium for Small, but `fieldTextStyle` (Input.tsx) gives every field but XLarge Body/Base/Medium; check the Figma Input Small content style and align one of them.
-- **P2 · Studio object props, next steps (2026-10-04):** after B2 (`setField`): adding an object to an unset prop
+- **Mostly done 2026-10-07 (batch 5a): the unset prop gets a + (objectStarter.ts; named types read from docs/api, E2E IN-18) and `prop={CONST}` held by a same-file const of up to 20 items edits field by field there (E2E IN-19; its items do not move or go from the inspector); B3 done in GĐ4 M3; B4 (L) and B5 beyond these classes stay open.** P2 · Studio object props, next steps (2026-10-04): after B2 (`setField`): adding an object to an unset prop
   (EmptyState `secondaryAction` "Not set"), editing `prop={CONST}` data held by a
   same-file const (86 props, `editability-audit.mjs --class=data-const`). Then B3 (nested non-boolean props), B4 (override
   for loop-bound/bound/conditional props, 3,087), B5 (tests per class). Add/remove/reorder list items: done 2026-10-04 by
@@ -316,9 +316,11 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - **Studio nested booleans, after the 2026-10-05 fix (session "Nested boolean không hoạt động"):**
   - ~~P2 · Figma-model gaps (fits builder WP-E)~~ mostly done 2026-10-07 (GĐ4 M1): Input Label / Help-Text groups,
     switches for EmptyState CTA and AlertBanner / InlineMessage Action (object written as code), `icon-toggle` for
-    `boolean | IconName` (Dialog, Toast, AlertBanner, InlineMessage icon; Slider / Metric icon). Left: Toast Action /
-    Close and other handler-backed booleans (onClose: needs a builder-dialect handler), Toggle Subtext (no Figma read),
-    characterLimit (`ReactNode | true`: a text field, no switch), Help-Text's Figma names (set not in the capture: M2 read).
+    `boolean | IconName` (Dialog, Toast, AlertBanner, InlineMessage icon; Slider / Metric icon). Left: ~~Toast Action~~
+    (done 2026-10-07, batch 5a: Figma Actions is a toggle writing `{ label: "Action" }`) / Close and other handler-backed
+    booleans (a no-op onClose fails interaction/no-noop-handler: the code says what closing does), Toggle Subtext (the
+    Figma Toggle set has no property for it: `caption` stays a code text row), characterLimit (`ReactNode | true`: a
+    text field, no switch), Help-Text's Figma names (set not in the capture: M2 read).
   - P2 · `scripts/build-api.mjs` drops intersection types: TextAreaField and NumberField list no label/helpText/label*
     props in the docs. The Studio lists them since 2026-10-07 (`inspector/inheritedProps.ts` ALIAS_EXTENDS).
   - P3 (2026-10-07, GĐ4 M1) · A layer switch (Figma boolean) reads the rendered props, so it flips ~0.3–0.5 s after the
@@ -332,24 +334,24 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     ZoomControls `modKey`): an edit to those modules cascades; FramePanel.tsx and frames.ts could import
     board/presentFrame directly so Present.tsx can drop its re-export.
   - P3 · A bound switch reads `false` for one render until DesignPanel's live props arrive.
-  - P2 · Frame toolbar Discard (`tools/studio/frame-scope.mjs` frameRangesOf) misses edits whose JSX lives outside the
+  - **Done 2026-10-07 (batch 5a: a frame owns the module-level declarations its code names, list elements in ExampleMap / keepOnHotUpdate literals, a router's fallback statement; selftest frame-scope 23):** ~~P2 · Frame toolbar Discard (`tools/studio/frame-scope.mjs` frameRangesOf) misses edits whose JSX lives outside the
     frame's own JSX (a column const, a helper, a local component, hrDemo/HrShell): the frame shows no change and no
-    Discard; only the toolbar's file-level Discard removes them. Nested groups now expose such edits ("Written in …").
+    Discard; only the toolbar's file-level Discard removes them. Nested groups now expose such edits ("Written in …").~~
   - P3 · Presence switch off → on in a playground (resetSlot refused there) re-adds the prop at the end of the tag, so a
     reordered draft remains (PlatformMobilePlaygrounds.tsx title).
   - **Done 2026-10-05 (session "Dark/light mode sync và UI present", backlog batch 1):** the three lines removed; Narrow window › Open navigation opens the drawer (Enter and click). Was: P2 · `src/platform/examples/pages/app-shell.tsx:288-291` (untracked; saved 01:38 on 2026-10-05, not by this session)
     has `defaultSidebarCollapsed={false}` `navOpen={false}` `defaultNavOpen` on the StudioApp AppShell: `navOpen={false}`
     locks the drawer, so "Narrow window" › "Open navigation" does nothing (`npm run qa -- --all` behaviour ✗ [apg]).
     Needs the user's call (remove the three lines).
-  - P2 · Any Studio write to an example page remounts its examples (the page's `examples` export is not a Fast Refresh
+  - **Done 2026-10-07 (batch 5a: every examples/pages/*.tsx exports through keepOnHotUpdate (src/platform/hotData.ts); readers re-render after React Refresh; frames keyed by place; a data edit still restarts its frame):** ~~P2 · Any Studio write to an example page remounts its examples (the page's `examples` export is not a Fast Refresh
     boundary): a view reached by interaction (Conversation › Back → Messages) jumps back to its first screen and the
-    selected nested element disappears. The appLayer fix (`keepOnHotUpdate`) shows the way for example pages.
+    selected nested element disappears. The appLayer fix (`keepOnHotUpdate`) shows the way for example pages.~~
   - P3 · `origin` cannot see state that reaches a prop through a render-function parameter (Table cell
     `checked={feature.on}` with rows from useState): it reads bound-value, so a fixed value is offered and locks the toggle.
   - P3 · The "a fixed value applies to all N rows" hint counts every rendered instance (5 frames for
     PlatformChatHeader), not only .map rows.
-  - P3 · Frame Save/Discard: `frameLocs` reads DOM data-zen-src only, which Zen components (TopNavigation, Avatar) do
-    not forward, so their edits count as "outside" the frame (same fix area as the frame Discard item above).
+  - **Done 2026-10-07 (batch 5a: frameLocs also walks the frame's React tree, portalled content included):** ~~P3 · Frame Save/Discard: `frameLocs` reads DOM data-zen-src only, which Zen components (TopNavigation, Avatar) do
+    not forward, so their edits count as "outside" the frame (same fix area as the frame Discard item above).~~
   - P3 · (observed in `npm run qa`, file unchanged since 2026-10-04) list-item › Pending invites › "Revoke invite for
     an.vu@…" reported as a dead click.
   - P3 · While a nested instance is selected, hover still outlines the outer layer that covers it (ListItem's click target).
@@ -1098,10 +1100,10 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - P2 (2026-10-03, session "Slot Component phân biệt"): Figma file — set `Bubble-Chat-Others-Business/Background/Default`
   to Color/Background/Surface/Default in all nine Component Theme modes (repo changed at the user's request); the next
   Component Theme sync reverts it otherwise.
-- P2 (same session): Studio Phase 2 UI not built yet — Effects section (session eye), CornerRadiusField (the Position
+- **Done (checked 2026-10-07, batch 5a):** the Effects section and Corner radius (independent corners) were built in `appearance/AppearanceSection.tsx` (E2E AP-01…03); this batch added the spec's Effect settings (the style's layers, read-only) and the read-only theme effect of Card / MetricCard / ChartCard (E2E AP-05, AP-06). The resize "inset" kind stays a question for the resize owner. Was: ~~P2 (same session): Studio Phase 2 UI not built yet — Effects section (session eye), CornerRadiusField (the Position
   section was built 2026-10-04, see below); waits for the inspector owner's ScaleField + `FieldApi.apply` response
   (`docs/research/studio-position-effects-radius-spec-2026-10-03.md` §4, §6 C–E). Also resize.ts: an "inset" kind for
-  absolute layers (ask the resize owner).
+  absolute layers (ask the resize owner).~~
 - ~~P2 (2026-10-04, session "Cho phép edit element floating", not from its change):~~ **closed 2026-10-07 (backlog cleanup):** done 2026-10-05 (backlog batch 1): Narrow window › Open navigation opens the drawer. Was: behaviour ✗ on app-shell@1512 "Narrow
   window": "Open navigation" does not open with Enter and its click shows no visible effect (APG + dead click). Already
   in `.qa/reports/2026-10-03T17-00-38-710219c7.md` (00:00, before the AppShell measuring fix); fails every gate that
