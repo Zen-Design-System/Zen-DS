@@ -17,6 +17,8 @@ Project: Zen (`t4309893piaszm7`), region Singapore (fbjc).
 ## Deploy
 
 ```bash
+# Install pbc cli
+curl -fsSL https://raw.githubusercontent.com/pocketbasecloud/cli/main/scripts/install.sh | sh
 pbc login                      # once per machine
 pbc environments               # what each environment points at
 pbc deploy                     # → dev
