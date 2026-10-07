@@ -439,7 +439,8 @@ if (failFast) {
 if (studioInScope && !staticFailed.length) {
   say("\n② Studio E2E");
   const t0 = Date.now();
-  const r = run("npm", ["run", "-s", "studio:e2e", "--", ...(QUICK ? ["--only=shell,select,inspector"] : [])], 900000);
+  // 25 min: the full matrix (147 rows, 2026-10-07) runs about 15; it outgrew the 15 min limit it had.
+  const r = run("npm", ["run", "-s", "studio:e2e", "--", ...(QUICK ? ["--only=shell,select,inspector"] : [])], 1500000);
   const summary = r.out.match(/(\d+) works · (\d+) broken/)?.[0] ?? "no summary";
   const regressions = r.out.match(/✗ Regressions[^\n]*/)?.[0];
   const fixed = r.out.match(/✓ Fixed since the baseline[^\n]*/)?.[0];

@@ -217,7 +217,9 @@ Last updated: 2026-10-06.
   `data-e2e="promote-result"`). E2E HO-07 (142 rows); build-check 24 steps (no Promote on the build). **GĐ5 is
   complete** (M1–M5), merged to main (PR #1). Backlog after it (user, 2026-10-07): batch 1 cleanup and batch 2 Studio
   quick fixes done (E2E B-19, 143 rows; data-slot `removeItem { all }`); batch 4 examples/docs P2 done (6 fixed, 10
-  already fixed and closed); the CI Package step stays logged (P2, not approved). About 255 Backlog rows stay open
+  already fixed and closed); batch 5a Studio P2 done (frame Save/Discard ownership, example pages keep state through
+  keepOnHotUpdate in src/platform/hotData.ts, Effect settings, object props: + and same-file consts; E2E 147 rows, the
+  gate's Studio E2E step now has 25 min); the CI Package step stays logged (P2, not approved). About 255 Backlog rows stay open
   (~164 doable, ~80 decisions, 4 blocked, 8 manual).
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.

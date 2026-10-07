@@ -318,3 +318,8 @@
   new "E2E const" fixture example, appended last so frame indexes stay).
 - Gate: the first run failed S-01 (React key warning): the new "E2E const" fixture wrote Segmented options with
   `value` instead of `id` (the fixture is outside tsc). Fixed; S-01 and IN-19 pass. studio:build-check 24/24.
+- Gate reruns: the second was cut off by the gate's 15 min limit (no summary), which left StudioSaveFixture.tsx saved
+  mid-D-02, so the third failed D-01 ("Unsaved · 1 file"). Restored from git; the Studio E2E step's limit is now 25 min
+  (tools/qa/run.mjs; the matrix runs ~15). Both logged in the Backlog (shard the matrix; restore the fixture at start).
+- Gate PASS (.qa/reports/2026-10-07T11-40-19-e54a8cf5.md): Studio E2E 147 works · 0 broken in 946 s (past the old
+  900 s limit); the scoped run before it covered the runtime audit (templates ⚠ pre-existing, same lines as before).
