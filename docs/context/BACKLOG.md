@@ -168,8 +168,8 @@ Read this file only when picking up work or logging a follow-up.
   this Chromium (1194, Playwright 1.63 wants 1243) no longer finds, and chat's emoji picker reports 36 [fit] errors
   (3px wider than their box with the container's emoji font). Both fail the same on 29305b4; check on a desktop run
   before touching the baseline or chat.css.
-- **P3 · side-panel examples coverage (2026-10-07, gate ④):** no edge-case and no mobile example
-  (src/platform/examples/pages/side-panel.tsx).
+- **P3 · side-panel examples coverage (2026-10-07, gate ④):** no edge-case example
+  (src/platform/examples/pages/side-panel.tsx). No mobile one is owed: phones use a BottomSheet (gate ④ exempts it).
 - **P2 · CI "Package" step fails on every run of the 0.4.0 branch (2026-10-07, seen when merging PR #1):** 14 of 14
   finished CI runs since 2026-09-29 failed, almost all in "Package (pack, install in a temp app, budgets, zen-usage,
   MCP, zen-ds)" (twice Browser tests, twice Platform audit); `npm run verify:package` passes locally ("Package OK").

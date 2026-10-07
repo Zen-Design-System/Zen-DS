@@ -461,6 +461,9 @@ const MATRIX = [
   ["mobile", /PlatformPhone|\b(mobile|phone|touch|swipe|tap)\b/i],
   ["keyboard / a11y", /\b(keyboard|screen reader|aria-?\w*|focus\w*|shortcut|a11y|accessib\w*|announce\w*|live region|arrow keys|escape)\b/i],
 ];
+// Matrix rows that do not apply to a page: SidePanel is a desktop surface (phones use a BottomSheet), so it owes no
+// mobile example (user, 2026-10-07).
+const NOT_APPLICABLE = { "side-panel": ["mobile"] };
 const coverage = [];
 const titledEntries = (body, entries) => {
   for (const t of body.matchAll(/\btitle:\s*(["'`])((?:\\.|(?!\1).)*)\1/g)) {
@@ -483,7 +486,7 @@ for (const page of P) {
     titledEntries(arrayAt(src, start + m.index + m[0].length - 1), entries);
   });
   if (!entries.length) { coverage.push({ page, count: 0, missing: [] }); continue; }
-  const missing = MATRIX.filter(([, re]) => !entries.some((e) => re.test(e.text))).map(([n]) => n);
+  const missing = MATRIX.filter(([name, re]) => !NOT_APPLICABLE[page]?.includes(name) && !entries.some((e) => re.test(e.text))).map(([n]) => n);
   const tags = new Set(entries.flatMap((e) => [...e.text.matchAll(/<([A-Z][A-Za-z]+)\b/g)].map((x) => x[1])));
   if (tags.size < 3) missing.push("composition");
   coverage.push({ page, count: entries.length, missing });
