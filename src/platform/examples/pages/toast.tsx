@@ -27,6 +27,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./toast.css";
 
 export const page: PlatformPage = "toast";
@@ -351,7 +352,7 @@ function PhoneToastExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Undo a delete",
     description: "Deleting a file can be undone, so it happens at once and a Neutral toast offers Undo instead of asking first. Undo puts the file back in its place; delete them all and the list says so.",
@@ -443,4 +444,4 @@ const openTab = (next) => {
   </Box>
 </PlatformPhone>`,
   },
-];
+]);

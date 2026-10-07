@@ -26,6 +26,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { TODAY, daysFromToday, files, formatRelative, people, peopleList, projectById, type Person, type PersonId } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./tag.css";
 
 export const page: PlatformPage = "tag";
@@ -322,7 +323,7 @@ function NewGroup() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Reviewers",
     description: "People picked for a review are photo Tags inside the field, each removable with ×. After saving, the field turns Read-only: the tags stay, without × or Add.",
@@ -448,4 +449,4 @@ const [keywords, setKeywords] = useState(["Event website", "Ticketing", "Accessi
   </Form>
 </Card>`,
   },
-];
+]);

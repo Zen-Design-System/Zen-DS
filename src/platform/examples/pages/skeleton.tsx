@@ -28,6 +28,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./skeleton.css";
 
 export const page: PlatformPage = "skeleton";
@@ -385,7 +386,7 @@ function TaskDetailPhoneExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Page loading",
     wide: true,
@@ -502,4 +503,4 @@ export const examples: ExampleDef[] = [
   </Stack>
 </PlatformPhone>`
   },
-];
+]);

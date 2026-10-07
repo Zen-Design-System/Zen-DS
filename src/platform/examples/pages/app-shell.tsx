@@ -44,6 +44,7 @@ import {
   type Invoice, type Person, type PersonId, type Project, type ProjectStatus, type StudioFile, type Task, type TaskStatus, type Team,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./app-shell.css";
 
 export const page: PlatformPage = "app-shell";
@@ -766,7 +767,7 @@ const moreActivity: { id: string; actor: PersonId; verb: string; object: string;
   { id: "a14", actor: "bao", verb: "published", object: "Zen tokens 0.4", at: daysFromToday(-12, 16, 30) },
 ];
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Studio app",
     description: "The frame of the studio's web app: the Sidebar, then a top bar that starts with the collapse toggle and the Breadcrumbs and keeps only utilities on the right (the plan, Notifications with its count, the account menu). Page actions stay in the PageHeader. Beside the default Sidebar every card takes its shadow and no border.",
@@ -950,4 +951,4 @@ const open = (id) => { if (id === root) scrollToTop(); setRoot(id); };
   </Box>
 </PlatformPhone>`,
   },
-];
+]);

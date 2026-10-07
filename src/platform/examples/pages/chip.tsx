@@ -24,6 +24,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./chip.css";
 
 export const page: PlatformPage = "chip";
@@ -299,7 +300,7 @@ function PhoneFiltersExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Task filters",
     description: "One Advanced chip per dimension over the table: Status takes several values and counts them, Priority and Project show the value they hold. Clear all appears once two filters are on, and an empty result offers Clear filters.",
@@ -407,4 +408,4 @@ export const examples: ExampleDef[] = [
   </BottomSheet>
 </PlatformPhone>`,
   },
-];
+]);

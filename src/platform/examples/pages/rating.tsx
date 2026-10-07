@@ -20,6 +20,7 @@ import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { daysFromToday, formatRelative, initials, people, type Person } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./rating.css";
 
 export const page: PlatformPage = "rating";
@@ -385,7 +386,7 @@ function FreelancerListExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Review summary",
     description: "The Metric states the average and its trend once; the read-only RatingDisplay under it shows the same value as stars, fractions allowed, always next to how many ratings it comes from. The bars show how the stars split, and the Version chip switches the whole summary.",
@@ -530,4 +531,4 @@ const low = mood === "disappointed";
   </List>
 </ListBox>`,
   },
-];
+]);

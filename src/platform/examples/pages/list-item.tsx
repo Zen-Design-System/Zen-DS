@@ -30,6 +30,7 @@ import {
   projects, projectStatusTheme, type Person, type PersonId, type StudioFile, type Team,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./list-item.css";
 
 export const page: PlatformPage = "list-item";
@@ -453,7 +454,7 @@ function PhoneSettings() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "People directory",
     wide: true,
@@ -622,4 +623,4 @@ const revoke = (invite) => {
   <DescriptionList divider items={details} />
 </SidePanel>`,
   },
-];
+]);

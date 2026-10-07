@@ -32,6 +32,7 @@ import {
   type Invoice, type LeaveRequest, type LeaveStatus, type Person, type PersonId, type Project, type ProjectStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./page-header.css";
 
 export const page: PlatformPage = "page-header";
@@ -503,7 +504,7 @@ function ExpenseClaims() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "List page",
     description: "The top of a list page: an eyebrow for the app section, the h1, one line on what the page holds, then Tertiary Export and the page's one Primary on the right. On a phone the actions wrap under the title with the Primary first. New invoice adds a draft to the table.",
@@ -632,4 +633,4 @@ export const examples: ExampleDef[] = [
   </EmptyState>
 )}`,
   },
-];
+]);

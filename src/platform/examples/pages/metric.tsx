@@ -29,6 +29,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./metric.css";
 
 export const page: PlatformPage = "metric";
@@ -504,7 +505,7 @@ function PhoneDrillInExample() {
 
 /* ───────────── Examples ───────────── */
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Studio overview",
     wide: true,
@@ -701,4 +702,4 @@ const paid = sumOf(rows, ["Paid"]);
 <IconButton appearance="flat" level="primary" size="md" icon="icon-check-circle-line"
   aria-label={\`Record payment for \${row.number}\`} onClick={() => change(row, "Paid", "Payment recorded")} />`,
   },
-];
+]);

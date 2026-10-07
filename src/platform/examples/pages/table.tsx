@@ -32,6 +32,7 @@ import {
   invoiceStatusTheme, people, projectById, projectStatusTheme, projects, taskStatusTheme, tasks,
   type InvoiceStatus, type Person, type PersonId, type Project, type StudioFile, type TaskStatus,
 } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./table.css";
 
 export const page: PlatformPage = "table";
@@ -507,7 +508,7 @@ function PhoneTimesheetsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Sort by column",
     description: "Sortable headers are buttons with aria-sort: the first press sorts ascending, the next descending, the third returns the team page's own order. Numbers and their header align right.",
@@ -692,4 +693,4 @@ const hours = timesheets.reduce((sum, s) => sum + s.total, 0);
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

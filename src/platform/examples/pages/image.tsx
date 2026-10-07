@@ -28,6 +28,7 @@ import {
   TODAY, daysFromToday, formatBytes, formatDate, formatRelative, initials, people, projectById, type Person, type PersonId,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./image.css";
 
 export const page: PlatformPage = "image";
@@ -427,7 +428,7 @@ function PhoneFeed() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Moodboard strip",
     description: "A strip of Thumbnails picks the large picture. The strip is a radio group with one Tab stop: each Thumbnail sits in a radio button that carries the name, so the Thumbnail itself is alt=\"\", and the arrow keys move the choice. The large Image loads eagerly and its caption adds what the picture can't say.",
@@ -555,4 +556,4 @@ const compactColumns = [photo((item) => \`\${formatBytes(item.bytes)} · \${form
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

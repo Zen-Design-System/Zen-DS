@@ -25,6 +25,7 @@ import {
   activity, daysFromToday, formatDate, formatDue, formatMoney, formatRange, formatRelative, formatTime, initials, invoices, leaveRequests, people,
   projectStatusTheme, projects, type Person, type Project,
 } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./dock-icon.css";
 
 export const page: PlatformPage = "dock-icon";
@@ -285,7 +286,7 @@ function PhoneSpending() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Choose a project type",
     description: "Large Solid Dock Icons lead selectable cards, each kind of work in the colour it has everywhere else in Zen. The mark is decorative because the name sits under it; Create project without a pick moves focus to the types and says what's missing.",
@@ -389,4 +390,4 @@ export const examples: ExampleDef[] = [
 </PlatformPhone>`,
     render: () => <PhoneSpending />,
   },
-];
+]);

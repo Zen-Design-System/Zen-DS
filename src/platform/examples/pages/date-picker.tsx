@@ -26,6 +26,7 @@ import {
   people, projectById, projects, type Invoice, type InvoiceStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./date-picker.css";
 
 export const page: PlatformPage = "date-picker";
@@ -461,7 +462,7 @@ function ReviewScheduleExample() {
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Due date",
     description: "A DateField takes a typed date or opens the calendar on focus; the help text turns the date into what it means for the task. A date that can't be read, or one in the past, is an error on Create task.",
@@ -590,4 +591,4 @@ const [time, setTime] = useState<DatePickerTime>({ from: "14:00", to: "14:30" })
   </Form>
 </PlatformPhone>`,
   },
-];
+]);

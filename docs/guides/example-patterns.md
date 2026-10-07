@@ -142,6 +142,7 @@ Quy tắc layout:
 
 ## 8. Code sample
 
+- File `src/platform/examples/pages/<page>.tsx` export `examples` qua `keepOnHotUpdate(import.meta.hot, "examples", [ … ])` (`src/platform/hotData.ts`). Nhờ vậy một lần sửa (kể cả của Zen Studio) chỉ hot update trang đó, và các example giữ state đang có (thread đang mở, tab đang chọn). Nếu export mảng trần, mỗi lần sửa sẽ chạy lại mọi example từ đầu.
 - Code sample phản ánh đúng phần render: cùng props và cùng component, không có thuộc tính lặp lại (từng có `scale="quota" scale="quota"`).
 - Ghi chú wrapper layout bằng comment trong JSX, ví dụ `{/* display: grid; gap: 12px */}`, thay vì bỏ qua wrapper.
 

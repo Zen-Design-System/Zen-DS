@@ -27,6 +27,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./top-navigation.css";
 
 export const page: PlatformPage = "top-navigation";
@@ -660,7 +661,7 @@ function ModalScreenExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Root and detail",
     description: "A tab root names itself with the large title, its h1, which folds into the bar as the list scrolls. A project opens a dense detail screen in the Compact type: its bar title becomes the h1, its actions are Flat, and the chevron Back returns focus to the row you came from.",
@@ -808,4 +809,4 @@ export const examples: ExampleDef[] = [
   </BottomSheet>
 </PlatformPhone>`,
   },
-];
+]);

@@ -21,6 +21,7 @@ import { PlatformPhone } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { daysFromToday, formatRelative, initials, me, people, peopleList, projectById, studio, TODAY, workspacePlan, type Person, type PersonId } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "avatar";
 
@@ -266,7 +267,7 @@ function ProfilePhoto() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Project people",
     wide: true,
@@ -408,4 +409,4 @@ const themeOf = (name: string) => themes[[...name].reduce((sum, c) => sum + c.ch
   </List>
 </ListBox>`,
   },
-];
+]);

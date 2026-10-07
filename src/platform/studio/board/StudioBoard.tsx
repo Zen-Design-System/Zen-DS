@@ -3,6 +3,8 @@ import { Heading, Text } from "../../../components/Text";
 import { ExampleCard } from "../../PlatformShowcases";
 // From the registry itself: an example edit then hot-updates the board, and Fast Refresh re-renders its frames.
 import { getPageExamples } from "../../examples/registry";
+import { isWideExample } from "../../examples/types";
+import { useHotDataVersion } from "../../hotData";
 import { ComponentApi, ComponentKeyboard, ComponentProps } from "../../PlatformReference";
 import { ComponentGuidelines } from "../../PlatformGuidelines";
 import type { StudioPageParts } from "../bridge";
@@ -262,6 +264,9 @@ function StudioSection({ id, label, count, frames, children }: { id: string; lab
 /** A component page laid out as canvas frames: title; the Playground with one frame per example under it; Docs beside them. */
 export function StudioBoard({ parts }: { parts: StudioPageParts }) {
   const { page } = parts;
+  // An example edit updates the records in place (hotData.ts), so the frames keep their state: render again for the
+  // new code and titles.
+  useHotDataVersion();
   const examples = useMemo(() => getPageExamples(page), [page]);
   const exampleFrames = useMemo(() => examples.map((example, index) => ({ id: `example:${index}`, width: exampleWidth(example) })), [examples]);
   const noteModes = useCanvasNoteModes();
@@ -287,9 +292,10 @@ export function StudioBoard({ parts }: { parts: StudioPageParts }) {
       </StudioFrame>
       {examples.length ? (
         <StudioSection id="examples" label="Examples" count={examples.length} frames={exampleFrames}>
+          {/* Keyed by place, not title: renaming an example keeps its frame (and the state of what it shows). */}
           {examples.map((example, index) => (
-            <StudioFrame key={`${index}-${example.title}`} id={`example:${index}`} kind="example" label={example.title} width={exampleWidth(example)} example={example}>
-              <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={example.wide} screen={example.screen}>{example.render()}</ExampleCard>
+            <StudioFrame key={`example:${index}`} id={`example:${index}`} kind="example" label={example.title} width={exampleWidth(example)} example={example}>
+              <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen}>{example.render()}</ExampleCard>
             </StudioFrame>
           ))}
         </StudioSection>

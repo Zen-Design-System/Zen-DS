@@ -18,6 +18,7 @@ import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { daysFromToday, files, formatBytes, formatRange, formatRelative, initials, people, projectById, studio, type Person, type StudioFile } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./checkbox.css";
 
 export const page: PlatformPage = "checkbox";
@@ -275,7 +276,7 @@ function OfflineProjectsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Select files",
     description: "A selectable Table draws the row checkboxes and the select-all mark, which turns indeterminate while only some rows are picked. Bulk actions appear in the toolbar once something is selected, and Delete can be undone from the Toast.",
@@ -414,4 +415,4 @@ const dirty = Object.keys(saved).some((id) => draft[id] !== saved[id]);
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

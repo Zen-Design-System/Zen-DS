@@ -28,6 +28,7 @@ import {
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./sidebar.css";
 
 export const page: PlatformPage = "sidebar";
@@ -583,7 +584,7 @@ function LinksForRoutingExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Studio navigation",
     description: "The app’s main Sidebar in an AppShell: counters for things to act on, a dot for something new, New project on the Projects title, and Settings and Help in the footer. A task opened from a list keeps that destination selected; below 1024px the shell opens the Sidebar as a drawer.",
@@ -758,4 +759,4 @@ const section = pathname.split("/")[1]; // "/projects/lumen-banking" → "projec
   <Routes />
 </AppShell>`,
   },
-];
+]);

@@ -29,6 +29,7 @@ import {
   taskStatusTheme, type InvoiceStatus, type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./description-list.css";
 
 export const page: PlatformPage = "description-list";
@@ -497,7 +498,7 @@ function PhoneReceipts() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Invoice total",
     description: "An inline list closes the calculation with one emphasised row, the total, under a High rule. The discount keeps its minus sign and sits as a removable label beside its term while the invoice is a draft, so every amount, the total and Send invoice share one end edge; once it is sent, the rows are read-only.",
@@ -687,4 +688,4 @@ const retry = () => { titleRef.current?.focus(); load(opened.id); };
   </Card>
 </Grid>`,
   },
-];
+]);

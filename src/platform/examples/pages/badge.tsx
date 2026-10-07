@@ -27,6 +27,7 @@ import {
   type InvoiceStatus, type Priority, type Task, type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./badge.css";
 
 export const page: PlatformPage = "badge";
@@ -326,7 +327,7 @@ function MobileTasks() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Task status",
     wide: true,
@@ -455,4 +456,4 @@ const caption = (task) => \`\${task.key} · \${task.status === "Done" ? finished
   onPopoverSelect={(item) => setApplied((ids) => [...ids, item.id])}
   onPopoverCreate={createLabel}>Add label</Chip>`,
   },
-];
+]);

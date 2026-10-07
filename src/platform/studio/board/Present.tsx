@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProp
 import { ZenPortalProvider } from "../../../components/Portal";
 import { fullScreenEscapeOwners } from "../../PlatformFullScreen";
 import { PlatformPhoneModesContext } from "../../PlatformPhone";
+import { isWideExample } from "../../examples/types";
 import { ExampleCard } from "../../PlatformShowcases";
 import { PlatformTypographyContext } from "../../PlatformTemplate";
 import { canvasApi } from "../canvas/viewport";
@@ -116,7 +117,7 @@ function PresentLayer({ frame, example, own, onModeChange }: { frame: StudioFram
         <PlatformTypographyContext value={preview.typography}>
           <PlatformPhoneModesContext value={{ density: own.density, typography: own.typography }}>
             <div ref={stageRef} className="studio-present__stage" style={{ "--studio-frame-width": `${width}px` } as CSSProperties}>
-              <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={example.wide} screen={example.screen} presented={example.screen}>{example.render()}</ExampleCard>
+              <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen} presented={example.screen}>{example.render()}</ExampleCard>
             </div>
           </PlatformPhoneModesContext>
         </PlatformTypographyContext>

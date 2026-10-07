@@ -25,6 +25,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./bottom-navigation.css";
 
 export const page: PlatformPage = "bottom-navigation";
@@ -616,7 +617,7 @@ function BrandLabelsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Root destinations",
     description: "Four root screens, one tap apart: the selected destination switches to its solid glyph, each screen's large title folds as it scrolls, and tapping the current one again scrolls back to the top. Home and Projects group their rows, so they are grouped lists on the Surface-Alt screen. The Inbox dot clears once Inbox opens; until then its label says how many are new.",
@@ -760,4 +761,4 @@ const grouped = tab === "menu";
   {screens[tab]}
 </PlatformPhone>`,
   },
-];
+]);

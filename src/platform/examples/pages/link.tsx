@@ -27,6 +27,7 @@ import {
   taskStatusTheme, tasks, type PersonId, type Task,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./link.css";
 
 export const page: PlatformPage = "link";
@@ -473,7 +474,7 @@ function PhoneSignIn() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Links in running text",
     description: "Inside a sentence, links are underlined (underline=\"always\") so they never rely on colour alone, and they take the paragraph's font. as={RouterLink} renders the app's own router link, so the policy and the calendar open in place.",
@@ -568,4 +569,4 @@ const taskRow = (task) => {
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

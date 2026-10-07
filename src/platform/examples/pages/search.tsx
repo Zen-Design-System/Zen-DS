@@ -28,6 +28,7 @@ import {
   projectById, projectStatusTheme, projects, studio, type Invoice, type InvoiceStatus, type Person, type PersonId,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./search.css";
 
 export const page: PlatformPage = "search";
@@ -450,7 +451,7 @@ function ContactImportExample() {
 }
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Filter as you type",
     description: "The directory narrows on every keystroke, by name, role, team or city, and the count under the field is announced. When nothing matches, the Empty State echoes the query and Clear search empties the field and puts focus back in it.",
@@ -616,4 +617,4 @@ const searchRef = useRef<HTMLInputElement>(null);
   </List>
 </ListBox>`,
   },
-];
+]);

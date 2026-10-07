@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { HISTORY_LIMIT, applyHunks, locateHunks, makePatch, upgradeRecords } from "./history";
+import { remountFrameAfterUpdate } from "./board/remount";
 import { askShared, sharedConfirmed } from "./sharedConfirm";
 import { isLocalFile, localDetachPlan, localEdit, localElement, localSource, localWrite } from "./builder/localApi";
 import { canEdit, flushStudioStore, studioStore, useStudio } from "./store";
@@ -393,7 +394,14 @@ function enqueue<T>(task: () => Promise<T>): Promise<T> {
 
 /** Sends an edit; on success pushes an undo record (clears redo). A no-op edit (nothing changed) records nothing. */
 export function applyEdit(request: EditRequest, label: string): Promise<EditResponse> {
-  return enqueue(() => sendEdit(request, label));
+  // A data edit (setDataField) may change what an example only reads into its initial state (a chat's messages): Fast
+  // Refresh keeps that state, so the selected element's frame starts again once the update landed, as for an edit of
+  // an initial value (board/remount.ts). Other edits keep what the examples show (an opened thread, a selected tab).
+  const frameId = request.ops.some((op) => op.op === "setDataField") ? studioStore.getState().selection?.frameId ?? null : null;
+  return enqueue(() => sendEdit(request, label)).then((response) => {
+    if (frameId && response.ok && response.before !== response.after) remountFrameAfterUpdate(frameId, response.file);
+    return response;
+  });
 }
 
 /*

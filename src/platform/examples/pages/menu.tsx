@@ -34,6 +34,7 @@ import {
   projectById, projects, projectStatusTheme, taskStatusTheme, tasks, type Invoice, type PersonId, type Project, type Task,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "menu";
 
@@ -523,7 +524,7 @@ function PhoneFileMenu() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Row actions in a table",
     wide: true,
@@ -657,4 +658,4 @@ const onKeyDown = (event) => {
   </BottomSheet>
 </PlatformPhone>`,
   },
-];
+]);

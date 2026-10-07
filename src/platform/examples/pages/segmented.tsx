@@ -26,6 +26,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./segmented.css";
 
 export const page: PlatformPage = "segmented";
@@ -407,7 +408,7 @@ function PhonePeriodsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Grid or list view",
     description: "Two icon-only segments switch the same files between previews and rows. Each option carries its own aria-label (the icon is decorative), so a screen reader hears “Grid view, pressed”; Tab reaches each segment and Enter or Space picks it.",
@@ -543,4 +544,4 @@ const [period, setPeriod] = useState("monthly");   // what the switch previews
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

@@ -35,6 +35,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { daysFromToday, formatMoney, formatRange, formatRelative, formatTime, initials, leaveRequests, people, projectById, TODAY, type Person } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./chat.css";
 
 export const page: PlatformPage = "chat";
@@ -794,7 +795,7 @@ function FilesPhotosCalls() {
   return <DesktopThread m={m} />;
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Team messenger",
     wide: true,
@@ -957,4 +958,4 @@ const handle = (action, id) => {
   </ChatThread>
 </PlatformPhone>`,
   },
-];
+]);

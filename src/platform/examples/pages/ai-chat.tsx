@@ -17,6 +17,7 @@ import { PlatformPhone } from "../../PlatformPhone";
 import { files, formatBytes, formatDate, formatMoney, formatRange, formatRelative, invoices, leaveRequests, me, people, projectById, studioMonths, type StudioFile } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./ai-chat.css";
 
 export const page: PlatformPage = "ai-chat";
@@ -478,7 +479,7 @@ function PhoneAssistantExample() {
 
 /* ───────────── Examples ───────────── */
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Assistant home",
     screen: true,
@@ -595,4 +596,4 @@ const [editing, setEditing] = useState<number | null>(null);
   )}
 </PlatformPhone>`,
   },
-];
+]);

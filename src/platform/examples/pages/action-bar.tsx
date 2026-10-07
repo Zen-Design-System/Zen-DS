@@ -32,6 +32,7 @@ import {
   type LeaveKind, type LeaveStatus, type Person, type PersonId,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./action-bar.css";
 
 export const page: PlatformPage = "action-bar";
@@ -443,7 +444,7 @@ function PhoneOrderExample() {
 }
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————————
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Footer on a phone",
     description: "In the Phin & Co app a reward's main action leads the footer: Large, full width, Primary on top, Save for later below. The summary says what Redeem depends on, and why it waits when it is disabled; Back returns to the rewards.",
@@ -530,4 +531,4 @@ const decide = (status) => {
   </ListBox>
 </PlatformPhone>`,
   },
-];
+]);

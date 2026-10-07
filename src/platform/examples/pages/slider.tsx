@@ -22,6 +22,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { formatMoney, initials, people, projectById, type PersonId } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./slider.css";
 
 export const page: PlatformPage = "slider";
@@ -336,7 +337,7 @@ function PointsCheckoutExample() {
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Photo zoom",
     description: "Zoom is tuned by eye, so the crop follows the thumb while it moves; the value beside the slider and Reset zoom make the exact state visible and undoable.",
@@ -470,4 +471,4 @@ const total = subtotal - points / 100;
 </PlatformPhone>
 // Points can cover the whole order: then the action places it without a payment.`,
   },
-];
+]);

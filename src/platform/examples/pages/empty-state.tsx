@@ -32,6 +32,7 @@ import {
   TODAY, daysFromToday, files, formatBytes, formatDate, formatDue, formatMoney, formatRelative, initials, people, projectById,
   projects, taskStatusTheme, type Person, type PersonId, type Priority, type StudioFile, type TaskStatus,
 } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./empty-state.css";
 
 export const page: PlatformPage = "empty-state";
@@ -371,7 +372,7 @@ function ClientUploads() {
 }
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————————
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "First run",
     description: "A new page has nothing yet, so the Empty State keeps its illustration and carries the page's only Primary. Once an expense exists the table takes over and Add expense moves to the page header; deleting the last one brings the Empty State back.",
@@ -474,4 +475,4 @@ const retry = () => { load(); refreshRef.current?.focus(); };
 </ListBox>`,
     render: () => <ClientUploads />,
   },
-];
+]);

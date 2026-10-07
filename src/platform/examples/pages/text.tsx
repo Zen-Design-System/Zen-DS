@@ -27,6 +27,7 @@ import {
   tasks, type Person, type PersonId, type Task,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./text.css";
 
 export const page: PlatformPage = "text";
@@ -371,7 +372,7 @@ function PhoneHeadings() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Page outline",
     screen: true,
@@ -469,4 +470,4 @@ export const examples: ExampleDef[] = [
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

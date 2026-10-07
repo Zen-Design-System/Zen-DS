@@ -18,6 +18,7 @@ import { useToast } from "../../../components/Toast";
 import { Toggle, ToggleButton } from "../../../components/Toggle";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { TODAY, daysFromToday, formatDue, formatRelative, formatTime, initials, me, people, studio, taskStatusTheme, type Person, type TaskStatus } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./toggle.css";
 
 export const page: PlatformPage = "toggle";
@@ -268,7 +269,7 @@ function PhoneSettingsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Notification settings",
     description: "A settings page where every switch saves at once, with no Save button. The master toggle pauses everything and disables the rows that depend on it; a Toast offers Undo.",
@@ -414,4 +415,4 @@ const connect = async () => {
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

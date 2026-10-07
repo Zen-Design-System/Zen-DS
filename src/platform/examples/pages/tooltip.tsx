@@ -21,6 +21,7 @@ import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { useToast } from "../../../components/Toast";
 import { activity, formatBytes, formatDate, formatMoney, formatRelative, formatTime, initials, invoiceStatusTheme, invoices, people, type Person } from "../data";
 import { typographyStyles } from "../../../tokens/typography.generated";
+import { keepOnHotUpdate } from "../../hotData";
 import "./tooltip.css";
 
 export const page: PlatformPage = "tooltip";
@@ -243,7 +244,7 @@ function BrandFilm() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Shortcut hints",
     description: "An explicit Tooltip adds the keyboard shortcut to an icon-only button's name; Download keeps the IconButton's own name tooltip. Tooltips open after 1 s of hover, at once on keyboard focus, and the next button along opens without waiting.",
@@ -340,4 +341,4 @@ const playLabel = player.playing ? "Pause" : "Play";
 </Box>`,
     render: () => <BrandFilm />,
   },
-];
+]);

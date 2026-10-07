@@ -20,6 +20,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { files, formatBytes, formatMoney, formatRelative, formatTime, daysFromToday, people, projects, studio } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./divider.css";
 
 export const page: PlatformPage = "divider";
@@ -384,7 +385,7 @@ function MobileReceiptExample() {
 
 // ——— Page ————————————————————————————————————————————————————————————————————————————————————
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Settings sections",
     wide: true,
@@ -488,4 +489,4 @@ export const examples: ExampleDef[] = [
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

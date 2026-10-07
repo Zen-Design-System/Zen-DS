@@ -29,6 +29,7 @@ import {
   type LeaveStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./input.css";
 
 export const page: PlatformPage = "input";
@@ -483,7 +484,7 @@ function TimeOffPhoneExample() {
 }
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Create a project",
     description: "Each value gets the field built for it: text for the name, a Select for one of six clients, calendar dates, steppers for a small count and tags for the team. Errors show when a field is left or the form is submitted, and focus moves to the first one.",
@@ -664,5 +665,5 @@ export const examples: ExampleDef[] = [
   </BottomSheet>
 </PlatformPhone>`,
   },
-];
+]);
 

@@ -35,6 +35,7 @@ import {
   projectStatusTheme, type LeaveKind, type LeaveStatus, type Person, type PersonId, type ProjectStatus, type StudioFile, type Team,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./side-panel.css";
 
 export const page: PlatformPage = "side-panel";
@@ -458,7 +459,7 @@ function InvoicePanelExample() {
 }
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————————
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Open a record",
     description: "A read-only row opens its person in a Modal panel: the whole row is the target, the table waits behind the scrim, and Close, Escape or the scrim put focus back on the row. Headings inside start one level below the panel's h2 title.",
@@ -576,4 +577,4 @@ const requestClose = () => (form.isDirty ? setConfirming(true) : setOpen(false))
   )}
 </SidePanel>`,
   },
-];
+]);

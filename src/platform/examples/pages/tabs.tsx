@@ -30,6 +30,7 @@ import {
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./tabs.css";
 
 export const page: PlatformPage = "tabs";
@@ -512,7 +513,7 @@ function ClientSectionsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Project sections",
     description: "A project page splits into Overview, Tasks, Files and Activity: Indicator tabs with icons in the PageHeader, each paired with a TabPanel. Counts sit in badges and leave at zero; Activity loads the first time it opens.",
@@ -627,4 +628,4 @@ export const examples: ExampleDef[] = [
   <TabPanel idPrefix="profile" id="time-off" hidden={tab !== "time-off"}>…</TabPanel>
 </PlatformPhone>`,
   },
-];
+]);

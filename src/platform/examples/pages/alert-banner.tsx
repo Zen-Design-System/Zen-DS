@@ -28,6 +28,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./alert-banner.css";
 
 export const page: PlatformPage = "alert-banner";
@@ -397,7 +398,7 @@ function OfflinePhoneExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Payment failed",
     description: "A failed payment affects the whole workspace, so the banner sits in the AppShell banner slot and stays on every page. It has no close button: its action opens Billing, and it leaves once the payment goes through.",
@@ -486,4 +487,4 @@ const restore = () => {
   </Box>
 </PlatformPhone>`,
   },
-];
+]);

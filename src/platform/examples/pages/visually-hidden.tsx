@@ -30,6 +30,7 @@ import {
   leaveRequests, leaveStatusTheme, people, projectById, studio, studioMonths, studioTeamHours, tasks, type LeaveRequest, type LeaveStatus, type PersonId,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./visually-hidden.css";
 
 export const page: PlatformPage = "visually-hidden";
@@ -489,7 +490,7 @@ function MonthAtAGlance() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Skip link",
     screen: true,
@@ -607,4 +608,4 @@ export const examples: ExampleDef[] = [
   </Grid>
 </Stack>`,
   },
-];
+]);

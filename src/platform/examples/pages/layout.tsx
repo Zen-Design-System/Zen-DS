@@ -41,6 +41,7 @@ import {
   type Person, type PersonId, type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./layout.css";
 
 export const page: PlatformPage = "layout";
@@ -724,7 +725,7 @@ function StudioEvents() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Main column and aside",
     description: "A project page: the PageHeader, then a Grid of a two-thirds main column and a one-third aside, xl apart as page sections. The task table sits on the page under its heading and Status filter; the aside stacks its cards md apart, and on phones it moves under the main column.",
@@ -1042,4 +1043,4 @@ const rsvp = (event, next) => {
   </Box>
 </PlatformPhone>`,
   },
-];
+]);

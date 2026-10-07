@@ -23,6 +23,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { daysFromToday, formatBytes, formatMoney, formatRange, people, studio } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "uploader";
 
@@ -358,7 +359,7 @@ function PhoneSickLeave() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Kickoff files",
     description: "Several files upload side by side, each with its own progress and time left; the X cancels an upload or removes a file. A failed upload keeps its place with Retry, and a file that is too big or the wrong type is turned away at the field with the reason.",
@@ -443,4 +444,4 @@ export const examples: ExampleDef[] = [
   onFilesAdd={([file]) => upload(file)} onRemove={remove} />
 {/* No onReplace: Replace re-opens the file picker. */}`,
   },
-];
+]);

@@ -23,6 +23,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import { TODAY, daysFromToday, formatDate, formatDay, formatMoney, formatRelative, formatTime, initials, invoiceStatusTheme, invoices, people, projects, type PersonId } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./stepper.css";
 
 export const page: PlatformPage = "stepper";
@@ -564,7 +565,7 @@ function NewHireOnboardingExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "New project",
     wide: true,
@@ -705,4 +706,4 @@ toast({ title: "Invoice approved", children: "INV-2026-0143",
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

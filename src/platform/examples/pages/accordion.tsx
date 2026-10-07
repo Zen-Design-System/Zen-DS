@@ -25,6 +25,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { daysFromToday, formatDate, formatMoney, people, projectStatusTheme, projects, studio, tasks, type Project } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./accordion.css";
 
 export const page: PlatformPage = "accordion";
@@ -408,7 +409,7 @@ function AdvancedOptionsExample() {
 
 // ——— Page ————————————————————————————————————————————————————————————————————————————————————
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Client FAQ",
     description: "A few standalone questions from the client portal in the Box theme, on a card so the Pale boxes stand out from the page. Each one opens on its own, and the first starts open so the card never looks empty.",
@@ -549,4 +550,4 @@ const submit = () => {
 </PlatformPhone>
 /* .summary-title { display: flex; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall); } */`
   },
-];
+]);

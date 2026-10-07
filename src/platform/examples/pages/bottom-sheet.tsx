@@ -28,6 +28,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./bottom-sheet.css";
 
 export const page: PlatformPage = "bottom-sheet";
@@ -483,7 +484,7 @@ function TermsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "File actions",
     description: "The Action type lists what you can do with one file, titled with its name. Copy link and Download run and close; Delete file is marked destructive and comes last, and an Undo in the toast brings the file back.",
@@ -609,4 +610,4 @@ export const examples: ExampleDef[] = [
   </BottomSheet>
 </PlatformPhone>`,
   },
-];
+]);

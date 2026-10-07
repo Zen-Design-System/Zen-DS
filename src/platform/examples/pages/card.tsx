@@ -37,6 +37,7 @@ import {
   projectStatusTheme, tasks, workspacePlan, type InvoiceStatus, type PersonId, type Plan, type PlanId, type Project, type ProjectStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./card.css";
 
 export const page: PlatformPage = "card";
@@ -540,7 +541,7 @@ function PhoneOrderType() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Browse projects",
     wide: true,
@@ -698,4 +699,4 @@ export const examples: ExampleDef[] = [
       </List>}
 </Card>`,
   },
-];
+]);

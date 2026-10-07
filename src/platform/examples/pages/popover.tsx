@@ -29,6 +29,7 @@ import {
   TODAY, daysFromToday, files as studioFiles, formatBytes, formatDate, formatDue, formatRange, formatRelative, leaveRequests, people, projectById,
   projectStatusTheme, projects, tasks, type Person, type StudioFile,
 } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./popover.css";
 
 export const page: PlatformPage = "popover";
@@ -373,7 +374,7 @@ function BulkFileActions() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Assign people",
     description: "A searchable, multi-select list of people with photos that stays open while people are toggled. Someone on leave when the task is due stays in the list, disabled, with the dates as the caption.",
@@ -536,4 +537,4 @@ const fieldRef = useRef<HTMLElement>(null);
 ) : null}`,
     render: () => <BulkFileActions />,
   },
-];
+]);

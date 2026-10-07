@@ -20,6 +20,7 @@ import { Heading, Text } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { TODAY, daysFromToday, formatDate, formatMoney, formatRange, formatRelative, formatTime, invoiceStatusTheme, invoices, people, projectById, type InvoiceStatus } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./radio-button.css";
 
 export const page: PlatformPage = "radio-button";
@@ -293,7 +294,7 @@ function DeliverySlotExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Payment terms",
     description: "Each caption states what the choice means, here the due date it sets. The studio's usual terms are pre-selected; arrow keys move and select within the group, and the group locks once the invoice is sent.",
@@ -421,4 +422,4 @@ const back = () => (draft !== slot ? setAsking(true) : leave());
   </BottomSheet>
 </PlatformPhone>`,
   },
-];
+]);

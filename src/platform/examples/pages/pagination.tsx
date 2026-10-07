@@ -24,6 +24,7 @@ import {
   type InvoiceStatus, type Person, type PersonId,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./pagination.css";
 
 export const page: PlatformPage = "pagination";
@@ -363,7 +364,7 @@ function MobileExhibitorsExample() {
 
 // ——— Page ————————————————————————————————————————————————————————————————————————————————————
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Table footer",
     wide: true,
@@ -465,4 +466,4 @@ const resize = (size: number) => { setPage(Math.floor(((page - 1) * pageSize) / 
   </List>
 </ListBox>`,
   },
-];
+]);

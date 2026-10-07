@@ -30,6 +30,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./button.css";
 
 export const page: PlatformPage = "button";
@@ -430,7 +431,7 @@ function PhoneApproveExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Page actions",
     description: "A project page has one Primary, New task, on the right. Share is Tertiary and rarer actions wait in the More actions menu, so the main action stands out.",
@@ -542,4 +543,4 @@ export const examples: ExampleDef[] = [
   …
 </PlatformPhone>`,
   },
-];
+]);

@@ -29,6 +29,7 @@ import {
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./breadcrumbs.css";
 
 export const page: PlatformPage = "breadcrumbs";
@@ -403,7 +404,7 @@ function MoveToFolderExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "File browser",
     description: "Folders three and more levels deep: the trail sits above the PageHeader title, starts at Files with its icon and ends at the open folder as plain text. Crumbs are links with an href, so they open in a new tab too; the top level shows no trail.",
@@ -492,4 +493,4 @@ export const examples: ExampleDef[] = [
   </Stack>
 </Dialog>`,
   },
-];
+]);

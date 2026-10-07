@@ -18,6 +18,7 @@ import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { projects, type Project } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./color-selector.css";
 
 export const page: PlatformPage = "color-selector";
@@ -280,7 +281,7 @@ function PhoneProjectColourExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Label colour",
     description: "Eight swatches ordered by hue, each a Support/Solid token and each announced by its colour name. Tab reaches the group and the arrow keys move and pick; the preview shows the label as it will look before it is created.",
@@ -373,4 +374,4 @@ const hueOf = (value) => hues.find((hue) => swatch(hue).value === value);
   </FormFieldset>
 </PlatformPhone>`,
   },
-];
+]);

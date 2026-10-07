@@ -20,6 +20,7 @@ import { PlatformPhone } from "../../PlatformPhone";
 import { TODAY, daysFromToday, formatDate, formatMoney, formatRange, formatRelative, people, plans, projectById, workspacePlan } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./progress.css";
 
 export const page: PlatformPage = "progress";
@@ -316,7 +317,7 @@ function LoyaltyStampsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Storage quota",
     description: "Workspace storage uses the Status theme on the quota scale: green while there is room, Warning from 75% and Negative from 90%. Deleting a large file frees space at once, and Undo puts it back.",
@@ -433,4 +434,4 @@ toast({ type: "positive", title: "Export ready", children: \`\${name} · 2.3 MB\
   <List aria-labelledby={visitsId}>{/* recent visits, newest first */}</List>
 </PlatformPhone>`
   },
-];
+]);

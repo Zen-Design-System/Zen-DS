@@ -28,6 +28,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { TODAY, daysFromToday, formatDay, formatMoney, formatTime, people, projectById, type PersonId } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./form.css";
 
 export const page: PlatformPage = "form";
@@ -498,7 +499,7 @@ function PhonePickupExample() {
 }
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————————
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Add a client",
     description: "A create page: useFormState binds every field in one spread and checks a field when you leave it. Add client (or Enter) checks them all, moves focus to the first problem and announces how many need attention; Cancel asks before it drops what you typed.",
@@ -640,4 +641,4 @@ const formId = useId();
   description="INV-2026-0144 for Phin & Co ($24,500.00) is deleted for everyone. This can't be undone."
   primaryAction={{ label: "Delete draft", level: "danger", onClick: remove }} secondaryAction={{ label: "Cancel" }} />`,
   },
-];
+]);
