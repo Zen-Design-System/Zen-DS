@@ -232,3 +232,13 @@
   selected and "New page from this frame" also matched getByRole("New page") (retries hid it): `exact: true` now.
 - Build-check 24/24: the upload on the build, its copy in the linked (OPFS) folder's assets/.
 - Gate PASS (.qa/reports/2026-10-07T08-20-19-e54a8cf5.md, E2E 141 works).
+
+## Studio builder GĐ5 M5 (session "Studio builder tool planning", tier M)
+
+- Continued after M4 (the user asked how long was left). compile.mjs takes `suffix` (Template); promote.mjs plans,
+  writes (atomic; unchanged files are not rewritten; a differing template needs overwrite) and type-checks the file
+  alone with the repo's settings; POST /promote adds the harness (runHarness: style-guard + usage-guard).
+- The E2E server promotes into node_modules/.cache/zen-studio/e2e-promote-<port>/ (never the repo's src/templates/studio).
+  HO-07: Promote → TypeScript ✓ · harness ✓, the photo copied; a local edit to the template → "exists and differs" →
+  Replace → the page's code again.
+- GĐ5 complete: M1 React, M2 HTML, M3 handoff, M4 uploads, M5 Promote.

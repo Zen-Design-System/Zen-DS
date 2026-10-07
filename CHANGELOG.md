@@ -294,6 +294,13 @@ removed (four unused colour ramps were, see Removed).
     handoff zip holds the files. Import pages… now takes a handoff zip too: the page comes back with its photos.
   - A page whose photo this browser lacks (imported alone, from another browser) shows "Missing photo" in its place
     and names it in the status line: select the Image and pick another photo.
+- **Zen Studio export, GĐ5 M5: Promote a page into the repo (2026-10-07):**
+  - On the dev server, an admin's Export panel has **Promote to the repo**: the page becomes
+    `src/templates/studio/<Name>Template.tsx` (one React component, `<Name>Template`), its photos beside it in
+    `src/templates/studio/assets/` (library photos copied, uploaded ones sent from the browser). TypeScript and the usage
+    and style harness run on it; the panel says what they found. No pull request is opened: `npm run ship` does that.
+  - A template that exists and differs (edited in the repo) is replaced only on a second, explicit click (Replace
+    `<Name>Template.tsx`). A build of the Studio (no dev server) does not offer Promote.
 - **Zen Studio instance panel, GĐ4 M4: size and Detach (2026-10-07):**
   - **W / H for an instance** (Inspector › Layout › Size): Hug, Fill or a Fixed px, as in Figma. A component with its
     own size prop or `fullWidth` uses it; any other is wrapped in a Stack that it fills (`<Stack direction="row"

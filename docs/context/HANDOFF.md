@@ -208,7 +208,14 @@ Last updated: 2026-10-06.
   its `src`, exports (htmlExport maps an upload's object URL to `assets/<id>`; handoff code assets from the store),
   Import pages… takes a .zip (its `*.zen.tsx` + the `assets/<id>` the pages name), the linked folder writes / reads
   `assets/<id>` (mirrors.ts). E2E HO-05 (upload → page → canvas → zip → Import in a fresh browser), HO-06 (missing photo
-  → replaced), 141 rows; build-check 24 steps (upload on the build, the folder's assets/). Next: M5 Promote.
+  → replaced), 141 rows; build-check 24 steps (upload on the build, the folder's assets/). M5 done 2026-10-07:
+  `tools/studio/promote.mjs` (planPromotion: compile with suffix "Template", photos from src/assets/media or the
+  request; writePromotion: atomic, a differing template is a conflict unless overwrite; typecheck: a tsconfig in
+  node_modules/.cache extending the repo's, noUnusedLocals, the file only; selftest 12 checks in studio selftest), dev
+  server `POST /promote` (admin, dialect check, `ZEN_STUDIO_PROMOTE_DIR` for the E2E server: lib/server.mjs
+  promoteDirOf), `studioApi.promote`, Export panel secondary action (DEV + admin; Replace on conflict; result line
+  `data-e2e="promote-result"`). E2E HO-07 (142 rows); build-check 24 steps (no Promote on the build). **GĐ5 is
+  complete** (M1–M5).
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers

@@ -1,6 +1,6 @@
 # Studio Builder GĐ5: xuất code React, gói handoff, ảnh tải lên (spec, 2026-10-07)
 
-**Trạng thái: user duyệt 2026-10-07** (Q1 React **và HTML** · Q2 Promote vào `src/templates/studio` · Q3 PNG chụp
+**Trạng thái: user duyệt 2026-10-07 · xong 2026-10-07 (M1–M5)** (Q1 React **và HTML** · Q2 Promote vào `src/templates/studio` · Q3 PNG chụp
 trong trình duyệt · Q4 ảnh lưu trong trình duyệt). GĐ5 của `docs/research/studio-builder-plan-2026-10-05.md`, cụ thể là giai đoạn E1 của
 `docs/research/studio-builder-export-2026-10-05.md`, cộng ảnh tải lên (user chốt 2026-10-06 dời sang GĐ5). GĐ0–GĐ4 và
 GĐ3b đã xong.
@@ -163,6 +163,10 @@ trang builder chưa có ghi chú trên canvas.
 **M4 xong 2026-10-07.** Thay ảnh: chọn Image rồi bấm một ảnh (giống bấm icon thì đổi icon); vì vậy bấm ảnh thư viện khi
 đang chọn Image giờ là thay ảnh, không thêm Image mới. Import nhận cả zip handoff. Thư mục của dev server không giữ ảnh:
 chỉ thư mục liên kết giữ, còn M5 Promote mang ảnh vào repo.
+
+**M5 xong 2026-10-07. GĐ5 hoàn tất.** Component tên `<Name>Template`, header ghi "Promoted by Zen Studio". Template đã
+có mà khác (bị sửa trong repo) thì phải bấm lần hai "Replace" mới ghi đè. E2E ghi vào thư mục riêng
+(`ZEN_STUDIO_PROMOTE_DIR`).
 
 ## 6. File
 
