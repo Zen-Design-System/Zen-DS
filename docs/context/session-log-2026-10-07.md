@@ -367,3 +367,5 @@
   but Warning is Light); contrast 4.72:1 / 7.16:1 under the field, 4.01:1 / 5.88:1 on Negative/Subtle (user's call).
 - Still open from the 5b list: 179(1) fixed-width item in a px column, 183 column-drag E2E row, 424 breadcrumb at
   ~700px with drafts, 463 unsure parts (width menu at 1024, Undo×2, GET /element 404), 438(f).
+- Gate PASS (.qa/reports/2026-10-07T13-31-32-e54a8cf5.md): Studio E2E 152 works · 0 broken in 891 s; audit 1512/390, dark and
+  behaviour 0 new warnings; the AssetsPanel.tsx:153 `size="xs"` usage warning is pre-existing (baselined).
