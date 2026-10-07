@@ -938,7 +938,8 @@ function VisuallyHiddenPlayground() {
       </>}
       code={code}
     >
-      <div className={["pac-vh-stage", reveal ? "pac-vh-reveal" : undefined].filter(Boolean).join(" ")}>
+      {/* The invoice table needs ~670px for its four columns: its stage widens so the Archive column shows. */}
+      <div className={["pac-vh-stage", useCase === "header" ? "pac-vh-stage--table" : undefined, reveal ? "pac-vh-reveal" : undefined].filter(Boolean).join(" ")}>
         {useCase === "header" ? <InvoiceTable archiveNote={false} /> : null}
         {useCase === "skip" ? <>
           <SkipLinkSite skipRef={skipRef} />

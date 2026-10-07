@@ -604,6 +604,11 @@ removed (four unused colour ramps were, see Removed).
   `useToast()` line those actions brought; moving an item past an identical one says the code stays the same instead of
   "No change"; a slot's + chip no longer covers the selection's size pill. The Studio selftest no longer breaks a
   parallel `tsc` (its samples are excluded) and runs the detach-type selftest.
+- **Docs example fixes (2026-10-07, backlog batch 4):** the Visually Hidden playground shows the invoice table's Archive
+  column (its stage widens for the table); AI Chat › "Assistant on a phone" names the screen with its bar title (h1);
+  HR · Public holidays' "Holidays in …" is Heading/4 like the other HR sections; the Table playground's Progress column is
+  Neutral with its % label (Figma Progress-Cell); the chat phones' thread header follows the scroll (its Pale rule once
+  messages run under it); the Accordion playground has a Content width control (Title / Full).
 - **Task priority flags use the Light icon colour (2026-10-06):** the HR Tasks flags (list, board, panel) take their
   family's Content Light (Urgent Negative, High Warning, Medium Info, Low Neutral) through Icon `tone`, instead of the
   Base text colour; Light is the icon level.

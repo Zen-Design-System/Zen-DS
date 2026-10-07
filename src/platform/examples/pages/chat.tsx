@@ -484,9 +484,9 @@ function PhoneMessenger({ m, label, listTitle = "Chats", canvas }: { m: Messenge
   const back = () => screen.go(`.zen-list > li:nth-child(${index + 1}) .zen-list-item__wrapper`, () => m.open(null));
   return (
     <>
-      {/* The thread header (PlatformChatHeader) does not take scrollRef yet, so the thread scrolls under a still bar. */}
-      <PlatformPhone key={conv.id} label={label} canvas={canvas}
-        header={<PlatformChatHeader title={conv.title} subtitle={m.offline ? "Connecting…" : conv.status} person={conv.person} group={conv.group} online={!m.offline && conv.online}
+      {/* The thread is the bar's scroller too: once messages run under the header, it shows its Pale rule. */}
+      <PlatformPhone key={conv.id} label={label} canvas={canvas} screenRef={screenRef}
+        header={<PlatformChatHeader title={conv.title} subtitle={m.offline ? "Connecting…" : conv.status} person={conv.person} group={conv.group} online={!m.offline && conv.online} scrollRef={screenRef}
           onAction={(what) => (what.startsWith("Back") ? back : m.phoneHeaderAction(what))} />}
         footer={<Composer m={m} />}>
         {screen.anchor}
@@ -911,7 +911,7 @@ const handle = (action, id) => {
     title: "First message",
     description: "A new chat says who it is with instead of showing an empty thread, and offers one first step: Say hello sends a 👋. That first message opens the thread, and its Sent turns to Seen when Em answers.",
     render: () => <FirstMessage />,
-    code: `<PlatformPhone header={<PlatformChatHeader title="Em Pham" subtitle="Active today" person={em} onAction={onAction} />}
+    code: `<PlatformPhone screenRef={screenRef} header={<PlatformChatHeader title="Em Pham" subtitle="Active today" person={em} scrollRef={screenRef} onAction={onAction} />}
   footer={<ChatComposer onSend={send} actions={actions} onEmoji={toggleEmoji} />}>
   {messages.length === 0 ? (
     <EmptyState headingLevel={2} icon="icon-message-smile-circle-line" title="No messages yet"
@@ -947,7 +947,7 @@ const handle = (action, id) => {
     title: "Customer support",
     description: "A support chat uses the Business domain on the Canvas background: the time sits inside every bubble and card, and support answers a moment after you write.",
     render: () => <CustomerSupport />,
-    code: `<PlatformPhone canvas="canvas" header={<PlatformChatHeader title="Phin & Co" subtitle="Member support" person={support} onAction={onAction} />}
+    code: `<PlatformPhone canvas="canvas" screenRef={screenRef} header={<PlatformChatHeader title="Phin & Co" subtitle="Member support" person={support} scrollRef={screenRef} onAction={onAction} />}
   footer={<ChatComposer onSend={send} />}>
   <ChatThread aria-label="Messages with Phin & Co">
     <ChatMessage side="others" domain="business" author={support} time="9:58 am">Hi Alex, this is Thảo from Phin & Co. How can I help?</ChatMessage>

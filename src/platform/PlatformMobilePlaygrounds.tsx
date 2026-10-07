@@ -276,6 +276,8 @@ export function ChatPlayground() {
   const [device, setDevice] = useState<string | undefined>("mobile");
   const [names, setNames] = useState(false);
   const demo = useChatDemo();
+  // The phone screen scrolls the thread; the header shows its Pale rule once messages run under it.
+  const screenRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Msg[]>([
     { id: 11, side: "others", text: "Hey! Are you around this afternoon?" },
     { id: 12, side: "you", text: "Yes, free after 2." },
@@ -330,7 +332,7 @@ export function ChatPlayground() {
         {device === "desktop"
           // Desktop = the desktop examples' window: ThreadHeader (Button/Icon-Flat actions) over the thread, desktop Chat-Control.
           ? <div className="pe-chat-desktop pe-chat-desktop--single" data-domain={d}><section className="pe-chat-desktop__main" aria-label="Chat with Ava Chen"><ThreadHeader person={mobilePeople.ava} status="Active 2h ago" actions={headerActions} onAction={(label) => demo.say(`${label} · Ava Chen…`)} />{thread}{composer}</section></div>
-          : <PlatformPhone canvas={d === "business" ? "canvas" : "default"} header={<PlatformChatHeader title="Ava Chen" subtitle="Active 2h ago" person={mobilePeople.ava} onAction={demo.headerAction} />} footer={composer}>{thread}</PlatformPhone>}
+          : <PlatformPhone canvas={d === "business" ? "canvas" : "default"} screenRef={screenRef} header={<PlatformChatHeader title="Ava Chen" subtitle="Active 2h ago" person={mobilePeople.ava} scrollRef={screenRef} onAction={demo.headerAction} />} footer={composer}>{thread}</PlatformPhone>}
         {/* Desktop has no hold: the same actions sit in the Hover toolbar (right-click opens its More menu). */}
         <ChatDemoNote note={demo.note} />
       </div>

@@ -286,8 +286,8 @@ Read this file only when picking up work or logging a follow-up.
     (kickers are Body/Small/Bold Base).
   - Notification rows (desktop Notifications page, phone Notifications) carry "New" but open nothing (static rows).
   - Phone Notifications: after the bell opens the screen, focus lands on Back and its tooltip covers the first row.
-- **P3 · Accordion `contentWidth` follow-ups (2026-10-03, session 2dd655b9):** (1) a Content width control in the
-  Accordion playground (Figma has the property since 2026-10-03); (2) the audit's [rhythm] concentric check measures
+- **P3 · Accordion `contentWidth` follow-ups (2026-10-03, session 2dd655b9):** ~~(1) a Content width control in the
+  Accordion playground (Figma has the property since 2026-10-03)~~ done 2026-10-07 (backlog batch 4: Title / Full); (2) the audit's [rhythm] concentric check measures
   insets inside scaled phones (accordion@390 reports 8 + 5 for 8 + 8).
 - ~~**P2 · List Item on phones (designer decision, 2026-10-03):** interactive rows put their text at Padding/XLarge
   24px while phone page margins are 20px.~~ Done 2026-10-03: Figma List-Item gained Device=Desktop/Mobile (Mobile binds
@@ -385,8 +385,8 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   - **P3 · Wide side content:** tabs › Project sections Overview DescriptionList card, My leaves Next leave card and
     Empty/Error InlineMessage now span up to ~2250px; layout › Main column and aside: the 1/3 aside grows too (fixed
     track option). Cap them if they read too wide.
-  - **P3 · Visually Hidden playground** table: the 520px stage + 64px star column cuts off the Archive column.
-  - **P3 · HrPublicHolidayTemplate** section heading is `<Heading level={2}>` without textStyle Heading/4.
+  - **Done 2026-10-07 (backlog batch 4: the table use case widens its stage to min(680px, 100%)):** ~~**P3 · Visually Hidden playground** table: the 520px stage + 64px star column cuts off the Archive column.~~
+  - **Done 2026-10-07 (backlog batch 4):** ~~**P3 · HrPublicHolidayTemplate** section heading is `<Heading level={2}>` without textStyle Heading/4.~~
 
 - A session does only the task the user approved.
 - Nothing new starts without the user's explicit approval: no new session or task chip, no new rule or check, no fix
@@ -450,7 +450,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     JSX) is not found by detach ("Expected <ListItem>"). (f) 55 static ListItems need multi-step state to render and
     were checked from source only.
   - **P3 · Structural audit warnings new on 2026-10-03 (not from the colour or Detach changes; owners to triage):**
-    ai-chat "Assistant on a phone" has no h1 (outline starts at h2 "What do you need, Alex?"); button "Approve on a
+    ~~ai-chat "Assistant on a phone" has no h1 (outline starts at h2 "What do you need, Alex?")~~ done 2026-10-07 (backlog batch 4: the bar title "Zen AI", as its code sample already had); button "Approve on a
     phone" styles "Chi Tran" heading-4 without a Heading, and "Hand off when ready" has a 2px Stack gap (not a ladder
     step); accordion@390 "Mobile order summary" corner 16px vs trigger 8px + 5px inset; tooltip@390 "Exact time" and
     "Long file names" links are 16–20px tall targets. Report `.qa/reports/2026-10-03T15-48-37-47da80c2.md`.
@@ -604,7 +604,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     fixed); outline-* warnings run by default with their baseline seeded, `rhythm` re-seeded; the gate maps
     `PlatformPhone.tsx`, `PlatformTypographyHierarchy.tsx` and `PlatformMobileShowcases.tsx` helpers to their pages.
     Log: `session-log-2026-09-30.md`.
-  - **P2 · Screens still without an h1 (baselined debt, found by the default-on outline check):** Chat "Desktop
+  - **Done (checked 2026-10-07, backlog batch 4: chat and side-panel pass the outline checks at 1512 and 390):** ~~**P2 · Screens still without an h1 (baselined debt, found by the default-on outline check):**~~ Chat "Desktop
     messenger", "Desktop support (Business)", "Desktop group media", "Reply to any message" (Messenger starts at h3
     "Messages"); Side Panel "Docked inspector". (Sidebar shells fixed 2026-09-30: PageHeader h1 + h2 sections.)
   - **Done 2026-10-01 (user chose option A):** EmptyState `compactTitle` gives a Card you title yourself the ChartCard
@@ -664,15 +664,15 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
 - **Done 2026-10-05 (user: "Xử nốt"):** the post-edit hook warns "Shared file: …" when a session edits a file another session's ledger touched in the last 30 min (lib.recentOtherEdits, once per file per half hour); AGENTS.md "Working alongside other sessions" now states file areas, worktrees, one commit place and --isolated. Was: ~~P1 · Session setup.~~ Give each parallel session its own file area, and a worktree when two sessions touch the same
   files. Commit from one place, at agreed stable points. 8 of 32 QA runs on 28/9 failed, most of them because another
   session was mid-edit.
-- **P2 · Narrow-width example slips** seen in the 390 contact sheets (pre-existing):
+- **Done (checked 2026-10-07, backlog batch 4, 390 shots):** the SSO label fits; "Docked inspector" is a desktop screen example (not shown at 390); "Trailing actions" became "Pending invites" (actions fold into a More menu); the Menu table scrolls sideways to its ⋯ column by design (its description says so) and the Sidebar shells use lists; the Bulk-Action bar is one row of icon buttons. Was: ~~**P2 · Narrow-width example slips** seen in the 390 contact sheets (pre-existing):~~
   - Templates › Sign in: the SSO button label is cut off.
   - Side Panel › "Docked inspector": the panel is clipped.
   - List Item › "Trailing actions": captions wrap to 4 lines.
   - Tables are cut off in narrow cards: Menu › "Row actions in a table" and the Sidebar shells.
   - Popover › "Selection toolbar (Bulk-Action)": at 390 the Delete action wraps to a second row (seen 2026-09-29).
 - **P2 · Audit warnings kept as debt:**
-  - Color Selector › "Brand colour" preview text on the White swatch 2.59:1; Dialog › "Form · Half-Half" field title
-    styled Heading/4 but not a heading (rhythm) — both seen 2026-09-30, pre-existing.
+  - **Done (checked 2026-10-07, backlog batch 4: the Brand colour example is gone; color-selector and dialog audit clean):** ~~Color Selector › "Brand colour" preview text on the White swatch 2.59:1; Dialog › "Form · Half-Half" field title
+    styled Heading/4 but not a heading (rhythm) — both seen 2026-09-30, pre-existing.~~
   - Avatar initials contrast of 2.7–2.9:1 (List Item "BN" / "CT", Sidebar workspace "A", Bottom Sheet share/people
     avatars "DP", "DT", "HC", "RN", "PP" in light and dark, and the same people in the Top Navigation playground
     list; seen 2026-09-30).
@@ -783,9 +783,9 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
     e.g. "WorkspaceInvite team" (Stepper, Checkout, Icon steps).
   - App Shell at 390: the desktop examples keep the sidebar open (the card sets `breakpoint="desktop"`), so `main` is
     16px wide and the PageHeader title breaks one letter per line.
-  - Templates page list at 390: the trailing file name leaves the caption column ~63px wide.
-  - Captions narrower than one word: Sidebar "Flat · knowledge base" (390) and List Item "Trailing actions" (390,
-    Comfortable).
+  - **Done (checked 2026-10-07, backlog batch 4: the file name is part of the caption now):** ~~Templates page list at 390: the trailing file name leaves the caption column ~63px wide.~~
+  - **Done (checked 2026-10-07, backlog batch 4: both examples were reworked, "Handbook with chapters" and "Pending invites" read in full at 390):** ~~Captions narrower than one word: Sidebar "Flat · knowledge base" (390) and List Item "Trailing actions" (390,
+    Comfortable).~~
   - DatePicker at Comfortable (1512 and 390): "September 2026" fills the month button's padding.
 - **P3 · `fit` follow-ups** for its owner "Quy trình kiểm tra Component build" (offline while it was built): review
   `textFit` and the new `audit.mjs` flags `--baseline-update=<kinds>` and `--css=<file>`. Still unchecked: a control
@@ -794,9 +794,9 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   "Docked inspector" card sits under the panel. `overflow` skips these as clipped, and `fit` does not see them.
 - **From the Figma parity update of 2026-09-29** (session log, "Figma parity update"). The designer questions from
   the same run are under Open items.
-  - **Actions column done 2026-10-05 (user: "dùng 40"):** the 5 `TableActions` IconButtons that forced `size="sm"` are md (40px, Figma Actions-Cell Button/Icon-Flat Medium); the Progress-cell theme part stays open. **P2 · Platform Table example vs Figma:** the Actions column uses IconButton sm (32px, 16px icons), while Figma
+  - **Actions column done 2026-10-05 (user: "dùng 40"):** the 5 `TableActions` IconButtons that forced `size="sm"` are md (40px, Figma Actions-Cell Button/Icon-Flat Medium); Progress cell done 2026-10-07 (backlog batch 4: Neutral with its % label, the code sample too). ~~**P2 · Platform Table example vs Figma:** the Actions column uses IconButton sm (32px, 16px icons), while Figma
     Actions-Cell 1603:14291 is Button/Icon-Flat Medium (40px). The Progress column uses `theme="accent"` with no
-    label; Figma Progress-Cell 4081:19726 is Theme=Neutral with its label. `PlatformExamples.tsx:2055–2080`.
+    label; Figma Progress-Cell 4081:19726 is Theme=Neutral with its label. `PlatformExamples.tsx:2055–2080`.~~
   - **P2 · Contract suites for the updated components.** The fresh captures are saved in `docs/figma-contracts/`
     (`segmented-toggle-badge-avatarstack.json`, `input-search-primitives.json` for Search/Popover, and new
     `breadcrumbs.json`, `chat-bubbles.json`, `table-cells.json`), but only Checkbox and Radio have suites. The gap
@@ -950,7 +950,7 @@ The user's rule since 2026-09-29 (also in `AGENTS.md`, "Scope lock"):
   - **Done 2026-10-02 (user: yes) · P2 · Sidebar workspace switcher (APG):** `button.zen-sidebar__workspace-trigger` (aria-haspopup="listbox") opens
     its listbox with Enter but not with ArrowDown or ArrowUp. Seen in the gate on sidebar › Switch workspace,
     2026-10-01; it is a component issue, not that example's.
-  - **P2 · G8 PlatformChatHeader** does not pass `scrollRef` on, so the 6 chat phones cannot follow the scroll rule (R1).
+  - **Done 2026-10-07 (backlog batch 4: PlatformChatHeader takes `scrollRef`; the 5 Messenger threads and the Chat playground pass their screen):** ~~**P2 · G8 PlatformChatHeader** does not pass `scrollRef` on, so the 6 chat phones cannot follow the scroll rule (R1).~~
   - **P3 · G3 harness:** `top-navigation/search-folds-to-action` checks only `collapsed`. A `scrollRef` bar with a
     Search and no `searchAction` passes.
   - **Done 2026-10-02 with G4 · P3 · G5 `largeTitleAction`** could not be reached once the title folded. Figma's folded state shows it in Top-Trailing.

@@ -1,3 +1,4 @@
+import type { RefObject } from "react";
 import { Avatar } from "../components/Avatar";
 import { ChatAvatarGroup, type ChatPerson } from "../components/Chat";
 import { TopNavigation } from "../components/TopNavigation";
@@ -7,12 +8,14 @@ import { TopNavigation } from "../components/TopNavigation";
  * Top-Navigation Type=Default · Margin=Compact — a Tertiary back chevron, the identity (48px Avatar or ChatAvatarGroup
  * Large + name in Body/Extra/Bold + presence in Caption/Regular) and one Tertiary pill holding audio + video call.
  */
-export function PlatformChatHeader({ title, subtitle, person, group, online = false, onAction }: {
+export function PlatformChatHeader({ title, subtitle, person, group, online = false, scrollRef, onAction }: {
   title: string;
   subtitle?: string;
   person?: ChatPerson;
   group?: ChatPerson[];
   online?: boolean;
+  /** The thread's scroller (the phone screen): the bar shows its Pale rule once the thread runs under it (rule R1). */
+  scrollRef?: RefObject<HTMLElement | null>;
   /** Receives a short description of what was tapped (the demos surface it as a note). */
   onAction: (what: string) => () => void;
 }) {
@@ -22,7 +25,7 @@ export function PlatformChatHeader({ title, subtitle, person, group, online = fa
       ? <Avatar size="large" theme={person.src ? "photo" : person.theme ?? "neutral"} background="subtle" src={person.src} alt="" status={online}>{person.src ? null : person.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}</Avatar>
       : undefined;
   return (
-    <TopNavigation margin="compact" title={title} subtitle={subtitle ?? (online ? "Active now" : undefined)} titleLeading={leading}
+    <TopNavigation margin="compact" scrollRef={scrollRef} title={title} subtitle={subtitle ?? (online ? "Active now" : undefined)} titleLeading={leading}
       onTitleClick={onAction(`Open ${title} details`)} titleLabel={`${title}${subtitle ? `, ${subtitle}` : online ? ", active now" : ""}. Open details`}
       leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: onAction("Back to conversations") }}
       trailing={[{ icon: "icon-phone-line", label: "Audio call", group: "call", onClick: onAction(`Calling ${title}`) }, { icon: "icon-video-recorder-line", label: "Video call", group: "call", onClick: onAction(`Starting a video call with ${title}`) }]} />

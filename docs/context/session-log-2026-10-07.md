@@ -276,3 +276,20 @@
 - Gate PASS (.qa/reports/2026-10-07T09-23-28-e54a8cf5.md): Studio selftests, style/usage guard, TypeScript, Studio E2E
   143 works · 0 broken. Not covered in a browser: the list-boolean switch-off path (no TopNavigation in the E2E
   fixture) and the chip/pill move (measured by code only).
+
+## Backlog batch 4: examples/docs P2 (session "Studio builder tool planning", tier S)
+
+- 16 rows approved ("4 · Examples/docs P2"). First an audit (`audit.mjs --quality`, 13 pages × 1512/390) and 390 shots:
+  10 were already fixed by later work and are closed with the evidence (SSO label, Docked inspector, Trailing actions →
+  Pending invites with a More menu, the Menu table scrolls by design, Sidebar shells use lists, Bulk-Action bar, Brand
+  colour example gone, Dialog Half-Half, Templates list caption, chat/side-panel h1s).
+- Fixed: Visually Hidden playground stage `pac-vh-stage--table` min(680px, 100%) (the table is ~664px; Archive was cut);
+  ai-chat phone TopNavigation `title="Zen AI"` (its code sample had it); HrPublicHolidayTemplate h2 Heading/4; Table
+  playground Progress `label`, Neutral (default), code sample too; PlatformChatHeader `scrollRef`, passed by the 5
+  Messenger threads and the Chat playground (all 6 headers `data-scroll-linked`, `data-scrolled` once scrolled); Accordion
+  playground Content width chip.
+- Rebased batch 2 onto main after PR #4 merged (it carried batch 1, PR #2 Google sign-in, PR #3); `npm install` for the
+  new `pocketbase` dependency (AuthGate skips automated browsers, so audits and E2E run as before).
+- Gate PASS (.qa/reports/2026-10-07T09-50-16-e54a8cf5.md): 0 errors; the ⚠ are the templates page's existing rhythm /
+  outline-siblings (the same lines as the audit before the edits; AiChatBlock row in the Backlog) and its known 90 s
+  behaviour budget. Contact sheets templates-390/1512 reviewed.
