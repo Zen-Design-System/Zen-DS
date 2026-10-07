@@ -14,6 +14,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { FIGMA_PROPS } from "./figma-props.map.mjs";
+import { inheritedProps } from "../../src/platform/studio/inspector/inheritedProps.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const OUT = "src/platform/studio/inspector/figmaProps.generated.ts";
@@ -22,8 +23,12 @@ const check = process.argv.includes("--check");
 const figma = JSON.parse(fs.readFileSync(path.join(root, "docs/figma-contracts/component-properties.json"), "utf8"));
 const sets = new Map(figma.pages.flatMap((page) => page.sets.map((set) => [set.name, set])));
 const api = JSON.parse(fs.readFileSync(path.join(root, "src/platform/api.generated.json"), "utf8"));
+const apiEntries = new Map();
+for (const entries of Object.values(api)) for (const entry of entries) if (!apiEntries.has(entry.name)) apiEntries.set(entry.name, entry);
+// A component's props as the Inspector lists them: its own and those its props type takes from another component's
+// (NumberField's label: inspector/inheritedProps.ts).
 const codeProps = new Map();
-for (const entries of Object.values(api)) for (const entry of entries) if (!codeProps.has(entry.name)) codeProps.set(entry.name, new Map(entry.props.map((prop) => [prop.name, String(prop.type ?? "")])));
+for (const entry of apiEntries.values()) codeProps.set(entry.name, new Map([...entry.props, ...inheritedProps(entry, (name) => apiEntries.get(name) ?? null)].map((prop) => [prop.name, String(prop.type ?? "")])));
 
 const SHORT = { "2xsmall": "2xs", xsmall: "xs", small: "sm", medium: "md", large: "lg", xlarge: "xl", "2xlarge": "2xl", "3xlarge": "3xl" };
 /** "Danger Subtle" → danger-subtle, "Medium (Base)" → medium, "XLarge" → xlarge. */

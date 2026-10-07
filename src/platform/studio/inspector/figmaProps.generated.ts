@@ -247,6 +247,15 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Medium": "medium",
           "Small": "small"
         }
+      },
+      {
+        "prop": "background",
+        "label": "Background",
+        "type": "VARIANT",
+        "options": {
+          "Subtle": "subtle",
+          "Solid": "solid"
+        }
       }
     ],
     "toggles": []
@@ -407,6 +416,40 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Medium": "medium",
           "Small": "small",
           "XSmall": "xsmall"
+        }
+      },
+      {
+        "prop": "theme",
+        "label": "Theme",
+        "type": "VARIANT",
+        "options": {
+          "Accent": "accent",
+          "Neutral": "neutral",
+          "Yellow": "yellow",
+          "Orange": "orange",
+          "Red": "red",
+          "Crimson": "crimson",
+          "Pink": "pink",
+          "Plum": "plum",
+          "Purple": "purple",
+          "Violet": "violet",
+          "Indigo": "indigo",
+          "Blue": "blue",
+          "Cyan": "cyan",
+          "Teal": "teal",
+          "Green": "green",
+          "Brown": "brown",
+          "Inverse": "inverse",
+          "On-Color": "on-color"
+        }
+      },
+      {
+        "prop": "background",
+        "label": "Background",
+        "type": "VARIANT",
+        "options": {
+          "Solid": "solid",
+          "Subtle": "subtle"
         }
       }
     ],
@@ -1664,6 +1707,368 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Default": "default",
           "Surface": "surface",
           "Liquid Glass": "liquid-glass"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "NumberField": {
+    "figma": "421:10057",
+    "own": [
+      {
+        "prop": "align",
+        "type": "SET",
+        "options": {
+          "Input/Number-Align-Left": "left",
+          "Input/Number-Align-Center": "center"
+        }
+      },
+      {
+        "prop": "size",
+        "label": "Size",
+        "type": "VARIANT",
+        "options": {
+          "Small": "small",
+          "Medium (Base)": "medium",
+          "Large": "large",
+          "XLarge": "xlarge"
+        }
+      },
+      {
+        "prop": "state",
+        "label": "State",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default",
+          "Hover": "hover",
+          "Focused": "focused",
+          "Typing": "typing",
+          "Inputted": "inputted",
+          "Read-Only": "read-only",
+          "Disabled": "disabled",
+          "Inputted-Error": "inputted-error",
+          "Blank-Error": "blank-error"
+        }
+      }
+    ],
+    "toggles": [
+      {
+        "label": "Help-Text",
+        "prop": "helpText",
+        "on": "Help text"
+      },
+      {
+        "label": "Label",
+        "prop": "label",
+        "on": "Label"
+      }
+    ]
+  },
+  "TextAreaField": {
+    "figma": "450:7027",
+    "own": [
+      {
+        "prop": "size",
+        "label": "Size",
+        "type": "VARIANT",
+        "options": {
+          "Small": "small",
+          "Medium (Base)": "medium",
+          "Large": "large"
+        }
+      },
+      {
+        "prop": "state",
+        "label": "State",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default",
+          "Hover": "hover",
+          "Focused": "focused",
+          "Typing": "typing",
+          "Inputted": "inputted",
+          "Read-Only": "read-only",
+          "Disabled": "disabled",
+          "Inputted-Error": "inputted-error",
+          "Blank-Error": "blank-error"
+        }
+      }
+    ],
+    "toggles": [
+      {
+        "label": "Help-Text",
+        "prop": "helpText",
+        "on": "Help text"
+      },
+      {
+        "label": "Label",
+        "prop": "label",
+        "on": "Label"
+      }
+    ]
+  },
+  "DatePicker": {
+    "figma": "895:31954",
+    "own": [
+      {
+        "prop": "calendar",
+        "type": "SET",
+        "options": {
+          "Date-Picker/Single-Calendar": "single",
+          "Date-Picker/Dual-Calendar": "dual"
+        }
+      },
+      {
+        "prop": "timePicker",
+        "label": "Time-Picker",
+        "type": "BOOLEAN"
+      },
+      {
+        "prop": "showActions",
+        "label": "Actions",
+        "type": "BOOLEAN"
+      }
+    ],
+    "toggles": []
+  },
+  "Stepper": {
+    "figma": "1625:8328",
+    "own": [
+      {
+        "prop": "orientation",
+        "type": "SET",
+        "options": {
+          "Stepper-Bar/Horizontal": "horizontal",
+          "Stepper-Bar/Vertical": "vertical"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "Metric": {
+    "figma": "595:55188",
+    "own": [
+      {
+        "prop": "variant",
+        "type": "SET",
+        "options": {
+          "Primitives/Metric/Metric-Inline/Icon-Highlight": "icon-highlight",
+          "Primitives/Metric/Metric-Inline/Title-Highlight": "title-highlight"
+        }
+      },
+      {
+        "prop": "size",
+        "label": "Size",
+        "type": "VARIANT",
+        "options": {
+          "XLarge": "xlarge",
+          "Large": "large",
+          "Medium": "medium",
+          "Small": "small",
+          "XSmall": "xsmall"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "MetricCard": {
+    "figma": "595:55188",
+    "own": [
+      {
+        "prop": "variant",
+        "type": "SET",
+        "options": {
+          "Primitives/Metric/Metric-Inline/Icon-Highlight": "icon-highlight",
+          "Primitives/Metric/Metric-Inline/Title-Highlight": "title-highlight"
+        }
+      },
+      {
+        "prop": "size",
+        "label": "Size",
+        "type": "VARIANT",
+        "options": {
+          "XLarge": "xlarge",
+          "Large": "large",
+          "Medium": "medium",
+          "Small": "small",
+          "XSmall": "xsmall"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ChatMessage": {
+    "figma": "6349:64085",
+    "own": [
+      {
+        "prop": "showName",
+        "label": "Name",
+        "type": "BOOLEAN"
+      },
+      {
+        "prop": "side",
+        "label": "Side",
+        "type": "VARIANT",
+        "options": {
+          "Others": "others",
+          "You": "you"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ChatBubble": {
+    "figma": "6349:59476",
+    "own": [
+      {
+        "prop": "side",
+        "type": "SET",
+        "options": {
+          "Chat/Bubble/Text-You": "you",
+          "Chat/Bubble/Text-Others": "others"
+        }
+      },
+      {
+        "prop": "domain",
+        "label": "Domain",
+        "type": "VARIANT",
+        "options": {
+          "Social": "social",
+          "Business": "business"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ChatCall": {
+    "figma": "6349:59813",
+    "own": [
+      {
+        "prop": "type",
+        "label": "Type",
+        "type": "VARIANT",
+        "options": {
+          "Audio": "audio",
+          "Video": "video"
+        }
+      },
+      {
+        "prop": "state",
+        "label": "State",
+        "type": "VARIANT",
+        "options": {
+          "In-Call": "in-call",
+          "In-Missed": "in-missed",
+          "Out-Call": "out-call",
+          "Out-Missed": "out-missed"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ChatFile": {
+    "figma": "6182:57708",
+    "own": [
+      {
+        "prop": "kind",
+        "label": "Type",
+        "type": "VARIANT",
+        "options": {
+          "Doc": "doc",
+          "PDF": "pdf",
+          "Sheet": "sheet",
+          "Others": "other"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ChatPhotos": {
+    "figma": "6349:62779",
+    "own": [
+      {
+        "prop": "side",
+        "type": "SET",
+        "options": {
+          "Chat/Bubble/Photo-You": "you",
+          "Chat/Bubble/Photo-Others": "others"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ChatConversationItem": {
+    "figma": "6331:34480",
+    "own": [
+      {
+        "prop": "unread",
+        "label": "Unread",
+        "type": "VARIANT",
+        "options": {
+          "No": "false",
+          "Yes": "true"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "AiChatBubble": {
+    "figma": "4218:1270",
+    "own": [
+      {
+        "prop": "side",
+        "label": "Side",
+        "type": "VARIANT",
+        "options": {
+          "You": "you",
+          "AI": "ai"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "InputConditionItem": {
+    "figma": "373:97437",
+    "own": [
+      {
+        "prop": "state",
+        "label": "State",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default",
+          "Success": "success",
+          "Wrong": "wrong"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ControlBarSelectItem": {
+    "figma": "9021:27379",
+    "own": [
+      {
+        "prop": "icon",
+        "label": "Icon-Src",
+        "type": "INSTANCE_SWAP"
+      },
+      {
+        "prop": "theme",
+        "label": "Theme",
+        "type": "VARIANT",
+        "options": {
+          "Subtle": "subtle",
+          "Solid": "solid",
+          "Inverse": "inverse"
+        }
+      },
+      {
+        "prop": "state",
+        "label": "State",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default",
+          "Hover": "hover",
+          "Selected": "selected"
         }
       }
     ],

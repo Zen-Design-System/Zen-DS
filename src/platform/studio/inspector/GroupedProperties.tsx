@@ -7,7 +7,7 @@ import type { FieldApi } from "./fieldApi";
 import { NestedInstanceGroup } from "./NestedProperties";
 import { useNestedInstances } from "./nestedInstances";
 import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
-import { entryLabel, entryProp, entryShown, entryWarnings, holds, isSetValue, placedProps, type ComponentGroups, type GroupToggle, type PropEntry } from "./propGroups";
+import { entryLabel, entryOptions, entryProp, entryShown, entryWarnings, holds, isSetValue, placedProps, type ComponentGroups, type GroupToggle, type PropEntry } from "./propGroups";
 import { PropField } from "./PropField";
 import { propLabel, type PropSpec, type PropValue } from "./propSchema";
 import { InspectorSection } from "./Section";
@@ -118,6 +118,8 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
     const warnings = new Map(entries.map((entry) => [entryProp(entry), entryWarnings(entry, props)]));
     // A Figma name for the row when the group gives one (generated from the Figma read), else the prop's label.
     const labels = new Map(entries.map((entry) => [entryProp(entry), entryLabel(entry)]));
+    // And its options by their Figma names ("Medium (Base)"), in Figma's order; the file still gets the code value.
+    const optionNames = new Map(entries.map((entry) => [entryProp(entry), entryOptions(entry)]));
     const fields = shown.filter((prop) => !shapedOf.has(prop)).map(specOf).filter((spec): spec is PropSpec => Boolean(spec));
     const objects = shown.flatMap((prop) => (shapedOf.has(prop) ? [shapedOf.get(prop)!] : []));
     const instances = nested.items.filter((item) => shown.includes(item.prop));
@@ -128,6 +130,7 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
             <PropField
               spec={spec}
               label={labels.get(spec.name) ?? propLabel(spec.name, component)}
+              optionLabels={optionNames.get(spec.name)}
               value={api.valueFor(spec.name)}
               disabled={api.disabled}
               boundHint={api.boundHint}

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Link } from "../../../components/Link";
-import { Heading } from "../../../components/Text";
+import { Heading, plural } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { pageLabels } from "../../PlatformApp";
 import type { PlatformPage } from "../../PlatformExamples";
@@ -32,7 +32,7 @@ import { PositionSection, positionProps } from "../position";
 import { ValueCell } from "./PartPanel";
 import { BoundValue, PropField, TextControl, TypographyControl } from "./PropField";
 import {
-  attributeSpec, componentSlug, dataEditable, isLayoutProp, isSkippedProp, kindLabel, layoutComponents, literalOf, nodeKind, propLabel, propSpecs, textComponents, textProps, valueOf,
+  attributeSpec, componentSlug, dataEditable, isLayoutProp, isSkippedProp, kindLabel, layoutComponents, literalOf, nodeKind, propLabel, propSpecs, requiredProps, textComponents, textProps, valueOf,
   type Literal, type PropSpec, type PropValue,
 } from "./propSchema";
 import { InspectorItem, InspectorRow, InspectorSection } from "./Section";
@@ -40,7 +40,8 @@ import { autoGroups, labelInGroup } from "./autoGroups";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { hasSizing, SizingSection, sizingPropNames } from "./SizingSection";
 import { SlotHost, useSlotFilled } from "./SlotHost";
-import { fileName, inspectorStatus, saveShortcut } from "./status";
+import { resetAllProps } from "./resetAll";
+import { fileName, inspectorStatus, saveShortcut, undoShortcut } from "./status";
 import { alignmentHint, hostTextTags, useRenderedText, type RenderedText } from "./textInfo";
 import { displayValueOf, isTwinRow, planPropReset, planPropWrite, restorableBinding, restoreStep, savedWrite, type WritePlan } from "./writePlan";
 import { remountFrameAfterUpdate } from "../board/remount";
@@ -692,6 +693,20 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   // Detach: only for a type the dev server can detach, as an admin, while the server is writable or still connecting.
   const detachOffered = detachShown(element, selection) && role === "admin" && canEdit() && (server.writable || !server.ready);
   const repeats = instances > 1 ? `${editable ? `${instances}× — edits apply to all ${instances}` : `${instances}×`}${detachOffered && rowDetach ? " · Detach changes only this row" : ""}` : null;
+  // Reset all overrides (GĐ4 M1): a Zen instance's design props written as fixed values go back to their defaults in one
+  // request, so one ⌘Z brings them all back; the content stays (resetAll.ts).
+  const resetSpecs = specs.map((spec) => ({ name: spec.name, editor: spec.editor.kind }));
+  const resetNames = element && kind === "zen" && editable ? resetAllProps(element.attributes, resetSpecs, requiredProps(name)) : [];
+  const resetAll = () => {
+    if (!element || !resetNames.length) return;
+    const planFor = (attributes: SourceAttr[]): WritePlan => {
+      const plans = resetAllProps(attributes, resetSpecs, requiredProps(element.name)).map((prop) => planPropReset(element.name, attributes, prop, live));
+      const ops = plans.flatMap((plan) => plan.ops).filter((op, index, all) => all.findIndex((other) => JSON.stringify(other) === JSON.stringify(op)) === index);
+      return { ops, note: plans.find((plan) => plan.note)?.note };
+    };
+    const optimistic = Object.fromEntries(resetNames.map((prop): [string, PropValue] => [prop, { state: "unset" }]));
+    void runPlan(planFor(element.attributes), `${element.name} reset all overrides`, optimistic, (attributes) => planFor(attributes).ops);
+  };
 
   return (
     // Scale fields measure their tokens on the selected element (density, breakpoint and mode applied).
@@ -710,6 +725,18 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
             </span>
           ) : null}
           <span className="studio-inspector__head-actions">
+            {resetNames.length ? (
+              <IconButton
+                icon="icon-reverse-left-line"
+                appearance="flat"
+                level="primary"
+                size="xs"
+                aria-label="Reset all overrides"
+                tooltip={`Reset all overrides · ${plural(resetNames.length, "property", "properties")} back to default · ${undoShortcut} to undo`}
+                className="studio-inspector__head-action"
+                onClick={resetAll}
+              />
+            ) : null}
             {detachOffered ? <DetachAction compact selection={selection} availability={detach} connecting={!server.ready} row={rowDetach} /> : null}
             <RemoveAction compact selection={selection} element={element} editable={editable} />
           </span>

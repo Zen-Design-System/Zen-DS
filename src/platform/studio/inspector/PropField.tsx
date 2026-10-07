@@ -8,6 +8,7 @@ import { contentToneGroups, contentTones, contentToneToken, contentToneVar, reso
 import type { IconName } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { usePendingDraft } from "./drafts";
+import { figmaOptions } from "./propGroups";
 import { allIconNames, dataEditable, dataSourceLabel, fixableBinding, inSentence, matchOption, propLabel, typographyFamily, typographyKeys, type Literal, type PropSpec, type PropValue } from "./propSchema";
 import { ScaleField } from "./controls/ScaleField";
 import { scaleOfType } from "./controls/scale";
@@ -549,13 +550,16 @@ function LiteralValue({ value }: { value: Literal }) {
   return <StaticField text={String(value)} />;
 }
 
+/** A select's options in Figma's order with Figma's names when the row has them (generated groups, propGroups.ts). */
+const namedOptions = (options: string[], names: Readonly<Record<string, string>> | undefined) => (names ? figmaOptions(options, names, matchOption) : { options, labels: undefined });
+
 /** The editor for a value edited at its data (text, number, a choice), showing what it renders now; null: no editor. */
-function dataControl(spec: PropSpec, live: unknown, label: string, disabled: boolean, onSet: (value: Literal) => void): ReactNode {
+function dataControl(spec: PropSpec, live: unknown, label: string, disabled: boolean, onSet: (value: Literal) => void, optionLabels?: Readonly<Record<string, string>>): ReactNode {
   const editor = spec.editor;
   const common = { label, disabled, fallback: undefined };
   switch (editor.kind) {
     case "enum":
-      return <EnumControl {...common} options={editor.options} value={typeof live === "string" ? live : undefined} onSet={onSet} />;
+      return <EnumControl {...common} {...namedOptions(editor.options, optionLabels)} value={typeof live === "string" ? live : undefined} onSet={onSet} />;
     case "number-enum":
       return <NumberEnumControl {...common} options={editor.options} value={typeof live === "number" ? live : undefined} onSet={onSet} />;
     case "number":
@@ -577,7 +581,7 @@ export type PropRestore = { expression: string; onRestore: () => void };
  * The control for a value of the prop's type (enum, number, text, icon…), or null for a kind without an editor. Shared by
  * a written or unset value and a binding a fixed value may replace (its live value shown in the same control).
  */
-function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Literal | null | undefined, common: { label: string; disabled: boolean }, onSet: (value: Literal) => void, extra: { autoFocusToken?: number; onReset?: () => void } = {}): ReactNode {
+function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Literal | null | undefined, common: { label: string; disabled: boolean }, onSet: (value: Literal) => void, extra: { autoFocusToken?: number; onReset?: () => void; optionLabels?: Readonly<Record<string, string>> } = {}): ReactNode {
   const editor = spec.editor;
   switch (editor.kind) {
     case "enum": {
@@ -589,7 +593,7 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
         ? <ToneControl {...common} options={editor.options} value={enumValue} fallback={enumFallback} onSet={onSet} />
         : scale
           ? <ScaleField {...common} prop={spec.name} scale={scale} options={editor.options} value={enumValue} fallback={enumFallback} onSet={onSet} onReset={extra.onReset} />
-          : <EnumControl {...common} options={editor.options} value={enumValue} fallback={enumFallback} onSet={onSet} />;
+          : <EnumControl {...common} {...namedOptions(editor.options, extra.optionLabels)} value={enumValue} fallback={enumFallback} onSet={onSet} />;
     }
     case "number-enum":
       return <NumberEnumControl {...common} options={editor.options} value={typeof literal === "number" ? literal : undefined} fallback={typeof fallback === "number" ? fallback : undefined} onSet={onSet} />;
@@ -621,12 +625,14 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
  * data lives, or a fixed value that ↺ (Restore) turns back into the binding. A value that reads state stays read-only
  * (the keep-behaviour rule), in a field's frame so the column reads the same.
  */
-export function PropField({ spec, value, disabled, onSet, onReset, boundHint, label = propLabel(spec.name), autoFocusToken, resettable = true, restore, repeats, hint }: {
+export function PropField({ spec, value, disabled, onSet, onReset, boundHint, label = propLabel(spec.name), autoFocusToken, resettable = true, restore, repeats, hint, optionLabels }: {
   spec: PropSpec;
   value: PropValue;
   disabled: boolean;
   onSet: (value: Literal) => void;
   onReset: () => void;
+  /** Code value → Figma option name (generated groups): a select lists Figma's options first, by their Figma names. */
+  optionLabels?: Readonly<Record<string, string>>;
   /** Why a bound value is read-only here ("Use Playground properties"): in the ƒ tooltip. */
   boundHint?: string;
   label?: string;
@@ -652,7 +658,7 @@ export function PropField({ spec, value, disabled, onSet, onReset, boundHint, la
     if (dataEditable(value, boundHint) && spec.editor.kind !== "boolean") {
       // A value the code reads from data (a .map row's item, a data const, examples/data.ts): edited where that data is
       // written (op setDataField, FieldApi.setProp), so the binding stays and every place that shows the data changes.
-      const control = dataControl(spec, value.live, label, disabled, onSet);
+      const control = dataControl(spec, value.live, label, disabled, onSet, optionLabels);
       const note = `From ${dataSourceLabel(value.dataSource, value.dataSource.row)}: an edit changes it everywhere it shows.`;
       if (control) return <InspectorRow {...row} bound={{ expression: value.expression, note }}>{control}</InspectorRow>;
     }
@@ -662,7 +668,7 @@ export function PropField({ spec, value, disabled, onSet, onReset, boundHint, la
       const rows = value.origin?.kind === "loop-bound" ? value.origin.rows ?? repeats : repeats;
       const note = rows && rows > 1 ? `An edit sets a fixed value for all ${rows} rows; Restore brings the binding back.` : "An edit sets a fixed value; Restore brings the binding back.";
       const shown = spec.editor.kind === "boolean" ? Boolean(value.live) : live;
-      const control = shown === undefined ? null : editorFor(spec, shown, undefined, { label, disabled }, onSet, { autoFocusToken });
+      const control = shown === undefined ? null : editorFor(spec, shown, undefined, { label, disabled }, onSet, { autoFocusToken, optionLabels });
       if (control) return <InspectorRow {...row} bound={{ expression: value.expression, note }}>{control}</InspectorRow>;
     }
     // State-bound (the keep-behaviour rule), or a playground's: read-only, what it renders now in a field's frame.
@@ -710,7 +716,7 @@ export function PropField({ spec, value, disabled, onSet, onReset, boundHint, la
   let control: ReactNode;
   if (viaSpread && value.live !== undefined && !isLiteral(value.live)) control = <ValueChip value={value.live} />;
   else {
-    control = editorFor(spec, literal, fallback, common, onSet, { autoFocusToken, onReset: value.state === "literal" && resettable && !restore ? onReset : undefined });
+    control = editorFor(spec, literal, fallback, common, onSet, { autoFocusToken, onReset: value.state === "literal" && resettable && !restore ? onReset : undefined, optionLabels });
     if (control === null) {
       control = literal !== undefined && (value.state === "literal" || editor.kind === "string" || editor.kind === "node")
         ? (value.state === "literal" ? <LiteralValue value={literal} /> : <ValueChip value={literal} />)

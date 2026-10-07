@@ -4,6 +4,7 @@ import { normalizeScale, zenScale, type ZenScaleInput } from "../../../component
 import { iconNames } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import type { DataSource, SourceAttr } from "../types";
+import { extendsClauses, inheritedProps, omitOf, ownerOf } from "./inheritedProps";
 
 /*
  * Inspector property schema (spec §6): the generated API docs (src/platform/api.generated.json) give each component's
@@ -305,64 +306,47 @@ const htmlBooleans: Record<string, string[]> = {
   FieldsetHTMLAttributes: ["disabled"],
 };
 
-/** `Omit<X, "a" | "b">` → X and the omitted keys; anything else → itself, nothing omitted. */
-function omitOf(clause: string): { base: string; omitted: Set<string> } {
-  const omit = /^Omit<\s*([\s\S]+?)\s*,\s*([^,]+)>$/.exec(clause.trim());
-  if (!omit) return { base: clause.trim(), omitted: new Set() };
-  const keys = splitUnion(omit[2]).map(stringLiteral).filter((key): key is string => key !== null);
-  return { base: omit[1], omitted: new Set(keys) };
-}
-
 /**
  * The boolean HTML attributes a component inherits through its `extends` clause (ButtonHTMLAttributes → disabled), also
- * through another component's props (Toggle extends ToggleButtonProps), minus Omit<…> keys and the props it declares.
- * A component that fixes the input type (Omit "type": a switch) gets no readOnly, which only text inputs honour.
+ * through another component's props (Toggle extends ToggleButtonProps, NumberField's Omit<InputFieldProps, …>), minus
+ * Omit<…> keys and the props it declares. A component that fixes the input type (Omit "type": a switch) gets no
+ * readOnly, which only text inputs honour.
  */
 function inheritedBooleans(schema: ApiComponent, depth = 0): string[] {
-  if (!schema.extends || depth > 3) return [];
+  if (depth > 3) return [];
   const own = new Set(schema.props.map((prop) => prop.name));
   const out: string[] = [];
-  for (const clause of splitTopLevel(schema.extends)) {
+  for (const clause of extendsClauses(schema)) {
     const { base, omitted } = omitOf(clause);
     const html = /^(\w+HTMLAttributes)</.exec(base)?.[1];
-    const parent = /^(\w+)Props$/.exec(base)?.[1];
+    const parent = ownerOf(base);
     const names = html ? (htmlBooleans[html] ?? []).filter((name) => !(name === "readOnly" && omitted.has("type")))
-      : parent && componentSchema(parent) ? inheritedBooleans(componentSchema(parent)!, depth + 1) : [];
+      : parent && parent !== schema.name && componentSchema(parent) ? inheritedBooleans(componentSchema(parent)!, depth + 1) : [];
     for (const name of names) if (!own.has(name) && !omitted.has(name) && !out.includes(name)) out.push(name);
   }
   return out;
 }
 
-/** Splits an `extends` clause at its top-level commas ("HTMLAttributes<HTMLElement>, LayoutSizingProps"). */
-function splitTopLevel(clause: string): string[] {
-  const parts: string[] = [];
-  let depth = 0;
-  let start = 0;
-  for (let index = 0; index < clause.length; index++) {
-    const char = clause[index];
-    if (char === "<" || char === "(") depth++;
-    else if (char === ">" || char === ")") depth--;
-    else if (char === "," && depth === 0) {
-      parts.push(clause.slice(start, index));
-      start = index + 1;
-    }
-  }
-  parts.push(clause.slice(start));
-  return parts.map((part) => part.trim()).filter(Boolean);
-}
-
 /**
  * Editable props of a component, in API order (deprecated, children, handlers, className/style/ref/key skipped), then
- * the boolean HTML attributes it inherits (disabled, required, readOnly), which Figma shows as boolean properties too.
+ * the props it takes from another Zen component's props type (inheritedProps.ts: NumberField's label, size…), then the
+ * boolean HTML attributes it inherits (disabled, required, readOnly), which Figma shows as boolean properties too.
  */
 export function propSpecs(name: string): PropSpec[] {
   const schema = componentSchema(name);
   if (!schema) return [];
-  const own = schema.props
+  const own = [...schema.props, ...inheritedProps(schema, componentSchema)]
     .filter((prop) => !prop.deprecated && !isSkippedProp(prop.name) && !/^\(.*\) => /.test(prop.type))
     .map((prop): PropSpec => ({ name: prop.name, type: prop.type, description: prop.description, defaultValue: parseDefault(prop.default), editor: editorFor(prop.type) }));
-  const inherited = inheritedBooleans(schema).map((prop): PropSpec => ({ name: prop, type: "boolean", description: `The HTML ${prop} attribute (inherited).`, defaultValue: false, editor: { kind: "boolean" } }));
+  const inherited = inheritedBooleans(schema).filter((prop) => !own.some((spec) => spec.name === prop)).map((prop): PropSpec => ({ name: prop, type: "boolean", description: `The HTML ${prop} attribute (inherited).`, defaultValue: false, editor: { kind: "boolean" } }));
   return [...own, ...inherited];
+}
+
+/** The props a component requires (its own and inherited ones): Reset all overrides never removes them. */
+export function requiredProps(name: string): Set<string> {
+  const schema = componentSchema(name);
+  if (!schema) return new Set();
+  return new Set([...schema.props, ...inheritedProps(schema, componentSchema)].filter((prop) => prop.required).map((prop) => prop.name));
 }
 
 /** An editor for an attribute the API docs do not list (host elements, aria-*, data-*), from its source value. */

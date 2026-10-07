@@ -2518,6 +2518,18 @@ process.stdout.write(propGroups.stdout);
 process.stderr.write(propGroups.stderr);
 if (propGroups.status !== 0) process.exit(1);
 
+// Props a component takes from another component's props type (inspector/inheritedProps.ts): its own test next to it.
+const inherited = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/inspector/inheritedProps.selftest.mjs", import.meta.url))], { encoding: "utf8" });
+process.stdout.write(inherited.stdout);
+process.stderr.write(inherited.stderr);
+if (inherited.status !== 0) process.exit(1);
+
+// Reset all overrides (inspector/resetAll.ts: which written props go back to their default) has its own test next to it.
+const resetAll = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/inspector/resetAll.selftest.mjs", import.meta.url))], { encoding: "utf8" });
+process.stdout.write(resetAll.stdout);
+process.stderr.write(resetAll.stderr);
+if (resetAll.status !== 0) process.exit(1);
+
 // The Position section's model (Ignore auto layout, constraints, token offsets) has its own test next to it.
 const position = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/position/positionModel.selftest.mjs", import.meta.url))], { encoding: "utf8" });
 process.stdout.write(position.stdout);

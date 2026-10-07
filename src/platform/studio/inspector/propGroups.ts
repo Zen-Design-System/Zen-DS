@@ -42,8 +42,9 @@ export type GroupToggle = {
  *  2026-10-04), the warning says why it does nothing right now. */
 export type PropWarning = { when: readonly GroupCondition[]; text: string };
 
-/** `label`: the Figma property name shown for the row (generated groups); else the prop's own label (propSchema). */
-export type PropEntry = string | { prop: string; label?: string; when?: readonly GroupCondition[]; warn?: readonly PropWarning[] };
+/** `label`: the Figma property name shown for the row (generated groups); else the prop's own label (propSchema).
+ *  `options`: code value → the Figma option's name ("medium" → "Medium (Base)"), in Figma's order (generated groups). */
+export type PropEntry = string | { prop: string; label?: string; options?: Readonly<Record<string, string>>; when?: readonly GroupCondition[]; warn?: readonly PropWarning[] };
 
 export type PropGroup = {
   /** The Figma nested layer ("Top-Heading-Text"); absent for the component's own group. */
@@ -149,6 +150,28 @@ export function holds(conditions: readonly GroupCondition[] | undefined, props: 
 
 export const entryProp = (entry: PropEntry) => (typeof entry === "string" ? entry : entry.prop);
 export const entryLabel = (entry: PropEntry) => (typeof entry === "string" ? undefined : entry.label);
+export const entryOptions = (entry: PropEntry) => (typeof entry === "string" ? undefined : entry.options);
+
+/**
+ * A select's options with their Figma names: the options Figma has first, in Figma's order and named as in Figma, then
+ * the ones only the code has, as written. `match` maps a code value onto the editor's option ("medium" → "md").
+ */
+export function figmaOptions(options: readonly string[], names: Readonly<Record<string, string>>, match: (value: string, options: readonly string[]) => string): { options: string[]; labels: Record<string, string> } {
+  const labels: Record<string, string> = {};
+  for (const [value, name] of Object.entries(names)) {
+    const option = match(value, options);
+    if (options.includes(option) && !(option in labels)) labels[option] = name;
+  }
+  const named = Object.keys(labels);
+  return { options: [...named, ...options.filter((option) => !(option in labels))], labels };
+}
+
+/** Figma option name → code value (generated) as code value → name; a set's path ("Button/Main") names it by its last part. */
+function optionNames(options: Readonly<Record<string, string>>, set: boolean): Record<string, string> {
+  const names: Record<string, string> = {};
+  for (const [name, value] of Object.entries(options)) if (!(value in names)) names[value] = set ? name.split("/").at(-1) ?? name : name;
+  return names;
+}
 export const entryShown = (entry: PropEntry, props: Readonly<Record<string, unknown>>) => typeof entry === "string" || holds(entry.when, props);
 /** The warnings of an entry that hold for these rendered props (the field stays; the text says why it does nothing). */
 export const entryWarnings = (entry: PropEntry, props: Readonly<Record<string, unknown>>): string[] =>
@@ -167,7 +190,11 @@ export function placedProps(groups: ComponentGroups): Set<string> {
  */
 export function groupsFromFigma(entry: FigmaPropsEntry): ComponentGroups {
   const toggled = new Set(entry.toggles.map((toggle) => toggle.prop));
-  const row = (item: FigmaPropsEntry["own"][number]): PropEntry => (toggled.has(item.prop) ? { prop: item.prop, label: item.label, when: [set(item.prop)] } : { prop: item.prop, label: item.label });
+  const row = (item: FigmaPropsEntry["own"][number]): PropEntry => {
+    // A Yes/No variant held as a boolean is a switch: its options need no names.
+    const options = item.options && !Object.values(item.options).every((value) => value === "true" || value === "false") ? optionNames(item.options, item.type === "SET") : undefined;
+    return { prop: item.prop, label: item.label, ...(options ? { options } : {}), ...(toggled.has(item.prop) ? { when: [set(item.prop)] } : {}) };
+  };
   // Figma's instance panel: the variants (and which set) first, then the booleans, then instance swaps and texts.
   const variant = (item: FigmaPropsEntry["own"][number]) => item.type === "VARIANT" || item.type === "SET";
   return {

@@ -19,6 +19,25 @@
 const skip = (why) => ({ skip: why });
 const DEVICE = skip("device frame: the platform renders phones and desktops itself");
 const CHILDREN = skip("the label is the element's text (Content section)");
+const HOVER = skip("preview state: hover comes from the pointer");
+const NO_PROP = skip("no code prop");
+
+/** Metric and MetricCard (a card holding a Metric-Inline instance, with the same props). */
+const METRIC = {
+  sets: { "Primitives/Metric/Metric-Inline/Icon-Highlight": "icon-highlight", "Primitives/Metric/Metric-Inline/Title-Highlight": "title-highlight" },
+  setProp: "variant",
+  props: {
+    Trend: skip("the trend is an object: direction and label (Object properties)"),
+    "Metric-Color": NO_PROP,
+    "Metric-Title": skip("the title is the required label"),
+    Counter: NO_PROP,
+    "Dock-Icon": skip("icon={false} hides the dock icon; the icon itself is the Icon row"),
+    Action: skip("a node with no content slot yet"),
+    Hint: NO_PROP,
+    "Label-Icon": NO_PROP,
+    Size: "size",
+  },
+};
 
 export const FIGMA_PROPS = {
   Button: {
@@ -46,7 +65,8 @@ export const FIGMA_PROPS = {
   },
   AvatarStack: {
     sets: { "Avatar/Stack": null },
-    props: { More: "showMore", Size: "size", Background: skip("each avatar's own background"), Number: skip("how many avatars: the items list") },
+    // background reaches every avatar (AvatarStack spreads its Avatar props; inspector/inheritedProps.ts lists them).
+    props: { More: "showMore", Size: "size", Background: "background", Number: skip("how many avatars: the items list") },
   },
   Accordion: {
     sets: { "Accordion/Text": null },
@@ -62,7 +82,8 @@ export const FIGMA_PROPS = {
   },
   BadgeCounter: {
     sets: { "Badge-Counter": null },
-    props: { Text: "value", Size: "size", Theme: skip("inherited from Badge (not in the counter's own props)"), Background: skip("inherited from Badge (not in the counter's own props)") },
+    // Theme and Background come from BadgeProps (inspector/inheritedProps.ts).
+    props: { Text: "value", Size: "size", Theme: "theme", Background: "background" },
   },
   BottomSheet: {
     sets: { "Bottom-Sheet": null },
@@ -277,4 +298,74 @@ export const FIGMA_PROPS = {
     sets: { "AI/Chat-Field": null },
     props: { Model: skip("the model picker is a node (model)"), State: skip("preview state: typing is interaction"), Style: { prop: "fieldStyle", values: { "Liquid Glass": "liquid-glass" } } },
   },
+
+  // GĐ4 M1 (2026-10-07): the components with a Figma set that the first pass left out. NumberField and TextAreaField take
+  // InputField's props through their props type, which api.generated.json does not list (inspector/inheritedProps.ts).
+  NumberField: {
+    sets: { "Input/Number-Align-Left": "left", "Input/Number-Align-Center": "center" },
+    setProp: "align",
+    props: { "Help-Text": { toggle: "helpText", on: "Help text" }, Label: { toggle: "label", on: "Label" }, Size: "size", State: "state" },
+  },
+  TextAreaField: {
+    sets: { "Input/Text-Area": null },
+    props: {
+      "Help-Text": { toggle: "helpText", on: "Help text" },
+      Label: { toggle: "label", on: "Label" },
+      Size: { prop: "size", trust: "Exclude<InputSize, \"xlarge\" | \"xl\">: the docs type names only the excluded sizes" },
+      State: "state",
+    },
+  },
+  DatePicker: {
+    // Date-Picker/Mobile is the device prop (device="mobile"), not a third calendar: left out.
+    sets: { "Date-Picker/Single-Calendar": "single", "Date-Picker/Dual-Calendar": "dual" },
+    setProp: "calendar",
+    props: { "Time-Picker": "timePicker", Actions: "showActions", State: skip("preview state: the month and year list opens from the header") },
+  },
+  Stepper: {
+    sets: { "Stepper-Bar/Horizontal": "horizontal", "Stepper-Bar/Vertical": "vertical" },
+    setProp: "orientation",
+    props: { Items: skip("data slot (steps list)"), Variant: skip("one variant") },
+  },
+  Metric: METRIC,
+  MetricCard: METRIC,
+  ChatMessage: {
+    sets: { "Chat/Conversation/Bubble": null },
+    props: {
+      Name: "showName",
+      "Bubble-Others-Content": skip("the bubble is the message's content"),
+      "Bubble-You-Content": skip("the bubble is the message's content"),
+      Avatar: skip("continued hides it (a run's later messages)"),
+      Sent: skip("the status line is the status prop (a node)"),
+      Side: "side",
+      Reaction: skip("reactions are the reactions list"),
+    },
+  },
+  ChatBubble: {
+    sets: { "Chat/Bubble/Text-You": "you", "Chat/Bubble/Text-Others": "others" },
+    setProp: "side",
+    props: { Hover: HOVER, Reaction: skip("reactions belong to the ChatMessage"), Domain: "domain", Device: skip("the thread's device (ChatThread)") },
+  },
+  ChatCall: {
+    sets: { "Chat/Bubble/Call": null },
+    props: { "Others-Hover": HOVER, "You-Hover": HOVER, Category: skip("the domain is the ChatMessage's"), Type: "type", State: "state" },
+  },
+  ChatFile: {
+    sets: { "Chat/Bubble/File": null },
+    props: { "Others-Hover": HOVER, "You-Hover": HOVER, Reaction: skip("reactions belong to the ChatMessage"), Category: skip("the domain is the ChatMessage's"), Type: { prop: "kind", values: { Others: "other" } } },
+  },
+  ChatPhotos: {
+    sets: { "Chat/Bubble/Photo-You": "you", "Chat/Bubble/Photo-Others": "others" },
+    setProp: "side",
+    props: { Reaction: skip("reactions belong to the ChatMessage"), Domain: skip("the domain is the ChatMessage's"), Device: skip("the thread's device (ChatThread)"), Hover: HOVER },
+  },
+  ChatConversationItem: {
+    sets: { "Chat/Conversation-List/List-Item/Content": null },
+    props: { State: skip("a call row is the call prop (Text: none)"), Unread: { prop: "unread", bool: true } },
+  },
+  AiChatBubble: {
+    sets: { "AI/Chat-Bubble": null },
+    props: { "Chat-Content": skip("the bubble's content"), Items: skip("the actions list"), Side: "side", State: HOVER },
+  },
+  InputConditionItem: { sets: { "Primitives/Input/Input-Conditions/Condition-Item": null }, props: { State: "state" } },
+  ControlBarSelectItem: { sets: { "Control-Bar/Select-Item": null }, props: { "Icon-Src": "icon", Theme: "theme", State: "state" } },
 };

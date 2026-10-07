@@ -1,8 +1,8 @@
 # Studio Builder GĐ4: tuỳ chỉnh instance như Figma (spec, 2026-10-07)
 
-**Trạng thái: chờ user duyệt.** GĐ4 của `docs/research/studio-builder-plan-2026-10-05.md`. GĐ0–GĐ3 đã xong; GĐ1 WP-E đã
-có Figma properties cho 54 component. Spec này đo những gì còn thiếu so với panel instance của Figma (§2), chốt phạm vi,
-và nêu 4 câu hỏi cho user (§8).
+**Trạng thái: user đã duyệt 2026-10-07** (Q2–Q4 theo đề xuất; Q1 xem §8, chốt trước M4). GĐ4 của
+`docs/research/studio-builder-plan-2026-10-05.md`. GĐ0–GĐ3 đã xong; GĐ1 WP-E đã có Figma properties cho 54 component.
+Spec này đo những gì còn thiếu so với panel instance của Figma (§2), chốt phạm vi, và nêu 4 câu hỏi cho user (§8).
 
 ## 1. Mục tiêu và tiêu chí xong
 
@@ -141,3 +141,16 @@ SLOT 59, INSTANCE_SWAP 36 (gần như toàn icon), TEXT 24. BACKLOG đang chờ:
 4. **Reset all overrides** giữ lại những gì:
    - (a) giữ nội dung: children, text bắt buộc, handler, dữ liệu; chỉ gỡ prop thiết kế (đề xuất);
    - (b) gỡ mọi prop không bắt buộc, như một instance mới chèn.
+
+### Trả lời của user (2026-10-07)
+
+- **Q2:** (a) Swap instance qua Quick insert, chế độ thay thế.
+- **Q3:** (a) gợi ý icon đọc từ file Figma.
+- **Q4:** (a) giữ nội dung, chỉ gỡ prop thiết kế.
+- **Q1:** user hỏi cách nào thân thiện hơn. Trả lời: (b) gọn hơn trong Layers và code, nhưng là việc thư viện cỡ L. Đề
+  xuất **(a) kèm 3 chỉnh sửa** để trong Studio không thấy khác biệt:
+  1. Layers gộp Stack bọc vào dòng của instance (như đang gộp div thừa);
+  2. chọn Hug thì gỡ Stack (`unwrap` sẵn có);
+  3. xoá, kéo, nhân bản instance thì Stack bọc đi theo.
+
+  Chỉ còn code xuất ra có thêm lớp Stack. Chờ user chốt trước M4.

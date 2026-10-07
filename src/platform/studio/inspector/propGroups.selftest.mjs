@@ -5,8 +5,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { entryLabel, entryProp, entryShown, entryWarnings, groupsFromFigma, holds, isSetValue, placedProps, propGroupsOf } from "./propGroups.ts";
+import { entryLabel, entryOptions, entryProp, entryShown, entryWarnings, figmaOptions, groupsFromFigma, holds, isSetValue, placedProps, propGroupsOf } from "./propGroups.ts";
 import { FIGMA_PROPS } from "./figmaProps.generated.ts";
+import { normalizeScale } from "../../../components/_shared/scale.ts";
+import { inheritedProps } from "./inheritedProps.ts";
 
 const root = fileURLToPath(new URL("../../../../", import.meta.url));
 const api = JSON.parse(fs.readFileSync(path.join(root, "src/platform/api.generated.json"), "utf8"));
@@ -63,7 +65,9 @@ check("Expand-Trailing boolean only with a large title", [holds(nav.toggles.find
 // the booleans, and an instance-swap row (Leading-Icon-Src) shown only while its boolean's prop is set.
 for (const [name, entry] of Object.entries(FIGMA_PROPS)) {
   const groups = groupsFromFigma(entry);
-  const documented = new Set((apiOf(name)?.props ?? []).map((prop) => prop.name));
+  // Documented: its own props and those its props type takes from another component's (inheritedProps.ts).
+  const schema = apiOf(name);
+  const documented = new Set(schema ? [...schema.props, ...inheritedProps(schema, (other) => apiOf(other) ?? null)].map((prop) => prop.name) : []);
   const rows = [...groups.own, ...groups.after].map(entryProp);
   check(`${name} (Figma): rows are documented props`, rows.filter((prop) => !documented.has(prop)), []);
   check(`${name} (Figma): each prop once`, rows.length, new Set(rows).size);
@@ -77,6 +81,18 @@ for (const [name, entry] of Object.entries(FIGMA_PROPS)) {
   const icon = button.after.find((entry) => entryProp(entry) === "startIcon");
   check("Button (Figma): Leading-Icon-Src only while Leading-Icon is on", [entryShown(icon, {}), entryShown(icon, { startIcon: "icon-check-line" })], [false, true]);
   check("TopNavigation keeps its hand-written groups", propGroupsOf("TopNavigation").nested.length > 0 && !FIGMA_PROPS.TopNavigation, true);
+
+  // Option names (GĐ4 M1): Figma's options first, in Figma's order and by Figma's names; the code value is what gets written.
+  const match = (value, options) => (options.includes(value) ? value : options.find((option) => normalizeScale(option) === normalizeScale(value)) ?? value);
+  const size = button.own.find((entry) => entryProp(entry) === "size");
+  check("Button size: Figma order and names, code-only last", figmaOptions(["2xs", "xs", "sm", "md", "lg", "xl"], entryOptions(size), match), {
+    options: ["xl", "lg", "md", "sm", "xs", "2xs"],
+    labels: { xl: "XLarge", lg: "Large", md: "Medium (Base)", sm: "Small", xs: "XSmall" },
+  });
+  check("Button set: named by the set's last part", entryOptions(button.own[0]), { main: "Main", flat: "Flat", overlay: "Overlay" });
+  check("a Yes/No variant held as a boolean has no option names", entryOptions(groupsFromFigma(FIGMA_PROPS.Accordion).own.find((entry) => entryProp(entry) === "expanded")), undefined);
+  check("SkeletonShape size keeps Figma's px names", entryOptions(groupsFromFigma(FIGMA_PROPS.SkeletonShape).own.find((entry) => entryProp(entry) === "size")).large, "Large - 48px");
+  check("no option names: the options as they are", figmaOptions(["a", "b"], {}, match), { options: ["a", "b"], labels: {} });
 }
 
 if (failures.length) {
