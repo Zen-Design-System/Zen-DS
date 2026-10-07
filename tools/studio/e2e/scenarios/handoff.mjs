@@ -1,7 +1,67 @@
 // Handoff rows (Studio builder GĐ5, spec docs/research/studio-builder-handoff-spec-2026-10-07.md): a builder page
 // exported as React code (tools/studio/compile.mjs) or as its design file, from the Export panel.
-import { sleep, until } from "../lib/studio.mjs";
+import fs from "node:fs";
+import { unzipFiles } from "../../zip.mjs";
+import { showLeftTab, sleep, until } from "../lib/studio.mjs";
 import { newPage, pageText } from "./builder.mjs";
+
+/** A phone page with every kind of frame the HTML export writes: a screen, its state variant, an overlay; a photo, a form. */
+const HTML_PAGE = `// @zen-page {"format":1,"title":"HTML check"}
+import { Board, Overlay, Screen, proto } from "@zen/design-system/builder";
+import { Badge, Button, Checkbox, Dialog, EmptyState, Image, InputField, List, ListItem, Stack, Text } from "@zen/design-system";
+
+export const mock = { team: "Design", people: [{ name: "Ava Tran", role: "Designer" }, { name: "Bao Le", role: "Engineer" }] };
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="people" title="People" device="phone">
+        <Stack gap="md" padding="lg">
+          <Text textStyle="Heading/3">{mock.team}</Text>
+          <Badge>2 people</Badge>
+          <List>
+            {mock.people.map((person) => <ListItem title={person.name} caption={person.role} />)}
+          </List>
+          <Image src="zen-media:site-cafe" alt="Office" />
+          <InputField label="Name" defaultValue="Ava" />
+          <Checkbox label="Notify the team" defaultChecked />
+          <Button level="primary" onClick={proto.open("invite")}>Invite</Button>
+        </Stack>
+      </Screen>
+      <Screen id="people" state="empty" title="People" device="phone">
+        <EmptyState title="No people yet" />
+      </Screen>
+      <Overlay id="invite">
+        <Dialog title="Invite people" primaryAction={{ label: "Send", onClick: proto.close() }} />
+      </Overlay>
+    </Board>
+  );
+}
+`;
+
+/** Imports HTML_PAGE (Pages › Import) and opens it; returns its id. */
+async function importHtmlPage(page) {
+  const id = `html-check-${Date.now().toString(36)}`;
+  await showLeftTab(page, "pages");
+  await page.locator('[data-e2e="import-pages"]').setInputFiles({ name: `${id}.zen.tsx`, mimeType: "text/plain", buffer: Buffer.from(HTML_PAGE, "utf8") });
+  await until(async () => decodeURIComponent(page.url()).includes(`page=local:${id}`), { timeout: 10_000, message: "the imported page opened" });
+  await page.locator('[data-studio-frame="overlay:invite"]').waitFor({ state: "attached", timeout: 10_000 });
+  return id;
+}
+
+/** The HTML tab of the Export panel, once its files are listed; then the zip it downloads, unpacked. */
+async function htmlExport(page) {
+  const panel = await openExport(page);
+  await panel.getByRole("button", { name: "HTML", exact: true }).click();
+  await until(async () => /screens\/people\.html/.test(await panel.innerText()), { timeout: 20_000, message: "the HTML files listed" });
+  const shown = await panel.innerText();
+  const downloading = page.waitForEvent("download");
+  await panel.getByRole("button", { name: /^Download .*-html\.zip$/ }).click();
+  const download = await downloading;
+  const files = new Map(unzipFiles(new Uint8Array(fs.readFileSync(await download.path()))).map((file) => [file.path, file.data]));
+  return { panel, shown, name: download.suggestedFilename(), files };
+}
+const text = (files, path) => new TextDecoder().decode(files.get(path));
 
 /** Opens the Export panel from the page's Inspector panel (nothing selected). */
 async function openExport(page) {
@@ -32,6 +92,114 @@ export const rows = [
       await page.keyboard.press("Escape");
       await sleep(200);
       return `ExportCheckPage (${react.split("\n").length} lines) copied; design file = the stored page`;
+    },
+  },
+  {
+    id: "HO-02", feature: "Export as HTML: each frame's markup without the Studio's attributes, styles.css with the Zen rules it uses, the photo and font in the zip", wp: "GĐ5 M2",
+    timeout: 60_000,
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const id = await importHtmlPage(page);
+      const { shown, name, files } = await htmlExport(page);
+      if (!/<link rel="stylesheet" href="\.\.\/styles\.css">/.test(shown)) throw new Error(`the screen's file in the panel:\n${shown.slice(0, 600)}`);
+      if (name !== `${id}-html.zip`) throw new Error(`the zip is named ${name}`);
+      const expected = ["index.html", "screens/people.html", "screens/people.empty.html", "screens/overlay-invite.html", "styles.css", "assets/site-cafe.webp"];
+      const missing = expected.filter((path) => !files.has(path));
+      if (missing.length) throw new Error(`the zip lacks ${missing.join(", ")} (it has ${[...files.keys()].join(", ")})`);
+      const fonts = [...files.keys()].filter((path) => /^fonts\/.*\.woff2$/.test(path));
+      if (!fonts.length) throw new Error("no font file in the zip");
+      const people = text(files, "screens/people.html");
+      const leaks = ["data-zen-src", "data-zen-name", "data-studio", "studio-builder", "data-export-frame"].filter((word) => people.includes(word));
+      if (leaks.length) throw new Error(`Studio attributes left in the markup: ${leaks.join(", ")}`);
+      const markup = ['class="screen"', 'src="../assets/site-cafe.webp"', 'value="Ava"', "Ava Tran", "Bao Le", "checked"].filter((word) => !people.includes(word));
+      if (markup.length) throw new Error(`screens/people.html lacks ${markup.join(", ")}`);
+      if (!/class="[^"]*zen-dialog/.test(text(files, "screens/overlay-invite.html"))) throw new Error("the overlay's file has no open Dialog");
+      const css = text(files, "styles.css");
+      const rules = [".zen-button", ".zen-list-item", ".zen-dialog", "@font-face", "--zen-color-", '[data-theme="dark"]'].filter((word) => !css.includes(word));
+      if (rules.length) throw new Error(`styles.css lacks ${rules.join(", ")}`);
+      const foreign = [".studio-", ".platform-", ".pe-card"].filter((word) => css.includes(word));
+      if (foreign.length) throw new Error(`styles.css holds Studio or docs rules: ${foreign.join(", ")}`);
+      if (/\.zen-table\b/.test(css)) throw new Error("styles.css holds the Table's rules, which no screen uses");
+      await page.keyboard.press("Escape");
+      return `${files.size} files (${fonts.join(", ")}); styles.css ${Math.round(css.length / 1024)} KB; markup clean`;
+    },
+  },
+  {
+    id: "HO-03", feature: "Each exported HTML frame looks like its frame on the canvas at 100% (pixel comparison)", wp: "GĐ5 M2",
+    timeout: 120_000,
+    async run(ctx) {
+      // A viewport the phone frames and the overlay fit at 100%.
+      const session = await ctx.studio({ viewport: { width: 1700, height: 1300 } });
+      const { page, context } = session;
+      try {
+        await importHtmlPage(page);
+        const { files } = await htmlExport(page);
+        await page.keyboard.press("Escape");
+        await sleep(300);
+        const origin = new URL(page.url()).origin;
+        const view = await context.newPage();
+        await view.route(`${origin}/__html-export/**`, (route) => {
+          const path = decodeURIComponent(new URL(route.request().url()).pathname.replace(/^\/__html-export\//, ""));
+          const body = files.get(path);
+          const type = path.endsWith(".html") ? "text/html" : path.endsWith(".css") ? "text/css" : path.endsWith(".webp") ? "image/webp" : path.endsWith(".woff2") ? "font/woff2" : "application/octet-stream";
+          return body ? route.fulfill({ status: 200, contentType: type, body: Buffer.from(body) }) : route.fulfill({ status: 404, body: "" });
+        });
+        const results = [];
+        for (const [frame, file] of [["screen:people", "screens/people.html"], ["screen:people:empty", "screens/people.empty.html"], ["overlay:invite", "screens/overlay-invite.html"]]) {
+          // The canvas at 100% on that frame (its label selects it, ⇧2 centres it, ⇧0 sets 100% around the centre),
+          // nothing selected.
+          await page.locator(`.studio-frame-label[data-chrome-key="label:${frame}"]`).evaluate((element) => element.click());
+          await page.keyboard.press("Shift+2");
+          await sleep(500);
+          await page.keyboard.press("Shift+0");
+          await sleep(700);
+          await page.keyboard.press("Escape");
+          await page.mouse.move(2, 2);
+          const element = page.locator(`[data-studio-frame="${frame}"]`);
+          await element.evaluate((node) => Promise.all([...node.querySelectorAll("img")].map((img) => (img.complete ? null : new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; })))));
+          await sleep(300);
+          const box = await element.boundingBox();
+          const width = Math.round(box.width);
+          const height = Math.round(box.height);
+          const zoom = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--studio-zoom") || "");
+          const canvasShot = await page.screenshot({ clip: { x: box.x, y: box.y, width, height } });
+          await view.setViewportSize({ width, height });
+          await view.goto(`${origin}/__html-export/${file}`);
+          await view.evaluate(() => Promise.all([document.fonts.ready, ...[...document.images].map((img) => (img.complete ? null : new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; })))]));
+          await sleep(200);
+          const htmlShot = await view.screenshot({ clip: { x: 0, y: 0, width, height } });
+          // Pixels that differ by more than 24 in a channel, outside the frame's rounded corners and its 2 px edge.
+          const diff = await view.evaluate(async ([a, b]) => {
+            const load = (data) => new Promise((resolve) => { const img = new Image(); img.onload = () => resolve(img); img.src = `data:image/png;base64,${data}`; });
+            const [one, two] = await Promise.all([load(a), load(b)]);
+            const pixels = (img) => { const canvas = document.createElement("canvas"); canvas.width = img.width; canvas.height = img.height; const g = canvas.getContext("2d"); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+            const p = pixels(one);
+            const q = pixels(two);
+            const w = Math.min(one.width, two.width);
+            const h = Math.min(one.height, two.height);
+            let counted = 0;
+            let differing = 0;
+            for (let y = 2; y < h - 2; y += 1) for (let x = 2; x < w - 2; x += 1) {
+              const corner = (x < 18 || x >= w - 18) && (y < 18 || y >= h - 18);
+              if (corner) continue;
+              counted += 1;
+              const i = (y * one.width + x) * 4;
+              const j = (y * two.width + x) * 4;
+              if (Math.abs(p[i] - q[j]) > 24 || Math.abs(p[i + 1] - q[j + 1]) > 24 || Math.abs(p[i + 2] - q[j + 2]) > 24) differing += 1;
+            }
+            return { ratio: differing / counted, differing, size: [one.width, one.height, two.width, two.height] };
+          }, [canvasShot.toString("base64"), htmlShot.toString("base64")]);
+          fs.writeFileSync(`${ctx.outDir}/HO-03-${frame.replace(/:/g, "-")}-canvas.png`, canvasShot);
+          fs.writeFileSync(`${ctx.outDir}/HO-03-${frame.replace(/:/g, "-")}-html.png`, htmlShot);
+          results.push({ frame, width, height, zoom, ...diff });
+        }
+        await view.close();
+        const off = results.filter((result) => result.ratio > 0.005 || Math.abs(result.width - (result.frame.startsWith("overlay") ? 720 : 390)) > 1);
+        if (off.length) throw new Error(`differs from the canvas: ${off.map((result) => `${result.frame} ${result.width}×${result.height} zoom ${result.zoom}: ${(result.ratio * 100).toFixed(2)}% (${result.differing} px)`).join("; ")} (shots in ${ctx.outDir})`);
+        return results.map((result) => `${result.frame} ${result.width}×${result.height}: ${(result.ratio * 100).toFixed(2)}%`).join(" · ");
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
     },
   },
 ];

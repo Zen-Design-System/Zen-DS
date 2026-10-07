@@ -4,7 +4,8 @@
  * JSX colours correctly inside expressions and expressions inside JSX.
  */
 
-export type CodeLanguage = "tsx" | "ts" | "css" | "json" | "bash";
+/** `html`: markup (the HTML export), scanned as JSX markup. */
+export type CodeLanguage = "tsx" | "ts" | "css" | "json" | "bash" | "html";
 
 export type TokenType =
   | "plain" | "punct" | "comment" | "keyword" | "string" | "number" | "literal" | "regex" | "function" | "type" | "property"
@@ -44,7 +45,7 @@ export function tokenize(code: string, language: CodeLanguage = "tsx"): CodeLine
     if (language === "css") scanCss(code, out);
     else if (language === "json") scanJson(code, out);
     else if (language === "bash") scanBash(code, out);
-    else scanScript(code, out, language === "tsx");
+    else scanScript(code, out, language === "tsx" || language === "html");
     return toLines(out.tokens);
   } catch {
     return toLines([{ type: "plain", text: code }]);

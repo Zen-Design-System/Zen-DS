@@ -2560,6 +2560,10 @@ const compileApi = spawnSync(process.execPath, [fileURLToPath(new URL("./compile
 process.stdout.write(compileApi.stdout);
 process.stderr.write(compileApi.stderr);
 if (compileApi.status !== 0) process.exit(1);
+const zip = spawnSync(process.execPath, [fileURLToPath(new URL("./zip.selftest.mjs", import.meta.url))], { encoding: "utf8" });
+process.stdout.write(zip.stdout);
+process.stderr.write(zip.stderr);
+if (zip.status !== 0) process.exit(1);
 
 // The Position section's model (Ignore auto layout, constraints, token offsets) has its own test next to it.
 const position = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/position/positionModel.selftest.mjs", import.meta.url))], { encoding: "utf8" });

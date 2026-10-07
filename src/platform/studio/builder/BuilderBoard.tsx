@@ -8,7 +8,8 @@ import { announceEditStatus } from "../api";
 import { zoomToFrame } from "../board/presentFrame";
 import { usePageTree } from "./usePageTree";
 import { ProtoLinks } from "./proto/ProtoLinks";
-import { DEVICE_WIDTH, ProtoContext, type PageDevice, type ProtoActions } from "./proto/runtime";
+import { ProtoContext, type ProtoActions } from "./proto/runtime";
+import { frameOf } from "./render/frames";
 import { renderFrame, type PageNode } from "./render/renderPage";
 import { Button } from "../../../components/Button";
 import { useStudio } from "../store";
@@ -40,17 +41,6 @@ const canvasProto: ProtoActions = {
   link: (url) => { if (/^(https?:|mailto:)/i.test(String(url))) window.open(String(url), "_blank", "noopener,noreferrer"); },
 };
 
-const literal = (node: PageNode, prop: string) => { const value = node.props[prop]; return value?.kind === "literal" ? value.value : undefined; };
-
-/** A frame's id, its label and its device width. */
-function frameOf(node: PageNode): { id: string; label: string; width: number } {
-  const id = String(literal(node, "id") ?? "untitled");
-  if (node.name === "Overlay") return { id: `overlay:${id}`, label: `Overlay · ${id}`, width: DEVICE_WIDTH.desktop / 2 };
-  const state = literal(node, "state");
-  const device = (literal(node, "device") as PageDevice | undefined) ?? "desktop";
-  const title = String(literal(node, "title") ?? id);
-  return { id: `screen:${id}${typeof state === "string" ? `:${state}` : ""}`, label: title, width: DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop };
-}
 
 /** The board's kicker: where the page is kept. */
 function whereKept(storage: ReturnType<typeof useStorage>): string {
