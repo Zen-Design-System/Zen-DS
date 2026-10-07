@@ -1,12 +1,15 @@
 /* Tooltip examples (brief: docs/research/example-rebuild-brief-2026-09-30.md). Đìzai Studio's own work in Zen: a photo
-   review toolbar, an invoice's payment link, the activity feed, saved task views and a client's brand film. There is
-   no phone example on purpose: a tooltip never opens on touch, and the guideline sends touch-only surfaces elsewhere. */
+   review toolbar, an invoice's payment link, the activity feed, saved task views and a client's brand film. On a phone a
+   tooltip never opens on touch, so the phone example shows one open from the start with its close X (Figma Close=Yes,
+   user 2026-10-07). */
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
 import { platformMedia, usePlatformVideo } from "../../PlatformMedia";
 import { Tooltip } from "../../../components/Tooltip";
-import { IconButton } from "../../../components/Button";
+import { TopNavigation } from "../../../components/TopNavigation";
+import { PlatformPhone } from "../../PlatformPhone";
+import { Button, IconButton } from "../../../components/Button";
 import { InputField } from "../../../components/Input";
 import { Card } from "../../../components/Card";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
@@ -244,6 +247,30 @@ function BrandFilm() {
   );
 }
 
+/** A phone: the new Scan receipt action carries a tip open from the start; its X closes it, and Show tip brings it back. */
+function ScanTipPhone() {
+  const [tip, setTip] = useState(true);
+  const { toast } = useToast();
+  return (
+    <PlatformPhone label="Expenses" header={<TopNavigation title="Expenses" />}>
+      <Box paddingX="lg" paddingY="md">
+        <Stack gap="lg">
+          <Stack gap="2xs">
+            <Text textStyle="Body/Small/Regular" tone="base">This month</Text>
+            <Heading level={2} textStyle="Heading/2">{formatMoney(1284.5)}</Heading>
+          </Stack>
+          <Stack direction="row" gap="sm" align="center" wrap>
+            <Tooltip content="New: snap a receipt and the amount fills itself in" placement="bottom" closable open={tip} onOpenChange={setTip}>
+              <Button level="primary" startIcon="icon-camera-line" onClick={() => toast({ title: "Camera opened" })}>Scan receipt</Button>
+            </Tooltip>
+            {tip ? null : <Button level="tertiary" onClick={() => setTip(true)}>Show tip</Button>}
+          </Stack>
+        </Stack>
+      </Box>
+    </PlatformPhone>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Shortcut hints",
@@ -340,5 +367,17 @@ const playLabel = player.playing ? "Pause" : "Play";
   </Stack>
 </Box>`,
     render: () => <BrandFilm />,
+  },
+  {
+    title: "A tip on a phone",
+    description: "A tooltip never opens on touch, so on a phone a tip for a new action is open from the start and carries its own close X (closable). It stays until it is closed — a tap elsewhere or on the button does not hide it — and Show tip brings it back.",
+    render: () => <ScanTipPhone />,
+    code: `const [tip, setTip] = useState(true);
+
+<Tooltip content="New: snap a receipt and the amount fills itself in" placement="bottom"
+  closable open={tip} onOpenChange={setTip}>
+  <Button level="primary" startIcon="icon-camera-line" onClick={openCamera}>Scan receipt</Button>
+</Tooltip>
+{tip ? null : <Button level="tertiary" onClick={() => setTip(true)}>Show tip</Button>}`,
   },
 ]);

@@ -431,3 +431,16 @@
 - audit.mjs skips the docs navigation (.official-nav) in the contrast check (user: skip this case, no more checking).
   The final `qa --all` (font + first full run of the §16 check) was stopped by the user: the 6b --all had passed and the
   font is the same build. The §16 check has therefore not run on every page yet; the next gate runs it.
+
+## Tooltip close X, in code and in Figma (session "Session continuation check", tier S)
+
+- User: tooltip needs a mobile example; "Tooltip nên bổ sung button x tắt cho trường hợp mở mặc định, bổ sung ngược lại
+  Figma luôn". Figma (9nZv4uW2LT21yuHabMTCh1, set 1595:2220): new BOOLEAN `Close#15053:0` (default off); every variant's
+  Container turned horizontal (gap bound to Spacing/Gap/XSmall, top-aligned) with an `icon-x-medium-line` instance
+  "Close" (size bound to Element-Size/Popular/XSmall, fill bound to the variant's label colour: Inverse/Strongest,
+  On-Accent/Default, Neutral/Strongest, On-Black-Overlay/Strongest), visible ← Close; set description updated; a review
+  frame was shot (8 variants with Close on) and removed.
+- Code: TooltipSurface `onClose`/`closeLabel` (raw icon button allowed: a bare XSmall icon, 24px hit area);
+  Tooltip `closable`, `defaultOpen`, `onOpenChange` (setOpen reads the rendered open through a ref, so a controlled
+  tooltip reports its X); closable = role note, hover/focus/press no longer hide it. Guideline rows, story, tests
+  (tests/interaction/tooltip-closable.test.tsx), "A tip on a phone" example. `npm test` 32 files / 534 tests pass.

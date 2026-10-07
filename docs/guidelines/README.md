@@ -22,7 +22,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Popover](popover.md) | `popover/controlled-close`, `popover/explicit-open`, `popover/bulk-action-limit`, `interaction/no-noop-handler`, `interaction/action-without-handler`, `focus/selected-fill-only` |
 | [Sidebar](sidebar.md) | `sidebar/submenu-close`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `interaction/action-without-handler` |
 | [Date Picker](date-picker.md) | `input/needs-label`, `input/placeholder-not-label`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `date-picker/actions-need-apply` |
-| [Tooltip](tooltip.md) | `tooltip/focusable-trigger`, `tooltip/short`, `tooltip/no-interactive-content`, `tooltip/disabled-trigger`, `interaction/no-noop-handler` |
+| [Tooltip](tooltip.md) | `tooltip/focusable-trigger`, `tooltip/short`, `tooltip/no-interactive-content`, `tooltip/disabled-trigger`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Tabs](tabs.md) | `tabs/needs-label`, `tabs/item-count`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Breadcrumbs](breadcrumbs.md) | `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Progress](progress.md) | `progress/value-range`, `progress/needs-label`, `progress/quota-scale`, `interaction/no-noop-handler` |

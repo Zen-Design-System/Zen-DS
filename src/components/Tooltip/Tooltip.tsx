@@ -1,5 +1,7 @@
 import { cloneElement, createContext, isValidElement, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type FocusEvent, type HTMLAttributes, type PointerEvent, type ReactElement, type ReactNode } from "react";
+import { Icon } from "../Icon";
 import { ZenPortal } from "../Portal";
+import { useZenLabels } from "../_shared/zen-context";
 import { usePresence } from "../Motion";
 import { scaleKey } from "../_shared/scale";
 import { typographyStyles } from "../../tokens/typography.generated";
@@ -20,14 +22,30 @@ export interface TooltipSurfaceProps extends HTMLAttributes<HTMLSpanElement> {
   /** Short (sm, md…) or Figma (small, medium…) spelling. */
   size?: TooltipSize;
   children: ReactNode;
+  /** Figma Close=Yes: a dismiss X after the label, called when it is pressed. */
+  onClose?: () => void;
+  /** The X's accessible name. Default: the locale's “Close”. */
+  closeLabel?: string;
 }
 
-/** Figma Tooltip (1595:2220): Color × Size bubble with the Simple-Label primitive (Caption/Medium). */
-export function TooltipSurface({ color = "default", size: sizeProp = "md", className, children, ...props }: TooltipSurfaceProps) {
+/**
+ * Figma Tooltip (1595:2220): Color × Size bubble with the Simple-Label primitive (Caption/Medium). Close (boolean, added
+ * 2026-10-07): an icon-x-medium-line at Element-Size/Popular/XSmall, Spacing/Gap/XSmall after the label, in the label's
+ * content colour, for a tooltip shown open by default.
+ */
+export function TooltipSurface({ color = "default", size: sizeProp = "md", className, children, onClose, closeLabel, ...props }: TooltipSurfaceProps) {
   const size = scaleKey(sizeProp, tooltipSizes);
+  const t = useZenLabels();
   return (
-    <span {...props} className={["zen-tooltip", className].filter(Boolean).join(" ")} data-color={color} data-size={size}>
+    <span {...props} className={["zen-tooltip", className].filter(Boolean).join(" ")} data-color={color} data-size={size} data-closable={onClose ? "true" : undefined}>
       <span className={`zen-tooltip__label ${typographyStyles["Caption/Medium"]}`}>{children}</span>
+      {onClose ? (
+        // zen-allow-raw-icon-button: Figma Close is a bare XSmall icon in the label's colour (no Button container), and a
+        // tooltip's own X takes no second tooltip; its name is aria-label, its hit area 24px (tooltip.css).
+        <button type="button" className="zen-tooltip__close" aria-label={closeLabel ?? t.close} onClick={onClose}>
+          <Icon name="icon-x-medium-line" size="xs" decorative />
+        </button>
+      ) : null}
     </span>
   );
 }
@@ -45,6 +63,14 @@ export interface TooltipProps {
   delay?: number;
   /** Controlled visibility; omit for hover/focus behavior. */
   open?: boolean;
+  /** Shown from the start (uncontrolled): an onboarding hint, or a phone, where a tooltip never opens on touch. Pair it
+   *  with `closable`. */
+  defaultOpen?: boolean;
+  /** Called when the tooltip opens or closes (the close X, Escape, hover and focus). */
+  onOpenChange?: (open: boolean) => void;
+  /** Figma Close=Yes: a dismiss X after the label. The tooltip then stays until it is closed (hover, focus and pointer
+   *  presses no longer hide it) and is a `note`, as it holds a button. */
+  closable?: boolean;
   disabled?: boolean;
   className?: string;
 }
@@ -59,15 +85,27 @@ const hoverWait = (delay: number) => (Date.now() - lastTooltipClosedAt < TOOLTIP
 const InsideTooltipContext = createContext(false);
 
 /** Shows a TooltipSurface next to its trigger on hover (after `delay`) and keyboard focus; Escape dismisses. */
-export function Tooltip({ content, children, color = "default", size: sizeProp = "md", placement = "top", delay = TOOLTIP_HOVER_DELAY, open: controlledOpen, disabled = false, className }: TooltipProps) {
+export function Tooltip({ content, children, color = "default", size: sizeProp = "md", placement = "top", delay = TOOLTIP_HOVER_DELAY, open: controlledOpen, defaultOpen = false, onOpenChange, closable = false, disabled = false, className }: TooltipProps) {
   const size = scaleKey(sizeProp, tooltipSizes);
   const id = `zen-tooltip-${useId().replace(/:/g, "")}`;
-  const [internalOpen, setInternalOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const timer = useRef<number | undefined>(undefined);
   const open = !disabled && (controlledOpen ?? internalOpen);
   const clear = () => window.clearTimeout(timer.current);
-  const show = (wait: number) => { clear(); if (wait <= 0) setInternalOpen(true); else timer.current = window.setTimeout(() => setInternalOpen(true), wait); };
-  const hide = () => { clear(); setInternalOpen((was) => { if (was) lastTooltipClosedAt = Date.now(); return false; }); };
+  // The open state as rendered (controlled or not), read by timers and handlers without a stale closure.
+  const openRef = useRef(open);
+  openRef.current = open;
+  const setOpen = (next: boolean) => {
+    if (next === openRef.current) return;
+    openRef.current = next;
+    if (!next) lastTooltipClosedAt = Date.now();
+    if (controlledOpen === undefined) setInternalOpen(next);
+    onOpenChange?.(next);
+  };
+  const show = (wait: number) => { clear(); if (wait <= 0) setOpen(true); else timer.current = window.setTimeout(() => setOpen(true), wait); };
+  const hide = () => { clear(); setOpen(false); };
+  // A closable tooltip stays until its X (or Escape) closes it.
+  const hideOnLeave = closable ? undefined : hide;
   // Hiding fades out at XFast (tooltip.css); Escape dismisses at once.
   const presence = usePresence(open, 80);
   const [escaped, setEscaped] = useState(false);
@@ -86,13 +124,13 @@ export function Tooltip({ content, children, color = "default", size: sizeProp =
     <span
       className={["zen-tooltip-anchor", className].filter(Boolean).join(" ")}
       onPointerEnter={(event) => { if (event.pointerType !== "touch") show(hoverWait(delay)); }}
-      onPointerLeave={hide}
+      onPointerLeave={hideOnLeave}
       onFocus={(event) => { if ((event.target as HTMLElement).matches(":focus-visible")) show(0); }}
-      onBlur={hide}
-      onPointerDown={hide}
+      onBlur={hideOnLeave}
+      onPointerDown={closable ? undefined : hide}
     >
       <InsideTooltipContext.Provider value={true}>{trigger}</InsideTooltipContext.Provider>
-      {presence.mounted && !(escaped && !open) ? <TooltipSurface id={id} role="tooltip" color={color} size={size} className="zen-tooltip--floating" data-placement={placement} data-state={open ? undefined : "closing"}>{content}</TooltipSurface> : null}
+      {presence.mounted && !(escaped && !open) ? <TooltipSurface id={id} role={closable ? "note" : "tooltip"} color={color} size={size} className="zen-tooltip--floating" data-placement={placement} data-state={open ? undefined : "closing"} onClose={closable ? hide : undefined}>{content}</TooltipSurface> : null}
     </span>
   );
 }

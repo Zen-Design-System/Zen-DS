@@ -19,6 +19,9 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- **Tooltip `closable` (2026-10-07, Figma Close=Yes added the same day):** a dismiss X after the label for a tooltip open
+  from the start — `defaultOpen`, or `open` + the new `onOpenChange` — such as a tip on a phone, where touch never opens
+  a tooltip. It stays until its X or Escape closes it and is a `note`. The Tooltip page has a phone example.
 - **ToggleListItem and ChipGroup (2026-10-07, backlog batch 6):** `<ToggleListItem>` is a settings row whose whole
   surface flips its switch (title names it, caption describes it); `<ChipGroup>` is a single-choice radio group of
   Normal chips (one Tab stop, arrow keys move the choice). Both are composed from the existing Figma primitives (no

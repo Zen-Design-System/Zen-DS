@@ -1087,11 +1087,15 @@
           "placement?: top|bottom|left|right = top",
           "delay?: number = 1000",
           "open?: boolean",
+          "defaultOpen?: boolean = false",
+          "onOpenChange?: (open: boolean) => void",
+          "closable?: boolean = false",
           "disabled?: boolean = false",
           "className?: string"
         ]
       },
       "do": [
+        "On a phone, where a tooltip never opens on touch, show a tip for a new action open from the start with its close X: <Tooltip closable open onOpenChange>.",
         "Wrap a focusable trigger (Button, IconButton, link).",
         "Keep text under ~80 characters, no punctuation for single phrases.",
         "Use Accent briefly for confirmations (\"Copied!\").",
@@ -1100,17 +1104,18 @@
         "Icon-only controls get their name tooltip for free (IconButton, Top/Bottom Navigation actions, close and remove buttons); add an explicit <Tooltip> only for a longer hint — the built-in one then stays silent."
       ],
       "dont": [
-        "Don't put links or buttons inside a tooltip.",
+        "Don't put links or buttons inside a tooltip (its own close X, closable, is the one exception).",
         "Don't repeat the visible label word for word.",
         "Don't wrap a disabled control (harness: tooltip/disabled-trigger).",
-        "Don't use a tooltip on touch-first surfaces or for error messages."
+        "Don't rely on a hover tooltip on touch-first surfaces (use a closable one open from the start), and never for error messages."
       ],
       "rules": [
         "tooltip/focusable-trigger",
         "tooltip/short",
         "tooltip/no-interactive-content",
         "tooltip/disabled-trigger",
-        "interaction/no-noop-handler"
+        "interaction/no-noop-handler",
+        "interaction/controlled-needs-handler"
       ]
     },
     {
