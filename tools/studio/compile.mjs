@@ -2,7 +2,7 @@
 // `*.zen.tsx` page (tools/studio/dialect.mjs) compiled to one ordinary React component a developer can drop into an app.
 // Isomorphic (browser and Node, no Node imports): the Studio's Export dialog loads it lazily (browser-compile.mjs).
 //
-//   compileReact(text, { file? }) → { code, component, screens, overlays, handlers, media } | { error }
+//   compileReact(text, { file? }) → { code, component, screens, overlays, handlers, actions, dataType, media } | { error }
 //
 // - Each Screen is a branch on the current screen (history, so Back works); a Screen with a `state` is the variant shown
 //   while the `state` prop names it. Board / Screen / Overlay are the design's runtime: they do not reach the output.
@@ -80,7 +80,8 @@ function dataLiteral(value, indent) {
  * component's body hold exactly that.
  */
 function createContext(mediaFile, mock) {
-  return { components: new Set(), uses: new Set(), media: new Map(), handlers: [], mediaFile, mock };
+  // `frame`: the Screen or Overlay being compiled ("screen:people", "overlay:invite"), for `actions`.
+  return { components: new Set(), uses: new Set(), media: new Map(), handlers: [], actions: [], frame: null, mediaFile, mock };
 }
 
 /** The file a photo has in the export's assets/: a library photo is a .webp named after its key; an upload keeps its name. */
@@ -101,6 +102,7 @@ const refCode = (value) => [value.root === "mock" ? "data" : value.root, ...valu
 /** A proto action as the handler code a prop receives. */
 function protoCode(value, ctx, where) {
   const [arg] = value.args;
+  ctx.actions.push({ frame: ctx.frame, where, action: value.action, target: arg === undefined ? null : arg });
   switch (value.action) {
     case "navigate": ctx.uses.add("navigate"); ctx.handlers.push(`${where} navigates to "${arg}"`); return `() => navigate(${json(String(arg))})`;
     case "open": ctx.uses.add("overlay"); return `() => setOverlay(${json(String(arg))})`;
@@ -281,14 +283,20 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile } = {}) 
   });
   /** A screen's content at `indent`: a chain over its state variants (`state === "empty" ? (…) : (…)`) or the content. */
   const branchCode = (branch, indent) => {
+    ctx.frame = `screen:${branch.id}`;
     if (!branch.variants.length) return screenContent(branch.plain, ctx, indent);
     const inner = indent + UNIT;
-    const tests = branch.variants.map((node) => `${`state === ${json(literalOf(node, "state"))}`} ? (\n${inner}${screenContent(node, ctx, inner)}\n${indent}) : `);
+    const tests = branch.variants.map((node) => {
+      ctx.frame = `screen:${branch.id}:${literalOf(node, "state")}`;
+      return `${`state === ${json(literalOf(node, "state"))}`} ? (\n${inner}${screenContent(node, ctx, inner)}\n${indent}) : `;
+    });
+    ctx.frame = `screen:${branch.id}`;
     return `${tests.join("")}(\n${inner}${screenContent(branch.plain, ctx, inner)}\n${indent})`;
   };
   if (many) ctx.uses.add("screens");
   const overlayCode = overlays.map((node) => {
     const id = String(literalOf(node, "id"));
+    ctx.frame = `overlay:${id}`;
     const root = node.children.find((child) => child.kind === "element");
     if (!root) return null;
     ctx.uses.add("overlay");
@@ -381,6 +389,9 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile } = {}) 
     screens: branches.map((branch) => ({ id: branch.id, title: branch.title, device: branch.device, states: branch.variants.map((node) => literalOf(node, "state")) })),
     overlays: overlays.map((node) => String(literalOf(node, "id"))),
     handlers: [...new Set(ctx.handlers)],
+    actions: ctx.actions,
+    components: [...ctx.components].sort((a, b) => a.localeCompare(b)),
+    dataType: hasMock ? `export type ${mockType} = ${typeOf(page.mock, "")};` : null,
     media: [...ctx.media.values()],
   };
 }

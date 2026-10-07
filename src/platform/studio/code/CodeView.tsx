@@ -62,7 +62,7 @@ const MIN_VISIBLE_COLUMNS = 8;
 const columnsOf = (line: CodeLine) => line.reduce((sum, token) => sum + token.text.length + (TAB_COLUMNS - 1) * (token.text.split("\t").length - 1), 0);
 
 /** TSX names its framework too: the library is React, and later ports (Vue, SwiftUI, Flutter) must read apart. */
-const LANGUAGE_LABELS: Record<CodeLanguage, string> = { tsx: "React · TSX", ts: "TypeScript", css: "CSS", json: "JSON", bash: "Shell", html: "HTML" };
+const LANGUAGE_LABELS: Record<CodeLanguage, string> = { tsx: "React · TSX", ts: "TypeScript", css: "CSS", json: "JSON", bash: "Shell", html: "HTML", markdown: "Markdown" };
 
 /** The code view header's language badge ("React · TSX", "CSS"…): Badge xs, neutral subtle, no dot. */
 export function CodeLanguageBadge({ language }: { language: CodeLanguage }) {

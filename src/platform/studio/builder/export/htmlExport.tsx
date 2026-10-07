@@ -3,11 +3,16 @@ import { ZenProvider } from "../../../../components/Provider";
 import resetCss from "../../../../styles/reset.css?inline";
 import { componentName } from "../../../../../tools/studio/browser-compile.mjs";
 import { zipFiles, type ZipInput } from "../../../../../tools/studio/zip.mjs";
-import { loadEngine, zenComponents } from "../engine";
+import packageJson from "../../../../../package.json";
+import { componentSlug } from "../../inspector/propSchema";
+import { loadCompile, loadEngine, zenComponents } from "../engine";
 import { LIBRARY_PHOTOS } from "../library/media";
 import { ProtoContext, type PageDevice, type ProtoActions } from "../proto/runtime";
 import { frameOf, literalOf, type PageFrame } from "../render/frames";
 import { renderFrame, type PageNode, type PageTree } from "../render/renderPage";
+import { pageKey, studioStore } from "../../store";
+import { designNames, guidelineNotes, handoffMarkdown, type FocusStop, type GuidelineNotes, type HandoffFrame } from "./handoff";
+import { drawPng, undrawable } from "./screenshot";
 
 /*
  * HTML export (Studio builder GĐ5 M2, spec docs/research/studio-builder-handoff-spec-2026-10-07.md §3b'): each Screen and
@@ -15,7 +20,8 @@ import { renderFrame, type PageNode, type PageTree } from "../render/renderPage"
  * Studio's attributes, and `styles.css`: the library's rules the screens use (read from the CSS this page has loaded:
  * tokens and their modes, `.zen-*` rules, the @font-face and @keyframes they name) after the library's reset. Library
  * photos and the font files go in the zip (`assets/`, `fonts/`). Static markup: what opens, switches or takes input needs
- * the React export. Loaded with the HTML tab (its own chunk).
+ * the React export. The handoff package (prepareHandoff) adds the React code, the design file, handoff.md and a PNG of each
+ * frame from the same render. Loaded with the HTML and Handoff tabs (its own chunk).
  */
 
 export type HtmlScreen = { frame: string; title: string; file: string; kind: PageFrame["kind"]; device: PageDevice; width: number };
@@ -82,8 +88,11 @@ function syncFields(live: Element, copy: Element) {
   });
 }
 
-/** The frame's DOM as exported markup: Studio attributes and anchors out, wrappers renamed, URLs exported. */
-function frameMarkup(root: HTMLElement, assets: Assets): string {
+/**
+ * A copy of the frame's DOM as exported: Studio attributes and anchors out, wrappers renamed, each URL through `mapUrl`
+ * (the HTML: a library photo → its file in the zip; a picture: the photo as a data URL).
+ */
+export function exportCopy(root: HTMLElement, mapUrl: (url: string) => string): HTMLElement {
   const copy = root.cloneNode(true) as HTMLElement;
   syncFields(root, copy);
   for (const anchor of copy.querySelectorAll("template[data-zen-overlay-anchor]")) anchor.remove();
@@ -92,14 +101,14 @@ function frameMarkup(root: HTMLElement, assets: Assets): string {
     for (const [from, to] of Object.entries(RENAMED_CLASS)) if (element.classList.contains(from)) element.classList.replace(from, to);
     for (const name of ["src", "poster", "href", "xlink:href"]) {
       const value = element.getAttribute(name);
-      if (value && (name !== "href" || element.namespaceURI === "http://www.w3.org/2000/svg") && element.tagName.toLowerCase() !== "use") element.setAttribute(name, exportUrl(value, assets));
+      if (value && (name !== "href" || element.namespaceURI === "http://www.w3.org/2000/svg") && element.tagName.toLowerCase() !== "use") element.setAttribute(name, mapUrl(value));
     }
     const srcset = element.getAttribute("srcset");
-    if (srcset) element.setAttribute("srcset", srcset.split(",").map((part) => { const [url, ...size] = part.trim().split(/\s+/); return [exportUrl(url, assets), ...size].join(" "); }).join(", "));
+    if (srcset) element.setAttribute("srcset", srcset.split(",").map((part) => { const [url, ...size] = part.trim().split(/\s+/); return [mapUrl(url), ...size].join(" "); }).join(", "));
     const style = element.getAttribute("style");
-    if (style && /url\(/.test(style)) element.setAttribute("style", style.replace(/url\((['"]?)([^'")]+)\1\)/g, (_match, quote: string, url: string) => `url(${quote}${exportUrl(url, assets)}${quote})`));
+    if (style && /url\(/.test(style)) element.setAttribute("style", style.replace(/url\((['"]?)([^'")]+)\1\)/g, (_match, quote: string, url: string) => `url(${quote}${mapUrl(url)}${quote})`));
   }
-  return copy.outerHTML;
+  return copy;
 }
 
 // ── styles.css ─────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -229,20 +238,35 @@ function fileOf(node: PageNode): string {
 
 const BREAKPOINT: Record<PageDevice, "mobile" | "tablet" | "desktop"> = { phone: "mobile", tablet: "tablet", desktop: "desktop" };
 
-/** The page `text` (id `id`, titled `title`) as static HTML files and the assets they use. */
-export async function exportHtml({ id, title, text }: { id: string; title: string; text: string }): Promise<HtmlExport | { error: string }> {
+type RenderedFrame = { node: PageNode; frame: PageFrame; file: string; title: string; root: HTMLElement | null };
+type Rendered = { tree: PageTree; frames: RenderedFrame[]; dispose: () => void };
+
+/** The ZenProvider props the canvas draws a frame in: the Studio's Modes, a frame's own theme over them (the open page). */
+export function canvasModes(id: string, frameId?: string) {
+  const state = studioStore.getState();
+  const { preview } = state;
+  const own = frameId && state.localPage === id ? state.frameOverrides[pageKey(state.page, state.collection, state.localPage)]?.[frameId]?.theme : undefined;
+  return { theme: own ?? preview.theme, componentTheme: preview.componentTheme, density: preview.density, typography: preview.typography, radius: preview.radius, emphasis: preview.emphasis, contrast: preview.contrast ?? "standard" };
+}
+
+/** Renders the page's frames off screen, as the canvas draws them; `dispose` unmounts them. */
+async function renderFrames(id: string, text: string): Promise<Rendered | { error: string }> {
   const engine = await loadEngine();
   const tree = engine.parsePage(text, { components: new Set(zenComponents) }) as unknown as PageTree;
   if (tree.errors.length || !tree.board) return { error: tree.errors[0] ? `line ${tree.errors[0].line}: ${tree.errors[0].message}` : "The page has no board" };
   const nodes = tree.board.children.filter((child): child is PageNode => child.kind === "element" && (child.name === "Screen" || child.name === "Overlay"));
   if (!nodes.length) return { error: "The page has no Screen" };
-  const frames = nodes.map((node) => ({ node, frame: frameOf(node), file: fileOf(node) }));
+  const frames = nodes.map((node) => {
+    const frame = frameOf(node);
+    return { node, frame, file: fileOf(node), title: frame.kind === "overlay" ? `Overlay ${String(literalOf(node, "id"))}` : frame.label, root: null as HTMLElement | null };
+  });
   const host = document.createElement("div");
   // Off screen and out of the way (as a template renders for Start from): never focused, hit or read while it renders.
   host.style.cssText = "position:fixed;top:0;left:-20000px;pointer-events:none;";
   host.inert = true;
   document.body.append(host);
   const root = createRoot(host);
+  const dispose = () => { root.unmount(); host.remove(); };
   // Its own file name, so the copy's data-zen-src never reads as the page on the canvas.
   const ctx = { file: `export:${id}.zen.tsx`, mock: tree.mock, proto: INERT };
   try {
@@ -250,63 +274,79 @@ export async function exportHtml({ id, title, text }: { id: string; title: strin
       <ProtoContext value={INERT}>
         {frames.map(({ node, frame }) => (
           <div key={frame.id} data-export-frame={frame.id} style={{ width: frame.width }}>
-            <ZenProvider theme="light" breakpoint={BREAKPOINT[frame.device]} syncDocument={false}>{renderFrame(node, ctx)}</ZenProvider>
+            <ZenProvider {...canvasModes(id, frame.id)} brand="zen" breakpoint={BREAKPOINT[frame.device]} syncDocument={false}>{renderFrame(node, ctx)}</ZenProvider>
           </div>
         ))}
       </ProtoContext>,
     );
     await settle(host);
-    const roots = frames.map(({ frame }) => host.querySelector<HTMLElement>(`[data-export-frame="${CSS.escape(frame.id)}"] > .zen-provider`)).filter((element): element is HTMLElement => Boolean(element));
-    const assets: Assets = new Map();
-    const component = `${componentName(title)}Page`;
-    const screens: HtmlScreen[] = frames.map(({ node, frame, file }) => ({ frame: frame.id, title: frame.kind === "overlay" ? `Overlay ${String(literalOf(node, "id"))}` : frame.label, file, kind: frame.kind, device: frame.device, width: frame.width }));
-    const files = frames.map(({ frame }, index) => {
-      const screen = screens[index];
-      const element = roots[index];
-      const what = screen.kind === "overlay" ? `overlay "${frame.id.replace(/^overlay:/, "")}" (drawn open)` : `screen "${frame.id.replace(/^screen:/, "")}" (${screen.device}, ${screen.width} px)`;
-      const html = [
-        "<!doctype html>",
-        '<html lang="en">',
-        "<head>",
-        '<meta charset="utf-8">',
-        '<meta name="viewport" content="width=device-width, initial-scale=1">',
-        `<title>${escapeHtml(`${title} · ${screen.title}`)}</title>`,
-        '<link rel="stylesheet" href="../styles.css">',
-        `<style>\n${pageCss(screen.width)}\n</style>`,
-        "</head>",
-        "<body>",
-        `<!-- Zen Studio: the ${what} of ${escapeHtml(id)}.zen.tsx. Static markup: what opens, switches or takes input needs the React export (${component}.tsx). -->`,
-        element ? frameMarkup(element, assets) : "<!-- This frame did not render. -->",
-        "</body>",
-        "</html>",
-        "",
-      ].join("\n");
-      return { path: screen.file, text: html };
-    });
-    const css = libraryCss(roots, title, assets);
-    const index = [
+  } catch (error) {
+    dispose();
+    throw error;
+  }
+  for (const entry of frames) entry.root = host.querySelector<HTMLElement>(`[data-export-frame="${CSS.escape(entry.frame.id)}"] > .zen-provider`);
+  return { tree, frames, dispose };
+}
+
+/** The rendered frames as static HTML files (screens/, index.html, styles.css) and the assets they use. */
+function htmlOf(rendered: Rendered, { id, title }: { id: string; title: string }): HtmlExport {
+  const roots = rendered.frames.map((entry) => entry.root).filter((element): element is HTMLElement => Boolean(element));
+  const assets: Assets = new Map();
+  const component = `${componentName(title)}Page`;
+  const screens: HtmlScreen[] = rendered.frames.map(({ frame, file, title: name }) => ({ frame: frame.id, title: name, file, kind: frame.kind, device: frame.device, width: frame.width }));
+  const files = rendered.frames.map(({ frame, root }, index) => {
+    const screen = screens[index];
+    const what = screen.kind === "overlay" ? `overlay "${frame.id.replace(/^overlay:/, "")}" (drawn open)` : `screen "${frame.id.replace(/^screen:/, "")}" (${screen.device}, ${screen.width} px)`;
+    const html = [
       "<!doctype html>",
       '<html lang="en">',
       "<head>",
       '<meta charset="utf-8">',
       '<meta name="viewport" content="width=device-width, initial-scale=1">',
-      `<title>${escapeHtml(title)}</title>`,
-      "<style>body { margin: 40px; font: 16px/1.5 system-ui, sans-serif; } li { margin: 4px 0; }</style>",
+      `<title>${escapeHtml(`${title} · ${screen.title}`)}</title>`,
+      '<link rel="stylesheet" href="../styles.css">',
+      `<style>\n${pageCss(screen.width)}\n</style>`,
       "</head>",
       "<body>",
-      `<h1>${escapeHtml(title)}</h1>`,
-      `<p>Static HTML of each frame, exported by Zen Studio from ${escapeHtml(id)}.zen.tsx with the Zen styles it uses (styles.css).</p>`,
-      "<ul>",
-      ...screens.map((screen) => `  <li><a href="${screen.file}">${escapeHtml(screen.title)}</a> · ${screen.kind === "overlay" ? "overlay" : screen.device}</li>`),
-      "</ul>",
+      `<!-- Zen Studio: the ${what} of ${escapeHtml(id)}.zen.tsx. Static markup: what opens, switches or takes input needs the React export (${component}.tsx). -->`,
+      root ? exportCopy(root, (url) => exportUrl(url, assets)).outerHTML : "<!-- This frame did not render. -->",
       "</body>",
       "</html>",
       "",
     ].join("\n");
-    return { files: [{ path: "index.html", text: index }, ...files, { path: "styles.css", text: css }], assets: [...assets.values()], screens };
+    return { path: screen.file, text: html };
+  });
+  const css = libraryCss(roots, title, assets);
+  const index = [
+    "<!doctype html>",
+    '<html lang="en">',
+    "<head>",
+    '<meta charset="utf-8">',
+    '<meta name="viewport" content="width=device-width, initial-scale=1">',
+    `<title>${escapeHtml(title)}</title>`,
+    "<style>body { margin: 40px; font: 16px/1.5 system-ui, sans-serif; } li { margin: 4px 0; }</style>",
+    "</head>",
+    "<body>",
+    `<h1>${escapeHtml(title)}</h1>`,
+    `<p>Static HTML of each frame, exported by Zen Studio from ${escapeHtml(id)}.zen.tsx with the Zen styles it uses (styles.css).</p>`,
+    "<ul>",
+    ...screens.map((screen) => `  <li><a href="${screen.file}">${escapeHtml(screen.title)}</a> · ${screen.kind === "overlay" ? "overlay" : screen.device}</li>`),
+    "</ul>",
+    "</body>",
+    "</html>",
+    "",
+  ].join("\n");
+  return { files: [{ path: "index.html", text: index }, ...files, { path: "styles.css", text: css }], assets: [...assets.values()], screens };
+}
+
+/** The page `text` (id `id`, titled `title`) as static HTML files and the assets they use. */
+export async function exportHtml({ id, title, text }: { id: string; title: string; text: string }): Promise<HtmlExport | { error: string }> {
+  const rendered = await renderFrames(id, text);
+  if ("error" in rendered) return rendered;
+  try {
+    return htmlOf(rendered, { id, title });
   } finally {
-    root.unmount();
-    host.remove();
+    rendered.dispose();
   }
 }
 
@@ -325,4 +365,166 @@ export async function htmlZip(result: HtmlExport): Promise<{ bytes: Uint8Array; 
   }));
   const files: ZipInput[] = [...result.files.map((file) => ({ path: file.path, data: file.text })), ...assets.filter((asset): asset is ZipInput => asset !== null)];
   return { bytes: zipFiles(files), missing };
+}
+
+// ── The handoff package (GĐ5 M3) ───────────────────────────────────────────────────────────────────────────────────
+
+const FOCUSABLE = 'a[href], button, input, select, textarea, summary, [tabindex], [contenteditable="true"]';
+const ROLE_OF_INPUT: Record<string, string> = { checkbox: "checkbox", radio: "radio", range: "slider", button: "button", submit: "button", reset: "button", search: "searchbox" };
+
+/** An element's role as assistive tech reads it: its `role`, else its tag's. */
+function roleOf(element: HTMLElement): string {
+  const explicit = element.getAttribute("role");
+  if (explicit) return explicit;
+  const tag = element.tagName.toLowerCase();
+  if (tag === "a") return "link";
+  if (tag === "button" || tag === "summary") return "button";
+  if (tag === "select") return "combobox";
+  if (tag === "input") return ROLE_OF_INPUT[(element as HTMLInputElement).type] ?? "textbox";
+  if (tag === "textarea") return "textbox";
+  return "focusable";
+}
+
+/** An element's accessible name (aria-labelledby, aria-label, its label, its text, title, placeholder), simplified. */
+function nameOf(element: HTMLElement): string {
+  const clean = (text: string | null | undefined) => (text ?? "").replace(/\s+/g, " ").trim();
+  const labelledBy = element.getAttribute("aria-labelledby");
+  if (labelledBy) {
+    const text = clean(labelledBy.split(/\s+/).map((id) => element.ownerDocument.getElementById(id)?.textContent ?? "").join(" "));
+    if (text) return text;
+  }
+  const label = clean(element.getAttribute("aria-label"));
+  if (label) return label;
+  const labels = (element as HTMLInputElement).labels;
+  if (labels?.length) { const text = clean([...labels].map((entry) => entry.textContent).join(" ")); if (text) return text; }
+  const tag = element.tagName.toLowerCase();
+  if (tag !== "input" && tag !== "textarea" && tag !== "select") {
+    const text = clean(element.textContent) || clean(element.querySelector("img[alt]")?.getAttribute("alt"));
+    if (text) return text;
+  }
+  return clean(element.getAttribute("title")) || clean(element.getAttribute("placeholder"));
+}
+
+/** A frame's Tab stops in order: each focusable element that shows, with its role and name. */
+function focusStops(root: HTMLElement): FocusStop[] {
+  const stops = [...root.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((element) => element.tabIndex >= 0 && !element.hasAttribute("disabled") && !(element instanceof HTMLInputElement && element.type === "hidden") && element.getClientRects().length > 0);
+  const ordered = [...stops.filter((element) => element.tabIndex > 0).sort((a, b) => a.tabIndex - b.tabIndex), ...stops.filter((element) => element.tabIndex === 0)];
+  return ordered.map((element) => ({ role: roleOf(element), name: nameOf(element) }));
+}
+
+const guidelineFiles = import.meta.glob<string>("../../../../../docs/guidelines/*.md", { query: "?raw", import: "default" });
+
+async function guidelineFor(slug: string | null): Promise<GuidelineNotes | null> {
+  const load = slug ? guidelineFiles[`../../../../../docs/guidelines/${slug}.md`] : undefined;
+  return load ? guidelineNotes(await load()) : null;
+}
+
+/** The bytes and the data URL of a file this site serves; null when it does not load. */
+async function fetchFile(url: string): Promise<{ bytes: Uint8Array; dataUrl: string } | null> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    const dataUrl = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(reader.error); reader.readAsDataURL(blob); });
+    return { bytes, dataUrl };
+  } catch {
+    return null;
+  }
+}
+
+export type HandoffPackage = { markdown: string; files: ZipInput[]; missing: string[]; name: string };
+
+/**
+ * The handoff package of the page: its React code, its design file, `handoff.md`, the photos the code imports, a PNG of
+ * each frame (screenshot.ts) and the HTML export under `html/`. Everything is read from one off-screen render.
+ */
+export async function prepareHandoff({ id, title, text }: { id: string; title: string; text: string }): Promise<HandoffPackage | { error: string }> {
+  const { compileReact } = await loadCompile();
+  const compiled = compileReact(text, { file: `${id}.zen.tsx` });
+  if ("error" in compiled) return { error: compiled.error };
+  const rendered = await renderFrames(id, text);
+  if ("error" in rendered) return rendered;
+  try {
+    const html = htmlOf(rendered, { id, title });
+    const missing: string[] = [];
+    const fetched = new Map<string, { bytes: Uint8Array; dataUrl: string }>();
+    await Promise.all(html.assets.map(async (asset) => {
+      const file = await fetchFile(asset.url);
+      if (file) fetched.set(asset.path, file);
+      else missing.push(`html/${asset.path}`);
+    }));
+    // The pictures: the screens' CSS with the fonts inside, each photo as a data URL, at the frame's size on the canvas.
+    const styles = html.files.find((file) => file.path === "styles.css")?.text ?? "";
+    const pictureCss = styles.replace(/url\((['"]?)(fonts\/[^'")]+)\1\)/g, (match, quote: string, path: string) => { const file = fetched.get(path); return file ? `url(${quote}${file.dataUrl}${quote})` : match; });
+    const photos = new Map<string, string>();
+    const pictureNotes: string[] = [];
+    const frames: HandoffFrame[] = [];
+    const pictures: ZipInput[] = [];
+    for (const entry of rendered.frames) {
+      const png = entry.file.replace(/\.html$/, ".png");
+      const handoffFrame: HandoffFrame = { frame: entry.frame.id, title: entry.title, kind: entry.frame.kind, device: entry.frame.device, png: null, html: `html/${entry.file}`, focus: entry.root ? focusStops(entry.root) : [] };
+      frames.push(handoffFrame);
+      if (!entry.root) { pictureNotes.push(`${entry.title}: the frame did not render`); continue; }
+      for (const image of entry.root.querySelectorAll("img")) {
+        const url = absolute(image.currentSrc || image.src);
+        if (!url || photos.has(url) || url.startsWith("data:")) continue;
+        const file = await fetchFile(url);
+        if (file) photos.set(url, file.dataUrl);
+        else pictureNotes.push(`${entry.title}: a photo did not load (${url})`);
+      }
+      const copy = exportCopy(entry.root, (url) => photos.get(absolute(url)) ?? absolute(url));
+      for (const image of copy.querySelectorAll("img, source")) { image.removeAttribute("srcset"); image.removeAttribute("sizes"); }
+      const box = entry.root.getBoundingClientRect();
+      const width = entry.frame.width;
+      const height = Math.max(1, Math.ceil(box.height));
+      // An SVG image is drawn once, at the start of every animation: the picture shows the resting state instead.
+      const css = `${pictureCss}\n*, *::before, *::after { animation: none !important; transition: none !important; }\n.zen-provider { min-height: ${height}px; }\n.screen, .overlay { box-sizing: border-box; width: ${width}px; min-height: ${height}px; }\n.screen { display: flow-root; }\n.overlay { position: relative; overflow: hidden; }\n.overlay__portal { position: absolute; inset: 0; overflow: hidden; }`;
+      for (const note of undrawable(entry.root)) pictureNotes.push(`${entry.title}: ${note} (not in the picture)`);
+      const blob = await drawPng(copy, css, { width, height, scale: 2 });
+      if (!blob) { pictureNotes.push(`${entry.title}: the browser could not draw it`); continue; }
+      pictures.push({ path: png, data: new Uint8Array(await blob.arrayBuffer()) });
+      handoffFrame.png = png;
+    }
+    // The photos the React code imports (./assets/<file>).
+    const reactAssets: ZipInput[] = [];
+    for (const media of compiled.media) {
+      const photo = media.kind === "media" ? LIBRARY_PHOTOS.find((entry) => entry.key === media.key) : undefined;
+      const file = photo ? await fetchFile(absolute(photo.photo.src)) : null;
+      if (file) reactAssets.push({ path: `assets/${media.file}`, data: file.bytes });
+      else missing.push(`assets/${media.file}`);
+    }
+    const components = await Promise.all(compiled.components.map(async (name) => { const slug = componentSlug(name); return { name, slug, notes: await guidelineFor(slug) }; }));
+    const props = [...(/export type \w+PageProps = \{([\s\S]*?)\n\};/.exec(compiled.code)?.[1] ?? "").matchAll(/^\s+(\w+)\?:/gm)].map((match) => match[1]);
+    const { theme, componentTheme, density, typography, radius, emphasis, contrast } = canvasModes(id);
+    const markdown = handoffMarkdown({
+      id,
+      title,
+      component: compiled.component,
+      version: packageJson.version,
+      provider: { theme, componentTheme, density, typography, radius, emphasis, ...(contrast !== "standard" ? { contrast } : {}) },
+      frames,
+      components,
+      names: designNames(rendered.tree.board),
+      actions: compiled.actions,
+      handlers: compiled.handlers,
+      dataType: compiled.dataType,
+      props,
+      media: compiled.media.map((media) => media.file),
+      pictureNotes,
+      date: new Date().toISOString().slice(0, 10),
+    });
+    const files: ZipInput[] = [
+      { path: `${compiled.component}.tsx`, data: compiled.code },
+      { path: `${id}.zen.tsx`, data: text },
+      { path: "handoff.md", data: markdown },
+      ...reactAssets,
+      ...pictures,
+      ...html.files.map((file) => ({ path: `html/${file.path}`, data: file.text })),
+      ...html.assets.filter((asset) => fetched.has(asset.path)).map((asset) => ({ path: `html/${asset.path}`, data: fetched.get(asset.path)!.bytes })),
+    ];
+    return { markdown, files, missing, name: `${id}-handoff.zip` };
+  } finally {
+    rendered.dispose();
+  }
 }

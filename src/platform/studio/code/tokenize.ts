@@ -4,8 +4,8 @@
  * JSX colours correctly inside expressions and expressions inside JSX.
  */
 
-/** `html`: markup (the HTML export), scanned as JSX markup. */
-export type CodeLanguage = "tsx" | "ts" | "css" | "json" | "bash" | "html";
+/** `html`: markup (the HTML export), scanned as JSX markup. `markdown`: headings, code spans and fences (handoff.md). */
+export type CodeLanguage = "tsx" | "ts" | "css" | "json" | "bash" | "html" | "markdown";
 
 export type TokenType =
   | "plain" | "punct" | "comment" | "keyword" | "string" | "number" | "literal" | "regex" | "function" | "type" | "property"
@@ -45,10 +45,22 @@ export function tokenize(code: string, language: CodeLanguage = "tsx"): CodeLine
     if (language === "css") scanCss(code, out);
     else if (language === "json") scanJson(code, out);
     else if (language === "bash") scanBash(code, out);
+    else if (language === "markdown") scanMarkdown(code, out);
     else scanScript(code, out, language === "tsx" || language === "html");
     return toLines(out.tokens);
   } catch {
     return toLines([{ type: "plain", text: code }]);
+  }
+}
+
+/** Markdown, line by line: headings as keywords, fenced blocks and `code` spans as strings, the rest plain. */
+function scanMarkdown(code: string, out: Output) {
+  let fenced = false;
+  for (const line of code.split(/(?<=\n)/)) {
+    if (/^\s*```/.test(line)) { fenced = !fenced; out.push("comment", line); continue; }
+    if (fenced) { out.push("string", line); continue; }
+    if (/^#{1,6}\s/.test(line)) { out.push("keyword", line); continue; }
+    for (const part of line.split(/(`[^`\n]*`)/)) out.push(part.startsWith("`") && part.endsWith("`") && part.length > 1 ? "string" : "plain", part);
   }
 }
 

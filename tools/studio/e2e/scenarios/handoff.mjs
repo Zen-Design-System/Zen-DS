@@ -63,6 +63,46 @@ async function htmlExport(page) {
 }
 const text = (files, path) => new TextDecoder().decode(files.get(path));
 
+/** Frame `frame` on the canvas at 100% (its label selects it, ⇧2 centres it, ⇧0 sets 100%), nothing selected: a PNG. */
+async function canvasShot(page, frame) {
+  await page.locator(`.studio-frame-label[data-chrome-key="label:${frame}"]`).evaluate((element) => element.click());
+  await page.keyboard.press("Shift+2");
+  await sleep(500);
+  await page.keyboard.press("Shift+0");
+  await sleep(700);
+  await page.keyboard.press("Escape");
+  await page.mouse.move(2, 2);
+  const element = page.locator(`[data-studio-frame="${frame}"]`);
+  await element.evaluate((node) => Promise.all([...node.querySelectorAll("img")].map((img) => (img.complete ? null : new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; })))));
+  await sleep(300);
+  const box = await element.boundingBox();
+  const width = Math.round(box.width);
+  const height = Math.round(box.height);
+  return { png: await page.screenshot({ clip: { x: box.x, y: box.y, width, height } }), width, height };
+}
+
+/**
+ * The share of pixels that differ by more than `tolerance` in a channel between two PNGs, drawn at `width` × `height`
+ * (a 2× picture scaled down), outside the frame's rounded corners and its 2 px edge.
+ */
+const compareShots = (view, a, b, { width, height, tolerance = 24 }) => view.evaluate(async ([one, two, w, h, limit]) => {
+  const load = (data) => new Promise((resolve) => { const img = new Image(); img.onload = () => resolve(img); img.src = `data:image/png;base64,${data}`; });
+  const pixels = (img) => { const canvas = document.createElement("canvas"); canvas.width = w; canvas.height = h; const g = canvas.getContext("2d"); g.drawImage(img, 0, 0, w, h); return g.getImageData(0, 0, w, h).data; };
+  const [p, q] = (await Promise.all([load(one), load(two)])).map(pixels);
+  let counted = 0;
+  let differing = 0;
+  for (let y = 2; y < h - 2; y += 1) for (let x = 2; x < w - 2; x += 1) {
+    if ((x < 18 || x >= w - 18) && (y < 18 || y >= h - 18)) continue;
+    counted += 1;
+    const i = (y * w + x) * 4;
+    if (Math.abs(p[i] - q[i]) > limit || Math.abs(p[i + 1] - q[i + 1]) > limit || Math.abs(p[i + 2] - q[i + 2]) > limit) differing += 1;
+  }
+  return { ratio: differing / counted, differing };
+}, [a.toString("base64"), b.toString("base64"), width, height, tolerance]);
+
+/** A PNG's width and height (its IHDR). */
+const pngSize = (bytes) => { const view = Buffer.from(bytes); return { width: view.readUInt32BE(16), height: view.readUInt32BE(20) }; };
+
 /** Opens the Export panel from the page's Inspector panel (nothing selected). */
 async function openExport(page) {
   await page.locator(".studio-viewport").focus();
@@ -125,6 +165,61 @@ export const rows = [
     },
   },
   {
+    id: "HO-04", feature: "Handoff zip: the React code, the design file, handoff.md (setup, components, tokens, flow, data, a11y), photos, a PNG and the HTML of each frame; each PNG looks like its canvas frame", wp: "GĐ5 M3",
+    timeout: 150_000,
+    async run(ctx) {
+      const session = await ctx.studio({ viewport: { width: 1700, height: 1300 } });
+      const { page, context } = session;
+      try {
+        const id = await importHtmlPage(page);
+        const panel = await openExport(page);
+        await panel.getByRole("button", { name: "Handoff", exact: true }).click();
+        await until(async () => /## Prototype flow/.test(await panel.innerText()), { timeout: 40_000, message: "handoff.md in the panel" });
+        const downloading = page.waitForEvent("download");
+        await panel.getByRole("button", { name: /^Download .*-handoff\.zip$/ }).click();
+        const download = await downloading;
+        if (download.suggestedFilename() !== `${id}-handoff.zip`) throw new Error(`the zip is named ${download.suggestedFilename()}`);
+        const files = new Map(unzipFiles(new Uint8Array(fs.readFileSync(await download.path()))).map((file) => [file.path, file.data]));
+        const expected = ["HTMLCheckPage.tsx", `${id}.zen.tsx`, "handoff.md", "assets/site-cafe.webp", "screens/people.png", "screens/people.empty.png", "screens/overlay-invite.png", "html/index.html", "html/screens/people.html", "html/styles.css", "html/assets/site-cafe.webp"];
+        const missing = expected.filter((path) => !files.has(path));
+        if (missing.length) throw new Error(`the zip lacks ${missing.join(", ")} (it has ${[...files.keys()].join(", ")})`);
+        if (text(files, `${id}.zen.tsx`) !== HTML_PAGE) throw new Error("the design file differs from the page");
+        if (!/import siteCafePhoto from "\.\/assets\/site-cafe\.webp";/.test(text(files, "HTMLCheckPage.tsx"))) throw new Error("the code does not import the photo from ./assets");
+        const markdown = text(files, "handoff.md");
+        fs.writeFileSync(`${ctx.outDir}/HO-04-handoff.md`, markdown);
+        const sections = ["## In this package", "## Setup", "## Components", "## Tokens and text styles", "## Prototype flow", "## Data contract", "## Accessibility"].filter((heading) => !markdown.includes(heading));
+        if (sections.length) throw new Error(`handoff.md lacks ${sections.join(", ")}`);
+        const facts = [
+          "npm install @zen/design-system@^", 'import "@zen/design-system/styles.css";', '<ZenProvider theme="light"', 'breakpoint="mobile" typography="mobile" density="comfortable"',
+          "| Button |", "docs/guidelines/list-item.md", "`Heading/3`", "`gap md`", "opens overlay `invite`", "closes the overlay",
+          "export type HTMLCheckMock = {", "button “Invite”", "textbox “Name”", "checkbox “Notify the team”", "Keyboard: Escape — Close", "npx zen-usage HTMLCheckPage.tsx",
+        ].filter((fact) => !markdown.includes(fact));
+        if (facts.length) throw new Error(`handoff.md lacks ${facts.join(" · ")}\n${markdown.slice(0, 1500)}`);
+        // Each picture: 2× its frame, and the same as the frame on the canvas.
+        await page.keyboard.press("Escape");
+        await sleep(300);
+        const view = await context.newPage();
+        await view.goto("about:blank");
+        const results = [];
+        for (const [frame, png] of [["screen:people", "screens/people.png"], ["screen:people:empty", "screens/people.empty.png"], ["overlay:invite", "screens/overlay-invite.png"]]) {
+          const shot = await canvasShot(page, frame);
+          const size = pngSize(files.get(png));
+          if (size.width !== shot.width * 2 || size.height !== shot.height * 2) throw new Error(`${png} is ${size.width}×${size.height}, its frame ${shot.width}×${shot.height}`);
+          const diff = await compareShots(view, shot.png, Buffer.from(files.get(png)), { width: shot.width, height: shot.height, tolerance: 40 });
+          fs.writeFileSync(`${ctx.outDir}/HO-04-${frame.replace(/:/g, "-")}-canvas.png`, shot.png);
+          fs.writeFileSync(`${ctx.outDir}/HO-04-${frame.replace(/:/g, "-")}-picture.png`, Buffer.from(files.get(png)));
+          results.push({ frame, ...size, ...diff });
+        }
+        await view.close();
+        const off = results.filter((result) => result.ratio > 0.02);
+        if (off.length) throw new Error(`a picture differs from its frame: ${off.map((result) => `${result.frame}: ${(result.ratio * 100).toFixed(2)}%`).join("; ")} (in ${ctx.outDir})`);
+        return `${files.size} files; handoff.md ${markdown.split("\n").length} lines; pictures ${results.map((result) => `${result.frame} ${result.width}×${result.height} ${(result.ratio * 100).toFixed(2)}%`).join(" · ")}`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
     id: "HO-03", feature: "Each exported HTML frame looks like its frame on the canvas at 100% (pixel comparison)", wp: "GĐ5 M2",
     timeout: 120_000,
     async run(ctx) {
@@ -146,56 +241,21 @@ export const rows = [
         });
         const results = [];
         for (const [frame, file] of [["screen:people", "screens/people.html"], ["screen:people:empty", "screens/people.empty.html"], ["overlay:invite", "screens/overlay-invite.html"]]) {
-          // The canvas at 100% on that frame (its label selects it, ⇧2 centres it, ⇧0 sets 100% around the centre),
-          // nothing selected.
-          await page.locator(`.studio-frame-label[data-chrome-key="label:${frame}"]`).evaluate((element) => element.click());
-          await page.keyboard.press("Shift+2");
-          await sleep(500);
-          await page.keyboard.press("Shift+0");
-          await sleep(700);
-          await page.keyboard.press("Escape");
-          await page.mouse.move(2, 2);
-          const element = page.locator(`[data-studio-frame="${frame}"]`);
-          await element.evaluate((node) => Promise.all([...node.querySelectorAll("img")].map((img) => (img.complete ? null : new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; })))));
-          await sleep(300);
-          const box = await element.boundingBox();
-          const width = Math.round(box.width);
-          const height = Math.round(box.height);
-          const zoom = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--studio-zoom") || "");
-          const canvasShot = await page.screenshot({ clip: { x: box.x, y: box.y, width, height } });
+          const shot = await canvasShot(page, frame);
+          const { width, height } = shot;
           await view.setViewportSize({ width, height });
           await view.goto(`${origin}/__html-export/${file}`);
           await view.evaluate(() => Promise.all([document.fonts.ready, ...[...document.images].map((img) => (img.complete ? null : new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; })))]));
           await sleep(200);
           const htmlShot = await view.screenshot({ clip: { x: 0, y: 0, width, height } });
-          // Pixels that differ by more than 24 in a channel, outside the frame's rounded corners and its 2 px edge.
-          const diff = await view.evaluate(async ([a, b]) => {
-            const load = (data) => new Promise((resolve) => { const img = new Image(); img.onload = () => resolve(img); img.src = `data:image/png;base64,${data}`; });
-            const [one, two] = await Promise.all([load(a), load(b)]);
-            const pixels = (img) => { const canvas = document.createElement("canvas"); canvas.width = img.width; canvas.height = img.height; const g = canvas.getContext("2d"); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
-            const p = pixels(one);
-            const q = pixels(two);
-            const w = Math.min(one.width, two.width);
-            const h = Math.min(one.height, two.height);
-            let counted = 0;
-            let differing = 0;
-            for (let y = 2; y < h - 2; y += 1) for (let x = 2; x < w - 2; x += 1) {
-              const corner = (x < 18 || x >= w - 18) && (y < 18 || y >= h - 18);
-              if (corner) continue;
-              counted += 1;
-              const i = (y * one.width + x) * 4;
-              const j = (y * two.width + x) * 4;
-              if (Math.abs(p[i] - q[j]) > 24 || Math.abs(p[i + 1] - q[j + 1]) > 24 || Math.abs(p[i + 2] - q[j + 2]) > 24) differing += 1;
-            }
-            return { ratio: differing / counted, differing, size: [one.width, one.height, two.width, two.height] };
-          }, [canvasShot.toString("base64"), htmlShot.toString("base64")]);
-          fs.writeFileSync(`${ctx.outDir}/HO-03-${frame.replace(/:/g, "-")}-canvas.png`, canvasShot);
+          const diff = await compareShots(view, shot.png, htmlShot, { width, height });
+          fs.writeFileSync(`${ctx.outDir}/HO-03-${frame.replace(/:/g, "-")}-canvas.png`, shot.png);
           fs.writeFileSync(`${ctx.outDir}/HO-03-${frame.replace(/:/g, "-")}-html.png`, htmlShot);
-          results.push({ frame, width, height, zoom, ...diff });
+          results.push({ frame, width, height, ...diff });
         }
         await view.close();
         const off = results.filter((result) => result.ratio > 0.005 || Math.abs(result.width - (result.frame.startsWith("overlay") ? 720 : 390)) > 1);
-        if (off.length) throw new Error(`differs from the canvas: ${off.map((result) => `${result.frame} ${result.width}×${result.height} zoom ${result.zoom}: ${(result.ratio * 100).toFixed(2)}% (${result.differing} px)`).join("; ")} (shots in ${ctx.outDir})`);
+        if (off.length) throw new Error(`differs from the canvas: ${off.map((result) => `${result.frame} ${result.width}×${result.height}: ${(result.ratio * 100).toFixed(2)}% (${result.differing} px)`).join("; ")} (shots in ${ctx.outDir})`);
         return results.map((result) => `${result.frame} ${result.width}×${result.height}: ${(result.ratio * 100).toFixed(2)}%`).join(" · ");
       } finally {
         await ctx.studio({ fresh: true });

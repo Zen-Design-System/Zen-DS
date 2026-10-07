@@ -87,6 +87,16 @@ ok("full: the handlers", ['onClick={() => setOverlay("invite")}', "onClick={back
 ok("full: the overlay is controlled", code.includes('open={overlay === "invite"}') && code.includes("onOpenChange={(open: boolean) => { if (!open) setOverlay(null); }}") && code.includes('primaryAction={{ label: "Send", onClick: () => setOverlay(null) }}'));
 ok("full: the photo is an import", code.includes('import siteCafePhoto from "./assets/site-cafe.webp";') && code.includes("<Image src={siteCafePhoto} alt=\"Office\" />"));
 check("full: media and handlers listed", [team.media, team.handlers.length], [[{ key: "site-cafe", kind: "media", file: "site-cafe.webp", name: "siteCafePhoto" }], 3]);
+check("full: actions by frame", team.actions.map((entry) => `${entry.frame} ${entry.where} ${entry.action} ${typeof entry.target === "string" ? entry.target : ""}`.trim()), [
+  "overlay:invite <Dialog> primaryAction.onClick close",
+  "overlay:invite <Dialog> secondaryAction.onClick close",
+  "screen:people <ListItem> onClick navigate person",
+  "screen:people <Button> onClick open invite",
+  "screen:person <Button> onClick back",
+  "screen:person <Button> onClick toast",
+  "screen:person <Button> onClick link https://example.com/help",
+]);
+ok("full: the data type", team.dataType?.startsWith("export type TeamMock = {"));
 ok("full: the TODO block", code.includes(" * TODO(dev): the design's interactions, to wire to the app:"));
 
 // What a component requires but a page cannot write (standins.mjs): a stand-in, and a Table column shows its row's field.

@@ -2564,6 +2564,10 @@ const zip = spawnSync(process.execPath, [fileURLToPath(new URL("./zip.selftest.m
 process.stdout.write(zip.stdout);
 process.stderr.write(zip.stderr);
 if (zip.status !== 0) process.exit(1);
+const handoff = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/builder/export/handoff.selftest.mjs", import.meta.url))], { encoding: "utf8" });
+process.stdout.write(handoff.stdout);
+process.stderr.write(handoff.stderr);
+if (handoff.status !== 0) process.exit(1);
 
 // The Position section's model (Ignore auto layout, constraints, token offsets) has its own test next to it.
 const position = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/position/positionModel.selftest.mjs", import.meta.url))], { encoding: "utf8" });
