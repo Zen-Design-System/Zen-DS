@@ -581,6 +581,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - P3 (2026-10-06, same session): **elevation in shells** — alert-banner Billing card (`alert-banner.tsx` ~134,
   theme border) and breadcrumbs Top bar trail card (`breadcrumbs.tsx` ~201, theme border) sit in AppShells on
   Canvas/Default: check each Sidebar's style; a shadowed Sidebar means Shadow cards (elevation follows the Sidebar).
+- P3 (2026-10-07, batch A1 gate, audit §16 `roles` warn) · Card page "Workspace plan" (`section.px-card-plan`) and the Sign in template card are Surface/Default with a shadow on Canvas/Default: make them flat or say which pairing they follow.
 - P3 (2026-10-06, same session): **Card Flat has no hover/pressed** when clickable (`card.css` only styles Border's
   interactive states), so clickable cards stay `theme="border"` under §16; a Flat interactive state would let them
   follow the default mood.
