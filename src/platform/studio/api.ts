@@ -27,6 +27,12 @@ const REQUEST_TIMEOUT = 15_000;
 /** POST /save also runs the style and usage harness on the saved files (the server allows it up to 60 s). */
 const SAVE_TIMEOUT = 75_000;
 
+/** What Promote did (POST /promote): the template's file, what it wrote, TypeScript and the harness on it. */
+export type PromoteResult =
+  | { ok: true; file: string; component: string; written: string[]; tsc: { ok: boolean; errors: string[] }; harness: { ok: boolean; findings: string[] } }
+  | { ok: false; code: "conflict"; error: string; file: string }
+  | { ok: false; code: "forbidden" | "invalid"; error: string };
+
 export class StudioApiError extends Error {
   constructor(readonly code: string, message: string) {
     super(message);
@@ -221,6 +227,18 @@ export const studioApi = {
       const { code, error } = errorOf(reply.body, `Page ${action} refused`);
       throw new StudioApiError(code, error);
     }
+  },
+  /**
+   * POST /promote (Studio builder GĐ5 M5): the page written as src/templates/studio/<Name>Template.tsx with its photos,
+   * TypeScript and the harness on it. `conflict`: that template exists and differs (send `overwrite` to replace it).
+   */
+  async promote(request: { id: string; text: string; uploads: Record<string, string>; overwrite?: boolean }): Promise<PromoteResult> {
+    const reply = await post<PromoteResult & { ok?: unknown; code?: unknown; error?: unknown; file?: unknown }>("/promote", request);
+    if (!reply) return { ok: false, code: "invalid", error: NO_SERVER };
+    if (reply.status === 200 && reply.body?.ok === true) return reply.body;
+    const { code, error } = errorOf(reply.body, "Promote refused");
+    if (code === "confirm" && isText(reply.body?.file)) return { ok: false, code: "conflict", error, file: reply.body.file };
+    return { ok: false, code: code === "forbidden" ? code : "invalid", error };
   },
   async discard(files?: string[], frame?: { locs: string[] }): Promise<DiscardResult> {
     const reply = await post<{ ok?: unknown; discarded?: unknown; partial?: unknown }>("/discard", frame ? { frame } : files ? { files } : {});

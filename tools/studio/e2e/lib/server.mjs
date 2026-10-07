@@ -25,6 +25,8 @@ async function freePort(from, to) {
 const draftsFileOf = (root, port) => path.join(root, DRAFTS_DIR, `drafts-${port}.json`);
 /** The builder pages folder of this server (never the repo's .zen-studio/pages/), emptied before and after a run. */
 export const pagesDirOf = (port) => `${DRAFTS_DIR}/e2e-pages-${port}/pages`;
+/** Where this server's Promote writes templates (never the repo's src/templates/studio), emptied before a run. */
+export const promoteDirOf = (port) => `${DRAFTS_DIR}/e2e-promote-${port}/src/templates/studio`;
 
 /**
  * Starts the harness server. `port` pins one port (fails when busy); otherwise the first free one in 5190–5199.
@@ -36,6 +38,8 @@ export async function startServer(root, { port: wanted } = {}) {
   fs.rmSync(draftsFileOf(root, port), { force: true });
   fs.rmSync(path.join(root, pagesDirOf(port), ".."), { recursive: true, force: true });
   process.env.ZEN_STUDIO_PAGES_DIR = pagesDirOf(port);
+  fs.rmSync(path.join(root, `${DRAFTS_DIR}/e2e-promote-${port}`), { recursive: true, force: true });
+  process.env.ZEN_STUDIO_PROMOTE_DIR = promoteDirOf(port);
   const { createServer, createLogger } = await import("vite");
   // Vite's errors (failed hot updates forwarded from the page included) are collected for the report, not printed.
   const errors = [];

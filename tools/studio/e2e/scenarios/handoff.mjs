@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import { unzipFiles } from "../../zip.mjs";
 import path from "node:path";
+import { promoteDirOf } from "../lib/server.mjs";
 import { showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, focusScreen, newPage, pageText, selectStack } from "./builder.mjs";
 
@@ -299,6 +300,34 @@ export const rows = [
       });
       await until(async () => img.evaluate((element) => !element.src.startsWith("data:") && element.complete && element.naturalWidth > 0).catch(() => false), { timeout: 10_000, message: "the new photo on the canvas" });
       return "Missing photo named and drawn; site-bridge replaced it (src only, one edit)";
+    },
+  },
+  {
+    id: "HO-07", feature: "Promote (dev server, admin): the page becomes <Name>Template.tsx with its photos in src/templates/studio, TypeScript and the harness pass; a changed template is replaced only when asked", wp: "GĐ5 M5",
+    timeout: 150_000,
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      await importHtmlPage(page);
+      const dir = path.join(ctx.root, promoteDirOf(ctx.server.port));
+      const file = path.join(dir, "HTMLCheckTemplate.tsx");
+      const result = () => page.locator('.studio-export [data-e2e="promote-result"]').innerText().catch(() => "");
+      const panel = await openExport(page);
+      await panel.getByRole("button", { name: "Promote to the repo" }).click();
+      const first = await until(async () => { const line = await result(); return /^Promoted to /.test(line) ? line : null; }, { timeout: 120_000, message: "Promote's answer" });
+      if (!/HTMLCheckTemplate\.tsx · TypeScript ✓ · harness ✓/.test(first)) throw new Error(`Promote: ${first}`);
+      const code = fs.readFileSync(file, "utf8");
+      if (!/^\/\/ Promoted by Zen Studio from html-check-[\w-]+\.zen\.tsx\./.test(code) || !code.includes("export function HTMLCheckTemplate(") || !code.includes('import siteCafePhoto from "./assets/site-cafe.webp";')) throw new Error(`the template:\n${code.slice(0, 500)}`);
+      if (!fs.readFileSync(path.join(dir, "assets/site-cafe.webp")).equals(fs.readFileSync(path.join(ctx.root, "src/assets/media/site-cafe.webp")))) throw new Error("the photo was not copied beside it");
+      // Someone changed the template in the repo: Promote says so and replaces it only on the second click.
+      fs.writeFileSync(file, `${code}\n// a local change\n`);
+      await panel.getByRole("button", { name: "Promote to the repo" }).click();
+      await until(async () => /exists and differs/.test(await result()), { timeout: 30_000, message: "the conflict named" });
+      if (!fs.readFileSync(file, "utf8").includes("// a local change")) throw new Error("the changed template was overwritten without asking");
+      await panel.getByRole("button", { name: "Replace HTMLCheckTemplate.tsx" }).click();
+      const second = await until(async () => { const line = await result(); return /^Promoted to /.test(line) ? line : null; }, { timeout: 120_000, message: "the template replaced" });
+      if (fs.readFileSync(file, "utf8") !== code) throw new Error("the template was not replaced by the page's code");
+      await page.keyboard.press("Escape");
+      return `${path.relative(ctx.root, file)} · ${first.split(" · ").slice(1, 3).join(" · ")}; conflict → Replace → ${second.split(" · ")[1]}`;
     },
   },
   {

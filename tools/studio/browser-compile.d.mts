@@ -14,5 +14,5 @@ export type Compiled = {
   dataType: string | null;
   media: CompiledMedia[];
 };
-export function compileReact(text: string, options?: { file?: string; mediaFile?: (kind: "media" | "asset", key: string) => string }): Compiled | { error: string };
+export function compileReact(text: string, options?: { file?: string; mediaFile?: (kind: "media" | "asset", key: string) => string; suffix?: string }): Compiled | { error: string };
 export function componentName(title: string): string;

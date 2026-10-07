@@ -17,6 +17,9 @@
 // detach.mjs and drafts.mjs; `node tools/studio/selftest.mjs` tests them.
 // Builder pages (2026-10-06, GĐ2 M2): GET /pages, POST /pages/write, POST /pages/trash keep the pages made in the
 // Studio in the gitignored `.zen-studio/pages/` (pages-folder.mjs: id regex, no links, 2 MB, dialect check first).
+// Promote (2026-10-07, GĐ5 M5): POST /promote writes a builder page into the repo as src/templates/studio/<Name>Template.tsx
+// with its photos (promote.mjs), then TypeScript and the harness on it; an existing different template needs
+// { overwrite: true }. ZEN_STUDIO_PROMOTE_DIR (relative to the root) moves it for the E2E server.
 import { execFile } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import fs from "node:fs";
@@ -32,6 +35,7 @@ import { SLOT_OPS, describeSlots, requiredFromApi, withSlots } from "./slots.mjs
 import { componentModulesFrom } from "./component-modules.mjs";
 import { validateDialect } from "./dialect.mjs";
 import { PAGES_DIR, PagesError, pagesFolder } from "./pages-folder.mjs";
+import { PROMOTE_DIR, planPromotion, typecheck, writePromotion } from "./promote.mjs";
 
 const PREFIX = "/__zen-studio";
 const ROLE_HEADER = "x-zen-studio-role";
@@ -45,7 +49,7 @@ const HARNESS_TIMEOUT = 60_000;
 /** The drafts of each dev server persist here (relative to the root), as drafts-<port>.json. */
 const DRAFTS_DIR = "node_modules/.cache/zen-studio";
 const STATUS = { forbidden: 403, "not-found": 404, stale: 409, invalid: 400, confirm: 409 };
-const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/drafts", "/frame-drafts", "/save", "/discard", "/pages", "/pages/write", "/pages/trash"]);
+const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/drafts", "/frame-drafts", "/save", "/discard", "/pages", "/pages/write", "/pages/trash", "/promote"]);
 /** A frame request names at most this many frames and locs (a page renders a few thousand elements). */
 const MAX_FRAMES = 200;
 const MAX_LOCS = 50_000;
@@ -239,12 +243,36 @@ export function zenStudio() {
         const result = await exclusive(() => pagesCall(() => (route === "POST /pages/write" ? pages().write(body.id, body.text) : pages().trash(body.id))));
         return send(res, 200, { ok: true, ...result });
       }
+      if (route === "POST /promote") {
+        checkWriteHeaders(req);
+        const body = await readJson(req);
+        return send(res, 200, await promote(body));
+      }
       if (ROUTES.has(url.pathname.slice(PREFIX.length))) throw new HttpError("invalid", `${req.method} is not allowed here`, 405);
       throw new HttpError("not-found", `Unknown endpoint ${url.pathname}`);
     } catch (error) {
       if (!(error instanceof HttpError)) throw error;
       return send(res, error.status ?? STATUS[error.code] ?? 400, { ok: false, code: error.code, error: error.message, ...error.extra });
     }
+  }
+
+  /** POST /promote { id, text, uploads?: { <asset id>: base64 }, overwrite? }: the page as a template in the repo. */
+  async function promote(body) {
+    const { id, text, uploads = {}, overwrite = false } = body ?? {};
+    if (typeof id !== "string" || !/^[a-z0-9][a-z0-9-]*$/.test(id) || typeof text !== "string" || typeof uploads !== "object" || uploads === null) {
+      throw new HttpError("invalid", "Expected { id, text, uploads?, overwrite? }");
+    }
+    const errors = validateDialect(text, { components: new Set([...slotData().componentModules.keys()].filter((name) => /^[A-Z]/.test(name))) });
+    if (errors.length) throw new HttpError("invalid", `The page is not valid: line ${errors[0].line}: ${errors[0].message}`);
+    const bytes = Object.fromEntries(Object.entries(uploads).filter(([key, value]) => /^[\w.-]+$/.test(key) && typeof value === "string").map(([key, value]) => [key, Buffer.from(value, "base64")]));
+    const plan = planPromotion(text, { file: `${id}.zen.tsx`, uploads: bytes, dir: process.env.ZEN_STUDIO_PROMOTE_DIR || PROMOTE_DIR });
+    if ("error" in plan) throw new HttpError("invalid", `The page cannot be compiled: ${plan.error}`);
+    if (plan.missing.length) throw new HttpError("invalid", `Missing photo${plan.missing.length === 1 ? "" : "s"}: ${plan.missing.join(", ")}`);
+    const result = await exclusive(() => writePromotion(root, plan, { overwrite: overwrite === true }));
+    if (result.conflict) throw new HttpError("confirm", `${result.conflict} exists and differs: promote again to replace it`, 409, { file: result.conflict });
+    // TypeScript and the harness run outside the write queue, on the template only.
+    const [tsc, harness] = await Promise.all([typecheck(root, [plan.file]), runHarness([plan.file])]);
+    return { ok: true, file: plan.file, component: plan.component, written: result.written, tsc, harness };
   }
 
   async function edit(body) {

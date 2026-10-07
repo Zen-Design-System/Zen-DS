@@ -2568,6 +2568,10 @@ const handoff = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/pl
 process.stdout.write(handoff.stdout);
 process.stderr.write(handoff.stderr);
 if (handoff.status !== 0) process.exit(1);
+const promoteTest = spawnSync(process.execPath, [fileURLToPath(new URL("./promote.selftest.mjs", import.meta.url))], { encoding: "utf8" });
+process.stdout.write(promoteTest.stdout);
+process.stderr.write(promoteTest.stderr);
+if (promoteTest.status !== 0) process.exit(1);
 
 // The Position section's model (Ignore auto layout, constraints, token offsets) has its own test next to it.
 const position = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/position/positionModel.selftest.mjs", import.meta.url))], { encoding: "utf8" });

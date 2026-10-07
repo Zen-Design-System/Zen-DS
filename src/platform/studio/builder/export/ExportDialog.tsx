@@ -11,13 +11,17 @@ import { getPage } from "../store/pageStore";
 import { closeExport, exportPageId, subscribeExport } from "./exportState";
 import type { HandoffPackage, HtmlExport } from "./htmlExport";
 import { zipFiles } from "../../../../../tools/studio/zip.mjs";
+import { studioApi, type PromoteResult } from "../../api";
+import { useStudio } from "../../store";
+import { assetBlob, assetIdsOf } from "../assets/uploads";
 
 /*
  * Export (Studio builder GĐ5, spec docs/research/studio-builder-handoff-spec-2026-10-07.md §3b): a builder page as a React
  * component (tools/studio/compile.mjs, loaded with the panel), as static HTML (htmlExport.tsx, loaded with its tab: the
  * screens rendered off screen, a zip with styles.css and the photos), as a handoff package (the code, the design file,
  * handoff.md, a PNG and the HTML of each frame: one zip) or as its design file (`.zen.tsx`): the code view's Copy, or
- * Download. Opened from the page's Inspector panel and its My pages menu (exportState.ts). No dev server needed.
+ * Download. Opened from the page's Inspector panel and its My pages menu (exportState.ts). No dev server needed, except for
+ * Promote (GĐ5 M5, admin): the page written into the repo as src/templates/studio/<Name>Template.tsx.
  */
 
 type Tab = "react" | "html" | "handoff" | "design";
@@ -41,6 +45,23 @@ function download(name: string, data: BlobPart, type: string) {
 
 /** Saves `text` as a file named `name` (the browser's download). */
 export const downloadText = (name: string, text: string) => download(name, text, "text/plain;charset=utf-8");
+
+/** A blob as base64 (the request body of Promote carries the uploaded photos). */
+const base64Of = (blob: Blob) => new Promise<string>((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(String(reader.result).replace(/^data:[^,]*,/, ""));
+  reader.onerror = () => reject(reader.error);
+  reader.readAsDataURL(blob);
+});
+
+/** Promote's answer as one line: where the template went, and TypeScript's and the harness's verdicts. */
+function promoteLine(result: PromoteResult): string {
+  if (!result.ok) return result.error;
+  const tsc = result.tsc.ok ? "TypeScript ✓" : `TypeScript ✗ ${result.tsc.errors.length} error${result.tsc.errors.length === 1 ? "" : "s"}: ${result.tsc.errors[0] ?? ""}`;
+  const findings = result.harness.findings.length;
+  const harness = result.harness.ok ? `harness ✓${findings ? ` (${findings} warning${findings === 1 ? "" : "s"})` : ""}` : `harness ✗ ${result.harness.findings[0] ?? ""}`;
+  return `Promoted to ${result.file}${result.written.length ? "" : " (unchanged)"} · ${tsc} · ${harness}. Open a pull request with npm run ship.`;
+}
 
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
 const languageOf = (path: string): CodeLanguage => (path.endsWith(".css") ? "css" : path.endsWith(".html") ? "html" : path.endsWith(".md") ? "markdown" : "tsx");
@@ -68,6 +89,10 @@ export function ExportDialog() {
   const [htmlPath, setHtmlPath] = useState<string | null>(null);
   const [zipping, setZipping] = useState(false);
   const [handoff, setHandoff] = useState<HandoffState | null>(null);
+  // Promote (GĐ5 M5): the dev server writes the page into src/templates/studio (admin only).
+  const admin = useStudio((state) => state.role === "admin");
+  const [promoting, setPromoting] = useState(false);
+  const [promoted, setPromoted] = useState<{ id: string; result: PromoteResult } | null>(null);
   useEffect(() => {
     if (!id) return undefined;
     let alive = true;
@@ -138,6 +163,28 @@ export function ExportDialog() {
     download(handoffReady.name, zipFiles(handoffReady.files) as Uint8Array<ArrayBuffer>, "application/zip");
     if (handoffReady.missing.length) inspectorStatus.set("negative", `Not in the zip (they did not load): ${handoffReady.missing.join(", ")}`);
   };
+  const promoteResult = promoted && shown && promoted.id === shown.id ? promoted.result : null;
+  const conflict = promoteResult && !promoteResult.ok && promoteResult.code === "conflict" ? promoteResult.file : null;
+  const promote = async () => {
+    if (!shown) return;
+    setPromoting(true);
+    try {
+      const uploads: Record<string, string> = {};
+      for (const asset of assetIdsOf(shown.design)) {
+        const blob = await assetBlob(asset);
+        if (blob) uploads[asset] = await base64Of(blob);
+      }
+      const result = await studioApi.promote({ id: shown.id, text: shown.design, uploads, overwrite: Boolean(conflict) });
+      setPromoted({ id: shown.id, result });
+      inspectorStatus.set(result.ok && result.tsc.ok && result.harness.ok ? "positive" : "negative", promoteLine(result));
+    } finally {
+      setPromoting(false);
+    }
+  };
+  // Only on the dev server, for an admin: the repo is there to write into.
+  const secondaryAction = import.meta.env.DEV && admin && shown
+    ? { label: promoting ? "Promoting…" : conflict ? `Replace ${conflict.split("/").pop()}` : "Promote to the repo", disabled: promoting, onClick: () => { void promote(); } }
+    : undefined;
   const primaryAction = tab === "handoff"
     ? { label: shown ? `Download ${shown.id}-handoff.zip` : "Download", disabled: !handoffReady, onClick: downloadHandoff }
     : tab === "html"
@@ -153,6 +200,7 @@ export function ExportDialog() {
       description={description}
       className="studio-export"
       primaryAction={primaryAction}
+      secondaryAction={secondaryAction}
     >
       <Segmented
         aria-label="Export as"
@@ -171,6 +219,9 @@ export function ExportDialog() {
           onValueChange={setHtmlPath}
           options={htmlFiles.files.map((entry) => ({ value: entry.path, label: entry.path }))}
         />
+      ) : null}
+      {promoteResult ? (
+        <Text as="p" textStyle="Body/Small/Regular" tone={promoteResult.ok && promoteResult.tsc.ok && promoteResult.harness.ok ? "positive" : "negative"} data-e2e="promote-result">{promoteLine(promoteResult)}</Text>
       ) : null}
       {text ? (
         <CodeView code={text} language={languageOf(file)} title={file} maxHeight="min(60vh, 640px)" label={`${file} (preview)`} className="studio-export__code" />
