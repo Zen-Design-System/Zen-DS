@@ -428,3 +428,6 @@
 - Backlog row "Design Tokens dark nav contrast" (2026-10-04) removed: a screenshot shows the nav labels white on the
   dark canvas; the audit's bgOf falls back to white when no ancestor paints, so the 11 × 1.38:1 are a false positive
   (user: "nhìn vào là thấy đủ nhầm rồi").
+- audit.mjs skips the docs navigation (.official-nav) in the contrast check (user: skip this case, no more checking).
+  The final `qa --all` (font + first full run of the §16 check) was stopped by the user: the 6b --all had passed and the
+  font is the same build. The §16 check has therefore not run on every page yet; the next gate runs it.
