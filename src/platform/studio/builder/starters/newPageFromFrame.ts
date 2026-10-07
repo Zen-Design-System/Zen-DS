@@ -21,7 +21,7 @@ export async function newPageFromFrame(frame: { element: Element; label: string 
     return null;
   }
   const title = starterTitle(frame.label);
-  const text = starterPage({ title, device: shot.device, nodes: shot.nodes });
+  const text = starterPage({ title, device: shot.device, nodes: shot.nodes, padding: shot.padding });
   const engine = await loadEngine();
   const errors = engine.validateDialect(text, { components: new Set(zenComponents) });
   if (errors.length) {

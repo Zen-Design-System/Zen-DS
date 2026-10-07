@@ -148,8 +148,8 @@ function radiusKey(element: Element): string | null {
 }
 
 /** The text style the element's text renders with: its text-style class (or an ancestor's inside the instance), else
- * the style whose size, line height and weight match. */
-function textStyleKey(element: Element, root: Element): string | null {
+ * the style whose size, line height and weight match. (Starters read it too: builder/starters/hostLayout.ts.) */
+export function textStyleKey(element: Element, root: Element): string | null {
   const holder = textHost(element) ?? element;
   return textStylesOf(holder, root).names[0] ?? matchingTextStyles(holder)[0] ?? null;
 }
@@ -159,7 +159,7 @@ const toneOrder: string[] = contentToneGroups.flatMap(({ tones }) => tones);
 const toneByToken: Record<string, string> = Object.fromEntries(toneOrder.map((tone) => [contentToneVar(tone as ContentTone), tone]).filter(([token]) => token));
 
 /** The Text tone whose colour the element's text renders in, or null. */
-function toneKey(element: Element): string | null {
+export function toneKey(element: Element): string | null {
   const holder = textHost(element) ?? element;
   const tokens = colorTokensFor(holder, getComputedStyle(holder).color, "content");
   // Two tokens can share a colour (a Support step and a status family): the earlier group wins (Neutral first).

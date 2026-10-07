@@ -165,7 +165,12 @@ Last updated: 2026-10-06.
   done 2026-10-07: `builder/starters/{snapshot.ts (fibers → literal tree; library components by export identity, so it
   runs on the build), toDialect.ts (pure, selftest), newPageFromFrame.ts}`; canvas frame menu + FramePanel button "New
   page from this frame"; E2E group `starters` SP-01…SP-03 (rows may set `timeout`: opening the Templates page compiles
-  it); build-check 18 steps. Next: M2 (HTML → Stack / Grid / Box / Text), M3 (Start from, Overlay frames); then GĐ5.
+  it); build-check 18 steps. M2 done 2026-10-07: `builder/starters/hostLayout.ts` (rendered HTML → Stack / Grid / Box /
+  Heading / Text / Link / Image / Divider by token, measured with detach.ts textStyleKey / toneKey and partInfo
+  colorTokensFor; `classProps` reads a primitive's className CSS back as props), docs chrome (`.pe-card*`,
+  `.platform-phone*`, `.zen-provider`) walked through, the stage's padding kept; E2E SP-04 (fixture frame "E2E html");
+  `tools/studio/e2e/starters-coverage.mjs` (every example frame, nothing saved): 323/323 valid. Next: M3 (Start from,
+  Overlay frames); then GĐ5.
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers

@@ -42,6 +42,8 @@ check("one node: the Screen holds it", one.includes('      <Screen id="screen-1"
 check("one node: imports what it uses", one.includes('import { Button, Card, Text } from "@zen/design-system";'), true);
 const several = starterPage({ title: "Bits", device: "phone", nodes: [node("Badge", [], [text("New")]), node("ListItem", [["title", lit("Ava")], ["leading", { kind: "element", node: node("Avatar", [["alt", lit("Ava")]]) }]])] });
 check("several nodes: in a padded Stack (lg on a phone), a valid page", [validateDialect(several, { components }), several.includes('<Stack gap="md" padding="lg">')], [[], true]);
+const padded = starterPage({ title: "Card", device: "desktop", nodes: [node("Badge", [], [text("New")])], padding: "2xl" });
+check("one node with room around it: in a Stack with that padding, a valid page", [validateDialect(padded, { components }), padded.includes('<Stack gap="md" padding="2xl">')], [[], true]);
 const overlay = starterPage({ title: "With dialog", device: "desktop", nodes: [node("Button", [], [text("Open")])], overlays: [{ id: "dialog-1", node: node("Dialog", [["title", lit("Delete?")]], [text("Sure?")]) }] });
 check("an overlay: an Overlay frame after the Screen, a valid page", [validateDialect(overlay, { components }), overlay.includes('<Overlay id="dialog-1">'), overlay.includes("import { Board, Overlay, Screen, proto }")], [[], true, true]);
 check("a quote in the title stays valid", validateDialect(starterPage({ title: 'Say "hi"', device: "tablet", nodes: [node("Text", [], [text("x")])] }), { components }), []);

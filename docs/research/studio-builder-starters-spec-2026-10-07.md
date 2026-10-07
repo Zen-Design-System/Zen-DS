@@ -2,7 +2,7 @@
 
 **Trạng thái: user duyệt 2026-10-07** (Q1 cả hai nguồn · Q2 chụp thứ đang hiển thị · Q3 thẻ HTML đổi sang Layout ·
 Q4 overlay thành Overlay frame). **M1 xong 2026-10-07** (SP-01…SP-03; build-check bước "New page from a template
-frame"). GĐ3b của `docs/research/studio-builder-plan-2026-10-05.md` (GĐ3 "starters"; user chốt
+frame"). **M2 xong 2026-10-07** (SP-04; độ phủ 323/323 frame hợp lệ, `tools/studio/e2e/starters-coverage.mjs`). GĐ3b của `docs/research/studio-builder-plan-2026-10-05.md` (GĐ3 "starters"; user chốt
 2026-10-06 tách thành GĐ3b, xem `studio-builder-library-spec-2026-10-06.md` Q3). GĐ0–GĐ4 đã xong.
 
 ## 1. Mục tiêu và tiêu chí xong

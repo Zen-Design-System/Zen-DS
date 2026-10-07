@@ -126,11 +126,12 @@ export const starterTitle = (label: string) => label.replace(/^(Example|Template
  * The text of a builder page whose one Screen holds `nodes` (several: in a Stack, as a blank page holds its content).
  * `overlays`: Overlay frames after the Screen (GĐ3b M3).
  */
-export function starterPage({ title, device, nodes, overlays = [] }: { title: string; device: PageDevice; nodes: SnapNode[]; overlays?: Array<{ id: string; node: SnapNode }> }): string {
-  const content: SnapNode[] = nodes.length === 1 ? nodes : [{
+export function starterPage({ title, device, nodes, overlays = [], padding }: { title: string; device: PageDevice; nodes: SnapNode[]; overlays?: Array<{ id: string; node: SnapNode }>; padding?: string | null }): string {
+  // Several nodes, or one the frame showed with room around it (`padding`, a token key): in a padded Stack.
+  const content: SnapNode[] = nodes.length === 1 && !padding ? nodes : [{
     kind: "element",
     name: "Stack",
-    props: [["gap", { kind: "literal", value: "md" }], ["padding", { kind: "literal", value: device === "phone" ? "lg" : "xl" }]],
+    props: [["gap", { kind: "literal", value: "md" }], ["padding", { kind: "literal", value: padding ?? (device === "phone" ? "lg" : "xl") }]],
     children: nodes,
   }];
   const names = componentsOf([...content, ...overlays.map((overlay) => overlay.node)]);

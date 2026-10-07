@@ -145,3 +145,18 @@
 - Canvas frame menu and FramePanel "New page from this frame". E2E SP-01 (fixture frame → page, edit level), SP-02 Sign
   in (desktop), SP-03 Mobile list (phone), no console errors; run.mjs takes a row's own `timeout`. build-check step on
   the minified build (templates page, frame label click: Layers shows 500 rows).
+
+## Studio builder GĐ3b M2 (session "Studio builder tool planning", tier M)
+
+- `builder/starters/hostLayout.ts`: a rendered HTML element → Stack (flex: direction, gap, align, justify, wrap; block:
+  gap = median space between children) / Grid (column count, gap) / Box (surface or border token, radius) around it,
+  padding by token; h1–h6 → Heading, text tags → Text (textStyleKey / toneKey exported from inspector/detach.ts), `a` →
+  Link, `img` → Image (`zen-media:` for library photos), `hr` → Divider; aria-hidden, display none, svg / form fields /
+  video left out; a wrapper around one thing unwrapped. `classProps`: a Stack / Grid / Box / Text with a className gets
+  what it renders as the props it does not write.
+- snapshot.ts: React's lone text child (no text fiber) read from props; docs chrome (`.pe-card*`, `.platform-phone*`,
+  `.zen-provider`) walked through; the stage's padding → the padded Stack (`starterPage({ padding })`); several elements
+  in one prop → a row Stack; notes grouped (className, style), logic functions (get…/is…) quiet.
+- Fixture frame "E2E html" (HtmlFixture) + E2E SP-04; starters rows open the fixture page fresh. Coverage script
+  `tools/studio/e2e/starters-coverage.mjs`: 323/323 frames valid, 57 with nothing left out. IN-16 waits for the Layers
+  rows (it flaked in the M1 gate).

@@ -1,8 +1,8 @@
 import { Fragment, isValidElement, type ReactElement } from "react";
 import * as Zen from "../../../../index";
 import { componentSchema, propSpecs } from "../../inspector/propSchema";
-import { currentFiber, elementFiber, isHostFiber, isPortalFiber, type Fiber } from "../../select/picker";
-import { LIBRARY_PHOTOS, MEDIA_PREFIX } from "../library/media";
+import { currentFiber, elementFiber, hostsOf, isHostFiber, isPortalFiber, type Fiber } from "../../select/picker";
+import { classProps, hostNode, libraryMedia, paddingKeyFor, type HostContext } from "./hostLayout";
 import { mergeText, type PageDevice, type SnapChild, type SnapNode, type SnapValue } from "./toDialect";
 
 /*
@@ -45,8 +45,9 @@ const transparent = (name: string) => /Provider$/.test(name);
 /** Overlays become Overlay frames (GĐ3b M3); until then they are left out, noted. */
 export const OVERLAY_NAMES: ReadonlySet<string> = new Set(["Dialog", "ModalForm", "SidePanel", "BottomSheet"].filter((name) => name in Zen));
 
-/** A library photo's URL in this build → its `zen-media:` key. */
-const photoKeys = new Map(LIBRARY_PHOTOS.map((entry) => [entry.photo.src, `${MEDIA_PREFIX}${entry.key}`]));
+
+/** The docs' chrome around an example: its card, a phone mock-up, a provider's own box. */
+const CHROME = ".pe-card, .pe-card__stage, .pe-card__preview, .zen-provider, .platform-phone-fit, .platform-phone, .platform-phone__screen, .platform-phone__header, .platform-phone__footer";
 
 /** Props a page never writes: React's, the Studio's and the platform's plumbing. */
 const SKIPPED = new Set(["children", "key", "ref"]);
@@ -54,6 +55,8 @@ const SKIPPED = new Set(["children", "key", "ref"]);
 export type Snapshot = {
   /** What the frame shows, top level first. */
   nodes: SnapNode[];
+  /** The room the docs' example card leaves around it, as a Padding key (null: none, the content fills the frame). */
+  padding: string | null;
   /** Overlays the frame holds (open or not), for Overlay frames. */
   overlays: SnapNode[];
   device: PageDevice;
@@ -61,7 +64,7 @@ export type Snapshot = {
   notes: string[];
 };
 
-type Context = { byProps: WeakMap<object, Fiber>; notes: Map<string, number>; overlays: SnapNode[]; seen: WeakSet<object>; depth: number };
+type Context = { byProps: WeakMap<object, Fiber>; notes: Map<string, number>; overlays: SnapNode[]; seen: WeakSet<object>; depth: number; frame: Element; host: HostContext };
 
 const note = (ctx: Context, text: string) => ctx.notes.set(text, (ctx.notes.get(text) ?? 0) + 1);
 const literal = (value: string | number | boolean | null): SnapValue => ({ kind: "literal", value });
@@ -89,10 +92,11 @@ function valueOf(raw: unknown, ctx: Context, where: string): SnapValue | undefin
   if (raw === undefined) return undefined;
   if (raw === null || typeof raw === "boolean") return literal(raw);
   if (typeof raw === "number") return Number.isFinite(raw) ? literal(raw) : undefined;
-  if (typeof raw === "string") return literal(photoKeys.get(raw) ?? raw);
+  if (typeof raw === "string") return literal(libraryMedia(raw));
   if (typeof raw === "function") {
     // Handlers are the page's logic: a page is a drawing (prototype links come from the Prototype tab).
-    if (!/(^|[\s.])on[A-Z]/.test(where)) note(ctx, `${where} is a function: left out`);
+    // Handlers and the page's logic (getRowId, isDisabled…) go quietly; one that draws (a cell, a format) is noted.
+    if (!/(^|[\s.])(on|get|is|has|should|compare|sort|filter)[A-Z]/.test(where)) note(ctx, `${where} is a function: left out`);
     return undefined;
   }
   if (typeof raw !== "object") return undefined;
@@ -100,8 +104,9 @@ function valueOf(raw: unknown, ctx: Context, where: string): SnapValue | undefin
     const nodes = mergeText(fromElement(raw, ctx));
     if (!nodes.length) return undefined;
     if (nodes.length === 1) return nodes[0].kind === "text" ? literal(nodes[0].value) : { kind: "element", node: nodes[0] };
-    note(ctx, `${where} held several elements: put in a Stack`);
-    return { kind: "element", node: { kind: "element", name: "Stack", props: [["gap", literal("xs")]], children: nodes } };
+    // A group of actions, badges or text runs side by side.
+    note(ctx, `${where} held several elements: put in a row Stack`);
+    return { kind: "element", node: { kind: "element", name: "Stack", props: [["direction", literal("row")], ["gap", literal("xs")], ["align", literal("center")]], children: wrapLoose(nodes) } };
   }
   if (ctx.seen.has(raw) || ctx.depth > 40) return undefined;
   ctx.seen.add(raw);
@@ -147,14 +152,22 @@ function propsOf(name: string): Set<string> {
   return own;
 }
 
+/** Layout primitives and text whose className's CSS can be read back as props (hostLayout.ts classProps). */
+const CLASS_READ = new Set(["Stack", "Grid", "Box", "Text", "Heading"]);
+
 /** A library component with its props (from its fiber when it rendered, else from its element). */
 function zenNode(name: string, props: Record<string, unknown>, ctx: Context): SnapNode {
   const own = propsOf(name);
   const out: Array<[string, SnapValue]> = [];
+  // A primitive styled by a className: what its CSS renders, as the props it does not write (the rest is noted).
+  const fiber = typeof props.className === "string" && props.className && CLASS_READ.has(name) ? ctx.byProps.get(props) : undefined;
+  const host = fiber ? hostsOf(fiber)[0] : undefined;
+  const fromClass = host instanceof HTMLElement ? classProps(name, host, new Set(Object.keys(props).filter((key) => props[key] !== undefined)), ctx.frame, ctx.host) : [];
+  if (host) note(ctx, "A layout or text className: read back as props (spacing to the nearest token), its other CSS left out");
   for (const [key, raw] of Object.entries(props)) {
     if (SKIPPED.has(key) || key.startsWith("data-")) continue;
     if (key === "className" || key === "style") {
-      if (raw) note(ctx, `${name} ${key}: left out (a page takes the component's props and tokens)`);
+      if (raw && !(key === "className" && host)) note(ctx, `${key} on library components: left out (a page takes their props and tokens)`);
       continue;
     }
     const value = valueOf(raw, ctx, `${name} ${key}`);
@@ -163,7 +176,7 @@ function zenNode(name: string, props: Record<string, unknown>, ctx: Context): Sn
     const twin = `default${capitalize(key)}`;
     out.push([own.has(twin) && !(twin in props) ? twin : key, value]);
   }
-  return { kind: "element", name, props: out, children: childrenOf(props.children, ctx) };
+  return { kind: "element", name, props: [...out, ...fromClass], children: childrenOf(props.children, ctx) };
 }
 
 /** React children (text, elements, lists, fragments) as snapshot children. */
@@ -197,7 +210,14 @@ function fromElement(element: ReactElement, ctx: Context): SnapChild[] {
   return [];
 }
 
-/** What a host element (an HTML tag) keeps on a page: its content (GĐ3b M2 turns its layout into Stack / Grid / Box). */
+/** Text among elements goes into a Text of its own (a Stack does not style text). */
+const wrapLoose = (nodes: SnapChild[]): SnapChild[] => nodes.flatMap((node): SnapChild[] => {
+  if (node.kind !== "text") return [node];
+  const text = node.value.trim();
+  return text ? [{ kind: "element", name: "Text", props: [], children: [{ kind: "text", value: text }] }] : [];
+});
+
+/** What an HTML element that did not render (a hidden tab's) keeps on a page: its content. */
 function hostChildren(tag: string, children: SnapChild[], ctx: Context): SnapChild[] {
   if (tag === "svg" || tag === "img" || tag === "canvas" || tag === "video" || tag === "iframe") {
     note(ctx, `<${tag}>: left out (a page holds library components)`);
@@ -231,7 +251,17 @@ function fromFiber(fiber: Fiber, ctx: Context): SnapChild[] {
   }
   // A portal outside a library component (platform chrome): not part of what the frame shows.
   if (isPortalFiber(fiber)) return [];
-  if (isHostFiber(fiber)) return hostChildren(typeof fiber.type === "string" ? fiber.type : "div", fibersIn(fiber, ctx), ctx);
+  if (isHostFiber(fiber)) {
+    const tag = typeof fiber.type === "string" ? fiber.type : "div";
+    const element = fiber.stateNode;
+    // React writes a lone text child into the element itself (no text fiber): <h3>Team</h3>.
+    const own = fiber.memoizedProps?.children;
+    const children = !fiber.child && (typeof own === "string" || typeof own === "number") ? [{ kind: "text" as const, value: String(own) }] : fibersIn(fiber, ctx);
+    // The docs' frame around an example (its card, a phone mock-up, a provider's box): only what it holds.
+    if (element instanceof Element && element.matches(CHROME)) return children;
+    // A rendered HTML element: its layout, read from the browser, as Stack / Grid / Box / Text (./hostLayout.ts).
+    return element instanceof HTMLElement ? hostNode(element, tag, children, ctx.frame, ctx.host) : hostChildren(tag, children, ctx);
+  }
   return fibersIn(fiber, ctx);
 }
 
@@ -262,11 +292,23 @@ function deviceOf(frame: Element): PageDevice {
   return width && width <= 480 ? "phone" : width && width <= 1024 ? "tablet" : "desktop";
 }
 
+/** The padding of the docs' example card around its content, as a Padding key; null without one. */
+function previewPadding(frame: Element, ctx: HostContext): string | null {
+  // The stage (platform.css: padding xlarge; none for a full-screen example) and the preview inside it.
+  const boxes = [frame.querySelector(".pe-card__stage"), frame.querySelector(".pe-card__preview")].filter((box): box is HTMLElement => box instanceof HTMLElement);
+  const px = boxes.reduce((sum, box) => {
+    const style = getComputedStyle(box);
+    return sum + Math.max(parseFloat(style.paddingTop) || 0, parseFloat(style.paddingLeft) || 0);
+  }, 0);
+  return px && boxes[0] ? paddingKeyFor(boxes[0], px, ctx) : null;
+}
+
 /** What `frame` (a canvas frame's element) shows, as library components with literal props. */
 export function snapshotFrame(frame: Element): Snapshot {
   const host = elementFiber(frame);
-  const ctx: Context = { byProps: new WeakMap(), notes: new Map(), overlays: [], seen: new WeakSet(), depth: 0 };
-  if (!host) return { nodes: [], overlays: [], device: deviceOf(frame), notes: ["The frame has not rendered yet"] };
+  const ctx: Context = { byProps: new WeakMap(), notes: new Map(), overlays: [], seen: new WeakSet(), depth: 0, frame, host: { note: () => undefined, rounded: { count: 0 } } };
+  ctx.host.note = (text) => note(ctx, text);
+  if (!host) return { nodes: [], padding: null, overlays: [], device: deviceOf(frame), notes: ["The frame has not rendered yet"] };
   const root = currentFiber(host);
   ctx.byProps = propsIndex(root);
   const nodes = fibersIn(root, ctx).filter((child): child is SnapNode => {
@@ -274,6 +316,7 @@ export function snapshotFrame(frame: Element): Snapshot {
     if (child.value.trim()) note(ctx, "Text outside any component: left out");
     return false;
   });
+  if (ctx.host.rounded.count) note(ctx, `Spacing that matches no token: rounded to the nearest (×${ctx.host.rounded.count})`);
   const notes = [...ctx.notes].map(([text, count]) => (count > 1 ? `${text} (×${count})` : text));
-  return { nodes, overlays: ctx.overlays, device: deviceOf(frame), notes };
+  return { nodes, padding: previewPadding(frame, ctx.host), overlays: ctx.overlays, device: deviceOf(frame), notes };
 }

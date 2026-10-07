@@ -236,6 +236,14 @@ removed (four unused colour ramps were, see Removed).
     can edit; the state it showed is kept (the open tab, what was typed, the list as filtered), its logic is not
     (handlers, forms' wiring: add links in the Prototype tab).
   - Works on the deployed docs too (no dev server). The status line lists what could not be kept.
+- **Zen Studio starters, GĐ3b M2: an example's own HTML becomes layout (2026-10-07):**
+  - An example's `div` rows and grids become Stack and Grid (direction, gap, alignment, wrap, columns, padding), a
+    tinted or bordered box a Box (Surface, Border, Radius), headings Heading, paragraphs Text (their text style and
+    tone), links Link, images Image, rules Divider. Spacing takes the nearest token.
+  - A Stack, Grid, Box or Text styled by an example's own class gets what that class renders as props (gap, padding,
+    alignment, text style).
+  - The docs' card around an example is not copied; the room it leaves around the content is (a padded Stack).
+  - Measured on every example and template: 323 of 323 frames become a valid page.
 - **Zen Studio instance panel, GĐ4 M4: size and Detach (2026-10-07):**
   - **W / H for an instance** (Inspector › Layout › Size): Hug, Fill or a Fixed px, as in Figma. A component with its
     own size prop or `fullWidth` uses it; any other is wrapped in a Stack that it fills (`<Stack direction="row"

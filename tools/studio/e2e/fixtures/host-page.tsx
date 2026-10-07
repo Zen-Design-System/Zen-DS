@@ -132,6 +132,29 @@ function InstanceFixture() {
   );
 }
 
+/** An example's own HTML (GĐ3b M2): a flex column, a heading and a paragraph with a link, a flex row, a 3-column grid, a
+ *  tinted note. "New page from this frame" turns them into Stack, Heading, Text, Link, Grid and Box by token. */
+function HtmlFixture() {
+  return (
+    <div data-e2e="html" style={{ display: "flex", flexDirection: "column", gap: "var(--zen-spacing-gap-large)", padding: "var(--zen-spacing-padding-xlarge)" }}>
+      <h3>Team</h3>
+      <p>Three people work on <a href="#docs">the docs</a> today.</p>
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--zen-spacing-gap-small)" }}>
+        <Button level="primary">Invite</Button>
+        <Button level="tertiary">Cancel</Button>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--zen-spacing-gap-medium)" }}>
+        <Badge>One</Badge>
+        <Badge>Two</Badge>
+        <Badge>Three</Badge>
+      </div>
+      <div style={{ background: "var(--zen-color-background-neutral-subtle-default)", padding: "var(--zen-spacing-padding-large)" }}>
+        <Badge>Note</Badge>
+      </div>
+    </div>
+  );
+}
+
 export const examples: ExampleDef[] = [
   { title: "E2E layout", description: "Stacks, buttons, text and a checkbox written as literals.", code: "<LayoutFixture />", render: () => <LayoutFixture /> },
   { title: "E2E data", description: "Rows from a .map over a const and over data.ts, a state-bound and a conditional prop.", code: "<DataFixture />", render: () => <DataFixture /> },
@@ -140,4 +163,5 @@ export const examples: ExampleDef[] = [
   { title: "E2E save", description: "A component from another file, the one file the harness saves.", code: "<StudioSaveFixture />", render: () => <StudioSaveFixture /> },
   { title: "E2E grid", description: "A counted Grid (with a minColumnWidth it ignores) and a Grid per breakpoint.", code: "<GridFixture />", render: () => <GridFixture /> },
   { title: "E2E instance", description: "Zen instances with design props, a field's label, an alert's icon and an empty state.", code: "<InstanceFixture />", render: () => <InstanceFixture /> },
+  { title: "E2E html", description: "An example's own HTML: flex and grid boxes, a heading, a paragraph with a link, a tinted note.", code: "<HtmlFixture />", render: () => <HtmlFixture /> },
 ];
