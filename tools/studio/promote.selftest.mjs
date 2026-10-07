@@ -14,7 +14,8 @@ function check(label, actual, expected) {
   const a = JSON.stringify(actual);
   const e = JSON.stringify(expected);
   if (a === e) passed += 1;
-  else failures.push(`${label}\n    expected ${e}\n    actual   ${a}`);
+  // ✗ on each line: the gate lists only such lines of a failing self-test.
+  else failures.push(`✗ ${label}\n  ✗ expected ${e}\n  ✗ actual   ${a}`);
 }
 const ok = (label, value) => check(label, Boolean(value), true);
 

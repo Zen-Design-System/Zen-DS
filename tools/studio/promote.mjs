@@ -78,7 +78,7 @@ export function typecheck(root, files, { cacheDir = "node_modules/.cache/zen-stu
     include: [...files, "src/vite-env.d.ts"].map((file) => path.relative(dir, path.join(root, file))),
   }, null, 2));
   return new Promise((resolve) => {
-    execFile(process.execPath, [path.join(root, "node_modules/typescript/bin/tsc"), "-p", config], { cwd: root, timeout: TSC_TIMEOUT, maxBuffer: 16 * 1024 * 1024, encoding: "utf8" }, (error, stdout, stderr) => {
+    execFile(process.execPath, [path.join(root, "node_modules/typescript/bin/tsc"), "-p", config, "--pretty", "false"], { cwd: root, timeout: TSC_TIMEOUT, maxBuffer: 16 * 1024 * 1024, encoding: "utf8" }, (error, stdout, stderr) => {
       if (error && typeof error.code !== "number") { resolve({ ok: false, errors: [error.killed ? `TypeScript timed out after ${TSC_TIMEOUT / 1000} s` : String(error.message ?? error)] }); return; }
       // tsc names files relative to its working directory (the root); only the promoted files' errors count.
       const errors = `${stdout}\n${stderr}`.split(/\r?\n/).map((line) => line.trim()).filter((line) => / error TS\d+:/.test(line) && files.some((file) => line.startsWith(`${file}(`)));
