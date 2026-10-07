@@ -169,6 +169,27 @@ export const rows = [
     },
   },
   {
+    id: "SE-13", feature: "⇧+click in Layers selects the rows from the selected layer to the clicked one (Figma's range)", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      await focusFrame(page, 0);
+      const [a, b, c] = [await at(ctx, "btn-a"), await at(ctx, "btn-b"), await at(ctx, "btn-c")];
+      const rowOf = (loc) => page.locator(`[data-layer-id^="${ctx.file}:${loc}#"]`).first();
+      await until(() => rowOf(a).count(), { message: "the Alpha row in Layers" });
+      await rowOf(a).scrollIntoViewIfNeeded();
+      await rowOf(a).click();
+      await expectSelected(page, ctx.file, a);
+      await rowOf(c).scrollIntoViewIfNeeded();
+      await rowOf(c).click({ modifiers: ["Shift"] });
+      const selected = await until(async () => {
+        const all = await selectedSrc(page);
+        return [a, b, c].every((loc) => all.includes(`${ctx.file}:${loc}`)) ? all : null;
+      }, { message: "Alpha, Beta and Gamma selected" });
+      await page.keyboard.press("Escape");
+      return `Alpha → ⇧ Gamma: ${selected.length} layers selected`;
+    },
+  },
+  {
     id: "SE-06", feature: "Click a Layers row selects the layer", wp: "GĐ0",
     async run(ctx) {
       const { page } = await ctx.studio();

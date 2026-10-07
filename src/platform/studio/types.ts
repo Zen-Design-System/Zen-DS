@@ -313,7 +313,7 @@ export type EditOp =
    * A multi-selection in one file, one edit: every element at `locs` removed, duplicated (each copy after it) or given
    * the same setProp / removeProp `ops`. `hash` required. Answer: `removed`, `inserted.loc` (first copy) or `updated`.
    */
-  | { op: "many"; action: "remove" | "duplicate" | "setProps"; locs: string[]; ops?: EditOp[]; opsByLoc?: Record<string, EditOp[]> }
+  | { op: "many"; action: "remove" | "duplicate" | "setProps" | "move"; locs: string[]; ops?: EditOp[]; opsByLoc?: Record<string, EditOp[]>; to?: "prev" | "next" }
   /** Figma "Delete contents": empty the host's `prop` slot (omitted: children); `hash` required. Answer: `cleared`. */
   | { op: "clearSlot"; prop?: string }
   /** Figma "Reset slot": the host's `prop` slot (omitted: children) back to the saved file; `hash` required. Answer: `reset`. */
@@ -354,7 +354,7 @@ export type StudioSnippetSync = { synced: boolean; reason?: string };
  * without drafts, or a draft that matched the disk again and was dropped).
  */
 export type EditResponse =
-  | { ok: true; file: string; hash: string; hashBefore: string; before: string; after: string; changed: { from: number; to: number }; snippet?: StudioSnippetSync; detached?: { component: string; loc: string; approximations: string[] }; wrapped?: { loc: string }; unwrapped?: { loc: string }; inserted?: { loc: string }; moved?: { loc: string }; removed?: true; cleared?: true; reset?: true; draft?: boolean }
+  | { ok: true; file: string; hash: string; hashBefore: string; before: string; after: string; changed: { from: number; to: number }; snippet?: StudioSnippetSync; detached?: { component: string; loc: string; approximations: string[] }; wrapped?: { loc: string }; unwrapped?: { loc: string }; inserted?: { loc: string }; moved?: { loc: string; locs?: Record<string, string> }; removed?: true; cleared?: true; reset?: true; draft?: boolean }
   | { ok: false; code: "stale" | "not-found" | "forbidden" | "invalid"; error: string }
   /** A structural edit in shared code waits for the person's yes: `uses` files import it (`users`: the first few). */
   | { ok: false; code: "confirm"; error: string; uses?: number; users?: string[] };

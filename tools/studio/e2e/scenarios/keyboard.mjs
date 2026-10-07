@@ -1,6 +1,6 @@
 // Keyboard rows: the edit shortcuts the Shortcuts dialog lists, from the canvas and from the Inspector.
 import { countOf, e2eLocs, locOf } from "../lib/source.mjs";
-import { clickLoc, inspectorRow, sleep, statusText, until } from "../lib/studio.mjs";
+import { clickLoc, inspectorRow, selectedSrc, sleep, statusText, until } from "../lib/studio.mjs";
 import { expectSource, freshSelect } from "./inspector.mjs";
 
 const at = async (ctx, id, index = 0) => locOf(await ctx.text(), id, index).loc;
@@ -175,6 +175,30 @@ export const rows = [
       await page.keyboard.press("ControlOrMeta+KeyD");
       await until(async () => (await count(ctx, "btn-a")) === 2 && (await count(ctx, "btn-b")) === 2, { message: "btn-a and btn-b ×2" });
       return "both duplicated";
+    },
+  },
+  {
+    id: "K-13", feature: "→ on two selected layers of one parent moves both one place later, still selected; ⌘Z puts them back", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "btn-a");
+      await clickLoc(page, ctx.file, await at(ctx, "btn-b"), { modifiers: ["Shift"] });
+      await until(async () => (await selectedSrc(page)).length === 2, { message: "two layers selected" });
+      const order = async () => {
+        const text = await ctx.text();
+        return ["btn-a", "btn-b", "btn-c"].map((id) => [id, text.indexOf(`data-e2e="${id}"`)]).sort((x, y) => x[1] - y[1]).map(([id]) => id).join(",");
+      };
+      await canvas(page).focus();
+      await page.keyboard.press("ArrowRight");
+      await until(async () => (await order()) === "btn-c,btn-a,btn-b", { message: "Gamma, Alpha, Beta in the source" });
+      const moved = [await at(ctx, "btn-a"), await at(ctx, "btn-b")];
+      await until(async () => {
+        const all = await selectedSrc(page);
+        return all.length === 2 && moved.every((loc) => all.includes(`${ctx.file}:${loc}`));
+      }, { message: "both still selected at their new places" });
+      await canvas(page).focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await order()) === "btn-a,btn-b,btn-c", { message: "⌘Z: Alpha, Beta, Gamma again" });
+      return "Alpha + Beta → → Gamma, Alpha, Beta (both selected) → ⌘Z";
     },
   },
 ];

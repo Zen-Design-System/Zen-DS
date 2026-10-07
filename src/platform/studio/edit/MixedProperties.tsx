@@ -4,6 +4,7 @@ import { typographyStyles } from "../../../tokens/typography.generated";
 import { parseSrc, studioApi } from "../api";
 import { InspectorRow, InspectorSection } from "../inspector/Section";
 import { componentGroupsOf } from "../inspector/componentGroups";
+import { TextControl } from "../inspector/PropField";
 import { entryLabel, entryOptions, entryProp, figmaOptions } from "../inspector/propGroups";
 import { matchOption, propSpecs, valueOf, type Literal, type PropSpec } from "../inspector/propSchema";
 import { onSourceUpdate } from "../select/picker";
@@ -14,12 +15,14 @@ import { setPropsOnLayers } from "./multi";
 
 /*
  * The properties of several layers of one component (Figma's multi-selection: a value shared by all of them shows,
- * "Mixed" when they differ; setting one writes it on every layer in one edit and one undo step). Variants and booleans
- * written as literals; a prop bound to code in any of the layers is left to the code.
+ * "Mixed" when they differ; setting one writes it on every layer in one edit and one undo step). Variants, booleans and
+ * text props written as literals; a prop bound to code in any of the layers is left to the code.
  */
 
 const short = (name: string) => name.slice(name.lastIndexOf(".") + 1);
 type Shown = { spec: PropSpec; value: Literal | null; mixed: boolean; bound: boolean };
+/** A text prop (a plain string, not one that also takes a number): typed once, written on every layer. */
+const isText = (spec: PropSpec) => spec.editor.kind === "string" && !spec.editor.numeric;
 
 function useElements(layers: ExtraLayer[]) {
   const key = layers.map((layer) => layer.src).join("|");
@@ -46,7 +49,7 @@ export function MixedProperties({ layers, editable }: { layers: ExtraLayer[]; ed
   const names = new Set(layers.map((layer) => short(layer.name)));
   const component = names.size === 1 ? [...names][0] : null;
   const elements = useElements(component ? layers : []);
-  const specs = useMemo(() => (component ? propSpecs(component).filter((spec) => spec.editor.kind === "enum" || spec.editor.kind === "boolean") : []), [component]);
+  const specs = useMemo(() => (component ? propSpecs(component).filter((spec) => spec.editor.kind === "enum" || spec.editor.kind === "boolean" || isText(spec)) : []), [component]);
   if (!component || !specs.length) return null;
   if (!elements) return <InspectorSection title={`${component} properties`}><p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>Reading the layers…</p></InspectorSection>;
   const rows: Shown[] = specs.map((spec) => {
@@ -67,12 +70,23 @@ export function MixedProperties({ layers, editable }: { layers: ExtraLayer[]; ed
     <InspectorSection title={`${component} properties`} note={`A value set here goes to all ${layers.length} layers (one undo step). Mixed: they differ.`}>
       {rows.map(({ spec, value, mixed, bound }) => {
         const entry = entryOf(spec.name);
+        const rowLabel = (entry && entryLabel(entry)) ?? spec.name;
+        const hint = bound ? "Bound to code in some layers — change it there" : undefined;
+        if (isText(spec)) {
+          // Mixed values show as the placeholder; a string any layer holds but cannot write as text is left to the code.
+          const shown = typeof value === "string" ? value : undefined;
+          return (
+            <InspectorRow key={spec.name} label={rowLabel} name={spec.name} hint={hint}>
+              <TextControl label={`${spec.name} for ${layers.length} layers`} value={mixed ? undefined : shown} fallback={mixed ? "Mixed" : undefined} disabled={!editable || bound} onSet={(next) => write(spec, String(next))} />
+            </InspectorRow>
+          );
+        }
         const names = entry && spec.editor.kind === "enum" ? entryOptions(entry) : undefined;
         const named = spec.editor.kind === "enum" ? (names ? figmaOptions(spec.editor.options, names, matchOption) : { options: spec.editor.options, labels: undefined }) : { options: ["true", "false"], labels: undefined };
         const options = named.options;
         const label = (option: string) => (spec.editor.kind === "boolean" ? (option === "true" ? "Yes" : "No") : named.labels?.[option] ?? option);
         return (
-          <InspectorRow key={spec.name} label={(entry && entryLabel(entry)) ?? spec.name} name={spec.name} hint={bound ? "Bound to code in some layers — change it there" : undefined}>
+          <InspectorRow key={spec.name} label={rowLabel} name={spec.name} hint={hint}>
             <SelectField
               aria-label={`${spec.name} for ${layers.length} layers`}
               size="sm"

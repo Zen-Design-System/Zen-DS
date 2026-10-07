@@ -248,6 +248,21 @@ export const rows = [
     },
   },
   {
+    id: "I-16", feature: "Mixed properties: a text prop typed once goes to both selected layers", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-row", { frame: 6 });
+      await clickLoc(page, ctx.file, await at(ctx, "inst-click-row"), { modifiers: ["Shift"] });
+      const box = page.locator("#studio-right").getByRole("textbox", { name: / for 2 layers$/ }).first();
+      await until(() => box.count(), { message: "a text row for the two ListItems" });
+      const prop = (await box.getAttribute("aria-label")).replace(/ for 2 layers$/, "");
+      await box.fill("/inbox");
+      await box.press("Enter");
+      await expectSource(ctx, "inst-row", (el) => el.attr(prop) === "/inbox", `inst-row ${prop}="/inbox"`);
+      await expectSource(ctx, "inst-click-row", (el) => el.attr(prop) === "/inbox", `inst-click-row ${prop}="/inbox"`);
+      return `${prop} → "/inbox" on both rows`;
+    },
+  },
+  {
     id: "I-13", feature: "Mixed properties outside an example page (shared component file)", wp: "WP-B",
     async run(ctx) {
       const page = await freshSelect(ctx, "save-a", { frame: 4, file: ctx.saveFile });

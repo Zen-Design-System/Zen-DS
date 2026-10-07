@@ -1,14 +1,14 @@
 import { announceEditStatus, applyEdit, parseSrc, studioApi } from "../api";
 import { canvasApi } from "../canvas/viewport";
-import { multiSelection, selectedLayers, sourceOrder, type ExtraLayer } from "../select/multiSelection";
+import { multiSelection, selectedLayers, selectLayers, sourceOrder, type ExtraLayer } from "../select/multiSelection";
 import { expectRender, renderedNow } from "../select/remap";
-import { canStructurallyEdit } from "../slots/actions";
+import { canStructurallyEdit, structuralBlock, studioWrapOf } from "../slots/actions";
 import { flushStudioStore, studioStore } from "../store";
 import type { EditOp, StudioSelection } from "../types";
 
 /*
  * Several selected layers at once, Figma-like (docs/research/studio-figma-editing-plan-2026-10-03.md, Phase 8): Delete,
- * ⌘D and a property for all of them are one edit (op many: tools/studio/arrange.mjs) and one undo step. Layers of one
+ * ⌘D, the arrow keys and a property for all of them are one edit (op many: tools/studio/arrange.mjs) and one undo step. Layers of one
  * file only (one example, or one template).
  */
 
@@ -34,16 +34,16 @@ function plan(layers: ExtraLayer[], verb: string, structural = true): { file: st
 
 let running = false;
 
-async function send(layers: ExtraLayer[], action: "remove" | "duplicate" | "setProps", label: string, ops?: EditOp[]) {
+async function send(layers: ExtraLayer[], action: "remove" | "duplicate" | "setProps" | "move", label: string, ops?: EditOp[], to?: "prev" | "next") {
   if (running) return null;
-  const target = plan(layers, action === "remove" ? "Remove" : action === "duplicate" ? "Duplicate" : "Editing", action !== "setProps");
+  const target = plan(layers, action === "remove" ? "Remove" : action === "duplicate" ? "Duplicate" : action === "move" ? "Moving" : "Editing", action !== "setProps");
   if (typeof target === "string") { fail(target); return null; }
   running = true;
   try {
     const at = parseSrc(target.first.src)!;
     const element = await studioApi.element(at.file, at.loc);
     if (!element) { fail("The layers changed — select them again"); return null; }
-    const op: EditOp = { op: "many", action, locs: target.locs, ...(ops ? { ops } : {}) };
+    const op: EditOp = { op: "many", action, locs: target.locs, ...(ops ? { ops } : {}), ...(to ? { to } : {}) };
     const before = renderedNow(canvasApi.getWorldElement());
     const response = await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [op], hash: element.hash }, label);
     return response.ok ? { response, before, first: target.first } : null;
@@ -74,6 +74,35 @@ export async function duplicateLayers(layers: ExtraLayer[] = selectedLayers()) {
     studioStore.setState({ selection: next });
     flushStudioStore();
   }
+  return true;
+}
+
+/**
+ * The arrow keys with several layers of one parent selected: each takes one place earlier / later among its siblings
+ * (op many move), and they stay selected at their new places. A component in its Studio wrap Stack moves alone.
+ */
+export async function stepLayers(to: "prev" | "next", layers: ExtraLayer[] = selectedLayers()) {
+  if (running) return false;
+  for (const layer of layers) {
+    const node = { kind: "node" as const, ...layer };
+    if (await studioWrapOf(node)) { fail(`${layer.name} sits in its Studio wrap Stack: move it on its own`); return false; }
+    const block = await structuralBlock(node, "move");
+    if (block) { fail(block); return false; }
+  }
+  const sorted = [...layers].sort(sourceOrder);
+  const done = await send(sorted, "move", `Move ${layers.length} layers ${to === "prev" ? "up" : "down"}`, undefined, to);
+  if (!done?.response.ok) return false;
+  const { file, moved } = done.response;
+  // Each moved layer's loc before → after; a layer inside another selected one moved with it and drops out.
+  const landed = sorted.flatMap((layer) => {
+    const loc = moved?.locs?.[parseSrc(layer.src)!.loc];
+    return loc ? [{ ...layer, src: `${file}:${loc}`, instance: 0 }] : [];
+  });
+  if (!landed.length) { multiSelection.clear(); return true; }
+  const primary = moved?.locs?.[parseSrc(layers[0].src)!.loc];
+  const first = landed.find((layer) => layer.src === `${file}:${primary}`) ?? landed[0];
+  selectLayers(first, landed, done.before);
+  flushStudioStore();
   return true;
 }
 

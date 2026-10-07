@@ -415,14 +415,15 @@ export function replacePlan(ctx, nodePath, op, h) {
 /**
  * The plan for op many { action, locs, ops?, opsByLoc? } (a multi-selection, Figma: Delete / ⌘D / a property on several
  * layers): every element at `locs` (one file) is removed, duplicated (each copy right after it) or given the same `ops`
- * (setProp / removeProp) in one edit, one undo step. `opsByLoc` gives an element its own ops instead (Reset all
+ * (setProp / removeProp) in one edit, one undo step; `move` with `to` ("prev" / "next") steps them among their siblings
+ * (manyMovePlan). `opsByLoc` gives an element its own ops instead (Reset all
  * overrides on an instance and its nested instances, GĐ4 M3). An element inside another listed one goes with it. The
- * answer: removed: true, inserted: { loc } (the first copy) or updated: true.
+ * answer: removed: true, inserted: { loc } (the first copy), moved: { loc, locs } (old loc → new loc) or updated: true.
  */
 export function manyPlan(ctx, nodePath, op, h) {
   const { ast, text } = ctx;
   const action = op.action;
-  if (!["remove", "duplicate", "setProps"].includes(action)) h.refuse('many needs `action`: "remove", "duplicate" or "setProps"');
+  if (!["remove", "duplicate", "setProps", "move"].includes(action)) h.refuse('many needs `action`: "remove", "duplicate", "setProps" or "move"');
   if (!Array.isArray(op.locs) || !op.locs.length || op.locs.length > 200 || op.locs.some((loc) => typeof loc !== "string" || !parseLoc(loc))) h.refuse("many needs `locs`: the \"<line>:<column>\" of each layer (200 at most)");
   const elements = [...new Set(op.locs)].map((loc) => {
     const element = findElement(ast, parseLoc(loc));
@@ -447,6 +448,7 @@ export function manyPlan(ctx, nodePath, op, h) {
     }
     return { edits: [{ start: 0, end: text.length, text: next }], focus: null, answer: "updated", snippet: () => ({ reason: "a change on several layers is not copied into the example snippet; update it by hand" }) };
   }
+  if (action === "move") return manyMovePlan(ctx, outer, op.to, h);
   const plans = outer.map((element) => {
     const path = pathTo(ast.program, element);
     if (!path) h.refuse("A layer is not in the file's tree", "not-found");
@@ -462,4 +464,74 @@ export function manyPlan(ctx, nodePath, op, h) {
   }
   if (action === "remove") return { edits, focus: null, answer: "removed", snippet: () => ({ reason: "removing several layers is not copied into the example snippet; update it by hand" }) };
   return { edits, focus: plans[0].focus, answer: "inserted", snippet: () => ({ reason: "duplicating several layers is not copied into the example snippet; update it by hand" }) };
+}
+
+/**
+ * Arrow keys on several layers of one parent (Figma's reorder in auto layout): each selected child takes one place
+ * earlier (`prev`) or later (`next`), stepping over the unselected sibling next to it; a run of selected children moves
+ * as a block, and one already at the edge stays (only when none can move it is refused). Each child's place is rewritten
+ * with the child that lands there (a detach marker above a child moves with it). The answer: moved { loc, locs }, `locs`
+ * mapping each moved layer's loc before the move to its loc after (a layer inside another selected one is not listed).
+ */
+function manyMovePlan(ctx, outer, to, h) {
+  const { ast, text, eol } = ctx;
+  if (to !== "prev" && to !== "next") h.refuse('move needs `to`: "prev" or "next"');
+  let parent = null;
+  const nodes = outer.map((element) => {
+    const path = pathTo(ast.program, element);
+    if (!path) h.refuse("A layer is not in the file's tree", "not-found");
+    h.guard({ ...ctx, element }, path, "moveElement");
+    let i = path.length - 1;
+    if (path[i - 1]?.type === "JSXExpressionContainer") i -= 1;
+    const holder = path[i - 1];
+    const what = `<${jsxName(element.openingElement.name)}>`;
+    if (holder?.type !== "JSXElement" && holder?.type !== "JSXFragment") h.refuse(`${what} is not one of an element's children (it sits in ${holder?.type === "JSXAttribute" ? "a prop" : h.WHERE[holder?.type] ?? "code"}); only children move.`);
+    if (parent && holder !== parent) h.refuse("The layers sit in different parents; select layers of one parent to move them with the arrow keys");
+    parent = holder;
+    return path[i];
+  });
+  const siblings = parent.children.filter((child) => child.type !== "JSXText" && !h.isComment(child));
+  const picked = new Set(nodes);
+  const order = [...siblings];
+  // Figma's step: walking toward the edge, a selected child swaps with the unselected one beside it.
+  const step = to === "prev" ? 1 : -1;
+  for (let k = to === "prev" ? 1 : order.length - 2; k >= 0 && k < order.length; k += step) {
+    const other = k - step;
+    if (picked.has(order[k]) && !picked.has(order[other])) [order[k], order[other]] = [order[other], order[k]];
+  }
+  if (order.every((child, k) => child === siblings[k])) {
+    const holder = parent.type === "JSXFragment" ? "its fragment" : `<${jsxName(parent.openingElement.name)}>`;
+    h.refuse(`The layers are already the ${to === "prev" ? "first" : "last"} items in ${holder}.`);
+  }
+  const unitOf = (child) => {
+    const marker = h.detachMarker(parent, child);
+    const start = marker && /^\s*$/.test(text.slice(marker.end, child.start)) ? marker.start : child.start;
+    return { start, end: child.end, part: piece(text, child, start, child.end) };
+  };
+  const units = siblings.map(unitOf);
+  // Every place that changes, and every selected child's place (its loc is read from its edit).
+  const edits = [];
+  const editOf = new Map();
+  siblings.forEach((child, k) => {
+    const landing = order[k];
+    if (landing === child && !picked.has(landing)) return;
+    const from = units[siblings.indexOf(landing)];
+    const edit = { start: units[k].start, end: units[k].end, text: h.reindent(from.part, units[k].part.base, eol) };
+    edits.push(edit);
+    editOf.set(landing, { edit, base: units[k].part.base });
+  });
+  const focuses = outer.map((element, k) => {
+    const node = nodes[k];
+    const { edit, base } = editOf.get(node);
+    const ownText = h.reindent(piece(text, element), base, eol);
+    const from = `${element.openingElement.loc.start.line}:${element.openingElement.loc.start.column}`;
+    return { edit, within: edit.text.length - ownText.length - (node.end - element.end), name: jsxName(element.openingElement.name), from };
+  });
+  return {
+    edits,
+    focus: focuses[0],
+    focuses,
+    answer: "moved",
+    snippet: () => ({ reason: "moving several layers is not copied into the example snippet; update it by hand" }),
+  };
 }

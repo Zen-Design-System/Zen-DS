@@ -16,7 +16,7 @@ import { layerSlotsOf } from "../slots/layers";
 import { studioStore, useStudio } from "../store";
 import { elementFiber, hitOf, hostsOf, isHostFiber, isPortalFiber, layerHover, nameOf, onSourceUpdate, panelOf, rectOf, rendersPortal, shortSrc, srcOf, type Fiber, type FiberHit } from "./picker";
 import { classHint, elementAt, isComponentFiber, partChildren, type PartHit } from "./parts";
-import { toggleLayer, useExtraSelection } from "./multiSelection";
+import { isLayerSelected, selectLayers, toggleLayer, useExtraSelection, type ExtraLayer } from "./multiSelection";
 import { wrapperCandidate } from "./resize";
 import { mapSrc, onStudioWrite } from "./remap";
 import { pressLayersRow } from "../edit/layersDrag";
@@ -531,16 +531,42 @@ export function LayersPanel() {
   }, [selectedId, rows, shown]);
 
   const toggle = (node: LayerNode, open?: boolean) => setOpenState((current) => new Map(current).set(node.id, open ?? !isOpen(node)));
+  /** The row a Shift+click range starts from: the last row clicked (or ⌘-clicked), else the selected one. */
+  const anchorRef = useRef<string | null>(null);
+  const layerOf = (node: LayerNode): ExtraLayer | null => {
+    const target = node.stand ?? node;
+    return target.kind === "node" && target.src ? { src: target.src, name: target.name, frameId: target.frameId, panelId: panelOf(hitForNode(target)?.hosts[0]), instance: target.instance } : null;
+  };
   /** Click / Enter / Space on a row: select it; the "Parts" folder opens or closes instead. */
   const activate = (node: LayerNode, event?: MouseEvent) => {
     const target = node.stand ?? node;
-    // Shift/⌘+click adds the layer to the selection or takes it out (Figma's multi-select in Layers).
-    if (event && (event.shiftKey || event.metaKey || event.ctrlKey) && target.kind === "node" && target.src) {
-      toggleLayer({ src: target.src, name: target.name, frameId: target.frameId, panelId: panelOf(hitForNode(target)?.hosts[0]), instance: target.instance });
+    const layer = layerOf(node);
+    // Shift+click selects the layers of every row from the anchor to this one, the anchor staying primary (Figma's range
+    // in Layers); ⌘/Ctrl+click adds the layer to the selection or takes it out.
+    if (event?.shiftKey && !event.metaKey && !event.ctrlKey && layer) {
+      // The anchor counts while its layer is still selected (a canvas click since then moves it to the selection).
+      const anchored = rows.find((row) => row.node.id === anchorRef.current);
+      const anchorLayer = anchored ? layerOf(anchored.node) : null;
+      const from = rows.findIndex((row) => row.node.id === (anchorLayer && isLayerSelected(anchorLayer) ? anchorRef.current : selectedId));
+      const to = rows.findIndex((row) => row.node.id === node.id);
+      const range = from >= 0 && to >= 0 ? rows.slice(Math.min(from, to), Math.max(from, to) + 1).map((row) => layerOf(row.node)).filter((each): each is ExtraLayer => Boolean(each)) : [];
+      if (range.length > 1) {
+        const anchor = layerOf(rows[from].node) ?? layer;
+        selectLayers(anchor, range);
+        anchorRef.current = rows[from].node.id;
+        return;
+      }
+    }
+    if (event && (event.shiftKey || event.metaKey || event.ctrlKey) && layer) {
+      toggleLayer(layer);
+      anchorRef.current = node.id;
       return;
     }
     if (node.kind === "parts") toggle(node);
-    else selectNode(target);
+    else {
+      anchorRef.current = node.id;
+      selectNode(target);
+    }
   };
   const changeShowAll = (next: boolean) => {
     setShowAll(next);

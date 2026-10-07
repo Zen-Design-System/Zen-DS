@@ -14,7 +14,7 @@
 //                                              `replace` (with copy): paste to replace
 //        op "pasteCode" { code, before?, after?, replace? }  on the parent: ⌘V of code from another file (arrange.mjs)
 //        op "replaceElement" { code, state? }  on the element: Swap instance, `code` in its place (arrange.mjs)
-//        op "many" { action: remove|duplicate|setProps, locs, ops? }  a multi-selection in one file (arrange.mjs)
+//        op "many" { action: remove|duplicate|setProps|move, locs, ops?, to? }  a multi-selection in one file (arrange.mjs)
 //        op "clearSlot" { prop? }              on the host: empties the slot (Figma "Delete contents"); `cleared` = true
 //        op "resetSlot" { prop? }              on the host: the slot as the saved file has it (Figma "Reset slot"); `reset` = true
 //        ops "insertItem" | "removeItem" | "duplicateItem" | "moveItem" | "groupItem" | "ungroupItem" { prop, index?, to?, with?, regroup?, code?, single?, list?, requires?, all? }
@@ -2515,7 +2515,7 @@ const asFolders = (modules) => {
  * `snippet` when the file has example snippets; or { error, code: "stale" | "not-found" | "invalid" | "forbidden" }.
  */
 /** What arrange.mjs (op moveTo: drag to reorder, reparent or copy) reuses from here. */
-const ARRANGE_HELPERS = { refuse, removal, insertIntoContainer, expandSelfClosing, slotEntries, holderOf, guard, importChanges, componentImports, referenceCount, toastHook, stateFor, hookEdits, mediaImportEdits, duplicatePlan, bindingOf, detachMarker, patternNames, isMapCall, TS_WRAPPERS, FUNCTION_TYPES, WHERE };
+const ARRANGE_HELPERS = { refuse, removal, insertIntoContainer, expandSelfClosing, slotEntries, holderOf, guard, importChanges, componentImports, referenceCount, toastHook, stateFor, hookEdits, mediaImportEdits, duplicatePlan, bindingOf, detachMarker, reindent, isComment, patternNames, isMapCall, TS_WRAPPERS, FUNCTION_TYPES, WHERE };
 /** What items.mjs (data-slot items: insertItem, removeItem, duplicateItem, moveItem) borrows from this module. */
 const ITEM_HELPERS = { refuse, attrName, short, unwrapTs, isNullish, valueRange, indentAt, startsLine, removeAttrEdit, removeArrayItem, hookEdits, importChanges, hostSnippet, patternNames, FUNCTION_TYPES, JS_GLOBALS };
 
@@ -2607,7 +2607,15 @@ export function applySlotOp(code, loc, name, op, options = {}) {
       const found = findElement(reparsed, at);
       if (!found || jsxName(found.openingElement.name) !== plan.focus.name) return null;
     }
-    return { code: bom + out, changed, [plan.answer]: { loc: locString(at) } };
+    // Several layers moved together (many move): each one's loc before → its loc after.
+    const locs = {};
+    for (const focus of plan.focuses ?? []) {
+      const here = locAt(out, outputOffset(edits, focus.edit, focus.within));
+      const found = findElement(reparsed, here);
+      if (!found || jsxName(found.openingElement.name) !== focus.name) return null;
+      locs[focus.from] = locString(here);
+    }
+    return { code: bom + out, changed, [plan.answer]: { loc: locString(at), ...(plan.focuses ? { locs } : {}) } };
   };
   const result = answer(plan.edits, next, after, []);
   if (!result) return fail("invalid", "The new element could not be located after the edit (a bug); nothing was written.");

@@ -340,6 +340,28 @@ test("many setProps with opsByLoc: each layer its own props, an outer and an inn
   assert.match(many(stack, "Stack", { action: "setProps", locs: [stack, badge], opsByLoc: { [stack]: [{ op: "removeProp", name: "gap" }] } }).error, /opsByLoc/);
 });
 
+test("many move: two layers step down together, each answered at its new place (backlog batch 5c)", () => {
+  const stack = locOf(SOURCE, '<Stack gap="sm">');
+  const result = many(one, "Text", { action: "move", to: "next", locs: [two, one] });
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /<Stack gap="md">\n {6}<Stack gap="sm">\n {8}<Badge>Three<\/Badge>\n {6}<\/Stack>\n {6}<Text>One<\/Text>\n {6}<Text>Two<\/Text>/);
+  assert.deepEqual(result.moved.locs, { [one]: locOf(result.code, "<Text>One"), [two]: locOf(result.code, "<Text>Two") });
+  assert.equal(result.moved.loc, locOf(result.code, "<Text>One"));
+  // A layer at the edge stays while the other one steps; none can move → refused.
+  const gap = many(one, "Text", { action: "move", to: "prev", locs: [one, stack] });
+  assert.ok(!gap.error, gap.error);
+  assert.match(gap.code, /<Text>One<\/Text>\n {6}<Stack gap="sm">[\s\S]*<\/Stack>\n {6}<Text>Two<\/Text>/);
+  assert.deepEqual(gap.moved.locs, { [one]: locOf(gap.code, "<Text>One"), [stack]: locOf(gap.code, '<Stack gap="sm">') });
+  assert.match(many(one, "Text", { action: "move", to: "prev", locs: [one, two] }).error, /already the first/);
+  // A detach marker moves with its layer; layers of two parents are refused.
+  const box = locOf(SOURCE, '<Box padding="sm"');
+  const marked = many(box, "Box", { action: "move", to: "prev", locs: [box] });
+  assert.ok(!marked.error, marked.error);
+  assert.ok(marked.code.indexOf("zen-detached") < marked.code.indexOf("items.map"), "the marker moved with the Box");
+  assert.match(many(one, "Text", { action: "move", to: "next", locs: [one, locOf(SOURCE, "<Badge>Three")] }).error, /different parents/);
+  assert.match(many(one, "Text", { action: "move", to: "up", locs: [one] }).error, /`to`/);
+});
+
 /* ── replaceElement (Swap instance, GĐ4 M2) ── */
 
 const swap = (loc, name, op, code = SOURCE) => applySlotOp(code, loc, name, { op: "replaceElement", ...op }, { file: FILE, hash: sha1(code) });
