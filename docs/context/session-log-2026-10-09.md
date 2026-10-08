@@ -115,3 +115,15 @@
   example debt), Studio E2E 141/142 — B-07 read the hidden storage line: it now reads the info icon's name. Style guard
   radius/role: the alignment box and constraints are not fields → Corner-Radius/Base. MyPages' raw-button warnings were
   from the <Tooltip> version (the current file passes).
+
+## Merge main into the feature branch, then PR #7 into main (user: "commit, push and merge into main")
+
+- Committed `6eb5ff4`; PR #7 was CONFLICTING (main had PR #6: 20 commits, 396 files). The two pre-session WIP files
+  (form.tsx, visually-hidden.tsx) were stashed for the merge and popped back afterwards, still uncommitted.
+- 14 conflicts resolved in `8b88eba`: BottomSheet (both sides hosted sheets in device frames), Input (SelectField sheet
+  + main's DatePickerSheet), layout example (main's 1440px cap + the flat Tasks card), Toolbar (main's ./modKey; no
+  breadcrumb), PropField (no per-field reset; main's Add object action kept), SizingSection (main's "Child size"), handoff
+  E2E imports; CHANGELOG / BACKLOG / 2026-10-08 log kept both sides; generated docs, keywords, compile API rebuilt.
+- After the merge: tsc, tokens:check (Studio modes intact), guidelines in sync, gate on layout / form / input /
+  bottom-sheet / date-picker 0 errors, Vitest 44 files / 561 tests pass, Studio E2E 175/176 — SE-12 fails on origin/main
+  too (clean worktree), so not a merge regression (BACKLOG P2).

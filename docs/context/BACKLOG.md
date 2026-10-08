@@ -33,6 +33,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P3 · Studio UX polish N1–N11 — deferred by the user 2026-10-08 ("để sau"):** `docs/research/studio-ux-audit-2026-10-04.md`.
 
 ## Backlog (plan before opening sessions)
+- **P2 · Studio E2E SE-12 fails on main (2026-10-09):** "⌘-click on a TopNavigation action lands on the action" times out
+  ("a part selected") on origin/main 315efcd itself (checked in a clean worktree), and after merging it into the feature
+  branch. Pointer: `tools/studio/e2e/scenarios/select.mjs` SE-12, the deep-select of data-slot items.
 - **P3 · Studio chrome lint debt (2026-10-09, seen by the gate, not caused by the changes):** LayoutSection.tsx "Remove"
   button not level danger (button/destructive-is-danger); `.studio-part__swatch` frames an actionable box with a Pale
   border (border/pale-actionable-box); AssetsPanel.tsx:153 Button size xs (button/compact-size-special).
