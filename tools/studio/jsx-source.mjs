@@ -301,10 +301,20 @@ const isCustomHook = (callee) => {
   const name = callee?.type === "Identifier" ? callee.name : callee?.type === "MemberExpression" && !callee.computed && callee.property.type === "Identifier" ? callee.property.name : "";
   return /^use[A-Z]/.test(name) && !/^use(State|Reducer|Id|Ref|Callback|Context)$/.test(name);
 };
-/** `xs.map(fn)` / `xs.flatMap(fn)` (optional chaining too). */
+/** `xs.map(fn)` / `xs.flatMap(fn)` / `xs.forEach(fn)` (optional chaining too), or `Array.from(xs, fn)`. */
 const isLoopCall = (node) => (node?.type === "CallExpression" || node?.type === "OptionalCallExpression")
   && (node.callee?.type === "MemberExpression" || node.callee?.type === "OptionalMemberExpression") && !node.callee.computed
-  && node.callee.property.type === "Identifier" && /^(map|flatMap)$/.test(node.callee.property.name);
+  && node.callee.property.type === "Identifier"
+  && (/^(map|flatMap|forEach)$/.test(node.callee.property.name) || (node.callee.property.name === "from" && node.callee.object.type === "Identifier" && node.callee.object.name === "Array"));
+/** The callback a loop call runs per row: `Array.from`'s second argument, every other's first. */
+const loopCallback = (call) => (call.callee.property.name === "from" ? call.arguments[1] : call.arguments[0]);
+/** `for (… of …)` / `for (… in …)` / `for (let i = 0; …)`: statements whose body runs once per row. */
+const LOOP_STATEMENTS = new Set(["ForOfStatement", "ForInStatement", "ForStatement"]);
+/** The declaration a for statement binds (`left` of for-of/in, `init` of a C-style for), or null. */
+const loopDeclaration = (node) => {
+  const declaration = node.type === "ForStatement" ? node.init : node.left;
+  return declaration?.type === "VariableDeclaration" ? declaration : null;
+};
 
 /** The identifiers an expression reads at its roots (`one.online` → one, `rows[i].on` → rows, i); functions and JSX inside are not entered. */
 function rootsOf(node, out = new Set()) {
@@ -323,13 +333,18 @@ function rootsOf(node, out = new Set()) {
 
 /**
  * Where `name` is declared as seen from path[end] (`path`: an ancestry, root first): a parameter of the nearest
- * enclosing function that binds it ({ param: index of that function }) or a declaration in an enclosing block
- * ({ declarator, kind, at: index of that block }); null for module scope, imports and globals.
+ * enclosing function that binds it ({ param: index of that function }), a for-of/for-in/for loop's own binding
+ * ({ loop: index of that statement }), a `catch (error)` parameter ({ caught: index }) or a declaration in an enclosing
+ * block ({ declarator, kind, at: index of that block }); null for module scope, imports and globals.
  */
 function bindingOf(path, end, name) {
   for (let i = end; i >= 0; i -= 1) {
     const node = path[i];
     if (FUNCTION_TYPES.has(node.type) && node.params.some((param) => boundNames(param).includes(name))) return { param: i };
+    // A for-of/in binding is seen by its body only (`right` is evaluated outside it); a C-style for's by every part.
+    if (LOOP_STATEMENTS.has(node.type) && (node.type === "ForStatement" || path[i + 1] === node.body)
+      && loopDeclaration(node)?.declarations.some((declarator) => boundNames(declarator.id).includes(name))) return { loop: i };
+    if (node.type === "CatchClause" && boundNames(node.param).includes(name)) return { caught: i };
     if (node.type !== "BlockStatement") continue;
     for (const statement of node.body) {
       if (statement.type !== "VariableDeclaration") continue;
@@ -341,16 +356,18 @@ function bindingOf(path, end, name) {
 }
 
 /**
- * What `name` is at path[end]: { loop: index of the .map call } for a .map/.flatMap callback parameter, "state" for the
- * value of a useState/useReducer destructuring, "value" for anything else. A local const is followed to what its
- * initializer reads (at most `depth` 4 consts deep): loop beats state beats value.
+ * What `name` is at path[end]: { loop: index of the loop } for a loop call's callback parameter or a for-of/in/for
+ * statement's binding, "state" for the value of a useState/useReducer destructuring, "value" for anything else (a catch
+ * parameter too). A local const is followed to what its initializer reads (at most `depth` 4 consts deep): loop beats
+ * state beats value.
  */
 function bindingKind(path, end, name, depth = 0) {
   const binding = bindingOf(path, end, name);
-  if (!binding) return "value";
+  if (!binding || binding.caught !== undefined) return "value";
+  if (binding.loop !== undefined) return { loop: binding.loop };
   if (binding.param !== undefined) {
     const call = path[binding.param - 1];
-    return isLoopCall(call) && call.arguments[0] === path[binding.param] ? { loop: binding.param - 1 } : "value";
+    return isLoopCall(call) && loopCallback(call) === path[binding.param] ? { loop: binding.param - 1 } : "value";
   }
   const { declarator } = binding;
   const init = unwrapTs(declarator.init);
@@ -368,7 +385,7 @@ function bindingKind(path, end, name, depth = 0) {
  */
 function readsState(path, end, name, depth = 0) {
   const binding = bindingOf(path, end, name);
-  if (!binding || binding.param !== undefined) return false;
+  if (!binding || binding.declarator === undefined) return false;
   const { declarator } = binding;
   const init = unwrapTs(declarator.init);
   const value = declarator.id.type === "ArrayPattern" ? boundNames(declarator.id.elements[0]).includes(name) : declarator.id.type === "Identifier";
@@ -385,13 +402,40 @@ const strongest = (kinds) => kinds.reduce((best, kind) => {
   return typeof best === "object" || best === "state" ? best : kind;
 }, "value");
 
-/** How many items a .map call's array has: an array literal, or a same-file top-level const one (`arrays`); else undefined. */
+/**
+ * How many rows the loop at path[at] runs: a loop call's or a for-of's array literal or same-file top-level const array
+ * (`arrays`), `Array.from({ length: N }, fn)`; else undefined (for-in, a C-style for, data from elsewhere).
+ */
 function loopRows(path, at, arrays) {
-  const object = unwrapTs(path[at].callee.object);
-  const length = (node) => (node?.type === "ArrayExpression" && !node.elements.some((item) => item?.type === "SpreadElement") ? node.elements.length : undefined);
+  const node = path[at];
+  const source = node.type === "ForOfStatement" ? node.right : LOOP_STATEMENTS.has(node.type) ? null
+    : node.callee.property.name === "from" ? node.arguments[0] : node.callee.object;
+  const object = unwrapTs(source);
+  const length = (value) => (value?.type === "ArrayExpression" && !value.elements.some((item) => item?.type === "SpreadElement") ? value.elements.length : undefined);
   if (object?.type === "ArrayExpression") return length(object);
+  if (object?.type === "ObjectExpression") {
+    const size = object.properties.find((prop) => propertyKey(prop) === "length");
+    return size?.value.type === "NumericLiteral" ? size.value.value : undefined;
+  }
   if (object?.type !== "Identifier" || bindingOf(path, at, object.name)) return undefined;
   return arrays().get(object.name);
+}
+
+/**
+ * How many times one source line renders the element at path's end: the product of every enclosing loop's rows (an
+ * inner loop's row repeats per outer row too); undefined when one loop's length is unknown (the canvas count then).
+ */
+function renderedRows(path, arrays) {
+  let total = 1;
+  for (let i = 0; i < path.length - 1; i += 1) {
+    const node = path[i];
+    const loops = LOOP_STATEMENTS.has(node.type) ? path[i + 1] === node.body : isLoopCall(node) && loopCallback(node) === path[i + 1];
+    if (!loops) continue;
+    const rows = loopRows(path, i, arrays);
+    if (rows === undefined) return undefined;
+    total *= rows;
+  }
+  return total;
 }
 
 /** Top-level `const NAME = [ … ]` of the file (exported or not): name → length (spreads: no length). */
@@ -428,7 +472,7 @@ function attrOrigin(attr, path, arrays) {
   if (reads.some((name) => readsState(nodes, nodes.length - 1, name))) return { kind: "bound-state", reads };
   const kind = strongest(reads.map((name) => bindingKind(nodes, nodes.length - 1, name)));
   if (typeof kind !== "object") return { kind: kind === "state" ? "bound-state" : "bound-value", reads };
-  const rows = loopRows(nodes, kind.loop, arrays);
+  const rows = renderedRows(nodes, arrays);
   return { kind: "loop-bound", reads, ...(rows === undefined ? {} : { rows }) };
 }
 
@@ -757,6 +801,8 @@ const lineStartOf = (text, index) => text.lastIndexOf("\n", index - 1) + 1;
 /**
  * `beforeSpread` (setProp ops): a new attribute goes in front of the element's first spread (`status {...avatarOf(p)}`),
  * so a spread that feeds the prop still wins and an edit never overrides what it passes in (a playground's controls).
+ * `op.before` (a written attribute's name, "…" for the first spread) places a new attribute in front of it instead: a
+ * prop put back where the saved file had it (restoreStep in a playground, which refuses resetSlot).
  */
 function setPropEdits(element, text, op, eol, beforeSpread = false) {
   const opening = element.openingElement;
@@ -766,9 +812,11 @@ function setPropEdits(element, text, op, eol, beforeSpread = false) {
     if (sameValue(describeAttr(existing, text), op.value)) return [];
     return [{ start: existing.start, end: existing.end, text: formatted }];
   }
-  const spread = beforeSpread ? opening.attributes.find((attr) => attr.type === "JSXSpreadAttribute") : null;
+  const isSpread = (attr) => attr.type === "JSXSpreadAttribute";
+  const anchor = typeof op.before === "string" ? opening.attributes.find((attr) => (op.before === "…" ? isSpread(attr) : attrName(attr) === op.before)) : null;
+  const spread = anchor ?? (beforeSpread ? opening.attributes.find(isSpread) : null);
   if (spread) {
-    // A spread that starts its own line: the new attribute takes a line of its own above it, with the same indent.
+    // A spread (or `before`) that starts its own line: the new attribute takes a line of its own above it, same indent.
     const indent = text.slice(lineStartOf(text, spread.start), spread.start);
     const ownLine = spread.loc.start.line > opening.loc.start.line && /^[ \t]*$/.test(indent);
     return [{ start: spread.start, end: spread.start, text: ownLine ? `${formatted}${eol}${indent}` : `${formatted} ` }];

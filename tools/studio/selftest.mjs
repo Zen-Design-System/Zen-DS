@@ -235,7 +235,19 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     ["a spread on its own line", lines("<Avatar", "  size=\"md\"", "  {...props} />;")],
     ["CRLF, ` />` after the last", "<Avatar\r\n  size=\"md\"\r\n  name=\"Ann\" />;"],
     ["tabs, `/>` on its own line", "<Avatar\n\tsize=\"md\"\n/>;"],
+    ["a // comment after the last attribute", lines("<Avatar", "  size=\"md\" // why", "/>;")],
+    ["a // comment after an inline last attribute", lines("<Avatar size=\"md\" // why", "/>;")],
   ]) check(`round trip setProp → removeProp: ${label}`, toggle(code), [true, code]);
+  check("setProp: a trailing // comment stays on its attribute's line", edit(lines("<Avatar", "  size=\"md\" // why", "/>;"), "1:0", "Avatar", [{ op: "setProp", name: "status", value: { kind: "boolean", value: true } }]), lines("<Avatar", "  size=\"md\" // why", "  status", "/>;"));
+  // `before` (2026-10-08): a playground's restore puts the saved attribute back in front of what follows it there.
+  const placed = (code, before) => edit(code, "1:0", "Avatar", [{ op: "setProp", name: "status", value: { kind: "boolean", value: true }, before }]);
+  check("setProp before: inline, in front of the named attribute", placed('<Avatar size="md" name="Ann" />;', "name"), '<Avatar size="md" status name="Ann" />;');
+  check("setProp before: own lines keep one per line", placed(lines("<Avatar", "  size=\"md\"", "  name=\"Ann\"", "/>;"), "size"), lines("<Avatar", "  status", "  size=\"md\"", "  name=\"Ann\"", "/>;"));
+  check("setProp before: \"…\" names the first spread; an absent name falls back", [placed('<Avatar {...a} size="md" />;', "…"), placed('<Avatar size="md" />;', "gone")], ['<Avatar status {...a} size="md" />;', '<Avatar size="md" status />;']);
+  check("round trip removeProp → setProp before: the file as it was", (() => {
+    const code = lines("<Avatar", "  size=\"md\"", "  status", "  name=\"Ann\"", "/>;");
+    return placed(edit(code, "1:0", "Avatar", [{ op: "removeProp", name: "status" }]), "name") === code;
+  })(), true);
 }
 
 /* ── state-bound props: SourceAttr.state + setStateInit (edits keep behaviour, 2026-10-05) ───────────────────────── */
@@ -309,6 +321,30 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
   check("origin: an array literal gives rows", origins(2).status, { kind: "loop-bound", reads: ["n"], rows: 2 });
   check("origin: a local const of the row, no rows for a non-literal array", origins(3).status, { kind: "loop-bound", reads: ["on"] });
   check("origin: a .map parameter shadows state", origins(4).status, { kind: "loop-bound", reads: ["active"], rows: 1 });
+  // for-of / for-in / for bindings are rows like .map's (2026-10-08); a catch parameter is a plain value.
+  const loops = lines(
+    "const PEOPLE = [{ id: 1 }, { id: 2 }, { id: 3 }];",
+    "export function Rows({ one }: Props) {",
+    "  const [active] = useState(0);",
+    "  const out = [];",
+    "  for (const person of PEOPLE) { const on = person.on; out.push(<Avatar status={on} both={active === person.id} />); }",
+    "  for (const key in one) out.push(<Avatar status={key} />);",
+    "  for (let i = 0; i < 2; i += 1) out.push(<Avatar status={i} />);",
+    "  try { go(); } catch (error) { out.push(<Avatar status={error} />); }",
+    "  return <>{out}{[1, 2].map((n) => PEOPLE.map((p) => <Avatar status={p.on} />))}{Array.from({ length: 4 }, (_, k) => <Avatar status={k} />)}{one.items.forEach((item) => out.push(<Avatar status={item} />))}</>;",
+    "}",
+  );
+  const loopOrigin = (nth) => {
+    let index = -1;
+    for (let k = 0; k <= nth; k += 1) index = loops.indexOf("<Avatar", index + 1);
+    const before = loops.slice(0, index);
+    return describe(loops, `${before.split("\n").length}:${index - before.lastIndexOf("\n") - 1}`).attributes.map((attr) => attr.origin ?? null);
+  };
+  check("origin: a for-of binding (through a body const) → loop-bound with its array's rows; state still wins", loopOrigin(0), [{ kind: "loop-bound", reads: ["on"], rows: 3 }, { kind: "bound-state", reads: ["active", "person"] }]);
+  check("origin: for-in and C-style for bindings → loop-bound, rows unknown", [loopOrigin(1)[0], loopOrigin(2)[0]], [{ kind: "loop-bound", reads: ["key"] }, { kind: "loop-bound", reads: ["i"] }]);
+  check("origin: a catch parameter → bound-value", loopOrigin(3)[0], { kind: "bound-value", reads: ["error"] });
+  check("origin: nested loops multiply their rows", loopOrigin(4)[0], { kind: "loop-bound", reads: ["p"], rows: 6 });
+  check("origin: Array.from({ length }) and forEach callbacks are loops", [loopOrigin(5)[0], loopOrigin(6)[0]], [{ kind: "loop-bound", reads: ["k"], rows: 4 }, { kind: "loop-bound", reads: ["item"] }]);
   check("origin: a custom hook's value is state (never given a fixed value)", (() => {
     const attr = describe(lines("function T() {", "  const { picked } = useFormState();", "  return <Checkbox checked={picked.has(1)} />;", "}"), "3:9").attributes[0];
     return attr.origin;

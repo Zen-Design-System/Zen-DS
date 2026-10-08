@@ -152,6 +152,11 @@ export type SourceAttr = {
   origin?: { kind: "bound-state" | "loop-bound" | "bound-value"; reads: string[]; rows?: number };
   /** Where the value is written as data, and whether op setDataField can edit it there (tools/studio/data-source.mjs). */
   dataSource?: DataSource;
+  /**
+   * Only on a SourceElement.savedAttributes entry: the attribute the saved file writes right after this one ("…" for a
+   * spread; absent when it is the last), so setProp `before` puts a restored prop back in its place (a playground).
+   */
+  next?: string;
 };
 
 /**
@@ -231,7 +236,11 @@ export type EditValue =
 export type StateDecl = { name: string; initial: string; type?: string };
 
 export type EditOp =
-  | { op: "setProp"; name: string; value: EditValue }
+  /**
+   * `before` (a new attribute only): it goes in front of that written attribute ("…": the first spread) instead of at the
+   * end, so a prop put back where the saved file had it leaves no reordered draft (playgrounds refuse resetSlot).
+   */
+  | { op: "setProp"; name: string; value: EditValue; before?: string }
   | { op: "removeProp"; name: string }
   /** Attribute `name` reads a useState(<literal>) (SourceAttr.state): `value` becomes that initial state. */
   | { op: "setStateInit"; name: string; value: EditValue }

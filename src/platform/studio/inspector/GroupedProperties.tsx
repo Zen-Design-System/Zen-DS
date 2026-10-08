@@ -10,6 +10,7 @@ import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
 import { entryDefaultIcon, entryLabel, entryOptions, entryProp, entryShown, entryWarnings, holds, isSetValue, placedProps, type ComponentGroups, type GroupToggle, type PropEntry } from "./propGroups";
 import { PropField } from "./PropField";
 import { propLabel, type PropSpec, type PropValue } from "./propSchema";
+import { savedSetProp } from "./writePlan";
 import { InspectorSection } from "./Section";
 import "./nested.css";
 
@@ -80,10 +81,14 @@ function ToggleRow({ toggle, on: rendered, value, api, selection, element }: { t
     api.setProp(toggle.prop, from?.state === "literal" ? from.value : start.value);
   };
   // Back on after the draft switched it off: what the saved file has comes back (an Avatar leading, "New review", the
-  // two call actions with their toast hook), as Figma shows a hidden layer's content again; else a starting value.
+  // two call actions with their toast hook), as Figma shows a hidden layer's content again; else a starting value. A
+  // playground refuses slot ops: the saved attribute is set again in its saved place (savedSetProp), not at the tag's end.
   const switchOn = () => {
-    if (!element.savedAttributes?.[toggle.prop]) { startValue(); return; }
-    void api.apply([{ op: "resetSlot", prop: toggle.prop }], `${element.name} ${toggle.label} on`).then((written) => { if (!written) startValue(); });
+    const saved = element.savedAttributes?.[toggle.prop];
+    if (!saved) { startValue(); return; }
+    const op = selection.panelId ? savedSetProp(toggle.prop, saved) : { op: "resetSlot" as const, prop: toggle.prop };
+    if (!op) { startValue(); return; }
+    void api.apply([op], `${element.name} ${toggle.label} on`).then((written) => { if (!written) startValue(); });
   };
   // Off: the items go through the item op (all of them at once), so the useToast() line they brought goes with them
   // (example and template content; a playground removes the prop).

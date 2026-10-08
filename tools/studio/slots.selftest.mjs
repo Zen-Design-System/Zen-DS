@@ -1537,12 +1537,13 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   ], { snippets: false, file: PAGE }).code;
   const slots = describeSlots(draft, PAGE, locOf(draft, "<Avatar"), { base: saved });
   const line = Number(at.split(":")[0]);
+  // `next`: what the saved file writes after it, so a playground's setProp puts it back in place (2026-10-08).
   check("savedAttributes: string, expression, added (null) and removed bare attribute; unchanged ones left out", slots.savedAttributes, {
-    size: { name: "size", kind: "string", value: "md", raw: "size=\"md\"", line },
+    size: { name: "size", kind: "string", value: "md", raw: "size=\"md\"", line, next: "status" },
     // Described against the saved file like GET /element: what the binding reads (a restored binding is read the same way).
-    status: { name: "status", kind: "expression", value: "one.online", raw: "status={one.online}", line, origin: { kind: "bound-value", reads: ["one"] } },
+    status: { name: "status", kind: "expression", value: "one.online", raw: "status={one.online}", line, origin: { kind: "bound-value", reads: ["one"] }, next: "focus" },
     dot: null,
-    focus: { name: "focus", kind: "true", raw: "focus", line },
+    focus: { name: "focus", kind: "true", raw: "focus", line, next: "name" },
   });
   check("savedAttributes: modifiedProps stays coded props only", slots.modifiedProps, ["status"]);
   const merged = withSlots(describeElement(draft, PAGE, locOf(draft, "<Avatar")), slots);

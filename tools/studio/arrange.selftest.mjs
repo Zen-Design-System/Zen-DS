@@ -123,6 +123,13 @@ test("refused: a .map row's name cannot leave its row", () => {
   assert.match(result.error, /`item`/);
 });
 
+test("refused: a for-of variable or a catch parameter cannot leave its body", () => {
+  const code = SOURCE.replace("export function Other() {\n", "export function Other() {\n  const rows = [];\n  for (const row of [1, 2]) rows.push(<Box key={row}><Text>{row}</Text></Box>);\n  try { go(); } catch (error) { rows.push(<Box><Badge>{String(error)}</Badge></Box>); }\n");
+  const target = locOf(code, '<Stack gap="md">', 1);
+  assert.match(run(locOf(code, "<Text>{row}"), "Text", { op: "moveTo", parent: target }, code).error, /`row` \(a loop variable\)/);
+  assert.match(run(locOf(code, "<Badge>{String"), "Badge", { op: "moveTo", parent: target }, code).error, /`error` \(a caught error\)/);
+});
+
 test("allowed: a row's element that reads nothing leaves the row", () => {
   const result = run(locOf(SOURCE, "<Badge>Row"), "Badge", { op: "moveTo", parent: outer, before: one });
   assert.ok(!result.error, result.error);

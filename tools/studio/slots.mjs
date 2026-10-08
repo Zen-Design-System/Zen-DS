@@ -657,8 +657,9 @@ function componentName(nodePath, at) {
 }
 
 /**
- * The innermost binding named `name` visible at the end of nodePath (block statements, parameters, imports on the way):
- * { what (in a reason), declarator? (a variable's), param? (a parameter's) }, or null.
+ * The innermost binding named `name` visible at the end of nodePath (block statements, parameters, for-of/in/for loop
+ * variables, catch parameters, imports on the way): { what (in a reason), declarator? (a variable's or a loop's),
+ * param? (a parameter's or a catch's) }, or null. Loop and catch bindings count so a move out of their body is refused.
  */
 function bindingOf(nodePath, name) {
   const binds = (pattern) => { const names = new Set(); patternNames(pattern, names); return names.has(name); };
@@ -666,6 +667,11 @@ function bindingOf(nodePath, name) {
     const node = nodePath[i];
     const param = FUNCTION_TYPES.has(node.type) ? node.params.find(binds) : null;
     if (param) return { what: "a prop or parameter", param };
+    // for-of/in bind for their body only (`right` runs outside the loop); a C-style for binds in every part.
+    const loop = node.type === "ForStatement" ? node.init : (node.type === "ForOfStatement" || node.type === "ForInStatement") && nodePath[i + 1] === node.body ? node.left : null;
+    const looped = loop?.type === "VariableDeclaration" ? loop.declarations.find((item) => binds(item.id)) : null;
+    if (looped) return { what: "a loop variable", declarator: looped };
+    if (node.type === "CatchClause" && node.param && binds(node.param)) return { what: "a caught error", param: node.param };
     const statements = node.type === "Program" || node.type === "BlockStatement" ? node.body : [];
     for (const statement of statements) {
       const declaration = statement.type === "ExportNamedDeclaration" ? statement.declaration : statement;
@@ -2735,11 +2741,14 @@ function savedAttributes(text, element, saved, then) {
     return attr ? (attr.value ? normalised(src.slice(attr.value.start, attr.value.end)) : "") : null;
   };
   const out = {};
+  const savedList = then.openingElement.attributes;
   for (const prop of new Set([...named(element), ...named(then)].map(attrName))) {
     if (source(text, element, prop) === source(savedText, then, prop)) continue;
-    const attr = then.openingElement.attributes.findLast((item) => attrName(item) === prop);
-    // Described against the saved file (state, origin), the way GET /element describes the current one.
-    out[prop] = attr ? describeAttrsIn(saved.ast, then, savedText, [attr])[0] : null;
+    const attr = savedList.findLast((item) => attrName(item) === prop);
+    // Described against the saved file (state, origin), the way GET /element describes the current one; `next` says
+    // what follows it there, so a playground's setProp can put it back in place (it refuses resetSlot).
+    const following = attr ? savedList[savedList.indexOf(attr) + 1] : undefined;
+    out[prop] = attr ? { ...describeAttrsIn(saved.ast, then, savedText, [attr])[0], ...(following ? { next: following.type === "JSXSpreadAttribute" ? "…" : attrName(following) } : {}) } : null;
   }
   return out;
 }

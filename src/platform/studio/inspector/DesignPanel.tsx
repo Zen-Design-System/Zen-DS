@@ -538,8 +538,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       const optimistic: Record<string, PropValue> = { [name]: removes ? { state: "unset" } : { state: "literal", value, raw: "" } };
       const replan = (attributes: SourceAttr[]) => planPropWrite(element.name, attributes, name, value, live).ops;
       // Back to what the saved file writes: the saved attribute returns where and as it was, so the draft goes away
-      // (a playground's file refuses slot ops; a refusal falls back to the plain write).
-      const back = selection.panelId ? null : savedWrite(element.name, element, name, value);
+      // (a playground's file refuses slot ops: a setProp in the saved place; a refusal falls back to the plain write).
+      const back = savedWrite(element.name, element, name, value, Boolean(selection.panelId));
       if (back) void runPlan(back, label, optimistic).then((written) => { if (!written) void runPlan(plan, label, optimistic, replan); });
       else void runPlan(plan, label, optimistic, replan);
     },
