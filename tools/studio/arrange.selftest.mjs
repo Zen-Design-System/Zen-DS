@@ -369,6 +369,37 @@ test("many move: two layers step down together, each answered at its new place (
   assert.match(many(one, "Text", { action: "move", to: "up", locs: [one] }).error, /`to`/);
 });
 
+test("many duplicate answers every copy by its original (inserted.locs)", () => {
+  const result = many(one, "Text", { action: "duplicate", locs: [two, one] });
+  assert.ok(!result.error, result.error);
+  assert.deepEqual(result.inserted.locs, { [one]: locOf(result.code, "<Text>One", 1), [two]: locOf(result.code, "<Text>Two", 1) });
+});
+
+test("many moveTo: layers land together in source order, each answered at its new place", () => {
+  const sm = locOf(SOURCE, '<Stack gap="sm">');
+  const result = many(one, "Text", { action: "moveTo", locs: [two, one], parent: sm });
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /<Stack gap="sm">\n {8}<Badge>Three<\/Badge>\n {8}<Text>One<\/Text>\n {8}<Text>Two<\/Text>\n {6}<\/Stack>/);
+  assert.equal(result.code.split("<Text>One").length, 2);
+  assert.deepEqual(result.moved.locs, { [one]: locOf(result.code, "<Text>One"), [two]: locOf(result.code, "<Text>Two") });
+  // In front of a child that stays; a copy keeps the originals (inserted).
+  const front = many(one, "Text", { action: "moveTo", locs: [one, two], parent: sm, before: locOf(SOURCE, "<Badge>Three") });
+  assert.match(front.code, /<Stack gap="sm">\n {8}<Text>One<\/Text>\n {8}<Text>Two<\/Text>\n {8}<Badge>Three<\/Badge>/);
+  const other = locOf(SOURCE, '<Stack gap="md">', 1);
+  const copied = many(one, "Text", { action: "moveTo", copy: true, locs: [one, two], parent: other });
+  assert.ok(!copied.error, copied.error);
+  assert.equal(copied.code.split("<Text>One").length, 3);
+  assert.match(copied.code, /<Text>Elsewhere<\/Text>\n {6}<Text>One<\/Text>\n {6}<Text>Two<\/Text>/);
+  assert.deepEqual(copied.inserted.locs, { [one]: locOf(copied.code, "<Text>One", 1), [two]: locOf(copied.code, "<Text>Two", 1) });
+});
+
+test("many moveTo refuses: already there, beside a moving layer, a name it reads, into itself", () => {
+  assert.match(many(one, "Text", { action: "moveTo", locs: [one, two], parent: outer, before: locOf(SOURCE, '<Stack gap="sm">') }).error, /already there/);
+  assert.match(many(one, "Text", { action: "moveTo", locs: [one, two], parent: outer, after: two }).error, /not moving/);
+  assert.match(many(one, "Text", { action: "moveTo", locs: [one, locOf(SOURCE, "<Button onClick")], parent: locOf(SOURCE, '<Stack gap="md">', 1) }).error, /`(setOn|on)`/);
+  assert.match(many(one, "Text", { action: "moveTo", locs: [one, locOf(SOURCE, '<Stack gap="sm">')], parent: locOf(SOURCE, '<Stack gap="sm">') }).error, /inside itself/);
+});
+
 /* ── replaceElement (Swap instance, GĐ4 M2) ── */
 
 const swap = (loc, name, op, code = SOURCE) => applySlotOp(code, loc, name, { op: "replaceElement", ...op }, { file: FILE, hash: sha1(code) });

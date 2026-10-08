@@ -23,7 +23,7 @@ import { copyText } from "./frames";
 import { GroupedProperties } from "./GroupedProperties";
 import { HostTextAlignment } from "./HostTextAlignment";
 import { LayoutSection } from "./LayoutSection";
-import { InspectorFileContext, InspectorHostContext } from "./controls/hostContext";
+import { InspectorFileContext, InspectorHostContext, InspectorSrcContext } from "./controls/hostContext";
 import { componentGroupsOf } from "./componentGroups";
 import { AppearanceSection, appearancePropNames, CardEffectsSection, EffectsSection } from "../appearance/AppearanceSection";
 import { NestedProperties } from "./NestedProperties";
@@ -751,6 +751,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     // Scale fields measure their tokens on the selected element (density, breakpoint and mode applied).
     <InspectorHostContext value={sourceHost(selection)}>
     <InspectorFileContext value={element?.file ?? parsed?.file ?? null}>
+    <InspectorSrcContext value={selection.src}>
     <div ref={panelRef} className="studio-inspector__panel">
       {/* Header (Design panel UI3, user 2026-10-06): the name with its count and the Detach / Remove icons on one row, then
           the kind with its Docs link, then where it is written. Every line in Body/Small. */}
@@ -918,6 +919,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
         </InspectorSection>
       ) : null}
     </div>
+    </InspectorSrcContext>
     </InspectorFileContext>
     </InspectorHostContext>
   );
