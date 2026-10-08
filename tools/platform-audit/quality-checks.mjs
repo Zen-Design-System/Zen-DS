@@ -289,7 +289,9 @@ export function qualityChecks({ scopeSel, regionSel }) {
         const interactive = kid.matches("button, a[href], [role='button'], [role='option'], [role='menuitem'], .zen-list-item, .zen-card");
         if (!(paints(kid) || interactive)) continue;
         const ks = getComputedStyle(kid); const kr = kid.getBoundingClientRect();
-        const gap = { left: kr.left - inner.left, top: kr.top - inner.top, right: inner.right - kr.right, bottom: inner.bottom - kr.bottom };
+        // Radii are CSS px, rects are screen px: inside a scaled phone frame the insets are read back in CSS px.
+        const k = outer.offsetWidth > 0 ? or.width / outer.offsetWidth : 1;
+        const gap = { left: (kr.left - inner.left) / k, top: (kr.top - inner.top) / k, right: (inner.right - kr.right) / k, bottom: (inner.bottom - kr.bottom) / k };
         for (const corner of CORNERS) {
           const R = Rs[corner.key], r = cornerRadius(ks, corner.key);
           if (R <= 0 || pill(R, or) || r <= 0 || pill(r, kr)) continue;
@@ -331,7 +333,7 @@ export function qualityChecks({ scopeSel, regionSel }) {
       const SKIP = ".platform-example-panel, .platform-phone, .zen-app-shell, .pe-shell, .platform-sidebar-stage, .zen-popover, .zen-menu, [role='dialog'], .zen-toast, .zen-tooltip, .zen-side-panel, .zen-bottom-sheet, [data-audit-skip-quality]";
       if (surface && canvasColour && surface !== canvasColour) {
         for (const box of region.querySelectorAll(BOX)) {
-          if (!visible(box) || box.closest(SKIP) || box.closest("[data-interactive='true'], [data-selected='true'], [aria-selected='true'], [aria-checked='true'], [aria-current], a[href], button") || box.matches("[data-interactive='true'], [data-selected='true']")) continue;
+          if (!visible(box) || box.closest(SKIP) || box.closest("[data-interactive='true'], [data-selected='true'], [data-active='true'], [aria-selected='true'], [aria-checked='true'], [aria-current], a[href], button") || box.matches("[data-interactive='true'], [data-selected='true']")) continue;
           const bs = getComputedStyle(box);
           if (normColour(bs.backgroundColor) !== surface || backdropOf(box) !== canvasColour) continue;
           const bordered = ["Top", "Right", "Bottom", "Left"].every((k) => px(bs[`border${k}Width`]) >= 0.5 && bs[`border${k}Style`] !== "none" && !/rgba\(0, 0, 0, 0\)|transparent/.test(bs[`border${k}Color`]));

@@ -24,8 +24,9 @@ export function PlatformChatHeader({ title, subtitle, person, group, online = fa
     : person
       ? <Avatar size="large" theme={person.src ? "photo" : person.theme ?? "neutral"} background="subtle" src={person.src} alt="" status={online}>{person.src ? null : person.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}</Avatar>
       : undefined;
+  // Phone screens are Canvas/Default: the Alt bar is that colour (user rule 2026-10-08: the bar matches the canvas).
   return (
-    <TopNavigation margin="compact" scrollRef={scrollRef} title={title} subtitle={subtitle ?? (online ? "Active now" : undefined)} titleLeading={leading}
+    <TopNavigation type="alt" margin="compact" scrollRef={scrollRef} title={title} subtitle={subtitle ?? (online ? "Active now" : undefined)} titleLeading={leading}
       onTitleClick={onAction(`Open ${title} details`)} titleLabel={`${title}${subtitle ? `, ${subtitle}` : online ? ", active now" : ""}. Open details`}
       leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: onAction("Back to conversations") }}
       trailing={[{ icon: "icon-phone-line", label: "Audio call", group: "call", onClick: onAction(`Calling ${title}`) }, { icon: "icon-video-recorder-line", label: "Video call", group: "call", onClick: onAction(`Starting a video call with ${title}`) }]} />

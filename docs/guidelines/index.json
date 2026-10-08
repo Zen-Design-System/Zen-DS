@@ -3226,6 +3226,7 @@
         ],
         "AiChatBlock": [
           "greeting?: ReactNode",
+          "headingLevel?: 1|2|3 = 2",
           "logo?: IconName|ReactNode",
           "suggestions?: AiChatSuggestion[] = []",
           "children: ReactNode",

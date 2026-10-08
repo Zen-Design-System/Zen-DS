@@ -615,6 +615,12 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **AiChatBlock heading level (2026-10-08):** new `headingLevel` (1–3, default 2) for the greeting, so a screen whose
+  greeting is its title (HR Home) has one visible h1 instead of a hidden one. The AI chat header on phone screens uses
+  the Alt bar like the other phone screens.
+- **Harness false positives (2026-10-08):** usage rules no longer treat a template string inside a prop expression as an
+  opaque spread; the platform audit skips selected cards in §16, counts a ListBox as a card for outline siblings and
+  measures corners at the phone frame's scale.
 - **Design Tokens page in dark mode (2026-10-08):** the Token links buttons used the browser's black button text on the
   dark surface (1.38:1); they take Content/Neutral/Strongest now. The QA gate no longer fails in the cloud container on
   emoji glyph widths or TabItem's machine-dependent axe result.

@@ -24,7 +24,10 @@ const FOCUSABLE_TRIGGERS = ["Button", "IconButton", "button", "a", "Chip", "Link
 // A spread ({...props}) or a template interpolation (${…} in generated code samples) may supply any prop,
 // so presence checks treat it as "maybe present" instead of reporting a false positive.
 // An elided code sample (`<IconButton aria-label="Bold" … />`) may hold any prop too.
-const opaque = (attrs) => /\{\s*\.\.\.|\$\{|…/.test(attrs);
+// `${` counts only outside a JSX expression: in live code `aria-label={`Edit ${name}`}` is an ordinary value (it made
+// requirement checks such as bottom-sheet/choice-uses-list-item see props that were not there, 2026-10-08).
+const interpolatesOutsideExpression = (attrs) => { let depth = 0; for (let i = 0; i < attrs.length; i += 1) { const c = attrs[i]; if (c === "$" && attrs[i + 1] === "{" && depth === 0) return true; if (c === "{") depth += 1; else if (c === "}") depth = Math.max(0, depth - 1); } return false; };
+const opaque = (attrs) => /\{\s*\.\.\.|…/.test(attrs) || interpolatesOutsideExpression(attrs);
 // `has` is strict (used by prohibitions); `present` is lenient (used by requirements).
 const has = (attrs, name) => new RegExp(`(^|[\\s{])${name}(=|\\s|$|/)`).test(attrs);
 const present = (attrs, name) => has(attrs, name) || opaque(attrs);

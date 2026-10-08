@@ -44,7 +44,6 @@ import {
   Tag,
   Text,
   TextAreaField,
-  VisuallyHidden,
   fileIconFormatOf,
   plural,
   useFormState,
@@ -434,12 +433,12 @@ export function HrHomeTemplate() {
 
   return (
     <HrShell module="home" onNavigate={navigate} aside={aside}>
-      <VisuallyHidden as="h1">Home</VisuallyHidden>
       {/* Full width like the other HR pages (backlog batch 6b, user 2026-10-07). */}
       <Container maxWidth="full">
         <Stack gap="xl" paddingY="sm">
-          {/* Zen AI: the greeting, a short thread once Alex asks, and the prompt. */}
-          <AiChatBlock greeting={`${greeting}, ${me.name.split(" ")[0]}. How can I help?`} suggestions={suggestions}>
+          {/* Zen AI: the greeting, a short thread once Alex asks, and the prompt. The greeting is the page's h1 (it is the
+              title people see, in Heading/1), so the sections under it are h2 Heading/4. */}
+          <AiChatBlock headingLevel={1} greeting={`${greeting}, ${me.name.split(" ")[0]}. How can I help?`} suggestions={suggestions}>
             {messages.length ? (
               <AiChatThread aria-label="Conversation with Zen AI">
                 {messages.map((message) => (

@@ -63,6 +63,7 @@ Figma AI/Chat-Block/Pale (7140:115622): Say-Hi (44px logo + Heading/1) · Chat-F
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `greeting` | `ReactNode` | — | Say-Hi heading (the locale's "How can I help you today?" by default). |
+| `headingLevel` | `1 \| 2 \| 3` | `2` | Heading level of the greeting: 2 (default), or 1 when the block opens the page and its greeting is the page title (a home screen); only the tag changes, the style stays Heading/1. |
 | `logo` | `IconName \| ReactNode` | — | Say-Hi logo: an icon name or your own node (the Zen mark by default). |
 | `suggestions` | `AiChatSuggestion[]` | `[]` |  |
 | `children` (required) | `ReactNode` | — |  |

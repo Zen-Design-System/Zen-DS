@@ -148,14 +148,15 @@ export interface AiChatSuggestion {
 }
 
 /** Figma AI/Chat-Block/Pale (7140:115622): Say-Hi (44px logo + Heading/1) · Chat-Field · Chip/Normal suggestions (Medium, Secondary, Leading-Icon). */
-export function AiChatBlock({ greeting: greetingProp, logo, suggestions = [], children, className }: { /** Say-Hi heading (the locale's "How can I help you today?" by default). */ greeting?: ReactNode; /** Say-Hi logo: an icon name or your own node (the Zen mark by default). */ logo?: IconName | ReactNode; suggestions?: AiChatSuggestion[]; children: ReactNode; className?: string }) {
+export function AiChatBlock({ greeting: greetingProp, headingLevel = 2, logo, suggestions = [], children, className }: { /** Say-Hi heading (the locale's "How can I help you today?" by default). */ greeting?: ReactNode; /** Heading level of the greeting: 2 (default), or 1 when the block opens the page and its greeting is the page title (a home screen); only the tag changes, the style stays Heading/1. */ headingLevel?: 1 | 2 | 3; /** Say-Hi logo: an icon name or your own node (the Zen mark by default). */ logo?: IconName | ReactNode; suggestions?: AiChatSuggestion[]; children: ReactNode; className?: string }) {
   const t = useZenLabels();
   const greeting = greetingProp === undefined ? t.greeting : greetingProp;
+  const Greeting = `h${headingLevel}` as const;
   return (
     <section className={["zen-ai-block", className].filter(Boolean).join(" ")} aria-label={t.assistant}>
       <div className="zen-ai-block__hello">
         <span className="zen-ai-block__logo" aria-hidden="true">{renderIcon(logo ?? "icon-zen")}</span>
-        <h2 className={`zen-ai-block__greeting ${typographyStyles["Heading/1"]}`}>{greeting}</h2>
+        <Greeting className={`zen-ai-block__greeting ${typographyStyles["Heading/1"]}`}>{greeting}</Greeting>
       </div>
       <div className="zen-ai-block__contents">
         {children}

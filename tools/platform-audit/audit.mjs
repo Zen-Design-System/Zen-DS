@@ -387,7 +387,8 @@ function pageChecks({ scopeSel, mobile }) {
   const HEADING = "h1, h2, h3, h4, h5, h6, [role='heading']";
   const OVERLAY = "[role='dialog']:not(.pe-card), [role='alertdialog'], .zen-side-panel, .zen-bottom-sheet";
   const FIXED = ".zen-sidebar, .zen-drawer, .zen-bottom-nav";
-  const CARD = ".zen-card, .zen-chart-card, .zen-metric-card";
+  // A ListBox header names its box like a card title does (Heading/Subheading under the section title).
+  const CARD = ".zen-card, .zen-chart-card, .zen-metric-card, .zen-list-box";
   const levelOf = (h) => Number(h.getAttribute("aria-level")) || (/^H[1-6]$/.test(h.tagName) ? Number(h.tagName[1]) : 2);
   // In the outline (what a screen reader lists): visually hidden headings count, aria-hidden / display:none ones do not.
   const inOutline = (h) => { const s = getComputedStyle(h); return s.display !== "none" && s.visibility !== "hidden" && !h.closest("[aria-hidden='true'], [inert], [hidden], .pth-outline"); };

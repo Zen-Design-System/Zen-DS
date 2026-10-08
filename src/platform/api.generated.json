@@ -10370,6 +10370,14 @@
           "deprecated": null
         },
         {
+          "name": "headingLevel",
+          "type": "1 | 2 | 3",
+          "required": false,
+          "default": "2",
+          "description": "Heading level of the greeting: 2 (default), or 1 when the block opens the page and its greeting is the page title (a home screen); only the tag changes, the style stays Heading/1.",
+          "deprecated": null
+        },
+        {
           "name": "logo",
           "type": "IconName | ReactNode",
           "required": false,
