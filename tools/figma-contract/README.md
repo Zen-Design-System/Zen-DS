@@ -26,6 +26,9 @@ you already have; `__KEY(vp)` builds the variant key. `filter` receives each var
 - **Desktop console** (live file `9nZv4uW2LT21yuHabMTCh1`, **Cmd+Opt+I** → Console): paste the file, run
   `await __RUN(['<set id>', …])`, then on its own line (`copy()` does nothing inside an `await` statement)
   `copy(__OUTS)`, or `copy(__C(i))` for each `i < __N()` above ~230 kB.
+- **Hidden instance children:** the extractor sets `figma.skipInvisibleInstanceChildren = false` first (since
+  2026-10-08), so hidden layers inside instances are captured and hashed like `tools/figma-kit`; a contract captured
+  before that date may show them as added nodes on its next compare — re-capture it.
 - **`use_figma`** (read-only): nothing survives between calls and the result is capped near 20 KB, so each call is the
   whole file plus a `return` line. Hash first, then fetch only what changed:
   1. `return (await __HASHES(['<id>', …])).map(({ v, ...s }) => s);` for many sets (18 sets, 258 variants: ≈5 s),

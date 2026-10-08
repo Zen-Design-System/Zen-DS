@@ -3,6 +3,10 @@
 // undefined): internals live in this block, the public helpers are set on globalThis.
 {
 const G = globalThis;
+// Hidden layers inside instances (a Breadcrumbs slot's hidden Dash, Button's hidden icons, DatePicker's hidden Event dots)
+// are part of the contract: use_figma starts with skipInvisibleInstanceChildren = true, which drops them and reports
+// false diffs (tools/figma-kit/digest-norm.js does the same). Captures made before 2026-10-08 lack them: re-capture.
+if (typeof figma !== 'undefined') figma.skipInvisibleInstanceChildren = false;
 const __V = (G.__V = G.__V || {}), __ES = (G.__ES = G.__ES || {}), __TS = (G.__TS = G.__TS || {});
 const __vname = async (id) => { if (!(id in __V)) { const v = await figma.variables.getVariableByIdAsync(id); __V[id] = v ? v.name : '?'; } return __V[id]; };
 const __sname = async (id, cache) => { if (!id || typeof id !== 'string') return undefined; if (!(id in cache)) { try { const s = await figma.getStyleByIdAsync(id); cache[id] = s ? s.name : '?'; } catch (e) { cache[id] = '?'; } } return cache[id]; };

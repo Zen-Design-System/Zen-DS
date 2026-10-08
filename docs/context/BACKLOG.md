@@ -401,7 +401,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
     chevron-selector) and a drill-in module header (Back chevron + Heading/4 "Time Off").
 - **From the DatePicker + Breadcrumbs Figma re-read of 2026-09-29** (session "App Shell kiểm tra lại"; session log
   2026-09-29, "DatePicker radius + Breadcrumbs"):
-  - **P2 · `use_figma` captures drop hidden instance children:** `use_figma` runs with
+  - **P2 · `use_figma` captures drop hidden instance children:** `use_figma` runs with **2026-10-08:** the extractor sets the flag false itself and the README says so; still open: re-capture the 2026-09-29 contracts (with the drift row below).
     `figma.skipInvisibleInstanceChildren = true`, so `__RUN` / `__HASHES` miss hidden nodes inside instances (the
     Breadcrumbs slot's hidden Dash, Button's hidden icons, the hidden Event dots) and report false diffs. Set it to
     `false` first (extractor + `tools/figma-contract/README.md`). The other 2026-09-29 `use_figma` captures
