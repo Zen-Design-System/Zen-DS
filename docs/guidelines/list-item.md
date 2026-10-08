@@ -2,7 +2,7 @@
 # List Item
 
 **Figma:** List-Item (4080:11700) + Component/List-Box (14922:75297) + .Primitives/List-Item/Mobile/* (page 4080:4632)  
-**Import:** `import { List, ListBox, ListItem } from "@zen/design-system";`
+**Import:** `import { List, ListBox, ListItem, ToggleListItem } from "@zen/design-system";`
 
 One row of a vertical list: a leading visual, a title with an optional caption, and a trailing slot for actions or a passive chevron / value.
 
@@ -20,6 +20,7 @@ One row of a vertical list: a leading visual, a title with an optional caption, 
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
+| Switch row | `ToggleListItem title · caption · checked · onCheckedChange` | a settings row that is one switch: a press anywhere flips it, the title names it and the caption describes it (composed; no Figma master yet) |
 | Leading | `leading` | Avatar (Image-Size/Medium, 40px), Dock Icon, thumbnail — Figma Leading on/off |
 | Contents | `title · caption · children · titleLines` | Title Body/Base/Bold, one line that truncates (Figma); titleLines={2} lets it wrap to a second line before it truncates; caption Body/Small/Regular Light (may wrap), Spacing/Gap/3XSmall (2px) under the title (Info-Content); children replace the stack |
 | Trailing | `trailing` | Figma Slot-Actions: Button/Icon-Flat Medium (IconButton appearance="flat" size="md", 40px), gap Small; or a passive chevron, value or Badge |
@@ -79,6 +80,26 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | `as` | `"div" \| "section"` | `"div"` | "div" (default) or "section" when the box is a titled region (give it aria-labelledby). |
 | `className` | `string` | — |  |
 
+### ToggleListItem
+A settings row whose whole surface is one switch: a ListItem (leading, Title, Caption) with a Toggle-Button (Toggle/Toggle-Button) in its trailing slot. Composed from the Figma List-Item and Toggle-Button primitives with their own tokens — no Figma master of its own yet (backlog batch 6, user 2026-10-07). A press anywhere on the row flips the switch (the row is a `<label>` around it); the switch keeps the focus ring and Space / Enter (APG Switch).
+
+Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onChange">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `ref` | `Ref<HTMLElement>` | — | The root row element. |
+| `title` (required) | `ReactNode` | — | What the switch turns on or off (Body/Base/Bold, one line); it names the switch. |
+| `caption` | `ReactNode` | — | One line under the title (Body/Small/Regular, Content/Neutral/Base): what the setting does. It describes the switch. |
+| `leading` | `IconName \| ReactNode` | — | Icon name or element before the text, as in ListItem. |
+| `checked` | `boolean` | — | Controlled on/off state. |
+| `defaultChecked` | `boolean` | — | Initial state when uncontrolled. Default false. |
+| `onCheckedChange` | `(checked: boolean) => void` | — | Called with the new state on a press anywhere on the row, or Space / Enter on the switch. |
+| `disabled` | `boolean` | `false` | The row and its switch do nothing; the switch shows Disabled. |
+| `toggleSize` | `"sm" \| "md" \| "lg" \| "small" \| "medium" \| "large"` | `"md"` | Toggle-Button size. Default md. |
+| `name` | `string` | — | Form field name of the switch's checkbox (submitted as "on" while checked). |
+| `as` | `"li" \| "div"` | `"li"` | Root element. Default `li` (inside a List); `div` outside one. |
+| `className` | `string` | — |  |
+
 ## Keyboard
 | Keys | Action |
 | --- | --- |
@@ -86,6 +107,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | Enter / Space | Activate a clickable row |
 
 ## ✅ Do
+- Make a settings row that is one on/off switch a `<ToggleListItem>`, not a ListItem with a Toggle in its trailing slot.
 - Wrap rows in <List aria-label> so the group is named.
 - Put a box of List-Item rows in `<ListBox>` (header and footer optional) instead of a Box or Card you pad yourself: its Card-padding-medium and 2XLarge corners are right on every device. Content that is not rows (a DescriptionList, labelled Toggles, a form) goes in a Card.
 - Pick the ListBox theme by where it sits (usage rules §16): flat (default) on Canvas/Default and on a Surface-Alt phone screen; shadow beside a default Sidebar (elevation follows the Sidebar); border on a white page (Canvas/Alt, a white phone screen) or inside another Surface (a Card, Dialog, SidePanel, BottomSheet).
@@ -127,10 +149,12 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
 | `list-item/inset-not-padding` | warn | List rows keep the padding Figma sets inside List-Item (Padding/Small 12px above and below, none at the sides, for Interactive=Yes and No alike), never a padding override on .zen-list-item — the layout around the List decides where it sits (leave 12px around clickable rows for their fill). | `zen-allow-list-inset: <reason>` |
 | `list-item/clickable-row-toggle` | warn | A clickable row (onClick/href) doesn't also carry a Toggle or Checkbox — the row click and the switch compete. Trailing icon buttons are fine (Figma Slot-Actions). | `zen-allow-row-toggle: <reason>` |
+| `list-item/switch-row` | warn | A settings row that is one switch is <ToggleListItem>, not a ListItem with a Toggle in its trailing slot: a press anywhere on the row flips it and the title names the switch. | `zen-allow-switch-row: <reason>` |
 | `list-item/trailing-button-medium` | warn | Buttons in a List-Item trailing slot are size Medium (md). | `zen-allow-trailing-size: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
 | `copy/plural-count` | warn | Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`. | `zen-allow-plural: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
+| `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 
 ## References
 - [Material 3 — Lists](https://m3.material.io/components/lists/guidelines)

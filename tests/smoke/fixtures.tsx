@@ -29,6 +29,7 @@ export const fixtures: Record<string, Fixture> = {
   ModalForm: { props: { open: true, title: "Invite member", children: "Form body" } },
   SidePanel: { props: { open: true, title: "Order details", children: "Panel body" } },
   BottomSheet: { props: { open: true, title: "Share", children: "Sheet body" } },
+  DatePickerSheet: { props: { open: true, title: "Your stay", selectionMode: "range", monthCount: 2, today: new Date(2026, 0, 4) } },
   Popover: { props: { open: true, "aria-label": "Sort by", items: [{ id: "new", label: "Newest" }, { id: "old", label: "Oldest" }] } },
   Menu: { props: { trigger: <button type="button">Actions</button>, children: null } },
   ChatReactorsPanel: {
@@ -90,6 +91,7 @@ export const fixtures: Record<string, Fixture> = {
 
   // Parts that only exist inside their container.
   ListItem: { props: { title: "Ava Nguyen" }, wrap: (el) => <ul>{el}</ul> },
+  ToggleListItem: { props: { title: "Daily digest" }, wrap: (el) => <ul>{el}</ul> },
   MenuItem: { skip: "needs an open Menu; covered by the Menu interaction tests" },
   MenuSeparator: { skip: "needs an open Menu; covered by the Menu interaction tests" },
   MenuGroup: { skip: "needs an open Menu; covered by the Menu interaction tests" },
@@ -109,6 +111,7 @@ export const fixtures: Record<string, Fixture> = {
 
   // Content the synthesiser leaves empty.
   Chip: { props: { children: "Status" } },
+  ChipGroup: { props: { "aria-label": "Repeat", options: [{ value: "daily", label: "Daily" }, { value: "weekly", label: "Weekly" }], defaultValue: "daily" } },
   Heading: { props: { children: "Team members" } },
   List: { props: { children: <ListItem title="Ava Nguyen" /> } },
 

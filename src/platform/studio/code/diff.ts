@@ -91,3 +91,31 @@ export function mapLine(before: string, after: string, line: number): number | n
   }
   return null;
 }
+
+/**
+ * The changed block around line `line` of `before` (1-based): the lines between the nearest unchanged lines above and
+ * below it, in both texts (`before` and `after`: [first, last] 1-based, last < first when the block is empty there).
+ * Null when the line is unchanged or the change is too big to diff line by line.
+ */
+export function changedBlockOf(before: string, after: string, line: number): { before: [number, number]; after: [number, number] } | null {
+  if (before === after) return null;
+  const a = splitLines(before);
+  const b = splitLines(after);
+  if (!Number.isInteger(line) || line < 1 || line > a.length) return null;
+  const { prefix, suffix, steps } = align(a, b);
+  const index = line - 1;
+  if (index < prefix || index >= a.length - suffix || !steps) return null;
+  // Old line → new line for the unchanged lines (prefix and suffix included).
+  const same = new Map<number, number>();
+  for (let i = 0; i < prefix; i += 1) same.set(i, i);
+  for (let i = a.length - suffix; i < a.length; i += 1) same.set(i, i + (b.length - a.length));
+  for (const step of steps) if (step.kind === "same") same.set(step.oldIndex, step.newIndex);
+  if (same.has(index)) return null;
+  let up = index - 1;
+  while (up >= 0 && !same.has(up)) up -= 1;
+  let down = index + 1;
+  while (down < a.length && !same.has(down)) down += 1;
+  const newUp = up >= 0 ? same.get(up)! : -1;
+  const newDown = down < a.length ? same.get(down)! : b.length;
+  return { before: [up + 2, down], after: [newUp + 2, newDown] };
+}

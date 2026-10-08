@@ -206,7 +206,7 @@ export function DataSlotBlock({ selection, element, slot, editable, playground, 
           </div>
         ) : null}
       </div>
-      {source.state === "computed" ? <p className={`studio-slots__note ${typographyStyles["Body/Small/Regular"]}`}>{computedCaption(slot, source.code)}</p> : null}
+      {source.state === "computed" ? <p className={`studio-slots__note ${typographyStyles["Body/Small/Regular"]}`}>{computedCaption(slot, source.code, source.via)}</p> : null}
       {ignoredGroups ? <p className={`studio-slots__note ${typographyStyles["Body/Small/Regular"]}`}>{slot.groupsOffNote}: their groups are kept for the other types.</p> : null}
       {count ? (
         <ul ref={listRef} aria-label={`${slot.name} items`} className="studio-inspector__items">

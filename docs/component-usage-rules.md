@@ -362,7 +362,9 @@ are **Surface/Default with no border and no shadow**. Every example then shares 
 them looks like the same product, and an AI building a screen with no other brief starts here. Reference: Card ›
 Workspace plan (the pricing cards).
 
-- The example stage paints Canvas/Default (`.pe-card__stage` in platform.css), desktop `screen` cards included. A page
+- The example stage paints Canvas/Default (`.pe-card__stage` in platform.css), desktop `screen` cards, playground stages
+  and phone screens (`PlatformPhone` by default) included. The audit warns on a Surface/Default box on it with a border or
+  a shadow (`roles`, quality-checks.mjs; phones and shells are not checked yet). A page
   inside an example never paints its own white background.
 - Boxes on it: Card `theme="flat"`, MetricCard `theme="flat"`, ChartCard (flat by default), `ListBox` (flat by default), or a
   `Box surface="surface"` without `border`. White on Canvas/Default separates the box in light and dark mode, so it
@@ -374,7 +376,7 @@ Conditions that pick something else win over the default:
 | Condition | Pairing |
 | --- | --- |
 | A screen with a Sidebar (AppShell, templates) | Elevation follows the Sidebar: the default Sidebar on Canvas/Default takes Card `theme="shadow"` and ListBox `theme="shadow"`; a white Canvas/Alt with an Alt or Flat Sidebar takes bordered cards and ListBox `theme="border"` |
-| A white page: Canvas/Alt, or a phone screen (`PlatformPhone` paints Surface) | §11: a Pale border (Subtle when actionable; ListBox `theme="border"`) or `surface="alt"`; grouped lists on a Surface-Alt phone screen follow §15 (flat ListBox) |
+| A white page: Canvas/Alt, or a white phone screen (`PlatformPhone canvas="surface"`; phone screens default to Canvas/Default since 2026-10-07 and then follow this section) | §11: a Pale border (Subtle when actionable; ListBox `theme="border"`) or `surface="alt"`; grouped lists on a Surface-Alt phone screen follow §15 (flat ListBox) |
 | A Surface box inside another Surface (a card in a card, in a ListBox, a Dialog, a SidePanel or a BottomSheet) | Same colour, so it takes the Pale border (§6; ListBox `theme="border"`), or a Surface-Alt / Pale fill |
 | A clickable card (`onClick`, choice tiles) | `theme="border"`: the Subtle stroke and its Hover/Pressed are the affordance (§6); Flat has no hover state |
 | The selected card | `selected` (2px Card/Border/Active) on whatever theme the card has |

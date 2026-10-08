@@ -14,7 +14,7 @@ import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { Icon, type IconName } from "../../../components/Icon";
 import { Box, Grid, Stack } from "../../../components/Layout";
-import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { List, ListBox, ListItem, ToggleListItem } from "../../../components/ListItem";
 import { Menu } from "../../../components/Menu";
 import { Search } from "../../../components/Search";
 import { SidePanel } from "../../../components/SidePanel";
@@ -30,6 +30,7 @@ import {
   projects, projectStatusTheme, type Person, type PersonId, type StudioFile, type Team,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./list-item.css";
 
 export const page: PlatformPage = "list-item";
@@ -453,7 +454,34 @@ function PhoneSettings() {
   );
 }
 
-export const examples: ExampleDef[] = [
+const emailSettings = [
+  { id: "digest", title: "Daily digest", caption: "One email at 8:00 am with what changed yesterday", icon: "icon-mail-01-line" as IconName },
+  { id: "mentions", title: "Mentions and replies", caption: "When someone mentions you or answers your comment", icon: "icon-message-chat-circle-line" as IconName },
+  { id: "invoices", title: "Paid invoices", caption: "When a client pays an invoice you sent", icon: "icon-receipt-line" as IconName },
+];
+
+function EmailSwitches() {
+  const titleId = useId();
+  const { toast } = useToast();
+  const [on, setOn] = useState<Record<string, boolean>>({ digest: true, mentions: true, invoices: false });
+  const change = (id: string, title: string, checked: boolean) => {
+    setOn((current) => ({ ...current, [id]: checked }));
+    toast({ title: `${title} ${checked ? "on" : "off"}`, action: { label: "Undo", onClick: () => setOn((current) => ({ ...current, [id]: !checked })) } });
+  };
+  return (
+    <ListBox as="section" aria-labelledby={titleId} header={<Heading level={4} id={titleId} textStyle="Heading/Subheading">Email</Heading>}>
+      <List aria-labelledby={titleId}>
+        {emailSettings.map((setting) => (
+          <ToggleListItem key={setting.id} title={setting.title} caption={setting.caption}
+            leading={<DockIcon size="sm" icon={setting.icon} theme="neutral" background="subtle" />}
+            checked={on[setting.id]} onCheckedChange={(checked) => change(setting.id, setting.title, checked)} />
+        ))}
+      </List>
+    </ListBox>
+  );
+}
+
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "People directory",
     wide: true,
@@ -622,4 +650,19 @@ const revoke = (invite) => {
   <DescriptionList divider items={details} />
 </SidePanel>`,
   },
-];
+  {
+    title: "Email switches",
+    description: "A settings row whose whole surface is one switch is a ToggleListItem: a press anywhere on the row flips it, the title names the switch and the caption describes it. Each change applies at once, and the toast can undo it.",
+    render: () => <EmailSwitches />,
+    code: `<ListBox as="section" aria-labelledby="email" header={<Heading level={4} id="email" textStyle="Heading/Subheading">Email</Heading>}>
+  <List aria-labelledby="email">
+    {settings.map((setting) => (
+      // The whole row is the switch: no Toggle in the trailing slot of a ListItem
+      <ToggleListItem key={setting.id} title={setting.title} caption={setting.caption}
+        leading={<DockIcon size="sm" icon={setting.icon} theme="neutral" background="subtle" />}
+        checked={on[setting.id]} onCheckedChange={(checked) => change(setting, checked)} />
+    ))}
+  </List>
+</ListBox>`,
+  },
+]);

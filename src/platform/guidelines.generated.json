@@ -109,7 +109,7 @@
       {
         "id": "button/secondary-justified",
         "severity": "error",
-        "summary": "Secondary is a rare highlight; default to Primary (main CTA) or Tertiary.",
+        "summary": "Secondary is a rare highlight; default to Primary (main CTA) or Tertiary. A flat IconButton is exempt: flat Secondary is Figma's quiet ⋮ trigger (Card Sub-Action).",
         "allow": "secondary"
       },
       {
@@ -139,7 +139,7 @@
       {
         "id": "icon-button/needs-action",
         "severity": "warn",
-        "summary": "An IconButton does something: it has onClick (or href, or type=\"submit\"), unless it is a Menu trigger (the Menu wires it).",
+        "summary": "An IconButton (and AppShell's top-bar AppShellAction / AppShellAccount) does something: it has onClick (or href, or type=\"submit\"), unless it is a Menu trigger (the Menu wires it).",
         "allow": "no-action"
       },
       {
@@ -223,7 +223,7 @@
       {
         "id": "interaction/action-without-handler",
         "severity": "warn",
-        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "summary": "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
         "allow": "action-handler"
       }
     ]
@@ -242,6 +242,11 @@
       "Values inside an input → Tag."
     ],
     "api": [
+      [
+        "Single choice",
+        "ChipGroup options · value · onValueChange",
+        "a radio group of Normal chips when exactly one value applies: one Tab stop, arrow keys move the choice, the picked chip is Selected (composed; no Figma master yet)"
+      ],
       [
         "Variant",
         "variant",
@@ -302,6 +307,7 @@
       ]
     ],
     "do": [
+      "When exactly one value applies (Repeat: Daily / Weekly / Monthly), use <ChipGroup>: it is a radio group with roving focus and aria-checked; never hand-set role=\"radio\" on Chips.",
       "Pick the level by how many can be on (user rule 2026-10-04): a multi-select group of toggles is Secondary for every chip (Selected = the 2px dark outline), a single-select group is Primary for every chip (Selected = the dark fill). Never switch a chip's level when it is selected.",
       "Put a group of chips in its own Stack (or chip row) with Spacing/Gap/XSmall (8px) between chips, never the gap of the form or fieldset around it.",
       "Keep the medium size (the default) on desktop and phones, so a filter row lines up with Search and Buttons (40px); small only inside a genuinely narrow component space.",
@@ -369,6 +375,12 @@
         "severity": "warn",
         "summary": "A multiple-selection Chip shows how many values are active with selectionCount.",
         "allow": "chip-count"
+      },
+      {
+        "id": "chip/radio-is-chip-group",
+        "severity": "warn",
+        "summary": "Chips where exactly one is picked are a <ChipGroup> (radio group: one Tab stop, arrow keys), not Chips given role=\"radio\" by hand.",
+        "allow": "chip-radio"
       },
       {
         "id": "api/deprecated-prop",
@@ -1638,7 +1650,7 @@
       {
         "id": "interaction/action-without-handler",
         "severity": "warn",
-        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "summary": "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
         "allow": "action-handler"
       },
       {
@@ -1776,17 +1788,18 @@
       {
         "id": "interaction/action-without-handler",
         "severity": "warn",
-        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "summary": "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
         "allow": "action-handler"
       }
     ]
   },
   "date-picker": {
     "title": "Date Picker",
-    "purpose": "Pick a date or a date range. DatePicker is the calendar panel itself and is visible by default (open defaults to true), like an inline calendar; DateField is the input that opens it in a popover.",
+    "purpose": "Pick a date or a date range. DatePicker is the calendar panel itself and is visible by default (open defaults to true), like an inline calendar; DateField is the input that opens it in a popover (a Bottom Sheet on a phone); DatePickerSheet is the phone picker of Figma Date-Picker/Mobile.",
     "use": [
       "DateField in forms (the field owns the popover); inline DatePicker for booking-style range selection.",
       "A DatePicker anchored to your own trigger: pass open, onClose and anchorRef.",
+      "DatePickerSheet on a phone, from your own trigger (a Dates row): selectionMode=\"single\" is one month with Cancel / OK; \"range\" stacks the months (calendar=\"stacked\") with your `summary` (the price for the nights) beside OK.",
       "Inline (no onClose / onOpenChange / anchorRef) the calendar has no surface of its own (no popover fill, border, padding or shadow, as Figma's in-place calendar): place it in a Card or panel."
     ],
     "avoid": [
@@ -1817,6 +1830,16 @@
         "Actions",
         "showActions / action · onApply(value, range) · onCancel",
         "none · single · dual; picks are a draft that Submit applies and Cancel drops"
+      ],
+      [
+        "Stacked",
+        "calendar=\"stacked\" · monthCount",
+        "Date-Picker/Mobile Variant=Multiple: months one under another with Display headers and one weekday row pinned at the top of the scroll"
+      ],
+      [
+        "Phone sheet",
+        "DatePickerSheet: open / onOpenChange · selectionMode · value / range · onRangeChange (draft) · onApply · summary · applyLabel",
+        "Figma Date-Picker/Mobile 9923:3576 in a Bottom Sheet; picks are a draft until OK; DateField opens it by itself on a phone"
       ]
     ],
     "keyboard": [
@@ -1838,7 +1861,8 @@
       ]
     ],
     "do": [
-      "On a phone, put the calendar in the screen or a Bottom Sheet inline: at the mobile breakpoint it takes the Figma mobile primitives by itself and fills the width; pass device=\"mobile\" only to force them (a popover, a narrow preview).",
+      "On a phone, let DateField open its sheet (it does at the mobile breakpoint), or open DatePickerSheet from your own row; for a range, update `summary` from onRangeChange so the price follows the picks.",
+      "On a phone, put an inline calendar in the screen or a Bottom Sheet: at the mobile breakpoint it takes the Figma mobile primitives by itself and fills the width; pass device=\"mobile\" only to force them (a popover, a narrow preview).",
       "Disable impossible dates (past check-in) with minDate / maxDate (earlier or later days disabled); in a DateField a typed date outside them is kept and marked aria-invalid, so pair the range with an `error` message.",
       "Pass `today` (your app's date: a server, business or demo date) when it is not the device's; the Today ring and the month the calendar opens on follow it. DateField forwards `today`, `minDate` and `maxDate` to its calendar.",
       "Show the chosen range and its consequence (nights, price) next to the calendar.",
@@ -1940,8 +1964,13 @@
       ],
       [
         "Open",
-        "open",
-        "controlled (e.g. \"Copied!\")"
+        "open · defaultOpen · onOpenChange",
+        "controlled (e.g. \"Copied!\") or open from the start"
+      ],
+      [
+        "Close",
+        "closable",
+        "Figma Close: a dismiss X after the label; the tooltip stays until it is closed"
       ],
       [
         "Delay",
@@ -1960,6 +1989,7 @@
       ]
     ],
     "do": [
+      "On a phone, where a tooltip never opens on touch, show a tip for a new action open from the start with its close X: <Tooltip closable open onOpenChange>.",
       "Wrap a focusable trigger (Button, IconButton, link).",
       "Keep text under ~80 characters, no punctuation for single phrases.",
       "Use Accent briefly for confirmations (\"Copied!\").",
@@ -1968,13 +1998,13 @@
       "Icon-only controls get their name tooltip for free (IconButton, Top/Bottom Navigation actions, close and remove buttons); add an explicit <Tooltip> only for a longer hint — the built-in one then stays silent."
     ],
     "dont": [
-      "Don't put links or buttons inside a tooltip.",
+      "Don't put links or buttons inside a tooltip (its own close X, closable, is the one exception).",
       "Don't repeat the visible label word for word.",
       "Don't wrap a disabled control (harness: tooltip/disabled-trigger).",
-      "Don't use a tooltip on touch-first surfaces or for error messages."
+      "Don't rely on a hover tooltip on touch-first surfaces (use a closable one open from the start), and never for error messages."
     ],
     "a11y": [
-      "role=tooltip linked with aria-describedby; Escape dismisses; appears on focus."
+      "role=tooltip linked with aria-describedby; Escape dismisses; appears on focus. A closable tooltip is role=note (it holds its close button, named by the locale's Close) and stays until it is closed."
     ],
     "content": [
       "Name + shortcut (\"Bold · ⌘B\")."
@@ -2020,6 +2050,12 @@
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
         "allow": "noop-handler"
+      },
+      {
+        "id": "interaction/controlled-needs-handler",
+        "severity": "warn",
+        "summary": "A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass.",
+        "allow": "controlled-handler"
       }
     ]
   },
@@ -2226,7 +2262,7 @@
       {
         "id": "interaction/action-without-handler",
         "severity": "warn",
-        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "summary": "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
         "allow": "action-handler"
       }
     ]
@@ -2604,7 +2640,7 @@
       {
         "id": "interaction/action-without-handler",
         "severity": "warn",
-        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "summary": "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
         "allow": "action-handler"
       }
     ]
@@ -2706,7 +2742,7 @@
       {
         "id": "interaction/action-without-handler",
         "severity": "warn",
-        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "summary": "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
         "allow": "action-handler"
       }
     ]
@@ -3189,7 +3225,7 @@
       {
         "id": "interaction/action-without-handler",
         "severity": "warn",
-        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "summary": "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
         "allow": "action-handler"
       }
     ]
@@ -3305,7 +3341,7 @@
       {
         "id": "interaction/action-without-handler",
         "severity": "warn",
-        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "summary": "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
         "allow": "action-handler"
       }
     ]
@@ -3663,7 +3699,7 @@
       {
         "id": "interaction/action-without-handler",
         "severity": "warn",
-        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "summary": "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
         "allow": "action-handler"
       }
     ]
@@ -3775,6 +3811,11 @@
     ],
     "api": [
       [
+        "Switch row",
+        "ToggleListItem title · caption · checked · onCheckedChange",
+        "a settings row that is one switch: a press anywhere flips it, the title names it and the caption describes it (composed; no Figma master yet)"
+      ],
+      [
         "Leading",
         "leading",
         "Avatar (Image-Size/Medium, 40px), Dock Icon, thumbnail — Figma Leading on/off"
@@ -3821,6 +3862,7 @@
       ]
     ],
     "do": [
+      "Make a settings row that is one on/off switch a <ToggleListItem>, not a ListItem with a Toggle in its trailing slot.",
       "Wrap rows in <List aria-label> so the group is named.",
       "Put a box of List-Item rows in <ListBox> (header and footer optional) instead of a Box or Card you pad yourself: its Card-padding-medium and 2XLarge corners are right on every device. Content that is not rows (a DescriptionList, labelled Toggles, a form) goes in a Card.",
       "Pick the ListBox theme by where it sits (usage rules §16): flat (default) on Canvas/Default and on a Surface-Alt phone screen; shadow beside a default Sidebar (elevation follows the Sidebar); border on a white page (Canvas/Alt, a white phone screen) or inside another Surface (a Card, Dialog, SidePanel, BottomSheet).",
@@ -3887,6 +3929,12 @@
         "allow": "row-toggle"
       },
       {
+        "id": "list-item/switch-row",
+        "severity": "warn",
+        "summary": "A settings row that is one switch is <ToggleListItem>, not a ListItem with a Toggle in its trailing slot: a press anywhere on the row flips it and the title names the switch.",
+        "allow": "switch-row"
+      },
+      {
         "id": "list-item/trailing-button-medium",
         "severity": "warn",
         "summary": "Buttons in a List-Item trailing slot are size Medium (md).",
@@ -3909,6 +3957,12 @@
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
         "allow": "noop-handler"
+      },
+      {
+        "id": "interaction/controlled-needs-handler",
+        "severity": "warn",
+        "summary": "A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass.",
+        "allow": "controlled-handler"
       }
     ]
   },
@@ -4439,7 +4493,7 @@
       {
         "id": "interaction/action-without-handler",
         "severity": "warn",
-        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "summary": "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
         "allow": "action-handler"
       }
     ]
@@ -5279,6 +5333,7 @@
       ]
     ],
     "do": [
+      "Give the bar the colour of the screen under it (user rule 2026-10-08): on Canvas/Default or Surface/Alt (the same colour in light and dark; a phone screen by default) use alt, compact-alt or alt-blurring; on a white Surface screen default, compact or default-blurring; an overlay type only on media.",
       "Match the type to the page Canvas: Default on Surface, Alt on an Alt canvas, Compact on dense detail screens, an overlay type only on media.",
       "Use a large title only on top-level screens (tab roots); a pushed screen with Back uses the bar title alone.",
       "On a root, keep the default: the bar row folds into the large-title row (Figma Top-bar=false), so the actions sit at the right of the large title and stay put when it folds; pass topBar only for a stack that keeps the bar above the large title.",
@@ -5363,7 +5418,7 @@
       {
         "id": "interaction/action-without-handler",
         "severity": "warn",
-        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "summary": "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
         "allow": "action-handler"
       }
     ]
@@ -5481,7 +5536,7 @@
       {
         "id": "interaction/action-without-handler",
         "severity": "warn",
-        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "summary": "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
         "allow": "action-handler"
       }
     ]
@@ -5606,6 +5661,12 @@
         "allow": "sheet-items"
       },
       {
+        "id": "bottom-sheet/choice-uses-list-item",
+        "severity": "warn",
+        "summary": "Picking one value in a sheet (Sort by, a time zone) is a Modal sheet holding a List of ListItem rows with the current one `selected` (the house rule the templates follow), not an Action sheet with `selectedId`: Action items are commands.",
+        "allow": "sheet-choice"
+      },
+      {
         "id": "api/deprecated-prop",
         "severity": "warn",
         "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
@@ -5632,7 +5693,7 @@
       {
         "id": "interaction/action-without-handler",
         "severity": "warn",
-        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "summary": "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
         "allow": "action-handler"
       }
     ]
@@ -5986,7 +6047,7 @@
       {
         "id": "interaction/action-without-handler",
         "severity": "warn",
-        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "summary": "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
         "allow": "action-handler"
       }
     ]
@@ -6186,7 +6247,7 @@
     ],
     "keyboard": [],
     "do": [
-      "Build page structure with Stack and Grid and pick the gap by the relationship, the same step everywhere (docs/component-usage-rules.md §13): 2xs inside one inline item, xs a thing and its label or a toolbar row, sm a group of Buttons or choices, md blocks inside one surface and stacked form fields, lg columns and groups inside a surface, xl page sections (Figma Master-Layout).",
+      "Build page structure with Stack and Grid and pick the gap by the relationship, the same step everywhere: 2xs inside one inline item, xs a thing and its label or a toolbar row, sm a group of Buttons or choices, md blocks inside one surface and stacked form fields, lg columns and groups inside a surface, xl page sections (Figma Master-Layout).",
       "Step up one level at least between groups: the gap between groups is always larger than the gap inside them.",
       "Use Stack direction=\"row\" with justify=\"between\" for a title + actions row.",
       "Use Grid minColumnWidth for card grids so they reflow from phone to desktop.",
@@ -6363,6 +6424,7 @@
     ],
     "keyboard": [],
     "do": [
+      "Colour emoji take the alpha of their text colour, so one in a light tone (Content/Neutral/Base or Light: captions, DescriptionList terms, muted text) renders faded: wrap the emoji alone in an opaque span, <Text as=\"span\" textStyle=… tone=\"strongest\">👋</Text>, and keep the words in the light tone (Zen has no Emoji component).",
       "Give every page or screen exactly one h1, present at all times, that names it and matches document.title (plus the app name). Where the title is shown large (PageHeader, a phone large title) it is Heading/1, like the Figma Master-Layout page title (harness: heading/h1-is-heading-1); a compact app bar title is the screen's h1 and keeps its bar style (Body/Extra/Bold).",
       "Follow the content hierarchy on the Typography page: page titles h1 Heading/1; sections (a group of cards, a table, a list) h2 Heading/4; card and widget titles one level below the nearest heading above (h3 under a section, h2 right under the page title), always Heading/Subheading; a page title inside a tab (PageHeader headingLevel 2) h2 Heading/2; list group headers one level below the nearest heading above, Body/Small/Bold in tone \"base\" (a kicker label); overlay titles h2 by default (h1 also accepted), never Heading/1. On a phone the master screen's large title and a child screen's compact bar title are the h1, so content starts at h2 (audit: outline).",
       "Step down one level at a time (h1 → h2 → h3); going back up may jump (h4 → h2). Every page or screen starts at h1; a component's headings take their level from where it is placed (headingLevel); fixed regions (Sidebar, Drawer) keep their level on every page.",
@@ -6589,6 +6651,12 @@
     "file": "docs/guidelines/app-shell.md",
     "rules": [
       {
+        "id": "icon-button/needs-action",
+        "severity": "warn",
+        "summary": "An IconButton (and AppShell's top-bar AppShellAction / AppShellAccount) does something: it has onClick (or href, or type=\"submit\"), unless it is a Menu trigger (the Menu wires it).",
+        "allow": "no-action"
+      },
+      {
         "id": "app-shell/primary-in-top-bar",
         "severity": "warn",
         "summary": "The top bar (header, headerActions) holds utilities: Breadcrumbs or a Search, a plan Badge, AppShellAction buttons and the account menu. A Primary or Accent page action belongs in the PageHeader actions.",
@@ -6642,7 +6710,7 @@
       [
         "Title",
         "title · headingLevel",
-        "h1 = Heading/1 by default (Figma Master-Layout); headingLevel 2 = Heading/2 for a page title inside a tab or an embedded view under the app's h1 (the ladder row \"Page title inside a tab\")"
+        "h1 = Heading/1 by default (Figma Master-Layout); headingLevel 2 = Heading/4 (the house ladder's h2) for a page title inside a tab or an embedded view under the app's h1 (the ladder row \"Page title inside a tab\")"
       ],
       [
         "Above",
@@ -7203,7 +7271,7 @@
       {
         "id": "interaction/action-without-handler",
         "severity": "warn",
-        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "summary": "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
         "allow": "action-handler"
       }
     ]
@@ -7555,7 +7623,7 @@
       {
         "id": "interaction/action-without-handler",
         "severity": "warn",
-        "summary": "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+        "summary": "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
         "allow": "action-handler"
       }
     ]

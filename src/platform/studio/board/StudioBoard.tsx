@@ -3,6 +3,8 @@ import { Heading, Text } from "../../../components/Text";
 import { ExampleCard } from "../../PlatformShowcases";
 // From the registry itself: an example edit then hot-updates the board, and Fast Refresh re-renders its frames.
 import { getPageExamples } from "../../examples/registry";
+import { isWideExample } from "../../examples/types";
+import { useHotDataVersion } from "../../hotData";
 import { ComponentApi, ComponentKeyboard, ComponentProps } from "../../PlatformReference";
 import { ComponentGuidelines } from "../../PlatformGuidelines";
 import type { StudioPageParts } from "../bridge";
@@ -28,6 +30,8 @@ type SectionLayoutState = {
   observed: Set<HTMLElement>;
   /** Measured heights (world px, fractional as the layout's own), per frame id. */
   heights: Map<string, number>;
+  /** Measured rendered widths (a width override renders wider than the rule width the columns use), per frame id. */
+  widths: Map<string, number>;
   /** The heights the opening rows were laid out with (boardLayout.ts `base`), per frame id. */
   base: Map<string, number>;
   /** The last left/top written on each frame element. */
@@ -118,7 +122,7 @@ function useSectionLayout(containerRef: RefObject<HTMLDivElement | null>, frames
   if (!stateRef.current || keyRef.current !== key) {
     const opening = openingFor(key);
     keyRef.current = key;
-    stateRef.current = { observer: stateRef.current?.observer ?? null, observed: stateRef.current?.observed ?? new Set(), heights: new Map(), base: opening.base, placed: new WeakMap(), settled: opening.settled, size: "", sizeFrame: 0 };
+    stateRef.current = { observer: stateRef.current?.observer ?? null, observed: stateRef.current?.observed ?? new Set(), heights: new Map(), widths: new Map(), base: opening.base, placed: new WeakMap(), settled: opening.settled, size: "", sizeFrame: 0 };
   }
 
   /** `fromObserver`: called back by the ResizeObserver, where a new section size would resize the section and the world
@@ -150,8 +154,12 @@ function useSectionLayout(containerRef: RefObject<HTMLDivElement | null>, frames
       element.style.top = `${y}px`;
       moved = true;
     });
+    // A width override renders a frame past the section edge without moving anything (nor the Docs frame beside the
+    // section: the grid track keeps the rule extent); the tinted surface reaches the rendered right edge.
+    const right = list.reduce((most, { id }, index) => Math.max(most, layout.positions[index].x + (state.widths.get(id) ?? elements.get(id)!.offsetWidth)), layout.width);
+    const overflow = Math.max(0, right - layout.width);
     // The section's size, compared as written (the style reads back rounded to 6 digits).
-    const size = `${layout.width}px ${layout.height}px`;
+    const size = `${layout.width}px ${layout.height}px ${overflow}px`;
     cancelAnimationFrame(state.sizeFrame);
     state.sizeFrame = 0;
     if (state.size !== size) {
@@ -160,6 +168,7 @@ function useSectionLayout(containerRef: RefObject<HTMLDivElement | null>, frames
         state.size = size;
         container.style.width = `${layout.width}px`;
         container.style.height = `${layout.height}px`;
+        container.parentElement?.style.setProperty("--studio-section-overflow", `${overflow}px`);
       };
       if (fromObserver) state.sizeFrame = requestAnimationFrame(resize);
       else resize();
@@ -176,6 +185,7 @@ function useSectionLayout(containerRef: RefObject<HTMLDivElement | null>, frames
         if (!id) continue;
         const size = entry.borderBoxSize?.[0];
         state.heights.set(id, size ? size.blockSize : entry.contentRect.height);
+        state.widths.set(id, size ? size.inlineSize : entry.contentRect.width);
       }
       place(true);
     });
@@ -262,6 +272,9 @@ function StudioSection({ id, label, count, frames, children }: { id: string; lab
 /** A component page laid out as canvas frames: title; the Playground with one frame per example under it; Docs beside them. */
 export function StudioBoard({ parts }: { parts: StudioPageParts }) {
   const { page } = parts;
+  // An example edit updates the records in place (hotData.ts), so the frames keep their state: render again for the
+  // new code and titles.
+  useHotDataVersion();
   const examples = useMemo(() => getPageExamples(page), [page]);
   const exampleFrames = useMemo(() => examples.map((example, index) => ({ id: `example:${index}`, width: exampleWidth(example) })), [examples]);
   const noteModes = useCanvasNoteModes();
@@ -287,9 +300,10 @@ export function StudioBoard({ parts }: { parts: StudioPageParts }) {
       </StudioFrame>
       {examples.length ? (
         <StudioSection id="examples" label="Examples" count={examples.length} frames={exampleFrames}>
+          {/* Keyed by place, not title: renaming an example keeps its frame (and the state of what it shows). */}
           {examples.map((example, index) => (
-            <StudioFrame key={`${index}-${example.title}`} id={`example:${index}`} kind="example" label={example.title} width={exampleWidth(example)} example={example}>
-              <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={example.wide} screen={example.screen}>{example.render()}</ExampleCard>
+            <StudioFrame key={`example:${index}`} id={`example:${index}`} kind="example" label={example.title} width={exampleWidth(example)} example={example}>
+              <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen}>{example.render()}</ExampleCard>
             </StudioFrame>
           ))}
         </StudioSection>

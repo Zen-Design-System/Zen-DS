@@ -26,6 +26,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./segmented.css";
 
 export const page: PlatformPage = "segmented";
@@ -313,7 +314,7 @@ function PhoneControlBarExample() {
   return (
     // The control bar stays pinned and moves up with the large title as the list scrolls under it.
     <PlatformPhone label="Team" headerOverlay screenRef={screenRef} header={
-      <TopNavigation title="Team" largeTitle="Team" scrollRef={screenRef}
+      <TopNavigation type="alt" title="Team" largeTitle="Team" scrollRef={screenRef}
         controlBar={<Segmented fullWidth aria-label="Team view" value={view} onValueChange={setView} options={[
           { id: "people", label: "People" },
           { id: "teams", label: "Teams" },
@@ -378,7 +379,7 @@ function PhonePeriodsExample() {
   const days = dayLogs.filter((log) => log.date >= period.from && log.date <= period.to);
   const total = days.reduce((sum, log) => sum + log.hours, 0);
   return (
-    <PlatformPhone label="Hours" headerOverlay screenRef={screenRef} header={<TopNavigation title="Hours" largeTitle="Hours" scrollRef={screenRef} />}>
+    <PlatformPhone label="Hours" headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title="Hours" largeTitle="Hours" scrollRef={screenRef} />}>
       <Stack gap="lg" paddingY="xs">
         {/* Four periods don't fit a phone as equal segments: one row of single-choice chips that scrolls sideways. */}
         <Box className="px-segmented-chips" role="group" aria-label="Period">
@@ -407,7 +408,7 @@ function PhonePeriodsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Grid or list view",
     description: "Two icon-only segments switch the same files between previews and rows. Each option carries its own aria-label (the icon is decorative), so a screen reader hears “Grid view, pressed”; Tab reaches each segment and Enter or Space picks it.",
@@ -503,7 +504,7 @@ const [period, setPeriod] = useState("monthly");   // what the switch previews
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef} header={
-  <TopNavigation title="Team" largeTitle="Team" scrollRef={screenRef}
+  <TopNavigation type="alt" title="Team" largeTitle="Team" scrollRef={screenRef}
     controlBar={<Segmented fullWidth aria-label="Team view" value={view} onValueChange={setView} options={[
       { id: "people", label: "People" },
       { id: "teams", label: "Teams" },
@@ -521,7 +522,7 @@ const [period, setPeriod] = useState("monthly");   // what the switch previews
     description: "Four periods are wider than a phone, so they are not a Segmented: a row of Normal chips scrolls sideways, and only one is on, so the chips are Primary: the pressed one takes the Selected fill. The total and the logged days follow the choice.",
     render: () => <PhonePeriodsExample />,
     code: `<PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Hours" largeTitle="Hours" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Hours" largeTitle="Hours" scrollRef={screenRef} />}>
   <Stack gap="lg" paddingY="xs">
     <div className="chip-row" role="group" aria-label="Period"> {/* flex; nowrap; overflow-x: auto; the screen margin inline */}
       {periods.map((item) => (
@@ -543,4 +544,4 @@ const [period, setPeriod] = useState("monthly");   // what the switch previews
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

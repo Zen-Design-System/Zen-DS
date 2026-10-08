@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "list-item",
-  "import": "import { List, ListItem, ListBox } from \"@zen/design-system\";",
+  "import": "import { List, ListItem, ListBox, ToggleListItem } from \"@zen/design-system\";",
   "components": [
     {
       "name": "List",
@@ -210,6 +210,111 @@
           "required": false,
           "default": "\"div\"",
           "description": "\"div\" (default) or \"section\" when the box is a titled region (give it aria-labelledby).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ToggleListItem",
+      "file": "src/components/ListItem/ToggleListItem.tsx",
+      "description": "A settings row whose whole surface is one switch: a ListItem (leading, Title, Caption) with a Toggle-Button\n(Toggle/Toggle-Button) in its trailing slot. Composed from the Figma List-Item and Toggle-Button primitives with\ntheir own tokens — no Figma master of its own yet (backlog batch 6, user 2026-10-07). A press anywhere on the row\nflips the switch (the row is a <label> around it); the switch keeps the focus ring and Space / Enter (APG Switch).",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\" | \"onChange\">",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The root row element.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "What the switch turns on or off (Body/Base/Bold, one line); it names the switch.",
+          "deprecated": null
+        },
+        {
+          "name": "caption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "One line under the title (Body/Small/Regular, Content/Neutral/Base): what the setting does. It describes the switch.",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Icon name or element before the text, as in ListItem.",
+          "deprecated": null
+        },
+        {
+          "name": "checked",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Controlled on/off state.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultChecked",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Initial state when uncontrolled. Default false.",
+          "deprecated": null
+        },
+        {
+          "name": "onCheckedChange",
+          "type": "(checked: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the new state on a press anywhere on the row, or Space / Enter on the switch.",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "The row and its switch do nothing; the switch shows Disabled.",
+          "deprecated": null
+        },
+        {
+          "name": "toggleSize",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Toggle-Button size. Default md.",
+          "deprecated": null
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Form field name of the switch's checkbox (submitted as \"on\" while checked).",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "\"li\" | \"div\"",
+          "required": false,
+          "default": "\"li\"",
+          "description": "Root element. Default `li` (inside a List); `div` outside one.",
           "deprecated": null
         },
         {

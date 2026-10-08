@@ -10,7 +10,8 @@
 //      while building instead of at the end. Warnings and pre-existing (baseline) debt go back as context only.
 // Edits of harness/contract tooling, tests and token sources are recorded too (ledger `aux`): they scope the static gates
 // (self-tests, contract suites, Vitest, token consumers) and never make the Stop hook ask for a QA run.
-// Bash edits count only for changed files the command itself names (another session may write files meanwhile).
+// Bash edits count only for changed files the command itself names (another session may write files meanwhile), and
+// for the outputs a token / style / icon generator wrote in the last two minutes.
 // It never fails the tool call: any internal problem exits 0 silently.
 import fs from "node:fs";
 import path from "node:path";
@@ -38,6 +39,22 @@ async function main() {
       for (const n of named) {
         const hit = (path.isAbsolute(n) ? [n] : bases.map((b) => path.join(b, n))).find((f) => fs.existsSync(f));
         if (hit && Date.now() - fs.statSync(hit).mtimeMs < 120000) targets.push(hit);
+      }
+    }
+    // A generator run (npm run tokens:build / styles:build / icons:build, or its script) names no output file: record
+    // what it wrote in the last two minutes under its output folders, so a token change made only in tokens/source still
+    // scopes the gate and makes the Stop hook ask for QA (backlog batch C, 2026-10-07).
+    if (/\bnpm\s+run\s+(tokens|styles|icons):build\b|\bscripts\/build-(tokens|native-tokens|text-styles|style-manifest|icons)\.mjs\b/.test(cmd)) {
+      const cwd = input.cwd ?? process.cwd();
+      const roots = [cwd, path.join(cwd, "Zen-DS"), process.env.CLAUDE_PROJECT_DIR ?? "", path.join(process.env.CLAUDE_PROJECT_DIR ?? "", "Zen-DS")].filter(Boolean);
+      const root = roots.find((dir) => fs.existsSync(path.join(dir, "scripts/build-tokens.mjs")));
+      for (const dir of root ? ["src/styles", "src/tokens", "src/icons/generated"] : []) {
+        const abs = path.join(root, dir);
+        if (!fs.existsSync(abs)) continue;
+        for (const name of fs.readdirSync(abs, { recursive: true })) {
+          const file = path.join(abs, String(name));
+          try { if (fs.statSync(file).isFile() && Date.now() - fs.statSync(file).mtimeMs < 120000) targets.push(file); } catch { /* removed meanwhile */ }
+        }
       }
     }
   } else {

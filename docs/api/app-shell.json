@@ -15,7 +15,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Left navigation, usually <Sidebar>. When the shell is 1024px or wider it sits beside the content, expanded or\ncollapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button.",
+          "description": "Left navigation, usually <Sidebar>. When the shell is 1024px or wider it sits beside the content, expanded or\ncollapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button. A Zen Sidebar follows the\nshell's rail and drawer by itself, also when it is wrapped in a component of your own.",
           "deprecated": null
         },
         {
@@ -55,7 +55,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it.",
+          "description": "One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. On phones it hides while the page scrolls down and comes back on a scroll up.",
           "deprecated": null
         },
         {

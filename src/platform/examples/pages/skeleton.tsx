@@ -28,6 +28,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./skeleton.css";
 
 export const page: PlatformPage = "skeleton";
@@ -341,7 +342,7 @@ function TaskDetailPhoneExample() {
   if (!task) {
     return (
       <PlatformPhone key="tasks" label="Tasks" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* The rows sit in the screen margin (Margin/Comfortable, 20px), so their fill stays 8px off the screen edge; Padding/XSmall (8px, the phone's List-Container-Vertical-Padding) above and below, like a List-Box. */}
         <Box paddingX="lg" paddingY="xs">
@@ -359,7 +360,7 @@ function TaskDetailPhoneExample() {
   const skeleton = line("medium");
   return (
     <PlatformPhone key={task.id} label="Tasks" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title={task.key} scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title={task.key} scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-task="${task.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}>
       {screen.anchor}
       {/* The title came with the row, so it shows at once; the rest waits for the task. Body padding lg (20) = the bar's
@@ -385,7 +386,7 @@ function TaskDetailPhoneExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Page loading",
     wide: true,
@@ -486,7 +487,7 @@ export const examples: ExampleDef[] = [
 
 // One PlatformPhone per screen (key): the task opens at the top; the bar follows the scroll.
 <PlatformPhone key={task.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title={task.key} scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title={task.key} scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToList }} />}>
   <Stack gap="lg" padding="lg" aria-busy={loading}>
     <Stack gap="xs">
@@ -502,4 +503,4 @@ export const examples: ExampleDef[] = [
   </Stack>
 </PlatformPhone>`
   },
-];
+]);

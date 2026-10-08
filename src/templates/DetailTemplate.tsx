@@ -205,6 +205,7 @@ export function DetailTemplate() {
   ];
   /** Phone: the same actions in a Bottom Sheet (the ones that are off stay out). */
   const sheetItems = moreItems.filter((entry): entry is MenuItemData => entry.type !== "separator" && entry.type !== "group" && !entry.disabled);
+  const sheetTitle = `Invoice ${invoice.number}`;
 
   const columns: TableColumn<Line>[] = compact ? [
     { id: "item", header: "Item", cell: (row) => <TableText bold caption={`${row.qty} × ${money(row.price)}`}>{row.item}</TableText> },
@@ -268,7 +269,6 @@ export function DetailTemplate() {
                 <Stack gap="lg">
                   <Card as="section" aria-labelledby="invoice-lines-title">
                     <Stack gap="md">
-                      {/* zen-allow-table-title: the table is the body of the Line items card, titled in Heading/Subheading like its sibling cards (card-title rule). */}
                       <Heading level={2} textStyle="Heading/Subheading" id="invoice-lines-title">Line items</Heading>
                       <Table aria-labelledby="invoice-lines-title" rows={lines} getRowId={(row) => row.id} columns={columns} />
                       {/* The same inset as the table cells, so terms and amounts line up with the columns above; the
@@ -363,7 +363,7 @@ export function DetailTemplate() {
         <InputField label="Reference" labelOptional autoComplete="off" placeholder="FT26273018" {...payment.field("reference")} />
       </ModalForm>
 
-      <BottomSheet type="action" open={moreSheet} onOpenChange={setMoreSheet} title={`Invoice ${invoice.number}`}
+      <BottomSheet type="action" open={moreSheet} onOpenChange={setMoreSheet} title={sheetTitle}
         items={sheetItems.map(({ id, label, icon, danger }) => ({ id, label, icon, destructive: danger }))}
         onSelect={(item) => { setMoreSheet(false); sheetItems.find((entry) => entry.id === item.id)?.onSelect?.(); }} />
 

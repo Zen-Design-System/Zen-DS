@@ -435,6 +435,92 @@
           "deprecated": null
         }
       ]
+    },
+    {
+      "name": "ChipGroup",
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"defaultValue\" | \"onChange\">",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root element.",
+          "deprecated": null
+        },
+        {
+          "name": "options",
+          "type": "ChipGroupOption[]",
+          "required": true,
+          "default": null,
+          "description": "The chips, in order.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string | null",
+          "required": false,
+          "default": null,
+          "description": "Controlled picked value (null: none picked yet).",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "string | null",
+          "required": false,
+          "default": "null",
+          "description": "Initial picked value when uncontrolled.",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the picked chip's value (a press, or an arrow key moving the choice).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the group when no visible label does (or pass `aria-labelledby`).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"md\" | \"xsmall\" | \"small\" | \"medium\"",
+          "required": false,
+          "default": "\"sm\"",
+          "description": "Chip size (short or long spelling). Default sm.",
+          "deprecated": null
+        },
+        {
+          "name": "level",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Chip level. Default primary.",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Every chip does nothing.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
     }
   ],
   "input": [
@@ -939,7 +1025,7 @@
           "type": "(date: Date | null) => void",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "The day in the field: called when one is picked in the calendar and when a complete MM/DD/YYYY is typed; null when\n the field is emptied or a typed date stops being a real day.",
           "deprecated": null
         },
         {
@@ -1043,6 +1129,126 @@
           "default": null,
           "description": "Accessible name of the + stepper. Default: the locale's \"Increase\".",
           "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelOptional",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel).",
+          "deprecated": null
+        },
+        {
+          "name": "labelTooltip",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpTheme",
+          "type": "\"neutral\" | \"negative\" | \"warning\" | \"positive\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative.",
+          "deprecated": null
+        },
+        {
+          "name": "helpIcon",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Icon` axis (default on).",
+          "deprecated": null
+        },
+        {
+          "name": "characterLimit",
+          "type": "ReactNode | true",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Character-Limitation`: custom text (e.g. \"12/100\"), or `true` to count the value against `maxLength`.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "errorMessage",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use error (same meaning)."
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": null,
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"typing\" | \"inputted\" | \"read-only\" | \"disabled\" | \"inputted-error\" | \"blank-error\" | \"error\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Before the value: an icon name (`\"icon-mail-01-line\"`, sized to the field) or any node (a unit, a picker).",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "After the value: an icon name (sized to the field) or any node (a unit, a picker, an action).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
         }
       ]
     },
@@ -1071,6 +1277,118 @@
           "type": "unknown",
           "required": false,
           "default": "4",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelOptional",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel).",
+          "deprecated": null
+        },
+        {
+          "name": "labelTooltip",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpTheme",
+          "type": "\"neutral\" | \"negative\" | \"warning\" | \"positive\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative.",
+          "deprecated": null
+        },
+        {
+          "name": "helpIcon",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Icon` axis (default on).",
+          "deprecated": null
+        },
+        {
+          "name": "characterLimit",
+          "type": "ReactNode | true",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Character-Limitation`: custom text (e.g. \"12/100\"), or `true` to count the value against `maxLength`.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "errorMessage",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use error (same meaning)."
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"typing\" | \"inputted\" | \"read-only\" | \"disabled\" | \"inputted-error\" | \"blank-error\" | \"error\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Before the value: an icon name (`\"icon-mail-01-line\"`, sized to the field) or any node (a unit, a picker).",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "After the value: an icon name (sized to the field) or any node (a unit, a picker, an action).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
           "description": "",
           "deprecated": null
         }
@@ -1353,6 +1671,102 @@
         {
           "name": "onBlur",
           "type": "(event: FocusEvent<HTMLDivElement>) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelOptional",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel).",
+          "deprecated": null
+        },
+        {
+          "name": "labelTooltip",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpTheme",
+          "type": "\"neutral\" | \"negative\" | \"warning\" | \"positive\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative.",
+          "deprecated": null
+        },
+        {
+          "name": "helpIcon",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Icon` axis (default on).",
+          "deprecated": null
+        },
+        {
+          "name": "characterLimit",
+          "type": "ReactNode | true",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Character-Limitation`: custom text (e.g. \"12/100\"), or `true` to count the value against `maxLength`.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "errorMessage",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use error (same meaning)."
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"typing\" | \"inputted\" | \"read-only\" | \"disabled\" | \"inputted-error\" | \"blank-error\" | \"error\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
           "required": false,
           "default": null,
           "description": "",
@@ -3384,7 +3798,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Replaces the whole header, including the collapse control. Prefer `logo` / `productName`, which keep it. In the\ncollapsed rail `logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its\nmark), centred, and hides the rest visually.",
+          "description": "Replaces the header's logo slots; the collapse control (with `onCollapsedChange`) follows it. In the collapsed rail\n`logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its mark), centred, and\nhides the rest visually.",
           "deprecated": null
         },
         {
@@ -3456,7 +3870,15 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "The slot under the header (Figma Search): usually a Search field, or a Back control over a module title.",
+          "deprecated": null
+        },
+        {
+          "name": "searchCollapsed",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "What the collapsed rail shows in place of `search`. Default: a Search button that expands the panel. Pass the\n slot's own control when it is not a search (a Back chevron for a module's Back + title, backlog batch 6).",
           "deprecated": null
         },
         {
@@ -3771,10 +4193,18 @@
         },
         {
           "name": "calendar",
-          "type": "\"single\" | \"dual\"",
+          "type": "\"single\" | \"dual\" | \"stacked\"",
           "required": false,
           "default": "\"single\"",
-          "description": "Figma Date-Picker/Single-Calendar or Date-Picker/Dual-Calendar (two consecutive months side by\nside; Static headers with Back on the first and Next on the second).",
+          "description": "Figma Date-Picker/Single-Calendar or Date-Picker/Dual-Calendar (two consecutive months side by\nside; Static headers with Back on the first and Next on the second). `stacked`: Date-Picker/Mobile Variant=Multiple\n(9923:3574) — `monthCount` months one under another, Display headers (no Back / Next: the list scrolls), and one\nweekday row that stays at the top of the scrolling box (`.Primitives/Date-Picker` 9923:2323 Option 2).",
+          "deprecated": null
+        },
+        {
+          "name": "monthCount",
+          "type": "number",
+          "required": false,
+          "default": "12",
+          "description": "`calendar=\"stacked\"`: how many months follow the first one shown. Default 12.",
           "deprecated": null
         },
         {
@@ -4020,7 +4450,7 @@
           "type": "(date: Date | null) => void",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "The day in the field: called when one is picked in the calendar and when a complete MM/DD/YYYY is typed; null when\n the field is emptied or a typed date stops being a real day.",
           "deprecated": null
         },
         {
@@ -4045,6 +4475,188 @@
           "required": false,
           "default": null,
           "description": "The day the calendar treats as today (DatePicker `today`): its Today ring and the month it opens on while empty.\nDefault: the device clock.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "DatePickerSheet",
+      "extends": "OverlayOpenProps",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Whether the overlay is shown: keep it in state and set it from `onOpenChange` (the exit animation then plays).\nWithout `open` the overlay shows while it is mounted, e.g. `{show && <Dialog … />}`.",
+          "deprecated": null
+        },
+        {
+          "name": "isOpen",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use open (same meaning)."
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with false on Escape, a scrim click, the close button, or an action without its own handler.",
+          "deprecated": null
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Called at the same moments as `onOpenChange(false)`: the overlay asks to close.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Header heading (Heading/3). Default: the locale's \"Choose date\" (\"Choose dates\" for a range).",
+          "deprecated": null
+        },
+        {
+          "name": "selectionMode",
+          "type": "\"single\" | \"range\"",
+          "required": false,
+          "default": "\"single\"",
+          "description": "`single` (Figma Variant=Single): one month with Back / Next, Cancel and OK. `range` (Variant=Multiple): the months\n stacked in a scrolling list, a start and an end day, and the Footer-Actions (your `summary` next to OK).",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "Date | null",
+          "required": false,
+          "default": null,
+          "description": "Applied date (single). The sheet picks a draft over it; OK applies the draft.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "Date | null",
+          "required": false,
+          "default": "null",
+          "description": "Applied date when uncontrolled (single).",
+          "deprecated": null
+        },
+        {
+          "name": "range",
+          "type": "DatePickerRange | null",
+          "required": false,
+          "default": null,
+          "description": "Applied range (range mode).",
+          "deprecated": null
+        },
+        {
+          "name": "defaultRange",
+          "type": "DatePickerRange | null",
+          "required": false,
+          "default": "null",
+          "description": "Applied range when uncontrolled (range mode).",
+          "deprecated": null
+        },
+        {
+          "name": "onApply",
+          "type": "(value: Date | null, range: DatePickerRange | null) => void",
+          "required": false,
+          "default": null,
+          "description": "OK: the picked date (single) or the complete range (range mode). The sheet closes.",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(date: Date | null) => void",
+          "required": false,
+          "default": null,
+          "description": "Each pick of a day (single), a draft until OK.",
+          "deprecated": null
+        },
+        {
+          "name": "onRangeChange",
+          "type": "(range: DatePickerRange) => void",
+          "required": false,
+          "default": null,
+          "description": "Each pick in range mode, a draft until OK: update the `summary` from it (the price for these nights).",
+          "deprecated": null
+        },
+        {
+          "name": "onCancel",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Cancel (single): the draft is dropped and the sheet closes. Closing by the X, the scrim or Escape drops it too.",
+          "deprecated": null
+        },
+        {
+          "name": "minDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "maxDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "The day the calendar treats as today (DatePicker `today`).",
+          "deprecated": null
+        },
+        {
+          "name": "monthCount",
+          "type": "number",
+          "required": false,
+          "default": "12",
+          "description": "Range mode: how many months the list shows from the first one (DatePicker `monthCount`). Default 12.",
+          "deprecated": null
+        },
+        {
+          "name": "summary",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Range mode: Figma Footer-Actions Content beside OK, e.g. a price in Body/Extra/Bold over a Body/Small line\n (\"$605.50\" · \"7 nights\"), or a hint while no range is picked (\"Add dates for prices\").",
+          "deprecated": null
+        },
+        {
+          "name": "applyLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "OK button label. Default: the locale's \"OK\".",
+          "deprecated": null
+        },
+        {
+          "name": "cancelLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Cancel button label (single). Default: the locale's \"Cancel\".",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
           "deprecated": null
         }
       ]
@@ -4322,7 +4934,7 @@
           "type": "ReactElement",
           "required": true,
           "default": null,
-          "description": "A single focusable element (Button, IconButton, link…). It receives aria-describedby.",
+          "description": "A single focusable element (Button, IconButton, link…), or a wrapper around one. The focused control receives\n aria-describedby.",
           "deprecated": null
         },
         {
@@ -4363,6 +4975,30 @@
           "required": false,
           "default": null,
           "description": "Controlled visibility; omit for hover/focus behavior.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Shown from the start (uncontrolled): an onboarding hint, or a phone, where a tooltip never opens on touch. Pair it\n with `closable`.",
+          "deprecated": null
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called when the tooltip opens or closes (the close X, Escape, hover and focus).",
+          "deprecated": null
+        },
+        {
+          "name": "closable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Close=Yes: a dismiss X after the label. The tooltip then stays until it is closed (hover, focus and pointer\n presses no longer hide it) and is a `note`, as it holds a button.",
           "deprecated": null
         },
         {
@@ -4409,6 +5045,22 @@
           "required": true,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Figma Close=Yes: a dismiss X after the label, called when it is pressed.",
+          "deprecated": null
+        },
+        {
+          "name": "closeLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The X's accessible name. Default: the locale's “Close”.",
           "deprecated": null
         }
       ]
@@ -6758,6 +7410,108 @@
           "deprecated": null
         }
       ]
+    },
+    {
+      "name": "ToggleListItem",
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\" | \"onChange\">",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The root row element.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "What the switch turns on or off (Body/Base/Bold, one line); it names the switch.",
+          "deprecated": null
+        },
+        {
+          "name": "caption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "One line under the title (Body/Small/Regular, Content/Neutral/Base): what the setting does. It describes the switch.",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Icon name or element before the text, as in ListItem.",
+          "deprecated": null
+        },
+        {
+          "name": "checked",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Controlled on/off state.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultChecked",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Initial state when uncontrolled. Default false.",
+          "deprecated": null
+        },
+        {
+          "name": "onCheckedChange",
+          "type": "(checked: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the new state on a press anywhere on the row, or Space / Enter on the switch.",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "The row and its switch do nothing; the switch shows Disabled.",
+          "deprecated": null
+        },
+        {
+          "name": "toggleSize",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Toggle-Button size. Default md.",
+          "deprecated": null
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Form field name of the switch's checkbox (submitted as \"on\" while checked).",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "\"li\" | \"div\"",
+          "required": false,
+          "default": "\"li\"",
+          "description": "Root element. Default `li` (inside a List); `div` outside one.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
     }
   ],
   "table": [
@@ -6949,7 +7703,7 @@
           "name": "bold",
           "type": "boolean",
           "required": false,
-          "default": "true",
+          "default": "false",
           "description": "",
           "deprecated": null
         }
@@ -7460,6 +8214,46 @@
           "deprecated": null
         },
         {
+          "name": "custom",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight: Figma Custom-Slot (Custom=Yes, added 2026-10-07): your own content under the contents — a sparkline,\na ProgressBar, a breakdown — Spacing/Gap/Medium below at XLarge/Large, Spacing/Gap/Small at Medium–XSmall. The\nDock-Icon stays at the contents' bottom-right corner.",
+          "deprecated": null
+        },
+        {
+          "name": "metricColor",
+          "type": "boolean | string",
+          "required": false,
+          "default": "false",
+          "description": "Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the\n metric to a chart series. `true` is Color/Background/Accent/Solid; a string is the series colour\n (`var(--zen-color-background-support-blue-solid)`).",
+          "deprecated": null
+        },
+        {
+          "name": "counter",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Icon-Highlight: Figma Counter — a Small Neutral Subtle Badge after the label, Spacing/Gap/2XSmall from it (a count\n of what the metric covers, e.g. \"3\" open invoices).",
+          "deprecated": null
+        },
+        {
+          "name": "labelIcon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title.",
+          "deprecated": null
+        },
+        {
+          "name": "hint",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows\n this text in a Tooltip on hover and focus; say how the number is worked out.",
+          "deprecated": null
+        },
+        {
           "name": "className",
           "type": "string",
           "required": false,
@@ -7559,6 +8353,46 @@
           "required": false,
           "default": null,
           "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below.",
+          "deprecated": null
+        },
+        {
+          "name": "custom",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight: Figma Custom-Slot (Custom=Yes, added 2026-10-07): your own content under the contents — a sparkline,\na ProgressBar, a breakdown — Spacing/Gap/Medium below at XLarge/Large, Spacing/Gap/Small at Medium–XSmall. The\nDock-Icon stays at the contents' bottom-right corner.",
+          "deprecated": null
+        },
+        {
+          "name": "metricColor",
+          "type": "boolean | string",
+          "required": false,
+          "default": null,
+          "description": "Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the\n metric to a chart series. `true` is Color/Background/Accent/Solid; a string is the series colour\n (`var(--zen-color-background-support-blue-solid)`).",
+          "deprecated": null
+        },
+        {
+          "name": "counter",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Icon-Highlight: Figma Counter — a Small Neutral Subtle Badge after the label, Spacing/Gap/2XSmall from it (a count\n of what the metric covers, e.g. \"3\" open invoices).",
+          "deprecated": null
+        },
+        {
+          "name": "labelIcon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title.",
+          "deprecated": null
+        },
+        {
+          "name": "hint",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows\n this text in a Tooltip on hover and focus; say how the number is worked out.",
           "deprecated": null
         },
         {
@@ -8401,6 +9235,14 @@
           "required": false,
           "default": "\"horizontal\"",
           "description": "Figma .Primitives/Bottom-Sheet/Actions Direction.",
+          "deprecated": null
+        },
+        {
+          "name": "footer",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Modal type: your own Footer content in place of the Actions (Figma's Footer holds any Buttons instance, e.g.\n `.Primitives/Date-Picker/Footer-Actions`: a summary next to a Primary). It keeps the footer's padding and stays\n put while the body scrolls. Ignored when `primaryAction` / `secondaryAction` are set.",
           "deprecated": null
         },
         {
@@ -9462,7 +10304,7 @@
           "type": "() => void",
           "required": false,
           "default": null,
-          "description": "Figma Leading-Actions (+): attachments or tools.",
+          "description": "Figma Leading-Actions (+): attachments or tools. Without it the + is not drawn (it would do nothing).",
           "deprecated": null
         },
         {
@@ -9470,7 +10312,7 @@
           "type": "() => void",
           "required": false,
           "default": null,
-          "description": "Figma trailing microphone (Icon-Flat).",
+          "description": "Figma trailing microphone (Icon-Flat) and the empty field's Voice action. Without it neither is drawn: the empty\n field shows a disabled Send instead.",
           "deprecated": null
         },
         {
@@ -9525,6 +10367,14 @@
           "required": false,
           "default": null,
           "description": "Say-Hi heading (the locale's \"How can I help you today?\" by default).",
+          "deprecated": null
+        },
+        {
+          "name": "headingLevel",
+          "type": "1 | 2 | 3",
+          "required": false,
+          "default": "2",
+          "description": "Heading level of the greeting: 2 (default), or 1 when the block opens the page and its greeting is the page title (a home screen); only the tag changes, the style stays Heading/1.",
           "deprecated": null
         },
         {
@@ -10996,7 +11846,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Left navigation, usually <Sidebar>. When the shell is 1024px or wider it sits beside the content, expanded or\ncollapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button.",
+          "description": "Left navigation, usually <Sidebar>. When the shell is 1024px or wider it sits beside the content, expanded or\ncollapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button. A Zen Sidebar follows the\nshell's rail and drawer by itself, also when it is wrapped in a component of your own.",
           "deprecated": null
         },
         {
@@ -11036,7 +11886,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it.",
+          "description": "One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. On phones it hides while the page scrolls down and comes back on a scroll up.",
           "deprecated": null
         },
         {
@@ -11320,7 +12170,7 @@
           "type": "1 | 2",
           "required": false,
           "default": "1",
-          "description": "Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 (Heading/2) only when the\n page already has an h1 (e.g. inside a tab). The text style always follows the level.",
+          "description": "Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 only when the page already\n has an h1 (e.g. inside a tab), set in Heading/4 as the house ladder puts an h2. The text style follows the level.",
           "deprecated": null
         }
       ]

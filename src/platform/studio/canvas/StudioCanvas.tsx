@@ -92,8 +92,8 @@ export function StudioCanvas({ label, viewKey, children }: { label: string; view
   }, [viewport, world]);
 
   // A page opens where it was left. The first visit shows the board's top-left (title, then the Playground or the
-  // document) 48px in, at the zoom that fits the Playground's width — but never below 75% (a wide playground runs off to
-  // the right, one pan away) nor above 100%; the Docs frame beside it is one pan away.
+  // document) 48px in, at the zoom that fits the Playground's width in the visible canvas — but never below 50%
+  // (FIRST_VISIT_MIN_ZOOM) nor above 100%; the Docs frame beside it is one pan away.
   useLayoutEffect(() => {
     if (!viewport || !world) return;
     keyRef.current = viewKey;

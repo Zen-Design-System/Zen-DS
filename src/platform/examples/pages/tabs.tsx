@@ -30,6 +30,7 @@ import {
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./tabs.css";
 
 export const page: PlatformPage = "tabs";
@@ -109,7 +110,9 @@ function ProjectSectionsExample() {
                 <MetricCard label="Budget used" value={formatMoney(lumen.spent)} icon="icon-coins-line" iconTheme="green" theme="flat" />
                 <MetricCard label="Open tasks" value={`${open}`} icon="icon-check-square-line" iconTheme="orange" theme="flat" />
               </Grid>
-              {/* Flat Surfaces on the page's Canvas/Default: no border, no shadow (usage rules §16). */}
+              {/* Flat Surfaces on the page's Canvas/Default: no border, no shadow (usage rules §16). Side content stops at
+                  xl (1440px) on a full-width page (backlog batch 6b). */}
+              <Box maxWidth={1440}>
               <Card theme="flat">
                 <DescriptionList items={[
                   { term: "Account director", description: people.hana.name },
@@ -118,6 +121,7 @@ function ProjectSectionsExample() {
                   { term: "Due", description: formatDate(lumen.due) },
                 ]} />
               </Card>
+              </Box>
             </Stack>
           </TabPanel>
 
@@ -359,7 +363,7 @@ function ProfileOnPhoneExample() {
   if (!personId) {
     return (
       <PlatformPhone key="root" label="People" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="People" largeTitle="People" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="People" largeTitle="People" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* Rows pad 0 at the sides: the screen margin (lg, 20px) insets them, and their fill (12px outside a row) stays 8px off every edge. */}
         <Box padding="lg">
@@ -382,7 +386,7 @@ function ProfileOnPhoneExample() {
   return (
     <PlatformPhone key={personId} label={person.name} headerOverlay screenRef={screenRef}
       header={(
-        <TopNavigation type="compact" title={person.name} scrollRef={screenRef}
+        <TopNavigation type="compact-alt" title={person.name} scrollRef={screenRef}
           leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-person="${personId}"] .zen-list-item__wrapper`, () => setPersonId(null)) }}
           // Two to four tabs share the phone's width evenly; the bar stays pinned under the title.
           controlBar={<Tabs idPrefix={prefix} fullWidth aria-label={`${person.name} sections`} value={tab} onValueChange={setTab} items={[
@@ -512,7 +516,7 @@ function ClientSectionsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Project sections",
     description: "A project page splits into Overview, Tasks, Files and Activity: Indicator tabs with icons in the PageHeader, each paired with a TabPanel. Counts sit in badges and leave at zero; Activity loads the first time it opens.",
@@ -612,7 +616,7 @@ export const examples: ExampleDef[] = [
 
 // One PlatformPhone per screen (key), each wired to the scroll.
 <PlatformPhone key={personId} headerOverlay screenRef={screenRef} header={
-  <TopNavigation type="compact" title="Chi Tran" scrollRef={screenRef}
+  <TopNavigation type="compact-alt" title="Chi Tran" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToPeople }}
     controlBar={
       <Tabs idPrefix="profile" fullWidth aria-label="Chi Tran sections" value={tab} onValueChange={setTab} items={[
@@ -627,4 +631,4 @@ export const examples: ExampleDef[] = [
   <TabPanel idPrefix="profile" id="time-off" hidden={tab !== "time-off"}>…</TabPanel>
 </PlatformPhone>`,
   },
-];
+]);

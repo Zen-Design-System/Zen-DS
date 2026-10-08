@@ -274,6 +274,12 @@ function remember(file: string, after: string, before: StudioSelection, next: St
   writeSession(LAST_KEY, lastEdit);
 }
 
+/** Remembers an insert made outside the slot picker (a paste, an Assets item) so its undo and redo restore the
+ *  selection too: undo goes back to `before`, redo awaits the inserted layer again. */
+export function rememberInsert(file: string, after: string, before: StudioSelection, inserted: StudioSelection, replaced = false) {
+  remember(file, after, before, inserted, { before: replaced, after: true });
+}
+
 /** Whether `current` is `from` (moved by writes since, or read back from the session after a reload). */
 function stillSelected(from: StudioSelection, current: StudioSelection | null, write: StudioWrite) {
   if (!current) return false;
@@ -975,7 +981,9 @@ export function slotActionsOf(element: SourceElement, slot: ContentSlot, content
     : modified === null ? (draft ? "Can't compare" : "Nothing saved to go back to")
       : modified ? null : "Matches the saved file";
   const clearBlock = count === 0 ? "Already empty"
-    : requiresSlot(element.name, slot.prop) ? `Required by ${element.name} — replace ${slot.prop === "children" ? "its content" : `its ${slot.prop}`} instead`
+    // Short, so the menu caption stays on one line under 240px ("Required by ChartCard — replace its content instead"
+    // wrapped); replacing a layer stays offered on the layer itself.
+    : requiresSlot(element.name, slot.prop) ? `Required by ${element.name.slice(element.name.lastIndexOf(".") + 1)}`
       : null;
   return { modified, isNew, tagged: modified === true && !isNew, count, resetBlock, clearBlock };
 }
@@ -1147,11 +1155,12 @@ function selectItemWhenRendered(host: NodeSelection, slot: DataSlot, index: numb
 
 /** One item op on the host's data slot; `index`/`to` as the source's array literal holds the items (`group`: `to` = the item it joins). */
 /** `keepHost`: the host stays selected after an add (a Figma presence boolean switched on: its row must stay reachable). */
-export function editDataItem(selection: NodeSelection, slot: DataSlot, verb: DataItemVerb, index = 0, to = 0, { keepHost = false }: { keepHost?: boolean } = {}): Promise<boolean> {
-  return exclusive(() => runDataItem(selection, slot, verb, index, to, keepHost));
+/** `all` (remove): every item, the prop with them (the boolean switched off: their useToast() line goes too). */
+export function editDataItem(selection: NodeSelection, slot: DataSlot, verb: DataItemVerb, index = 0, to = 0, { keepHost = false, all = false }: { keepHost?: boolean; all?: boolean } = {}): Promise<boolean> {
+  return exclusive(() => runDataItem(selection, slot, verb, index, to, keepHost, all));
 }
 
-async function runDataItem(selection: NodeSelection, slot: DataSlot, verb: DataItemVerb, index: number, to: number, keepHost = false): Promise<boolean> {
+async function runDataItem(selection: NodeSelection, slot: DataSlot, verb: DataItemVerb, index: number, to: number, keepHost = false, all = false): Promise<boolean> {
   const hostSelection = withoutPart(selection) as NodeSelection;
   const check = canStructurallyEdit(hostSelection);
   if (!check.ok) return fail(check.reason);
@@ -1160,15 +1169,24 @@ async function runDataItem(selection: NodeSelection, slot: DataSlot, verb: DataI
   if (!host) return false;
   const where = `${host.name} › ${slot.name}`;
   const source = sourceItems(host, slot);
-  if (source.state === "computed") return fail(`${where}: ${computedCaption(slot, source.code)}`);
+  if (source.state === "computed") return fail(`${where}: ${computedCaption(slot, source.code, source.via)}`);
   const items = source.state === "items" ? source.items : [];
   // Groups as the host is drawn now (TopNavigation: the compact types' Flat actions never share a pill).
   const grouping = slotGroupsAt(selectedHit(hostSelection), slot);
   if (verb === "group" && !grouping) return fail(`${where}: ${slot.groupsOffNote ?? "its items do not group here"}`);
   if (verb !== "add" && !items[index]) return fail(`${where} has no item ${index + 1} any more — select it again`);
   if ((verb === "move" || verb === "drop" || verb === "group") && !items[to]) return fail(`${where} has no place ${to + 1}`);
+  // A move past identical items (the same fields) leaves the code as it is: say why, rather than the write's "No change".
+  if ((verb === "move" || verb === "drop") && index !== to) {
+    const same = JSON.stringify(items[index].fields);
+    if (items.slice(Math.min(index, to), Math.max(index, to) + 1).every((item) => JSON.stringify(item.fields) === same)) {
+      inspectorStatus.set("neutral", `${where}: ${itemTitle(slot, items[index].fields, index)} and the item${Math.abs(to - index) === 1 ? "" : "s"} it would pass are identical, so the order in the code stays the same`);
+      return false;
+    }
+  }
   if (verb === "add" && slot.form === "object" && items.length) return fail(`${where} holds its one ${slot.itemName.toLowerCase()} already — edit it, or remove it first`);
-  const name = verb === "add" ? slot.itemName : itemTitle(slot, items[index].fields, index);
+  const removeAll = verb === "remove" && all && items.length > 1;
+  const name = verb === "add" ? slot.itemName : removeAll ? plural(items.length, slot.itemName.toLowerCase()) : itemTitle(slot, items[index].fields, index);
   // The repeat question speaks of moves for drags and (un)grouping, which also move the item.
   if (!(await confirmRepeats(hostSelection, { verb: verb === "drop" || verb === "group" || verb === "ungroup" ? "move" : verb, name, where }))) return false;
 
@@ -1178,11 +1196,11 @@ async function runDataItem(selection: NodeSelection, slot: DataSlot, verb: DataI
     const item = slot.newItem(items.length);
     op = { op: "insertItem", prop: slot.prop, code: item.code, ...(slot.form === "object" ? { single: true } : slot.form === "list" ? { list: true } : {}), ...(item.requires?.length ? { requires: [...item.requires] } : {}) };
     // A limit warns, it never blocks (Figma): the status says what the slot holds now.
-    if (items.length >= slot.max) warning = `${slot.name} now holds ${plural(items.length + 1, slot.itemName.toLowerCase())}; ${slot.maxNote ?? `the component shows ${slot.max}`}`;
-  } else if (verb === "remove") op = { op: "removeItem", prop: slot.prop, ...(slot.form !== "object" ? { index } : {}) };
+    if (items.length >= (slot.advised ?? slot.max)) warning = `${slot.name} now holds ${plural(items.length + 1, slot.itemName.toLowerCase())}; ${slot.maxNote ?? `the component shows ${slot.max}`}`;
+  } else if (verb === "remove") op = { op: "removeItem", prop: slot.prop, ...(slot.form !== "object" ? { index } : {}), ...(removeAll ? { all: true } : {}) };
   else if (verb === "duplicate") {
     op = { op: "duplicateItem", prop: slot.prop, index, ...(slot.form === "list" ? { list: true } : {}) };
-    if (items.length >= slot.max) warning = `${slot.name} now holds ${plural(items.length + 1, slot.itemName.toLowerCase())}; ${slot.maxNote ?? `the component shows ${slot.max}`}`;
+    if (items.length >= (slot.advised ?? slot.max)) warning = `${slot.name} now holds ${plural(items.length + 1, slot.itemName.toLowerCase())}; ${slot.maxNote ?? `the component shows ${slot.max}`}`;
   } else if (verb === "group") op = { op: "groupItem", prop: slot.prop, index, with: to };
   else if (verb === "ungroup") op = { op: "ungroupItem", prop: slot.prop, index };
   else op = { op: "moveItem", prop: slot.prop, index, to, ...(grouping ? { regroup: verb === "drop" ? "drop" as const : "tidy" as const } : {}) };

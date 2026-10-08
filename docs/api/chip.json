@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "chip",
-  "import": "import { Chip } from \"@zen/design-system\";",
+  "import": "import { Chip, ChipGroup } from \"@zen/design-system\";",
   "components": [
     {
       "name": "Chip",
@@ -275,10 +275,100 @@
           "deprecated": null
         }
       ]
+    },
+    {
+      "name": "ChipGroup",
+      "file": "src/components/ChipGroup/ChipGroup.tsx",
+      "description": "Single choice among a few Normal chips (Chip/Normal, Select=Yes on the picked one): one picked at a time, as radio\nbuttons. Composed from the Figma Chip with its own tokens — no Figma master of its own yet (backlog batch 6, user\n2026-10-07). APG Radio Group: the group is one Tab stop (the picked chip, else the first one); ← / → / ↑ / ↓ move the\nchoice and focus to the next enabled chip, wrapping; Space picks the focused chip. For several picks at once, use\nNormal chips as toggles (`selected` + onClick) instead.",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"defaultValue\" | \"onChange\">",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root element.",
+          "deprecated": null
+        },
+        {
+          "name": "options",
+          "type": "ChipGroupOption[]",
+          "required": true,
+          "default": null,
+          "description": "The chips, in order.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string | null",
+          "required": false,
+          "default": null,
+          "description": "Controlled picked value (null: none picked yet).",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "string | null",
+          "required": false,
+          "default": "null",
+          "description": "Initial picked value when uncontrolled.",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the picked chip's value (a press, or an arrow key moving the choice).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the group when no visible label does (or pass `aria-labelledby`).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"md\" | \"xsmall\" | \"small\" | \"medium\"",
+          "required": false,
+          "default": "\"sm\"",
+          "description": "Chip size (short or long spelling). Default sm.",
+          "deprecated": null
+        },
+        {
+          "name": "level",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Chip level. Default primary.",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Every chip does nothing.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
     }
   ],
   "types": {
     "BadgeTheme": "type BadgeTheme = \"accent\" | \"neutral\" | \"yellow\" | \"orange\" | \"red\" | \"crimson\" | \"pink\" | \"plum\" | \"purple\" | \"violet\" | \"indigo\" | \"blue\" | \"cyan\" | \"teal\" | \"green\" | \"brown\" | \"inverse\" | \"on-color\" | \"sky\" | \"mint\" | \"bronze\" | \"golden\"",
+    "ChipGroupOption": "interface ChipGroupOption { value: string; label: ReactNode; leading?: IconName | ReactNode; disabled?: boolean; }",
     "PopoverItemData": "type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?: ReactNode; leading?: IconName | ReactNode; trailing?: IconName | ReactNode; disabled?: boolean; selected?: boolean; photoSrc?: string; photoAlt?: string; badgeTheme?: BadgeTheme; theme?: \"icon\" | \"text-only\" | \"photo-small\" | \"photo-big\" | \"avatar-small\" | \"avatar-big\" | \"dock-icon\" | \"badge\"; function?: \"default\" | \"manual-add-new\"; }"
   }
 }

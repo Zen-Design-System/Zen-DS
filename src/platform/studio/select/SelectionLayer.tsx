@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { typographyStyles } from "../../../tokens/typography.generated";
-import { canvasApi } from "../canvas/viewport";
+import { canvasApi, getViewport } from "../canvas/viewport";
 import { inspectorStatus } from "../inspector/status";
 import { studioStore, useStudio } from "../store";
 import type { StudioSelection } from "../types";
 import { annotatedAt, childHits, findBySrc, frameOfFiber, hitForHost, isTypingTarget, layerHover, nestedHitAt, onSourceUpdate, parentHit, publishSelectionInfo, rectOf, selectHit, shortSrc, type FiberHit } from "./picker";
 import { chainHas, deepPartAt, drillPart, partChildren, partForElement, pathOf, resolvePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
+import { dataItemOfPart } from "../slots/dataItems";
 import { openCanvasMenu, openEmptyCanvasMenu, openFrameMenu } from "../shell/CanvasMenu";
 import { awaitedRender, awaitedRenderShown, awaitingWriteRender, remapPart, remapSelection, sameSelectedElement, writeRendered } from "./remap";
 import { ResizeLayer } from "./ResizeLayer";
@@ -17,6 +18,7 @@ import { pressLayer } from "../edit/drag";
 import { pressDataItem } from "../edit/itemDrag";
 import { startMarquee } from "../edit/marquee";
 import { sameAreas, sameOwner, spacingAreas, type Box, type SpacingArea, type SpacingOwner } from "./spacing";
+import { clipBox, clipInside, clipRectOf, type ClipCache } from "./clip";
 import "./select.css";
 
 /*
@@ -132,9 +134,11 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     if (!root) return;
     const origin = root.getBoundingClientRect();
     const toBox = (rect: DOMRect): Box => ({ x: rect.left - origin.left, y: rect.top - origin.top, w: rect.width, h: rect.height });
+    // Outlines and tints stop where a clipping ancestor (a scroll box, the frame) hides the layer (select/clip.ts).
+    const clips: ClipCache = new Map();
     const boxOf = (hit: FiberHit | null) => {
       const rect = hit ? rectOf(hit.hosts) : null;
-      return rect ? toBox(rect) : null;
+      return rect && hit ? clipBox(toBox(rect), clipRectOf(hit.hosts[0], clips), origin) : null;
     };
     const tagged = (hit: FiberHit | null): Tagged | null => {
       const box = boxOf(hit);
@@ -146,7 +150,10 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     const selected = part ?? selectedRef.current;
     const hover = layerHover.get() ?? (toolRef.current === "select" ? hoverRef.current : null);
     // Padding and gaps: a layout component's edit its props; a part's or a host element's are shown read-only.
-    const layout = selected ? spacingAreas(selected, Boolean(part), toBox) : { owner: null, areas: [] };
+    // Several layers selected: no spacing areas (they would edit the primary alone, and take the press a drag of all needs).
+    const layout = selected && !extrasRef.current.length ? spacingAreas(selected, Boolean(part), toBox) : { owner: null, areas: [] };
+    const inside = layout.areas.length ? clipInside(selected?.hosts[0], clips) : null;
+    if (inside) layout.areas = layout.areas.flatMap((area) => clipBox(area, inside, origin) ?? []);
     const next: Overlay = {
       hover: hover && (!selected || hover.fiber !== selected.fiber) ? tagged(hover) : null,
       selected: tagged(selected),
@@ -485,13 +492,17 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     const target = deepestAt(picked.element, x, y);
     const current = partRef.current;
     if (current && current.owner.hosts[0] === picked.hit.hosts[0] && chainHas(picked.hit, target, current)) return current;
-    return deepPartAt(picked.hit, target);
+    // A data-slot item (a TopNavigation action) is the part to land on, not the icon inside it (user, 2026-10-07); a
+    // double-click then drills on into it.
+    const deep = deepPartAt(picked.hit, target);
+    return dataItemOfPart(deep)?.part ?? deep;
   }, []);
 
   const hoverAt = useCallback(() => {
     const point = pointerRef.current;
     if (!point || toolRef.current !== "select") return;
-    const picked = pick(point.x, point.y);
+    // Over the selected element under an outer layer, the hover stays on the selection (as a press would keep it).
+    const picked = keepSelected(pick(point.x, point.y), point.x, point.y);
     setPassThrough(picked.kind === "chrome");
     const hit = picked.kind === "node" ? (deepAt(picked, deepRef.current) ? partAt(picked, point.x, point.y) ?? picked.hit : picked.hit) : null;
     setHoverFrame(picked.kind === "node" || picked.kind === "frame" ? picked.frame : null);
@@ -499,7 +510,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       hoverRef.current = hit;
       schedule(0);
     }
-  }, [pick, schedule, setHoverFrame, setPassThrough, deepAt, partAt]);
+  }, [pick, schedule, setHoverFrame, setPassThrough, deepAt, partAt, keepSelected]);
 
   const hoverRequest = useRef(0);
   const trackPointer = useCallback((event: PointerEvent | ReactPointerEvent) => {
@@ -597,6 +608,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         multiSelection.clear();
         const frameId = picked.frame.getAttribute("data-studio-frame");
         if (frameId) studioStore.setState({ selection: { kind: "frame", frameId } });
+        // The Docs frame reads at 100%: a click on it below that opens it at 100%, top-aligned (user, 2026-10-07).
+        if (frameId === "docs" && getViewport().zoom < 1 - 1e-3) canvasApi.zoomToRead(picked.frame.getBoundingClientRect());
       };
       // A drag on a frame's background draws a marquee (Figma; edit/marquee.ts); a click selects the frame.
       if (startMarquee(event.nativeEvent, selectFrame)) return;
@@ -709,7 +722,11 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         event.preventDefault();
         const hit = selectedRef.current;
         const frame = frameElement(world, current.frameId);
-        const parent = hit ? parentHit(hit, frame) : null;
+        // Several layers selected: their common parent (Figma), the first ancestor holding every one of them.
+        const others = world ? multiSelection.get().map((layer) => findBySrc(world, layer.src)[layer.instance]).filter((other): other is FiberHit => Boolean(other)) : [];
+        const holdsAll = (candidate: FiberHit) => others.every((other) => other.hosts.every((host) => candidate.hosts.some((owner) => owner.contains(host))));
+        let parent = hit ? parentHit(hit, frame) : null;
+        while (parent && others.length && !holdsAll(parent)) parent = parentHit(parent, frame);
         if (parent && parent.hosts.length && (!frame || frame.contains(parent.hosts[0]))) choose(parent, false);
         else {
           multiSelection.clear();

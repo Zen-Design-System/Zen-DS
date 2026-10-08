@@ -57,6 +57,38 @@ function findGuideline(name) {
     ?? index.find((g) => (g.import ?? "").toLowerCase().includes(key));
 }
 
+/**
+ * get_component's brief answer: the guideline without the sections an app does not need to write JSX (Figma → React,
+ * the harness table — its rule ids stay as one line —, References), without Figma node ids, and with the props of the
+ * named component only (the family's other components are listed, to ask for by name).
+ */
+function briefGuideline(text, name, g) {
+  const sections = text.replace(/^<!--.*?-->\n/, "").split(/^(?=## )/m);
+  const want = String(name ?? "").trim().replace(/^<|\/?>$/g, "").toLowerCase();
+  const out = [];
+  for (const section of sections) {
+    const heading = /^## (.+)$/m.exec(section)?.[1] ?? "";
+    if (/^Figma|^References/.test(heading)) continue;
+    if (/^Harness/.test(heading)) {
+      const ids = [...new Set([...section.matchAll(/`([a-z0-9-]+\/[a-z0-9-]+)`/g)].map((m) => m[1]))];
+      if (ids.length) out.push(`## Harness rules\n${ids.join(" · ")}\n`);
+      continue;
+    }
+    if (/^Props/.test(heading)) {
+      const parts = section.split(/^(?=### )/m);
+      const head = parts.shift() ?? "";
+      const named = parts.filter((part) => !/^### Types/.test(part));
+      const pick = named.find((part) => /^### (\w+)/.exec(part)?.[1].toLowerCase() === want) ?? named[0];
+      const others = named.filter((part) => part !== pick).map((part) => /^### (\w+)/.exec(part)?.[1]).filter(Boolean);
+      const types = parts.find((part) => /^### Types/.test(part));
+      out.push(head + (pick ?? "") + (types && pick && /\b[A-Z]\w+(?:Props)?\b/.test(pick) ? types : "") + (others.length ? `\nAlso in this family (get_component with the name for its props): ${others.join(", ")}\n` : ""));
+      continue;
+    }
+    out.push(section);
+  }
+  return out.join("\n").replace(/^\*\*Figma:\*\*.*\n/m, "").replace(/\s*\((?:Figma )?[\w./ -]*?\d+:\d+\)/g, "").replace(/\n{3,}/g, "\n\n").trim() + `\n\n(brief answer; detail: "full" for the Figma mapping, every component's props and the rule table)`;
+}
+
 /* ── Figma → Zen JSX (a local stand-in for Code Connect, which needs a Figma Organization plan) ── */
 const flat = (text) => String(text ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
 const kebab = (text) => String(text ?? "").trim().replace(/([a-z0-9])([A-Z])/g, "$1-$2").replace(/[\s_/]+/g, "-").replace(/-+/g, "-").toLowerCase();
@@ -142,12 +174,14 @@ const tools = [
   },
   {
     name: "get_component",
-    description: "Everything about one component: props with types and defaults, object types, Do/Don't, keyboard, accessibility and the harness rules that check it. Accepts a slug ('button'), a component name ('IconButton') or a title.",
-    inputSchema: { type: "object", properties: { name: { type: "string", description: "Slug, component name or title, e.g. 'Table', 'date-picker', 'ChatMessage'." } }, required: ["name"], additionalProperties: false },
-    run: ({ name }) => {
+    description: "One component: when to use it, its props with types and defaults, Do/Don't, keyboard and accessibility, and the names of the harness rules that check it. Accepts a slug ('button'), a component name ('IconButton') or a title. `detail: \"brief\"` (default) keeps the props of the component you named (the others are listed by name) and leaves out the Figma mapping, the rule table and references; `\"full\"` returns the whole guideline.",
+    inputSchema: { type: "object", properties: { name: { type: "string", description: "Slug, component name or title, e.g. 'Table', 'date-picker', 'ChatMessage'." }, detail: { type: "string", enum: ["brief", "full"], default: "brief" } }, required: ["name"], additionalProperties: false },
+    run: ({ name, detail = "brief" }) => {
       const g = findGuideline(name);
       if (!g) return { error: `No component "${name}". Try list_components.` };
-      return read(g.file ?? `docs/guidelines/${g.slug}.md`) ?? JSON.stringify(g, null, 2);
+      const text = read(g.file ?? `docs/guidelines/${g.slug}.md`);
+      if (!text) return JSON.stringify(g, null, 2);
+      return detail === "full" ? text : briefGuideline(text, name, g);
     },
   },
   {

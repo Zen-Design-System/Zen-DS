@@ -1,10 +1,11 @@
-import { useContext, useRef, useState, type FocusEvent, type KeyboardEvent } from "react";
+import { useContext, useEffect, useRef, useState, type FocusEvent, type KeyboardEvent } from "react";
 import { SelectField } from "../../../../components/Input";
 import type { IconName } from "../../../../icons/generated/names";
 import { radiusValue, type ZenCornerRadius } from "../../../../components/_shared/scale";
 import { keyForPx, tokenPx } from "../../select/spacing";
+import { spacingHover } from "../../select/spacingHover";
 import { matchOption } from "../propSchema";
-import { InspectorHostContext } from "./hostContext";
+import { InspectorHostContext, InspectorSrcContext } from "./hostContext";
 import { scaleLabel, stepKey, type TokenScale } from "./scale";
 
 /*
@@ -12,7 +13,9 @@ import { scaleLabel, stepKey, type TokenScale } from "./scale";
  * each step with what it measures where the layer renders ("md · 16", the canvas spacing pill's wording). Unset, it
  * shows the effective default in the placeholder tone. ↑/↓ step the ladder while it is closed and write once when the
  * key is released (or focus leaves), so holding a key is one edit and one undo step; ⌫ / Delete resets a written value.
- * Typeahead and scrub are later phases.
+ * Typeahead and scrub are later phases. Hovered or focused (the field, or a step of its open list under the pointer or
+ * the keyboard), it names its layer, prop and step on the spacing hover bus (select/spacingHover.ts), so the canvas
+ * emphasises the areas the prop sets (2026-10-08).
  */
 
 /** What `key` measures on `host` in CSS px (null: unknown, or `full`). */
@@ -71,14 +74,50 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
   placeholder?: string;
 }) {
   const host = useContext(InspectorHostContext);
+  const src = useContext(InspectorSrcContext);
   const [pending, setPending] = useState<string | null>(null);
   const open = useRef(false);
+  const [listOpen, setListOpen] = useState(false);
+  const [engaged, setEngaged] = useState({ pointer: false, focus: false });
+  const rowKey = useRef<string | null>(null);
   const extra = extras.find((item) => item.key === value);
   const matched = value === undefined ? undefined : extra ? extra.key : matchOption(value, options);
   const ladder = matched !== undefined && !extra && !options.includes(matched) ? [...options, matched] : options;
   const text = (key: string) => extras.find((item) => item.key === key)?.label ?? scaleLabel(key, measure(host, scale, key));
   const documented = fallback !== undefined ? matchOption(fallback, ladder) : undefined;
   const effective = (matched === undefined ? renderedKey(host, prop, scale, ladder, documented) : null) ?? documented ?? (ladder.includes("none") ? "none" : undefined);
+
+  // The canvas hover: the row under the pointer (or focused) in the open list, else the step the field shows.
+  const shownKey = pending ?? matched ?? effective ?? null;
+  const active = engaged.pointer || engaged.focus || listOpen;
+  useEffect(() => {
+    if (!src) return undefined;
+    if (active) spacingHover.set({ src, prop, key: rowKey.current ?? shownKey });
+    else spacingHover.clear({ src, prop });
+    return undefined;
+  }, [src, prop, active, listOpen, shownKey]);
+  useEffect(() => () => { if (src) spacingHover.clear({ src, prop }); }, [src, prop]);
+  useEffect(() => {
+    if (!listOpen || !src) return undefined;
+    // The list renders in a portal: its rows are found by their text (each step's label is its own).
+    const keyOfRow = (target: EventTarget | null) => {
+      const row = target instanceof Element ? target.closest('[role="option"]') : null;
+      const label = row?.textContent?.trim();
+      return label ? ladder.find((key) => text(key) === label) ?? null : null;
+    };
+    const onOver = (event: Event) => {
+      const key = keyOfRow(event.target);
+      if (!key || key === rowKey.current) return;
+      rowKey.current = key;
+      spacingHover.set({ src, prop, key });
+    };
+    document.addEventListener("pointerover", onOver, true);
+    document.addEventListener("focusin", onOver, true);
+    return () => {
+      document.removeEventListener("pointerover", onOver, true);
+      document.removeEventListener("focusin", onOver, true);
+    };
+  });
 
   const commit = () => {
     if (pending === null) return;
@@ -103,10 +142,21 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
     }
   };
   const onBlur = (event: FocusEvent<HTMLDivElement>) => {
-    if (!(event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget))) commit();
+    if (!(event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget))) {
+      commit();
+      setEngaged((now) => ({ ...now, focus: false }));
+    }
   };
   return (
-    <div className="studio-enum studio-scale" onKeyDownCapture={onKeyDown} onKeyUpCapture={(event) => { if (event.key === "ArrowUp" || event.key === "ArrowDown") commit(); }} onBlur={onBlur}>
+    <div
+      className="studio-enum studio-scale"
+      onKeyDownCapture={onKeyDown}
+      onKeyUpCapture={(event) => { if (event.key === "ArrowUp" || event.key === "ArrowDown") commit(); }}
+      onBlur={onBlur}
+      onFocus={() => setEngaged((now) => ({ ...now, focus: true }))}
+      onPointerEnter={() => setEngaged((now) => ({ ...now, pointer: true }))}
+      onPointerLeave={() => setEngaged((now) => ({ ...now, pointer: false }))}
+    >
       <SelectField
         aria-label={label}
         size="sm"
@@ -114,7 +164,7 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
         disabled={disabled}
         value={pending ?? matched ?? ""}
         placeholder={placeholder ?? (effective !== undefined ? text(effective) : "—")}
-        onPopoverOpenChange={(next) => { open.current = next; }}
+        onPopoverOpenChange={(next) => { open.current = next; setListOpen(next); if (!next) rowKey.current = null; }}
         onValueChange={(next) => { setPending(null); if (next !== matched) onSet(next); }}
         options={[...extras.map((item) => ({ value: item.key, label: item.label })), ...ladder.map((key) => ({ value: key, label: text(key) }))]}
       />

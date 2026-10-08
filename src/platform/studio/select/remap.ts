@@ -1,5 +1,5 @@
 import { parseSrc, subscribeStudioWrites } from "../api";
-import { mapLine } from "../code/diff";
+import { changedBlockOf, mapLine } from "../code/diff";
 import { studioStore } from "../store";
 import type { StudioPartRef, StudioSelection, StudioWrite } from "../types";
 
@@ -68,7 +68,69 @@ export function mapSrc(src: string, write: StudioWrite): string | null {
   if (!parsed || parsed.file !== write.file) return src;
   if (write.kind === "edit" && editing.has(src)) return src;
   const line = mapLine(write.before, write.after, parsed.line);
-  return line === null ? null : `${parsed.file}:${line}:${parsed.column}`;
+  if (line !== null) return `${parsed.file}:${line}:${parsed.column}`;
+  const moved = mapOnChangedLine(write.before, write.after, parsed.line, parsed.column) ?? mapInChangedBlock(write.before, write.after, parsed.line, parsed.column);
+  return moved ? `${parsed.file}:${moved.line}:${moved.column}` : null;
+}
+
+/**
+ * An element whose own line changed while other places of the file changed too (Clear contents turns `<Card …>` into
+ * `<Card … />` and drops an import above it; Reset and their undo the other way): its "<" and tag name lie in the
+ * unchanged start of the changed block of lines around it, so it keeps its offset in that block. Null when the block
+ * changed before the tag name (a removed element; the next sibling standing there now is another element).
+ */
+function mapInChangedBlock(before: string, after: string, line: number, column: number): { line: number; column: number } | null {
+  const block = changedBlockOf(before, after, line);
+  if (!block) return null;
+  const lines = (text: string, [first, last]: [number, number]) => text.split(/\r\n|\n|\r/).slice(first - 1, Math.max(first - 1, last));
+  const old = lines(before, block.before);
+  const next = lines(after, block.after);
+  const oldText = old.join("\n");
+  const nextText = next.join("\n");
+  let at = column;
+  for (let index = block.before[0]; index < line; index += 1) at += old[index - block.before[0]].length + 1;
+  const name = /^<[\w.:$-]+/.exec(oldText.slice(at))?.[0];
+  if (!name) return null;
+  let prefix = 0;
+  const limit = Math.min(oldText.length, nextText.length);
+  while (prefix < limit && oldText[prefix] === nextText[prefix]) prefix++;
+  if (at + name.length > prefix || /[\w.:$-]/.test(nextText[at + name.length] ?? "") !== /[\w.:$-]/.test(oldText[at + name.length] ?? "")) return null;
+  let rest = at;
+  for (let index = 0; index < next.length; index += 1) {
+    if (rest <= next[index].length) return { line: block.after[0] + index, column: rest };
+    rest -= next[index].length + 1;
+  }
+  return null;
+}
+
+/** The offset of 1-based `line`, 0-based `column` in `text`, or -1. */
+function offsetOf(text: string, line: number, column: number): number {
+  let offset = 0;
+  for (let index = 1; index < line; index++) {
+    offset = text.indexOf("\n", offset) + 1;
+    if (offset === 0) return -1;
+  }
+  return offset + column;
+}
+
+/**
+ * An element whose own line changed around it (a wrapper's attribute edited on the line it shares with its child,
+ * `<Stack width={200}><Button>`): where its "<" is after a write of one changed stretch (the text before and after it
+ * kept), its column shifted by what changed before it on that line. Null when the change touches the element's start,
+ * or the write changed several places around it.
+ */
+function mapOnChangedLine(before: string, after: string, line: number, column: number): { line: number; column: number } | null {
+  const at = offsetOf(before, line, column);
+  if (at < 0 || before[at] !== "<") return null;
+  let prefix = 0;
+  const limit = Math.min(before.length, after.length);
+  while (prefix < limit && before[prefix] === after[prefix]) prefix++;
+  let suffix = 0;
+  while (suffix < limit - prefix && before[before.length - 1 - suffix] === after[after.length - 1 - suffix]) suffix++;
+  const next = at < prefix ? at : at >= before.length - suffix ? at + after.length - before.length : -1;
+  if (next < 0 || after[next] !== "<") return null;
+  const lineStart = after.lastIndexOf("\n", next - 1) + 1;
+  return { line: after.slice(0, lineStart).split("\n").length, column: next - lineStart };
 }
 
 /* Waiting for the re-render that follows a write: until then the canvas still shows the old annotations, so a
@@ -133,8 +195,56 @@ export function onStudioWrite(listener: (write: StudioWrite) => void): () => voi
   return () => { writeListeners.delete(listener); };
 }
 
+/*
+ * Each file's last Studio write, for locations read from the canvas before it re-rendered that write (liveSrc).
+ * `updated`: Vite's update for the write came; the next update of the file is someone else's change (a peer, a
+ * reseed), after which the canvas's locations are that text's, so the entry goes. Also gone after RENDER_WINDOW.
+ */
+type LastWrite = { write: StudioWrite; at: number; updated: boolean };
+const lastWrites = new Map<string, LastWrite>();
+const RENDER_WINDOW = 4000;
+
+if (import.meta.hot) {
+  const onUpdate = (payload: { updates?: Array<{ path?: string; acceptedPath?: string }> }) => {
+    for (const [file, last] of lastWrites) {
+      const touched = (payload.updates ?? []).some((update) => [update.path, update.acceptedPath].some((path) => typeof path === "string" && path.split("?")[0].endsWith(`/${file}`)));
+      if (!touched) continue;
+      if (last.updated) lastWrites.delete(file);
+      else last.updated = true;
+    }
+  };
+  import.meta.hot.on("vite:afterUpdate", onUpdate);
+  import.meta.hot.dispose(() => import.meta.hot?.off("vite:afterUpdate", onUpdate));
+}
+
+/** The tag name of the element that starts at 1-based `line`, 0-based `column` of `text`, or null. */
+function tagAt(text: string, line: number, column: number): string | null {
+  const at = offsetOf(text, line, column);
+  return at < 0 ? null : /^<([\w.:$-]+)/.exec(text.slice(at, at + 200))?.[1] ?? null;
+}
+
+/**
+ * `src` as the file has it now. A location read from the canvas right after a Studio write (before React re-rendered
+ * it: an undo, a slot Clear) may name the element's place before that write: it is mapped through the write (null
+ * when the write removed it). A location that starts an element in the written text is kept, and so is every location
+ * once the file changed otherwise or the canvas had time to render the write.
+ */
+export function liveSrc(src: string): string | null {
+  const parsed = parseSrc(src);
+  const last = parsed ? lastWrites.get(parsed.file) : undefined;
+  if (!parsed || !last) return src;
+  if (performance.now() - last.at > RENDER_WINDOW) {
+    lastWrites.delete(parsed.file);
+    return src;
+  }
+  const { write } = last;
+  if (tagAt(write.after, parsed.line, parsed.column) || !tagAt(write.before, parsed.line, parsed.column)) return src;
+  return mapSrc(src, write);
+}
+
 function onWrite(write: StudioWrite) {
   if (write.before === write.after) return;
+  lastWrites.set(write.file, { write, at: performance.now(), updated: false });
   awaitingRender = performance.now() + 2500;
   const selection = studioStore.getState().selection;
   if (selection?.kind === "node") {

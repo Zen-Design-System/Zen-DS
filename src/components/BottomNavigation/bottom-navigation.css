@@ -54,7 +54,8 @@
 .zen-bottom-nav[data-type="floating-glass"] { --zen-bottom-nav-idle-label: var(--zen-color-content-neutral-strongest, #111); }
 .zen-bottom-nav__item:not([data-selected="true"]) .zen-bottom-nav__label { color: var(--zen-bottom-nav-idle-label); }
 .zen-bottom-nav:not([data-type="default"]) .zen-bottom-nav__item:hover:not([data-selected="true"]) .zen-bottom-nav__label { color: inherit; }
-.zen-bottom-nav__dot { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-negative-solid-default, #e5532e); box-shadow: 0 0 0 2px var(--zen-color-border-inverse, #fff); }
+/* The dot is the shared Notification-Dot (_shared/notification-dot.css); this places it on the icon. */
+.zen-bottom-nav__dot { top: -2px; right: -2px; }
 @media (prefers-reduced-motion: no-preference) { .zen-bottom-nav__item { transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), box-shadow var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
 
 /* Default: full-width Surface/Default bar with a 1px top hairline (Figma 4060:26671: drop shadow 0 -1 0 at 4%). */

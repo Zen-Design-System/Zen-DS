@@ -37,6 +37,7 @@ import {
   projectStatusTheme, tasks, workspacePlan, type InvoiceStatus, type PersonId, type Plan, type PlanId, type Project, type ProjectStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./card.css";
 
 export const page: PlatformPage = "card";
@@ -169,7 +170,7 @@ function InvoiceSide() {
       <Card ref={invoiceCard} as="section" theme="flat" aria-labelledby={invoiceId}
         subAction={
           <Menu align="end"
-            trigger={<IconButton appearance="flat" level="primary" size="sm" icon="icon-dots-horizontal-line" aria-label="Invoice actions" />}
+            trigger={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label="Invoice actions" />}
             items={[
               { id: "remind", label: "Send reminder", icon: "icon-mail-01-line", disabled: status === "Paid", onSelect: () => toast({ title: "Reminder sent", children: `To ${email}` }) },
               { id: "pdf", label: "Download PDF", icon: "icon-download-01-line", onSelect: () => toast({ title: "PDF downloaded", children: "INV-2026-0142.pdf" }) },
@@ -466,7 +467,7 @@ function PhoneOrderType() {
     return (
       // One key per screen: each screen opens at its top and its Top Navigation measures its own fold.
       <PlatformPhone key="cart" label="Cart" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Cart" largeTitle="Cart" scrollRef={screenRef} />}
+        header={<TopNavigation type="alt" title="Cart" largeTitle="Cart" scrollRef={screenRef} />}
         footer={<ActionBar position="static"
           summary={<Text as="span" textStyle="Body/Base/Medium">{`Subtotal ${formatMoney(subtotal, true)}`}</Text>}
           primaryAction={{ label: "Go to checkout", onClick: () => go("checkout", '.zen-top-nav__action[aria-label="Back"]') }} />}>
@@ -489,7 +490,7 @@ function PhoneOrderType() {
     // An end state keeps a way out: Done starts again from the cart.
     return (
       <PlatformPhone key="placed" label="Order placed" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="compact" title="Order placed" scrollRef={screenRef} />}
+        header={<TopNavigation type="compact-alt" title="Order placed" scrollRef={screenRef} />}
         footer={<ActionBar position="static" primaryAction={{ label: "Done", onClick: () => go("cart", ".zen-action-bar button") }} />}>
         {screen.anchor}
         <Stack gap="lg" padding="lg">
@@ -505,7 +506,7 @@ function PhoneOrderType() {
 
   return (
     <PlatformPhone key="checkout" label="Checkout" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Checkout" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Checkout" scrollRef={screenRef}
         leading={{ icon: back, label: "Back", onClick: () => go("cart", ".zen-action-bar button") }} />}
       footer={<ActionBar position="static"
         summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{`Total ${formatMoney(total, true)}`}</Text>}
@@ -540,7 +541,7 @@ function PhoneOrderType() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Browse projects",
     wide: true,
@@ -582,7 +583,7 @@ export const examples: ExampleDef[] = [
 
 <Card as="section" theme="flat" aria-labelledby={invoiceId}
   subAction={<Menu align="end"
-    trigger={<IconButton appearance="flat" level="primary" size="sm" icon="icon-dots-horizontal-line" aria-label="Invoice actions" />}
+    trigger={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label="Invoice actions" />}
     items={[
       { id: "remind", label: "Send reminder", icon: "icon-mail-01-line", onSelect: sendReminder },
       { id: "pdf", label: "Download PDF", icon: "icon-download-01-line", onSelect: downloadPdf },
@@ -599,7 +600,7 @@ export const examples: ExampleDef[] = [
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key="checkout" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Checkout" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Checkout" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => setStep("cart") }} />}
   footer={<ActionBar position="static" summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{\`Total \${formatMoney(total, true)}\`}</Text>}
     primaryAction={{ label: "Place order", onClick: () => setStep("placed") }} />}>
@@ -698,4 +699,4 @@ export const examples: ExampleDef[] = [
       </List>}
 </Card>`,
   },
-];
+]);

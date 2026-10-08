@@ -123,6 +123,19 @@ export const rows = [
     },
   },
   {
+    id: "L-09", feature: "Double-click the width handle of a px Grid column's only item: the column's track becomes auto (Hug)", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "grid-px-item", { frame: 5, position: { dx: 4, dy: 4 } });
+      const handle = page.locator('.studio-resize__handle[data-handle="e"]');
+      await handle.waitFor({ state: "visible", timeout: 5000 });
+      // The Grid's source is read after the selection (the column rule needs its track list).
+      await sleep(600);
+      await handle.dblclick();
+      await expectSource(ctx, "grid-px", (el) => el.attr("columns") === "auto 1fr", 'columns="auto 1fr"');
+      return 'Box in a 240px column: ⟷ double-click → columns="auto 1fr"';
+    },
+  },
+  {
     id: "L-08", feature: "A prop that does nothing warns, and Remove removes it", wp: "WP-D",
     async run(ctx) {
       const page = await selectGrid(ctx);

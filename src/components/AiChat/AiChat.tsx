@@ -20,9 +20,10 @@ export interface AiChatFieldProps {
   /** Figma Model: the model switch label (Body/Base/Medium + chevron) — open your model Popover from `onModelClick`. */
   model?: ReactNode;
   onModelClick?: () => void;
-  /** Figma Leading-Actions (+): attachments or tools. */
+  /** Figma Leading-Actions (+): attachments or tools. Without it the + is not drawn (it would do nothing). */
   onAttach?: () => void;
-  /** Figma trailing microphone (Icon-Flat). */
+  /** Figma trailing microphone (Icon-Flat) and the empty field's Voice action. Without it neither is drawn: the empty
+   *  field shows a disabled Send instead. */
   onVoice?: () => void;
   /** While the reply streams, the primary button becomes Stop. */
   busy?: boolean;
@@ -36,7 +37,8 @@ export interface AiChatFieldProps {
  * Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt Body/Extra/Medium · model · mic · Primary
  * 40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and
  * Send (arrow-up) once there is text. Enter sends, Shift+Enter adds a line. The whole field is the prompt's hit area: a
- * click or tap anywhere outside its buttons puts the caret in the prompt.
+ * click or tap anywhere outside its buttons puts the caret in the prompt. The +, the microphone and Voice appear only with
+ * their handler (`onAttach`, `onVoice`), so the field never shows a button that does nothing.
  */
 export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle = "default", model, onModelClick, onAttach, onVoice, busy = false, onStop, disabled = false, defaultValue = "", className }: AiChatFieldProps) {
   const t = useZenLabels();
@@ -60,24 +62,26 @@ export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle
   };
   const primary = busy
     ? <IconButton appearance="main" level="primary" size="md" aria-label={t.stopGenerating} onClick={onStop} icon={<Icon name="icon-stop-solid" />} />
-    : typing
-      ? <IconButton appearance="main" level="primary" size="md" type="submit" aria-label={t.send} disabled={disabled} icon={<Icon name="icon-arrow-up-line" />} />
+    : typing || !onVoice
+      ? <IconButton appearance="main" level="primary" size="md" type="submit" aria-label={t.send} disabled={disabled || !typing} icon={<Icon name="icon-arrow-up-line" />} />
       : <IconButton appearance="main" level="primary" size="md" aria-label={t.startVoiceMode} disabled={disabled} onClick={onVoice} icon={<Icon name="icon-recording-02-line" />} />;
   return (
-    <form className={["zen-ai-field", className].filter(Boolean).join(" ")} data-style={fieldStyle} data-long={long ? "true" : undefined} onSubmit={submit} onMouseDown={keepCaret} onClick={focusPrompt}>
+    <form className={["zen-ai-field", className].filter(Boolean).join(" ")} data-style={fieldStyle} data-long={long ? "true" : undefined} data-leading={onAttach ? undefined : "none"} onSubmit={submit} onMouseDown={keepCaret} onClick={focusPrompt}>
       <textarea ref={inputRef} className={`zen-ai-field__input ${typographyStyles["Body/Extra/Medium"]}`} rows={1} value={text} aria-label={placeholder} disabled={disabled} onChange={(event) => setText(event.target.value)} onKeyDown={onKeyDown} />
       {/* Figma Text (trunc): one line with an ellipsis — a textarea placeholder can only clip, so it is drawn here. */}
       {text ? null : <span className={`zen-ai-field__placeholder ${typographyStyles["Body/Extra/Medium"]}`} aria-hidden="true">{placeholder}</span>}
-      <div className="zen-ai-field__leading">
-        <IconButton appearance="flat" level="primary" size="md" aria-label={t.addFilesAndTools} disabled={disabled} onClick={onAttach} icon={<Icon name="icon-plus-line" />} />
-      </div>
+      {onAttach ? (
+        <div className="zen-ai-field__leading">
+          <IconButton appearance="flat" level="primary" size="md" aria-label={t.addFilesAndTools} disabled={disabled} onClick={onAttach} icon={<Icon name="icon-plus-line" />} />
+        </div>
+      ) : null}
       <div className="zen-ai-field__trailing">
         {model ? (
           <button type="button" className={`zen-ai-field__model ${typographyStyles["Body/Base/Medium"]}`} onClick={onModelClick} aria-haspopup="menu" disabled={disabled}>
             {model}<Icon name="icon-chevron-down-line" decorative />
           </button>
         ) : null}
-        <IconButton appearance="flat" level="primary" size="md" aria-label={t.dictate} disabled={disabled} onClick={onVoice} icon={<Icon name="icon-microphone-line" />} />
+        {onVoice ? <IconButton appearance="flat" level="primary" size="md" aria-label={t.dictate} disabled={disabled} onClick={onVoice} icon={<Icon name="icon-microphone-line" />} /> : null}
         {primary}
       </div>
     </form>
@@ -144,14 +148,15 @@ export interface AiChatSuggestion {
 }
 
 /** Figma AI/Chat-Block/Pale (7140:115622): Say-Hi (44px logo + Heading/1) · Chat-Field · Chip/Normal suggestions (Medium, Secondary, Leading-Icon). */
-export function AiChatBlock({ greeting: greetingProp, logo, suggestions = [], children, className }: { /** Say-Hi heading (the locale's "How can I help you today?" by default). */ greeting?: ReactNode; /** Say-Hi logo: an icon name or your own node (the Zen mark by default). */ logo?: IconName | ReactNode; suggestions?: AiChatSuggestion[]; children: ReactNode; className?: string }) {
+export function AiChatBlock({ greeting: greetingProp, headingLevel = 2, logo, suggestions = [], children, className }: { /** Say-Hi heading (the locale's "How can I help you today?" by default). */ greeting?: ReactNode; /** Heading level of the greeting: 2 (default), or 1 when the block opens the page and its greeting is the page title (a home screen); only the tag changes, the style stays Heading/1. */ headingLevel?: 1 | 2 | 3; /** Say-Hi logo: an icon name or your own node (the Zen mark by default). */ logo?: IconName | ReactNode; suggestions?: AiChatSuggestion[]; children: ReactNode; className?: string }) {
   const t = useZenLabels();
   const greeting = greetingProp === undefined ? t.greeting : greetingProp;
+  const Greeting = `h${headingLevel}` as const;
   return (
     <section className={["zen-ai-block", className].filter(Boolean).join(" ")} aria-label={t.assistant}>
       <div className="zen-ai-block__hello">
         <span className="zen-ai-block__logo" aria-hidden="true">{renderIcon(logo ?? "icon-zen")}</span>
-        <h2 className={`zen-ai-block__greeting ${typographyStyles["Heading/1"]}`}>{greeting}</h2>
+        <Greeting className={`zen-ai-block__greeting ${typographyStyles["Heading/1"]}`}>{greeting}</Greeting>
       </div>
       <div className="zen-ai-block__contents">
         {children}

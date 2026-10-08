@@ -59,8 +59,8 @@ export type ResetSlotOp = { op: "resetSlot"; prop?: string };
  * `list`: the prop takes one object or a list, so one object written there becomes `[object, code]`.
  */
 export type InsertItemOp = { op: "insertItem"; prop: string; code: string; index?: number; single?: boolean; list?: boolean; requires?: "toast"[] };
-/** Removes the index-th item (the only one, or an object prop, takes the attribute with it). */
-export type RemoveItemOp = { op: "removeItem"; prop: string; index?: number };
+/** Removes the index-th item (the only one, or an object prop, takes the attribute with it); `all`: every item, the attribute with them. */
+export type RemoveItemOp = { op: "removeItem"; prop: string; index?: number; all?: boolean };
 /** A copy of the index-th item right after it (fresh id / value / key strings); `list` as in InsertItemOp. */
 export type DuplicateItemOp = { op: "duplicateItem"; prop: string; index: number; list?: boolean };
 /**

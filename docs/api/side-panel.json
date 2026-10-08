@@ -6,7 +6,7 @@
     {
       "name": "SidePanel",
       "file": "src/components/SidePanel/SidePanel.tsx",
-      "description": "Figma Side-Panel (1573:3128). Standard: a full-height Surface column with a 1px Border/Neutral/Pale left edge, rendered\nin place (the page layout docks it). Modal: a floating Background/Container panel (Corner-Radius/XLarge, Container\nborder, Effect/Container) 8px from the viewport edge over the scrim; focus is trapped and returns to the opener.\nHeader (Modal-Padding, gap Medium): title (Standard Heading/3, Modal Heading/4 under the 44px icon) · caption; the close\nbutton is pinned to the header's top-right corner; Contents; Modal/Actions footer.",
+      "description": "Figma Side-Panel (1573:3128). Standard: a full-height Surface column with a 1px Border/Neutral/Pale left edge, rendered\nin place (the page layout docks it); Escape closes it (from the panel or the page beside it) and focus returns to the\nopener. Modal: a floating Background/Container panel (Corner-Radius/XLarge, Container\nborder, Effect/Container) 8px from the viewport edge over the scrim; focus is trapped and returns to the opener.\nHeader (Modal-Padding, gap Medium): title (Standard Heading/3, Modal Heading/4 under the 44px icon) · caption; the close\nbutton is pinned to the header's top-right corner; Contents; Modal/Actions footer.",
       "deprecated": null,
       "extends": "OverlayOpenProps",
       "props": [

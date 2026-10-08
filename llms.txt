@@ -23,7 +23,7 @@
 - [Avatar & Avatar Stack](docs/guidelines/avatar.md): Represent a person or workspace with a photo or initials. Props: docs/api/avatar.json
 - [Popover](docs/guidelines/popover.md): The shared floating list used by Chip, Select, Autocomplete and Leading/Trailing pickers. Props: docs/api/popover.json
 - [Sidebar](docs/guidelines/sidebar.md): Primary app navigation with sections, nested items and a collapsible rail. Props: docs/api/sidebar.json
-- [Date Picker](docs/guidelines/date-picker.md): Pick a date or a date range. DatePicker is the calendar panel itself and is visible by default (open defaults to true), like an inline calendar; DateField is the input that opens it in a popover. Props: docs/api/date-picker.json
+- [Date Picker](docs/guidelines/date-picker.md): Pick a date or a date range. DatePicker is the calendar panel itself and is visible by default (open defaults to true), like an inline calendar; DateField is the input that opens it in a popover (a Bottom Sheet on a phone); DatePickerSheet is the phone picker of Figma Date-Picker/Mobile. Props: docs/api/date-picker.json
 - [Tooltip](docs/guidelines/tooltip.md): Name or briefly describe a control on hover and keyboard focus. Props: docs/api/tooltip.json
 - [Tabs](docs/guidelines/tabs.md): Switch between related panels of content at the same level. Props: docs/api/tabs.json
 - [Breadcrumbs](docs/guidelines/breadcrumbs.md): Show where the current page sits in a hierarchy and let users go up. Props: docs/api/breadcrumbs.json

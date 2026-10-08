@@ -1,13 +1,13 @@
 /* Radio Button examples (brief 2026-09-30). Tokens only; class prefix .px-radio-button-. */
 
-/* Radio cards: the radio's label covers the whole card, so a click anywhere on it selects the option.
-   The card is actionable, so its closed border is Subtle (Pale stays for the unavailable option). */
+/* Radio cards: the radio's label covers the whole card, so a click anywhere on it selects the option. The cards are
+   flat Surfaces on the Canvas (usage rules §16); hovering an available one shows the Subtle stroke, the selected one
+   keeps the Active stroke. */
 .zen-card.px-radio-button-card { position: relative; }
 .zen-card.px-radio-button-card .zen-radio-button { position: static; width: 100%; }
 .zen-card.px-radio-button-card .zen-radio-button::after { position: absolute; inset: 0; content: ""; }
 .zen-card.px-radio-button-card :is(.zen-radio-button__mark, .zen-radio-button__content) { position: relative; z-index: 1; }
-.zen-card.px-radio-button-card[data-tone="border"]:not([data-active="true"]):has(input:enabled) { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
-.zen-card.px-radio-button-card[data-tone="border"]:not([data-active="true"]):has(input:enabled):hover { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-hover, rgb(1 1 1 / 16%)); }
+.zen-card.px-radio-button-card:not([data-active="true"]):has(input:enabled):hover { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-hover, rgb(1 1 1 / 16%)); }
 
 /* Phone rows fill the width, so the right-hand marks line up and the whole row is the tap target
    (a FormFieldset column keeps choices at their own width by default). */

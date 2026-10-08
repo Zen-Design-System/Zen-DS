@@ -12,6 +12,9 @@ import { useZen, useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "../Motion/motion.css";
 import "./app-shell.css";
+import { SidebarShellContext } from "../_shared/sidebar-shell";
+import { NotificationDot } from "../_shared/notification-dot";
+import { InlineOverlayContext } from "../_shared/overlay";
 import "../Icon/core";
 
 export type AppShellLayout = "sidebar" | "drawer";
@@ -34,6 +37,7 @@ export interface AppShellContextValue {
 }
 
 const AppShellContext = createContext<AppShellContextValue | null>(null);
+const DRAWER_SHELL = { drawer: true };
 
 /**
  * The nearest AppShell's layout and navigation state, or null outside one. For a navigation of your own: read
@@ -46,7 +50,8 @@ export function useAppShell(): AppShellContextValue | null {
 export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
   /**
    * Left navigation, usually <Sidebar>. When the shell is 1024px or wider it sits beside the content, expanded or
-   * collapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button.
+   * collapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button. A Zen Sidebar follows the
+   * shell's rail and drawer by itself, also when it is wrapped in a component of your own.
    */
   sidebar?: ReactNode;
   /** Top bar content after the toggle (it grows): Breadcrumbs (Figma HR-Platform) or a Search. */
@@ -64,7 +69,7 @@ export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "chi
    * content stacks under the page.
    */
   aside?: ReactNode;
-  /** One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. */
+  /** One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. On phones it hides while the page scrolls down and comes back on a scroll up. */
   floatingAction?: ReactNode;
   /** A sticky bar at the bottom of the main column, e.g. an ActionBar. */
   footer?: ReactNode;
@@ -121,6 +126,33 @@ function useElementSize(element: HTMLElement | null, axis: "width" | "height"): 
     return () => observer.disconnect();
   }, [element, axis]);
   return size;
+}
+
+/**
+ * On phones the floating action hides while the page scrolls down and comes back on a scroll up, so it never covers a
+ * row's controls mid-scroll (backlog batch 6, user 2026-10-07). Whatever scrolls the shell (the window or an
+ * ancestor) counts; a scroll inside the shell's own parts (a list, a panel) does not.
+ */
+function useHideOnScroll(root: HTMLElement | null, enabled: boolean): boolean {
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    if (!enabled || !root) { setHidden(false); return undefined; }
+    const last = new WeakMap<object, number>();
+    const onScroll = (event: Event) => {
+      const target = event.target;
+      const scroller = target instanceof Element ? target : document.scrollingElement;
+      if (!scroller || !(scroller === document.scrollingElement || scroller.contains(root))) return;
+      const top = scroller.scrollTop;
+      const before = last.get(scroller) ?? top;
+      last.set(scroller, top);
+      if (top <= 0) setHidden(false);
+      else if (top - before > 4) setHidden(true);
+      else if (before - top > 4) setHidden(false);
+    };
+    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    return () => document.removeEventListener("scroll", onScroll, { capture: true });
+  }, [root, enabled]);
+  return hidden;
 }
 
 /** Before the shell has been measured (server render): the provider's breakpoint, then the viewport. */
@@ -230,6 +262,9 @@ export function AppShell({
   const compact = layout === "drawer";
   const bannerHeight = useElementSize(banner ? bannerEl : null, "height");
   const floatingHeight = useElementSize(floatingAction ? floatingEl : null, "height");
+  const zenBreakpoint = useZen()?.breakpoint;
+  const phone = zenBreakpoint === "mobile" || rootEl?.closest("[data-breakpoint]")?.getAttribute("data-breakpoint") === "mobile";
+  const floatingHidden = useHideOnScroll(rootEl, Boolean(floatingAction) && phone);
   const sidebarWidth = useElementSize(sidebar && !compact ? sidebarEl : null, "width");
 
   // Sidebar rail. A Zen Sidebar gets `collapsed` from the shell; one with its own onCollapsedChange keeps its header control.
@@ -293,9 +328,11 @@ export function AppShell({
   const stackedHeader = useStackedHeader(headerEl, header ? contentEl : null, toggleEl, headerActions ? actionsEl : null);
   const showCollapseToggle = !compact && hasTopBar && sidebarToggle && canCollapse && !ownCollapse;
   const showMenuButton = compact && Boolean(sidebar);
-  const inlineSidebar = sidebarElement && canCollapse && !ownCollapse ? cloneElement(sidebarElement, { collapsed: sidebarCollapsed }) : sidebar;
-  // The drawer always shows the whole navigation: never the rail, and no collapse control inside a modal.
-  const drawerSidebar = sidebarElement ? cloneElement(sidebarElement, { collapsed: false, onCollapsedChange: undefined }) : sidebar;
+  // Sidebar reads these through SidebarShellContext, so a Sidebar wrapped in an app component follows the rail too. The
+  // drawer always shows the whole navigation: never the rail, and no collapse control inside a modal.
+  const inlineShell = useMemo(() => ({ collapsed: canCollapse && !ownCollapse ? sidebarCollapsed : undefined, expand: canCollapse && !ownCollapse ? () => setSidebarCollapsed(false) : undefined }), [canCollapse, ownCollapse, sidebarCollapsed, setSidebarCollapsed]);
+  const inlineSidebar = <SidebarShellContext value={inlineShell}>{sidebar}</SidebarShellContext>;
+  const drawerSidebar = <SidebarShellContext value={DRAWER_SHELL}>{sidebar}</SidebarShellContext>;
   // The aside docks beside the page (Figma Side-Panel Type=Standard) only while the page keeps a Tablet width next to
   // it; otherwise a SidePanel opens as the modal panel (Type=Modal) and anything else stacks under the page.
   const asideElement = isValidElement<SidePanelProps>(aside) && aside.type === SidePanel ? aside : null;
@@ -340,7 +377,7 @@ export function AppShell({
             {aside && !asideDocked && !asideElement ? <div className="zen-app-shell__aside" data-stacked="true">{aside}</div> : null}
             {floatingAction || footer ? (
               <div className="zen-app-shell__bottom">
-                {floatingAction ? <div ref={setFloatingEl} className="zen-app-shell__floating">{floatingAction}</div> : null}
+                {floatingAction ? <div ref={setFloatingEl} className="zen-app-shell__floating" data-hidden={floatingHidden ? "true" : undefined}>{floatingAction}</div> : null}
                 {footer ? <div className="zen-app-shell__footer">{footer}</div> : null}
               </div>
             ) : null}
@@ -348,7 +385,8 @@ export function AppShell({
           {aside && asideDocked ? <div ref={setAsideEl} className="zen-app-shell__aside">{aside}</div> : null}
         </div>
       </div>
-      {asideElement && !asideDocked ? cloneElement(asideElement, { type: "modal" }) : null}
+      {/* The modal panel renders next to the shell, as the drawer does (InlineOverlayContext), so a preview frame holds it. */}
+      {asideElement && !asideDocked ? <InlineOverlayContext value>{cloneElement(asideElement, { type: "modal" })}</InlineOverlayContext> : null}
       {/* The drawer sits next to the shell, outside its inert subtree and inside the provider (so it keeps the token
           modes). Fixed to the viewport in an app; a preview frame that contains layout (container-type) holds it. */}
       {sidebar && presence.mounted ? (
@@ -403,11 +441,11 @@ export const AppShellAction = forwardRef<HTMLButtonElement, AppShellActionProps>
   return (
     <span className={["zen-app-shell-action", className].filter(Boolean).join(" ")} data-appearance={appearance}>
       <IconButton {...buttonProps} ref={ref} appearance={appearance === "flat" ? "flat" : "main"} level={appearance === "flat" ? "primary" : "tertiary"} size="md" icon={icon} aria-label={name} tooltip={tooltip ?? label} />
-      {unread || dot ? (
-        <span className="zen-app-shell-action__notification" data-style={unread ? "number" : "dot"} data-tone={tone} aria-hidden="true">
-          {unread ? <span className={typographyStyles["Label/Small/Medium"]}>{unread > 99 ? "99+" : unread}</span> : null}
+      {unread ? (
+        <span className="zen-app-shell-action__notification" data-style="number" data-tone={tone} aria-hidden="true">
+          <span className={typographyStyles["Label/Small/Medium"]}>{unread > 99 ? "99+" : unread}</span>
         </span>
-      ) : null}
+      ) : dot ? <NotificationDot className="zen-app-shell-action__dot" tone={tone} /> : null}
     </span>
   );
 });

@@ -119,6 +119,8 @@
 .studio-section__surface {
   position: absolute;
   inset: 0;
+  /* A width override past the section edge (StudioBoard writes the overflow): the surface reaches the rendered frame. */
+  right: calc(-1 * var(--studio-section-overflow, 0px));
   border-radius: var(--zen-corner-radius-xgiant, 36px);
   background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%));
   box-shadow: inset 0 0 0 calc(1px / var(--studio-zoom, 1)) var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));

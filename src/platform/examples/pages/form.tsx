@@ -28,6 +28,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { TODAY, daysFromToday, formatDay, formatMoney, formatTime, people, projectById, type PersonId } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./form.css";
 
 export const page: PlatformPage = "form";
@@ -448,7 +449,7 @@ function PhonePickupExample() {
   if (!creating) {
     return (
       <PlatformPhone key="root" label="Shipments" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Shipments" largeTitle="Shipments" scrollRef={screenRef}
+        header={<TopNavigation type="alt" title="Shipments" largeTitle="Shipments" scrollRef={screenRef}
           trailing={[{ icon: "icon-plus-line", label: "New pickup", onClick: () => screen.go('.zen-top-nav__action[aria-label="Close"]', () => setCreating(true)) }]} />}>
         {screen.anchor}
         {/* The shipments only show their status (Interactive=No rows, no side padding of their own): the page margin (lg)
@@ -467,7 +468,7 @@ function PhonePickupExample() {
   }
   return (
     <PlatformPhone key="new" label="New pickup" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="New pickup" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="New pickup" scrollRef={screenRef}
         leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
       // The footer sits outside the form, so its submit names the form by id. The summary follows the parcel count.
       footer={<ActionBar position="static"
@@ -498,7 +499,7 @@ function PhonePickupExample() {
 }
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————————
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Add a client",
     description: "A create page: useFormState binds every field in one spread and checks a field when you leave it. Add client (or Enter) checks them all, moves focus to the first problem and announces how many need attention; Cancel asks before it drops what you typed.",
@@ -598,7 +599,7 @@ export const examples: ExampleDef[] = [
 const formId = useId();
 
 <PlatformPhone key="new" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="New pickup" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="New pickup" scrollRef={screenRef}
     leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
   footer={<ActionBar position="static"
     summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{\`\${plural(parcels, "parcel")} · \${formatMoney(fee, true)}\`}</Text>}
@@ -640,4 +641,4 @@ const formId = useId();
   description="INV-2026-0144 for Phin & Co ($24,500.00) is deleted for everyone. This can't be undone."
   primaryAction={{ label: "Delete draft", level: "danger", onClick: remove }} secondaryAction={{ label: "Cancel" }} />`,
   },
-];
+]);

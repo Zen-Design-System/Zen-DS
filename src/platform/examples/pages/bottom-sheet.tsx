@@ -28,6 +28,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./bottom-sheet.css";
 
 export const page: PlatformPage = "bottom-sheet";
@@ -90,7 +91,7 @@ function FileActionsExample() {
 
   return (
     <PlatformPhone label="Brand refresh files" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Files" largeTitle="Files" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Files" largeTitle="Files" scrollRef={screenRef} />}>
       {screen.anchor}
       <Stack gap="xs" paddingY="xs">
         <Box paddingX="lg"><Text role="status" textStyle="Body/Small/Regular" tone="base">{`Brand refresh · ${plural(list.length, "file")}`}</Text></Box>
@@ -301,7 +302,7 @@ function LogTimeExample() {
   const start = () => { form.reset(); setOpen(true); };
   return (
     <PlatformPhone label="Timesheet" headerOverlay screenRef={screenRef} header={
-      <TopNavigation title="Timesheet" largeTitle="Timesheet" scrollRef={screenRef} trailing={[{ icon: "icon-plus-line", label: "Log time", onClick: start }]} />
+      <TopNavigation type="alt" title="Timesheet" largeTitle="Timesheet" scrollRef={screenRef} trailing={[{ icon: "icon-plus-line", label: "Log time", onClick: start }]} />
     }>
       <Stack gap="md" paddingY="xs">
         <Box paddingX="lg"><Metric size="xl" label="This week" value={hoursLabel(total)} icon="icon-clock-line" iconTheme="blue" iconBackground="solid" /></Box>
@@ -371,7 +372,7 @@ function FiltersExample() {
   const openSheet = () => { setDraft(applied); setOpen(true); };
   const toggleStatus = (status: TaskStatus, on: boolean) => setDraft((current) => ({ ...current, status: on ? [...current.status, status] : current.status.filter((item) => item !== status) }));
   return (
-    <PlatformPhone label="Tasks" headerOverlay screenRef={screenRef} header={<TopNavigation title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
+    <PlatformPhone label="Tasks" headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
       <Stack gap="md" paddingY="xs">
         <Stack direction="row" gap="xs" align="center" justify="between" paddingX="lg">
           <Chip ref={chipRef} variant="advanced" leading="icon-filter-lines-line" aria-haspopup="dialog" aria-expanded={open}
@@ -441,7 +442,7 @@ function TermsExample() {
   const join = () => screen.go(`[id="${earnId}"]`, () => { setMember(true); setOpen(false); });
   return (
     <PlatformPhone label="Phin & Co rewards" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Rewards" largeTitle="Rewards" scrollRef={screenRef} />}
+      header={<TopNavigation type="alt" title="Rewards" largeTitle="Rewards" scrollRef={screenRef} />}
       // The screen's main action: one Large full-width Primary over the home indicator. Members have no footer.
       footer={member ? undefined : <ActionBar position="static" primaryAction={{ label: "Join Phin Rewards", onClick: () => setOpen(true) }} />}>
       {screen.anchor}
@@ -483,13 +484,13 @@ function TermsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "File actions",
     description: "The Action type lists what you can do with one file, titled with its name. Copy link and Download run and close; Delete file is marked destructive and comes last, and an Undo in the toast brings the file back.",
     render: () => <FileActionsExample />,
     code: `<PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Files" largeTitle="Files" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Files" largeTitle="Files" scrollRef={screenRef} />}>
   <Box paddingX="lg">
     <List aria-label="Brand refresh files">
       {files.map((file) => (
@@ -553,7 +554,7 @@ export const examples: ExampleDef[] = [
 });
 
 <PlatformPhone headerOverlay screenRef={screenRef} header={
-  <TopNavigation title="Timesheet" largeTitle="Timesheet" scrollRef={screenRef}
+  <TopNavigation type="alt" title="Timesheet" largeTitle="Timesheet" scrollRef={screenRef}
     trailing={[{ icon: "icon-plus-line", label: "Log time", onClick: start }]} />
 }>
   {entries}
@@ -571,7 +572,7 @@ export const examples: ExampleDef[] = [
     description: "Filters edit a draft: the Primary counts the tasks it will show, Reset clears the draft, and closing the sheet throws it away. When nothing matches, the list offers Clear filters.",
     render: () => <FiltersExample />,
     code: `<PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
   <Chip variant="advanced" leading="icon-filter-lines-line" aria-haspopup="dialog" aria-expanded={open}
     selected={active > 0} selectionMode="multiple" selectionCount={active}
     onClick={() => { setDraft(applied); setOpen(true); }} onClearSelection={() => setApplied(noFilters)}>
@@ -594,7 +595,7 @@ export const examples: ExampleDef[] = [
     description: "Long reading takes the full height: the terms scroll under a fixed header while Agree and join and Not now stay stacked at the bottom, each at its own height. The screen's own Join action sits in an Action Bar footer.",
     render: () => <TermsExample />,
     code: `<PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Rewards" largeTitle="Rewards" scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title="Rewards" largeTitle="Rewards" scrollRef={screenRef} />}
   footer={member ? undefined : <ActionBar position="static" primaryAction={{ label: "Join Phin Rewards", onClick: () => setOpen(true) }} />}>
   {intro}
   <BottomSheet inline size="max" open={open} onOpenChange={setOpen} title="Phin Rewards terms" actionsDirection="vertical"
@@ -609,4 +610,4 @@ export const examples: ExampleDef[] = [
   </BottomSheet>
 </PlatformPhone>`,
   },
-];
+]);

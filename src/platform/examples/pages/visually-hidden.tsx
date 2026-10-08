@@ -30,6 +30,7 @@ import {
   leaveRequests, leaveStatusTheme, people, projectById, studio, studioMonths, studioTeamHours, tasks, type LeaveRequest, type LeaveStatus, type PersonId,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./visually-hidden.css";
 
 export const page: PlatformPage = "visually-hidden";
@@ -193,7 +194,7 @@ function FilesTable() {
       return <IconButton appearance="flat" level="primary" size="md" icon={on ? "icon-star-01-solid" : "icon-star-01-line"} aria-pressed={on} aria-label={`Star ${row.name}`} onClick={() => toggleStar(row)} />;
     } },
     // Who changed the file and when share the name's caption, so the icon-only columns sit closer to the name.
-    { id: "name", header: "Name", cell: (row) => <TableMedia media={<FileIcon format={fileIconFormatOf(row.name)} size="lg" />} caption={`${people[row.owner].name} · ${formatRelative(row.updated)}`}>{row.name}</TableMedia> },
+    { id: "name", header: "Name", cell: (row) => <TableMedia bold media={<FileIcon format={fileIconFormatOf(row.name)} size="lg" />} caption={`${people[row.owner].name} · ${formatRelative(row.updated)}`}>{row.name}</TableMedia> },
     { id: "size", header: "Size", align: "right", width: "120px", cell: (row) => <TableText>{formatBytes(row.bytes)}</TableText> },
     { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", width: "72px", cell: (row) => (
       <TableActions>
@@ -390,7 +391,7 @@ function PhoneInbox() {
   if (opened) {
     return (
       <PlatformPhone key={opened.id} label="Zen app" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="compact" title={opened.key} scrollRef={screenRef}
+        header={<TopNavigation type="compact-alt" title={opened.key} scrollRef={screenRef}
           leading={{ icon: back, label: "Back", onClick: () => screen.go(`[data-thread="${opened.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}>
         {screen.anchor}
         <Stack gap="lg" paddingY="lg">
@@ -420,7 +421,7 @@ function PhoneInbox() {
 
   return (
     <PlatformPhone key="inbox" label="Zen app" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Inbox" largeTitle="Inbox" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Inbox" largeTitle="Inbox" scrollRef={screenRef} />}>
       {screen.anchor}
       {/* The list's name carries the total; each counter is aria-hidden and its hidden text says what it counts. The rows
           sit in the screen margin (Margin/Comfortable, 20px), so their fill stays 8px off the screen edge; Padding/XSmall
@@ -489,7 +490,7 @@ function MonthAtAGlance() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Skip link",
     screen: true,
@@ -517,7 +518,7 @@ export const examples: ExampleDef[] = [
       aria-pressed={starred(row)} aria-label={\`Star \${row.name}\`} onClick={() => toggleStar(row)} />
   ) },
   { id: "name", header: "Name", cell: (row) => (
-    <TableMedia media={<FileIcon format={fileIconFormatOf(row.name)} size="lg" />} caption={\`\${owner.name} · \${formatRelative(row.updated)}\`}>{row.name}</TableMedia>
+    <TableMedia bold media={<FileIcon format={fileIconFormatOf(row.name)} size="lg" />} caption={\`\${owner.name} · \${formatRelative(row.updated)}\`}>{row.name}</TableMedia>
   ) },
   { id: "size", header: "Size", align: "right", width: "120px", cell: (row) => <TableText>{formatBytes(row.bytes)}</TableText> },
   { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", width: "72px", cell: (row) => (
@@ -572,7 +573,7 @@ export const examples: ExampleDef[] = [
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key="inbox" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Inbox" largeTitle="Inbox" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Inbox" largeTitle="Inbox" scrollRef={screenRef} />}>
   <Box paddingX="lg" paddingY="xs"> {/* the screen margin: rows 20px from the edge; Padding/XSmall above and below, like a List-Box */}
     <List aria-label={unread ? \`Inbox, \${plural(unread, "unread comment")}\` : "Inbox"}>
       {threads.map((item) => (
@@ -607,4 +608,4 @@ export const examples: ExampleDef[] = [
   </Grid>
 </Stack>`,
   },
-];
+]);

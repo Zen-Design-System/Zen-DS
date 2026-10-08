@@ -28,6 +28,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./alert-banner.css";
 
 export const page: PlatformPage = "alert-banner";
@@ -89,8 +90,9 @@ function PaymentFailedExample() {
       { id: "home", label: "Home", icon: "icon-home-03-line" },
       { id: "projects", label: "Projects", icon: "icon-folder-line" },
       { id: "team", label: "Team", icon: "icon-users-line" },
+      // A one-item group loses its title: Billing joins the list (backlog batch 6b, user 2026-10-07).
+      { id: "billing", label: "Billing", icon: "icon-credit-card-line", notificationDot: !paid },
     ] },
-    { label: "Workspace", items: [{ id: "billing", label: "Billing", icon: "icon-credit-card-line", notificationDot: !paid }] },
   ];
 
   let content: ReactNode;
@@ -131,7 +133,7 @@ function PaymentFailedExample() {
     );
     content = (
       <Page title="Billing" description={`${plan.name} plan · ${plural(seats, "seat")} · billed ${workspacePlan.billing}`}>
-        <Card theme="border" className="px-alert-banner-billing">
+        <Card theme="shadow" className="px-alert-banner-billing">
           {paid ? (
             <Stack as="section" gap="md" aria-labelledby={paymentId}>
               {summary}
@@ -374,7 +376,7 @@ function OfflinePhoneExample() {
     // The status banner always sits under the Top Navigation (its `banner` slot): pinned, edge to edge, it never
     // scrolls away, while the large title still folds as the list moves under the bar.
     <PlatformPhone label="My tasks" headerOverlay screenRef={screenRef} header={
-      <TopNavigation title="My tasks" largeTitle="My tasks" scrollRef={screenRef}
+      <TopNavigation type="alt" title="My tasks" largeTitle="My tasks" scrollRef={screenRef}
         trailing={[{ icon: "icon-refresh-cw-01-line", label: "Sync now", onClick: sync, disabled: connection === "reconnecting" }]}
         banner={banner ? <AlertBanner size="small" theme={banner.theme} leading={banner.leading}>{banner.message}</AlertBanner> : undefined} />
     }>
@@ -397,7 +399,7 @@ function OfflinePhoneExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Payment failed",
     description: "A failed payment affects the whole workspace, so the banner sits in the AppShell banner slot and stays on every page. It has no close button: its action opens Billing, and it leaves once the payment goes through.",
@@ -471,7 +473,7 @@ const restore = () => {
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef} header={
-  <TopNavigation title="My tasks" largeTitle="My tasks" scrollRef={screenRef}
+  <TopNavigation type="alt" title="My tasks" largeTitle="My tasks" scrollRef={screenRef}
     trailing={[{ icon: "icon-refresh-cw-01-line", label: "Sync now", onClick: sync, disabled: connection === "reconnecting" }]}
     banner={connection === "offline" ? (
       <AlertBanner size="small" theme="negative" leading="icon-wifi-off-line">You’re offline. Showing tasks from 10:12 am.</AlertBanner>
@@ -486,4 +488,4 @@ const restore = () => {
   </Box>
 </PlatformPhone>`,
   },
-];
+]);

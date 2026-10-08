@@ -7,7 +7,7 @@ import { Heading } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { frameWidthPresets, isCustomFrameWidth } from "../board/frameLayout";
 import { useStudioFrames } from "../board/frames";
-import { presentFrame } from "../board/Present";
+import { presentFrame } from "../board/presentFrame";
 import { pageKey, setFrameOverride, useStudio } from "../store";
 import type { StudioFrameWidth } from "../types";
 import { newPageFromFrame } from "../builder/starters/newPageFromFrame";
@@ -52,7 +52,7 @@ export function FramePanel({ frameId, controlsSlot }: { frameId: string; control
       <header className="studio-inspector__head-block">
         <div className="studio-inspector__title-row">
           <span className="studio-inspector__kind-icon" aria-hidden="true"><Icon name="icon-layout-alt-01-line" size={16} /></span>
-          <Heading level={2} textStyle="Body/Small/Bold" truncate>{label}</Heading>
+          <Heading level={2} textStyle="Body/Small/Bold" truncate title={label}>{label}</Heading>
           {!label.startsWith(kind) ? <Badge size="sm" theme="neutral" background="subtle" leadingIcon={false}>{kind}</Badge> : null}
         </div>
         {example?.description ? <p className={`studio-inspector__description ${typographyStyles["Body/Small/Regular"]}`}>{example.description}</p> : null}

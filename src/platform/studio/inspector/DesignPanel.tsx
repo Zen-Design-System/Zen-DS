@@ -23,9 +23,9 @@ import { copyText } from "./frames";
 import { GroupedProperties } from "./GroupedProperties";
 import { HostTextAlignment } from "./HostTextAlignment";
 import { LayoutSection } from "./LayoutSection";
-import { InspectorFileContext, InspectorHostContext } from "./controls/hostContext";
+import { InspectorFileContext, InspectorHostContext, InspectorSrcContext } from "./controls/hostContext";
 import { componentGroupsOf } from "./componentGroups";
-import { AppearanceSection, appearancePropNames, EffectsSection } from "../appearance/AppearanceSection";
+import { AppearanceSection, appearancePropNames, CardEffectsSection, EffectsSection } from "../appearance/AppearanceSection";
 import { NestedProperties } from "./NestedProperties";
 import { useNestedInstances } from "./nestedInstances";
 import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
@@ -139,12 +139,14 @@ function Field({ spec, api, label, component, hint }: { spec: PropSpec; api: Fie
     <PropField
       spec={spec}
       hint={hint}
+      component={component}
       label={label ?? propLabel(spec.name, component)}
       value={api.valueFor(spec.name)}
       disabled={api.disabled}
       boundHint={api.boundHint}
       onSet={(value) => api.setProp(spec.name, value)}
       onReset={() => api.removeProp(spec.name)}
+      onAddObject={(code) => { void api.apply([{ op: "setProp", name: spec.name, value: { kind: "expression", code } }], `${component ? `${component} ` : ""}${spec.name} added`); }}
       restore={api.restoreFor?.(spec.name)}
       repeats={api.repeats}
     />
@@ -536,8 +538,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       const optimistic: Record<string, PropValue> = { [name]: removes ? { state: "unset" } : { state: "literal", value, raw: "" } };
       const replan = (attributes: SourceAttr[]) => planPropWrite(element.name, attributes, name, value, live).ops;
       // Back to what the saved file writes: the saved attribute returns where and as it was, so the draft goes away
-      // (a playground's file refuses slot ops; a refusal falls back to the plain write).
-      const back = selection.panelId ? null : savedWrite(element.name, element, name, value);
+      // (a playground's file refuses slot ops: a setProp in the saved place; a refusal falls back to the plain write).
+      const back = savedWrite(element.name, element, name, value, Boolean(selection.panelId));
       if (back) void runPlan(back, label, optimistic).then((written) => { if (!written) void runPlan(plan, label, optimistic, replan); });
       else void runPlan(plan, label, optimistic, replan);
     },
@@ -603,7 +605,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   // Object and array literals written in place (leading={{ … }}, trailing={[{ … }]}): edited field by field below the rows.
   const shapedProps: ShapedProp[] = propertySpecs.flatMap((spec) => {
     const attr = element?.attributes.filter((attribute) => attribute.kind === "expression" && attribute.name === spec.name).at(-1);
-    return attr?.shape && !(spec.name in overrides) ? [{ spec, shape: attr.shape }] : [];
+    return attr?.shape && !(spec.name in overrides) ? [{ spec, shape: attr.shape, ...(attr.shapeVia ? { via: attr.shapeVia } : {}) }] : [];
   });
   const shapedNames = new Set(shapedProps.map((entry) => entry.spec.name));
   // A component whose JSX children are a content slot lists them in the Slots section, not again under Content.
@@ -749,13 +751,15 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     // Scale fields measure their tokens on the selected element (density, breakpoint and mode applied).
     <InspectorHostContext value={sourceHost(selection)}>
     <InspectorFileContext value={element?.file ?? parsed?.file ?? null}>
+    <InspectorSrcContext value={selection.src}>
     <div ref={panelRef} className="studio-inspector__panel">
       {/* Header (Design panel UI3, user 2026-10-06): the name with its count and the Detach / Remove icons on one row, then
           the kind with its Docs link, then where it is written. Every line in Body/Small. */}
       <header className="studio-inspector__head-block">
         <div className="studio-inspector__title-row">
           <span className="studio-inspector__kind-icon" data-component={isComponent || undefined} aria-hidden="true"><Icon name={isComponent ? "icon-cube-line" : "icon-code-02-line"} size={16} /></span>
-          <Heading level={2} textStyle="Body/Small/Bold" truncate>{name}</Heading>
+          {/* Cut to one line: its full name on hover. */}
+          <Heading level={2} textStyle="Body/Small/Bold" truncate title={name}>{name}</Heading>
           {repeats ? (
             <span className={`studio-inspector__count ${typographyStyles["Body/Small/Medium"]}`} title={repeats}>
               <span aria-hidden="true">{`×${instances}`}</span>
@@ -846,6 +850,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
 
       {element && appearanceSpecs.length ? <AppearanceSection api={api} specs={appearanceSpecs} component={name} host={sourceHost(selection)} /> : null}
       {element && name === "Box" ? <EffectsSection api={api} src={selection.src} /> : null}
+      {element && (name === "Card" || name === "MetricCard" || name === "ChartCard") ? <CardEffectsSection api={api} component={name} /> : null}
 
       {element && propertySpecs.length && groups ? (
         <GroupedProperties groups={groups} selection={selection} element={element} api={api} specs={propertySpecs} shaped={shapedProps} note={propertiesNote} rendered={renderedProps} nested={nested} />
@@ -914,6 +919,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
         </InspectorSection>
       ) : null}
     </div>
+    </InspectorSrcContext>
     </InspectorFileContext>
     </InspectorHostContext>
   );

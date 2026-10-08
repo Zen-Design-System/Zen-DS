@@ -28,6 +28,7 @@ import {
   TODAY, daysFromToday, formatBytes, formatDate, formatRelative, initials, people, projectById, type Person, type PersonId,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./image.css";
 
 export const page: PlatformPage = "image";
@@ -233,7 +234,7 @@ const sortValue: Record<string, (item: Asset) => string | number> = {
 // A captioned media cell takes a Small (32px) Thumbnail, like an Avatar; alt="" because the cell names the file.
 const photoCell = (caption: (item: Asset) => string): TableColumn<Asset> => ({
   id: "name", header: "Photo", sortable: true,
-  cell: (item) => <TableMedia media={<Thumbnail src={item.photo.src} alt="" size="sm" />} caption={caption(item)}>{item.name}</TableMedia>,
+  cell: (item) => <TableMedia bold media={<Thumbnail src={item.photo.src} alt="" size="sm" />} caption={caption(item)}>{item.name}</TableMedia>,
 });
 const assetColumns: TableColumn<Asset>[] = [
   photoCell((item) => `${item.width} × ${item.height}`),
@@ -401,8 +402,8 @@ function FeedPost({ post }: { post: Post }) {
       )}
       {failed ? <Button level="tertiary" startIcon="icon-refresh-cw-01-line" className="px-image-start" onClick={reload}>Reload photo</Button> : null}
       <Stack direction="row" gap="2xs" align="center">
-        {/* Pulled back by its own inset, so the heart lines up with the avatar, the text and the photos. */}
-        <IconButton appearance="flat" level="primary" size="md" icon={liked ? "icon-heart-solid" : "icon-heart-line"} className="px-image-like"
+        {/* The whole 40px target stays inside the post (nothing overhangs the screen margin), so the heart sits its own inset in. */}
+        <IconButton appearance="flat" level="primary" size="md" icon={liked ? "icon-heart-solid" : "icon-heart-line"}
           aria-label={`Like ${author.name.split(" ")[0]}’s post`} aria-pressed={liked} onClick={() => setLiked(!liked)} />
         <Text as="span" textStyle="Body/Small/Medium" tone="base">{plural(post.likes + (liked ? 1 : 0), "like")}</Text>
       </Stack>
@@ -414,7 +415,7 @@ function PhoneFeed() {
   const screenRef = useRef<HTMLDivElement>(null);
   return (
     <PlatformPhone key="updates" label="Zen updates" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Updates" largeTitle="Updates" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Updates" largeTitle="Updates" scrollRef={screenRef} />}>
       <Stack gap="lg" padding="lg">
         {posts.map((post, index) => (
           <Stack key={post.id} gap="lg">
@@ -427,7 +428,7 @@ function PhoneFeed() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Moodboard strip",
     description: "A strip of Thumbnails picks the large picture. The strip is a radio group with one Tab stop: each Thumbnail sits in a radio button that carries the name, so the Thumbnail itself is alt=\"\", and the arrow keys move the choice. The large Image loads eagerly and its caption adds what the picture can't say.",
@@ -490,7 +491,7 @@ export const examples: ExampleDef[] = [
     description: "In a captioned media cell the Thumbnail is Small (32px); a cell without a caption, like Owner, takes the XSmall step. The table sits on the page under its heading: Project filters it, the columns sort, and a row opens the photo in a Side Panel at its own ratio. On a phone it keeps the photo column alone, with the size and date in its caption.",
     render: () => <AssetLibrary />,
     code: `const photo = (caption) => ({ id: "name", header: "Photo", sortable: true, cell: (item) => (
-  <TableMedia media={<Thumbnail src={item.photo.src} alt="" size="sm" />} caption={caption(item)}>{item.name}</TableMedia>
+  <TableMedia bold media={<Thumbnail src={item.photo.src} alt="" size="sm" />} caption={caption(item)}>{item.name}</TableMedia>
 ) });
 const columns = [
   photo((item) => \`\${item.width} × \${item.height}\`),
@@ -533,7 +534,7 @@ const compactColumns = [photo((item) => \`\${formatBytes(item.bytes)} · \${form
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key="updates" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Updates" largeTitle="Updates" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Updates" largeTitle="Updates" scrollRef={screenRef} />}>
   <Stack gap="lg" padding="lg">
     <Stack as="article" gap="md">
       <Stack direction="row" gap="sm" align="center">
@@ -555,4 +556,4 @@ const compactColumns = [photo((item) => \`\${formatBytes(item.bytes)} · \${form
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

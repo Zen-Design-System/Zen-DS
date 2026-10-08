@@ -23,6 +23,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { daysFromToday, formatBytes, formatMoney, formatRange, people, studio } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "uploader";
 
@@ -303,7 +304,7 @@ function PhoneSickLeave() {
   if (step === "root") {
     return (
       <PlatformPhone key="root" label="Time off" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Time off" largeTitle="Time off" scrollRef={screenRef} />}
+        header={<TopNavigation type="alt" title="Time off" largeTitle="Time off" scrollRef={screenRef} />}
         footer={<ActionBar position="static" primaryAction={{ label: "Request sick leave", onClick: openRequest }} />}>
         {screen.anchor}
         <Box padding="lg">
@@ -320,7 +321,7 @@ function PhoneSickLeave() {
   return (
     // A create screen opened from Time off: Close is its way out, and it asks before dropping the note.
     <PlatformPhone key="request" label="Sick leave" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Sick leave" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Sick leave" scrollRef={screenRef}
         leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
       footer={step === "sent"
         ? <ActionBar position="static" primaryAction={{ label: "View balance", onClick: toRoot }} />
@@ -358,7 +359,7 @@ function PhoneSickLeave() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Kickoff files",
     description: "Several files upload side by side, each with its own progress and time left; the X cancels an upload or removes a file. A failed upload keeps its place with Retry, and a file that is too big or the wrong type is turned away at the field with the reason.",
@@ -381,7 +382,7 @@ export const examples: ExampleDef[] = [
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key="request" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Sick leave" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Sick leave" scrollRef={screenRef}
     leading={{ icon: "icon-x-medium-line", label: "Close", onClick: () => (note.length ? setConfirming(true) : close()) }} />}
   footer={<ActionBar position="static" primaryAction={{ label: "Send request", type: "submit", form: formId }} />}>
   <Form id={formId} onSubmit={send}>
@@ -443,4 +444,4 @@ export const examples: ExampleDef[] = [
   onFilesAdd={([file]) => upload(file)} onRemove={remove} />
 {/* No onReplace: Replace re-opens the file picker. */}`,
   },
-];
+]);

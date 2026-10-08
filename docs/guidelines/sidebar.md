@@ -34,7 +34,7 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | `density` | `"medium" \| "small"` | — | Compatibility alias for the earlier component API. |
 | `collapsed` | `boolean` | `false` |  |
 | `onCollapsedChange` | `(collapsed: boolean) => void` | — | Controlled collapse callback used by the Figma Basic/Small-Density header control. Without it the control is not rendered. Ignored by `variant="workspace"`, which has no collapsed state. |
-| `brand` | `ReactNode` | — | Replaces the whole header, including the collapse control. Prefer `logo` / `productName`, which keep it. In the collapsed rail `logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its mark), centred, and hides the rest visually. |
+| `brand` | `ReactNode` | — | Replaces the header's logo slots; the collapse control (with `onCollapsedChange`) follows it. In the collapsed rail `logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its mark), centred, and hides the rest visually. |
 | `logo` | `ReactNode` | — | Header logo while expanded (Figma LOGO / Union). Sized to the header height (24px; 20px in Small-Density). |
 | `logoCollapsed` | `ReactNode` | — | Mark shown centred in the collapsed rail instead of `logo` or a custom `brand` (Figma collapsed Logo, 28px; 20px in Small-Density). |
 | `productName` | `ReactNode` | — | Small product label after the logo (Figma: the product badge beside the wordmark). |
@@ -43,7 +43,8 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | `selectedId` | `string` | — | Id of the current page's item: it is marked selected (aria-current="page") and its parent groups open (and stay open until the user collapses them), so the app passes its route id instead of setting `selected` in `sections`. When set, it replaces the items' own `selected` / `active` flags in the navigation (not in the workspace rail). |
 | `linkAs` | `ElementType` | — | Component that renders items with an `href`, e.g. your router's link. It receives `href`, `className`, `onClick`, `aria-current` and the children; adapt a router link that takes `to` (`({ href, ...rest }) => <RouterLink to={href} {...rest} />`). Default `a`. |
 | `footer` | `ReactNode` | — |  |
-| `search` | `ReactNode` | — |  |
+| `search` | `ReactNode` | — | The slot under the header (Figma Search): usually a Search field, or a Back control over a module title. |
+| `searchCollapsed` | `ReactNode` | — | What the collapsed rail shows in place of `search`. Default: a Search button that expands the panel. Pass the slot's own control when it is not a search (a Back chevron for a module's Back + title, backlog batch 6). |
 | `onItemClick` | `(item: SidebarItem) => void` | — |  |
 | `className` | `string` | — |  |
 | `background` | `"default" \| "alt" \| "flat" \| "inverse"` | `"default"` | Default = Surface with a shadow (a Canvas/Default page; cards on the page take the same shadow, no border). Alt (Surface/Alt) and Flat are the only choices on a Canvas/Alt (white) page, where cards are bordered. |
@@ -126,7 +127,7 @@ type SidebarSection = { label?: string; action?: ReactNode; items: SidebarItem[]
 | `sidebar/submenu-close` | warn | A Sidebar with a subMenu flyout wires onSubMenuClose so Escape and outside presses close it. | `zen-allow-submenu-close: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
-| `interaction/action-without-handler` | warn | Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
+| `interaction/action-without-handler` | warn | Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
 
 ## References
 - [Material 3 — Navigation drawer](https://m3.material.io/components/navigation-drawer/guidelines)

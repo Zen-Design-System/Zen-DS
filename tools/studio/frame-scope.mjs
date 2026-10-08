@@ -13,10 +13,14 @@
 //                                                "discard": { text: content without them (the new draft) }
 //
 // Ownership: each rendered line belongs to its module-level declaration (an example component, a helper it renders);
-// inside an array (the `examples` list) to its element, inside a function to the top-level `if (page === "…")`
-// branch holding it (the platform's playgrounds). An example object whose render shows a declaration in scope joins
-// it (its `code` snippet is synced with the JSX). Import changes join a frame only when its changes need them: the
-// subset that leaves the fewest missing or unused imports among the names the draft imports differently wins.
+// inside a data literal (the `examples` list, an ExampleMap object of lists, `keepOnHotUpdate(…, { … })`) to its list
+// element; inside a function to the top-level `if (page === "…")` branch holding it (the platform's playgrounds), and
+// a line outside those branches to the body statement holding it. An example object whose render shows a declaration
+// in scope joins it (its `code` snippet is synced with the JSX). Then every module-level declaration what the frame
+// owns names joins it, and theirs in turn (a column const, sample data, a helper or local component the JSX calls), so
+// an edit there shows on the frame and its Save / Discard take it; a playground router (a function of page branches)
+// never joins that way. Import changes join a frame only when its changes need them: the subset that leaves the fewest
+// missing or unused imports among the names the draft imports differently wins.
 import { parseSource, jsxName, walk } from "./jsx-source.mjs";
 
 /** Above this many line pairs the changed middle counts as one change (no LCS). */
@@ -49,10 +53,37 @@ function declaredFunction(node) {
   return null;
 }
 
-/** Inside a function: the top-level `if (page === "…")` branch of its body that holds `line`, or null. */
+/**
+ * Inside a function: the top-level `if (page === "…")` branch of its body that holds `line`; in a playground router
+ * (a body with such branches) a line outside them belongs to the body statement holding it (the shared fallback
+ * render), not the whole router. null otherwise.
+ */
 function pageBranch(fn, line) {
   if (fn?.body?.type !== "BlockStatement") return null;
-  return fn.body.body.find((statement) => statement.type === "IfStatement" && contains(statement, line) && isPageTest(statement.test)) ?? null;
+  const statements = fn.body.body;
+  const branch = statements.find((statement) => statement.type === "IfStatement" && contains(statement, line) && isPageTest(statement.test));
+  if (branch) return branch;
+  return statements.some((statement) => statement.type === "IfStatement" && isPageTest(statement.test)) ? statements.find((statement) => contains(statement, line)) ?? null : null;
+}
+
+/**
+ * Inside a data literal: the list element holding `line` (an example object), else the object property holding it.
+ * Lists nest in objects (an ExampleMap: { "side-panel": [ … ] }) and in a call's arguments (keepOnHotUpdate(hot,
+ * "examples", { … })). null: the line is not in such a literal.
+ */
+function literalOwner(node, line) {
+  const value = unwrap(node);
+  if (value?.type === "ArrayExpression") return value.elements.find((item) => item && contains(item, line)) ?? null;
+  if (value?.type === "ObjectExpression") {
+    const property = value.properties.find((item) => contains(item, line));
+    if (!property) return null;
+    return (property.type === "ObjectProperty" ? literalOwner(property.value, line) : null) ?? property;
+  }
+  if (value?.type === "CallExpression") {
+    const argument = value.arguments.find((item) => contains(item, line) && ["ArrayExpression", "ObjectExpression"].includes(unwrap(item)?.type));
+    return argument ? literalOwner(argument, line) : null;
+  }
+  return null;
 }
 
 /** What a line of a top-level statement belongs to: { node, name } (name: the declaration it renders as, if any). */
@@ -66,11 +97,8 @@ function ownerOf(statement, line) {
     const declarator = declaration.declarations.find((item) => contains(item, line));
     if (!declarator) return { node: statement, name: null };
     const name = declarator.id?.type === "Identifier" ? declarator.id.name : null;
-    const init = unwrap(declarator.init);
-    if (init?.type === "ArrayExpression") {
-      const element = init.elements.find((item) => item && contains(item, line));
-      if (element) return { node: element, name: null };
-    }
+    const literal = literalOwner(declarator.init, line);
+    if (literal) return { node: literal, name: null };
     const fn = declaredFunction(declarator.init);
     const branch = fn ? pageBranch(fn, line) : null;
     if (branch) return { node: branch, name: null };
@@ -130,22 +158,76 @@ export function frameRanges(code, lines) {
 /** frameRanges from an AST already parsed (parseSource) of the same text. */
 export function frameRangesOf(ast, lines) {
   const body = ast.program.body;
-  const ranges = [];
+  const owned = new Set();
   const names = new Set();
   for (const line of new Set(lines)) {
     if (!Number.isInteger(line) || line < 1) continue;
     const statement = body.find((item) => contains(item, line));
     if (!statement || statement.type === "ImportDeclaration") continue;
     const owner = ownerOf(statement, line);
-    ranges.push([owner.node.loc.start.line, owner.node.loc.end.line]);
+    owned.add(owner.node);
     if (owner.name) names.add(owner.name);
   }
   if (names.size) {
     for (const example of exampleObjects(ast)) {
-      if ([...example.names].some((name) => names.has(name))) ranges.push([example.node.loc.start.line, example.node.loc.end.line]);
+      if ([...example.names].some((name) => names.has(name))) owned.add(example.node);
     }
   }
-  return mergeRanges(ranges);
+  // The module-level declarations the owned code names, and theirs in turn.
+  const declarations = topLevelDeclarations(body);
+  const queue = [...owned];
+  while (queue.length) {
+    for (const name of referencedNames(queue.pop())) {
+      const statement = declarations.get(name);
+      if (!statement || owned.has(statement) || [...owned].some((node) => node.loc.start.line <= statement.loc.start.line && node.loc.end.line >= statement.loc.end.line)) continue;
+      owned.add(statement);
+      queue.push(statement);
+    }
+  }
+  return mergeRanges([...owned].map((node) => [node.loc.start.line, node.loc.end.line]));
+}
+
+/** The names a binding pattern declares (`const { a, b: [c] } = …` → a, c). */
+function patternNames(pattern) {
+  if (!pattern) return [];
+  if (pattern.type === "Identifier") return [pattern.name];
+  if (pattern.type === "ObjectPattern") return pattern.properties.flatMap((property) => patternNames(property.type === "RestElement" ? property.argument : property.value));
+  if (pattern.type === "ArrayPattern") return pattern.elements.flatMap((element) => patternNames(element));
+  if (pattern.type === "AssignmentPattern") return patternNames(pattern.left);
+  if (pattern.type === "RestElement") return patternNames(pattern.argument);
+  return [];
+}
+
+/** A function whose body is a set of `if (page === "…")` branches: the platform's playground router. */
+const isRouter = (fn) => fn?.body?.type === "BlockStatement" && fn.body.body.some((statement) => statement.type === "IfStatement" && isPageTest(statement.test));
+
+/** Module-level declarations by the names they declare (imports and playground routers left out). */
+function topLevelDeclarations(body) {
+  const out = new Map();
+  for (const statement of body) {
+    const declaration = statement.type === "ExportNamedDeclaration" || statement.type === "ExportDefaultDeclaration" ? statement.declaration : statement;
+    if (!declaration) continue;
+    const add = (name) => { if (name && !out.has(name)) out.set(name, statement); };
+    if (declaration.type === "VariableDeclaration") {
+      for (const declarator of declaration.declarations) if (!isRouter(declaredFunction(declarator.init))) patternNames(declarator.id).forEach(add);
+    } else if (!isRouter(declaration)) add(declaration.id?.name);
+  }
+  return out;
+}
+
+/** The names a node reads (identifiers and JSX names; not object keys, member names or attribute names). */
+function referencedNames(root) {
+  const names = new Set();
+  const skip = new WeakSet();
+  walk(root, (node) => {
+    if ((node.type === "MemberExpression" || node.type === "OptionalMemberExpression") && !node.computed) skip.add(node.property);
+    if ((node.type === "ObjectProperty" || node.type === "ObjectMethod") && !node.computed && !node.shorthand) skip.add(node.key);
+    if (node.type === "JSXAttribute") skip.add(node.name);
+    if (node.type === "JSXMemberExpression") skip.add(node.property);
+    if ((node.type === "Identifier" || node.type === "JSXIdentifier") && !skip.has(node)) names.add(node.name);
+    return true;
+  });
+  return names;
 }
 
 /** The lines before the first statement that is not an import (0-based end), or 0 when the text does not parse. */

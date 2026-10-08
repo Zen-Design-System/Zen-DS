@@ -1,18 +1,20 @@
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { canvasApi } from "../canvas/viewport";
-import { frameOf, panelOf, parentHit, selectHit, type FiberHit } from "../select/picker";
-import { multiSelection } from "../select/multiSelection";
+import { findBySrc, frameOf, panelOf, parentHit, selectHit, type FiberHit } from "../select/picker";
+import { isLayerSelected, layerOfHit, multiSelection, selectedLayers, type ExtraLayer } from "../select/multiSelection";
 import { canStructurallyEdit, structuralBlock } from "../slots/actions";
 import { canEdit, studioStore } from "../store";
 import { moveLayer, type DropTarget, type NodeSelection } from "./arrange";
 import { isDropContainer } from "./drag";
+import { moveLayersTo } from "./multi";
 
 /*
  * Drag and drop in the Layers panel, Figma-like (docs/research/studio-figma-editing-plan-2026-10-03.md, Phase 5): drag a
  * layer row; a line between rows shows where it lands (before / after the row under the pointer, at that row's depth),
  * the middle of a layout row (Stack, Grid, Box, Card, Form parts…) puts it inside, last. Drop writes op moveTo (one
  * undo step), ⌥ drops a copy, Esc cancels, the list scrolls near its edges. Same rules as dragging on the canvas:
- * within the layer's example, names checked where it lands.
+ * within the layer's example, names checked where it lands. A row of a multi-selection drags every selected layer
+ * (op many moveTo, edit/multi.ts moveLayersTo), as the canvas does.
  */
 
 type Resolve = (row: Element) => FiberHit | null;
@@ -23,6 +25,8 @@ type Session = {
   row: Element;
   hit: FiberHit;
   layer: NodeSelection | null;
+  /** Several selected layers dragged together (the primary first) and their canvas hits, else null. */
+  layers: { all: ExtraLayer[]; hits: FiberHit[] } | null;
   resolve: Resolve;
   start: { x: number; y: number };
   pointer: { x: number; y: number };
@@ -57,6 +61,7 @@ function placeAt(current: Session): Place | string | null {
   const frame = hit.hosts[0]?.closest("[data-studio-frame]") ?? null;
   if (frame !== (current.hit.hosts[0]?.closest("[data-studio-frame]") ?? null)) return "Layers move within their own example";
   if (inside(current.hit, hit)) return sameHost(current.hit, hit) ? null : "A layer cannot go inside itself";
+  for (const other of current.layers?.hits ?? []) if (inside(other, hit)) return sameHost(other, hit) ? null : "A layer cannot go inside itself";
   const rect = element.getBoundingClientRect();
   const offset = (current.pointer.y - rect.top) / Math.max(1, rect.height);
   const container = isDropContainer(hit);
@@ -146,7 +151,9 @@ function end(commit: boolean) {
   window.addEventListener("click", swallow, { capture: true, once: true });
   window.setTimeout(() => window.removeEventListener("click", swallow, { capture: true }), 0);
   const place = current.place;
-  if (commit && place && current.layer && !current.refusal) void moveLayer(current.layer, place.target, current.copy);
+  if (!commit || !place || !current.layer || current.refusal) return;
+  if (current.layers) void moveLayersTo(place.target, current.copy, current.layers.all);
+  else void moveLayer(current.layer, place.target, current.copy);
 }
 
 function onMove(event: PointerEvent) {
@@ -156,16 +163,19 @@ function onMove(event: PointerEvent) {
   if (!current.dragging) {
     if (Math.hypot(event.clientX - current.start.x, event.clientY - current.start.y) < 4) return;
     current.dragging = true;
-    // Figma selects the row it drags.
+    // Figma selects the row it drags; a row of a multi-selection drags every selected layer.
     const world = canvasApi.getWorldElement();
-    if (world) { multiSelection.clear(); selectHit(current.hit, world); }
+    const several = world && multiSelection.get().length > 0 && isLayerSelected(layerOfHit(current.hit, world)) ? selectedLayers() : null;
+    if (several && world) {
+      current.layers = { all: several, hits: several.map((layer) => findBySrc(world, layer.src)[layer.instance]).filter((hit): hit is FiberHit => Boolean(hit)) };
+    } else if (world) { multiSelection.clear(); selectHit(current.hit, world); }
     const selection = studioStore.getState().selection;
     current.layer = selection?.kind === "node" && !selection.part ? selection : null;
-    const check = current.layer ? canStructurallyEdit(current.layer) : { ok: false as const, reason: "Select a layer first" };
-    current.refusal = check.ok ? null : check.reason;
+    const all: NodeSelection[] = current.layers ? current.layers.all.map((layer) => ({ kind: "node", ...layer })) : current.layer ? [current.layer] : [];
+    const refused = all.map((layer) => ({ layer, check: canStructurallyEdit(layer) })).find((entry) => !entry.check.ok);
+    current.refusal = !current.layer ? "Select a layer first" : refused && !refused.check.ok ? (current.layers ? `${refused.layer.name}: ${refused.check.reason}` : refused.check.reason) : null;
     if (current.layer && !current.refusal) {
-      const layer = current.layer;
-      void structuralBlock(layer, "move").then((block) => { if (block && session === current) { current.refusal = block; follow(current); } });
+      void Promise.all(all.map((layer) => structuralBlock(layer, "move"))).then((blocks) => blocks.find(Boolean) ?? null).then((block) => { if (block && session === current) { current.refusal = block; follow(current); } });
     }
     current.tree.setAttribute("data-dropping", "");
     const marker = document.createElement("div");
@@ -216,7 +226,7 @@ export function pressLayersRow(event: PointerEvent, tree: HTMLElement, resolve: 
   const hit = resolve(row);
   if (!hit?.src || !hit.hosts[0]?.closest(".studio-world")) return;
   session = {
-    tree, row, hit, layer: null, resolve,
+    tree, row, hit, layer: null, layers: null, resolve,
     start: { x: event.clientX, y: event.clientY },
     pointer: { x: event.clientX, y: event.clientY },
     dragging: false, copy: false, refusal: null, place: null, marker: null, scroll: 0,

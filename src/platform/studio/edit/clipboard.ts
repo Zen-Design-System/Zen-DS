@@ -7,12 +7,12 @@ import { propSpecs } from "../inspector/propSchema";
 import { findBySrc, isTypingTarget, parentHit, type FiberHit } from "../select/picker";
 import { multiSelection, selectedLayers } from "../select/multiSelection";
 import { expectRender, mapSrc, renderedNow } from "../select/remap";
-import { canStructurallyEdit, removeSelection } from "../slots/actions";
+import { canStructurallyEdit, insideWrap, rememberInsert, removeSelection, studioWrapOf } from "../slots/actions";
 import { canEdit, flushStudioStore, studioStore } from "../store";
 import type { EditOp, EditValue, SourceElement, StateDecl, StudioSelection } from "../types";
 import type { NodeSelection } from "./arrange";
 import { isDropContainer } from "./drag";
-import { codeOfLayers, removeLayers } from "./multi";
+import { codeOfLayers, removeLayers, statesRead } from "./multi";
 import { textEditSession } from "./textEdit";
 
 /*
@@ -27,6 +27,9 @@ import { textEditSession } from "./textEdit";
  * - ⇧⌘R pastes to replace the selected layer. ⌥⌘C / ⌥⌘V copy and paste its properties (the literal, non-content
  *   props the target accepts), one undo step.
  * Every paste is one draft edit and one undo step; the pasted layer gets selected.
+ * - A component in its Studio wrap Stack is copied, cut and pasted beside with that Stack (its size goes along); the
+ *   useState values a copy reads are declared where it pastes in another file (op pasteCode `state`, edit/multi.ts
+ *   statesRead), as an Assets insert does. Layers of several files copy together (they paste as code).
  */
 
 const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
@@ -40,7 +43,12 @@ export const clipboardShortcuts = {
   pasteProps: key("⌥⌘V", "Ctrl+Alt+V"),
 };
 
-type Clip = { file: string; loc: string | null; name: string; code: string; cut: boolean };
+/**
+ * `file` / `loc`: where the copied element sits (null loc: several layers or a cut, pasted as code; null file: several
+ * files); `tag`: the element at `loc` (its wrap Stack's "Stack" for a wrapped component, `name` being the component);
+ * `state`: the useState values the code reads in `file`.
+ */
+type Clip = { file: string | null; loc: string | null; name: string; tag: string; code: string; cut: boolean; wrapped: boolean; state: StateDecl[] };
 type PropsClip = { name: string; values: Array<{ name: string; value: EditValue }> };
 
 let clip: Clip | null = null;
@@ -74,15 +82,23 @@ function codeOf(element: SourceElement, content: string): string | null {
 }
 
 /* The selected layer's code, read when it is selected: a copy event must fill the clipboard synchronously. */
-let ready: { src: string; element: SourceElement; code: string } | null = null;
+type Read = { element: SourceElement; code: string; loc: string; tag: string; wrapped: boolean; state: StateDecl[] };
+let ready: ({ src: string } & Read) | null = null;
 let readFor: string | null = null;
-async function readLayer(selection: NodeSelection): Promise<{ element: SourceElement; code: string } | null> {
+async function readLayer(selection: NodeSelection): Promise<Read | null> {
   const at = parseSrc(selection.src);
   if (!at) return null;
   const [element, source] = await Promise.all([studioApi.element(at.file, at.loc), studioApi.source(at.file).catch(() => null)]);
   if (!element || !source || element.name.slice(element.name.lastIndexOf(".") + 1) !== selection.name.slice(selection.name.lastIndexOf(".") + 1)) return null;
-  const code = codeOf(element, source.content);
-  return code ? { element, code } : null;
+  // A component in its Studio wrap Stack is copied with that Stack (GĐ4 M4): the size it was given goes along.
+  const wrap = await studioWrapOf(selection);
+  const wrapLoc = wrap ? parseSrc(wrap.src)?.loc ?? null : null;
+  const outer = wrapLoc ? await studioApi.element(at.file, wrapLoc).catch(() => null) : null;
+  const code = codeOf(outer ?? element, source.content);
+  if (!code) return null;
+  // The dev server reads the state from the AST (GET /element stateReads: scope-aware, DOM refs such as a Popover's
+  // anchor too); an older server leaves it out and the text scan stands in.
+  return { element, code, loc: outer && wrapLoc ? wrapLoc : at.loc, tag: outer ? outer.name : element.name, wrapped: Boolean(outer), state: element.stateReads ?? statesRead(code, source.content) };
 }
 function prefetch() {
   const selection = selectedNode();
@@ -98,7 +114,7 @@ async function copyLayers(cut: boolean) {
   const read = await codeOfLayers(layers);
   if (typeof read === "string") { fail(read); return false; }
   await navigator.clipboard?.writeText(read.code).catch(() => undefined);
-  clip = { file: read.file, loc: null, name: `${layers.length} layers`, code: read.code, cut };
+  clip = { file: read.file, loc: null, name: `${layers.length} layers`, tag: "", code: read.code, cut, wrapped: false, state: read.state };
   if (cut) return removeLayers(layers);
   done(`Copied ${layers.length} layers · ${clipboardShortcuts.paste} to paste`);
   return true;
@@ -115,7 +131,7 @@ async function copyLayer(selection: NodeSelection, data: DataTransfer | null, cu
   }
   if (!cached || !data) await navigator.clipboard?.writeText(read.code).catch(() => undefined);
   const at = parseSrc(selection.src)!;
-  clip = { file: at.file, loc: at.loc, name: read.element.name, code: read.code, cut };
+  clip = { file: at.file, loc: read.loc, name: read.element.name, tag: read.tag, code: read.code, cut, wrapped: read.wrapped, state: read.state };
   if (!cut) done(`Copied ${read.element.name} · ${clipboardShortcuts.paste} to paste`);
   return true;
 }
@@ -131,12 +147,15 @@ function hitOf(selection: NodeSelection): FiberHit | null {
   return hits[selection.instance] ?? hits[0] ?? null;
 }
 
-/** Into the selected layout (last), else after the selected layer; `replace`: in the selected layer's place. */
-function spotFor(selection: NodeSelection, replace: boolean): Spot | string {
+/**
+ * Into the selected layout (last), else after the selected layer; `replace`: in the selected layer's place. `beside`:
+ * never into it (a wrapped component's Studio wrap Stack, which holds that component only).
+ */
+function spotFor(selection: NodeSelection, replace: boolean, beside = false): Spot | string {
   const hit = hitOf(selection);
   if (!hit) return "Select a layer on the canvas to paste next to or into";
   const frame = hit.hosts[0]?.closest("[data-studio-frame]") ?? null;
-  const into = !replace && isDropContainer(hit);
+  const into = !replace && !beside && isDropContainer(hit);
   const parent = into ? hit : parentHit(hit, frame);
   if (!parent) return `${selection.name} has no parent layer to paste beside`;
   const parsed = parseSrc(parent.src);
@@ -147,13 +166,16 @@ function spotFor(selection: NodeSelection, replace: boolean): Spot | string {
   return spot;
 }
 
-/** Selects the layer a paste created once the canvas shows it. */
-function follow(file: string, loc: string, name: string, spot: Spot, before: WeakSet<Element>) {
-  const next: StudioSelection = { kind: "node", src: `${file}:${loc}`, name, frameId: spot.frameId, panelId: spot.panelId, instance: 0 };
+/** Selects the layer a paste created once the canvas shows it; its undo goes back to `from` (the selection pasted at). */
+function follow(response: { file: string; after: string }, loc: string, name: string, spot: Spot, before: WeakSet<Element>, from: StudioSelection, wrapped = false) {
+  const at: NodeSelection = { kind: "node", src: `${response.file}:${loc}`, name, frameId: spot.frameId, panelId: spot.panelId, instance: 0 };
+  // A wrapped component pasted with its wrap Stack: the component inside it is selected (the Stack when none is found).
+  const next: StudioSelection = wrapped ? insideWrap(at, response.file, response.after, loc) : at;
   multiSelection.clear();
   expectRender(next, before, () => undefined, 1500);
   studioStore.setState({ selection: next });
   flushStudioStore();
+  rememberInsert(response.file, response.after, from, next, Boolean(spot.replace));
 }
 
 const textLayer = (text: string) => `<Text>{${JSON.stringify(text.trim())}}</Text>`;
@@ -169,33 +191,41 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
   const raw = own ? own.code : text?.trim() ?? "";
   if (!raw) { fail("The clipboard is empty — copy a layer first"); return false; }
   const code = raw.startsWith("<") ? raw : textLayer(raw);
-  const spot = spotFor(selection, replace);
-  if (typeof spot === "string") { fail(spot); return false; }
   pasting = true;
   try {
+    let spot = spotFor(selection, replace);
+    if (typeof spot === "string") { fail(spot); return false; }
+    // Beside or instead of a wrapped component: beside or instead of its wrap Stack (the Stack holds that component only).
+    if (spot.after || spot.replace) {
+      const wrap = await studioWrapOf(selection);
+      const outer = wrap ? spotFor(wrap, replace, true) : null;
+      if (outer && typeof outer !== "string") spot = outer;
+    }
     const before = renderedNow(canvasApi.getWorldElement());
     const verb = replace ? "Paste to replace" : "Paste";
     // The same file, its source still there: copy it as written (names checked where it lands).
-    if (own && own.loc && !own.cut && own.file === spot.parentFile) {
+    if (own && own.file && own.loc && !own.cut && own.file === spot.parentFile) {
       const origin = await studioApi.element(own.file, own.loc);
-      if (origin && origin.name === own.name) {
+      if (origin && origin.name === own.tag) {
         const op: Extract<EditOp, { op: "moveTo" }> = { op: "moveTo", parent: parseSrc(spot.parent.src)!.loc, copy: true };
         if (spot.after) op.after = parseSrc(spot.after)?.loc;
         if (spot.replace) op.replace = parseSrc(spot.replace)?.loc;
-        const response = await applyEdit({ file: own.file, loc: own.loc, name: origin.name, ops: [op], hash: origin.hash }, `${verb} ${origin.name}`);
-        if (response.ok && response.inserted) follow(response.file, response.inserted.loc, selectedName(origin.name), spot, before);
+        const response = await applyEdit({ file: own.file, loc: own.loc, name: origin.name, ops: [op], hash: origin.hash }, `${verb} ${own.name}`);
+        if (response.ok && response.inserted) follow(response, response.inserted.loc, selectedName(own.name), spot, before, selection, own.wrapped);
         return response.ok;
       }
     }
     const at = parseSrc(spot.parent.src)!;
     const parent = await studioApi.element(at.file, at.loc);
     if (!parent) { fail(`${spot.parent.name} is no longer there — select it again`); return false; }
-    const op: Extract<EditOp, { op: "pasteCode" }> = { op: "pasteCode", code, ...(state?.length ? { state: state.map((entry) => ({ ...entry })) } : {}) };
+    // The Studio's own copy from another file (or several files) brings the state it reads; in its own file it is there.
+    const reads = state ?? (own && own.file !== at.file ? own.state : undefined);
+    const op: Extract<EditOp, { op: "pasteCode" }> = { op: "pasteCode", code, ...(reads?.length ? { state: reads.map((entry) => ({ ...entry })) } : {}) };
     if (spot.after) op.after = parseSrc(spot.after)?.loc;
     if (spot.replace) op.replace = parseSrc(spot.replace)?.loc;
-    const name = /^<([\w.]+)/.exec(code)?.[1] ?? "layer";
+    const name = own?.wrapped ? own.name : /^<([\w.]+)/.exec(code)?.[1] ?? "layer";
     const response = await applyEdit({ file: at.file, loc: at.loc, name: parent.name, ops: [op], hash: parent.hash }, `${verb} ${name}`);
-    if (response.ok && response.inserted) follow(response.file, response.inserted.loc, selectedName(name), spot, before);
+    if (response.ok && response.inserted) follow(response, response.inserted.loc, selectedName(name), spot, before, selection, Boolean(own?.wrapped));
     return response.ok;
   } finally {
     pasting = false;

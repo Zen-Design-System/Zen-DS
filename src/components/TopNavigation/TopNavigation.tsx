@@ -3,6 +3,7 @@ import type { IconName } from "../Icon";
 import { usePresence } from "../Motion";
 import { useIconTooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
+import { NotificationDot } from "../_shared/notification-dot";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./top-navigation.css";
@@ -168,7 +169,7 @@ export function TopNavigationActionButton({ action, variant, className, state }:
   return (
     <button type="button" className={["zen-top-nav__action", className].filter(Boolean).join(" ")} data-style={variant} data-state={state} aria-label={action.label} disabled={action.disabled} {...tip.bind({ onClick: action.onClick })}>
       {renderIcon(action.icon)}
-      {action.dot ? <span className="zen-top-nav__dot" aria-hidden="true" /> : null}
+      {action.dot ? <NotificationDot className="zen-top-nav__dot" /> : null}
       {tip.tooltip}
     </button>
   );

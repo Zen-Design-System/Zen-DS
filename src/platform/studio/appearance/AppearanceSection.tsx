@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Menu, type MenuEntry } from "../../../components/Menu";
@@ -8,8 +8,9 @@ import { PropField } from "../inspector/PropField";
 import type { PropSpec, PropValue } from "../inspector/propSchema";
 import { InspectorRow, InspectorSection } from "../inspector/Section";
 import {
-  CORNERS, cornerClear, cornerLabels, cornerPick, defaultEffect, EFFECT_STYLES, effectAvailability, effectKey, effectStyleOf,
-  effectWarnings, isMixed, RADIUS_STEPS, uniformClear, uniformPick, type Corner, type WrittenRadius,
+  cardThemeEffect, CORNERS, cornerClear, cornerLabels, cornerPick, defaultEffect, EFFECT_STYLES, effectAvailability, effectKey,
+  effectLayers, effectStyleOf, effectWarnings, isMixed, RADIUS_STEPS, uniformClear, uniformPick, type Corner, type ManifestEffect,
+  type WrittenRadius,
 } from "./appearanceModel";
 import "./appearance.css";
 
@@ -130,6 +131,8 @@ const hiddenEffects = new Map<string, string>();
 /** Effects: the Box's one Figma effect style, with the eye, remove, "+" and the rule warnings with their fixes. */
 export function EffectsSection({ api, src }: { api: FieldApi; src: string }) {
   const [, rerender] = useState(0);
+  const [settings, setSettings] = useState(false);
+  const settingsId = useId();
   const effectStyle = literalOf(api.valueFor("effectStyle"));
   const surface = literalOf(api.valueFor("surface"));
   const border = literalOf(api.valueFor("border"));
@@ -162,7 +165,7 @@ export function EffectsSection({ api, src }: { api: FieldApi; src: string }) {
     />
   ) : null;
   return (
-    <InspectorSection title="Effects" actions={addButton} note={!shown && !("style" in add) ? add.reason : undefined}>
+    <InspectorSection title="Effects" actions={shown ? <EffectSettingsButton open={settings} controls={settingsId} onToggle={() => setSettings((open) => !open)} /> : addButton} note={!shown && !("style" in add) ? add.reason : undefined}>
       {shown ? (
         <InspectorRow
           label="Effect"
@@ -175,7 +178,7 @@ export function EffectsSection({ api, src }: { api: FieldApi; src: string }) {
               aria-label="Effect styles"
               items={items}
               trigger={(
-                <Button appearance="flat" level="primary" size="md" className="studio-effect__style" disabled={api.disabled} startIcon={<span className="studio-effect__swatch" data-effect={effectKey(shown.name)} aria-hidden="true" />}>
+                <Button appearance="flat" level="primary" size="md" className="studio-effect__style" title={shown.name} disabled={api.disabled} startIcon={<span className="studio-effect__swatch" data-effect={effectKey(shown.name)} aria-hidden="true" />}>
                   {shown.name}
                 </Button>
               )}
@@ -195,6 +198,7 @@ export function EffectsSection({ api, src }: { api: FieldApi; src: string }) {
           </div>
         </InspectorRow>
       ) : null}
+      {shown && settings ? <EffectSettings id={settingsId} style={shown.name} /> : null}
       {warnings.map((warning) => (
         <div key={warning.text} className={`studio-effect__warning ${typographyStyles["Body/Small/Regular"]}`}>
           <Icon name="icon-alert-triangle-line" size="sm" decorative />
@@ -202,6 +206,75 @@ export function EffectsSection({ api, src }: { api: FieldApi; src: string }) {
           <Button appearance="flat" level="primary" size="sm" disabled={api.disabled} onClick={() => { void api.apply(warning.fix, warning.fixLabel); }}>{warning.fixLabel}</Button>
         </div>
       ))}
+    </InspectorSection>
+  );
+}
+
+/** The effect styles' layers (style-manifest.json), read once when "Effect settings" first opens. */
+let manifestLayers: Promise<Map<string, ManifestEffect[]>> | null = null;
+const loadManifestLayers = () => {
+  manifestLayers ??= import("../../../styles/generated/style-manifest.json").then((module) => {
+    const styles = (module.default as { effectStyles?: Array<{ name: string; effects: ManifestEffect[] }> }).effectStyles ?? [];
+    return new Map(styles.map((style) => [style.name, style.effects]));
+  });
+  return manifestLayers;
+};
+
+function EffectSettingsButton({ open, controls, onToggle }: { open: boolean; controls: string; onToggle: () => void }) {
+  return <IconButton icon="icon-sliders-02-line" aria-label="Effect settings" aria-expanded={open} aria-controls={controls} appearance="flat" level="primary" size="xs" onClick={onToggle} />;
+}
+
+/** "Effect settings": the style's layers in Figma order, read-only (an effect style is a token, edited in Figma). */
+function EffectSettings({ id, style }: { id: string; style: string }) {
+  const [layers, setLayers] = useState<string[] | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void loadManifestLayers().then((map) => { if (alive) setLayers(effectLayers(map.get(style) ?? [])); });
+    return () => { alive = false; };
+  }, [style]);
+  return (
+    <div id={id} className="studio-effect__settings" role="group" aria-label={`${style} settings`}>
+      {(layers ?? []).map((layer, index) => <p key={index} className={typographyStyles["Body/Small/Regular"]}>{layer}</p>)}
+      <p className={`studio-effect__settings-note ${typographyStyles["Caption/Regular"]}`}>Effect styles are tokens: edit them in Figma, then run the style sync.</p>
+    </div>
+  );
+}
+
+/**
+ * Effects of a Card, MetricCard or ChartCard: its theme draws them (shadow: the Level-1 drop shadow; pale, semi-pale: the
+ * background blur), so the row is read-only and "Edit theme" goes to the Theme property. Flat and border draw none.
+ */
+export function CardEffectsSection({ api, component }: { api: FieldApi; component: string }) {
+  const [settings, setSettings] = useState(false);
+  const settingsId = useId();
+  const value = api.valueFor("theme");
+  const effect = cardThemeEffect(component, value.state === "literal" && typeof value.value === "string" ? value.value : value.state === "unset" ? undefined : "");
+  const shown = effect?.style ? effectStyleOf(effect.style) : null;
+  if (!effect || !shown) return null;
+  const editTheme = () => {
+    const row = document.querySelector<HTMLElement>('#studio-right .studio-inspector__row[data-prop="theme"]');
+    row?.scrollIntoView({ block: "nearest" });
+    row?.querySelector<HTMLElement>("button, input, [tabindex]")?.focus();
+  };
+  return (
+    <InspectorSection title="Effects" actions={<EffectSettingsButton open={settings} controls={settingsId} onToggle={() => setSettings((open) => !open)} />}>
+      <InspectorRow
+        label="Effect"
+        name="effectStyle"
+        hint={(
+          <span className="studio-effect__from">
+            From {component} theme · {effect.theme.charAt(0).toUpperCase()}{effect.theme.slice(1)}
+            {/* zen-allow-compact-button: the read-only row's way to the Theme property (spec §4.2) */}
+            <Button appearance="flat" level="primary" size="xs" onClick={editTheme}>Edit theme</Button>
+          </span>
+        )}
+      >
+        <span className={`studio-effect__readonly ${typographyStyles["Body/Small/Regular"]}`} title={`${shown.name} (from the theme: edit the theme to change it)`}>
+          <span className="studio-effect__swatch" data-effect={effectKey(shown.name)} aria-hidden="true" />
+          <span className="studio-effect__name">{shown.name}</span>
+        </span>
+      </InspectorRow>
+      {settings ? <EffectSettings id={settingsId} style={shown.name} /> : null}
     </InspectorSection>
   );
 }

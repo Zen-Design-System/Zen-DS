@@ -273,7 +273,7 @@ export function HrLeaveTypesTemplate() {
                 onRowClick={(row) => openForm(row.id, valuesOf(row))}
                 columns={[
                   { id: "name", header: "Leave type", sortable: true, cell: (row) => (
-                    <TableMedia media={<DockIcon theme="emoji" emoji={row.emoji} size="sm" />} caption={usageOf(row.id)}>{row.name}</TableMedia>
+                    <TableMedia bold media={<DockIcon theme="emoji" emoji={row.emoji} size="sm" />} caption={usageOf(row.id)}>{row.name}</TableMedia>
                   ) },
                   // Pay is a category, not a status: the Badge drops its status dot.
                   { id: "pay", header: "Pay", width: "104px", cell: (row) => (

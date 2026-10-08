@@ -30,6 +30,7 @@ import {
   TODAY, daysFromToday, files, formatDate, formatDay, formatRange, formatRelative, initials, leaveRequests, leaveStatusTheme, people, projectStatusTheme,
   projects, tasks, type LeaveKind, type LeaveRequest, type LeaveStatus, type Person, type PersonId, type ProjectStatus,
 } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./dialog.css";
 
 export const page: PlatformPage = "dialog";
@@ -629,7 +630,7 @@ function PhoneWithdraw() {
   const balance = leaveBalance[request.kind];
   return (
     <PlatformPhone key={request.id} label="Leave request" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title={request.kind} scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title={request.kind} scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-leave="${request.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}
       footer={upcoming(request) ? (
         <ActionBar position="static" primaryAction={canWithdraw
@@ -661,7 +662,7 @@ function PhoneWithdraw() {
 }
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————————
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Delete a project",
     description: "Deleting a project can't be undone, so the negative Dialog states what goes with it and keeps Delete project disabled until the name is typed; Enter in the field then confirms. Focus starts in the field; Cancel and Escape leave without deleting.",
@@ -763,7 +764,7 @@ const cancel = () => (draft !== saved ? setConfirming(true) : close());
 // each year a white <ListBox> around its List of rows that open a request, under
 // a kicker in <Box paddingX="lg">.
 <PlatformPhone key={request.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Annual leave" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Annual leave" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToList }} />}
   footer={<ActionBar position="static"
     primaryAction={{ label: "Withdraw request", level: "danger-subtle", onClick: () => setConfirming(true) }} />}>
@@ -805,4 +806,4 @@ const cancel = () => (draft !== saved ? setConfirming(true) : close());
 </Dialog>`,
     render: () => <TokenOnce />,
   },
-];
+]);

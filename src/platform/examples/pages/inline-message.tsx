@@ -26,6 +26,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./inline-message.css";
 
 export const page: PlatformPage = "inline-message";
@@ -383,7 +384,7 @@ function TimesheetPhoneExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Editing a sent invoice",
     description: "The invoice has already gone out, so a Warning above the form says what saving will do before anyone types. It is essential context, so it has no close button and stays while the form is open.",
@@ -512,4 +513,4 @@ const count = Object.keys(form.errors).length;
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

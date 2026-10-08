@@ -4,6 +4,10 @@ export const Good = () => <>
   <Button level="tertiary" onClick={cancel}>Cancel</Button>
   {/* zen-allow-secondary: pressed toolbar toggle */}
   <IconButton onClick={act} level="secondary" aria-label="Bold" aria-pressed icon={<Icon name="icon-bold-01-line" />} />
+  {/* A flat Secondary IconButton is Figma's quiet ⋮ trigger: no justification needed. */}
+  <IconButton appearance="flat" level="secondary" size="sm" aria-label="More actions" onClick={act} icon="icon-dots-vertical-line" />
+  <ToggleListItem title="Daily digest" caption="One email at 8:00 am" checked={on} onCheckedChange={setOn} />
+  <ChipGroup aria-label="Repeat" options={repeats} value={repeat} onValueChange={setRepeat} />
   <Button level="danger" onClick={remove}>Delete project</Button>
   <Chip variant="advanced" dropdown popoverItems={items}>Status</Chip>
   <InputField label="Name" readOnly />
@@ -132,6 +136,9 @@ export const Good = () => <>
   <Icon name="icon-check-line" size="sm" decorative />
   <Icon name="icon-check-line" size={14} decorative />
   <Text tone="light">{plural(results.length, "place")}</Text>
+  <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot onClick={openInbox} />
+  <Menu align="end" trigger={<AppShellAccount name="Ava Chen" />} items={[{ id: "out", label: "Sign out" }]} onSelect={signOut} />
+  <Text tone="light">{sessions.length} phiên đang mở</Text>
   <Text tone="light">{picked.length} selected · {future.length} to redo</Text>
   <Chip variant="advanced" size="small" selectionMode="multiple" selectionCount={statuses.length} select={statuses.length > 0}>Status</Chip>
   <TopNavigation type="compact" title="Files" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />
@@ -145,6 +152,7 @@ export const Good = () => <>
   <ChatMessage side="you" holdActions={[{ id: "copy", label: "Copy", icon: "icon-copy-solid" }, { id: "delete", label: "Delete", icon: "icon-trash-solid", destructive: true }]}>Hi</ChatMessage>
   <IconButton onClick={act} appearance="flat" level="primary" size="md" aria-label="Archive" icon={<Icon name="icon-archive-line" />} />
   <IconButton onClick={act} appearance="flat" level="primary" size="md" aria-label="Archive" tooltip="Archive (E)" icon={<Icon name="icon-archive-line" />} />
+  <Tooltip content="Archive (E)"><Box><Button onClick={act}>Archive</Button></Box></Tooltip>
   <button type="button" className="pe-result" onClick={open}><Icon name="icon-clock-line" size="sm" decorative /><Text>{item}</Text></button>
   <ChatComposer onSend={send} replyTo={replying} onCancelReply={cancelReply} />
   <ChatCall state="in-missed" detail="12:33" onAction={callBack} />

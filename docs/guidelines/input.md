@@ -112,7 +112,7 @@ Also accepts `Omit<SelectHTMLAttributes<HTMLSelectElement>, "size">`.
 | `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |
 | `datePicker` | `boolean` | `true` |  |
 | `datePickerActions` | `boolean` | `false` | The calendar's Cancel + Submit (Figma Actions): a picked day is a draft until Submit writes it to the field; Cancel and Escape keep the date the field had. |
-| `onDateChange` | `(date: Date \| null) => void` | — |  |
+| `onDateChange` | `(date: Date \| null) => void` | — | The day in the field: called when one is picked in the calendar and when a complete MM/DD/YYYY is typed; null when the field is emptied or a typed date stops being a real day. |
 | `minDate` | `Date` | — | Earliest day the calendar lets people pick (DatePicker `minDate`); earlier days are disabled. A typed date before it stays in the field and reaches `onValueChange` as usual, and the input is marked `aria-invalid` (Form and ModalForm count it and focus it after a blocked submit). The field shows no message of its own: validate the value and pass `error` ("Pick a date from 1 October"). |
 | `maxDate` | `Date` | — | Latest day the calendar lets people pick (DatePicker `maxDate`); later days are disabled. A typed date after it is kept, reported and marked `aria-invalid` as for `minDate`: pass `error` to say why. |
 | `today` | `Date` | — | The day the calendar treats as today (DatePicker `today`): its Today ring and the month it opens on while empty. Default: the device clock. |
@@ -131,6 +131,21 @@ Figma Input/Number-Align-Left (421:10057) and Number-Align-Center (450:7900): Bu
 | `step` | `number` | `1` |  |
 | `decrementLabel` | `string` | — | Accessible name of the − stepper. Default: the locale's "Decrease". |
 | `incrementLabel` | `string` | — | Accessible name of the + stepper. Default: the locale's "Increase". |
+| `label` | `ReactNode` | — |  |
+| `helpText` | `ReactNode` | — |  |
+| `labelOptional` | `boolean` | — | Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel). |
+| `labelTooltip` | `boolean \| ReactNode` | — |  |
+| `labelAction` | `ReactNode` | — |  |
+| `helpTheme` | `"neutral" \| "negative" \| "warning" \| "positive"` | — | Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative. |
+| `helpIcon` | `boolean` | — | Figma Help-Text `Icon` axis (default on). |
+| `characterLimit` | `ReactNode \| true` | — | Figma Help-Text `Character-Limitation`: custom text (e.g. "12/100"), or `true` to count the value against `maxLength`. |
+| `error` | `ReactNode` | — |  |
+| `errorMessage` | `ReactNode` | — | **Deprecated:** Use error (same meaning).  |
+| `size` | `"sm" \| "md" \| "lg" \| "xl" \| "small" \| "medium" \| "large" \| "xlarge"` | — | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted" \| "read-only" \| "disabled" \| "inputted-error" \| "blank-error" \| "error"` | — |  |
+| `leading` | `IconName \| ReactNode` | — | Before the value: an icon name (`"icon-mail-01-line"`, sized to the field) or any node (a unit, a picker). |
+| `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
+| `className` | `string` | — |  |
 
 ### TextAreaField
 Also accepts `Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "size">`.
@@ -140,6 +155,20 @@ Also accepts `Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "size">`.
 | `size` | `Exclude<InputSize, "xlarge" \| "xl">` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
 | `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |
 | `rows` | _HTML attribute_ | `4` |  |
+| `label` | `ReactNode` | — |  |
+| `helpText` | `ReactNode` | — |  |
+| `labelOptional` | `boolean` | — | Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel). |
+| `labelTooltip` | `boolean \| ReactNode` | — |  |
+| `labelAction` | `ReactNode` | — |  |
+| `helpTheme` | `"neutral" \| "negative" \| "warning" \| "positive"` | — | Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative. |
+| `helpIcon` | `boolean` | — | Figma Help-Text `Icon` axis (default on). |
+| `characterLimit` | `ReactNode \| true` | — | Figma Help-Text `Character-Limitation`: custom text (e.g. "12/100"), or `true` to count the value against `maxLength`. |
+| `error` | `ReactNode` | — |  |
+| `errorMessage` | `ReactNode` | — | **Deprecated:** Use error (same meaning).  |
+| `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted" \| "read-only" \| "disabled" \| "inputted-error" \| "blank-error" \| "error"` | — |  |
+| `leading` | `IconName \| ReactNode` | — | Before the value: an icon name (`"icon-mail-01-line"`, sized to the field) or any node (a unit, a picker). |
+| `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
+| `className` | `string` | — |  |
 
 ### AutocompleteField
 Figma Input/Autocomplete-Field (1241:5616): Label, a wrapping Tag list (gap 4, Tag Remove=Yes) and an "Add Item" Button/Main XSmall Secondary that opens Popover/Default (Search + "Search and select" label + items) over the Add slot. Selected options become tags; the popover closes on outside pointer-down or Escape. Removing a tag moves focus to the next tag's Remove button, else the previous tag's, else Add Item.
@@ -186,6 +215,18 @@ Figma `Input/Richtext` (6385:17480): the Editor-Bar (Control-Bar, optional) abov
 | `editorBarTheme` | `"subtle" \| "solid" \| "inverse"` | `"subtle"` | Control-Bar/Select-Item Theme of the bar. |
 | `onFocus` | `(event: FocusEvent<HTMLDivElement>) => void` | — |  |
 | `onBlur` | `(event: FocusEvent<HTMLDivElement>) => void` | — |  |
+| `label` | `ReactNode` | — |  |
+| `helpText` | `ReactNode` | — |  |
+| `labelOptional` | `boolean` | — | Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel). |
+| `labelTooltip` | `boolean \| ReactNode` | — |  |
+| `labelAction` | `ReactNode` | — |  |
+| `helpTheme` | `"neutral" \| "negative" \| "warning" \| "positive"` | — | Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative. |
+| `helpIcon` | `boolean` | — | Figma Help-Text `Icon` axis (default on). |
+| `characterLimit` | `ReactNode \| true` | — | Figma Help-Text `Character-Limitation`: custom text (e.g. "12/100"), or `true` to count the value against `maxLength`. |
+| `error` | `ReactNode` | — |  |
+| `errorMessage` | `ReactNode` | — | **Deprecated:** Use error (same meaning).  |
+| `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted" \| "read-only" \| "disabled" \| "inputted-error" \| "blank-error" \| "error"` | — |  |
+| `className` | `string` | — |  |
 
 ### InputLabel
 Public implementation of Figma's `Primitives/Input/Label` (387:3651): Content (label · optional · tooltip icon, gap 2XSmall) + an optional right-aligned Action. The tooltip icon sits outside the `<label>` so hovering or focusing it never activates the field.

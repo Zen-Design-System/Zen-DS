@@ -24,7 +24,10 @@ const FOCUSABLE_TRIGGERS = ["Button", "IconButton", "button", "a", "Chip", "Link
 // A spread ({...props}) or a template interpolation (${…} in generated code samples) may supply any prop,
 // so presence checks treat it as "maybe present" instead of reporting a false positive.
 // An elided code sample (`<IconButton aria-label="Bold" … />`) may hold any prop too.
-const opaque = (attrs) => /\{\s*\.\.\.|\$\{|…/.test(attrs);
+// `${` counts only outside a JSX expression: in live code `aria-label={`Edit ${name}`}` is an ordinary value (it made
+// requirement checks such as bottom-sheet/choice-uses-list-item see props that were not there, 2026-10-08).
+const interpolatesOutsideExpression = (attrs) => { let depth = 0; for (let i = 0; i < attrs.length; i += 1) { const c = attrs[i]; if (c === "$" && attrs[i + 1] === "{" && depth === 0) return true; if (c === "{") depth += 1; else if (c === "}") depth = Math.max(0, depth - 1); } return false; };
+const opaque = (attrs) => /\{\s*\.\.\.|…/.test(attrs) || interpolatesOutsideExpression(attrs);
 // `has` is strict (used by prohibitions); `present` is lenient (used by requirements).
 const has = (attrs, name) => new RegExp(`(^|[\\s{])${name}(=|\\s|$|/)`).test(attrs);
 const present = (attrs, name) => has(attrs, name) || opaque(attrs);
@@ -32,6 +35,21 @@ const literal = (attrs, name) => attrs.match(new RegExp(`(?:^|\\s)${name}="([^"]
 const expr = (attrs, name) => { const i = attrs.search(new RegExp(`(?:^|\\s)${name}=\\{`)); if (i < 0) return undefined; let d = 0, j = attrs.indexOf("{", i); const s = j; for (; j < attrs.length; j++) { if (attrs[j] === "{") d++; else if (attrs[j] === "}" && --d === 0) break; } return attrs.slice(s + 1, j); };
 const value = (attrs, name) => literal(attrs, name) ?? expr(attrs, name);
 // Top-level attributes only: every {…} expression is collapsed so props of nested elements don't count.
+/** The `{…}` expression of the element's OWN attribute `name` (depth 0 of its attribute text), or null. */
+const ownExpr = (attrs, name) => {
+  let depth = 0;
+  for (let k = 0; k < attrs.length; k++) {
+    const ch = attrs[k];
+    if (ch === "{") depth++;
+    else if (ch === "}") depth--;
+    else if (depth === 0 && attrs.startsWith(`${name}={`, k) && !/[\w-]/.test(attrs[k - 1] ?? " ")) {
+      let d = 0;
+      for (let j = k + name.length + 1; j < attrs.length; j++) { if (attrs[j] === "{") d++; else if (attrs[j] === "}" && --d === 0) return attrs.slice(k + name.length + 2, j); }
+      return null;
+    }
+  }
+  return null;
+};
 const topLevel = (attrs) => { let out = "", depth = 0; for (const ch of attrs) { if (ch === "{") { if (depth++ === 0) out += "{"; } else if (ch === "}") { if (--depth === 0) out += "}"; } else if (depth === 0) out += ch; } return out; };
 const named = (a) => present(a, "aria-label") || present(a, "aria-labelledby");
 const text = (children) => children.replace(/<[^>]*>/g, " ").replace(/\{[^}]*\}/g, " x ").replace(/\s+/g, " ").trim();
@@ -85,8 +103,8 @@ const templateText = (src) => {
   return ranges;
 };
 const inTemplateText = (src, index) => templateText(src).some(([from, to]) => index >= from && index < to);
-/** Component internals get their handlers through props: the rule judges the repo's demo code (platform examples and
- *  playgrounds, templates, fixtures), never src/components, and never apps (repoOnly). */
+/** Component internals get their handlers through props: the rule judges screens and demo code (platform examples and
+ *  playgrounds, templates, fixtures, an app's screens), never a src/components folder (the repo's, or an app's own). */
 const COMPONENT_SOURCE = /(^|[\\/])src[\\/]components[\\/]/;
 /** Action-object props ({ icon?, label, onClick? }): without onClick the action is drawn, focusable, and does nothing.
  *  Dialog, ModalForm, SidePanel and BottomSheet are left out on purpose: they give ModalActions an onDefault that
@@ -341,10 +359,12 @@ function setInteractionProps(apiDocs) {
   }
   // DatePicker with showActions commits through onApply(value, range), which changes value and range too. `range`
   // (DatePickerRange | null) never matches onRangeChange's argument, so it is paired by hand.
-  const datePicker = apiDocs.flatMap((doc) => doc.components ?? []).find((c) => c.name === "DatePicker");
-  if (datePicker?.props?.some((p) => p.name === "onApply")) {
-    CONTROLLED.DatePicker?.value?.push("onApply");
-    if (datePicker.props.some((p) => p.name === "range")) (CONTROLLED.DatePicker ??= {}).range = ["onRangeChange", "onApply"];
+  // DatePickerSheet works the same way: OK applies the draft through onApply.
+  for (const name of ["DatePicker", "DatePickerSheet"]) {
+    const picker = apiDocs.flatMap((doc) => doc.components ?? []).find((c) => c.name === name);
+    if (!picker?.props?.some((p) => p.name === "onApply")) continue;
+    CONTROLLED[name]?.value?.push("onApply");
+    if (picker.props.some((p) => p.name === "range")) (CONTROLLED[name] ??= {}).range = ["onRangeChange", "onApply"];
   }
   controlledComponents.splice(0, controlledComponents.length, ...Object.keys(CONTROLLED).sort());
   handlerComponents.splice(0, handlerComponents.length, ...[...takesHandlers].sort());
@@ -490,8 +510,9 @@ const HEADING_DEFAULT_STYLE = { 1: "Heading/1", 2: "Heading/4", 3: "Heading/Subh
 const TITLE_STYLE = /^(Heading|Display)\/|\/(Bold|Semi-?Bold)$/;
 export const rules = [
   { id: "button/secondary-justified", components: ["Button", "IconButton"], severity: "error", allow: "secondary", guideline: "docs/guidelines/button.md",
-    summary: "Secondary is a rare highlight; default to Primary (main CTA) or Tertiary.",
-    check: ({ attrs }) => /\bsecondary\b/.test(value(attrs, "level") ?? "") && "uses level secondary — use primary (main CTA) or tertiary, or justify with zen-allow-secondary." },
+    summary: "Secondary is a rare highlight; default to Primary (main CTA) or Tertiary. A flat IconButton is exempt: flat Secondary is Figma's quiet ⋮ trigger (Card Sub-Action).",
+    // Flat IconButtons are exempt (backlog batch 6, user 2026-10-07): flat Secondary is the Card Sub-Action ⋮ in Figma.
+    check: ({ tag, attrs }) => /\bsecondary\b/.test(value(attrs, "level") ?? "") && !(tag === "IconButton" && value(attrs, "appearance") === "flat") && "uses level secondary — use primary (main CTA) or tertiary, or justify with zen-allow-secondary." },
   { id: "button/filter-is-chip", components: ["Button", "IconButton"], severity: "error", allow: "filter-button", guideline: "docs/guidelines/chip.md",
     summary: "Filter, sort and scope pickers are Chip (variant=advanced), never buttons.",
     check: ({ attrs, children }) => {
@@ -512,8 +533,8 @@ export const rules = [
   { id: "icon-button/needs-name", components: ["IconButton"], severity: "error", allow: "unnamed", guideline: "docs/guidelines/button.md",
     summary: "Icon-only buttons need an aria-label.",
     check: ({ attrs }) => !named(attrs) && "has no aria-label." },
-  { id: "icon-button/needs-action", components: ["IconButton"], severity: "warn", allow: "no-action", guideline: "docs/guidelines/button.md",
-    summary: "An IconButton does something: it has onClick (or href, or type=\"submit\"), unless it is a Menu trigger (the Menu wires it).",
+  { id: "icon-button/needs-action", components: ["IconButton", "AppShellAction", "AppShellAccount"], severity: "warn", allow: "no-action", guideline: "docs/guidelines/button.md",
+    summary: "An IconButton (and AppShell's top-bar AppShellAction / AppShellAccount) does something: it has onClick (or href, or type=\"submit\"), unless it is a Menu trigger (the Menu wires it).",
     check: ({ attrs, parent, src, start }) => {
       // `${…}` and "…" only make a code sample opaque; in live code aria-label={`Edit ${name}`} is just a label.
       if (["onClick", "href", "onPointerDown", "onMouseDown"].some((name) => has(attrs, name)) || spreadsProps(attrs) || (opaque(attrs) && inTemplateText(src, start)) || /\btype="(submit|reset)"/.test(attrs)) return null;
@@ -571,7 +592,16 @@ export const rules = [
     } },
   { id: "tooltip/focusable-trigger", components: ["Tooltip"], severity: "error", allow: "tooltip-trigger", guideline: "docs/guidelines/tooltip.md",
     summary: "Tooltips wrap a focusable element so keyboard users can reach them.",
-    check: ({ children }) => { const open = children.match(/<([A-Za-z]+)\b([^>]*)>/); const first = open?.[1]; const focusable = /tabIndex=(\{0\}|"0")|role="button"/.test(open?.[2] ?? ""); return first && !focusable && !FOCUSABLE_TRIGGERS.includes(first) && `wraps <${first}>, which is not focusable — wrap a Button/IconButton/link (or give it tabIndex={0} and a name).`; } },
+    check: ({ children }) => {
+      const focusableTag = (name, attrs) => FOCUSABLE_TRIGGERS.includes(name) || /tabIndex=(\{0\}|"0")|role="button"/.test(attrs ?? "");
+      const open = children.match(/<([A-Za-z]+)\b([^>]*)>/);
+      const first = open?.[1];
+      if (!first || focusableTag(first, open[2])) return null;
+      // A wrapper (a Box or Stack the trigger sits in) is fine when a focusable control is inside it: focus bubbles to the
+      // Tooltip, which describes the focused control.
+      if ([...children.matchAll(/<([A-Za-z]+)\b([^>]*)>/g)].slice(1).some((tag) => focusableTag(tag[1], tag[2]))) return null;
+      return `wraps <${first}>, which is not focusable — wrap a Button/IconButton/link (or give it tabIndex={0} and a name).`;
+    } },
   { id: "tooltip/short", components: ["Tooltip"], severity: "warn", allow: "tooltip-length", guideline: "docs/guidelines/tooltip.md",
     summary: "Tooltip text stays under ~80 characters and holds no interactive content.",
     check: ({ attrs }) => (literal(attrs, "content")?.length ?? 0) > 80 && "content is longer than 80 characters — use a Popover or inline help." },
@@ -864,6 +894,12 @@ export const rules = [
   { id: "list-item/clickable-row-toggle", components: ["ListItem"], severity: "warn", allow: "row-toggle", guideline: "docs/guidelines/list-item.md",
     summary: "A clickable row (onClick/href) doesn't also carry a Toggle or Checkbox — the row click and the switch compete. Trailing icon buttons are fine (Figma Slot-Actions).",
     check: ({ attrs }) => (has(topLevel(attrs), "onClick") || has(topLevel(attrs), "href")) && !opaque(attrs) && /<(Toggle|ToggleButton|Checkbox|RadioButton)\b/.test(`${value(attrs, "trailing") ?? ""} ${value(attrs, "leading") ?? ""}`) && "is clickable and also holds a Toggle/Checkbox/Radio (leading or trailing) — an input inside the row button is invalid; keep the row static and let the control own the click." },
+  { id: "list-item/switch-row", components: ["ListItem"], severity: "warn", allow: "switch-row", guideline: "docs/guidelines/list-item.md",
+    summary: "A settings row that is one switch is <ToggleListItem>, not a ListItem with a Toggle in its trailing slot: a press anywhere on the row flips it and the title names the switch.",
+    check: ({ attrs }) => !has(topLevel(attrs), "onClick") && !has(topLevel(attrs), "href") && !opaque(attrs) && /<(Toggle|ToggleButton)\b/.test(value(attrs, "trailing") ?? "") && "holds a switch in its trailing slot — use <ToggleListItem title caption checked onCheckedChange> so the whole row flips it and names it." },
+  { id: "chip/radio-is-chip-group", components: ["Chip"], severity: "warn", allow: "chip-radio", guideline: "docs/guidelines/chip.md",
+    summary: "Chips where exactly one is picked are a <ChipGroup> (radio group: one Tab stop, arrow keys), not Chips given role=\"radio\" by hand.",
+    check: ({ attrs }) => literal(attrs, "role") === "radio" && "is a hand-made radio chip — use <ChipGroup options value onValueChange> (roving focus, arrow keys, aria-checked)." },
   { id: "dock-icon/emoji-needs-glyph", components: ["DockIcon"], severity: "warn", allow: "dock-emoji", guideline: "docs/guidelines/dock-icon.md",
     summary: "Theme=Emoji needs the emoji prop (otherwise a placeholder face renders).",
     check: ({ attrs }) => literal(attrs, "theme") === "emoji" && !present(attrs, "emoji") && "is theme emoji without an emoji." },
@@ -953,7 +989,8 @@ export const rules = [
     check: ({ attrs }) => !named(attrs) && "has no aria-label — screen readers would only hear a generic group name." },
   { id: "metric/formatted-value", components: ["Metric", "MetricCard"], severity: "warn", allow: "metric-format", guideline: "docs/guidelines/metric.md",
     summary: "Metric values are passed pre-formatted with units and separators (\"$1,680.68\", \"2.1%\"), never a raw number.",
-    check: ({ attrs }) => /^\s*-?\d+(\.\d+)?\s*$/.test(expr(attrs, "value") ?? "") && `passes a raw number (${expr(attrs, "value")?.trim()}) — format it with units and separators.` },
+    // Only the Metric's own value: a ProgressBar `value={79}` inside `custom` (or any other nested element) is not it.
+    check: ({ attrs }) => { const own = ownExpr(attrs, "value"); return /^\s*-?\d+(\.\d+)?\s*$/.test(own ?? "") && `passes a raw number (${own.trim()}) — format it with units and separators.`; } },
   { id: "uploader/needs-label", components: ["FileUpload"], severity: "warn", allow: "upload-label", guideline: "docs/guidelines/uploader.md",
     summary: "A File Upload has a visible label saying what to upload.",
     check: ({ attrs }) => !present(attrs, "label") && "has no label." },
@@ -994,6 +1031,9 @@ export const rules = [
   { id: "bottom-sheet/action-needs-items", components: ["BottomSheet"], severity: "error", allow: "sheet-items", guideline: "docs/guidelines/bottom-sheet.md",
     summary: "An Action bottom sheet lists its actions in `items`.",
     check: ({ attrs }) => literal(attrs, "type") === "action" && !present(attrs, "items") && "is type=\"action\" without items — pass the actions as items (or use the Modal type for content)." },
+  { id: "bottom-sheet/choice-uses-list-item", components: ["BottomSheet"], severity: "warn", allow: "sheet-choice", guideline: "docs/guidelines/bottom-sheet.md",
+    summary: "Picking one value in a sheet (Sort by, a time zone) is a Modal sheet holding a List of ListItem rows with the current one `selected` (the house rule the templates follow), not an Action sheet with `selectedId`: Action items are commands.",
+    check: ({ attrs }) => literal(attrs, "type") === "action" && present(attrs, "selectedId") && "is an Action sheet with selectedId — a single choice is a Modal sheet with <List> of <ListItem selected onClick> rows (Action items are commands)." },
   { id: "chat/others-need-author", components: ["ChatMessage"], severity: "warn", allow: "chat-author", guideline: "docs/guidelines/chat.md",
     summary: "Messages from others name their author (avatar + accessible name).",
     check: ({ attrs }) => literal(attrs, "side") === "others" && !present(attrs, "author") && "is from others without an author — pass author={{ name, src }}." },
@@ -1124,8 +1164,10 @@ export const rules = [
     summary: "Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`.",
     check: ({ attrs, children }) => {
       // Template literals in props (`${x.length} files`) and JSX text ({x.length} files); a word followed by "=" is the next prop, not copy.
-      const hits = [...`${attrs}`.matchAll(/\$\{\s*[\w.]+\.length\s*\}\s+([a-z]+)\b(?!\s*=)/gi), ...`${children}`.matchAll(/\{\s*[\w.]+\.length\s*\}\s+([a-z]+)\b(?!\s*=)/gi)];
-      const noun = hits.map((m) => m[1]).find((w) => !/^(of|to|in|on|at|by|for|from|with|and|or|selected|left|more|remaining|out|per|new|total|active|done|open|unread|online|pending|archived|completed|x)$/i.test(w));
+      // Whole words in any script (\p{L}): "phiên" is one word, not "phi". A word with Vietnamese letters is skipped —
+      // Vietnamese nouns do not inflect, so "{n} phiên" is right for every n.
+      const hits = [...`${attrs}`.matchAll(/\$\{\s*[\w.]+\.length\s*\}\s+(\p{L}+)(?!\p{L})(?!\s*=)/giu), ...`${children}`.matchAll(/\{\s*[\w.]+\.length\s*\}\s+(\p{L}+)(?!\p{L})(?!\s*=)/giu)];
+      const noun = hits.map((m) => m[1]).filter((w) => /^[a-z]+$/i.test(w)).find((w) => !/^(of|to|in|on|at|by|for|from|with|and|or|selected|left|more|remaining|out|per|new|total|active|done|open|unread|online|pending|archived|completed|x)$/i.test(w));
       return noun && `prints a count straight before "${noun}" — "1 ${noun}" / "2 ${noun}" can't both be right; use a plural helper (plural(n, "item")).`;
     } },
   { id: "form/actions-order", components: ["FormActions"], severity: "warn", allow: "actions-order", guideline: "docs/guidelines/form.md",
@@ -1264,8 +1306,8 @@ export const rules = [
       if (!actions || /^\s*false\s*$/.test(actions.expr ?? "") || own.has("onApply")) return null;
       return `passes showActions without onApply, so Submit applies nothing the app can read${inCodeSample(src, end) ? " (a code sample: readers copy it)" : ""} — commit the picked value in onApply(value, range); Cancel returns to the applied value by itself.`;
     } },
-  { id: "interaction/action-without-handler", repoOnly: true, components: ["Button", "button", ...new Set([...Object.keys(ACTION_PROPS), ...Object.keys(ITEM_LISTS)])], severity: "warn", allow: "action-handler", guideline: "docs/guidelines/README.md",
-    summary: "Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
+  { id: "interaction/action-without-handler", components: ["Button", "button", ...new Set([...Object.keys(ACTION_PROPS), ...Object.keys(ITEM_LISTS)])], severity: "warn", allow: "action-handler", guideline: "docs/guidelines/README.md",
+    summary: "Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type=\"submit\" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged.",
     check: ({ tag, attrs, children, src, start, end, file }) => {
       if (inTemplateText(src, start) || /@storybook\//.test(src) || COMPONENT_SOURCE.test(file ?? "")) return null; // code samples, stories, component internals
       const own = topAttrs(attrs);

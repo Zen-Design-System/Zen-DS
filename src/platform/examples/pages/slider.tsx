@@ -22,6 +22,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { formatMoney, initials, people, projectById, type PersonId } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./slider.css";
 
 export const page: PlatformPage = "slider";
@@ -275,7 +276,7 @@ function PointsCheckoutExample() {
     return (
       // One key per screen: each step opens at the top; the cart is a tab root with a large title.
       <PlatformPhone key="cart" label="Phin cart" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Cart" largeTitle="Cart" scrollRef={screenRef} />}
+        header={<TopNavigation type="alt" title="Cart" largeTitle="Cart" scrollRef={screenRef} />}
         footer={<ActionBar position="static" summary={<Text as="span" textStyle="Body/Base/Medium">Subtotal {formatMoney(subtotal, true)}</Text>}
           primaryAction={{ label: "Check out", onClick: () => go("checkout", '.zen-top-nav__action[aria-label="Back"]') }} />}>
         {screen.anchor}
@@ -294,7 +295,7 @@ function PointsCheckoutExample() {
   const paid = step === "paid";
   return (
     <PlatformPhone key={step} label="Phin checkout" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title={paid ? "Order placed" : "Checkout"} scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title={paid ? "Order placed" : "Checkout"} scrollRef={screenRef}
         leading={paid ? undefined : { icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => go("cart", ".zen-action-bar .zen-button") }} />}
       footer={paid
         ? <ActionBar position="static" primaryAction={{ label: "Start new order", onClick: () => { setPoints(320); go("cart", ".zen-action-bar .zen-button"); } }} />
@@ -336,7 +337,7 @@ function PointsCheckoutExample() {
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Photo zoom",
     description: "Zoom is tuned by eye, so the crop follows the thumb while it moves; the value beside the slider and Reset zoom make the exact state visible and undoable.",
@@ -386,7 +387,7 @@ export const examples: ExampleDef[] = [
 const setShare = (person, share) => setRows(rows.map((row) => (row.person === person ? { ...row, share } : row)));
 
 const columns: TableColumn<Allocation>[] = [
-  { id: "person", header: "Person", cell: (row) => <TableMedia media={<Avatar size="sm" … />} caption={row.role}>{row.name}</TableMedia> },
+  { id: "person", header: "Person", cell: (row) => <TableMedia bold media={<Avatar size="sm" … />} caption={row.role}>{row.name}</TableMedia> },
   { id: "other", header: "Other projects", align: "right", cell: (row) => <TableText>{row.other}%</TableText> },
   { id: "share", header: "This project", cell: (row) => (
     <Stack direction="row" gap="xs" align="center">
@@ -455,7 +456,7 @@ const total = subtotal - points / 100;
 
 // One key per step (cart, checkout, paid), so each opens at the top; the bar follows the scroll.
 <PlatformPhone key={step} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Checkout" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Checkout" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: toCart }} />}
   footer={<ActionBar position="static" primaryAction={{ label: total > 0 ? \`Pay \${formatMoney(total)}\` : "Place order", onClick: pay }} />}>
 <Heading level={2} id={labelId} textStyle="Body/Small/Bold" tone="light">Use Phin points</Heading>
@@ -470,4 +471,4 @@ const total = subtotal - points / 100;
 </PlatformPhone>
 // Points can cover the whole order: then the action places it without a payment.`,
   },
-];
+]);

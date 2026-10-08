@@ -7,6 +7,7 @@ import path from "node:path";
 import { guidelines, keyboard } from "./guidelines.source.mjs";
 import { rules, setDeprecatedProps } from "./check-usage.mjs";
 import { buildApi, compactProps } from "../../scripts/build-api.mjs";
+import { checkUnions } from "./check-unions.mjs";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const outDir = path.join(root, "docs/guidelines");
@@ -17,13 +18,13 @@ const list = (items) => items.map((item) => `- ${safe(item)}`).join("\n");
 // JSX tags each guideline covers: a page lists every rule that checks its components,
 // not only the rules whose primary guideline is this file (e.g. Toggle shows choice/needs-label).
 const tagsFor = {
-  button: ["Button", "IconButton"], chip: ["Chip"], input: ["InputField", "SelectField", "DateField", "NumberField", "TextAreaField", "AutocompleteField", "RichTextField"],
+  button: ["Button", "IconButton"], chip: ["Chip", "ChipGroup"], input: ["InputField", "SelectField", "DateField", "NumberField", "TextAreaField", "AutocompleteField", "RichTextField"],
   search: ["Search"], segmented: ["Segmented"], toggle: ["Toggle"], checkbox: ["Checkbox"], "radio-button": ["RadioButton"], badge: ["Badge", "BadgeCounter"], tag: ["Tag"],
-  avatar: ["Avatar", "AvatarStack"], popover: ["Popover"], sidebar: ["Sidebar"], "date-picker": ["DatePicker", "DateField"], tooltip: ["Tooltip"], tabs: ["Tabs"],
+  avatar: ["Avatar", "AvatarStack"], popover: ["Popover"], sidebar: ["Sidebar"], "date-picker": ["DatePicker", "DateField", "DatePickerSheet"], tooltip: ["Tooltip"], tabs: ["Tabs"],
   breadcrumbs: ["Breadcrumbs"], progress: ["ProgressBar", "ProgressCircle"], dialog: ["Dialog", "ModalForm"], icon: ["Icon"],
   toast: ["Toast", "ToastStack", "ToastProvider"], "alert-banner": ["AlertBanner"], accordion: ["Accordion"], pagination: ["Pagination"], skeleton: ["SkeletonText", "SkeletonHeading", "SkeletonShape"],
   divider: ["Divider"], "inline-message": ["InlineMessage"], "empty-state": ["EmptyState"], stepper: ["Stepper"], slider: ["Slider"],
-  card: ["Card"], "dock-icon": ["DockIcon"], "list-item": ["List", "ListItem", "ListBox"], table: ["Table"],
+  card: ["Card"], "dock-icon": ["DockIcon"], "list-item": ["List", "ListItem", "ListBox", "ToggleListItem"], table: ["Table"],
   rating: ["Rating", "RatingDisplay", "OpinionScale", "NpsScale"], "color-selector": ["ColorSelector"], metric: ["Metric", "MetricCard", "MetricTrend"], uploader: ["FileUpload", "UploaderFileItem"], "side-panel": ["SidePanel"], "top-navigation": ["TopNavigation"], "bottom-navigation": ["BottomNavigation"], "bottom-sheet": ["BottomSheet"], chat: ["ChatMessage", "ChatComposer", "ChatThread", "ChatConversationItem", "ChatComposerReply", "ChatReplyQuote", "ChatEmojiPicker", "ChatReactorsPanel"], "ai-chat": ["AiChatBubble", "AiChatField", "AiChatBlock"], chart: ["LineChart", "StackBarChart", "ChartCard"], "file-icon": ["FileIcon"], flag: ["Flag"], provider: ["ZenProvider", "ZenPortalProvider"], layout: ["Stack", "Grid", "Box", "Container"], text: ["Text", "Heading"], "app-shell": ["AppShell", "AppShellAction", "AppShellAccount"], "page-header": ["PageHeader"], link: ["Link"], menu: ["Menu", "MenuItem", "MenuSeparator", "MenuGroup"], form: ["Form", "FormField", "FormFieldset", "FormActions"], "description-list": ["DescriptionList", "DescriptionItem"], "action-bar": ["ActionBar"], image: ["Image", "Thumbnail"], "visually-hidden": ["VisuallyHidden"],
 };
 // Props API from the TSX source (react-docgen): docs/api/<slug>.json, a Props table per page, compact lines in index.json.
@@ -167,7 +168,11 @@ if (orphans.length) { console.error(`✗ Rules without a guideline file: ${orpha
 if (process.argv.includes("--check")) {
   const stale = [...files].filter(([file, content]) => !fs.existsSync(file) || fs.readFileSync(file, "utf8") !== content).map(([file]) => path.relative(root, file));
   if (stale.length) { console.error(`✗ Guidelines are stale: ${stale.join(", ")}. Run npm run guidelines:build.`); process.exit(1); }
-  console.log(`✓ Guidelines up to date (${guidelines.length} components).`);
+  // Documented unions must list exactly the TS type's members (check-unions.mjs, backlog batch 9).
+  const types = Object.assign({}, ...[...api.bySlug.values()].map((entry) => entry.types ?? {}));
+  const unions = checkUnions(api.components, types, root);
+  if (unions.mismatches.length) { console.error(`✗ Documented unions differ from the TypeScript source:\n  ${unions.mismatches.join("\n  ")}\nFix scripts/build-api.mjs (or the type), then npm run guidelines:build.`); process.exit(1); }
+  console.log(`✓ Guidelines up to date (${guidelines.length} components; ${unions.checked} documented unions match the source, ${unions.skipped} not resolvable).`);
 } else {
   fs.mkdirSync(outDir, { recursive: true });
   for (const [file, content] of files) { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, content); }

@@ -331,7 +331,7 @@ export function pasteCodePlan(ctx, nodePath, op, h) {
   const { edit, placed, within } = place(ctx, h, parent, entries, at, { part: piece(wrapped, fragment, elements[0].start, elements.at(-1).end), name }, name);
   const edits = [...placed.edits];
   if (replaced) edits.push(...replacing(ctx, h, replaced));
-  const hooks = h.hookEdits(ctx, nodePath, { toast, statements: state.statements });
+  const hooks = h.hookEdits(ctx, nodePath, { toast, statements: state.statements, react: state.react });
   edits.push(...hooks.edits);
   if (hooks.useToast) needed.push("useToast");
   if (media) edits.push(...h.mediaImportEdits(ctx));
@@ -397,7 +397,7 @@ export function replacePlan(ctx, nodePath, op, h) {
   const body = src.split("\n").map((line, index) => (index === 0 || !line ? line : `${indent}${line}`)).join(ctx.eol);
   const edit = { start: element.start, end: element.end, text: body };
   const edits = [edit];
-  const hooks = h.hookEdits(ctx, nodePath, { toast, statements: state.statements });
+  const hooks = h.hookEdits(ctx, nodePath, { toast, statements: state.statements, react: state.react });
   edits.push(...hooks.edits);
   if (hooks.useToast) needed.push("useToast");
   if (media) edits.push(...h.mediaImportEdits(ctx));
@@ -415,14 +415,17 @@ export function replacePlan(ctx, nodePath, op, h) {
 /**
  * The plan for op many { action, locs, ops?, opsByLoc? } (a multi-selection, Figma: Delete / ⌘D / a property on several
  * layers): every element at `locs` (one file) is removed, duplicated (each copy right after it) or given the same `ops`
- * (setProp / removeProp) in one edit, one undo step. `opsByLoc` gives an element its own ops instead (Reset all
+ * (setProp / removeProp) in one edit, one undo step; `move` with `to` ("prev" / "next") steps them among their siblings
+ * (manyMovePlan); `moveTo` with `parent`, `before`/`after` and `copy` drops them all into one place, together in
+ * source order (manyMoveToPlan: a multi-layer drag). `opsByLoc` gives an element its own ops instead (Reset all
  * overrides on an instance and its nested instances, GĐ4 M3). An element inside another listed one goes with it. The
- * answer: removed: true, inserted: { loc } (the first copy) or updated: true.
+ * answer: removed: true, inserted: { loc, locs } (the first copy; each original's loc → its copy's), moved: { loc, locs }
+ * (old loc → new loc) or updated: true.
  */
 export function manyPlan(ctx, nodePath, op, h) {
   const { ast, text } = ctx;
   const action = op.action;
-  if (!["remove", "duplicate", "setProps"].includes(action)) h.refuse('many needs `action`: "remove", "duplicate" or "setProps"');
+  if (!["remove", "duplicate", "setProps", "move", "moveTo"].includes(action)) h.refuse('many needs `action`: "remove", "duplicate", "setProps", "move" or "moveTo"');
   if (!Array.isArray(op.locs) || !op.locs.length || op.locs.length > 200 || op.locs.some((loc) => typeof loc !== "string" || !parseLoc(loc))) h.refuse("many needs `locs`: the \"<line>:<column>\" of each layer (200 at most)");
   const elements = [...new Set(op.locs)].map((loc) => {
     const element = findElement(ast, parseLoc(loc));
@@ -447,6 +450,8 @@ export function manyPlan(ctx, nodePath, op, h) {
     }
     return { edits: [{ start: 0, end: text.length, text: next }], focus: null, answer: "updated", snippet: () => ({ reason: "a change on several layers is not copied into the example snippet; update it by hand" }) };
   }
+  if (action === "move") return manyMovePlan(ctx, outer, op.to, h);
+  if (action === "moveTo") return manyMoveToPlan(ctx, outer, op, h);
   const plans = outer.map((element) => {
     const path = pathTo(ast.program, element);
     if (!path) h.refuse("A layer is not in the file's tree", "not-found");
@@ -461,5 +466,173 @@ export function manyPlan(ctx, nodePath, op, h) {
     if (sorted[k].start < sorted[k - 1].end) h.refuse("Two of the layers share code (one is inside a condition or a list of the other); change them one at a time");
   }
   if (action === "remove") return { edits, focus: null, answer: "removed", snippet: () => ({ reason: "removing several layers is not copied into the example snippet; update it by hand" }) };
-  return { edits, focus: plans[0].focus, answer: "inserted", snippet: () => ({ reason: "duplicating several layers is not copied into the example snippet; update it by hand" }) };
+  // Each copy's loc by its original's (2026-10-08: the client selects every copy, as Figma does after ⌘D).
+  const focuses = plans.map((plan, k) => ({ ...plan.focus, from: locOfElement(outer[k]) }));
+  return { edits, focus: focuses[0], focuses, answer: "inserted", snippet: () => ({ reason: "duplicating several layers is not copied into the example snippet; update it by hand" }) };
+}
+
+/** "<line>:<column>" of an element's opening tag. */
+const locOfElement = (element) => `${element.openingElement.loc.start.line}:${element.openingElement.loc.start.column}`;
+
+/**
+ * op many moveTo { parent, before?, after?, copy? } (a drag of several layers, Figma: they land together): the same rules
+ * as one moveTo for each layer (children only, not into itself, cloned parents, text parents, keys on a copy, every name
+ * it reads the same where it lands), then one edit that removes them (a move) and puts them, in source order, one after
+ * the other at the place. The answer (slots.mjs from `focuses`): moved / inserted { loc, locs: old loc → new loc }.
+ */
+function manyMoveToPlan(ctx, outer, op, h) {
+  const { text, ast, eol } = ctx;
+  const copy = op.copy === true;
+  if (op.copy !== undefined && typeof op.copy !== "boolean") h.refuse("`copy` must be true or false");
+  if (op.replace !== undefined && op.replace !== null) h.refuse("Several layers do not replace one; drop them beside it");
+  const { parent, parentName, parentPath } = destination(ctx, h, op.parent);
+  const { entries, at } = positionIn(ctx, h, parent, parentName, op);
+  const layers = outer.map((element) => {
+    const nodePath = pathTo(ast.program, element);
+    if (!nodePath) h.refuse("A layer is not in the file's tree", "not-found");
+    const name = jsxName(element.openingElement.name);
+    const what = `<${name}>`;
+    const local = { ...ctx, element };
+    h.guard(local, nodePath, "moveElement");
+    let i = nodePath.length - 1;
+    while (i > 0 && h.TS_WRAPPERS.has(nodePath[i - 1].type)) i -= 1;
+    let unit = nodePath[i];
+    let holderAt = i - 1;
+    if (nodePath[holderAt]?.type === "JSXExpressionContainer" && (nodePath[i - 2]?.type === "JSXElement" || nodePath[i - 2]?.type === "JSXFragment")) {
+      unit = nodePath[holderAt];
+      holderAt -= 1;
+    }
+    const holder = nodePath[holderAt];
+    if (holder?.type !== "JSXElement" && holder?.type !== "JSXFragment") h.refuse(`${what} sits in ${holder?.type === "JSXAttribute" ? "a prop" : h.WHERE[holder?.type] ?? "code the Studio does not restructure"}; only an element's children can be ${copy ? "copied" : "moved"} together. Edit it in the code.`);
+    if (element.start <= parent.start && parent.end <= element.end) h.refuse(`${what} cannot go inside itself.`);
+    clonedPlace(h, element, nodePath, holderAt, parent, copy);
+    landing(h, name, parent, parentName);
+    if (copy && element.openingElement.attributes.some((attr) => attr.type === "JSXAttribute" && jsxName(attr.name) === "key")) h.refuse(`${what} has a key; a copy would repeat it. Edit it in the code.`);
+    for (const used of freeNames(element, h.patternNames, h.FUNCTION_TYPES)) {
+      const here = h.bindingOf(nodePath, used);
+      const there = h.bindingOf(parentPath, used);
+      if (!sameBinding(here, there)) h.refuse(`${what} uses \`${used}\` (${here?.what ?? "a global"}), which ${there ? "is something else" : "does not exist"} inside <${parentName}>; ${copy ? "copy" : "move"} it in the code.`);
+    }
+    const marker = h.detachMarker(holder, unit);
+    const start = marker && /^\s*$/.test(text.slice(marker.end, unit.start)) ? marker.start : element.start;
+    return { element, nodePath, name, unit, part: piece(text, element, start, element.end), lead: countLines(text.slice(start, element.start)) };
+  });
+  // The place names a child that stays (a moving one has no place left to be beside).
+  const own = layers.map((layer) => entries.findIndex((entry) => entry.node === layer.unit || entry.node === layer.element));
+  const named = op.before ?? op.after;
+  if (named && !copy && layers.some((layer) => { const inner = findElement(ast, parseLoc(named)); return inner && layer.element.start <= inner.start && inner.end <= layer.element.end; })) h.refuse("Drop them beside a layer that is not moving.");
+  if (!copy && own.every((k) => k >= 0)) {
+    const sorted = [...own].sort((a, b) => a - b);
+    if (sorted.every((k, n) => k === sorted[0] + n) && at >= sorted[0] && at <= sorted.at(-1) + 1) h.refuse("The layers are already there.");
+  }
+  // One block of code: each layer's text with its own indentation taken off, one after the other.
+  let lines = 0;
+  const protect = new Set();
+  const starts = [];
+  const blocks = layers.map((layer) => {
+    const flat = h.reindent(layer.part, "", eol);
+    for (const index of layer.part.protect) protect.add(lines + index);
+    starts.push(lines + layer.lead);
+    lines += countLines(flat) + 1;
+    return flat;
+  });
+  const block = { src: blocks.join(eol), base: "", protect };
+  const first = layers[0];
+  const { edit, placed } = place(ctx, h, parent, entries, at, { part: block, name: first.name }, first.name);
+  const removed = copy ? [] : layers.flatMap((layer) => h.removal({ ...ctx, element: layer.element }, layer.nodePath, layer.nodePath.length - 1, `<${layer.name}>`).edits);
+  for (const gone of removed) {
+    if (gone.start < edit.start && edit.start < gone.end) h.refuse("The layers cannot be dropped there (inside the code they leave).");
+  }
+  const sorted = [...removed].sort((a, b) => a.start - b.start);
+  for (let k = 1; k < sorted.length; k += 1) {
+    if (sorted[k].start < sorted[k - 1].end) h.refuse("Two of the layers share code (one is inside a condition or a list of the other); move them one at a time");
+  }
+  // Each layer's opening tag in the placed text: the start of its line within the block, past the indentation.
+  const origin = placed.focus.within;
+  const focuses = layers.map((layer, k) => {
+    let offset = origin;
+    for (let n = 0; n < starts[k]; n += 1) offset = edit.text.indexOf("\n", offset) + 1;
+    while (edit.text[offset] === " " || edit.text[offset] === "\t") offset += 1;
+    const within = edit.text.startsWith(`<${layer.name}`, offset) ? offset : edit.text.indexOf(`<${layer.name}`, offset);
+    return { edit, within, name: layer.name, from: locOfElement(layer.element) };
+  });
+  return {
+    edits: [...removed, ...placed.edits],
+    focus: focuses[0],
+    focuses,
+    answer: copy ? "inserted" : "moved",
+    snippet: () => ({ reason: `${copy ? "copying" : "moving"} several layers is not copied into the example snippet; update it by hand` }),
+  };
+}
+
+const countLines = (value) => (value.match(/\r\n|\n|\r/g) ?? []).length;
+
+/**
+ * Arrow keys on several layers of one parent (Figma's reorder in auto layout): each selected child takes one place
+ * earlier (`prev`) or later (`next`), stepping over the unselected sibling next to it; a run of selected children moves
+ * as a block, and one already at the edge stays (only when none can move it is refused). Each child's place is rewritten
+ * with the child that lands there (a detach marker above a child moves with it). The answer: moved { loc, locs }, `locs`
+ * mapping each moved layer's loc before the move to its loc after (a layer inside another selected one is not listed).
+ */
+function manyMovePlan(ctx, outer, to, h) {
+  const { ast, text, eol } = ctx;
+  if (to !== "prev" && to !== "next") h.refuse('move needs `to`: "prev" or "next"');
+  let parent = null;
+  const nodes = outer.map((element) => {
+    const path = pathTo(ast.program, element);
+    if (!path) h.refuse("A layer is not in the file's tree", "not-found");
+    h.guard({ ...ctx, element }, path, "moveElement");
+    let i = path.length - 1;
+    if (path[i - 1]?.type === "JSXExpressionContainer") i -= 1;
+    const holder = path[i - 1];
+    const what = `<${jsxName(element.openingElement.name)}>`;
+    if (holder?.type !== "JSXElement" && holder?.type !== "JSXFragment") h.refuse(`${what} is not one of an element's children (it sits in ${holder?.type === "JSXAttribute" ? "a prop" : h.WHERE[holder?.type] ?? "code"}); only children move.`);
+    if (parent && holder !== parent) h.refuse("The layers sit in different parents; select layers of one parent to move them with the arrow keys");
+    parent = holder;
+    return path[i];
+  });
+  const siblings = parent.children.filter((child) => child.type !== "JSXText" && !h.isComment(child));
+  const picked = new Set(nodes);
+  const order = [...siblings];
+  // Figma's step: walking toward the edge, a selected child swaps with the unselected one beside it.
+  const step = to === "prev" ? 1 : -1;
+  for (let k = to === "prev" ? 1 : order.length - 2; k >= 0 && k < order.length; k += step) {
+    const other = k - step;
+    if (picked.has(order[k]) && !picked.has(order[other])) [order[k], order[other]] = [order[other], order[k]];
+  }
+  if (order.every((child, k) => child === siblings[k])) {
+    const holder = parent.type === "JSXFragment" ? "its fragment" : `<${jsxName(parent.openingElement.name)}>`;
+    h.refuse(`The layers are already the ${to === "prev" ? "first" : "last"} items in ${holder}.`);
+  }
+  const unitOf = (child) => {
+    const marker = h.detachMarker(parent, child);
+    const start = marker && /^\s*$/.test(text.slice(marker.end, child.start)) ? marker.start : child.start;
+    return { start, end: child.end, part: piece(text, child, start, child.end) };
+  };
+  const units = siblings.map(unitOf);
+  // Every place that changes, and every selected child's place (its loc is read from its edit).
+  const edits = [];
+  const editOf = new Map();
+  siblings.forEach((child, k) => {
+    const landing = order[k];
+    if (landing === child && !picked.has(landing)) return;
+    const from = units[siblings.indexOf(landing)];
+    const edit = { start: units[k].start, end: units[k].end, text: h.reindent(from.part, units[k].part.base, eol) };
+    edits.push(edit);
+    editOf.set(landing, { edit, base: units[k].part.base });
+  });
+  const focuses = outer.map((element, k) => {
+    const node = nodes[k];
+    const { edit, base } = editOf.get(node);
+    const ownText = h.reindent(piece(text, element), base, eol);
+    const from = `${element.openingElement.loc.start.line}:${element.openingElement.loc.start.column}`;
+    return { edit, within: edit.text.length - ownText.length - (node.end - element.end), name: jsxName(element.openingElement.name), from };
+  });
+  return {
+    edits,
+    focus: focuses[0],
+    focuses,
+    answer: "moved",
+    snippet: () => ({ reason: "moving several layers is not copied into the example snippet; update it by hand" }),
+  };
 }

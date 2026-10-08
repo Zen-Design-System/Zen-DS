@@ -19,9 +19,10 @@ import "./nested.css";
  * type from their literal. Writes go through op setField, so the rest of the object stays as written.
  */
 
-export type ShapedProp = { spec: PropSpec; shape: AttrShape };
+/** `via`: the shape is a same-file const's literal (`options={countries}`), edited there. */
+export type ShapedProp = { spec: PropSpec; shape: AttrShape; via?: { name: string; line: number } };
 
-type Group = { key: string; prop: string; index?: number; title: string; meta?: string; object: ObjectShape; fields: FieldSpec[]; list?: { count: number; last: boolean; literal: boolean } };
+type Group = { key: string; prop: string; index?: number; title: string; meta?: string; object: ObjectShape; fields: FieldSpec[]; list?: { count: number; last: boolean; literal: boolean }; via?: { name: string; line: number } };
 type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
 
 /** An editor for a field the type does not list, from the literal written there. */
@@ -86,19 +87,20 @@ export function ObjectProperties({ component, props, api, only, selection }: { c
 
   const groups = useMemo(() => {
     const out: Group[] = [];
-    for (const { spec, shape } of props) {
+    for (const { spec, shape, via } of props) {
       const label = propLabel(spec.name, component);
       if (shape.type === "object") {
         const schema = objectSchemaOf(spec.type, types, "object");
-        out.push({ key: spec.name, prop: spec.name, title: label, meta: schema?.typeName || undefined, object: shape, fields: groupFields(shape, schema?.fields ?? null) });
+        out.push({ key: spec.name, prop: spec.name, title: label, meta: schema?.typeName || undefined, object: shape, fields: groupFields(shape, schema?.fields ?? null), via });
       } else {
         const schema = objectSchemaOf(spec.type, types, "array");
-        // Item ops count the array literal's items: only a list of plain objects changes from here.
-        const literal = shape.items.every((item) => item.type === "object");
+        // Item ops count the array literal's items: only a list of plain objects written in place changes from here (a
+        // const's list edits field by field; its items stay as the code writes them).
+        const literal = !via && shape.items.every((item) => item.type === "object");
         shape.items.forEach((item, index) => {
           if (item.type !== "object") return;
           const list = { count: shape.items.length, last: index === shape.items.length - 1, literal };
-          out.push({ key: `${spec.name}#${index}`, prop: spec.name, index, title: `${label} · ${index + 1}`, meta: itemName(item), object: item, fields: groupFields(item, schema?.fields ?? null), list });
+          out.push({ key: `${spec.name}#${index}`, prop: spec.name, index, title: `${label} · ${index + 1}`, meta: itemName(item), object: item, fields: groupFields(item, schema?.fields ?? null), list, via });
         });
       }
     }
@@ -153,6 +155,9 @@ export function ObjectProperties({ component, props, api, only, selection }: { c
               })()}
             </div>
           )}
+          {group.via && (group.index === undefined || group.index === 0) ? (
+            <p className={`studio-object__via ${typographyStyles["Caption/Regular"]}`}>Written in const {group.via.name} (line {group.via.line}): an edit changes every place that reads it.</p>
+          ) : null}
           {group.fields.map((field) => {
             const written = group.object.fields.find((candidate) => candidate.key === field.name);
             const value = overrides[`${group.key}.${field.name}`] ?? valueOfField(written);

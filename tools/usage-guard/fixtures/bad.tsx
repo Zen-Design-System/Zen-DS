@@ -146,6 +146,10 @@ export const Bad = () => <>
   <RichTextField label="Announcement" onChange={handle} />
   {/* expect: card/clickable-no-nested-controls */}
   <Card onClick={open}><Button level="tertiary" onClick={edit}>Edit</Button></Card>
+  {/* expect: list-item/switch-row */}
+  <ListItem title="Daily digest" trailing={<ToggleButton aria-label="Daily digest" />} />
+  {/* expect: chip/radio-is-chip-group */}
+  <Chip variant="normal" role="radio" aria-checked onClick={act}>Daily</Chip>
   {/* expect: list-item/clickable-row-toggle */}
   <ListItem title="Wi-Fi" onClick={open} trailing={<ToggleButton aria-label="Wi-Fi" selected={on} onSelectedChange={setOn} />} />
   {/* expect: dock-icon/emoji-needs-glyph */}
@@ -208,6 +212,8 @@ export const Bad = () => <>
   <TopNavigation title="Files" largeTitle="Files" largeTitleAction={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, { icon: "icon-star-01-line", label: "Favourite", onClick: favourite }, { icon: "icon-trash-line", label: "Delete", onClick: remove }]} />
   {/* expect: bottom-navigation/destinations */}
   <BottomNavigation value="a" onValueChange={go} items={[{ id: "a", label: "Home", icon: "icon-home-smile-line" }, { id: "b", label: "Me", icon: "icon-user-line" }]} />
+  {/* expect: bottom-sheet/choice-uses-list-item */}
+  <BottomSheet open={open} onOpenChange={setOpen} title="Sort by" type="action" items={sorts} selectedId={sort} onSelect={pick} />
   {/* expect: bottom-sheet/action-needs-items */}
   <BottomSheet open={open} onOpenChange={setOpen} type="action" title="Share" />
   {/* expect: chat/others-need-author */}
@@ -232,6 +238,10 @@ export const Bad = () => <>
   <ColorSelector aria-label="Label colour" colors={[{ value: "#2563eb", label: "Blue" }, { value: "#16a34a", label: "Green" }]} />
   {/* expect: icon/size-token */}
   <Icon name="icon-check-line" size="small" decorative />
+  {/* expect: icon-button/needs-action */}
+  <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot />
+  {/* expect: icon-button/needs-action */}
+  <AppShellAccount name="Ava Chen" />
   {/* expect: copy/plural-count */}
   <Text tone="light">{results.length} places</Text>
   {/* expect: navigation/back-chevron */}

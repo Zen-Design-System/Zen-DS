@@ -1,4 +1,5 @@
 import api from "../../api.generated.json";
+import { zenComponents } from "../builder/engine";
 import { contentTones } from "../../../components/_shared/contentTone";
 import { normalizeScale, zenScale, type ZenScaleInput } from "../../../components/_shared/scale";
 import { iconNames } from "../../../icons/generated/names";
@@ -80,7 +81,8 @@ export type NodeKind = "zen" | "primitive" | "local" | "element";
 export function nodeKind(name: string): NodeKind {
   if (!/^[A-Z]/.test(name)) return "element";
   if (layoutPrimitives.has(name)) return "primitive";
-  return componentSchema(name) ? "zen" : "local";
+  // A library export without an API page (ZenPortal: react-docgen does not read it) is still the library's.
+  return componentSchema(name) || zenComponents.has(name) ? "zen" : "local";
 }
 
 export const kindLabel = (kind: NodeKind) => ({ zen: "Zen component", primitive: "Layout primitive", local: "Local component", element: "HTML element" })[kind];
@@ -109,7 +111,6 @@ const propLabels: Record<string, string> = {
 const componentPropLabels: Record<string, Record<string, string>> = {
   FormActions: { sticky: "Pin to bottom", inset: "Side inset" },
   TopNavigation: { sticky: "Pin to top" },
-  List: { inset: "Row inset" },
 };
 
 /** Components whose `as` picks the HTML element they render (a list of tags); elsewhere (Link, ZenProvider) it takes a

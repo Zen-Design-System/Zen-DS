@@ -11,6 +11,7 @@
 .studio-object__icon { display: inline-flex; flex: 0 0 auto; color: var(--zen-color-content-neutral-base); }
 .studio-object__title { min-width: 0; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio-object__meta { min-width: 0; flex: 1 1 auto; overflow: hidden; color: var(--zen-color-content-neutral-base); text-overflow: ellipsis; white-space: nowrap; }
+.studio-object__via { margin: 0; color: var(--zen-color-content-neutral-light); }
 /* An array item's move / remove buttons at the end of its header, and "Add item" (a copy of the last) after the list. */
 .studio-object__actions { display: inline-flex; flex: 0 0 auto; margin-inline-start: auto; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .studio-object__add { justify-self: start; }

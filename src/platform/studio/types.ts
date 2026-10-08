@@ -134,6 +134,8 @@ export type SourceAttr = {
   line: number;
   /** An object or array literal written in place (`leading={{ … }}`, `trailing={[{ … }]}`): its fields, edited by op setField. */
   shape?: AttrShape;
+  /** The shape is a same-file const's literal (`options={countries}`): its name and line (op setField edits it there). */
+  shapeVia?: { name: string; line: number };
   /**
    * A bare identifier that reads `const [name, setName] = useState(<literal>)` in an enclosing function: its initial state,
    * which op setStateInit edits (the binding, and so the component's behaviour, stays).
@@ -150,6 +152,11 @@ export type SourceAttr = {
   origin?: { kind: "bound-state" | "loop-bound" | "bound-value"; reads: string[]; rows?: number };
   /** Where the value is written as data, and whether op setDataField can edit it there (tools/studio/data-source.mjs). */
   dataSource?: DataSource;
+  /**
+   * Only on a SourceElement.savedAttributes entry: the attribute the saved file writes right after this one ("…" for a
+   * spread; absent when it is the last), so setProp `before` puts a restored prop back in its place (a playground).
+   */
+  next?: string;
 };
 
 /**
@@ -208,6 +215,11 @@ export type SourceElement = {
   /** Char offsets of the element in the file's text (without a BOM): its exact code for ⌘C (dev server, 2026-10-03). */
   range?: { start: number; end: number };
   /**
+   * The useState values its code reads from its component (literal initial state, `set` + Name setter): a ⌘C carries
+   * them, so a paste into another file declares them there (op pasteCode `state`; 2026-10-08). Absent when none.
+   */
+  stateReads?: StateDecl[];
+  /**
    * The saved file's version of each attribute the draft changed (GET /element on a drafted file, 2026-10-05): the
    * attribute as saved, or null when the saved element does not write it. Lets a reset put a binding back
    * (`status={one.online}` after a fixed value) and a presence toggle restore what it removed.
@@ -226,10 +238,20 @@ export type EditValue =
  * A useState value inserted code reads (`name` and `set` + Name): `initial` is a literal, `type` built-in type words
  * (`string[]`). The server declares it in the enclosing component (tools/studio/slots.mjs stateFor).
  */
-export type StateDecl = { name: string; initial: string; type?: string };
+export type StateDecl = {
+  name: string;
+  initial: string;
+  type?: string;
+  /** A ref instead (`const name = useRef<type>(null)`, `type` an HTML…Element, `initial` "null"): Popover's anchor. */
+  ref?: true;
+};
 
 export type EditOp =
-  | { op: "setProp"; name: string; value: EditValue }
+  /**
+   * `before` (a new attribute only): it goes in front of that written attribute ("…": the first spread) instead of at the
+   * end, so a prop put back where the saved file had it leaves no reordered draft (playgrounds refuse resetSlot).
+   */
+  | { op: "setProp"; name: string; value: EditValue; before?: string }
   | { op: "removeProp"; name: string }
   /** Attribute `name` reads a useState(<literal>) (SourceAttr.state): `value` becomes that initial state. */
   | { op: "setStateInit"; name: string; value: EditValue }
@@ -310,8 +332,10 @@ export type EditOp =
   /**
    * A multi-selection in one file, one edit: every element at `locs` removed, duplicated (each copy after it) or given
    * the same setProp / removeProp `ops`. `hash` required. Answer: `removed`, `inserted.loc` (first copy) or `updated`.
+   * Duplicate also answers `inserted.locs` (each original's loc → its copy's) where the server has it; "moveTo" (a
+   * drag of several layers: `parent`, `before` / `after`, `copy` as op moveTo) answers `moved` / `inserted` { loc, locs }.
    */
-  | { op: "many"; action: "remove" | "duplicate" | "setProps"; locs: string[]; ops?: EditOp[]; opsByLoc?: Record<string, EditOp[]> }
+  | { op: "many"; action: "remove" | "duplicate" | "setProps" | "move" | "moveTo"; locs: string[]; ops?: EditOp[]; opsByLoc?: Record<string, EditOp[]>; to?: "prev" | "next"; parent?: string; before?: string; after?: string; copy?: boolean }
   /** Figma "Delete contents": empty the host's `prop` slot (omitted: children); `hash` required. Answer: `cleared`. */
   | { op: "clearSlot"; prop?: string }
   /** Figma "Reset slot": the host's `prop` slot (omitted: children) back to the saved file; `hash` required. Answer: `reset`. */
@@ -352,7 +376,7 @@ export type StudioSnippetSync = { synced: boolean; reason?: string };
  * without drafts, or a draft that matched the disk again and was dropped).
  */
 export type EditResponse =
-  | { ok: true; file: string; hash: string; hashBefore: string; before: string; after: string; changed: { from: number; to: number }; snippet?: StudioSnippetSync; detached?: { component: string; loc: string; approximations: string[] }; wrapped?: { loc: string }; unwrapped?: { loc: string }; inserted?: { loc: string }; moved?: { loc: string }; removed?: true; cleared?: true; reset?: true; draft?: boolean }
+  | { ok: true; file: string; hash: string; hashBefore: string; before: string; after: string; changed: { from: number; to: number }; snippet?: StudioSnippetSync; detached?: { component: string; loc: string; approximations: string[] }; wrapped?: { loc: string }; unwrapped?: { loc: string }; inserted?: { loc: string; locs?: Record<string, string> }; moved?: { loc: string; locs?: Record<string, string> }; removed?: true; cleared?: true; reset?: true; draft?: boolean }
   | { ok: false; code: "stale" | "not-found" | "forbidden" | "invalid"; error: string }
   /** A structural edit in shared code waits for the person's yes: `uses` files import it (`users`: the first few). */
   | { ok: false; code: "confirm"; error: string; uses?: number; users?: string[] };

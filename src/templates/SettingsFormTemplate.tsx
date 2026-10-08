@@ -152,6 +152,9 @@ export function SettingsFormTemplate() {
   const phone = useZen()?.breakpoint === "mobile";
   const formId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
+  // Save and Discard turn off once used, so focus moves to the bar's status line (it says what happened) instead of
+  // dropping to <body> with the disabled button.
+  const statusRef = useRef<HTMLElement>(null);
   const [saved, setSaved] = useState(savedProfile);
   const [savedOnce, setSavedOnce] = useState(false);
   const [emailPrefs, setEmailPrefs] = useState<Record<EmailSetting, boolean>>({ mentions: true, projects: false, digest: true, news: false });
@@ -184,6 +187,7 @@ export function SettingsFormTemplate() {
       setSaved(next);
       setSavedOnce(true);
       reset(next);
+      statusRef.current?.focus();
       toast({ title: "Profile saved", children: emailChanged ? `Confirm ${next.email} from the link we sent` : undefined });
     },
   });
@@ -288,8 +292,8 @@ export function SettingsFormTemplate() {
       ) : undefined}
       footer={(
         <ActionBar position="static" direction="horizontal" aria-label="Profile changes"
-          summary={<Text as="span" textStyle="Body/Small/Regular" tone="base" role="status">{status}</Text>}
-          secondaryAction={{ label: "Discard", disabled: !profile.isDirty || profile.isSubmitting, onClick: () => profile.reset() }}
+          summary={<Text ref={statusRef} tabIndex={-1} as="span" textStyle="Body/Small/Regular" tone="base" role="status">{status}</Text>}
+          secondaryAction={{ label: "Discard", disabled: !profile.isDirty || profile.isSubmitting, onClick: () => { profile.reset(); statusRef.current?.focus(); } }}
           primaryAction={{ label: profile.isSubmitting ? "Saving…" : "Save changes", type: "submit", form: formId, disabled: !profile.isDirty || profile.isSubmitting }} />
       )}
     >

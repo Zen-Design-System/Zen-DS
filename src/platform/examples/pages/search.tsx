@@ -28,6 +28,7 @@ import {
   projectById, projectStatusTheme, projects, studio, type Invoice, type InvoiceStatus, type Person, type PersonId,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./search.css";
 
 export const page: PlatformPage = "search";
@@ -316,7 +317,7 @@ function PhoneFilesExample() {
   return (
     // The header floats over the screen (headerOverlay): the large title and the Search fold away as the list scrolls.
     <PlatformPhone label="Files" headerOverlay screenRef={screenRef} header={
-      <TopNavigation title="Files" largeTitle="Files" scrollRef={screenRef} controlBar={
+      <TopNavigation type="alt" title="Files" largeTitle="Files" scrollRef={screenRef} controlBar={
         // The filter icon opens a Bottom Sheet: on a phone a sheet replaces the Popover. The icon says so to screen
         // readers (aria-haspopup="dialog", aria-expanded while the sheet is open).
         <Search ref={searchRef} theme="filter-icon" placeholder="Search files" value={query} onValueChange={setQuery}
@@ -450,7 +451,7 @@ function ContactImportExample() {
 }
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Filter as you type",
     description: "The directory narrows on every keystroke, by name, role, team or city, and the count under the field is announced. When nothing matches, the Empty State echoes the query and Clear search empties the field and puts focus back in it.",
@@ -569,7 +570,7 @@ const rows = people.filter((p) => matches(query, p.name, p.role, p.team, p.locat
 const searchRef = useRef<HTMLInputElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef} header={
-  <TopNavigation title="Files" largeTitle="Files" scrollRef={screenRef} controlBar={
+  <TopNavigation type="alt" title="Files" largeTitle="Files" scrollRef={screenRef} controlBar={
     <Search ref={searchRef} theme="filter-icon" placeholder="Search files" value={query} onValueChange={setQuery}
       filterActionLabel="Filter by type" filterHasPopup="dialog" filterExpanded={sheet} onFilterClick={() => setSheet(true)} />
   } searchAction={{ label: "Search files", onClick: scrollUpAndFocusSearch }} />
@@ -616,4 +617,4 @@ const searchRef = useRef<HTMLInputElement>(null);
   </List>
 </ListBox>`,
   },
-];
+]);

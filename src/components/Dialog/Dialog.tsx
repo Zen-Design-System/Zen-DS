@@ -69,11 +69,13 @@ function isSameTabStop(active: Element | null, node: HTMLElement, root: ParentNo
 }
 
 /** A control whose popup is open (a Select trigger, a combobox, a Menu or picker button): an Escape on it is the popup's. */
-const openPopupTrigger = '[aria-expanded="true"]:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"])';
+export const openPopupTrigger = '[aria-expanded="true"]:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"])';
 
 /** Open modals, oldest first. Only the last (topmost) one answers Escape and traps Tab: a Dialog opened over a ModalForm
  * closes alone, and the form underneath does not pull focus back into itself. */
 const modalStack: object[] = [];
+/** True while a Dialog, ModalForm, modal SidePanel or BottomSheet is open (a docked SidePanel leaves Escape to it). */
+export const modalIsOpen = () => modalStack.length > 0;
 
 /**
  * Shared modal behaviour: focus the first target, trap Tab, Escape closes, body scroll is locked, focus returns to the opener.
@@ -150,7 +152,7 @@ export function useModal(open: boolean, panelRef: RefObject<HTMLElement | null>,
  * <template> rendered in place while the modal is mounted finds the frame; the modal itself renders once the frame is
  * known (a layout effect, so still before the first paint) and its focus trap starts only then.
  */
-function useOverlayHost(mounted: boolean) {
+export function useOverlayHost(mounted: boolean) {
   const anchorRef = useRef<HTMLTemplateElement>(null);
   const [host, setHost] = useState<HTMLElement | null | undefined>(undefined);
   useLayoutEffect(() => {

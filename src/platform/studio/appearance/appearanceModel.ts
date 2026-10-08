@@ -80,6 +80,38 @@ export const EFFECT_STYLES: readonly EffectStyle[] = [
   { name: "Effect/Overlay", group: "Effect", kind: "blur", usage: "Background blur 50, behind a translucent fill" },
 ];
 export const effectStyleOf = (name: string | undefined) => EFFECT_STYLES.find((style) => style.name === name) ?? null;
+/** A card's default theme, when the source does not write one (Card.tsx, Chart.tsx, MetricWidget.tsx). */
+const CARD_DEFAULT_THEME: Record<string, string> = { Card: "shadow", MetricCard: "shadow", ChartCard: "flat" };
+
+/**
+ * The effect a card's theme draws (spec §4.2: Card, MetricCard and ChartCard show it read-only): shadow → the Level-1
+ * drop shadow, pale and semi-pale → the background blur, flat and border → none. null: not a card.
+ */
+export function cardThemeEffect(component: string, theme: string | undefined): { theme: string; style: string | null } | null {
+  if (!(component in CARD_DEFAULT_THEME)) return null;
+  const effective = theme ?? CARD_DEFAULT_THEME[component];
+  const style = effective === "shadow" ? "Shadow/Bottom/Level-1" : effective === "pale" || effective === "semi-pale" ? "Effect/Overlay" : null;
+  return { theme: effective, style };
+}
+
+/** One effect layer of a style as style-manifest.json writes it (Figma's effect fields). */
+export type ManifestEffect = { type: string; visible?: boolean; radius?: number; spread?: number; offset?: { x: number; y: number }; bound?: { color?: string } };
+
+/**
+ * The layers of an effect style in Figma order, for "Effect settings": "Drop shadow · X 0 · Y 4 · Blur 8 · Spread −4 ·
+ * Shadow/Neutral/Base", "Background blur · 50" (Figma's background radius is twice the CSS blur).
+ */
+export function effectLayers(effects: readonly ManifestEffect[]): string[] {
+  const signed = (value: number) => (value < 0 ? `−${Math.abs(value)}` : String(value));
+  return effects.filter((effect) => effect.visible !== false).map((effect) => {
+    if (effect.type === "BACKGROUND_BLUR") return `Background blur · ${signed((effect.radius ?? 0) / 2)}`;
+    if (effect.type === "LAYER_BLUR") return `Layer blur · ${signed(effect.radius ?? 0)}`;
+    const kind = effect.type === "INNER_SHADOW" ? "Inner shadow" : "Drop shadow";
+    const colour = effect.bound?.color?.replace(/^Color\//, "");
+    return [kind, `X ${signed(effect.offset?.x ?? 0)}`, `Y ${signed(effect.offset?.y ?? 0)}`, `Blur ${signed(effect.radius ?? 0)}`, `Spread ${signed(effect.spread ?? 0)}`, colour].filter(Boolean).join(" · ");
+  });
+}
+
 /** The generated effect class suffix (style-effects.css): "Shadow/Bottom/Level-1" → shadow-bottom-level-1. */
 export const effectKey = (name: string) => name.toLowerCase().replace(/\//g, "-");
 

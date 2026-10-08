@@ -13,3 +13,6 @@
    so the phone frame doesn't pad for them again. */
 .platform-phone.patpl-phone .platform-phone__screen.platform-phone__screen { padding-top: 0; }
 .platform-phone.patpl-phone .platform-phone__screen.platform-phone__screen:has(.zen-action-bar) { padding-bottom: 0; }
+/* The phone's own toast stack (TemplateFrame's ToastProvider) is fixed inside the phone (layout containment above) and
+   clears the home indicator, as an app's toasts clear the safe area. */
+.platform-phone.patpl-phone .zen-toast-layer[data-placement^="bottom"] { bottom: calc(var(--zen-toast-inset) + var(--zen-safe-area-bottom, 0px)); }

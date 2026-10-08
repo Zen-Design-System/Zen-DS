@@ -19,6 +19,27 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- **Metric-Inline props from Figma (2026-10-08):** `metricColor` (Metric-Color: a dot before the label, Accent/Solid
+  or a chart series colour), `counter` (a Small Neutral Subtle Badge after the label), and on Title-Highlight `labelIcon`
+  (24px before the title) and `hint` (an info icon whose Tooltip explains the number).
+- **DatePickerSheet: dates on a phone (2026-10-07, Figma Date-Picker/Mobile 9923:3576):** a Bottom Sheet picker.
+  `selectionMode="single"` shows one month with Cancel / OK; `"range"` stacks the months under one pinned weekday row
+  and ends in Footer-Actions (your `summary`, e.g. the price for the nights, beside OK). Picks are a draft until OK.
+  DateField opens it by itself at the mobile breakpoint instead of the desktop popover. New: DatePicker
+  `calendar="stacked"` + `monthCount`, BottomSheet `footer` (your own Footer content), label key `ok` (en "OK", vi
+  "Xong"). DatePicker's month header is a `div` (a `<header>` per month made duplicate banner landmarks).
+- **Sidebar on a phone (2026-10-07):** the Sidebar page shows it as the AppShell drawer in a phone. AppShell's drawer now
+  keeps clear of a phone's status bar and home indicator (safe areas; nothing changes on desktop or tablet).
+- **Metric Title-Highlight `custom` (2026-10-07, Figma Custom-Slot):** your own content under the number (a
+  ProgressBar, a sparkline), the corner Dock-Icon staying beside the number. Metric page: "Budget with progress".
+- **Tooltip `closable` (2026-10-07, Figma Close=Yes added the same day):** a dismiss X after the label for a tooltip open
+  from the start — `defaultOpen`, or `open` + the new `onOpenChange` — such as a tip on a phone, where touch never opens
+  a tooltip. It stays until its X or Escape closes it and is a `note`. The Tooltip page has a phone example.
+- **ToggleListItem and ChipGroup (2026-10-07, backlog batch 6):** `<ToggleListItem>` is a settings row whose whole
+  surface flips its switch (title names it, caption describes it); `<ChipGroup>` is a single-choice radio group of
+  Normal chips (one Tab stop, arrow keys move the choice). Both are composed from the existing Figma primitives (no
+  Figma master yet). Sidebar takes `searchCollapsed`, what the collapsed rail shows in place of `search`. Harness:
+  `list-item/switch-row`, `chip/radio-is-chip-group`.
 - Docs platform and Zen Studio: required sign-in with Google through PocketBase (`src/platform/auth/`); Log out in the
   platform topbar's account menu and in the Studio brand menu. Automated browsers (QA gate, E2E) skip the sign-in screen.
 - **Zen-High-Contrast (2026-10-05, prototype):** `<ZenProvider contrast="high">` (or `"system"`, which follows the OS
@@ -594,6 +615,99 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Zen Studio: Reset slot after a duplicate (2026-10-08):** duplicate a slot item, then Clear the original: Reset
+  slot now gives the original its saved content back (it was refused as "new since the last save") and the copy stays
+  the new one.
+- **Zen Studio: section surface and stale reads (2026-10-08):** a frame widened past the Examples section's edge stays
+  on the section's tinted surface (nothing moves, the Docs frame included); right after a slot Clear, Reset or their
+  undo the canvas's spacing and resize layers read the element where the write put it (no more GET /element 404s), and
+  the selection follows an element whose own line changed while other lines changed too.
+- **Zen Studio: copying several layers (2026-10-08):** ⌘C on a multi-selection carries the useState values and DOM
+  refs the dev server reads from the AST (as one layer's copy does), the text scan only as a fallback.
+- **Studio E2E harness (2026-10-08):** a row past its 20 s limit no longer keeps driving the page and the server under
+  the next rows (its calls are refused, the next row gets a fresh page); a stuck step fails at 10 s with its own
+  message; LB-13 / LB-14 open the Components library (LB-12 left Assets on Photos and they timed out every run).
+- **Fill height in a column without a height (2026-10-08):** a column Stack with `height="fill"` whose parent gives it
+  no height no longer collapses its Fill or `fillChildren` children to 0; they keep their content height, and a column
+  with a height still shares it equally (a 0% flex basis).
+- **Tooltip around a wrapper (2026-10-08):** a Button inside a Box or Stack that a Tooltip wraps now gets the
+  tooltip's aria-describedby when it takes focus, and `tooltip/focusable-trigger` accepts such a wrapper.
+- **AiChatBlock heading level (2026-10-08):** new `headingLevel` (1–3, default 2) for the greeting, so a screen whose
+  greeting is its title (HR Home) has one visible h1 instead of a hidden one. The AI chat header on phone screens uses
+  the Alt bar like the other phone screens.
+- **Harness false positives (2026-10-08):** usage rules no longer treat a template string inside a prop expression as an
+  opaque spread; the platform audit skips selected cards in §16, counts a ListBox as a card for outline siblings and
+  measures corners at the phone frame's scale.
+- **Design Tokens page in dark mode (2026-10-08):** the Token links buttons used the browser's black button text on the
+  dark surface (1.38:1); they take Content/Neutral/Strongest now. The QA gate no longer fails in the cloud container on
+  emoji glyph widths or TabItem's machine-dependent axe result.
+- **Phone screens: the top bar matches the canvas (2026-10-08, user rule):** every docs phone on Canvas/Default now
+  uses the Alt bar (`alt`, `compact-alt`, `alt-blurring`), the same colour as the screen; only white Surface screens keep
+  `default` / `compact`. The TopNavigation guideline says so.
+- **BottomSheet in a device frame (2026-10-07):** like Dialog and Menu, a BottomSheet inside a `[data-zen-overlay-root]`
+  frame (PlatformPhone, an app's device preview) now opens in that frame instead of over the whole page; `inline` is
+  only needed elsewhere. DatePicker's stacked month titles are `<h3>` headings under the sheet's title.
+- **MCP `get_component` is brief by default (2026-10-07):** the props of the component you name, Do/Don't, keyboard,
+  accessibility and the rule ids, without the Figma mapping, node ids or the rule table (under half the size);
+  `detail: "full"` returns the whole guideline. CI's Package step works again: `verify:package` found npm's JSON
+  inside prepack's coloured build output.
+- **Table in a narrow box (2026-10-07):** a table without fixed column widths no longer crushes a text column to one word
+  per line: left-aligned text cells keep a readable minimum (`--zen-table-text-min-width`, 120px) and the table scrolls
+  sideways instead.
+- **Props docs (2026-10-07):** NumberField and TextAreaField now list the label, help-text and state props they take
+  from the field (docs/api, guidelines, MCP); `scripts/build-api.mjs` reads an `Omit<…>` base declared in the same file.
+- **Backlog batch A, App Shell (2026-10-07):** a Sidebar inside AppShell follows the shell's rail and drawer even when it
+  is wrapped in a component of your own (no `useAppShell()` by hand), and the rail's Search button expands it. The
+  collapsed rail separates groups with a Divider (Figma HR Sidebar-List) and shows a hidden counter as the
+  Notification-Dot ("Approvals, 3" stays in the name). Every Notification-Dot is Figma's 8px dot with a 2px ring outside
+  (the Sidebar's drew its ring inside, leaving 4px of red). An AppShell aside that opens as the modal SidePanel stays
+  inside a preview frame, like the drawer. The harness flags an AppShellAction or AppShellAccount that does nothing.
+- **Backlog batch A, components (2026-10-07):** a tap on a clickable ListItem's trailing Badge, value or chevron now
+  opens the row (buttons in the slot keep their own action). A docked SidePanel closes on Escape from the page beside it
+  (not from a text field) as well as from inside, and returns focus to what opened it; in docs full screen Escape closes
+  the panel before leaving. AiChatField draws +, the microphone and Voice only with `onAttach` / `onVoice` (the empty
+  field shows a disabled Send otherwise). DateField calls `onDateChange` for a typed MM/DD/YYYY too (null when it is
+  emptied or stops being a real day). `plural(n, one, many, locale)` takes a locale: Vietnamese keeps the noun ("3 tệp");
+  `copy/plural-count` reads whole Unicode words and skips Vietnamese ones.
+- **Zen Studio small fixes (2026-10-07, backlog batch 5b):** Escape on several layers selects their common parent;
+  a layer switch flips at once (optimistic) and a bound switch shows no control until the live props arrive; Assets
+  "No components match" has Clear search; ⌘Z after a paste or an Assets insert returns to the layout it went into;
+  hovering a selected nested instance under a row's click target no longer outlines the row; a Hug double-click on
+  the only item of a px Grid column writes that column as `auto`; resize handles and spacing areas read the live props
+  (a spread that does not set the prop leaves it editable); the tone picker captions what the harness would flag
+  (Lights-group Light on text, Light titles, colour Light body copy); Detach says where a bare handler comes from and
+  works on namespace JSX; the "applies to all N rows" note is a .map's only; Save all leaves the toolbar below 1024px
+  (the drafts panel has it); the frame chrome lays out on the next frame after a size change.
+- **Zen Studio decisions and multi-select (2026-10-07, backlog batch 5c):** a column with a minHeight sizes its Fill
+  children into it; a dropdown Chip keeps its width handle; the Pages panel drops the description the board shows; a
+  click on the Docs frame below 100% opens it at 100%, top-aligned; ⌘-click lands on a TopNavigation action, not its
+  icon. The arrow keys move several selected layers of one parent together (they stay selected); ⇧-click in Layers
+  selects the range of rows; Mixed properties edit text props on several layers.
+- **Uploader error text in Light (2026-10-07):** the field's error help text and a file item's error line (icon and text) use Content/Negative/Light like every help text but Warning (Input already did); they were Negative/Strongest.
+- **QA gate sees the example pages again (2026-10-07):** since the examples moved to `src/platform/examples/pages/<page>.tsx`, `npm run qa` mapped an edit there to no page and its example-coverage step (④) read no example list, so both passed without checking. Each page file (and its stylesheet) now scopes to its page, and step ④ reads the page's `examples` array.
+- **Zen Studio quick fixes (2026-10-07, backlog batch 2):** the Inspector's Frames list names the open builder page's
+  Screens after switching pages (two pages both have `screen-1`); the first view zooms down to 50% so the Playground
+  clears the Inspector at 1024–1280 px; setting a prop after an attribute with a trailing `// comment` keeps the comment
+  on its line; the Size row of Stack/Grid/Box is "Child size" (the Slots section keeps "Children"); public exports the
+  props docs do not list (ZenPortal, PopoverBulkAction…) read as Zen components; truncated layer names in the Inspector
+  header show the full name on hover; List `inset` loses its "Row inset" label (it is deprecated); the palette's
+  second Metric is "Metric card"; switching a Figma list boolean off (Top-Trailing with two or more actions) removes the
+  `useToast()` line those actions brought; moving an item past an identical one says the code stays the same instead of
+  "No change"; a slot's + chip no longer covers the selection's size pill. The Studio selftest no longer breaks a
+  parallel `tsc` (its samples are excluded) and runs the detach-type selftest.
+- **Zen Studio: frames and examples keep up with edits (2026-10-07, backlog batch 5a):** a frame's Save and Discard
+  take the edits to code it reads outside its JSX (sample data, a column const, a helper, a Zen component that keeps
+  its source line off the DOM, a portalled overlay); an edit to an example page no longer restarts its examples (an
+  opened chat thread stays open: example pages export their list through `keepOnHotUpdate`); a data edit still restarts
+  its frame so new initial data shows. Effects gains Effect settings (the style's layers, read-only) and Card,
+  MetricCard and ChartCard show the effect their theme draws. An unset object prop (EmptyState `secondaryAction`) gets
+  a "+" that writes a starting object, a prop held by a same-file const (`options={views}`) edits that const field by
+  field, and Toast's Figma Actions boolean is a switch.
+- **Docs example fixes (2026-10-07, backlog batch 4):** the Visually Hidden playground shows the invoice table's Archive
+  column (its stage widens for the table); AI Chat › "Assistant on a phone" names the screen with its bar title (h1);
+  HR · Public holidays' "Holidays in …" is Heading/4 like the other HR sections; the Table playground's Progress column is
+  Neutral with its % label (Figma Progress-Cell); the chat phones' thread header follows the scroll (its Pale rule once
+  messages run under it); the Accordion playground has a Content width control (Title / Full).
 - **Task priority flags use the Light icon colour (2026-10-06):** the HR Tasks flags (list, board, panel) take their
   family's Content Light (Urgent Negative, High Warning, Medium Info, Low Neutral) through Icon `tone`, instead of the
   Base text colour; Light is the icon level.
@@ -831,6 +945,23 @@ removed (four unused colour ramps were, see Removed).
     which still bleeds outside the trail).
 
 ### Changed
+- **Zen Studio: move several layers (2026-10-08):** dragging a row of a multi-selection in the Layers panel moves every
+  selected layer (one edit, they stay selected; E2E ST-25), and Quick actions › Move earlier / later and the canvas
+  menu's Move up / down act on all selected layers, as the arrow keys and a canvas drag already did.
+- **Docs platform: old app-layer examples removed (2026-10-08):** the examples in `src/platform/appLayer/*` for pages
+  that have a rebuilt `examples/pages/<page>.tsx` were never shown; they, `shellScreens.tsx` and their CSS are gone
+  (about 4,000 lines). The playgrounds and the Templates page keep theirs.
+- **Docs platform examples (2026-10-07, backlog batch 6b):** phone screens and playground stages paint Canvas/Default
+  (§16; `PlatformPhone canvas="surface"` keeps a white screen); one-item Sidebar groups lose their title; HR · Home is
+  full width like the other HR pages, and side content on full-width pages stops at 1440px; the phone templates sit
+  two per row; the Badge and Button task tables fold the assignee into the task caption on a phone.
+- **Component decisions of backlog batch 8 (2026-10-07, batch 6):** `TableMedia` defaults to `bold={false}` like every
+  Figma media cell — **behaviour change**: pass `bold` to keep a bold label. PageHeader `headingLevel={2}` renders
+  Heading/4 (the house ladder's h2). AiChatField (all styles) and the chat composer take the standard Input focus ring.
+  On phones a BottomSheet pads 20px at the sides, a Medium Card takes radius XLarge, and AppShell's `floatingAction`
+  hides while the page scrolls down. A Sidebar with a custom `brand` keeps its collapse control. A flat Secondary
+  IconButton no longer trips `button/secondary-justified` (the Card Sub-Action ⋮ in the examples uses it). Text
+  guideline: wrap a colour emoji in an opaque span inside light text.
 - **Zen Studio toolbar without dividers (2026-10-06):** the vertical rules between the toolbar groups (brand · tools,
   theme · undo/redo, before Drafts) are gone; groups are told apart by space instead (4px inside a group, 8px between).
 - **Zen Studio canvas chrome placed as in Figma (2026-10-06):** the Select · Hand · Interact tools left the top toolbar

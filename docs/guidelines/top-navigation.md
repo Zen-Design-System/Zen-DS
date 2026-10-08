@@ -82,6 +82,7 @@ interface TopNavigationAction { icon: IconName | ReactElement; label: string; on
 | Enter / Space | Activate the focused action |
 
 ## ✅ Do
+- Give the bar the colour of the screen under it (user rule 2026-10-08): on Canvas/Default or Surface/Alt (the same colour in light and dark; a phone screen by default) use alt, compact-alt or alt-blurring; on a white Surface screen default, compact or default-blurring; an overlay type only on media.
 - Match the type to the page Canvas: Default on Surface, Alt on an Alt canvas, Compact on dense detail screens, an overlay type only on media.
 - Use a large title only on top-level screens (tab roots); a pushed screen with Back uses the bar title alone.
 - On a root, keep the default: the bar row folds into the large-title row (Figma Top-bar=false), so the actions sit at the right of the large title and stay put when it folds; pass topBar only for a stack that keeps the bar above the large title.
@@ -124,7 +125,7 @@ interface TopNavigationAction { icon: IconName | ReactElement; label: string; on
 | `top-navigation/search-folds-to-action` | warn | A collapsing Top Navigation whose control bar is a Search passes searchAction, so Search stays one tap away (top-right) while the bar is folded. | `zen-allow-nav-search-fold: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
-| `interaction/action-without-handler` | warn | Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
+| `interaction/action-without-handler` | warn | Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
 
 ## References
 - [Apple HIG — Navigation bars](https://developer.apple.com/design/human-interface-guidelines/navigation-bars)

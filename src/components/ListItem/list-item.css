@@ -6,6 +6,9 @@
 /* @deprecated List inset: gives the rows a horizontal padding (kept for existing apps; the Chat conversation item sets
    --zen-list-inset itself, as its Figma instance pads Margin-Compact). */
 .zen-list[data-inset="comfortable"] { --zen-list-inset: var(--zen-margin-comfortable, 24px); }
+/* On tablet the rows follow the Card / Modal padding (20px), not Margin-Comfortable (24px): Figma has no Tablet List-Item
+   device (backlog batch 6, user 2026-10-07). */
+[data-breakpoint="tablet"] .zen-list[data-inset="comfortable"] { --zen-list-inset: var(--zen-card-padding-medium, 20px); }
 .zen-list[data-inset="compact"] { --zen-list-inset: var(--zen-margin-compact, 16px); }
 .zen-list[data-inset="none"] { --zen-list-inset: 0px; }
 /* Interactive=Yes and Interactive=No: padding Spacing/Padding/Small (12px) above and below, none at the sides (one set for
@@ -29,7 +32,9 @@
    Interactive-List-Item-Radius (Breakpoint & Grids: Corner-Radius/Base 12px desktop, Large 16px tablet and mobile),
    concentric with a List-Box, which puts the fill 12px / 8px from its 2XLarge corners (Card-padding-medium sideways,
    List-Container-Vertical-Padding above and below); Neutral/Flat Hover · Pressed, Active/Neutral/Subtle when selected. */
-.zen-list-item[data-interactive="true"]::before { position: absolute; z-index: 0; inset: calc(-1 * var(--zen-list-item-fill-y)) calc(var(--zen-list-inset, 0px) - var(--zen-list-item-fill-x)); border-radius: var(--zen-interactive-list-item-radius, 12px); background: var(--zen-list-item-background); content: ""; transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); pointer-events: none; }
+/* isolation: the row is its own stack, so the fill (z-index -1) paints under the content but above the box behind it. */
+.zen-list-item[data-interactive="true"] { isolation: isolate; }
+.zen-list-item[data-interactive="true"]::before { position: absolute; z-index: -1; inset: calc(-1 * var(--zen-list-item-fill-y)) calc(var(--zen-list-inset, 0px) - var(--zen-list-item-fill-x)); border-radius: var(--zen-interactive-list-item-radius, 12px); background: var(--zen-list-item-background); content: ""; transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); pointer-events: none; }
 .zen-list-item[data-interactive="true"]:hover { --zen-list-item-background: var(--zen-color-background-neutral-flat-hover); }
 .zen-list-item[data-interactive="true"]:has(.zen-list-item__wrapper:active) { --zen-list-item-background: var(--zen-color-background-neutral-flat-pressed); }
 .zen-list-item[data-interactive="true"][data-selected="true"] { --zen-list-item-background: var(--zen-color-background-active-neutral-subtle); }
@@ -52,9 +57,21 @@
   text-decoration: none;
 }
 :is(button, a).zen-list-item__wrapper { cursor: pointer; }
-/* The whole row is the hit target: stretch the button over the Interactive-Background (12px around the content). */
-:is(button, a).zen-list-item__wrapper::after { position: absolute; inset: calc(-1 * var(--zen-spacing-padding-small, 12px)) calc(-1 * var(--zen-list-item-fill-x)); border-radius: var(--zen-interactive-list-item-radius, 12px); content: ""; }
+/* The whole row is the hit target: the button is not positioned, so its ::after hangs on the row and covers the
+   Interactive-Background (the fill's box), the trailing slot included. A trailing Badge, value or chevron lets the press
+   through to the row; buttons and links in it stay their own targets (they sit above, z-index 1). */
+:is(button, a).zen-list-item__wrapper { position: static; }
+:is(button, a).zen-list-item__wrapper::after { position: absolute; inset: calc(-1 * var(--zen-list-item-fill-y)) calc(var(--zen-list-inset, 0px) - var(--zen-list-item-fill-x)); border-radius: var(--zen-interactive-list-item-radius, 12px); content: ""; }
+.zen-list-item[data-interactive="true"] .zen-list-item__trailing { pointer-events: none; }
+.zen-list-item[data-interactive="true"] .zen-list-item__trailing :is(a, button, input, select, textarea, label, [tabindex], [role="button"]) { pointer-events: auto; }
 :is(button, a).zen-list-item__wrapper:focus-visible { outline: none; }
+/* ToggleListItem: the row is a <label> around its switch, so a press anywhere flips it; the switch keeps its own focus
+   ring. The label covers the Interactive-Background like a clickable row's button. */
+.zen-toggle-list-item .zen-list-item__wrapper { cursor: pointer; }
+.zen-toggle-list-item .zen-list-item__wrapper::after { position: absolute; inset: calc(-1 * var(--zen-spacing-padding-small, 12px)) calc(-1 * var(--zen-list-item-fill-x)); border-radius: var(--zen-interactive-list-item-radius, 12px); content: ""; }
+.zen-toggle-list-item[data-disabled="true"] .zen-list-item__wrapper { cursor: default; }
+/* Disabled: Content/Disabled text, as the Toggle's own label and caption. */
+.zen-toggle-list-item[data-disabled="true"] :is(.zen-list-item__title, .zen-list-item__caption) { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); }
 :is(button, a).zen-list-item__wrapper:focus-visible::after { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #ff66d4); }
 .zen-list-item__leading { display: inline-flex; flex: 0 0 auto; }
 /* Figma .Primitives/List-Item/Mobile/Slot/Info-Content: its Content slot stacks Title and Subtitle Spacing/Gap/3XSmall (2px) apart. */

@@ -107,12 +107,12 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
-| `button/secondary-justified` | error | Secondary is a rare highlight; default to Primary (main CTA) or Tertiary. | `zen-allow-secondary: <reason>` |
+| `button/secondary-justified` | error | Secondary is a rare highlight; default to Primary (main CTA) or Tertiary. A flat IconButton is exempt: flat Secondary is Figma's quiet ⋮ trigger (Card Sub-Action). | `zen-allow-secondary: <reason>` |
 | `button/filter-is-chip` | error | Filter, sort and scope pickers are Chip (variant=advanced), never buttons. | `zen-allow-filter-button: <reason>` |
 | `button/accent-is-promoted` | warn | Accent is for promoted CTAs (upsell, onboarding) only. | `zen-allow-accent: <reason>` |
 | `button/destructive-is-danger` | warn | Irreversible actions (Delete, Remove, Discard) use Danger or Danger-Subtle. | `zen-allow-destructive: <reason>` |
 | `icon-button/needs-name` | error | Icon-only buttons need an aria-label. | `zen-allow-unnamed: <reason>` |
-| `icon-button/needs-action` | warn | An IconButton does something: it has onClick (or href, or type="submit"), unless it is a Menu trigger (the Menu wires it). | `zen-allow-no-action: <reason>` |
+| `icon-button/needs-action` | warn | An IconButton (and AppShell's top-bar AppShellAction / AppShellAccount) does something: it has onClick (or href, or type="submit"), unless it is a Menu trigger (the Menu wires it). | `zen-allow-no-action: <reason>` |
 | `icon-button/tooltip` | warn | Icon-only buttons show their name as a tooltip after 1s of hover (at once on keyboard focus); IconButton does it by default — turn it off only when a visible label sits right beside it. | `zen-allow-no-tooltip: <reason>` |
 | `button/icon-only-raw` | warn | An icon-only action is an IconButton (or uses useIconTooltip), so it gets the Zen tokens, focus ring and the 1s name tooltip — not a hand-built <button> with just an <Icon>. | `zen-allow-raw-icon-button: <reason>` |
 | `navigation/back-chevron` | error | Back actions on mobile and tablet use a left chevron (icon-chevron-left-line-medium), never a left arrow. | `zen-allow-back-arrow: <reason>` |
@@ -126,7 +126,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
 | `icon/unknown-name` | error | Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page). | `zen-allow-icon-name: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
-| `interaction/action-without-handler` | warn | Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
+| `interaction/action-without-handler` | warn | Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
 
 ## References
 - [Material 3 — Buttons](https://m3.material.io/components/buttons/guidelines)

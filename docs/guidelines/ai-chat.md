@@ -40,7 +40,7 @@ Figma AI/Chat-Bubble (4218:1270): You = a Neutral/Subtle bubble (radius 24, padd
 | `className` | `string` | — |  |
 
 ### AiChatField
-Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt Body/Extra/Medium · model · mic · Primary 40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and Send (arrow-up) once there is text. Enter sends, Shift+Enter adds a line. The whole field is the prompt's hit area: a click or tap anywhere outside its buttons puts the caret in the prompt.
+Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt Body/Extra/Medium · model · mic · Primary 40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and Send (arrow-up) once there is text. Enter sends, Shift+Enter adds a line. The whole field is the prompt's hit area: a click or tap anywhere outside its buttons puts the caret in the prompt. The +, the microphone and Voice appear only with their handler (`onAttach`, `onVoice`), so the field never shows a button that does nothing.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -49,8 +49,8 @@ Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt B
 | `fieldStyle` | `"default" \| "surface" \| "liquid-glass"` | `"default"` |  |
 | `model` | `ReactNode` | — | Figma Model: the model switch label (Body/Base/Medium + chevron) — open your model Popover from `onModelClick`. |
 | `onModelClick` | `() => void` | — |  |
-| `onAttach` | `() => void` | — | Figma Leading-Actions (+): attachments or tools. |
-| `onVoice` | `() => void` | — | Figma trailing microphone (Icon-Flat). |
+| `onAttach` | `() => void` | — | Figma Leading-Actions (+): attachments or tools. Without it the + is not drawn (it would do nothing). |
+| `onVoice` | `() => void` | — | Figma trailing microphone (Icon-Flat) and the empty field's Voice action. Without it neither is drawn: the empty field shows a disabled Send instead. |
 | `busy` | `boolean` | `false` | While the reply streams, the primary button becomes Stop. |
 | `onStop` | `() => void` | — |  |
 | `disabled` | `boolean` | `false` |  |
@@ -63,6 +63,7 @@ Figma AI/Chat-Block/Pale (7140:115622): Say-Hi (44px logo + Heading/1) · Chat-F
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `greeting` | `ReactNode` | — | Say-Hi heading (the locale's "How can I help you today?" by default). |
+| `headingLevel` | `1 \| 2 \| 3` | `2` | Heading level of the greeting: 2 (default), or 1 when the block opens the page and its greeting is the page title (a home screen); only the tag changes, the style stays Heading/1. |
 | `logo` | `IconName \| ReactNode` | — | Say-Hi logo: an icon name or your own node (the Zen mark by default). |
 | `suggestions` | `AiChatSuggestion[]` | `[]` |  |
 | `children` (required) | `ReactNode` | — |  |
@@ -120,7 +121,7 @@ interface AiChatSuggestion { label: string; icon?: IconName | ReactElement; onCl
 | --- | --- | --- | --- |
 | `ai-chat/no-actions-while-streaming` | warn | Hide Copy / Regenerate / feedback while the assistant is thinking or an answer is still streaming. | `zen-allow-ai-streaming-actions: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
-| `interaction/action-without-handler` | warn | Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
+| `interaction/action-without-handler` | warn | Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
 
 ## References
 - [Material 3 — Generative AI patterns](https://m3.material.io/)

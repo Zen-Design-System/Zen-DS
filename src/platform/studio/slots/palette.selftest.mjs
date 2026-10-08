@@ -47,6 +47,8 @@ const SOURCES = {
   ListItem: { tsx: ["ListItem/ListItem.tsx"], css: ["ListItem/list-item.css"] },
   ListBox: { tsx: ["ListItem/ListItem.tsx"], css: ["ListItem/list-item.css"] },
   TopNavigation: { tsx: ["TopNavigation/TopNavigation.tsx"], css: ["TopNavigation/top-navigation.css"] },
+  Metric: { tsx: ["MetricWidget/MetricWidget.tsx"], css: ["MetricWidget/metric-widget.css"] },
+  EmptyState: { tsx: ["EmptyState/EmptyState.tsx"], css: ["EmptyState/empty-state.css"] },
   Stack: { tsx: ["Layout/Layout.tsx"], css: ["Layout/layout.css"] },
   Grid: { tsx: ["Layout/Layout.tsx"], css: ["Layout/layout.css"] },
   Box: { tsx: ["Layout/Layout.tsx"], css: ["Layout/layout.css"] },
@@ -114,7 +116,8 @@ for (const [name, slots] of Object.entries(DATA_SLOTS)) {
     let parsed = null;
     try { parsed = parseExpression(item.code, { plugins: ["jsx", "typescript"] }); } catch { parsed = null; }
     check(`${id}: a new item is an object literal`, parsed?.type, "ObjectExpression");
-    check(`${id}: a new item's handler calls toast`, /toast\(\{ title: /.test(item.code) && item.requires?.includes("toast"), true);
+    // An item with a handler calls toast (and says so); items the owner answers for (onValueChange…) need none.
+    check(`${id}: a new item's handler calls toast`, /\bon[A-Z]\w*:/.test(item.code) ? /toast\(\{ title: /.test(item.code) && Boolean(item.requires?.includes("toast")) : !item.requires?.length, true);
   }
 }
 // Figma's Trailing-Slot takes 3 (Top-Trailing and Header-Trailing): the component's MAX_ACTIONS and both data slots agree.
@@ -195,8 +198,8 @@ const ctxFor = (host, prop = "children", extra = {}) => {
 check("palette ids are unique", new Set(PALETTE.map((item) => item.id)).size, PALETTE.length);
 check("palette groups", [...new Set(PALETTE.map((item) => item.group))], [...PALETTE_GROUPS]);
 check("Image reads platformMedia (requires media)", PALETTE.filter((item) => item.components.includes("Image")).map((item) => [item.id, item.requires]), [["image", ["media"]]]);
-check("every library component folder is offered (but infrastructure, Toast and Popover)", fs.readdirSync(components).filter((folder) => !folder.startsWith("_") && fs.existsSync(path.join(components, folder, "index.ts")))
-  .filter((folder) => !["Motion", "Portal", "Provider", "VisuallyHidden", "Toast", "Popover"].includes(folder) && !PALETTE.some((item) => item.components.some((name) => COMPONENT_FOLDERS[name] === folder))), []);
+check("every library component folder is offered (but infrastructure and Toast)", fs.readdirSync(components).filter((folder) => !folder.startsWith("_") && fs.existsSync(path.join(components, folder, "index.ts")))
+  .filter((folder) => !["Motion", "Portal", "Provider", "VisuallyHidden", "Toast"].includes(folder) && !PALETTE.some((item) => item.components.some((name) => COMPONENT_FOLDERS[name] === folder))), []);
 const setterOf = (name) => `set${name[0].toUpperCase()}${name.slice(1)}`;
 const anyCtx = ctxFor("Card");
 for (const item of PALETTE) {
@@ -228,7 +231,7 @@ for (const item of PALETTE) {
   const expectedFree = [
     ...(item.requires?.includes("toast") ? ["toast"] : []),
     ...(item.requires?.includes("media") ? ["platformMedia"] : []),
-    ...(item.state ?? []).flatMap((entry) => [entry.name, setterOf(entry.name)]),
+    ...(item.state ?? []).flatMap((entry) => (entry.ref ? [entry.name] : [entry.name, setterOf(entry.name)])),
   ];
   check(`${item.id}: free identifiers`, [...free].filter((name) => !params.has(name) && !["Date", "Math"].includes(name)).sort(), expectedFree.sort());
   for (const entry of item.state ?? []) {
@@ -285,8 +288,8 @@ check("clickable Card: warnings", reasons(cardClickable), [
   "Navigation: The card is one click target, so it holds no controls or fields (Tabs, Segmented, Breadcrumbs, Pagination)",
   "Data display: A card never goes inside a card (Card)",
   "Charts: A card never goes inside a card (Chart card)",
-  "Inputs: The card is one click target, so it holds no controls or fields (Text field, Text area, Select, Checkbox, Toggle, Radio group, Search, Chip row, Date field, Calendar, Number field, Autocomplete, Rich text, Slider, Rating input, NPS scale, Colour selector, File upload)",
-  "Overlays: The card is one click target, so it holds no controls or fields (Dialog, Modal form, Side panel, Bottom sheet, Tooltip)",
+  "Inputs: The card is one click target, so it holds no controls or fields (Text field, Text area, Select, Checkbox, Toggle, Radio group, Search, Chip group, Chip row, Date field, Calendar, Number field, Autocomplete, Rich text, Slider, Rating input, NPS scale, Colour selector, File upload)",
+  "Overlays: The card is one click target, so it holds no controls or fields (Dialog, Modal form, Side panel, Bottom sheet, Popover, Tooltip)",
   "Layout: The card is one click target, so it holds no controls or fields (Accordion)",
   "Page: The card is one click target, so it holds no controls or fields (Page header, Top navigation, Bottom navigation, Sidebar, App shell, Action bar)",
   "Chat: The card is one click target, so it holds no controls or fields (Chat thread, Chat composer, AI chat)",
@@ -420,6 +423,8 @@ function deepFile() {
         const renames = new Map();
         for (const entry of item.state) {
           renames.set(entry.name, `${entry.name}${index}`);
+          // A ref (Popover's anchor) as the server declares it: useRef, no setter.
+          if (entry.ref) { hooks.push(`  const ${entry.name}${index} = useRef<${entry.type}>(null);`); continue; }
           renames.set(setterOf(entry.name), `${setterOf(entry.name)}${index}`);
           hooks.push(`  const [${entry.name}${index}, ${setterOf(entry.name)}${index}] = useState${entry.type ? `<${entry.type}>` : ""}(${entry.initial});`);
         }
@@ -445,7 +450,7 @@ function deepFile() {
   const imports = [...folders].sort(([a], [b]) => a.localeCompare(b))
     .map(([folder, names]) => `import { ${[...new Set(names)].sort().join(", ")} } from "${path.join(components, folder)}";`);
   if (media) imports.push(`import { platformMedia } from "${path.join(root, "src/platform/PlatformMedia")}";`);
-  return { text: [`import { useState } from "react";`, ...imports, "", ...blocks, ""].join("\n"), rendered };
+  return { text: [`import { useRef, useState } from "react";`, ...imports, "", ...blocks, ""].join("\n"), rendered };
 }
 
 function run(label, command, args) {

@@ -14,10 +14,10 @@
 //                                              `replace` (with copy): paste to replace
 //        op "pasteCode" { code, before?, after?, replace? }  on the parent: ⌘V of code from another file (arrange.mjs)
 //        op "replaceElement" { code, state? }  on the element: Swap instance, `code` in its place (arrange.mjs)
-//        op "many" { action: remove|duplicate|setProps, locs, ops? }  a multi-selection in one file (arrange.mjs)
+//        op "many" { action: remove|duplicate|setProps|move, locs, ops?, to? }  a multi-selection in one file (arrange.mjs)
 //        op "clearSlot" { prop? }              on the host: empties the slot (Figma "Delete contents"); `cleared` = true
 //        op "resetSlot" { prop? }              on the host: the slot as the saved file has it (Figma "Reset slot"); `reset` = true
-//        ops "insertItem" | "removeItem" | "duplicateItem" | "moveItem" | "groupItem" | "ungroupItem" { prop, index?, to?, with?, regroup?, code?, single?, list?, requires? }
+//        ops "insertItem" | "removeItem" | "duplicateItem" | "moveItem" | "groupItem" | "ungroupItem" { prop, index?, to?, with?, regroup?, code?, single?, list?, requires?, all? }
 //                                              on the host: the objects of a data slot (`trailing={[{ … }]}`, items.mjs);
 //                                              `item` = { prop, index } where the item is now; `updated` / `removed` = true
 //        opts: { file (repo-relative, required), snippets?, componentModules? (Map or object: name → src/components
@@ -657,8 +657,9 @@ function componentName(nodePath, at) {
 }
 
 /**
- * The innermost binding named `name` visible at the end of nodePath (block statements, parameters, imports on the way):
- * { what (in a reason), declarator? (a variable's), param? (a parameter's) }, or null.
+ * The innermost binding named `name` visible at the end of nodePath (block statements, parameters, for-of/in/for loop
+ * variables, catch parameters, imports on the way): { what (in a reason), declarator? (a variable's or a loop's),
+ * param? (a parameter's or a catch's) }, or null. Loop and catch bindings count so a move out of their body is refused.
  */
 function bindingOf(nodePath, name) {
   const binds = (pattern) => { const names = new Set(); patternNames(pattern, names); return names.has(name); };
@@ -666,6 +667,11 @@ function bindingOf(nodePath, name) {
     const node = nodePath[i];
     const param = FUNCTION_TYPES.has(node.type) ? node.params.find(binds) : null;
     if (param) return { what: "a prop or parameter", param };
+    // for-of/in bind for their body only (`right` runs outside the loop); a C-style for binds in every part.
+    const loop = node.type === "ForStatement" ? node.init : (node.type === "ForOfStatement" || node.type === "ForInStatement") && nodePath[i + 1] === node.body ? node.left : null;
+    const looped = loop?.type === "VariableDeclaration" ? loop.declarations.find((item) => binds(item.id)) : null;
+    if (looped) return { what: "a loop variable", declarator: looped };
+    if (node.type === "CatchClause" && node.param && binds(node.param)) return { what: "a caught error", param: node.param };
     const statements = node.type === "Program" || node.type === "BlockStatement" ? node.body : [];
     for (const statement of statements) {
       const declaration = statement.type === "ExportNamedDeclaration" ? statement.declaration : statement;
@@ -779,9 +785,13 @@ function isLiteralValue(node) {
   return false;
 }
 
+/** A ref's element type: one DOM element interface (`HTMLButtonElement`, `HTMLDivElement`…). */
+const REF_TYPE = /^HTML[A-Za-z]*Element$/;
+
 /**
- * op.state checked: [{ name, initial, type? }] (8 at most): `name` lowerCamel, `initial` a literal, `type` built-in
- * type words only. The code reads `name` and `setName`; nothing else of the file.
+ * op.state checked: [{ name, initial, type?, ref? }] (8 at most): `name` lowerCamel, `initial` a literal, `type` built-in
+ * type words only. The code reads `name` and `setName`; nothing else of the file. `ref: true` (2026-10-08: Popover's
+ * anchor) is `const name = useRef<type>(null)`: `initial` null, `type` one HTML…Element, no setter.
  */
 function stateEntries(state) {
   if (state === undefined || state === null) return [];
@@ -791,6 +801,11 @@ function stateEntries(state) {
     if (!entry || typeof entry !== "object" || typeof entry.name !== "string" || !STATE_NAME.test(entry.name)) refuse('Each `state` entry needs a lowerCamel `name` ("open", "selectedTab")');
     if (seen.has(entry.name)) refuse(`The state "${entry.name}" is listed twice`);
     seen.add(entry.name);
+    if (entry.ref !== undefined && entry.ref !== true) refuse(`The state "${entry.name}": \`ref\` is true or left out`);
+    if (entry.ref) {
+      if ((entry.initial ?? "null") !== "null" || typeof entry.type !== "string" || !REF_TYPE.test(entry.type)) refuse(`The ref "${entry.name}" needs \`type\`: an element interface (HTMLButtonElement…), and starts null`);
+      return { name: entry.name, initial: "null", type: entry.type, ref: true };
+    }
     const initial = typeof entry.initial === "string" ? entry.initial.trim() : "";
     let node = null;
     try {
@@ -823,20 +838,27 @@ function spelledNames(ast) {
  */
 function stateFor(ctx, src, state) {
   const entries = stateEntries(state);
-  if (!entries.length) return { src, statements: [], names: new Set() };
+  if (!entries.length) return { src, statements: [], names: new Set(), react: [] };
   const taken = spelledNames(ctx.ast);
   const renames = new Map();
   const names = new Set();
   const statements = [];
+  const free = (name) => !taken.has(name) && !names.has(name);
   for (const entry of entries) {
     let name = entry.name;
-    for (let n = 2; taken.has(name) || taken.has(setterOf(name)) || names.has(name) || names.has(setterOf(name)); n += 1) name = `${entry.name}${n}`;
-    if (name !== entry.name) { renames.set(entry.name, name); renames.set(setterOf(entry.name), setterOf(name)); }
+    for (let n = 2; !free(name) || (!entry.ref && !free(setterOf(name))); n += 1) name = `${entry.name}${n}`;
+    if (name !== entry.name) { renames.set(entry.name, name); if (!entry.ref) renames.set(setterOf(entry.name), setterOf(name)); }
     names.add(name);
+    if (entry.ref) {
+      statements.push(`const ${name} = useRef<${entry.type}>(null)${ctx.semicolons ? ";" : ""}`);
+      continue;
+    }
     names.add(setterOf(name));
     statements.push(`const [${name}, ${setterOf(name)}] = useState${entry.type ? `<${entry.type}>` : ""}(${entry.initial})${ctx.semicolons ? ";" : ""}`);
   }
-  if (!renames.size) return { src, statements, names };
+  // The React hooks the statements call (the file imports them).
+  const react = [...(entries.some((entry) => !entry.ref) ? ["useState"] : []), ...(entries.some((entry) => entry.ref) ? ["useRef"] : [])];
+  if (!renames.size) return { src, statements, names, react };
   let node;
   try {
     node = parseExpression(`<>${src}</>`, { plugins: PLUGINS });
@@ -856,7 +878,7 @@ function stateFor(ctx, src, state) {
   });
   let out = src;
   for (const hit of hits.sort((a, b) => b.start - a.start)) out = `${out.slice(0, hit.start - 2)}${renames.get(hit.name)}${out.slice(hit.end - 2)}`;
-  return { src: out, statements, names };
+  return { src: out, statements, names, react };
 }
 
 /** The module example pages import platformMedia from (src/platform/PlatformMedia.tsx). */
@@ -898,7 +920,7 @@ function mediaImportEdits(ctx) {
  * The hook edits an insert needs: `const { toast } = useToast();` (when the code calls toast) and the state's useState
  * lines, in one statement block at the top of the enclosing component, plus the useState import.
  */
-function hookEdits(ctx, nodePath, { toast, statements }) {
+function hookEdits(ctx, nodePath, { toast, statements, react = statements.length ? ["useState"] : [] }) {
   const toastLine = toast ? toastStatement(ctx, nodePath) : null;
   const lines = [...(toastLine ? [toastLine] : []), ...statements];
   if (!lines.length) return { edits: [], useToast: false };
@@ -906,7 +928,7 @@ function hookEdits(ctx, nodePath, { toast, statements }) {
     ? { who: "The item", does: toastLine ? "calls toast and keeps state" : "keeps state", need: [toastLine ? "`const { toast } = useToast();`" : null, "its `useState` lines"].filter(Boolean).join(" and ") }
     : { who: "The action", does: "calls toast", need: "`const { toast } = useToast();`" };
   const edits = [componentHook(ctx, nodePath, lines, words)];
-  if (statements.length) edits.push(...moduleImportEdits(ctx, "react", ["useState"]));
+  if (react.length) edits.push(...moduleImportEdits(ctx, "react", react));
   return { edits, useToast: Boolean(toastLine) };
 }
 
@@ -1195,6 +1217,39 @@ function slotProp(op) {
   return prop;
 }
 
+/** Whether nodePath's end sits in a .map callback inside its component (a hook there would serve every row at once). */
+function inLoopRow(nodePath) {
+  for (let i = nodePath.length - 1; i >= 0; i -= 1) {
+    if (!FUNCTION_TYPES.has(nodePath[i].type)) continue;
+    if (componentName(nodePath, i)) return false;
+    if (isMapCall(nodePath[i - 1]) && nodePath[i - 1].arguments[0] === nodePath[i]) return true;
+  }
+  return false;
+}
+
+/**
+ * A stateful item inserted into a .map row (Studio "Repeats N×"): its own small component at module level (above the
+ * statement that holds the row, its doc comment included), so each row keeps its own state instead of every row's Dialog opening together; the
+ * row gets `<NameRow />`. { code (what the slot gets), edits (the component), needed (its Zen components) }.
+ */
+function rowComponentPlan(ctx, nodePath, code, state) {
+  const { text, eol, unit, ast } = ctx;
+  const semi = ctx.semicolons ? ";" : "";
+  const taken = spelledNames(ast);
+  const base = `${code.name.replace(/[^\w$]/g, "")}Row`;
+  let name = base;
+  for (let n = 2; taken.has(name) || state.names.has(name); n += 1) name = `${base}${n}`;
+  const holder = ast.program.body.find((statement) => statement.start <= nodePath.at(-1).start && statement.end >= nodePath.at(-1).end);
+  if (!holder) refuse("The row's component could not be placed (no top-level statement holds this slot)");
+  const lines = [...(code.toast ? [`const { toast } = useToast()${semi}`] : []), ...state.statements];
+  const body = [...lines.map((line) => `${unit}${line}`), `${unit}return (`, `${unit}${unit}${reindent(code.part, unit + unit, eol, unit)}`, `${unit})${semi}`].join(eol);
+  const fn = `/** Zen Studio: one row's <${code.name}> with its own state (a hook in the .map row would share it). */${eol}function ${name}() {${eol}${body}${eol}}${eol}${eol}`;
+  const at = lineStartOf(text, holder.leadingComments?.[0]?.start ?? holder.start);
+  const needed = new Set(code.needed);
+  if (code.toast) needed.add("useToast");
+  return { code: prepareCode(`<${name} />`, ctx.folders, new Set([name])), edits: [{ start: at, end: at, text: fn }, ...moduleImportEdits(ctx, "react", state.react)], needed, media: code.media };
+}
+
 /** insertChild: the edits that put `code` into the parent's children or `prop` slot (+ imports and the toast hook). */
 function insertPlan(ctx, nodePath, op) {
   const { text, element, eol } = ctx;
@@ -1202,9 +1257,12 @@ function insertPlan(ctx, nodePath, op) {
   const state = stateFor(ctx, typeof op.code === "string" ? op.code : "", op.state);
   // A builder page (Studio builder GĐ2) has no hooks: its actions are proto.*(…) handlers, which the page imports.
   const builderPage = LOCAL_PAGE.test(ctx.file ?? "");
-  const code = prepareCode(typeof op.code === "string" ? state.src : op.code, ctx.folders, builderPage ? new Set([...state.names, ...BUILDER_RUNTIME]) : state.names);
+  let code = prepareCode(typeof op.code === "string" ? state.src : op.code, ctx.folders, builderPage ? new Set([...state.names, ...BUILDER_RUNTIME]) : state.names);
   if (builderPage && (code.toast || state.statements?.length)) refuse("A builder page has no hooks: an action is proto.toast(…), proto.navigate(…) or proto.open(…), and a control keeps its own state");
   if (CHROME_NAMES.includes(code.name)) refuse(`<${code.name}> is docs chrome; it cannot be inserted.`);
+  // State in a .map row: a row component holds it (2026-10-08), so the rows do not share one.
+  const row = state.statements.length && inLoopRow(nodePath) ? rowComponentPlan(ctx, nodePath, code, state) : null;
+  if (row) code = row.code;
   if (op.requires !== undefined && (!Array.isArray(op.requires) || op.requires.some((item) => item !== "toast" && item !== "media"))) refuse('`requires` lists what the code needs: "toast" or "media"');
   if (op.index !== undefined && op.index !== null && !(Number.isInteger(op.index) && op.index >= 0)) refuse("`index` must be a position in the slot (0 or more)");
   const prop = slotProp(op);
@@ -1273,13 +1331,13 @@ function insertPlan(ctx, nodePath, op) {
       } else refuse(where(value));
     }
   }
-  const needed = new Set(code.needed);
+  const needed = new Set([...code.needed, ...(row?.needed ?? [])]);
   if (usedWrap) needed.add(wrap.tag);
-  const edits = [...plan.edits];
-  const hooks = hookEdits(ctx, nodePath, { toast: code.toast, statements: state.statements });
+  const edits = [...plan.edits, ...(row?.edits ?? [])];
+  const hooks = row ? { edits: [], useToast: false } : hookEdits(ctx, nodePath, { toast: code.toast, statements: state.statements, react: state.react });
   edits.push(...hooks.edits);
   if (hooks.useToast) needed.add("useToast");
-  if (code.media) edits.push(...mediaImportEdits(ctx));
+  if (code.media || row?.media) edits.push(...mediaImportEdits(ctx));
   for (const name of needed) if (!ctx.folders.has(name)) refuse(`<${name}> is not a Zen component (no src/components folder exports it)`);
   edits.push(...importChanges(ctx.ast, text, eol, ctx.file, [...needed], [], ctx.folders));
   // A Screen or an Overlay added to the Board (GĐ2 M3), or proto.*(…) handlers: the builder runtime import gains them.
@@ -1737,7 +1795,10 @@ function likeness(a, x, b, y) {
  * siblings that open with the same line apart (a move, a remove or an insert next to them pairs the wrong ones), so:
  * 1. identical elements (normalised source; biggest first, with all they hold) pair up: the line diff's pairing first,
  *    then the nearest to where the diff puts them, skipping a saved element the diff gives to a changed element of the
- *    same name (an edited original keeps it; its untouched duplicate is the new one);
+ *    same name (an edited original keeps it; its untouched duplicate is the new one). A duplicate lands right after its
+ *    original, so a changed element right before an identical one in the same slot, with the same tag (its JSX-valued
+ *    props left out) that the draft has more of than the saved file, is that edited original (a Clear changes its own
+ *    line, so the diff cannot say it): it takes the saved element, its copy stays new;
  * 2. a changed element pairs with the saved element its paired elements sit in (same depth below, Dice ≥ 0.5);
  * 3. under paired parents (and per top-level declaration for roots), the rest of each slot pair by likeness (ties: the
  *    diff's pairing, then the nearest): all of them when both sides have as many, else when alike (≥ 0.5) or on lines
@@ -1803,6 +1864,39 @@ function matchElements(now, then) {
     const ys = b.inside(y);
     if (xs.length === ys.length) xs.forEach((item, i) => { if (free(item) && open(ys[i])) link(item, ys[i]); });
   };
+  // Duplicate, then edit the original (Clear contents, Clear a prop slot): the tag without its JSX-valued props.
+  const holdsJsx = (attr) => {
+    let found = false;
+    walk(attr, (node) => {
+      if (node.type === "JSXElement" || node.type === "JSXFragment") found = true;
+      return !found;
+    });
+    return found;
+  };
+  const tagKey = (tree, text, node) => `${named(tree, node)}\n${node.openingElement.attributes.filter((attr) => !holdsJsx(attr)).map((attr) => normalised(text.slice(attr.start, attr.end))).join("\n")}`;
+  const tagCounts = (tree, text) => {
+    const counts = new Map();
+    for (const node of tree.nodes) counts.set(tagKey(tree, text, node), (counts.get(tagKey(tree, text, node)) ?? 0) + 1);
+    return counts;
+  };
+  let counts = null;
+  const editedOriginal = (x) => {
+    const item = a.info.get(x);
+    if (!item.parent) return null;
+    const siblings = a.info.get(item.parent).kids.filter((kid) => a.info.get(kid).slot === item.slot);
+    const previous = siblings[siblings.indexOf(x) - 1];
+    if (!previous || !free(previous) || identical.has(previous) || named(a, previous) !== item.name) return null;
+    const key = tagKey(a, now.text, x);
+    if (tagKey(a, now.text, previous) !== key) return null;
+    counts ??= { now: tagCounts(a, now.text), then: tagCounts(b, then.text) };
+    return (counts.now.get(key) ?? 0) > (counts.then.get(key) ?? 0) ? previous : null;
+  };
+  /** Pairs `x` with `y`, or its edited original with `y` (`x` is then its untouched copy, new since the save). */
+  const pairIdentical = (x, y) => {
+    const original = editedOriginal(x);
+    if (original) link(original, y);
+    else linkAll(x, y);
+  };
 
   // 1. Identical elements.
   const groups = new Map();
@@ -1818,7 +1912,7 @@ function matchElements(now, then) {
   for (const [, group] of ordered) {
     for (const x of group.now) {
       const y = anchor.get(x);
-      if (free(x) && y && open(y) && group.then.includes(y)) linkAll(x, y);
+      if (free(x) && y && open(y) && group.then.includes(y)) pairIdentical(x, y);
     }
     const scored = [];
     for (const x of group.now.filter(free)) for (const y of group.then.filter(open)) scored.push({ x, y, far: distance(x, y) });
@@ -1827,7 +1921,7 @@ function matchElements(now, then) {
       if (!free(x) || !open(y)) continue;
       const rival = anchoredTo.get(y);
       if (rival && rival !== x && free(rival) && !identical.has(rival)) continue;
-      linkAll(x, y);
+      pairIdentical(x, y);
     }
   }
 
@@ -2515,7 +2609,7 @@ const asFolders = (modules) => {
  * `snippet` when the file has example snippets; or { error, code: "stale" | "not-found" | "invalid" | "forbidden" }.
  */
 /** What arrange.mjs (op moveTo: drag to reorder, reparent or copy) reuses from here. */
-const ARRANGE_HELPERS = { refuse, removal, insertIntoContainer, expandSelfClosing, slotEntries, holderOf, guard, importChanges, componentImports, referenceCount, toastHook, stateFor, hookEdits, mediaImportEdits, duplicatePlan, bindingOf, detachMarker, patternNames, isMapCall, TS_WRAPPERS, FUNCTION_TYPES, WHERE };
+const ARRANGE_HELPERS = { refuse, removal, insertIntoContainer, expandSelfClosing, slotEntries, holderOf, guard, importChanges, componentImports, referenceCount, toastHook, stateFor, hookEdits, mediaImportEdits, duplicatePlan, bindingOf, detachMarker, reindent, isComment, patternNames, isMapCall, TS_WRAPPERS, FUNCTION_TYPES, WHERE };
 /** What items.mjs (data-slot items: insertItem, removeItem, duplicateItem, moveItem) borrows from this module. */
 const ITEM_HELPERS = { refuse, attrName, short, unwrapTs, isNullish, valueRange, indentAt, startsLine, removeAttrEdit, removeArrayItem, hookEdits, importChanges, hostSnippet, patternNames, FUNCTION_TYPES, JS_GLOBALS };
 
@@ -2607,7 +2701,15 @@ export function applySlotOp(code, loc, name, op, options = {}) {
       const found = findElement(reparsed, at);
       if (!found || jsxName(found.openingElement.name) !== plan.focus.name) return null;
     }
-    return { code: bom + out, changed, [plan.answer]: { loc: locString(at) } };
+    // Several layers moved together (many move): each one's loc before → its loc after.
+    const locs = {};
+    for (const focus of plan.focuses ?? []) {
+      const here = locAt(out, outputOffset(edits, focus.edit, focus.within));
+      const found = findElement(reparsed, here);
+      if (!found || jsxName(found.openingElement.name) !== focus.name) return null;
+      locs[focus.from] = locString(here);
+    }
+    return { code: bom + out, changed, [plan.answer]: { loc: locString(at), ...(plan.focuses ? { locs } : {}) } };
   };
   const result = answer(plan.edits, next, after, []);
   if (!result) return fail("invalid", "The new element could not be located after the edit (a bug); nothing was written.");
@@ -2727,11 +2829,14 @@ function savedAttributes(text, element, saved, then) {
     return attr ? (attr.value ? normalised(src.slice(attr.value.start, attr.value.end)) : "") : null;
   };
   const out = {};
+  const savedList = then.openingElement.attributes;
   for (const prop of new Set([...named(element), ...named(then)].map(attrName))) {
     if (source(text, element, prop) === source(savedText, then, prop)) continue;
-    const attr = then.openingElement.attributes.findLast((item) => attrName(item) === prop);
-    // Described against the saved file (state, origin), the way GET /element describes the current one.
-    out[prop] = attr ? describeAttrsIn(saved.ast, then, savedText, [attr])[0] : null;
+    const attr = savedList.findLast((item) => attrName(item) === prop);
+    // Described against the saved file (state, origin), the way GET /element describes the current one; `next` says
+    // what follows it there, so a playground's setProp can put it back in place (it refuses resetSlot).
+    const following = attr ? savedList[savedList.indexOf(attr) + 1] : undefined;
+    out[prop] = attr ? { ...describeAttrsIn(saved.ast, then, savedText, [attr])[0], ...(following ? { next: following.type === "JSXSpreadAttribute" ? "…" : attrName(following) } : {}) } : null;
   }
   return out;
 }

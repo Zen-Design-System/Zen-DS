@@ -28,6 +28,34 @@ const walk = (directory) => fs.readdirSync(directory, { withFileTypes: true }).f
 });
 
 /** `export const sizes = ["sm", "md"] as const` and `export type Size = (typeof sizes)[number]` / `"a" | "b"`. */
+
+/** Props an `export type <Name>Props = … Omit<Base, "a" | "b"> …` alias gets from a Base declared in the same file. */
+function omittedBaseProps(source, file, name, own, literals) {
+  const start = source.indexOf(`export type ${name}Props =`);
+  if (start < 0) return [];
+  const head = source.slice(start, source.indexOf("{", start) < 0 ? undefined : source.indexOf("{", start));
+  const out = [];
+  for (const match of head.matchAll(/Omit<(\w+),\s*((?:"[^"]*"\s*\|?\s*)+)>/g)) {
+    const base = match[1];
+    if (!new RegExp(`(?:type|interface)\\s+${base}\\b`).test(source)) continue;
+    const omitted = new Set([...match[2].matchAll(/"([^"]*)"/g)].map((key) => key[1]));
+    let probe = [];
+    try {
+      probe = parse(`${source}\nexport function ZenApiProbe(props: ${base}) { return <div {...props} />; }\n`, { filename: file, resolver: new builtinResolvers.FindExportedDefinitionsResolver(), importer: builtinImporters.fsImporter });
+    } catch {
+      probe = [];
+    }
+    const doc = probe.find((entry) => entry.displayName === "ZenApiProbe");
+    for (const [prop, info] of Object.entries(doc?.props ?? {})) {
+      if (omitted.has(prop) || own.has(prop)) continue;
+      own.add(prop);
+      const { description, deprecated } = splitDeprecated(info.description);
+      out.push({ name: prop, type: typeText(info.tsType ?? info.flowType, literals), required: Boolean(info.required), default: null, description, deprecated });
+    }
+  }
+  return out;
+}
+
 function collectLiterals(files) {
   const arrays = new Map();
   const aliases = new Map();
@@ -213,6 +241,9 @@ export function buildApi(tagsFor) {
           deprecated,
         };
       });
+      // react-docgen drops the members of `Omit<LocalType, keys>` in an intersection (TextAreaField, NumberField): probe
+      // each such same-file base with a throwaway component and add its props, minus the omitted keys and own ones.
+      for (const extra of omittedBaseProps(source, file, doc.displayName, new Set(props.map((prop) => prop.name)), literals)) props.push(extra);
       const { description, deprecated } = splitDeprecated(doc.description);
       components.set(doc.displayName, {
         name: doc.displayName,

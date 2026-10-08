@@ -20,7 +20,7 @@ import { Tabs, TabPanel, type TabSize, type TabVariant } from "../components/Tab
 import { Breadcrumbs, type BreadcrumbEmphasis } from "../components/Breadcrumbs";
 import { ProgressBar, ProgressCircle, progressCircleThemes, type ProgressBarTheme, type ProgressCircleTheme } from "../components/Progress";
 import { Dialog, ModalForm, dialogThemes, modalActionDirections, modalFormLayouts, type DialogTheme, type ModalActionDirection, type ModalFormLayout } from "../components/Dialog";
-import { Accordion, type AccordionSize, type AccordionTheme } from "../components/Accordion";
+import { Accordion, type AccordionContentWidth, type AccordionSize, type AccordionTheme } from "../components/Accordion";
 import { Divider, dividerColors, type DividerColor } from "../components/Divider";
 import { InlineMessage, inlineMessageThemes, type InlineMessageTheme } from "../components/InlineMessage";
 import { EmptyState } from "../components/EmptyState";
@@ -348,6 +348,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [dialogTheme, setDialogTheme] = useState<string | undefined>("default");
   const [accordionSize, setAccordionSize] = useState<string | undefined>("medium");
   const [accordionTheme, setAccordionTheme] = useState<string | undefined>("divider");
+  const [accordionContentWidth, setAccordionContentWidth] = useState<string | undefined>("title");
   const [accordionOpen, setAccordionOpen] = useState<string>("seats");
   const [alertTheme, setAlertTheme] = useState<string | undefined>("default");
   const [alertSize, setAlertSize] = useState<string | undefined>("medium");
@@ -1516,6 +1517,7 @@ ${actions ? `
   if (page === "accordion") {
     const size = (accordionSize ?? "medium") as AccordionSize;
     const theme = (accordionTheme ?? "divider") as AccordionTheme;
+    const contentWidth = (accordionContentWidth ?? "title") as AccordionContentWidth;
     const faqs = [
       { id: "seats", title: "Where can I see a breakdown of my seats?", body: "You can manage your full seats, viewer seats and pending invites from Settings → Members. The table shows who holds each seat and when it renews." },
       { id: "billing", title: "When will I be charged?", body: "Seats are billed at the start of each cycle. Seats added mid-cycle are prorated on the next invoice." },
@@ -1527,17 +1529,19 @@ ${actions ? `
         <PlaygroundControls aria-label="Accordion playground controls">
           <PlaygroundFilterChip label="Size" value={accordionSize} onChange={(value) => setAccordionSize(String(value) || undefined)} options={[["medium", "Medium"], ["large", "Large"], ["xlarge", "XLarge"]].map(([id, label]) => ({ id, label }))} />
           <PlaygroundFilterChip label="Theme" value={accordionTheme} onChange={(value) => setAccordionTheme(String(value) || undefined)} options={[["divider", "Divider"], ["box", "Box"]].map(([id, label]) => ({ id, label }))} />
+          <PlaygroundFilterChip label="Content width" value={accordionContentWidth} onChange={(value) => setAccordionContentWidth(String(value) || undefined)} options={[["title", "Title"], ["full", "Full"]].map(([id, label]) => ({ id, label }))} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-accordion-preview">
           <div className="platform-accordion-stack" data-tone={theme}>
-            {faqs.map((faq) => <Accordion key={faq.id} size={size} theme={theme} title={faq.title} expanded={accordionOpen === faq.id} onExpandedChange={(open) => setAccordionOpen(open ? faq.id : "")}><PlaygroundSlot name="Content slot" /></Accordion>)}
+            {faqs.map((faq) => <Accordion key={faq.id} size={size} theme={theme} contentWidth={contentWidth} title={faq.title} expanded={accordionOpen === faq.id} onExpandedChange={(open) => setAccordionOpen(open ? faq.id : "")}><PlaygroundSlot name="Content slot" /></Accordion>)}
           </div>
         </div>
         <PlatformCode code={`import { Accordion } from "@zen/design-system";
 
 <Accordion
   size="${size}"
-  theme="${theme}"
+  theme="${theme}"${contentWidth === "full" ? `
+  contentWidth="full"` : ""}
   title="Where can I see a breakdown of my seats?"
   expanded={open}
   onExpandedChange={setOpen}
@@ -2033,9 +2037,9 @@ ${code}`} />
           <Table aria-label="Projects" rows={rows} getRowId={(row) => row.id} selectable={tableSelectable} selectedIds={tableSelected} onSelectionChange={setTableSelected} sort={tableSort} onSortChange={setTableSort}
             empty={<EmptyState title="No projects yet" illustration={false} primaryAction={{ label: "Create project", onClick: () => logAction("Create project", "primaryAction.onClick") }}>Projects you create show up here.</EmptyState>}
             columns={[
-              { id: "name", header: "Project", sortable: true, width: "34%", cell: (row) => <TableMedia media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia> },
+              { id: "name", header: "Project", sortable: true, width: "34%", cell: (row) => <TableMedia bold media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia> },
               { id: "status", header: "Status", cell: (row) => <Badge size="medium" theme={row.status === "Live" ? "green" : row.status === "Blocked" ? "red" : "yellow"} background="subtle">{row.status}</Badge> },
-              { id: "progress", header: "Progress", width: "20%", cell: (row) => <ProgressBar value={row.progress} theme="accent" aria-label={`${row.name} progress`} /> },
+              { id: "progress", header: "Progress", width: "20%", cell: (row) => <ProgressBar value={row.progress} label aria-label={`${row.name} progress`} /> },
               { id: "trend", header: "Traffic", cell: (row) => <TableTrend trend={row.trend}>{row.delta}</TableTrend> },
               { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: (row) => <TableActions><IconButton appearance="flat" level="primary" size="md" aria-label={`Open ${row.name}`} icon={<Icon name="icon-dots-horizontal-line" />} onClick={() => logAction(`Open ${row.name}`)} /></TableActions> },
             ]} />
@@ -2055,10 +2059,10 @@ ${code}`} />
   empty={<EmptyState title="No projects yet" illustration={false} />}
   columns={[
     { id: "name", header: "Project", sortable: true, cell: (row) => (
-      <TableMedia media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia>
+      <TableMedia bold media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia>
     ) },
     { id: "status", header: "Status", cell: (row) => <Badge size="medium" theme="green" background="subtle">{row.status}</Badge> },
-    { id: "progress", header: "Progress", cell: (row) => <ProgressBar value={row.progress} aria-label="Progress" /> },
+    { id: "progress", header: "Progress", cell: (row) => <ProgressBar value={row.progress} label aria-label={\`\${row.name} progress\`} /> },
     { id: "trend", header: "Traffic", cell: (row) => <TableTrend trend={row.trend}>{row.delta}</TableTrend> },
     { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: (row) => <TableActions><IconButton appearance="flat" level="primary" aria-label="Open" … /></TableActions> },
   ]}

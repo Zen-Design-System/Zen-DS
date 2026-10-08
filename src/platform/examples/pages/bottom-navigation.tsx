@@ -25,6 +25,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./bottom-navigation.css";
 
 export const page: PlatformPage = "bottom-navigation";
@@ -130,7 +131,7 @@ function RootDestinationsExample() {
   const grouped = tab === "home" || tab === "projects";
   return (
     <PlatformPhone label="Zen app" canvas={grouped ? "alt" : "default"} headerOverlay screenRef={screenRef}
-      header={<TopNavigation type={grouped ? "alt" : "default"} title={title} largeTitle={title} scrollRef={screenRef} />}
+      header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
       footer={<BottomNavigation items={items} value={tab} onValueChange={open} />}>
       {/* Body padding lg (20px, the phone margin); groups lg apart. */}
       {tab === "home" ? (
@@ -277,7 +278,7 @@ function ActionInBarExample() {
   const title = expenseTabs.find((item) => item.id === tab)!.label;
   return (
     <PlatformPhone label="Đìzai expenses" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title={title} largeTitle={title} scrollRef={screenRef} />}
+      header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
       // Default bar: the action is one more cell after the destinations, a 48px Primary button that opens a task.
       footer={<BottomNavigation items={expenseTabs} value={tab} onValueChange={open}
         action={{ icon: "icon-plus-line", label: "New expense", onClick: start }} />}>
@@ -393,7 +394,7 @@ function FloatingCreateExample() {
   return (
     // Floating: the pill sits over the content on a fade to Surface; the screen keeps room under its last row.
     <PlatformPhone label="Zen tasks" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title={title} largeTitle={title} scrollRef={screenRef} />}
+      header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
       footer={<BottomNavigation type="floating" items={items} value={tab} onValueChange={open}
         action={{ icon: "icon-plus-line", label: "New task", onClick: start }} />}>
       {tab === "tasks" ? (
@@ -550,7 +551,7 @@ function BrandLabelsExample() {
   const grouped = tab === "menu";
   return (
     <PlatformPhone label="Phin & Co" canvas={grouped ? "alt" : "default"} headerOverlay screenRef={screenRef}
-      header={<TopNavigation type={grouped ? "alt" : "default"} title={current.label} largeTitle={current.label} scrollRef={screenRef} />}
+      header={<TopNavigation type="alt" title={current.label} largeTitle={current.label} scrollRef={screenRef} />}
       footer={<BottomNavigation theme="accent" showLabels aria-label="Phin & Co" items={phinTabs} value={tab} onValueChange={open} />}>
       {tab === "home" ? (
         <Stack gap="lg" paddingY="xs">
@@ -616,7 +617,7 @@ function BrandLabelsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Root destinations",
     description: "Four root screens, one tap apart: the selected destination switches to its solid glyph, each screen's large title folds as it scrolls, and tapping the current one again scrolls back to the top. Home and Projects group their rows, so they are grouped lists on the Surface-Alt screen. The Inbox dot clears once Inbox opens; until then its label says how many are new.",
@@ -635,7 +636,7 @@ const open = (id: string) => {
 const grouped = tab === "home" || tab === "projects";
 
 <PlatformPhone canvas={grouped ? "alt" : "default"} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type={grouped ? "alt" : "default"} title={title} largeTitle={title} scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
   footer={
     <BottomNavigation value={tab} onValueChange={open} items={[
       { id: "home", label: "Home", icon: "icon-home-smile-line", selectedIcon: "icon-home-smile-solid" },
@@ -671,7 +672,7 @@ const [tab, setTab] = useState("expenses");
 const [creating, setCreating] = useState(false);
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title={title} largeTitle={title} scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
   footer={
     <BottomNavigation value={tab} onValueChange={open} items={[
         { id: "expenses", label: "Expenses", icon: "icon-receipt-line", selectedIcon: "icon-receipt-solid" },
@@ -710,7 +711,7 @@ const form = useFormState({
 });
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title={title} largeTitle={title} scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
   footer={
     <BottomNavigation type="floating" value={tab} onValueChange={open} items={[
         { id: "tasks", label: "Tasks", icon: "icon-check-square-line", selectedIcon: "icon-check-square-solid" },
@@ -747,7 +748,7 @@ const form = useFormState({
 const grouped = tab === "menu";
 
 <PlatformPhone canvas={grouped ? "alt" : "default"} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type={grouped ? "alt" : "default"} title={current.label} largeTitle={current.label} scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title={current.label} largeTitle={current.label} scrollRef={screenRef} />}
   footer={
     <BottomNavigation theme="accent" showLabels aria-label="Phin & Co" value={tab} onValueChange={open} items={[
       { id: "home", label: "Home", icon: "icon-home-smile-line", selectedIcon: "icon-home-smile-solid" },
@@ -760,4 +761,4 @@ const grouped = tab === "menu";
   {screens[tab]}
 </PlatformPhone>`,
   },
-];
+]);

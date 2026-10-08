@@ -35,6 +35,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { daysFromToday, formatMoney, formatRange, formatRelative, formatTime, initials, leaveRequests, people, projectById, TODAY, type Person } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./chat.css";
 
 export const page: PlatformPage = "chat";
@@ -470,7 +471,7 @@ function PhoneMessenger({ m, label, listTitle = "Chats", canvas }: { m: Messenge
     return (
       <>
         <PlatformPhone key="chats" label={label} canvas={canvas} headerOverlay screenRef={screenRef}
-          header={<TopNavigation title={listTitle} largeTitle={listTitle} scrollRef={screenRef} trailing={[{ icon: "icon-plus-line", label: "Favourite", onClick: () => toast({ title: "Favourite" }) }]} />}>
+          header={<TopNavigation type="alt" title={listTitle} largeTitle={listTitle} scrollRef={screenRef} trailing={[{ icon: "icon-plus-line", label: "Favourite", onClick: () => toast({ title: "Favourite" }) }]} />}>
           {screen.anchor}
           <List aria-label={listTitle}>
             {m.convs.map((c) => <ChatConversationItem key={c.id} {...rowOf(m, c)} onClick={() => screen.go('[aria-label="Back"]', () => m.open(c.id))} />)}
@@ -484,9 +485,9 @@ function PhoneMessenger({ m, label, listTitle = "Chats", canvas }: { m: Messenge
   const back = () => screen.go(`.zen-list > li:nth-child(${index + 1}) .zen-list-item__wrapper`, () => m.open(null));
   return (
     <>
-      {/* The thread header (PlatformChatHeader) does not take scrollRef yet, so the thread scrolls under a still bar. */}
-      <PlatformPhone key={conv.id} label={label} canvas={canvas}
-        header={<PlatformChatHeader title={conv.title} subtitle={m.offline ? "Connecting…" : conv.status} person={conv.person} group={conv.group} online={!m.offline && conv.online}
+      {/* The thread is the bar's scroller too: once messages run under the header, it shows its Pale rule. */}
+      <PlatformPhone key={conv.id} label={label} canvas={canvas} screenRef={screenRef}
+        header={<PlatformChatHeader title={conv.title} subtitle={m.offline ? "Connecting…" : conv.status} person={conv.person} group={conv.group} online={!m.offline && conv.online} scrollRef={screenRef}
           onAction={(what) => (what.startsWith("Back") ? back : m.phoneHeaderAction(what))} />}
         footer={<Composer m={m} />}>
         {screen.anchor}
@@ -794,7 +795,7 @@ function FilesPhotosCalls() {
   return <DesktopThread m={m} />;
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Team messenger",
     wide: true,
@@ -864,7 +865,7 @@ const handle = (action, id) => {
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key="chats" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Chats" largeTitle="Chats" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Chats" largeTitle="Chats" scrollRef={screenRef} />}>
   <List aria-label="Chats">
     <ChatConversationItem person={chi} preview="Can you look at it before the 2 pm review?" time="2 minutes ago" unread={!read.chi} onClick={() => open("chi")} />
     <ChatConversationItem person={bao} call="missed-audio" time="13 minutes ago" unread={!read.bao} online onClick={() => open("bao")} />
@@ -909,9 +910,9 @@ const handle = (action, id) => {
   },
   {
     title: "First message",
-    description: "A new chat says who it is with instead of showing an empty thread, and offers one first step: Say hello sends a 👋. That first message opens the thread, and its Sent turns to Seen when Em answers.",
+    description: "A new chat says who it is with instead of showing an empty thread, and offers one first step: Say hello sends a wave emoji. That first message opens the thread, and its Sent turns to Seen when Em answers.",
     render: () => <FirstMessage />,
-    code: `<PlatformPhone header={<PlatformChatHeader title="Em Pham" subtitle="Active today" person={em} onAction={onAction} />}
+    code: `<PlatformPhone screenRef={screenRef} header={<PlatformChatHeader title="Em Pham" subtitle="Active today" person={em} scrollRef={screenRef} onAction={onAction} />}
   footer={<ChatComposer onSend={send} actions={actions} onEmoji={toggleEmoji} />}>
   {messages.length === 0 ? (
     <EmptyState headingLevel={2} icon="icon-message-smile-circle-line" title="No messages yet"
@@ -947,7 +948,7 @@ const handle = (action, id) => {
     title: "Customer support",
     description: "A support chat uses the Business domain on the Canvas background: the time sits inside every bubble and card, and support answers a moment after you write.",
     render: () => <CustomerSupport />,
-    code: `<PlatformPhone canvas="canvas" header={<PlatformChatHeader title="Phin & Co" subtitle="Member support" person={support} onAction={onAction} />}
+    code: `<PlatformPhone canvas="canvas" screenRef={screenRef} header={<PlatformChatHeader title="Phin & Co" subtitle="Member support" person={support} scrollRef={screenRef} onAction={onAction} />}
   footer={<ChatComposer onSend={send} />}>
   <ChatThread aria-label="Messages with Phin & Co">
     <ChatMessage side="others" domain="business" author={support} time="9:58 am">Hi Alex, this is Thảo from Phin & Co. How can I help?</ChatMessage>
@@ -957,4 +958,4 @@ const handle = (action, id) => {
   </ChatThread>
 </PlatformPhone>`,
   },
-];
+]);

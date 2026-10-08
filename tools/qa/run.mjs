@@ -439,7 +439,8 @@ if (failFast) {
 if (studioInScope && !staticFailed.length) {
   say("\n② Studio E2E");
   const t0 = Date.now();
-  const r = run("npm", ["run", "-s", "studio:e2e", "--", ...(QUICK ? ["--only=shell,select,inspector"] : [])], 900000);
+  // 25 min: the full matrix (147 rows, 2026-10-07) runs about 15; it outgrew the 15 min limit it had.
+  const r = run("npm", ["run", "-s", "studio:e2e", "--", ...(QUICK ? ["--only=shell,select,inspector"] : [])], 1500000);
   const summary = r.out.match(/(\d+) works · (\d+) broken/)?.[0] ?? "no summary";
   const regressions = r.out.match(/✗ Regressions[^\n]*/)?.[0];
   const fixed = r.out.match(/✓ Fixed since the baseline[^\n]*/)?.[0];
@@ -460,21 +461,32 @@ const MATRIX = [
   ["mobile", /PlatformPhone|\b(mobile|phone|touch|swipe|tap)\b/i],
   ["keyboard / a11y", /\b(keyboard|screen reader|aria-?\w*|focus\w*|shortcut|a11y|accessib\w*|announce\w*|live region|arrow keys|escape)\b/i],
 ];
+// Matrix rows that do not apply to a page: SidePanel is a desktop surface (phones use a BottomSheet), so it owes no
+// mobile example (user, 2026-10-07).
+const NOT_APPLICABLE = { "side-panel": ["mobile"] };
 const coverage = [];
+const titledEntries = (body, entries) => {
+  for (const t of body.matchAll(/\btitle:\s*(["'`])((?:\\.|(?!\1).)*)\1/g)) {
+    const from = t.index; const next = body.slice(from + 1).search(/\btitle:\s*["'`]/);
+    const chunk = body.slice(from, next < 0 ? undefined : from + 1 + next);
+    entries.push({ title: t[2], text: chunk });
+  }
+};
 for (const page of P) {
   const entries = [];
-  sources.forEach((src) => {
+  // A page with its own examples/pages/<page>.tsx shows only that file's `examples` array (examples/registry.ts).
+  const own = path.join(root, `src/platform/examples/pages/${page}.tsx`);
+  if (fs.existsSync(own)) {
+    const src = fs.readFileSync(own, "utf8");
+    const m = /\nexport const examples\b[^=]*=\s*(?:keepOnHotUpdate\([^,]+,\s*"examples",\s*)?\[/.exec(src);
+    if (m) titledEntries(arrayAt(src, m.index + m[0].length - 1), entries);
+  } else sources.forEach((src) => {
     const start = src.search(/\n(export )?const \w*[eE]xamples\w*\s*(:[^=]+)?=\s*\{/); if (start < 0) return;
     const m = new RegExp(`\\n {2}"?${page}"?:\\s*\\[`).exec(src.slice(start)); if (!m) return;
-    const body = arrayAt(src, start + m.index + m[0].length - 1);
-    for (const t of body.matchAll(/\btitle:\s*(["'`])((?:\\.|(?!\1).)*)\1/g)) {
-      const from = t.index; const next = body.slice(from + 1).search(/\btitle:\s*["'`]/);
-      const chunk = body.slice(from, next < 0 ? undefined : from + 1 + next);
-      entries.push({ title: t[2], text: chunk });
-    }
+    titledEntries(arrayAt(src, start + m.index + m[0].length - 1), entries);
   });
   if (!entries.length) { coverage.push({ page, count: 0, missing: [] }); continue; }
-  const missing = MATRIX.filter(([, re]) => !entries.some((e) => re.test(e.text))).map(([n]) => n);
+  const missing = MATRIX.filter(([name, re]) => !NOT_APPLICABLE[page]?.includes(name) && !entries.some((e) => re.test(e.text))).map(([n]) => n);
   const tags = new Set(entries.flatMap((e) => [...e.text.matchAll(/<([A-Z][A-Za-z]+)\b/g)].map((x) => x[1])));
   if (tags.size < 3) missing.push("composition");
   coverage.push({ page, count: entries.length, missing });
@@ -489,9 +501,11 @@ else if (!coverage.some((x) => examplePages.has(x.page))) step("coverage", "Exam
 /* ── ⑤ screenshots ──────────────────────────────────────────────────────────────────────────────────────────────── */
 if (!QUICK && serverUp && P.length && !failFast) {
   say("\n⑤ Screenshots to review");
+  // One folder per session (backlog batch C): sessions running the gate at once no longer overwrite each other's sheets.
+  const shots = path.join(root, ".platform-shots", SESSION ? String(SESSION).slice(0, 8) : "manual");
   for (const page of P) for (const width of [1512, 390]) {
-    run(process.execPath, ["tools/platform-audit/shoot.mjs", page, `--width=${width}`, `--url=${BASE}`], 600000);
-    const sheet = path.join(root, ".platform-shots", `${page}-${width}.png`);
+    run(process.execPath, ["tools/platform-audit/shoot.mjs", page, `--width=${width}`, `--url=${BASE}`, `--out=${shots}`], 600000);
+    const sheet = path.join(shots, `${page}-${width}.png`);
     let mtime = 0; try { mtime = fs.statSync(sheet).mtimeMs; } catch { /* not shot */ }
     if (mtime >= started) sheets.push({ path: rel(sheet), page, width, hash: sha1File(sheet), at: Math.round(mtime), primary: primary.has(page) });
   }
@@ -513,7 +527,7 @@ const ok = failed.length === 0;
 const full = !QUICK && (serverUp || !P.length);
 const finished = Date.now();
 const icon = { pass: "✓", fail: "✗", warn: "⚠", skip: "–" };
-const TRIAGE = "Triage NEW ⚠ only; pre-existing warnings are debt: note them in the Backlog (Scope lock), do not fix them in this task.";
+const TRIAGE = "Fix each NEW ⚠ now, and any pre-existing one you can fix at its owner in this change (user rule 2026-10-08: fix, do not defer); only a question for the user or designer, or work too large for this change, goes to the Backlog.";
 const md = [
   `# Build-QA ${ok ? (full ? "PASS" : "PASS (quick — not a delivery pass)") : "FAIL"} — ${new Date(started).toLocaleString("en-GB")}`,
   "",
