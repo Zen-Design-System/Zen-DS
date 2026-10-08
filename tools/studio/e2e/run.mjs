@@ -226,10 +226,36 @@ try {
       let error = null;
       // A row that opens another platform page first (its first load compiles it) says how long it may take.
       const limit = Number.isFinite(row.timeout) ? row.timeout : ROW_TIMEOUT;
-      const attempt = () => Promise.race([
-        row.run(ctx),
-        new Promise((_, reject) => setTimeout(() => reject(new Error(`timed out after ${limit / 1000} s`)), limit)),
-      ]);
+      // A row past its time limit is not stopped by the race: it would go on driving the shared page and the server
+      // under the next rows (a late reseed puts a newer fixture up while the next row waits for its own seed, so that row
+      // times out too: the I-11 "flake" after the library group). Its context refuses every call from then on, and its
+      // Studio page is closed below.
+      let timedOut = false;
+      const attempt = () => {
+        let cancelled = false;
+        const guard = (fn) => (...rest) => {
+          if (cancelled) throw new Error(`${row.id} is past its time limit`);
+          return fn(...rest);
+        };
+        const rowCtx = {
+          ...ctx,
+          api: new Proxy(api, { get: (target, key) => (typeof target[key] === "function" ? guard(target[key].bind(target)) : target[key]) }),
+          reseed: guard(ctx.reseed),
+          studio: guard((options) => ctx.studio(options)),
+          text: guard(ctx.text),
+        };
+        let timer = 0;
+        return Promise.race([
+          row.run(rowCtx),
+          new Promise((_, reject) => {
+            timer = setTimeout(() => {
+              cancelled = true;
+              timedOut = true;
+              reject(new Error(`timed out after ${limit / 1000} s`));
+            }, limit);
+          }),
+        ]).finally(() => clearTimeout(timer));
+      };
       try {
         try {
           evidence = await attempt();
@@ -252,6 +278,8 @@ try {
         }
       }
       matrix.add({ id: row.id, group, feature: row.feature, wp: row.wp, status, ms: Date.now() - t0, evidence: evidence ?? undefined, error: error ?? undefined });
+      // A row that ran out of time may still have steps waiting on its page: the next row gets a fresh one.
+      if (timedOut) await ctx.studio({ fresh: true }).catch(() => undefined);
     }
     if (session) await session.context.close();
   }
