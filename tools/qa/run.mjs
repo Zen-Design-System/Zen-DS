@@ -527,7 +527,7 @@ const ok = failed.length === 0;
 const full = !QUICK && (serverUp || !P.length);
 const finished = Date.now();
 const icon = { pass: "✓", fail: "✗", warn: "⚠", skip: "–" };
-const TRIAGE = "Triage NEW ⚠ only; pre-existing warnings are debt: note them in the Backlog (Scope lock), do not fix them in this task.";
+const TRIAGE = "Fix each NEW ⚠ now, and any pre-existing one you can fix at its owner in this change (user rule 2026-10-08: fix, do not defer); only a question for the user or designer, or work too large for this change, goes to the Backlog.";
 const md = [
   `# Build-QA ${ok ? (full ? "PASS" : "PASS (quick — not a delivery pass)") : "FAIL"} — ${new Date(started).toLocaleString("en-GB")}`,
   "",

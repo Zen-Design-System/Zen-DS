@@ -1,7 +1,8 @@
 # Backlog and open items
 
-Moved out of `HANDOFF.md` on 2026-09-29 (text unchanged). A session that finds a bug or follow-up appends ONE line under
-"## Backlog" here (priority + pointer), mentions it in its report, and stops (Scope lock, `AGENTS.md`).
+Moved out of `HANDOFF.md` on 2026-09-29 (text unchanged). Since 2026-10-08 (user) a bug or gate finding is fixed at
+once, in the change that met it; only questions for the user or designer and work too large for that change are added
+here, one line each (priority + pointer), and mentioned in the report (Scope lock, `AGENTS.md`).
 Read this file only when picking up work or logging a follow-up. Done, closed and duplicate entries move to
 `BACKLOG-archive.md` (text unchanged).
 

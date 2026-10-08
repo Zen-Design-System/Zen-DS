@@ -135,11 +135,11 @@ It prints ✗ / ⚠ per step and writes `.qa/reports/<stamp>.md`. Read the repor
 | coverage ⚠ (only pages whose examples you edited; other pages' known gaps are one summary line) | write one Backlog line (priority + pointer) in `docs/context/BACKLOG.md`; add the example only if it is in the approved task |
 
 Pre-existing findings live in baselines (`tools/style-guard/baseline.json`, `tools/platform-audit/*-baseline.json`,
-now including `contrast` and `targets`) and do not fail the gate. Triage NEW ⚠ only; pre-existing warnings are debt:
-note them in the Backlog (Scope lock), do not fix them in this task. Baseline debt on a line or example you touch:
-write one Backlog line (priority + pointer) in `docs/context/BACKLOG.md`; fix it and refresh the baseline
-(`npm run style:check -- --baseline-update`, `audit.mjs … --quality --density --baseline-update`) only if it is in
-the approved task — debt only shrinks.
+now including `contrast` and `targets`) and do not fail the gate. Fix every NEW ⚠ now, and pre-existing debt you can
+fix at its owner in this change (user rule 2026-10-08: a finding is fixed when it is met, not deferred), then refresh
+the baseline (`npm run style:check -- --baseline-update`, `audit.mjs … --quality --density --baseline-update`) —
+debt only shrinks. Only a question for the user or designer, or work too large for the change (a new component or
+API, a multi-file refactor), becomes one Backlog line (priority + pointer) in `docs/context/BACKLOG.md`.
 
 ## 4. Look at the screenshots (UX rubric)
 
