@@ -118,33 +118,19 @@ làm hiện tại; khi có câu trả lời, việc cần làm sẽ vào `BACKLO
   - Cùng câu hỏi này: nhãn Tabs không được chọn, các dòng tiêu đề nhỏ màu Light, tiêu đề Table (3,74–3,79:1) và chữ của
     nút Danger (3,74:1).
 
+- **Master List-Box (bạn đã quyết 08/10: giữ như code):** trong Figma các biến thể có chiều cao cố định và
+  Header-Slot / Footer-Slot căn giữa; code tự co theo số hàng và căn trái chữ ở header, nút ở footer. Nhờ designer sửa
+  master sang Hug và căn trái.
+
 ## Cho bạn (quyết định và việc cần làm)
 
-- **Truy cập qua mạng LAN:** có bật `server.host: true` để mở trang docs từ máy khác trong cùng mạng không?
-- **Xem code bằng ngôn ngữ khác** (Vue, Svelte, HTML, Swift, Flutter; hiện ghi "Coming Soon"): kế hoạch ở
-  `docs/research/code-languages-plan-2026-10-03.md`. Đang chờ bạn quyết ở mục §8:
-  - hướng đi cho web;
-  - làm những ngôn ngữ nào, theo thứ tự nào;
-  - menu chọn ngôn ngữ hiển thị thế nào trong lúc chờ.
+**Đã trả lời ngày 08/10/2026:**
+- Không mở truy cập qua mạng LAN (`server.host` vẫn tắt).
+- Xem code bằng ngôn ngữ khác: làm theo thứ tự HTML/CSS → Vue → Swift → Flutter → Svelte (đã đưa vào BACKLOG).
+- Ô chỉ đọc: đã có vòng focus từ 06/10 (`input.css`), không cần làm thêm.
+- List-Box: giữ như code, designer sửa master (xem mục trên).
+- Chỉnh giao diện Studio N1–N11: để sau (đã ghi trong BACKLOG).
 
-  Theo yêu cầu của bạn ngày 03/10, các ví dụ cũng sẽ có đủ mọi ngôn ngữ. Chưa làm gì.
-- **Ô chỉ đọc không có dấu hiệu focus** (ngoài con trỏ): gặp ở các trang dialog, inline-message, side-panel, tooltip,
-  visually-hidden. Bạn chọn: thêm vòng focus như cách đã sửa cho trạng thái lỗi, hay giữ nguyên?
-- **Nút "Download Figma" và "Feedback"** trên trang docs (trang tổng quan và chân sidebar) chưa dẫn đi đâu, nên vẫn còn 3
-  cảnh báo "nút không có hành động". Cần bạn cho đường link.
-- **Master List-Box trong Figma (P3, 06/10):** các biến thể có chiều cao cố định (instance ít hàng hơn vẫn để khoảng
-  trống, trừ khi đặt Hug), và Header-Slot / Footer-Slot căn nội dung vào giữa. Còn code căn trái chữ ở header và nút ở
-  footer. Có nên đổi master sang Hug và căn trái không?
-- **Rà soát giao diện Studio (04/10, chỉ đọc; chi tiết và cách sửa ở `docs/research/studio-ux-audit-2026-10-04.md`).**
-  Đề xuất chờ duyệt (P3) là các mục chỉnh sửa N1–N11:
-  - danh sách 56 trang phẳng, chỉ có một icon;
-  - tên trang lặp ba lần;
-  - ghi chú quy tắc nằm trong nhãn kích thước;
-  - prop đã gắn bị lặp;
-  - Snippet bị import hai lần;
-  - bố cục hộp thoại Phím tắt;
-  - dòng phụ đề của Modes;
-  - tên layer thô;
-  - gợi ý phím ⌘/Ctrl;
-  - nhãn điều hướng 11px;
-  - hai bảng bên chiếm 592px.
+**Còn chờ:**
+- **Nút "Download Figma" và "Feedback"** (bạn chọn để sau): trên trang docs, ở trang tổng quan và chân sidebar, hai nút này
+  chưa dẫn đi đâu, nên vẫn còn 3 cảnh báo "nút không có hành động". Khi có link thì gửi mình.

@@ -100,23 +100,15 @@ until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed a
   "Uzbekista N", "andorra", "Marshall Island", "Sao Tome and Prince".
 - **P2 · Contrast in light mode (designer decision):** Content/Neutral/Tertiary #828282 on white 3.84:1 (ListItem and
   Table captions, chart axis), Table header 3.78:1, tonal destructive Button 3.8:1; every app inherits them (axe AA). **Sweep 2026-10-07:** the Tabs inactive label, Light kickers and Table headers (3.74–3.79:1) and the Danger button text (3.74:1) from the Studio polish list are the same question.
+- **List-Box master (user decision 2026-10-08: code stays):** in Figma the variants have a FIXED height and
+  Header-Slot / Footer-Slot centre their content; code hugs its rows and left-aligns header text and footer actions.
+  Ask the designer to update the master to Hug and left alignment.
 
 ## For the user (decisions and actions)
 
-- `server.host: true` for LAN access: waiting on the user.
-- Code view in other languages (Vue, Svelte, HTML, Swift, Flutter; today "Coming Soon"): plan
-  `docs/research/code-languages-plan-2026-10-03.md`, waiting on the user's decisions in its §8 (web strategy, which
-  languages and in what order, the dropdown until then). Examples get every language too (user, 2026-10-03; §4, P2b).
-  Nothing built.
-- Read-only fields show no focus indicator (behaviour warn "while read-only": dialog, inline-message, side-panel,
-  tooltip, visually-hidden). Waiting on the user: give them the error state's fix, or keep them as they are.
-- Platform chrome: "Download Figma" (overview + sidebar footer) and "Feedback" have no destination, so
+Answered on 2026-10-08: no LAN access (`server.host` stays off); Code view languages in the order HTML/CSS → Vue →
+Swift → Flutter → Svelte (now in BACKLOG); read-only fields already show a focus ring (input.css, since 2026-10-06);
+List-Box: code stays, the designer updates the master (above); Studio polish N1–N11 later (BACKLOG).
+
+- **Later (user, 2026-10-08):** Platform chrome: "Download Figma" (overview + sidebar footer) and "Feedback" have no destination, so
   `interaction/action-without-handler` keeps them as its 3 warnings. Waiting on the user for the URLs.
-- **P3 · Figma List-Box master (2026-10-06):** variants have a FIXED height (instances with fewer rows keep empty space
-  until set to Hug) and Header-Slot / Footer-Slot centre their content, while code left-aligns header text and footer
-  actions; ask the user whether the master should hug and align left.
-- **Studio UX/UI audit (2026-10-04, session "Kiểm tra stack hiện và ẩn toast"; read-only; evidence and fixes in
-  `docs/research/studio-ux-audit-2026-10-04.md`). Proposed for approval:**
-  - P3 · Polish N1–N11 in the report (flat 56-item Pages list with one icon, triple page name, rule notes in the size
-    badge, duplicated bound props, double import in Snippet, Shortcuts dialog layout, Modes subtitle, raw layer names,
-    ⌘/Ctrl hint, 11px nav labels, 592px of side panels).

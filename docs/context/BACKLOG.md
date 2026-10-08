@@ -25,6 +25,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   hold the September capture (26 of the checked sets changed in Figma). No test reads them; re-capture each when its
   suite is written (the same LZ-chunk capture, `tools/figma-contract/README.md`).
 
+- **Code view in other languages — approved 2026-10-08 (user: order HTML/CSS → Vue → Swift → Flutter → Svelte):**
+  plan `docs/research/code-languages-plan-2026-10-03.md` (§8 answered by that order); examples get every language too
+  (user, 2026-10-03). Nothing built yet; a new feature (tier L), start with HTML/CSS.
+- **P3 · Studio UX polish N1–N11 — deferred by the user 2026-10-08 ("để sau"):** `docs/research/studio-ux-audit-2026-10-04.md`.
+
 ## Backlog (plan before opening sessions)
 - **P3 · usage:selftest fails now and then while another gate runs (2026-10-07):** twice a fixture rule reported 0 hits
   (`alert-banner/small-no-action`…, then `content/lights-no-light-text`) and passed 3/3 right after; both times a
