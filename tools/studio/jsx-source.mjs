@@ -1855,10 +1855,45 @@ function wrapCloned(element, nodePath) {
   if (entry) throw new EditError("invalid", entry.reason.replaceAll("{element}", `<${name}>`));
 }
 
-/** The place checks of op "wrap" (docs chrome aside): a cloned element (wrapCloned), then the HTML nesting (wrapNesting). */
+/**
+ * Parent/child contracts of Zen's compound components and HTML lists (2026-10-08): parents whose children must be
+ * their parts directly (a <div> between breaks the markup or the ARIA ownership the parent's keyboard and screen reader
+ * support rely on), and the parts that only render directly inside them. From a read of src/components: List renders
+ * <ul> (ListItem an <li> unless `as`), DescriptionList a <dl> of DescriptionItem groups, Menu a role="menu" list,
+ * Popover's children sit in its role="listbox", FileUpload's UploaderFileItem is an <li>.
+ */
+const PART_PARENTS = new Map([
+  ["ul", "a list (<ul>), which holds only list items"], ["ol", "a list (<ol>), which holds only list items"],
+  ["dl", "a description list (<dl>), which holds only its terms and descriptions"], ["menu", "a <menu>, which holds only list items"],
+  ["List", "a List (<ul>), which holds only ListItems"], ["DescriptionList", "a DescriptionList (<dl>), which holds only DescriptionItems"],
+  ["Menu", "a Menu (role=\"menu\"), which owns its items directly"], ["Popover", "a Popover's list (role=\"listbox\"), which owns its options directly"],
+]);
+/** Parts by what they render: host list parts as written, the Zen parts by name (ListItem only when it is an <li>). */
+const PART_OF = { li: "its list", dt: "its <dl>", dd: "its <dl>", ListItem: "its List", UploaderFileItem: "its FileUpload list", DescriptionItem: "its DescriptionList", MenuItem: "its Menu", MenuGroup: "its Menu", MenuSeparator: "its Menu", PopoverItem: "its Popover", TabItem: "its Tabs" };
+
+/** Refuses a wrap that would put a <div> between a compound parent and its parts (PART_PARENTS / PART_OF). */
+function wrapContract(element, nodePath) {
+  const name = lastSegment(jsxName(element.openingElement.name));
+  const as = element.openingElement.attributes.findLast((attr) => attrName(attr) === "as");
+  const asTag = as?.value?.type === "StringLiteral" ? as.value.value : as ? null : undefined;
+  const part = name === "ListItem" ? (asTag === undefined || asTag === "li" ? PART_OF.ListItem : null) : Object.hasOwn(PART_OF, name) ? PART_OF[name] : null;
+  if (part) throw new EditError("invalid", `<${name}> only works directly inside ${part}: a <div> around it would break that list's markup and keyboard order. Wrap ${part.replace(/^its /, "the ")} instead.`);
+  for (let i = nodePath.length - 2; i >= 0; i -= 1) {
+    const node = nodePath[i];
+    if (node.type === "JSXAttribute") return;
+    if (node.type !== "JSXElement") continue;
+    const parent = lastSegment(jsxName(node.openingElement.name));
+    if (PART_PARENTS.has(parent)) throw new EditError("invalid", `It sits directly inside ${PART_PARENTS.get(parent)}: a <div> there would break it. Wrap the ${parent} instead.`);
+    return;
+  }
+}
+
+/** The place checks of op "wrap" (docs chrome aside): a cloned element (wrapCloned), the HTML nesting (wrapNesting), then
+ * compound parents and their parts (wrapContract). */
 function wrapPlace(element, nodePath) {
   wrapCloned(element, nodePath);
   wrapNesting(element, nodePath);
+  wrapContract(element, nodePath);
 }
 
 /** describeElement's `wrap`: whether op "wrap" takes the element where it sits (not its tag, props or the file's Box). */

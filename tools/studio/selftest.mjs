@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Zen Studio selftest: the pure source helpers (tools/studio/jsx-source.mjs, detach.mjs, drafts.mjs) without a server. The detach
-// section also runs style-guard and usage-guard on its outputs through a temporary file in src/platform/examples/drafts.
+// and wrap sections also run style-guard and usage-guard on their outputs (a short-lived file in src/platform/examples/drafts)
+// and tsc (samples in node_modules/.cache, out of the app's tsc and the dev server's watch): guardOutputs.
 // The wrap section tests op "wrap" (the element inside a Box/Stack/Grid, the Layout import, the snippet), then `with` (siblings).
 //   node tools/studio/selftest.mjs        prints a summary, exits 1 on any failure
 import { spawnSync } from "node:child_process";
@@ -28,6 +29,78 @@ const edit = (code, loc, name, ops) => {
 };
 const describe = (code, loc) => describeElement(code, "src/platform/x.tsx", loc);
 const lines = (...rows) => rows.join("\n");
+
+/**
+ * The guards on an op's outputs (detach, wrap): no new style-guard or usage-guard finding per { label, before, after,
+ * allow? (usage keys "rule|Tag" a sample may add, each with its reason where it is pushed) },
+ * and TypeScript (the repo's tsconfig) on each { label, code, expect?, before?, file? }: no error, exactly the expected
+ * codes, or (with `before`, the op's input) no error code the input did not have already.
+ * Style-guard reads a file, so one short-lived draft goes to src/platform/examples/drafts; the tsc samples go to
+ * node_modules/.cache (out of `tsc -p .`'s src and the dev server's watch, so a parallel run never sees them), their
+ * relative imports pointed at the folder of the file they were written for (`file`, else src/platform/examples/pages).
+ */
+async function guardOutputs(repo, prefix, guardSamples, tscSamples) {
+  const { checkFile } = await import(pathToFileURL(path.join(repo, "tools/style-guard/check-styles.mjs")).href);
+  const { rules } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/check-usage.mjs")).href);
+  const { createChecker } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/engine.mjs")).href);
+  const usage = createChecker(rules, { consumer: false, css: false });
+  const draftDir = path.join(repo, "src/platform/examples/drafts");
+  const draft = `src/platform/examples/drafts/zen-studio-${prefix}-selftest-${process.pid}.tsx`;
+  const count = (list) => list.reduce((map, key) => map.set(key, (map.get(key) ?? 0) + 1), new Map());
+  const fresh = (before, after) => [...count(after)].filter(([key, n]) => n > (count(before).get(key) ?? 0)).map(([key]) => key);
+  const created = !fs.existsSync(draftDir);
+  try {
+    fs.mkdirSync(draftDir, { recursive: true });
+    for (const sample of guardSamples) {
+      fs.writeFileSync(path.join(repo, draft), sample.before);
+      const styleBefore = checkFile(draft).map((finding) => `${finding.rule}|${finding.context}`);
+      fs.writeFileSync(path.join(repo, draft), sample.after);
+      const styleAfter = checkFile(draft).map((finding) => `${finding.rule}|${finding.context}`);
+      check(`${prefix} guards ${sample.label}: style-guard`, fresh(styleBefore, styleAfter), []);
+      const usageKeys = (text) => usage.checkFile(text, draft).map((finding) => `${finding.rule.id}|${finding.tag}`);
+      check(`${prefix} guards ${sample.label}: usage-guard`, fresh(usageKeys(sample.before), usageKeys(sample.after)).filter((key) => !(sample.allow ?? []).includes(key)), []);
+    }
+  } finally {
+    fs.rmSync(path.join(repo, draft), { force: true });
+    if (created) fs.rmSync(draftDir, { recursive: true, force: true });
+  }
+  if (!tscSamples.length) return;
+  const tscBin = (() => {
+    try { return path.join(path.dirname(createRequire(path.join(repo, "package.json")).resolve("typescript/package.json")), "bin/tsc"); } catch { return null; }
+  })();
+  ok(`${prefix} tsc: typescript found`, tscBin && fs.existsSync(tscBin));
+  if (!tscBin || !fs.existsSync(tscBin)) return;
+  const dir = path.join(repo, "node_modules/.cache", `zen-studio-${prefix}-tsc-${process.pid}`);
+  const names = tscSamples.map((_, i) => `sample-${i}.tsx`);
+  const inputs = tscSamples.map((sample, i) => (sample.before === undefined ? null : `input-${i}.tsx`));
+  const absolute = (code, file) => {
+    const base = path.dirname(path.join(repo, file ?? "src/platform/examples/pages/sample.tsx"));
+    return code.replace(/^\uFEFF/, "").replace(/(from\s+|import\s*\(\s*)(["'])(\.\.?\/[^"']+)\2/g, (_, lead, quote, spec) => `${lead}${quote}${path.resolve(base, spec).split(path.sep).join("/")}${quote}`);
+  };
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    tscSamples.forEach((sample, i) => {
+      fs.writeFileSync(path.join(dir, names[i]), absolute(sample.code, sample.file));
+      if (inputs[i]) fs.writeFileSync(path.join(dir, inputs[i]), absolute(sample.before, sample.file));
+    });
+    fs.writeFileSync(path.join(dir, "tsconfig.json"), JSON.stringify({ extends: path.join(repo, "tsconfig.json"), include: [path.join(repo, "src/vite-env.d.ts"), ...names, ...inputs.filter(Boolean)] }));
+    const run = spawnSync(process.execPath, [tscBin, "-p", path.join(dir, "tsconfig.json"), "--pretty", "false"], { encoding: "utf8" });
+    ok(`${prefix} tsc: ran`, !run.error && run.status !== null);
+    const output = `${run.stdout ?? ""}${run.stderr ?? ""}`.split(/\r?\n/);
+    const mine = (line, name) => line.startsWith(`${name}(`) || line.includes(`/${name}(`);
+    const outside = output.filter((line) => /error TS\d+/.test(line) && ![...names, ...inputs].some((name) => name && mine(line, name)));
+    check(`${prefix} tsc: no errors outside the samples`, outside, []);
+    const codesOf = (name) => output.filter((line) => mine(line, name)).map((line) => /error (TS\d+)/.exec(line)?.[1]).filter(Boolean);
+    tscSamples.forEach((sample, i) => {
+      const codes = codesOf(names[i]);
+      if (!inputs[i]) { check(`${prefix} tsc ${sample.label}`, codes, sample.expect ?? []); return; }
+      const had = codesOf(inputs[i]);
+      check(`${prefix} tsc ${sample.label}: no new error`, codes.filter((code) => { const at = had.indexOf(code); if (at < 0) return true; had.splice(at, 1); return false; }), []);
+    });
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
 
 /* ── annotate ───────────────────────────────────────────────────────────────────────────────────────────────────── */
 {
@@ -1689,65 +1762,17 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     ok("crlf map: CRLF kept, the template literal untouched in both branches", !/[^\r]\n/.test(mapped.code) && mapped.code.split("{`a\r\n  ${row}`}").length === 3);
   }
 
-  // Every detach output above: no new style-guard or usage-guard findings (written to a temporary draft file).
+  // Every detach output above: no new style-guard or usage-guard findings; tsc on the chosen outputs (guardOutputs).
   if (repo) {
-    const { checkFile } = await import(pathToFileURL(path.join(repo, "tools/style-guard/check-styles.mjs")).href);
-    const { rules } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/check-usage.mjs")).href);
-    const { createChecker } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/engine.mjs")).href);
-    const usage = createChecker(rules, { consumer: false, css: false });
-    const draftDir = path.join(repo, "src/platform/examples/drafts");
-    const draft = `src/platform/examples/drafts/zen-studio-detach-selftest-${process.pid}.tsx`;
-    const count = (list) => list.reduce((map, key) => map.set(key, (map.get(key) ?? 0) + 1), new Map());
-    const fresh = (before, after) => [...count(after)].filter(([key, n]) => n > (count(before).get(key) ?? 0)).map(([key]) => key);
-    const created = !fs.existsSync(draftDir);
-    try {
-      fs.mkdirSync(draftDir, { recursive: true });
-      for (const sample of guardSamples) {
-        fs.writeFileSync(path.join(repo, draft), sample.before);
-        const styleBefore = checkFile(draft).map((finding) => `${finding.rule}|${finding.context}`);
-        fs.writeFileSync(path.join(repo, draft), sample.after);
-        const styleAfter = checkFile(draft).map((finding) => `${finding.rule}|${finding.context}`);
-        check(`guards ${sample.label}: style-guard`, fresh(styleBefore, styleAfter), []);
-        const usageKeys = (text) => usage.checkFile(text, draft).map((finding) => `${finding.rule.id}|${finding.tag}`);
-        check(`guards ${sample.label}: usage-guard`, fresh(usageKeys(sample.before), usageKeys(sample.after)), []);
-      }
-    } finally {
-      fs.rmSync(path.join(repo, draft), { force: true });
-      if (created) fs.rmSync(draftDir, { recursive: true, force: true });
-    }
+    await guardOutputs(repo, "detach", guardSamples, tscSamples);
     ok("guards: samples checked", guardSamples.length > 40);
-
-    // TypeScript (the repo's tsconfig) on chosen detach outputs, written as drafts: no error, or exactly the expected codes.
-    const tscBin = (() => {
-      try { return path.join(path.dirname(createRequire(path.join(repo, "package.json")).resolve("typescript/package.json")), "bin/tsc"); } catch { return null; }
-    })();
-    ok("tsc: typescript found", tscBin && fs.existsSync(tscBin));
-    if (tscBin && fs.existsSync(tscBin)) {
-      const names = tscSamples.map((_, i) => `zen-studio-detach-tsc-${process.pid}-${i}.tsx`);
-      const config = `zen-studio-detach-tsconfig-${process.pid}.json`;
-      const madeDir = !fs.existsSync(draftDir);
-      try {
-        fs.mkdirSync(draftDir, { recursive: true });
-        tscSamples.forEach((sample, i) => fs.writeFileSync(path.join(draftDir, names[i]), sample.code));
-        fs.writeFileSync(path.join(draftDir, config), JSON.stringify({ extends: "../../../../tsconfig.json", include: ["../../../vite-env.d.ts", ...names], exclude: [] }));
-        const run = spawnSync(process.execPath, [tscBin, "-p", path.join(draftDir, config), "--pretty", "false"], { encoding: "utf8" });
-        ok("tsc: ran", !run.error && run.status !== null);
-        const lines = `${run.stdout ?? ""}${run.stderr ?? ""}`.split(/\r?\n/);
-        const outside = lines.filter((line) => /error TS\d+/.test(line) && !line.includes("zen-studio-detach-tsc-"));
-        check("tsc: no errors outside the drafts", outside, []);
-        tscSamples.forEach((sample, i) => {
-          const codes = lines.filter((line) => line.includes(names[i])).map((line) => /error (TS\d+)/.exec(line)?.[1]).filter(Boolean);
-          check(`tsc ${sample.label}`, codes, sample.expect ?? []);
-        });
-      } finally {
-        for (const name of [...names, config]) fs.rmSync(path.join(draftDir, name), { force: true });
-        if (madeDir) fs.rmSync(draftDir, { recursive: true, force: true });
-      }
-    }
   }
 }
 
 /* ── wrap (applyOps op "wrap": the element inside a Box/Stack/Grid, its key moved, the Layout import, the snippet) ── */
+// Every wrap output of this and the next section: style-guard, usage-guard and tsc (guardOutputs, after the siblings).
+const wrapGuards = [];
+const wrapTsc = [];
 {
   const repo = [fileURLToPath(new URL("../../", import.meta.url))].find((candidate) => fs.existsSync(path.join(candidate, "src/platform/studio/history.ts")));
   const history = repo ? await import(pathToFileURL(path.join(repo, "src/platform/studio/history.ts")).href) : null;
@@ -1766,6 +1791,10 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
   const wrapAt = (label, code, needle, name, op = {}, { nth = 0, file = PAGE, snippets = true } = {}) => {
     const result = applyOps(code, locOf(code, needle, nth), name, [{ op: "wrap", tag: "Box", props: {}, ...op }], { file, snippets });
     if ("error" in result) return result;
+    // tooltip/focusable-trigger reads the first tag of a Tooltip's children only: a Button the wrap moved one level in
+    // still takes focus (Tooltip listens on its own span), so that finding is not the wrap's.
+    wrapGuards.push({ label, before: code, after: result.code, allow: ["tooltip/focusable-trigger|Tooltip"] });
+    wrapTsc.push({ label, code: result.code, before: code, file });
     const before = parseSource(code.replace(/^﻿/, ""));
     const after = parseSource(result.code.replace(/^﻿/, ""));
     ok(`${label}: re-parses`, after && after.errors.length <= before.errors.length);
@@ -1802,7 +1831,7 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     "        <Text>Pro</Text>",
     "      </Card>",
     "      {items.map((item) => (",
-    "        <ListItem key={item.id} title={item.name} leading={<DockIcon icon=\"icon-user-line\" />} />",
+    "        <ListItem key={item.id} as=\"div\" title={item.name} leading={<DockIcon icon=\"icon-user-line\" />} />",
     "      ))}",
     "      {items.map((item) => <Text key={item.id}>{item.name}</Text>)}",
     "      {open ? <Text>Open</Text> : null}",
@@ -1836,12 +1865,12 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     check("wrap in a Stack: Stack is already imported, booleans as a bare name", [changedRows(stack)[0], importLines(stack)[3]], ['      <Stack gap="sm" fillChildren>', 'import { Stack } from "../../../components/Layout";']);
     const grid = wrapAt("wrap in a Grid", src, "<Card", "Card", { tag: "Grid" });
     check("wrap in a Grid: no props, Grid imported", [changedRows(grid)[0], importLines(grid)[3]], ["      <Grid>", 'import { Grid, Stack } from "../../../components/Layout";']);
-    const long = wrapAt("wrap long props", src, "<Card", "Card", { props: { padding: str("lg"), surface: str("surface-alt"), border: str("subtle"), radius: str("xl"), width: str("fill"), minWidth: { kind: "number", value: 320 }, maxWidth: { kind: "number", value: 640 } } });
+    const long = wrapAt("wrap long props", src, "<Card", "Card", { props: { padding: str("lg"), surface: str("surface-alt"), border: str("pale"), radius: str("xl"), width: str("fill"), minWidth: { kind: "number", value: 320 }, maxWidth: { kind: "number", value: 640 } } });
     check("wrap long props: one per line past 110 columns", changedRows(long), [
       "      <Box",
       '        padding="lg"',
       '        surface="surface-alt"',
-      '        border="subtle"',
+      '        border="pale"',
       '        radius="xl"',
       '        width="fill"',
       "        minWidth={320}",
@@ -1858,26 +1887,26 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     const result = wrapAt("wrap map row", src, "<ListItem", "ListItem");
     check("wrap map row: key moved to the wrapper", changedRows(result), [
       "        <Box key={item.id}>",
-      '          <ListItem title={item.name} leading={<DockIcon icon="icon-user-line" />} />',
+      '          <ListItem as="div" title={item.name} leading={<DockIcon icon="icon-user-line" />} />',
       "        </Box>",
     ]);
     const inline = wrapAt("wrap map row inline", src, "<Text key", "Text", { props: { padding: str("sm") } });
     check("wrap map row inline: inline, key moved", changedRows(inline), ['      {items.map((item) => <Box key={item.id} padding="sm"><Text>{item.name}</Text></Box>)}']);
     // A key alone on its line goes with its line; a key that ends the tag takes the line break before it.
-    const own = ["export const B = ({ items }: { items: { id: string; name: string }[] }) => (", "  <Stack>", "    {items.map((item) => (", "      <ListItem", "        key={item.id}", "        title={item.name}", "      />", "    ))}", "  </Stack>", ");", ""].join("\n");
-    check("wrap map row, key on its own line", changedRows(wrapAt("wrap key own line", own, "<ListItem", "ListItem")), ["      <Box key={item.id}>", "        <ListItem", "          title={item.name}", "        />", "      </Box>"]);
+    const own = ["export const B = ({ items }: { items: { id: string; name: string }[] }) => (", "  <Stack>", "    {items.map((item) => (", "      <ListItem", "        as=\"div\"", "        key={item.id}", "        title={item.name}", "      />", "    ))}", "  </Stack>", ");", ""].join("\n");
+    check("wrap map row, key on its own line", changedRows(wrapAt("wrap key own line", own, "<ListItem", "ListItem")), ["      <Box key={item.id}>", "        <ListItem", "          as=\"div\"", "          title={item.name}", "        />", "      </Box>"]);
     const last = own.replace("        key={item.id}\n        title={item.name}\n      />", "        title={item.name}\n        key={item.id}>\n        Row\n      </ListItem>");
-    check("wrap map row, key ending the tag", changedRows(wrapAt("wrap key ends tag", last, "<ListItem", "ListItem")), ["      <Box key={item.id}>", "        <ListItem", "          title={item.name}>", "          Row", "        </ListItem>", "      </Box>"]);
+    check("wrap map row, key ending the tag", changedRows(wrapAt("wrap key ends tag", last, "<ListItem", "ListItem")), ["      <Box key={item.id}>", "        <ListItem", "          as=\"div\"", "          title={item.name}>", "          Row", "        </ListItem>", "      </Box>"]);
   }
   // Attribute and expression positions: inline, nothing re-indented. An attribute's own value is wrapped inline unless
   // cloning.json names the prop (see "Cloned elements" below); an element further inside the value is wrapped inline.
   {
     const attr = wrapAt("wrap attribute value", src, "<DockIcon", "DockIcon", { props: { padding: str("2xs") } });
-    check("wrap attribute value: inline in the attribute", changedRows(attr), ['        <ListItem key={item.id} title={item.name} leading={<Box padding="2xs"><DockIcon icon="icon-user-line" /></Box>} />']);
+    check("wrap attribute value: inline in the attribute", changedRows(attr), ['        <ListItem key={item.id} as="div" title={item.name} leading={<Box padding="2xs"><DockIcon icon="icon-user-line" /></Box>} />']);
     check("wrap attribute value: describe says ok", describeElement(src, PAGE, locOf(src, "<DockIcon"))?.wrap, { ok: true });
     const inside = src.replace('leading={<DockIcon icon="icon-user-line" />}', 'leading={<Stack><DockIcon icon="icon-user-line" /></Stack>}');
     const deeper = wrapAt("wrap inside an attribute value", inside, "<DockIcon", "DockIcon", { props: { padding: str("2xs") } });
-    check("wrap inside an attribute value: inline in the attribute", changedRows(deeper), ['        <ListItem key={item.id} title={item.name} leading={<Stack><Box padding="2xs"><DockIcon icon="icon-user-line" /></Box></Stack>} />']);
+    check("wrap inside an attribute value: inline in the attribute", changedRows(deeper), ['        <ListItem key={item.id} as="div" title={item.name} leading={<Stack><Box padding="2xs"><DockIcon icon="icon-user-line" /></Box></Stack>} />']);
     const cond = wrapAt("wrap conditional branch", src, "<Text>Open", "Text");
     check("wrap conditional branch: inline", changedRows(cond), ["      {open ? <Box><Text>Open</Text></Box> : null}"]);
     const bare = 'import { Icon } from "../../../components/Icon";\nexport const C = () => <Stack icon=<Icon name="x" /> />;\n';
@@ -2097,6 +2126,17 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     check("wrap inside an <svg>: refused", /inside an <svg>/.test(wrapAt("wrap in svg", nest(["  <svg><g><path d=\"M0 0\" /></g></svg>"]), "<path", "path").error), true);
     check("wrap inside a <foreignObject>: allowed", Boolean(wrapAt("wrap in foreignObject", nest(["  <svg><foreignObject><b>x</b></foreignObject></svg>"]), "<b", "b").wrapped), true);
     check("wrap an <svg>: allowed", Boolean(wrapAt("wrap svg", nest(["  <div><svg><path d=\"M0 0\" /></svg></div>"]), "<svg", "svg").wrapped), true);
+    // Compound parents and their parts (2026-10-08): no <div> between a List and its ListItems, a Menu and its items…
+    const parts = (body) => ['import { List, ListItem } from "../../../components/ListItem";', 'import { Menu, MenuItem } from "../../../components/Menu";', 'import { Button } from "../../../components/Button";', "export const P = () => (", ...body, ");", ""].join("\n");
+    const listed = parts(["  <List>", '    <ListItem title="One" />', '    {[1].map((n) => <ListItem key={n} title="Row" />)}', "  </List>"]);
+    check("wrap a ListItem in its List: refused, names the List", /<ListItem> only works directly inside its List.*Wrap the List instead/.test(wrapAt("wrap ListItem", listed, "<ListItem title=\"One", "ListItem").error), true);
+    check("wrap a .map ListItem row: refused", wrapAt("wrap ListItem row", listed, "<ListItem key", "ListItem").code, "invalid");
+    check("wrap a ListItem as=\"div\": allowed", Boolean(wrapAt("wrap ListItem div", parts(['  <ListItem as="div" title="One" />']), "<ListItem", "ListItem").wrapped), true);
+    check("wrap any child of a List: refused", /directly inside a List \(<ul>\)/.test(wrapAt("wrap in List", parts(["  <List>", "    <Button>x</Button>", "  </List>"]), "<Button", "Button").error), true);
+    check("wrap a host <li> / a child of <ul>: refused", [wrapAt("wrap li", nest(["  <ul><li>x</li></ul>"]), "<li", "li").code, /directly inside a list \(<ul>\)/.test(wrapAt("wrap in ul", nest(["  <ul><b>x</b></ul>"]), "<b", "b").error)], ["invalid", true]);
+    check("wrap a MenuItem / a child of Menu: refused", [wrapAt("wrap MenuItem", parts(['  <Menu trigger={<Button>Open</Button>}><MenuItem label="A" /></Menu>']), "<MenuItem", "MenuItem").code, /Menu \(role="menu"\)/.test(wrapAt("wrap in Menu", parts(['  <Menu trigger={<Button>Open</Button>}><Button>B</Button></Menu>']), "<Button>B", "Button").error)], ["invalid", true]);
+    check("wrap inside a ListItem's content or an attribute of a List: allowed", [Boolean(wrapAt("wrap in ListItem", parts(['  <List><ListItem title="One"><Button>x</Button></ListItem></List>']), "<Button", "Button").wrapped), Boolean(wrapAt("wrap in List attr", parts(['  <List aria-label="x"><ListItem title="One" trailing={<Button>x</Button>} /></List>']), "<Button", "Button").wrapped)], [true, true]);
+    check("describe gives the contract verdict too", describeElement(listed, PAGE, locOf(listed, "<ListItem title=\"One"))?.wrap?.ok, false);
   }
   // Lines inside a template literal keep their indentation; blank lines stay blank; CRLF and BOM kept.
   {
@@ -2250,6 +2290,8 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     const [[needle, name, nth = 0], ...others] = needles;
     const result = applyOps(code, locOf(code, needle, nth), name, [{ op: "wrap", tag: "Box", props: {}, with: others.map(([n, , k = 0]) => locOf(code, n, k)), ...op }], { file, snippets });
     if ("error" in result) return result;
+    wrapGuards.push({ label, before: code, after: result.code });
+    wrapTsc.push({ label, code: result.code, before: code, file });
     const before = parseSource(code);
     const after = parseSource(result.code);
     ok(`${label}: re-parses`, after && after.errors.length <= before.errors.length);
@@ -2403,6 +2445,15 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     check("wrap many snippet missing: reason, source still wrapped", [missing.snippet.synced, /does not show this code \(<Button>, <Button>\)/.test(missing.snippet.reason)], [false, true]);
     const off = wrapMany("wrap many snippet off", page(), [["<Button>Send", "Button"], ["<Button>Cancel", "Button"]], {}, { snippets: false });
     check("wrap many snippet off: no report", "snippet" in off, false);
+  }
+}
+
+// The wrap outputs above (both sections) through the guards detach's outputs pass (2026-10-08: they ran none before).
+{
+  const repo = [fileURLToPath(new URL("../../", import.meta.url))].find((candidate) => fs.existsSync(path.join(candidate, "tools/style-guard/check-styles.mjs")));
+  if (repo) {
+    await guardOutputs(repo, "wrap", wrapGuards, wrapTsc);
+    ok("wrap guards: samples checked", wrapGuards.length > 40);
   }
 }
 
