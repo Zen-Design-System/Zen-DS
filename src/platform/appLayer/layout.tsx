@@ -744,7 +744,7 @@ function MobileScreenExample() {
   return (
     <Stack align="center">
     <PlatformPhone canvas="canvas" label="Tasks" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Tasks" largeTitle="Tasks" scrollRef={screenRef} trailing={[{ icon: "icon-plus-line", label: "New task", onClick: () => setCreating(true) }]} />}>
+      header={<TopNavigation type="alt" title="Tasks" largeTitle="Tasks" scrollRef={screenRef} trailing={[{ icon: "icon-plus-line", label: "New task", onClick: () => setCreating(true) }]} />}>
       {/* lg (20px) side padding: the blocks line up with the large title. */}
       <Stack gap="lg" paddingX="lg" paddingY="sm">
         <Grid columns={2} gap="sm">
@@ -930,7 +930,7 @@ export const examples: ExampleMap = keepOnHotUpdate(import.meta.hot, "examples",
   </Stack>
 </Box>` },
     { title: "Mobile screen", wide: true, description: "A phone screen from the same parts: a Stack with lg side padding (level with the large title) and lg between sections, a fixed two-column Grid for the summary cards, and a list box (md padding around the static rows, xl radius). The group header is a Body/Small/Bold kicker under the large title, which folds into the bar as the week's tasks scroll.", render: () => <MobileScreenExample />, code: `<PlatformPhone headerOverlay screenRef={screenRef} header={
-  <TopNavigation title="Tasks" largeTitle="Tasks" scrollRef={screenRef} trailing={[{ icon: "icon-plus-line", label: "New task", onClick: () => setCreating(true) }]} />
+  <TopNavigation type="alt" title="Tasks" largeTitle="Tasks" scrollRef={screenRef} trailing={[{ icon: "icon-plus-line", label: "New task", onClick: () => setCreating(true) }]} />
 }>
 <Stack gap="lg" paddingX="lg" paddingY="sm">
   <Grid columns={2} gap="sm">

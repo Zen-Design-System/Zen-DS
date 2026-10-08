@@ -214,7 +214,7 @@ function PhoneSort() {
   const current = sortOptions.find((option) => option.id === sort)!;
   return (
     <PlatformPhone label="Files" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Files" largeTitle="Files" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Files" largeTitle="Files" scrollRef={screenRef} />}>
       <Stack direction="row" align="center" justify="between" gap="md" paddingX="lg" paddingY="sm">
         <Text as="span" textStyle="Body/Small/Regular" tone="base">{plural(phoneFiles.length, "file")}</Text>
         <Chip variant="advanced" dropdown leading="icon-switch-vertical-01-line" aria-haspopup="dialog" aria-expanded={sheet}
@@ -452,7 +452,7 @@ const unpick = (label) => { setPicked(toggleIn(picked, label)); focusNextTagOrCh
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Files" largeTitle="Files" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Files" largeTitle="Files" scrollRef={screenRef} />}>
   <Stack direction="row" align="center" justify="between" gap="md" paddingX="lg" paddingY="sm">
     <Text as="span" textStyle="Body/Small/Regular" tone="base">15 files</Text>
     <Chip variant="advanced" dropdown leading="icon-switch-vertical-01-line"

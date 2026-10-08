@@ -294,7 +294,7 @@ function MobileTasks() {
   }));
   return (
     <PlatformPhone label="Tasks" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
       <Stack gap="md" align="stretch">
         <Stack direction="row" gap="xs" className="px-badge-chip-row" role="group" aria-label="Filter by status">
           {(["All", ...taskStatuses] as const).map((option) => (
@@ -391,7 +391,7 @@ const columns = [
 const caption = (task) => \`\${task.key} · \${task.status === "Done" ? finishedLabel(task.finished) : formatDue(task.due)}\`;
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
   {["All", "To do", "In progress", "In review", "Done"].map((option) => (
     <Chip key={option} variant="normal" level="primary"
       selected={filter === option} onClick={() => setFilter(option)}>{option}</Chip>

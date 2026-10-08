@@ -467,7 +467,7 @@ function PhoneOrderType() {
     return (
       // One key per screen: each screen opens at its top and its Top Navigation measures its own fold.
       <PlatformPhone key="cart" label="Cart" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Cart" largeTitle="Cart" scrollRef={screenRef} />}
+        header={<TopNavigation type="alt" title="Cart" largeTitle="Cart" scrollRef={screenRef} />}
         footer={<ActionBar position="static"
           summary={<Text as="span" textStyle="Body/Base/Medium">{`Subtotal ${formatMoney(subtotal, true)}`}</Text>}
           primaryAction={{ label: "Go to checkout", onClick: () => go("checkout", '.zen-top-nav__action[aria-label="Back"]') }} />}>
@@ -490,7 +490,7 @@ function PhoneOrderType() {
     // An end state keeps a way out: Done starts again from the cart.
     return (
       <PlatformPhone key="placed" label="Order placed" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="compact" title="Order placed" scrollRef={screenRef} />}
+        header={<TopNavigation type="compact-alt" title="Order placed" scrollRef={screenRef} />}
         footer={<ActionBar position="static" primaryAction={{ label: "Done", onClick: () => go("cart", ".zen-action-bar button") }} />}>
         {screen.anchor}
         <Stack gap="lg" padding="lg">
@@ -506,7 +506,7 @@ function PhoneOrderType() {
 
   return (
     <PlatformPhone key="checkout" label="Checkout" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Checkout" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Checkout" scrollRef={screenRef}
         leading={{ icon: back, label: "Back", onClick: () => go("cart", ".zen-action-bar button") }} />}
       footer={<ActionBar position="static"
         summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{`Total ${formatMoney(total, true)}`}</Text>}
@@ -600,7 +600,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key="checkout" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Checkout" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Checkout" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => setStep("cart") }} />}
   footer={<ActionBar position="static" summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{\`Total \${formatMoney(total, true)}\`}</Text>}
     primaryAction={{ label: "Place order", onClick: () => setStep("placed") }} />}>

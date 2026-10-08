@@ -376,7 +376,7 @@ function OfflinePhoneExample() {
     // The status banner always sits under the Top Navigation (its `banner` slot): pinned, edge to edge, it never
     // scrolls away, while the large title still folds as the list moves under the bar.
     <PlatformPhone label="My tasks" headerOverlay screenRef={screenRef} header={
-      <TopNavigation title="My tasks" largeTitle="My tasks" scrollRef={screenRef}
+      <TopNavigation type="alt" title="My tasks" largeTitle="My tasks" scrollRef={screenRef}
         trailing={[{ icon: "icon-refresh-cw-01-line", label: "Sync now", onClick: sync, disabled: connection === "reconnecting" }]}
         banner={banner ? <AlertBanner size="small" theme={banner.theme} leading={banner.leading}>{banner.message}</AlertBanner> : undefined} />
     }>
@@ -473,7 +473,7 @@ const restore = () => {
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef} header={
-  <TopNavigation title="My tasks" largeTitle="My tasks" scrollRef={screenRef}
+  <TopNavigation type="alt" title="My tasks" largeTitle="My tasks" scrollRef={screenRef}
     trailing={[{ icon: "icon-refresh-cw-01-line", label: "Sync now", onClick: sync, disabled: connection === "reconnecting" }]}
     banner={connection === "offline" ? (
       <AlertBanner size="small" theme="negative" leading="icon-wifi-off-line">You’re offline. Showing tasks from 10:12 am.</AlertBanner>

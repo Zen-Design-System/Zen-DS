@@ -219,7 +219,7 @@ function MobileSignInExample() {
   return (
     <DemoNavigate value={(path) => setScreen(path === "/reset-password" ? "reset" : "sign-up")}>
       <PlatformPhone label="Sign in"
-        header={<TopNavigation type="compact" title={title} leading={screen === "sign-in" ? undefined : { icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
+        header={<TopNavigation type="compact-alt" title={title} leading={screen === "sign-in" ? undefined : { icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
         footer={screen === "sign-in" ? (
           <div className="pe-phone-cta">
             <Button level="primary" size="lg" onClick={() => setSent(true)}>Sign in</Button>
@@ -599,7 +599,7 @@ function MobileMenuExample() {
     else setNote(`${id === "share" ? "Sharing" : "Renaming"} ${file.name}…`);
   };
   return (
-    <PlatformPhone label="Files" header={<TopNavigation type="compact" title="Files" />}>
+    <PlatformPhone label="Files" header={<TopNavigation type="compact-alt" title="Files" />}>
       {/* Static rows (their only actions sit in the menu) take the screen's page margin. */}
       <Box paddingX="lg" paddingY="sm">
         <List aria-label="Files">
@@ -812,7 +812,7 @@ export const examples: ExampleMap = keepOnHotUpdate(import.meta.hot, "examples",
   <Text as="span" textStyle="Body/Small/Regular" tone="light">© 2026 Zen Studio</Text>
   <Text as="span" textStyle="Body/Small/Regular"><Link href="/status">Status</Link></Text>
 </Stack>` },
-    { title: "Mobile sign-in", description: "On a phone, links navigate (Forgot password?, Create an account) and buttons act (Sign in). Tap a link to open its screen; the Back chevron returns.", render: () => <MobileSignInExample />, code: `<PlatformPhone header={<TopNavigation type="compact" title="Sign in" />}
+    { title: "Mobile sign-in", description: "On a phone, links navigate (Forgot password?, Create an account) and buttons act (Sign in). Tap a link to open its screen; the Back chevron returns.", render: () => <MobileSignInExample />, code: `<PlatformPhone header={<TopNavigation type="compact-alt" title="Sign in" />}
   footer={<div className="pe-phone-cta">{/* display: grid; gap: 12px; padding: 12px 20px + safe area */}
     <Button level="primary" size="lg" onClick={signIn}>Sign in</Button>
     <Text textStyle="Body/Small/Regular" tone="light" align="center">

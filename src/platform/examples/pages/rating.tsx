@@ -203,7 +203,7 @@ function PhoneOrderExample() {
   if (!order || !review) {
     return (
       <PlatformPhone key="root" label="Orders" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* Margin-Compact body (padding lg, 20). Rows pad 12px above and below only, so their content sits at the margin
             and the interactive fill (12px past the row sideways) stays 8px inside the screen. */}
@@ -225,7 +225,7 @@ function PhoneOrderExample() {
   const toggle = (problem: string) => edit({ problems: review.problems.includes(problem) ? review.problems.filter((item) => item !== problem) : [...review.problems, problem] });
   return (
     <PlatformPhone key={order.id} label="Rate your order" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Rate your order" scrollRef={screenRef} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
+      header={<TopNavigation type="compact-alt" title="Rate your order" scrollRef={screenRef} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
       footer={<ActionBar position="static" primaryAction={{ label: "Send rating", type: "submit", form: formId }} />}>
       {screen.anchor}
       <Stack padding="lg">
@@ -448,11 +448,11 @@ const send = () => {
 
 // Orders root: large title that folds as the 15 orders scroll
 <PlatformPhone key="root" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>…</PlatformPhone>
+  header={<TopNavigation type="alt" title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>…</PlatformPhone>
 
 // The order's rating screen: a child, compact with Back
 <PlatformPhone key={order.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Rate your order" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Rate your order" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
   footer={<ActionBar position="static" primaryAction={{ label: "Send rating", type: "submit", form: formId }} />}>
   <Stack padding="lg">

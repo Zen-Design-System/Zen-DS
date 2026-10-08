@@ -283,7 +283,7 @@ function LoyaltyStampsExample() {
   return (
     // The header floats over the screen (headerOverlay) so the large title folds as the visits scroll under it.
     <PlatformPhone label="Phin & Co rewards" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Rewards" largeTitle="Rewards" scrollRef={screenRef} />}
+      header={<TopNavigation type="alt" title="Rewards" largeTitle="Rewards" scrollRef={screenRef} />}
       footer={<ActionBar position="static" primaryAction={full
         ? { label: "Redeem free drink", onClick: redeem }
         : { label: "Scan receipt", startIcon: "icon-scan-line", onClick: scan }} />}>
@@ -422,7 +422,7 @@ toast({ type: "positive", title: "Export ready", children: \`\${name} · 2.3 MB\
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Rewards" largeTitle="Rewards" scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title="Rewards" largeTitle="Rewards" scrollRef={screenRef} />}
   footer={<ActionBar position="static" primaryAction={full
     ? { label: "Redeem free drink", onClick: redeem }
     : { label: "Scan receipt", startIcon: "icon-scan-line", onClick: scan }} />}>

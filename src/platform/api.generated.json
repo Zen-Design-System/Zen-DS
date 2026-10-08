@@ -8222,6 +8222,38 @@
           "deprecated": null
         },
         {
+          "name": "metricColor",
+          "type": "boolean | string",
+          "required": false,
+          "default": "false",
+          "description": "Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the\n metric to a chart series. `true` is Color/Background/Accent/Solid; a string is the series colour\n (`var(--zen-color-background-support-blue-solid)`).",
+          "deprecated": null
+        },
+        {
+          "name": "counter",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Icon-Highlight: Figma Counter — a Small Neutral Subtle Badge after the label, Spacing/Gap/2XSmall from it (a count\n of what the metric covers, e.g. \"3\" open invoices).",
+          "deprecated": null
+        },
+        {
+          "name": "labelIcon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title.",
+          "deprecated": null
+        },
+        {
+          "name": "hint",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows\n this text in a Tooltip on hover and focus; say how the number is worked out.",
+          "deprecated": null
+        },
+        {
           "name": "className",
           "type": "string",
           "required": false,
@@ -8329,6 +8361,38 @@
           "required": false,
           "default": null,
           "description": "Title-Highlight: Figma Custom-Slot (Custom=Yes, added 2026-10-07): your own content under the contents — a sparkline,\na ProgressBar, a breakdown — Spacing/Gap/Medium below at XLarge/Large, Spacing/Gap/Small at Medium–XSmall. The\nDock-Icon stays at the contents' bottom-right corner.",
+          "deprecated": null
+        },
+        {
+          "name": "metricColor",
+          "type": "boolean | string",
+          "required": false,
+          "default": null,
+          "description": "Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the\n metric to a chart series. `true` is Color/Background/Accent/Solid; a string is the series colour\n (`var(--zen-color-background-support-blue-solid)`).",
+          "deprecated": null
+        },
+        {
+          "name": "counter",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Icon-Highlight: Figma Counter — a Small Neutral Subtle Badge after the label, Spacing/Gap/2XSmall from it (a count\n of what the metric covers, e.g. \"3\" open invoices).",
+          "deprecated": null
+        },
+        {
+          "name": "labelIcon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title.",
+          "deprecated": null
+        },
+        {
+          "name": "hint",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows\n this text in a Tooltip on hover and focus; say how the number is worked out.",
           "deprecated": null
         },
         {

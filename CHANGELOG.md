@@ -19,6 +19,9 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- **Metric-Inline props from Figma (2026-10-08):** `metricColor` (Metric-Color: a dot before the label, Accent/Solid
+  or a chart series colour), `counter` (a Small Neutral Subtle Badge after the label), and on Title-Highlight `labelIcon`
+  (24px before the title) and `hint` (an info icon whose Tooltip explains the number).
 - **DatePickerSheet: dates on a phone (2026-10-07, Figma Date-Picker/Mobile 9923:3576):** a Bottom Sheet picker.
   `selectionMode="single"` shows one month with Cancel / OK; `"range"` stacks the months under one pinned weekday row
   and ends in Footer-Actions (your `summary`, e.g. the price for the nights, beside OK). Picks are a draft until OK.
@@ -612,6 +615,9 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Phone screens: the top bar matches the canvas (2026-10-08, user rule):** every docs phone on Canvas/Default now
+  uses the Alt bar (`alt`, `compact-alt`, `alt-blurring`), the same colour as the screen; only white Surface screens keep
+  `default` / `compact`. The TopNavigation guideline says so.
 - **BottomSheet in a device frame (2026-10-07):** like Dialog and Menu, a BottomSheet inside a `[data-zen-overlay-root]`
   frame (PlatformPhone, an app's device preview) now opens in that frame instead of over the whole page; `inline` is
   only needed elsewhere. DatePicker's stacked month titles are `<h3>` headings under the sheet's title.

@@ -252,7 +252,7 @@ function ScanTipPhone() {
   const [tip, setTip] = useState(true);
   const { toast } = useToast();
   return (
-    <PlatformPhone label="Expenses" header={<TopNavigation title="Expenses" />}>
+    <PlatformPhone label="Expenses" header={<TopNavigation type="alt" title="Expenses" />}>
       <Box paddingX="lg" paddingY="md">
         <Stack gap="lg">
           <Stack gap="2xs">

@@ -77,7 +77,7 @@ function RootAndDetailExample() {
     return (
       // One key per screen: each screen opens at the top and the bar measures its fold again.
       <PlatformPhone key="root" label="Projects" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Projects" largeTitle="Projects" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Projects" largeTitle="Projects" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* The rows sit in the screen margin (Margin/Comfortable, 20px), so their fill stays 8px off the screen edge; Padding/XSmall (8px, the phone's List-Container-Vertical-Padding) above and below, like a List-Box. */}
         <Box paddingX="lg" paddingY="xs">
@@ -103,7 +103,7 @@ function RootAndDetailExample() {
   return (
     <PlatformPhone key={opened.id} label={opened.name} headerOverlay screenRef={screenRef} header={
       // A pushed, dense detail screen: Compact type (Flat actions); the bar title is its h1 and Back returns to the row.
-      <TopNavigation type="compact" title={opened.name} scrollRef={screenRef}
+      <TopNavigation type="compact-alt" title={opened.name} scrollRef={screenRef}
         leading={{ icon: back, label: "Back", onClick: () => screen.go(`[data-project="${opened.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }}
         trailing={[{ icon: "icon-link-01-line", label: "Copy link", onClick: copyLink }]} />
     }>
@@ -173,7 +173,7 @@ function CollapseOnScrollExample() {
   return (
     // The header floats over the screen (headerOverlay) so the list can run under the bar as the title folds away.
     <PlatformPhone label="People" headerOverlay screenRef={screenRef} header={
-      <TopNavigation title="People" largeTitle="People" scrollRef={screenRef}
+      <TopNavigation type="alt" title="People" largeTitle="People" scrollRef={screenRef}
         trailing={[{ icon: "icon-user-plus-line", label: "Invite people", onClick: openInvite }]}
         controlBar={<Search ref={searchRef} placeholder="Search people" aria-label="Search people" value={query} onValueChange={setQuery} />}
         searchAction={{ label: "Search people", onClick: openSearch }} />
@@ -313,7 +313,7 @@ function InboxControlBarExample() {
   return (
     <PlatformPhone label="Inbox" headerOverlay screenRef={screenRef} header={
       // The Segmented stays pinned under the bar: it moves up with the fold and never folds away.
-      <TopNavigation title="Inbox" largeTitle="Inbox" scrollRef={screenRef}
+      <TopNavigation type="alt" title="Inbox" largeTitle="Inbox" scrollRef={screenRef}
         // Nothing left to mark: the action stays in place, disabled.
         trailing={[{ icon: "icon-double-check-line", label: "Mark all as read", disabled: unread === 0, onClick: () => setItems((list) => list.map((item) => ({ ...item, unread: false }))) }]}
         controlBar={<Segmented fullWidth aria-label="Show" value={view} onValueChange={setView} options={[
@@ -402,7 +402,7 @@ function ConversationHeaderExample() {
   if (!openId) {
     return (
       <PlatformPhone key="root" label="Messages" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Messages" largeTitle="Messages" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Messages" largeTitle="Messages" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* The rows sit in the screen margin (Margin/Comfortable, 20px), so their fill stays 8px off the screen edge; Padding/XSmall (8px, the phone's List-Container-Vertical-Padding) above and below, like a List-Box. */}
         <Box paddingX="lg" paddingY="xs">
@@ -429,7 +429,7 @@ function ConversationHeaderExample() {
   return (
     <PlatformPhone key={chat.id} label={`Conversation with ${chat.name}`} headerOverlay screenRef={screenRef} header={
       // Identity header: Default type, compact margin, the person (or group) as the title and one pill for both calls.
-      <TopNavigation margin="compact" title={chat.name} subtitle={status} scrollRef={screenRef}
+      <TopNavigation type="alt" margin="compact" title={chat.name} subtitle={status} scrollRef={screenRef}
         titleLeading={one ? <Avatar size="lg" background="subtle" status={one.online} {...avatarOf(one)} /> : <ChatAvatarGroup size="lg" people={chat.members.map((m) => chatPerson(people[m]))} />}
         onTitleClick={() => setProfile(true)} titleLabel={`${chat.name}, ${status.toLowerCase()}. ${one ? "Open profile" : "Open group info"}`}
         leading={{ icon: back, label: "Back", onClick: () => screen.go(`[data-chat="${chat.id}"] .zen-list-item__wrapper`, () => { setProfile(false); setOpenId(null); }) }}
@@ -506,7 +506,7 @@ function OverPhotosExample() {
   if (index === null) {
     return (
       <PlatformPhone key="moodboard" label="Moodboard" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Moodboard" largeTitle="Moodboard" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Moodboard" largeTitle="Moodboard" scrollRef={screenRef} />}>
         {screen.anchor}
         <Stack gap="xs" padding="lg">
           <Text textStyle="Body/Small/Regular" tone="base">{`Brand refresh · Saola Outdoor · ${plural(moodboard.length, "photo")}`}</Text>
@@ -618,7 +618,7 @@ function ModalScreenExample() {
   if (view === "reviews") {
     return (
       <PlatformPhone key="reviews" label="Reviews" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Reviews" largeTitle="Reviews" scrollRef={screenRef}
+        header={<TopNavigation type="alt" title="Reviews" largeTitle="Reviews" scrollRef={screenRef}
           trailing={[{ icon: "icon-plus-line", label: "New review", onClick: () => screen.go("input.zen-input__native", () => setView("new")) }]} />}>
         {screen.anchor}
         {/* Static rows (nothing opens a booked review here) sit in the screen margin, like the New review form. */}
@@ -639,7 +639,7 @@ function ModalScreenExample() {
   return (
     // A create screen opens as a modal: Close on the leading edge, the main action in the footer, never in the bar.
     <PlatformPhone key="new" label="New review" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="New review" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="New review" scrollRef={screenRef}
         leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
       footer={<ActionBar position="static" primaryAction={{ label: "Book review", type: "submit", form: formId }} />}>
       {screen.anchor}
@@ -671,7 +671,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 // Root screen: the large title is the h1 (Heading/1) and folds under the bar as the list scrolls.
 // One key per screen, so each screen opens at the top and the bar measures its fold again.
 <PlatformPhone key="root" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Projects" largeTitle="Projects" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Projects" largeTitle="Projects" scrollRef={screenRef} />}>
   <Box paddingX="lg" paddingY="xs"> {/* the screen margin: rows 20px from the edge; Padding/XSmall above and below, like a List-Box */}
     <List aria-label="Projects">{/* a ListItem per project, onClick opens it */}</List>
   </Box>
@@ -679,7 +679,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 
 // Pushed detail screen: Compact type (Flat actions); the bar title is the h1, content headings start at h2.
 <PlatformPhone key={project.id} headerOverlay screenRef={screenRef} header={
-  <TopNavigation type="compact" title={project.name} scrollRef={screenRef}
+  <TopNavigation type="compact-alt" title={project.name} scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToProjects }}
     trailing={[{ icon: "icon-link-01-line", label: "Copy link", onClick: copyLink }]} />
 }>…</PlatformPhone>`,
@@ -691,7 +691,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef} header={
-  <TopNavigation title="People" largeTitle="People" scrollRef={screenRef}
+  <TopNavigation type="alt" title="People" largeTitle="People" scrollRef={screenRef}
     trailing={[{ icon: "icon-user-plus-line", label: "Invite people", onClick: () => setInviting(true) }]}
     controlBar={<Search ref={searchRef} placeholder="Search people" value={query} onValueChange={setQuery} />}
     searchAction={{ label: "Search people", onClick: scrollUpAndFocusSearch }} />
@@ -731,7 +731,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     description: "A full-width Segmented in the control bar switches All and Unread and counts what is unread; it stays pinned while the large title folds. Mark all as read stays in place but disabled once nothing is left, and an empty Unread view offers a way back.",
     render: () => <InboxControlBarExample />,
     code: `<PlatformPhone headerOverlay screenRef={screenRef} header={
-  <TopNavigation title="Inbox" largeTitle="Inbox" scrollRef={screenRef}
+  <TopNavigation type="alt" title="Inbox" largeTitle="Inbox" scrollRef={screenRef}
     trailing={[{ icon: "icon-double-check-line", label: "Mark all as read", disabled: unread === 0, onClick: markAllRead }]}
     controlBar={<Segmented fullWidth aria-label="Show" value={view} onValueChange={setView} options={[
       { id: "all", label: "All" },
@@ -748,7 +748,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     description: "The identity header puts the person or group in the bar: avatar, name and presence, one button that opens their profile. Audio and video calls share one pill, each half with its own label; a call rings in the thread, then turns into a missed call with Call again.",
     render: () => <ConversationHeaderExample />,
     code: `<PlatformPhone key={chat.id} headerOverlay screenRef={screenRef} header={
-  <TopNavigation margin="compact" title="Bao Nguyen" subtitle="Active now" scrollRef={screenRef}
+  <TopNavigation type="alt" margin="compact" title="Bao Nguyen" subtitle="Active now" scrollRef={screenRef}
     titleLeading={<Avatar size="lg" background="subtle" status theme="photo" src={bao.photo} alt="" />}
     onTitleClick={openProfile} titleLabel="Bao Nguyen, active now. Open profile"
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToMessages }}
@@ -781,7 +781,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 
 // The moodboard it opens from: a root with a large title that folds.
 <PlatformPhone key="moodboard" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Moodboard" largeTitle="Moodboard" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Moodboard" largeTitle="Moodboard" scrollRef={screenRef} />}>
   <Grid columns={2} gap="2xs">{/* a tile button per photo */}</Grid>
 </PlatformPhone>`,
   },
@@ -792,7 +792,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     code: `const close = () => (hasDraft ? setDiscarding(true) : backToReviews());
 
 <PlatformPhone key="new" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="New review" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="New review" scrollRef={screenRef}
     leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
   footer={<ActionBar position="static" primaryAction={{ label: "Book review", type: "submit", form: formId }} />}>
   <Box padding="lg">

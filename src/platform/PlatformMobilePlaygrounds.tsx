@@ -204,7 +204,7 @@ export function BottomNavigationPlayground() {
   value={tab}
   onValueChange={(id) => { if (id === tab) scrollToTop(); setTab(id); }}${action ? `\n  action={{ icon: "icon-plus-line", label: "New post", onClick: compose }}` : ""}
 />`}>
-      <PlatformPhone headerOverlay screenRef={screenRef} header={<TopNavigation title={tabLabel} largeTitle={tabLabel} scrollRef={screenRef} />}
+      <PlatformPhone headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title={tabLabel} largeTitle={tabLabel} scrollRef={screenRef} />}
         footer={<BottomNavigation type={t} theme={(theme ?? "neutral") as BottomNavigationTheme} selection={(selection ?? "surface") as BottomNavigationSelection} showLabels={labels} items={bottomNavItems} value={value} onValueChange={pickTab} action={action ? { icon: "icon-plus-line", label: "New post", onClick: () => setSheet(true) } : undefined} />}>
         <ScreenList />
         <BottomSheet inline open={sheet} onOpenChange={setSheet} type="action" title="Create" items={[{ id: "post", label: "Post", icon: "icon-edit-02-line" }, { id: "photo", label: "Photo", icon: "icon-camera-line" }, { id: "event", label: "Event", icon: "icon-calendar-line" }]} onSelect={(item) => setDraft(String(item.label))} />
@@ -254,7 +254,7 @@ export function BottomSheetPlayground() {
 >
   {/* Contents slot: your own content */}
 </BottomSheet>`}`}>
-      <PlatformPhone headerOverlay screenRef={screenRef} header={<TopNavigation title="Projects" largeTitle="Projects" scrollRef={screenRef} topBar={false} />}>
+      <PlatformPhone headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title="Projects" largeTitle="Projects" scrollRef={screenRef} topBar={false} />}>
         <div style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px)" }}><Button appearance="main" level="primary" size="lg" onClick={() => setOpen(true)}>{t === "action" ? "Sort projects" : "New project"}</Button></div>
         <ScreenList sort={sort} />
         <BottomSheet inline open={open} onOpenChange={openChange} type={t} size={(size ?? "flex") as BottomSheetSize} title={t === "action" ? "Sort by" : "New project"}

@@ -464,7 +464,7 @@ function PhoneReceipts() {
   const total = totalOf(last);
   return (
     <PlatformPhone key="orders" label="Phin & Co orders" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
       {screen.anchor}
       {/* The rows sit in the screen margin (Margin/Comfortable, 20px), so their fill stays 8px off the screen edge; Padding/XSmall (8px, the phone's List-Container-Vertical-Padding) above and below, like a List-Box. */}
       <Box paddingX="lg" paddingY="xs">
@@ -581,7 +581,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key="orders" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
   <Box paddingX="lg" paddingY="xs"> {/* the screen margin: rows 20px from the edge; Padding/XSmall above and below, like a List-Box */}
     <List aria-label="Orders">
       {orders.map((order) => (

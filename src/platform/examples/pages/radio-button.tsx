@@ -255,7 +255,7 @@ function DeliverySlotExample() {
   if (draft !== null) {
     return (
       <PlatformPhone key="slot" label="Delivery slot" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="compact" title="Delivery slot" scrollRef={screenRef} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
+        header={<TopNavigation type="compact-alt" title="Delivery slot" scrollRef={screenRef} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
         footer={<ActionBar position="static" primaryAction={{ label: "Confirm slot", onClick: confirm }} />}>
         {screen.anchor}
         {/* Margin-Compact body (padding lg, 20). */}
@@ -277,7 +277,7 @@ function DeliverySlotExample() {
   }
   return (
     <PlatformPhone key="root" label="Delivery" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Delivery" largeTitle="Delivery" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Delivery" largeTitle="Delivery" scrollRef={screenRef} />}>
       {screen.anchor}
       <Stack padding="lg">
         <List aria-label="Shipment MF-20931">
@@ -404,7 +404,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 const back = () => (draft !== slot ? setAsking(true) : leave());
 
 <PlatformPhone key="slot" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Delivery slot" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Delivery slot" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
   footer={<ActionBar position="static" primaryAction={{ label: "Confirm slot", onClick: confirm }} />}>
   <Stack gap="md" padding="lg">

@@ -312,7 +312,7 @@ function PhoneToastExample() {
   const title = tabTitle[tab];
   return (
     <PlatformPhone label="Phin & Co" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title={title} largeTitle={title} scrollRef={screenRef} />}
+      header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
       footer={(
         <>
           <div className="px-toast-phone-host"><ToastStack inline toasts={toasts} onDismiss={dismiss} max={1} /></div>
@@ -434,7 +434,7 @@ const openTab = (next) => {
 };
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title={title} largeTitle={title} scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
   footer={<>
     <ToastStack inline toasts={toasts} onDismiss={dismiss} max={1} />
     <BottomNavigation items={tabs} value={tab} onValueChange={openTab} showLabels />

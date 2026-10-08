@@ -494,7 +494,7 @@ function PhoneTimesheetsExample() {
   };
   return (
     <PlatformPhone label="Team hours" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Team hours" largeTitle="Team hours" scrollRef={screenRef} />}
+      header={<TopNavigation type="alt" title="Team hours" largeTitle="Team hours" scrollRef={screenRef} />}
       footer={<ActionBar position="static"
         summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{approved ? "Approved just now" : `${plural(timesheets.length, "timesheet")} · ${plural(hours, "hour")}`}</Text>}
         primaryAction={approved ? undefined : { label: "Approve timesheets", onClick: approve }}
@@ -677,7 +677,7 @@ const opened = projects.find((project) => project.id === openId);
 const hours = timesheets.reduce((sum, s) => sum + s.total, 0);
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Team hours" largeTitle="Team hours" scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title="Team hours" largeTitle="Team hours" scrollRef={screenRef} />}
   footer={<ActionBar position="static" summary={\`\${plural(timesheets.length, "timesheet")} · \${plural(hours, "hour")}\`}
     primaryAction={{ label: "Approve timesheets", onClick: approve }} />}>
   {/* padding 20 (Margin-Compact): the table's edge lines up with the large title */}

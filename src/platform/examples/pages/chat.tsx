@@ -471,7 +471,7 @@ function PhoneMessenger({ m, label, listTitle = "Chats", canvas }: { m: Messenge
     return (
       <>
         <PlatformPhone key="chats" label={label} canvas={canvas} headerOverlay screenRef={screenRef}
-          header={<TopNavigation title={listTitle} largeTitle={listTitle} scrollRef={screenRef} trailing={[{ icon: "icon-plus-line", label: "Favourite", onClick: () => toast({ title: "Favourite" }) }]} />}>
+          header={<TopNavigation type="alt" title={listTitle} largeTitle={listTitle} scrollRef={screenRef} trailing={[{ icon: "icon-plus-line", label: "Favourite", onClick: () => toast({ title: "Favourite" }) }]} />}>
           {screen.anchor}
           <List aria-label={listTitle}>
             {m.convs.map((c) => <ChatConversationItem key={c.id} {...rowOf(m, c)} onClick={() => screen.go('[aria-label="Back"]', () => m.open(c.id))} />)}
@@ -865,7 +865,7 @@ const handle = (action, id) => {
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key="chats" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Chats" largeTitle="Chats" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Chats" largeTitle="Chats" scrollRef={screenRef} />}>
   <List aria-label="Chats">
     <ChatConversationItem person={chi} preview="Can you look at it before the 2 pm review?" time="2 minutes ago" unread={!read.chi} onClick={() => open("chi")} />
     <ChatConversationItem person={bao} call="missed-audio" time="13 minutes ago" unread={!read.bao} online onClick={() => open("bao")} />

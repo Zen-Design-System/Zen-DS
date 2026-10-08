@@ -391,7 +391,7 @@ function PhoneInbox() {
   if (opened) {
     return (
       <PlatformPhone key={opened.id} label="Zen app" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="compact" title={opened.key} scrollRef={screenRef}
+        header={<TopNavigation type="compact-alt" title={opened.key} scrollRef={screenRef}
           leading={{ icon: back, label: "Back", onClick: () => screen.go(`[data-thread="${opened.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}>
         {screen.anchor}
         <Stack gap="lg" paddingY="lg">
@@ -421,7 +421,7 @@ function PhoneInbox() {
 
   return (
     <PlatformPhone key="inbox" label="Zen app" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Inbox" largeTitle="Inbox" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Inbox" largeTitle="Inbox" scrollRef={screenRef} />}>
       {screen.anchor}
       {/* The list's name carries the total; each counter is aria-hidden and its hidden text says what it counts. The rows
           sit in the screen margin (Margin/Comfortable, 20px), so their fill stays 8px off the screen edge; Padding/XSmall
@@ -573,7 +573,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key="inbox" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Inbox" largeTitle="Inbox" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Inbox" largeTitle="Inbox" scrollRef={screenRef} />}>
   <Box paddingX="lg" paddingY="xs"> {/* the screen margin: rows 20px from the edge; Padding/XSmall above and below, like a List-Box */}
     <List aria-label={unread ? \`Inbox, \${plural(unread, "unread comment")}\` : "Inbox"}>
       {threads.map((item) => (

@@ -373,7 +373,7 @@ function PhoneApproveExample() {
   if (!request) {
     return (
       <PlatformPhone key="root" label="Time off" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Time off" largeTitle="Time off" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Time off" largeTitle="Time off" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* Rows pad 0 at the sides: the screen margin (lg) insets them, and sm above and below keeps the first and last fills clear. */}
         <Box paddingX="lg" paddingY="xs">
@@ -393,7 +393,7 @@ function PhoneApproveExample() {
   const left = annualLeft[request.person];
   return (
     <PlatformPhone key={request.id} label="Leave request" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Leave request" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Leave request" scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-request="${request.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}
       // Two peer answers: Decline and Approve side by side, Primary at the end. Decided requests have no footer.
       footer={request.status === "Pending" ? (
@@ -540,7 +540,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 
 // One key per screen; the Top Navigation follows the scroll of the phone screen.
 <PlatformPhone key={request.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Leave request" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Leave request" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToRequests }} />}
   footer={request.status === "Pending" ? (
     <ActionBar position="static" direction="horizontal"

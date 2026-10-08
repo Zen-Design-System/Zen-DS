@@ -82,6 +82,7 @@ interface TopNavigationAction { icon: IconName | ReactElement; label: string; on
 | Enter / Space | Activate the focused action |
 
 ## ✅ Do
+- Give the bar the colour of the screen under it (user rule 2026-10-08): on Canvas/Default or Surface/Alt (the same colour in light and dark; a phone screen by default) use alt, compact-alt or alt-blurring; on a white Surface screen default, compact or default-blurring; an overlay type only on media.
 - Match the type to the page Canvas: Default on Surface, Alt on an Alt canvas, Compact on dense detail screens, an overlay type only on media.
 - Use a large title only on top-level screens (tab roots); a pushed screen with Back uses the bar title alone.
 - On a root, keep the default: the bar row folds into the large-title row (Figma Top-bar=false), so the actions sit at the right of the large title and stay put when it folds; pass topBar only for a stack that keeps the bar above the large title.

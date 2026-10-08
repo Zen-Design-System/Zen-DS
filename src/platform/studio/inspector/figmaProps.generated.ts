@@ -2184,6 +2184,11 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       },
       {
+        "prop": "metricColor",
+        "label": "Metric-Color",
+        "type": "BOOLEAN"
+      },
+      {
         "prop": "size",
         "label": "Size",
         "type": "VARIANT",
@@ -2197,6 +2202,21 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       }
     ],
     "toggles": [
+      {
+        "label": "Counter",
+        "prop": "counter",
+        "on": "3"
+      },
+      {
+        "label": "Hint",
+        "prop": "hint",
+        "on": "How this number is worked out"
+      },
+      {
+        "label": "Label-Icon",
+        "prop": "labelIcon",
+        "on": "icon-wallet-02-line"
+      },
       {
         "label": "Custom",
         "prop": "custom",
@@ -2216,6 +2236,11 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       },
       {
+        "prop": "metricColor",
+        "label": "Metric-Color",
+        "type": "BOOLEAN"
+      },
+      {
         "prop": "size",
         "label": "Size",
         "type": "VARIANT",
@@ -2229,6 +2254,21 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       }
     ],
     "toggles": [
+      {
+        "label": "Counter",
+        "prop": "counter",
+        "on": "3"
+      },
+      {
+        "label": "Hint",
+        "prop": "hint",
+        "on": "How this number is worked out"
+      },
+      {
+        "label": "Label-Icon",
+        "prop": "labelIcon",
+        "on": "icon-wallet-02-line"
+      },
       {
         "label": "Custom",
         "prop": "custom",

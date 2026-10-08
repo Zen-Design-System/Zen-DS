@@ -171,7 +171,7 @@ function MobileTypographyExample() {
     <ZenProvider typography="mobile" paint={false} portal={false} breakpoint="mobile">
       <PlatformPhone key={openId ?? "root"} headerOverlay screenRef={screenRef} header={order
         // Child screen: the compact bar title is the screen's h1 (Body/Extra/Bold), so content starts at h2.
-        ? <TopNavigation type="compact" title={`Order ${order.id}`} scrollRef={screenRef} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-order="${order.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />
+        ? <TopNavigation type="compact-alt" title={`Order ${order.id}`} scrollRef={screenRef} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-order="${order.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />
         : <TopNavigation title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
         {screen.anchor}
         {order ? (

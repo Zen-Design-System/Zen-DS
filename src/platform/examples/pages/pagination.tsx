@@ -342,7 +342,7 @@ function MobileExhibitorsExample() {
   };
   return (
     <PlatformPhone label="Hanoi Book Fair app" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Exhibitors" largeTitle="Exhibitors" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Exhibitors" largeTitle="Exhibitors" scrollRef={screenRef} />}>
       {/* Body padding lg (20) = the bar's margin; rows pad 0 at the sides, so they line up with the count. */}
       <Stack padding="lg" gap="md">
         <Stack gap="xs">
@@ -423,7 +423,7 @@ const turn = (next: number) => {
 };
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Exhibitors" largeTitle="Exhibitors" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Exhibitors" largeTitle="Exhibitors" scrollRef={screenRef} />}>
   <Stack padding="lg" gap="md">
     <Stack gap="xs">
       <Text ref={countRef} tabIndex={-1} role="status" textStyle="Body/Small/Regular" tone="base">15–28 of 48 exhibitors</Text>

@@ -278,7 +278,7 @@ function DlReceiptSheetExample() {
   const order = orders.find((entry) => entry.id === orderId) ?? orders[0];
   const isSent = sent.includes(order.id);
   return (
-    <PlatformPhone label="Order history" header={<TopNavigation type="compact" title="Orders" />}>
+    <PlatformPhone label="Order history" header={<TopNavigation type="compact-alt" title="Orders" />}>
       <List aria-label="Past orders">
         {orders.map((entry) => (
           <ListItem key={entry.id} title={`Order #${entry.id}`} caption={`${entry.date} · ${plural(orderCount(entry), "print")} · ${money(orderTotal(entry))}`}
@@ -440,7 +440,7 @@ function AbPrintShopExample() {
   const total = prints.reduce((sum, entry) => sum + (cart[entry.id] ?? 0) * entry.price, 0);
   return (
     <PlatformPhone label="Print shop"
-      header={<TopNavigation type="compact" title={print ? print.name : "Prints"} leading={print ? { icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => setPrintId(null) } : undefined} />}
+      header={<TopNavigation type="compact-alt" title={print ? print.name : "Prints"} leading={print ? { icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => setPrintId(null) } : undefined} />}
       footer={print ? (
         <ActionBar
           summary={<Text textStyle="Body/Small/Regular" tone="base" role="status">{count ? `${plural(count, "print")} in your cart · ${money(total)}` : `${money(print.price)} · Free delivery over $100`}</Text>}
@@ -487,7 +487,7 @@ function AbPhoneFiltersExample() {
   return (
     <PlatformPhone label="Print filters"
       header={view === "filters"
-        ? <TopNavigation type="compact" title="Filters" leading={{ icon: "icon-x-medium-line", label: "Close", onClick: () => { setDraft(applied); setView("results"); } }} />
+        ? <TopNavigation type="compact-alt" title="Filters" leading={{ icon: "icon-x-medium-line", label: "Close", onClick: () => { setDraft(applied); setView("results"); } }} />
         : <TopNavigation type="compact" title="Prints" trailing={[{ icon: "icon-filter-lines-line", label: appliedCount ? `Filters, ${appliedCount} applied` : "Filters", onClick: openFilters }]} />}
       footer={view === "filters" ? (
         <ActionBar direction="horizontal"
@@ -811,7 +811,7 @@ const feedPosts = [
 function ImageFeedExample() {
   const [liked, setLiked] = useState<string[]>([]);
   return (
-    <PlatformPhone label="Photo feed" canvas="canvas" header={<TopNavigation type="compact" title="Explore" />}>
+    <PlatformPhone label="Photo feed" canvas="canvas" header={<TopNavigation type="compact-alt" title="Explore" />}>
       <div className="pac-feed">
         {feedPosts.map((post) => {
           const isLiked = liked.includes(post.id);
@@ -1028,7 +1028,7 @@ function VhUnreadPhoneExample() {
   const [openId, setOpenId] = useState<string | null>(null);
   const unreadTotal = threads.reduce((sum, thread) => sum + thread.unread, 0);
   return (
-    <PlatformPhone label="Inbox with unread counts" header={<TopNavigation type="compact" title="Inbox" />}>
+    <PlatformPhone label="Inbox with unread counts" header={<TopNavigation type="compact-alt" title="Inbox" />}>
       <List aria-label={`Conversations, ${plural(unreadTotal, "unread message")}`}>
         {threads.map((thread) => (
           <ListItem key={thread.id} title={thread.from} caption={thread.preview} selected={openId === thread.id}
@@ -1128,14 +1128,14 @@ export const examples: ExampleMap = keepOnHotUpdate(import.meta.hot, "examples",
 <DescriptionList items={[{ term: "Available credit", description: "$0.00", emphasis: true }]} />` },
   ],
   "action-bar": [
-    { title: "Print shop on a phone", description: "Open a print: the detail screen’s footer is an Action Bar with the Large Primary on top, one Tertiary below, a live summary and the home-indicator safe area.", render: () => <AbPrintShopExample />, code: `<PlatformPhone header={<TopNavigation type="compact" title={print.name} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
+    { title: "Print shop on a phone", description: "Open a print: the detail screen’s footer is an Action Bar with the Large Primary on top, one Tertiary below, a live summary and the home-indicator safe area.", render: () => <AbPrintShopExample />, code: `<PlatformPhone header={<TopNavigation type="compact-alt" title={print.name} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
   footer={<ActionBar
     summary={<Text textStyle="Body/Small/Regular" tone="base" role="status">{summary}</Text>}
     primaryAction={{ label: "Add to cart", startIcon: <Icon name="icon-shopping-cart-line" decorative />, onClick: addToCart }}
     secondaryAction={{ label: "Save for later", onClick: toggleSaved }} />}>
   <PrintDetails print={print} />
 </PlatformPhone>` },
-    { title: "Filters on a phone", description: "Horizontal on a phone: Clear all · Show 6 prints side by side as two Large buttons, the count updating as filters change. Show applies them; the filter action in the header brings them back.", render: () => <AbPhoneFiltersExample />, code: `<PlatformPhone header={<TopNavigation type="compact" title="Filters" leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
+    { title: "Filters on a phone", description: "Horizontal on a phone: Clear all · Show 6 prints side by side as two Large buttons, the count updating as filters change. Show applies them; the filter action in the header brings them back.", render: () => <AbPhoneFiltersExample />, code: `<PlatformPhone header={<TopNavigation type="compact-alt" title="Filters" leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
   footer={<ActionBar direction="horizontal"
     secondaryAction={{ label: "Clear all", disabled: !count, onClick: clearAll }}
     primaryAction={{ label: \`Show \${plural(matches.length, "print")}\`, disabled: !matches.length, onClick: apply }} />}>

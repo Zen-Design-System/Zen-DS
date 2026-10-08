@@ -363,7 +363,7 @@ function ProfileOnPhoneExample() {
   if (!personId) {
     return (
       <PlatformPhone key="root" label="People" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="People" largeTitle="People" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="People" largeTitle="People" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* Rows pad 0 at the sides: the screen margin (lg, 20px) insets them, and their fill (12px outside a row) stays 8px off every edge. */}
         <Box padding="lg">
@@ -386,7 +386,7 @@ function ProfileOnPhoneExample() {
   return (
     <PlatformPhone key={personId} label={person.name} headerOverlay screenRef={screenRef}
       header={(
-        <TopNavigation type="compact" title={person.name} scrollRef={screenRef}
+        <TopNavigation type="compact-alt" title={person.name} scrollRef={screenRef}
           leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-person="${personId}"] .zen-list-item__wrapper`, () => setPersonId(null)) }}
           // Two to four tabs share the phone's width evenly; the bar stays pinned under the title.
           controlBar={<Tabs idPrefix={prefix} fullWidth aria-label={`${person.name} sections`} value={tab} onValueChange={setTab} items={[
@@ -616,7 +616,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 
 // One PlatformPhone per screen (key), each wired to the scroll.
 <PlatformPhone key={personId} headerOverlay screenRef={screenRef} header={
-  <TopNavigation type="compact" title="Chi Tran" scrollRef={screenRef}
+  <TopNavigation type="compact-alt" title="Chi Tran" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToPeople }}
     controlBar={
       <Tabs idPrefix="profile" fullWidth aria-label="Chi Tran sections" value={tab} onValueChange={setTab} items={[

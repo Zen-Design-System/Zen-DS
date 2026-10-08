@@ -447,7 +447,7 @@ function PhoneAssistantExample() {
     // The screen that keeps the newest answer in view is also the Top Navigation's scroller: once the thread runs under
     // the bar, the bar shows its Pale rule.
     <PlatformPhone label="Zen AI" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Zen AI" scrollRef={screenRef} trailing={started ? [{ icon: "icon-message-plus-circle-line", label: "New chat", onClick: chat.reset }] : undefined} />}
+      header={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef} trailing={started ? [{ icon: "icon-message-plus-circle-line", label: "New chat", onClick: chat.reset }] : undefined} />}
       footer={started ? <Box className="px-ai-chat-phone-dock">{field}</Box> : undefined}>
       {started ? (
         <Box className="px-ai-chat-phone-body">
@@ -580,7 +580,7 @@ const [editing, setEditing] = useState<number | null>(null);
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Zen AI" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef}
     trailing={turns.length ? [{ icon: "icon-message-plus-circle-line", label: "New chat", onClick: newChat }] : undefined} />}
   footer={turns.length ? field : undefined}>
   {turns.length ? (

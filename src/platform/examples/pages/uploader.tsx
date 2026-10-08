@@ -304,7 +304,7 @@ function PhoneSickLeave() {
   if (step === "root") {
     return (
       <PlatformPhone key="root" label="Time off" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Time off" largeTitle="Time off" scrollRef={screenRef} />}
+        header={<TopNavigation type="alt" title="Time off" largeTitle="Time off" scrollRef={screenRef} />}
         footer={<ActionBar position="static" primaryAction={{ label: "Request sick leave", onClick: openRequest }} />}>
         {screen.anchor}
         <Box padding="lg">
@@ -321,7 +321,7 @@ function PhoneSickLeave() {
   return (
     // A create screen opened from Time off: Close is its way out, and it asks before dropping the note.
     <PlatformPhone key="request" label="Sick leave" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Sick leave" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Sick leave" scrollRef={screenRef}
         leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
       footer={step === "sent"
         ? <ActionBar position="static" primaryAction={{ label: "View balance", onClick: toRoot }} />
@@ -382,7 +382,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key="request" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Sick leave" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Sick leave" scrollRef={screenRef}
     leading={{ icon: "icon-x-medium-line", label: "Close", onClick: () => (note.length ? setConfirming(true) : close()) }} />}
   footer={<ActionBar position="static" primaryAction={{ label: "Send request", type: "submit", form: formId }} />}>
   <Form id={formId} onSubmit={send}>

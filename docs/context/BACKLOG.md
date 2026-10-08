@@ -111,9 +111,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - Phone decisions from the Top Navigation research (2026-10-01, `docs/research/top-navigation-mobile-rules-2026-10-01.md`):
 
 ## Backlog (plan before opening sessions)
-- **P3 · Metric-Inline props not in code (2026-10-07, read from Figma 595:55188 / 7523:507049):** Icon-Highlight
-  Counter (a Small Neutral Subtle Badge after the label, XLarge/Large) and Metric-Color (an accent square before the
-  label); Title-Highlight Hint (info icon) and Label-Icon (24px icon before the title). `custom` (Custom-Slot) is done.
 - **P3 · Density audit flake (2026-10-07, batch A4 gate):** date-picker@1512 "Date Picker" and "Time off request" reported
   `zen-date-picker__view outgrows its box by 4px at Comfortable` once under a heavy gate; a lone run on HEAD and on the
   change was clean. The viewport's height is a CSS transition from a measured size, so a check right after the density

@@ -240,7 +240,7 @@ function PhoneSpending() {
     return (
       // Spending is a tab root: its large title folds into the bar as the list scrolls under it.
       <PlatformPhone key="spending" label="Lumen Bank app" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Spending" largeTitle="Spending" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Spending" largeTitle="Spending" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* The day groups sit in the screen margin (Margin/Comfortable, 20px): rows and kickers share one start edge and
             the fills stay 8px off the screen edge. Kicker → rows xs (the rows pad 12px above themselves). */}
@@ -269,7 +269,7 @@ function PhoneSpending() {
   return (
     // A pushed screen: compact bar with Back, which returns focus to the row it came from.
     <PlatformPhone key={payment.id} label="Lumen Bank app" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Payment" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Payment" scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-payment="${payment.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}>
       {screen.anchor}
       <Stack gap="lg" padding="lg">
@@ -366,7 +366,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 
 {/* One key per screen, so each opens at the top and the title folds again */}
 <PlatformPhone key="spending" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Spending" largeTitle="Spending" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Spending" largeTitle="Spending" scrollRef={screenRef} />}>
   {/* In the screen margin (20px); kicker → rows xs */}
   <Stack gap="lg" paddingX="lg">
     <Stack as="section" gap="xs" aria-labelledby="today">
@@ -383,7 +383,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 
 {/* The payment screen: the same mark, Large and Solid */}
 <PlatformPhone key={payment.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Payment" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Payment" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => setOpenId(null) }} />}>
   <Metric size="xl" label={payment.merchant} value={signed(payment.amount)}
     icon={category.icon} iconTheme={category.theme} iconBackground="solid" />

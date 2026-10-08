@@ -463,7 +463,7 @@ function TimeOffPhoneExample() {
   }
   return (
     <PlatformPhone key="form" label="Request time off" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Request time off" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Request time off" scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
       footer={<ActionBar position="static" primaryAction={{ label: "Send request", type: "submit", form: formId }} />}>
       {screen.anchor}
@@ -648,7 +648,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 
 // The form, pushed from it: one key per screen, so it opens at the top.
 <PlatformPhone key="form" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Request time off" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Request time off" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => (form.isDirty ? setDiscarding(true) : toList()) }} />}
   footer={<ActionBar position="static" primaryAction={{ label: "Send request", type: "submit", form: formId }} />}>
   <Form id={formId} form={form} gap="md">

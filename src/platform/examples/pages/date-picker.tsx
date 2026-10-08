@@ -431,7 +431,7 @@ function ReviewScheduleExample() {
   }
   return (
     <PlatformPhone key="new" label="New review" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="New review" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="New review" scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
       footer={<ActionBar position="static"
         summary={<Text as="span" textStyle="Body/Base/Medium" tone={date ? "strongest" : "base"}>{date ? when(date, time) : "No date yet"}</Text>}
@@ -488,7 +488,7 @@ function StayOnPhoneExample() {
   );
   return (
     <PlatformPhone label="Saola Lodge" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Saola Lodge" scrollRef={screenRef} />}
+      header={<TopNavigation type="compact-alt" title="Saola Lodge" scrollRef={screenRef} />}
       footer={<ActionBar position="static" summary={summary(nights)}
         primaryAction={{ label: "Reserve", disabled: !nights, onClick: () => { if (stay?.start && stay.end) toast({ type: "positive", title: "Stay reserved", children: `${formatRange(stay.start, stay.end)} · ${plural(nights, "night")}` }); } }} />}>
       <Stack gap="lg" padding="lg">
@@ -624,7 +624,7 @@ const [time, setTime] = useState<DatePickerTime>({ from: "14:00", to: "14:30" })
 // list: <PlatformPhone key="list" canvas="alt"> with TopNavigation type="alt", each week a white
 // <ListBox> around its List of static rows, under a kicker in <Box paddingX="lg">.
 <PlatformPhone key="new" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="New review" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="New review" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => (dirty ? setDiscarding(true) : toList()) }} />}
   footer={<ActionBar position="static"
     summary={<Text as="span" textStyle="Body/Base/Medium" tone={date ? "strongest" : "base"}>{date ? when(date, time) : "No date yet"}</Text>}

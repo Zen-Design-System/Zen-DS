@@ -311,7 +311,7 @@ function MobileOrderSummaryExample() {
   if (step === "cart") {
     return (
       <PlatformPhone key={step} label="Phin & Co cart" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Cart" largeTitle="Cart" scrollRef={screenRef} />}
+        header={<TopNavigation type="alt" title="Cart" largeTitle="Cart" scrollRef={screenRef} />}
         footer={<ActionBar position="static" summary={<Text as="span" textStyle="Body/Base/Medium">{`Subtotal ${formatMoney(orderSubtotal, true)}`}</Text>}
           primaryAction={{ label: "Check out", onClick: () => go("checkout", '.zen-top-nav__action[aria-label="Back"]') }} />}>
         {screen.anchor}
@@ -332,7 +332,7 @@ function MobileOrderSummaryExample() {
     // An end state keeps a way out: Done starts again from the cart.
     return (
       <PlatformPhone key={step} label="Phin & Co order placed" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="compact" title="Order placed" scrollRef={screenRef} />}
+        header={<TopNavigation type="compact-alt" title="Order placed" scrollRef={screenRef} />}
         footer={<ActionBar position="static" primaryAction={{ label: "Done", onClick: () => go("cart", ".zen-action-bar .zen-button") }} />}>
         {screen.anchor}
         <Stack paddingX="lg" paddingY="lg" gap="lg">
@@ -348,7 +348,7 @@ function MobileOrderSummaryExample() {
 
   return (
     <PlatformPhone key={step} label="Phin & Co checkout" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Checkout" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Checkout" scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => go("cart", ".zen-action-bar .zen-button") }} />}
       footer={<ActionBar position="static" primaryAction={{ label: `Place order · ${total}`, onClick: () => go("placed", ".zen-action-bar .zen-button") }} />}>
       {screen.anchor}
@@ -524,7 +524,7 @@ const submit = () => {
 
 // One PlatformPhone per screen (key), so each opens at the top; the bar follows the scroll.
 <PlatformPhone key="checkout" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Checkout" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Checkout" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToCart }} />}
   footer={<ActionBar position="static" primaryAction={{ label: "Place order · $9.40", onClick: placeOrder }} />}>
   <Stack paddingX="lg" paddingY="lg" gap="lg">

@@ -694,7 +694,7 @@ function StudioEvents() {
   return (
     // The tab root: the large title folds as the feed scrolls under the bar.
     <PlatformPhone key="events" label={studio.name} headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Events" largeTitle="Events" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Events" largeTitle="Events" scrollRef={screenRef} />}>
       {screen.anchor}
       <Stack as="ul" gap="md" padding="lg" aria-label="Upcoming events">
         {studioEvents.map((item) => {
@@ -986,7 +986,7 @@ const rsvp = (event, next) => {
 
 // The Events feed: each photo is a frame its layers pin to.
 <PlatformPhone key="events" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Events" largeTitle="Events" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Events" largeTitle="Events" scrollRef={screenRef} />}>
   <Stack as="ul" gap="md" padding="lg" aria-label="Upcoming events">
     {events.map((event) => (
       // The frame owns the radius and clips the photo to it

@@ -461,7 +461,7 @@ function PhoneDrillInExample() {
     return (
       // One key per screen: each screen opens at the top and the bar measures its fold again.
       <PlatformPhone key="root" label="My numbers" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="My numbers" largeTitle="My numbers" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="My numbers" largeTitle="My numbers" scrollRef={screenRef} />}>
         {screen.anchor}
         <Stack gap="lg" padding="lg">
           {myGroups.map((group) => (
@@ -484,7 +484,7 @@ function PhoneDrillInExample() {
   }
   return (
     <PlatformPhone key={open.id} label={open.label} headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title={open.label} scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title={open.label} scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[aria-label="${openLabel(open)}"]`, () => setOpenId(null)) }} />}>
       {screen.anchor}
       {/* Rows pad 0 at the sides: the screen margin (lg) insets them, so they line up with the metric. */}
@@ -524,6 +524,30 @@ function BudgetProgress() {
         );
       })}
     </Grid>
+  );
+}
+
+// Revenue by channel: Metric-Color ties each metric to its chart series, the Counter says how many invoices it covers;
+// the payout tile is Title-Highlight with a Label-Icon and a Hint (Figma Metric-Inline, 2026-10-07).
+const channels = [
+  { id: "projects", label: "Projects", value: "$18,240", invoices: 6, color: "var(--zen-color-background-support-blue-solid)" },
+  { id: "retainers", label: "Retainers", value: "$9,600", invoices: 3, color: "var(--zen-color-background-support-green-solid)" },
+  { id: "workshops", label: "Workshops", value: "$2,150", invoices: 2, color: "var(--zen-color-background-support-orange-solid)" },
+];
+
+function RevenueByChannel() {
+  return (
+    <Stack gap="lg">
+      <Grid columns="repeat(auto-fit, minmax(min(100%, 200px), 1fr))" gap="md">
+        {channels.map((channel) => (
+          <MetricCard key={channel.id} theme="flat" size="sm" icon={false} label={channel.label} value={channel.value}
+            metricColor={channel.color} counter={channel.invoices} />
+        ))}
+      </Grid>
+      <MetricCard theme="flat" variant="title-highlight" size="md" label="Next payout" labelIcon="icon-wallet-02-line"
+        hint="Paid invoices from the last 14 days, less the 2.9% card fee. Pays out every second Friday." value="$4,812.40"
+        icon="icon-bank-line" iconTheme="green" trend={{ direction: "normal", label: "Friday, Oct 16" }} />
+    </Stack>
   );
 }
 
@@ -671,7 +695,7 @@ const [openId, setOpenId] = useState<string | null>(null);
 
 // One key per screen; the large title folds as the cards scroll under the bar.
 <PlatformPhone key="root" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="My numbers" largeTitle="My numbers" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="My numbers" largeTitle="My numbers" scrollRef={screenRef} />}>
   {/* padding 20 (Margin-Compact); gap 24 (sections) → 8 (kicker → cards) → 16 (cards) */}
   <Stack gap="lg" padding="lg">
     <Stack as="section" gap="xs" aria-labelledby={septemberId}>
@@ -691,7 +715,7 @@ const [openId, setOpenId] = useState<string | null>(null);
 
 // The next screen: Back returns to the chevron it came from
 <PlatformPhone key="hours" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Hours logged" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Hours logged" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go('[aria-label="Open hours logged"]', () => setOpenId(null)) }} />}>
   <Stack gap="lg" padding="lg">
     <Metric size="lg" icon={false} label="September" value="164 h" trend={{ direction: "positive", label: "+12 h vs. August" }} />
@@ -731,5 +755,16 @@ const paid = sumOf(rows, ["Paid"]);
     code: `<MetricCard theme="flat" variant="title-highlight" size="md" label="Loyalty app" value="$28,400"
   icon="icon-phone-line" iconTheme="orange" trend={{ direction: "normal", label: "of $36,000" }}
   custom={<ProgressBar value={79} theme="status" scale="quota" label="79%" aria-label="Loyalty app budget used" />} />`,
+  },
+  {
+    title: "Revenue by channel",
+    description: "Metric-Color puts each channel's chart colour before its label, and the Counter after it says how many invoices the total covers. The payout tile is Title-Highlight with a Label-Icon before its title and a Hint after it, which explains how the number is worked out on hover and focus.",
+    render: () => <RevenueByChannel />,
+    code: `<MetricCard theme="flat" size="sm" icon={false} label="Projects" value="$18,240"
+  metricColor="var(--zen-color-background-support-blue-solid)" counter={6} />
+
+<MetricCard theme="flat" variant="title-highlight" size="md" label="Next payout" labelIcon="icon-wallet-02-line"
+  hint="Paid invoices from the last 14 days, less the 2.9% card fee. Pays out every second Friday."
+  value="$4,812.40" icon="icon-bank-line" iconTheme="green" trend={{ direction: "normal", label: "Friday, Oct 16" }} />`,
   },
 ]);

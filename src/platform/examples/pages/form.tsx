@@ -449,7 +449,7 @@ function PhonePickupExample() {
   if (!creating) {
     return (
       <PlatformPhone key="root" label="Shipments" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Shipments" largeTitle="Shipments" scrollRef={screenRef}
+        header={<TopNavigation type="alt" title="Shipments" largeTitle="Shipments" scrollRef={screenRef}
           trailing={[{ icon: "icon-plus-line", label: "New pickup", onClick: () => screen.go('.zen-top-nav__action[aria-label="Close"]', () => setCreating(true)) }]} />}>
         {screen.anchor}
         {/* The shipments only show their status (Interactive=No rows, no side padding of their own): the page margin (lg)
@@ -468,7 +468,7 @@ function PhonePickupExample() {
   }
   return (
     <PlatformPhone key="new" label="New pickup" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="New pickup" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="New pickup" scrollRef={screenRef}
         leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
       // The footer sits outside the form, so its submit names the form by id. The summary follows the parcel count.
       footer={<ActionBar position="static"
@@ -599,7 +599,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 const formId = useId();
 
 <PlatformPhone key="new" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="New pickup" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="New pickup" scrollRef={screenRef}
     leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
   footer={<ActionBar position="static"
     summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{\`\${plural(parcels, "parcel")} · \${formatMoney(fee, true)}\`}</Text>}

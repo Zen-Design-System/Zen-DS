@@ -19,7 +19,7 @@ Trước khi thêm example mới, kiểm tra trùng lặp: hai example cùng d�
 
 ## 2. Pattern mobile
 
-- **Khung máy**: dùng `PlatformPhone` với `header={<TopNavigation type="compact" …/>}` và `footer`.
+- **Khung máy**: dùng `PlatformPhone` với `header={<TopNavigation type="compact-alt" …/>}` và `footer`. Thanh trên cùng màu với canvas của màn hình (user, 2026-10-08): màn hình Canvas/Default (mặc định của PlatformPhone) hay `canvas="alt"` dùng `alt` / `compact-alt` / `alt-blurring`; chỉ màn hình trắng (`canvas="surface"`) mới dùng `default` / `compact` / `default-blurring`.
   - Khung là màn hình thật 390×844 (iPhone 15) và thu nhỏ nguyên khối khi stage hẹp. `device` chọn máy khác; `maxHeight` giới hạn chiều cao; `height` đã deprecated.
   - Khung luôn ở mode của app điện thoại (`<ZenProvider typography="mobile" density="comfortable">`): Typography **Mobile** và Component size **Comfortable**, bất kể chip Typography / Component size của docs hay Modes của canvas Studio (từ 2026-10-06). Chỉ **Present** của Zen Studio đổi được hai mode này (panel Modes, riêng cho lần Present đó, canvas giữ nguyên). Không truyền `typography` / `density` để bù cho bố cục; bố cục phải vừa ở Comfortable.
   - Status bar, Dynamic Island và home indicator do "OS" vẽ phía trên app. Component phải pad theo `--zen-safe-area-top/-bottom`, không tự chừa khoảng trống.

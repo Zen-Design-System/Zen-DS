@@ -46,6 +46,10 @@ Figma Primitives/Metric/Metric-Inline/Icon-Highlight (595:55188): Dock-Icon + Co
 | `action` | `ReactNode` | — | Title-Highlight, XLarge–Medium: the title row's action (Figma Button/Icon-Main XSmall Tertiary, e.g. a chevron that opens the breakdown). |
 | `iconSize` | `"md" \| "lg" \| "medium" \| "large"` | — | Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below. |
 | `custom` | `ReactNode` | — | Title-Highlight: Figma Custom-Slot (Custom=Yes, added 2026-10-07): your own content under the contents — a sparkline, a ProgressBar, a breakdown — Spacing/Gap/Medium below at XLarge/Large, Spacing/Gap/Small at Medium–XSmall. The Dock-Icon stays at the contents' bottom-right corner. |
+| `metricColor` | `boolean \| string` | `false` | Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the metric to a chart series. `true` is Color/Background/Accent/Solid; a string is the series colour (`var(--zen-color-background-support-blue-solid)`). |
+| `counter` | `ReactNode` | — | Icon-Highlight: Figma Counter — a Small Neutral Subtle Badge after the label, Spacing/Gap/2XSmall from it (a count of what the metric covers, e.g. "3" open invoices). |
+| `labelIcon` | `IconName \| ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title. |
+| `hint` | `ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows this text in a Tooltip on hover and focus; say how the number is worked out. |
 | `className` | `string` | — |  |
 
 ### MetricCard
@@ -67,6 +71,10 @@ Also accepts `MetricProps`.
 | `action` | `ReactNode` | — | Title-Highlight, XLarge–Medium: the title row's action (Figma Button/Icon-Main XSmall Tertiary, e.g. a chevron that opens the breakdown). |
 | `iconSize` | `"md" \| "lg" \| "medium" \| "large"` | — | Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below. |
 | `custom` | `ReactNode` | — | Title-Highlight: Figma Custom-Slot (Custom=Yes, added 2026-10-07): your own content under the contents — a sparkline, a ProgressBar, a breakdown — Spacing/Gap/Medium below at XLarge/Large, Spacing/Gap/Small at Medium–XSmall. The Dock-Icon stays at the contents' bottom-right corner. |
+| `metricColor` | `boolean \| string` | — | Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the metric to a chart series. `true` is Color/Background/Accent/Solid; a string is the series colour (`var(--zen-color-background-support-blue-solid)`). |
+| `counter` | `ReactNode` | — | Icon-Highlight: Figma Counter — a Small Neutral Subtle Badge after the label, Spacing/Gap/2XSmall from it (a count of what the metric covers, e.g. "3" open invoices). |
+| `labelIcon` | `IconName \| ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title. |
+| `hint` | `ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows this text in a Tooltip on hover and focus; say how the number is worked out. |
 | `className` | `string` | — |  |
 | `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "semi-pale"` | `"shadow"` | Card theme (Figma Metric-Card uses Shadow). |
 | `subAction` | `CardSubAction \| ReactNode` | — | Card Sub-Action (Figma: ⋮ Button/Icon-Flat). |

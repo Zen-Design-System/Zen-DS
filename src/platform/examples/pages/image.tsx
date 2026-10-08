@@ -415,7 +415,7 @@ function PhoneFeed() {
   const screenRef = useRef<HTMLDivElement>(null);
   return (
     <PlatformPhone key="updates" label="Zen updates" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Updates" largeTitle="Updates" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Updates" largeTitle="Updates" scrollRef={screenRef} />}>
       <Stack gap="lg" padding="lg">
         {posts.map((post, index) => (
           <Stack key={post.id} gap="lg">
@@ -534,7 +534,7 @@ const compactColumns = [photo((item) => \`\${formatBytes(item.bytes)} · \${form
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key="updates" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Updates" largeTitle="Updates" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Updates" largeTitle="Updates" scrollRef={screenRef} />}>
   <Stack gap="lg" padding="lg">
     <Stack as="article" gap="md">
       <Stack direction="row" gap="sm" align="center">

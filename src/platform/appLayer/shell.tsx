@@ -463,7 +463,7 @@ export const examples: ExampleMap = keepOnHotUpdate(import.meta.hot, "examples",
     { title: "Phone app", description: "Phones skip the Sidebar: BottomNavigation switches the HR app's roots (Home, Time off, Inbox with a dot, Profile). Each root is a Top Navigation whose large title folds into the bar as its list scrolls; tapping the current tab again scrolls back to the top. Request leave (+) opens a Bottom Sheet form, and the request heads Time off.", wide: true, render: () => <HrPhoneExample />, code: `<ZenProvider typography="mobile">
   {/* One screen per tab (key): it opens at the top and its title folds again */}
   <PlatformPhone key={tab} headerOverlay screenRef={screenRef}
-    header={<TopNavigation title={label} largeTitle={label} scrollRef={screenRef}
+    header={<TopNavigation type="alt" title={label} largeTitle={label} scrollRef={screenRef}
       trailing={[{ icon: "icon-plus-line", label: "Request leave", onClick: () => setRequesting(true) }]} />}
     footer={<BottomNavigation items={items} value={tab}
       onValueChange={(id) => (id === tab ? screenRef.current?.scrollTo({ top: 0, behavior: "smooth" }) : setTab(id))} />}>

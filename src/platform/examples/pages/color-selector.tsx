@@ -246,7 +246,7 @@ function PhoneProjectColourExample() {
     return (
       // One key per screen: each screen opens at the top and the large title folds again.
       <PlatformPhone key="root" label="Projects" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Projects" largeTitle="Projects" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Projects" largeTitle="Projects" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* Rows pad 0 at the sides: the screen's margin (lg) insets them, and sm above and below keeps the first and last fills clear. */}
         <Box paddingX="lg" paddingY="xs">
@@ -263,7 +263,7 @@ function PhoneProjectColourExample() {
   const hue = themes[opened.id];
   return (
     <PlatformPhone key={opened.id} label="Project colour" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title={opened.name} scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title={opened.name} scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}>
       {screen.anchor}
       <Stack gap="lg" padding="lg">
@@ -365,7 +365,7 @@ const hueOf = (value) => hues.find((hue) => swatch(hue).value === value);
 // One key per screen, so the settings screen opens at the top and the Projects root folds its large title again.
 // The root's clickable rows sit in the screen margin: <Box paddingX="lg" paddingY="xs"><List>…</List></Box>.
 <PlatformPhone key={project.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title={project.name} scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title={project.name} scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}>
   <DockIcon size="xl" icon={project.icon} theme={hue} background="subtle" />
   <FormFieldset legend="Colour" helpText="Shows on the project's icon, its timeline bar and its calendar events.">

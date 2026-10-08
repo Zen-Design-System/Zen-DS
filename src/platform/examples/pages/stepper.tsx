@@ -414,7 +414,7 @@ function PickupOrderExample() {
   const status = opened.stage === 1 ? `Ready at about ${formatTime(readyAt)}` : opened.stage === 2 ? "Your order is ready at counter 2" : pickedLine(opened.pickedAt ?? TODAY);
   return (
     <PlatformPhone key={opened.id} label="Phin & Co order" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title={`Order ${opened.id}`} scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title={`Order ${opened.id}`} scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
       // The footer holds the one next step: confirm the pickup once it is ready, then order the same again.
       footer={opened.stage === 2 ? <ActionBar position="static" primaryAction={{ label: "Confirm pickup", onClick: () => confirmPickup(opened.id) }} />
@@ -690,7 +690,7 @@ toast({ title: "Invoice approved", children: "INV-2026-0143",
 // The Orders root is a grouped list on Surface-Alt (In progress, Past orders: a kicker over a white block each).
 // The order is its child: compact bar, Back, one key per screen.
 <PlatformPhone key={order.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Order A-248" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Order A-248" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
   footer={order.stage === 2
     ? <ActionBar position="static" primaryAction={{ label: "Confirm pickup", onClick: confirmPickup }} />

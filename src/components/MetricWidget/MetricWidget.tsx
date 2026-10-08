@@ -3,7 +3,10 @@ import { Badge } from "../Badge";
 import { Card, type CardSubAction, type CardTheme } from "../Card";
 import { DockIcon, type DockIconBackground, type DockIconTheme } from "../DockIcon";
 import { Icon, type IconName } from "../Icon";
+import { Tooltip } from "../Tooltip";
+import { renderIcon } from "../_shared/icon";
 import { scaleKey } from "../_shared/scale";
+import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./metric-widget.css";
 import "../Icon/core";
@@ -59,15 +62,34 @@ export interface MetricProps {
    * Dock-Icon stays at the contents' bottom-right corner.
    */
   custom?: ReactNode;
+  /** Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the
+   *  metric to a chart series. `true` is Color/Background/Accent/Solid; a string is the series colour
+   *  (`var(--zen-color-background-support-blue-solid)`). */
+  metricColor?: boolean | string;
+  /** Icon-Highlight: Figma Counter — a Small Neutral Subtle Badge after the label, Spacing/Gap/2XSmall from it (a count
+   *  of what the metric covers, e.g. "3" open invoices). */
+  counter?: ReactNode;
+  /** Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title. */
+  labelIcon?: IconName | ReactNode;
+  /** Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows
+   *  this text in a Tooltip on hover and focus; say how the number is worked out. */
+  hint?: ReactNode;
   className?: string;
+}
+
+/** Figma Metric-Color: the series dot before a label. */
+function MetricColorDot({ color }: { color: boolean | string }) {
+  return <span className="zen-metric__color" aria-hidden="true" style={typeof color === "string" ? { background: color } : undefined} />;
 }
 
 /**
  * Figma Primitives/Metric/Metric-Inline/Icon-Highlight (595:55188): Dock-Icon + Contents (gap 2XSmall) of
  * Label (Neutral/Light) over the Metric-Number (Neutral/Strongest), then the trend.
  */
-export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconTheme = "neutral", iconBackground = "subtle", iconEmoji, size: sizeProp = "xl", variant = "icon-highlight", action, iconSize, custom, className }: MetricProps) {
+export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconTheme = "neutral", iconBackground = "subtle", iconEmoji, size: sizeProp = "xl", variant = "icon-highlight", action, iconSize, custom, metricColor = false, counter, labelIcon, hint, className }: MetricProps) {
+  const t = useZenLabels();
   const size = scaleKey(sizeProp, metricSizes);
+  const dot = metricColor ? <MetricColorDot color={metricColor} /> : null;
   const stacked = size === "xlarge" || size === "large";
   if (variant === "title-highlight") {
     // Figma Title-Highlight: a title row at XLarge–Medium, the Caption label inside the content at Small/XSmall.
@@ -78,9 +100,21 @@ export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconT
     const body = (
       <>
         <div className="zen-metric__contents">
-          {titled ? <div className="zen-metric__header"><span className={`zen-metric__title ${typographyStyles["Heading/Subheading"]}`}>{label}</span>{action}</div> : null}
+          {titled ? (
+            <div className="zen-metric__header">
+              {/* Figma Header › Label-Container: [Label-Icon] Label, then the Hint icon; the action stays at the end. */}
+              <span className="zen-metric__title-row">
+                {dot}
+                {labelIcon ? <span className="zen-metric__label-icon">{renderIcon(labelIcon, { size: "md" })}</span> : null}
+                <span className={`zen-metric__title ${typographyStyles["Heading/Subheading"]}`}>{label}</span>
+                {/* zen-allow-raw-icon-button: Figma Hint is a bare 20px info glyph (no button container), as InputLabel's tooltip icon; the Tooltip names and explains it. */}
+                {hint ? <Tooltip content={hint} size="small"><button type="button" className="zen-metric__hint" aria-label={typeof hint === "string" ? hint : t.moreInformation}><Icon name="icon-info-circle-line" size="base" decorative /></button></Tooltip> : null}
+              </span>
+              {action}
+            </div>
+          ) : null}
           <div className="zen-metric__content">
-            {titled ? null : <span className={`zen-metric__label ${typographyStyles["Caption/Regular"]}`}>{label}</span>}
+            {titled ? null : <span className="zen-metric__label-row">{dot}<span className={`zen-metric__label ${typographyStyles["Caption/Regular"]}`}>{label}</span></span>}
             <span className={`zen-metric__value ${typographyStyles[valueStyle[size]]}`}>{value}</span>
             {trend ? <MetricTrend trend={trend.direction}>{trend.label}</MetricTrend> : null}
           </div>
@@ -101,7 +135,12 @@ export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconT
         : icon ? <DockIcon icon={icon} theme={iconTheme} background={iconBackground} size={stacked ? "large" : "medium"} /> : null}
       <div className="zen-metric__contents">
         <div className="zen-metric__content">
-          <span className={`zen-metric__label ${typographyStyles[labelStyle[size]]}`}>{label}</span>
+          {/* Figma Metric-Title: [Color] Label [Counter], Spacing/Gap/2XSmall apart. */}
+          <span className="zen-metric__label-row">
+            {dot}
+            <span className={`zen-metric__label ${typographyStyles[labelStyle[size]]}`}>{label}</span>
+            {counter !== undefined && counter !== null && counter !== false ? <Badge className="zen-metric__counter" size="small" theme="neutral" background="subtle">{counter}</Badge> : null}
+          </span>
           <span className={`zen-metric__value ${typographyStyles[valueStyle[size]]}`}>{value}</span>
         </div>
         {trend ? <MetricTrend trend={trend.direction}>{trend.label}</MetricTrend> : null}

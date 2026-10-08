@@ -626,7 +626,7 @@ function PhoneApp() {
   if (pushed === "notifications") {
     return (
       <PlatformPhone key="notifications" label="Zen app" headerOverlay screenRef={screenRef} footer={footer}
-        header={<TopNavigation type="compact" title="Notifications" scrollRef={screenRef}
+        header={<TopNavigation type="compact-alt" title="Notifications" scrollRef={screenRef}
           leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go('.zen-top-nav__action[aria-label^="Notifications"]', () => setPushed(null)) }} />}>
         {screen.anchor}
         {/* Rows have no side padding of their own: the screen margin (lg, 20px) insets the List. */}
@@ -665,7 +665,7 @@ function PhoneApp() {
     return (
       <PlatformPhone key="projects" label="Zen app" headerOverlay screenRef={screenRef} footer={footer}
         // The page's Primary (New project) becomes the root's trailing action.
-        header={<TopNavigation title="Projects" largeTitle="Projects" scrollRef={screenRef}
+        header={<TopNavigation type="alt" title="Projects" largeTitle="Projects" scrollRef={screenRef}
           trailing={[{ icon: "icon-plus-line", label: "New project", onClick: () => setCreating(true) }]} />}>
         {screen.anchor}
         {/* The screen margin (lg, 20px) insets the rows sideways; xs (8px) above and below, like a List-Box on a phone. */}
@@ -931,7 +931,7 @@ const dismiss = () => {
 const open = (id) => { if (id === root) scrollToTop(); setRoot(id); };
 
 <PlatformPhone key={root} headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Projects" largeTitle="Projects" scrollRef={screenRef}
+  header={<TopNavigation type="alt" title="Projects" largeTitle="Projects" scrollRef={screenRef}
     trailing={[{ icon: "icon-plus-line", label: "New project", onClick: () => setCreating(true) }]} />}
   footer={<BottomNavigation aria-label="Đìzai Studio" value={root} onValueChange={open} showLabels items={[
     { id: "home", label: "Home", icon: "icon-home-smile-line", selectedIcon: "icon-home-smile-solid" },

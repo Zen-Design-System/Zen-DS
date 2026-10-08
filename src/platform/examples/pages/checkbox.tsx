@@ -254,7 +254,7 @@ function OfflineProjectsExample() {
   const toggle = (id: string, on: boolean) => setPicked((list) => (on ? [...list, id] : list.filter((item) => item !== id)));
   return (
     <PlatformPhone label="Downloads" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Downloads" largeTitle="Downloads" scrollRef={screenRef} />}
+      header={<TopNavigation type="alt" title="Downloads" largeTitle="Downloads" scrollRef={screenRef} />}
       // The Primary waits for a choice, and the summary says why.
       footer={(
         <ActionBar position="static"
@@ -397,7 +397,7 @@ const dirty = Object.keys(saved).some((id) => draft[id] !== saved[id]);
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Downloads" largeTitle="Downloads" scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title="Downloads" largeTitle="Downloads" scrollRef={screenRef} />}
   footer={(
     <ActionBar position="static"
       summary={<Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">Uses {formatBytes(bytes)} · 18.6 GB free on this phone</Text>}

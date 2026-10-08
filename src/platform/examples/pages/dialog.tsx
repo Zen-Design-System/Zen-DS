@@ -630,7 +630,7 @@ function PhoneWithdraw() {
   const balance = leaveBalance[request.kind];
   return (
     <PlatformPhone key={request.id} label="Leave request" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title={request.kind} scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title={request.kind} scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-leave="${request.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}
       footer={upcoming(request) ? (
         <ActionBar position="static" primaryAction={canWithdraw
@@ -764,7 +764,7 @@ const cancel = () => (draft !== saved ? setConfirming(true) : close());
 // each year a white <ListBox> around its List of rows that open a request, under
 // a kicker in <Box paddingX="lg">.
 <PlatformPhone key={request.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Annual leave" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Annual leave" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToList }} />}
   footer={<ActionBar position="static"
     primaryAction={{ label: "Withdraw request", level: "danger-subtle", onClick: () => setConfirming(true) }} />}>

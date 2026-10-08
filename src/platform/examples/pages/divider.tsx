@@ -324,7 +324,7 @@ function MobileReceiptExample() {
   if (!order) {
     return (
       <PlatformPhone key="orders" label="Phin & Co orders" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* Rows pad 0 at the sides: the screen's margin (lg) insets them, and sm above and below keeps the first and last fills clear. */}
         <Box paddingX="lg" paddingY="xs">
@@ -344,7 +344,7 @@ function MobileReceiptExample() {
   const { subtotal, discount, paid, points } = totalsOf(order);
   return (
     <PlatformPhone key={order.id} label="Phin & Co receipt" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Receipt" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Receipt" scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-order="${order.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}
       footer={<ActionBar position="static" primaryAction={{ label: "Email receipt", onClick: () => setEmailing(true) }} />}>
       {screen.anchor}
@@ -475,7 +475,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 
 // The Orders root's clickable rows sit in the screen margin: <Box paddingX="lg" paddingY="xs"><List>…</List></Box>.
 <PlatformPhone key={order.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Receipt" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Receipt" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToOrders }} />}
   footer={<ActionBar position="static" primaryAction={{ label: "Email receipt", onClick: openEmail }} />}>
   <Stack paddingX="lg" paddingY="lg" gap="lg">

@@ -981,7 +981,7 @@ export function HrPhoneExample() {
     <ZenProvider typography="mobile" paint={false} portal={false} breakpoint="mobile">
       <Stack ref={phoneRef} align="center">
       <PlatformPhone key={tab} label="HR app on a phone" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title={label} largeTitle={label} scrollRef={screenRef} trailing={trailing} />}
+        header={<TopNavigation type="alt" title={label} largeTitle={label} scrollRef={screenRef} trailing={trailing} />}
         footer={<BottomNavigation aria-label="HR app" items={items} value={tab} onValueChange={choose} />}>
         <Stack gap="lg" padding="lg">
           {tab === "home" ? <>

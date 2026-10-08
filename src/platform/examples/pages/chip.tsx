@@ -282,7 +282,7 @@ function PhoneFiltersExample() {
   const sortLabel = sorts.find((item) => item.id === sort)!.label;
   return (
     // The whole studio is listed, so the screen scrolls and the large title folds under the bar.
-    <PlatformPhone label="Team" headerOverlay screenRef={screenRef} header={<TopNavigation title="Team" largeTitle="Team" scrollRef={screenRef} />}>
+    <PlatformPhone label="Team" headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title="Team" largeTitle="Team" scrollRef={screenRef} />}>
       <Stack gap="md" paddingY="xs">
         {/* One row that scrolls sideways; Sort opens an Action Bottom Sheet instead of a Popover. */}
         <Box className="px-chip-scroll" role="group" aria-label="Filters">
@@ -412,7 +412,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Team" largeTitle="Team" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Team" largeTitle="Team" scrollRef={screenRef} />}>
   <div className="chip-row" role="group" aria-label="Filters"> {/* overflow-x: auto; nowrap */}
     <Chip variant="advanced" aria-haspopup="dialog" aria-expanded={sheet} popoverOpen={sheet}
       onClick={() => setSheet(true)}>{\`Sort: \${sortLabel}\`}</Chip>

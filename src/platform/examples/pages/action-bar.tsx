@@ -79,7 +79,7 @@ function PhoneRewardsExample() {
   if (!reward) {
     return (
       <PlatformPhone key="root" label="Rewards" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Rewards" largeTitle="Rewards" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Rewards" largeTitle="Rewards" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* Rows pad 12px above and below: the screen margin (lg) insets them sideways. */}
         <Stack gap="md" paddingX="lg" paddingY="sm">
@@ -113,7 +113,7 @@ function PhoneRewardsExample() {
     <PlatformPhone key={reward.id} label={reward.name} headerOverlay screenRef={screenRef}
       header={<TopNavigation title={reward.name} scrollRef={screenRef}
         leading={{ icon: back, label: "Back", onClick: () => backToList(reward.id) }}
-        type="compact"
+        type="compact-alt"
         />}
       // Vertical: one main action leads, full width on top; the alternative sits below it. The summary says what the
       // action depends on, and why it waits when it is disabled.
@@ -184,7 +184,7 @@ function PhoneApprovalsExample() {
     const waiting = list.filter((approval) => approval.status === "Pending").length;
     return (
       <PlatformPhone key="root" label="Approvals" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Approvals" largeTitle="Approvals" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Approvals" largeTitle="Approvals" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* Rows pad 12px above and below: the screen margin (lg) insets them sideways; the count sits xs above them. */}
         <Stack gap="xs" paddingX="lg" paddingY="sm">
@@ -207,7 +207,7 @@ function PhoneApprovalsExample() {
   const pending = item.status === "Pending";
   return (
     <PlatformPhone key={item.id} label="Leave request" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Leave request" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Leave request" scrollRef={screenRef}
         leading={{ icon: back, label: "Back", onClick: () => screen.go(`[data-approval="${item.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}
       // Horizontal: two peer answers side by side as Large buttons, Primary at the end; the summary takes its own row.
       footer={pending ? (
@@ -468,7 +468,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     description: "Approve and Decline are peers, so the bar is horizontal: two Large buttons side by side with Approve at the end, and the summary on its own row. Either answer can be undone from the toast; once answered, the bar goes away.",
     render: () => <PhoneApprovalsExample />,
     code: `<PlatformPhone key={request.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Leave request" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Leave request" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToList }} />}
   footer={request.status === "Pending" ? (
     <ActionBar position="static" direction="horizontal"

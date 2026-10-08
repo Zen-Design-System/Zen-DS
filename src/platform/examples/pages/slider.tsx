@@ -276,7 +276,7 @@ function PointsCheckoutExample() {
     return (
       // One key per screen: each step opens at the top; the cart is a tab root with a large title.
       <PlatformPhone key="cart" label="Phin cart" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Cart" largeTitle="Cart" scrollRef={screenRef} />}
+        header={<TopNavigation type="alt" title="Cart" largeTitle="Cart" scrollRef={screenRef} />}
         footer={<ActionBar position="static" summary={<Text as="span" textStyle="Body/Base/Medium">Subtotal {formatMoney(subtotal, true)}</Text>}
           primaryAction={{ label: "Check out", onClick: () => go("checkout", '.zen-top-nav__action[aria-label="Back"]') }} />}>
         {screen.anchor}
@@ -295,7 +295,7 @@ function PointsCheckoutExample() {
   const paid = step === "paid";
   return (
     <PlatformPhone key={step} label="Phin checkout" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title={paid ? "Order placed" : "Checkout"} scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title={paid ? "Order placed" : "Checkout"} scrollRef={screenRef}
         leading={paid ? undefined : { icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => go("cart", ".zen-action-bar .zen-button") }} />}
       footer={paid
         ? <ActionBar position="static" primaryAction={{ label: "Start new order", onClick: () => { setPoints(320); go("cart", ".zen-action-bar .zen-button"); } }} />
@@ -456,7 +456,7 @@ const total = subtotal - points / 100;
 
 // One key per step (cart, checkout, paid), so each opens at the top; the bar follows the scroll.
 <PlatformPhone key={step} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Checkout" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Checkout" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: toCart }} />}
   footer={<ActionBar position="static" primaryAction={{ label: total > 0 ? \`Pay \${formatMoney(total)}\` : "Place order", onClick: pay }} />}>
 <Heading level={2} id={labelId} textStyle="Body/Small/Bold" tone="light">Use Phin points</Heading>

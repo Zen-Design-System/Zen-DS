@@ -6,6 +6,15 @@
 .zen-metric__contents { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-metric__content { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .zen-metric__label { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+/* Figma Metric-Title (Icon-Highlight) / Label-Container (Title-Highlight): [Color] [Label-Icon] Label [Counter | Hint],
+   Spacing/Gap/2XSmall apart, centred on the label line. */
+.zen-metric__label-row, .zen-metric__title-row { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-metric__color { width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-accent-solid-default, #ff66d4); }
+.zen-metric__counter { flex: 0 0 auto; }
+.zen-metric__label-icon { display: inline-flex; width: var(--zen-element-size-popular-medium, 24px); height: var(--zen-element-size-popular-medium, 24px); flex: 0 0 auto; color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-metric__label-icon > .zen-icon { width: 100%; height: 100%; }
+.zen-metric__hint { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; padding: 0; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: none; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); cursor: help; }
+.zen-metric__hint:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 0; }
 .zen-metric__value { color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; }
 .zen-metric-card { min-width: 0; }
 /* Figma Metric-Inline/Title-Highlight (7523:507049): Contents (title row, then number + trend) beside an absolute

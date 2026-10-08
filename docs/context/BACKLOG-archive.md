@@ -721,3 +721,6 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
 - [DONE B: the official library has no master for either (search_design_system, ZEN Kaiz Official): both are compositions of List-Item + Toggle-Button and Chip/Normal Primary with those primitives' own tokens, nothing new. Do/Don't visuals added (list-item, chip)] **P2 · Figma check for ToggleListItem and ChipGroup (2026-10-07, batch 6):** both were composed in a cloud session
   with no Figma MCP (user's choice); compare them with the live file 9nZv4uW2LT21yuHabMTCh1 (a List-Item with a
   Toggle-Button trailing slot, a single-select Chip row) and add their Do/Don't visuals (PlatformGuidelineVisuals.tsx).
+- [DONE B: Metric metricColor (Metric-Color dot, Accent/Solid or a series colour), counter (Small Neutral Subtle Badge), labelIcon (24px, Element-Size/Popular/Medium), hint (info glyph + Tooltip); example Revenue by channel; Studio figma-props mapped] **P3 · Metric-Inline props not in code (2026-10-07, read from Figma 595:55188 / 7523:507049):** Icon-Highlight
+  Counter (a Small Neutral Subtle Badge after the label, XLarge/Large) and Metric-Color (an accent square before the
+  label); Title-Highlight Hint (info icon) and Label-Icon (24px icon before the title). `custom` (Custom-Slot) is done.
