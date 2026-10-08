@@ -1,6 +1,6 @@
 // Selection rows: canvas picking, keyboard navigation between layers, multi-selection, the Layers panel.
 import { locOf } from "../lib/source.mjs";
-import { freshSelect } from "./inspector.mjs";
+import { expectSource, freshSelect } from "./inspector.mjs";
 import { selectedName } from "./builder.mjs";
 import { clickLoc, focusFrame, rectOf, selectedSrc, showLeftTab, sleep, until } from "../lib/studio.mjs";
 
@@ -220,6 +220,63 @@ export const rows = [
       await search.fill("");
       if (!/no (layer|match|result)/i.test(text)) throw new Error(`no empty-state message (panel reads: "${text.replace(/\s+/g, " ").slice(0, 80)}")`);
       return "empty state shown";
+    },
+  },
+  {
+    id: "SE-20", feature: "A 0 gap (gap=\"none\") has a canvas area on the seam: a click opens the scale and writes the step", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "zero-a", { frame: 9 });
+      await page.keyboard.press("Escape");
+      await expectSelected(page, ctx.file, await at(ctx, "zero"), "the 0-gap Stack selected");
+      const a = await rectOf(page, ctx.file, await at(ctx, "zero-a"));
+      await until(async () => (await page.locator('.studio-selection__spacing-hit[data-editable="true"]').count()) > 0, { message: "editable spacing areas" });
+      await page.mouse.move(a.x + a.width - 1, a.y + a.height / 2);
+      await page.mouse.move(a.x + a.width, a.y + a.height / 2);
+      const pill = await until(async () => {
+        const text = (await page.locator(".studio-selection__spacing-label").allInnerTexts()).join(" | ");
+        return /gap · none/.test(text) ? text : null;
+      }, { message: 'the "gap · none" pill on the seam' });
+      await page.mouse.down();
+      await page.mouse.up();
+      await page.getByRole("option", { name: /^xs\b/ }).click();
+      await expectSource(ctx, "zero", (el) => el.attr("gap") === "xs", 'gap="xs"');
+      return `seam "${pill}" → xs`;
+    },
+  },
+  {
+    id: "SE-21", feature: "A layer partly scrolled out of its scroll box: the outline stops at the box's edge", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "spacer", { frame: 9, position: { dx: 8, dy: 8 } });
+      const scroller = await rectOf(page, ctx.file, await at(ctx, "scroller"));
+      const spacer = await rectOf(page, ctx.file, await at(ctx, "spacer"));
+      const outline = await until(async () => page.locator('.studio-selection__outline[data-kind="selected"]').boundingBox(), { message: "the selection outline" });
+      if (spacer.y + spacer.height <= scroller.y + scroller.height) throw new Error("the fixture's Box is not clipped (it fits its scroll box)");
+      if (outline.y + outline.height > scroller.y + scroller.height + 1.5) throw new Error(`outline bottom ${Math.round(outline.y + outline.height)} past the scroll box's ${Math.round(scroller.y + scroller.height)}`);
+      return `outline ${Math.round(outline.height)} px tall of a ${Math.round(spacer.height)} px Box, inside the ${Math.round(scroller.height)} px scroll box`;
+    },
+  },
+  {
+    id: "SE-22", feature: "Resize a floating Box: the pinned edge moves its inset (snapped), a stretched axis writes the dragged side's inset only", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const drag = async (page, handle, dx) => {
+        const box = await until(() => page.locator(`.studio-resize__handle[data-handle="${handle}"]`).boundingBox(), { message: `the ${handle} handle` });
+        const x = box.x + box.width / 2;
+        const y = box.y + box.height / 2;
+        await page.mouse.move(x, y);
+        await page.mouse.down();
+        for (let step = 1; step <= 6; step += 1) await page.mouse.move(x + (dx * step) / 6, y);
+        await page.mouse.up();
+      };
+      let page = await freshSelect(ctx, "float-l", { frame: 9 });
+      await sleep(400);
+      await drag(page, "w", -14);
+      const pinned = await expectSource(ctx, "float-l", (el) => el.attr("insetLeft") !== "sm" && el.attr("width") !== "{96}", "insetLeft and width changed");
+      page = await freshSelect(ctx, "float-s", { frame: 9 });
+      await sleep(400);
+      await drag(page, "e", -14);
+      const stretched = await expectSource(ctx, "float-s", (el) => el.attr("insetRight") !== "sm", "insetRight changed");
+      if (stretched.attr("width") !== undefined) throw new Error(`a stretched Box got a width: ${stretched.attr("width")}`);
+      return `left-pinned: insetLeft ${pinned.attr("insetLeft") ?? "none"}, width ${pinned.attr("width")} · left-right: insetRight ${stretched.attr("insetRight") ?? "none"}, no width`;
     },
   },
 ];

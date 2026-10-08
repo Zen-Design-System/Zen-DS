@@ -14,6 +14,7 @@ import type { StudioSelection } from "../../types";
 import { stepLayer, type NodeSelection } from "../arrange";
 import { clipboardActions, clipboardShortcuts } from "../clipboard";
 import { duplicateLayers, removeLayers } from "../multi";
+import { toggleIgnoreAutoLayout } from "../ignoreAutoLayout";
 import { multiSelection } from "../../select/multiSelection";
 import { startTextEditOnSelection } from "../textEdit";
 
@@ -57,6 +58,8 @@ export function commands(): Command[] {
     { id: "move-down", group: "Edit", label: "Move later", shortcut: "↓ →", keywords: "reorder down right", disabled: editOff, run: () => { if (node) void stepLayer(node, "next"); } },
     { id: "wrap-stack", group: "Edit", label: "Wrap in Stack (auto layout)", shortcut: autoLayoutShortcut, keywords: "group container", disabled: editOff ?? (wrap && !wrap.ok ? wrap.reason : undefined), run: () => { void wrapSelection("stack"); } },
     { id: "wrap-box", group: "Edit", label: "Wrap in Box (frame)", shortcut: frameSelectionShortcut, keywords: "group container", disabled: editOff ?? (wrap && !wrap.ok ? wrap.reason : undefined), run: () => { void wrapSelection("box"); } },
+    // The Design tab's Position toggle, for one layer or several (edit/ignoreAutoLayout.ts): floating on, or back in the flow.
+    { id: "ignore-auto-layout", group: "Edit", label: "Ignore auto layout (float) / back in auto layout", keywords: "absolute position float constraints", disabled: editOff, run: () => { void toggleIgnoreAutoLayout(); } },
     { id: "detach", group: "Edit", label: "Detach instance", shortcut: detachShortcut, disabled: editOff ?? (node && !offersDetach(node.name) ? `${node.name} is not a component instance` : undefined), run: () => { if (node) void detachSelection(node); } },
     { id: "undo", group: "Edit", label: "Undo", shortcut: `${modKey}Z`, disabled: state.undo.length ? undefined : "Nothing to undo", run: () => { void undoEdit(); } },
     { id: "redo", group: "Edit", label: "Redo", shortcut: `⇧${modKey}Z`, disabled: state.redo.length ? undefined : "Nothing to redo", run: () => { void redoEdit(); } },

@@ -8,6 +8,7 @@ import { autoLayoutShortcut, frameSelectionShortcut, wrapCheck, wrapSelection } 
 import { useSlotMenuItems } from "../slots/menu";
 import { clipboardActions, clipboardMenuItems, clipboardShortcuts } from "../edit/clipboard";
 import { duplicateLayers, removeLayers } from "../edit/multi";
+import { toggleIgnoreAutoLayout } from "../edit/ignoreAutoLayout";
 import { findFrame } from "../board/frames";
 import { newPageFromFrame } from "../builder/starters/newPageFromFrame";
 import { presentFrame, zoomToFrame } from "../board/presentFrame";
@@ -112,6 +113,8 @@ export function CanvasMenu() {
     { id: "multi-duplicate", label: "Duplicate", icon: "icon-duplicate-line", shortcut: duplicateShortcut, disabled: Boolean(editOff), caption: editOff, onSelect: () => { void duplicateLayers(); } },
     { type: "separator", id: "multi-separator" },
     ...wrapItems,
+    // Floats every selected Stack / Grid / Box at its own offsets (or puts them back in the flow): edit/ignoreAutoLayout.ts.
+    { id: "multi-float", label: "Ignore auto layout", icon: "icon-transform-line", disabled: Boolean(editOff), caption: editOff, onSelect: () => { void toggleIgnoreAutoLayout(); } },
     { type: "separator", id: "multi-remove-separator" },
     { id: "multi-remove", label: "Remove", icon: "icon-trash-line", shortcut: removeShortcut, danger: true, disabled: Boolean(editOff), caption: editOff, onSelect: () => { void removeLayers(); } },
   ] : [];

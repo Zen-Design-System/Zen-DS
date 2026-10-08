@@ -159,6 +159,44 @@ function ConstFixture() {
   );
 }
 
+/**
+ * Canvas editing (backlog 2026-10-08): a scroll box whose content it clips, a 0-gap row, two Headings (a number prop on
+ * a multi-selection), two floating Boxes in a positioned Box, two Boxes in the flow and a Button in its Studio wrap Stack.
+ */
+function CanvasFixture() {
+  return (
+    <Stack data-e2e="canvas" gap="md" padding="lg">
+      <div data-e2e="scroller" style={{ height: 64, overflow: "auto" }}>
+        <Stack gap="sm">
+          <Text>Visible line</Text>
+          <Box data-e2e="spacer" surface="pale" height={160} />
+        </Stack>
+      </div>
+      <Stack data-e2e="zero" direction="row" gap="none">
+        <Button data-e2e="zero-a" level="secondary">Left</Button>
+        <Button data-e2e="zero-b" level="secondary">Right</Button>
+      </Stack>
+      <Stack data-e2e="headings" gap="sm">
+        <Heading data-e2e="h-a" level={3}>Third</Heading>
+        <Heading data-e2e="h-b" level={4}>Fourth</Heading>
+      </Stack>
+      <Box data-e2e="float-host" surface="pale" height={120}>
+        <Box data-e2e="float-l" position="absolute" constraintX="left" constraintY="top" insetLeft="sm" insetTop="sm" width={96} height={40} surface="surface" />
+        <Box data-e2e="float-s" position="absolute" constraintX="left-right" constraintY="bottom" insetLeft="sm" insetRight="sm" insetBottom="sm" height={24} surface="surface" />
+      </Box>
+      <Stack data-e2e="flows" direction="row" gap="sm" padding="sm">
+        <Box data-e2e="flow-a" surface="pale" padding="sm"><Text>A</Text></Box>
+        <Box data-e2e="flow-b" surface="pale" padding="sm"><Text>B</Text></Box>
+        <Box data-e2e="flow-c" surface="pale" padding="sm"><Text>C</Text></Box>
+      </Stack>
+      <Stack data-e2e="wrap-row" direction="row" gap="sm">
+        <Stack data-e2e="wrap-stack" fillChildren width={200}><Button data-e2e="wrapped" level="secondary">Wide</Button></Stack>
+        <Button data-e2e="wrap-next" level="tertiary">Next</Button>
+      </Stack>
+    </Stack>
+  );
+}
+
 /** An example's own HTML (GĐ3b M2): a flex column, a heading and a paragraph with a link, a flex row, a 3-column grid, a
  *  tinted note. "New page from this frame" turns them into Stack, Heading, Text, Link, Grid and Box by token. */
 function HtmlFixture() {
@@ -192,4 +230,5 @@ export const examples: ExampleDef[] = [
   { title: "E2E instance", description: "Zen instances with design props, a field's label, an alert's icon and an empty state.", code: "<InstanceFixture />", render: () => <InstanceFixture /> },
   { title: "E2E html", description: "An example's own HTML: flex and grid boxes, a heading, a paragraph with a link, a tinted note.", code: "<HtmlFixture />", render: () => <HtmlFixture /> },
   { title: "E2E const", description: "A Segmented whose options a same-file const holds.", code: "<ConstFixture />", render: () => <ConstFixture /> },
+  { title: "E2E canvas", description: "A clipping scroll box, a 0 gap, two Headings, floating and flowing Boxes, a wrapped Button.", code: "<CanvasFixture />", render: () => <CanvasFixture /> },
 ];

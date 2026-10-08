@@ -1,7 +1,7 @@
 // Structural rows: insert from Assets, the canvas context menu, drag to reorder, slots, wrap, and clean-up after a remove.
 import { countOf, e2eLocs, locOf } from "../lib/source.mjs";
 import { clickLoc, inViewport, rectOf, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
-import { freshSelect, waitInspector } from "./inspector.mjs";
+import { expectSource, freshSelect, waitInspector } from "./inspector.mjs";
 
 const at = async (ctx, id, index = 0) => locOf(await ctx.text(), id, index).loc;
 const canvas = (page) => page.locator(".studio-viewport");
@@ -217,6 +217,70 @@ export const rows = [
       await until(async () => countOf(await saved(), "save-b") === 3, { message: "a third save-b without a second question" });
       if (await dialog.isVisible()) throw new Error("asked again for the same file");
       return "asked (1 file: uploader.tsx) → Cancel: nothing → yes: duplicated → no second question";
+    },
+  },
+  {
+    id: "ST-20", feature: "Drag a floating Box: it moves by its insets (snapped to the ladder), never reordered", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "float-l", { frame: 9 });
+      const box = await rectOf(page, ctx.file, await at(ctx, "float-l"));
+      // Off the centre, where an empty Box shows its slot + chip.
+      const x = box.x + 12;
+      const y = box.y + box.height / 2;
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      for (let step = 1; step <= 8; step += 1) await page.mouse.move(x + (24 * step) / 8, y + (12 * step) / 8);
+      const label = (await page.locator(".studio-drag__label").allInnerTexts()).join(" | ");
+      await page.mouse.up();
+      const moved = await expectSource(ctx, "float-l", (el) => el.attr("insetLeft") !== "sm" && el.attr("insetTop") !== "sm", "insetLeft and insetTop moved");
+      const text = await ctx.text();
+      if (text.indexOf('data-e2e="float-l"') > text.indexOf('data-e2e="float-s"')) throw new Error("the floating Box was reordered");
+      return `pill "${label}" → insetLeft ${moved.attr("insetLeft")}, insetTop ${moved.attr("insetTop")}`;
+    },
+  },
+  {
+    id: "ST-21", feature: "Drag two selected layers: both land together at the drop place (one edit), still selected", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "flow-a", { frame: 9, position: { dx: 3, dy: 3 } });
+      await clickLoc(page, ctx.file, await at(ctx, "flow-b"), { modifiers: ["Shift"], position: { dx: 3, dy: 3 } });
+      await until(async () => (await selectedSrc(page)).length === 2, { message: "two layers selected" });
+      const a = await rectOf(page, ctx.file, await at(ctx, "flow-a"));
+      const c = await rectOf(page, ctx.file, await at(ctx, "flow-c"));
+      const from = { x: a.x + a.width / 2, y: a.y + a.height / 2 };
+      await page.mouse.move(from.x, from.y);
+      await page.mouse.down();
+      const to = { x: c.x + c.width - 3, y: c.y + c.height / 2 };
+      for (let step = 1; step <= 12; step += 1) await page.mouse.move(from.x + ((to.x - from.x) * step) / 12, from.y + ((to.y - from.y) * step) / 12);
+      await sleep(150);
+      await page.mouse.up();
+      const order = async () => {
+        const text = await ctx.text();
+        return ["flow-a", "flow-b", "flow-c"].map((id) => [id, text.indexOf(`data-e2e="${id}"`)]).sort((x, y) => x[1] - y[1]).map(([id]) => id).join(",");
+      };
+      await until(async () => (await order()) === "flow-c,flow-a,flow-b", { message: `C, A, B in the source (status: ${(await statusText(page)).slice(-160)})` });
+      await until(async () => (await selectedSrc(page)).length === 2, { message: "both still selected" });
+      return "A + B dragged after C → C, A, B, both selected";
+    },
+  },
+  {
+    id: "ST-22", feature: "Drag the width handle of a px Grid column's only item: the column's track takes the width", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "grid-px-item", { frame: 5, position: { dx: 4, dy: 4 } });
+      const handle = page.locator('.studio-resize__handle[data-handle="e"]');
+      await handle.waitFor({ state: "visible", timeout: 5000 });
+      // The Grid's source is read after the selection (the column rule needs its track list).
+      await sleep(600);
+      const box = await handle.boundingBox();
+      const x = box.x + box.width / 2;
+      const y = box.y + box.height / 2;
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      for (let step = 1; step <= 8; step += 1) await page.mouse.move(x - (40 * step) / 8, y);
+      await page.mouse.up();
+      const grid = await expectSource(ctx, "grid-px", (el) => /^\d+px 1fr$/.test(el.attr("columns") ?? "") && el.attr("columns") !== "240px 1fr", 'columns="<n>px 1fr"');
+      const item = await expectSource(ctx, "grid-px-item", () => true, "the item");
+      if (item.attr("width") !== undefined) throw new Error(`the item got its own width: ${item.attr("width")}`);
+      return `⟷ −40 px → columns="${grid.attr("columns")}", the item keeps filling its cell`;
     },
   },
 ];
