@@ -154,7 +154,13 @@ export const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(function Hea
   );
 });
 
-/** "1 file", "3 files". Counts in UI copy are pluralised (harness copy/plural-count). */
-export function plural(count: number, one: string, many = `${one}s`): string {
-  return `${count.toLocaleString("en-US")} ${count === 1 ? one : many}`;
+/**
+ * "1 file", "3 files". Counts in UI copy are pluralised (harness copy/plural-count). `locale` (default "en-US"; pass
+ * useZenLocale()) picks the number format and the plural rule: Vietnamese nouns do not inflect, so
+ * `plural(3, "tệp", undefined, "vi")` is "3 tệp" (the default `many` is `one` there, `one + "s"` in English).
+ */
+export function plural(count: number, one: string, many?: string, locale = "en-US"): string {
+  const vietnamese = locale.toLowerCase().startsWith("vi");
+  const singular = !vietnamese && new Intl.PluralRules(locale).select(count) === "one";
+  return `${count.toLocaleString(locale)} ${singular ? one : (many ?? (vietnamese ? one : `${one}s`))}`;
 }

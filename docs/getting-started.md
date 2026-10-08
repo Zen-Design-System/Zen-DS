@@ -136,7 +136,7 @@ Every colour token has a dark value. Only use `var(--zen-color-…)` tokens in y
 | --- | --- |
 | `npx zen-ds init` | Adds the Zen section to AGENTS.md (and `@AGENTS.md` to CLAUDE.md) and registers the `zen-ds` MCP server in `.mcp.json`. Idempotent. |
 | `npx zen-ds doctor` | Checks the setup: dependency, React 19, `styles.css` import, `ZenProvider`, no deep imports, optional AI/ESLint wiring. |
-| `npx zen-usage [paths]` | The usage harness: every Zen component your files import, against the Do/Don't rules (unknown icon names, missing labels, vague button text, wrong levels…). `--json` for tools; `--css` also checks your stylesheets. |
+| `npx zen-usage [paths]` | The usage harness: every Zen component your files import, against the Do/Don't rules (unknown icon names, missing labels, vague button text, wrong levels…). `--json` for tools; `--css` also checks your stylesheets (`npx zen-ds check` runs it with `--css`). |
 | `@zen/design-system/eslint` | The same rules in the editor: `export default [...config, zen.configs.recommended]` (`zen.configs.standalone` without a JSX parser). |
 | `zen-ds-mcp` | MCP server: `get_setup`, `list_components`, `get_component`, `search_icons`, `get_tokens`, `list_templates`, `get_template`, `check_usage`, and `map_figma_component` (Figma component name + variant properties → Zen JSX, checked by the harness; a local stand-in for Figma Code Connect, which needs a Figma Organization plan). |
 

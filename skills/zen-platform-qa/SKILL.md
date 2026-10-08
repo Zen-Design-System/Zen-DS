@@ -1,6 +1,6 @@
 ---
 name: zen-platform-qa
-description: Audit and QA every Zen Design System component page on the Codebase Platform (playgrounds, examples, mobile components), compare with Figma, fix the bugs in the approved scope, and log missing examples and repeatable bug classes as Backlog lines. Use when asked to "audit/QA all components", "fix all bugs on the platform", or after a large batch of component work.
+description: Audit and QA every Zen Design System component page on the Codebase Platform (playgrounds, examples, mobile components), compare with Figma, fix every bug it finds at its owner (user rule 2026-10-08: fix, do not defer), and log only questions for the user or designer and work too large for the change as Backlog lines. Use when asked to "audit/QA all components", "fix all bugs on the platform", or after a large batch of component work.
 ---
 
 # Zen platform QA

@@ -23,7 +23,7 @@
           "type": "ReactElement",
           "required": true,
           "default": null,
-          "description": "A single focusable element (Button, IconButton, link…). It receives aria-describedby.",
+          "description": "A single focusable element (Button, IconButton, link…), or a wrapper around one. The focused control receives\n aria-describedby.",
           "deprecated": null
         },
         {
@@ -67,6 +67,30 @@
           "deprecated": null
         },
         {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Shown from the start (uncontrolled): an onboarding hint, or a phone, where a tooltip never opens on touch. Pair it\n with `closable`.",
+          "deprecated": null
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called when the tooltip opens or closes (the close X, Escape, hover and focus).",
+          "deprecated": null
+        },
+        {
+          "name": "closable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Close=Yes: a dismiss X after the label. The tooltip then stays until it is closed (hover, focus and pointer\n presses no longer hide it) and is a `note`, as it holds a button.",
+          "deprecated": null
+        },
+        {
           "name": "disabled",
           "type": "boolean",
           "required": false,
@@ -87,7 +111,7 @@
     {
       "name": "TooltipSurface",
       "file": "src/components/Tooltip/Tooltip.tsx",
-      "description": "Figma Tooltip (1595:2220): Color × Size bubble with the Simple-Label primitive (Caption/Medium).",
+      "description": "Figma Tooltip (1595:2220): Color × Size bubble with the Simple-Label primitive (Caption/Medium). Close (boolean, added\n2026-10-07): a Wrapper Element-Size/Popular/Small high, Spacing/Gap/XSmall after the label, holding an\nicon-x-medium-line at Element-Size/Popular/XSmall centred, in the label's content colour; for a tooltip shown open by\ndefault.",
       "deprecated": null,
       "extends": "HTMLAttributes<HTMLSpanElement>",
       "props": [
@@ -113,6 +137,22 @@
           "required": true,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Figma Close=Yes: a dismiss X after the label, called when it is pressed.",
+          "deprecated": null
+        },
+        {
+          "name": "closeLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The X's accessible name. Default: the locale's “Close”.",
           "deprecated": null
         }
       ]

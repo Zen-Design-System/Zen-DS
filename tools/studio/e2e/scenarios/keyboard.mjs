@@ -1,6 +1,6 @@
 // Keyboard rows: the edit shortcuts the Shortcuts dialog lists, from the canvas and from the Inspector.
 import { countOf, e2eLocs, locOf } from "../lib/source.mjs";
-import { clickLoc, inspectorRow, sleep, statusText, until } from "../lib/studio.mjs";
+import { clickLoc, focusFrame, inspectorRow, selectedSrc, sleep, statusText, until } from "../lib/studio.mjs";
 import { expectSource, freshSelect } from "./inspector.mjs";
 
 const at = async (ctx, id, index = 0) => locOf(await ctx.text(), id, index).loc;
@@ -175,6 +175,117 @@ export const rows = [
       await page.keyboard.press("ControlOrMeta+KeyD");
       await until(async () => (await count(ctx, "btn-a")) === 2 && (await count(ctx, "btn-b")) === 2, { message: "btn-a and btn-b ×2" });
       return "both duplicated";
+    },
+  },
+  {
+    id: "K-13", feature: "→ on two selected layers of one parent moves both one place later, still selected; ⌘Z puts them back", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "btn-a");
+      await clickLoc(page, ctx.file, await at(ctx, "btn-b"), { modifiers: ["Shift"] });
+      await until(async () => (await selectedSrc(page)).length === 2, { message: "two layers selected" });
+      const order = async () => {
+        const text = await ctx.text();
+        return ["btn-a", "btn-b", "btn-c"].map((id) => [id, text.indexOf(`data-e2e="${id}"`)]).sort((x, y) => x[1] - y[1]).map(([id]) => id).join(",");
+      };
+      await canvas(page).focus();
+      await page.keyboard.press("ArrowRight");
+      await until(async () => (await order()) === "btn-c,btn-a,btn-b", { message: "Gamma, Alpha, Beta in the source" });
+      const moved = [await at(ctx, "btn-a"), await at(ctx, "btn-b")];
+      await until(async () => {
+        const all = await selectedSrc(page);
+        return all.length === 2 && moved.every((loc) => all.includes(`${ctx.file}:${loc}`));
+      }, { message: "both still selected at their new places" });
+      await canvas(page).focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await order()) === "btn-a,btn-b,btn-c", { message: "⌘Z: Alpha, Beta, Gamma again" });
+      return "Alpha + Beta → → Gamma, Alpha, Beta (both selected) → ⌘Z";
+    },
+  },
+  {
+    id: "K-20", feature: "Quick actions › Ignore auto layout floats two selected Boxes at once (one edit)", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "flow-a", { frame: 9, position: { dx: 3, dy: 3 } });
+      await clickLoc(page, ctx.file, await at(ctx, "flow-b"), { modifiers: ["Shift"], position: { dx: 3, dy: 3 } });
+      await until(async () => (await selectedSrc(page)).length === 2, { message: "two layers selected" });
+      await canvas(page).focus();
+      await page.keyboard.press("ControlOrMeta+Slash");
+      const box = page.locator('.studio-quick input[aria-label="Search actions"]');
+      await box.waitFor({ state: "visible", timeout: 4000 });
+      await box.fill("Ignore auto layout");
+      await sleep(150);
+      await page.keyboard.press("Enter");
+      try {
+        await expectSource(ctx, "flow-a", (el) => el.attr("position") === "absolute", 'flow-a position="absolute"');
+        await expectSource(ctx, "flow-b", (el) => el.attr("position") === "absolute", 'flow-b position="absolute"');
+      } catch (error) {
+        throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`);
+      }
+      const c = await expectSource(ctx, "flow-c", () => true, "flow-c");
+      if (c.attr("position") !== undefined) throw new Error("the unselected Box floats too");
+      return "A + B → position absolute (C stays in the flow)";
+    },
+  },
+  {
+    id: "K-21", feature: "⌘C / ⌘V of a component in its Studio wrap Stack copies the Stack (its width goes along)", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "wrapped", { frame: 9 });
+      await sleep(400);
+      await canvas(page).focus();
+      await page.keyboard.press("ControlOrMeta+KeyC");
+      await until(async () => /Copied/i.test(await statusText(page)), { timeout: 4000, message: '"Copied"' });
+      await clickLoc(page, ctx.file, await at(ctx, "wrap-next"));
+      await sleep(300);
+      await canvas(page).focus();
+      await page.keyboard.press("ControlOrMeta+KeyV");
+      try {
+        await until(async () => (await count(ctx, "wrapped")) === 2 && (await count(ctx, "wrap-stack")) === 2, { message: "a second wrap Stack with its Button" });
+      } catch (error) {
+        throw new Error(`${error.message} · wrapped ×${await count(ctx, "wrapped")}, wrap-stack ×${await count(ctx, "wrap-stack")} · status: ${(await statusText(page)).slice(0, 100)}`);
+      }
+      return "Button + its 200 px wrap Stack pasted after Next";
+    },
+  },
+  {
+    id: "K-22", feature: "⌘D on two selected layers selects both copies", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "btn-a");
+      await clickLoc(page, ctx.file, await at(ctx, "btn-b"), { modifiers: ["Shift"] });
+      await until(async () => (await selectedSrc(page)).length === 2, { message: "two layers selected" });
+      await canvas(page).focus();
+      await page.keyboard.press("ControlOrMeta+KeyD");
+      await until(async () => (await count(ctx, "btn-a")) === 2 && (await count(ctx, "btn-b")) === 2, { message: "btn-a and btn-b ×2" });
+      const copies = [`${ctx.file}:${await at(ctx, "btn-a", 1)}`, `${ctx.file}:${await at(ctx, "btn-b", 1)}`];
+      await until(async () => {
+        const all = await selectedSrc(page);
+        return all.length === 2 && copies.every((src) => all.includes(src));
+      }, { message: `both copies selected (selected: ${(await selectedSrc(page)).join(", ")})` });
+      return "both duplicated, both copies selected";
+    },
+  },
+  {
+    id: "K-23", feature: "⌘C / ⌘V of a stateful layer into another file declares the state it reads there", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "open", { frame: 3 });
+      await canvas(page).focus();
+      await page.keyboard.press("ControlOrMeta+KeyC");
+      await until(async () => /Copied/i.test(await statusText(page)), { timeout: 4000, message: '"Copied"' });
+      const saved = async () => (await ctx.api.source(ctx.saveFile)).content;
+      try {
+        await focusFrame(page, 4);
+        await clickLoc(page, ctx.saveFile, locOf(await saved(), "save-text").loc);
+        await sleep(300);
+        await canvas(page).focus();
+        await page.keyboard.press("ControlOrMeta+KeyV");
+        // The save fixture is shared code (the E2E page imports it): the Studio asks first.
+        const dialog = page.getByRole("alertdialog", { name: "Change shared code?" });
+        await dialog.waitFor({ state: "visible", timeout: 5000 }).then(() => dialog.getByRole("button", { name: "Change everywhere" }).click()).catch(() => undefined);
+        await until(async () => countOf(await saved(), "open") === 1, { message: `the Button pasted into the save fixture (status: ${(await statusText(page)).slice(0, 120)})` });
+        const text = await saved();
+        if (!/const \[open\w*, setOpen\w*\] = useState\(false\)/.test(text)) throw new Error("no useState(false) declared for the pasted Button");
+        return "Open dialog → StudioSaveFixture: pasted with const [open, setOpen] = useState(false)";
+      } finally {
+        await ctx.api.discard([ctx.saveFile]).catch(() => {});
+      }
     },
   },
 ];

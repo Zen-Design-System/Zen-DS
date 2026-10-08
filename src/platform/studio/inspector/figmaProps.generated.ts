@@ -824,26 +824,27 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       },
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "VARIANT"
+          },
           {
             "prop": "helpText",
             "label": "Text",
             "type": "CODE"
           },
           {
-            "prop": "helpTheme",
-            "label": "Theme",
-            "type": "CODE"
-          },
-          {
-            "prop": "helpIcon",
-            "label": "Icon",
-            "type": "CODE"
-          },
-          {
             "prop": "characterLimit",
-            "label": "Character limit",
+            "label": "Character-Limitation",
             "type": "CODE"
           }
         ]
@@ -923,26 +924,27 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       },
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "VARIANT"
+          },
           {
             "prop": "helpText",
             "label": "Text",
             "type": "CODE"
           },
           {
-            "prop": "helpTheme",
-            "label": "Theme",
-            "type": "CODE"
-          },
-          {
-            "prop": "helpIcon",
-            "label": "Icon",
-            "type": "CODE"
-          },
-          {
             "prop": "characterLimit",
-            "label": "Character limit",
+            "label": "Character-Limitation",
             "type": "CODE"
           }
         ]
@@ -1022,26 +1024,27 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       },
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "VARIANT"
+          },
           {
             "prop": "helpText",
             "label": "Text",
             "type": "CODE"
           },
           {
-            "prop": "helpTheme",
-            "label": "Theme",
-            "type": "CODE"
-          },
-          {
-            "prop": "helpIcon",
-            "label": "Icon",
-            "type": "CODE"
-          },
-          {
             "prop": "characterLimit",
-            "label": "Character limit",
+            "label": "Character-Limitation",
             "type": "CODE"
           }
         ]
@@ -1061,21 +1064,22 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     "nested": [
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
           {
-            "prop": "helpText",
-            "label": "Text",
-            "type": "CODE"
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
           },
           {
             "prop": "helpTheme",
             "label": "Theme",
-            "type": "CODE"
+            "type": "VARIANT"
           },
           {
-            "prop": "helpIcon",
-            "label": "Icon",
+            "prop": "helpText",
+            "label": "Text",
             "type": "CODE"
           }
         ]
@@ -1832,7 +1836,15 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       }
     ],
-    "toggles": []
+    "toggles": [
+      {
+        "label": "Actions",
+        "prop": "action",
+        "on": {
+          "code": "{ label: \"Action\" }"
+        }
+      }
+    ]
   },
   "FileUpload": {
     "figma": "1581:22708",
@@ -2002,26 +2014,27 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       },
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "VARIANT"
+          },
           {
             "prop": "helpText",
             "label": "Text",
             "type": "CODE"
           },
           {
-            "prop": "helpTheme",
-            "label": "Theme",
-            "type": "CODE"
-          },
-          {
-            "prop": "helpIcon",
-            "label": "Icon",
-            "type": "CODE"
-          },
-          {
             "prop": "characterLimit",
-            "label": "Character limit",
+            "label": "Character-Limitation",
             "type": "CODE"
           }
         ]
@@ -2100,26 +2113,27 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       },
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "VARIANT"
+          },
           {
             "prop": "helpText",
             "label": "Text",
             "type": "CODE"
           },
           {
-            "prop": "helpTheme",
-            "label": "Theme",
-            "type": "CODE"
-          },
-          {
-            "prop": "helpIcon",
-            "label": "Icon",
-            "type": "CODE"
-          },
-          {
             "prop": "characterLimit",
-            "label": "Character limit",
+            "label": "Character-Limitation",
             "type": "CODE"
           }
         ]
@@ -2176,30 +2190,9 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       },
       {
-        "prop": "size",
-        "label": "Size",
-        "type": "VARIANT",
-        "options": {
-          "XLarge": "xlarge",
-          "Large": "large",
-          "Medium": "medium",
-          "Small": "small",
-          "XSmall": "xsmall"
-        }
-      }
-    ],
-    "toggles": []
-  },
-  "MetricCard": {
-    "figma": "595:55188",
-    "own": [
-      {
-        "prop": "variant",
-        "type": "SET",
-        "options": {
-          "Primitives/Metric/Metric-Inline/Icon-Highlight": "icon-highlight",
-          "Primitives/Metric/Metric-Inline/Title-Highlight": "title-highlight"
-        }
+        "prop": "metricColor",
+        "label": "Metric-Color",
+        "type": "BOOLEAN"
       },
       {
         "prop": "size",
@@ -2214,7 +2207,80 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       }
     ],
-    "toggles": []
+    "toggles": [
+      {
+        "label": "Counter",
+        "prop": "counter",
+        "on": "3"
+      },
+      {
+        "label": "Hint",
+        "prop": "hint",
+        "on": "How this number is worked out"
+      },
+      {
+        "label": "Label-Icon",
+        "prop": "labelIcon",
+        "on": "icon-wallet-02-line"
+      },
+      {
+        "label": "Custom",
+        "prop": "custom",
+        "on": "slot"
+      }
+    ]
+  },
+  "MetricCard": {
+    "figma": "595:55188",
+    "own": [
+      {
+        "prop": "variant",
+        "type": "SET",
+        "options": {
+          "Primitives/Metric/Metric-Inline/Icon-Highlight": "icon-highlight",
+          "Primitives/Metric/Metric-Inline/Title-Highlight": "title-highlight"
+        }
+      },
+      {
+        "prop": "metricColor",
+        "label": "Metric-Color",
+        "type": "BOOLEAN"
+      },
+      {
+        "prop": "size",
+        "label": "Size",
+        "type": "VARIANT",
+        "options": {
+          "XLarge": "xlarge",
+          "Large": "large",
+          "Medium": "medium",
+          "Small": "small",
+          "XSmall": "xsmall"
+        }
+      }
+    ],
+    "toggles": [
+      {
+        "label": "Counter",
+        "prop": "counter",
+        "on": "3"
+      },
+      {
+        "label": "Hint",
+        "prop": "hint",
+        "on": "How this number is worked out"
+      },
+      {
+        "label": "Label-Icon",
+        "prop": "labelIcon",
+        "on": "icon-wallet-02-line"
+      },
+      {
+        "label": "Custom",
+        "prop": "custom",
+        "on": "slot"
+      }
+    ]
   },
   "ChatMessage": {
     "figma": "6349:64085",

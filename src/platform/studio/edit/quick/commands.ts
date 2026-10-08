@@ -1,10 +1,10 @@
 import { redoEdit, undoEdit } from "../../api";
 import { presentFrame } from "../../board/presentFrame";
 import { canvasApi, zoomIn, zoomOut } from "../../canvas/viewport";
-import { modKey } from "../../canvas/ZoomControls";
+import { modKey } from "../../shell/modKey";
 import { detachSelection, detachShortcut, offersDetach } from "../../inspector/detach";
 import { autoLayoutShortcut, frameSelectionShortcut, wrapCheck, wrapSelection } from "../../select/wrapSelection";
-import { openShortcuts } from "../../shell/ShortcutsDialog";
+import { openShortcuts } from "../../shell/shortcutsOpen";
 import { toggleSidePanels } from "../../shell/layout";
 import { duplicateSelection, duplicateShortcut, removeSelection, removeShortcut } from "../../slots/actions";
 import { toggleStudioTheme } from "../../shell/modes";
@@ -13,7 +13,8 @@ import { canEdit, studioStore } from "../../store";
 import type { StudioSelection } from "../../types";
 import { stepLayer, type NodeSelection } from "../arrange";
 import { clipboardActions, clipboardShortcuts } from "../clipboard";
-import { duplicateLayers, removeLayers } from "../multi";
+import { duplicateLayers, removeLayers, stepLayers } from "../multi";
+import { toggleIgnoreAutoLayout } from "../ignoreAutoLayout";
 import { multiSelection } from "../../select/multiSelection";
 import { startTextEditOnSelection } from "../textEdit";
 
@@ -53,10 +54,12 @@ export function commands(): Command[] {
     { id: "paste-props", group: "Edit", label: "Paste properties", shortcut: clipboardShortcuts.pasteProps, keywords: "style", disabled: editOff ?? (clipboardActions.hasProperties() ? undefined : "Copy properties first"), run: () => { if (node) void clipboardActions.pasteProperties(node); } },
     { id: "duplicate", group: "Edit", label: "Duplicate", shortcut: duplicateShortcut, disabled: editOff, run: () => { if (multiSelection.get().length) void duplicateLayers(); else if (node) void duplicateSelection(node); } },
     { id: "remove", group: "Edit", label: "Remove", shortcut: removeShortcut, keywords: "delete", disabled: editOff, run: () => { if (multiSelection.get().length) void removeLayers(); else if (node) void removeSelection(node); } },
-    { id: "move-up", group: "Edit", label: "Move earlier", shortcut: "↑ ←", keywords: "reorder up left", disabled: editOff, run: () => { if (node) void stepLayer(node, "prev"); } },
-    { id: "move-down", group: "Edit", label: "Move later", shortcut: "↓ →", keywords: "reorder down right", disabled: editOff, run: () => { if (node) void stepLayer(node, "next"); } },
+    { id: "move-up", group: "Edit", label: "Move earlier", shortcut: "↑ ←", keywords: "reorder up left", disabled: editOff, run: () => { if (multiSelection.get().length) void stepLayers("prev"); else if (node) void stepLayer(node, "prev"); } },
+    { id: "move-down", group: "Edit", label: "Move later", shortcut: "↓ →", keywords: "reorder down right", disabled: editOff, run: () => { if (multiSelection.get().length) void stepLayers("next"); else if (node) void stepLayer(node, "next"); } },
     { id: "wrap-stack", group: "Edit", label: "Wrap in Stack (auto layout)", shortcut: autoLayoutShortcut, keywords: "group container", disabled: editOff ?? (wrap && !wrap.ok ? wrap.reason : undefined), run: () => { void wrapSelection("stack"); } },
     { id: "wrap-box", group: "Edit", label: "Wrap in Box (frame)", shortcut: frameSelectionShortcut, keywords: "group container", disabled: editOff ?? (wrap && !wrap.ok ? wrap.reason : undefined), run: () => { void wrapSelection("box"); } },
+    // The Design tab's Position toggle, for one layer or several (edit/ignoreAutoLayout.ts): floating on, or back in the flow.
+    { id: "ignore-auto-layout", group: "Edit", label: "Ignore auto layout (float) / back in auto layout", keywords: "absolute position float constraints", disabled: editOff, run: () => { void toggleIgnoreAutoLayout(); } },
     { id: "detach", group: "Edit", label: "Detach instance", shortcut: detachShortcut, disabled: editOff ?? (node && !offersDetach(node.name) ? `${node.name} is not a component instance` : undefined), run: () => { if (node) void detachSelection(node); } },
     { id: "undo", group: "Edit", label: "Undo", shortcut: `${modKey}Z`, disabled: state.undo.length ? undefined : "Nothing to undo", run: () => { void undoEdit(); } },
     { id: "redo", group: "Edit", label: "Redo", shortcut: `⇧${modKey}Z`, disabled: state.redo.length ? undefined : "Nothing to redo", run: () => { void redoEdit(); } },

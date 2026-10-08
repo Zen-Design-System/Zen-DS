@@ -112,7 +112,7 @@ Ops (applied back to front on the element at `loc`):
 - `insertChild { code, prop?, index?, wrap?, requires? }`, `removeElement {}`, `duplicateElement {}`, `moveElement { to }`,
   `moveTo { parent, before?, after?, copy?, replace? }`, `pasteCode { code, … }`, `replaceElement { code, state? }`, `many { action, locs, ops? }`,
   `clearSlot { prop? }`, `resetSlot { prop? }` (each alone in its request): slot content, see "Slots" below.
-- `insertItem { prop, code, index?, single?, requires? }`, `removeItem { prop, index? }`, `duplicateItem { prop, index }`,
+- `insertItem { prop, code, index?, single?, requires? }`, `removeItem { prop, index?, all? }`, `duplicateItem { prop, index }`,
   `moveItem { prop, index, to }` (each alone, on the host, hash required; `items.mjs`, 2026-10-04): the objects of a
   data slot or any list prop written as an array literal (`trailing={[{ icon, label, onClick }]}`), or the one object of
   an object prop (`single`). Insert takes one object literal (no free names but `toast`, which brings the useToast hook,

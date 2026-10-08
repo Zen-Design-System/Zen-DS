@@ -20,6 +20,7 @@ import { Heading, Text } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { TODAY, daysFromToday, formatDate, formatMoney, formatRange, formatRelative, formatTime, invoiceStatusTheme, invoices, people, projectById, type InvoiceStatus } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./radio-button.css";
 
 export const page: PlatformPage = "radio-button";
@@ -154,7 +155,7 @@ function ProjectVisibilityExample() {
         {/* Radio cards: the whole card selects; the selected card gets the Active stroke. */}
         <Grid minColumnWidth={280} gap="md">
           {visibilityOptions.map((option) => (
-            <Card key={option.id} className="px-radio-button-card" theme="border" spacing="small" selected={visibility === option.id}>
+            <Card key={option.id} className="px-radio-button-card" theme="flat" spacing="small" selected={visibility === option.id}>
               <RadioButton name={name} value={option.id} bold label={option.label} caption={option.caption} disabled={option.disabled}
                 checked={visibility === option.id} onCheckedChange={(checked) => { if (checked) setVisibility(option.id); }} />
             </Card>
@@ -254,7 +255,7 @@ function DeliverySlotExample() {
   if (draft !== null) {
     return (
       <PlatformPhone key="slot" label="Delivery slot" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="compact" title="Delivery slot" scrollRef={screenRef} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
+        header={<TopNavigation type="compact-alt" title="Delivery slot" scrollRef={screenRef} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
         footer={<ActionBar position="static" primaryAction={{ label: "Confirm slot", onClick: confirm }} />}>
         {screen.anchor}
         {/* Margin-Compact body (padding lg, 20). */}
@@ -276,7 +277,7 @@ function DeliverySlotExample() {
   }
   return (
     <PlatformPhone key="root" label="Delivery" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Delivery" largeTitle="Delivery" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Delivery" largeTitle="Delivery" scrollRef={screenRef} />}>
       {screen.anchor}
       <Stack padding="lg">
         <List aria-label="Shipment MF-20931">
@@ -293,7 +294,7 @@ function DeliverySlotExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Payment terms",
     description: "Each caption states what the choice means, here the due date it sets. The studio's usual terms are pre-selected; arrow keys move and select within the group, and the group locks once the invoice is sent.",
@@ -351,7 +352,7 @@ export const examples: ExampleDef[] = [
   <FormFieldset kind="radio" legend="Who can open Loyalty app">
     <Grid minColumnWidth={280} gap="md">
       {options.map((option) => (
-        <Card key={option.id} theme="border" spacing="small" selected={visibility === option.id}>
+        <Card key={option.id} theme="flat" spacing="small" selected={visibility === option.id}>
           <RadioButton name="visibility" value={option.id} bold label={option.label} caption={option.caption}
             disabled={option.disabled} checked={visibility === option.id}
             onCheckedChange={(checked) => { if (checked) setVisibility(option.id); }} />
@@ -403,7 +404,7 @@ export const examples: ExampleDef[] = [
 const back = () => (draft !== slot ? setAsking(true) : leave());
 
 <PlatformPhone key="slot" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Delivery slot" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Delivery slot" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
   footer={<ActionBar position="static" primaryAction={{ label: "Confirm slot", onClick: confirm }} />}>
   <Stack gap="md" padding="lg">
@@ -421,4 +422,4 @@ const back = () => (draft !== slot ? setAsking(true) : leave());
   </BottomSheet>
 </PlatformPhone>`,
   },
-];
+]);

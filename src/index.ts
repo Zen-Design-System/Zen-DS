@@ -6,6 +6,7 @@ export * from "./components/PageHeader";
 export * from "./components/Form";
 export * from "./components/Button";
 export * from "./components/Chip";
+export * from "./components/ChipGroup";
 export * from "./components/Icon";
 export * from "./components/FileIcon";
 export * from "./components/Flag";

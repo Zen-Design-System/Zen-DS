@@ -29,6 +29,7 @@ import {
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./breadcrumbs.css";
 
 export const page: PlatformPage = "breadcrumbs";
@@ -104,9 +105,9 @@ function FileBrowserExample() {
   const narrow = width > 0 && width < 560;
   const allColumns: TableColumn<Entry>[] = [
     { id: "name", header: "Name", cell: (e) => (narrow
-      ? <TableMedia media={isFolder(e) ? <Icon name="icon-folder-line" size="lg" /> : <FileIcon format={fileIconFormatOf(e.name)} size="lg" />}
+      ? <TableMedia bold media={isFolder(e) ? <Icon name="icon-folder-line" size="lg" /> : <FileIcon format={fileIconFormatOf(e.name)} size="lg" />}
           caption={[e.bytes === undefined ? "" : formatBytes(e.bytes), formatRelative(e.updated)].filter(Boolean).join(" · ")}>{e.name}</TableMedia>
-      : <TableMedia media={isFolder(e) ? <Icon name="icon-folder-line" size="base" /> : <FileIcon format={fileIconFormatOf(e.name)} size="base" />}>{e.name}</TableMedia>) },
+      : <TableMedia bold media={isFolder(e) ? <Icon name="icon-folder-line" size="base" /> : <FileIcon format={fileIconFormatOf(e.name)} size="base" />}>{e.name}</TableMedia>) },
     { id: "owner", header: "Owner", width: "180px", cell: (e) => <TableMedia bold={false} media={avatar(people[e.owner], "xsmall")}>{people[e.owner].name}</TableMedia> },
     { id: "updated", header: "Modified", width: "200px", cell: (e) => <TableText>{formatRelative(e.updated)}</TableText> },
     { id: "size", header: "Size", align: "right", width: "96px", cell: (e) => <TableText>{e.bytes === undefined ? "" : formatBytes(e.bytes)}</TableText> },
@@ -198,7 +199,7 @@ function TopBarTrailExample() {
     content = (
       <>
         <PageHeader title={person.name} description={`${person.role} · ${person.location}`} />
-        <Card theme="border">
+        <Card theme="shadow">
           <DescriptionList items={[
             { term: "Team", description: team.team },
             { term: "Email", description: person.email },
@@ -403,7 +404,7 @@ function MoveToFolderExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "File browser",
     description: "Folders three and more levels deep: the trail sits above the PageHeader title, starts at Files with its icon and ends at the open folder as plain text. Crumbs are links with an href, so they open in a new tab too; the top level shows no trail.",
@@ -492,4 +493,4 @@ export const examples: ExampleDef[] = [
   </Stack>
 </Dialog>`,
   },
-];
+]);

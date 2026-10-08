@@ -34,6 +34,7 @@ import {
   projectById, projects, projectStatusTheme, taskStatusTheme, tasks, type Invoice, type PersonId, type Project, type Task,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "menu";
 
@@ -471,7 +472,7 @@ function PhoneFileMenu() {
   if (opened) {
     return (
       <PlatformPhone key={opened.id} label="Files" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="compact" title={opened.name} scrollRef={screenRef}
+        header={<TopNavigation type="compact-alt" title={opened.name} scrollRef={screenRef}
           leading={{ icon: back, label: "Back", onClick: () => screen.go(`[data-file="${opened.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}
         footer={<ActionBar position="static" primaryAction={{ label: opened.offline ? "Remove offline copy" : "Make available offline", onClick: () => toggleOffline(opened) }} />}>
         {screen.anchor}
@@ -491,7 +492,7 @@ function PhoneFileMenu() {
 
   return (
     <PlatformPhone key="files" label="Files" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Files" largeTitle="Files" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Files" largeTitle="Files" scrollRef={screenRef} />}>
       {screen.anchor}
       {/* The rows sit in the screen margin (Margin/Comfortable, 20px), so their fill stays 8px off the screen edge; Padding/XSmall (8px, the phone's List-Container-Vertical-Padding) above and below, like a List-Box. */}
       <Box paddingX="lg" paddingY="xs">
@@ -523,7 +524,7 @@ function PhoneFileMenu() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Row actions in a table",
     wide: true,
@@ -631,7 +632,7 @@ const onKeyDown = (event) => {
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key="files" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Files" largeTitle="Files" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Files" largeTitle="Files" scrollRef={screenRef} />}>
   <Box paddingX="lg" paddingY="xs"> {/* the screen margin: rows 20px from the edge; Padding/XSmall above and below, like a List-Box */}
     <List aria-label="Loyalty app files">
       {files.map((file) => (
@@ -657,4 +658,4 @@ const onKeyDown = (event) => {
   </BottomSheet>
 </PlatformPhone>`,
   },
-];
+]);

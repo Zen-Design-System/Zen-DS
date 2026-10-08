@@ -49,7 +49,7 @@ const HARNESS_TIMEOUT = 60_000;
 /** The drafts of each dev server persist here (relative to the root), as drafts-<port>.json. */
 const DRAFTS_DIR = "node_modules/.cache/zen-studio";
 const STATUS = { forbidden: 403, "not-found": 404, stale: 409, invalid: 400, confirm: 409 };
-const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/drafts", "/frame-drafts", "/save", "/discard", "/pages", "/pages/write", "/pages/trash", "/promote"]);
+const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/drafts", "/frame-drafts", "/save", "/discard", "/pages", "/pages/write", "/pages/trash", "/pages/asset", "/pages/asset-write", "/pages/asset-trash", "/promote"]);
 /** A frame request names at most this many frames and locs (a page renders a few thousand elements). */
 const MAX_FRAMES = 200;
 const MAX_LOCS = 50_000;
@@ -236,6 +236,21 @@ export function zenStudio() {
         // Builder pages in .zen-studio/pages/ (the browser keeps its copy in IndexedDB and syncs with these).
         checkToken(req);
         return send(res, 200, { ok: true, dir: pages().dir, pages: await pagesCall(() => pages().list()) });
+      }
+      // Uploaded photos beside the pages (assets/, 2026-10-08): a page opened in another browser on this server finds
+      // them. Bytes travel as base64 in JSON, as Promote's uploads do.
+      if (route === "GET /pages/asset") {
+        checkToken(req);
+        const id = url.searchParams.get("id");
+        const bytes = await pagesCall(() => pages().readAsset(id));
+        return send(res, 200, bytes ? { ok: true, id, data: Buffer.from(bytes).toString("base64") } : { ok: true, id, data: null });
+      }
+      if (route === "POST /pages/asset-write" || route === "POST /pages/asset-trash") {
+        checkWriteHeaders(req);
+        const body = await readJson(req);
+        if (route === "POST /pages/asset-write" && typeof body.data !== "string") throw new HttpError("invalid", "Send { id, data }: the photo's bytes as base64");
+        const result = await exclusive(() => pagesCall(() => (route === "POST /pages/asset-write" ? pages().writeAsset(body.id, new Uint8Array(Buffer.from(body.data, "base64"))) : pages().trashAsset(body.id))));
+        return send(res, 200, { ok: true, ...result });
       }
       if (route === "POST /pages/write" || route === "POST /pages/trash") {
         checkWriteHeaders(req);

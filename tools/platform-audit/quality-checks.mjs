@@ -8,7 +8,8 @@
  *   scale      (error) text whose size / line height / tracking / weight / family is no Zen text style (anywhere in a
  *              preview); example markup (non-`zen-*` elements) with padding, gap or corner radius off the token scale, or
  *              a colour that is no --zen-color-* token in the current theme and modes
- *   roles      (warn)  example markup that paints text with a background/border token, a fill with a content token…
+ *   roles      (warn)  example markup that paints text with a background/border token, a fill with a content token…;
+ *              a Surface/Default box on the Canvas/Default stage with a border or a shadow (§16 default pairing)
  *   hierarchy  (error) content hierarchy (Typography › Content hierarchy, review 2026-09-29): a content h1 that is not
  *              Heading/1 (the TopNavigation bar title and overlay titles are exempt), an h2/h3 in a Heading/* style
  *              smaller than the body text right under it, an overlay title styled Heading/1 (h1 or h2 are both fine)
@@ -16,7 +17,7 @@
  *              Strongest tone (tone read from the token that paints it; a Body/Small/Bold group header may be Base), any
  *              other heading smaller than the body text right under it (Body/Small/Bold group headers are kickers and
  *              exempt), an overlay title below h2, a Heading/* styled line that is not a heading (and not a value), more
- *              than seven text styles in one example (the .pth-outline readout not counted), nested corners that are not
+ *              than seven text styles in one example (eight on a whole screen; the .pth-outline readout not counted), nested corners that are not
  *              concentric (outer = inner + inset, each corner on its own; the Luxury radius mode is skipped), list rows padded twice
  *   density    (error) (densitySnapshot, compared by audit.mjs) Zen elements whose in-flow content outgrows them once
  *              Component Size is Comfortable
@@ -209,7 +210,10 @@ export function qualityChecks({ scopeSel, regionSel }) {
     }
     // The Outline readout (.pth-outline, Typography › Content hierarchy) is platform annotation, not the example.
     const distinct = new Set(content.filter((b) => !b.el.closest(".pth-outline")).map((b) => b.st.name).filter(Boolean));
-    if (distinct.size > 7) push("rhythm", `${label(region)}: ${distinct.size} text styles in one example (${[...distinct].join(", ")}) — a calm hierarchy uses 3–5 (a full page up to ~7)`);
+    // A whole screen (ExampleCard `screen`, the Templates) is a real page: h1, h4, Subheading, body regular / medium /
+    // bold, small and caption make 8.
+    const styleLimit = region.closest?.(".pe-card[data-screen='true']") ? 8 : 7;
+    if (distinct.size > styleLimit) push("rhythm", `${label(region)}: ${distinct.size} text styles in one example (${[...distinct].join(", ")}) — a calm hierarchy uses 3–5 (a full page up to ~${styleLimit})`);
 
     /* ── example markup: spacing, radius, colour on the token scale ──────────────────────────────────────────── */
     for (const el of region.querySelectorAll("*")) {
@@ -281,10 +285,16 @@ export function qualityChecks({ scopeSel, regionSel }) {
       for (const kid of kids) {
         if (legacy) break;
         if (!visible(kid)) continue;
+        // A modal overlay (AppShell's drawer, its modal aside) is inset from the viewport, not from the preview frame
+        // that holds it in the docs (batch A2: the aside renders in place, as the drawer does): no concentric pair.
+        const overlay = kid.closest(".zen-side-panel-overlay, .zen-app-shell__overlay");
+        if (overlay && !outer.closest(".zen-side-panel-overlay, .zen-app-shell__overlay") && outer.contains(overlay)) continue;
         const interactive = kid.matches("button, a[href], [role='button'], [role='option'], [role='menuitem'], .zen-list-item, .zen-card");
         if (!(paints(kid) || interactive)) continue;
         const ks = getComputedStyle(kid); const kr = kid.getBoundingClientRect();
-        const gap = { left: kr.left - inner.left, top: kr.top - inner.top, right: inner.right - kr.right, bottom: inner.bottom - kr.bottom };
+        // Radii are CSS px, rects are screen px: inside a scaled phone frame the insets are read back in CSS px.
+        const k = outer.offsetWidth > 0 ? or.width / outer.offsetWidth : 1;
+        const gap = { left: (kr.left - inner.left) / k, top: (kr.top - inner.top) / k, right: (inner.right - kr.right) / k, bottom: (inner.bottom - kr.bottom) / k };
         for (const corner of CORNERS) {
           const R = Rs[corner.key], r = cornerRadius(ks, corner.key);
           if (R <= 0 || pill(R, or) || r <= 0 || pill(r, kr)) continue;
@@ -310,6 +320,36 @@ export function qualityChecks({ scopeSel, regionSel }) {
       const hs = getComputedStyle(host), rs = getComputedStyle(row);
       const outerPad = row.getBoundingClientRect().left - host.getBoundingClientRect().left - px(hs.borderLeftWidth);
       if (outerPad >= 12 && px(rs.paddingLeft) >= 12) { push("rhythm", `${label(row)}: list rows in ${describe(host)} are inset twice (${Math.round(outerPad)}px container + ${px(rs.paddingLeft)}px row) — let <List inset> own the inset and pad the container with Padding/2XSmall`); break; }
+    }
+
+    /* ── default pairing (usage rules §16; backlog batch 9, user 2026-10-07): a Surface/Default box straight on the
+       Canvas/Default stage is flat — white on the canvas already separates it — so a closed border or a shadow on it
+       is a warning. Phones, shells (their elevation follows the Sidebar), Surface-in-Surface (the backdrop is not the
+       canvas), clickable and selected cards and overlays keep their frames. */
+    {
+      const probe = (name) => { const el = document.createElement("span"); el.style.background = `var(--zen-color-background-${name})`; region.append(el); const c = normColour(getComputedStyle(el).backgroundColor); el.remove(); return c; };
+      const surface = probe("surface-default");
+      const canvasColour = probe("canvas-default");
+      const backdropOf = (el) => { for (let a = el.parentElement; a; a = a.parentElement) { const c = getComputedStyle(a).backgroundColor; if (c && !/rgba\(0, 0, 0, 0\)|transparent/.test(c)) return normColour(c); if (a === region) break; } return normColour(getComputedStyle(region).backgroundColor); };
+      const BOX = ".zen-card, .zen-list-box, .zen-metric-card, .zen-chart-card, .zen-box[data-surface]";
+      // Playgrounds show the variant picked in their controls (a shadow one included), so they are not checked.
+      const SKIP = ".platform-example-panel, .platform-phone, .zen-app-shell, .pe-shell, .platform-sidebar-stage, .zen-popover, .zen-menu, [role='dialog'], .zen-toast, .zen-tooltip, .zen-side-panel, .zen-bottom-sheet, [data-audit-skip-quality]";
+      if (surface && canvasColour && surface !== canvasColour) {
+        for (const box of region.querySelectorAll(BOX)) {
+          if (!visible(box) || box.closest(SKIP) || box.closest("[data-interactive='true'], [data-selected='true'], [data-active='true'], [aria-selected='true'], [aria-checked='true'], [aria-current], a[href], button") || box.matches("[data-interactive='true'], [data-selected='true']")) continue;
+          const bs = getComputedStyle(box);
+          if (normColour(bs.backgroundColor) !== surface || backdropOf(box) !== canvasColour) continue;
+          const bordered = ["Top", "Right", "Bottom", "Left"].every((k) => px(bs[`border${k}Width`]) >= 0.5 && bs[`border${k}Style`] !== "none" && !/rgba\(0, 0, 0, 0\)|transparent/.test(bs[`border${k}Color`]));
+          // A shadow that shows: some layer with a visible colour and a blur, spread or offset (a transparent or
+          // zero-size layer, as a selectable card keeps for its ring, is not one).
+          const shadowed = bs.boxShadow && bs.boxShadow !== "none" && bs.boxShadow.split(/,(?![^(]*\))/).some((layer) => {
+            const colour = /rgba?\([^)]*\)/.exec(layer)?.[0] ?? "";
+            if (/rgba\([^)]*,\s*0\)$/.test(colour) || /transparent/.test(layer)) return false;
+            return layer.replace(colour, "").match(/-?[\d.]+px/g)?.some((n) => parseFloat(n) !== 0);
+          });
+          if (bordered || shadowed) push("roles", `${label(box)}: ${describe(box)} is a Surface/Default box on Canvas/Default with ${bordered ? "a border" : "a shadow"} — the default pairing is flat (usage rules §16: Card/ListBox theme="flat", Box surface without border), unless a Sidebar, a white page or a Surface around it picks another pairing`);
+        }
+      }
     }
 
     /* ── spacing ladder (usage rules §13): the gap between elements is picked by their relationship from one ladder,
@@ -421,6 +461,9 @@ export function textFit({ scopeSel, regionSel }) {
     for (let n = walker.nextNode(); n; n = walker.nextNode()) {
       const text = n.textContent.trim(); const el = n.parentElement;
       if (!text || !el || el.closest(SKIP) || !shown(el)) continue;
+      // A pure-emoji run: its glyph width comes from the platform's colour-emoji font (Apple, Noto…), 3px wider in the cloud
+      // container than on macOS, so the same 32px picker cell "overflows" on one machine only. Not a layout finding.
+      if (/^[\p{Extended_Pictographic}\p{Emoji_Component}\uFE0F\u200D\s]+$/u.test(text) && !/^[\d#*\s]+$/.test(text)) continue;
       let ext = extent(n, false), exact = false, words = null;
       if (!ext) continue;
       // The text's own boxes: its block, then wrappers that hold nothing but this label, up to the control that owns it.

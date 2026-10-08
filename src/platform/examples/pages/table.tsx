@@ -31,6 +31,7 @@ import {
   invoiceStatusTheme, people, projectById, projectStatusTheme, projects, taskStatusTheme, tasks,
   type InvoiceStatus, type Person, type PersonId, type Project, type StudioFile, type TaskStatus,
 } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./table.css";
 
 export const page: PlatformPage = "table";
@@ -72,7 +73,7 @@ function sortMembers(rows: Member[], sort: TableSort | null) {
   });
 }
 const memberColumns: TableColumn<Member>[] = [
-  { id: "name", header: "Name", sortable: true, cell: (member) => <TableMedia media={<PersonAvatar person={people[member.id]} size="sm" />} caption={people[member.id].role}>{people[member.id].name}</TableMedia> },
+  { id: "name", header: "Name", sortable: true, cell: (member) => <TableMedia bold media={<PersonAvatar person={people[member.id]} size="sm" />} caption={people[member.id].role}>{people[member.id].name}</TableMedia> },
   { id: "team", header: "Team", width: "150px", cell: (member) => <TableText>{people[member.id].team}</TableText> },
   { id: "location", header: "Location", width: "180px", cell: (member) => <TableText>{people[member.id].location}</TableText> },
   { id: "joined", header: "Joined", sortable: true, width: "150px", cell: (member) => <TableText>{formatDate(member.joined)}</TableText> },
@@ -152,7 +153,7 @@ function BulkActionsExample() {
 /* ───────────── 3. Open a row: read-only projects open their detail in a Side Panel ───────────── */
 
 const projectColumns: TableColumn<Project>[] = [
-  { id: "name", header: "Project", cell: (project) => <TableMedia media={<DockIcon size="sm" icon={project.icon} theme={project.theme} background="subtle" />} caption={project.client}>{project.name}</TableMedia> },
+  { id: "name", header: "Project", cell: (project) => <TableMedia bold media={<DockIcon size="sm" icon={project.icon} theme={project.theme} background="subtle" />} caption={project.client}>{project.name}</TableMedia> },
   { id: "lead", header: "Lead", width: "170px", cell: (project) => <TableMedia bold={false} media={<PersonAvatar person={people[project.lead]} size="xs" />}>{people[project.lead].name}</TableMedia> },
   { id: "due", header: "Due", width: "140px", cell: (project) => <TableText>{formatDate(project.due)}</TableText> },
   { id: "progress", header: "Progress", width: "160px", cell: (project) => <ProgressBar className="px-table-progress" value={project.progress} label aria-label={`${project.name} progress`} /> },
@@ -282,7 +283,7 @@ const fileTypes = [
 ];
 const fileOwners = [...new Set(studioFiles.map((file) => file.owner))].map((id) => people[id]);
 const fileColumns: TableColumn<StudioFile>[] = [
-  { id: "name", header: "Name", cell: (file) => <TableMedia media={<FileIcon format={fileIconFormatOf(file.name)} size="lg" />} caption={projectById(file.project).name}>{file.name}</TableMedia> },
+  { id: "name", header: "Name", cell: (file) => <TableMedia bold media={<FileIcon format={fileIconFormatOf(file.name)} size="lg" />} caption={projectById(file.project).name}>{file.name}</TableMedia> },
   { id: "owner", header: "Owner", width: "170px", cell: (file) => <TableMedia bold={false} media={<PersonAvatar person={people[file.owner]} size="xs" />}>{people[file.owner].name}</TableMedia> },
   { id: "updated", header: "Updated", width: "190px", cell: (file) => <TableText>{formatRelative(file.updated)}</TableText> },
   { id: "size", header: "Size", align: "right", width: "110px", cell: (file) => <TableText>{formatBytes(file.bytes)}</TableText> },
@@ -352,7 +353,7 @@ function FirstRunExample() {
     focusInvite();
   };
   const columns: TableColumn<Guest>[] = [
-    { id: "guest", header: "Guest", cell: (guest) => <TableMedia media={<Avatar size="sm" theme="green" background="subtle" alt="">{guest.email[0].toUpperCase()}</Avatar>} caption="Can comment">{guest.email}</TableMedia> },
+    { id: "guest", header: "Guest", cell: (guest) => <TableMedia bold media={<Avatar size="sm" theme="green" background="subtle" alt="">{guest.email[0].toUpperCase()}</Avatar>} caption="Can comment">{guest.email}</TableMedia> },
     { id: "invited", header: "Invited", width: "150px", cell: (guest) => <TableText>{formatRelative(guest.invited)}</TableText> },
     { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", width: "72px", cell: (guest) => (
       <TableActions><IconButton appearance="flat" level="primary" size="md" icon="icon-trash-line" aria-label={`Remove ${guest.email}`} onClick={() => remove(guest)} /></TableActions>
@@ -479,7 +480,7 @@ function PhoneTimesheetsExample() {
   };
   return (
     <PlatformPhone label="Team hours" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Team hours" largeTitle="Team hours" scrollRef={screenRef} />}
+      header={<TopNavigation type="alt" title="Team hours" largeTitle="Team hours" scrollRef={screenRef} />}
       footer={<ActionBar position="static"
         summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{approved ? "Approved just now" : `${plural(timesheets.length, "timesheet")} · ${plural(hours, "hour")}`}</Text>}
         primaryAction={approved ? undefined : { label: "Approve timesheets", onClick: approve }}
@@ -493,7 +494,7 @@ function PhoneTimesheetsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Sort by column",
     description: "Sortable headers are buttons with aria-sort: the first press sorts ascending, the next descending, the third returns the team page's own order. Numbers and their header align right.",
@@ -505,7 +506,7 @@ export const examples: ExampleDef[] = [
 <Table aria-labelledby="team-title" rows={sortMembers(members, sort)} sort={sort} onSortChange={setSort}
   columns={[
     { id: "name", header: "Name", sortable: true, cell: (m) => (
-      <TableMedia media={<Avatar size="sm" theme="photo" src={m.photo} alt="" />} caption={m.role}>{m.name}</TableMedia>
+      <TableMedia bold media={<Avatar size="sm" theme="photo" src={m.photo} alt="" />} caption={m.role}>{m.name}</TableMedia>
     ) },
     { id: "team", header: "Team", width: "150px", cell: (m) => <TableText>{m.team}</TableText> },
     { id: "joined", header: "Joined", sortable: true, width: "150px", cell: (m) => <TableText>{formatDate(m.joined)}</TableText> },
@@ -550,7 +551,7 @@ const opened = projects.find((project) => project.id === openId);
 {/* The table lies on the page: no Card around it. */}
 <Table aria-label="Projects" rows={projects} onRowClick={(project) => setOpenId(project.id)} columns={[
   { id: "name", header: "Project", cell: (p) => (
-    <TableMedia media={<DockIcon size="sm" icon={p.icon} theme={p.theme} background="subtle" />} caption={p.client}>{p.name}</TableMedia>
+    <TableMedia bold media={<DockIcon size="sm" icon={p.icon} theme={p.theme} background="subtle" />} caption={p.client}>{p.name}</TableMedia>
   ) },
   { id: "progress", header: "Progress", width: "160px", cell: (p) => <ProgressBar value={p.progress} label aria-label={\`\${p.name} progress\`} /> },
   { id: "status", header: "Status", width: "120px", cell: (p) => <TableBadges><Badge theme={statusTheme[p.status]} background="subtle">{p.status}</Badge></TableBadges> },
@@ -611,7 +612,7 @@ const opened = projects.find((project) => project.id === openId);
     wide: true,
     render: () => <FirstRunExample />,
     code: `<Table aria-labelledby="guests-title" rows={guests} columns={[
-  { id: "guest", header: "Guest", cell: (g) => <TableMedia media={<Avatar size="sm" … />} caption="Can comment">{g.email}</TableMedia> },
+  { id: "guest", header: "Guest", cell: (g) => <TableMedia bold media={<Avatar size="sm" … />} caption="Can comment">{g.email}</TableMedia> },
   { id: "invited", header: "Invited", width: "150px", cell: (g) => <TableText>{formatRelative(g.invited)}</TableText> },
   { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", width: "72px", cell: (g) => (
     <TableActions>
@@ -653,7 +654,7 @@ const opened = projects.find((project) => project.id === openId);
 const hours = timesheets.reduce((sum, s) => sum + s.total, 0);
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Team hours" largeTitle="Team hours" scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title="Team hours" largeTitle="Team hours" scrollRef={screenRef} />}
   footer={<ActionBar position="static" summary={\`\${plural(timesheets.length, "timesheet")} · \${plural(hours, "hour")}\`}
     primaryAction={{ label: "Approve timesheets", onClick: approve }} />}>
   {/* padding 20 (Margin-Compact): the table's edge lines up with the large title */}
@@ -669,4 +670,4 @@ const hours = timesheets.reduce((sum, s) => sum + s.total, 0);
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

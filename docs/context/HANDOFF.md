@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-10-06.
+Last updated: 2026-10-07.
 
 ## Read order
 
@@ -18,11 +18,9 @@ Last updated: 2026-10-06.
 
 ## State in short
 
-- **Git:** work is on the local branch `claude/zen-ds-0.4.0` on top of `eafb0de`; nothing is pushed and `main` still
-  points at `eafb0de`. New work shows as uncommitted changes. **Commit or push only when the user asks.**
-  Zen Studio (`tools/studio/`, `src/platform/studio/`) has never been committed: by the user's decision (2026-10-03) it
-  goes in later as one batch with every Studio session's work (canvas, drafts, resize, slots, detach, Figma-grade
-  editing, multi-select), not file by file (`detach.mjs` alone would need the untracked `jsx-source.mjs`).
+- **Git:** work is on `claude/zen-ds-0.4.0`, pushed to origin (the user allowed direct pushes to it, 2026-10-08); no
+  pull request yet, `main` still points at `eafb0de`. Zen Studio (`tools/studio/`, `src/platform/studio/`) is committed
+  on the branch since the 2026-10-08 parallel-agent merges. Open a PR only when the user asks.
 - **Source of truth:** the live Figma file `9nZv4uW2LT21yuHabMTCh1`, read-only through `use_figma`. The older key `yhWJ…`
   in some docs has no MCP access.
 - **Library:** every Figma component is built (60 folders in `src/index.ts`, 49 guideline slugs). API vocabulary,
@@ -223,7 +221,17 @@ Last updated: 2026-10-06.
   server `POST /promote` (admin, dialect check, `ZEN_STUDIO_PROMOTE_DIR` for the E2E server: lib/server.mjs
   promoteDirOf), `studioApi.promote`, Export panel secondary action (DEV + admin; Replace on conflict; result line
   `data-e2e="promote-result"`). E2E HO-07 (142 rows); build-check 24 steps (no Promote on the build). **GĐ5 is
-  complete** (M1–M5).
+  complete** (M1–M5), merged to main (PR #1). Backlog after it (user, 2026-10-07): batch 1 cleanup and batch 2 Studio
+  quick fixes done (E2E B-19, 143 rows; data-slot `removeItem { all }`); batch 4 examples/docs P2 done (6 fixed, 10
+  already fixed and closed); batch 5a Studio P2 done (frame Save/Discard ownership, example pages keep state through
+  keepOnHotUpdate in src/platform/hotData.ts, Effect settings, object props: + and same-file consts; E2E 147 rows, the
+  gate's Studio E2E step now has 25 min); the CI Package step stays logged (P2, not approved). Batch 5b (Studio P3 small items) is
+  done: 16 rows closed (E2E SE-08, SE-09, LB-13, LB-14, L-09; 152 rows), see the session log. Batch 5c (the five Studio decisions of batch 8, plus arrow keys on several layers, ⇧-click range in Layers and Mixed text props) is done: E2E SE-10…13, K-13, I-16; 158 rows, all working. Batch 6 (13 component decisions, plus ToggleListItem and ChipGroup composed without Figma: verify them, Backlog P2) is done: gate .qa/reports/2026-10-07T16-05-21 — browser tests 31/31, Studio E2E 158/158; the only ✗ is the cloud-only chat emoji [fit] (Backlog P3). Batches 6b, 7 and 9 are done too (gate --all .qa/reports/2026-10-07T16-41-07 after 6b: ✗ only the cloud-only TabItem axe and chat emoji [fit]); the batch 8 decision list is complete. After it: the official Inter WOFF2 (same build), the §16 pairing audit check (`roles` warn, not yet run on every page: the final --all was stopped by the user) and the docs-nav contrast skip in audit.mjs. Open from today in BACKLOG: Figma check of ToggleListItem/ChipGroup (P2), bordered boxes in phone screens (P2), cloud-only gate failures, flaky usage selftest under a parallel gate, side-panel coverage. A backlog sweep (2026-10-07) checked the ~440 open items against the code: ~145 were done or
+  duplicates and are closed with evidence (4 more close with the 5b gate); ~290 stay open (~214 work, ~63 decisions,
+  ~13 need a check by hand). New P2: qa step ④ (example coverage) reads no `examples/pages` source. Batch 8 (the
+  decision list) answered the same day (user: "theo đề xuất"): 12 rows closed, the approved work is tagged
+  "Decided 2026-10-07 … → batch N" in BACKLOG (5c Studio, 6 components, 6b examples/docs, 7 Figma and fonts, 9
+  tooling); still the user's: the Code Connect seat and package publishing; the designer questions are unchanged.
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers
@@ -368,4 +376,6 @@ asks for (new content, at most 12). Process: `docs/qa/build-qa-process.md`, skil
 
 ## Open items and Backlog
 
-Both moved to [`BACKLOG.md`](BACKLOG.md). Items that need a user or designer decision stay under "Open items" there.
+Work items are in [`BACKLOG.md`](BACKLOG.md); questions for the designer and decisions for the user are in
+[`QUESTIONS.md`](QUESTIONS.md) (since 2026-10-08). New rule (user, 2026-10-08): a bug or gate finding met while working
+is fixed in the same change; only those two kinds go to the files above.

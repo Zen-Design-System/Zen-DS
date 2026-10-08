@@ -351,7 +351,7 @@ export function useNestedInstances(selection: NodeSelection, element: SourceElem
         return send(item, spec, { ...current, live: value }, () => ({ ops: [{ op: "setDataField", prop: spec.name, ...(rowIndex !== null ? { row: rowIndex } : {}), value: toEditValue(value) }] }), `${label} (data)`);
       }
     }
-    return send(item, spec, { state: "literal", value, raw: "" }, (source) => (playground ? null : savedWrite(item.name, source, spec.name, value)) ?? planPropWrite(item.name, source.attributes, spec.name, value, live), label);
+    return send(item, spec, { state: "literal", value, raw: "" }, (source) => savedWrite(item.name, source, spec.name, value, playground) ?? planPropWrite(item.name, source.attributes, spec.name, value, live), label);
   }, [send, selection, api.boundHint, valueFor]);
 
   /**

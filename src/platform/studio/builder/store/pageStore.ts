@@ -43,10 +43,12 @@ export interface PageMirror {
   write(id: string, text: string): Promise<void>;
   /** Moves the page to the folder's trash (never deletes). */
   trash(id: string): Promise<void>;
-  /** An uploaded photo, kept in the folder's assets/ beside the pages (a linked folder only). */
+  /** An uploaded photo, kept in the folder's assets/ beside the pages (a linked folder, and the dev server's since 2026-10-08). */
   writeAsset?(id: string, blob: Blob): Promise<void>;
   /** An uploaded photo from the folder's assets/; null when it has none. */
   readAsset?(id: string): Promise<Blob | null>;
+  /** Moves a photo out of the folder's assets/ to its trash (never deletes): a photo removed in Assets › Photos. */
+  trashAsset?(id: string): Promise<void>;
 }
 
 /** Where the pages are kept, for the Pages panel. */

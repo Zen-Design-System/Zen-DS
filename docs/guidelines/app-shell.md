@@ -42,12 +42,12 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `sidebar` | `ReactNode` | — | Left navigation, usually `<Sidebar>`. When the shell is 1024px or wider it sits beside the content, expanded or collapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button. |
+| `sidebar` | `ReactNode` | — | Left navigation, usually `<Sidebar>`. When the shell is 1024px or wider it sits beside the content, expanded or collapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button. A Zen Sidebar follows the shell's rail and drawer by itself, also when it is wrapped in a component of your own. |
 | `header` | `ReactNode` | — | Top bar content after the toggle (it grows): Breadcrumbs (Figma HR-Platform) or a Search. |
 | `headerActions` | `ReactNode` | — | Top bar actions on the right, in this order: a plan Badge, AppShellAction buttons (notifications, settings, help), then the account menu (`<Menu trigger={<AppShellAccount … />}>`). Page actions belong in the PageHeader. |
 | `banner` | `ReactNode` | — | A full-width message strip above the whole shell, usually `<AlertBanner>` (trial ending, maintenance, offline). It stays in view while the page scrolls. |
 | `aside` | `ReactNode` | — | A right panel docked beside the content (Figma Side-Panel), usually <SidePanel type="standard">. It docks while the page keeps at least a Tablet width (744px) beside it; otherwise a SidePanel opens as the modal panel and other content stacks under the page. |
-| `floatingAction` | `ReactNode` | — | One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. |
+| `floatingAction` | `ReactNode` | — | One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. On phones it hides while the page scrolls down and comes back on a scroll up. |
 | `footer` | `ReactNode` | — | A sticky bar at the bottom of the main column, e.g. an ActionBar. |
 | `canvas` | `"default" \| "alt" \| "flat"` | `"default"` | Page background layer: default Canvas, alt (a white page) or flat (pair it with Sidebar background="flat"). |
 | `sidebarCollapsed` | `boolean` | — | Sidebar rail state when controlled; pair it with `onSidebarCollapsedChange`. |
@@ -127,6 +127,7 @@ type AvatarTheme = "photo" | "accent" | "blue" | "brown" | "crimson" | "cyan" | 
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `icon-button/needs-action` | warn | An IconButton (and AppShell's top-bar AppShellAction / AppShellAccount) does something: it has onClick (or href, or type="submit"), unless it is a Menu trigger (the Menu wires it). | `zen-allow-no-action: <reason>` |
 | `app-shell/primary-in-top-bar` | warn | The top bar (header, headerActions) holds utilities: Breadcrumbs or a Search, a plan Badge, AppShellAction buttons and the account menu. A Primary or Accent page action belongs in the PageHeader actions. | `zen-allow-top-bar-primary: <reason>` |
 | `app-shell/nested` | error | One AppShell per screen: a shell inside another shell repeats the navigation, the top bar and <main>. | `zen-allow-nested-shell: <reason>` |
 | `app-shell/breadcrumbs-once` | warn | Breadcrumbs appear once: in the top bar (header, the HR-Platform pattern) or in the PageHeader, never both. | `zen-allow-breadcrumbs-twice: <reason>` |

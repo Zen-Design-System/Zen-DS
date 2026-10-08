@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import { unzipFiles } from "../../zip.mjs";
 import path from "node:path";
-import { promoteDirOf } from "../lib/server.mjs";
+import { pagesDirOf, promoteDirOf } from "../lib/server.mjs";
 import { openStudioSpace, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, focusScreen, newPage, pageText, selectStack } from "./builder.mjs";
 
@@ -228,7 +228,7 @@ export const rows = [
     },
   },
   {
-    id: "HO-05", feature: "Upload a photo: it is kept, goes on the page as zen-asset, shows on the canvas, travels in the handoff zip and comes back with Import", wp: "GĐ5 M4",
+    id: "HO-05", feature: "Upload a photo: it is kept (also in the dev server's pages/assets), goes on the page as zen-asset, shows on the canvas, travels in the handoff zip and comes back with Import; Delete twice on its tile removes it (to the folder's trash)", wp: "GĐ5 M4",
     timeout: 120_000,
     async run(ctx) {
       const photo = fs.readFileSync(path.join(ctx.root, "src/assets/media/site-bridge.webp"));
@@ -244,6 +244,9 @@ export const rows = [
       const tile = assets.locator('.studio-assets__photo[data-upload^="team-photo-"]');
       await tile.waitFor({ state: "visible", timeout: 10_000 });
       const asset = await tile.getAttribute("data-upload");
+      // The dev server's pages folder keeps it too (another browser on this server finds it there).
+      const pagesDir = path.join(ctx.root, pagesDirOf(ctx.server.port));
+      await until(async () => fs.existsSync(path.join(pagesDir, "assets", asset)) && fs.readFileSync(path.join(pagesDir, "assets", asset)).equals(photo), { timeout: 10_000, message: "the photo in the server's pages/assets" });
       await tile.click();
       await until(async () => (await pageText(page, id))?.includes(`<Image src="zen-asset:${asset}" alt="Team photo" ratio="4:3" />`), { message: "the zen-asset Image in the page" });
       const img = page.locator(`img[data-zen-src^="local:${id}.zen.tsx:"], [data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Image"] img`).first();
@@ -274,7 +277,23 @@ export const rows = [
       const again = fresh.page.locator(`img[data-zen-src^="local:${copy}.zen.tsx:"], [data-zen-src^="local:${copy}.zen.tsx:"][data-zen-name="Image"] img`).first();
       await until(async () => again.evaluate((element) => element.src.startsWith("blob:") && element.complete && element.naturalWidth > 0).catch(() => false), { timeout: 10_000, message: "the photo back with the imported page" });
       if (/Missing photo/.test(await statusText(fresh.page))) throw new Error("a photo of the imported zip is missing");
-      return `${asset} (${Math.round(photo.length / 1024)} KB): page, canvas (blob:), zip (code + HTML), back with Import (${copy})`;
+      // Remove (in the fresh browser: opening it closed the first): the first Delete asks, the second removes it from this
+      // browser and moves the server folder's copy to its trash.
+      await showLeftTab(fresh.page, "assets");
+      const freshAssets = fresh.page.locator("#studio-left-panel-assets");
+      await freshAssets.getByRole("button", { name: "Photos", exact: true }).click();
+      const freshTile = freshAssets.locator(`.studio-assets__photo[data-upload="${asset}"]`);
+      await freshTile.waitFor({ state: "visible", timeout: 10_000 });
+      await freshTile.focus();
+      await fresh.page.keyboard.press("Delete");
+      await until(async () => /Press Delete again to remove/.test(await statusText(fresh.page)), { message: "the remove asked first" });
+      if (!(await freshTile.isVisible())) throw new Error("the first Delete removed the photo");
+      await fresh.page.keyboard.press("Delete");
+      await freshTile.waitFor({ state: "detached", timeout: 10_000 });
+      await until(async () => !fs.existsSync(path.join(pagesDir, "assets", asset)), { timeout: 10_000, message: "the photo out of the server's pages/assets" });
+      const trashed = fs.readdirSync(path.join(pagesDir, "..", "trash", "assets")).filter((file) => file.endsWith(asset));
+      if (!trashed.length) throw new Error("the removed photo is not in the folder's trash");
+      return `${asset} (${Math.round(photo.length / 1024)} KB): page, canvas (blob:), server pages/assets, zip (code + HTML), back with Import (${copy}), removed (in trash)`;
     },
   },
   {

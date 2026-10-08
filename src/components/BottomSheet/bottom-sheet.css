@@ -14,6 +14,10 @@
 .zen-bottom-sheet-overlay[data-inline="true"] { position: absolute; z-index: 5; border-radius: inherit; overflow: hidden; }
 .zen-bottom-sheet-overlay[data-state="closing"] { animation: zen-motion-scrim-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; }
 
+/* The sheet's side inset (title, close, search, body, footer): Margin-Compact, and 20px on phones (Margin-Comfortable
+   there) so a clickable row's fill sits 8px from the sheet edge, not 4px (backlog batch 6, user 2026-10-07). */
+.zen-bottom-sheet { --zen-bottom-sheet-inset: var(--zen-margin-compact, 20px); }
+:is([data-breakpoint="mobile"] .zen-bottom-sheet, .zen-bottom-sheet[data-breakpoint="mobile"]) { --zen-bottom-sheet-inset: var(--zen-margin-comfortable, 20px); }
 .zen-bottom-sheet {
   display: flex;
   width: 100%;
@@ -40,14 +44,14 @@
 .zen-bottom-sheet[data-dragging="true"] .zen-bottom-sheet__top { cursor: grabbing; }
 .zen-bottom-sheet__grabber { display: block; width: 40px; height: 5px; margin: var(--zen-spacing-padding-xsmall, 8px) auto 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); }
 .zen-bottom-sheet__header { display: flex; min-height: 64px; align-items: center; }
-.zen-bottom-sheet__title { overflow: hidden; min-width: 0; flex: 1; margin: 0; padding: var(--zen-spacing-padding-medium, 16px) var(--zen-margin-compact, 20px); color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
-.zen-bottom-sheet__close { display: flex; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-margin-compact, 20px) var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-small, 12px); }
+.zen-bottom-sheet__title { overflow: hidden; min-width: 0; flex: 1; margin: 0; padding: var(--zen-spacing-padding-medium, 16px) var(--zen-bottom-sheet-inset, 20px); color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
+.zen-bottom-sheet__close { display: flex; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-bottom-sheet-inset, 20px) var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-small, 12px); }
 
 /* Form mode (onSubmit): the <form> wraps body + footer and keeps the sheet's column, so the body still scrolls between
    the fixed header and the footer. */
 .zen-bottom-sheet__form { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; margin: 0; }
-.zen-bottom-sheet__search { flex: 0 0 auto; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-margin-compact, 20px); }
-.zen-bottom-sheet__body { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); overflow: auto; overscroll-behavior: contain; padding: var(--zen-margin-compact, 20px); }
+.zen-bottom-sheet__search { flex: 0 0 auto; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-bottom-sheet-inset, 20px); }
+.zen-bottom-sheet__body { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); overflow: auto; overscroll-behavior: contain; padding: var(--zen-bottom-sheet-inset, 20px); }
 .zen-bottom-sheet[data-type="action"] .zen-bottom-sheet__body { gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-2-xsmall, 4px); }
 /* Fields fill the sheet like in ModalForm: .zen-input-field is align-self:start (for grids), which in this flex column would hug its content. */
 .zen-bottom-sheet__body > .zen-input-field { align-self: stretch; }
@@ -86,7 +90,7 @@
 .zen-bottom-sheet__check.zen-icon { width: 16px; height: 16px; color: var(--zen-color-content-accent-base, #95197b); }
 
 /* Footer: Large buttons, padding 12/20; Dual horizontal splits the row, vertical stacks Primary over Tertiary. */
-.zen-bottom-sheet__footer { flex: 0 0 auto; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-compact, 20px); }
+.zen-bottom-sheet__footer { flex: 0 0 auto; padding: var(--zen-spacing-padding-small, 12px) var(--zen-bottom-sheet-inset, 20px); }
 .zen-bottom-sheet__actions { display: flex; gap: var(--zen-spacing-gap-small, 12px); }
 .zen-bottom-sheet__actions[data-direction="vertical"] { flex-direction: column; }
 .zen-bottom-sheet__actions > .zen-button { min-width: 0; height: 56px; flex: 1; }

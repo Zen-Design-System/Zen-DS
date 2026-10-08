@@ -299,7 +299,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
       onKeyDown={handleKeyDown}
       aria-haspopup={canOpenPopover ? "listbox" : buttonProps["aria-haspopup"]}
       aria-expanded={canOpenPopover ? isPopoverOpen : buttonProps["aria-expanded"]}
-      aria-pressed={!canOpenPopover && variant !== "advanced" ? select : undefined}
+      aria-pressed={!canOpenPopover && variant !== "advanced" && buttonProps.role !== "radio" ? select : undefined}
       aria-keyshortcuts={select && onClearSelection ? "Delete Backspace" : undefined}
       aria-label={countLabel ?? buttonProps["aria-label"]}
       className={["zen-chip", className].filter(Boolean).join(" ")}

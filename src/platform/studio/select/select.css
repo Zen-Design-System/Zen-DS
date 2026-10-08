@@ -29,6 +29,12 @@
 .studio-selection__padding[data-hover="true"] { background: var(--zen-color-background-info-subtle-pressed); box-shadow: inset 0 0 0 1px var(--zen-color-border-info-subtle-default); }
 .studio-selection__gap[data-hover="true"] { background-color: var(--zen-color-background-info-subtle-default); opacity: .9; }
 .studio-selection__free[data-hover="true"] { background: var(--zen-color-background-warning-subtle-pressed); box-shadow: inset 0 0 0 1px var(--zen-color-border-warning-subtle-default); }
+/* A 0 side or gap (`none`, spacing.ts ZERO_BAND): only its hit band, tinted while hovered or open. */
+.studio-selection__padding[data-zero="true"]:not([data-hover="true"]),
+.studio-selection__gap[data-zero="true"]:not([data-hover="true"]) { visibility: hidden; }
+/* A canvas area the inspector's hovered or focused spacing field sets (inspector hover bus): emphasised like a hover. */
+.studio-selection__padding[data-emphasis="true"] { background: var(--zen-color-background-info-subtle-pressed); box-shadow: inset 0 0 0 1px var(--zen-color-border-info-solid-default); visibility: visible; }
+.studio-selection__gap[data-emphasis="true"] { background-color: var(--zen-color-background-info-subtle-default); opacity: .9; visibility: visible; }
 .studio-selection__spacing-hit { position: absolute; z-index: 1; top: 0; left: 0; box-sizing: border-box; cursor: default; pointer-events: auto; touch-action: none; }
 .studio-selection__spacing-hit[data-editable="true"] { cursor: pointer; }
 .studio-selection__spacing-anchor { position: absolute; top: 0; left: 0; pointer-events: none; }

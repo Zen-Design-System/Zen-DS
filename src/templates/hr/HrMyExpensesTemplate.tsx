@@ -405,7 +405,7 @@ export function HrMyExpensesTemplate() {
                 columns={[
                   { id: "expense", header: "Expense", cell: (row) => {
                     const category = expenseCategories[row.category];
-                    return <TableMedia media={<DockIcon icon={category.icon} theme={category.theme} background="subtle" size="sm" />} caption={`${row.merchant} · ${category.name}`}>{row.title}</TableMedia>;
+                    return <TableMedia bold media={<DockIcon icon={category.icon} theme={category.theme} background="subtle" size="sm" />} caption={`${row.merchant} · ${category.name}`}>{row.title}</TableMedia>;
                   } },
                   { id: "spent", header: "Date", width: "144px", sortable: true, cell: (row) => <TableText>{formatDate(row.spent)}</TableText> },
                   { id: "amount", header: "Amount", width: "136px", align: "right", sortable: true, cell: (row) => <TableText>{formatMoney(row.amount)}</TableText> },

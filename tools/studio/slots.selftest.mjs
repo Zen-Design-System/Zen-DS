@@ -62,7 +62,7 @@ const FLAG = { removeElement: "removed", clearSlot: "cleared", resetSlot: "reset
 const samples = [];
 
 /** One op on the nth `needle` element, with the checks every successful op must pass; returns the result (or the error). */
-const run = (label, code, needle, name, op, { nth = 0, sample = false, expect, expectUsage, ...extra } = {}) => {
+const run = (label, code, needle, name, op, { nth = 0, sample = false, expect, expectUsage, insertedName, ...extra } = {}) => {
   const opts = options(extra);
   if (HASHED.has(op.op) && !("hash" in extra)) opts.hash = sha1(code);
   const result = applySlotOp(code, locOf(code, needle, nth), name, op, opts);
@@ -75,7 +75,7 @@ const run = (label, code, needle, name, op, { nth = 0, sample = false, expect, e
   const kind = FLAG[op.op] ?? (op.op === "moveElement" ? "moved" : "inserted");
   if (FLAG[op.op]) check(`${label}: ${kind}`, result[kind], true);
   else {
-    const expected = op.op === "insertChild" ? /^\s*<([\w.]+)/.exec(op.code)?.[1] : name;
+    const expected = insertedName ?? (op.op === "insertChild" ? /^\s*<([\w.]+)/.exec(op.code)?.[1] : name);
     check(`${label}: ${kind}.loc is the element`, describeElement(result.code, opts.file, result[kind]?.loc ?? "")?.name, expected);
   }
   if (history) {
@@ -1012,6 +1012,15 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     refused(copyEdited.code, "<Card theme=\"border\"", "Card", src, undefined, 1),
   ], [["invalid", "This element is new since the last save: remove it instead."], ["invalid", "This element is new since the last save: remove it instead."]]);
   check("reset: the original of a duplicate still resets", back("reset the original", run("reset: original edited", copy.code, "<Card theme=\"border\"", "Card", ins(BADGE)).code, "<Card theme=\"border\"", "Card", src).code, copy.code);
+  // Duplicate, then Clear the original (BACKLOG 2026-10-03): the cleared original is still the saved element, its copy
+  // the new one, so Reset gives the original its content back and keeps the copy.
+  const clearedOriginal = run("reset: original cleared", copy.code, "<Card theme=\"border\"", "Card", clear());
+  check("reset: a cleared original of a duplicate resets", back("reset the cleared original", clearedOriginal.code, "<Card theme=\"border\"", "Card", src).code, copy.code);
+  check("reset: its untouched copy is the new one", refused(clearedOriginal.code, "<Card theme=\"border\"", "Card", src, undefined, 1), ["invalid", "This element is new since the last save: remove it instead."]);
+  // Two saved twins, one cleared (nothing duplicated): each keeps its own identity, the cleared one resets.
+  const twins = run("reset: twins", src, "<Card theme=\"border\"", "Card", DUPLICATE).code;
+  const twinCleared = run("reset: a twin cleared", twins, "<Card theme=\"border\"", "Card", clear());
+  check("reset: a cleared twin of the saved file resets", back("reset a twin", twinCleared.code, "<Card theme=\"border\"", "Card", twins).code, twins);
 
   // Imports: a Zen component the draft lost comes back (templates: into the package import); anything else is refused.
   const template = ["import {", "  Badge,", "  Card,", "  Stack,", "} from \"@zen/design-system\";", "", "export function Settings() {", "  return (", "    <Stack gap=\"md\">", "      <Card theme=\"border\">", "        <Badge>New</Badge>", "      </Card>", "    </Stack>", "  );", "}", ""].join("\n");
@@ -1274,8 +1283,24 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   // Outside a component (a lowercase helper), there is nowhere to put the hook.
   const helper = page("const row = () => (", "  <Card theme=\"border\">", "    <Text>Basic</Text>", "  </Card>", ");", "export function Plans() {", "  return row();", "}");
   check("state: no component, refused", errorOf(applySlotOp(helper, locOf(helper, "<Card"), "Card", ins("<Text>{tab}</Text>", { state: [{ name: "tab", initial: '"a"' }] }), options()))[1], "The item keeps state, but no component encloses this slot to hold its `useState` lines; insert it inside a component (a capitalised function).");
+  // A .map row (2026-10-08): its own row component holds the state, so every row's Dialog opens on its own.
+  const rows = page("export function Plans() {", "  return (", "    <Stack>", "      {[1, 2].map((n) => (", "        <Card key={n} theme=\"border\">", "          <Text>Basic</Text>", "        </Card>", "      ))}", "    </Stack>", "  );", "}");
+  const perRow = run("state: insert a dialog into a .map row", rows, "<Card", "Card", ins(DIALOG, { requires: ["toast"], state: SHARE }), { insertedName: "StackRow", sample: true });
+  check("state in a .map row: the row gets <StackRow />, the component no hook", [perRow.code.includes("          <StackRow />"), /export function Plans\(\) \{\n {2}return/.test(perRow.code)], [true, true]);
+  check("state in a .map row: the row component holds toast and state", perRow.code.slice(perRow.code.indexOf("function StackRow")).split("\n").slice(0, 5), [
+    "function StackRow() {",
+    "  const { toast } = useToast();",
+    "  const [shareOpen, setShareOpen] = useState(false);",
+    "  return (",
+    '    <Stack direction="row">',
+  ]);
+  check("state in a .map row: useState, Button, Dialog and useToast imported", [importLines(perRow)[0], ...["Button", "Dialog", "useToast"].map((name) => importLines(perRow).some((line) => line.includes(name)))], ['import { useState } from "react";', true, true, true]);
+  // A ref entry (2026-10-08, Popover's anchor): `useRef<type>(null)`, no setter, useRef imported beside useState.
+  const anchored = run("state: a ref", quiet, "<Card", "Card", ins('<Stack><Box ref={findAnchor}><Text>{findOpen ? "Open" : "Closed"}</Text></Box></Stack>', { state: [{ name: "findOpen", initial: "false" }, { name: "findAnchor", initial: "null", type: "HTMLDivElement", ref: true }] }));
+  check("state: a ref is useRef<type>(null), both hooks imported", [anchored.code.includes("  const findAnchor = useRef<HTMLDivElement>(null);"), anchored.code.includes("setFindAnchor"), importLines(anchored)[0]], [true, false, 'import { useRef, useState } from "react";']);
+  check("state: a ref needs an element type", errorOf(applySlotOp(quiet, locOf(quiet, "<Card"), "Card", ins("<Box ref={a} />", { state: [{ name: "a", initial: "null", type: "string", ref: true }] }), options()))[1], 'The ref "a" needs `type`: an element interface (HTMLButtonElement…), and starts null');
   // platformMedia: example pages import it; templates refuse.
-  const IMAGE = "<Image src={platformMedia.site[5].src} alt={platformMedia.site[5].alt} ratio=\"4:3\" />";
+  const IMAGE ="<Image src={platformMedia.site[5].src} alt={platformMedia.site[5].alt} ratio=\"4:3\" />";
   const pictured = run("media: insert an image", quiet, "<Card", "Card", ins(IMAGE, { requires: ["media"] }));
   check("media: platformMedia imported from PlatformMedia", importLines(pictured).filter((line) => /PlatformMedia|Image/.test(line)), [
     'import { Image } from "../../../components/Image";',
@@ -1537,12 +1562,13 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   ], { snippets: false, file: PAGE }).code;
   const slots = describeSlots(draft, PAGE, locOf(draft, "<Avatar"), { base: saved });
   const line = Number(at.split(":")[0]);
+  // `next`: what the saved file writes after it, so a playground's setProp puts it back in place (2026-10-08).
   check("savedAttributes: string, expression, added (null) and removed bare attribute; unchanged ones left out", slots.savedAttributes, {
-    size: { name: "size", kind: "string", value: "md", raw: "size=\"md\"", line },
+    size: { name: "size", kind: "string", value: "md", raw: "size=\"md\"", line, next: "status" },
     // Described against the saved file like GET /element: what the binding reads (a restored binding is read the same way).
-    status: { name: "status", kind: "expression", value: "one.online", raw: "status={one.online}", line, origin: { kind: "bound-value", reads: ["one"] } },
+    status: { name: "status", kind: "expression", value: "one.online", raw: "status={one.online}", line, origin: { kind: "bound-value", reads: ["one"] }, next: "focus" },
     dot: null,
-    focus: { name: "focus", kind: "true", raw: "focus", line },
+    focus: { name: "focus", kind: "true", raw: "focus", line, next: "name" },
   });
   check("savedAttributes: modifiedProps stays coded props only", slots.modifiedProps, ["status"]);
   const merged = withSlots(describeElement(draft, PAGE, locOf(draft, "<Avatar")), slots);
@@ -1584,6 +1610,11 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
       }
     }
     check("mapLine: the same answers as diff.ts (300 random edits)", same, cases);
+    // changedBlockOf (the Studio's selection remap, select/remap.ts mapInChangedBlock): the changed lines around a line
+    // in both texts. A slot Clear (host line changed, an import above removed) and a removed element (empty after).
+    const cleared = [["import A;", "import B;", "", "    <Card theme=\"flat\">", "      <Text>Hi</Text>", "    </Card>", "    <Card theme=\"flat\">", "    </Card>", "end"], ["import A;", "", "    <Card theme=\"flat\" />", "    <Card theme=\"flat\">", "    </Card>", "end"]].map((lines) => lines.join("\n"));
+    const removed = [["x", "    <Card theme=\"flat\">", "      <Text>Hi</Text>", "    </Card>", "    <Card theme=\"pale\">", "    </Card>"], ["x", "    <Card theme=\"pale\">", "    </Card>"]].map((lines) => lines.join("\n"));
+    check("changedBlockOf: a cleared host, a removed element, an unchanged line", [diff.changedBlockOf(...cleared, 4), diff.changedBlockOf(...removed, 2), diff.changedBlockOf(...cleared, 1)], [{ before: [4, 6], after: [3, 3] }, { before: [2, 4], after: [2, 1] }, null]);
   }
   check("mapLine: small cases", [mapLine("a\nb\nc", "a\nx\nb\nc", 2), mapLine("a\nb\nc", "a\nc", 2), mapLine("a\nb", "a\nb", 5), mapLine("a\r\nb", "z\nb", 2), mapLine("a\nb", "a\nc", 0)], [3, null, 5, 2, null]);
 }
@@ -1717,7 +1748,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     })();
     ok("tsc: typescript found", tscBin && fs.existsSync(tscBin));
     if (tscBin && fs.existsSync(tscBin)) {
-      fs.writeFileSync(path.join(draftDir, config), JSON.stringify({ extends: "../../../../tsconfig.json", include: ["../../../vite-env.d.ts", ...names] }));
+      fs.writeFileSync(path.join(draftDir, config), JSON.stringify({ extends: "../../../../tsconfig.json", include: ["../../../vite-env.d.ts", ...names], exclude: [] }));
       written.push(config);
       const run = spawnSync(process.execPath, [tscBin, "-p", path.join(draftDir, config), "--pretty", "false"], { encoding: "utf8" });
       ok("tsc: ran", !run.error && run.status !== null);

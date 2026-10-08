@@ -9,6 +9,7 @@ import { Breadcrumbs } from "../components/Breadcrumbs";
 import { Button, IconButton } from "../components/Button";
 import { Checkbox } from "../components/Checkbox";
 import { Chip } from "../components/Chip";
+import { ChipGroup } from "../components/ChipGroup";
 import { Icon } from "../components/Icon";
 import { InputField } from "../components/Input";
 import { Popover, PopoverItem, PopoverManualAddNew } from "../components/Popover";
@@ -35,7 +36,7 @@ import { Stepper } from "../components/Stepper";
 import { Slider } from "../components/Slider";
 import { Card } from "../components/Card";
 import { DockIcon } from "../components/DockIcon";
-import { List, ListItem } from "../components/ListItem";
+import { List, ListItem, ToggleListItem } from "../components/ListItem";
 import { Table, TableText } from "../components/Table";
 import { Rating, RatingDisplay } from "../components/Rating";
 import { ColorSelector } from "../components/ColorSelector";
@@ -117,6 +118,9 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
       dont: { preview: <div className="pgv-wide pgv-stack"><Button level="tertiary" size="xs">Simulate an upload</Button></div>, caption: "A Small button stretched edge to edge reads as a bar, not an action." } },
   ],
   chip: [
+    // Backlog batch B (2026-10-07): Figma has no master for these compositions; they reuse Chip/Normal Primary and List-Item + Toggle-Button.
+    { do: { preview: <Row><ChipGroup aria-label="Repeat" defaultValue="weekly" options={[{ value: "daily", label: "Daily" }, { value: "weekly", label: "Weekly" }, { value: "monthly", label: "Monthly" }]} /></Row>, caption: "One choice from a few: ChipGroup is a radio group — one Tab stop, the arrows move the choice, and only one chip is ever on." },
+      dont: { preview: <Row><Chip level="primary" selected onClick={noop}>Daily</Chip><Chip level="primary" selected onClick={noop}>Weekly</Chip><Chip level="primary" onClick={noop}>Monthly</Chip></Row>, caption: "Separate toggle chips for a single choice let two be on at once and read as toggles to assistive tech." } },
     { do: { preview: <Row><Chip variant="advanced" size="medium" dropdown>Status</Chip><Chip variant="advanced" size="medium" select selectionMode="multiple" selectionCount={2} onClearSelection={noop}>Owner</Chip></Row>, caption: "Filters are Advanced chips — one per dimension, with a counter for multiple." },
       dont: { preview: <Row><Button level="secondary" size="sm" endIcon={<Icon name="icon-chevron-down-line" decorative />}>Filter by status</Button></Row>, caption: "Never open a filter from a Button." } },
     { do: { preview: <Row><Chip variant="advanced" size="medium" dropdown>Status</Chip><Search placeholder="Filter tasks" /></Row>, caption: "Pair Search with Chip filters in a toolbar." },
@@ -263,6 +267,8 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
       dont: { preview: <Row><DockIcon icon="icon-folder-line" theme="yellow" size="large" /><DockIcon icon="icon-file-doc-line" theme="blue" background="subtle" size="small" /><DockIcon icon="icon-colors-line" theme="accent" size="medium" /></Row>, caption: "Mixed sizes and fills read as noise." } },
   ],
   "list-item": [
+    { do: { preview: <div className="pgv-field"><List aria-label="Email"><ToggleListItem title="Daily digest" caption="One email at 8:00 am" defaultChecked /></List></div>, caption: "A switch row is one target: ToggleListItem flips the switch from anywhere on the row, and the title names it." },
+      dont: { preview: <div className="pgv-field"><List aria-label="Email"><ListItem title="Daily digest" caption="One email at 8:00 am" trailing={<ToggleButton aria-label="Daily digest" defaultChecked />} /></List></div>, caption: "A static row with a bare switch: only the small track flips it, and the title is not its label." } },
     { do: { preview: <div className="pgv-field"><List aria-label="Team"><ListItem title="Ava Chen" caption="Product Designer" leading={<Avatar size="medium" theme="blue" alt="">AC</Avatar>} onClick={noop} trailing={<IconButton appearance="flat" level="primary" size="md" aria-label="Message Ava Chen" icon={<Icon name="icon-message-chat-circle-line" />} />} /></List></div>, caption: "The row opens the profile; the trailing Icon-Flat Medium button is its own action (Figma Slot-Actions)." },
       dont: { preview: <div className="pgv-field"><List aria-label="Team"><ListItem title="Ava Chen" caption="Product Designer" leading={<Avatar size="medium" theme="blue" alt="">AC</Avatar>} trailing={<IconButton appearance="flat" level="primary" size="md" aria-label="Open Ava Chen" icon={<Icon name="icon-chevron-right-line-small" />} />} /></List></div>, caption: "Only the small chevron opens the item — make the whole row the target and keep the chevron passive." } },
     { do: { preview: <div className="pgv-field"><List aria-label="Settings"><ListItem title="Notifications" caption="Mentions, replies and reminders" leading={<DockIcon icon="icon-bell-01-line" theme="blue" background="subtle" size="small" />} onClick={noop} trailing={<Icon name="icon-chevron-right-line-small" decorative />} /></List></div>, caption: "Drill-down row: the whole row is the target, the chevron is passive." },

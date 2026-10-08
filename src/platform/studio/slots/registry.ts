@@ -254,6 +254,28 @@ const topNavigationControl: ContentSlot = {
   accepts: { only: ["Search", "Segmented", "Tabs"] },
 };
 
+const metricAction: ContentSlot = {
+  // MetricWidget.tsx Title-Highlight at XLarge–Medium: <div className="zen-metric__header"><span
+  // className="zen-metric__title-row">…label…</span>{action}</div>, always while titled (activeWhen); metric-widget.css: a
+  // flex row, space-between, gap Small. Figma: the title row's Button/Icon-Main XSmall Tertiary (not a SLOT property).
+  // An atom so Swap instance (⇄) reaches it (2026-10-08).
+  component: "Metric", prop: "action", name: "Action", figma: { native: false },
+  kind: "atom", container: ":scope > .zen-metric__contents > .zen-metric__header", mountsWhenEmpty: true, parts: ":scope > .zen-metric__title-row",
+  flow: "row", gap: "own", max: 1,
+  accepts: { only: ["IconButton", "Button"] },
+  activeWhen: [{ prop: "variant", is: ["title-highlight"], default: "icon-highlight" }, { prop: "size", is: ["xl", "xlarge", "lg", "large", "md", "medium"], default: "xl" }],
+};
+
+const emptyStateIcon: ContentSlot = {
+  // EmptyState.tsx: the placeholder illustration (illustration true) draws {renderIcon(icon)} in
+  // <span className="zen-empty-state__icon">, always (its default icon when unset); empty-state.css: inline-flex, an
+  // Icon inside sized 44px. Figma Empty-State/Illustration/Placeholder (6085:25816) icon. An atom for ⇄ (2026-10-08).
+  component: "EmptyState", prop: "icon", name: "Icon", figma: { node: "6085:25816", native: false },
+  kind: "atom", container: ":scope > .zen-empty-state__illustration > .zen-empty-state__icon", mountsWhenEmpty: true, flow: "row", gap: "none", max: 1,
+  accepts: { only: ["Icon"] },
+  activeWhen: [{ prop: "illustration", is: [true], default: true }],
+};
+
 const layout = (component: string, flow: SlotFlow, gap: SlotGap): ContentSlot => ({
   component, prop: "children", name: "Children", kind: "layout", container: null, mountsWhenEmpty: true, flow, gap,
 });
@@ -273,6 +295,8 @@ export const CONTENT_SLOTS: Readonly<Record<string, SlotComponent>> = {
   ListBox: { root: ".zen-list-box", titleLevel: null, slots: [listBoxHeader, listBoxBody, listBoxFooter] },
   // Its title level is a string prop ("h1"); nothing inserted into the Control-Slot takes a heading level from it.
   TopNavigation: { root: ".zen-top-nav", titleLevel: null, slots: [topNavigationControl] },
+  Metric: { root: ".zen-metric", titleLevel: null, slots: [metricAction] },
+  EmptyState: { root: ".zen-empty-state", titleLevel: null, slots: [emptyStateIcon] },
   // Stack and Grid space their children with their gap prop (default md); Box is a plain block (Layout.tsx, layout.css).
   Stack: { root: ".zen-stack", titleLevel: null, slots: [layout("Stack", "column", "own")] },
   Grid: { root: ".zen-grid", titleLevel: null, slots: [layout("Grid", "row", "own")] },

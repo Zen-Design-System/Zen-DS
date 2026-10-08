@@ -63,5 +63,23 @@ await test("trash moves the file, never deletes it", async () => {
   assert.equal((await folder.trash("alpha")).trashed, false);
 });
 
+// Uploaded photos in assets/ (2026-10-08): bytes kept as they are, ids checked, the size limit, never listed as pages,
+// trash moves them; a missing one reads as null.
+await test("photos: write then read gives the same bytes; trash moves them", async () => {
+  const bytes = new Uint8Array([137, 80, 78, 71, 1, 2, 3]);
+  await folder.writeAsset("team-1a2b3c4d.png", bytes);
+  assert.deepEqual(new Uint8Array(await folder.readAsset("team-1a2b3c4d.png")), bytes);
+  assert.equal(await folder.readAsset("other-00000000.png"), null);
+  assert.ok((await folder.list()).every((page) => page.id !== "assets"));
+  assert.equal((await folder.trashAsset("team-1a2b3c4d.png")).trashed, true);
+  assert.equal(await folder.readAsset("team-1a2b3c4d.png"), null);
+  assert.equal(fs.readdirSync(path.join(root, ".zen-studio/trash/assets")).length, 1);
+});
+await test("photos: bad ids, a non-image extension and an oversized one are refused", async () => {
+  await rejects(folder.writeAsset("../x.png", new Uint8Array([1])), "invalid");
+  await rejects(folder.writeAsset("page.zen.tsx", new Uint8Array([1])), "invalid");
+  await rejects(folder.writeAsset("big-00000000.png", new Uint8Array(5 * 1024 * 1024 + 1)), "invalid");
+});
+
 fs.rmSync(root, { recursive: true, force: true });
 console.log(`pages-folder selftest: ${passed} passed${process.exitCode ? ", some failed" : ""}`);

@@ -165,8 +165,9 @@ Start a new screen by copying the closest one, then replace its sample data. The
 ## 8. Check your work
 
 - `tsc --noEmit` with `strict`; fix every error rather than casting to `any`.
-- `npx zen-usage` (the usage harness; `--json` for tools) checks every Zen component your files import against the
-  rules above; fix every ✗, and read each ⚠. The MCP `check_usage` tool does the same for one file's source.
+- `npx zen-usage --css` (the usage harness; `--json` for tools; `npx zen-ds check` is the same) checks every Zen
+  component your files import, and your stylesheets (tokens only, focus rings, reduced motion), against the rules
+  above; fix every ✗, and read each ⚠. Without `--css` the stylesheets are skipped. The MCP `check_usage` tool does the same for one file's source.
   In the editor: `import zen from "@zen/design-system/eslint"` → `export default [...config, zen.configs.recommended]`.
   A deliberate exception gets a comment `zen-allow-<allow>: <reason>` right above the element.
 - `npx zen-ds doctor` checks the setup once.

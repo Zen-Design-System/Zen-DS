@@ -207,9 +207,9 @@ export function SignInTemplate() {
     <Container maxWidth="sm">
       {/* Fills the screen and centres the card: 100cqh is the viewport height in an app (the frame's height in a size container). */}
       <Stack gap="lg" justify={phone ? "start" : "center"} paddingY={phone ? "2xl" : "xl"} style={{ minHeight: "100cqh", boxSizing: "border-box" }}>
-        {/* The card follows the product's elevation: a Surface with the shadow the app's Sidebar and cards use, no
-            border (on a phone the form stands on the page). */}
-        {phone ? card : <Card><Box padding="xl">{card}</Box></Card>}
+        {/* No Sidebar sets an elevation here, so the card takes the default pairing: a flat Surface on the Canvas, no
+            border and no shadow (usage rules §16; on a phone the form stands on the page). */}
+        {phone ? card : <Card theme="flat"><Box padding="xl">{card}</Box></Card>}
 
         {view === "sign-in" ? (
           <Text textStyle="Caption/Regular" tone="light" align="center">

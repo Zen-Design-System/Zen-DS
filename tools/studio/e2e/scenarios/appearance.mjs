@@ -52,6 +52,33 @@ export const rows = [
     },
   },
   {
+    id: "AP-05", feature: "Effect settings lists the style's layers read-only (from the style manifest)", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await selectBox(ctx);
+      const panel = page.locator("#studio-right");
+      await panel.getByRole("button", { name: "Add effect" }).click();
+      await expectSource(ctx, "box", (el) => el.attr("effectStyle") === "Shadow/Bottom/Level-1", "Shadow/Bottom/Level-1 added");
+      await panel.getByRole("button", { name: "Effect settings" }).click();
+      const layers = panel.getByRole("group", { name: "Shadow/Bottom/Level-1 settings" });
+      await until(async () => (await layers.innerText().catch(() => "")).includes("Drop shadow · X 0 · Y 4 · Blur 8 · Spread −4"), { message: "the Level-1 layers" });
+      return (await layers.innerText()).split("\n")[0];
+    },
+  },
+  {
+    id: "AP-06", feature: "A Card shows the effect its theme draws, read-only, with Edit theme", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "card", { frame: 2, position: { dx: 8, dy: 8 } });
+      const panel = page.locator("#studio-right");
+      const row = inspectorRow(page, "effectStyle");
+      await until(async () => (await row.innerText().catch(() => "")).includes("Shadow/Bottom/Level-1"), { message: "the Card's theme effect" });
+      if (!(await row.innerText()).includes("From Card theme · Shadow")) throw new Error(`no theme caption (${(await row.innerText()).replace(/\s+/g, " ")})`);
+      if (await panel.getByRole("button", { name: "Remove effect" }).count()) throw new Error("the theme effect can be removed");
+      await row.getByRole("button", { name: "Edit theme" }).click();
+      await until(async () => page.evaluate(() => Boolean(document.activeElement?.closest('.studio-inspector__row[data-prop="theme"]'))), { message: "focus on the Theme property" });
+      return "Shadow/Bottom/Level-1 from theme; Edit theme focuses Theme";
+    },
+  },
+  {
     id: "AP-04", feature: "Constraints on the canvas: a floating layer shows its pinned edges", wp: "WP-D",
     async run(ctx) {
       // The Box's padding (2xs) is clear of its Text, so a click there selects the floating Box itself.

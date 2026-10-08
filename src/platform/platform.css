@@ -350,7 +350,7 @@
 .platform-playground-controls .zen-chip__dropdown { flex: 0 0 auto; }
 .platform-playground-controls > .zen-toggle { width: auto; min-width: 0; }
 .platform-example-panel--stack > .platform-example-row,
-.platform-example-panel--stack > .platform-input-preview { grid-area: preview; min-width: 0; min-height: 152px; box-sizing: border-box; justify-content: center; margin: 0 var(--zen-spacing-padding-xlarge, 24px); padding: var(--zen-spacing-padding-4-xlarge, 48px) var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); }
+.platform-example-panel--stack > .platform-input-preview { grid-area: preview; min-width: 0; min-height: 152px; box-sizing: border-box; justify-content: center; margin: 0 var(--zen-spacing-padding-xlarge, 24px); padding: var(--zen-spacing-padding-4-xlarge, 48px) var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-canvas-default, #f7f7f7); }
 .platform-example-panel--stack > .platform-code { grid-area: code; min-width: 0; margin: var(--zen-spacing-gap-xlarge, 32px) var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px); }
 .platform-code { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .platform-code > summary { width: max-content; cursor: pointer; color: var(--official-muted); font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; }
@@ -369,7 +369,7 @@
 .platform-example-panel pre { overflow: auto; margin: 0; padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--platform-code-background); color: var(--platform-code-foreground); color-scheme: dark; font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); }
 .platform-token-links { margin: var(--zen-spacing-gap-large, 24px) 0 0; padding: var(--platform-surface-padding); border: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
 .platform-token-links > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px); margin-top: var(--zen-spacing-gap-small, 12px); }
-.platform-token-links button { display: flex; align-items: center; justify-content: space-between; padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px); border-radius: var(--platform-inset-radius); background: var(--platform-inset-background); font-size: var(--zen-typography-font-size-body-base, 14px); line-height: var(--zen-typography-line-height-body-base, 20px); letter-spacing: var(--zen-typography-letter-spacing-body-base, -0.14px); text-align: left; }
+.platform-token-links button { display: flex; align-items: center; justify-content: space-between; padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px); border-radius: var(--platform-inset-radius); background: var(--platform-inset-background); font-size: var(--zen-typography-font-size-body-base, 14px); line-height: var(--zen-typography-line-height-body-base, 20px); letter-spacing: var(--zen-typography-letter-spacing-body-base, -0.14px); color: var(--zen-color-content-neutral-strongest, #111); text-align: left; }
 .platform-token-links button:hover { background: color-mix(in srgb, var(--official-accent) 18%, transparent); }
 /* Design Tokens › Motion (code-owned tokens): same surface as the collection links. */
 .foundation-motion { display: grid; gap: var(--zen-spacing-gap-small, 12px); margin: var(--zen-spacing-gap-large, 24px) 0 0; padding: var(--platform-surface-padding); border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
@@ -1048,7 +1048,10 @@
 /* Device hardware (not a theme surface): a black glass bezel and a thin titanium frame, identical in every
    token mode, like the real phone. zen-allow-raw-colour: physical device colours are not part of the colour system. */
 .platform-phone-fit { --platform-phone-bezel: #050505; --platform-phone-frame: #2c2c2e; --platform-phone-frame-edge: #8e8e93; }
-.platform-phone[data-canvas="canvas"] { background: var(--zen-color-background-canvas-default, #f7f7f7); }
+/* Phone screens default to Canvas/Default (§16, backlog batch 6b): data-canvas="default" and "canvas"; "surface" keeps a
+   white Surface/Default screen. */
+.platform-phone:is([data-canvas="default"], [data-canvas="canvas"]) { background: var(--zen-color-background-canvas-default, #f7f7f7); }
+.platform-phone[data-canvas="surface"] { background: var(--zen-color-background-surface-default, #fff); }
 .platform-phone[data-canvas="alt"] { background: var(--zen-color-background-surface-alt, #f7f7f7); }
 .platform-phone[data-canvas="flat"] { background: var(--zen-color-background-canvas-flat, #fff); }
 .platform-phone[data-canvas="media"] { background: var(--zen-color-background-inverse-solid-default, #111); }

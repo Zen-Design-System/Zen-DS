@@ -43,7 +43,7 @@ npm run platform:audit:full -- --pages=…   # thêm 1024 chỉ khi layout 1024 
 
 Với `--smoke`, `sizes`, `edges`, `typography` và `device` còn chạy lại sau mỗi cú bấm vào example, nên kiểm được cả dialog, side panel, sheet và popover chỉ xuất hiện khi mở.
 
-Lệnh trả exit code 1 khi còn lỗi. Chỉ chuyển sang bước sau khi không còn lỗi nào. Chỉ triage ⚠ **mới**; ⚠ có từ trước là nợ: ghi vào Backlog (Scope lock), không sửa trong task này.
+Lệnh trả exit code 1 khi còn lỗi. Chỉ chuyển sang bước sau khi không còn lỗi nào. Sửa ngay ⚠ **mới**, và cả ⚠ có từ trước nếu sửa được tại chỗ trong thay đổi này (user, 2026-10-08: gặp lỗi sửa ngay, không đẩy backlog); chỉ câu hỏi cho user/designer hoặc việc quá lớn mới ghi vào Backlog.
 
 ## 3. Kiểm tra bằng mắt (bắt buộc)
 

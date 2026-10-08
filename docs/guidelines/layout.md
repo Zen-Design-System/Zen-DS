@@ -164,7 +164,7 @@ type ZenScaleLong = "3xsmall" | "2xsmall" | "xsmall" | "small" | "medium" | "lar
 ```
 
 ## ✅ Do
-- Build page structure with Stack and Grid and pick the gap by the relationship, the same step everywhere (docs/component-usage-rules.md §13): 2xs inside one inline item, xs a thing and its label or a toolbar row, sm a group of Buttons or choices, md blocks inside one surface and stacked form fields, lg columns and groups inside a surface, xl page sections (Figma Master-Layout).
+- Build page structure with Stack and Grid and pick the gap by the relationship, the same step everywhere: 2xs inside one inline item, xs a thing and its label or a toolbar row, sm a group of Buttons or choices, md blocks inside one surface and stacked form fields, lg columns and groups inside a surface, xl page sections (Figma Master-Layout).
 - Step up one level at least between groups: the gap between groups is always larger than the gap inside them.
 - Use Stack direction="row" with justify="between" for a title + actions row.
 - Use Grid minColumnWidth for card grids so they reflow from phone to desktop.

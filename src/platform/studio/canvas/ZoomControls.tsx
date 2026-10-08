@@ -1,32 +1,12 @@
 import { Button } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Menu, type MenuEntry } from "../../../components/Menu";
-import { findFrame } from "../board/frames";
-import { findBySrc, rectOf } from "../select/picker";
 import { ChromeScope } from "../shell/ChromeScope";
-import { studioStore, useStudio } from "../store";
+import { useStudio } from "../store";
+import { modKey } from "../shell/modKey";
 import { canvasApi, formatZoom, useCanvasZoom, zoomIn, zoomOut } from "./viewport";
+import { zoomToSelection } from "./zoomToSelection";
 import "./canvas.css";
-
-const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
-export const modKey = isMac ? "⌘" : "Ctrl+";
-
-/** Zoom so the selected frame or layer fills the canvas (Shift+2). False when nothing is selected or it is not rendered. */
-export function zoomToSelection() {
-  const selection = studioStore.getState().selection;
-  const world = canvasApi.getWorldElement();
-  if (!selection || !world) return false;
-  let rect: DOMRect | null = null;
-  if (selection.kind === "frame") rect = findFrame(selection.frameId)?.element.getBoundingClientRect() ?? null;
-  else {
-    const hits = findBySrc(world, selection.src);
-    const hit = hits[selection.instance] ?? hits[0];
-    rect = hit ? rectOf(hit.hosts) : null;
-  }
-  if (!rect || (!rect.width && !rect.height)) return false;
-  canvasApi.zoomToRect(rect, { padding: 64 });
-  return true;
-}
 
 /** The zoom percentage and its menu (toolbar and the canvas pill). */
 export function ZoomMenu({ align = "end", size = "sm" }: { align?: "start" | "end"; size?: "xs" | "sm" }) {

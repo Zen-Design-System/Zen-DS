@@ -19,7 +19,7 @@ Trước khi thêm example mới, kiểm tra trùng lặp: hai example cùng d�
 
 ## 2. Pattern mobile
 
-- **Khung máy**: dùng `PlatformPhone` với `header={<TopNavigation type="compact" …/>}` và `footer`.
+- **Khung máy**: dùng `PlatformPhone` với `header={<TopNavigation type="compact-alt" …/>}` và `footer`. Thanh trên cùng màu với canvas của màn hình (user, 2026-10-08): màn hình Canvas/Default (mặc định của PlatformPhone) hay `canvas="alt"` dùng `alt` / `compact-alt` / `alt-blurring`; chỉ màn hình trắng (`canvas="surface"`) mới dùng `default` / `compact` / `default-blurring`.
   - Khung là màn hình thật 390×844 (iPhone 15) và thu nhỏ nguyên khối khi stage hẹp. `device` chọn máy khác; `maxHeight` giới hạn chiều cao; `height` đã deprecated.
   - Khung luôn ở mode của app điện thoại (`<ZenProvider typography="mobile" density="comfortable">`): Typography **Mobile** và Component size **Comfortable**, bất kể chip Typography / Component size của docs hay Modes của canvas Studio (từ 2026-10-06). Chỉ **Present** của Zen Studio đổi được hai mode này (panel Modes, riêng cho lần Present đó, canvas giữ nguyên). Không truyền `typography` / `density` để bù cho bố cục; bố cục phải vừa ở Comfortable.
   - Status bar, Dynamic Island và home indicator do "OS" vẽ phía trên app. Component phải pad theo `--zen-safe-area-top/-bottom`, không tự chừa khoảng trống.
@@ -142,6 +142,7 @@ Quy tắc layout:
 
 ## 8. Code sample
 
+- File `src/platform/examples/pages/<page>.tsx` export `examples` qua `keepOnHotUpdate(import.meta.hot, "examples", [ … ])` (`src/platform/hotData.ts`). Nhờ vậy một lần sửa (kể cả của Zen Studio) chỉ hot update trang đó, và các example giữ state đang có (thread đang mở, tab đang chọn). Nếu export mảng trần, mỗi lần sửa sẽ chạy lại mọi example từ đầu.
 - Code sample phản ánh đúng phần render: cùng props và cùng component, không có thuộc tính lặp lại (từng có `scale="quota" scale="quota"`).
 - Ghi chú wrapper layout bằng comment trong JSX, ví dụ `{/* display: grid; gap: 12px */}`, thay vì bỏ qua wrapper.
 

@@ -7,6 +7,7 @@ import { expectRender, renderedNow } from "../select/remap";
 import { canStructurallyEdit, insideWrap, structuralBlock, studioWrapOf } from "../slots/actions";
 import { canEdit, flushStudioStore, studioStore } from "../store";
 import type { EditOp, StudioNodeRef } from "../types";
+import { stepLayers } from "./multi";
 import { textEditSession } from "./textEdit";
 
 /*
@@ -114,7 +115,8 @@ export async function moveLayer(layer: NodeSelection, target: DropTarget, copy: 
 
 /**
  * Arrow keys on the canvas (Figma's reorder in auto layout): ← / ↑ one place earlier, → / ↓ one place later. Only while
- * the canvas itself has focus, in the Select tool, with one layer selected (not a part) and no text being edited.
+ * the canvas itself has focus, in the Select tool, with a layer selected (not a part; several: all of one parent) and no
+ * text being edited.
  */
 export function useArrangeKeys() {
   useEffect(() => {
@@ -128,12 +130,14 @@ export function useArrangeKeys() {
       if (!onCanvas || isTypingTarget(target) || textEditSession.get()) return;
       const state = studioStore.getState();
       const selection = state.selection;
-      if (state.tool !== "select" || state.presenting || !canEdit(state) || selection?.kind !== "node" || selection.part || multiSelection.get().length) return;
+      if (state.tool !== "select" || state.presenting || !canEdit(state) || selection?.kind !== "node" || selection.part) return;
       event.preventDefault();
       // A held key moves once per answer, never queues a burst.
       if (running) return;
       running = true;
-      void stepLayer(selection, to).finally(() => { running = false; });
+      // Several layers of one parent step together (op many move, edit/multi.ts).
+      const step = multiSelection.get().length ? stepLayers(to) : stepLayer(selection, to);
+      void step.finally(() => { running = false; });
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);

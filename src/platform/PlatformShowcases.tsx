@@ -8,6 +8,8 @@ import { PlatformCode } from "./PlatformCode";
 import type { PlatformPage } from "./PlatformExamples";
 import { PlatformTypographyContext } from "./PlatformTemplate";
 import { getPageExamples } from "./examples/registry";
+import { isWideExample } from "./examples/types";
+import { useHotDataVersion } from "./hotData";
 import { FullScreenBar, FullScreenButton, useFullScreen } from "./PlatformFullScreen";
 
 /* Real-world compositions shown under each component playground. Every example
@@ -98,6 +100,8 @@ export function PopoverBulkSelectionDemo({ history = true, destructive = true }:
 /* ───────────── Examples section ───────────── */
 
 export function ComponentExamples({ page }: { page: PlatformPage }) {
+  // An example edit updates the records in place (hotData.ts): render again to show its code and title.
+  useHotDataVersion();
   const list = getPageExamples(page);
   if (!list.length) return null;
   return (
@@ -107,7 +111,7 @@ export function ComponentExamples({ page }: { page: PlatformPage }) {
         <p className={typographyStyles["Body/Base/Regular"]}>Real-world compositions.</p>
       </header>
       <div className="pe-grid">
-        {list.map((example) => <ExampleCard key={example.title} title={example.title} description={example.description} code={example.code} wide={example.wide} screen={example.screen}>{example.render()}</ExampleCard>)}
+        {list.map((example) => <ExampleCard key={example.title} title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen}>{example.render()}</ExampleCard>)}
       </div>
     </section>
   );

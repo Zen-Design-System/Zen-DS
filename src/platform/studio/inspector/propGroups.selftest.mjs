@@ -102,7 +102,8 @@ for (const [name, entry] of Object.entries(FIGMA_PROPS)) {
   const input = groupsFromFigma(FIGMA_PROPS.InputField);
   check("InputField: Label and Help-Text groups hold the text and its options", input.nested.map((group) => [group.name, group.props.map((entry) => [entryProp(entry), entryLabel(entry)])]), [
     ["Label", [["labelOptional", "Optional"], ["labelTooltip", "Tooltip-Icon"], ["labelAction", "Action"], ["label", "Label"]]],
-    ["Help-Text", [["helpText", "Text"], ["helpTheme", "Theme"], ["helpIcon", "Icon"], ["characterLimit", "Character limit"]]],
+    // Help-Text's Figma set (.Primitives/Input/Help-Text, read 2026-10-08): its Icon and Theme in Figma's order, then the code rows.
+    ["Help-Text", [["helpIcon", "Icon"], ["helpTheme", "Theme"], ["helpText", "Text"], ["characterLimit", "Character-Limitation"]]],
   ]);
   check("InputField: the label text is not also a row of its own", placedProps(input).has("label") && !input.after.some((entry) => entryProp(entry) === "label"), true);
   check("InputField: a group shows while its text is set", input.nested.map((group) => [holds(group.when, {}), holds(group.when, { label: "Email", helpText: "Hint" })]), [[false, true], [false, true]]);

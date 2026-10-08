@@ -301,10 +301,20 @@ const isCustomHook = (callee) => {
   const name = callee?.type === "Identifier" ? callee.name : callee?.type === "MemberExpression" && !callee.computed && callee.property.type === "Identifier" ? callee.property.name : "";
   return /^use[A-Z]/.test(name) && !/^use(State|Reducer|Id|Ref|Callback|Context)$/.test(name);
 };
-/** `xs.map(fn)` / `xs.flatMap(fn)` (optional chaining too). */
+/** `xs.map(fn)` / `xs.flatMap(fn)` / `xs.forEach(fn)` (optional chaining too), or `Array.from(xs, fn)`. */
 const isLoopCall = (node) => (node?.type === "CallExpression" || node?.type === "OptionalCallExpression")
   && (node.callee?.type === "MemberExpression" || node.callee?.type === "OptionalMemberExpression") && !node.callee.computed
-  && node.callee.property.type === "Identifier" && /^(map|flatMap)$/.test(node.callee.property.name);
+  && node.callee.property.type === "Identifier"
+  && (/^(map|flatMap|forEach)$/.test(node.callee.property.name) || (node.callee.property.name === "from" && node.callee.object.type === "Identifier" && node.callee.object.name === "Array"));
+/** The callback a loop call runs per row: `Array.from`'s second argument, every other's first. */
+const loopCallback = (call) => (call.callee.property.name === "from" ? call.arguments[1] : call.arguments[0]);
+/** `for (… of …)` / `for (… in …)` / `for (let i = 0; …)`: statements whose body runs once per row. */
+const LOOP_STATEMENTS = new Set(["ForOfStatement", "ForInStatement", "ForStatement"]);
+/** The declaration a for statement binds (`left` of for-of/in, `init` of a C-style for), or null. */
+const loopDeclaration = (node) => {
+  const declaration = node.type === "ForStatement" ? node.init : node.left;
+  return declaration?.type === "VariableDeclaration" ? declaration : null;
+};
 
 /** The identifiers an expression reads at its roots (`one.online` → one, `rows[i].on` → rows, i); functions and JSX inside are not entered. */
 function rootsOf(node, out = new Set()) {
@@ -323,13 +333,18 @@ function rootsOf(node, out = new Set()) {
 
 /**
  * Where `name` is declared as seen from path[end] (`path`: an ancestry, root first): a parameter of the nearest
- * enclosing function that binds it ({ param: index of that function }) or a declaration in an enclosing block
- * ({ declarator, kind, at: index of that block }); null for module scope, imports and globals.
+ * enclosing function that binds it ({ param: index of that function }), a for-of/for-in/for loop's own binding
+ * ({ loop: index of that statement }), a `catch (error)` parameter ({ caught: index }) or a declaration in an enclosing
+ * block ({ declarator, kind, at: index of that block }); null for module scope, imports and globals.
  */
 function bindingOf(path, end, name) {
   for (let i = end; i >= 0; i -= 1) {
     const node = path[i];
     if (FUNCTION_TYPES.has(node.type) && node.params.some((param) => boundNames(param).includes(name))) return { param: i };
+    // A for-of/in binding is seen by its body only (`right` is evaluated outside it); a C-style for's by every part.
+    if (LOOP_STATEMENTS.has(node.type) && (node.type === "ForStatement" || path[i + 1] === node.body)
+      && loopDeclaration(node)?.declarations.some((declarator) => boundNames(declarator.id).includes(name))) return { loop: i };
+    if (node.type === "CatchClause" && boundNames(node.param).includes(name)) return { caught: i };
     if (node.type !== "BlockStatement") continue;
     for (const statement of node.body) {
       if (statement.type !== "VariableDeclaration") continue;
@@ -341,16 +356,18 @@ function bindingOf(path, end, name) {
 }
 
 /**
- * What `name` is at path[end]: { loop: index of the .map call } for a .map/.flatMap callback parameter, "state" for the
- * value of a useState/useReducer destructuring, "value" for anything else. A local const is followed to what its
- * initializer reads (at most `depth` 4 consts deep): loop beats state beats value.
+ * What `name` is at path[end]: { loop: index of the loop } for a loop call's callback parameter or a for-of/in/for
+ * statement's binding, "state" for the value of a useState/useReducer destructuring, "value" for anything else (a catch
+ * parameter too). A local const is followed to what its initializer reads (at most `depth` 4 consts deep): loop beats
+ * state beats value.
  */
 function bindingKind(path, end, name, depth = 0) {
   const binding = bindingOf(path, end, name);
-  if (!binding) return "value";
+  if (!binding || binding.caught !== undefined) return "value";
+  if (binding.loop !== undefined) return { loop: binding.loop };
   if (binding.param !== undefined) {
     const call = path[binding.param - 1];
-    return isLoopCall(call) && call.arguments[0] === path[binding.param] ? { loop: binding.param - 1 } : "value";
+    return isLoopCall(call) && loopCallback(call) === path[binding.param] ? { loop: binding.param - 1 } : "value";
   }
   const { declarator } = binding;
   const init = unwrapTs(declarator.init);
@@ -368,7 +385,8 @@ function bindingKind(path, end, name, depth = 0) {
  */
 function readsState(path, end, name, depth = 0) {
   const binding = bindingOf(path, end, name);
-  if (!binding || binding.param !== undefined) return false;
+  if (binding?.param !== undefined && depth < 4) return renderParamReadsState(path, binding.param, depth);
+  if (!binding || binding.declarator === undefined) return false;
   const { declarator } = binding;
   const init = unwrapTs(declarator.init);
   const value = declarator.id.type === "ArrayPattern" ? boundNames(declarator.id.elements[0]).includes(name) : declarator.id.type === "Identifier";
@@ -379,19 +397,62 @@ function readsState(path, end, name, depth = 0) {
   return [...rootsOf(init)].some((root) => readsState(path, binding.at, root, depth + 1));
 }
 
+/**
+ * A parameter of a render function written in a JSX attribute (`columns={[{ cell: (feature) => <Toggle
+ * checked={feature.on} /> }]}`, `renderItem={(row) => …}`): the component calls it with its own data, so the parameter
+ * reads state when another attribute of that element does (`rows={features}`, features a useState value). Then a fixed
+ * value would lock the control (backlog 2026-10-08): it counts as bound-state.
+ */
+function renderParamReadsState(path, at, depth) {
+  let k = at - 1;
+  while (k >= 0 && ["ObjectProperty", "ObjectExpression", "ArrayExpression", "JSXExpressionContainer", ...TS_WRAPPER_TYPES].includes(path[k].type)) k -= 1;
+  if (path[k]?.type !== "JSXAttribute" || path[k - 1]?.type !== "JSXOpeningElement" || path[k - 2]?.type !== "JSXElement") return false;
+  const own = path[k];
+  return path[k - 1].attributes.some((attr) => attr !== own && attr.type === "JSXAttribute" && attr.value?.type === "JSXExpressionContainer"
+    && [...rootsOf(unwrapTs(attr.value.expression))].some((root) => readsState(path, k - 2, root, depth + 1)));
+}
+const TS_WRAPPER_TYPES = ["TSAsExpression", "TSSatisfiesExpression", "TSNonNullExpression", "ParenthesizedExpression"];
+
 /** The kind that decides among several roots' kinds: the innermost loop, else state, else value. */
 const strongest = (kinds) => kinds.reduce((best, kind) => {
   if (typeof kind === "object") return typeof best === "object" && best.loop > kind.loop ? best : kind;
   return typeof best === "object" || best === "state" ? best : kind;
 }, "value");
 
-/** How many items a .map call's array has: an array literal, or a same-file top-level const one (`arrays`); else undefined. */
+/**
+ * How many rows the loop at path[at] runs: a loop call's or a for-of's array literal or same-file top-level const array
+ * (`arrays`), `Array.from({ length: N }, fn)`; else undefined (for-in, a C-style for, data from elsewhere).
+ */
 function loopRows(path, at, arrays) {
-  const object = unwrapTs(path[at].callee.object);
-  const length = (node) => (node?.type === "ArrayExpression" && !node.elements.some((item) => item?.type === "SpreadElement") ? node.elements.length : undefined);
+  const node = path[at];
+  const source = node.type === "ForOfStatement" ? node.right : LOOP_STATEMENTS.has(node.type) ? null
+    : node.callee.property.name === "from" ? node.arguments[0] : node.callee.object;
+  const object = unwrapTs(source);
+  const length = (value) => (value?.type === "ArrayExpression" && !value.elements.some((item) => item?.type === "SpreadElement") ? value.elements.length : undefined);
   if (object?.type === "ArrayExpression") return length(object);
+  if (object?.type === "ObjectExpression") {
+    const size = object.properties.find((prop) => propertyKey(prop) === "length");
+    return size?.value.type === "NumericLiteral" ? size.value.value : undefined;
+  }
   if (object?.type !== "Identifier" || bindingOf(path, at, object.name)) return undefined;
   return arrays().get(object.name);
+}
+
+/**
+ * How many times one source line renders the element at path's end: the product of every enclosing loop's rows (an
+ * inner loop's row repeats per outer row too); undefined when one loop's length is unknown (the canvas count then).
+ */
+function renderedRows(path, arrays) {
+  let total = 1;
+  for (let i = 0; i < path.length - 1; i += 1) {
+    const node = path[i];
+    const loops = LOOP_STATEMENTS.has(node.type) ? path[i + 1] === node.body : isLoopCall(node) && loopCallback(node) === path[i + 1];
+    if (!loops) continue;
+    const rows = loopRows(path, i, arrays);
+    if (rows === undefined) return undefined;
+    total *= rows;
+  }
+  return total;
 }
 
 /** Top-level `const NAME = [ … ]` of the file (exported or not): name → length (spreads: no length). */
@@ -428,7 +489,7 @@ function attrOrigin(attr, path, arrays) {
   if (reads.some((name) => readsState(nodes, nodes.length - 1, name))) return { kind: "bound-state", reads };
   const kind = strongest(reads.map((name) => bindingKind(nodes, nodes.length - 1, name)));
   if (typeof kind !== "object") return { kind: kind === "state" ? "bound-state" : "bound-value", reads };
-  const rows = loopRows(nodes, kind.loop, arrays);
+  const rows = renderedRows(nodes, arrays);
   return { kind: "loop-bound", reads, ...(rows === undefined ? {} : { rows }) };
 }
 
@@ -554,10 +615,17 @@ export function describeAttrsIn(ast, element, text, attrs = element.openingEleme
   const pathOf = () => (path ??= ancestry(ast, element));
   const arraysOf = () => (arrays ??= topLevelArrays(ast));
   return attrs.map((attr) => {
-    const described = describeAttr(attr, text);
+    let described = describeAttr(attr, text);
     if (described.kind !== "expression") return described;
     const state = IDENTIFIER.test(described.value ?? "") ? attrState(attr, pathOf()) : null;
     if (state) return { ...described, state };
+    // `options={countries}` with `const countries = [{ … }]` in this file: its fields edit there (op setField).
+    if (!described.shape && IDENTIFIER.test(described.value ?? "")) {
+      const held = constLiteralFor(pathOf(), described.value);
+      // A long list (countries, a table's rows) stays bound: field by field it would bury the panel.
+      const shape = held && !(held.init.type === "ArrayExpression" && held.init.elements.length > MAX_CONST_ITEMS) ? shapeOf(held.init, text) : null;
+      if (shape) described = { ...described, shape, shapeVia: { name: described.value, line: held.declarator.loc.start.line } };
+    }
     const origin = attrOrigin(attr, pathOf, arraysOf);
     return origin ? { ...described, origin } : described;
   });
@@ -585,8 +653,75 @@ export function describeElement(code, file, loc) {
     wrap: wrapVerdict(text, ast, element),
     // Char offsets of the element in the file text (BOM left out), so the Studio can copy its exact code (⌘C).
     range: { start: element.start, end: element.end },
+    ...((reads) => (reads.length ? { stateReads: reads } : {}))(stateReadsOf(ast, element, text)),
     hash: sha1(code),
   };
+}
+
+/** Type words a copied state's `useState<…>` may carry (slots.mjs stateEntries takes these only). */
+const STATE_TYPE_WORDS = /^(?:string|number|boolean|null|Date|\[\]|[|\s()]|"[^"\\]*"|-?\d+(?:\.\d+)?)+$/;
+/** A useState initializer the paste can write again: literals, arrays and objects of them, `new Date(…literals)`. */
+function literalInit(node) {
+  const value = unwrapTs(node);
+  if (!value) return false;
+  if (["StringLiteral", "NumericLiteral", "BooleanLiteral", "NullLiteral"].includes(value.type)) return true;
+  if (value.type === "UnaryExpression" && value.operator === "-" && value.argument.type === "NumericLiteral") return true;
+  if (value.type === "TemplateLiteral") return !value.expressions.length;
+  if (value.type === "ArrayExpression") return value.elements.every((item) => item && item.type !== "SpreadElement" && literalInit(item));
+  if (value.type === "ObjectExpression") return value.properties.every((item) => item.type === "ObjectProperty" && !item.computed && !item.shorthand && (item.key.type === "Identifier" || item.key.type === "StringLiteral") && literalInit(item.value));
+  if (value.type === "NewExpression") return value.callee.type === "Identifier" && value.callee.name === "Date" && value.arguments.every((item) => literalInit(item));
+  return false;
+}
+
+/**
+ * The useState values the element's code reads from its component (`open`, `setOpen` of `const [open, setOpen] =
+ * useState(false)`), as op pasteCode's `state` takes them ([{ name, initial, type? }], 8 at most): a ⌘C carries them so a
+ * paste into another file declares them there (2026-10-08) instead of refusing the names. Only a pair whose setter is
+ * `set` + Name and whose initial state is a literal, and DOM refs (`useRef<HTML…Element>(null)`, as `ref` entries);
+ * others stay out (the paste then names what is missing).
+ */
+function stateReadsOf(ast, element, text) {
+  const used = new Set();
+  const declared = new Set();
+  const skip = new WeakSet();
+  walk(element, (node) => {
+    if ((node.type === "MemberExpression" || node.type === "OptionalMemberExpression") && !node.computed) skip.add(node.property);
+    if (node.type === "ObjectProperty" && !node.computed && !node.shorthand) skip.add(node.key);
+    if (FUNCTION_TYPES.has(node.type)) node.params.forEach((param) => boundNames(param).forEach((name) => declared.add(name)));
+    if (node.type === "VariableDeclarator") boundNames(node.id).forEach((name) => declared.add(name));
+    if (node.type === "Identifier" && !skip.has(node)) used.add(node.name);
+    return true;
+  });
+  const path = ancestry(ast, element);
+  if (!path) return [];
+  const out = [];
+  const seen = new Set();
+  for (const name of used) {
+    if (declared.has(name)) continue;
+    const binding = bindingOf(path, path.length - 1, name);
+    const declarator = binding?.declarator;
+    const init = unwrapTs(declarator?.init);
+    // A DOM ref (`const anchor = useRef<HTMLDivElement>(null)`, a Popover's anchor) travels as a ref entry.
+    const refType = init?.type === "CallExpression" && init.callee.type === "Identifier" && init.callee.name === "useRef" && init.arguments[0]?.type === "NullLiteral" ? init.typeArguments?.params?.[0] ?? init.typeParameters?.params?.[0] : null;
+    if (declarator?.id.type === "Identifier" && declarator.id.name === name && refType && /^HTML[A-Za-z]*Element$/.test(text.slice(refType.start, refType.end)) && !seen.has(name)) {
+      seen.add(name);
+      out.push({ at: declarator.start, entry: { name, initial: "null", type: text.slice(refType.start, refType.end), ref: true } });
+      continue;
+    }
+    if (!declarator || declarator.id.type !== "ArrayPattern" || init?.type !== "CallExpression" || !isStateHook(init.callee)) continue;
+    const [value, setter] = declarator.id.elements;
+    if (value?.type !== "Identifier" || seen.has(value.name)) continue;
+    if (setter && (setter.type !== "Identifier" || setter.name !== `set${value.name[0].toUpperCase()}${value.name.slice(1)}`)) continue;
+    const arg = init.arguments[0];
+    if (!arg || !literalInit(arg)) continue;
+    const typeNode = init.typeArguments?.params?.[0] ?? init.typeParameters?.params?.[0];
+    const type = typeNode ? text.slice(typeNode.start, typeNode.end) : null;
+    if (type !== null && !STATE_TYPE_WORDS.test(type)) continue;
+    seen.add(value.name);
+    out.push({ at: declarator.start, entry: { name: value.name, initial: text.slice(arg.start, arg.end), ...(type ? { type } : {}) } });
+  }
+  // In the order the component declares them (its useState lines are written again in that order).
+  return out.sort((a, b) => a.at - b.at).map((item) => item.entry).slice(0, 8);
 }
 
 /* ── formatting values ───────────────────────────────────────────────────────────────────────────────────────────── */
@@ -750,6 +885,8 @@ const lineStartOf = (text, index) => text.lastIndexOf("\n", index - 1) + 1;
 /**
  * `beforeSpread` (setProp ops): a new attribute goes in front of the element's first spread (`status {...avatarOf(p)}`),
  * so a spread that feeds the prop still wins and an edit never overrides what it passes in (a playground's controls).
+ * `op.before` (a written attribute's name, "…" for the first spread) places a new attribute in front of it instead: a
+ * prop put back where the saved file had it (restoreStep in a playground, which refuses resetSlot).
  */
 function setPropEdits(element, text, op, eol, beforeSpread = false) {
   const opening = element.openingElement;
@@ -759,9 +896,11 @@ function setPropEdits(element, text, op, eol, beforeSpread = false) {
     if (sameValue(describeAttr(existing, text), op.value)) return [];
     return [{ start: existing.start, end: existing.end, text: formatted }];
   }
-  const spread = beforeSpread ? opening.attributes.find((attr) => attr.type === "JSXSpreadAttribute") : null;
+  const isSpread = (attr) => attr.type === "JSXSpreadAttribute";
+  const anchor = typeof op.before === "string" ? opening.attributes.find((attr) => (op.before === "…" ? isSpread(attr) : attrName(attr) === op.before)) : null;
+  const spread = anchor ?? (beforeSpread ? opening.attributes.find(isSpread) : null);
   if (spread) {
-    // A spread that starts its own line: the new attribute takes a line of its own above it, with the same indent.
+    // A spread (or `before`) that starts its own line: the new attribute takes a line of its own above it, same indent.
     const indent = text.slice(lineStartOf(text, spread.start), spread.start);
     const ownLine = spread.loc.start.line > opening.loc.start.line && /^[ \t]*$/.test(indent);
     return [{ start: spread.start, end: spread.start, text: ownLine ? `${formatted}${eol}${indent}` : `${formatted} ` }];
@@ -774,7 +913,12 @@ function setPropEdits(element, text, op, eol, beforeSpread = false) {
   // One attribute per line (the last one starts its own line): a new line with the same indent; else a space.
   const indent = text.slice(lineStartOf(text, last.start), last.start);
   const ownLine = last.loc.start.line > opening.loc.start.line && /^[ \t]*$/.test(indent);
-  return [{ start: last.end, end: last.end, text: ownLine ? `${eol}${indent}${formatted}` : ` ${formatted}` }];
+  if (!ownLine) return [{ start: last.end, end: last.end, text: ` ${formatted}` }];
+  // A `// comment` after the last attribute stays on its line: the new one goes after it, not between them.
+  const newline = text.indexOf("\n", last.end);
+  const lineEnd = newline < 0 ? text.length : text[newline - 1] === "\r" ? newline - 1 : newline;
+  const at = /^[ \t]*\/\/[^\n]*$/.test(text.slice(last.end, lineEnd)) ? lineEnd : last.end;
+  return [{ start: at, end: at, text: `${eol}${indent}${formatted}` }];
 }
 
 const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
@@ -820,13 +964,18 @@ function sameField(node, value, text) {
  * `{ icon }` becomes `icon: …`) or appends the field in the object's own layout (one per line, or inline); null removes
  * the field with its comma. Spreads and other fields stay as written.
  */
-function setFieldEdits(element, text, op, eol) {
+function setFieldEdits(element, text, op, eol, ast) {
   if (!ATTR_NAME.test(op.name ?? "")) throw new EditError("invalid", `"${op.name}" is not a JSX attribute name`);
   if (typeof op.key !== "string" || !op.key || op.key === "…" || /[\r\n]/.test(op.key) || LINE_SEPARATOR.test(op.key)) throw new EditError("invalid", "setField needs a field `key`");
   if (op.index !== undefined && !(Number.isInteger(op.index) && op.index >= 0)) throw new EditError("invalid", "setField `index` must be an item index (0 or more)");
   const attr = element.openingElement.attributes.findLast((candidate) => attrName(candidate) === op.name);
   if (!attr || attr.value?.type !== "JSXExpressionContainer" || attr.value.expression.type === "JSXEmptyExpression") throw new EditError("stale", `<${jsxName(element.openingElement.name)}> has no ${op.name}={…} written in place`);
   let target = unwrapTs(attr.value.expression);
+  if (target.type === "Identifier" && ast) {
+    // Held by a same-file const (`options={countries}`): the edit goes to its literal.
+    const held = constLiteralFor(ancestry(ast, element) ?? [], target.name);
+    if (held) target = held.init;
+  }
   if (op.index !== undefined) {
     if (target.type !== "ArrayExpression") throw new EditError("stale", `${op.name} is not a list written in place`);
     const item = target.elements[op.index];
@@ -972,6 +1121,49 @@ function ancestry(root, target) {
     return false;
   };
   return visit(root) ? path : null;
+}
+
+/** The names a function's parameters bind (`({ a, b: [c] }, ...rest)` → a, c, rest). */
+function paramNames(fn) {
+  const out = [];
+  const visit = (pattern) => {
+    if (!pattern) return;
+    if (pattern.type === "Identifier") out.push(pattern.name);
+    else if (pattern.type === "ObjectPattern") pattern.properties.forEach((prop) => visit(prop.type === "RestElement" ? prop.argument : prop.value));
+    else if (pattern.type === "ArrayPattern") pattern.elements.forEach(visit);
+    else if (pattern.type === "AssignmentPattern") visit(pattern.left);
+    else if (pattern.type === "RestElement") visit(pattern.argument);
+    else if (pattern.type === "TSParameterProperty") visit(pattern.parameter);
+  };
+  (fn.params ?? []).forEach(visit);
+  return out;
+}
+
+/** A same-file const list longer than this is not edited item by item from the inspector. */
+const MAX_CONST_ITEMS = 20;
+
+/**
+ * `prop={NAME}` held by a same-file `const NAME = [ … ]` or `{ … }` (BACKLOG "Studio object props, next steps"): the
+ * literal and its declarator, from the nearest scope out (a function body's own statements, then the module); null when
+ * a parameter on the way binds NAME, or the const holds anything else. The Studio edits that literal field by field.
+ */
+function constLiteralFor(path, name) {
+  for (let index = path.length - 1; index >= 0; index -= 1) {
+    const node = path[index];
+    const fn = node.type === "ArrowFunctionExpression" || node.type === "FunctionExpression" || node.type === "FunctionDeclaration" ? node : null;
+    if (fn && paramNames(fn).includes(name)) return null;
+    const statements = node.type === "Program" ? node.body : fn?.body?.type === "BlockStatement" ? fn.body.body : null;
+    if (!statements) continue;
+    for (const statement of statements) {
+      const declaration = statement.type === "ExportNamedDeclaration" ? statement.declaration : statement;
+      if (declaration?.type !== "VariableDeclaration") continue;
+      const declarator = declaration.declarations.find((item) => item.id.type === "Identifier" && item.id.name === name);
+      if (!declarator) continue;
+      const init = unwrapTs(declarator.init);
+      return declaration.kind === "const" && (init?.type === "ArrayExpression" || init?.type === "ObjectExpression") ? { init, declarator } : null;
+    }
+  }
+  return null;
 }
 
 /** A value that adds no class: "", ``, undefined, null, false. */
@@ -1264,18 +1456,18 @@ export function snippetLiterals(ast) {
 
 const isFunction = (node) => node && (node.type === "ArrowFunctionExpression" || node.type === "FunctionExpression" || node.type === "FunctionDeclaration");
 
-/** The module-level declaration that holds `node`, with its name when it is a function or a const. */
+/** The module-level declaration that holds `node` (`node`: it, or its declarator), with its name when it is a function or a const. */
 function enclosingTopLevel(ast, node) {
   for (const statement of ast.program.body) {
     const declaration = statement.type === "ExportNamedDeclaration" || statement.type === "ExportDefaultDeclaration" ? statement.declaration ?? statement : statement;
     if (!declaration || declaration.start > node.start || declaration.end < node.end) continue;
-    if (declaration.type === "FunctionDeclaration") return { name: declaration.id?.name ?? null };
+    if (declaration.type === "FunctionDeclaration") return { name: declaration.id?.name ?? null, node: declaration };
     if (declaration.type === "VariableDeclaration") {
       for (const declarator of declaration.declarations) {
-        if (declarator.start <= node.start && declarator.end >= node.end) return { name: declarator.id?.type === "Identifier" ? declarator.id.name : null };
+        if (declarator.start <= node.start && declarator.end >= node.end) return { name: declarator.id?.type === "Identifier" ? declarator.id.name : null, node: declarator };
       }
     }
-    return { name: null };
+    return { name: null, node: declaration };
   }
   return null;
 }
@@ -1311,18 +1503,68 @@ function renderedNames(fn) {
 
 /**
  * The one snippet that shows `element`: the `code` of the example whose render holds the element, or renders the
- * component that holds it. Null with a reason when no example (or more than one) does.
+ * component that holds it. Null with a reason when no example (or more than one) does. `scope`: the code the snippet
+ * stands for (that render, or that component), where snippetCopyOf counts the element's namesakes.
  */
 function snippetFor(ast, element) {
   const examples = exampleObjects(ast);
   if (!examples.length) return { literal: null, reason: null };
   const inline = examples.filter((example) => example.render.start <= element.start && example.render.end >= element.end);
-  if (inline.length === 1) return { literal: inline[0].code, reason: null };
+  if (inline.length === 1) return { literal: inline[0].code, reason: null, scope: inline[0].render };
   const owner = enclosingTopLevel(ast, element);
   if (!owner?.name) return { literal: null, reason: "no example snippet shows this code" };
   const rendering = examples.filter((example) => renderedNames(example.render).has(owner.name));
-  if (rendering.length === 1) return { literal: rendering[0].code, reason: null };
+  if (rendering.length === 1) return { literal: rendering[0].code, reason: null, scope: owner.node };
   return { literal: null, reason: rendering.length ? `more than one example renders <${owner.name}>` : "no example snippet shows this code" };
+}
+
+/** JSX elements named `name` inside `node` (the node itself included). */
+function elementsNamed(node, name) {
+  const out = [];
+  walk(node, (inner) => {
+    if (inner.type === "JSXElement" && jsxName(inner.openingElement.name) === name) out.push(inner);
+    return true;
+  });
+  return out;
+}
+
+/**
+ * An opening tag's attributes as one whitespace-insensitive string, `key` left out (a wrap moves it to the wrapper):
+ * `<Card  title="x"\n>` and `<Card key={id} title="x">` read the same.
+ */
+const tagText = (text, opening) => opening.attributes.filter((attr) => attrName(attr) !== "key").map((attr) => text.slice(attr.start, attr.end).replace(/\s+/g, " ")).join(" ");
+
+/**
+ * The snippet's own copy of `element` when its whole code is not in the snippet (a snippet that leaves out a handler,
+ * the data or some children): the snippet parsed as JSX (as written, in a fragment, or as a function body), and the one
+ * element of that name whose opening tag reads like the element's, else the only element of that name when the code the
+ * snippet stands for (`owner.scope`) also has only one. Only a snippet with no ${…} and no escapes (offsets stay 1:1).
+ * { quasi, variant (the parsed text), prefix, suffix (what was added around the snippet), node, startsLine, comments }.
+ */
+function snippetCopyOf(text, ast, owner, element, name) {
+  if (!element || owner.literal.quasis.length !== 1) return null;
+  const quasi = owner.literal.quasis[0];
+  const raw = text.slice(quasi.start, quasi.end);
+  if (raw.includes("\\")) return null;
+  for (const [head, tail] of [["", ""], ["<>", "</>"], ["function Snippet() {", "}"]]) {
+    const variant = `${head}${raw}${tail}`;
+    const parsed = parseSource(variant);
+    if (!parsed || parsed.errors.length) continue;
+    const named = elementsNamed(parsed.program, name);
+    const own = tagText(text, element.openingElement);
+    const alike = named.filter((node) => tagText(variant, node.openingElement) === own);
+    // No copy alike: the namesakes pair up by order when the snippet has as many as the code (snippets follow the JSX).
+    const scoped = owner.scope ? elementsNamed(owner.scope, name) : [];
+    const place = scoped.findIndex((node) => node.start === element.start);
+    const node = alike.length === 1 ? alike[0] : alike.length === 0 && named.length === scoped.length && place >= 0 ? named[place] : null;
+    if (!node) return null;
+    // Its own line in the snippet (the snippet's first line starts after the backtick).
+    const lineStart = Math.max(lineStartOf(variant, node.start), head.length);
+    const startsLine = /^[ \t]*$/.test(variant.slice(lineStart, node.start));
+    const comments = new Set((parsed.comments ?? []).filter((comment) => comment.type === "CommentLine").map((comment) => comment.end));
+    return { quasi, variant, prefix: head.length, suffix: tail.length, node, startsLine, comments };
+  }
+  return null;
 }
 
 /** Raw text as it reads inside a template literal: \ ` and ${ escaped. */
@@ -1485,7 +1727,7 @@ export function applyOps(code, loc, name, ops, { snippets = true, typographyKeys
       if (op?.op === "setProp") edits.push(...setPropEdits(element, text, op, eol, true));
       else if (op?.op === "removeProp") edits.push(...removePropEdits(element, text, op, lineCommentEnds));
       else if (op?.op === "setStateInit") edits.push(...setStateInitEdits(ast, element, text, op));
-      else if (op?.op === "setField") edits.push(...setFieldEdits(element, text, op, eol));
+      else if (op?.op === "setField") edits.push(...setFieldEdits(element, text, op, eol, ast));
       else if (op?.op === "setText") edits.push(...setTextEdits(element, text, op));
       else if (op?.op === "setTypography") edits.push(...setTypographyEdits(element, text, op, keys));
       else if (op?.op === "setTextStyle") {
@@ -1747,10 +1989,45 @@ function wrapCloned(element, nodePath) {
   if (entry) throw new EditError("invalid", entry.reason.replaceAll("{element}", `<${name}>`));
 }
 
-/** The place checks of op "wrap" (docs chrome aside): a cloned element (wrapCloned), then the HTML nesting (wrapNesting). */
+/**
+ * Parent/child contracts of Zen's compound components and HTML lists (2026-10-08): parents whose children must be
+ * their parts directly (a <div> between breaks the markup or the ARIA ownership the parent's keyboard and screen reader
+ * support rely on), and the parts that only render directly inside them. From a read of src/components: List renders
+ * <ul> (ListItem an <li> unless `as`), DescriptionList a <dl> of DescriptionItem groups, Menu a role="menu" list,
+ * Popover's children sit in its role="listbox", FileUpload's UploaderFileItem is an <li>.
+ */
+const PART_PARENTS = new Map([
+  ["ul", "a list (<ul>), which holds only list items"], ["ol", "a list (<ol>), which holds only list items"],
+  ["dl", "a description list (<dl>), which holds only its terms and descriptions"], ["menu", "a <menu>, which holds only list items"],
+  ["List", "a List (<ul>), which holds only ListItems"], ["DescriptionList", "a DescriptionList (<dl>), which holds only DescriptionItems"],
+  ["Menu", "a Menu (role=\"menu\"), which owns its items directly"], ["Popover", "a Popover's list (role=\"listbox\"), which owns its options directly"],
+]);
+/** Parts by what they render: host list parts as written, the Zen parts by name (ListItem only when it is an <li>). */
+const PART_OF = { li: "its list", dt: "its <dl>", dd: "its <dl>", ListItem: "its List", UploaderFileItem: "its FileUpload list", DescriptionItem: "its DescriptionList", MenuItem: "its Menu", MenuGroup: "its Menu", MenuSeparator: "its Menu", PopoverItem: "its Popover", TabItem: "its Tabs" };
+
+/** Refuses a wrap that would put a <div> between a compound parent and its parts (PART_PARENTS / PART_OF). */
+function wrapContract(element, nodePath) {
+  const name = lastSegment(jsxName(element.openingElement.name));
+  const as = element.openingElement.attributes.findLast((attr) => attrName(attr) === "as");
+  const asTag = as?.value?.type === "StringLiteral" ? as.value.value : as ? null : undefined;
+  const part = name === "ListItem" ? (asTag === undefined || asTag === "li" ? PART_OF.ListItem : null) : Object.hasOwn(PART_OF, name) ? PART_OF[name] : null;
+  if (part) throw new EditError("invalid", `<${name}> only works directly inside ${part}: a <div> around it would break that list's markup and keyboard order. Wrap ${part.replace(/^its /, "the ")} instead.`);
+  for (let i = nodePath.length - 2; i >= 0; i -= 1) {
+    const node = nodePath[i];
+    if (node.type === "JSXAttribute") return;
+    if (node.type !== "JSXElement") continue;
+    const parent = lastSegment(jsxName(node.openingElement.name));
+    if (PART_PARENTS.has(parent)) throw new EditError("invalid", `It sits directly inside ${PART_PARENTS.get(parent)}: a <div> there would break it. Wrap the ${parent} instead.`);
+    return;
+  }
+}
+
+/** The place checks of op "wrap" (docs chrome aside): a cloned element (wrapCloned), the HTML nesting (wrapNesting), then
+ * compound parents and their parts (wrapContract). */
 function wrapPlace(element, nodePath) {
   wrapCloned(element, nodePath);
   wrapNesting(element, nodePath);
+  wrapContract(element, nodePath);
 }
 
 /** describeElement's `wrap`: whether op "wrap" takes the element where it sits (not its tag, props or the file's Box). */
@@ -1835,7 +2112,14 @@ function wrapSnippet(text, ast, box, before, { tag, attrs, eol, name }) {
     const raw = text.slice(quasi.start, quasi.end);
     for (const match of raw.matchAll(pattern)) hits.push({ start: quasi.start + match.index, end: quasi.start + match.index + match[0].length, matched: match[0] });
   }
-  if (!hits.length) return notSynced(`the example snippet does not show this code (${what})`);
+  if (!hits.length) {
+    // Hand-written snippets often leave out handlers, data or children, so the element's whole code is not there: the
+    // snippet's own copy of the element (snippetCopyOf) is wrapped instead.
+    const copy = snippetCopyOf(text, ast, owner, box.children.find((child) => child.type === "JSXElement"), name);
+    if (!copy) return notSynced(`the example snippet does not show this code (${what})`);
+    const wrapped = applyEdits(copy.variant, wrapEdits(copy.variant, copy.node, { tag, attrs, eol, lineCommentEnds: copy.comments, startsLine: copy.startsLine }));
+    return { replacements: [{ start: copy.quasi.start, end: copy.quasi.end, text: wrapped.slice(copy.prefix, wrapped.length - copy.suffix) }], snippet: { synced: true } };
+  }
   if (hits.length > 1) return notSynced(`this code appears more than once in the snippet (${what})`);
   const [hit] = hits;
   // The copy's line inside the snippet (its first line starts after the backtick).

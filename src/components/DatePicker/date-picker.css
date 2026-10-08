@@ -96,13 +96,28 @@ span.zen-date-picker__month { cursor: default; }
 .zen-date-picker[data-device="mobile"][data-calendar="dual"] .zen-date-picker__panels { flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-date-picker[data-device="mobile"][data-calendar="dual"] .zen-date-picker__panel { gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-date-picker[data-device="mobile"] :is(.zen-date-picker__weekdays, .zen-date-picker__grid) { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+/* Stacked (Date-Picker/Mobile Variant=Multiple 9923:3574): months one under another as the mobile dual calendar (Gap/Medium
+   between months, Gap/XSmall under each Display header); the one weekday row stays at the top of the scrolling box
+   (Option 2 of .Primitives/Date-Picker 9923:2323), on the surface the calendar sits on. */
+.zen-date-picker[data-calendar="stacked"] .zen-date-picker__panels { flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-date-picker[data-calendar="stacked"] .zen-date-picker__panel { gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-date-picker__sticky-weekdays { position: sticky; z-index: 1; top: 0; margin-bottom: var(--zen-spacing-gap-xsmall, 8px); background: var(--zen-date-picker-sticky-background, var(--zen-color-background-surface-default, #fff)); }
 .zen-date-picker[data-device="mobile"] :is(.zen-date-picker__month-year, .zen-date-picker__actions) { width: 100%; }
 .zen-date-picker[data-device="mobile"] .zen-date-picker__time[data-type="range"] { flex-direction: column; }
 .zen-date-picker__day[data-device="mobile"] { width: 100%; height: auto; aspect-ratio: 1; font-size: var(--zen-typography-font-size-body-base, 14px); line-height: var(--zen-typography-line-height-body-base, 20px); letter-spacing: var(--zen-typography-letter-spacing-body-base, 0); }
 /* Mobile Header: the Date-Container (Corner-Radius/Small, Gap/2XSmall) holds the month and year at the start. */
+h3.zen-date-picker__month { margin: 0; }
 .zen-date-picker__header[data-device="mobile"] .zen-date-picker__month { height: var(--zen-button-size-small, 32px); justify-content: flex-start; }
 
 /* Phones: Dual-Calendar stacks its two months vertically instead of overflowing (2 × 224 + gap > a 390px screen). */
 @media (max-width: 560px) {
   .zen-date-picker__panels, .zen-date-picker__time[data-type="range"] { flex-direction: column; }
 }
+
+/* DatePickerSheet (Figma Date-Picker/Mobile 9923:3576): the stacked list's weekday row sits on the sheet's
+   Background/Container, and the range footer is .Primitives/Date-Picker/Footer-Actions (9923:2791): the summary takes the
+   row, a Large Primary (140px in Figma, 56px high in the sheet footer like its Actions) Spacing/Gap/Small after it. */
+.zen-date-picker-sheet { --zen-date-picker-sticky-background: var(--zen-color-background-container, #f7f7f7); }
+.zen-date-picker-sheet__footer { display: flex; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-date-picker-sheet__summary { display: flex; min-width: 0; flex: 1 1 0; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-date-picker-sheet__apply.zen-button { width: 140px; height: 56px; flex: 0 0 auto; }

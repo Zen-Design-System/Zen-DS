@@ -23,6 +23,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import { TODAY, daysFromToday, formatDate, formatDay, formatMoney, formatRelative, formatTime, initials, invoiceStatusTheme, invoices, people, projects, type PersonId } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./stepper.css";
 
 export const page: PlatformPage = "stepper";
@@ -413,7 +414,7 @@ function PickupOrderExample() {
   const status = opened.stage === 1 ? `Ready at about ${formatTime(readyAt)}` : opened.stage === 2 ? "Your order is ready at counter 2" : pickedLine(opened.pickedAt ?? TODAY);
   return (
     <PlatformPhone key={opened.id} label="Phin & Co order" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title={`Order ${opened.id}`} scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title={`Order ${opened.id}`} scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
       // The footer holds the one next step: confirm the pickup once it is ready, then order the same again.
       footer={opened.stage === 2 ? <ActionBar position="static" primaryAction={{ label: "Confirm pickup", onClick: () => confirmPickup(opened.id) }} />
@@ -564,7 +565,7 @@ function NewHireOnboardingExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "New project",
     wide: true,
@@ -662,8 +663,13 @@ toast({ title: "Invoice approved", children: "INV-2026-0143",
 <Card theme="flat" as="section" aria-label="Onboarding for Tam Dang">
   {/* Two columns while the card is at least 640px wide, stacked below that */}
   <Grid ref={ref} columns={width >= 640 ? "minmax(0, 16rem) minmax(0, 40rem)" : 1} gap="lg" align="start">
-    <Stepper aria-label="Onboarding" orientation="vertical" steps={steps} current={current}
-      onStepClick={(step, index) => setCurrent(index)} />
+    <Stack gap="md">
+      <List aria-label="New hire">
+        <ListItem leading={<Avatar theme="crimson" alt="">TD</Avatar>} title="Tam Dang" caption="Product Designer · Starts Oct 5" />
+      </List>
+      <Stepper aria-label="Onboarding" orientation="vertical" steps={steps} current={current}
+        onStepClick={(step, index) => setCurrent(index)} />
+    </Stack>
     <Form onSubmit={next}>
       <Heading ref={headingRef} tabIndex={-1} level={4} textStyle="Heading/Subheading">{steps[current].title}</Heading>
       <FormFieldset legend="Accounts" hideLegend kind="checkbox" error={error}>
@@ -689,7 +695,7 @@ toast({ title: "Invoice approved", children: "INV-2026-0143",
 // The Orders root is a grouped list on Surface-Alt (In progress, Past orders: a kicker over a white block each).
 // The order is its child: compact bar, Back, one key per screen.
 <PlatformPhone key={order.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Order A-248" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Order A-248" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
   footer={order.stage === 2
     ? <ActionBar position="static" primaryAction={{ label: "Confirm pickup", onClick: confirmPickup }} />
@@ -702,7 +708,16 @@ toast({ title: "Invoice approved", children: "INV-2026-0143",
       { id: "ready", title: "Ready for pickup", caption: "Counter 2", icon: "icon-shopping-bag-01-line" },
       { id: "picked", title: "Picked up", icon: "icon-package-check-line" },
     ]} />
+    <Stack as="section" gap="xs" aria-labelledby="lines">
+      <Heading level={2} id="lines" textStyle="Body/Small/Bold" tone="light">Your order</Heading>
+      <List aria-labelledby="lines">
+        {order.lines.map(([id, qty]) => (
+          <ListItem key={id} title={\`\${menu[id].name} × \${qty}\`}
+            trailing={<Text as="span" textStyle="Body/Base/Medium">{formatMoney(menu[id].price * qty, true)}</Text>} />
+        ))}
+      </List>
+    </Stack>
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

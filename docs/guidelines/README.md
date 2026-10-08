@@ -9,7 +9,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | Component | Rules |
 | --- | --- |
 | [Button & IconButton](button.md) | `button/secondary-justified`, `button/filter-is-chip`, `button/accent-is-promoted`, `button/destructive-is-danger`, `icon-button/needs-name`, `icon-button/needs-action`, `icon-button/tooltip`, `button/icon-only-raw`, `navigation/back-chevron`, `button/flat-level`, `button/small-full-width`, `file-icon/not-an-action`, `button/vague-label`, `button/one-primary`, `button/compact-size-special`, `focus/visible-ring`, `api/deprecated-prop`, `icon/unknown-name`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
-| [Chip / Pill](chip.md) | `button/filter-is-chip`, `chip/popover-needs-advanced`, `flag/no-emoji-flag`, `chip/multiple-needs-count`, `api/deprecated-prop`, `copy/plural-count`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
+| [Chip / Pill](chip.md) | `button/filter-is-chip`, `chip/popover-needs-advanced`, `flag/no-emoji-flag`, `chip/multiple-needs-count`, `chip/radio-is-chip-group`, `api/deprecated-prop`, `copy/plural-count`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Input fields](input.md) | `input/no-disabled`, `input/needs-label`, `input/placeholder-not-label`, `richtext/value-not-onchange`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `focus/state-parity` |
 | [Search](search.md) | `search/needs-name`, `interaction/no-noop-handler` |
 | [Segmented](segmented.md) | `segmented/needs-label`, `segmented/option-count`, `segmented/control-bar-full-width`, `segmented/icon-only-needs-name`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
@@ -22,7 +22,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Popover](popover.md) | `popover/controlled-close`, `popover/explicit-open`, `popover/bulk-action-limit`, `interaction/no-noop-handler`, `interaction/action-without-handler`, `focus/selected-fill-only` |
 | [Sidebar](sidebar.md) | `sidebar/submenu-close`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `interaction/action-without-handler` |
 | [Date Picker](date-picker.md) | `input/needs-label`, `input/placeholder-not-label`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `date-picker/actions-need-apply` |
-| [Tooltip](tooltip.md) | `tooltip/focusable-trigger`, `tooltip/short`, `tooltip/no-interactive-content`, `tooltip/disabled-trigger`, `interaction/no-noop-handler` |
+| [Tooltip](tooltip.md) | `tooltip/focusable-trigger`, `tooltip/short`, `tooltip/no-interactive-content`, `tooltip/disabled-trigger`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Tabs](tabs.md) | `tabs/needs-label`, `tabs/item-count`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Breadcrumbs](breadcrumbs.md) | `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Progress](progress.md) | `progress/value-range`, `progress/needs-label`, `progress/quota-scale`, `interaction/no-noop-handler` |
@@ -39,7 +39,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Slider](slider.md) | `slider/needs-name`, `slider/white-no-small`, `slider/solid-icon`, `api/deprecated-prop`, `icon/unknown-name`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Card](card.md) | `card/clickable-no-nested-controls`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Dock Icon](dock-icon.md) | `flag/no-emoji-flag`, `dock-icon/emoji-needs-glyph`, `icon/unknown-name`, `interaction/no-noop-handler` |
-| [List Item](list-item.md) | `flag/no-emoji-flag`, `list-item/inset-not-padding`, `list-item/clickable-row-toggle`, `list-item/trailing-button-medium`, `api/deprecated-prop`, `copy/plural-count`, `interaction/no-noop-handler` |
+| [List Item](list-item.md) | `flag/no-emoji-flag`, `list-item/inset-not-padding`, `list-item/clickable-row-toggle`, `list-item/switch-row`, `list-item/trailing-button-medium`, `api/deprecated-prop`, `copy/plural-count`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Table](table.md) | `table/actions-flat`, `table/title-heading-4`, `table/needs-name`, `table/interaction-needs-handler`, `table/media-size-by-subtext`, `table/editor-needs-commit`, `table/editor-number-right`, `table/editor-number-validate`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Rating](rating.md) | `rating/needs-name`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Color Selector](color-selector.md) | `rating/needs-name`, `color-selector/token-values`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
@@ -54,13 +54,13 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Icon](icon.md) | `icon/unknown-name`, `icon/size-token`, `interaction/no-noop-handler` |
 | [Top Navigation](top-navigation.md) | `navigation/back-chevron`, `segmented/control-bar-full-width`, `top-navigation/max-three-trailing`, `top-navigation/search-folds-to-action`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Bottom Navigation](bottom-navigation.md) | `bottom-navigation/destinations`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `interaction/action-without-handler` |
-| [Bottom Sheet](bottom-sheet.md) | `segmented/control-bar-full-width`, `bottom-sheet/action-needs-items`, `api/deprecated-prop`, `mobile/full-size-controls`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `interaction/action-without-handler` |
+| [Bottom Sheet](bottom-sheet.md) | `segmented/control-bar-full-width`, `bottom-sheet/action-needs-items`, `bottom-sheet/choice-uses-list-item`, `api/deprecated-prop`, `mobile/full-size-controls`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `interaction/action-without-handler` |
 | [Chat](chat.md) | `chat/reply-cancellable`, `chat/others-need-author`, `chat/no-locked-interaction`, `chat/reactions-name-people`, `chat/hold-delete-destructive`, `layout/scroll-anchor-flex-end`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [AI Chat](ai-chat.md) | `ai-chat/no-actions-while-streaming`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Chart](chart.md) | `chart/stack-needs-legend`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Layout (Stack, Grid, Box, Container)](layout.md) | `box/border-matches-action`, `layout/constraint-needs-absolute`, `layout/inset-not-read`, `layout/absolute-fill`, `layout/stretch-ignores-size`, `layout/absolute-align-self`, `layout/absolute-parent`, `box/effect-needs-surface`, `box/blur-needs-tint`, `box/shadow-no-border`, `radius/redundant-corners`, `radius/full-mixed`, `layout/use-stack`, `interaction/no-noop-handler` |
 | [Text & Heading](text.md) | `flag/no-emoji-flag`, `content/lights-no-light-text`, `heading/h1-is-heading-1`, `heading/title-not-light`, `table/title-heading-4`, `text/use-text`, `copy/plural-count`, `interaction/no-noop-handler` |
-| [App Shell](app-shell.md) | `app-shell/primary-in-top-bar`, `app-shell/nested`, `app-shell/breadcrumbs-once`, `app-shell/forced-layout`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
+| [App Shell](app-shell.md) | `icon-button/needs-action`, `app-shell/primary-in-top-bar`, `app-shell/nested`, `app-shell/breadcrumbs-once`, `app-shell/forced-layout`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Page Header](page-header.md) | `page-header/one-primary`, `interaction/no-noop-handler` |
 | [Form](form.md) | `form/actions-order`, `form/submit-button`, `form/toggle-outside-form`, `form-fieldset/needs-legend`, `form-fieldset/radio-kind`, `interaction/no-noop-handler` |
 | [Link](link.md) | `link/needs-href`, `link/vague-text`, `link/new-tab-is-external`, `link/inherit-needs-underline`, `interaction/no-noop-handler` |

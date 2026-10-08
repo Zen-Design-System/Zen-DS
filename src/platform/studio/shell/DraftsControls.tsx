@@ -6,7 +6,7 @@ import { Dialog } from "../../../components/Dialog";
 import { DockIcon } from "../../../components/DockIcon";
 import { List, ListItem } from "../../../components/ListItem";
 import { plural, Text } from "../../../components/Text";
-import { modKey } from "../canvas/ZoomControls";
+import { modKey } from "./modKey";
 import { answerDraftsQuestion, confirmDiscard, refreshDrafts, requestSave, studioDrafts, useDraftsQuestion, useFrameDrafts, useStudioDrafts } from "../sourceDrafts";
 import type { DraftInfo } from "../types";
 import "./shell.css";
@@ -134,7 +134,7 @@ export function DraftsControls({ density }: { density: "wide" | "compact" | "nar
       >
         {label}
       </Button>
-      {density === "phone" ? null : (
+      {density === "phone" || density === "narrow" ? null : (
         <Button appearance="main" level="primary" size="sm" aria-keyshortcuts="Meta+S Control+S" disabled={busy !== null} onClick={() => { void saveAll(); }}>
           {saving}
         </Button>

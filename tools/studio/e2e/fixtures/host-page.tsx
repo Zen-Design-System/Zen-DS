@@ -11,11 +11,14 @@ import { Badge } from "../../../components/Badge";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Checkbox } from "../../../components/Checkbox";
+import { Chip } from "../../../components/Chip";
 import { Dialog } from "../../../components/Dialog";
 import { EmptyState } from "../../../components/EmptyState";
 import { NumberField } from "../../../components/Input";
 import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListItem } from "../../../components/ListItem";
+import { Segmented } from "../../../components/Segmented";
+import { TopNavigation } from "../../../components/TopNavigation";
 import { Heading, Text } from "../../../components/Text";
 import type { PlatformPage } from "../../PlatformExamples";
 import { people } from "../data";
@@ -112,6 +115,10 @@ function GridFixture() {
         <Box surface="pale" padding="sm"><Text>Main</Text></Box>
         <Box surface="pale" padding="sm"><Text>Aside</Text></Box>
       </Grid>
+      <Grid data-e2e="grid-px" columns="240px 1fr" gap="sm" padding="xs">
+        <Box data-e2e="grid-px-item" surface="pale" padding="sm"><Text>Side</Text></Box>
+        <Box surface="pale" padding="sm"><Text>Main</Text></Box>
+      </Grid>
     </Stack>
   );
 }
@@ -125,9 +132,68 @@ function InstanceFixture() {
       <AlertBanner data-e2e="inst-alert">Heads up</AlertBanner>
       <EmptyState data-e2e="inst-empty" title="Nothing here" illustration={false} />
       <Badge data-e2e="inst-badge" leadingIcon leading="icon-heart-line">New</Badge>
+      <Chip data-e2e="inst-chip" dropdown popoverLabel="Sort" popoverItems={[{ id: "new", label: "Newest", selected: true }, { id: "old", label: "Oldest" }]}>Sort</Chip>
+      <Box data-e2e="inst-nav-box" padding="sm">
+        <TopNavigation title="Inbox" trailing={[{ icon: "icon-star-01-line", label: "Favourite", onClick: () => undefined }, { icon: "icon-share-01-line", label: "Share", onClick: () => undefined }]} />
+      </Box>
       <List data-e2e="inst-list">
         <ListItem data-e2e="inst-row" title="Ava Tran" selected leading={<Avatar alt="Ava Tran" size="sm" />} />
+        <ListItem data-e2e="inst-click-row" title="Bao Le" onClick={() => undefined} leading={<Badge data-e2e="inst-click-badge">New</Badge>} />
       </List>
+    </Stack>
+  );
+}
+
+/** A list a same-file const holds (`options={views}`): the Inspector edits the const's fields. */
+const views = [
+  { id: "list", label: "List" },
+  { id: "board", label: "Board" },
+];
+
+function ConstFixture() {
+  const [view, setView] = useState("list");
+  return (
+    <Stack data-e2e="const" gap="md" padding="lg">
+      <Segmented data-e2e="const-views" aria-label="View" options={views} value={view} onValueChange={setView} />
+    </Stack>
+  );
+}
+
+/**
+ * Canvas editing (backlog 2026-10-08): a scroll box whose content it clips, a 0-gap row, two Headings (a number prop on
+ * a multi-selection), two floating Boxes in a positioned Box, two Boxes in the flow and a Button in its Studio wrap Stack.
+ */
+function CanvasFixture() {
+  return (
+    <Stack data-e2e="canvas" gap="md" padding="lg">
+      <div data-e2e="scroller" style={{ height: 64, overflow: "auto" }}>
+        <Stack gap="sm">
+          <Text>Visible line</Text>
+          <Box data-e2e="spacer" surface="pale" height={160} />
+        </Stack>
+      </div>
+      <Stack data-e2e="zero" direction="row" gap="none">
+        <Button data-e2e="zero-a" level="secondary">Left</Button>
+        <Button data-e2e="zero-b" level="secondary">Right</Button>
+      </Stack>
+      <Stack data-e2e="headings" gap="sm">
+        <Heading data-e2e="h-a" level={3}>Third</Heading>
+        <Heading data-e2e="h-b" level={4}>Fourth</Heading>
+      </Stack>
+      <Box data-e2e="float-host" surface="pale" height={120}>
+        <Box data-e2e="float-l" position="absolute" constraintX="left" constraintY="top" insetLeft="sm" insetTop="sm" width={96} height={40} surface="surface" />
+        <Box data-e2e="float-s" position="absolute" constraintX="left-right" constraintY="bottom" insetLeft="sm" insetRight="sm" insetBottom="sm" height={24} surface="surface" />
+      </Box>
+      <Stack data-e2e="flows" direction="row" gap="sm" padding="sm">
+        <Box data-e2e="flow-a" surface="pale" padding="sm"><Text>A</Text></Box>
+        <Box data-e2e="flow-b" surface="pale" padding="sm"><Text>B</Text></Box>
+        <Box data-e2e="flow-c" surface="pale" padding="sm"><Text>C</Text></Box>
+      </Stack>
+      <Stack data-e2e="wrap-row" direction="row" gap="sm">
+        <Stack data-e2e="wrap-stack" fillChildren width={200}><Button data-e2e="wrapped" level="secondary">Wide</Button></Stack>
+        <Button data-e2e="wrap-next" level="tertiary">Next</Button>
+        <Chip data-e2e="num-chip" variant="number-only">3</Chip>
+      </Stack>
     </Stack>
   );
 }
@@ -164,4 +230,6 @@ export const examples: ExampleDef[] = [
   { title: "E2E grid", description: "A counted Grid (with a minColumnWidth it ignores) and a Grid per breakpoint.", code: "<GridFixture />", render: () => <GridFixture /> },
   { title: "E2E instance", description: "Zen instances with design props, a field's label, an alert's icon and an empty state.", code: "<InstanceFixture />", render: () => <InstanceFixture /> },
   { title: "E2E html", description: "An example's own HTML: flex and grid boxes, a heading, a paragraph with a link, a tinted note.", code: "<HtmlFixture />", render: () => <HtmlFixture /> },
+  { title: "E2E const", description: "A Segmented whose options a same-file const holds.", code: "<ConstFixture />", render: () => <ConstFixture /> },
+  { title: "E2E canvas", description: "A clipping scroll box, a 0 gap, two Headings, floating and flowing Boxes, a wrapped Button.", code: "<CanvasFixture />", render: () => <CanvasFixture /> },
 ];

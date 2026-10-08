@@ -37,7 +37,7 @@ type NodeSelection = { kind: "node" } & StudioNodeRef;
 
 /* ── the rendered layer ───────────────────────────────────────────────────────────────────────────────────────── */
 
-type Geometry = {
+export type Geometry = {
   /** Distances from the containing block's padding box, CSS px; null until the layer is found on the canvas. */
   measured: Measured | null;
   /** The layer's own data-position (Stack, Grid, Box). */
@@ -83,7 +83,7 @@ function axisOf(start: number, size: number, inner: number, padStart: string, pa
   return { start, end: inner - start - size, padStart: parseFloat(padStart) || 0, padEnd: parseFloat(padEnd) || 0 };
 }
 
-function readGeometry(selection: NodeSelection): Geometry {
+export function readGeometry(selection: NodeSelection): Geometry {
   const world = canvasApi.getWorldElement();
   if (!world) return noGeometry;
   const hits = findBySrc(world, selection.src);
@@ -162,7 +162,7 @@ function useGeometry(selection: NodeSelection): Geometry {
 }
 
 /** The Spacing/Padding ladder as it measures on the layer (density, breakpoint and mode applied). */
-function ladderOf(selection: NodeSelection): Ladder {
+export function ladderOf(selection: NodeSelection): Ladder {
   const world = canvasApi.getWorldElement();
   const host = world ? findBySrc(world, selection.src)[selection.instance]?.hosts[0] ?? findBySrc(world, selection.src)[0]?.hosts[0] : null;
   const probe = host ?? document.documentElement;

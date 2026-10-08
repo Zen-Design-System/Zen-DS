@@ -74,7 +74,8 @@ export const rows = [
       await inspectorRow(page, "primaryAction").getByRole("switch").click();
       const on = await expectSource(ctx, "inst-empty", (el) => /label: "Action"/.test(el.attr("primaryAction") ?? ""), "primaryAction={{ label: \"Action\" }}");
       await switchShows(page, "primaryAction", true);
-      if (!(await page.locator("#studio-right").getByText("Primary action", { exact: true }).count())) throw new Error("no Primary action fields while on");
+      // The switch flips at once (optimistic); its fields come with the write's render.
+      await until(async () => (await page.locator("#studio-right").getByText("Primary action", { exact: true }).count()) > 0, { message: "Primary action fields while on" });
       await inspectorRow(page, "primaryAction").getByRole("switch").click();
       await expectSource(ctx, "inst-empty", (el) => el.attr("primaryAction") === undefined, "primaryAction removed");
       return `on → ${on.attr("primaryAction")}, off → removed`;
@@ -220,7 +221,7 @@ export const rows = [
       await until(async () => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim() === "Badge", { message: "the Badge still selected" });
       await until(async () => (await sizeText(page, "width")) === "Fill", { message: "W reads Fill" });
       await sizeChoice(page, "width", "Hug contents");
-      const back = /<Badge data-e2e="inst-badge" leadingIcon leading="icon-heart-line">New<\/Badge>\n\s*<List/;
+      const back = /<Badge data-e2e="inst-badge" leadingIcon leading="icon-heart-line">New<\/Badge>\n\s*<Chip data-e2e="inst-chip"/;
       await until(async () => { const text = await ctx.text(); return back.test(text) && !/fillChildren width="fill"/.test(text); }, { message: "the Stack gone, the Badge where it was" });
       await until(async () => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim() === "Badge", { message: "the Badge selected after Hug" });
       await page.locator(".studio-viewport").focus();
@@ -246,7 +247,7 @@ export const rows = [
       await until(async () => (await sizeText(page, "width")) === "200", { message: "W reads 200" });
       await typeWidth("240");
       await until(async () => /<Stack direction="row" fillChildren width=\{240\}>\s*<Button data-e2e="inst-button"/.test(await ctx.text()), { message: "the same Stack 240 wide" });
-      if ((await ctx.text()).match(/fillChildren/g)?.length !== 1) throw new Error("a second Stack");
+      if ((await ctx.text()).match(/fillChildren width=\{\d+\}>\s*<Button data-e2e="inst-button"/g)?.length !== 1) throw new Error("a second Stack");
       await sizeChoice(page, "width", "Fill container");
       await until(async () => /<Stack direction="row" fillChildren width="fill">\s*<Button data-e2e="inst-button"/.test(await ctx.text()), { message: "its Stack fills" });
       return "W 200 → <Stack direction=\"row\" fillChildren width={200}> → 240 edits it → Fill → width=\"fill\"";
@@ -275,7 +276,7 @@ export const rows = [
       await sleep(300);
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Backspace");
-      await until(async () => (await wraps()) === 1 && ((await ctx.text()).match(/fillChildren/g) ?? []).length === 1, { message: "⌫: the copy gone with its Stack" });
+      await until(async () => (await wraps()) === 1 && ((await ctx.text()).match(/<Stack (?!data-e2e="wrap-stack")[^>]*fillChildren/g) ?? []).length === 1, { message: "⌫: the copy gone with its Stack" });
       // The Layers rebuild after the canvas re-renders: the copy's row goes a moment after the source.
       await until(async () => (await row.count()) === 1, { message: "one wrapped row left in Layers" });
       await row.click();
@@ -330,6 +331,36 @@ export const rows = [
       await page.keyboard.press("ControlOrMeta+KeyZ");
       await until(async () => /<Button level="primary"/.test((await pageText(page, id)) ?? ""), { message: "⌘Z brings level back" });
       return 'Level reads "Primary"; Reset all → <Button onClick…> → ⌘Z → level="primary"';
+    },
+  },
+  {
+    id: "IN-18", feature: "An unset object prop (EmptyState secondaryAction): + writes a starting object, then its fields edit", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-empty", { frame: FRAME });
+      await page.locator("#studio-right").getByRole("button", { name: "Add secondary action" }).click();
+      await expectSource(ctx, "inst-empty", (el) => /label: "Secondary action"/.test(el.attr("secondaryAction") ?? ""), 'secondaryAction={{ label: "Secondary action" }}');
+      const group = page.locator("#studio-right").getByRole("group", { name: /^Secondary action/ });
+      await group.waitFor({ state: "visible", timeout: 5000 });
+      const input = group.locator('[data-prop="label"] input').first();
+      await input.fill("Learn more");
+      await input.press("Enter");
+      const done = await expectSource(ctx, "inst-empty", (el) => /label: "Learn more"/.test(el.attr("secondaryAction") ?? ""), "the label edited in Object properties");
+      return `secondaryAction=${done.attr("secondaryAction")}`;
+    },
+  },
+  {
+    id: "IN-19", feature: "options={views} held by a same-file const: its items edit there, with where the const is written", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "const-views", { frame: 8 });
+      const panel = page.locator("#studio-right");
+      await until(async () => (await panel.innerText()).includes("Written in const views"), { message: "the const note" });
+      if (await panel.getByRole("button", { name: /^Remove / }).count()) throw new Error("a const's items offer Remove (item ops edit lists written in place only)");
+      const item = panel.getByRole("group", { name: /^Options · 2/ });
+      const input = item.locator('[data-prop="label"] input').first();
+      await input.fill("Kanban");
+      await input.press("Enter");
+      await until(async () => /\{ id: "board", label: "Kanban" \}/.test(await ctx.text()), { message: "views[1].label in the const" });
+      return 'const views[1].label → "Kanban"';
     },
   },
 ];

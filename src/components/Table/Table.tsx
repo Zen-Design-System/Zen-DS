@@ -628,8 +628,9 @@ export function TableText({ children, caption, bold = false }: { children: React
 }
 
 /** Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a visual + Text-Cell (gap Small). The visual follows
- * the Subtext: Avatar/Photo/Dock Icon XSmall 24px (Icon base 20px) without a caption, Small 32px (Icon lg 28px) with one. */
-export function TableMedia({ media, children, caption, bold = true }: { media: ReactNode; children: ReactNode; caption?: ReactNode; bold?: boolean }) {
+ * the Subtext: Avatar/Photo/Dock Icon XSmall 24px (Icon base 20px) without a caption, Small 32px (Icon lg 28px) with one.
+ * `bold` (Figma Bold, default No in every media cell): the label in Body/Base/Bold instead of Body/Base/Regular. */
+export function TableMedia({ media, children, caption, bold = false }: { media: ReactNode; children: ReactNode; caption?: ReactNode; bold?: boolean }) {
   return (
     <span className="zen-table-media">
       <span className="zen-table-media__visual">{media}</span>

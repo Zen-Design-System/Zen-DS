@@ -27,6 +27,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./toast.css";
 
 export const page: PlatformPage = "toast";
@@ -139,7 +140,7 @@ const entries: Entry[] = [
   { id: "e5", person: "ava", project: "lumen-banking", hours: 132 },
 ];
 const entryColumns: TableColumn<Entry>[] = [
-  { id: "person", header: "Person", cell: (row) => <TableMedia media={<Avatar size="xs" {...avatarOf(people[row.person])} />}>{people[row.person].name}</TableMedia> },
+  { id: "person", header: "Person", cell: (row) => <TableMedia bold media={<Avatar size="xs" {...avatarOf(people[row.person])} />}>{people[row.person].name}</TableMedia> },
   { id: "project", header: "Project", cell: (row) => <TableText>{projectById(row.project).name}</TableText> },
   { id: "hours", header: "Hours", align: "right", width: "96px", cell: (row) => <TableText>{row.hours.toFixed(1)}</TableText> },
 ];
@@ -311,7 +312,7 @@ function PhoneToastExample() {
   const title = tabTitle[tab];
   return (
     <PlatformPhone label="Phin & Co" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title={title} largeTitle={title} scrollRef={screenRef} />}
+      header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
       footer={(
         <>
           <div className="px-toast-phone-host"><ToastStack inline toasts={toasts} onDismiss={dismiss} max={1} /></div>
@@ -351,7 +352,7 @@ function PhoneToastExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Undo a delete",
     description: "Deleting a file can be undone, so it happens at once and a Neutral toast offers Undo instead of asking first. Undo puts the file back in its place; delete them all and the list says so.",
@@ -433,7 +434,7 @@ const openTab = (next) => {
 };
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title={title} largeTitle={title} scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
   footer={<>
     <ToastStack inline toasts={toasts} onDismiss={dismiss} max={1} />
     <BottomNavigation items={tabs} value={tab} onValueChange={openTab} showLabels />
@@ -443,4 +444,4 @@ const openTab = (next) => {
   </Box>
 </PlatformPhone>`,
   },
-];
+]);

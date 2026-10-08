@@ -9,8 +9,9 @@ import { ChromePortalContext, ChromeScope } from "../shell/ChromeScope";
 import { canEdit, studioStore, useStudio } from "../store";
 import type { EditOp, SourceElement } from "../types";
 import { onSourceUpdate } from "./picker";
-import { noteEditTarget } from "./remap";
-import { areaLabel, areaState, fitColumn, freeLabel, kebab, type AreaState, type Box, type SpacingArea, type SpacingOwner } from "./spacing";
+import { liveSrc, noteEditTarget } from "./remap";
+import { areaLabel, areaState, fitColumn, freeLabel, kebab, tokenPx, type AreaState, type Box, type SpacingArea, type SpacingOwner } from "./spacing";
+import { useSpacingHover } from "./spacingHover";
 
 /*
  * The selected layout's padding and gap areas on the canvas (Figma-like). Each area is tinted; above the capture layer
@@ -20,6 +21,8 @@ import { areaLabel, areaState, fitColumn, freeLabel, kebab, type AreaState, type
  * label only. The areas are not tab stops: keyboard users edit spacing in the inspector's Layout section.
  * A Grid column wider than its only item shows its free space ("column 1 · 80 free", only where the source sizes that
  * column in px): a click offers Fit column to content, which writes the column at the item's width.
+ * A spacing field hovered or focused in the inspector (spacingHover) emphasises the areas its prop sets, labelled with
+ * the step it names; a 0 side or gap (`none`) is a thin band that shows only while hovered (spacing.ts ZERO_BAND).
  */
 
 type Props = {
@@ -55,8 +58,13 @@ function useOwnerSource(src: string | null, enabled: boolean): SourceElement | n
   useEffect(() => {
     const parsed = enabled && src ? parseSrc(src) : null;
     if (!parsed || !src) return undefined;
+    // Right after a write (an undo, a slot Clear) the canvas still shows the render before it, so a `src` read from it
+    // may name a place the file no longer has (GET /element 404 on a cleared host): it is read where the write put it.
+    const live = liveSrc(src);
+    const at = live ? parseSrc(live) : null;
+    if (!at) return undefined;
     let alive = true;
-    void studioApi.element(parsed.file, parsed.loc).then((element) => { if (alive) setRead({ src, element }); });
+    void studioApi.element(at.file, at.loc).then((element) => { if (alive) setRead({ src, element }); });
     return () => { alive = false; };
   }, [src, enabled, version, undo, redo]);
   return read && read.src === src ? read.element : null;
@@ -74,6 +82,7 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
   const [hovered, setHovered] = useState<number | null>(null);
   const [alt, setAlt] = useState(false);
   const [open, setOpen] = useState<OpenState | null>(null);
+  const fieldHover = useSpacingHover();
   const anchorRef = useRef<HTMLDivElement>(null);
   const src = owner?.src ?? null;
 
@@ -183,9 +192,15 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
   };
 
   if (!areas.length || !owner) return null;
-  const pillArea = hovered !== null && !(open && open.index === hovered) ? areas[hovered] : undefined;
+  // The inspector's hovered spacing field: the areas its prop sets (a side prop, or `padding` on every side via Alt).
+  const emphasis = fieldHover && fieldHover.src === owner.src ? fieldHover : null;
+  const emphasised = (area: SpacingArea) => Boolean(emphasis && area.kind !== "free" && (area.props.includes(emphasis.prop) || area.altProp === emphasis.prop));
+  const fieldArea = emphasis && hovered === null && !open ? areas.find(emphasised) : undefined;
+  const pillArea = hovered !== null && !(open && open.index === hovered) ? areas[hovered] : fieldArea;
   const pillState = pillArea ? areaState(pillArea, owner, attributes, alt) : null;
-  const pillText = pillArea && pillState ? (pillArea.kind === "free" ? freeLabel(pillArea) : areaLabel(pillArea, pillState)) : null;
+  const pillText = pillArea === fieldArea && fieldArea && emphasis
+    ? fieldLabel(fieldArea, owner, emphasis.prop, emphasis.key ?? null, pillState)
+    : pillArea && pillState ? (pillArea.kind === "free" ? freeLabel(pillArea) : areaLabel(pillArea, pillState)) : null;
   const openIndex = open && open.src === owner.src ? open.index : null;
 
   const items: PopoverItemData[] = openState && open?.mode === "picker" ? [
@@ -217,6 +232,8 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
           key={`t${index}`}
           className={area.kind === "gap" ? "studio-selection__gap" : area.kind === "free" ? "studio-selection__free" : "studio-selection__padding"}
           data-hover={hovered === index || openIndex === index ? "true" : undefined}
+          data-zero={area.zero ? "true" : undefined}
+          data-emphasis={emphasised(area) ? "true" : undefined}
           style={boxStyle(area)}
         />
       ))}
@@ -274,6 +291,13 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
       ) : null}
     </>
   );
+}
+
+/** The pill for an inspector field's hover: "gap · lg · 24" for the step it names, else the area as it is now. */
+function fieldLabel(area: SpacingArea, owner: SpacingOwner, prop: string, key: string | null, state: AreaState | null): string | null {
+  if (!key) return state ? areaLabel(area, state) : null;
+  const px = tokenPx(owner.host, area.scale, key);
+  return [kebab(prop), key, px === null ? null : formatPx(px)].filter(Boolean).join(" · ");
 }
 
 /** A bound value: what the source passes, instead of the picker. Escape or a press elsewhere closes it. */

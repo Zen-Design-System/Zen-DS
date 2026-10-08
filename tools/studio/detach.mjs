@@ -57,6 +57,9 @@ const PRIMITIVES = new Set(["Box", "Stack", "Grid", "Container", "Text", "Headin
 /* ── refusals ─────────────────────────────────────────────────────────────────────────────────────────────────────── */
 
 
+/** The component's own name: namespace JSX (`<Zen.ListItem>`) is the same component. */
+const localName = (name) => name.slice(name.lastIndexOf(".") + 1);
+
 function notDetachable(name) {
   if (!/^[A-Z]/.test(name)) return `<${name}> is plain markup already; only Zen components detach.`;
   if (PRIMITIVES.has(name)) return `<${name}> is a layout primitive already.`;
@@ -306,11 +309,14 @@ class Recipe {
       if (!attr) continue;
       // {false}, {null} and {undefined} turn the prop off: the instance is presentational.
       if (attr.kind === "expr" && NULLISH(attr.expression)) { this.consume(name); continue; }
+      // A bare identifier (`onClick={onClick}`, a handler passed in): the instance may render static here, but the
+      // detached markup would drop the handler; say where it comes from instead of calling the instance interactive.
+      if (attr.kind === "expr" && attr.expression?.type === "Identifier" && /^on[A-Z]/.test(name)) refuse(`This ${this.name} takes ${name} from \`${attr.expression.name}\` (a handler passed in): ${what}. It may render static here, but detaching would drop the handler; pass nothing for ${name} where the row is static, then detach.`);
       refuse(`This ${this.name} is interactive (${name}${attr.kind === "true" ? "" : "={…}"}): ${what}. Only presentational instances detach.`);
     }
   }
 
-  get name() { return jsxName(this.element.openingElement.name); }
+  get name() { return localName(jsxName(this.element.openingElement.name)); }
 
   /** A measured token key for `key` when it is valid for `kind`, else `fallback`. */
   m(key, kind, fallback) {
@@ -911,9 +917,11 @@ const PHRASING_TAGS = new Set(["span", "label", "strong", "em", "small", "b", "i
 /**
  * Badge / Tag render a <span>; the detached Box is a <div>. Inside a paragraph (<p>, <Text> as p) that is a DOM-nesting
  * error (refused); inside other phrasing content (a span, a heading, a label…) it is invalid HTML browsers still show
- * (an approximation). The nearest JSX element around it decides; inside an attribute value nothing is known.
+ * (an approximation). The JSX elements around it decide: phrasing ones are walked through to a paragraph further out
+ * (`<p><strong><Badge/></strong></p>` is refused too), anything else stops the walk; an attribute value is not judged.
  */
 function phrasingCheck(r) {
+  let flagged = false;
   for (let i = r.path.length - 2; i >= 0; i -= 1) {
     const node = r.path[i];
     if (node.type === "JSXAttribute") return;
@@ -928,8 +936,10 @@ function phrasingCheck(r) {
     }
     const where = name === "Text" ? `<Text${tag === "p" ? "" : ` as="${tag}"`}>` : `<${name}>`;
     if (tag === "p") refuse(`It sits inside a paragraph (${where}): the detached ${r.name} is a <div> Box, which a <p> cannot hold. Give the text as="div" or move the ${r.name.toLowerCase()} out of it before detaching.`);
-    if (PHRASING_TAGS.has(tag)) r.approx(`It sits inside ${where} (phrasing content): the detached <div> Box is invalid HTML there (browsers still show it).`);
-    return;
+    if (!PHRASING_TAGS.has(tag)) return;
+    // The nearest phrasing parent is the one named; a paragraph further out still refuses.
+    if (!flagged) r.approx(`It sits inside ${where} (phrasing content): the detached <div> Box is invalid HTML there (browsers still show it).`);
+    flagged = true;
   }
 }
 
@@ -1298,6 +1308,10 @@ function cssKeyedOnComponent(r, componentCss) {
 
 const TRANSPARENT = new Set(["JSXElement", "JSXFragment", "JSXExpressionContainer", "JSXAttribute", "JSXOpeningElement", "TSAsExpression", "TSNonNullExpression", "TSSatisfiesExpression", "ParenthesizedExpression"]);
 const isMapCallee = (callee) => (callee?.type === "MemberExpression" || callee?.type === "OptionalMemberExpression") && !callee.computed && callee.property.type === "Identifier" && callee.property.name === "map";
+/** Casts and parentheses a .map result passes through on its way to a method call. */
+const TS_WRAPPERS = new Set(["TSAsExpression", "TSNonNullExpression", "TSSatisfiesExpression", "ParenthesizedExpression"]);
+/** Array methods that reorder or cut the rows a .map made (the canvas order then differs from the callback index). */
+const REORDERS = new Set(["reverse", "sort", "toReversed", "toSorted", "filter", "slice", "splice", "toSpliced", "with"]);
 const WHERE = { ConditionalExpression: "a condition (? :)", LogicalExpression: "a condition (&& / ||)", IfStatement: "an if", CallExpression: "a function call", ArrayExpression: "an array", VariableDeclarator: "a variable", ObjectProperty: "an object", SwitchCase: "a switch" };
 
 /**
@@ -1320,6 +1334,15 @@ function mapContext(text, nodePath) {
     return { repeated: false };
   }
   if (mapAbove(at)) refuse("It is inside nested .map callbacks; detach supports one level of .map.");
+  // The row index is the instance's place on the canvas: true only while the rows render in the callback's order. A
+  // reorder or a cut after the map (`.map(…).reverse()`, `[...xs.map(…)].slice(1)`) would detach another row.
+  for (let i = at - 2; i >= 0; i -= 1) {
+    const node = nodePath[i];
+    if (TS_WRAPPERS.has(node.type) || node.type === "SpreadElement" || node.type === "ArrayExpression") continue;
+    const member = (node.type === "MemberExpression" || node.type === "OptionalMemberExpression") && !node.computed && node.object === nodePath[i + 1] ? node.property.name : null;
+    if (member && REORDERS.has(member)) refuse(`The .map result is reordered or cut afterwards (.${member}()), so the row on the canvas is not the callback's row index; detach it in the code.`);
+    break;
+  }
   const fn = nodePath[at];
   for (let i = at + 1; i < nodePath.length - 1; i += 1) {
     const node = nodePath[i];
@@ -1416,10 +1439,13 @@ function referenceCount(ast, name) {
 /**
  * Builder pages (GĐ4 M4: a *.zen.tsx page takes no `style`): the inline layouts the recipes write become Layout props
  * that render the same (layout.css): `width: max-content` capped at 100% is width="hug" (fit-content); `flex: 1` (with
- * `minWidth: 0`) in a recipe's Stack is Fill along that Stack (width in a row, height in a column). Any other style
- * refuses the detach on a page, saying which.
+ * `minWidth: 0`) in a recipe's Stack is Fill along that Stack (width in a row, height in a column). EmptyState's
+ * `min(320px, 100%)` centred column is Fill capped at 320 and centred (alignSelf), its bottom padding left out; a
+ * DescriptionList term's 50% cap is left out (it hugs its text, the value fills the rest). Both say so in the
+ * approximations (`r`). Any other style refuses the detach on a page, saying which.
  */
-function pageLayout(node, component, parent = null) {
+const EMPTY_STATE_STYLE = '{ width: "min(320px, 100%)", marginInline: "auto", paddingBottom: "var(--zen-spacing-padding-4-xlarge)" }';
+function pageLayout(node, component, r, parent = null) {
   if (!node || node.type !== "el") return;
   const at = node.props.findIndex((prop) => prop.name === "style");
   if (at >= 0) {
@@ -1427,22 +1453,30 @@ function pageLayout(node, component, parent = null) {
     const style = prop.kind === "code" ? prop.code.replace(/\s+/g, " ").trim() : null;
     const row = parent?.props.some((entry) => entry.kind === "str" && entry.name === "direction" && entry.value === "row");
     const inStack = Boolean(parent && /Stack$/.test(parent.tag));
-    const props = style === '{ width: "max-content", maxWidth: "100%" }' ? [str("width", "hug")]
+    let props = style === '{ width: "max-content", maxWidth: "100%" }' ? [str("width", "hug")]
       : (style === "{ flex: 1 }" || style === "{ flex: 1, minWidth: 0 }") && inStack ? [str(row ? "width" : "height", "fill")]
         : null;
+    if (!props && style === EMPTY_STATE_STYLE) {
+      props = [str("width", "fill"), code("maxWidth", "320"), str("alignSelf", "center")];
+      r.approx("On a builder page the 320px column is Fill with a 320 max width, centred inside a Stack only (alignSelf); its Padding/4XLarge bottom padding is left out.");
+    }
+    if (!props && style === '{ maxWidth: "50%" }' && row) {
+      props = [];
+      r.approx("On a builder page a term is not capped at half the row: it hugs its text and the value fills the rest.");
+    }
     if (!props) refuse(`${component} cannot be detached on a builder page yet: its layout needs an inline style${style ? ` (${style})` : ""}, which pages do not take`);
     node.props.splice(at, 1, ...props);
   }
   for (const child of node.children) {
-    if (child.type === "el") pageLayout(child, component, node);
-    else if (child.type === "guard") pageLayout(child.then, component, node);
-    else if (child.type === "map") pageLayout(child.item, component, node);
-    else if (child.type === "either") for (const side of [child.yes, child.no]) for (const item of side) pageLayout(item, component, node);
+    if (child.type === "el") pageLayout(child, component, r, node);
+    else if (child.type === "guard") pageLayout(child.then, component, r, node);
+    else if (child.type === "map") pageLayout(child.item, component, r, node);
+    else if (child.type === "either") for (const side of [child.yes, child.no]) for (const item of side) pageLayout(item, component, r, node);
   }
 }
 
 export function detachEdits(text, element, ast, { measured, instance, file, eol = text.includes("\r\n") ? "\r\n" : "\n", typographyKeys, plan = false, componentCss } = {}) {
-  const name = jsxName(element.openingElement.name);
+  const name = localName(jsxName(element.openingElement.name));
   const recipe = Object.hasOwn(RECIPES, name) ? RECIPES[name] : null;
   if (!recipe) refuse(notDetachable(name));
   const nodePath = pathTo(ast.program, element);
@@ -1454,7 +1488,10 @@ export function detachEdits(text, element, ast, { measured, instance, file, eol 
   const recipeContext = new Recipe(text, element, ast, nodePath, { measured: validMeasured(measured, keys), eol, file });
   const root = recipe.build(recipeContext);
   // A builder page takes no style (dialect.mjs): the recipes' inline layouts become the Layout props that render them.
-  if (typeof file === "string" && /\.zen\.tsx$/.test(file)) pageLayout(root, name);
+  if (typeof file === "string" && /\.zen\.tsx$/.test(file)) pageLayout(root, name, recipeContext);
+  // A builder page (the browser engine, no `componentCss`) needs none: the dialect takes no className, so no rule can
+  // key on the instance, and the library's own CSS on these classes styles only the parts the recipe rebuilds
+  // (checked 2026-10-08: src/components/**/*.css pairs them with no other component's class).
   const keyed = cssKeyedOnComponent(recipeContext, componentCss);
   for (const hit of keyed.slice(0, 4)) {
     recipeContext.approx(`CSS keyed on the ${name} class stops applying: ${hit.selector} (${hit.file}${hit.line ? `:${hit.line}` : ""}).`);

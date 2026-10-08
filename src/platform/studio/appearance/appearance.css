@@ -23,3 +23,9 @@
 .studio-effect__swatch[data-effect="effect-overlay"] { background: var(--zen-color-background-neutral-subtle-default, rgb(0 0 0 / 6%)); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
 .studio-effect__warning { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-warning-base, #8a5a00); }
 .studio-effect__warning > span { min-width: 0; flex: 1 1 auto; }
+.studio-effect__readonly { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-neutral-strongest); }
+.studio-effect__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-effect__from { display: flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-effect__settings { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-neutral-pale-default); color: var(--zen-color-content-neutral-base); }
+.studio-effect__settings p { margin: 0; }
+.studio-effect__settings-note { color: var(--zen-color-content-neutral-light); }

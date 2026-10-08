@@ -6,10 +6,11 @@ import { BottomSheet } from "../../../components/BottomSheet";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Chip } from "../../../components/Chip";
-import { DatePicker, type DatePickerRange, type DatePickerTime } from "../../../components/DatePicker";
+import { DatePicker, DatePickerSheet, type DatePickerRange, type DatePickerTime } from "../../../components/DatePicker";
 import { DescriptionList } from "../../../components/DescriptionList";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
+import { Icon } from "../../../components/Icon";
 import { Form, FormActions } from "../../../components/Form";
 import { InlineMessage } from "../../../components/InlineMessage";
 import { DateField, InputField, SelectField } from "../../../components/Input";
@@ -26,6 +27,7 @@ import {
   people, projectById, projects, type Invoice, type InvoiceStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./date-picker.css";
 
 export const page: PlatformPage = "date-picker";
@@ -429,7 +431,7 @@ function ReviewScheduleExample() {
   }
   return (
     <PlatformPhone key="new" label="New review" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="New review" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="New review" scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
       footer={<ActionBar position="static"
         summary={<Text as="span" textStyle="Body/Base/Medium" tone={date ? "strongest" : "base"}>{date ? when(date, time) : "No date yet"}</Text>}
@@ -459,9 +461,55 @@ function ReviewScheduleExample() {
   );
 }
 
+// ——— A stay on a phone: DatePickerSheet (Figma Date-Picker/Mobile) ————————————————————————————————————————————————————
+
+const NIGHTLY = 86.5;
+const nightsOf = (range: DatePickerRange | null) => (range?.start && range.end ? Math.round((range.end.getTime() - range.start.getTime()) / 86_400_000) : 0);
+
+function StayOnPhoneExample() {
+  const { toast } = useToast();
+  const screenRef = useRef<HTMLDivElement>(null);
+  const [stay, setStay] = useState<DatePickerRange | null>(null);
+  const [picking, setPicking] = useState(false);
+  const [draft, setDraft] = useState<DatePickerRange | null>(null);
+  const [pickup, setPickup] = useState("");
+  const nights = nightsOf(stay);
+  const draftNights = nightsOf(draft);
+  // Figma Footer-Actions Content: the price in Body/Extra/Bold over the rating line, or a hint before a range is picked.
+  const summary = (count: number) => (
+    <>
+      <Text as="span" textStyle="Body/Extra/Bold" tone={count ? "strongest" : "light"}>{count ? formatMoney(count * NIGHTLY) : "Add dates for prices"}</Text>
+      <Stack direction="row" gap="3xs" align="center">
+        <Icon name="icon-star-01-solid" size="sm" decorative />
+        <Text as="span" textStyle="Body/Small/Bold" tone="strongest">4.9</Text>
+        {count ? <Text as="span" textStyle="Body/Small/Regular" tone="light">· {plural(count, "night")}</Text> : null}
+      </Stack>
+    </>
+  );
+  return (
+    <PlatformPhone label="Saola Lodge" headerOverlay screenRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Saola Lodge" scrollRef={screenRef} />}
+      footer={<ActionBar position="static" summary={summary(nights)}
+        primaryAction={{ label: "Reserve", disabled: !nights, onClick: () => { if (stay?.start && stay.end) toast({ type: "positive", title: "Stay reserved", children: `${formatRange(stay.start, stay.end)} · ${plural(nights, "night")}` }); } }} />}>
+      <Stack gap="lg" padding="lg">
+        <ListBox>
+          <List aria-label="Your stay">
+            <ListItem title="Dates" caption={stay?.start && stay.end ? `${formatRange(stay.start, stay.end)} · ${plural(nights, "night")}` : "Add your check-in and check-out"}
+              leading="icon-calendar-line" trailing={<Icon name="icon-chevron-right-line-small" decorative />} onClick={() => { setDraft(stay); setPicking(true); }} />
+          </List>
+        </ListBox>
+        {/* On a phone a DateField opens the same sheet (Variant=Single) instead of the desktop popover. */}
+        <DateField size="lg" label="Airport pickup" today={TODAY} minDate={TODAY} value={pickup} onValueChange={setPickup} helpText="Optional. We meet you at arrivals." />
+      </Stack>
+      <DatePickerSheet open={picking} onOpenChange={setPicking} selectionMode="range" title="Your stay" today={TODAY} minDate={TODAY} monthCount={6}
+        range={stay} onRangeChange={setDraft} onApply={(_, range) => setStay(range)} summary={summary(draftNights)} />
+    </PlatformPhone>
+  );
+}
+
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Due date",
     description: "A DateField takes a typed date or opens the calendar on focus; the help text turns the date into what it means for the task. A date that can't be read, or one in the past, is an error on Create task.",
@@ -554,6 +602,10 @@ const [month, setMonth] = useState(august);
     description: "The start date is Read-only: people can read and copy it, and it never opens a calendar. The end date is Disabled while the contract is permanent, and its help text says why.",
     render: () => <ContractDatesExample />,
     code: `<Form onSubmit={save} gap="md">
+  {/* The person is a List row: no side padding of its own, so its text lines up with the fields */}
+  <List aria-label="Employee">
+    <ListItem title={person.name} caption={\`\${person.role} · \${person.location}\`} leading={<Avatar size="md" {...avatarOf(person)} />} />
+  </List>
   <SelectField label="Contract type" options={types} value={type} onValueChange={setType} />
   <DateField label="Start date" defaultValue="09/01/2026" readOnly today={today}
     helpText="Set when the contract was signed." />
@@ -572,11 +624,30 @@ const [date, setDate] = useState<Date | null>(null);
 const [month, setMonth] = useState(firstFreeMonth); // today is the 30th: open on October
 const [time, setTime] = useState<DatePickerTime>({ from: "14:00", to: "14:30" });
 
-// One key per screen; the Reviews root has a large title that folds over the weeks of reviews. Its weeks are a grouped
-// list: <PlatformPhone key="list" canvas="alt"> with TopNavigation type="alt", each week a white
-// <ListBox> around its List of static rows, under a kicker in <Box paddingX="lg">.
+// One key per screen; the Reviews root has a large title that folds over the weeks of reviews (a grouped list).
+<PlatformPhone key="list" canvas="alt" headerOverlay screenRef={screenRef}
+  header={<TopNavigation type="alt" title="Reviews" largeTitle="Reviews" scrollRef={screenRef}
+    trailing={[{ icon: "icon-plus-line", label: "New review", onClick: openNew }]} />}>
+  <Stack gap="lg" padding="lg">
+    {weeks.map((week) => (
+      <Stack key={week.label} as="section" gap="xs" aria-labelledby={week.id}>
+        <Box paddingX="lg"><Heading level={2} id={week.id} textStyle="Body/Small/Bold" tone="light">{week.label}</Heading></Box>
+        <ListBox>
+          <List aria-labelledby={week.id}>
+            {week.rows.map((review) => (
+              <ListItem key={review.id} title={review.name} caption={when(review.date, review.time)}
+                leading={<DockIcon icon={review.project.icon} theme={review.project.theme} background="subtle" label={review.project.name} />} />
+            ))}
+          </List>
+        </ListBox>
+      </Stack>
+    ))}
+  </Stack>
+</PlatformPhone>
+
+// New review: a child screen, compact with Back
 <PlatformPhone key="new" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="New review" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="New review" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => (dirty ? setDiscarding(true) : toList()) }} />}
   footer={<ActionBar position="static"
     summary={<Text as="span" textStyle="Body/Base/Medium" tone={date ? "strongest" : "base"}>{date ? when(date, time) : "No date yet"}</Text>}
@@ -590,4 +661,31 @@ const [time, setTime] = useState<DatePickerTime>({ from: "14:00", to: "14:30" })
   </Form>
 </PlatformPhone>`,
   },
-];
+  {
+    title: "A stay on a phone",
+    description: "On a phone dates open in a Bottom Sheet (Figma Date-Picker/Mobile). The stay's months scroll one under another with the weekdays pinned on top; the footer prices the nights as you pick and OK applies the range. The pickup date is a DateField, which opens the one-month sheet with Cancel and OK on a phone.",
+    render: () => <StayOnPhoneExample />,
+    code: `const [stay, setStay] = useState<DatePickerRange | null>(null);
+const [draft, setDraft] = useState<DatePickerRange | null>(null); // priced while picking
+const nights = nightsOf(draft);
+
+<ListBox>
+  <List aria-label="Your stay">
+    <ListItem title="Dates" caption={stay ? formatRange(stay.start, stay.end) : "Add your check-in and check-out"}
+      leading="icon-calendar-line" trailing={<Icon name="icon-chevron-right-line-small" decorative />}
+      onClick={() => { setDraft(stay); setPicking(true); }} />
+  </List>
+</ListBox>
+{/* A DateField on a phone opens the one-month sheet (Cancel / OK) by itself. */}
+<DateField size="lg" label="Airport pickup" value={pickup} onValueChange={setPickup} />
+
+<DatePickerSheet open={picking} onOpenChange={setPicking} selectionMode="range" title="Your stay"
+  minDate={today} monthCount={6} range={stay} onRangeChange={setDraft} onApply={(_, range) => setStay(range)}
+  summary={<>
+    <Text as="span" textStyle="Body/Extra/Bold" tone={nights ? "strongest" : "light"}>
+      {nights ? formatMoney(nights * nightly) : "Add dates for prices"}
+    </Text>
+    <Text as="span" textStyle="Body/Small/Regular" tone="light">★ 4.9 · {plural(nights, "night")}</Text>
+  </>} />`,
+  },
+]);

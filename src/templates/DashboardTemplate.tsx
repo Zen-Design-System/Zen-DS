@@ -423,7 +423,7 @@ export function DashboardTemplate() {
   const statusLabel = statusFilter.length === 1 ? statusFilter[0] : "Status";
 
   const columns: TableColumn<Row>[] = [
-    { id: "project", header: "Project", sortable: true, cell: (row) => <TableMedia media={clientMark(row.client, "sm")} caption={clients[row.client].name}>{row.name}</TableMedia> },
+    { id: "project", header: "Project", sortable: true, cell: (row) => <TableMedia bold media={clientMark(row.client, "sm")} caption={clients[row.client].name}>{row.name}</TableMedia> },
     { id: "revenue", header: "Revenue", width: "128px", align: "right", sortable: true, cell: (row) => <TableText>{money(row.earned)}</TableText> },
     { id: "status", header: "Status", width: "136px", sortable: true, cell: (row) => <TableBadges><Badge theme={healthTheme[row.health]} background="subtle">{row.health}</Badge></TableBadges> },
   ];

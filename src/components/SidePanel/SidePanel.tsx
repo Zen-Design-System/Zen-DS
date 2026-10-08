@@ -1,12 +1,12 @@
-import { useEffect, useId, useRef, type ReactElement, type ReactNode } from "react";
+import { useContext, useEffect, useId, useRef, type ReactElement, type ReactNode } from "react";
 import { usePresence } from "../Motion";
 import { ZenPortal } from "../Portal";
 import { IconButton } from "../Button";
 import { ModalActions, type DialogAction } from "../Dialog";
-import { useModal } from "../Dialog/Dialog";
+import { modalIsOpen, openPopupTrigger, useModal } from "../Dialog/Dialog";
 import { Icon, type IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
-import { useOverlayOpen, type OverlayOpenProps } from "../_shared/overlay";
+import { InlineOverlayContext, useOverlayOpen, type OverlayOpenProps } from "../_shared/overlay";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./side-panel.css";
@@ -41,7 +41,8 @@ export interface SidePanelProps extends OverlayOpenProps {
 
 /**
  * Figma Side-Panel (1573:3128). Standard: a full-height Surface column with a 1px Border/Neutral/Pale left edge, rendered
- * in place (the page layout docks it). Modal: a floating Background/Container panel (Corner-Radius/XLarge, Container
+ * in place (the page layout docks it); Escape closes it (from the panel or the page beside it) and focus returns to the
+ * opener. Modal: a floating Background/Container panel (Corner-Radius/XLarge, Container
  * border, Effect/Container) 8px from the viewport edge over the scrim; focus is trapped and returns to the opener.
  * Header (Modal-Padding, gap Medium): title (Standard Heading/3, Modal Heading/4 under the 44px icon) · caption; the close
  * button is pinned to the header's top-right corner; Contents; Modal/Actions footer.
@@ -53,15 +54,39 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
   const id = useId().replace(/:/g, "");
   const panelRef = useRef<HTMLElement>(null);
   const modal = type === "modal";
+  const inline = useContext(InlineOverlayContext);
   // Modal: the shared Dialog/ModalForm focus trap (autofocus, Tab trap, Escape, scroll lock, focus return).
   useModal(open && modal, panelRef, dismissible, onOpenChange, "[data-autofocus], .zen-side-panel__close");
-  // Standard (non-modal): Escape closes only while focus is inside the panel.
+  // Standard (non-modal): Escape closes the docked panel from inside it and from the page beside it (the row that opened
+  // it), unless an inner popup or a modal owns the key or the press was in a text field on the page. Closing returns focus
+  // to the opener when focus was in the panel (or fell to the body as it closed). Listeners on window, as useModal's, so
+  // document-level popup handlers have their turn first.
+  const openerRef = useRef<Element | null>(null);
+  const closable = !modal && Boolean(onOpenChangeProp || onClose);
   useEffect(() => {
-    if (!open || modal) return undefined;
-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape" && panelRef.current?.contains(document.activeElement)) { event.preventDefault(); onOpenChange(false); } };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, modal, onOpenChange]);
+    if (!open || !closable) return undefined;
+    openerRef.current = document.activeElement;
+    let popupEscape: Event | null = null;
+    const onKeyCapture = (event: KeyboardEvent) => { popupEscape = event.key === "Escape" && event.target instanceof Element && event.target.matches(openPopupTrigger) ? event : null; };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented || event === popupEscape || modalIsOpen()) return;
+      const target = event.target instanceof Element ? event.target : null;
+      const inside = Boolean(target && panelRef.current?.contains(target));
+      if (!inside && target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      event.preventDefault();
+      onOpenChange(false);
+    };
+    window.addEventListener("keydown", onKeyCapture, true);
+    window.addEventListener("keydown", onKey);
+    const panel = panelRef.current;
+    return () => {
+      window.removeEventListener("keydown", onKeyCapture, true);
+      window.removeEventListener("keydown", onKey);
+      const active = document.activeElement;
+      const opener = openerRef.current;
+      if (opener instanceof HTMLElement && opener.isConnected && (!active || active === document.body || panel?.contains(active))) opener.focus();
+    };
+  }, [open, closable, onOpenChange]);
   // Stay mounted while the exit animation plays; focus return / scroll unlock already ran when `open` went false.
   const { mounted, phase } = usePresence(open, modal ? 200 : 120);
   if (!mounted) return null;
@@ -75,6 +100,7 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
       aria-hidden={closing || undefined}
       className={["zen-side-panel", className].filter(Boolean).join(" ")}
       data-type={type}
+      data-closable={closable || undefined}
       data-size={size}
       role={modal ? "dialog" : "complementary"}
       aria-modal={modal || undefined}
@@ -99,7 +125,6 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
   );
   if (!modal) return panel;
   if (typeof document === "undefined") return null;
-  return (
-    <ZenPortal><div className="zen-side-panel-overlay" data-state={phase} onPointerDown={(event) => { if (!closing && dismissible && event.target === event.currentTarget) onOpenChange(false); }}>{panel}</div></ZenPortal>
-  );
+  const overlay = <div className="zen-side-panel-overlay" data-state={phase} onPointerDown={(event) => { if (!closing && dismissible && event.target === event.currentTarget) onOpenChange(false); }}>{panel}</div>;
+  return inline ? overlay : <ZenPortal>{overlay}</ZenPortal>;
 }

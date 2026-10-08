@@ -57,7 +57,8 @@ describe("BottomNavigation idle labels", () => {
       // The icon stays Content/Placeholder (Figma 4060:26507, Select=No): it is the item's colour, not the label's.
       const placeholder = getComputedStyle(nav).getPropertyValue("--zen-color-content-placeholder").trim();
       expect(placeholder).not.toBe("");
-      expect(getComputedStyle(idle).color).not.toBe(getComputedStyle(label).color);
+      // Polled: under a loaded full run the item's 120ms colour transition can still be on its first frame here.
+      await expect.poll(() => getComputedStyle(idle).color !== getComputedStyle(label).color).toBe(true);
       const selectedLabel = document.querySelector<HTMLElement>(".zen-bottom-nav__item[data-selected='true'] .zen-bottom-nav__label")!;
       expect(getComputedStyle(selectedLabel).color).toBe(getComputedStyle(selectedLabel.parentElement!).color);
     });

@@ -29,6 +29,7 @@ import {
   taskStatusTheme, type InvoiceStatus, type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./description-list.css";
 
 export const page: PlatformPage = "description-list";
@@ -463,7 +464,7 @@ function PhoneReceipts() {
   const total = totalOf(last);
   return (
     <PlatformPhone key="orders" label="Phin & Co orders" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
       {screen.anchor}
       {/* The rows sit in the screen margin (Margin/Comfortable, 20px), so their fill stays 8px off the screen edge; Padding/XSmall (8px, the phone's List-Container-Vertical-Padding) above and below, like a List-Box. */}
       <Box paddingX="lg" paddingY="xs">
@@ -497,7 +498,7 @@ function PhoneReceipts() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Invoice total",
     description: "An inline list closes the calculation with one emphasised row, the total, under a High rule. The discount keeps its minus sign and sits as a removable label beside its term while the invoice is a draft, so every amount, the total and Send invoice share one end edge; once it is sent, the rows are read-only.",
@@ -580,7 +581,7 @@ export const examples: ExampleDef[] = [
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key="orders" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
   <Box paddingX="lg" paddingY="xs"> {/* the screen margin: rows 20px from the edge; Padding/XSmall above and below, like a List-Box */}
     <List aria-label="Orders">
       {orders.map((order) => (
@@ -687,4 +688,4 @@ const retry = () => { titleRef.current?.focus(); load(opened.id); };
   </Card>
 </Grid>`,
   },
-];
+]);

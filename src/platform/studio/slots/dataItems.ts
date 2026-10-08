@@ -152,7 +152,7 @@ export type SourceItems =
   /** A literal the Studio edits: one ObjectShape per item, in order. */
   | { state: "items"; items: ObjectShape[] }
   /** Anything else (a variable, a condition, a spread or a non-object item): read-only, with the code it comes from. */
-  | { state: "computed"; code: string };
+  | { state: "computed"; code: string; via?: string };
 
 const NULLISH = /^(null|undefined|false)$/;
 
@@ -163,6 +163,9 @@ export function sourceItems(element: SourceElement, slot: DataSlot): SourceItems
   const code = (attr.value ?? "").trim();
   if (attr.kind !== "expression") return { state: "computed", code: attr.raw };
   if (!code || NULLISH.test(code)) return { state: "empty", code };
+  // A list a same-file const holds (`options={views}`, its shape read there: shapeVia): its fields edit in the const, but
+  // the item ops add and remove items of lists written in place only.
+  if (attr.shapeVia) return { state: "computed", code, via: attr.shapeVia.name };
   const shape = attr.shape;
   const oneObject = shape?.type === "object" && !shape.fields.some((field) => field.kind === "spread");
   if (slot.form === "object" || (slot.form === "list" && shape?.type === "object")) return oneObject ? { state: "items", items: [shape] } : { state: "computed", code };
@@ -172,7 +175,9 @@ export function sourceItems(element: SourceElement, slot: DataSlot): SourceItems
 }
 
 /** "trailing={actions}" for a read-only caption (one line, at most 40 characters of code). */
-export function computedCaption(slot: DataSlot, code: string): string {
+export function computedCaption(slot: DataSlot, code: string, via?: string): string {
+  // A same-file const's list: its fields edit in Properties, adding or removing an item is the code's.
+  if (via) return `Its items are written in const ${via}: edit their fields below; add or remove them in the code`;
   const flat = code.replace(/\s+/g, " ").trim();
   return `Its items come from {${flat.length > 40 ? `${flat.slice(0, 39)}…` : flat}} — edit them in the code`;
 }

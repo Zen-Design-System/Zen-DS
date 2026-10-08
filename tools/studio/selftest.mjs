@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Zen Studio selftest: the pure source helpers (tools/studio/jsx-source.mjs, detach.mjs, drafts.mjs) without a server. The detach
-// section also runs style-guard and usage-guard on its outputs through a temporary file in src/platform/examples/drafts.
+// and wrap sections also run style-guard and usage-guard on their outputs (a short-lived file in src/platform/examples/drafts)
+// and tsc (samples in node_modules/.cache, out of the app's tsc and the dev server's watch): guardOutputs.
 // The wrap section tests op "wrap" (the element inside a Box/Stack/Grid, the Layout import, the snippet), then `with` (siblings).
 //   node tools/studio/selftest.mjs        prints a summary, exits 1 on any failure
 import { spawnSync } from "node:child_process";
@@ -28,6 +29,78 @@ const edit = (code, loc, name, ops) => {
 };
 const describe = (code, loc) => describeElement(code, "src/platform/x.tsx", loc);
 const lines = (...rows) => rows.join("\n");
+
+/**
+ * The guards on an op's outputs (detach, wrap): no new style-guard or usage-guard finding per { label, before, after,
+ * allow? (usage keys "rule|Tag" a sample may add, each with its reason where it is pushed) },
+ * and TypeScript (the repo's tsconfig) on each { label, code, expect?, before?, file? }: no error, exactly the expected
+ * codes, or (with `before`, the op's input) no error code the input did not have already.
+ * Style-guard reads a file, so one short-lived draft goes to src/platform/examples/drafts; the tsc samples go to
+ * node_modules/.cache (out of `tsc -p .`'s src and the dev server's watch, so a parallel run never sees them), their
+ * relative imports pointed at the folder of the file they were written for (`file`, else src/platform/examples/pages).
+ */
+async function guardOutputs(repo, prefix, guardSamples, tscSamples) {
+  const { checkFile } = await import(pathToFileURL(path.join(repo, "tools/style-guard/check-styles.mjs")).href);
+  const { rules } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/check-usage.mjs")).href);
+  const { createChecker } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/engine.mjs")).href);
+  const usage = createChecker(rules, { consumer: false, css: false });
+  const draftDir = path.join(repo, "src/platform/examples/drafts");
+  const draft = `src/platform/examples/drafts/zen-studio-${prefix}-selftest-${process.pid}.tsx`;
+  const count = (list) => list.reduce((map, key) => map.set(key, (map.get(key) ?? 0) + 1), new Map());
+  const fresh = (before, after) => [...count(after)].filter(([key, n]) => n > (count(before).get(key) ?? 0)).map(([key]) => key);
+  const created = !fs.existsSync(draftDir);
+  try {
+    fs.mkdirSync(draftDir, { recursive: true });
+    for (const sample of guardSamples) {
+      fs.writeFileSync(path.join(repo, draft), sample.before);
+      const styleBefore = checkFile(draft).map((finding) => `${finding.rule}|${finding.context}`);
+      fs.writeFileSync(path.join(repo, draft), sample.after);
+      const styleAfter = checkFile(draft).map((finding) => `${finding.rule}|${finding.context}`);
+      check(`${prefix} guards ${sample.label}: style-guard`, fresh(styleBefore, styleAfter), []);
+      const usageKeys = (text) => usage.checkFile(text, draft).map((finding) => `${finding.rule.id}|${finding.tag}`);
+      check(`${prefix} guards ${sample.label}: usage-guard`, fresh(usageKeys(sample.before), usageKeys(sample.after)).filter((key) => !(sample.allow ?? []).includes(key)), []);
+    }
+  } finally {
+    fs.rmSync(path.join(repo, draft), { force: true });
+    if (created) fs.rmSync(draftDir, { recursive: true, force: true });
+  }
+  if (!tscSamples.length) return;
+  const tscBin = (() => {
+    try { return path.join(path.dirname(createRequire(path.join(repo, "package.json")).resolve("typescript/package.json")), "bin/tsc"); } catch { return null; }
+  })();
+  ok(`${prefix} tsc: typescript found`, tscBin && fs.existsSync(tscBin));
+  if (!tscBin || !fs.existsSync(tscBin)) return;
+  const dir = path.join(repo, "node_modules/.cache", `zen-studio-${prefix}-tsc-${process.pid}`);
+  const names = tscSamples.map((_, i) => `sample-${i}.tsx`);
+  const inputs = tscSamples.map((sample, i) => (sample.before === undefined ? null : `input-${i}.tsx`));
+  const absolute = (code, file) => {
+    const base = path.dirname(path.join(repo, file ?? "src/platform/examples/pages/sample.tsx"));
+    return code.replace(/^\uFEFF/, "").replace(/(from\s+|import\s*\(\s*)(["'])(\.\.?\/[^"']+)\2/g, (_, lead, quote, spec) => `${lead}${quote}${path.resolve(base, spec).split(path.sep).join("/")}${quote}`);
+  };
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    tscSamples.forEach((sample, i) => {
+      fs.writeFileSync(path.join(dir, names[i]), absolute(sample.code, sample.file));
+      if (inputs[i]) fs.writeFileSync(path.join(dir, inputs[i]), absolute(sample.before, sample.file));
+    });
+    fs.writeFileSync(path.join(dir, "tsconfig.json"), JSON.stringify({ extends: path.join(repo, "tsconfig.json"), include: [path.join(repo, "src/vite-env.d.ts"), ...names, ...inputs.filter(Boolean)] }));
+    const run = spawnSync(process.execPath, [tscBin, "-p", path.join(dir, "tsconfig.json"), "--pretty", "false"], { encoding: "utf8" });
+    ok(`${prefix} tsc: ran`, !run.error && run.status !== null);
+    const output = `${run.stdout ?? ""}${run.stderr ?? ""}`.split(/\r?\n/);
+    const mine = (line, name) => line.startsWith(`${name}(`) || line.includes(`/${name}(`);
+    const outside = output.filter((line) => /error TS\d+/.test(line) && ![...names, ...inputs].some((name) => name && mine(line, name)));
+    check(`${prefix} tsc: no errors outside the samples`, outside, []);
+    const codesOf = (name) => output.filter((line) => mine(line, name)).map((line) => /error (TS\d+)/.exec(line)?.[1]).filter(Boolean);
+    tscSamples.forEach((sample, i) => {
+      const codes = codesOf(names[i]);
+      if (!inputs[i]) { check(`${prefix} tsc ${sample.label}`, codes, sample.expect ?? []); return; }
+      const had = codesOf(inputs[i]);
+      check(`${prefix} tsc ${sample.label}: no new error`, codes.filter((code) => { const at = had.indexOf(code); if (at < 0) return true; had.splice(at, 1); return false; }), []);
+    });
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
 
 /* ── annotate ───────────────────────────────────────────────────────────────────────────────────────────────────── */
 {
@@ -205,6 +278,16 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
   check("removeProp: shares a line with >", edit(lines("<Button", "  level=\"primary\"", "  size=\"sm\">", "  x", "</Button>;"), "1:0", "Button", [{ op: "removeProp", name: "size" }]), lines("<Button", "  level=\"primary\">", "  x", "</Button>;"));
   check("removeProp: multi-line attribute", edit(lines("<Button", "  onClick={() => {", "    go();", "  }}", "  size=\"sm\"", "/>;"), "1:0", "Button", [{ op: "removeProp", name: "onClick" }]), lines("<Button", "  size=\"sm\"", "/>;"));
   check("removeProp: absent → no change", applyOps('<A b="1" />;', "1:0", "A", [{ op: "removeProp", name: "c" }]).code, '<A b="1" />;');
+{
+  // A // comment after the last attribute stays on its line (backlog 2026-10-03: setProp moved it onto the new one).
+  const commented = lines("const x = (", "  <A", '    b="1" // why', "  />", ");");
+  const added = edit(commented, "2:2", "A", [{ op: "setProp", name: "c", value: { kind: "boolean", value: true } }]);
+  check("setProp after a // comment: the comment stays", added, lines("const x = (", "  <A", '    b="1" // why', "    c", "  />", ");"));
+  check("removeProp of it: the text as it was", edit(added, "2:2", "A", [{ op: "removeProp", name: "c" }]), commented);
+  const closing = lines("const x = (", '  <A b="1"', '    d="2" />', ");");
+  const withProp = edit(closing, "2:2", "A", [{ op: "setProp", name: "c", value: { kind: "boolean", value: true } }]);
+  check("setProp then removeProp on a tag closed on its last line: the same text", edit(withProp, "2:2", "A", [{ op: "removeProp", name: "c" }]), closing);
+}
   check("removeProp: own line before ` />` joins the line above", edit(lines("<Avatar", "  size=\"md\"", "  status />;"), "1:0", "Avatar", [{ op: "removeProp", name: "status" }]), lines("<Avatar", "  size=\"md\" />;"));
   check("removeProp: before ` />` under a // comment keeps the line", edit(lines("<Avatar", "  size=\"md\" // why", "  status />;"), "1:0", "Avatar", [{ op: "removeProp", name: "status" }]), lines("<Avatar", "  size=\"md\" // why", "  />;"));
   check("removeProp: before another attribute keeps its line", edit(lines("<Avatar", "  status size=\"md\" />;"), "1:0", "Avatar", [{ op: "removeProp", name: "status" }]), lines("<Avatar", "  size=\"md\" />;"));
@@ -225,7 +308,19 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     ["a spread on its own line", lines("<Avatar", "  size=\"md\"", "  {...props} />;")],
     ["CRLF, ` />` after the last", "<Avatar\r\n  size=\"md\"\r\n  name=\"Ann\" />;"],
     ["tabs, `/>` on its own line", "<Avatar\n\tsize=\"md\"\n/>;"],
+    ["a // comment after the last attribute", lines("<Avatar", "  size=\"md\" // why", "/>;")],
+    ["a // comment after an inline last attribute", lines("<Avatar size=\"md\" // why", "/>;")],
   ]) check(`round trip setProp → removeProp: ${label}`, toggle(code), [true, code]);
+  check("setProp: a trailing // comment stays on its attribute's line", edit(lines("<Avatar", "  size=\"md\" // why", "/>;"), "1:0", "Avatar", [{ op: "setProp", name: "status", value: { kind: "boolean", value: true } }]), lines("<Avatar", "  size=\"md\" // why", "  status", "/>;"));
+  // `before` (2026-10-08): a playground's restore puts the saved attribute back in front of what follows it there.
+  const placed = (code, before) => edit(code, "1:0", "Avatar", [{ op: "setProp", name: "status", value: { kind: "boolean", value: true }, before }]);
+  check("setProp before: inline, in front of the named attribute", placed('<Avatar size="md" name="Ann" />;', "name"), '<Avatar size="md" status name="Ann" />;');
+  check("setProp before: own lines keep one per line", placed(lines("<Avatar", "  size=\"md\"", "  name=\"Ann\"", "/>;"), "size"), lines("<Avatar", "  status", "  size=\"md\"", "  name=\"Ann\"", "/>;"));
+  check("setProp before: \"…\" names the first spread; an absent name falls back", [placed('<Avatar {...a} size="md" />;', "…"), placed('<Avatar size="md" />;', "gone")], ['<Avatar status {...a} size="md" />;', '<Avatar size="md" status />;']);
+  check("round trip removeProp → setProp before: the file as it was", (() => {
+    const code = lines("<Avatar", "  size=\"md\"", "  status", "  name=\"Ann\"", "/>;");
+    return placed(edit(code, "1:0", "Avatar", [{ op: "removeProp", name: "status" }]), "name") === code;
+  })(), true);
 }
 
 /* ── state-bound props: SourceAttr.state + setStateInit (edits keep behaviour, 2026-10-05) ───────────────────────── */
@@ -299,6 +394,57 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
   check("origin: an array literal gives rows", origins(2).status, { kind: "loop-bound", reads: ["n"], rows: 2 });
   check("origin: a local const of the row, no rows for a non-literal array", origins(3).status, { kind: "loop-bound", reads: ["on"] });
   check("origin: a .map parameter shadows state", origins(4).status, { kind: "loop-bound", reads: ["active"], rows: 1 });
+  // for-of / for-in / for bindings are rows like .map's (2026-10-08); a catch parameter is a plain value.
+  const loops = lines(
+    "const PEOPLE = [{ id: 1 }, { id: 2 }, { id: 3 }];",
+    "export function Rows({ one }: Props) {",
+    "  const [active] = useState(0);",
+    "  const out = [];",
+    "  for (const person of PEOPLE) { const on = person.on; out.push(<Avatar status={on} both={active === person.id} />); }",
+    "  for (const key in one) out.push(<Avatar status={key} />);",
+    "  for (let i = 0; i < 2; i += 1) out.push(<Avatar status={i} />);",
+    "  try { go(); } catch (error) { out.push(<Avatar status={error} />); }",
+    "  return <>{out}{[1, 2].map((n) => PEOPLE.map((p) => <Avatar status={p.on} />))}{Array.from({ length: 4 }, (_, k) => <Avatar status={k} />)}{one.items.forEach((item) => out.push(<Avatar status={item} />))}</>;",
+    "}",
+  );
+  const loopOrigin = (nth) => {
+    let index = -1;
+    for (let k = 0; k <= nth; k += 1) index = loops.indexOf("<Avatar", index + 1);
+    const before = loops.slice(0, index);
+    return describe(loops, `${before.split("\n").length}:${index - before.lastIndexOf("\n") - 1}`).attributes.map((attr) => attr.origin ?? null);
+  };
+  check("origin: a for-of binding (through a body const) → loop-bound with its array's rows; state still wins", loopOrigin(0), [{ kind: "loop-bound", reads: ["on"], rows: 3 }, { kind: "bound-state", reads: ["active", "person"] }]);
+  check("origin: for-in and C-style for bindings → loop-bound, rows unknown", [loopOrigin(1)[0], loopOrigin(2)[0]], [{ kind: "loop-bound", reads: ["key"] }, { kind: "loop-bound", reads: ["i"] }]);
+  check("origin: a catch parameter → bound-value", loopOrigin(3)[0], { kind: "bound-value", reads: ["error"] });
+  check("origin: nested loops multiply their rows", loopOrigin(4)[0], { kind: "loop-bound", reads: ["p"], rows: 6 });
+  check("origin: Array.from({ length }) and forEach callbacks are loops", [loopOrigin(5)[0], loopOrigin(6)[0]], [{ kind: "loop-bound", reads: ["k"], rows: 4 }, { kind: "loop-bound", reads: ["item"] }]);
+  // stateReads (2026-10-08): the useState pairs a copied layer reads, as pasteCode's `state` takes them.
+  const stateful = lines(
+    "export function S() {",
+    "  const [open, setOpen] = useState(false);",
+    "  const [tab, setTab] = useState<\"a\" | \"b\">(\"a\");",
+    "  const [rows] = useState(load());",
+    "  const [n, bump] = useState(0);",
+    "  const box = useRef<HTMLDivElement>(null);",
+    "  return <Stack><Button onClick={() => setOpen(true)}>{tab}</Button><Dialog ref={box} open={open} rows={rows} n={n} onClose={(open) => open} /></Stack>;",
+    "}",
+  );
+  check("stateReads: literal pairs with a set+Name setter, type kept; computed or oddly named left out", describe(stateful, "7:9").stateReads, [{ name: "open", initial: "false" }, { name: "tab", initial: "\"a\"", type: "\"a\" | \"b\"" }, { name: "box", initial: "null", type: "HTMLDivElement", ref: true }]);
+  check("stateReads: none → absent", "stateReads" in describe(lines("export function P() {", "  const [open] = useState(false);", "  return <Text>Plain</Text>;", "}"), "3:9"), false);
+  // A render function's parameter fed by a state attribute of the same element (2026-10-08): bound-state.
+  const table = lines(
+    "export function T({ plain }: Props) {",
+    "  const [features, setFeatures] = useState([{ on: true }]);",
+    "  return <><Table rows={features} columns={[{ id: \"on\", cell: (feature) => <Toggle checked={feature.on} /> }]} /><Table rows={plain} columns={[{ id: \"on\", cell: (row) => <Toggle checked={row.on} /> }]} /></>;",
+    "}",
+  );
+  const cellOrigin = (nth) => {
+    let index = -1;
+    for (let k = 0; k <= nth; k += 1) index = table.indexOf("<Toggle", index + 1);
+    const before = table.slice(0, index);
+    return describe(table, `${before.split("\n").length}:${index - before.lastIndexOf("\n") - 1}`).attributes[0].origin;
+  };
+  check("origin: a cell function's parameter over state rows → bound-state; over props rows → bound-value", [cellOrigin(0), cellOrigin(1)], [{ kind: "bound-state", reads: ["feature"] }, { kind: "bound-value", reads: ["row"] }]);
   check("origin: a custom hook's value is state (never given a fixed value)", (() => {
     const attr = describe(lines("function T() {", "  const { picked } = useFormState();", "  return <Checkbox checked={picked.has(1)} />;", "}"), "3:9").attributes[0];
     return attr.origin;
@@ -339,6 +485,18 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
   check("setField: not an object → stale", edit("<A x={data} />;", "1:0", "A", [{ op: "setField", name: "x", key: "n", value: { kind: "number", value: 1 } }]).code, "stale");
   check("setField: index out of range → stale", edit("<A x={[{ a: 1 }]} />;", "1:0", "A", [{ op: "setField", name: "x", index: 3, key: "a", value: { kind: "number", value: 2 } }]).code, "stale");
   check("setField: missing attribute → stale", edit("<A />;", "1:0", "A", [{ op: "setField", name: "x", key: "a", value: { kind: "number", value: 2 } }]).code, "stale");
+  // A same-file const (`options={countries}`): its literal is the shape, and setField edits it there.
+  const held = lines('const roles = [{ id: "admin", label: "Admin" }, { id: "member", label: "Member" }];', "export function F() {", "  return <A options={roles} />;", "}");
+  const heldAttr = describe(held, "3:9").attributes[0];
+  check("const shape: the literal's items, with where it is written", [heldAttr.shape?.items.map((item) => item.fields.map((field) => field.value).join("/")), heldAttr.shapeVia], [["admin/Admin", "member/Member"], { name: "roles", line: 1 }]);
+  check("const setField: edits the const's item", edit(held, "3:9", "A", [{ op: "setField", name: "options", index: 1, key: "label", value: { kind: "string", value: "Editor" } }]), held.replace('label: "Member"', 'label: "Editor"'));
+  const inner = lines("export function F() {", '  const action = { label: "Invite" };', "  return <A primaryAction={action} />;", "}");
+  check("const setField: a const in the component body", edit(inner, "3:9", "A", [{ op: "setField", name: "primaryAction", key: "label", value: { kind: "string", value: "Send" } }]), inner.replace('"Invite"', '"Send"'));
+  const shadowed = lines('const roles = [{ id: "admin" }];', "export function F({ roles }: { roles: { id: string }[] }) {", "  return <A options={roles} />;", "}");
+  check("const shape: a parameter of the same name hides the const", describe(shadowed, "3:9").attributes[0].shape, undefined);
+  check("const shape: let and computed values stay bound", [describe(lines("let r = [{ a: 1 }];", "<A x={r} />;"), "2:0").attributes[0].shape, describe(lines("const r = make();", "<A x={r} />;"), "2:0").attributes[0].shape], [undefined, undefined]);
+  const long = lines(`const many = [${Array.from({ length: 21 }, (_, i) => `{ id: "${i}" }`).join(", ")}];`, "<A x={many} />;");
+  check("const shape: a list over 20 items stays bound", describe(long, "2:0").attributes[0].shape, undefined);
   check("setField: two fields in one apply", edit("<A x={{ a: 1 }} />;", "1:0", "A", [{ op: "setField", name: "x", key: "b", value: { kind: "number", value: 2 } }, { op: "setField", name: "x", key: "c", value: { kind: "number", value: 3 } }]), "<A x={{ a: 1, b: 2, c: 3 }} />;");
 }
 
@@ -1243,8 +1401,17 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     const pageBadge = applyOps(onPage, locOf(onPage, "<Badge"), "Badge", [{ op: "detach" }], { file: "local:p1.zen.tsx", typographyKeys });
     ok("badge on a builder page: width=\"hug\", no style", !("error" in pageBadge) && !/style=/.test(pageBadge.code) && /<Box surface="subtle" radius="full" paddingX="xs" paddingY="2xs" width="hug">/.test(pageBadge.code));
     check("badge on a builder page: primitives from the package", importLines(pageBadge).at(-1), 'import { Box, Icon, Stack, Text } from "@zen/design-system";');
+    // EmptyState's centred 320 column and DescriptionList's inline rows take Layout props there (2026-10-08), saying
+    // what they leave out; a style the page cannot express still refuses, saying which.
     const emptyOnPage = builderPage('<EmptyState title="Nothing here" />');
-    ok("empty state on a builder page: refused with the style it needs", /^EmptyState cannot be detached on a builder page yet: its layout needs an inline style/.test(detachPlan(emptyOnPage, locOf(emptyOnPage, "<EmptyState"), "EmptyState", { file: "local:p1.zen.tsx" }).reason ?? ""));
+    const pageEmpty = applyOps(emptyOnPage, locOf(emptyOnPage, "<EmptyState"), "EmptyState", [{ op: "detach" }], { file: "local:p1.zen.tsx", typographyKeys });
+    ok("empty state on a builder page: Fill capped at 320, centred, no style", !("error" in pageEmpty) && !/style=/.test(pageEmpty.code) && /<Stack as="section" gap="xs" width="fill" maxWidth=\{320\} alignSelf="center">/.test(pageEmpty.code));
+    ok("empty state on a builder page: the bottom padding is named as left out", pageEmpty.detached?.approximations.some((line) => /Padding\/4XLarge bottom padding is left out/.test(line)));
+    const listOnPage = builderPage('<DescriptionList aria-label="Summary" items={[{ term: "Subtotal", description: "$311.90" }]} />');
+    const pageList = applyOps(listOnPage, locOf(listOnPage, "<DescriptionList"), "DescriptionList", [{ op: "detach" }], { file: "local:p1.zen.tsx", typographyKeys });
+    ok("description list on a builder page: term hugs, value fills, no style", !("error" in pageList) && !/style=/.test(pageList.code) && /tone="base">\s*Subtotal/.test(pageList.code) && /align="end" width="fill">/.test(pageList.code));
+    const styled = builderPage('<EmptyState title="Nothing here" style={{ opacity: 0.5 }} />');
+    ok("empty state with its own style on a builder page: still refused, saying so", /^EmptyState cannot be detached on a builder page yet: its layout needs an inline style/.test(detachPlan(styled, locOf(styled, "<EmptyState"), "EmptyState", { file: "local:p1.zen.tsx" }).reason ?? ""));
   }
 
   // Interactive instances and non-presentational components are refused with a reason.
@@ -1256,6 +1423,8 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     check("refuse: selected={false} is presentational", reason(page("export const A = () => <Card selected={false}>x</Card>;"), "<Card", "Card"), null);
     refused("clickable row", "export const A = () => <List><ListItem title=\"x\" onClick={() => {}} /></List>;", "<ListItem", "ListItem", "This ListItem is interactive (onClick={…}): a clickable or selected row. Only presentational instances detach.");
     refused("link row", "export const A = () => <List><ListItem title=\"x\" href=\"/a\" /></List>;", "<ListItem", "ListItem", "This ListItem is interactive (href={…}): a clickable or selected row. Only presentational instances detach.");
+    refused("handler passed in", "export const A = ({ onClick }: { onClick?: () => void }) => <List><ListItem title=\"x\" onClick={onClick} /></List>;", "<ListItem", "ListItem", "This ListItem takes onClick from `onClick` (a handler passed in): a clickable or selected row. It may render static here, but detaching would drop the handler; pass nothing for onClick where the row is static, then detach.");
+    ok("namespace JSX (<Zen.Badge>) finds the Badge recipe", !/has no detach recipe/.test(reason(page("export const A = () => <Zen.Badge>x</Zen.Badge>;"), "<Zen.Badge", "Zen.Badge") ?? ""));
     refused("selected row", "export const A = () => <List><ListItem title=\"x\" selected /></List>;", "<ListItem", "ListItem", "This ListItem is interactive (selected): a clickable or selected row. Only presentational instances detach.");
     refused("removable badge", "export const A = () => <Badge remove onRemove={() => {}}>x</Badge>;", "<Badge", "Badge", "This Badge is interactive (remove): a removable badge. Only presentational instances detach.");
     refused("removable tag", "export const A = () => <Tag onRemove={() => {}}>x</Tag>;", "<Tag", "Tag", "This Tag is interactive (onRemove={…}): a removable or clickable tag. Only presentational instances detach.");
@@ -1511,6 +1680,14 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     ok("off handlers: onClick={null} on a Tag detaches", !("error" in detachAt("onClick={null}", page("export const A = () => <Tag onClick={null}>x</Tag>;"), "<Tag", "Tag")));
     check("phrasing: a Badge in a <Text> paragraph is refused", reason(page("export const A = () => <Text>Status <Badge>New</Badge></Text>;"), "<Badge", "Badge"), 'It sits inside a paragraph (<Text>): the detached Badge is a <div> Box, which a <p> cannot hold. Give the text as="div" or move the badge out of it before detaching.');
     check("phrasing: a Tag in a <p> is refused", reason(page("export const A = () => <p>Hi <Tag>x</Tag></p>;"), "<Tag", "Tag"), 'It sits inside a paragraph (<p>): the detached Tag is a <div> Box, which a <p> cannot hold. Give the text as="div" or move the tag out of it before detaching.');
+    check("map rows reordered or cut after the map: refused", [
+      reason(page("export const A = (rows: string[]) => <div>{rows.map((row) => <Tag key={row}>{row}</Tag>).reverse()}</div>;"), "<Tag", "Tag"),
+      reason(page("export const A = (rows: string[]) => <div>{[...rows.map((row) => <Tag key={row}>{row}</Tag>)].slice(1)}</div>;"), "<Tag", "Tag"),
+    ].map((line) => /reordered or cut afterwards \(\.(reverse|slice)\(\)\)/.test(line ?? "")), [true, true]);
+    check("phrasing: a paragraph further out, through phrasing parents, is refused too", [
+      reason(page("export const A = () => <p>Hi <strong><em><Tag>x</Tag></em></strong></p>;"), "<Tag", "Tag"),
+      reason(page('export const A = () => <Text>Hi <Text as="span"><Badge>New</Badge></Text></Text>;'), "<Badge", "Badge"),
+    ].map((line) => /^It sits inside a paragraph \((<p>|<Text>)\)/.test(line ?? "")), [true, true]);
     const spanned = detachAt("phrasing span", page('export const A = () => <Text as="span">Status <Badge>New</Badge></Text>;'), "<Badge", "Badge");
     ok("phrasing: inside a span it is flagged", spanned.detached.approximations.includes('It sits inside <Text as="span"> (phrasing content): the detached <div> Box is invalid HTML there (browsers still show it).'));
     const divided = detachAt("phrasing div", page('export const A = () => <Text as="div">Status <Badge>New</Badge></Text>;'), "<Badge", "Badge");
@@ -1629,65 +1806,17 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     ok("crlf map: CRLF kept, the template literal untouched in both branches", !/[^\r]\n/.test(mapped.code) && mapped.code.split("{`a\r\n  ${row}`}").length === 3);
   }
 
-  // Every detach output above: no new style-guard or usage-guard findings (written to a temporary draft file).
+  // Every detach output above: no new style-guard or usage-guard findings; tsc on the chosen outputs (guardOutputs).
   if (repo) {
-    const { checkFile } = await import(pathToFileURL(path.join(repo, "tools/style-guard/check-styles.mjs")).href);
-    const { rules } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/check-usage.mjs")).href);
-    const { createChecker } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/engine.mjs")).href);
-    const usage = createChecker(rules, { consumer: false, css: false });
-    const draftDir = path.join(repo, "src/platform/examples/drafts");
-    const draft = `src/platform/examples/drafts/zen-studio-detach-selftest-${process.pid}.tsx`;
-    const count = (list) => list.reduce((map, key) => map.set(key, (map.get(key) ?? 0) + 1), new Map());
-    const fresh = (before, after) => [...count(after)].filter(([key, n]) => n > (count(before).get(key) ?? 0)).map(([key]) => key);
-    const created = !fs.existsSync(draftDir);
-    try {
-      fs.mkdirSync(draftDir, { recursive: true });
-      for (const sample of guardSamples) {
-        fs.writeFileSync(path.join(repo, draft), sample.before);
-        const styleBefore = checkFile(draft).map((finding) => `${finding.rule}|${finding.context}`);
-        fs.writeFileSync(path.join(repo, draft), sample.after);
-        const styleAfter = checkFile(draft).map((finding) => `${finding.rule}|${finding.context}`);
-        check(`guards ${sample.label}: style-guard`, fresh(styleBefore, styleAfter), []);
-        const usageKeys = (text) => usage.checkFile(text, draft).map((finding) => `${finding.rule.id}|${finding.tag}`);
-        check(`guards ${sample.label}: usage-guard`, fresh(usageKeys(sample.before), usageKeys(sample.after)), []);
-      }
-    } finally {
-      fs.rmSync(path.join(repo, draft), { force: true });
-      if (created) fs.rmSync(draftDir, { recursive: true, force: true });
-    }
+    await guardOutputs(repo, "detach", guardSamples, tscSamples);
     ok("guards: samples checked", guardSamples.length > 40);
-
-    // TypeScript (the repo's tsconfig) on chosen detach outputs, written as drafts: no error, or exactly the expected codes.
-    const tscBin = (() => {
-      try { return path.join(path.dirname(createRequire(path.join(repo, "package.json")).resolve("typescript/package.json")), "bin/tsc"); } catch { return null; }
-    })();
-    ok("tsc: typescript found", tscBin && fs.existsSync(tscBin));
-    if (tscBin && fs.existsSync(tscBin)) {
-      const names = tscSamples.map((_, i) => `zen-studio-detach-tsc-${process.pid}-${i}.tsx`);
-      const config = `zen-studio-detach-tsconfig-${process.pid}.json`;
-      const madeDir = !fs.existsSync(draftDir);
-      try {
-        fs.mkdirSync(draftDir, { recursive: true });
-        tscSamples.forEach((sample, i) => fs.writeFileSync(path.join(draftDir, names[i]), sample.code));
-        fs.writeFileSync(path.join(draftDir, config), JSON.stringify({ extends: "../../../../tsconfig.json", include: ["../../../vite-env.d.ts", ...names] }));
-        const run = spawnSync(process.execPath, [tscBin, "-p", path.join(draftDir, config), "--pretty", "false"], { encoding: "utf8" });
-        ok("tsc: ran", !run.error && run.status !== null);
-        const lines = `${run.stdout ?? ""}${run.stderr ?? ""}`.split(/\r?\n/);
-        const outside = lines.filter((line) => /error TS\d+/.test(line) && !line.includes("zen-studio-detach-tsc-"));
-        check("tsc: no errors outside the drafts", outside, []);
-        tscSamples.forEach((sample, i) => {
-          const codes = lines.filter((line) => line.includes(names[i])).map((line) => /error (TS\d+)/.exec(line)?.[1]).filter(Boolean);
-          check(`tsc ${sample.label}`, codes, sample.expect ?? []);
-        });
-      } finally {
-        for (const name of [...names, config]) fs.rmSync(path.join(draftDir, name), { force: true });
-        if (madeDir) fs.rmSync(draftDir, { recursive: true, force: true });
-      }
-    }
   }
 }
 
 /* ── wrap (applyOps op "wrap": the element inside a Box/Stack/Grid, its key moved, the Layout import, the snippet) ── */
+// Every wrap output of this and the next section: style-guard, usage-guard and tsc (guardOutputs, after the siblings).
+const wrapGuards = [];
+const wrapTsc = [];
 {
   const repo = [fileURLToPath(new URL("../../", import.meta.url))].find((candidate) => fs.existsSync(path.join(candidate, "src/platform/studio/history.ts")));
   const history = repo ? await import(pathToFileURL(path.join(repo, "src/platform/studio/history.ts")).href) : null;
@@ -1706,6 +1835,8 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
   const wrapAt = (label, code, needle, name, op = {}, { nth = 0, file = PAGE, snippets = true } = {}) => {
     const result = applyOps(code, locOf(code, needle, nth), name, [{ op: "wrap", tag: "Box", props: {}, ...op }], { file, snippets });
     if ("error" in result) return result;
+    wrapGuards.push({ label, before: code, after: result.code });
+    wrapTsc.push({ label, code: result.code, before: code, file });
     const before = parseSource(code.replace(/^﻿/, ""));
     const after = parseSource(result.code.replace(/^﻿/, ""));
     ok(`${label}: re-parses`, after && after.errors.length <= before.errors.length);
@@ -1742,7 +1873,7 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     "        <Text>Pro</Text>",
     "      </Card>",
     "      {items.map((item) => (",
-    "        <ListItem key={item.id} title={item.name} leading={<DockIcon icon=\"icon-user-line\" />} />",
+    "        <ListItem key={item.id} as=\"div\" title={item.name} leading={<DockIcon icon=\"icon-user-line\" />} />",
     "      ))}",
     "      {items.map((item) => <Text key={item.id}>{item.name}</Text>)}",
     "      {open ? <Text>Open</Text> : null}",
@@ -1776,12 +1907,12 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     check("wrap in a Stack: Stack is already imported, booleans as a bare name", [changedRows(stack)[0], importLines(stack)[3]], ['      <Stack gap="sm" fillChildren>', 'import { Stack } from "../../../components/Layout";']);
     const grid = wrapAt("wrap in a Grid", src, "<Card", "Card", { tag: "Grid" });
     check("wrap in a Grid: no props, Grid imported", [changedRows(grid)[0], importLines(grid)[3]], ["      <Grid>", 'import { Grid, Stack } from "../../../components/Layout";']);
-    const long = wrapAt("wrap long props", src, "<Card", "Card", { props: { padding: str("lg"), surface: str("surface-alt"), border: str("subtle"), radius: str("xl"), width: str("fill"), minWidth: { kind: "number", value: 320 }, maxWidth: { kind: "number", value: 640 } } });
+    const long = wrapAt("wrap long props", src, "<Card", "Card", { props: { padding: str("lg"), surface: str("surface-alt"), border: str("pale"), radius: str("xl"), width: str("fill"), minWidth: { kind: "number", value: 320 }, maxWidth: { kind: "number", value: 640 } } });
     check("wrap long props: one per line past 110 columns", changedRows(long), [
       "      <Box",
       '        padding="lg"',
       '        surface="surface-alt"',
-      '        border="subtle"',
+      '        border="pale"',
       '        radius="xl"',
       '        width="fill"',
       "        minWidth={320}",
@@ -1798,26 +1929,26 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     const result = wrapAt("wrap map row", src, "<ListItem", "ListItem");
     check("wrap map row: key moved to the wrapper", changedRows(result), [
       "        <Box key={item.id}>",
-      '          <ListItem title={item.name} leading={<DockIcon icon="icon-user-line" />} />',
+      '          <ListItem as="div" title={item.name} leading={<DockIcon icon="icon-user-line" />} />',
       "        </Box>",
     ]);
     const inline = wrapAt("wrap map row inline", src, "<Text key", "Text", { props: { padding: str("sm") } });
     check("wrap map row inline: inline, key moved", changedRows(inline), ['      {items.map((item) => <Box key={item.id} padding="sm"><Text>{item.name}</Text></Box>)}']);
     // A key alone on its line goes with its line; a key that ends the tag takes the line break before it.
-    const own = ["export const B = ({ items }: { items: { id: string; name: string }[] }) => (", "  <Stack>", "    {items.map((item) => (", "      <ListItem", "        key={item.id}", "        title={item.name}", "      />", "    ))}", "  </Stack>", ");", ""].join("\n");
-    check("wrap map row, key on its own line", changedRows(wrapAt("wrap key own line", own, "<ListItem", "ListItem")), ["      <Box key={item.id}>", "        <ListItem", "          title={item.name}", "        />", "      </Box>"]);
+    const own = ["export const B = ({ items }: { items: { id: string; name: string }[] }) => (", "  <Stack>", "    {items.map((item) => (", "      <ListItem", "        as=\"div\"", "        key={item.id}", "        title={item.name}", "      />", "    ))}", "  </Stack>", ");", ""].join("\n");
+    check("wrap map row, key on its own line", changedRows(wrapAt("wrap key own line", own, "<ListItem", "ListItem")), ["      <Box key={item.id}>", "        <ListItem", "          as=\"div\"", "          title={item.name}", "        />", "      </Box>"]);
     const last = own.replace("        key={item.id}\n        title={item.name}\n      />", "        title={item.name}\n        key={item.id}>\n        Row\n      </ListItem>");
-    check("wrap map row, key ending the tag", changedRows(wrapAt("wrap key ends tag", last, "<ListItem", "ListItem")), ["      <Box key={item.id}>", "        <ListItem", "          title={item.name}>", "          Row", "        </ListItem>", "      </Box>"]);
+    check("wrap map row, key ending the tag", changedRows(wrapAt("wrap key ends tag", last, "<ListItem", "ListItem")), ["      <Box key={item.id}>", "        <ListItem", "          as=\"div\"", "          title={item.name}>", "          Row", "        </ListItem>", "      </Box>"]);
   }
   // Attribute and expression positions: inline, nothing re-indented. An attribute's own value is wrapped inline unless
   // cloning.json names the prop (see "Cloned elements" below); an element further inside the value is wrapped inline.
   {
     const attr = wrapAt("wrap attribute value", src, "<DockIcon", "DockIcon", { props: { padding: str("2xs") } });
-    check("wrap attribute value: inline in the attribute", changedRows(attr), ['        <ListItem key={item.id} title={item.name} leading={<Box padding="2xs"><DockIcon icon="icon-user-line" /></Box>} />']);
+    check("wrap attribute value: inline in the attribute", changedRows(attr), ['        <ListItem key={item.id} as="div" title={item.name} leading={<Box padding="2xs"><DockIcon icon="icon-user-line" /></Box>} />']);
     check("wrap attribute value: describe says ok", describeElement(src, PAGE, locOf(src, "<DockIcon"))?.wrap, { ok: true });
     const inside = src.replace('leading={<DockIcon icon="icon-user-line" />}', 'leading={<Stack><DockIcon icon="icon-user-line" /></Stack>}');
     const deeper = wrapAt("wrap inside an attribute value", inside, "<DockIcon", "DockIcon", { props: { padding: str("2xs") } });
-    check("wrap inside an attribute value: inline in the attribute", changedRows(deeper), ['        <ListItem key={item.id} title={item.name} leading={<Stack><Box padding="2xs"><DockIcon icon="icon-user-line" /></Box></Stack>} />']);
+    check("wrap inside an attribute value: inline in the attribute", changedRows(deeper), ['        <ListItem key={item.id} as="div" title={item.name} leading={<Stack><Box padding="2xs"><DockIcon icon="icon-user-line" /></Box></Stack>} />']);
     const cond = wrapAt("wrap conditional branch", src, "<Text>Open", "Text");
     check("wrap conditional branch: inline", changedRows(cond), ["      {open ? <Box><Text>Open</Text></Box> : null}"]);
     const bare = 'import { Icon } from "../../../components/Icon";\nexport const C = () => <Stack icon=<Icon name="x" /> />;\n';
@@ -2037,6 +2168,17 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     check("wrap inside an <svg>: refused", /inside an <svg>/.test(wrapAt("wrap in svg", nest(["  <svg><g><path d=\"M0 0\" /></g></svg>"]), "<path", "path").error), true);
     check("wrap inside a <foreignObject>: allowed", Boolean(wrapAt("wrap in foreignObject", nest(["  <svg><foreignObject><b>x</b></foreignObject></svg>"]), "<b", "b").wrapped), true);
     check("wrap an <svg>: allowed", Boolean(wrapAt("wrap svg", nest(["  <div><svg><path d=\"M0 0\" /></svg></div>"]), "<svg", "svg").wrapped), true);
+    // Compound parents and their parts (2026-10-08): no <div> between a List and its ListItems, a Menu and its items…
+    const parts = (body) => ['import { List, ListItem } from "../../../components/ListItem";', 'import { Menu, MenuItem } from "../../../components/Menu";', 'import { Button } from "../../../components/Button";', "export const P = () => (", ...body, ");", ""].join("\n");
+    const listed = parts(["  <List>", '    <ListItem title="One" />', '    {[1].map((n) => <ListItem key={n} title="Row" />)}', "  </List>"]);
+    check("wrap a ListItem in its List: refused, names the List", /<ListItem> only works directly inside its List.*Wrap the List instead/.test(wrapAt("wrap ListItem", listed, "<ListItem title=\"One", "ListItem").error), true);
+    check("wrap a .map ListItem row: refused", wrapAt("wrap ListItem row", listed, "<ListItem key", "ListItem").code, "invalid");
+    check("wrap a ListItem as=\"div\": allowed", Boolean(wrapAt("wrap ListItem div", parts(['  <ListItem as="div" title="One" />']), "<ListItem", "ListItem").wrapped), true);
+    check("wrap any child of a List: refused", /directly inside a List \(<ul>\)/.test(wrapAt("wrap in List", parts(["  <List>", "    <Button>x</Button>", "  </List>"]), "<Button", "Button").error), true);
+    check("wrap a host <li> / a child of <ul>: refused", [wrapAt("wrap li", nest(["  <ul><li>x</li></ul>"]), "<li", "li").code, /directly inside a list \(<ul>\)/.test(wrapAt("wrap in ul", nest(["  <ul><b>x</b></ul>"]), "<b", "b").error)], ["invalid", true]);
+    check("wrap a MenuItem / a child of Menu: refused", [wrapAt("wrap MenuItem", parts(['  <Menu trigger={<Button>Open</Button>}><MenuItem label="A" /></Menu>']), "<MenuItem", "MenuItem").code, /Menu \(role="menu"\)/.test(wrapAt("wrap in Menu", parts(['  <Menu trigger={<Button>Open</Button>}><Button>B</Button></Menu>']), "<Button>B", "Button").error)], ["invalid", true]);
+    check("wrap inside a ListItem's content or an attribute of a List: allowed", [Boolean(wrapAt("wrap in ListItem", parts(['  <List><ListItem title="One"><Button>x</Button></ListItem></List>']), "<Button", "Button").wrapped), Boolean(wrapAt("wrap in List attr", parts(['  <List aria-label="x"><ListItem title="One" trailing={<Button>x</Button>} /></List>']), "<Button", "Button").wrapped)], [true, true]);
+    check("describe gives the contract verdict too", describeElement(listed, PAGE, locOf(listed, "<ListItem title=\"One"))?.wrap?.ok, false);
   }
   // Lines inside a template literal keep their indentation; blank lines stay blank; CRLF and BOM kept.
   {
@@ -2079,7 +2221,15 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     check("wrap snippet root: the snippet's first line (after the backtick)", [root.snippet, rows(root, 15, 21)], [{ synced: true }, ["    code: `<Box>", '  <Stack gap="md">', '    <Button level="primary">Send</Button>', "  </Stack>", "</Box>`,", "    render: () => <SendExample />,", "  },"]]);
     const escaped = wrapAt("wrap snippet escapes", page("", "<Button level=\"primary\">{`Send ${1}`}</Button>"), "<Button", "Button");
     check("wrap snippet escapes: kept", [escaped.snippet, rows(escaped, 16, 18)], [{ synced: true }, ["  <Box>", "    <Button level=\"primary\">{\\`Send \\${1}\\`}</Button>", "  </Box>"]]);
-    const missing = wrapAt("wrap snippet missing", page().replace("code: `<Stack gap=\"md\">\n  <Button level=\"primary\">Send</Button>", "code: `<Stack gap=\"md\">\n  <Button>Send</Button>"), "<Button", "Button");
+    // A snippet that writes the element differently (2026-10-08): its own copy is wrapped when it is the only <Button> in
+    // the snippet and in the code the example renders, or the only one whose attributes read the same.
+    const differs = wrapAt("wrap snippet differs", page().replace("code: `<Stack gap=\"md\">\n  <Button level=\"primary\">Send</Button>", "code: `<Stack gap=\"md\">\n  <Button>Send</Button>"), "<Button", "Button");
+    check("wrap snippet differs: the snippet's only Button wrapped", [differs.snippet, rows(differs, 6, 8)[0], rows(differs, 16, 18)], [{ synced: true }, "      <Box>", ["  <Box>", "    <Button>Send</Button>", "  </Box>"]]);
+    const handler = page("", '<Button level="primary" onClick={() => send()}>Send</Button>').replace("  <Button level=\"primary\" onClick={() => send()}>Send</Button>\n</Stack>`", "  <Button level=\"primary\">Send</Button>\n  <Button level=\"primary\">Again</Button>\n</Stack>`");
+    check("wrap snippet: two namesakes, none alike → not synced", wrapAt("wrap snippet ambiguous", handler, "<Button", "Button").snippet.synced, false);
+    const alike = page("", '<Button level="primary">Send</Button>').replace("  <Button level=\"primary\">Send</Button>\n</Stack>`", "  <Button level=\"primary\">\n    Send now\n  </Button>\n  <Button>Other</Button>\n</Stack>`");
+    check("wrap snippet: the one namesake with the same attributes", [wrapAt("wrap snippet alike", alike, "<Button", "Button").snippet, rows(wrapAt("wrap snippet alike rows", alike, "<Button", "Button"), 16, 20)], [{ synced: true }, ["  <Box>", "    <Button level=\"primary\">", "      Send now", "    </Button>", "  </Box>"]]);
+    const missing = wrapAt("wrap snippet missing", page().replace("code: `<Stack gap=\"md\">\n  <Button level=\"primary\">Send</Button>", "code: `<Stack gap=\"md\">\n  <Text>Send</Text>"), "<Button", "Button");
     check("wrap snippet missing: reason, source still wrapped", [missing.snippet.synced, /does not show this code \(<Button>\)/.test(missing.snippet.reason), rows(missing, 6, 8)[0]], [false, true, "      <Box>"]);
     const twice = wrapAt("wrap snippet twice", page().replace("</Stack>`", "  <Button level=\"primary\">Send</Button>\n</Stack>`"), "<Button", "Button");
     check("wrap snippet twice: untouched", [twice.snippet.synced, /more than once/.test(twice.snippet.reason)], [false, true]);
@@ -2190,6 +2340,8 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     const [[needle, name, nth = 0], ...others] = needles;
     const result = applyOps(code, locOf(code, needle, nth), name, [{ op: "wrap", tag: "Box", props: {}, with: others.map(([n, , k = 0]) => locOf(code, n, k)), ...op }], { file, snippets });
     if ("error" in result) return result;
+    wrapGuards.push({ label, before: code, after: result.code });
+    wrapTsc.push({ label, code: result.code, before: code, file });
     const before = parseSource(code);
     const after = parseSource(result.code);
     ok(`${label}: re-parses`, after && after.errors.length <= before.errors.length);
@@ -2343,6 +2495,15 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     check("wrap many snippet missing: reason, source still wrapped", [missing.snippet.synced, /does not show this code \(<Button>, <Button>\)/.test(missing.snippet.reason)], [false, true]);
     const off = wrapMany("wrap many snippet off", page(), [["<Button>Send", "Button"], ["<Button>Cancel", "Button"]], {}, { snippets: false });
     check("wrap many snippet off: no report", "snippet" in off, false);
+  }
+}
+
+// The wrap outputs above (both sections) through the guards detach's outputs pass (2026-10-08: they ran none before).
+{
+  const repo = [fileURLToPath(new URL("../../", import.meta.url))].find((candidate) => fs.existsSync(path.join(candidate, "tools/style-guard/check-styles.mjs")));
+  if (repo) {
+    await guardOutputs(repo, "wrap", wrapGuards, wrapTsc);
+    ok("wrap guards: samples checked", wrapGuards.length > 40);
   }
 }
 
@@ -2539,11 +2700,29 @@ process.stdout.write(resetAll.stdout);
 process.stderr.write(resetAll.stderr);
 if (resetAll.status !== 0) process.exit(1);
 
+// The object a "+" writes for an unset object prop (inspector/objectStarter.ts) has its own test next to it.
+const objectStarterTest = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/inspector/objectStarter.selftest.mjs", import.meta.url))], { encoding: "utf8" });
+process.stdout.write(objectStarterTest.stdout);
+process.stderr.write(objectStarterTest.stderr);
+if (objectStarterTest.status !== 0) process.exit(1);
+
+// The tone picker's warnings (inspector/toneRules.ts) against the harness rule they announce.
+const toneRulesTest = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/inspector/toneRules.selftest.mjs", import.meta.url))], { encoding: "utf8" });
+process.stdout.write(toneRulesTest.stdout);
+process.stderr.write(toneRulesTest.stderr);
+if (toneRulesTest.status !== 0) process.exit(1);
+
 // The icon picker's suggestions (inspector/iconSuggestions.ts: Figma default, the file's icons) have their own test.
 const iconSuggestions = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/inspector/iconSuggestions.selftest.mjs", import.meta.url))], { encoding: "utf8" });
 process.stdout.write(iconSuggestions.stdout);
 process.stderr.write(iconSuggestions.stderr);
 if (iconSuggestions.status !== 0) process.exit(1);
+
+// Which components Detach can turn into primitives (detachable.ts, kept in step with detach.mjs's recipes).
+const detachable = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/detachable.selftest.mjs", import.meta.url))], { encoding: "utf8" });
+process.stdout.write(detachable.stdout);
+process.stderr.write(detachable.stderr);
+if (detachable.status !== 0) process.exit(1);
 
 // Starters (builder/starters/toDialect.ts: a frame's snapshot written as a builder page) have their own test.
 const starters = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/builder/starters/toDialect.selftest.mjs", import.meta.url))], { encoding: "utf8" });

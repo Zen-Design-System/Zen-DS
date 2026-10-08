@@ -21,6 +21,7 @@ import { PlatformPhone } from "../../PlatformPhone";
 import { formatCompactMoney, formatDue, formatMoney, invoices, projectById, studio, studioMonths, studioTeamHours } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./chart.css";
 
 export const page: PlatformPage = "chart";
@@ -282,7 +283,7 @@ function PhoneHoursExample() {
 
 /* ───────────── Examples ───────────── */
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Finance dashboard",
     screen: true,
@@ -418,4 +419,4 @@ const retry = () => {
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

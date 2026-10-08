@@ -5,7 +5,7 @@ import { Icon } from "../components/Icon";
 import { Text } from "../components/Text";
 
 /** Overlays that own Escape while a screen is full screen (Escape closes them first, not the full-screen view). */
-export const fullScreenEscapeOwners = ".zen-popover, .zen-sidebar__submenu, [aria-modal='true'], [role='menu'], [role='listbox'], .platform-fullscreen-bar__panel";
+export const fullScreenEscapeOwners = ".zen-side-panel[data-closable='true']:not([data-state='closing']), .zen-popover, .zen-sidebar__submenu, [aria-modal='true'], [role='menu'], [role='listbox'], .platform-fullscreen-bar__panel";
 
 type ButtonRef = { current: HTMLButtonElement | null };
 

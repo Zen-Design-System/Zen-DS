@@ -254,3 +254,205 @@
   Neutral step 10 (decided), the 2026-10-03 design-tokens gate line (all parts tracked), Narrow window navigation
   (done), Pending invites and Hana Kim dead clicks (probe), TopNavigation E2E rows (duplicate), playground Avatar
   (kept). The other overlaps are fragments inside multi-topic lines and stay as written.
+
+## Backlog batch 2: Studio quick fixes (session "Studio builder tool planning", tier S)
+
+- 14 rows approved ("2 · Studio sửa nhanh"); 13 fixed, 1 (setProp/removeProp on a multi-line self-closing tag) already
+  fixed: set then remove returns the original text (a selftest check now covers it).
+- Frames list (P2): `inspector/frames.ts` useFrames kept page A's frames on page B (same `screen:screen-1` id, same
+  element); it compares labels too and re-reads on the frame registry. E2E B-19 fails on the old code, passes now.
+- First view: `FIRST_VISIT_MIN_ZOOM` 0.5 (`canvas/viewport.ts`); measured on 5173: 1280 → Playground ends at 912, the
+  Inspector starts at 960; 1024 → 656 / 704 (63%).
+- `jsx-source.mjs` setPropEdits: a new last attribute goes after a trailing `// comment` (3 selftest checks).
+- Selftest samples: tsconfig.json excludes `src/platform/examples/drafts` (gitignored), the samples' tsconfigs set
+  `exclude: []`; `detachable.selftest.mjs` joins `npm run studio:selftest` (33 checks).
+- Inspector: "Child size" (SizingSection), `title` on truncated headings (DesignPanel, FramePanel), nodeKind falls back
+  to the engine's zenComponents (ZenPortal, PopoverBulkAction* read as Zen), List "Row inset" label removed; palette
+  "Metric card · Value and trend in a card".
+- Data slots: `removeItem { all: true }` (items.mjs; the toast hook goes with the items) for a Figma list boolean
+  switched off with 2+ items (GroupedProperties ToggleRow); a move past identical items writes nothing and says why
+  (slots/actions.ts runDataItem). items selftest 21 cases.
+- SlotLayer clearOfPill: a + chip that lands on `.studio-resize__pill` moves just below it.
+- Gate PASS (.qa/reports/2026-10-07T09-23-28-e54a8cf5.md): Studio selftests, style/usage guard, TypeScript, Studio E2E
+  143 works · 0 broken. Not covered in a browser: the list-boolean switch-off path (no TopNavigation in the E2E
+  fixture) and the chip/pill move (measured by code only).
+
+## Backlog batch 4: examples/docs P2 (session "Studio builder tool planning", tier S)
+
+- 16 rows approved ("4 · Examples/docs P2"). First an audit (`audit.mjs --quality`, 13 pages × 1512/390) and 390 shots:
+  10 were already fixed by later work and are closed with the evidence (SSO label, Docked inspector, Trailing actions →
+  Pending invites with a More menu, the Menu table scrolls by design, Sidebar shells use lists, Bulk-Action bar, Brand
+  colour example gone, Dialog Half-Half, Templates list caption, chat/side-panel h1s).
+- Fixed: Visually Hidden playground stage `pac-vh-stage--table` min(680px, 100%) (the table is ~664px; Archive was cut);
+  ai-chat phone TopNavigation `title="Zen AI"` (its code sample had it); HrPublicHolidayTemplate h2 Heading/4; Table
+  playground Progress `label`, Neutral (default), code sample too; PlatformChatHeader `scrollRef`, passed by the 5
+  Messenger threads and the Chat playground (all 6 headers `data-scroll-linked`, `data-scrolled` once scrolled); Accordion
+  playground Content width chip.
+- Rebased batch 2 onto main after PR #4 merged (it carried batch 1, PR #2 Google sign-in, PR #3); `npm install` for the
+  new `pocketbase` dependency (AuthGate skips automated browsers, so audits and E2E run as before).
+- Gate PASS (.qa/reports/2026-10-07T09-50-16-e54a8cf5.md): 0 errors; the ⚠ are the templates page's existing rhythm /
+  outline-siblings (the same lines as the audit before the edits; AiChatBlock row in the Backlog) and its known 90 s
+  behaviour budget. Contact sheets templates-390/1512 reviewed.
+
+## Backlog batch 5a: Studio P2 (session "Studio builder tool planning", tier M)
+
+- User: "theo thứ tự" (Studio medium → component P2 → Figma contracts → the decision list). 5a = the Studio P2 rows.
+- Frame Save/Discard: `sourceDrafts.ts` frameLocs reads the frame's React tree too (Zen components keep data-zen-src
+  off the DOM; overlays portal out); `frame-scope.mjs` owns the module-level declarations the owned code names
+  (closure; routers never), list elements inside ExampleMap / keepOnHotUpdate(…) literals, and a router's fallback
+  statement (templates playground: 2237 → 28 of PlatformExamples.tsx's 2409 lines). Real pages: an example owns
+  ~100/812 lines of top-navigation.tsx; chat examples ~45% of chat.tsx (shared messenger code). Selftest 23.
+  An E2E row was dropped: the fixture is itself a draft of the host page, so a frame Discard there reverts the fixture.
+- Remount: reproduced on 5173 (open a thread in chat › Chats inbox, write a prop through the API): Vite "Could not Fast
+  Refresh ("examples" export is incompatible)". Fix: keepOnHotUpdate moved to src/platform/hotData.ts and wraps all 55
+  example pages (script with @babel/parser; one import line each); registry keeps the records (isWideExample);
+  readers re-render on useHotDataVersion, notified after React Refresh (plugin-react's before-refresh hook + a 0 ms
+  timer: a render before the refresh met an unknown type and remounted); example frames keyed by place (a title edit
+  kept remounting); a setDataField write restarts the selected frame (data read into initial state).
+- Effects/CornerRadius (1096) were already built (AppearanceSection); added the spec's Effect settings and the card
+  theme effect row (E2E AP-05, AP-06; layout fixed after a screenshot: the settings toggle in the section header).
+- 312 leftovers: Toast Actions → toggle; Close stays skipped (a no-op handler fails the harness); Toggle has no Figma
+  Subtext property; characterLimit/Help-Text wait for the read.
+- 240: objectStarter.ts (+ for an unset object prop; named types from docs/api via import.meta.glob, E2E IN-18);
+  jsx-source constLiteralFor: shape and setField through a same-file const of ≤ 20 items (selftest +6, E2E IN-19 on a
+  new "E2E const" fixture example, appended last so frame indexes stay).
+- Gate: the first run failed S-01 (React key warning): the new "E2E const" fixture wrote Segmented options with
+  `value` instead of `id` (the fixture is outside tsc). Fixed; S-01 and IN-19 pass. studio:build-check 24/24.
+- Gate reruns: the second was cut off by the gate's 15 min limit (no summary), which left StudioSaveFixture.tsx saved
+  mid-D-02, so the third failed D-01 ("Unsaved · 1 file"). Restored from git; the Studio E2E step's limit is now 25 min
+  (tools/qa/run.mjs; the matrix runs ~15). Both logged in the Backlog (shard the matrix; restore the fixture at start).
+- Gate PASS (.qa/reports/2026-10-07T11-40-19-e54a8cf5.md): Studio E2E 147 works · 0 broken in 946 s (past the old
+  900 s limit); the scoped run before it covered the runtime audit (templates ⚠ pre-existing, same lines as before).
+
+## Backlog sweep (session "Studio builder tool planning", tier XS)
+
+- Five read-only agents checked every open item (lines 157–1239, ~440 items split from 326 lines) against the code,
+  audits and probes: ~111 done, ~37 duplicates, ~214 still open, ~63 decisions, ~13 unsure.
+- BACKLOG.md: done rows carry "Done (checked 2026-10-07, backlog sweep: evidence)", duplicates point to the kept row,
+  rows with some parts done get a "Sweep 2026-10-07" note (done / still open). No line added or removed in the body.
+- Rows fixed only by the ungated WIP b89020f (Escape to the common parent, optimistic switches, Assets Clear search)
+  stay open with a note until the batch 5b gate passes.
+- New: P2 qa step ④ reads only *Showcases.tsx and appLayer/ (run.mjs:456, lib.mjs:227), so pages in examples/pages
+  skip the coverage matrix; P3 stale leftovers (a layout.tsx comment, a DetailTemplate zen-allow, stale baselines).
+
+## Backlog batch 8: decisions (session "Studio builder tool planning", tier XS)
+
+- 61 questions from the sweep's DECISION rows, each with a recommendation; the user took every recommendation.
+- BACKLOG.md: 12 rows closed ("Closed (2026-10-07, user decision in backlog batch 8: …)"); the others carry
+  "Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8): … → batch N". No recommendation, still open: the Code
+  Connect seat (Org/Enterprise) and package publishing; the nine designer questions are unchanged.
+
+## QA gate step ④ and example-page scoping (session "Studio builder tool planning", tier S, batch 8 item 61)
+
+- tools/qa/run.mjs: step ④ reads `src/platform/examples/pages/<page>.tsx`'s `examples` array (plain or
+  `keepOnHotUpdate(…, "examples", [ … ])`) for pages that have one; the app-layer maps stay for the others.
+- tools/qa/lib.mjs: `isExampleSource` takes examples/pages/*.tsx; `pagesForEdit` maps examples/pages/<page>.tsx|.css to
+  `<page>` (all 55 file names equal their `page` export). Before, such edits mapped to no page without `--pages`.
+- Replica over all 55 pages: every page has examples; gaps: side-panel (edge cases, mobile), sidebar (states, mobile),
+  tooltip (mobile), logged P3. Quick gate --only=side-panel,tooltip: step ④ warns as expected
+  (.qa/reports/2026-10-07T13-07-50-e54a8cf5.md). The full gate runs with batch 5b.
+
+## Backlog batch 5b: Studio P3 small items (session "Studio builder tool planning", tier M)
+
+- Done: 259 Assets Clear search (E2E LB-13); 308 Escape → common parent (SE-08); 326 optimistic layer switch; 336 bound
+  switch waits for live props; 333 component-only modules (shell/layout.ts revealSection, shortcutsOpen.ts, modKey.ts,
+  canvas/zoomToSelection.ts; Present.tsx drops its re-export); 1239 undo after a paste / Assets insert (rememberInsert,
+  LB-14); 1179 tone picker warnings (inspector/toneRules.ts + selftest against the harness rule); 357 hover keeps a
+  selected nested instance (SE-09, fixture row with onClick); 351 "all N rows" only for a .map; 360 resize / spacing read
+  live props past a spread; 182 Hug on a px Grid column → `auto` (L-09, gridTracks withTrack); 445(a) bare-handler
+  refusal wording, 445(e) namespace JSX (localName on both sides); 463 frame chrome lays out on the next frame; 424
+  Save all hidden below 1024px; 332 Control-Bar switch closed as by design; 166 I-11 3/3 alone.
+- E2E harness: run.mjs returns to the host page between rows (the inspector cascade after a builder row is gone).
+- Uploader: the field's error help text and the File-Item error line use Negative/Light (user's rule: every help text
+  but Warning is Light); contrast 4.72:1 / 7.16:1 under the field, 4.01:1 / 5.88:1 on Negative/Subtle (user's call).
+- Still open from the 5b list: 179(1) fixed-width item in a px column, 183 column-drag E2E row, 424 breadcrumb at
+  ~700px with drafts, 463 unsure parts (width menu at 1024, Undo×2, GET /element 404), 438(f).
+- Gate PASS (.qa/reports/2026-10-07T13-31-32-e54a8cf5.md): Studio E2E 152 works · 0 broken in 891 s; audit 1512/390, dark and
+  behaviour 0 new warnings; the AssetsPanel.tsx:153 `size="xs"` usage warning is pre-existing (baselined).
+
+## Backlog batch 5c: Studio decisions + multi-select (sessions "Studio builder tool planning" → "Session continuation check", tier M)
+
+- Item 1 (commit c65fc7e, the earlier session): the five batch 8 Studio decisions: minHeight column sizes Fill children,
+  dropdown Chip width handle (SE-10), Pages panel description dropped, Docs frame click → 100% top-aligned
+  (canvasApi.zoomToRead, SE-11), ⌘-click lands on a data-slot item (SelectionLayer + dataItemOfPart, SE-12). SE-12 was
+  re-run in this session on c65fc7e: works ("Action · in Top-Trailing of TopNavigation").
+- Item 2 (this session; the earlier one's local edits were not pushed, so it was redone from c65fc7e): op many
+  `move { to }` (arrange.mjs manyMovePlan: one parent, Figma's step, a run as a block; the answer maps each loc before →
+  after; selftest case 38) behind the arrow keys on a multi-selection (edit/multi.ts stepLayers; a wrapped component
+  moves alone); ⇧+click range in Layers (anchor = last row clicked while still selected, else the primary; ⌘ still
+  toggles); Mixed properties take plain text props (TextControl, "Mixed" placeholder). E2E K-13, SE-13, I-16.
+- Cloud session notes: Playwright 1.63 wants chromium_headless_shell-1243; the container has 1194, so the runs used a
+  scratch PLAYWRIGHT_BROWSERS_PATH aliasing it. No PostToolUse hook here: the gate ran with `--files=` (the 5c diff).
+- IN-14 broke from c65fc7e: its "Badge where it was" regex expected `<List` next, and the fixture now has the Chip there
+  (test fixed, not the Studio). SE-13 now selects Alpha on the canvas first (Layers opens to it whatever ran before).
+- Full Studio E2E 157/158 before the IN-14 fix, then the 7 rows + select/keyboard groups (26) all work; baseline
+  recorded (158 rows, all works). The gate's other ✗ are environment-only and fail the same on 29305b4: TabItem axe
+  baseline (color-contrast no longer found) and 36 chat-picker emoji [fit] errors (the container's emoji font).
+
+## Backlog batch 6: component decisions + two composed patterns (session "Session continuation check", tier L)
+
+- User: "theo thứ tự" (5c, then 6, 6b, 7, 9). The 13 batch 8 decisions tagged → batch 6, all closed in BACKLOG with
+  pointers: focus rings (AiChatField all styles, composer binds --zen-input-border-focus), PageHeader h2 = Heading/4
+  (+ typography ladder table), TableMedia bold=false (41 call sites keep `bold`), phone BottomSheet inset 20px, Medium
+  Card radius XLarge on phones, deprecated comfortable List inset = Card padding on tablet, FormActions (already by
+  container width since 09-30), Sidebar custom brand keeps the collapse control + `searchCollapsed` (HR rail Back),
+  AppShell floatingAction hides on scroll down on phones (motion tokens × --zen-motion-movement), harness exempts flat
+  Secondary IconButtons (8 ⋮ triggers switched), Text guideline emoji tip.
+- New patterns (user picked "compose from existing" — no Figma MCP here; the user's 127.0.0.1:3845 Figma MCP is on their
+  machine): ToggleListItem (label row around ToggleButton; ToggleButton now puts aria-labelledby/-describedby on the
+  switch) and ChipGroup (radiogroup, roving tabindex, arrows wrap and skip disabled; Chip drops aria-pressed as a
+  radio). Rules list-item/switch-row, chip/radio-is-chip-group (170 rules); examples Chip "Pick one", List Item "Email
+  switches"; stories; smoke fixtures; tests/interaction/chipgroup-togglelistitem.test.tsx (4/4). Playwright treats a
+  click inside a <label> as a click on its (hidden) control, so the row-press test forces the click.
+- Generated: guidelines/api docs, tools/studio/compile-api.generated.mjs, library keywords.
+- Gate (.qa/reports/2026-10-07T16-05-21-267cb264.md): static all ✓, browser tests 31/31 (TabItem passed this time),
+  Studio E2E 158/158; ✗ only the 36 chat emoji [fit] errors (same on 29305b4, cloud font); warnings pre-existing
+  (templates rhythm/outline, button 2px gap, card slot corners, probe dead clicks). Contact sheets: Pick one and Email
+  switches render as intended at 390.
+
+## Backlog batches 6b, 7, 9 (session "Session continuation check", tier L)
+
+- 6b (examples/docs): one-item Sidebar groups merged (3 sites); HR · Home `maxWidth="full"`; side content capped at 1440
+  (tabs Overview card, layout Main column and aside grid + snippet, HR My leaves Next leave, EmptyError InlineMessage);
+  phone templates `wide: !template.mobile`; Badge Task status and Button Page actions fold the assignee into the task
+  caption on a phone; playground stages and PlatformPhone default paint Canvas/Default (`canvas="surface"` = white);
+  15 HR rhythm keys added to quality-baseline.json by hand (not --baseline-update, which would absorb cloud-only errors).
+- 7: official Inter v4.1 WOFF2 (`web/`), same build 4.001 git-9221beed3 (fontTools: axes, glyph counts), 352/388 KB vs
+  367/405 KB (≈4%, the Backlog's 10% did not hold); the official Figma library key (get_libraries on the file) is in
+  AGENTS.md and skills/zen-figma-component-audit (Figma MCP became available mid-session).
+- 9: usage rule bottom-sheet/choice-uses-list-item (171 rules); tools/usage-guard/check-unions.mjs in guidelines:check
+  (the repo's TypeScript 7 has no JS API, so @babel/parser resolves literal unions, aliases, `(typeof x)[number]`;
+  215 match, 48 skipped; a planted DockIcon.theme gap is caught); quality-checks.mjs §16 pairing → `roles` warn.
+- Gate --all (.qa/reports/2026-10-07T16-41-07): ✗ only cloud-only TabItem axe + chat emoji [fit]; design-tokens dark
+  contrast ×11 is pre-existing (same on 63b458c); avatar outline-start and accordion@390 corners are known Backlog rows.
+- Backlog row "Design Tokens dark nav contrast" (2026-10-04) removed: a screenshot shows the nav labels white on the
+  dark canvas; the audit's bgOf falls back to white when no ancestor paints, so the 11 × 1.38:1 are a false positive
+  (user: "nhìn vào là thấy đủ nhầm rồi").
+- audit.mjs skips the docs navigation (.official-nav) in the contrast check (user: skip this case, no more checking).
+  The final `qa --all` (font + first full run of the §16 check) was stopped by the user: the 6b --all had passed and the
+  font is the same build. The §16 check has therefore not run on every page yet; the next gate runs it.
+
+## Tooltip close X, in code and in Figma (session "Session continuation check", tier S)
+
+- User: tooltip needs a mobile example; "Tooltip nên bổ sung button x tắt cho trường hợp mở mặc định, bổ sung ngược lại
+  Figma luôn". Figma (9nZv4uW2LT21yuHabMTCh1, set 1595:2220): new BOOLEAN `Close#15053:0` (default off); every variant's
+  Container turned horizontal (gap bound to Spacing/Gap/XSmall, top-aligned) with an `icon-x-medium-line` instance
+  "Close" (size bound to Element-Size/Popular/XSmall, fill bound to the variant's label colour: Inverse/Strongest,
+  On-Accent/Default, Neutral/Strongest, On-Black-Overlay/Strongest), visible ← Close; set description updated; a review
+  frame was shot (8 variants with Close on) and removed.
+- Code: TooltipSurface `onClose`/`closeLabel` (raw icon button allowed: a bare XSmall icon, 24px hit area);
+  Tooltip `closable`, `defaultOpen`, `onOpenChange` (setOpen reads the rendered open through a ref, so a controlled
+  tooltip reports its X); closable = role note, hover/focus/press no longer hide it. Guideline rows, story, tests
+  (tests/interaction/tooltip-closable.test.tsx), "A tip on a phone" example. `npm test` 32 files / 534 tests pass.
+- Tooltip re-read from Figma after the user's edit: the X now sits in a Wrapper Element-Size/Popular/Small high with the
+  XSmall icon (12px in this mode) centred, Close drives the Wrapper; tooltip.css follows (wrapper height, hit area).
+- Metric (user: "phần update là primitive inline metric"): Figma Metric-Inline/Title-Highlight (7523:507049) gained
+  Custom (BOOLEAN) + Custom-Slot (SLOT) under Contents (root gap Medium at XL/L, Small at M–XS; the Dock-Icon is absolute
+  inside Contents). Code: Metric `custom` (zen-metric__body + zen-metric__custom only when set, so existing layouts are
+  untouched); component-properties.json gains the two props (compact format kept); MetricCard measured equal to Figma
+  6643:64008. usage rule metric/formatted-value reads only the element's own `value` (ownExpr), not a nested
+  ProgressBar's. Icon-Highlight Counter / Metric-Color and Title-Highlight Hint / Label-Icon are still not in code
+  (Backlog).
+- Sidebar "On a phone": AppShell layout="drawer" inside PlatformPhone; the open drawer covered the status bar, so
+  .zen-app-shell__drawer insets by --zen-safe-area-top/-bottom (env() fallback; 0 off phones). Screenshots
+  .platform-shots/sidebar-on-a-phone-{closed,open}.png. AppShell/Sidebar tests 20/20.

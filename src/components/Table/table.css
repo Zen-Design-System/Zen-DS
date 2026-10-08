@@ -76,6 +76,10 @@
    "Annual Leave" under its icon or a name into four lines. Tables without fixed widths share the room as before. */
 .zen-table[data-fixed-columns="true"] .zen-table-media > .zen-table-text { white-space: nowrap; }
 .zen-table[data-fixed-columns="true"] .zen-table__header[data-fill="true"] { min-width: var(--zen-table-fill-min-width, 200px); }
+/* Tables without fixed widths share the room, but a left-aligned text cell keeps a readable minimum (about three words
+   of Body/Base), so a narrow container scrolls the table sideways instead of crushing a title to one word per line
+   (backlog batch A, research L11). Numbers, dates and statuses already stay on one line. */
+.zen-table:not([data-fixed-columns="true"]) .zen-table__cell[data-align="left"] .zen-table-text { min-width: var(--zen-table-text-min-width, 120px); }
 /* Badge-Cell / Tag-Cell Items slot: wraps, gap 2XSmall. */
 .zen-table-items { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); vertical-align: middle; }
 .zen-table-actions { display: inline-flex; height: var(--zen-table-slot, 28px); align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); vertical-align: middle; }

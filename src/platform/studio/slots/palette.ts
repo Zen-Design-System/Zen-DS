@@ -13,8 +13,8 @@ import type { ContentSlot, HostProps } from "./registry";
  * a controlled one declares its `state` (the server adds `const [name, setName] = useState(initial);` under fresh
  * names), an overlay comes with the Button that opens it, a data component with a few rows of real copy, and Image
  * reads platformMedia (`requires: ["media"]`: the server imports it; example pages only). Not offered: providers,
- * Portal, Motion and VisuallyHidden (infrastructure), Toast (an action's toast(…) shows one) and Popover (the
- * primitive under Menu, Select and Chip: it needs an anchor ref).
+ * Portal, Motion and VisuallyHidden (infrastructure) and Toast (an action's toast(…) shows one). Popover comes with
+ * the Button it anchors to: its `state` declares the anchor as a ref (StateDecl `ref`, 2026-10-08).
  *
  * Pure: no DOM, no React, type-only imports and erasable TypeScript, so `node palette.selftest.mjs` imports it.
  */
@@ -101,7 +101,7 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   Tag: "Tag", DockIcon: "DockIcon", List: "ListItem", ListItem: "ListItem", ListBox: "ListItem", DescriptionList: "DescriptionList",
   Metric: "MetricWidget", MetricCard: "MetricWidget", Card: "Card", ProgressBar: "Progress", InlineMessage: "InlineMessage",
   EmptyState: "EmptyState", InputField: "Input", TextAreaField: "Input", SelectField: "Input", Checkbox: "Checkbox",
-  Toggle: "Toggle", FormFieldset: "Form", RadioButton: "RadioButton", Stack: "Layout", Grid: "Layout", Divider: "Divider",
+  Toggle: "Toggle", ChipGroup: "ChipGroup", FormFieldset: "Form", RadioButton: "RadioButton", Stack: "Layout", Grid: "Layout", Box: "Layout", Divider: "Divider",
   Accordion: "Accordion", useToast: "Toast",
   Tabs: "Tabs", TabPanel: "Tabs", Segmented: "Segmented", Breadcrumbs: "Breadcrumbs", Pagination: "Pagination",
   Stepper: "Stepper", Menu: "Menu", Tooltip: "Tooltip", Icon: "Icon", FileIcon: "FileIcon", Flag: "Flag",
@@ -110,7 +110,7 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   SkeletonText: "Skeleton", SkeletonHeading: "Skeleton", Search: "Search", Chip: "Chip", Slider: "Slider",
   DateField: "Input", NumberField: "Input", AutocompleteField: "Input", RichTextField: "Input",
   DatePicker: "DatePicker", ColorSelector: "ColorSelector", FileUpload: "Uploader", Dialog: "Dialog", ModalForm: "Dialog", SidePanel: "SidePanel",
-  BottomSheet: "BottomSheet", PageHeader: "PageHeader", TopNavigation: "TopNavigation",
+  BottomSheet: "BottomSheet", Popover: "Popover", PageHeader: "PageHeader", TopNavigation: "TopNavigation",
   BottomNavigation: "BottomNavigation", Sidebar: "Sidebar", AppShell: "AppShell", ActionBar: "ActionBar",
   ChatThread: "Chat", ChatMessage: "Chat", ChatComposer: "Chat", AiChatThread: "AiChat", AiChatBubble: "AiChat",
   AiChatField: "AiChat",
@@ -123,6 +123,8 @@ const TOAST = ["toast"] as const;
 const MEDIA = ["media"] as const;
 /** A state entry (StateDecl): `name` and `setName` in the code. */
 const state = (name: string, initial: string, type?: string): StateDecl => (type ? { name, initial, type } : { name, initial });
+/** A ref entry (StateDecl `ref`): `const name = useRef<type>(null)`, e.g. the element a Popover anchors to. */
+const ref = (name: string, type: string): StateDecl => ({ name, initial: "null", type, ref: true });
 
 /** Everything the InsertPicker can add, in group order. */
 export const PALETTE: readonly PaletteItem[] = [
@@ -274,7 +276,7 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => `<Metric label="Revenue" value="$21,000" icon={false} trend={{ direction: "positive", label: "+12% vs last month" }} />`,
   },
   {
-    id: "metric-card", label: "Metric", group: "Data display", caption: "Value and trend", root: "MetricCard", components: ["MetricCard"], interactive: false, input: false,
+    id: "metric-card", label: "Metric card", group: "Data display", caption: "Value and trend in a card", root: "MetricCard", components: ["MetricCard"], interactive: false, input: false,
     build: () => `<MetricCard label="Revenue" value="$21,000" icon={false} trend={{ direction: "positive", label: "+12% vs last month" }} />`,
   },
   {
@@ -432,12 +434,16 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => `<Search aria-label="Search projects" placeholder="Search projects" />`,
   },
   {
-    id: "chip-row", label: "Chip row", group: "Inputs", caption: "Single choice", root: "Stack", components: ["Stack", "Chip"], state: [state("status", '"all"')], interactive: true, input: true,
+    // One choice is a ChipGroup (radio group, its own state); a row of Normal chips is for several picks at once.
+    id: "chip-group", label: "Chip group", group: "Inputs", caption: "Single choice", root: "ChipGroup", components: ["ChipGroup"], interactive: true, input: true,
+    build: () => `<ChipGroup aria-label="Project status" defaultValue="all" options={[{ value: "all", label: "All" }, { value: "active", label: "Active" }, { value: "done", label: "Done" }]} />`,
+  },
+  {
+    id: "chip-row", label: "Chip row", group: "Inputs", caption: "Several picks", root: "Stack", components: ["Stack", "Chip"], state: [state("tags", '["design"]', "string[]")], interactive: true, input: true,
     build: () => lines(
-      `<Stack direction="row" gap="xs" wrap role="group" aria-label="Project status">`,
-      `  <Chip variant="normal" level="primary" selected={status === "all"} onClick={() => setStatus("all")}>All</Chip>`,
-      `  <Chip variant="normal" level="primary" selected={status === "active"} onClick={() => setStatus("active")}>Active</Chip>`,
-      `  <Chip variant="normal" level="primary" selected={status === "done"} onClick={() => setStatus("done")}>Done</Chip>`,
+      `<Stack direction="row" gap="xs" wrap role="group" aria-label="Project tags">`,
+      `  <Chip variant="normal" level="primary" selected={tags.includes("design")} onClick={() => setTags(tags.includes("design") ? tags.filter((tag) => tag !== "design") : [...tags, "design"])}>Design</Chip>`,
+      `  <Chip variant="normal" level="primary" selected={tags.includes("research")} onClick={() => setTags(tags.includes("research") ? tags.filter((tag) => tag !== "research") : [...tags, "research"])}>Research</Chip>`,
       `</Stack>`,
     ),
   },
@@ -545,6 +551,20 @@ export const PALETTE: readonly PaletteItem[] = [
       `  <BottomSheet type="action" open={sheetOpen} onOpenChange={setSheetOpen} title="Profile photo"`,
       `    items={[{ id: "library", label: "Choose from library", icon: "icon-image-line" }, { id: "camera", label: "Take photo", icon: "icon-camera-line" }]}`,
       `    onSelect={(item) => toast({ title: item.id === "camera" ? "Camera opened" : "Library opened" })} />`,
+      `</Stack>`,
+    ),
+  },
+  {
+    // A choice list under a button is a Chip (button/filter-is-chip): the Popover anchors to a search field instead.
+    id: "popover", label: "Popover", group: "Overlays", caption: "Results under a search field", root: "Stack", components: ["Stack", "Box", "Search", "Popover"], requires: TOAST, state: [state("findOpen", "false"), ref("findAnchor", "HTMLDivElement")], interactive: true, input: false,
+    build: () => lines(
+      `<Stack gap="xs">`,
+      `  <Box ref={findAnchor}>`,
+      `    <Search placeholder="Search projects" aria-label="Search projects" aria-expanded={findOpen} onClick={() => setFindOpen(true)} />`,
+      `  </Box>`,
+      `  <Popover open={findOpen} onOpenChange={setFindOpen} anchorRef={findAnchor} aria-label="Projects"`,
+      `    items={[{ id: "loyalty", label: "Loyalty app" }, { id: "site", label: "Phin & Co website" }]}`,
+      `    onSelect={(item) => { setFindOpen(false); toast({ title: item.id === "site" ? "Opened Phin & Co website" : "Opened Loyalty app" }); }} />`,
       `</Stack>`,
     ),
   },

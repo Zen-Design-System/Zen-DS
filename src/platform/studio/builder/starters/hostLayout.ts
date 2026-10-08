@@ -2,7 +2,7 @@ import { radiusValue, type ZenCornerRadius } from "../../../../components/_share
 import { textStyleKey, toneKey } from "../../inspector/detach";
 import { colorTokensFor } from "../../inspector/partInfo";
 import { tokenPx } from "../../select/spacing";
-import { LIBRARY_PHOTOS, MEDIA_PREFIX } from "../library/media";
+import { mediaValueOf } from "../library/media";
 import type { SnapChild, SnapNode, SnapValue } from "./toDialect";
 
 /*
@@ -15,15 +15,17 @@ import type { SnapChild, SnapNode, SnapValue } from "./toDialect";
  * - Spacing and radius take the nearest token on the element (its modes applied); one that matches none exactly is noted.
  * - Text tags become Text (h1–h6: Heading) with the text style and tone they render in; `a` a Link, `img` an Image,
  *   `hr` a Divider. A wrapper around one thing with nothing of its own goes (the platform's example frame).
- * - What a page cannot hold (svg, form fields, video) is left out, noted; so is what is hidden (aria-hidden, display none).
+ * - What a page cannot hold (form fields, video) is left out, noted; so is what is hidden (aria-hidden, display none). An
+ *   inline <svg> drawing (a brand mark, a custom glyph) becomes a picture of itself: an Image of its markup, at its size.
  */
 
 type Note = (text: string) => void;
 
-/** A library photo's URL in this build → its `zen-media:` key (any other text unchanged). */
-const absolute = (src: string) => { try { return new URL(src, document.baseURI).href; } catch { return src; } };
-const photoKeys = new Map(LIBRARY_PHOTOS.flatMap((entry) => [[entry.photo.src, `${MEDIA_PREFIX}${entry.key}`], [absolute(entry.photo.src), `${MEDIA_PREFIX}${entry.key}`]]));
-export const libraryMedia = (value: string) => photoKeys.get(value) ?? value;
+/**
+ * A picture's URL in this build → its `zen-media:` key (any other text unchanged): the library's photos, the other
+ * src/assets/media files (avatars) and the templates' own assets (library/media.ts MEDIA_FILES).
+ */
+export const libraryMedia = mediaValueOf;
 
 const GAP_KEYS = ["none", "3xs", "2xs", "xs", "sm", "md", "lg", "xl", "2xl", "3xl", "giant", "xgiant", "2xgiant"];
 const PADDING_KEYS = ["none", "3xs", "2xs", "xs", "sm", "md", "lg", "xl", "2xl", "3xl", "4xl"];
@@ -44,7 +46,7 @@ const BORDERS: Record<string, string> = {
 const TEXT_TAGS = new Set(["p", "span", "label", "small", "strong", "em", "b", "i", "li", "dt", "dd", "figcaption", "legend", "code", "time", "cite", "q", "abbr", "mark", "sub", "sup", "h1", "h2", "h3", "h4", "h5", "h6"]);
 /** Text's `as` values (Text.tsx): a text tag outside them renders as Text's default. */
 const TEXT_AS = new Set(["p", "span", "div", "strong", "em", "small", "label", "li", "dt", "dd", "figcaption", "legend", "code", "time"]);
-const LEFT_OUT = new Set(["svg", "canvas", "video", "audio", "iframe", "object", "embed", "input", "select", "textarea", "table", "math"]);
+const LEFT_OUT = new Set(["canvas", "video", "audio", "iframe", "object", "embed", "input", "select", "textarea", "table", "math"]);
 /** Stack / Grid / Box `as` values (Layout.tsx). */
 const LAYOUT_AS = new Set(["section", "article", "aside", "header", "footer", "main", "nav", "ul", "ol", "li"]);
 
@@ -258,6 +260,68 @@ export function classProps(name: string, element: HTMLElement, have: ReadonlySet
     padding();
   }
   return out;
+}
+
+/** Inline SVG markup a page keeps as a picture (larger: left out, noted). */
+const SVG_LIMIT = 16_000;
+
+/**
+ * An inline <svg> as a page holds it (2026-10-08): its markup, with `currentColor` resolved to the colour it rendered in
+ * and its rendered size written on it, as an Image (a data: URL, `fit="contain"`, its ratio) in a Box of its width.
+ */
+export function svgPicture(element: Element, ctx: HostContext): SnapChild[] {
+  const style = getComputedStyle(element);
+  if (style.display === "none" || style.visibility === "hidden") return [];
+  // Canvas zoom: lengths on screen ÷ the scale of the nearest HTML box around it.
+  const box = element.closest("svg")?.parentElement ?? element.parentElement;
+  const scale = box instanceof HTMLElement && box.offsetWidth ? box.getBoundingClientRect().width / box.offsetWidth : 1;
+  const rect = element.getBoundingClientRect();
+  const width = Math.round(rect.width / (scale || 1));
+  const height = Math.round(rect.height / (scale || 1));
+  if (!width || !height) return [];
+  const copy = element.cloneNode(true) as Element;
+  copy.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  copy.setAttribute("width", String(width));
+  copy.setAttribute("height", String(height));
+  const color = style.color;
+  const markup = new XMLSerializer().serializeToString(copy).replace(/currentColor/g, color);
+  if (markup.length > SVG_LIMIT) { ctx.note("An inline <svg> drawing too large to keep as a picture: left out"); return []; }
+  ctx.note("An inline <svg> drawing: kept as a picture of itself (its parts are not editable)");
+  const label = element.getAttribute("aria-label") ?? element.querySelector("title")?.textContent ?? "";
+  const image: SnapNode = { kind: "element", name: "Image", props: [["src", lit(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`)], ["alt", lit(label.trim())], ["ratio", lit(Math.round((width / height) * 1000) / 1000)], ["fit", lit("contain")]], children: [] };
+  return [{ kind: "element", name: "Box", props: [["width", lit(width)]], children: [image] }];
+}
+
+/**
+ * The size an example's own class gives a library component (`.pe-plan-card { max-width: 360px }`), read from the
+ * stylesheet rules that match it through one of `classes` (zen-* classes are the component's own): a px width, min and
+ * max width, or a 100% width (Fill). Null when they set none; cross-origin sheets are skipped.
+ */
+export function classSizing(element: Element, classes: readonly string[]): { width?: number | "fill"; minWidth?: number; maxWidth?: number } | null {
+  const own = classes.filter((name) => name && !name.startsWith("zen-"));
+  if (!own.length) return null;
+  const out: { width?: number | "fill"; minWidth?: number; maxWidth?: number } = {};
+  const px = (value: string) => (/^\d+(\.\d+)?px$/.test(value.trim()) ? Math.round(parseFloat(value)) : null);
+  const visit = (rules: CSSRuleList) => {
+    for (const rule of Array.from(rules)) {
+      if (rule instanceof CSSMediaRule) { if (window.matchMedia(rule.conditionText).matches) visit(rule.cssRules); continue; }
+      if (!(rule instanceof CSSStyleRule) || !own.some((name) => rule.selectorText.includes(`.${name}`))) continue;
+      let matches = false;
+      try { matches = element.matches(rule.selectorText); } catch { matches = false; }
+      if (!matches) continue;
+      const width = rule.style.getPropertyValue("width");
+      if (px(width) !== null) out.width = px(width)!;
+      else if (width.trim() === "100%") out.width = "fill";
+      const min = px(rule.style.getPropertyValue("min-width"));
+      if (min !== null) out.minWidth = min;
+      const max = px(rule.style.getPropertyValue("max-width"));
+      if (max !== null) out.maxWidth = max;
+    }
+  };
+  for (const sheet of Array.from(document.styleSheets)) {
+    try { visit(sheet.cssRules); } catch { /* a cross-origin sheet */ }
+  }
+  return Object.keys(out).length ? out : null;
 }
 
 function boxProps(surface: string | null, border: string | null, corner: string | null, padding: Array<[string, SnapValue]>): Array<[string, SnapValue]> {

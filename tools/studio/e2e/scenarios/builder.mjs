@@ -432,4 +432,22 @@ export const rows = [
       return "reloaded into Play on screen-2";
     },
   },
+  {
+    id: "B-19", feature: "Inspector › Frames names the open page's Screens after a switch (two pages share screen-1)", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const frameNames = async (page) => (await page.locator('#studio-right ul[aria-label="Frames"]').innerText({ timeout: 1000 }).catch(() => "")).trim();
+      const listed = (page, name, message) => until(async () => (await frameNames(page)).includes(name), { message }).catch(async (error) => { throw new Error(`${error.message} (Frames: ${JSON.stringify(await frameNames(page))})`); });
+      const first = await newPage(ctx, { title: `Frames A ${Date.now().toString(36)}` });
+      await listed(first.page, first.name, "Frames lists page A's Screen");
+      const second = await newPage(ctx, { title: `Frames B ${Date.now().toString(36)}` });
+      await listed(second.page, second.name, "Frames lists page B's Screen");
+      const names = await frameNames(second.page);
+      if (names.includes(first.name)) throw new Error(`Frames still names page A after opening B: ${JSON.stringify(names)}`);
+      // And back: A's own title again.
+      await showLeftTab(second.page, "pages");
+      await mineRow(second.page, first.name).getByRole("button", { name: first.name, exact: true }).click();
+      await listed(second.page, first.name, "Frames lists page A's Screen again");
+      return `Frames: "${second.name}" on B, "${first.name}" back on A`;
+    },
+  },
 ];

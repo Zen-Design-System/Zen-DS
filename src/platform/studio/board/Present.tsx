@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProp
 import { ZenPortalProvider } from "../../../components/Portal";
 import { fullScreenEscapeOwners } from "../../PlatformFullScreen";
 import { PlatformPhoneModesContext } from "../../PlatformPhone";
+import { isWideExample } from "../../examples/types";
 import { ExampleCard } from "../../PlatformShowcases";
 import { PlatformTypographyContext } from "../../PlatformTemplate";
 import { canvasApi } from "../canvas/viewport";
@@ -13,10 +14,6 @@ import { useStudioFrames, type StudioExample, type StudioFrameEntry } from "./fr
 import { PresentBar } from "./PresentBar";
 import { stepFocusFor, stepPresent, takeReturnFocus } from "./presentFrame";
 import "./board.css";
-
-// The actions live in presentFrame.ts (this module exports components only, so its hot update stays a Fast Refresh);
-// re-exported for the readers that still import them from here (inspector/FramePanel.tsx, inspector/frames.ts).
-export { presentFrame, zoomToFrame } from "./presentFrame";
 
 /** Present's own modes: what the user picked in its Modes panel. They hold while ‹ › step between examples and are
  *  forgotten when Present ends; the canvas never sees them. */
@@ -110,7 +107,7 @@ function PresentLayer({ frame, example, own, onModeChange }: { frame: StudioFram
         <PlatformTypographyContext value={preview.typography}>
           <PlatformPhoneModesContext value={{ density: own.density, typography: own.typography }}>
             <div ref={stageRef} className="studio-present__stage" style={{ "--studio-frame-width": `${width}px` } as CSSProperties}>
-              <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={example.wide} screen={example.screen} presented={example.screen}>{example.render()}</ExampleCard>
+              <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen} presented={example.screen}>{example.render()}</ExampleCard>
             </div>
           </PlatformPhoneModesContext>
         </PlatformTypographyContext>

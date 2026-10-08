@@ -17,23 +17,6 @@ import { pagesPersist, usePage, useStorage } from "../builder/store/pageStore";
  * Modes popover is the one place to change them) and the frames on the board.
  */
 
-const pageDescriptions: Partial<Record<PlatformPage, string>> = {
-  overviews: "Every Zen component on one board. Pick a page to lay it out as frames.",
-  installation: "Install the package, add ZenProvider and import the styles.",
-  "design-tokens": "The Figma variables behind colour, spacing, radius and type.",
-  typography: "Text styles and the Dashboard, Popular and Mobile typography modes.",
-  iconography: "The Zen icon set: names, cuts and sizes.",
-};
-
-/* Component pages describe themselves through the guideline index ("purpose"); loaded on demand. */
-let purposes: Promise<Record<string, string>> | null = null;
-function loadPurposes() {
-  purposes ??= import("../../../../docs/guidelines/index.json")
-    .then((module) => Object.fromEntries((module.default.components as Array<{ slug: string; purpose?: string }>).map((entry) => [entry.slug, entry.purpose ?? ""])))
-    .catch(() => ({}));
-  return purposes;
-}
-
 /** Design tab with nothing selected. */
 export function PagePanel() {
   const page = useStudio((state) => state.page);
@@ -41,17 +24,11 @@ export function PagePanel() {
   const builderPage = usePage(localPage);
   const preview = useStudio((state) => state.preview);
   const frames = useFrames(page);
-  const [purpose, setPurpose] = useState<string>("");
-  useEffect(() => {
-    let alive = true;
-    setPurpose("");
-    if (!pageDescriptions[page]) void loadPurposes().then((map) => { if (alive) setPurpose(map[page] ?? ""); });
-    return () => { alive = false; };
-  }, [page]);
-  // A builder page (Studio builder GĐ2) names itself.
+  // A builder page (Studio builder GĐ2) names itself and says where it is kept; a docs page's description is on the
+  // board (its title block), not here too (user, 2026-10-07).
   const storage = useStorage();
   const kept = storage.kind === "mirror" ? `saved in this browser and in ${storage.mirror === "dev" ? storage.label : `the folder “${storage.label}”`} as you edit.` : "saved in this browser as you edit.";
-  const description = localPage ? (pagesPersist() ? `A page you made, ${kept}` : "A page you made. This browser cannot keep it: export it before closing.") : pageDescriptions[page] ?? purpose;
+  const description = localPage ? (pagesPersist() ? `A page you made, ${kept}` : "A page you made. This browser cannot keep it: export it before closing.") : null;
   const summary = previewModeDefinitions.map((mode) => previewValueLabel(mode.key, preview[mode.key])).join(" · ");
 
   return (

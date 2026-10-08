@@ -11,6 +11,11 @@ Read [the repository workflow](../../docs/figma-to-platform-workflow.md) for the
 
 ## Work in one verifiable slice
 
+> **Official library key (2026-10-07).** `search_design_system` returns assets from every Zen library the account sees,
+> including forks with the same names (Kate, Starnest, Paid, Pokeslide, Archived, Glea). Pass the official one —
+> "ZEN Kaiz (Official-Sep2026)", the only library file `9nZv4uW2LT21yuHabMTCh1` subscribes to — as
+> `includeLibraryKeys: ["lk-3fd76b280920320af405e914d6eaad3c82bb48bb92713b365f417d2c0b6251c1c4d1640276db8973b5cf38b896ebf2b132928f48360f36a960fd207f37ed1220"]`. `get_libraries` with that file key returns it if it ever changes.
+
 1. **Identify the exact target.** Record Figma file key, frame/component node ID, variant or state, mode, and reference viewport. A canvas/page URL is an index, not an implementation target: use Figma metadata to locate the intended child frame, then read that node. Before implementing a Figma design, load `figma-design-to-code` and call `get_design_context` on the exact node with `skillNames: "figma-design-to-code"`. For a large frame, use metadata to identify its critical child nodes and get design context for those children. A screenshot only verifies appearance; it cannot establish variable bindings or layer structure.
 2. **Extract the actual contract.** For supplied component JSON, inventory property definitions and variants. Figma export v3.1 may store variants as `$variantDelta` plus `$patch`; reconstruct the requested variant before reading its layout or paint. Inspect nested `instanceOverrides`, paint `visible`, `strokesIncludedInLayout`, stroke alignment, and each effect's type, offset, blur, spread and visibility. Read mode-specific variable/style names and resolved values; use `get_variable_defs` when the connected Figma tool provides it. Never infer an applied paint from a binding alone.
 3. **Write an evidence table before editing.** Use the template in the workflow document. Every requested visual or behavioral property needs an exact layer/variant source, Figma variable/style or explicit value, selected mode, and the proposed React prop/CSS token. Mark missing or conflicting evidence. If a critical property cannot be established, do not claim it is exact; continue only the independent, evidenced parts and report the gap.

@@ -32,6 +32,7 @@ import {
   TODAY, daysFromToday, files, formatBytes, formatDate, formatDue, formatMoney, formatRelative, initials, people, projectById,
   projects, taskStatusTheme, type Person, type PersonId, type Priority, type StudioFile, type TaskStatus,
 } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./empty-state.css";
 
 export const page: PlatformPage = "empty-state";
@@ -264,7 +265,7 @@ function NoAccess() {
   if (!file || !owner) {
     return (
       <PlatformPhone key="root" label="Files" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Files" largeTitle="Files" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Files" largeTitle="Files" scrollRef={screenRef} />}>
         {screen.anchor}
         <List aria-label="Shared with you">
           {sharedFiles.map((item) => (
@@ -280,7 +281,7 @@ function NoAccess() {
   const asked = requested.includes(file.id);
   return (
     <PlatformPhone key={file.id} label="File" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title={bareName(file.name)} scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title={bareName(file.name)} scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-file="${file.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}>
       {screen.anchor}
       {file.locked ? (
@@ -371,7 +372,7 @@ function ClientUploads() {
 }
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————————
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "First run",
     description: "A new page has nothing yet, so the Empty State keeps its illustration and carries the page's only Primary. Once an expense exists the table takes over and Add expense moves to the page header; deleting the last one brings the Empty State back.",
@@ -396,7 +397,7 @@ export const examples: ExampleDef[] = [
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key={file.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Q3 studio report" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Q3 studio report" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToFiles }} />}>
   <Stack padding="lg">
     <EmptyState aria-live="polite" headingLevel={2} icon="icon-lock-01-line" title="No access to this file"
@@ -474,4 +475,4 @@ const retry = () => { load(); refreshRef.current?.focus(); };
 </ListBox>`,
     render: () => <ClientUploads />,
   },
-];
+]);

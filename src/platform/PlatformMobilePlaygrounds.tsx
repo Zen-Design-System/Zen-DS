@@ -204,7 +204,7 @@ export function BottomNavigationPlayground() {
   value={tab}
   onValueChange={(id) => { if (id === tab) scrollToTop(); setTab(id); }}${action ? `\n  action={{ icon: "icon-plus-line", label: "New post", onClick: compose }}` : ""}
 />`}>
-      <PlatformPhone headerOverlay screenRef={screenRef} header={<TopNavigation title={tabLabel} largeTitle={tabLabel} scrollRef={screenRef} />}
+      <PlatformPhone headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title={tabLabel} largeTitle={tabLabel} scrollRef={screenRef} />}
         footer={<BottomNavigation type={t} theme={(theme ?? "neutral") as BottomNavigationTheme} selection={(selection ?? "surface") as BottomNavigationSelection} showLabels={labels} items={bottomNavItems} value={value} onValueChange={pickTab} action={action ? { icon: "icon-plus-line", label: "New post", onClick: () => setSheet(true) } : undefined} />}>
         <ScreenList />
         <BottomSheet inline open={sheet} onOpenChange={setSheet} type="action" title="Create" items={[{ id: "post", label: "Post", icon: "icon-edit-02-line" }, { id: "photo", label: "Photo", icon: "icon-camera-line" }, { id: "event", label: "Event", icon: "icon-calendar-line" }]} onSelect={(item) => setDraft(String(item.label))} />
@@ -254,7 +254,7 @@ export function BottomSheetPlayground() {
 >
   {/* Contents slot: your own content */}
 </BottomSheet>`}`}>
-      <PlatformPhone headerOverlay screenRef={screenRef} header={<TopNavigation title="Projects" largeTitle="Projects" scrollRef={screenRef} topBar={false} />}>
+      <PlatformPhone headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title="Projects" largeTitle="Projects" scrollRef={screenRef} topBar={false} />}>
         <div style={{ padding: "var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px)" }}><Button appearance="main" level="primary" size="lg" onClick={() => setOpen(true)}>{t === "action" ? "Sort projects" : "New project"}</Button></div>
         <ScreenList sort={sort} />
         <BottomSheet inline open={open} onOpenChange={openChange} type={t} size={(size ?? "flex") as BottomSheetSize} title={t === "action" ? "Sort by" : "New project"}
@@ -276,6 +276,8 @@ export function ChatPlayground() {
   const [device, setDevice] = useState<string | undefined>("mobile");
   const [names, setNames] = useState(false);
   const demo = useChatDemo();
+  // The phone screen scrolls the thread; the header shows its Pale rule once messages run under it.
+  const screenRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Msg[]>([
     { id: 11, side: "others", text: "Hey! Are you around this afternoon?" },
     { id: 12, side: "you", text: "Yes, free after 2." },
@@ -330,7 +332,7 @@ export function ChatPlayground() {
         {device === "desktop"
           // Desktop = the desktop examples' window: ThreadHeader (Button/Icon-Flat actions) over the thread, desktop Chat-Control.
           ? <div className="pe-chat-desktop pe-chat-desktop--single" data-domain={d}><section className="pe-chat-desktop__main" aria-label="Chat with Ava Chen"><ThreadHeader person={mobilePeople.ava} status="Active 2h ago" actions={headerActions} onAction={(label) => demo.say(`${label} · Ava Chen…`)} />{thread}{composer}</section></div>
-          : <PlatformPhone canvas={d === "business" ? "canvas" : "default"} header={<PlatformChatHeader title="Ava Chen" subtitle="Active 2h ago" person={mobilePeople.ava} onAction={demo.headerAction} />} footer={composer}>{thread}</PlatformPhone>}
+          : <PlatformPhone canvas={d === "business" ? "canvas" : "default"} screenRef={screenRef} header={<PlatformChatHeader title="Ava Chen" subtitle="Active 2h ago" person={mobilePeople.ava} scrollRef={screenRef} onAction={demo.headerAction} />} footer={composer}>{thread}</PlatformPhone>}
         {/* Desktop has no hold: the same actions sit in the Hover toolbar (right-click opens its More menu). */}
         <ChatDemoNote note={demo.note} />
       </div>

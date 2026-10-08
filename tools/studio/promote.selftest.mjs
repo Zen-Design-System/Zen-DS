@@ -48,6 +48,10 @@ check("plan: the template's name and file", [plan.component, plan.file], ["CafeH
 ok("plan: the component and its header", plan.code.startsWith("// Promoted by Zen Studio from cafe-home.zen.tsx. Edit the design, then promote again (it replaces this file).") && plan.code.includes("export function CafeHomeTemplate("));
 check("plan: the photos it brings", plan.assets.map((asset) => [asset.path, asset.source ?? `${asset.data.length} bytes`]), [[`${dir}/assets/site-cafe.webp`, "src/assets/media/site-cafe.webp"], [`${dir}/assets/team-1a2b3c4d.png`, `${png.length} bytes`]]);
 check("plan: a page that does not compile", planPromotion("export default 1;\n", { dir }).error !== undefined, true);
+// Pictures a starter copies besides the library's (2026-10-08): an avatar of the media folder, a template's own asset.
+const copied = planPromotion(page("Team", '<Image src="zen-media:avatar-bao" alt="Bao" />\n          <Image src="zen-media:tpl.hr.account-photo.jpg" alt="Account" />'), { file: "team.zen.tsx", dir });
+check("plan: an avatar and a template asset come from their repo files", copied.assets.map((asset) => [path.basename(asset.path), asset.source]), [["avatar-bao.webp", "src/assets/media/avatar-bao.webp"], ["tpl.hr.account-photo.jpg", "src/templates/hr/assets/account-photo.jpg"]]);
+ok("plan: those repo files exist", copied.assets.every((asset) => fs.existsSync(path.join(root, asset.source))));
 
 const first = await writePromotion(root, plan);
 check("write: the template and both photos", first.written, [`${dir}/assets/site-cafe.webp`, `${dir}/assets/team-1a2b3c4d.png`, `${dir}/CafeHomeTemplate.tsx`]);

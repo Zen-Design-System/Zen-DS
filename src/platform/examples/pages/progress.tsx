@@ -20,6 +20,7 @@ import { PlatformPhone } from "../../PlatformPhone";
 import { TODAY, daysFromToday, formatDate, formatMoney, formatRange, formatRelative, people, plans, projectById, workspacePlan } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./progress.css";
 
 export const page: PlatformPage = "progress";
@@ -282,13 +283,13 @@ function LoyaltyStampsExample() {
   return (
     // The header floats over the screen (headerOverlay) so the large title folds as the visits scroll under it.
     <PlatformPhone label="Phin & Co rewards" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Rewards" largeTitle="Rewards" scrollRef={screenRef} />}
+      header={<TopNavigation type="alt" title="Rewards" largeTitle="Rewards" scrollRef={screenRef} />}
       footer={<ActionBar position="static" primaryAction={full
         ? { label: "Redeem free drink", onClick: redeem }
         : { label: "Scan receipt", startIcon: "icon-scan-line", onClick: scan }} />}>
       {/* Body padding lg (20) = the bar's margin; the reward card and the visits are sections of the screen (lg). */}
       <Stack gap="lg" padding="lg">
-        <Card theme="border" as="section" aria-labelledby={cardTitleId}>
+        <Card theme="flat" as="section" aria-labelledby={cardTitleId}>
           <Stack gap="md">
             <Stack gap="xs">
               <Heading level={2} id={cardTitleId} textStyle="Heading/Subheading">Free drink</Heading>
@@ -316,7 +317,7 @@ function LoyaltyStampsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Storage quota",
     description: "Workspace storage uses the Status theme on the quota scale: green while there is room, Warning from 75% and Negative from 90%. Deleting a large file frees space at once, and Undo puts it back.",
@@ -421,7 +422,7 @@ toast({ type: "positive", title: "Export ready", children: \`\${name} · 2.3 MB\
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Rewards" largeTitle="Rewards" scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title="Rewards" largeTitle="Rewards" scrollRef={screenRef} />}
   footer={<ActionBar position="static" primaryAction={full
     ? { label: "Redeem free drink", onClick: redeem }
     : { label: "Scan receipt", startIcon: "icon-scan-line", onClick: scan }} />}>
@@ -433,4 +434,4 @@ toast({ type: "positive", title: "Export ready", children: \`\${name} · 2.3 MB\
   <List aria-labelledby={visitsId}>{/* recent visits, newest first */}</List>
 </PlatformPhone>`
   },
-];
+]);

@@ -57,6 +57,10 @@ function installHelpers() {
  */
 export async function openStudio(browser, { url, page: pageId, role = "admin", viewport = VIEWPORT, path = "/studio.html" }) {
   const context = await browser.newContext({ viewport, reducedMotion: "reduce", deviceScaleFactor: 1 });
+  // A step that waits for something that never comes fails with its own message (which locator, which wait) before the
+  // row's 20 s limit, instead of Playwright's 30 s default outliving it as a bare "timed out after 20 s".
+  context.setDefaultTimeout(10_000);
+  context.setDefaultNavigationTimeout(60_000);
   // ⌘C / ⌘V rows: the Studio copies layers through the system clipboard.
   await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin: url }).catch(() => {});
   await context.addInitScript(({ key, role }) => {

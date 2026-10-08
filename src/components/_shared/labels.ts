@@ -62,6 +62,8 @@ export type ZenLabels = {
   // Dates
   cancel: string;
   apply: string;
+  /** DatePickerSheet: confirms the picked date or range (Figma Date-Picker/Mobile "OK"). */
+  ok: string;
   previousMonth: string;
   nextMonth: string;
   backToCalendar: string;
@@ -291,6 +293,7 @@ const en: ZenLabels = {
   showMore: (count) => `Show ${count} more`,
   cancel: "Cancel",
   apply: "Submit",
+  ok: "OK",
   previousMonth: "Previous month",
   nextMonth: "Next month",
   backToCalendar: "Back to calendar",
@@ -478,6 +481,7 @@ const vi: ZenLabels = {
   showMore: (count) => `Hiện thêm ${count}`,
   cancel: "Huỷ",
   apply: "Áp dụng",
+  ok: "Xong",
   previousMonth: "Tháng trước",
   nextMonth: "Tháng sau",
   backToCalendar: "Quay lại lịch",

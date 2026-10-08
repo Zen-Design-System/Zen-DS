@@ -230,7 +230,7 @@ export function MobileListTemplate() {
   return (
     <Stack ref={rootRef} gap="none">
       {/* The large title is the screen's h1. Your router also sets document.title to it: "Orders · Your app". */}
-      <TopNavigation sticky scrollRef={scroller} title="Orders" largeTitle="Orders"
+      <TopNavigation type="alt" sticky scrollRef={scroller} title="Orders" largeTitle="Orders"
         controlBar={<Search ref={searchRef} aria-label="Search orders" placeholder="Search orders" value={query} onValueChange={search} />}
         searchAction={{ label: "Search orders", onClick: openSearch }} />
 

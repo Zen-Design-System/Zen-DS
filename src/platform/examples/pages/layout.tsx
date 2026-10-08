@@ -41,6 +41,7 @@ import {
   type Person, type PersonId, type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./layout.css";
 
 export const page: PlatformPage = "layout";
@@ -118,7 +119,8 @@ function ProjectOverview() {
             description={`${lumen.client} · ${lumen.progress}% done · Due ${formatDate(lumen.due)}`}
             actions={<><Button level="tertiary" onClick={() => setDialog("share")}>Share</Button><Button level="primary" onClick={() => setDialog("task")}>New task</Button></>} />
           {/* Main two-thirds, aside one-third, lg apart; on phones the aside moves under the main column. */}
-          <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="lg" align="start">
+          {/* The two columns stop at xl (1440px), so the 1/3 aside does not keep growing on a wide screen (backlog batch 6b). */}
+          <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="lg" align="start" maxWidth={1440}>
             {/* Every widget of the two columns is the same flat card: tops line up, titles share one style. */}
             <Card as="section" theme="flat" aria-labelledby={tasksId}>
               <Stack gap="md" ref={measure}>
@@ -533,14 +535,12 @@ const dueThisWeek = tasks.filter((task) => task.status !== "Done" && task.due <=
 const outstanding = invoices.filter((invoice) => invoice.status === "Sent" || invoice.status === "Overdue").reduce((sum, invoice) => sum + invoice.amount, 0);
 const clientCount = new Set(projects.map((project) => project.client)).size;
 
-/** A Surface panel at the Sidebar's elevation (Shadow/Bottom/Level-1, no border): the desktop block of rows (radius 2xl,
- *  padding xl) around static rows, which pad 0, so their text sits 24px from every edge. Nothing in it is clickable, so
- *  it is a Box, not a Card. */
+/** A block of rows at the Sidebar's elevation: a ListBox with theme="shadow" (Shadow/Bottom/Level-1, no border). */
 function ElevatedList({ children, ...name }: { children: ReactNode; "aria-label"?: string; "aria-labelledby"?: string }) {
   return (
-    <Box surface="surface" radius="2xl" padding="xl" clip={false}>
+    <ListBox theme="shadow">
       <List {...name}>{children}</List>
-    </Box>
+    </ListBox>
   );
 }
 
@@ -584,11 +584,11 @@ function ElevatedPanels() {
     content = (
       <>
         <PageHeader title="Home" description={`${plural(dueThisWeek.length, "task")} due this week`} />
-        {/* MetricCard's default theme is the same elevation: Shadow/Bottom/Level-1 and no border. */}
+        {/* MetricCard theme="shadow" is the same elevation: Shadow/Bottom/Level-1 and no border. */}
         <Grid columns={{ mobile: 1, desktop: 3 }} gap="md">
-          <MetricCard label="Due this week" value={String(dueThisWeek.length)} icon="icon-calendar-line" theme="flat" />
-          <MetricCard label="Active projects" value={String(projects.filter((project) => project.status === "Active").length)} icon="icon-folder-line" theme="flat" />
-          <MetricCard label="Outstanding" value={formatCompactMoney(outstanding)} icon="icon-coins-line" theme="flat" />
+          <MetricCard label="Due this week" value={String(dueThisWeek.length)} icon="icon-calendar-line" theme="shadow" />
+          <MetricCard label="Active projects" value={String(projects.filter((project) => project.status === "Active").length)} icon="icon-folder-line" theme="shadow" />
+          <MetricCard label="Outstanding" value={formatCompactMoney(outstanding)} icon="icon-coins-line" theme="shadow" />
         </Grid>
         <Stack as="section" gap="md" aria-labelledby={dueId}>
           <Heading level={2} id={dueId} textStyle="Heading/4">Due this week</Heading>
@@ -607,8 +607,7 @@ function ElevatedPanels() {
     // screen takes the same elevation.
     <div className="pe-shell" data-canvas="default">
       <Sidebar logo={<Text as="span" textStyle="Body/Base/Bold">{studio.name}</Text>} sections={shellSections} selectedId={page}
-        onItemClick={(item) => setPage(item.id as ShellPage)}
-        background="flat" />
+        onItemClick={(item) => setPage(item.id as ShellPage)} />
       {/* Page body padded xl (Margin-Comfortable); sections xl apart. */}
       <Stack ref={measure} gap="xl" padding="xl" width="fill">{content}</Stack>
     </div>
@@ -697,7 +696,7 @@ function StudioEvents() {
   return (
     // The tab root: the large title folds as the feed scrolls under the bar.
     <PlatformPhone key="events" label={studio.name} headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Events" largeTitle="Events" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Events" largeTitle="Events" scrollRef={screenRef} />}>
       {screen.anchor}
       <Stack as="ul" gap="md" padding="lg" aria-label="Upcoming events">
         {studioEvents.map((item) => {
@@ -729,7 +728,7 @@ function StudioEvents() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Main column and aside",
     description: "A project page: the PageHeader, then a Grid of a two-thirds main column and a one-third aside, xl apart as page sections. Every widget is the same flat card — Tasks (title, Status filter, the table; a List of title + status on phones) in the main column, Team and Details stacked md apart in the aside — so their tops line up and their titles share Heading/Subheading; on phones the aside moves under the main column.",
@@ -743,7 +742,7 @@ export const examples: ExampleDef[] = [
       description="Lumen Bank · 38% done · Due Dec 15, 2026"
       actions={<><Button level="tertiary" onClick={share}>Share</Button><Button level="primary" onClick={newTask}>New task</Button></>} />
     {/* Layout columns: lg. One column on phones, the aside under the main column. */}
-    <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="lg" align="start">
+    <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="lg" align="start" maxWidth={1440}>
       {/* Every widget is the same flat card: tops line up, titles share one style */}
       <Card as="section" theme="flat" aria-labelledby="tasks">
         <Stack gap="md">
@@ -909,7 +908,7 @@ function SettingsSection({ id, title, description, children }) {
   },
   {
     title: "Elevated panel",
-    description: "Beside the default Sidebar on a Canvas/Default page, every Surface on the screen takes the Sidebar's elevation: a Box with effectStyle=\"Shadow/Bottom/Level-1\" and no border, like the MetricCards above it. The rows are static, so the panel is the desktop block of rows (radius 2xl, padding xl) as a Box rather than a Card.",
+    description: "Beside the default Sidebar on a Canvas/Default page, every Surface on the screen takes the Sidebar's elevation: a ListBox with theme=\"shadow\" (Shadow/Bottom/Level-1, no border), like the MetricCards above it.",
     wide: true,
     screen: true,
     render: () => <ElevatedPanels />,
@@ -917,15 +916,15 @@ function SettingsSection({ id, title, description, children }) {
 <Sidebar logo={logo} sections={sections} selectedId={page} onItemClick={(item) => setPage(item.id)} />
 <Stack gap="xl" padding="xl" width="fill">
   <PageHeader title="Home" description="7 tasks due this week" />
-  {/* MetricCard's default theme is the same elevation */}
+  {/* MetricCard theme="shadow" is the same elevation */}
   <Grid columns={{ mobile: 1, desktop: 3 }} gap="md">
-    <MetricCard label="Due this week" value="7" icon="icon-calendar-line" />
+    <MetricCard label="Due this week" value="7" icon="icon-calendar-line" theme="shadow" />
     …
   </Grid>
   <Stack as="section" gap="md" aria-labelledby="due">
     <Heading level={2} id="due" textStyle="Heading/4">Due this week</Heading>
-    {/* A Surface panel at the same elevation: shadow, no border; rows pad 0 at the sides, so xl puts their text 24px from every edge */}
-    <Box surface="surface" effectStyle="Shadow/Bottom/Level-1" radius="2xl" padding="xl">
+    {/* The block of rows at the same elevation: shadow, no border */}
+    <ListBox theme="shadow">
       <List aria-labelledby="due">
         {tasks.map((task) => (
           <ListItem key={task.id} title={task.title} titleLines={2} caption={\`\${task.key} · \${formatDue(task.due)}\`}
@@ -933,7 +932,7 @@ function SettingsSection({ id, title, description, children }) {
             trailing={<Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge>} />
         ))}
       </List>
-    </Box>
+    </ListBox>
   </Stack>
 </Stack>`,
   },
@@ -994,7 +993,7 @@ const rsvp = (event, next) => {
 
 // The Events feed: each photo is a frame its layers pin to.
 <PlatformPhone key="events" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Events" largeTitle="Events" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Events" largeTitle="Events" scrollRef={screenRef} />}>
   <Stack as="ul" gap="md" padding="lg" aria-label="Upcoming events">
     {events.map((event) => (
       // The frame owns the radius and clips the photo to it
@@ -1052,4 +1051,4 @@ const rsvp = (event, next) => {
   </Box>
 </PlatformPhone>`,
   },
-];
+]);
