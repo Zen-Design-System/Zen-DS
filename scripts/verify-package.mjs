@@ -1,7 +1,7 @@
 /**
  * Installs the packed library into a throwaway app and checks what a real consumer would hit.
  *
- *   npm run verify:package                 pack (prepack runs build:lib) → temp app → checks (offline)
+ *   npm run verify:package                 build:lib, pack → temp app → checks (offline)
  *   npm run verify:package -- --no-pack    reuse the newest dist-pack/*.tgz
  *   npm run verify:package -- --registry   real `npm install` of the tarball + publint + attw (needs network)
  *   npm run verify:package -- --keep       keep the temp app and print its path
@@ -44,8 +44,11 @@ if (args.has("--no-pack")) {
     .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)[0];
   if (!tarball) throw new Error("No dist-pack/*.tgz; run without --no-pack.");
 } else {
-  const json = execFileSync("npm", ["pack", "--json", "--pack-destination", packDir], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] });
-  const info = JSON.parse(json.slice(json.indexOf("[")))[0];
+  // Build first, then pack without lifecycle scripts: npm 11 (CI) writes the prepack build's log (vite's coloured
+  // "building…", whose escape codes contain "[") into `npm pack --json`'s stdout, which then no longer parses.
+  execFileSync("npm", ["run", "build:lib"], { cwd: root, stdio: ["ignore", "inherit", "inherit"] });
+  const json = execFileSync("npm", ["pack", "--json", "--ignore-scripts", "--pack-destination", packDir], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] });
+  const info = JSON.parse(json)[0];
   tarball = path.join(packDir, info.filename);
   pass("npm pack", `${info.filename}: ${info.entryCount} files, ${kb(info.size)} packed, ${kb(info.unpackedSize)} unpacked`);
 }

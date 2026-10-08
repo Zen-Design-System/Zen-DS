@@ -154,6 +154,10 @@ Read this file only when picking up work or logging a follow-up.
     and Tabs only, so there is no slot for a banner under the bar.
 
 ## Backlog (plan before opening sessions)
+- ~~**P1 · CI "Package" step: `npm pack --json` output mixed with the build log**~~ fixed 2026-10-08 (PR #5: build:lib, then `npm pack --json --ignore-scripts`; verified under npm 11). Was: **(2026-10-08, cause of the P2 below):**
+  on CI (Node 24 / npm 11) the prepack `build:lib` output (vite "building…") lands in `npm pack --json`'s stdout, so
+  `scripts/verify-package.mjs:48` `JSON.parse` fails; same on main run 37602020509. Locally (npm 10) it passes.
+  Fix idea: build first, then `npm pack --json --ignore-scripts`. Blocks the Release workflow and CI green on PR #5.
 - ~~**P1 · verify:package fails "zen-ds-mcp answers over stdio"**~~ fixed 2026-10-08 (PR #5: the server answers what is in flight and flushes stdout before exiting). Was: **(2026-10-08, same on clean main):** `mcp/server.mjs`
   exits when stdin ends, before the async replies to requests 4 (check_usage) and 5 (get_component) are written; the
   check reads ids 1–3 only. Likely the cause of the P2 CI "Package" failures below. Blocks the Release workflow
@@ -177,7 +181,7 @@ Read this file only when picking up work or logging a follow-up.
   `ZEN_REGISTRY_PUBLISH_KEY` and deprecates the public npmjs `@zen-ds/*` packages. Then Phase 5 docs, Phase 6 payment webhook.
 - **P3 · Private registry: flag shared license keys (2026-10-08):** log installs per license (IP, version) and warn when
   one key is used far beyond its `seats`. Pointer: `tools/registry/plugins/verdaccio-zen-license/index.js`.
-- **P2 · CI "Package" step fails on every run of the 0.4.0 branch (2026-10-07, seen when merging PR #1):** 14 of 14
+- ~~**P2 · CI "Package" step fails on every run of the 0.4.0 branch**~~ cause found and fixed 2026-10-08 (PR #5: npm 11 pack JSON + MCP replies). Was: ** (2026-10-07, seen when merging PR #1):** 14 of 14
   finished CI runs since 2026-09-29 failed, almost all in "Package (pack, install in a temp app, budgets, zen-usage,
   MCP, zen-ds)" (twice Browser tests, twice Platform audit); `npm run verify:package` passes locally ("Package OK").
   The job log could not be read from the cloud session (its storage host is blocked). PR #1 was merged with it on the

@@ -64,3 +64,5 @@
 - `tools/usage-guard/check-usage.mjs` and `cli.mjs`: `process.exit(main())` → `process.exitCode = main()`, so piped
   output (62 KB `--list`) is not cut at 8 KB. Exit codes unchanged (bad.tsx 1, good.tsx 0).
 - Now green: usage:selftest, usage:check, mcp:selftest, verify:package ("Package OK", MCP check included).
+- CI "Package" still failed on PR #5 (and on main, run 37602020509): npm 11 puts the prepack build log into
+  `npm pack --json` stdout. verify-package now runs build:lib, then `npm pack --json --ignore-scripts`; passes under npm 11.21.0.
