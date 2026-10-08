@@ -115,10 +115,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P3 · usage:selftest fails now and then while another gate runs (2026-10-07):** twice a fixture rule reported 0 hits
   (`alert-banner/small-no-action`…, then `content/lights-no-light-text`) and passed 3/3 right after; both times a
   `npm run qa` ran in parallel. Find the shared state (a cache or a file the gate rewrites) before trusting a red run.
-- **P2 · Bordered boxes in phone screens (2026-10-07, after batch 6b):** phone screens now paint Canvas/Default, so the
-  cards and ListBoxes inside them that took §11 borders for the old white screen (card Choose on a phone, progress
-  Loyalty stamps, metric Drill in on a phone, …) should go flat per §16, or their phone takes `canvas="surface"`; then the
-  §16 audit check can stop skipping phones (quality-checks.mjs).
 - **P3 · Builder Link folder: the permission prompt of a real folder is untested (2026-10-06, GĐ2 M4):**
   `npm run studio:build-check` covers link, write, Trash (trash/ copy), Restore and the reconnect after a reload through
   an OPFS folder, which the browser always grants; a folder the person picks is usually "prompt" after a reload, so the
@@ -128,18 +124,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   can leave free space again; resizing the column and clearing that width needs one request touching two elements
   (server op). (2) Double-click (Hug) on a column item does nothing ("drag the edge"): could write the track as `auto`.
   (3) No E2E row for the column drag / Fit yet (probe scripts were ad hoc). **Batch 5b 2026-10-07:** (2) done: a Hug double-click on the only item of a px column writes that column's track as `auto` (planHug, gridTracks withTrack); (3) E2E L-09 covers the Hug; the drag has no row yet. (1) still open.
-- **P3 · Card → ListBox leftovers (2026-10-06):** (1) done 2026-10-06 by session "Canvas và surface mặc định": the
-  screen stage is Canvas/Default and the 4 list Cards (menu Projects + Open tasks, text Open tasks, visually-hidden
-  Skip link) are ListBoxes; sidebar RowCard on Alt/Flat canvases stays a Card.
-  (2) done 2026-10-06: ListBox `theme` (flat · shadow · pale · border, user-approved); the examples and templates pick it
-  by §16. Open: Figma Component/List-Box has no Theme property (code mirrors Card's Theme) — add it to the master?
-  Found by the theme sweep (not changed, scope lock): sibling Cards that disagree with their screen's ListBox theme —
-  app-shell StudioApp Home MetricCards flat beside shadow ListBox (~244); alert-banner Billing Card border (~134) and
-  breadcrumbs Top bar trail Card border (~201) on shadow screens; sidebar.tsx `cardLook` (default → border, alt → flat +
-  surface alt) for the settingsList Cards. layout.tsx Elevated panel: `ElevatedList` is a hand-built box of rows (Box
-  surface + List) whose render (Sidebar background="flat", no effectStyle, MetricCards flat) disagrees with its
-  description and code string (default Sidebar, Shadow/Bottom/Level-1) — candidate for `<ListBox theme="shadow">`. (3) Mixed pairs: done
-  2026-10-06 (the tabs Overview Card and segmented Billing Card are flat now, like the ListBoxes beside them).
 - **P3 · Figma List-Box master (2026-10-06):** variants have a FIXED height (instances with fewer rows keep empty space
   until set to Hug) and Header-Slot / Footer-Slot centre their content, while code left-aligns header text and footer
   actions; ask the user whether the master should hug and align left.
@@ -184,24 +168,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   `Description List` 14859:79180 (Layout → `layout`, Items slot → `items`) and `.Primitives/Description-List/Item`
   14859:78890 (Term → `term`, Value → `description`, Emphasis → `emphasis`, Action/Action Button → `action`) with
   `.figma.ts` templates (the repo has no figma.config.json yet).
-- **P3 · Card playground slot corners:** `.platform-slot` (radius Base 12px) inside a Small Card (16px, inset 16px) is
-  not concentric ([rhythm] card@1512/390), new since the slot fills the card width (platform.css:817).
-- **P2 · App Shell examples (checked 2026-10-03 after the List Item refactor; none caused by it):**
-  - Phone app › Profile: the two Toggles in Notifications don't stretch, so their switches sit mid-block instead of at
-    the right edge; the Account kicker (`Group`) is tone="light" while the Notifications kicker is tone="base"
-    (kickers are Body/Small/Bold Base). **Sweep 2026-10-07:** done: both kickers are `tone="light"` (app-shell.tsx:583, :711). Still open: the Toggles that do not stretch, "New" rows that open nothing, and the Back tooltip over the first row (keyboard only).
-  - Notification rows (desktop Notifications page, phone Notifications) carry "New" but open nothing (static rows).
-  - Phone Notifications: after the bell opens the screen, focus lands on Back and its tooltip covers the first row.
 - **P3 · Accordion `contentWidth` follow-ups (2026-10-03, session 2dd655b9):** ~~(1) a Content width control in the
   Accordion playground (Figma has the property since 2026-10-03)~~ done 2026-10-07 (backlog batch 4: Title / Full); (2) the audit's [rhythm] concentric check measures
   insets inside scaled phones (accordion@390 reports 8 + 5 for 8 + 8).
-- **P3 · List Item follow-ups (session "Component List Item refactor"):** EmptyError skeleton rows are static (0 / Gap/Medium
-  16px) while the loaded rows are interactive (12px × 24px), so the list shifts when loading ends; a few static rows
-  still carry Studio-written `selected={false}` (app-shell, action-bar, button); toggle.tsx "Show completed" snippet shows a
-  Card while the JSX is a detached Box. Pre-existing NEW warnings seen in the gate, not from the list change: tooltip@390
-  inline link targets (Exact time, Long file names), top-navigation/input "Choose a …" placeholder contrast 1.92:1,
-  accordion@390 concentric corner, button "Chi Tran" styled Heading/4 without a heading + a 2px Stack gap (Hand off when
-  ready), templates rhythm/outline-siblings. **Sweep 2026-10-07:** done: the toggle "Show completed" snippet matches (ListBox in both) and tooltip@390 audits clean. Duplicates: the placeholder contrast (kept on purpose), accordion@390 corner (Accordion `contentWidth` row (2)), button "Chi Tran" + 2px gap (Structural audit warnings row), templates rhythm / outline-siblings (AiChatBlock row and the rhythm 8 text styles item). Still open: skeleton vs loaded rows, Studio-written `selected={false}`.
 
 - **Studio multi-select follow-ups (2026-10-03, session "Chọn nhiều element vào container"):**
   - P3 · Delete / ⌘D / Move on a multi-selection (now one layer only, with a status line) and mixed-value property editing. **Sweep 2026-10-07:** Delete, ⌘D and mixed-value editing are done (`edit/multi.ts:55-75`, `MixedProperties.tsx`); Move on a multi-selection is still open (arrange.ts:131). **2026-10-07 (backlog batch 5c):** the arrow keys move several layers of one parent (op many move, `edit/multi.ts` stepLayers; E2E K-13); dragging several layers is still open.
@@ -222,10 +191,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   - **P3 · Harness rule:** flag a bare `<Container>` whose subtree holds a non-Card Table (new rule = new scope).
 
 - **From Zen Studio, the canvas tool (2026-10-02; session "Platform UI/UX redesign với canvas editor"):**
-  - **P3 · Studio: 0 spacing has no canvas area:** a gap/padding of `none` draws no hit area, so it is set from the
-    Inspector's Layout section only (`select/spacing.ts`).
-  - **P3 · Studio: outlines over scroll-clipped elements:** the selection outline and spacing tints draw over parts an
-    ancestor scroll box clips (e.g. alert-banner.tsx:390 Box after Shift+2); clip to the scroll ancestor.
   - **P3 · Studio detach follow-ups:** row index assumes the `.map` result renders unchanged (`.slice/.reverse/[h, ...map]`
     would pick another row; no repo case); the phrasing check for Badge/Tag looks at the nearest JSX parent only; the
     inspector status shows the snippet-not-synced note for detach only. **Sweep 2026-10-07:** done: the snippet-not-synced note also shows for wrap, slot inserts and float (wrapSelection.ts:298, slots/actions.ts:233, position/float.ts:49). Still open: the row index and the phrasing check.
@@ -239,11 +204,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
     the last scale instead of 1, or measure a host whose width does not depend on the phone.
   - **P3 · Phone on fractional pixels:** the fit box is `spec.width * scale` (e.g. 323.02px), so centred phones land on
     half pixels (1px gap differences, anti-aliasing in element screenshots); round the fit size in PlatformPhone.
-  - **P3 · Structural audit warnings new on 2026-10-03 (not from the colour or Detach changes; owners to triage):**
-    ~~ai-chat "Assistant on a phone" has no h1 (outline starts at h2 "What do you need, Alex?")~~ done 2026-10-07 (backlog batch 4: the bar title "Zen AI", as its code sample already had); button "Approve on a
-    phone" styles "Chi Tran" heading-4 without a Heading, and "Hand off when ready" has a 2px Stack gap (not a ladder
-    step); accordion@390 "Mobile order summary" corner 16px vs trigger 8px + 5px inset; tooltip@390 "Exact time" and
-    "Long file names" links are 16–20px tall targets. Report `.qa/reports/2026-10-03T15-48-37-47da80c2.md`. **Sweep 2026-10-07:** done: "Chi Tran" is a Text span now and the audit finds no hierarchy issue; tooltip@390 audits clean (WCAG 2.5.8 spacing exemption). Still open: the 2px gap in "Hand off when ready" (button.tsx:245) and the accordion@390 corner.
   - **P3 · action-bar 390 contact sheet:** the sticky "No changes to save yet · Undo changes · Save changes" bar of
     Unsaved changes is drawn over the neighbouring cells (Two choices on a phone, Running total) in the shot.
   - **P3 · Board follow-ups (2026-10-03, stable layout):** a width override past the section edge overlaps the Docs
@@ -279,8 +239,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
     Heading/Subheading (Detail page used one zen-allow). **Sweep 2026-10-07:** done: `table/title-heading-4` accepts Heading/Subheading inside a Card (check-usage.mjs:900-901); the zen-allow at DetailTemplate.tsx:271 is no longer needed. Still open: the hover fill without onRowClick.
   - **P3 · HrShell:** the Approvals counter in the module sidebar is static data; it doesn't follow approvals made on
     the page.
-  - **P3 · Phone templates:** their toasts appear at the bottom of the browser window, outside the phone frame (the
-    docs ToastStack, not the template).
   - **P3 · AiChatBlock:** its greeting is an h2 in Heading/1, so a page that also has Heading/4 section h2s trips
     `outline-siblings` (HR · Home).
 - **HR template audit follow-ups (2026-09-30, batch 6b; log: session-log-2026-09-30.md "Batch 6b"):**
@@ -300,8 +258,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
     fixed 112 vs 240; PageHeader title-to-chevron gap 12 vs 8; ProgressCircle Done shows a check vs a full disc; flag
     text tone Base vs Light.
 - **Review batch 5 follow-ups (2026-09-30, items 13–17; log: session-log-2026-09-30.md "Review batch 5"):**
-  - **P2 · Thin examples sweep (item 13 rest):** Dialog "Form · 1-3 with preview" and ModalForm "Basic" still open from
-    a one-line row; scan other overlay/trigger examples the same way (script in the session log). **Sweep 2026-10-07:** done: "Form · 1-3 with preview" and "Basic" are gone; dialog.tsx:667-794 are scenario examples. The scan of the other overlay examples has not been re-run.
   - **P3 · Components seen by the template agents:** emoji DockIcon XSmall draws a 12px glyph (Figma 28px); ProgressCircle
     has no decorative mode (status read twice); ModalForm `header={false}` has no accessible name; Box has no tinted
     surfaces (Kanban column colours); Card content does not fill a stretched card; AiChatBlock greeting is an h2 (Home
@@ -360,10 +316,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P3 · Chat quote whose original is not in the thread** (older history not loaded): the default jump finds nothing
   and does nothing. Apps must pass `onJumpToReply` to load it; add that to the Chat guideline, or give the default a
   fallback. Chat owners ("Search popover component và Overviews").
-- **P2 · Text-fit debt:** 24 findings of the new `fit` check (text wider than its box, no ellipsis, no scroll),
-  baselined in `tools/platform-audit/quality-baseline.json`; table in session log 2026-09-29, "Text-fit audit check".
-  - Stepper at 390: equal-share steps (`.zen-stepper__step { flex: 1 1 0; min-width: 0 }`) squeeze one-word titles,
-    e.g. "WorkspaceInvite team" (Stepper, Checkout, Icon steps).
 - **P3 · `fit` follow-ups** for its owner "Quy trình kiểm tra Component build" (offline while it was built): review
   `textFit` and the new `audit.mjs` flags `--baseline-update=<kinds>` and `--css=<file>`. Still unchecked: a control
   that fits its own text but is cut off by an `overflow: hidden` ancestor or covered by a sibling. Examples: a
@@ -433,21 +385,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
     - `example-patterns.md` §2 still puts every phone on `type="compact"` and `.pe-phone-cta`.
     - The guideline's HIG "Navigation bars" link now redirects to "Toolbars".
     - The Bottom Navigation guideline lacks "tapping the current tab scrolls to the top" (R14).
-  - **P3 · Focus after removal and from toasts:** these drop focus to the page:
-    - a toast's Undo or View;
-    - an emptying Clear;
-    - deleting a row;
-    - a button that disables after use (Settings Save/Discard, SSO, Pay in full).
-    A panel or sheet opened from a toast also loses its opener.
   - **P3 · Phone targets and sizes:**
     - The MetricCard breakdown chevron, the ChartCard open button and Pagination prev/next are 24px on phones.
     - FileUpload's button is 32px and has no size prop.
     - Menu and Chip popovers have no phone (sheet) mode, so templates build their own sheets.
   - **P3 · Docs frames:**
-  - **P3 · HR templates:**
-    - Team budgets still scrolls sideways at 390.
-    - The "Who's out" chips wrap onto 2 lines.
-    - Delete task cannot be reached on a phone.
 - **From the example polish pass + its gate (2026-10-01) — RESOLVED 2026-10-01/02 (components, platform.css, data.ts, audit tools by "Add audit check…"). ~~Still open: useChatDemo Delete has a confirm but no Undo toast yet (partly)~~ Undo done (checked 2026-10-07, backlog sweep: chatDemo.tsx:61-73 deleteWithUndo); every line below is closed:**
   - **P3 · rhythm "> 7 text styles in one example"** flags full screens and their overlays (since batch A2 also App Shell "Side panel toggled": the modal aside now renders in the frame): App Shell Banner and HR
     workspace, the Detail, HR Home and HR Expense overview templates, and the My expenses / My leaves panels. A real page
@@ -481,12 +423,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   section was built 2026-10-04, see below); waits for the inspector owner's ScaleField + `FieldApi.apply` response
   (`docs/research/studio-position-effects-radius-spec-2026-10-03.md` §4, §6 C–E). Also resize.ts: an "inset" kind for
   absolute layers (ask the resize owner).~~
-- P2 (2026-10-04, session "Cho phép edit element floating"): Studio Position follow-ups — the canvas ConstraintLayer
-  is ✅ built (2026-10-05, Studio builder session: `position/ConstraintLayer.tsx`, E2E AP-04); resize handles and
-  canvas drag on a floating layer still behave as in flow (drag reorders; v2: drag-to-move snapped to tokens).
-- P3 (same session): Ignore auto layout has no Quick action (⌘/) or shortcut yet, and works on one layer (not a
-  multi-selection). Offsets stop at Spacing/Padding 4xl (48px), so a layer floated far from every edge jumps (the status
-  says so); a larger offset scale or fractions would need the user's decision. **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** offsets stay on the ladder up to 4xl (closed); the Quick action and multi-layer parts stay open.
 - P3 (same session): Card `theme="shadow"` on an inherited alt surface (page scope `--zen-card-surface`, e.g.
   `.pe-shell[data-canvas="alt"]`) still casts its shadow; only an explicit `surface="alt"` drops it (CSS cannot read the
   inherited var).
@@ -500,7 +436,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   refused ("one example at a time"). **2026-10-07 (backlog batch 5c):** done: the arrow keys on several layers of one
   parent (K-13) and Mixed text props (I-16). Still open: dragging several, Mixed number / spacing / text style, ⌘D's
   first copy only, two files.
-- P3 (2026-10-04, same session): ⌘C/⌘V of a stateful item into another file is refused (its state names are not bound there); the clipboard could carry the item's `state` like the Assets path does (edit/clipboard.ts pasteAt).
 - P3 (2026-10-04, same session): a stateful item inserted into a `.map` row (Studio "Repeats N×") shares one state across the rows, so every row's Dialog opens together; per-row state needs a row component.
 - P3 (2026-10-04, same session): Popover is the one DS component the slot palette does not offer (it needs an anchor `useRef`); stateFor could declare refs the way it declares useState.
 - **Studio UX/UI audit (2026-10-04, session "Kiểm tra stack hiện và ẩn toast"; read-only; evidence and fixes in
@@ -508,9 +443,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   - P3 · Polish N1–N11 in the report (flat 56-item Pages list with one icon, triple page name, rule notes in the size
     badge, duplicated bound props, double import in Snippet, Shortcuts dialog layout, Modes subtitle, raw layer names,
     ⌘/Ctrl hint, 11px nav labels, 592px of side panels).
-- P3 (2026-10-04, session "Mở lại port preview", Studio data slots): the Layers panel lists no data-slot items (Figma shows
-  the Action instances inside Trailing-Slot) and the canvas draws no outline or + chip for a data slot (SlotLayer knows
-  content slots only); the Slots section and the item panel are the way in for now.
 - P3 (same session): only TopNavigation is in `slots/dataSlots.ts`; other Figma slots the code takes as data (BottomNavigation
   items, ActionBar actions, Breadcrumbs items…) could join after a Figma SLOT-property check.
 - P3 (2026-10-07, backlog batch 5a) · A Studio E2E run cut off during D-02 (the gate's time limit) leaves `src/platform/examples/e2e/StudioSaveFixture.tsx` saved with its edit, and the next run fails D-01 ("Unsaved · 1 file": the edit equals the disk). The harness could restore the save fixture from git at start. Pointer: `tools/studio/e2e/run.mjs`, rows D-01/D-02.
@@ -523,15 +455,8 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - P3 (2026-10-07, GĐ3b M2) · Starters: inline `<svg>` drawings in examples (74 frames: brand marks, custom glyphs) are left out; a page holds library components only.
 - P3 (2026-10-07, GĐ3b M2) · Starters: a className on a library component other than Stack / Grid / Box / Text (Card, Button…: 103 frames) is left out; its CSS (often a width or a grid placement) is not read back.
 - P3 (2026-10-07, GĐ4 M4) · Detach on a builder page refuses EmptyState and DescriptionList: their recipes write an inline style (EmptyState `width: min(320px, 100%)` + auto margins, DescriptionList `maxWidth: 50%`) that pages do not take (`tools/studio/detach.mjs` pageLayout). A Layout-prop form of those layouts would let them detach there too.
-- P3 (2026-10-07, GĐ4 M4) · A Studio wrap Stack follows its instance for remove, duplicate, move and drag; Cut / Copy / Paste and the multi-selection ops (`edit/clipboard.ts`, `edit/multi.ts`) still act on the instance alone (a cut leaves its Stack empty).
 - P3 (2026-10-07, GĐ4 M4) · Detach approximations on builder pages leave out the "CSS keyed on the component class" lines: the browser has no repo CSS to read (`componentCss`).
 - P3 (2026-10-07, GĐ4 M2) · Component swap covers registered atom slots (ListItem leading / trailing) and whole layers; a ReactNode prop that is not a registered slot (Metric `action`, EmptyState `icon` as an element) shows its value read-only, with no ⇄.
-- P3 (2026-10-06, same session): **elevation in shells** — alert-banner Billing card (`alert-banner.tsx` ~134,
-  theme border) and breadcrumbs Top bar trail card (`breadcrumbs.tsx` ~201, theme border) sit in AppShells on
-  Canvas/Default: check each Sidebar's style; a shadowed Sidebar means Shadow cards (elevation follows the Sidebar).
-- P3 (2026-10-07, batch A1 gate, audit §16 `roles` warn) · Card page "Workspace plan" (`section.px-card-plan`) and the Sign in template card are Surface/Default with a shadow on Canvas/Default: make them flat or say which pairing they follow.
 - P3 (2026-10-06, same session): **Card Flat has no hover/pressed** when clickable (`card.css` only styles Border's
   interactive states), so clickable cards stay `theme="border"` under §16; a Flat interactive state would let them
   follow the default mood.
-- P3 (2026-10-07, backlog sweep) · Stale leftovers seen while verifying: the comment at `src/platform/appLayer/layout.tsx:156` still says example cards force a breakpoint; the zen-allow at `src/templates/DetailTemplate.tsx:271` is no longer needed (`table/title-heading-4` accepts Subheading in a Card); the behaviour baseline's chat focus-ring entries and `quality-baseline.json` (only 2 of its 24 fit findings remain) look stale.
-- P3 (2026-10-07, backlog batch 8, found by the fixed qa step ④) · Example coverage gaps on the rebuilt pages: side-panel (edge cases, mobile), sidebar (states, mobile), tooltip (mobile). side-panel and tooltip have no phone example by design (their file headers say so), so the matrix warns each time they are edited: add the missing examples in an approved batch, or give run.mjs a per-page "no phone by design" exemption. **Decided 2026-10-07 (user):** side-panel needs no mobile example (run.mjs NOT_APPLICABLE, done); sidebar and tooltip do need one (tooltip.tsx's "no phone example on purpose" header is overruled) — not built yet. Sidebar on a phone: the floating drawer that slides in and out, as AppShell's drawer layout does (user). **Tooltip done 2026-10-07:** `closable` + `defaultOpen`/`onOpenChange` (Figma Close boolean added to Tooltip 1595:2220 by the same session) and the "A tip on a phone" example. Sidebar done 2026-10-07: "On a phone" (AppShell drawer in PlatformPhone); the drawer now keeps the safe areas clear.
