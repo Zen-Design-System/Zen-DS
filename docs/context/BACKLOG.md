@@ -112,10 +112,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - Phone decisions from the Top Navigation research (2026-10-01, `docs/research/top-navigation-mobile-rules-2026-10-01.md`):
 
 ## Backlog (plan before opening sessions)
-- **P3 · Density audit flake (2026-10-07, batch A4 gate):** date-picker@1512 "Date Picker" and "Time off request" reported
-  `zen-date-picker__view outgrows its box by 4px at Comfortable` once under a heavy gate; a lone run on HEAD and on the
-  change was clean. The viewport's height is a CSS transition from a measured size, so a check right after the density
-  switch can catch it mid-way (`DatePicker.tsx` viewport, `quality-checks.mjs` densitySnapshot): wait for transitions.
 - **P3 · usage:selftest fails now and then while another gate runs (2026-10-07):** twice a fixture rule reported 0 hits
   (`alert-banner/small-no-action`…, then `content/lights-no-light-text`) and passed 3/3 right after; both times a
   `npm run qa` ran in parallel. Find the shared state (a cache or a file the gate rewrites) before trusting a red run.
@@ -123,10 +119,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   cards and ListBoxes inside them that took §11 borders for the old white screen (card Choose on a phone, progress
   Loyalty stamps, metric Drill in on a phone, …) should go flat per §16, or their phone takes `canvas="surface"`; then the
   §16 audit check can stop skipping phones (quality-checks.mjs).
-- **P3 · Gate failures seen only in the cloud container (2026-10-07):** TabItem's axe baseline lists color-contrast that
-  this Chromium (1194, Playwright 1.63 wants 1243) no longer finds, and chat's emoji picker reports 36 [fit] errors
-  (3px wider than their box with the container's emoji font). Both fail the same on 29305b4; check on a desktop run
-  before touching the baseline or chat.css.
 - **P3 · Builder Link folder: the permission prompt of a real folder is untested (2026-10-06, GĐ2 M4):**
   `npm run studio:build-check` covers link, write, Trash (trash/ copy), Restore and the reconnect after a reload through
   an OPFS folder, which the browser always grants; a folder the person picks is usually "prompt" after a reload, so the

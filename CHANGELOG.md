@@ -615,6 +615,9 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Design Tokens page in dark mode (2026-10-08):** the Token links buttons used the browser's black button text on the
+  dark surface (1.38:1); they take Content/Neutral/Strongest now. The QA gate no longer fails in the cloud container on
+  emoji glyph widths or TabItem's machine-dependent axe result.
 - **Phone screens: the top bar matches the canvas (2026-10-08, user rule):** every docs phone on Canvas/Default now
   uses the Alt bar (`alt`, `compact-alt`, `alt-blurring`), the same colour as the screen; only white Surface screens keep
   `default` / `compact`. The TopNavigation guideline says so.

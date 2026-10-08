@@ -456,6 +456,9 @@ export function textFit({ scopeSel, regionSel }) {
     for (let n = walker.nextNode(); n; n = walker.nextNode()) {
       const text = n.textContent.trim(); const el = n.parentElement;
       if (!text || !el || el.closest(SKIP) || !shown(el)) continue;
+      // A pure-emoji run: its glyph width comes from the platform's colour-emoji font (Apple, Noto…), 3px wider in the cloud
+      // container than on macOS, so the same 32px picker cell "overflows" on one machine only. Not a layout finding.
+      if (/^[\p{Extended_Pictographic}\p{Emoji_Component}\uFE0F\u200D\s]+$/u.test(text) && !/^[\d#*\s]+$/.test(text)) continue;
       let ext = extent(n, false), exact = false, words = null;
       if (!ext) continue;
       // The text's own boxes: its block, then wrappers that hold nothing but this label, up to the control that owns it.

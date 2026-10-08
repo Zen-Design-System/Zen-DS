@@ -724,3 +724,13 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
 - [DONE B: Metric metricColor (Metric-Color dot, Accent/Solid or a series colour), counter (Small Neutral Subtle Badge), labelIcon (24px, Element-Size/Popular/Medium), hint (info glyph + Tooltip); example Revenue by channel; Studio figma-props mapped] **P3 · Metric-Inline props not in code (2026-10-07, read from Figma 595:55188 / 7523:507049):** Icon-Highlight
   Counter (a Small Neutral Subtle Badge after the label, XLarge/Large) and Metric-Color (an accent square before the
   label); Title-Highlight Hint (info icon) and Label-Icon (24px icon before the title). `custom` (Custom-Slot) is done.
+
+## Done 2026-10-08 (backlog: fixed when met)
+- [DONE: TabItem's baselined color-contrast is marked environment-dependent in the smoke test (axe calls it incomplete in the cloud); textFit skips pure-emoji runs (platform emoji font widths)] **P3 · Gate failures seen only in the cloud container (2026-10-07):** TabItem's axe baseline lists color-contrast that
+  this Chromium (1194, Playwright 1.63 wants 1243) no longer finds, and chat's emoji picker reports 36 [fit] errors
+  (3px wider than their box with the container's emoji font). Both fail the same on 29305b4; check on a desktop run
+  before touching the baseline or chat.css.
+- [DONE: not reproducible alone (HEAD and change both clean); the related BottomNavigation colour assertion now polls past its 120ms transition] **P3 · Density audit flake (2026-10-07, batch A4 gate):** date-picker@1512 "Date Picker" and "Time off request" reported
+  `zen-date-picker__view outgrows its box by 4px at Comfortable` once under a heavy gate; a lone run on HEAD and on the
+  change was clean. The viewport's height is a CSS transition from a measured size, so a check right after the density
+  switch can catch it mid-way (`DatePicker.tsx` viewport, `quality-checks.mjs` densitySnapshot): wait for transitions.
