@@ -3,7 +3,7 @@ import { ZenPortalProvider } from "../../../../components/Portal";
 
 /*
  * The builder page runtime (spec docs/research/studio-builder-pages-spec-2026-10-06.md §2, §3 2d): what
- * `@zen/design-system/builder` names in a page. Board holds Screens and Overlays (the board lays them out as frames);
+ * `@zen-ds/react/builder` names in a page. Board holds Screens and Overlays (the board lays them out as frames);
  * Screen renders its content in the device's modes (a phone: Comfortable density, Mobile typography and breakpoint, as
  * PlatformPhone); Overlay renders its overlay open inside its own frame (its portal stays in the frame). `proto` handlers
  * call the actions of the nearest ProtoContext: inert while designing (Select), live in Play (M3).

@@ -2,7 +2,7 @@
 # Alert Banner
 
 **Figma:** Alert-Banner (page 234:32702)  
-**Import:** `import { AlertBanner } from "@zen/design-system";`
+**Import:** `import { AlertBanner } from "@zen-ds/react";`
 
 A full-width message about a persistent, page- or app-level condition.
 

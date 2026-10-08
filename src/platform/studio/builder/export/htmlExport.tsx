@@ -216,7 +216,7 @@ export function libraryCss(roots: HTMLElement[], title: string, assets: Assets):
   const keyframes = into.keyframes.filter((frames, index, all) => new RegExp(`(^|[\\s,:])${frames.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([\\s,;]|$)`, "m").test(kept) && all.findIndex((other) => other.text === frames.text) === index).map((frames) => frames.text);
   return [
     `/* Zen Design System styles for "${title.replace(/\*\//g, "* /")}", exported by Zen Studio: the reset, the tokens and their modes, the`,
-    "   library rules its screens use, and the fonts and animations those name. An app imports @zen/design-system/styles.css",
+    "   library rules its screens use, and the fonts and animations those name. An app imports @zen-ds/react/styles.css",
     "   (the whole library) instead. */",
     "",
     ...fonts,

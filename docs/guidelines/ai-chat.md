@@ -2,7 +2,7 @@
 # AI Chat
 
 **Figma:** ❖ AI-Chat (7032:2174): AI/Chat-Field 12074:16888, AI/Chat-Bubble 4218:1270  
-**Import:** `import { AiChatThread, AiChatBubble, AiChatField, AiChatBlock } from "@zen/design-system";`
+**Import:** `import { AiChatThread, AiChatBubble, AiChatField, AiChatBlock } from "@zen-ds/react";`
 
 Prompting and conversing with an assistant: a field to ask, answers to read and rate, and an empty state that suggests where to start.
 

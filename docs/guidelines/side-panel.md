@@ -2,7 +2,7 @@
 # Side Panel
 
 **Figma:** Side-Panel (page 1573:2884)  
-**Import:** `import { SidePanel } from "@zen/design-system";`
+**Import:** `import { SidePanel } from "@zen-ds/react";`
 
 Show details, filters or an edit form next to the page without leaving it.
 

@@ -2,7 +2,7 @@
 # Button & IconButton
 
 **Figma:** Button/Main, Button/Flat, Button/Overlay, Button/Icon-* (page 119:183941)  
-**Import:** `import { Button, IconButton } from "@zen/design-system";`
+**Import:** `import { Button, IconButton } from "@zen-ds/react";`
 
 Triggers an action on the current surface (save, submit, open, delete). Navigation between pages is a link, not a Button.
 

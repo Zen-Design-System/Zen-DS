@@ -127,7 +127,7 @@ if (duplicateNames.length) {
 // - core.ts     the icons Zen components use themselves (string literals found in src/components), registered at start;
 // - buckets/    every other icon, in BUCKETS files keyed by a hash of the name, loaded on first use by <Icon>;
 // - loaders.ts  the hash + one dynamic import per bucket;
-// - all.ts      the whole set (docs platform, galleries, apps that prefer no lazy loading: `@zen/design-system/icons/all`).
+// - all.ts      the whole set (docs platform, galleries, apps that prefer no lazy loading: `@zen-ds/react/icons/all`).
 // 256 small buckets (~6 icons, 2–4 KB gzip each): an app pays a few KB per icon it uses; the loader table stays ~1 KB gzip.
 const BUCKETS = 256;
 const generatedDir = path.dirname(outputPath);

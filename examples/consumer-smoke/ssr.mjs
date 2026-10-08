@@ -1,7 +1,7 @@
 // Server render with the packed package in plain Node (no bundler): the JS must not import CSS or touch the DOM at load.
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
-import * as Zen from "@zen/design-system";
+import * as Zen from "@zen-ds/react";
 
 const { Button, Icon, ZenProvider } = Zen;
 const html = renderToString(

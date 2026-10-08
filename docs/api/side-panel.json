@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "side-panel",
-  "import": "import { SidePanel } from \"@zen/design-system\";",
+  "import": "import { SidePanel } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "SidePanel",

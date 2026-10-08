@@ -2,7 +2,7 @@
 # Popover
 
 **Figma:** Popover/Default, Primitives/Popover/Item, Item/Content (page 815:6432)  
-**Import:** `import { Popover, PopoverItem } from "@zen/design-system";`
+**Import:** `import { Popover, PopoverItem } from "@zen-ds/react";`
 
 The shared floating list used by Chip, Select, Autocomplete and Leading/Trailing pickers.
 

@@ -1,6 +1,6 @@
 /**
  * Template: dashboard (a product studio's operations overview). Copy it into your app, then replace the sample data and
- * handlers. Render it inside your app's <ZenProvider>. Uses only @zen/design-system components, no custom CSS.
+ * handlers. Render it inside your app's <ZenProvider>. Uses only @zen-ds/react components, no custom CSS.
  *
  * - Top bar: Search (filters the projects; Enter opens the first match), Notifications (a docked Side Panel) and the
  *   account menu.
@@ -66,7 +66,7 @@ import {
   type SidebarSection,
   type TableColumn,
   type TableSort,
-} from "@zen/design-system";
+} from "@zen-ds/react";
 
 /* ── Sample data: replace with your own ─────────────────────────────── */
 const workspace = { name: "Đìzai Studio", initial: "Đ" };

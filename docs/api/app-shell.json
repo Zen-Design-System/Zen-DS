@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "app-shell",
-  "import": "import { AppShell, AppShellAction, AppShellAccount } from \"@zen/design-system\";",
+  "import": "import { AppShell, AppShellAction, AppShellAccount } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "AppShell",

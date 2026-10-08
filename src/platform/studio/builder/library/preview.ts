@@ -36,8 +36,8 @@ export function previewPageText(item: PaletteItem): string {
   const names = [...new Set(item.components.map((name) => name.split(".")[0]))].sort();
   return [
     '// @zen-page {"format":1,"title":"Preview"}',
-    'import { Board, Screen, proto } from "@zen/design-system/builder";',
-    `import { ${names.join(", ")} } from "@zen/design-system";`,
+    'import { Board, Screen, proto } from "@zen-ds/react/builder";',
+    `import { ${names.join(", ")} } from "@zen-ds/react";`,
     "",
     "export default function Page() {",
     "  return (",

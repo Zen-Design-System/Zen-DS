@@ -2,7 +2,7 @@
 # List Item
 
 **Figma:** List-Item (4080:11700) + Component/List-Box (14922:75297) + .Primitives/List-Item/Mobile/* (page 4080:4632)  
-**Import:** `import { List, ListBox, ListItem } from "@zen/design-system";`
+**Import:** `import { List, ListBox, ListItem } from "@zen-ds/react";`
 
 One row of a vertical list: a leading visual, a title with an optional caption, and a trailing slot for actions or a passive chevron / value.
 

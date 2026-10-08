@@ -504,9 +504,9 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   const noSemi = page("export function N() {", "  return <Card theme=\"flat\" />", "}").replace(/;$/gm, "");
   const n = run("toast no semicolons", noSemi, "<Card", "Card", ins(BUTTON, opts));
   ok("toast in a file without semicolons: none added", n.code.includes("  const { toast } = useToast()\n") && importLines(n).every((line) => !line.endsWith(";")));
-  const template = ["import { useState } from \"react\";", "import {", "  Card,", "  Stack,", "  type IconName,", "} from \"@zen/design-system\";", "export function T() {", "  const [open] = useState(false);", "  return <Card theme=\"flat\" />;", "}", ""].join("\n");
+  const template = ["import { useState } from \"react\";", "import {", "  Card,", "  Stack,", "  type IconName,", "} from \"@zen-ds/react\";", "export function T() {", "  const [open] = useState(false);", "  return <Card theme=\"flat\" />;", "}", ""].join("\n");
   const t = run("toast template", template, "<Card", "Card", ins(BUTTON, { ...opts }), { file: TEMPLATE });
-  check("toast template: names merged into @zen/design-system, one per line", t.code.split("\n").slice(1, 9), ["import {", "  Button,", "  Card,", "  Stack,", "  useToast,", "  type IconName,", '} from "@zen/design-system";', "export function T() {"]);
+  check("toast template: names merged into @zen-ds/react, one per line", t.code.split("\n").slice(1, 9), ["import {", "  Button,", "  Card,", "  Stack,", "  useToast,", "  type IconName,", '} from "@zen-ds/react";', "export function T() {"]);
   ok("toast template: the hook before the first statement", t.code.includes("export function T() {\n  const { toast } = useToast();\n  const [open] = useState(false);"));
   const crlf = BOM + toastPage.replace(/\n/g, "\r\n");
   const crlfHook = run("toast CRLF BOM", crlf, "<Card theme=\"border\">", "Card", ins(BUTTON, opts));
@@ -551,14 +551,14 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("import: merged into the folder's import", importLines(merged)[5], 'import { Heading, Text } from "../../../components/Text";');
   const member = run("import member tag", src, "<Card theme=\"border\"", "Card", ins("<Text.Fake>Hi</Text.Fake>"));
   check("import: a member tag needs its root only", importLines(member), IMPORTS);
-  const oneLine = ["import { Card, Stack } from \"@zen/design-system\";", "export const T = () => <Card theme=\"flat\" />;", ""].join("\n");
+  const oneLine = ["import { Card, Stack } from \"@zen-ds/react\";", "export const T = () => <Card theme=\"flat\" />;", ""].join("\n");
   const pkg = run("import template one line", oneLine, "<Card", "Card", ins(BADGE), { file: TEMPLATE });
-  check("import: a template's package import", importLines(pkg), ['import { Badge, Card, Stack } from "@zen/design-system";']);
+  check("import: a template's package import", importLines(pkg), ['import { Badge, Card, Stack } from "@zen-ds/react";']);
   const bare = ["export const T = () => <div />;", ""].join("\n");
   const fresh = run("import template without imports", bare, "<div", "div", ins(BADGE), { file: TEMPLATE });
-  check("import: a template without imports gets a package line; loc moved", [importLines(fresh), fresh.inserted.loc], [['import { Badge } from "@zen/design-system";'], "2:28"]);
-  const platformPkg = ['import { Card } from "@zen/design-system";', "export const T = () => <Card theme=\"flat\" />;", ""].join("\n");
-  check("import: an example importing the package keeps to it", importLines(run("import platform package", platformPkg, "<Card", "Card", ins(BADGE))), ['import { Badge, Card } from "@zen/design-system";']);
+  check("import: a template without imports gets a package line; loc moved", [importLines(fresh), fresh.inserted.loc], [['import { Badge } from "@zen-ds/react";'], "2:28"]);
+  const platformPkg = ['import { Card } from "@zen-ds/react";', "export const T = () => <Card theme=\"flat\" />;", ""].join("\n");
+  check("import: an example importing the package keeps to it", importLines(run("import platform package", platformPkg, "<Card", "Card", ins(BADGE))), ['import { Badge, Card } from "@zen-ds/react";']);
 }
 
 /* ── guards ───────────────────────────────────────────────────────────────────────────────────────────────────────── */
@@ -1014,7 +1014,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("reset: the original of a duplicate still resets", back("reset the original", run("reset: original edited", copy.code, "<Card theme=\"border\"", "Card", ins(BADGE)).code, "<Card theme=\"border\"", "Card", src).code, copy.code);
 
   // Imports: a Zen component the draft lost comes back (templates: into the package import); anything else is refused.
-  const template = ["import {", "  Badge,", "  Card,", "  Stack,", "} from \"@zen/design-system\";", "", "export function Settings() {", "  return (", "    <Stack gap=\"md\">", "      <Card theme=\"border\">", "        <Badge>New</Badge>", "      </Card>", "    </Stack>", "  );", "}", ""].join("\n");
+  const template = ["import {", "  Badge,", "  Card,", "  Stack,", "} from \"@zen-ds/react\";", "", "export function Settings() {", "  return (", "    <Stack gap=\"md\">", "      <Card theme=\"border\">", "        <Badge>New</Badge>", "      </Card>", "    </Stack>", "  );", "}", ""].join("\n");
   const noBadge = run("reset: template remove", template, "<Badge", "Badge", REMOVE, { file: TEMPLATE });
   check("reset in a template: the package import gets Badge back", [noBadge.code.includes("  Badge,"), back("reset template", noBadge.code, "<Card", "Card", template, undefined, { file: TEMPLATE }).code === template], [false, true]);
   const data = ['import { plans } from "./plans-data";', ...IMPORTS, "", "const label = \"Pro\";", "export function D() {", "  return (", "    <Card theme=\"border\">", "      <Text>{label}</Text>", "      {plans.map((plan) => <Badge key={plan}>{plan}</Badge>)}", "    </Card>", "  );", "}", ""].join("\n");
@@ -1282,7 +1282,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     'import { platformMedia } from "../../PlatformMedia";',
   ]);
   check("media: a second image keeps one import", run("media: second image", pictured.code, "<Card", "Card", ins(IMAGE, { requires: ["media"] })).code.split("platformMedia } from").length, 2);
-  const templateText = quiet.replace(/"\.\.\/\.\.\/\.\.\/components\/\w+"/g, '"@zen/design-system"');
+  const templateText = quiet.replace(/"\.\.\/\.\.\/\.\.\/components\/\w+"/g, '"@zen-ds/react"');
   check("media: refused in a template", errorOf(applySlotOp(templateText, locOf(templateText, "<Card"), "Card", ins(IMAGE, { requires: ["media"] }), options({ file: TEMPLATE })))[1], "The code reads platformMedia, which only the example pages import (src/platform/PlatformMedia.tsx); in a template, import your picture and pass its src.");
   check("code: JS built-ins are not free names", run("built-ins: a date", quiet, "<Card", "Card", ins("<Text>{new Date(2026, 9, 14).getFullYear()}</Text>")).code.includes("new Date(2026, 9, 14)"), true);
 }
@@ -1678,7 +1678,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     "  Card,",
     "  Stack,",
     "  Text,",
-    "} from \"@zen/design-system\";",
+    "} from \"@zen-ds/react\";",
     "",
     "export function SettingsPanel() {",
     "  return (",

@@ -1,0 +1,11 @@
+{$REGISTRY_DOMAIN} {
+	encode zstd gzip
+	request_body {
+		max_size 60MB
+	}
+	reverse_proxy registry:4873
+	log {
+		output stdout
+		format json
+	}
+}

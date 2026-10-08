@@ -1,9 +1,9 @@
 // Zen DS usage harness as an ESLint (flat config) plugin: the same rules as `zen-usage`, reported in the editor and
-// in `eslint .`. It checks only JSX tags imported from "@zen/design-system" (app mode), so an app's own components
+// in `eslint .`. It checks only JSX tags imported from "@zen-ds/react" (app mode), so an app's own components
 // are never judged by Zen's rules.
 //
 //   // eslint.config.js — with typescript-eslint (or any JSX-capable parser) already set up:
-//   import zen from "@zen/design-system/eslint";
+//   import zen from "@zen-ds/react/eslint";
 //   export default [ ...yourConfig, zen.configs.recommended ];
 //
 //   // No TypeScript lint setup? zen.configs.standalone brings a pass-through parser for .jsx/.tsx files:
@@ -69,7 +69,7 @@ const passThroughParser = {
 };
 
 const plugin = {
-  meta: { name: "@zen/design-system/eslint", version: "0.4.0" },
+  meta: { name: "@zen-ds/react/eslint", version: "0.4.0" },
   rules: { usage: make("error"), "usage-warn": make("warn") },
   parser: passThroughParser,
   configs: {},

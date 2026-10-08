@@ -139,7 +139,7 @@ function AppShellPlayground() {
         <PlaygroundToggle label="Side panel" selected={panel} onChange={setPanel} />
         <PlaygroundToggle label="Floating action" selected={floating} onChange={setFloating} />
       </>}
-      code={`import { ${imports} } from "@zen/design-system";
+      code={`import { ${imports} } from "@zen-ds/react";
 
 <AppShell${props}
 >
@@ -211,7 +211,7 @@ function PageHeaderPlayground() {
         <PlaygroundToggle label="Back" selected={withBack} onChange={setWithBack} />
         <PlaygroundToggle label="Tabs" selected={withTabs} onChange={setWithTabs} />
       </>}
-      code={`import { PageHeader } from "@zen/design-system";
+      code={`import { PageHeader } from "@zen-ds/react";
 
 <PageHeader
   title="Brand refresh"

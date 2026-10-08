@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "checkbox",
-  "import": "import { Checkbox, CheckboxMarkIndicator } from \"@zen/design-system\";",
+  "import": "import { Checkbox, CheckboxMarkIndicator } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Checkbox",

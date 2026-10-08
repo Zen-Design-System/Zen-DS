@@ -154,6 +154,29 @@ Read this file only when picking up work or logging a follow-up.
     and Tabs only, so there is no slot for a banner under the bar.
 
 ## Backlog (plan before opening sessions)
+- **P1 · verify:package fails "zen-ds-mcp answers over stdio" (2026-10-08, same on clean main):** `mcp/server.mjs`
+  exits when stdin ends, before the async replies to requests 4 (check_usage) and 5 (get_component) are written; the
+  check reads ids 1–3 only. Likely the cause of the P2 CI "Package" failures below. Blocks the Release workflow
+  (it runs verify:package). Pointer: `mcp/server.mjs` stdin end, `scripts/verify-package.mjs` §7.
+- **P1 · usage:selftest crashes: `--list` JSON cut at 8 KB (2026-10-08, same on clean main):** `check-usage.mjs` ends
+  with `process.exit(main())`, which drops unflushed piped stdout (62 KB); the selftest's `JSON.parse` fails. CI runs it.
+  Pointer: `tools/usage-guard/check-usage.mjs:1330`, `tools/usage-guard/selftest.mjs:11`.
+- **P2 · Private registry Phase 5, customer docs (2026-10-08):** `docs/getting-started.md`, `AGENTS.consumer.md`,
+  README and `zen-ds init` say `npm install @zen-ds/react` but not the registry step (`@zen-ds:registry=https://npm.dizai.studio/`
+  + one `npm login` with the license key); without it npm installs the old public `@zen-ds/react` 0.1.0.
+- **P2 · No LICENSE file for the commercial package (2026-10-08):** package.json has no `license` field and the repo no
+  LICENSE/EULA; needed before selling (legal text from the user).
+- ~~**P0 · Live license backend: anonymous read of licenses by id**~~ fixed live 2026-10-08 (user-approved, with the registry access change; verified anonymous 404 on all 30). Was: **(2026-10-08, found by the registry e2e test):**
+  `licenses.viewRule` `owner.id = @request.auth.id || team_members_via_license.user ?= @request.auth.id` lets a
+  request with no auth read any license that has no team members (26 of 30 live): `?=` over an empty back-relation
+  matches the empty auth id. Exposes owner id, type, credits, purchase date. Fix: prefix `@request.auth.id != "" && (…)`.
+  Pointer: zen-license-management `licenses` rules; `tools/registry/test/pocketbase/pb_migrations/`.
+- **P2 · Private registry Phases 3–6 (2026-10-08, plan agreed in chat):** Phase 3 kit ready (`tools/registry/deploy/`,
+  README "Deploy"); the user creates the VPS, DNS `npm.dizai.studio`, R2 bucket + `backup.env`, runs `deploy.sh`, adds
+  an uptime check, and tries one real `npm login`. Phase 4 (rename + release workflow) done 2026-10-08; the user sets
+  `ZEN_REGISTRY_PUBLISH_KEY` and deprecates the public npmjs `@zen-ds/*` packages. Then Phase 5 docs, Phase 6 payment webhook.
+- **P3 · Private registry: flag shared license keys (2026-10-08):** log installs per license (IP, version) and warn when
+  one key is used far beyond its `seats`. Pointer: `tools/registry/plugins/verdaccio-zen-license/index.js`.
 - **P2 · CI "Package" step fails on every run of the 0.4.0 branch (2026-10-07, seen when merging PR #1):** 14 of 14
   finished CI runs since 2026-09-29 failed, almost all in "Package (pack, install in a temp app, budgets, zen-usage,
   MCP, zen-ds)" (twice Browser tests, twice Platform audit); `npm run verify:package` passes locally ("Package OK").

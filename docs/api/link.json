@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "link",
-  "import": "import { Link } from \"@zen/design-system\";",
+  "import": "import { Link } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Link",

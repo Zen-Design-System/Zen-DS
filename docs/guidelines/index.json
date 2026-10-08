@@ -7,7 +7,7 @@
       "file": "docs/guidelines/button.md",
       "apiFile": "docs/api/button.json",
       "figma": "Button/Main, Button/Flat, Button/Overlay, Button/Icon-* (page 119:183941)",
-      "import": "import { Button, IconButton } from \"@zen/design-system\";",
+      "import": "import { Button, IconButton } from \"@zen-ds/react\";",
       "purpose": "Triggers an action on the current surface (save, submit, open, delete). Navigation between pages is a link, not a Button.",
       "use": [
         "Committing or cancelling a task (forms, dialogs, toolbars).",
@@ -97,7 +97,7 @@
       "file": "docs/guidelines/chip.md",
       "apiFile": "docs/api/chip.json",
       "figma": "Chip/Advanced, Chip/Normal, Chip/Number-Only (page 320:79626)",
-      "import": "import { Chip } from \"@zen/design-system\";",
+      "import": "import { Chip } from \"@zen-ds/react\";",
       "purpose": "Compact, selectable tokens. Advanced chips are the Zen filter control: each owns a Popover of options.",
       "use": [
         "Filter/sort/scope/status/owner pickers (variant=\"advanced\" + popoverItems).",
@@ -182,7 +182,7 @@
       "file": "docs/guidelines/input.md",
       "apiFile": "docs/api/input.json",
       "figma": "Input/Text-Field, Select-Field, Date-Field, Number-Align-Left/Center, Text-Area, Autocomplete-Field, Heading (page 373:97258)",
-      "import": "import { InputField, SelectField, DateField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen/design-system\";",
+      "import": "import { InputField, SelectField, DateField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
       "use": [
         "Free text → InputField; long text → TextAreaField.",
@@ -369,7 +369,7 @@
       "file": "docs/guidelines/search.md",
       "apiFile": "docs/api/search.json",
       "figma": "Search (page 846:37480)",
-      "import": "import { Search } from \"@zen/design-system\";",
+      "import": "import { Search } from \"@zen-ds/react\";",
       "purpose": "Find or filter content by typing.",
       "use": [
         "Filtering a visible list or table as the user types.",
@@ -434,7 +434,7 @@
       "file": "docs/guidelines/segmented.md",
       "apiFile": "docs/api/segmented.json",
       "figma": "Segmented + Primitives/Segmented/Item (page 1070:17807)",
-      "import": "import { Segmented, SegmentedItem } from \"@zen/design-system\";",
+      "import": "import { Segmented, SegmentedItem } from \"@zen-ds/react\";",
       "purpose": "Switch between 2–5 mutually exclusive views or sections of the same content.",
       "use": [
         "View switchers (grid ↔ list).",
@@ -495,7 +495,7 @@
       "file": "docs/guidelines/toggle.md",
       "apiFile": "docs/api/toggle.json",
       "figma": "Toggle, Toggle/Button (page 1307:27442)",
-      "import": "import { Toggle, ToggleButton } from \"@zen/design-system\";",
+      "import": "import { Toggle, ToggleButton } from \"@zen-ds/react\";",
       "purpose": "Turn a setting on or off with immediate effect.",
       "use": [
         "Settings that apply instantly (notifications, dark preview)."
@@ -547,7 +547,7 @@
       "file": "docs/guidelines/checkbox.md",
       "apiFile": "docs/api/checkbox.json",
       "figma": "Checkbox/Text, Checkbox/Mark (page 308:46604)",
-      "import": "import { Checkbox, CheckboxMarkIndicator } from \"@zen/design-system\";",
+      "import": "import { Checkbox, CheckboxMarkIndicator } from \"@zen-ds/react\";",
       "purpose": "Select zero, one or many independent options, or confirm a single statement.",
       "use": [
         "Multi-select lists, select-all with indeterminate parent.",
@@ -600,7 +600,7 @@
       "file": "docs/guidelines/radio-button.md",
       "apiFile": "docs/api/radio-button.json",
       "figma": "Radio-Button/Radio-Button, Radio-Mark (page 373:96221)",
-      "import": "import { RadioButton } from \"@zen/design-system\";",
+      "import": "import { RadioButton } from \"@zen-ds/react\";",
       "purpose": "Pick exactly one option from a small visible set.",
       "use": [
         "2–6 options that benefit from being compared side by side (plans, density)."
@@ -652,7 +652,7 @@
       "file": "docs/guidelines/badge.md",
       "apiFile": "docs/api/badge.json",
       "figma": "Badge, Badge-Counter (page 239:18960)",
-      "import": "import { Badge, BadgeCounter } from \"@zen/design-system\";",
+      "import": "import { Badge, BadgeCounter } from \"@zen-ds/react\";",
       "purpose": "Non-interactive status, category or count labels.",
       "use": [
         "Status in lists (Live, Failed).",
@@ -711,7 +711,7 @@
       "file": "docs/guidelines/tag.md",
       "apiFile": "docs/api/tag.json",
       "figma": "Tag (page 260:5187)",
-      "import": "import { Tag } from \"@zen/design-system\";",
+      "import": "import { Tag } from \"@zen-ds/react\";",
       "purpose": "A chosen value inside a field (keywords, recipients), usually removable.",
       "use": [
         "Autocomplete selections, keyword inputs."
@@ -756,7 +756,7 @@
       "file": "docs/guidelines/avatar.md",
       "apiFile": "docs/api/avatar.json",
       "figma": "Avatar/Single, Avatar/Stack (page 211:19487)",
-      "import": "import { Avatar, AvatarStack } from \"@zen/design-system\";",
+      "import": "import { Avatar, AvatarStack } from \"@zen-ds/react\";",
       "purpose": "Represent a person or workspace with a photo or initials.",
       "use": [
         "People lists, assignees, account switchers, shared-with stacks (max 5)."
@@ -808,7 +808,7 @@
       "file": "docs/guidelines/popover.md",
       "apiFile": "docs/api/popover.json",
       "figma": "Popover/Default, Primitives/Popover/Item, Item/Content (page 815:6432)",
-      "import": "import { Popover, PopoverItem, PopoverSearch, PopoverBunkAction, PopoverBunkActionGroup, PopoverBunkActionDivider, PopoverManualAddNew } from \"@zen/design-system\";",
+      "import": "import { Popover, PopoverItem, PopoverSearch, PopoverBunkAction, PopoverBunkActionGroup, PopoverBunkActionDivider, PopoverManualAddNew } from \"@zen-ds/react\";",
       "purpose": "The shared floating list used by Chip, Select, Autocomplete and Leading/Trailing pickers.",
       "use": [
         "Option lists (single or multiple), sort menus, assignee pickers with search."
@@ -874,7 +874,7 @@
       "file": "docs/guidelines/sidebar.md",
       "apiFile": "docs/api/sidebar.json",
       "figma": "Patterns/Sidebar (page 1536:27287)",
-      "import": "import { Sidebar, SidebarSubMenu } from \"@zen/design-system\";",
+      "import": "import { Sidebar, SidebarSubMenu } from \"@zen-ds/react\";",
       "purpose": "Primary app navigation with sections, nested items and a collapsible rail.",
       "use": [
         "App shells with 5+ destinations."
@@ -953,7 +953,7 @@
       "file": "docs/guidelines/date-picker.md",
       "apiFile": "docs/api/date-picker.json",
       "figma": "Date-Picker/Single-Calendar (page 453:32817)",
-      "import": "import { DatePicker, DateField, DatePickerItem, DatePickerHeader, DatePickerAction, DatePickerMonthYear, DatePickerTimePicker } from \"@zen/design-system\";",
+      "import": "import { DatePicker, DateField, DatePickerItem, DatePickerHeader, DatePickerAction, DatePickerMonthYear, DatePickerTimePicker } from \"@zen-ds/react\";",
       "purpose": "Pick a date or a date range. DatePicker is the calendar panel itself and is visible by default (open defaults to true), like an inline calendar; DateField is the input that opens it in a popover.",
       "use": [
         "DateField in forms (the field owns the popover); inline DatePicker for booking-style range selection.",
@@ -1054,7 +1054,7 @@
       "file": "docs/guidelines/tooltip.md",
       "apiFile": "docs/api/tooltip.json",
       "figma": "Tooltip (page 1595:2169)",
-      "import": "import { Tooltip, TooltipSurface } from \"@zen/design-system\";",
+      "import": "import { Tooltip, TooltipSurface } from \"@zen-ds/react\";",
       "purpose": "Name or briefly describe a control on hover and keyboard focus.",
       "use": [
         "Icon-only buttons, truncated text, keyboard shortcuts."
@@ -1104,7 +1104,7 @@
       "file": "docs/guidelines/tabs.md",
       "apiFile": "docs/api/tabs.json",
       "figma": "Tab-Bar, Primitives/Tab-Item (page 1573:3394)",
-      "import": "import { Tabs, TabItem, TabPanel } from \"@zen/design-system\";",
+      "import": "import { Tabs, TabItem, TabPanel } from \"@zen-ds/react\";",
       "purpose": "Switch between related panels of content at the same level.",
       "use": [
         "Settings pages, detail views with sections (Indicator).",
@@ -1158,7 +1158,7 @@
       "file": "docs/guidelines/breadcrumbs.md",
       "apiFile": "docs/api/breadcrumbs.json",
       "figma": "Breadcrumbs (4031:20161), Primitives/Breadcrumbs/Item/Slot (4031:20158), .Primitives/Breadcrumbs/Item (292:43787)",
-      "import": "import { Breadcrumbs, BreadcrumbItem } from \"@zen/design-system\";",
+      "import": "import { Breadcrumbs, BreadcrumbItem } from \"@zen-ds/react\";",
       "purpose": "Show where the current page sits in a hierarchy and let users go up.",
       "use": [
         "Pages 3+ levels deep; file browsers."
@@ -1200,7 +1200,7 @@
       "file": "docs/guidelines/progress.md",
       "apiFile": "docs/api/progress.json",
       "figma": "Progress-Bar, Progress-Circle (page 1531:13314)",
-      "import": "import { ProgressBar, ProgressCircle } from \"@zen/design-system\";",
+      "import": "import { ProgressBar, ProgressCircle } from \"@zen-ds/react\";",
       "purpose": "Show determinate progress of a task or a step.",
       "use": [
         "Uploads, setup checklists, quotas (Status theme)."
@@ -1253,7 +1253,7 @@
       "file": "docs/guidelines/dialog.md",
       "apiFile": "docs/api/dialog.json",
       "figma": "Modal/Dialog, .Primitives/Modal/Actions (page 694:9166)",
-      "import": "import { Dialog, ModalForm, ModalActions } from \"@zen/design-system\";",
+      "import": "import { Dialog, ModalForm, ModalActions } from \"@zen-ds/react\";",
       "purpose": "Interrupt to confirm a decision or deliver critical information.",
       "use": [
         "Destructive confirmations, unsaved-changes guards, blocking success/failure."
@@ -1344,7 +1344,7 @@
       "file": "docs/guidelines/toast.md",
       "apiFile": "docs/api/toast.json",
       "figma": "Toast-Message (page 1579:6872)",
-      "import": "import { Toast, ToastStack, ToastProvider } from \"@zen/design-system\";",
+      "import": "import { Toast, ToastStack, ToastProvider } from \"@zen-ds/react\";",
       "purpose": "Brief, non-blocking feedback about something the user just did or something the system just finished.",
       "use": [
         "Confirming a completed action (\"Changes saved\"), ideally with Undo.",
@@ -1415,7 +1415,7 @@
       "file": "docs/guidelines/alert-banner.md",
       "apiFile": "docs/api/alert-banner.json",
       "figma": "Alert-Banner (page 234:32702)",
-      "import": "import { AlertBanner } from \"@zen/design-system\";",
+      "import": "import { AlertBanner } from \"@zen-ds/react\";",
       "purpose": "A full-width message about a persistent, page- or app-level condition.",
       "use": [
         "System status (maintenance, degraded service).",
@@ -1463,7 +1463,7 @@
       "file": "docs/guidelines/accordion.md",
       "apiFile": "docs/api/accordion.json",
       "figma": "Accordion/Text + .Primitives/Accordion/Content (page 234:33035)",
-      "import": "import { Accordion } from \"@zen/design-system\";",
+      "import": "import { Accordion } from \"@zen-ds/react\";",
       "purpose": "Progressive disclosure of secondary content under short headings.",
       "use": [
         "FAQs and help content.",
@@ -1513,7 +1513,7 @@
       "file": "docs/guidelines/pagination.md",
       "apiFile": "docs/api/pagination.json",
       "figma": "Pagination + .Primitives/Pagination/Item (page 774:15997)",
-      "import": "import { Pagination, PaginationItem } from \"@zen/design-system\";",
+      "import": "import { Pagination, PaginationItem } from \"@zen-ds/react\";",
       "purpose": "Move through a large, ordered result set one page at a time.",
       "use": [
         "Tables and result lists where position matters (\"page 3 of 10\").",
@@ -1563,7 +1563,7 @@
       "file": "docs/guidelines/skeleton.md",
       "apiFile": "docs/api/skeleton.json",
       "figma": "Skeleton/Body-Text, Heading-Text, Shapes (page 1556:17503)",
-      "import": "import { SkeletonText, SkeletonHeading, SkeletonShape } from \"@zen/design-system\";",
+      "import": "import { SkeletonText, SkeletonHeading, SkeletonShape } from \"@zen-ds/react\";",
       "purpose": "Placeholder that mirrors the layout of content while it loads.",
       "use": [
         "Initial loads of cards, lists and profiles whose layout is known."
@@ -1618,7 +1618,7 @@
       "file": "docs/guidelines/divider.md",
       "apiFile": "docs/api/divider.json",
       "figma": "Divider (page 460:38357)",
-      "import": "import { Divider } from \"@zen/design-system\";",
+      "import": "import { Divider } from \"@zen-ds/react\";",
       "purpose": "A 1px line that separates groups of content. Default (Pale) is the everyday rule; Medium and High add emphasis only when the design calls for it.",
       "use": [
         "Between groups of rows, settings sections or list blocks.",
@@ -1661,7 +1661,7 @@
       "file": "docs/guidelines/inline-message.md",
       "apiFile": "docs/api/inline-message.json",
       "figma": "Inline-Message (page 595:54502)",
-      "import": "import { InlineMessage } from \"@zen/design-system\";",
+      "import": "import { InlineMessage } from \"@zen-ds/react\";",
       "purpose": "A Subtle-surface message placed inside the content it describes — contextual, persistent until resolved or dismissed.",
       "use": [
         "Context for a form or section (\"You're editing production\").",
@@ -1716,7 +1716,7 @@
       "file": "docs/guidelines/empty-state.md",
       "apiFile": "docs/api/empty-state.json",
       "figma": "Empty-State, Empty-State/Illustration/Placeholder, .Empty-State/CTAs (page 6062:27870)",
-      "import": "import { EmptyState, EmptyStateIllustration } from \"@zen/design-system\";",
+      "import": "import { EmptyState, EmptyStateIllustration } from \"@zen-ds/react\";",
       "purpose": "Explains why a screen or region has nothing to show and what the user can do next.",
       "use": [
         "First run (no data yet): one Primary action that creates the first item.",
@@ -1770,7 +1770,7 @@
       "file": "docs/guidelines/stepper.md",
       "apiFile": "docs/api/stepper.json",
       "figma": "Stepper-Bar/Horizontal, Stepper-Bar/Vertical, .Primitives/Stepper/* (page 1625:3394)",
-      "import": "import { Stepper, StepperItem } from \"@zen/design-system\";",
+      "import": "import { Stepper, StepperItem } from \"@zen-ds/react\";",
       "purpose": "Shows progress through a multi-step, sequential process and where the user is in it.",
       "use": [
         "Checkouts, onboarding, imports and setup wizards with 2–7 ordered steps.",
@@ -1817,7 +1817,7 @@
       "file": "docs/guidelines/slider.md",
       "apiFile": "docs/api/slider.json",
       "figma": "Slider/Horizontal, .Primitives/Slider/Slide-Dot (page 1556:17601)",
-      "import": "import { Slider } from \"@zen/design-system\";",
+      "import": "import { Slider } from \"@zen-ds/react\";",
       "purpose": "Pick a value from a continuous or stepped range by dragging, where the relative position matters more than the exact number.",
       "use": [
         "Volume, brightness, zoom, size — values users tune by feel.",
@@ -1877,7 +1877,7 @@
       "file": "docs/guidelines/card.md",
       "apiFile": "docs/api/card.json",
       "figma": "Card (page 6643:49849)",
-      "import": "import { Card } from \"@zen/design-system\";",
+      "import": "import { Card } from \"@zen-ds/react\";",
       "purpose": "A surface that groups related content about one subject — a project, a stat, a choice — and can be selected or opened as a whole.",
       "use": [
         "Grids of objects users scan and pick (projects, templates, plans).",
@@ -1937,7 +1937,7 @@
       "file": "docs/guidelines/dock-icon.md",
       "apiFile": "docs/api/dock-icon.json",
       "figma": "Dock-Icon (page 298:45468)",
-      "import": "import { DockIcon } from \"@zen/design-system\";",
+      "import": "import { DockIcon } from \"@zen-ds/react\";",
       "purpose": "A round, filled icon tile that identifies an app, category, file type or object.",
       "use": [
         "Leading visual of List-Items and Table media cells.",
@@ -1985,7 +1985,7 @@
       "file": "docs/guidelines/list-item.md",
       "apiFile": "docs/api/list-item.json",
       "figma": "List-Item (4080:11700) + Component/List-Box (14922:75297) + .Primitives/List-Item/Mobile/* (page 4080:4632)",
-      "import": "import { List, ListItem, ListBox } from \"@zen/design-system\";",
+      "import": "import { List, ListItem, ListBox } from \"@zen-ds/react\";",
       "purpose": "One row of a vertical list: a leading visual, a title with an optional caption, and a trailing slot for actions or a passive chevron / value.",
       "use": [
         "People, messages, files and settings lists.",
@@ -2075,7 +2075,7 @@
       "file": "docs/guidelines/table.md",
       "apiFile": "docs/api/table.json",
       "figma": "Table/Cell/Header, Table/Cell/Default, Primitives/Table/* (page 1595:2631)",
-      "import": "import { Table, TableText, TableMedia, TableTrend, TableBadges, TableTags, TableActions } from \"@zen/design-system\";",
+      "import": "import { Table, TableText, TableMedia, TableTrend, TableBadges, TableTags, TableActions } from \"@zen-ds/react\";",
       "purpose": "Rows of structured records that users scan, compare, sort and act on.",
       "use": [
         "Data with several comparable attributes per record (members, invoices, files).",
@@ -2155,7 +2155,7 @@
       "file": "docs/guidelines/rating.md",
       "apiFile": "docs/api/rating.json",
       "figma": "Rating/Star, Rating-Display, Rating/Opinion-Scale, Rating/NPS-Scale (page 1536:355)",
-      "import": "import { Rating, RatingDisplay, OpinionScale, NpsScale } from \"@zen/design-system\";",
+      "import": "import { Rating, RatingDisplay, OpinionScale, NpsScale } from \"@zen-ds/react\";",
       "purpose": "Collect or show a quick quality judgement: stars, an emoji opinion, or an NPS score.",
       "use": [
         "Rating (input) for reviews and quick feedback on an item.",
@@ -2236,7 +2236,7 @@
       "file": "docs/guidelines/color-selector.md",
       "apiFile": "docs/api/color-selector.json",
       "figma": "Color-Selector (page 373:97188)",
-      "import": "import { ColorSelector } from \"@zen/design-system\";",
+      "import": "import { ColorSelector } from \"@zen-ds/react\";",
       "purpose": "Pick one colour from a small curated set of swatches.",
       "use": [
         "Labels, tags, calendar events and chart series colours.",
@@ -2282,7 +2282,7 @@
       "file": "docs/guidelines/metric.md",
       "apiFile": "docs/api/metric.json",
       "figma": "Metric-Card, Primitives/Metric/Metric-Inline/*, .Primitives/Metrics/Metric-Trend (page 595:54968)",
-      "import": "import { Metric, MetricCard, MetricTrend } from \"@zen/design-system\";",
+      "import": "import { Metric, MetricCard, MetricTrend } from \"@zen-ds/react\";",
       "purpose": "Show one key number with its label, an identifying icon and how it changed.",
       "use": [
         "Dashboard KPI tiles (MetricCard).",
@@ -2357,7 +2357,7 @@
       "file": "docs/guidelines/uploader.md",
       "apiFile": "docs/api/uploader.json",
       "figma": "Uploader/File-Upload, Primitives/Uploader/DragDrop-Field, Primitives/Uploader/File-Item (page 1581:17515)",
-      "import": "import { FileUpload, UploaderFileItem } from \"@zen/design-system\";",
+      "import": "import { FileUpload, UploaderFileItem } from \"@zen-ds/react\";",
       "purpose": "Let users add files by dropping or browsing, then track each file's upload.",
       "use": [
         "Attachments, documents and media in forms (Drag & Drop).",
@@ -2424,7 +2424,7 @@
       "file": "docs/guidelines/side-panel.md",
       "apiFile": "docs/api/side-panel.json",
       "figma": "Side-Panel (page 1573:2884)",
-      "import": "import { SidePanel } from \"@zen/design-system\";",
+      "import": "import { SidePanel } from \"@zen-ds/react\";",
       "purpose": "Show details, filters or an edit form next to the page without leaving it.",
       "use": [
         "Record details from a list or table row (Modal).",
@@ -2604,7 +2604,7 @@
       "file": "docs/guidelines/file-icon.md",
       "apiFile": "docs/api/file-icon.json",
       "figma": "icon-media-file (5727:22537, Iconography → Special Icons → File)",
-      "import": "import { FileIcon } from \"@zen/design-system\";",
+      "import": "import { FileIcon } from \"@zen-ds/react\";",
       "purpose": "A coloured document mark that identifies a file's type (PDF, sheet, zip, video …) next to its name.",
       "use": [
         "Uploads (Uploader File-Item Thumbnail=File, 36px).",
@@ -2643,7 +2643,7 @@
       "file": "docs/guidelines/flag.md",
       "apiFile": "docs/api/flag.json",
       "figma": "Flag (7063:63834, 🍑 Iconography)",
-      "import": "import { Flag } from \"@zen/design-system\";",
+      "import": "import { Flag } from \"@zen-ds/react\";",
       "purpose": "A round country or region flag that helps people spot a country next to its name.",
       "use": [
         "Locale and language pickers.",
@@ -2686,7 +2686,7 @@
       "file": "docs/guidelines/icon.md",
       "apiFile": "docs/api/icon.json",
       "figma": "Iconography (page 1340:4450)",
-      "import": "import { Icon } from \"@zen/design-system\";",
+      "import": "import { Icon } from \"@zen-ds/react\";",
       "purpose": "Render a system icon from the generated set at a token size.",
       "use": [
         "Inside components' icon slots and next to text."
@@ -2728,7 +2728,7 @@
       "file": "docs/guidelines/top-navigation.md",
       "apiFile": "docs/api/top-navigation.json",
       "figma": "Top-Navigation/Mobile (page ❖ Top-Navigations, 12014:45167)",
-      "import": "import { TopNavigation, TopNavigationActionButton } from \"@zen/design-system\";",
+      "import": "import { TopNavigation, TopNavigationActionButton } from \"@zen-ds/react\";",
       "purpose": "The mobile app bar: where you are (title), how to go back (leading) and up to three actions for this screen (trailing).",
       "use": [
         "The top of every mobile screen, with a large title on root screens and a compact title on detail screens.",
@@ -2807,7 +2807,7 @@
       "file": "docs/guidelines/bottom-navigation.md",
       "apiFile": "docs/api/bottom-navigation.json",
       "figma": "Bottom-Navigation/Mobile (page ❖ Bottom-Navigations, 7042:38507)",
-      "import": "import { BottomNavigation } from \"@zen/design-system\";",
+      "import": "import { BottomNavigation } from \"@zen-ds/react\";",
       "purpose": "Root-level navigation on mobile: switch between three to five top destinations with one tap.",
       "use": [
         "Apps with 3–5 equally important top-level sections.",
@@ -2860,7 +2860,7 @@
       "file": "docs/guidelines/bottom-sheet.md",
       "apiFile": "docs/api/bottom-sheet.json",
       "figma": "Bottom-Sheet (page ❖ Bottom Sheet, 4059:14161)",
-      "import": "import { BottomSheet } from \"@zen/design-system\";",
+      "import": "import { BottomSheet } from \"@zen-ds/react\";",
       "purpose": "A surface that slides up from the bottom for supplementary content, a short task or a list of actions, without leaving the screen.",
       "use": [
         "Contextual actions for the current screen or item (type=\"action\").",
@@ -2928,7 +2928,7 @@
       "file": "docs/guidelines/chat.md",
       "apiFile": "docs/api/chat.json",
       "figma": "❖ Chat (7042:23220)",
-      "import": "import { ChatMessage, ChatComposer, ChatThread, ChatConversationItem, ChatComposerReply, ChatReplyQuote, ChatEmojiPicker, ChatReactorsPanel, ChatBubble, ChatFile, ChatCall, ChatPhotos, ChatReactions, ChatReactionPicker, ChatReadList, ChatDateDivider, ChatAvatarGroup } from \"@zen/design-system\";",
+      "import": "import { ChatMessage, ChatComposer, ChatThread, ChatConversationItem, ChatComposerReply, ChatReplyQuote, ChatEmojiPicker, ChatReactorsPanel, ChatBubble, ChatFile, ChatCall, ChatPhotos, ChatReactions, ChatReactionPicker, ChatReadList, ChatDateDivider, ChatAvatarGroup } from \"@zen-ds/react\";",
       "purpose": "Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list.",
       "use": [
         "Direct and group conversations, support chat (Business domain).",
@@ -3071,7 +3071,7 @@
       "file": "docs/guidelines/ai-chat.md",
       "apiFile": "docs/api/ai-chat.json",
       "figma": "❖ AI-Chat (7032:2174): AI/Chat-Field 12074:16888, AI/Chat-Bubble 4218:1270",
-      "import": "import { AiChatBubble, AiChatField, AiChatBlock, AiChatThread } from \"@zen/design-system\";",
+      "import": "import { AiChatBubble, AiChatField, AiChatBlock, AiChatThread } from \"@zen-ds/react\";",
       "purpose": "Prompting and conversing with an assistant: a field to ask, answers to read and rate, and an empty state that suggests where to start.",
       "use": [
         "Assistant panels and full-page assistants.",
@@ -3140,7 +3140,7 @@
       "file": "docs/guidelines/chart.md",
       "apiFile": "docs/api/chart.json",
       "figma": "❖ Chart (7032:8969): Chart/Line-Chart 6643:63324, Chart/Stack-Bar-Chart 6643:73471, Chart/Chart-Card 6643:63528",
-      "import": "import { LineChart, StackBarChart, ChartCard } from \"@zen/design-system\";",
+      "import": "import { LineChart, StackBarChart, ChartCard } from \"@zen-ds/react\";",
       "purpose": "Show how a value changes over time (Line) or how parts make up a total (Stack bar), framed by a Chart Card with a title and range switch.",
       "use": [
         "Trends over a few periods (4–12 points) → LineChart.",
@@ -3209,7 +3209,7 @@
       "file": "docs/guidelines/layout.md",
       "apiFile": "docs/api/layout.json",
       "figma": "Auto layout + Spacing/Gap, Spacing/Padding, Corner-Radius variables",
-      "import": "import { Stack, Grid, Box, Container } from \"@zen/design-system\";",
+      "import": "import { Stack, Grid, Box, Container } from \"@zen-ds/react\";",
       "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
       "use": [
         "Stacking sections, fields or cards (Stack, gap md–lg).",
@@ -3364,7 +3364,7 @@
       "file": "docs/guidelines/text.md",
       "apiFile": "docs/api/text.json",
       "figma": "Text styles (36) + Color/Content variables",
-      "import": "import { Text, Heading } from \"@zen/design-system\";",
+      "import": "import { Text, Heading } from \"@zen-ds/react\";",
       "purpose": "Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy.",
       "use": [
         "Page and section titles (Heading level + an optional textStyle).",
@@ -3448,7 +3448,7 @@
       "file": "docs/guidelines/app-shell.md",
       "apiFile": "docs/api/app-shell.json",
       "figma": "◇ Master-Layout: Patterns/Pages/Density-Medium (4122:41886), Header/Dashboard (4122:34662) with Primitives/Dashboard/Header Type=Navigation (4122:33400), Header/Action-Item (12280:19532) + Notification-Dot (4116:21789), Patterns/Sidebar (6040:67524); as used on ◆ HR-Platform (1128:29542)",
-      "import": "import { AppShell, AppShellAction, AppShellAccount } from \"@zen/design-system\";",
+      "import": "import { AppShell, AppShellAction, AppShellAccount } from \"@zen-ds/react\";",
       "purpose": "The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcrumbs or a Search, then actions and the account menu), the page, and an optional banner, docked side panel and floating action, with a skip link. When the shell is 1024px or wider the Sidebar sits beside the page and the top-bar toggle collapses it to its icon rail; narrower, it opens as a modal drawer from the menu button.",
       "use": [
         "Every signed-in web app screen (dashboards, admin, HR and settings).",
@@ -3530,7 +3530,7 @@
       "file": "docs/guidelines/page-header.md",
       "apiFile": "docs/api/page-header.json",
       "figma": "◇ Master-Layout page title Heading/1 + Spacing, with Breadcrumbs, Button, Badge and Tabs",
-      "import": "import { PageHeader } from \"@zen/design-system\";",
+      "import": "import { PageHeader } from \"@zen-ds/react\";",
       "purpose": "The top of an app page: breadcrumbs or Back, the h1 title with its meta and actions, a description and optional section tabs.",
       "use": [
         "The first element of every app page (list, detail, settings, overview).",
@@ -3578,7 +3578,7 @@
       "file": "docs/guidelines/form.md",
       "apiFile": "docs/api/form.json",
       "figma": "No Figma component: composes .Primitives/Input Label + Help-Text, Spacing/Gap and the .Primitives/Modal/Actions pairing (694:9383)",
-      "import": "import { Form, FormField, FormFieldset, FormActions } from \"@zen/design-system\";",
+      "import": "import { Form, FormField, FormFieldset, FormActions } from \"@zen-ds/react\";",
       "purpose": "Collect a set of values and submit them. Form is a <form noValidate> laid out as a Stack; useFormState holds values and errors and binds every Zen field in one spread; FormField labels custom controls, FormFieldset groups choices and FormActions is the footer row.",
       "use": [
         "Anything that saves several values at once: sign-up, settings, create/edit, checkout.",
@@ -3667,7 +3667,7 @@
       "file": "docs/guidelines/link.md",
       "apiFile": "docs/api/link.json",
       "figma": "Color/Content/Hyperlink (Default · Pressed · Visited) + Focus/Accent; code-first, no Figma component set",
-      "import": "import { Link } from \"@zen/design-system\";",
+      "import": "import { Link } from \"@zen-ds/react\";",
       "purpose": "Navigates to another page, section or site from inside text or next to it. It uses the Content/Hyperlink colours and takes the font of the text around it; actions on the page are Buttons.",
       "use": [
         "Links inside running text: help copy, descriptions, empty states, inline messages.",
@@ -3722,7 +3722,7 @@
       "file": "docs/guidelines/menu.md",
       "apiFile": "docs/api/menu.json",
       "figma": "Popover/Default + Primitives/Popover/Item (page 815:6432), composed as an action menu",
-      "import": "import { Menu, MenuItem, MenuSeparator, MenuGroup } from \"@zen/design-system\";",
+      "import": "import { Menu, MenuItem, MenuSeparator, MenuGroup } from \"@zen-ds/react\";",
       "purpose": "A button that opens a list of actions for an object: row actions in a table, a card's ⋯, an Edit or New menu. It uses the Popover surface and Popover/Item rows, follows the WAI-ARIA menu button pattern and floats in the overlay layer.",
       "use": [
         "Secondary actions on an object that don't fit as buttons (Rename, Duplicate, Move to…, Delete).",
@@ -3802,7 +3802,7 @@
       "file": "docs/guidelines/provider.md",
       "apiFile": "docs/api/provider.json",
       "figma": "Variable modes: Theme, Component Theme, Density, Radius, Emphasis, Breakpoint & Grids, Typography Configuration, Global Colors (Zen-High-Contrast)",
-      "import": "import { ZenProvider, ZenPortalProvider } from \"@zen/design-system\";",
+      "import": "import { ZenProvider, ZenPortalProvider } from \"@zen-ds/react\";",
       "purpose": "The root of every Zen UI. It sets the token modes (data-theme, data-density…), paints the page Canvas and text colour, and hosts the portal that overlays render into, so dialogs, toasts and menus follow the same modes.",
       "use": [
         "Wrapping the whole app once, right under React's root.",
@@ -3844,7 +3844,7 @@
         ]
       },
       "do": [
-        "Wrap the app in exactly one root ZenProvider and import \"@zen/design-system/styles.css\" once.",
+        "Wrap the app in exactly one root ZenProvider and import \"@zen-ds/react/styles.css\" once.",
         "Build phone apps with typography=\"mobile\" (and density=\"comfortable\" when targets are touch-first).",
         "Offer light/dark with theme=\"system\" or a toggle that sets theme; never hard-code dark colours.",
         "Nest a provider to switch a region's mode; unset props inherit from the parent.",
@@ -3866,7 +3866,7 @@
       "file": "docs/guidelines/description-list.md",
       "apiFile": "docs/api/description-list.json",
       "figma": "Description List (14859:79180) + .Primitives/Description-List/Item (14859:78890), page ❖ Description List (14857:3)",
-      "import": "import { DescriptionList, DescriptionItem } from \"@zen/design-system\";",
+      "import": "import { DescriptionList, DescriptionItem } from \"@zen-ds/react\";",
       "purpose": "Shows read-only term → value pairs in a semantic dl: order summaries and receipts, contact and profile details, specs and metadata.",
       "use": [
         "Order summaries, receipts and invoices, closed by one total row (emphasis).",
@@ -3922,7 +3922,7 @@
       "file": "docs/guidelines/action-bar.md",
       "apiFile": "docs/api/action-bar.json",
       "figma": "No Figma component: the Bottom-Sheet footer pattern (Large buttons, padding 12/20) on Surface/Default with a Border/Neutral/Pale top rule and the System/Bottom-Indicator safe area",
-      "import": "import { ActionBar } from \"@zen/design-system\";",
+      "import": "import { ActionBar } from \"@zen-ds/react\";",
       "purpose": "The footer bar that holds a screen's main actions: the mobile footer CTA (Large, full width, Primary on top), the phone dual footer (Large Tertiary · Primary side by side) and the sticky action row of desktop detail and edit pages (Tertiary · Primary at the end).",
       "use": [
         "Phone screens whose main action must stay reachable while the content scrolls (Add to cart, Continue, Place order).",
@@ -3976,7 +3976,7 @@
       "file": "docs/guidelines/image.md",
       "apiFile": "docs/api/image.json",
       "figma": "No Figma component: Image-Size scale (Thumbnail, the Avatar steps), Corner-Radius, Skeleton/Shapes while loading, Neutral/Pale frame + icon-image-line on error",
-      "import": "import { Image, Thumbnail } from \"@zen/design-system\";",
+      "import": "import { Image, Thumbnail } from \"@zen-ds/react\";",
       "purpose": "Shows a picture in a ratio frame that keeps its size while loading (Skeleton) and fails gracefully (neutral placeholder, alt kept). Thumbnail is the fixed square for list rows, tables and pickers.",
       "use": [
         "Product, listing and article photos in cards and detail pages (Image with a ratio).",
@@ -4045,7 +4045,7 @@
       "file": "docs/guidelines/visually-hidden.md",
       "apiFile": "docs/api/visually-hidden.json",
       "figma": "No Figma component: an accessibility primitive; a focused skip link is a Surface pill (Body/Base/Medium, Border/Neutral/Subtle ring, Focus/Accent outline)",
-      "import": "import { VisuallyHidden } from \"@zen/design-system\";",
+      "import": "import { VisuallyHidden } from \"@zen-ds/react\";",
       "purpose": "Adds text that only assistive technology reads: names for icon-only table headers, context for repeated links, status announcements, hidden headings and skip links that appear on focus.",
       "use": [
         "Column headers that show only an icon or nothing (Actions, Starred).",

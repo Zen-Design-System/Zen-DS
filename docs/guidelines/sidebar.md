@@ -2,7 +2,7 @@
 # Sidebar
 
 **Figma:** Patterns/Sidebar (page 1536:27287)  
-**Import:** `import { Sidebar } from "@zen/design-system";`
+**Import:** `import { Sidebar } from "@zen-ds/react";`
 
 Primary app navigation with sections, nested items and a collapsible rail.
 

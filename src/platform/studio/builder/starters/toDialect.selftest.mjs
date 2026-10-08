@@ -39,7 +39,7 @@ const components = new Set(["Stack", "Text", "Button", "ListItem", "Avatar", "Ca
 const one = starterPage({ title: "Sign in", device: "desktop", nodes: [node("Card", [["padding", lit("xl")]], [node("Text", [["textStyle", lit("Heading/3")]], [text("Welcome")]), node("Button", [["level", lit("primary")]], [text("Continue")])])] });
 check("one node: straight in the Screen, a valid page", validateDialect(one, { components }), []);
 check("one node: the Screen holds it", one.includes('      <Screen id="screen-1" title="Sign in" device="desktop">\n        <Card padding="xl">'), true);
-check("one node: imports what it uses", one.includes('import { Button, Card, Text } from "@zen/design-system";'), true);
+check("one node: imports what it uses", one.includes('import { Button, Card, Text } from "@zen-ds/react";'), true);
 const several = starterPage({ title: "Bits", device: "phone", nodes: [node("Badge", [], [text("New")]), node("ListItem", [["title", lit("Ava")], ["leading", { kind: "element", node: node("Avatar", [["alt", lit("Ava")]]) }]])] });
 check("several nodes: in a padded Stack (lg on a phone), a valid page", [validateDialect(several, { components }), several.includes('<Stack gap="md" padding="lg">')], [[], true]);
 const padded = starterPage({ title: "Card", device: "desktop", nodes: [node("Badge", [], [text("New")])], padding: "2xl" });

@@ -9,7 +9,7 @@
  * - New expense opens a validated ModalForm with a receipt upload; the claim lands in the table and the totals.
  *
  * Copy it with ./HrShell, ./data and ./assets into your app and replace the sample data. Render it inside your app's
- * <ZenProvider>. Uses only @zen/design-system components, no custom CSS.
+ * <ZenProvider>. Uses only @zen-ds/react components, no custom CSS.
  */
 import { useMemo, useState } from "react";
 import {
@@ -58,7 +58,7 @@ import {
   type StepperStep,
   type TableSort,
   type UploaderFile,
-} from "@zen/design-system";
+} from "@zen-ds/react";
 import { HrShell, hrModules, type HrNavigate } from "./HrShell";
 import {
   claimStatuses,

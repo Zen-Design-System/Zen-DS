@@ -8,7 +8,7 @@
  *
  * Checks: exports resolve, `tsc` with skipLibCheck:false, `vite build`, JS/CSS budgets, no font data or docs-platform
  * code in the output, no CSS imports left in .d.ts files, and `renderToString` in plain Node.
- * Offline mode unpacks the tarball into node_modules/@zen/design-system and links react, react-dom, vite,
+ * Offline mode unpacks the tarball into node_modules/@zen-ds/react and links react, react-dom, vite,
  * @vitejs/plugin-react and the React types from this repo's node_modules.
  */
 import { execFileSync, spawnSync } from "node:child_process";
@@ -59,7 +59,7 @@ fs.mkdirSync(modules, { recursive: true });
 if (args.has("--registry")) {
   run("npm", ["install", "--no-audit", "--no-fund", tarball, "react@^19", "react-dom@^19", "-D", "vite@^8", "@vitejs/plugin-react", "typescript@^7", "@types/react@^19", "@types/react-dom@^19"], app, "npm install (registry)");
 } else {
-  const pkg = path.join(modules, "@zen/design-system");
+  const pkg = path.join(modules, "@zen-ds/react");
   fs.mkdirSync(pkg, { recursive: true });
   execFileSync("tar", ["-xzf", tarball, "-C", pkg, "--strip-components=1"]);
   for (const name of ["react", "react-dom", "scheduler", "vite", "@vitejs/plugin-react", "@types/react", "@types/react-dom"]) {
@@ -70,7 +70,7 @@ if (args.has("--registry")) {
   }
   pass("install (offline: unpacked tarball + linked peers)");
 }
-const pkgDir = path.join(modules, "@zen/design-system");
+const pkgDir = path.join(modules, "@zen-ds/react");
 
 // 3. Package contents
 const packageJson = JSON.parse(fs.readFileSync(path.join(pkgDir, "package.json"), "utf8"));
@@ -122,12 +122,12 @@ const zenUsage = path.join(pkgDir, "tools/usage-guard/cli.mjs");
 if (!packageJson.bin?.["zen-usage"] || !fs.existsSync(zenUsage)) fail("ships the zen-usage bin", "package.json bin.zen-usage or tools/usage-guard/cli.mjs is missing");
 else {
   run(process.execPath, [zenUsage], app, "zen-usage passes on the template app");
-  fs.writeFileSync(path.join(app, "src/usage-bad.tsx"), 'import { IconButton } from "@zen/design-system";\nexport const Bad = () => <IconButton icon="icon-plus-line" />;\n');
+  fs.writeFileSync(path.join(app, "src/usage-bad.tsx"), 'import { IconButton } from "@zen-ds/react";\nexport const Bad = () => <IconButton icon="icon-plus-line" />;\n');
   const bad = spawnSync(process.execPath, [zenUsage, "--json", "src/usage-bad.tsx"], { cwd: app, encoding: "utf8" });
   const found = (() => { try { return JSON.parse(bad.stdout).map((f) => f.rule); } catch { return []; } })();
   bad.status === 1 && found.includes("icon-button/needs-name") ? pass("zen-usage catches a nameless IconButton (exit 1)") : fail("zen-usage catches a nameless IconButton (exit 1)", `exit ${bad.status}: ${found.join(", ") || bad.stderr}`);
   fs.rmSync(path.join(app, "src/usage-bad.tsx"));
-  run(process.execPath, ["--input-type=module", "-e", 'const { default: zen } = await import("@zen/design-system/eslint"); if (!zen.rules.usage || !zen.configs.recommended) process.exit(1);'], app, "ESLint plugin loads from @zen/design-system/eslint");
+  run(process.execPath, ["--input-type=module", "-e", 'const { default: zen } = await import("@zen-ds/react/eslint"); if (!zen.rules.usage || !zen.configs.recommended) process.exit(1);'], app, "ESLint plugin loads from @zen-ds/react/eslint");
 }
 
 // 7. MCP server shipped with the package: initialize, list tools, answer a search and a harness check over stdio
@@ -139,7 +139,7 @@ else {
     { jsonrpc: "2.0", method: "notifications/initialized" },
     { jsonrpc: "2.0", id: 2, method: "tools/list" },
     { jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "search_icons", arguments: { query: "search" } } },
-    { jsonrpc: "2.0", id: 4, method: "tools/call", params: { name: "check_usage", arguments: { code: 'import { IconButton } from "@zen/design-system";\nexport const A = () => <IconButton icon="icon-plus-line" />;', filename: "A.tsx" } } },
+    { jsonrpc: "2.0", id: 4, method: "tools/call", params: { name: "check_usage", arguments: { code: 'import { IconButton } from "@zen-ds/react";\nexport const A = () => <IconButton icon="icon-plus-line" />;', filename: "A.tsx" } } },
     { jsonrpc: "2.0", id: 5, method: "tools/call", params: { name: "get_component", arguments: { name: "Table" } } },
   ];
   const out = spawnSync(process.execPath, [mcpServer], { cwd: app, input: `${requests.map((r) => JSON.stringify(r)).join("\n")}\n`, encoding: "utf8", timeout: 20000 });

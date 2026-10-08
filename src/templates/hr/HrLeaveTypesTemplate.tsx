@@ -8,7 +8,7 @@
  * - Delete asks first in a negative Dialog, since it can't be undone, and offers Deactivate instead.
  *
  * Copy it with ./HrShell, ./data and ./assets into your app and replace the sample data. Render it inside your app's
- * <ZenProvider>. Uses only @zen/design-system components, no custom CSS.
+ * <ZenProvider>. Uses only @zen-ds/react components, no custom CSS.
  */
 import { useMemo, useState } from "react";
 import {
@@ -49,7 +49,7 @@ import {
   useToast,
   useZen,
   type TableSort,
-} from "@zen/design-system";
+} from "@zen-ds/react";
 import { HrShell, hrModules, type HrNavigate } from "./HrShell";
 import { formatDays, leaveKindList, leaveRequests, teamList, teams, today, workspace, type LeaveKindId, type TeamId } from "./data";
 

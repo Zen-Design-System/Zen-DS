@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "chart",
-  "import": "import { LineChart, StackBarChart, ChartCard } from \"@zen/design-system\";",
+  "import": "import { LineChart, StackBarChart, ChartCard } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "LineChart",

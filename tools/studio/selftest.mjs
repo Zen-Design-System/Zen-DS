@@ -1238,11 +1238,11 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     ok("tag photo + disabled: Avatar 2xsmall, disabled tone", /<Avatar size="2xsmall" theme="photo" background="subtle" src=\{src\} alt="" \/>/.test(photo.code) && /tone="disabled"/.test(photo.code) && importLines(photo).includes('import { Avatar } from "../../../components/Avatar";'));
     // A builder page (*.zen.tsx, GĐ4 M4) takes no style: the Badge's max-content pill hugs through width="hug", the
     // primitives join the package import; a recipe whose layout needs a style is refused there, saying so.
-    const builderPage = (element) => ['// @zen-page {"format":1,"title":"T"}', 'import { Board, Screen } from "@zen/design-system/builder";', `import { ${element.slice(1, element.search(/[\s>]/))}, Stack } from "@zen/design-system";`, "", "export default function Page() {", "  return (", "    <Board>", '      <Screen id="s" title="T" device="phone">', '        <Stack gap="md">', `          ${element}`, "        </Stack>", "      </Screen>", "    </Board>", "  );", "}", ""].join("\n");
+    const builderPage = (element) => ['// @zen-page {"format":1,"title":"T"}', 'import { Board, Screen } from "@zen-ds/react/builder";', `import { ${element.slice(1, element.search(/[\s>]/))}, Stack } from "@zen-ds/react";`, "", "export default function Page() {", "  return (", "    <Board>", '      <Screen id="s" title="T" device="phone">', '        <Stack gap="md">', `          ${element}`, "        </Stack>", "      </Screen>", "    </Board>", "  );", "}", ""].join("\n");
     const onPage = builderPage("<Badge>New</Badge>");
     const pageBadge = applyOps(onPage, locOf(onPage, "<Badge"), "Badge", [{ op: "detach" }], { file: "local:p1.zen.tsx", typographyKeys });
     ok("badge on a builder page: width=\"hug\", no style", !("error" in pageBadge) && !/style=/.test(pageBadge.code) && /<Box surface="subtle" radius="full" paddingX="xs" paddingY="2xs" width="hug">/.test(pageBadge.code));
-    check("badge on a builder page: primitives from the package", importLines(pageBadge).at(-1), 'import { Box, Icon, Stack, Text } from "@zen/design-system";');
+    check("badge on a builder page: primitives from the package", importLines(pageBadge).at(-1), 'import { Box, Icon, Stack, Text } from "@zen-ds/react";');
     const emptyOnPage = builderPage('<EmptyState title="Nothing here" />');
     ok("empty state on a builder page: refused with the style it needs", /^EmptyState cannot be detached on a builder page yet: its layout needs an inline style/.test(detachPlan(emptyOnPage, locOf(emptyOnPage, "<EmptyState"), "EmptyState", { file: "local:p1.zen.tsx" }).reason ?? ""));
   }
@@ -1536,7 +1536,7 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     marks("bare attribute value", "export const A = () => <ListItem title=\"x\" trailing=<Tag>x</Tag> />;", "<Tag", "Tag", ['export const A = () => <ListItem title="x" trailing={/* zen-detached: Tag · Zen Studio */ <Box']);
   }
 
-  // Imports: merge, add, remove (platform relative paths; templates through @zen/design-system), conflicts.
+  // Imports: merge, add, remove (platform relative paths; templates through @zen-ds/react), conflicts.
   {
     const template = [
       'import { useState } from "react";',
@@ -1547,7 +1547,7 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
       "  Stack,",
       "  Text,",
       "  type IconName,",
-      '} from "@zen/design-system";',
+      '} from "@zen-ds/react";',
       "",
       "export function T({ icon }: { icon: IconName }) {",
       "  const [n] = useState(0);",
@@ -1572,13 +1572,13 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
       "  Stack,",
       "  Text,",
       "  type IconName,",
-      '} from "@zen/design-system";',
+      '} from "@zen-ds/react";',
       "",
     ]);
     const badgeOut = detachAt("template badge", template, "<Badge", "Badge", {}, { file });
     check("template: Box added, Badge removed", badgeOut.code.split("\n").slice(2, 8), ["  Box,", "  Card,", "  Icon,", "  Stack,", "  Text,", "  type IconName,"]);
     const bare = detachAt("template without imports", "export const T = () => <Tag>x</Tag>;\n", "<Tag", "Tag", {}, { file: "src/templates/Bare.tsx" });
-    check("template without imports: a package import first", bare.code.split("\n")[0], 'import { Box, Stack, Text } from "@zen/design-system";');
+    check("template without imports: a package import first", bare.code.split("\n")[0], 'import { Box, Stack, Text } from "@zen-ds/react";');
     const platformBare = detachAt("platform without imports", "export const T = () => <Tag>x</Tag>;\n", "<Tag", "Tag", {}, { file: "src/platform/appLayer/bare.tsx" });
     check("platform without imports: relative component paths", platformBare.code.split("\n").slice(0, 2), ['import { Box, Stack } from "../../components/Layout";', 'import { Text } from "../../components/Text";']);
     const single = detachAt("single-line merge", 'import { Grid, type GridProps } from "../../../components/Layout";\nimport { Tag } from "../../../components/Tag";\nexport const T = (p: GridProps) => <Grid {...p}><Tag>x</Tag></Grid>;\n', "<Tag", "Tag");
@@ -1975,7 +1975,7 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     const chrome = ["// zen-studio-chrome", "export function ExampleCard() {", "  return <div><span>x</span></div>;", "}", ""].join("\n");
     check("describe wrap: docs chrome → refused", describeElement(chrome, PAGE, "3:14")?.wrap.ok, false);
   }
-  // Imports: a new line sorted among the component imports (the loc moves down), "@zen/design-system" files, a Layout
+  // Imports: a new line sorted among the component imports (the loc moves down), "@zen-ds/react" files, a Layout
   // import spelled with /index, Box imported already, and a local Box (refused).
   {
     const fresh = ['import { Card } from "../../../components/Card";', 'import { Text } from "../../../components/Text";', "", 'export const B = () => <Card title="x"><Text>Hi</Text></Card>;', ""].join("\n");
@@ -1983,13 +1983,13 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     check("wrap new import: a sorted new import line", importLines(result), ['import { Card } from "../../../components/Card";', 'import { Box } from "../../../components/Layout";', 'import { Text } from "../../../components/Text";']);
     check("wrap new import: loc moved down a line, changed is the element's", [result.wrapped.loc, result.changed], ["5:23", { from: 5, to: 5 }]);
     check("wrap new import: inline after =>", rows(result, 5, 5), ['export const B = () => <Box><Card title="x"><Text>Hi</Text></Card></Box>;']);
-    const pkg = ['import { Card, Stack, Text } from "@zen/design-system";', "", "export const T = () => (", "  <Stack>", "    <Card title=\"x\" />", "  </Stack>", ");", ""].join("\n");
-    check("wrap template: merged into @zen/design-system", importLines(wrapAt("wrap template", pkg, "<Card", "Card", {}, { file: TEMPLATE })), ['import { Box, Card, Stack, Text } from "@zen/design-system";']);
+    const pkg = ['import { Card, Stack, Text } from "@zen-ds/react";', "", "export const T = () => (", "  <Stack>", "    <Card title=\"x\" />", "  </Stack>", ");", ""].join("\n");
+    check("wrap template: merged into @zen-ds/react", importLines(wrapAt("wrap template", pkg, "<Card", "Card", {}, { file: TEMPLATE })), ['import { Box, Card, Stack, Text } from "@zen-ds/react";']);
     const bareTemplate = ["export const T = () => <div><span>x</span></div>;", ""].join("\n");
     const noImports = wrapAt("wrap template without imports", bareTemplate, "<span", "span", {}, { file: TEMPLATE });
-    check("wrap template without imports: a new @zen/design-system line, loc moved", [importLines(noImports), noImports.wrapped.loc], [['import { Box } from "@zen/design-system";'], "2:28"]);
-    const platformPkg = ['import { Stack, Text } from "@zen/design-system";', "export const P = () => <Stack><Text>x</Text></Stack>;", ""].join("\n");
-    check("wrap platform file importing the package: merged there", importLines(wrapAt("wrap package platform", platformPkg, "<Text", "Text")), ['import { Box, Stack, Text } from "@zen/design-system";']);
+    check("wrap template without imports: a new @zen-ds/react line, loc moved", [importLines(noImports), noImports.wrapped.loc], [['import { Box } from "@zen-ds/react";'], "2:28"]);
+    const platformPkg = ['import { Stack, Text } from "@zen-ds/react";', "export const P = () => <Stack><Text>x</Text></Stack>;", ""].join("\n");
+    check("wrap platform file importing the package: merged there", importLines(wrapAt("wrap package platform", platformPkg, "<Text", "Text")), ['import { Box, Stack, Text } from "@zen-ds/react";']);
     const indexed = ['import { Stack } from "../../../components/Layout/index";', "export const P = () => <Stack><b>x</b></Stack>;", ""].join("\n");
     check("wrap Layout/index import: merged into it", importLines(wrapAt("wrap layout index", indexed, "<b", "b")), ['import { Box, Stack } from "../../../components/Layout/index";']);
     const multiLine = ["import {", "  Grid,", "  Stack,", '} from "../../../components/Layout";', "export const P = () => <Stack><b>x</b></Stack>;", ""].join("\n");

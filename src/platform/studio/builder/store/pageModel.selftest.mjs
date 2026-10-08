@@ -13,7 +13,7 @@ const check = (label, actual, expected) => {
   else failures.push(`${label}\n    expected ${e}\n    actual   ${a}`);
 };
 
-const page = (title) => `// @zen-page {"format":1,"title":${JSON.stringify(title)}}\nimport { Board } from "@zen/design-system/builder";\n`;
+const page = (title) => `// @zen-page {"format":1,"title":${JSON.stringify(title)}}\nimport { Board } from "@zen-ds/react/builder";\n`;
 
 // Header
 check("title read", headerTitle(page("Checkout")), "Checkout");

@@ -1,6 +1,6 @@
 /**
  * Template: admin list (the team members of a workspace). Copy it into your app and replace the sample data and handlers.
- * Render it inside your app's <ZenProvider>. Uses only @zen/design-system components, no custom CSS.
+ * Render it inside your app's <ZenProvider>. Uses only @zen-ds/react components, no custom CSS.
  *
  * - Top bar: Breadcrumbs, Notifications (a docked Side Panel) and the account menu.
  * - PageHeader: seat usage in the description, Export (Tertiary) and Invite members (Primary → a validated ModalForm).
@@ -63,7 +63,7 @@ import {
   type SidebarSection,
   type TableColumn,
   type TableSort,
-} from "@zen/design-system";
+} from "@zen-ds/react";
 import alexPhoto from "./hr/assets/account-photo.jpg";
 
 /* ── Sample data: replace with your own ─────────────────────────────── */

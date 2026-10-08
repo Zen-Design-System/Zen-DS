@@ -1,4 +1,4 @@
-// Zen DS usage harness — programmatic API (`import { checkSource, rules } from "@zen/design-system/usage"`), used by
+// Zen DS usage harness — programmatic API (`import { checkSource, rules } from "@zen-ds/react/usage"`), used by
 // the MCP server and by tools that want the findings as data instead of CLI output.
 import { rules } from "./check-usage.mjs";
 import { createChecker, formatFinding } from "./engine.mjs";
@@ -8,7 +8,7 @@ export { rules, createChecker, formatFinding };
 const checkers = new Map();
 
 /**
- * Check one file's source text. App mode (default) checks only tags imported from "@zen/design-system", as
+ * Check one file's source text. App mode (default) checks only tags imported from "@zen-ds/react", as
  * `zen-usage` does in an app; `{ consumer: false }` checks every Zen tag, as the repo does.
  * @returns {{ rule: string, severity: "error" | "warn", message: string, line: number, column: number, tag: string, guideline: string, allow: string }[]}
  */

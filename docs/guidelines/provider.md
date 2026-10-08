@@ -2,7 +2,7 @@
 # ZenProvider (app root)
 
 **Figma:** Variable modes: Theme, Component Theme, Density, Radius, Emphasis, Breakpoint & Grids, Typography Configuration, Global Colors (Zen-High-Contrast)  
-**Import:** `import { ZenProvider } from "@zen/design-system";`
+**Import:** `import { ZenProvider } from "@zen-ds/react";`
 
 The root of every Zen UI. It sets the token modes (data-theme, data-density…), paints the page Canvas and text colour, and hosts the portal that overlays render into, so dialogs, toasts and menus follow the same modes.
 
@@ -76,7 +76,7 @@ type ZenLabels = { close: string; closePanel: string; dismiss: string; remove: s
 ```
 
 ## ✅ Do
-- Wrap the app in exactly one root ZenProvider and import "@zen/design-system/styles.css" once.
+- Wrap the app in exactly one root ZenProvider and import "@zen-ds/react/styles.css" once.
 - Build phone apps with typography="mobile" (and density="comfortable" when targets are touch-first).
 - Offer light/dark with theme="system" or a toggle that sets theme; never hard-code dark colours.
 - Nest a provider to switch a region's mode; unset props inherit from the parent.

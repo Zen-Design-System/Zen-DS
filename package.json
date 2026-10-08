@@ -1,7 +1,9 @@
 {
-  "name": "@zen/design-system",
+  "name": "@zen-ds/react",
   "version": "0.3.0",
-  "private": true,
+  "publishConfig": {
+    "registry": "https://npm.dizai.studio/"
+  },
   "description": "Zen Design System: React components, design tokens and icons generated from the Zen Figma library. AI agents: read AGENTS.consumer.md.",
   "type": "module",
   "sideEffects": [

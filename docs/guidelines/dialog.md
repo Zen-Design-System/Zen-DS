@@ -2,7 +2,7 @@
 # Modal & Dialog
 
 **Figma:** Modal/Dialog, .Primitives/Modal/Actions (page 694:9166)  
-**Import:** `import { Dialog } from "@zen/design-system";`
+**Import:** `import { Dialog } from "@zen-ds/react";`
 
 Interrupt to confirm a decision or deliver critical information.
 

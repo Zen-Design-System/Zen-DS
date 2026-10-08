@@ -107,7 +107,7 @@ function FormPlayground() {
     </ZenProvider>
   );
   const grid = twoColumns ? "<Grid columns={{ mobile: 1, desktop: 2 }} gap=\"md\">" : "<Grid columns={1} gap=\"md\">";
-  const code = `import { Button, Form, FormActions, Grid, InputField, SelectField, Stack, useFormState } from "@zen/design-system";
+  const code = `import { Button, Form, FormActions, Grid, InputField, SelectField, Stack, useFormState } from "@zen-ds/react";
 
 const form = useFormState({
   initialValues: { company: "Zen Studio", email: "", address: "", city: "", postalCode: "", country: "vn", taxId: "", purchaseOrder: "" },${validation ? `

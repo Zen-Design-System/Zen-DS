@@ -143,7 +143,7 @@ export function ExportDialog() {
         ? (!htmlShown ? "Rendering the screens…"
           : htmlFiles ? `Static HTML of ${plural(htmlFiles.screens.length, "frame")} with the Zen styles they use (styles.css): open index.html. Menus, dialogs, tabs and fields do not work here; the React code has them.`
             : `The screens cannot be exported yet: ${"error" in htmlShown ? htmlShown.error : ""}`)
-        : react ? `A React component for an app that uses @zen/design-system: ${react.summary}.`
+        : react ? `A React component for an app that uses @zen-ds/react: ${react.summary}.`
           : `This page cannot be compiled yet: ${"error" in shown.react ? shown.react.error : ""}`;
 
   const downloadZip = async () => {

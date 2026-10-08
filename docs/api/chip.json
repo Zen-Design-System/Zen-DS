@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "chip",
-  "import": "import { Chip } from \"@zen/design-system\";",
+  "import": "import { Chip } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Chip",

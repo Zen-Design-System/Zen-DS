@@ -2,7 +2,7 @@
 # Skeleton
 
 **Figma:** Skeleton/Body-Text, Heading-Text, Shapes (page 1556:17503)  
-**Import:** `import { SkeletonText, SkeletonHeading, SkeletonShape } from "@zen/design-system";`
+**Import:** `import { SkeletonText, SkeletonHeading, SkeletonShape } from "@zen-ds/react";`
 
 Placeholder that mirrors the layout of content while it loads.
 

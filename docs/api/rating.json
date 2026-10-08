@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "rating",
-  "import": "import { Rating, RatingDisplay, OpinionScale, NpsScale } from \"@zen/design-system\";",
+  "import": "import { Rating, RatingDisplay, OpinionScale, NpsScale } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Rating",

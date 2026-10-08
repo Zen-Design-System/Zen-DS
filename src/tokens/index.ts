@@ -1,5 +1,5 @@
 /**
- * `@zen/design-system/tokens` — typed access to the Figma variables.
+ * `@zen-ds/react/tokens` — typed access to the Figma variables.
  *
  *   tokens["Color/Background/Surface/Default"]  // "var(--zen-color-background-surface-default)"
  *   typographyStyles["Heading/4"]               // class name for the Heading/4 text style

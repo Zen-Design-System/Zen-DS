@@ -1,6 +1,6 @@
 /**
  * Template: empty and error states (the Projects page of a workspace). Copy it into your app, then replace the sample
- * data, the request and the handlers. Render it inside your app's <ZenProvider>. Uses only @zen/design-system
+ * data, the request and the handlers. Render it inside your app's <ZenProvider>. Uses only @zen-ds/react
  * components, no custom CSS.
  *
  * - Loading: skeleton rows stand in for the table and a status announces it. In this demo the very first request
@@ -61,7 +61,7 @@ import {
   type IconName,
   type SidebarSection,
   type TableColumn,
-} from "@zen/design-system";
+} from "@zen-ds/react";
 import alexPhoto from "./hr/assets/account-photo.jpg";
 
 /* ── Sample data: replace with your own ─────────────────────────────── */

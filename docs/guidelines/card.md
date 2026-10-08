@@ -2,7 +2,7 @@
 # Card
 
 **Figma:** Card (page 6643:49849)  
-**Import:** `import { Card } from "@zen/design-system";`
+**Import:** `import { Card } from "@zen-ds/react";`
 
 A surface that groups related content about one subject — a project, a stat, a choice — and can be selected or opened as a whole.
 

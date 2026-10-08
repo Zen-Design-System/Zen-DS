@@ -2,7 +2,7 @@
 # Segmented
 
 **Figma:** Segmented + Primitives/Segmented/Item (page 1070:17807)  
-**Import:** `import { Segmented } from "@zen/design-system";`
+**Import:** `import { Segmented } from "@zen-ds/react";`
 
 Switch between 2–5 mutually exclusive views or sections of the same content.
 

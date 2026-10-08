@@ -2,7 +2,7 @@
 # Metric Widget
 
 **Figma:** Metric-Card, Primitives/Metric/Metric-Inline/*, .Primitives/Metrics/Metric-Trend (page 595:54968)  
-**Import:** `import { Metric, MetricCard, MetricTrend } from "@zen/design-system";`
+**Import:** `import { Metric, MetricCard, MetricTrend } from "@zen-ds/react";`
 
 Show one key number with its label, an identifying icon and how it changed.
 

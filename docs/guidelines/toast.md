@@ -2,7 +2,7 @@
 # Toast Message
 
 **Figma:** Toast-Message (page 1579:6872)  
-**Import:** `import { useToast } from "@zen/design-system"; // Toast, ToastStack for custom hosts`
+**Import:** `import { useToast } from "@zen-ds/react"; // Toast, ToastStack for custom hosts`
 
 Brief, non-blocking feedback about something the user just did or something the system just finished.
 

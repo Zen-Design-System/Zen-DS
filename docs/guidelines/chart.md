@@ -2,7 +2,7 @@
 # Chart
 
 **Figma:** ❖ Chart (7032:8969): Chart/Line-Chart 6643:63324, Chart/Stack-Bar-Chart 6643:73471, Chart/Chart-Card 6643:63528  
-**Import:** `import { ChartCard, LineChart, StackBarChart } from "@zen/design-system";`
+**Import:** `import { ChartCard, LineChart, StackBarChart } from "@zen-ds/react";`
 
 Show how a value changes over time (Line) or how parts make up a total (Stack bar), framed by a Chart Card with a title and range switch.
 

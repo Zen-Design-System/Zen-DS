@@ -2,7 +2,7 @@
 # Progress
 
 **Figma:** Progress-Bar, Progress-Circle (page 1531:13314)  
-**Import:** `import { ProgressBar, ProgressCircle } from "@zen/design-system";`
+**Import:** `import { ProgressBar, ProgressCircle } from "@zen-ds/react";`
 
 Show determinate progress of a task or a step.
 

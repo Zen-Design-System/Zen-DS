@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Zen DS usage harness — command line (`zen-usage` when installed from the package).
 //
-//   In an app:           npx zen-usage [files or dirs…]      default ./src; checks only tags imported from @zen/design-system
+//   In an app:           npx zen-usage [files or dirs…]      default ./src; checks only tags imported from @zen-ds/react
 //   In the Zen-DS repo:  npm run usage:check [files or dirs…] default: platform, components, styles, templates (every Zen tag)
 //
 //   --json        findings as JSON (for agents and CI annotations)

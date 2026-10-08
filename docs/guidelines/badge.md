@@ -2,7 +2,7 @@
 # Badge & Badge-Counter
 
 **Figma:** Badge, Badge-Counter (page 239:18960)  
-**Import:** `import { Badge, BadgeCounter } from "@zen/design-system";`
+**Import:** `import { Badge, BadgeCounter } from "@zen-ds/react";`
 
 Non-interactive status, category or count labels.
 

@@ -141,7 +141,7 @@ files.set(path.join(outDir, "README.md"), [
 files.set(path.join(root, "llms.txt"), [
   "# Zen Design System",
   "",
-  "> React 19 components, design tokens and icons generated from the Zen Figma library. Import \"@zen/design-system/styles.css\" once, wrap the app in <ZenProvider>, and pick components from docs/guidelines/index.json by purpose / use / avoid.",
+  "> React 19 components, design tokens and icons generated from the Zen Figma library. Import \"@zen-ds/react/styles.css\" once, wrap the app in <ZenProvider>, and pick components from docs/guidelines/index.json by purpose / use / avoid.",
   "",
   "## Start here",
   "",

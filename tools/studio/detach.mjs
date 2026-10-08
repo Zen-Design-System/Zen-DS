@@ -21,7 +21,7 @@
 //   slots) overrides the recipe defaults; what a primitive cannot express goes to `approximations`.
 // - The output is marked `{/* zen-detached: <Component> · Zen Studio */}` (JSX child position) or
 //   `/* zen-detached: … */` (expression position). Imports: the primitives used join the file's imports (a template's
-//   "@zen/design-system" import, else ../components/<Folder> relative paths); the original component's specifier goes
+//   "@zen-ds/react" import, else ../components/<Folder> relative paths); the original component's specifier goes
 //   when nothing uses it any more.
 // - Inside a `.map` callback only the selected row detaches: the element becomes `(index as number) === K ?
 //   (<detached/>) : (<original/>)` (the cast keeps TypeScript from narrowing the index inside the row), with the

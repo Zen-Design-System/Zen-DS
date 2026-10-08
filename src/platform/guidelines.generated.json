@@ -7276,7 +7276,7 @@
     ],
     "keyboard": [],
     "do": [
-      "Wrap the app in exactly one root ZenProvider and import \"@zen/design-system/styles.css\" once.",
+      "Wrap the app in exactly one root ZenProvider and import \"@zen-ds/react/styles.css\" once.",
       "Build phone apps with typography=\"mobile\" (and density=\"comfortable\" when targets are touch-first).",
       "Offer light/dark with theme=\"system\" or a toggle that sets theme; never hard-code dark colours.",
       "Nest a provider to switch a region's mode; unset props inherit from the parent.",

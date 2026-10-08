@@ -242,7 +242,7 @@ export function buildApi(tagsFor) {
     bySlug.set(slug, {
       $comment: "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
       slug,
-      import: `import { ${names.join(", ")} } from "@zen/design-system";`,
+      import: `import { ${names.join(", ")} } from "@zen-ds/react";`,
       components: slugComponents,
       types: typesFor(slugComponents, declarations, literals),
     });

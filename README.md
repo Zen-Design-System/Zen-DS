@@ -18,8 +18,8 @@ npm install /path/to/Zen-DS/dist-pack/zen-design-system-0.3.0.tgz   # in your ap
 ```
 
 ```tsx
-import "@zen/design-system/styles.css";
-import { Button, ZenProvider } from "@zen/design-system";
+import "@zen-ds/react/styles.css";
+import { Button, ZenProvider } from "@zen-ds/react";
 
 <ZenProvider theme="system">
   <Button level="primary">Save changes</Button>

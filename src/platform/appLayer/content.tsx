@@ -113,7 +113,7 @@ function DescriptionListPlayground() {
   const itemCode = content === "order"
     ? [...receiptRows.map((row) => `    { term: "${row.term}", description: "${row.description}" },`), ...(total ? [`    { term: "Total", description: "$346.85", emphasis: true },`] : [])]
     : contactRows.map((row) => `    { term: "${row.term}", description: ${row.variable}${actions ? `,\n      action: <IconButton appearance="flat" level="primary" size="sm" aria-label="Copy ${row.copy}"\n        icon={<Icon name="icon-copy-line" />} onClick={() => copy(${row.variable})} />` : ""} },`);
-  const code = `import { DescriptionList${content === "contact" && actions ? ", Icon, IconButton" : ""} } from "@zen/design-system";
+  const code = `import { DescriptionList${content === "contact" && actions ? ", Icon, IconButton" : ""} } from "@zen-ds/react";
 
 <DescriptionList${layout === "stacked" ? `\n  layout="stacked"` : ""}${divider ? "\n  divider" : ""}
   items={[
@@ -396,7 +396,7 @@ function ActionBarPlayground() {
   const print = prints[0];
   const summaryText = inCart ? `${plural(inCart, "print")} in your cart · ${money(inCart * print.price)}` : `${money(print.price)} · Free delivery`;
   const props = [direction !== "vertical" ? ` direction="${direction}"` : "", position !== "sticky" ? ` position="${position}"` : "", surface !== "default" ? ` surface="${surface}"` : ""].join("");
-  const code = `import { ActionBar${summary ? ", Text" : ""} } from "@zen/design-system";
+  const code = `import { ActionBar${summary ? ", Text" : ""} } from "@zen-ds/react";
 
 {/* Last child of the scrolling page */}
 <ActionBar${props}${summary ? `\n  summary={<Text textStyle="Body/Small/Regular" tone="base" role="status">{summary}</Text>}` : ""}
@@ -653,13 +653,13 @@ function ImagePlayground() {
   const src = state === "loaded" ? photo.src : state === "error" ? brokenImage : undefined;
   const srcCode = state === "loaded" ? "photo.src" : state === "error" ? "brokenUrl" : "undefined /* still fetching */";
   const code = kind === "image"
-    ? `import { Image } from "@zen/design-system";
+    ? `import { Image } from "@zen-ds/react";
 
 <Image
   src={${srcCode}}
   alt="${photo.alt}"${ratio !== "auto" ? `\n  ratio="${ratio}"` : ""}${fit !== "cover" ? `\n  fit="${fit}"` : ""}${radius !== "md" ? `\n  radius="${radius}"` : ""}${caption ? `\n  caption="Transfăgărășan road, Romania · photo by the travel team"` : ""}
 />`
-    : `import { Thumbnail } from "@zen/design-system";
+    : `import { Thumbnail } from "@zen-ds/react";
 
 <Thumbnail src={${srcCode}} alt=""${size !== "md" ? ` size="${size}"` : ""}${shape !== "rounded" ? ` shape="${shape}"` : ""} />`;
   return (
@@ -909,7 +909,7 @@ function VisuallyHiddenPlayground() {
   const [copied, flash] = useTimedFlag(2500);
   const output = useCase === "header" ? ["Column header: Starred", "Column header: Actions"] : useCase === "skip" ? ["Link: Skip to main content"] : [copied ? "Status: Link copied to the clipboard" : "Status: (nothing yet — press Copy link)"];
   const code = useCase === "header"
-    ? `import { Table, VisuallyHidden } from "@zen/design-system";
+    ? `import { Table, VisuallyHidden } from "@zen-ds/react";
 
 <Table aria-label="Invoices" rows={invoices} getRowId={(row) => row.id} columns={[
   { id: "starred", header: <VisuallyHidden>Starred</VisuallyHidden>, cell: starToggle },
@@ -917,13 +917,13 @@ function VisuallyHiddenPlayground() {
   { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: archiveButton },
 ]} />`
     : useCase === "skip"
-      ? `import { VisuallyHidden } from "@zen/design-system";
+      ? `import { VisuallyHidden } from "@zen-ds/react";
 
 {/* First element in <body>: visible only while focused */}
 <VisuallyHidden as="a" href="#main" focusable>Skip to main content</VisuallyHidden>
 <header>…navigation…</header>
 <main id="main" tabIndex={-1}>…</main>`
-      : `import { Icon, IconButton, VisuallyHidden } from "@zen/design-system";
+      : `import { Icon, IconButton, VisuallyHidden } from "@zen-ds/react";
 
 <IconButton aria-label="Copy link" icon={<Icon name={copied ? "icon-check-line" : "icon-copy-line"} />} onClick={copy} />
 {/* Rendered from the start (empty), so the change is announced */}

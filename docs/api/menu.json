@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "menu",
-  "import": "import { Menu, MenuItem, MenuSeparator, MenuGroup } from \"@zen/design-system\";",
+  "import": "import { Menu, MenuItem, MenuSeparator, MenuGroup } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Menu",

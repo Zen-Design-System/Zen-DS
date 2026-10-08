@@ -2,7 +2,7 @@
 # Date Picker
 
 **Figma:** Date-Picker/Single-Calendar (page 453:32817)  
-**Import:** `import { DatePicker, DateField } from "@zen/design-system";`
+**Import:** `import { DatePicker, DateField } from "@zen-ds/react";`
 
 Pick a date or a date range. DatePicker is the calendar panel itself and is visible by default (open defaults to true), like an inline calendar; DateField is the input that opens it in a popover.
 

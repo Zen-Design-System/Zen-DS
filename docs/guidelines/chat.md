@@ -2,7 +2,7 @@
 # Chat
 
 **Figma:** ❖ Chat (7042:23220)  
-**Import:** `import { ChatThread, ChatMessage, ChatComposer, ChatConversationItem } from "@zen/design-system";`
+**Import:** `import { ChatThread, ChatMessage, ChatComposer, ChatConversationItem } from "@zen-ds/react";`
 
 Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list.
 
