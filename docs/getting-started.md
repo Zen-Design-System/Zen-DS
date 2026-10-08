@@ -5,20 +5,77 @@ How to install `@zen-ds/react` in a React app and set it up correctly. AI agents
 
 ## Install
 
-The package is built locally for now (no registry yet). From the Zen DS repo:
+`@zen-ds/react` is a licensed package. It is served only by the Zen registry, `https://npm.dizai.studio/`, to
+companies with an active licence; it is not on the public npm registry. Before the first install, point the `@zen-ds`
+scope at the registry (once per project) and sign in with your licence key (once per developer).
 
-```bash
-npm run pack:local
+**Your licence key** is the ID of your company's licence, as shown with the licence in your Zen account (15 lowercase
+letters and digits). One key covers your company's developers and its CI. Treat it like a password: never commit it
+and never paste it into an issue or a chat.
+
+### 1. Point the `@zen-ds` scope at the registry (once per project)
+
+Add this line to the `.npmrc` in your app's root folder and commit it, so teammates and CI use it too:
+
+```ini
+@zen-ds:registry=https://npm.dizai.studio/
 ```
 
-That writes `dist-pack/zen-design-system-<version>.tgz`. In your app:
+Only `@zen-ds/*` packages come from the Zen registry; everything else still comes from your usual registry. Without
+this line npm finds an old public `@zen-ds/react` (0.1.0) on npmjs.com and installs that instead.
+
+### 2. Sign in once with your licence key (once per developer)
 
 ```bash
-npm install /path/to/Zen-DS/dist-pack/zen-design-system-0.3.0.tgz
+npm login --registry=https://npm.dizai.studio/ --scope=@zen-ds --auth-type=legacy
+#   Username: anything (your name)   Password: your licence key   Email: anything
+```
+
+npm stores a token in your user `~/.npmrc` (not the project's), valid for 365 days. The registry re-checks the
+licence on every request, so the token stops working when the subscription ends; run `npm login` again after
+renewing, or once a year.
+
+### 3. Install
+
+```bash
+npm install @zen-ds/react react@^19 react-dom@^19
 ```
 
 Peer dependencies: `react` and `react-dom` 19. The package is ES modules with TypeScript declarations. Every
 component file starts with `"use client"`, so React Server Component frameworks import it from client components.
+
+### CI and Docker builds
+
+Sign in once on your machine as in step 2, copy the token from the `//npm.dizai.studio/:_authToken=…` line of your
+`~/.npmrc` into a CI secret named `ZEN_DS_NPM_TOKEN`, and add this line to the project's `.npmrc` (it reads the secret
+from the environment, so it is safe to commit):
+
+```ini
+//npm.dizai.studio/:_authToken=${ZEN_DS_NPM_TOKEN}
+```
+
+Then set `ZEN_DS_NPM_TOKEN` in the CI job's environment. For example, in GitHub Actions:
+
+```yaml
+- run: npm ci
+  env:
+    ZEN_DS_NPM_TOKEN: ${{ secrets.ZEN_DS_NPM_TOKEN }}
+```
+
+In a Dockerfile, pass the token as a build secret rather than a build argument, so it does not end up in an image
+layer. Replace the token before it expires after 365 days.
+
+### When the install fails
+
+| npm says | Why | What to do |
+| --- | --- | --- |
+| `E409` … `sign-up is closed: use your license key` (on `npm login`) | Wrong key, or the licence is not active | Copy the key again from your Zen account; check that the subscription is active |
+| `E401` `Unable to authenticate, your authentication token seems to be invalid` | Not signed in on this machine, the token is over 365 days old, or the CI token is missing | Step 2 again, or set `ZEN_DS_NPM_TOKEN` |
+| `E403` … `license is not active` | The subscription ended or was suspended | Renew it; the old token works again within 5 minutes |
+| `E404` for `@zen-ds/…` on registry.npmjs.org, or version `0.1.0` installed | The `.npmrc` scope line is missing | Step 1, then `npm install @zen-ds/react@latest` |
+| `E503` … `license service unavailable` | The licence service is briefly unreachable | Try again in a few minutes |
+
+Your licence terms are in `LICENSE.md`, which ships with the package. Questions: zen.tool@dizai.studio.
 
 ## Entry points
 
@@ -134,7 +191,7 @@ Every colour token has a dark value. Only use `var(--zen-color-…)` tokens in y
 
 | Tool | What it does |
 | --- | --- |
-| `npx zen-ds init` | Adds the Zen section to AGENTS.md (and `@AGENTS.md` to CLAUDE.md) and registers the `zen-ds` MCP server in `.mcp.json`. Idempotent. |
+| `npx zen-ds init` | Adds the `@zen-ds` registry line to `.npmrc`, the Zen section to AGENTS.md (and `@AGENTS.md` to CLAUDE.md) and registers the `zen-ds` MCP server in `.mcp.json`. Idempotent. |
 | `npx zen-ds doctor` | Checks the setup: dependency, React 19, `styles.css` import, `ZenProvider`, no deep imports, optional AI/ESLint wiring. |
 | `npx zen-usage [paths]` | The usage harness: every Zen component your files import, against the Do/Don't rules (unknown icon names, missing labels, vague button text, wrong levels…). `--json` for tools; `--css` also checks your stylesheets. |
 | `@zen-ds/react/eslint` | The same rules in the editor: `export default [...config, zen.configs.recommended]` (`zen.configs.standalone` without a JSX parser). |

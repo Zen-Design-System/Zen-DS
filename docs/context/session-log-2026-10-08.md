@@ -67,3 +67,11 @@
 - CI "Package" still failed on PR #5 (and on main, run 37602020509): npm 11 puts the prepack build log into
   `npm pack --json` stdout. verify-package now runs build:lib, then `npm pack --json --ignore-scripts`; passes under npm 11.21.0.
 - Legal: `LICENSE.md` drafted (user: Dizai Studio, Vietnam, subscription, apps-not-kits, EULA only); `license` field; README section; Inter OFL referenced. Draft note stays until a lawyer reviews it.
+
+## Phase 5: customer setup docs (approved: "continue with customer setup docs")
+- getting-started "Install": scope line, `npm login` with the licence key, CI token via `${ZEN_DS_NPM_TOKEN}`, Docker
+  build secret, an error table. Messages checked against a local registry + real npm (pty login): wrong key = E409
+  "sign-up is closed", no token = E401 "Unable to authenticate…", inactive = E403 "license is not active".
+- README, `AGENTS.consumer.md` (agents never handle the key), platform Installation page (5 steps, copy only).
+- `zen-ds init` adds `@zen-ds:registry=…` (from `publishConfig`) to `.npmrc`; `doctor` requires it and fails on a
+  literal token in the project `.npmrc`. verify-package asserts both; tsc, guidelines:check, mcp:selftest, verify:package pass.

@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // `npx zen-ds <command>` — set an app up for building with Zen DS (and for AI agents working on it).
 //
-//   zen-ds init     add the AI entry points to the app: AGENTS.md section, CLAUDE.md (@AGENTS.md), .mcp.json (zen-ds MCP
-//                   server); prints the ESLint and setup snippets. Idempotent: re-running changes nothing.
-//   zen-ds doctor   check the app's setup: package + React versions, styles.css imported, ZenProvider rendered,
-//                   ESLint plugin / MCP / AGENTS wired. Exit 1 when something required is missing.
+//   zen-ds init     add the @zen-ds registry line to .npmrc and the AI entry points to the app: AGENTS.md section,
+//                   CLAUDE.md (@AGENTS.md), .mcp.json (zen-ds MCP server); prints the ESLint and setup snippets.
+//                   Idempotent: re-running changes nothing.
+//   zen-ds doctor   check the app's setup: registry line, package + React versions, styles.css imported, ZenProvider
+//                   rendered, ESLint plugin / MCP / AGENTS wired. Exit 1 when something required is missing.
 //   zen-ds check    same as `zen-usage` (the usage harness on ./src).
 //   zen-ds audit    load pages in Chromium and check what people see: overflow, names, contrast, the heading outline,
 //                   Zen text styles and tokens, text that does not fit, axe-core (when installed); screenshots at 1440 and
@@ -19,6 +20,13 @@ const app = process.cwd();
 const rel = (file) => path.relative(app, file) || ".";
 const exists = (file) => fs.existsSync(path.join(app, file));
 const readApp = (file) => { try { return fs.readFileSync(path.join(app, file), "utf8"); } catch { return null; } };
+
+const REGISTRY = pkg.publishConfig?.registry ?? "https://npm.dizai.studio/";
+const REGISTRY_HOST = new URL(REGISTRY).host;
+const scopeLine = `@zen-ds:registry=${REGISTRY}`;
+const hasScopeLine = (npmrc) => /^\s*@zen-ds:registry\s*=/m.test(npmrc ?? "");
+// A token written into the project's .npmrc gets committed; `${ENV_VAR}` references are fine.
+const hasLiteralToken = (npmrc) => new RegExp(`^\\s*//${REGISTRY_HOST.replace(/\./g, "\\.")}/:_(authToken|auth|password)\\s*=\\s*(?!\\$\\{)\\S`, "m").test(npmrc ?? "");
 
 const AGENTS_MARKER = "<!-- zen-ds -->";
 const agentsSection = `${AGENTS_MARKER}
@@ -37,6 +45,12 @@ ${AGENTS_MARKER}
 
 function init() {
   const changes = [];
+  // .npmrc: the @zen-ds scope comes from the licensed registry (without it npm finds the old public 0.1.0).
+  const npmrc = readApp(".npmrc");
+  if (!hasScopeLine(npmrc)) {
+    fs.writeFileSync(path.join(app, ".npmrc"), npmrc ? `${npmrc.replace(/\s*$/, "\n")}${scopeLine}\n` : `${scopeLine}\n`);
+    changes.push(`${npmrc === null ? "created .npmrc with" : "added to .npmrc:"} ${scopeLine}`);
+  }
   // AGENTS.md: append (or refresh) the Zen section between markers.
   const agentsFile = path.join(app, "AGENTS.md");
   const agents = readApp("AGENTS.md");
@@ -61,6 +75,8 @@ function init() {
   console.log(changes.length ? changes.map((c) => `✓ ${c}`).join("\n") : "✓ Already set up (nothing changed).");
   console.log(`
 Next steps (not automated — they touch your code):
+  0. Commit .npmrc. Each developer signs in once with the licence key (never commit it or the token):
+       npm login --registry=${REGISTRY} --scope=@zen-ds --auth-type=legacy
   1. Entry file:  import "@zen-ds/react/styles.css";
   2. Root:        <ZenProvider theme="system"> <App /> </ZenProvider>   (import { ZenProvider } from "@zen-ds/react")
   3. ESLint (flat config), optional:
@@ -76,6 +92,9 @@ function doctor() {
   const appPkg = (() => { try { return JSON.parse(readApp("package.json")); } catch { return null; } })();
   const deps = { ...(appPkg?.dependencies ?? {}), ...(appPkg?.devDependencies ?? {}) };
   add(Boolean(appPkg), "package.json found", "run zen-ds from your app's root folder");
+  const npmrc = readApp(".npmrc");
+  add(hasScopeLine(npmrc), ".npmrc points @zen-ds at the Zen registry", `add "${scopeLine}" to .npmrc (npx zen-ds init)`);
+  add(!hasLiteralToken(npmrc), "no registry token written in the project's .npmrc", `remove it and use //${REGISTRY_HOST}/:_authToken=\${ZEN_DS_NPM_TOKEN} (docs/getting-started.md, CI)`);
   add(Boolean(deps["@zen-ds/react"]), "@zen-ds/react is a dependency", "npm install @zen-ds/react");
   const reactVersion = (() => { try { return JSON.parse(fs.readFileSync(path.join(app, "node_modules/react/package.json"), "utf8")).version; } catch { return null; } })();
   add(Boolean(reactVersion && Number(reactVersion.split(".")[0]) >= 19), `React ≥ 19 installed${reactVersion ? ` (${reactVersion})` : ""}`, "npm install react@^19 react-dom@^19");
@@ -101,7 +120,7 @@ export async function main(argv = process.argv.slice(2)) {
   if (command === "doctor") return doctor();
   if (command === "check") { const { main: usage } = await import("./usage-guard/cli.mjs"); return usage(rest); }
   if (command === "audit") { const { audit } = await import("./zen-audit/audit.mjs"); return audit(rest); }
-  console.log("usage: zen-ds init | doctor | check [paths…] | audit <url…>\n  init    add AGENTS.md / CLAUDE.md / .mcp.json entry points for AI agents\n  doctor  check the app's Zen setup\n  check   run the usage harness (same as zen-usage)\n  audit   check rendered pages in Chromium (overflow, names, outline, Zen tokens, fit, axe) + screenshots");
+  console.log("usage: zen-ds init | doctor | check [paths…] | audit <url…>\n  init    add the registry line to .npmrc and AGENTS.md / CLAUDE.md / .mcp.json entry points for AI agents\n  doctor  check the app's Zen setup\n  check   run the usage harness (same as zen-usage)\n  audit   check rendered pages in Chromium (overflow, names, outline, Zen tokens, fit, axe) + screenshots");
   return command ? 2 : 0;
 }
 

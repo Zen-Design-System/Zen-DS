@@ -165,9 +165,9 @@ Read this file only when picking up work or logging a follow-up.
 - ~~**P1 · usage:selftest crashes: `--list` JSON cut at 8 KB**~~ fixed 2026-10-08 (PR #5: `process.exitCode` instead of `process.exit()` in check-usage.mjs and cli.mjs). Was: **(2026-10-08, same on clean main):** `check-usage.mjs` ends
   with `process.exit(main())`, which drops unflushed piped stdout (62 KB); the selftest's `JSON.parse` fails. CI runs it.
   Pointer: `tools/usage-guard/check-usage.mjs:1330`, `tools/usage-guard/selftest.mjs:11`.
-- **P2 · Private registry Phase 5, customer docs (2026-10-08):** `docs/getting-started.md`, `AGENTS.consumer.md`,
-  README and `zen-ds init` say `npm install @zen-ds/react` but not the registry step (`@zen-ds:registry=https://npm.dizai.studio/`
-  + one `npm login` with the license key); without it npm installs the old public `@zen-ds/react` 0.1.0.
+- ~~**P2 · Private registry Phase 5, customer docs (2026-10-08):**~~ **Done 2026-10-08 (PR #5):** getting-started
+  (scope line, `npm login`, CI token, error table checked against a live npm), README, `AGENTS.consumer.md`, the platform
+  Installation page; `zen-ds init` writes the `.npmrc` line, `doctor` requires it and flags a committed token.
 - **P2 · LICENSE.md is a draft: legal review before selling (2026-10-08):** drafted on PR #5 (Dizai Studio, Vietnam law, subscription, apps-not-kits, per company + member limit); a lawyer must review it and remove its "Draft" note. Was: package.json has no `license` field and the repo no
   LICENSE/EULA; needed before selling (legal text from the user).
 - ~~**P0 · Live license backend: anonymous read of licenses by id**~~ fixed live 2026-10-08 (user-approved, with the registry access change; verified anonymous 404 on all 30). Was: **(2026-10-08, found by the registry e2e test):**

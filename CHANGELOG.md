@@ -25,6 +25,10 @@ removed (four unused colour ramps were, see Removed).
   `Release` workflow on a `v*` tag.
 - **Licence:** Zen DS is commercial software under `LICENSE.md` (Dizai Studio; per-company subscription, apps but not
   competing kits; draft pending legal review). `package.json` `license` points to it.
+- **Install from the Zen registry:** `docs/getting-started.md`, the README, `AGENTS.consumer.md` and the platform's
+  Installation page now cover the `.npmrc` scope line, the one-time `npm login` with the licence key, CI tokens and
+  the install errors. `npx zen-ds init` adds `@zen-ds:registry=https://npm.dizai.studio/` to `.npmrc`; `npx zen-ds
+  doctor` requires it and fails on a registry token written into the project's `.npmrc`.
 
 ### Fixed
 - `zen-ds-mcp`: a client that sends its requests and then closes stdin now gets every reply (the server used to exit

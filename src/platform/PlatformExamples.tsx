@@ -2364,9 +2364,10 @@ ${actionsCode}
 
   if (page === "installation") {
     const steps: Array<{ title: string; text: string; command?: string; code?: string }> = [
-      { title: "1. Build the package", text: "In the Zen DS repo. It writes dist-pack/zen-design-system-<version>.tgz (ES modules, TypeScript types, styles.css).", command: "npm run pack:local" },
-      { title: "2. Add it to your app", text: "Peer dependencies: react and react-dom 19.", command: "npm install /path/to/Zen-DS/dist-pack/zen-design-system-0.3.0.tgz" },
-      { title: "3. Import the styles and wrap the app", text: "One stylesheet (Inter, tokens, text styles, every component). ZenProvider sets the token modes, paints the page Canvas and hosts the overlay portal.", code: `import "@zen-ds/react/styles.css";
+      { title: "1. Point @zen-ds at the Zen registry", text: "Once per project: add this line to the app's .npmrc and commit it. @zen-ds/react is licensed per company and served only by the Zen registry; other packages still come from npm.", command: "@zen-ds:registry=https://npm.dizai.studio/" },
+      { title: "2. Sign in with your licence key", text: "Once per developer. Use any username and your company's licence key as the password. npm keeps the token in your own ~/.npmrc; never commit the key or the token. CI uses a token secret (docs/getting-started.md).", command: "npm login --registry=https://npm.dizai.studio/ --scope=@zen-ds --auth-type=legacy" },
+      { title: "3. Install", text: "Peer dependencies: react and react-dom 19. The package ships ES modules, TypeScript types and styles.css.", command: "npm install @zen-ds/react react@^19 react-dom@^19" },
+      { title: "4. Import the styles and wrap the app", text: "One stylesheet (Inter, tokens, text styles, every component). ZenProvider sets the token modes, paints the page Canvas and hosts the overlay portal.", code: `import "@zen-ds/react/styles.css";
 import "@zen-ds/react/reset.css"; // optional page reset
 import { Button, ZenProvider } from "@zen-ds/react";
 
@@ -2375,7 +2376,7 @@ createRoot(document.getElementById("root")!).render(
     <Button level="primary">Save changes</Button>
   </ZenProvider>,
 );` },
-      { title: "4. Point your AI agent at the docs", text: "The package ships AGENTS.consumer.md (setup + the rules that go wrong most often), llms.txt, docs/getting-started.md, docs/guidelines (Do/Don't + props per component) and docs/api (props as JSON). Add one line to your app's CLAUDE.md or AGENTS.md:", command: "Read node_modules/@zen-ds/react/AGENTS.consumer.md before writing UI, and follow it." },
+      { title: "5. Point your AI agent at the docs", text: "The package ships AGENTS.consumer.md (setup + the rules that go wrong most often), llms.txt, docs/getting-started.md, docs/guidelines (Do/Don't + props per component) and docs/api (props as JSON). One command adds them to your app's AGENTS.md / CLAUDE.md and registers the zen-ds MCP server:", command: "npx zen-ds init" },
     ];
     return (
       <ExamplePage eyebrow="Installation" title="Install Zen DS" description="Build the package, add it to your app, import the stylesheet once and wrap the app in ZenProvider.">
