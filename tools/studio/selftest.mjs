@@ -1644,6 +1644,14 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     ok("off handlers: onClick={null} on a Tag detaches", !("error" in detachAt("onClick={null}", page("export const A = () => <Tag onClick={null}>x</Tag>;"), "<Tag", "Tag")));
     check("phrasing: a Badge in a <Text> paragraph is refused", reason(page("export const A = () => <Text>Status <Badge>New</Badge></Text>;"), "<Badge", "Badge"), 'It sits inside a paragraph (<Text>): the detached Badge is a <div> Box, which a <p> cannot hold. Give the text as="div" or move the badge out of it before detaching.');
     check("phrasing: a Tag in a <p> is refused", reason(page("export const A = () => <p>Hi <Tag>x</Tag></p>;"), "<Tag", "Tag"), 'It sits inside a paragraph (<p>): the detached Tag is a <div> Box, which a <p> cannot hold. Give the text as="div" or move the tag out of it before detaching.');
+    check("map rows reordered or cut after the map: refused", [
+      reason(page("export const A = (rows: string[]) => <div>{rows.map((row) => <Tag key={row}>{row}</Tag>).reverse()}</div>;"), "<Tag", "Tag"),
+      reason(page("export const A = (rows: string[]) => <div>{[...rows.map((row) => <Tag key={row}>{row}</Tag>)].slice(1)}</div>;"), "<Tag", "Tag"),
+    ].map((line) => /reordered or cut afterwards \(\.(reverse|slice)\(\)\)/.test(line ?? "")), [true, true]);
+    check("phrasing: a paragraph further out, through phrasing parents, is refused too", [
+      reason(page("export const A = () => <p>Hi <strong><em><Tag>x</Tag></em></strong></p>;"), "<Tag", "Tag"),
+      reason(page('export const A = () => <Text>Hi <Text as="span"><Badge>New</Badge></Text></Text>;'), "<Badge", "Badge"),
+    ].map((line) => /^It sits inside a paragraph \((<p>|<Text>)\)/.test(line ?? "")), [true, true]);
     const spanned = detachAt("phrasing span", page('export const A = () => <Text as="span">Status <Badge>New</Badge></Text>;'), "<Badge", "Badge");
     ok("phrasing: inside a span it is flagged", spanned.detached.approximations.includes('It sits inside <Text as="span"> (phrasing content): the detached <div> Box is invalid HTML there (browsers still show it).'));
     const divided = detachAt("phrasing div", page('export const A = () => <Text as="div">Status <Badge>New</Badge></Text>;'), "<Badge", "Badge");
@@ -2179,7 +2187,15 @@ const wrapTsc = [];
     check("wrap snippet root: the snippet's first line (after the backtick)", [root.snippet, rows(root, 15, 21)], [{ synced: true }, ["    code: `<Box>", '  <Stack gap="md">', '    <Button level="primary">Send</Button>', "  </Stack>", "</Box>`,", "    render: () => <SendExample />,", "  },"]]);
     const escaped = wrapAt("wrap snippet escapes", page("", "<Button level=\"primary\">{`Send ${1}`}</Button>"), "<Button", "Button");
     check("wrap snippet escapes: kept", [escaped.snippet, rows(escaped, 16, 18)], [{ synced: true }, ["  <Box>", "    <Button level=\"primary\">{\\`Send \\${1}\\`}</Button>", "  </Box>"]]);
-    const missing = wrapAt("wrap snippet missing", page().replace("code: `<Stack gap=\"md\">\n  <Button level=\"primary\">Send</Button>", "code: `<Stack gap=\"md\">\n  <Button>Send</Button>"), "<Button", "Button");
+    // A snippet that writes the element differently (2026-10-08): its own copy is wrapped when it is the only <Button> in
+    // the snippet and in the code the example renders, or the only one whose attributes read the same.
+    const differs = wrapAt("wrap snippet differs", page().replace("code: `<Stack gap=\"md\">\n  <Button level=\"primary\">Send</Button>", "code: `<Stack gap=\"md\">\n  <Button>Send</Button>"), "<Button", "Button");
+    check("wrap snippet differs: the snippet's only Button wrapped", [differs.snippet, rows(differs, 6, 8)[0], rows(differs, 16, 18)], [{ synced: true }, "      <Box>", ["  <Box>", "    <Button>Send</Button>", "  </Box>"]]);
+    const handler = page("", '<Button level="primary" onClick={() => send()}>Send</Button>').replace("  <Button level=\"primary\" onClick={() => send()}>Send</Button>\n</Stack>`", "  <Button level=\"primary\">Send</Button>\n  <Button level=\"primary\">Again</Button>\n</Stack>`");
+    check("wrap snippet: two namesakes, none alike → not synced", wrapAt("wrap snippet ambiguous", handler, "<Button", "Button").snippet.synced, false);
+    const alike = page("", '<Button level="primary">Send</Button>').replace("  <Button level=\"primary\">Send</Button>\n</Stack>`", "  <Button level=\"primary\">\n    Send now\n  </Button>\n  <Button>Other</Button>\n</Stack>`");
+    check("wrap snippet: the one namesake with the same attributes", [wrapAt("wrap snippet alike", alike, "<Button", "Button").snippet, rows(wrapAt("wrap snippet alike rows", alike, "<Button", "Button"), 16, 20)], [{ synced: true }, ["  <Box>", "    <Button level=\"primary\">", "      Send now", "    </Button>", "  </Box>"]]);
+    const missing = wrapAt("wrap snippet missing", page().replace("code: `<Stack gap=\"md\">\n  <Button level=\"primary\">Send</Button>", "code: `<Stack gap=\"md\">\n  <Text>Send</Text>"), "<Button", "Button");
     check("wrap snippet missing: reason, source still wrapped", [missing.snippet.synced, /does not show this code \(<Button>\)/.test(missing.snippet.reason), rows(missing, 6, 8)[0]], [false, true, "      <Box>"]);
     const twice = wrapAt("wrap snippet twice", page().replace("</Stack>`", "  <Button level=\"primary\">Send</Button>\n</Stack>`"), "<Button", "Button");
     check("wrap snippet twice: untouched", [twice.snippet.synced, /more than once/.test(twice.snippet.reason)], [false, true]);

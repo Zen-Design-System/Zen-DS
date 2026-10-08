@@ -917,9 +917,11 @@ const PHRASING_TAGS = new Set(["span", "label", "strong", "em", "small", "b", "i
 /**
  * Badge / Tag render a <span>; the detached Box is a <div>. Inside a paragraph (<p>, <Text> as p) that is a DOM-nesting
  * error (refused); inside other phrasing content (a span, a heading, a label…) it is invalid HTML browsers still show
- * (an approximation). The nearest JSX element around it decides; inside an attribute value nothing is known.
+ * (an approximation). The JSX elements around it decide: phrasing ones are walked through to a paragraph further out
+ * (`<p><strong><Badge/></strong></p>` is refused too), anything else stops the walk; an attribute value is not judged.
  */
 function phrasingCheck(r) {
+  let flagged = false;
   for (let i = r.path.length - 2; i >= 0; i -= 1) {
     const node = r.path[i];
     if (node.type === "JSXAttribute") return;
@@ -934,8 +936,10 @@ function phrasingCheck(r) {
     }
     const where = name === "Text" ? `<Text${tag === "p" ? "" : ` as="${tag}"`}>` : `<${name}>`;
     if (tag === "p") refuse(`It sits inside a paragraph (${where}): the detached ${r.name} is a <div> Box, which a <p> cannot hold. Give the text as="div" or move the ${r.name.toLowerCase()} out of it before detaching.`);
-    if (PHRASING_TAGS.has(tag)) r.approx(`It sits inside ${where} (phrasing content): the detached <div> Box is invalid HTML there (browsers still show it).`);
-    return;
+    if (!PHRASING_TAGS.has(tag)) return;
+    // The nearest phrasing parent is the one named; a paragraph further out still refuses.
+    if (!flagged) r.approx(`It sits inside ${where} (phrasing content): the detached <div> Box is invalid HTML there (browsers still show it).`);
+    flagged = true;
   }
 }
 
@@ -1304,6 +1308,10 @@ function cssKeyedOnComponent(r, componentCss) {
 
 const TRANSPARENT = new Set(["JSXElement", "JSXFragment", "JSXExpressionContainer", "JSXAttribute", "JSXOpeningElement", "TSAsExpression", "TSNonNullExpression", "TSSatisfiesExpression", "ParenthesizedExpression"]);
 const isMapCallee = (callee) => (callee?.type === "MemberExpression" || callee?.type === "OptionalMemberExpression") && !callee.computed && callee.property.type === "Identifier" && callee.property.name === "map";
+/** Casts and parentheses a .map result passes through on its way to a method call. */
+const TS_WRAPPERS = new Set(["TSAsExpression", "TSNonNullExpression", "TSSatisfiesExpression", "ParenthesizedExpression"]);
+/** Array methods that reorder or cut the rows a .map made (the canvas order then differs from the callback index). */
+const REORDERS = new Set(["reverse", "sort", "toReversed", "toSorted", "filter", "slice", "splice", "toSpliced", "with"]);
 const WHERE = { ConditionalExpression: "a condition (? :)", LogicalExpression: "a condition (&& / ||)", IfStatement: "an if", CallExpression: "a function call", ArrayExpression: "an array", VariableDeclarator: "a variable", ObjectProperty: "an object", SwitchCase: "a switch" };
 
 /**
@@ -1326,6 +1334,15 @@ function mapContext(text, nodePath) {
     return { repeated: false };
   }
   if (mapAbove(at)) refuse("It is inside nested .map callbacks; detach supports one level of .map.");
+  // The row index is the instance's place on the canvas: true only while the rows render in the callback's order. A
+  // reorder or a cut after the map (`.map(…).reverse()`, `[...xs.map(…)].slice(1)`) would detach another row.
+  for (let i = at - 2; i >= 0; i -= 1) {
+    const node = nodePath[i];
+    if (TS_WRAPPERS.has(node.type) || node.type === "SpreadElement" || node.type === "ArrayExpression") continue;
+    const member = (node.type === "MemberExpression" || node.type === "OptionalMemberExpression") && !node.computed && node.object === nodePath[i + 1] ? node.property.name : null;
+    if (member && REORDERS.has(member)) refuse(`The .map result is reordered or cut afterwards (.${member}()), so the row on the canvas is not the callback's row index; detach it in the code.`);
+    break;
+  }
   const fn = nodePath[at];
   for (let i = at + 1; i < nodePath.length - 1; i += 1) {
     const node = nodePath[i];

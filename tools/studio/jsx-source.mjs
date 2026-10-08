@@ -1372,18 +1372,18 @@ export function snippetLiterals(ast) {
 
 const isFunction = (node) => node && (node.type === "ArrowFunctionExpression" || node.type === "FunctionExpression" || node.type === "FunctionDeclaration");
 
-/** The module-level declaration that holds `node`, with its name when it is a function or a const. */
+/** The module-level declaration that holds `node` (`node`: it, or its declarator), with its name when it is a function or a const. */
 function enclosingTopLevel(ast, node) {
   for (const statement of ast.program.body) {
     const declaration = statement.type === "ExportNamedDeclaration" || statement.type === "ExportDefaultDeclaration" ? statement.declaration ?? statement : statement;
     if (!declaration || declaration.start > node.start || declaration.end < node.end) continue;
-    if (declaration.type === "FunctionDeclaration") return { name: declaration.id?.name ?? null };
+    if (declaration.type === "FunctionDeclaration") return { name: declaration.id?.name ?? null, node: declaration };
     if (declaration.type === "VariableDeclaration") {
       for (const declarator of declaration.declarations) {
-        if (declarator.start <= node.start && declarator.end >= node.end) return { name: declarator.id?.type === "Identifier" ? declarator.id.name : null };
+        if (declarator.start <= node.start && declarator.end >= node.end) return { name: declarator.id?.type === "Identifier" ? declarator.id.name : null, node: declarator };
       }
     }
-    return { name: null };
+    return { name: null, node: declaration };
   }
   return null;
 }
@@ -1419,18 +1419,68 @@ function renderedNames(fn) {
 
 /**
  * The one snippet that shows `element`: the `code` of the example whose render holds the element, or renders the
- * component that holds it. Null with a reason when no example (or more than one) does.
+ * component that holds it. Null with a reason when no example (or more than one) does. `scope`: the code the snippet
+ * stands for (that render, or that component), where snippetCopyOf counts the element's namesakes.
  */
 function snippetFor(ast, element) {
   const examples = exampleObjects(ast);
   if (!examples.length) return { literal: null, reason: null };
   const inline = examples.filter((example) => example.render.start <= element.start && example.render.end >= element.end);
-  if (inline.length === 1) return { literal: inline[0].code, reason: null };
+  if (inline.length === 1) return { literal: inline[0].code, reason: null, scope: inline[0].render };
   const owner = enclosingTopLevel(ast, element);
   if (!owner?.name) return { literal: null, reason: "no example snippet shows this code" };
   const rendering = examples.filter((example) => renderedNames(example.render).has(owner.name));
-  if (rendering.length === 1) return { literal: rendering[0].code, reason: null };
+  if (rendering.length === 1) return { literal: rendering[0].code, reason: null, scope: owner.node };
   return { literal: null, reason: rendering.length ? `more than one example renders <${owner.name}>` : "no example snippet shows this code" };
+}
+
+/** JSX elements named `name` inside `node` (the node itself included). */
+function elementsNamed(node, name) {
+  const out = [];
+  walk(node, (inner) => {
+    if (inner.type === "JSXElement" && jsxName(inner.openingElement.name) === name) out.push(inner);
+    return true;
+  });
+  return out;
+}
+
+/**
+ * An opening tag's attributes as one whitespace-insensitive string, `key` left out (a wrap moves it to the wrapper):
+ * `<Card  title="x"\n>` and `<Card key={id} title="x">` read the same.
+ */
+const tagText = (text, opening) => opening.attributes.filter((attr) => attrName(attr) !== "key").map((attr) => text.slice(attr.start, attr.end).replace(/\s+/g, " ")).join(" ");
+
+/**
+ * The snippet's own copy of `element` when its whole code is not in the snippet (a snippet that leaves out a handler,
+ * the data or some children): the snippet parsed as JSX (as written, in a fragment, or as a function body), and the one
+ * element of that name whose opening tag reads like the element's, else the only element of that name when the code the
+ * snippet stands for (`owner.scope`) also has only one. Only a snippet with no ${…} and no escapes (offsets stay 1:1).
+ * { quasi, variant (the parsed text), prefix, suffix (what was added around the snippet), node, startsLine, comments }.
+ */
+function snippetCopyOf(text, ast, owner, element, name) {
+  if (!element || owner.literal.quasis.length !== 1) return null;
+  const quasi = owner.literal.quasis[0];
+  const raw = text.slice(quasi.start, quasi.end);
+  if (raw.includes("\\")) return null;
+  for (const [head, tail] of [["", ""], ["<>", "</>"], ["function Snippet() {", "}"]]) {
+    const variant = `${head}${raw}${tail}`;
+    const parsed = parseSource(variant);
+    if (!parsed || parsed.errors.length) continue;
+    const named = elementsNamed(parsed.program, name);
+    const own = tagText(text, element.openingElement);
+    const alike = named.filter((node) => tagText(variant, node.openingElement) === own);
+    // No copy alike: the namesakes pair up by order when the snippet has as many as the code (snippets follow the JSX).
+    const scoped = owner.scope ? elementsNamed(owner.scope, name) : [];
+    const place = scoped.findIndex((node) => node.start === element.start);
+    const node = alike.length === 1 ? alike[0] : alike.length === 0 && named.length === scoped.length && place >= 0 ? named[place] : null;
+    if (!node) return null;
+    // Its own line in the snippet (the snippet's first line starts after the backtick).
+    const lineStart = Math.max(lineStartOf(variant, node.start), head.length);
+    const startsLine = /^[ \t]*$/.test(variant.slice(lineStart, node.start));
+    const comments = new Set((parsed.comments ?? []).filter((comment) => comment.type === "CommentLine").map((comment) => comment.end));
+    return { quasi, variant, prefix: head.length, suffix: tail.length, node, startsLine, comments };
+  }
+  return null;
 }
 
 /** Raw text as it reads inside a template literal: \ ` and ${ escaped. */
@@ -1978,7 +2028,14 @@ function wrapSnippet(text, ast, box, before, { tag, attrs, eol, name }) {
     const raw = text.slice(quasi.start, quasi.end);
     for (const match of raw.matchAll(pattern)) hits.push({ start: quasi.start + match.index, end: quasi.start + match.index + match[0].length, matched: match[0] });
   }
-  if (!hits.length) return notSynced(`the example snippet does not show this code (${what})`);
+  if (!hits.length) {
+    // Hand-written snippets often leave out handlers, data or children, so the element's whole code is not there: the
+    // snippet's own copy of the element (snippetCopyOf) is wrapped instead.
+    const copy = snippetCopyOf(text, ast, owner, box.children.find((child) => child.type === "JSXElement"), name);
+    if (!copy) return notSynced(`the example snippet does not show this code (${what})`);
+    const wrapped = applyEdits(copy.variant, wrapEdits(copy.variant, copy.node, { tag, attrs, eol, lineCommentEnds: copy.comments, startsLine: copy.startsLine }));
+    return { replacements: [{ start: copy.quasi.start, end: copy.quasi.end, text: wrapped.slice(copy.prefix, wrapped.length - copy.suffix) }], snippet: { synced: true } };
+  }
   if (hits.length > 1) return notSynced(`this code appears more than once in the snippet (${what})`);
   const [hit] = hits;
   // The copy's line inside the snippet (its first line starts after the backtick).
