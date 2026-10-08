@@ -35,7 +35,7 @@ const sizeValue = (size: IconProps["size"]): CSSProperties["width"] => {
 
 /**
  * Zen icon. Icons used by Zen components draw synchronously; any other name loads its bucket on first use (an empty
- * box of the same size shows for that first frame — `preloadIcons()` or `@zen/design-system/icons/all` avoid it).
+ * box of the same size shows for that first frame — `preloadIcons()` or `@zen-ds/react/icons/all` avoid it).
  */
 export function Icon(props: IconProps) {
   const icon = getRegisteredIcon(props.name);

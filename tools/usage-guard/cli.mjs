@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Zen DS usage harness — command line (`zen-usage` when installed from the package).
 //
-//   In an app:           npx zen-usage [files or dirs…]      default ./src; checks only tags imported from @zen/design-system
+//   In an app:           npx zen-usage [files or dirs…]      default ./src; checks only tags imported from @zen-ds/react
 //   In the Zen-DS repo:  npm run usage:check [files or dirs…] default: platform, components, styles, templates (every Zen tag)
 //
 //   --json        findings as JSON (for agents and CI annotations)
@@ -81,4 +81,5 @@ export function main(argv = process.argv.slice(2)) {
 }
 
 // Run when executed directly or through the `zen-usage` bin symlink.
-if (process.argv[1] && import.meta.url === pathToFileURL(fs.realpathSync(process.argv[1])).href) process.exit(main());
+// exitCode, not process.exit(): exiting at once drops piped stdout that is not flushed yet (large --json reports).
+if (process.argv[1] && import.meta.url === pathToFileURL(fs.realpathSync(process.argv[1])).href) process.exitCode = main();

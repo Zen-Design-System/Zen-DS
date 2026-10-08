@@ -1856,7 +1856,7 @@ function wrapSnippet(text, ast, box, before, { tag, attrs, eol, name }) {
 /**
  * Op "wrap" { tag, props } (it cannot be combined with other ops): the element goes inside `<tag …props>` (Box, Stack
  * or Grid; props formatted like setProp, never `key` or `children`), the element's `key` moving to the wrapper; `tag`
- * joins the file's Layout import (merged into an import of the Layout folder or "@zen/design-system", else a new
+ * joins the file's Layout import (merged into an import of the Layout folder or "@zen-ds/react", else a new
  * import line, as detach writes them). `wrapped.loc` = the wrapper's opening tag in the new text (the element's old
  * position, moved by an import line above it). The example snippet that shows the element is wrapped too when its copy
  * is found once (else `snippet: { synced: false, reason }`). Refused (`invalid`) where a component clones the element

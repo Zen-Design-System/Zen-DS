@@ -42,7 +42,7 @@
 //   fragment with the new one; a fragment takes it as a child; anything else is refused ("Its content comes from …").
 //   `wrap: { tag, props }` (gap-less slots) puts the slot's content and the new element in <Stack|Grid|Box …props>.
 // - The code is one JSX element: no data-zen-src, no raw U+2028/U+2029, no free names but Zen components (imported
-//   per folder in examples, from "@zen/design-system" in templates), JS built-ins (Date, Math…), platformMedia (example
+//   per folder in examples, from "@zen-ds/react" in templates), JS built-ins (Date, Math…), platformMedia (example
 //   pages: imported from ../../PlatformMedia) and `toast` (then the nearest enclosing component
 //   gets `const { toast } = useToast();` unless a toast binding is in scope) and the names of `state: [{ name, initial,
 //   type? }]` (2026-10-04, stateful items: the component gets `const [name, setName] = useState(initial);` under fresh
@@ -74,8 +74,8 @@ import { manyPlan, moveToPlan, pasteCodePlan, replacePlan } from "./arrange.mjs"
 import { ITEM_OPS, itemPlan } from "./items.mjs";
 
 const BOM = "\uFEFF";
-const PACKAGE = "@zen/design-system";
-const BUILDER_PACKAGE = "@zen/design-system/builder";
+const PACKAGE = "@zen-ds/react";
+const BUILDER_PACKAGE = "@zen-ds/react/builder";
 /** What a builder page's code may use from its runtime besides Zen components (Board is the page's root). */
 const BUILDER_RUNTIME = ["Screen", "Overlay", "proto"];
 const PLUGINS = ["jsx", "typescript"];
@@ -432,7 +432,7 @@ function referenceCount(ast, name) {
 }
 
 /**
- * detach.mjs importEdits (same rules: templates and files already importing it use "@zen/design-system", else the
+ * detach.mjs importEdits (same rules: templates and files already importing it use "@zen-ds/react", else the
  * folder's relative module; names merge in code-point order, a new line sorts among the folder imports; a name the file
  * binds elsewhere is refused) with `folders` (name → src/components folder) instead of its fixed 22-name map.
  */
@@ -494,7 +494,7 @@ function importChanges(ast, text, eol, file, needed, remove, folders) {
   return edits.map((edit) => ({ ...edit, isImport: true }));
 }
 
-/** A builder page's runtime import (@zen/design-system/builder) gains `names` it does not import yet. */
+/** A builder page's runtime import (@zen-ds/react/builder) gains `names` it does not import yet. */
 function builderImportEdits(ast, text, eol, names) {
   const imports = ast.program.body.filter((statement) => statement.type === "ImportDeclaration");
   const statement = imports.find((candidate) => candidate.source.value === BUILDER_PACKAGE && candidate.importKind !== "type");

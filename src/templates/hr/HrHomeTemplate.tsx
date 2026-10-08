@@ -8,7 +8,7 @@
  * - Your apps: Time off, Expenses and Workbench, each with where Alex stands.
  *
  * Copy it with ./HrShell, ./data and ./assets into your app and replace the sample data. Render it inside your app's
- * <ZenProvider>. Uses only @zen/design-system components, no custom CSS.
+ * <ZenProvider>. Uses only @zen-ds/react components, no custom CSS.
  */
 import { useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import {
@@ -54,7 +54,7 @@ import {
   type DockIconTheme,
   type IconName,
   type MetricTrendDirection,
-} from "@zen/design-system";
+} from "@zen-ds/react";
 import { HrRouterContext, HrShell, hrModules, type HrModule, type HrNavigate } from "./HrShell";
 import {
   assistantAnswer,

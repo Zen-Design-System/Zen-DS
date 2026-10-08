@@ -20,8 +20,8 @@ function check(label, actual, expected) {
 const ok = (label, value) => check(label, Boolean(value), true);
 
 const page = (title, image) => `// @zen-page {"format":1,"title":${JSON.stringify(title)}}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Image, Stack, Text } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Image, Stack, Text } from "@zen-ds/react";
 
 export default function Page() {
   return (

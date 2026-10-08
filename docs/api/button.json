@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "button",
-  "import": "import { Button, IconButton } from \"@zen/design-system\";",
+  "import": "import { Button, IconButton } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Button",

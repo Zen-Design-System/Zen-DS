@@ -44,8 +44,8 @@ function TextPlayground() {
         <PlaygroundToggle label="Truncate" selected={truncate} onChange={setTruncate} />
       </>}
       code={heading
-        ? `import { Heading } from "@zen/design-system";\n\n<Heading level={${level}}${styleProp}${toneProp}${truncate ? " truncate" : ""}>${copy}</Heading>`
-        : `import { Text } from "@zen/design-system";\n\n<Text${styleProp}${toneProp}${truncate ? " truncate" : ""}>${copy}</Text>`}
+        ? `import { Heading } from "@zen-ds/react";\n\n<Heading level={${level}}${styleProp}${toneProp}${truncate ? " truncate" : ""}>${copy}</Heading>`
+        : `import { Text } from "@zen-ds/react";\n\n<Text${styleProp}${toneProp}${truncate ? " truncate" : ""}>${copy}</Text>`}
     >
       <div className="pat-stage">
         {heading

@@ -2,7 +2,7 @@
 # Action Bar
 
 **Figma:** No Figma component: the Bottom-Sheet footer pattern (Large buttons, padding 12/20) on Surface/Default with a Border/Neutral/Pale top rule and the System/Bottom-Indicator safe area  
-**Import:** `import { ActionBar } from "@zen/design-system";`
+**Import:** `import { ActionBar } from "@zen-ds/react";`
 
 The footer bar that holds a screen's main actions: the mobile footer CTA (Large, full width, Primary on top), the phone dual footer (Large Tertiary · Primary side by side) and the sticky action row of desktop detail and edit pages (Tertiary · Primary at the end).
 

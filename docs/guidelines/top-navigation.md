@@ -2,7 +2,7 @@
 # Top Navigation
 
 **Figma:** Top-Navigation/Mobile (page ❖ Top-Navigations, 12014:45167)  
-**Import:** `import { TopNavigation } from "@zen/design-system";`
+**Import:** `import { TopNavigation } from "@zen-ds/react";`
 
 The mobile app bar: where you are (title), how to go back (leading) and up to three actions for this screen (trailing).
 

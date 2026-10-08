@@ -25,7 +25,7 @@ export type HandoffInput = {
   title: string;
   /** The React component's name (TeamPage) and its file. */
   component: string;
-  /** @zen/design-system's version. */
+  /** @zen-ds/react's version. */
   version: string;
   /** The ZenProvider props of the canvas's modes (theme, density…). */
   provider: Record<string, string>;
@@ -140,8 +140,8 @@ export function handoffMarkdown(input: HandoffInput): string {
   add(`- ${code("handoff.md")}: this file.`, "");
 
   add("## Setup", "");
-  add(`1. Install the library: ${code(`npm install @zen/design-system@^${input.version}`)}.`);
-  add(`2. Import its styles once, in the app's entry: ${code('import "@zen/design-system/styles.css";')}`);
+  add(`1. Install the library: ${code(`npm install @zen-ds/react@^${input.version}`)}.`);
+  add(`2. Import its styles once, in the app's entry: ${code('import "@zen-ds/react/styles.css";')}`);
   add(`3. Wrap the app in the modes the design was drawn in: ${code(`<ZenProvider ${providerProps}>`)}.`);
   if (screens.some((frame) => frame.device === "phone")) add(`4. Phone screens are drawn in the mobile modes: on a phone, nest ${code('<ZenProvider breakpoint="mobile" typography="mobile" density="comfortable">')} around the page.`);
   add("", `Render ${code(`<${input.component} />`)}${input.props.length ? `; its props: ${input.props.map(code).join(", ")}` : ""}.`, "");
@@ -157,8 +157,8 @@ export function handoffMarkdown(input: HandoffInput): string {
   }, new Map<string, { names: string[]; slug: string | null; notes: GuidelineNotes | null }>()).values()];
   add("| Component | What it is for | Guideline | API |", "| --- | --- | --- | --- |");
   for (const guide of guides) {
-    const guideline = guide.slug ? code(`node_modules/@zen/design-system/docs/guidelines/${guide.slug}.md`) : "—";
-    const api = guide.slug ? code(`node_modules/@zen/design-system/docs/api/${guide.slug}.json`) : "—";
+    const guideline = guide.slug ? code(`node_modules/@zen-ds/react/docs/guidelines/${guide.slug}.md`) : "—";
+    const api = guide.slug ? code(`node_modules/@zen-ds/react/docs/api/${guide.slug}.json`) : "—";
     add(`| ${guide.names.join(", ")} | ${cell(guide.notes?.purpose ?? "")} | ${guideline} | ${api} |`);
   }
   add("");

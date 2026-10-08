@@ -1,6 +1,6 @@
 /**
  * Template: settings (a workspace owner's account and workspace). Copy it into your app and replace the sample data and
- * the calls. Render it inside your app's <ZenProvider>. Uses only @zen/design-system components, no custom CSS.
+ * the calls. Render it inside your app's <ZenProvider>. Uses only @zen-ds/react components, no custom CSS.
  *
  * - Annotated sections: each title and its one-line description on the left, the settings in a Card on the right
  *   (stacked on phones).
@@ -54,7 +54,7 @@ import {
   type IconName,
   type SidebarSection,
   type UploaderFile,
-} from "@zen/design-system";
+} from "@zen-ds/react";
 
 /* ── Sample data: replace with your own ─────────────────────────────── */
 const workspace = { name: "Đìzai Studio", initial: "Đ", domain: "dizai.studio" };

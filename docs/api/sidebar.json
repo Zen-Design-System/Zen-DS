@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "sidebar",
-  "import": "import { Sidebar, SidebarSubMenu } from \"@zen/design-system\";",
+  "import": "import { Sidebar, SidebarSubMenu } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Sidebar",

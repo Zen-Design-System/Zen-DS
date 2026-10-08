@@ -11,7 +11,7 @@ import type { IconDefinition, IconName } from "../../icons/generated/names";
  *
  * - `registerIcons(record)` adds definitions (e.g. your own SVGs, or a bucket you bundled yourself).
  * - `preloadIcons(names)` fetches buckets ahead of time (no empty frame on first paint).
- * - `import "@zen/design-system/icons/all"` registers the whole set up front (docs, galleries, no lazy loading).
+ * - `import "@zen-ds/react/icons/all"` registers the whole set up front (docs, galleries, no lazy loading).
  */
 const registry = new Map<string, IconDefinition>();
 const bucketLoads = new Map<number, Promise<void>>();

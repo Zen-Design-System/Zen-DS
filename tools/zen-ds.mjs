@@ -22,13 +22,13 @@ const readApp = (file) => { try { return fs.readFileSync(path.join(app, file), "
 
 const AGENTS_MARKER = "<!-- zen-ds -->";
 const agentsSection = `${AGENTS_MARKER}
-## UI: Zen Design System (@zen/design-system ${pkg.version})
+## UI: Zen Design System (@zen-ds/react ${pkg.version})
 
 Build every screen from Zen components; do not hand-write buttons, inputs, menus, layout wrappers or text styles.
-1. Read \`node_modules/@zen/design-system/AGENTS.consumer.md\` once (setup, the rules that go wrong most, API facts).
+1. Read \`node_modules/@zen-ds/react/AGENTS.consumer.md\` once (setup, the rules that go wrong most, API facts).
 2. Pick components with the \`zen-ds\` MCP tools (\`list_components\`, \`get_component\`, \`search_icons\`, \`get_template\`) or
-   \`node_modules/@zen/design-system/docs/guidelines/index.json\`; props for each are in \`docs/api/<slug>.json\`.
-3. Start screens from a template (\`get_template\` / \`node_modules/@zen/design-system/src/templates\`).
+   \`node_modules/@zen-ds/react/docs/guidelines/index.json\`; props for each are in \`docs/api/<slug>.json\`.
+3. Start screens from a template (\`get_template\` / \`node_modules/@zen-ds/react/src/templates\`).
 4. After every change run \`npx zen-usage\` (or the MCP \`check_usage\` tool) and fix each ✗; \`npx zen-ds doctor\` checks the setup.
 5. Check the screens you changed as rendered: \`npx zen-ds audit http://localhost:5173/<route>\` (overflow, names, outline, Zen
    text styles and tokens, text that does not fit; screenshots at 1440 and 390) and fix each ✗.
@@ -61,10 +61,10 @@ function init() {
   console.log(changes.length ? changes.map((c) => `✓ ${c}`).join("\n") : "✓ Already set up (nothing changed).");
   console.log(`
 Next steps (not automated — they touch your code):
-  1. Entry file:  import "@zen/design-system/styles.css";
-  2. Root:        <ZenProvider theme="system"> <App /> </ZenProvider>   (import { ZenProvider } from "@zen/design-system")
+  1. Entry file:  import "@zen-ds/react/styles.css";
+  2. Root:        <ZenProvider theme="system"> <App /> </ZenProvider>   (import { ZenProvider } from "@zen-ds/react")
   3. ESLint (flat config), optional:
-       import zen from "@zen/design-system/eslint";
+       import zen from "@zen-ds/react/eslint";
        export default [ ...yourConfig, zen.configs.recommended ];   // or zen.configs.standalone without a JSX parser
 Then run: npx zen-ds doctor`);
   return 0;
@@ -76,19 +76,19 @@ function doctor() {
   const appPkg = (() => { try { return JSON.parse(readApp("package.json")); } catch { return null; } })();
   const deps = { ...(appPkg?.dependencies ?? {}), ...(appPkg?.devDependencies ?? {}) };
   add(Boolean(appPkg), "package.json found", "run zen-ds from your app's root folder");
-  add(Boolean(deps["@zen/design-system"]), "@zen/design-system is a dependency", "npm install @zen/design-system");
+  add(Boolean(deps["@zen-ds/react"]), "@zen-ds/react is a dependency", "npm install @zen-ds/react");
   const reactVersion = (() => { try { return JSON.parse(fs.readFileSync(path.join(app, "node_modules/react/package.json"), "utf8")).version; } catch { return null; } })();
   add(Boolean(reactVersion && Number(reactVersion.split(".")[0]) >= 19), `React ≥ 19 installed${reactVersion ? ` (${reactVersion})` : ""}`, "npm install react@^19 react-dom@^19");
   const srcDir = exists("src") ? path.join(app, "src") : app;
   const sources = fs.existsSync(srcDir) ? fs.readdirSync(srcDir, { recursive: true }).map(String).filter((f) => /\.[jt]sx?$/.test(f) && !/node_modules|dist/.test(f)) : [];
   const text = sources.map((f) => fs.readFileSync(path.join(srcDir, f), "utf8"));
-  add(text.some((t) => /@zen\/design-system\/styles\.css/.test(t)), "styles.css is imported", 'add import "@zen/design-system/styles.css" to your entry file (main.tsx)');
+  add(text.some((t) => /@zen-ds\/react\/styles\.css/.test(t)), "styles.css is imported", 'add import "@zen-ds/react/styles.css" to your entry file (main.tsx)');
   add(text.some((t) => /<ZenProvider\b/.test(t)), "ZenProvider wraps the app", "render <ZenProvider> around your app (modes, Canvas, overlays, toasts)");
-  add(!text.some((t) => /@zen\/design-system\/(src|dist)\//.test(t)), "no deep imports into the package", 'import from "@zen/design-system" (and /styles.css, /icons/all, /eslint), not from its src or dist folders');
+  add(!text.some((t) => /@zen-ds\/react\/(src|dist)\//.test(t)), "no deep imports into the package", 'import from "@zen-ds/react" (and /styles.css, /icons/all, /eslint), not from its src or dist folders');
   add(readApp("AGENTS.md")?.includes(AGENTS_MARKER) ?? false, "AGENTS.md has the Zen section", "npx zen-ds init", false);
   add(Boolean(readApp(".mcp.json")?.includes("zen-ds")), ".mcp.json registers the zen-ds MCP server", "npx zen-ds init", false);
   const eslintConfig = ["eslint.config.js", "eslint.config.mjs", "eslint.config.ts"].map(readApp).find(Boolean);
-  add(Boolean(eslintConfig && /@zen\/design-system\/eslint/.test(eslintConfig)), "ESLint uses @zen/design-system/eslint", "add zen.configs.recommended to eslint.config.js (optional; npx zen-usage does the same)", false);
+  add(Boolean(eslintConfig && /@zen-ds\/react\/eslint/.test(eslintConfig)), "ESLint uses @zen-ds/react/eslint", "add zen.configs.recommended to eslint.config.js (optional; npx zen-usage does the same)", false);
   for (const c of checks) console.log(`${c.ok ? "✓" : c.required ? "✗" : "○"} ${c.label}${c.ok ? "" : ` — ${c.hint}`}`);
   const failed = checks.filter((c) => !c.ok && c.required).length;
   console.log(failed ? `\n${failed} required check(s) failed.` : "\nZen DS setup looks right.");

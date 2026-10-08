@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 /**
- * Library build (`npm run build:lib`) — the installable `@zen/design-system` package.
+ * Library build (`npm run build:lib`) — the installable `@zen-ds/react` package.
  *
  * - ES modules only, one output file per source module (`preserveModules`) so apps tree-shake down to the components
  *   they import. React stays a peer dependency (external).

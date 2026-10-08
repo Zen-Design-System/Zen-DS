@@ -8,7 +8,7 @@
  * - Moves and deletes act at once and offer Undo in a Toast; New task opens a validated ModalForm.
  *
  * Copy it with ./HrShell, ./data and ./assets into your app and replace the sample data. Render it inside your app's
- * <ZenProvider>. Uses only @zen/design-system components, no custom CSS.
+ * <ZenProvider>. Uses only @zen-ds/react components, no custom CSS.
  */
 import { useMemo, useRef, useState, type DragEvent, type KeyboardEvent } from "react";
 import {
@@ -59,7 +59,7 @@ import {
   type PopoverItemData,
   type TableColumn,
   type TableSort,
-} from "@zen/design-system";
+} from "@zen-ds/react";
 import { HrShell, hrModules, type HrNavigate } from "./HrShell";
 import {
   avatarOf,

@@ -7,7 +7,7 @@ import { EditError, walk } from "./jsx-source.mjs";
 
 /** One indentation level of written code (also op "wrap"'s, jsx-source.mjs). */
 export const UNIT = "  ";
-export const PACKAGE = "@zen/design-system";
+export const PACKAGE = "@zen-ds/react";
 const SKIP_KEYS = new Set(["loc", "start", "end", "extra", "range", "leadingComments", "trailingComments", "innerComments", "comments", "tokens", "errors"]);
 export const FUNCTION_TYPES = new Set(["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression", "ObjectMethod", "ClassMethod", "ClassPrivateMethod"]);
 
@@ -114,7 +114,7 @@ function declaredNames(ast) {
 /**
  * Import edits: `needed` names join the import of their module (merged in code-point order, type specifiers last;
  * a new import line sorted among the component imports when the module has none); each name in `remove` loses its
- * specifier (the whole import when nothing is left). Templates (and any file already importing it) use "@zen/design-system".
+ * specifier (the whole import when nothing is left). Templates (and any file already importing it) use "@zen-ds/react".
  * `action` names the edit in a refusal ("rename it before <action>"); `looseTarget`: a name may also join an import of
  * its folder spelled differently (`../components/Layout/index`) when no import has the exact module (wrap uses both).
  * Also used by jsx-source.mjs op "wrap".

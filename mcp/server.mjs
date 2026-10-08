@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Zen DS MCP server (`zen-ds-mcp`): gives AI agents the design system's setup, component guidelines and props, icon and
-// token search, page templates and the usage harness, straight from the files shipped with @zen/design-system.
+// token search, page templates and the usage harness, straight from the files shipped with @zen-ds/react.
 // Zero dependencies: newline-delimited JSON-RPC 2.0 over stdio (MCP stdio transport). Logs go to stderr only.
 //
 //   Claude Code, in an app:   claude mcp add --scope project zen-ds -- npx zen-ds-mcp
@@ -117,9 +117,9 @@ async function mapFigmaComponent(component, properties) {
   const jsx = children ? `${open}>${children}</${code}>` : `${open} />`;
   // Run the snippet through the usage harness, so rule breaks (a field without a label…) show up here too.
   const { checkSource } = await import("../tools/usage-guard/api.mjs");
-  const findings = checkSource(`import { ${code} } from "@zen/design-system";\nexport const Example = () => (\n  ${jsx}\n);\n`, "figma-instance.tsx");
+  const findings = checkSource(`import { ${code} } from "@zen-ds/react";\nexport const Example = () => (\n  ${jsx}\n);\n`, "figma-instance.tsx");
   for (const f of findings) notes.push(`${f.severity === "error" ? "✗" : "⚠"} [${f.rule}] ${f.message}`);
-  return [`import { ${code} } from "@zen/design-system";`, "", jsx, "", notes.length ? `Not mapped / to check:\n${notes.map((n) => `- ${n}`).join("\n")}` : "Every property mapped; the usage harness finds nothing.", "", `Guideline: ${g.file ?? `docs/guidelines/${g.slug}.md`}`].join("\n");
+  return [`import { ${code} } from "@zen-ds/react";`, "", jsx, "", notes.length ? `Not mapped / to check:\n${notes.map((n) => `- ${n}`).join("\n")}` : "Every property mapped; the usage harness finds nothing.", "", `Guideline: ${g.file ?? `docs/guidelines/${g.slug}.md`}`].join("\n");
 }
 
 /* ── tools ──────────────────────────────────────────────────────────── */
@@ -197,7 +197,7 @@ const tools = [
   },
   {
     name: "get_template",
-    description: "The full source of one page template (see list_templates), ready to copy into an app. Templates import from @zen/design-system.",
+    description: "The full source of one page template (see list_templates), ready to copy into an app. Templates import from @zen-ds/react.",
     inputSchema: { type: "object", properties: { name: { type: "string", description: "e.g. 'AdminListTemplate' or 'admin list'." } }, required: ["name"], additionalProperties: false },
     run: ({ name }) => {
       const dir = path.join(root, "src/templates");
@@ -215,12 +215,12 @@ const tools = [
   },
   {
     name: "check_usage",
-    description: "Run the Zen usage harness on JSX/TSX (or CSS) source, like `npx zen-usage` does in an app: checks Zen components imported from @zen/design-system against the Do/Don't rules. Returns every finding with the rule, message and guideline. Run it on each file you write.",
+    description: "Run the Zen usage harness on JSX/TSX (or CSS) source, like `npx zen-usage` does in an app: checks Zen components imported from @zen-ds/react against the Do/Don't rules. Returns every finding with the rule, message and guideline. Run it on each file you write.",
     inputSchema: { type: "object", properties: { code: { type: "string", description: "The file's full source text." }, filename: { type: "string", description: "Its name, e.g. 'src/TeamPage.tsx' (a .css name checks stylesheet rules)." } }, required: ["code"], additionalProperties: false },
     run: async ({ code, filename = "input.tsx" }) => {
       const { checkSource } = await import("../tools/usage-guard/api.mjs");
       const findings = checkSource(String(code), filename);
-      if (!findings.length) return /@zen\/design-system/.test(code) || /\.css$/.test(filename) ? "✓ No findings." : "No Zen imports found: the harness checks only components imported from \"@zen/design-system\".";
+      if (!findings.length) return /@zen-ds\/react/.test(code) || /\.css$/.test(filename) ? "✓ No findings." : "No Zen imports found: the harness checks only components imported from \"@zen-ds/react\".";
       return findings.map((f) => `${f.severity === "error" ? "✗" : "⚠"} ${filename}:${f.line}:${f.column} [${f.rule}] <${f.tag}> ${f.message} → ${f.guideline} (deliberate exception: comment zen-allow-${f.allow}: <reason>)`).join("\n");
     },
   },
@@ -285,12 +285,21 @@ async function handle(request) {
   }
 }
 
+const pending = new Set();
 const lines = readline.createInterface({ input: process.stdin });
 lines.on("line", (line) => {
   if (!line.trim()) return;
   let message;
   try { message = JSON.parse(line); } catch { return send({ id: null, error: { code: -32700, message: "Parse error" } }); }
-  for (const request of Array.isArray(message) ? message : [message]) void handle(request);
+  for (const request of Array.isArray(message) ? message : [message]) {
+    const job = handle(request).finally(() => pending.delete(job));
+    pending.add(job);
+  }
 });
-lines.on("close", () => process.exit(0));
+// When the client closes stdin, answer what is still in flight and flush stdout before exiting: tools/call is async,
+// so exiting at once dropped those replies (a client that writes all requests and then closes got only the first ones).
+lines.on("close", async () => {
+  while (pending.size) await Promise.allSettled([...pending]);
+  process.stdout.write("", () => process.exit(0));
+});
 log(`ready (${root})`);

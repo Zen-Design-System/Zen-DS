@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "empty-state",
-  "import": "import { EmptyState, EmptyStateIllustration } from \"@zen/design-system\";",
+  "import": "import { EmptyState, EmptyStateIllustration } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "EmptyState",

@@ -2,7 +2,7 @@
 # Checkbox
 
 **Figma:** Checkbox/Text, Checkbox/Mark (page 308:46604)  
-**Import:** `import { Checkbox } from "@zen/design-system";`
+**Import:** `import { Checkbox } from "@zen-ds/react";`
 
 Select zero, one or many independent options, or confirm a single statement.
 

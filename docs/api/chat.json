@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "chat",
-  "import": "import { ChatMessage, ChatComposer, ChatThread, ChatConversationItem, ChatComposerReply, ChatReplyQuote, ChatEmojiPicker, ChatReactorsPanel, ChatBubble, ChatFile, ChatCall, ChatPhotos, ChatReactions, ChatReactionPicker, ChatReadList, ChatDateDivider, ChatAvatarGroup } from \"@zen/design-system\";",
+  "import": "import { ChatMessage, ChatComposer, ChatThread, ChatConversationItem, ChatComposerReply, ChatReplyQuote, ChatEmojiPicker, ChatReactorsPanel, ChatBubble, ChatFile, ChatCall, ChatPhotos, ChatReactions, ChatReactionPicker, ChatReadList, ChatDateDivider, ChatAvatarGroup } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "ChatMessage",

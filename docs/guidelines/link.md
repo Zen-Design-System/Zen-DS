@@ -2,7 +2,7 @@
 # Link
 
 **Figma:** Color/Content/Hyperlink (Default · Pressed · Visited) + Focus/Accent; code-first, no Figma component set  
-**Import:** `import { Link } from "@zen/design-system";`
+**Import:** `import { Link } from "@zen-ds/react";`
 
 Navigates to another page, section or site from inside text or next to it. It uses the Content/Hyperlink colours and takes the font of the text around it; actions on the page are Buttons.
 

@@ -2,7 +2,7 @@
 # Form
 
 **Figma:** No Figma component: composes .Primitives/Input Label + Help-Text, Spacing/Gap and the .Primitives/Modal/Actions pairing (694:9383)  
-**Import:** `import { Form, FormActions, FormField, FormFieldset, useFormState } from "@zen/design-system";`
+**Import:** `import { Form, FormActions, FormField, FormFieldset, useFormState } from "@zen-ds/react";`
 
 Collect a set of values and submit them. Form is a <form noValidate> laid out as a Stack; useFormState holds values and errors and binds every Zen field in one spread; FormField labels custom controls, FormFieldset groups choices and FormActions is the footer row.
 

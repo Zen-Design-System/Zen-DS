@@ -2,7 +2,7 @@
 # Text & Heading
 
 **Figma:** Text styles (36) + Color/Content variables  
-**Import:** `import { Heading, Text, plural } from "@zen/design-system";`
+**Import:** `import { Heading, Text, plural } from "@zen-ds/react";`
 
 Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy.
 

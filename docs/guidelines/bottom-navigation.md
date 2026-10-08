@@ -2,7 +2,7 @@
 # Bottom Navigation
 
 **Figma:** Bottom-Navigation/Mobile (page ❖ Bottom-Navigations, 7042:38507)  
-**Import:** `import { BottomNavigation } from "@zen/design-system";`
+**Import:** `import { BottomNavigation } from "@zen-ds/react";`
 
 Root-level navigation on mobile: switch between three to five top destinations with one tap.
 

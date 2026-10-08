@@ -2,7 +2,7 @@
 # Dock Icon
 
 **Figma:** Dock-Icon (page 298:45468)  
-**Import:** `import { DockIcon } from "@zen/design-system";`
+**Import:** `import { DockIcon } from "@zen-ds/react";`
 
 A round, filled icon tile that identifies an app, category, file type or object.
 

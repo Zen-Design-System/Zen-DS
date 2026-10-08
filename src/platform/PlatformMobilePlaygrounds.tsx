@@ -142,7 +142,7 @@ export function TopNavigationPlayground() {
         <PlaygroundToggle label="Banner" selected={banner} onChange={setBanner} />
         {flat ? null : <PlaygroundToggle label="Grouped trailing" selected={grouped} onChange={setGrouped} />}
       </>}
-      code={`import { TopNavigation } from "@zen/design-system";
+      code={`import { TopNavigation } from "@zen-ds/react";
 
 <TopNavigation${t !== "default" ? `\n  type="${t}"` : ""}${margin === "compact" ? `\n  margin="compact"` : ""}
   title="Projects"
@@ -192,7 +192,7 @@ export function BottomNavigationPlayground() {
         <PlaygroundToggle label="Labels" selected={labels} onChange={setLabels} />
         <PlaygroundToggle label="Action" selected={action} onChange={setAction} />
       </>}
-      code={`import { BottomNavigation } from "@zen/design-system";
+      code={`import { BottomNavigation } from "@zen-ds/react";
 
 <BottomNavigation${t !== "default" ? `\n  type="${t}"` : ""}${theme === "accent" ? `\n  theme="accent"` : ""}${t !== "default" && selection !== (t === "floating-glass" ? "subtle" : "surface") ? `\n  selection="${selection}"` : ""}${labels ? "\n  showLabels" : ""}
   items={[
@@ -235,7 +235,7 @@ export function BottomSheetPlayground() {
         <PlaygroundToggle label="Search" selected={search} onChange={setSearch} />
         {t === "modal" ? <PlaygroundToggle label="Vertical actions" selected={vertical} onChange={setVertical} /> : null}
       </>}
-      code={`import { BottomSheet } from "@zen/design-system";
+      code={`import { BottomSheet } from "@zen-ds/react";
 
 <BottomSheet
   open={open}
@@ -313,7 +313,7 @@ export function ChatPlayground() {
         <PlaygroundFilterChip label="Device" value={device} onChange={(v) => setDevice(String(v) || undefined)} options={[option("mobile", "Mobile"), option("desktop", "Desktop")]} />
         <PlaygroundToggle label="Names" selected={names} onChange={setNames} />
       </>}
-      code={`import { ChatComposer, ChatMessage, ChatThread } from "@zen/design-system";
+      code={`import { ChatComposer, ChatMessage, ChatThread } from "@zen-ds/react";
 
 <ChatThread${device === "desktop" ? ` device="desktop"` : ""}>
   <ChatMessage side="others" author={{ name: "Ava Chen", src: ava }}${d === "business" ? ` domain="business" time="20:30"` : ""}${names ? " showName" : ""}>
@@ -380,7 +380,7 @@ export function AiChatPlayground() {
         <PlaygroundFilterChip label="Field style" value={style} onChange={(v) => setStyle(String(v) || undefined)} options={[option("default", "Default"), option("surface", "Surface"), option("liquid-glass", "Liquid Glass")]} />
         <PlaygroundToggle label="Empty (block)" selected={empty} onChange={setEmpty} />
       </>}
-      code={`import { AiChatBubble, AiChatField, AiChatThread } from "@zen/design-system";
+      code={`import { AiChatBubble, AiChatField, AiChatThread } from "@zen-ds/react";
 
 <AiChatThread>
   <AiChatBubble side="you" actions={[{ icon: "icon-copy-line", label: "Copy", onClick: copyPrompt }, { icon: "icon-edit-02-line", label: "Edit", onClick: editPrompt }]}>
@@ -452,7 +452,7 @@ export function ChartPlayground() {
         <PlaygroundFilterChip label="Chart" value={kind} onChange={(v) => setKind(String(v) || undefined)} options={[option("line", "Line"), option("stack", "Stack bar")]} />
         <PlaygroundToggle label="In Chart Card" selected={inCard} onChange={setInCard} />
       </>}
-      code={`import { ChartCard, ${kind === "stack" ? "StackBarChart" : "LineChart"} } from "@zen/design-system";
+      code={`import { ChartCard, ${kind === "stack" ? "StackBarChart" : "LineChart"} } from "@zen-ds/react";
 
 ${inCard ? `<ChartCard
   title="${kind === "stack" ? "Budget Allocation" : "Expense Trends"}"

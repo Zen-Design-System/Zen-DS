@@ -2,7 +2,7 @@
 # Input fields
 
 **Figma:** Input/Text-Field, Select-Field, Date-Field, Number-Align-Left/Center, Text-Area, Autocomplete-Field, Heading (page 373:97258)  
-**Import:** `import { InputField, SelectField, DateField, NumberField, TextAreaField, AutocompleteField, HeadingField } from "@zen/design-system";`
+**Import:** `import { InputField, SelectField, DateField, NumberField, TextAreaField, AutocompleteField, HeadingField } from "@zen-ds/react";`
 
 Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.
 

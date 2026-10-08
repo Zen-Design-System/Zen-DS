@@ -1,0 +1,48 @@
+# Zen DS private registry (Verdaccio 6). Serves only @zen-ds/* to licensed customers.
+# Secrets come from the environment, never from this file:
+#   ZEN_LICENSE_STORE_EMAIL / ZEN_LICENSE_STORE_PASSWORD  registry_clients record in PocketBase
+#   ZEN_PUBLISHER_KEY_HASH                                SHA-256 hex of the CI publisher key
+#   VERDACCIO_PUBLIC_URL                                  https://npm.dizai.studio/ (tarball links behind Caddy)
+# Paths are the verdaccio/verdaccio image's (deploy/Dockerfile); the e2e test overrides them.
+storage: /verdaccio/storage/data
+plugins: /verdaccio/plugins
+
+auth:
+  zen-license:
+    store_url: https://flrhpbeu1gj0js1.fbjc.pocketbasecloud.com  # zen-license-management
+    client_collection: registry_clients
+    licenses_collection: licenses
+    cache_seconds: 300          # revocation takes effect within this window
+    stale_grace_seconds: 3600   # cached answers keep serving this long while PocketBase is down
+
+security:
+  api:
+    jwt:
+      sign:
+        expiresIn: 365d         # long-lived on purpose: the license check, not expiry, cuts access
+  web:
+    sign:
+      expiresIn: 1h
+
+# No uplinks: @zen-ds/* is never fetched from or forwarded to npmjs, and this is not a public mirror.
+uplinks: {}
+
+packages:
+  '@zen-ds/*':
+    access: $authenticated
+    publish: zen-publisher
+    unpublish: zen-publisher
+  '**':
+    access: nobody
+    publish: nobody
+    unpublish: nobody
+
+web:
+  enable: false
+
+max_body_size: 50mb
+
+log:
+  type: stdout
+  format: json
+  level: info

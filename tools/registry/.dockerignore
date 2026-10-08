@@ -1,0 +1,7 @@
+node_modules
+.bin
+.test-tmp
+storage
+test
+deploy
+*.md

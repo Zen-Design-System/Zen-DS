@@ -18,6 +18,19 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
 
+### Changed
+- **The package is now `@zen-ds/react`** (was `@zen/design-system`): imports become `@zen-ds/react`,
+  `@zen-ds/react/styles.css`, `@zen-ds/react/icons/all`, `@zen-ds/react/eslint`, …; the docs, templates, MCP server and
+  usage harness follow. It is published to the licensed registry `npm.dizai.studio` (`publishConfig`), by the new
+  `Release` workflow on a `v*` tag.
+- **Licence:** Zen DS is commercial software under `LICENSE.md` (Dizai Studio; per-company subscription, apps but not
+  competing kits; draft pending legal review). `package.json` `license` points to it.
+
+### Fixed
+- `zen-ds-mcp`: a client that sends its requests and then closes stdin now gets every reply (the server used to exit
+  before the async `tools/call` answers were written).
+- `zen-usage --json` and `check-usage.mjs --list`: large output piped to another program is no longer cut off at 8 KB.
+
 ### Added
 - Docs platform and Zen Studio: required sign-in with Google through PocketBase (`src/platform/auth/`); Log out in the
   platform topbar's account menu and in the Studio brand menu. Automated browsers (QA gate, E2E) skip the sign-in screen.

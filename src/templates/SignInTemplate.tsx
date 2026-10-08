@@ -1,6 +1,6 @@
 /**
  * Template: sign in. Copy it into your app, point the links at your routes and replace the three auth calls.
- * Render it inside your app's <ZenProvider>. Uses only @zen/design-system components, no custom CSS.
+ * Render it inside your app's <ZenProvider>. Uses only @zen-ds/react components, no custom CSS.
  *
  * - Sign in: work email and password (with Show password), checked when a field is left and on submit. The button reads
  *   "Signing in…" while the request runs; wrong credentials bring up a Negative InlineMessage above the fields and
@@ -29,7 +29,7 @@ import {
   useFormState,
   useToast,
   useZen,
-} from "@zen/design-system";
+} from "@zen-ds/react";
 import workspaceLogo from "./hr/assets/workspace-logo.png";
 
 /* ── Sample data and auth stand-ins: replace with your own ─────────────── */

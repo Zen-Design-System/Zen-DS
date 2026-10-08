@@ -1,6 +1,6 @@
 # Getting started with Zen DS
 
-How to install `@zen/design-system` in a React app and set it up correctly. AI agents: read
+How to install `@zen-ds/react` in a React app and set it up correctly. AI agents: read
 [`AGENTS.consumer.md`](../AGENTS.consumer.md) first; this page is the detail behind it.
 
 ## Install
@@ -24,19 +24,19 @@ component file starts with `"use client"`, so React Server Component frameworks 
 
 | Import | What it is |
 | --- | --- |
-| `@zen/design-system` | Components, hooks, `typographyStyles`, `IconName`, `preloadIcons` |
-| `@zen/design-system/styles.css` | Required, import once: Inter font, tokens, text styles, effects, all component CSS |
-| `@zen/design-system/reset.css` | Optional page reset (margins, box-sizing, Canvas background, Figma-matching text rendering) |
-| `@zen/design-system/tokens` | Typed map of every Figma variable: `tokens["Color/Background/Surface/Default"]` |
-| `@zen/design-system/icons/names` | `iconNames` (all 1,598) and the `IconName` type, without SVG data |
-| `@zen/design-system/icons/all` | Registers every icon up front (docs, icon pickers). Apps usually skip it |
+| `@zen-ds/react` | Components, hooks, `typographyStyles`, `IconName`, `preloadIcons` |
+| `@zen-ds/react/styles.css` | Required, import once: Inter font, tokens, text styles, effects, all component CSS |
+| `@zen-ds/react/reset.css` | Optional page reset (margins, box-sizing, Canvas background, Figma-matching text rendering) |
+| `@zen-ds/react/tokens` | Typed map of every Figma variable: `tokens["Color/Background/Surface/Default"]` |
+| `@zen-ds/react/icons/names` | `iconNames` (all 1,598) and the `IconName` type, without SVG data |
+| `@zen-ds/react/icons/all` | Registers every icon up front (docs, icon pickers). Apps usually skip it |
 
 ## The app root: `ZenProvider`
 
 ```tsx
-import "@zen/design-system/styles.css";
-import "@zen/design-system/reset.css";
-import { ZenProvider } from "@zen/design-system";
+import "@zen-ds/react/styles.css";
+import "@zen-ds/react/reset.css";
+import { ZenProvider } from "@zen-ds/react";
 
 <ZenProvider theme="system">
   <App />
@@ -116,7 +116,7 @@ Every colour token has a dark value. Only use `var(--zen-color-…)` tokens in y
 - `<Icon name="…" />` accepts any of the 1,598 names (the `IconName` type autocompletes).
 - Icons that Zen components use draw synchronously. Every other icon is fetched from a small lazy bucket the first time
   it renders, and its box keeps the icon size meanwhile.
-- `preloadIcons([...])` at start-up removes that first empty frame; `import "@zen/design-system/icons/all"` bundles
+- `preloadIcons([...])` at start-up removes that first empty frame; `import "@zen-ds/react/icons/all"` bundles
   them all.
 - `registerIcons({ "my-logo": { viewBox, content, colorMode: "monochrome" } })` adds your own SVGs.
 
@@ -126,7 +126,7 @@ Every colour token has a dark value. Only use `var(--zen-color-…)` tokens in y
   every Zen component: close and dismiss buttons, pagination ("Trang sau", "3 kết quả"), search and pickers, the
   rich-text toolbar, chat and upload controls, screen-reader names. Built in: `en` (default) and `vi`; `vi-VN` uses `vi`.
 - `labels={{ close: "Tắt" }}` overrides single strings; nested providers inherit the locale and stack overrides.
-  Another language: pass every label (`import { zenLabels } from "@zen/design-system"` shows the shape).
+  Another language: pass every label (`import { zenLabels } from "@zen-ds/react"` shows the shape).
 - A component's own prop (`closeLabel`, `placeholder`, `aria-label`, `searchPlaceholder`…) still wins for one-off
   wording. Your own copy (titles, button labels) is yours to translate.
 
@@ -137,7 +137,7 @@ Every colour token has a dark value. Only use `var(--zen-color-…)` tokens in y
 | `npx zen-ds init` | Adds the Zen section to AGENTS.md (and `@AGENTS.md` to CLAUDE.md) and registers the `zen-ds` MCP server in `.mcp.json`. Idempotent. |
 | `npx zen-ds doctor` | Checks the setup: dependency, React 19, `styles.css` import, `ZenProvider`, no deep imports, optional AI/ESLint wiring. |
 | `npx zen-usage [paths]` | The usage harness: every Zen component your files import, against the Do/Don't rules (unknown icon names, missing labels, vague button text, wrong levels…). `--json` for tools; `--css` also checks your stylesheets. |
-| `@zen/design-system/eslint` | The same rules in the editor: `export default [...config, zen.configs.recommended]` (`zen.configs.standalone` without a JSX parser). |
+| `@zen-ds/react/eslint` | The same rules in the editor: `export default [...config, zen.configs.recommended]` (`zen.configs.standalone` without a JSX parser). |
 | `zen-ds-mcp` | MCP server: `get_setup`, `list_components`, `get_component`, `search_icons`, `get_tokens`, `list_templates`, `get_template`, `check_usage`, and `map_figma_component` (Figma component name + variant properties → Zen JSX, checked by the harness; a local stand-in for Figma Code Connect, which needs a Figma Organization plan). |
 
 ## Fonts
@@ -150,7 +150,7 @@ Every colour token has a dark value. Only use `var(--zen-color-…)` tokens in y
 
 | Symptom | Fix |
 | --- | --- |
-| No styles at all | `import "@zen/design-system/styles.css"` once, in the app entry |
+| No styles at all | `import "@zen-ds/react/styles.css"` once, in the app entry |
 | Dialog/Toast/Tooltip light inside a dark region | Render them inside the region's `ZenProvider` (its portal keeps the modes) |
 | Page background stays light in dark mode | Use `reset.css`, or keep the outermost `ZenProvider` painting (`paint` default on) |
 | An icon is blank | Check the name (TypeScript lists the valid ones); `npx zen-usage` and the dev-mode warning suggest the closest names |

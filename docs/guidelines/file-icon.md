@@ -2,7 +2,7 @@
 # File Icon
 
 **Figma:** icon-media-file (5727:22537, Iconography → Special Icons → File)  
-**Import:** `import { FileIcon, fileIconFormatOf } from "@zen/design-system";`
+**Import:** `import { FileIcon, fileIconFormatOf } from "@zen-ds/react";`
 
 A coloured document mark that identifies a file's type (PDF, sheet, zip, video …) next to its name.
 

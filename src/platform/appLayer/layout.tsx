@@ -144,7 +144,7 @@ function LayoutPlayground() {
         {kind === "container" ? <PlaygroundFilterChip label="Max width" value={width} onChange={(value) => setWidth((String(value) || "sm") as (typeof widths)[number])} options={[option("sm", "sm · 640"), option("md", "md · 960"), option("lg", "lg · 1280")]} /> : null}
         {kind === "container" ? <PlaygroundToggle label="Page margin" selected={gutter} onChange={setGutter} /> : null}
       </>}
-      code={`import { ${kind === "stack" ? "Box, Stack" : kind === "grid" ? "Box, Grid" : kind === "box" ? "Box, ProgressBar, Text" : "Container"} } from "@zen/design-system";\n\n${code}`}
+      code={`import { ${kind === "stack" ? "Box, Stack" : kind === "grid" ? "Box, Grid" : kind === "box" ? "Box, ProgressBar, Text" : "Container"} } from "@zen-ds/react";\n\n${code}`}
     >
       {preview}
     </Panel>

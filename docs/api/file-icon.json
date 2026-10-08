@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "file-icon",
-  "import": "import { FileIcon } from \"@zen/design-system\";",
+  "import": "import { FileIcon } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "FileIcon",

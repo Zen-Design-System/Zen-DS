@@ -2,7 +2,7 @@
 # Visually Hidden
 
 **Figma:** No Figma component: an accessibility primitive; a focused skip link is a Surface pill (Body/Base/Medium, Border/Neutral/Subtle ring, Focus/Accent outline)  
-**Import:** `import { VisuallyHidden } from "@zen/design-system";`
+**Import:** `import { VisuallyHidden } from "@zen-ds/react";`
 
 Adds text that only assistive technology reads: names for icon-only table headers, context for repeated links, status announcements, hidden headings and skip links that appear on focus.
 

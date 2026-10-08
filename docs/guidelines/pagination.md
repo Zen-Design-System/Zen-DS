@@ -2,7 +2,7 @@
 # Pagination
 
 **Figma:** Pagination + .Primitives/Pagination/Item (page 774:15997)  
-**Import:** `import { Pagination } from "@zen/design-system";`
+**Import:** `import { Pagination } from "@zen-ds/react";`
 
 Move through a large, ordered result set one page at a time.
 

@@ -1,6 +1,6 @@
 /**
  * Template: detail page (an invoice in a billing app). Copy it into your app, then replace the sample data and handlers.
- * Render it inside your app's <ZenProvider>. Uses only @zen/design-system components, no custom CSS.
+ * Render it inside your app's <ZenProvider>. Uses only @zen-ds/react components, no custom CSS.
  *
  * - Top bar: Breadcrumbs back to Invoices, Notifications (a docked Side Panel) and the account menu.
  * - PageHeader: the invoice number with its status Badge and what is due, a More Menu (Download PDF, Duplicate,
@@ -58,7 +58,7 @@ import {
   type MenuItemData,
   type SidebarSection,
   type TableColumn,
-} from "@zen/design-system";
+} from "@zen-ds/react";
 
 /* ── Sample data: replace with your own ─────────────────────────────── */
 const round = (value: number) => Math.round(value * 100) / 100;

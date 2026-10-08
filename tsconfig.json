@@ -15,7 +15,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "paths": { "@zen/design-system": ["./src/index.ts"] }
+    "paths": { "@zen-ds/react": ["./src/index.ts"] }
   },
   "include": ["src", ".storybook", "vite.config.ts", "tests", "vitest.config.ts"]
 }

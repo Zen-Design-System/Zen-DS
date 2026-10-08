@@ -18,8 +18,8 @@ npm install /path/to/Zen-DS/dist-pack/zen-design-system-0.3.0.tgz   # in your ap
 ```
 
 ```tsx
-import "@zen/design-system/styles.css";
-import { Button, ZenProvider } from "@zen/design-system";
+import "@zen-ds/react/styles.css";
+import { Button, ZenProvider } from "@zen-ds/react";
 
 <ZenProvider theme="system">
   <Button level="primary">Save changes</Button>
@@ -58,3 +58,7 @@ Adding or changing a component: follow the definition of done in [AGENTS.md](AGE
 [Icons](docs/icon-architecture.md) · [Usage rules](docs/component-usage-rules.md) ·
 [Figma → platform workflow](docs/figma-to-platform-workflow.md) · [Platform template lock](docs/platform-template-lock.md) ·
 [QA](docs/qa/platform-audit.md) · [Session logs](docs/context/README.md)
+
+## License
+
+Commercial. Use of Zen DS requires an active licence from Dizai Studio; see [LICENSE.md](LICENSE.md).

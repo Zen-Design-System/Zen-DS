@@ -246,7 +246,7 @@ for (const item of PALETTE) {
   }
 }
 const packageIndex = fs.readFileSync(path.join(root, "src/index.ts"), "utf8");
-for (const folder of new Set(Object.values(COMPONENT_FOLDERS))) check(`@zen/design-system re-exports ${folder} (templates import from it)`, packageIndex.includes(`export * from "./components/${folder}";`), true);
+for (const folder of new Set(Object.values(COMPONENT_FOLDERS))) check(`@zen-ds/react re-exports ${folder} (templates import from it)`, packageIndex.includes(`export * from "./components/${folder}";`), true);
 check("useToast is exported by Toast", /\buseToast\b/.test(read(`${COMPONENT_FOLDERS.useToast}/index.ts`)), true);
 check("radio group name takes the uid", (paletteItem("radio-group").build({ ...anyCtx, uid: "AB-1" }).match(/billing-cycle-ab1/g) ?? []).length, 2);
 check("heading level comes from the host", [paletteItem("heading").build(ctxFor("Dialog")), paletteItem("heading").build(ctxFor("Accordion"))].map((code) => /level=\{(\d)\}/.exec(code)?.[1]), ["3", "4"]);
@@ -466,7 +466,7 @@ if (process.argv.includes("--deep")) {
     compilerOptions: {
       typeRoots: [types], types: ["react", "react-dom"],
       paths: {
-        "@zen/design-system": [path.join(root, "src/index.ts")], react: [path.join(types, "react")], "react/*": [path.join(types, "react/*")],
+        "@zen-ds/react": [path.join(root, "src/index.ts")], react: [path.join(types, "react")], "react/*": [path.join(types, "react/*")],
         "react-dom": [path.join(types, "react-dom")], "react-dom/*": [path.join(types, "react-dom/*")],
       },
     },

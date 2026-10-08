@@ -7,7 +7,7 @@ const apg = (p) => `https://www.w3.org/WAI/ARIA/apg/patterns/${p}/`;
 export const guidelines = [
   {
     slug: "button", title: "Button & IconButton", figma: "Button/Main, Button/Flat, Button/Overlay, Button/Icon-* (page 119:183941)",
-    import: 'import { Button, IconButton } from "@zen/design-system";',
+    import: 'import { Button, IconButton } from "@zen-ds/react";',
     purpose: "Triggers an action on the current surface (save, submit, open, delete). Navigation between pages is a link, not a Button.",
     use: ["Committing or cancelling a task (forms, dialogs, toolbars).", "Icon-only actions in dense toolbars (IconButton + aria-label + Tooltip)."],
     avoid: ["Choosing a filter, sort or scope → Chip (variant=\"advanced\").", "Switching views or sections → Segmented or Tabs.", "Navigating to another page → a link or Sidebar item."],
@@ -20,7 +20,7 @@ export const guidelines = [
   },
   {
     slug: "chip", title: "Chip / Pill", figma: "Chip/Advanced, Chip/Normal, Chip/Number-Only (page 320:79626)",
-    import: 'import { Chip } from "@zen/design-system";',
+    import: 'import { Chip } from "@zen-ds/react";',
     purpose: "Compact, selectable tokens. Advanced chips are the Zen filter control: each owns a Popover of options.",
     use: ["Filter/sort/scope/status/owner pickers (variant=\"advanced\" + popoverItems).", "Toggleable topic pills (variant=\"normal\", aria-pressed).", "Counts in dense layouts (variant=\"number-only\"): without onClick or selected it is a static count, not a button."],
     avoid: ["Primary actions → Button.", "Read-only labels or statuses → Badge.", "Values inside an input → Tag."],
@@ -33,7 +33,7 @@ export const guidelines = [
   },
   {
     slug: "input", title: "Input fields", figma: "Input/Text-Field, Select-Field, Date-Field, Number-Align-Left/Center, Text-Area, Autocomplete-Field, Heading (page 373:97258)",
-    import: 'import { InputField, SelectField, DateField, NumberField, TextAreaField, AutocompleteField, HeadingField } from "@zen/design-system";',
+    import: 'import { InputField, SelectField, DateField, NumberField, TextAreaField, AutocompleteField, HeadingField } from "@zen-ds/react";',
     purpose: "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
     use: ["Free text → InputField; long text → TextAreaField.", "One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField.", "Dates → DateField; quantities → NumberField (steppers).", "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).", "Formatted long text (announcements, descriptions) → RichTextField."],
     avoid: ["Searching/filtering content → Search.", "Binary settings → Toggle or Checkbox.", "2–5 mutually exclusive visible options → RadioButton group or Segmented."],
@@ -46,7 +46,7 @@ export const guidelines = [
   },
   {
     slug: "search", title: "Search", figma: "Search (page 846:37480)",
-    import: 'import { Search } from "@zen/design-system";',
+    import: 'import { Search } from "@zen-ds/react";',
     purpose: "Find or filter content by typing.",
     use: ["Filtering a visible list or table as the user types.", "Global/entity search with results below."],
     avoid: ["Collecting a form value → InputField.", "Picking from a known short list → SelectField or a Chip filter."],
@@ -59,7 +59,7 @@ export const guidelines = [
   },
   {
     slug: "segmented", title: "Segmented", figma: "Segmented + Primitives/Segmented/Item (page 1070:17807)",
-    import: 'import { Segmented } from "@zen/design-system";',
+    import: 'import { Segmented } from "@zen-ds/react";',
     purpose: "Switch between 2–5 mutually exclusive views or sections of the same content.",
     use: ["View switchers (grid ↔ list).", "Section switchers with counters (Inbox · Mentions)."],
     avoid: ["Filtering data → Chip (variant=\"advanced\").", "More than 5 options or long labels → Tabs or SelectField.", "Form answers → RadioButton group."],
@@ -72,7 +72,7 @@ export const guidelines = [
   },
   {
     slug: "toggle", title: "Toggle", figma: "Toggle, Toggle/Button (page 1307:27442)",
-    import: 'import { Toggle, ToggleButton } from "@zen/design-system";',
+    import: 'import { Toggle, ToggleButton } from "@zen-ds/react";',
     purpose: "Turn a setting on or off with immediate effect.",
     use: ["Settings that apply instantly (notifications, dark preview)."],
     avoid: ["Choices that need a Save/Submit → Checkbox.", "Mutually exclusive options → RadioButton or Segmented."],
@@ -85,7 +85,7 @@ export const guidelines = [
   },
   {
     slug: "checkbox", title: "Checkbox", figma: "Checkbox/Text, Checkbox/Mark (page 308:46604)",
-    import: 'import { Checkbox } from "@zen/design-system";',
+    import: 'import { Checkbox } from "@zen-ds/react";',
     purpose: "Select zero, one or many independent options, or confirm a single statement.",
     use: ["Multi-select lists, select-all with indeterminate parent.", "Consent that gates a primary action."],
     avoid: ["Instant settings → Toggle.", "One-of-many → RadioButton."],
@@ -98,7 +98,7 @@ export const guidelines = [
   },
   {
     slug: "radio-button", title: "Radio Button", figma: "Radio-Button/Radio-Button, Radio-Mark (page 373:96221)",
-    import: 'import { RadioButton } from "@zen/design-system";',
+    import: 'import { RadioButton } from "@zen-ds/react";',
     purpose: "Pick exactly one option from a small visible set.",
     use: ["2–6 options that benefit from being compared side by side (plans, density)."],
     avoid: ["Long lists → SelectField.", "View switching → Segmented."],
@@ -111,7 +111,7 @@ export const guidelines = [
   },
   {
     slug: "badge", title: "Badge & Badge-Counter", figma: "Badge, Badge-Counter (page 239:18960)",
-    import: 'import { Badge, BadgeCounter } from "@zen/design-system";',
+    import: 'import { Badge, BadgeCounter } from "@zen-ds/react";',
     purpose: "Non-interactive status, category or count labels.",
     use: ["Status in lists (Live, Failed).", "Unread/notification counts (BadgeCounter).", "Removable labels on an item (remove + onRemove)."],
     avoid: ["Selectable filters → Chip.", "Values inside an input → Tag."],
@@ -124,7 +124,7 @@ export const guidelines = [
   },
   {
     slug: "tag", title: "Tag", figma: "Tag (page 260:5187)",
-    import: 'import { Tag } from "@zen/design-system";',
+    import: 'import { Tag } from "@zen-ds/react";',
     purpose: "A chosen value inside a field (keywords, recipients), usually removable.",
     use: ["Autocomplete selections, keyword inputs."],
     avoid: ["Statuses → Badge.", "Filters → Chip."],
@@ -137,7 +137,7 @@ export const guidelines = [
   },
   {
     slug: "avatar", title: "Avatar & Avatar Stack", figma: "Avatar/Single, Avatar/Stack (page 211:19487)",
-    import: 'import { Avatar, AvatarStack } from "@zen/design-system";',
+    import: 'import { Avatar, AvatarStack } from "@zen-ds/react";',
     purpose: "Represent a person or workspace with a photo or initials.",
     use: ["People lists, assignees, account switchers, shared-with stacks (max 5)."],
     avoid: ["Decorative illustrations.", "Brand logos → Icon/Dock Icon."],
@@ -150,7 +150,7 @@ export const guidelines = [
   },
   {
     slug: "popover", title: "Popover", figma: "Popover/Default, Primitives/Popover/Item, Item/Content (page 815:6432)",
-    import: 'import { Popover, PopoverItem } from "@zen/design-system";',
+    import: 'import { Popover, PopoverItem } from "@zen-ds/react";',
     purpose: "The shared floating list used by Chip, Select, Autocomplete and Leading/Trailing pickers.",
     use: ["Option lists (single or multiple), sort menus, assignee pickers with search."],
     avoid: ["A list of actions for an object (row ⋯, Edit, New) → Menu.", "Rich interactive content or forms → Dialog.", "Short hints → Tooltip."],
@@ -163,7 +163,7 @@ export const guidelines = [
   },
   {
     slug: "sidebar", title: "Sidebar", figma: "Patterns/Sidebar (page 1536:27287)",
-    import: 'import { Sidebar } from "@zen/design-system";',
+    import: 'import { Sidebar } from "@zen-ds/react";',
     purpose: "Primary app navigation with sections, nested items and a collapsible rail.",
     use: ["App shells with 5+ destinations."],
     avoid: ["In-page section switching → Tabs.", "Actions → Buttons in the page header."],
@@ -176,7 +176,7 @@ export const guidelines = [
   },
   {
     slug: "date-picker", title: "Date Picker", figma: "Date-Picker/Single-Calendar (page 453:32817)",
-    import: 'import { DatePicker, DateField } from "@zen/design-system";',
+    import: 'import { DatePicker, DateField } from "@zen-ds/react";',
     purpose: "Pick a date or a date range. DatePicker is the calendar panel itself and is visible by default (open defaults to true), like an inline calendar; DateField is the input that opens it in a popover.",
     use: ["DateField in forms (the field owns the popover); inline DatePicker for booking-style range selection.", "A DatePicker anchored to your own trigger: pass open, onClose and anchorRef.", "Inline (no onClose / onOpenChange / anchorRef) the calendar has no surface of its own (no popover fill, border, padding or shadow, as Figma's in-place calendar): place it in a Card or panel."],
     avoid: ["Known far-past dates (birthdays) → typed DateField without calendar-first UX."],
@@ -189,7 +189,7 @@ export const guidelines = [
   },
   {
     slug: "tooltip", title: "Tooltip", figma: "Tooltip (page 1595:2169)",
-    import: 'import { Tooltip } from "@zen/design-system";',
+    import: 'import { Tooltip } from "@zen-ds/react";',
     purpose: "Name or briefly describe a control on hover and keyboard focus.",
     use: ["Icon-only buttons, truncated text, keyboard shortcuts."],
     avoid: ["Essential information or anything interactive → Popover or inline help.", "Touch-only surfaces (no hover)."],
@@ -202,7 +202,7 @@ export const guidelines = [
   },
   {
     slug: "tabs", title: "Tabs", figma: "Tab-Bar, Primitives/Tab-Item (page 1573:3394)",
-    import: 'import { Tabs, TabPanel } from "@zen/design-system";',
+    import: 'import { Tabs, TabPanel } from "@zen-ds/react";',
     purpose: "Switch between related panels of content at the same level.",
     use: ["Settings pages, detail views with sections (Indicator).", "Compact switches inside cards (Subtle; still medium unless the card is genuinely narrow)."],
     avoid: ["Filtering → Chip.", "Sequential steps → Stepper.", "App navigation → Sidebar."],
@@ -215,7 +215,7 @@ export const guidelines = [
   },
   {
     slug: "breadcrumbs", title: "Breadcrumbs", figma: "Breadcrumbs (4031:20161), Primitives/Breadcrumbs/Item/Slot (4031:20158), .Primitives/Breadcrumbs/Item (292:43787)",
-    import: 'import { Breadcrumbs } from "@zen/design-system";',
+    import: 'import { Breadcrumbs } from "@zen-ds/react";',
     purpose: "Show where the current page sits in a hierarchy and let users go up.",
     use: ["Pages 3+ levels deep; file browsers."],
     avoid: ["Flat apps or step flows."],
@@ -228,7 +228,7 @@ export const guidelines = [
   },
   {
     slug: "progress", title: "Progress", figma: "Progress-Bar, Progress-Circle (page 1531:13314)",
-    import: 'import { ProgressBar, ProgressCircle } from "@zen/design-system";',
+    import: 'import { ProgressBar, ProgressCircle } from "@zen-ds/react";',
     purpose: "Show determinate progress of a task or a step.",
     use: ["Uploads, setup checklists, quotas (Status theme)."],
     avoid: ["Unknown duration → Skeleton or a spinner.", "Ratings or scores → Rating/Metric."],
@@ -241,7 +241,7 @@ export const guidelines = [
   },
   {
     slug: "dialog", title: "Modal & Dialog", figma: "Modal/Dialog, .Primitives/Modal/Actions (page 694:9166)",
-    import: 'import { Dialog } from "@zen/design-system";',
+    import: 'import { Dialog } from "@zen-ds/react";',
     purpose: "Interrupt to confirm a decision or deliver critical information.",
     use: ["Destructive confirmations, unsaved-changes guards, blocking success/failure."],
     avoid: ["Non-blocking feedback → Toast.", "Long forms → a page or Side Panel.", "Hints → Tooltip/Popover."],
@@ -254,7 +254,7 @@ export const guidelines = [
   },
   {
     slug: "toast", title: "Toast Message", figma: "Toast-Message (page 1579:6872)",
-    import: 'import { useToast } from "@zen/design-system"; // Toast, ToastStack for custom hosts',
+    import: 'import { useToast } from "@zen-ds/react"; // Toast, ToastStack for custom hosts',
     purpose: "Brief, non-blocking feedback about something the user just did or something the system just finished.",
     use: ["Confirming a completed action (\"Changes saved\"), ideally with Undo.", "Background results the user may want to act on (\"Export ready\" → View)."],
     avoid: ["Decisions or destructive confirmations → Dialog.", "Persistent, page-level conditions (trial ending, outage) → Alert Banner.", "Field validation → inline error on the Input."],
@@ -267,7 +267,7 @@ export const guidelines = [
   },
   {
     slug: "alert-banner", title: "Alert Banner", figma: "Alert-Banner (page 234:32702)",
-    import: 'import { AlertBanner } from "@zen/design-system";',
+    import: 'import { AlertBanner } from "@zen-ds/react";',
     purpose: "A full-width message about a persistent, page- or app-level condition.",
     use: ["System status (maintenance, degraded service).", "Account conditions (trial ending, payment failed) with one action."],
     avoid: ["Feedback on a single action → Toast.", "Errors inside a form → inline error text.", "Blocking decisions → Dialog."],
@@ -280,7 +280,7 @@ export const guidelines = [
   },
   {
     slug: "accordion", title: "Accordion", figma: "Accordion/Text + .Primitives/Accordion/Content (page 234:33035)",
-    import: 'import { Accordion } from "@zen/design-system";',
+    import: 'import { Accordion } from "@zen-ds/react";',
     purpose: "Progressive disclosure of secondary content under short headings.",
     use: ["FAQs and help content.", "Long settings or details that users scan before opening one."],
     avoid: ["Content everyone needs (prices, primary actions); show it.", "Switching between peer views → Tabs.", "Sequential steps → Stepper."],
@@ -293,7 +293,7 @@ export const guidelines = [
   },
   {
     slug: "pagination", title: "Pagination", figma: "Pagination + .Primitives/Pagination/Item (page 774:15997)",
-    import: 'import { Pagination } from "@zen/design-system";',
+    import: 'import { Pagination } from "@zen-ds/react";',
     purpose: "Move through a large, ordered result set one page at a time.",
     use: ["Tables and result lists where position matters (\"page 3 of 10\").", "Inline/Manually themes for data tables with a page-size choice or a jump-to-page field."],
     avoid: ["Short lists that fit on one screen; show everything.", "Continuous feeds → load more / infinite scroll."],
@@ -306,7 +306,7 @@ export const guidelines = [
   },
   {
     slug: "skeleton", title: "Skeleton", figma: "Skeleton/Body-Text, Heading-Text, Shapes (page 1556:17503)",
-    import: 'import { SkeletonText, SkeletonHeading, SkeletonShape } from "@zen/design-system";',
+    import: 'import { SkeletonText, SkeletonHeading, SkeletonShape } from "@zen-ds/react";',
     purpose: "Placeholder that mirrors the layout of content while it loads.",
     use: ["Initial loads of cards, lists and profiles whose layout is known."],
     avoid: ["Actions in progress on a button → the button's busy label.", "Measurable progress → Progress.", "Instant loads (< ~300ms); show nothing."],
@@ -319,7 +319,7 @@ export const guidelines = [
   },
   {
     slug: "divider", title: "Divider", figma: "Divider (page 460:38357)",
-    import: 'import { Divider } from "@zen/design-system";',
+    import: 'import { Divider } from "@zen-ds/react";',
     purpose: "A 1px line that separates groups of content. Default (Pale) is the everyday rule; Medium and High add emphasis only when the design calls for it.",
     use: ["Between groups of rows, settings sections or list blocks.", "Between toolbar groups (vertical, decorative).", "Under a total or summary line (High)."],
     avoid: ["Framing a box → a container border (Subtle if actionable, Pale if static).", "Separating every row of a table → row rules in the table itself.", "Adding space → use spacing tokens, not an empty line."],
@@ -332,7 +332,7 @@ export const guidelines = [
   },
   {
     slug: "inline-message", title: "Inline Message", figma: "Inline-Message (page 595:54502)",
-    import: 'import { InlineMessage } from "@zen/design-system";',
+    import: 'import { InlineMessage } from "@zen-ds/react";',
     purpose: "A Subtle-surface message placed inside the content it describes — contextual, persistent until resolved or dismissed.",
     use: ["Context for a form or section (\"You're editing production\").", "The result of an action next to where it happened (\"Domain verified\").", "A summary of form errors above the fields.", "Theme Custom with your own visual (avatar, logo, thumbnail) for product announcements."],
     avoid: ["Page- or app-wide conditions → Alert Banner.", "Transient feedback after an action → Toast.", "A single field's validation → the field's error text.", "Blocking decisions → Dialog."],
@@ -345,7 +345,7 @@ export const guidelines = [
   },
   {
     slug: "empty-state", title: "Empty State", figma: "Empty-State, Empty-State/Illustration/Placeholder, .Empty-State/CTAs (page 6062:27870)",
-    import: 'import { EmptyState } from "@zen/design-system";',
+    import: 'import { EmptyState } from "@zen-ds/react";',
     purpose: "Explains why a screen or region has nothing to show and what the user can do next.",
     use: ["First run (no data yet): one Primary action that creates the first item.", "No results for a search or filter: echo the query and offer to clear it.", "No permission: explain and offer to request access."],
     avoid: ["Loading → Skeleton.", "Errors that need a retry → Inline Message (negative) with an action.", "Tiny regions (a single table cell) → a short line of text."],
@@ -358,7 +358,7 @@ export const guidelines = [
   },
   {
     slug: "stepper", title: "Stepper", figma: "Stepper-Bar/Horizontal, Stepper-Bar/Vertical, .Primitives/Stepper/* (page 1625:3394)",
-    import: 'import { Stepper } from "@zen/design-system";',
+    import: 'import { Stepper } from "@zen-ds/react";',
     purpose: "Shows progress through a multi-step, sequential process and where the user is in it.",
     use: ["Checkouts, onboarding, imports and setup wizards with 2–7 ordered steps.", "Vertical beside the step content when steps have longer titles or captions.", "Read-only status trackers (order shipped) with Style=Icon."],
     avoid: ["Switching between peer views → Tabs or Segmented.", "Showing a percentage → Progress.", "A single step → no stepper."],
@@ -371,7 +371,7 @@ export const guidelines = [
   },
   {
     slug: "slider", title: "Slider", figma: "Slider/Horizontal, .Primitives/Slider/Slide-Dot (page 1556:17601)",
-    import: 'import { Slider } from "@zen/design-system";',
+    import: 'import { Slider } from "@zen-ds/react";',
     purpose: "Pick a value from a continuous or stepped range by dragging, where the relative position matters more than the exact number.",
     use: ["Volume, brightness, zoom, size — values users tune by feel.", "Stepped quantities with visible limits (storage 10–500 GB).", "White theme on imagery and media controls."],
     avoid: ["Exact numbers users type → NumberField.", "A handful of discrete options → Segmented or RadioButton.", "On/off → Toggle."],
@@ -384,7 +384,7 @@ export const guidelines = [
   },
   {
     slug: "card", title: "Card", figma: "Card (page 6643:49849)",
-    import: 'import { Card } from "@zen/design-system";',
+    import: 'import { Card } from "@zen-ds/react";',
     purpose: "A surface that groups related content about one subject — a project, a stat, a choice — and can be selected or opened as a whole.",
     use: ["Grids of objects users scan and pick (projects, templates, plans).", "KPI / stat tiles (Flat by default; Shadow beside a shadowed Sidebar).", "A selectable option with rich content (Active marks the choice).", "Framing a List or a group of settings (Border)."],
     avoid: ["Page sections that are just spacing → layout, not a card.", "A single line of content → ListItem.", "Rows of comparable data → Table.", "Messages → Inline Message."],
@@ -397,7 +397,7 @@ export const guidelines = [
   },
   {
     slug: "dock-icon", title: "Dock Icon", figma: "Dock-Icon (page 298:45468)",
-    import: 'import { DockIcon } from "@zen/design-system";',
+    import: 'import { DockIcon } from "@zen-ds/react";',
     purpose: "A round, filled icon tile that identifies an app, category, file type or object.",
     use: ["Leading visual of List-Items and Table media cells.", "App launchers and integration grids.", "Category marks (spending, file types) in Subtle.", "Emoji reactions (Theme=Emoji)."],
     avoid: ["People → Avatar.", "Clickable icon controls → IconButton.", "Status → Badge."],
@@ -410,7 +410,7 @@ export const guidelines = [
   },
   {
     slug: "list-item", title: "List Item", figma: "List-Item (4080:11700) + Component/List-Box (14922:75297) + .Primitives/List-Item/Mobile/* (page 4080:4632)",
-    import: 'import { List, ListBox, ListItem } from "@zen/design-system";',
+    import: 'import { List, ListBox, ListItem } from "@zen-ds/react";',
     purpose: "One row of a vertical list: a leading visual, a title with an optional caption, and a trailing slot for actions or a passive chevron / value.",
     use: ["People, messages, files and settings lists.", "Navigation lists that drill down (href / onClick with a passive chevron).", "Rows with one or two quick actions (message, add, more) next to the row's own click target."],
     avoid: ["Comparable data across several columns → Table.", "Choices users toggle in a form → Checkbox / RadioButton / Toggle groups.", "Menu options in a popover → Popover items.", "Horizontal card grids → Card."],
@@ -423,7 +423,7 @@ export const guidelines = [
   },
   {
     slug: "table", title: "Table", figma: "Table/Cell/Header, Table/Cell/Default, Primitives/Table/* (page 1595:2631)",
-    import: 'import { Table, TableText, TableMedia, TableTrend, TableActions } from "@zen/design-system";',
+    import: 'import { Table, TableText, TableMedia, TableTrend, TableActions } from "@zen-ds/react";',
     purpose: "Rows of structured records that users scan, compare, sort and act on.",
     use: ["Data with several comparable attributes per record (members, invoices, files).", "Bulk actions on selected rows.", "Sorting by a column.", "Quick corrections of a few fields (stock, owner, status, tags) without leaving the list → editable columns."],
     avoid: ["One or two attributes per item → List Item.", "Layout grids → CSS grid.", "Key/value details of one record → a description list.", "Editing many fields of one record, or edits that need review → a form or Side Panel (use onOpen to get there)."],
@@ -436,7 +436,7 @@ export const guidelines = [
   },
   {
     slug: "rating", title: "Rating", figma: "Rating/Star, Rating-Display, Rating/Opinion-Scale, Rating/NPS-Scale (page 1536:355)",
-    import: 'import { Rating, RatingDisplay, OpinionScale, NpsScale } from "@zen/design-system";',
+    import: 'import { Rating, RatingDisplay, OpinionScale, NpsScale } from "@zen-ds/react";',
     purpose: "Collect or show a quick quality judgement: stars, an emoji opinion, or an NPS score.",
     use: ["Rating (input) for reviews and quick feedback on an item.", "RatingDisplay for read-only averages (fractions allowed).", "OpinionScale for a feeling about an experience (2, 3 or 5 emoji).", "NpsScale for the standard 0–10 (or 0–5) recommendation question."],
     avoid: ["Precise scores or percentages → a number field or Slider.", "Binary choices → Toggle or two buttons.", "Voting / liking → a toggle button."],
@@ -449,7 +449,7 @@ export const guidelines = [
   },
   {
     slug: "color-selector", title: "Color Selector", figma: "Color-Selector (page 373:97188)",
-    import: 'import { ColorSelector } from "@zen/design-system";',
+    import: 'import { ColorSelector } from "@zen-ds/react";',
     purpose: "Pick one colour from a small curated set of swatches.",
     use: ["Labels, tags, calendar events and chart series colours.", "Brand or theme accent choices in settings."],
     avoid: ["Free colour input (any hex) → a colour field with a picker.", "Status that must mean something → a semantic Badge theme, chosen by the system."],
@@ -462,7 +462,7 @@ export const guidelines = [
   },
   {
     slug: "metric", title: "Metric Widget", figma: "Metric-Card, Primitives/Metric/Metric-Inline/*, .Primitives/Metrics/Metric-Trend (page 595:54968)",
-    import: 'import { Metric, MetricCard, MetricTrend } from "@zen/design-system";',
+    import: 'import { Metric, MetricCard, MetricTrend } from "@zen-ds/react";',
     purpose: "Show one key number with its label, an identifying icon and how it changed.",
     use: ["Dashboard KPI tiles (MetricCard).", "Summary rows above tables or charts (Metric Small/Medium inline).", "A single highlighted figure in a card or panel."],
     avoid: ["Series over time → a chart.", "Many comparable numbers → Table.", "Progress toward a goal → Progress."],
@@ -475,7 +475,7 @@ export const guidelines = [
   },
   {
     slug: "uploader", title: "Uploader", figma: "Uploader/File-Upload, Primitives/Uploader/DragDrop-Field, Primitives/Uploader/File-Item (page 1581:17515)",
-    import: 'import { FileUpload, UploaderFileItem } from "@zen/design-system";',
+    import: 'import { FileUpload, UploaderFileItem } from "@zen-ds/react";',
     purpose: "Let users add files by dropping or browsing, then track each file's upload.",
     use: ["Attachments, documents and media in forms (Drag & Drop).", "A single avatar or logo (Browse Button + photo thumbnail, Replaceable)."],
     avoid: ["Pasting a link → InputField.", "Choosing from files already uploaded → a list or media picker."],
@@ -488,7 +488,7 @@ export const guidelines = [
   },
   {
     slug: "side-panel", title: "Side Panel", figma: "Side-Panel (page 1573:2884)",
-    import: 'import { SidePanel } from "@zen/design-system";',
+    import: 'import { SidePanel } from "@zen-ds/react";',
     purpose: "Show details, filters or an edit form next to the page without leaving it.",
     use: ["Record details from a list or table row (Modal).", "Many filters at once (Modal, Small).", "A persistent inspector beside a canvas (Standard)."],
     avoid: ["Destructive or blocking confirmations → Dialog.", "Short messages → Toast / Inline Message.", "Long multi-step flows → a page or ModalForm."],
@@ -547,7 +547,7 @@ export const guidelines = [
   },
   {
     slug: "file-icon", title: "File Icon", figma: "icon-media-file (5727:22537, Iconography → Special Icons → File)",
-    import: 'import { FileIcon, fileIconFormatOf } from "@zen/design-system";',
+    import: 'import { FileIcon, fileIconFormatOf } from "@zen-ds/react";',
     purpose: "A coloured document mark that identifies a file's type (PDF, sheet, zip, video …) next to its name.",
     use: ["Uploads (Uploader File-Item Thumbnail=File, 36px).", "Attachments, file lists and table media cells.", "Download lists and recent files."],
     avoid: ["Actions (download, open, attach) → a system Icon (icon-*-line) in a Button.", "App or category marks → DockIcon.", "Image previews → the photo thumbnail itself."],
@@ -560,7 +560,7 @@ export const guidelines = [
   },
   {
     slug: "flag", title: "Flag", figma: "Flag (7063:63834, 🍑 Iconography)",
-    import: 'import { Flag, flagNames } from "@zen/design-system";',
+    import: 'import { Flag, flagNames } from "@zen-ds/react";',
     purpose: "A round country or region flag that helps people spot a country next to its name.",
     use: ["Locale and language pickers.", "Phone number country codes.", "Country fields in addresses and shipping.", "Country rows in tables and lists (holiday calendars, regional reports)."],
     avoid: ["The only label of a country → always show the name or ISO code next to it.", "Decoration or political symbolism without a function.", "Languages that are not tied to one country → the language name alone."],
@@ -573,7 +573,7 @@ export const guidelines = [
   },
   {
     slug: "icon", title: "Icon", figma: "Iconography (page 1340:4450)",
-    import: 'import { Icon } from "@zen/design-system";',
+    import: 'import { Icon } from "@zen-ds/react";',
     purpose: "Render a system icon from the generated set at a token size.",
     use: ["Inside components' icon slots and next to text."],
     avoid: ["Illustrations or brand logos at large sizes."],
@@ -586,7 +586,7 @@ export const guidelines = [
   },
   {
     slug: "top-navigation", title: "Top Navigation", figma: "Top-Navigation/Mobile (page ❖ Top-Navigations, 12014:45167)",
-    import: 'import { TopNavigation } from "@zen/design-system";',
+    import: 'import { TopNavigation } from "@zen-ds/react";',
     purpose: "The mobile app bar: where you are (title), how to go back (leading) and up to three actions for this screen (trailing).",
     use: ["The top of every mobile screen, with a large title on root screens and a compact title on detail screens.", "A Search, Segmented or Tabs that filters the screen (controlBar).", "Media screens (photo/video viewers) with an overlay type."],
     avoid: ["Desktop app chrome → Sidebar + page header.", "Switching between root sections → Bottom Navigation.", "More than three trailing actions → move the rest into a ⋯ Bottom Sheet."],
@@ -599,7 +599,7 @@ export const guidelines = [
   },
   {
     slug: "bottom-navigation", title: "Bottom Navigation", figma: "Bottom-Navigation/Mobile (page ❖ Bottom-Navigations, 7042:38507)",
-    import: 'import { BottomNavigation } from "@zen/design-system";',
+    import: 'import { BottomNavigation } from "@zen-ds/react";',
     purpose: "Root-level navigation on mobile: switch between three to five top destinations with one tap.",
     use: ["Apps with 3–5 equally important top-level sections.", "A persistent create action beside the destinations (action)."],
     avoid: ["Two destinations → Segmented or Tabs.", "More than five → a Sidebar / drawer or a More destination.", "Actions inside a screen (share, delete) → Top Navigation or a Bottom Sheet."],
@@ -612,7 +612,7 @@ export const guidelines = [
   },
   {
     slug: "bottom-sheet", title: "Bottom Sheet", figma: "Bottom-Sheet (page ❖ Bottom Sheet, 4059:14161)",
-    import: 'import { BottomSheet } from "@zen/design-system";',
+    import: 'import { BottomSheet } from "@zen-ds/react";',
     purpose: "A surface that slides up from the bottom for supplementary content, a short task or a list of actions, without leaving the screen.",
     use: ["Contextual actions for the current screen or item (type=\"action\").", "A short form or filters (Modal).", "Picking one option from a list (Sort by, Deliver to): a List of ListItems in the sheet body."],
     avoid: ["Destructive confirmations → Dialog.", "Long flows or many fields → a new screen.", "Desktop side details → Side Panel."],
@@ -625,7 +625,7 @@ export const guidelines = [
   },
   {
     slug: "chat", title: "Chat", figma: "❖ Chat (7042:23220)",
-    import: 'import { ChatThread, ChatMessage, ChatComposer, ChatConversationItem } from "@zen/design-system";',
+    import: 'import { ChatThread, ChatMessage, ChatComposer, ChatConversationItem } from "@zen-ds/react";',
     purpose: "Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list.",
     use: ["Direct and group conversations, support chat (Business domain).", "Conversation lists in an inbox (ChatConversationItem in a List)."],
     avoid: ["Talking to an assistant → AI Chat.", "Activity logs or comments on a record → List / a comment thread.", "One-off system messages → Toast or Inline Message."],
@@ -638,7 +638,7 @@ export const guidelines = [
   },
   {
     slug: "ai-chat", title: "AI Chat", figma: "❖ AI-Chat (7032:2174): AI/Chat-Field 12074:16888, AI/Chat-Bubble 4218:1270",
-    import: 'import { AiChatThread, AiChatBubble, AiChatField, AiChatBlock } from "@zen/design-system";',
+    import: 'import { AiChatThread, AiChatBubble, AiChatField, AiChatBlock } from "@zen-ds/react";',
     purpose: "Prompting and conversing with an assistant: a field to ask, answers to read and rate, and an empty state that suggests where to start.",
     use: ["Assistant panels and full-page assistants.", "The empty state of an assistant (AiChatBlock with suggestions)."],
     avoid: ["Person-to-person messaging → Chat.", "A single-shot generate button inside a form → Button + result area."],
@@ -651,7 +651,7 @@ export const guidelines = [
   },
   {
     slug: "chart", title: "Chart", figma: "❖ Chart (7032:8969): Chart/Line-Chart 6643:63324, Chart/Stack-Bar-Chart 6643:73471, Chart/Chart-Card 6643:63528",
-    import: 'import { ChartCard, LineChart, StackBarChart } from "@zen/design-system";',
+    import: 'import { ChartCard, LineChart, StackBarChart } from "@zen-ds/react";',
     purpose: "Show how a value changes over time (Line) or how parts make up a total (Stack bar), framed by a Chart Card with a title and range switch.",
     use: ["Trends over a few periods (4–12 points) → LineChart.", "Part-to-whole across periods → StackBarChart with a legend.", "Dashboard tiles → ChartCard next to Metric Cards."],
     avoid: ["One number → Metric / MetricCard.", "Exact values to compare or export → Table.", "More than ~7 series → split the chart or use a Table."],
@@ -664,7 +664,7 @@ export const guidelines = [
   },
   {
     slug: "layout", title: "Layout (Stack, Grid, Box, Container)", figma: "Auto layout + Spacing/Gap, Spacing/Padding, Corner-Radius variables",
-    import: 'import { Box, Container, Grid, Stack } from "@zen/design-system";',
+    import: 'import { Box, Container, Grid, Stack } from "@zen-ds/react";',
     purpose: "Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
     use: ["Stacking sections, fields or cards (Stack, gap md–lg).", "Toolbars and button rows (Stack direction=\"row\", align center, justify between).", "Card and tile grids that reflow (Grid minColumnWidth) or form columns (Grid columns={{ mobile: 1, desktop: 2 }}).", "Wells and plain panels (Box surface + padding).", "Page content width with the breakpoint margin (Container)."],
     avoid: ["A clickable or selectable tile → Card.", "Rows of data → List/ListItem or Table.", "A modal or sheet surface → Dialog, SidePanel, BottomSheet.", "Separating groups with lines → Divider."],
@@ -677,7 +677,7 @@ export const guidelines = [
   },
   {
     slug: "text", title: "Text & Heading", figma: "Text styles (36) + Color/Content variables",
-    import: 'import { Heading, Text, plural } from "@zen/design-system";',
+    import: 'import { Heading, Text, plural } from "@zen-ds/react";',
     purpose: "Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy.",
     use: ["Page and section titles (Heading level + an optional textStyle).", "Descriptions, captions, meta lines (Text tone=\"base\" or \"light\").", "Status text in a colour family (tone positive-base / negative-strongest / warning-base / info-base / accent-base), or a Support colour (support-blue-strongest).", "Counts in copy: plural(n, \"file\")."],
     avoid: ["A title inside a component that has its own title prop (Dialog, Card header, EmptyState, TopNavigation) → use that prop.", "A link → Link.", "A label for a form field → the field's label prop.", "Long-form rich content → your content renderer, styled with the tokens."],
@@ -690,7 +690,7 @@ export const guidelines = [
   },
   {
     slug: "app-shell", title: "App Shell", figma: "◇ Master-Layout: Patterns/Pages/Density-Medium (4122:41886), Header/Dashboard (4122:34662) with Primitives/Dashboard/Header Type=Navigation (4122:33400), Header/Action-Item (12280:19532) + Notification-Dot (4116:21789), Patterns/Sidebar (6040:67524); as used on ◆ HR-Platform (1128:29542)",
-    import: 'import { AppShell, AppShellAction, AppShellAccount, useAppShell } from "@zen/design-system";',
+    import: 'import { AppShell, AppShellAction, AppShellAccount, useAppShell } from "@zen-ds/react";',
     purpose: "The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcrumbs or a Search, then actions and the account menu), the page, and an optional banner, docked side panel and floating action, with a skip link. When the shell is 1024px or wider the Sidebar sits beside the page and the top-bar toggle collapses it to its icon rail; narrower, it opens as a modal drawer from the menu button.",
     use: ["Every signed-in web app screen (dashboards, admin, HR and settings).", "Apps that must work from phone to desktop with one navigation.", "Top-bar icon actions with an unread dot or count → AppShellAction; the account menu → Menu with an AppShellAccount trigger."],
     avoid: ["Phone-only apps → TopNavigation + BottomNavigation inside ZenProvider typography=\"mobile\".", "Marketing pages → Container + your own header.", "A modal flow → Dialog or SidePanel type=\"modal\".", "Page actions (Submit, Export, New) → the PageHeader actions, not the top bar."],
@@ -715,7 +715,7 @@ export const guidelines = [
   },
   {
     slug: "page-header", title: "Page Header", figma: "◇ Master-Layout page title Heading/1 + Spacing, with Breadcrumbs, Button, Badge and Tabs",
-    import: 'import { PageHeader } from "@zen/design-system";',
+    import: 'import { PageHeader } from "@zen-ds/react";',
     purpose: "The top of an app page: breadcrumbs or Back, the h1 title with its meta and actions, a description and optional section tabs.",
     use: ["The first element of every app page (list, detail, settings, overview).", "Detail pages that need Back and section Tabs."],
     avoid: ["Section titles inside a page → Heading level 2.", "Titles of dialogs, sheets and cards → their own title props.", "Phone screens with a navigation bar → TopNavigation."],
@@ -728,7 +728,7 @@ export const guidelines = [
   },
   {
     slug: "form", title: "Form", figma: "No Figma component: composes .Primitives/Input Label + Help-Text, Spacing/Gap and the .Primitives/Modal/Actions pairing (694:9383)",
-    import: 'import { Form, FormActions, FormField, FormFieldset, useFormState } from "@zen/design-system";',
+    import: 'import { Form, FormActions, FormField, FormFieldset, useFormState } from "@zen-ds/react";',
     purpose: "Collect a set of values and submit them. Form is a <form noValidate> laid out as a Stack; useFormState holds values and errors and binds every Zen field in one spread; FormField labels custom controls, FormFieldset groups choices and FormActions is the footer row.",
     use: ["Anything that saves several values at once: sign-up, settings, create/edit, checkout.", "A custom control that needs a label, help text and an error (Slider, ColorSelector, your own picker) → FormField.", "A group of Checkbox or RadioButton rows with one legend and one error → FormFieldset (kind=\"radio\" for radios).", "The Cancel + submit footer of a page or card form → FormActions (it stacks on phones and can stick to the bottom)."],
     avoid: ["A 3–8 field create/edit flow in an overlay → ModalForm (desktop) or BottomSheet (phone), with onSubmit={form.handleSubmit}.", "Settings that apply at once → Toggle, outside any Form.", "A single inline edit (rename a title) → HeadingField, saved on blur.", "Filtering a list → Search and Chip filters; nothing to submit."],
@@ -777,7 +777,7 @@ export const guidelines = [
   },
   {
     slug: "link", title: "Link", figma: "Color/Content/Hyperlink (Default · Pressed · Visited) + Focus/Accent; code-first, no Figma component set",
-    import: 'import { Link } from "@zen/design-system";',
+    import: 'import { Link } from "@zen-ds/react";',
     purpose: "Navigates to another page, section or site from inside text or next to it. It uses the Content/Hyperlink colours and takes the font of the text around it; actions on the page are Buttons.",
     use: ["Links inside running text: help copy, descriptions, empty states, inline messages.", "Standalone links to a related page (“View all invoices”, a footer link).", "Other sites (docs, status page) in a new tab with external.", "Client-side routes through your router's link: as={RouterLink} to=\"/x\"."],
     avoid: ["An action on this page (save, open a dialog, delete) → Button (level=\"tertiary\" or appearance=\"flat\").", "A whole row or tile that opens something → ListItem href or a clickable Card.", "Moving between app sections → Sidebar, Tabs or Bottom Navigation.", "The path of parent pages → Breadcrumbs."],
@@ -790,7 +790,7 @@ export const guidelines = [
   },
   {
     slug: "menu", title: "Menu", figma: "Popover/Default + Primitives/Popover/Item (page 815:6432), composed as an action menu",
-    import: 'import { Menu, MenuItem, MenuSeparator, MenuGroup } from "@zen/design-system";',
+    import: 'import { Menu, MenuItem, MenuSeparator, MenuGroup } from "@zen-ds/react";',
     purpose: "A button that opens a list of actions for an object: row actions in a table, a card's ⋯, an Edit or New menu. It uses the Popover surface and Popover/Item rows, follows the WAI-ARIA menu button pattern and floats in the overlay layer.",
     use: ["Secondary actions on an object that don't fit as buttons (Rename, Duplicate, Move to…, Delete).", "Row actions in a Table (TableActions) and a Card's Sub-Action.", "A menu button in a toolbar or page header (Edit, Share, New) that groups related commands."],
     avoid: ["Choosing a value (sort order, status, assignee) → SelectField, Segmented or Chip variant=\"advanced\" + Popover.", "Moving between pages → Sidebar, Tabs or Link.", "One or two actions → show them as buttons.", "A long or titled list of actions on a phone → BottomSheet type=\"action\".", "Forms or rich content → Dialog or SidePanel."],
@@ -803,12 +803,12 @@ export const guidelines = [
   },
   {
     slug: "provider", title: "ZenProvider (app root)", figma: "Variable modes: Theme, Component Theme, Density, Radius, Emphasis, Breakpoint & Grids, Typography Configuration, Global Colors (Zen-High-Contrast)",
-    import: 'import { ZenProvider } from "@zen/design-system";',
+    import: 'import { ZenProvider } from "@zen-ds/react";',
     purpose: "The root of every Zen UI. It sets the token modes (data-theme, data-density…), paints the page Canvas and text colour, and hosts the portal that overlays render into, so dialogs, toasts and menus follow the same modes.",
     use: ["Wrapping the whole app once, right under React's root.", "Switching a region to another mode (a dark hero, a mobile preview) with a nested provider.", "Following the OS colour scheme with theme=\"system\".", "Following the OS Increase Contrast setting with contrast=\"system\"."],
     avoid: ["Styling a single component differently → its own props (level, size, theme).", "Setting data-* attributes by hand → pass them as ZenProvider props.", "Painting a card or panel → Card, Box or a Surface token; ZenProvider paints Canvas (the page)."],
     api: [["Theme", "theme", "light · dark · system (follows prefers-color-scheme)"], ["Component Theme", "componentTheme", "neutral-s1 (default) · neutral-s2 · neutral-s3 · neutral-s4 · neutral-s5 · neutral-s6 · neutral-s7 · brand-s1 · brand-s2"], ["Density", "density", "compact (default, dashboards) · comfortable (touch, marketing)"], ["Radius", "radius", "rounded (default) · smooth · standard · luxury"], ["Emphasis", "emphasis", "medium (default) · strong · light"], ["Breakpoint & Grids", "breakpoint", "auto (default on the root: < 744 mobile, < 1024 tablet) · desktop · tablet · mobile"], ["Typography Configuration", "typography", "dashboard (default, web apps) · mobile (phone apps) · popular (marketing)"], ["Global Colors mode", "contrast", "standard (default) · high (Zen-High-Contrast: Subtle borders 3:1, placeholder and Light text 4.5:1; step 9 and backgrounds keep their colour) · system (follows prefers-contrast: more)"], ["Language", "locale · labels", "BCP 47 (built in: en, vi): sets lang, date formats and every component's built-in text (aria-labels, Close, Next page, toolbar names); labels overrides single strings or adds a language"], ["—", "paint · syncDocument · portal · as", "paint Canvas + text (default on) · write the modes on <html> (default for the outermost painting provider) · own portal root (default on) · root element"]],
-    do: ["Wrap the app in exactly one root ZenProvider and import \"@zen/design-system/styles.css\" once.", "Build phone apps with typography=\"mobile\" (and density=\"comfortable\" when targets are touch-first).", "Offer light/dark with theme=\"system\" or a toggle that sets theme; never hard-code dark colours.", "Nest a provider to switch a region's mode; unset props inherit from the parent.", "Render overlays (Dialog, Toast, Menu…) anywhere inside the provider: they portal into its root and keep its modes.", "Set locale=\"vi\" (or your app's language) once on the root: every Zen component's built-in text follows it; override single strings with labels={{ … }} and use a component's own prop (closeLabel, placeholder, aria-label) only for one-off wording."],
+    do: ["Wrap the app in exactly one root ZenProvider and import \"@zen-ds/react/styles.css\" once.", "Build phone apps with typography=\"mobile\" (and density=\"comfortable\" when targets are touch-first).", "Offer light/dark with theme=\"system\" or a toggle that sets theme; never hard-code dark colours.", "Nest a provider to switch a region's mode; unset props inherit from the parent.", "Render overlays (Dialog, Toast, Menu…) anywhere inside the provider: they portal into its root and keep its modes.", "Set locale=\"vi\" (or your app's language) once on the root: every Zen component's built-in text follows it; override single strings with labels={{ … }} and use a component's own prop (closeLabel, placeholder, aria-label) only for one-off wording."],
     dont: ["Don't set data-theme or data-density on elements by hand, or paint the page background yourself.", "Don't wrap every component in its own provider; one root plus the few regions that really switch modes.", "Don't give a nested provider paint when it only changes typography or density inside a card; pass paint={false}."],
     a11y: ["locale sets the lang attribute, so screen readers pronounce the content in the right language, and translates the accessible names Zen components give their icon-only controls.", "theme=\"system\" respects the user's OS setting; color-scheme is set so native controls and scrollbars match.", "contrast=\"system\" turns on Zen-High-Contrast when the OS asks for more contrast (Increase Contrast): Checkbox, Radio and Subtle control borders reach 3:1, placeholders and Light text 4.5:1. Text on Solid colour fills keeps its colours, so an Avatar's initials still need a readable name next to them."],
     content: [],
@@ -816,7 +816,7 @@ export const guidelines = [
   },
   {
     slug: "description-list", title: "Description List", figma: "Description List (14859:79180) + .Primitives/Description-List/Item (14859:78890), page ❖ Description List (14857:3)",
-    import: 'import { DescriptionList, DescriptionItem } from "@zen/design-system";',
+    import: 'import { DescriptionList, DescriptionItem } from "@zen-ds/react";',
     purpose: "Shows read-only term → value pairs in a semantic dl: order summaries and receipts, contact and profile details, specs and metadata.",
     use: ["Order summaries, receipts and invoices, closed by one total row (emphasis).", "Contact, profile and account details, each row with an optional Edit or Copy action.", "Product specs and record metadata (IDs, dates, owners) in Cards, Side Panels and Bottom Sheets."],
     avoid: ["Records people compare, sort or select → Table.", "Rows people open or navigate to → List + ListItem.", "Editable forms → labelled fields (InputField, SelectField…); turn one row into a field only for a quick inline edit.", "One key number → Metric / MetricCard."],
@@ -829,7 +829,7 @@ export const guidelines = [
   },
   {
     slug: "action-bar", title: "Action Bar", figma: "No Figma component: the Bottom-Sheet footer pattern (Large buttons, padding 12/20) on Surface/Default with a Border/Neutral/Pale top rule and the System/Bottom-Indicator safe area",
-    import: 'import { ActionBar } from "@zen/design-system";',
+    import: 'import { ActionBar } from "@zen-ds/react";',
     purpose: "The footer bar that holds a screen's main actions: the mobile footer CTA (Large, full width, Primary on top), the phone dual footer (Large Tertiary · Primary side by side) and the sticky action row of desktop detail and edit pages (Tertiary · Primary at the end).",
     use: ["Phone screens whose main action must stay reachable while the content scrolls (Add to cart, Continue, Place order).", "Desktop edit and detail pages: Save changes / Undo changes next to an unsaved-changes status.", "A running total or selection count next to the action that uses it (summary)."],
     avoid: ["Actions of a Dialog, Side Panel or Bottom Sheet → their own primaryAction / secondaryAction footer.", "App destinations → Bottom Navigation.", "Actions on selected rows → Popover/Bulk-Action.", "One button under a short form → a plain Button row after the fields."],
@@ -842,7 +842,7 @@ export const guidelines = [
   },
   {
     slug: "image", title: "Image & Thumbnail", figma: "No Figma component: Image-Size scale (Thumbnail, the Avatar steps), Corner-Radius, Skeleton/Shapes while loading, Neutral/Pale frame + icon-image-line on error",
-    import: 'import { Image, Thumbnail } from "@zen/design-system";',
+    import: 'import { Image, Thumbnail } from "@zen-ds/react";',
     purpose: "Shows a picture in a ratio frame that keeps its size while loading (Skeleton) and fails gracefully (neutral placeholder, alt kept). Thumbnail is the fixed square for list rows, tables and pickers.",
     use: ["Product, listing and article photos in cards and detail pages (Image with a ratio).", "Galleries and feeds, with a caption (figure/figcaption) when the picture needs a credit or context.", "Pictures in ListItem leading slots, Table media cells and pickers (Thumbnail on the Image-Size scale)."],
     avoid: ["People → Avatar (initials fallback, status, stacks).", "App or category symbols → DockIcon or Icon.", "File types → FileIcon.", "Decorative backgrounds → CSS on the container."],
@@ -855,7 +855,7 @@ export const guidelines = [
   },
   {
     slug: "visually-hidden", title: "Visually Hidden", figma: "No Figma component: an accessibility primitive; a focused skip link is a Surface pill (Body/Base/Medium, Border/Neutral/Subtle ring, Focus/Accent outline)",
-    import: 'import { VisuallyHidden } from "@zen/design-system";',
+    import: 'import { VisuallyHidden } from "@zen-ds/react";',
     purpose: "Adds text that only assistive technology reads: names for icon-only table headers, context for repeated links, status announcements, hidden headings and skip links that appear on focus.",
     use: ["Column headers that show only an icon or nothing (Actions, Starred).", "Context that makes repeated labels unique (\"Read more about …\", \"Edit email\").", "Status messages for changes shown only visually (role=\"status\": \"Link copied to the clipboard\").", "Skip links (as=\"a\" + focusable) and headings that name a region for screen-reader navigation."],
     avoid: ["Naming an icon-only button → IconButton aria-label (it also shows the name as a tooltip).", "Naming a field → its label, or aria-label when the context labels it.", "Hiding content from everyone → don't render it.", "Hiding decoration from screen readers → aria-hidden."],

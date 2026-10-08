@@ -1,11 +1,11 @@
 // A wider slice of the public API, type-checked with skipLibCheck:false against the packed declarations.
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
-import "@zen/design-system/styles.css";
-import "@zen/design-system/reset.css";
-import { Badge, Button, Heading, Icon, IconButton, InputField, Tabs, ZenProvider, preloadIcons, typographyStyles, useZen, type IconName } from "@zen/design-system";
-import { iconNames } from "@zen/design-system/icons/names";
-import { tokens } from "@zen/design-system/tokens";
+import "@zen-ds/react/styles.css";
+import "@zen-ds/react/reset.css";
+import { Badge, Button, Heading, Icon, IconButton, InputField, Tabs, ZenProvider, preloadIcons, typographyStyles, useZen, type IconName } from "@zen-ds/react";
+import { iconNames } from "@zen-ds/react/icons/names";
+import { tokens } from "@zen-ds/react/tokens";
 
 // A name no Zen component uses itself, so it comes from a lazy bucket.
 const lazyIcon: IconName = "icon-rocket-line";

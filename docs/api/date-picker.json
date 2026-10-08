@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "date-picker",
-  "import": "import { DatePicker, DateField, DatePickerItem, DatePickerHeader, DatePickerAction, DatePickerMonthYear, DatePickerTimePicker } from \"@zen/design-system\";",
+  "import": "import { DatePicker, DateField, DatePickerItem, DatePickerHeader, DatePickerAction, DatePickerMonthYear, DatePickerTimePicker } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "DatePicker",

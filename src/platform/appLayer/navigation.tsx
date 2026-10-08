@@ -96,7 +96,7 @@ function LinkPlayground() {
         <PlaygroundToggle label="External" selected={external} onChange={(on) => { setExternal(on); setOpened(undefined); }} />
         <PlaygroundToggle label="Visited" selected={visited} onChange={setVisited} />
       </>}
-      code={`import { Link, Text } from "@zen/design-system";
+      code={`import { Link, Text } from "@zen-ds/react";
 
 <Text${textStyle === "Body/Base/Regular" ? "" : ` textStyle="${textStyle}"`} tone="base">
   Deploys run on every push to main. To change the branch, open{" "}
@@ -303,7 +303,7 @@ function MenuPlayground() {
         <PlaygroundToggle label="Danger item" selected={danger} onChange={setDanger} />
         <PlaygroundToggle label="Disabled item" selected={disabled} onChange={setDisabled} />
       </>}
-      code={`import { Button, Icon, IconButton, Menu } from "@zen/design-system";
+      code={`import { Button, Icon, IconButton, Menu } from "@zen-ds/react";
 
 <Menu${align === "end" ? ` align="end"` : ""}
   trigger={${triggerCode}}

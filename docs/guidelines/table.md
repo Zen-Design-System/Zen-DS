@@ -2,7 +2,7 @@
 # Table
 
 **Figma:** Table/Cell/Header, Table/Cell/Default, Primitives/Table/* (page 1595:2631)  
-**Import:** `import { Table, TableText, TableMedia, TableTrend, TableActions } from "@zen/design-system";`
+**Import:** `import { Table, TableText, TableMedia, TableTrend, TableActions } from "@zen-ds/react";`
 
 Rows of structured records that users scan, compare, sort and act on.
 

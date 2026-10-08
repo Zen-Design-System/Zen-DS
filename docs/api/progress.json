@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "progress",
-  "import": "import { ProgressBar, ProgressCircle } from \"@zen/design-system\";",
+  "import": "import { ProgressBar, ProgressCircle } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "ProgressBar",
