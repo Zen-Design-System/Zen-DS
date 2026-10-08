@@ -173,13 +173,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   insets inside scaled phones (accordion@390 reports 8 + 5 for 8 + 8).
 
 - **Studio multi-select follow-ups (2026-10-03, session "Chọn nhiều element vào container"):**
-  - P3 · Delete / ⌘D / Move on a multi-selection (now one layer only, with a status line) and mixed-value property editing. **Sweep 2026-10-07:** Delete, ⌘D and mixed-value editing are done (`edit/multi.ts:55-75`, `MixedProperties.tsx`); Move on a multi-selection is still open (arrange.ts:131). **2026-10-07 (backlog batch 5c):** the arrow keys move several layers of one parent (op many move, `edit/multi.ts` stepLayers; E2E K-13); dragging several layers is still open.
-  - P3 · Wrap's snippet sync needs the example's `code:` to show the same region; most example snippets differ ("Example code not updated").
 - **Studio nested booleans, after the 2026-10-05 fix (session "Nested boolean không hoạt động"):**
-  - P3 · Server `origin`: bindingOf ignores for-of/for-in/catch bindings; custom hooks returning state read as
-    bound-value (a switch could fix their value); loop-bound `rows` is the innermost loop's length.
-  - P3 · Presence switch off → on in a playground (resetSlot refused there) re-adds the prop at the end of the tag, so a
-    reordered draft remains (PlatformMobilePlaygrounds.tsx title).
   - P3 · `origin` cannot see state that reaches a prop through a render-function parameter (Table cell
     `checked={feature.on}` with rows from useState): it reads bound-value, so a fixed value is offered and locks the toggle.
 - **Studio Design tab: remaining items (2026-10-03; session "Cloud migration feasibility"; spec docs/research/studio-inspector-redesign-2026-10-03.md):**
@@ -191,9 +185,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   - **P3 · Harness rule:** flag a bare `<Container>` whose subtree holds a non-Card Table (new rule = new scope).
 
 - **From Zen Studio, the canvas tool (2026-10-02; session "Platform UI/UX redesign với canvas editor"):**
-  - **P3 · Studio detach follow-ups:** row index assumes the `.map` result renders unchanged (`.slice/.reverse/[h, ...map]`
-    would pick another row; no repo case); the phrasing check for Badge/Tag looks at the nearest JSX parent only; the
-    inspector status shows the snippet-not-synced note for detach only. **Sweep 2026-10-07:** done: the snippet-not-synced note also shows for wrap, slot inserts and float (wrapSelection.ts:298, slots/actions.ts:233, position/float.ts:49). Still open: the row index and the phrasing check.
   - **P3 · Studio drafts, live push:** other browsers learn about a draft or a stale disk by the 10 s poll / focus;
     a Vite ws event (`zen-studio:drafts`) from the plugin would show it at once (verify 2026-10-03).
   - **P3 · Studio drafts and the standalone audit tools:** only `npm run qa` warns that 5173 renders unsaved drafts;
@@ -218,10 +209,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
     that only size its wrap Stack; after a wrapper edit, a child on the same source line keeps its old column and the
     selection drops ~2 s later; a `.map` drag previews only the pressed instance; a Hug double-click on an axis that is
     already Hug still sends one no-op edit; a dropdown Chip hides both axes (decide whether width stays). **Sweep 2026-10-07:** done: a Hug double-click on an axis that is already Hug writes nothing (resize.ts:582, :601; ResizeLayer.tsx:978-982). The rest is still open (two of them are decisions). **Decided 2026-10-07 (user: "theo đề xuất", backlog batch 8):** a minHeight-only Stack sizes Fill children as Figma does, and a dropdown Chip keeps its width handle → batch 5c. **Done 2026-10-07** (layout.css, chip.css; E2E SE-10).
-  - **P3 · Studio wrap and child contracts:** the `wrap` op (resize of a component without a size prop) does not check
-    parent/child contracts: wrapping a ListItem in List, a Tab in Tabs, menu/select items or Table parts may break the
-    parent's semantics or ARIA (it already refuses table/svg/paragraph nesting). The wrap selftest runs no
-    style-guard/usage-guard/tsc on its outputs (detach's does).
 
 - **From the AI Chat Field / Chat-Control update (2026-10-02; session "Cloud migration feasibility"):**
   - **Found while verifying those fixes (2026-10-02; need the user's OK):**
@@ -436,27 +423,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   refused ("one example at a time"). **2026-10-07 (backlog batch 5c):** done: the arrow keys on several layers of one
   parent (K-13) and Mixed text props (I-16). Still open: dragging several, Mixed number / spacing / text style, ⌘D's
   first copy only, two files.
-- P3 (2026-10-04, same session): a stateful item inserted into a `.map` row (Studio "Repeats N×") shares one state across the rows, so every row's Dialog opens together; per-row state needs a row component.
-- P3 (2026-10-04, same session): Popover is the one DS component the slot palette does not offer (it needs an anchor `useRef`); stateFor could declare refs the way it declares useState.
 - **Studio UX/UI audit (2026-10-04, session "Kiểm tra stack hiện và ẩn toast"; read-only; evidence and fixes in
   `docs/research/studio-ux-audit-2026-10-04.md`). Proposed for approval:**
   - P3 · Polish N1–N11 in the report (flat 56-item Pages list with one icon, triple page name, rule notes in the size
     badge, duplicated bound props, double import in Snippet, Shortcuts dialog layout, Modes subtitle, raw layer names,
     ⌘/Ctrl hint, 11px nav labels, 592px of side panels).
-- P3 (same session): only TopNavigation is in `slots/dataSlots.ts`; other Figma slots the code takes as data (BottomNavigation
-  items, ActionBar actions, Breadcrumbs items…) could join after a Figma SLOT-property check.
-- P3 (2026-10-07, backlog batch 5a) · A Studio E2E run cut off during D-02 (the gate's time limit) leaves `src/platform/examples/e2e/StudioSaveFixture.tsx` saved with its edit, and the next run fails D-01 ("Unsaved · 1 file": the edit equals the disk). The harness could restore the save fixture from git at start. Pointer: `tools/studio/e2e/run.mjs`, rows D-01/D-02.
-- P3 (2026-10-07, backlog batch 5a) · The Studio E2E matrix (147 rows) runs about 15 min; the gate step's limit went from 15 to 25 min after a run was cut off at 900 s. Shard it (groups across two servers) or run a changed-groups subset before it outgrows 25. Pointer: `tools/qa/run.mjs` "Studio E2E", `tools/studio/e2e/run.mjs`.
-- P3 (same session): the Studio E2E server watches the shared tree, so peers' edits to Studio files mid-run cause hot-update errors; rows retry once on a fresh page ("passed on retry" in the evidence). A run in a quiet window gives the cleanest matrix.
-- P3 (2026-10-07, GĐ4 M2) · Help-Text's Figma names: no Primitives/Input/Help-Text set in the capture or found by the swap read; the Help-Text group keeps code labels (Theme, Icon, Character limit) until the set is read.
-- P3 (2026-10-07, GĐ3b M2) · Starters: a Table whose columns draw their cells with `cell` functions copies its rows but not what the cells draw (46 frames). Since GĐ5 M1 a column without a cell shows its rows' field named by its id (Role → "Member"), and a column with no such field (Admin list "Member": photo + name + email) draws nothing. Pointer: `src/platform/studio/builder/starters/snapshot.ts` valueOf (functions are left out); the coverage report lists them (`node tools/studio/e2e/starters-coverage.mjs`).
-- P3 (2026-10-07, GĐ5 M4) · Uploaded photos: no way to delete one from Assets › Photos (they stay in IndexedDB); photos uploaded before a folder is linked are not copied into its assets/ (only later uploads and imports are); the dev server's pages folder keeps no photos (a page opened in another browser on the dev server shows "Missing photo"). Pointer: `builder/assets/uploads.ts`, `builder/store/mirrors.ts` (devMirror has no writeAsset / readAsset).
-- P3 (2026-10-07, GĐ5 M1) · Starters: a photo that is not a library photo (an Avatar's `/src/assets/media/avatar-*.webp`, a template's own `/src/templates/hr/assets/*.jpg`) is kept as this build's URL: on the deployed docs it breaks after the next deploy, and an export carries a path the app does not have. Pointer: `builder/starters/hostLayout.ts` libraryMedia (library keys cover site / feed / viewer only); M4's `zen-asset:` could carry them.
-- P3 (2026-10-07, GĐ3b M2) · Starters: inline `<svg>` drawings in examples (74 frames: brand marks, custom glyphs) are left out; a page holds library components only.
-- P3 (2026-10-07, GĐ3b M2) · Starters: a className on a library component other than Stack / Grid / Box / Text (Card, Button…: 103 frames) is left out; its CSS (often a width or a grid placement) is not read back.
-- P3 (2026-10-07, GĐ4 M4) · Detach on a builder page refuses EmptyState and DescriptionList: their recipes write an inline style (EmptyState `width: min(320px, 100%)` + auto margins, DescriptionList `maxWidth: 50%`) that pages do not take (`tools/studio/detach.mjs` pageLayout). A Layout-prop form of those layouts would let them detach there too.
-- P3 (2026-10-07, GĐ4 M4) · Detach approximations on builder pages leave out the "CSS keyed on the component class" lines: the browser has no repo CSS to read (`componentCss`).
-- P3 (2026-10-07, GĐ4 M2) · Component swap covers registered atom slots (ListItem leading / trailing) and whole layers; a ReactNode prop that is not a registered slot (Metric `action`, EmptyState `icon` as an element) shows its value read-only, with no ⇄.
 - P3 (2026-10-06, same session): **Card Flat has no hover/pressed** when clickable (`card.css` only styles Border's
   interactive states), so clickable cards stay `theme="border"` under §16; a Flat interactive state would let them
   follow the default mood.
