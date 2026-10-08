@@ -268,9 +268,19 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   - **P2 · Seed the contrast/targets baseline:** `node tools/platform-audit/audit.mjs --quality --viewports=1512,390
     --baseline-update=contrast,targets` over all pages, plus a `--dark` pass (≈20 min). Until then those known
     warnings show as new.
-  - **P2 · Live Figma drift found by `__HASHES`:** 9 of 18 sets in `checkbox-radio-chip-popover.json` (Chip/Normal,
-    Chip/Advanced, Chip/Number-Only, Popover label/item primitives …) no longer hash-match; check whether this is a
-    real change or only the frame's variable mode (captures are not mode-independent until kit C1).
+  - **P2 · Figma contracts out of date — re-capture needs the Figma desktop console (user/designer action, 2026-10-08):**
+    every stored contract hashes differently from the live file. Normalised for the extractor's format changes (bound
+    colours compared by variable, hidden layers and text typography bindings left out), 27 of the 53 sets checked still
+    match and 26 changed for real: Avatar/Single, Button/Icon-Main, Button/Main, Button/Flat, Button/Overlay,
+    Chat/Reaction/Status/No, Chip/Advanced, Popover Item/Content, Item, Default, Bulk-Action, Manual-Add-New, ten
+    DatePicker/Sidebar sets (460:38628, 460:38871, 478:30561, 9923:2323, 9923:2791, 9923:3576, 895:31954, 5974:20590,
+    4218:9166, 4081:15234) and the four Input primitives (374:103464, 1604:27401, 373:102481, 460:38361); the 39 sets of
+    `input-search.json`, `segmented-toggle-badge-avatarstack.json` and `table-cells.json` are not checked (one
+    `use_figma` call times out on them). The resolved colours already match the code (2026-10-03 ramp). Fetching ~8 MB
+    through `use_figma` (≤ 20 kB a call) is not workable: in the desktop console paste
+    `tools/figma-contract/figma-console-extract.js`, run `await __RUN([<set ids of one contract file>])`, then
+    `copy(__C(i))` for each `i < __N()`, save over the file, and run `node tools/figma-contract/run-all.mjs`; fix what the
+    suites then report.
   - **P3 · Gate details:** baseline JSON notes and their generators (`check-styles.mjs:353`, `audit.mjs:483`) still say
     "fix these when you touch them" (Scope lock wording); token scope follows importers one level (a Button token →
     23 pages); token scope reads CSS only, not inline `var()` in TSX; `foundations.css` maps to the representative set;
@@ -340,12 +350,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
     chevron-selector) and a drill-in module header (Back chevron + Heading/4 "Time Off").
 - **From the DatePicker + Breadcrumbs Figma re-read of 2026-09-29** (session "App Shell kiểm tra lại"; session log
   2026-09-29, "DatePicker radius + Breadcrumbs"):
-  - **P2 · `use_figma` captures drop hidden instance children:** `use_figma` runs with **2026-10-08:** the extractor sets the flag false itself and the README says so; still open: re-capture the 2026-09-29 contracts (with the drift row below).
-    `figma.skipInvisibleInstanceChildren = true`, so `__RUN` / `__HASHES` miss hidden nodes inside instances (the
-    Breadcrumbs slot's hidden Dash, Button's hidden icons, the hidden Event dots) and report false diffs. Set it to
-    `false` first (extractor + `tools/figma-contract/README.md`). The other 2026-09-29 `use_figma` captures
-    (`segmented-toggle-badge-avatarstack.json`, `input-search-primitives.json`, `chat-bubbles.json`,
-    `table-cells.json`) may lack those nodes; `breadcrumbs.json` is re-captured. Owner: figma-contract.
   - **P3 · Rest of `datepicker-sidebar.json`:** Header, Item, Calendar-Table and Calendar Single/Dual still hold the
     2026-09-27 hex values and miss hidden nodes inside instances (structure and bindings checked equal to live);
     Time-Picker and the mobile sets changed in Figma. Re-capture in the desktop console when the DatePicker suite is
