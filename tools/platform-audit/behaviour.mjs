@@ -542,7 +542,10 @@ function installHelpers() {
     let compared = 0;
     for (const [n, s] of m.sigs) {
       if (!n.isConnected) return null; // re-rendered: cannot tell
-      if (now && now !== document.body && (n.contains(now) || now.contains(n))) continue; // the newly focused element and shared ancestors
+      // The newly focused element and shared ancestors are not compared, except that a shared ancestor which changed
+      // carried the previous element's indicator (an AiChatField ring on `:has(> textarea:focus)`, gone when Tab moves
+      // to the field's own + button).
+      if (now && now !== document.body && (n.contains(now) || now.contains(n))) { if (n.contains(now) && n !== now && sig(n) !== s) return null; continue; }
       compared += 1;
       if (sig(n) !== s) return null;
     }

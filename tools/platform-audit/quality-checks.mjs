@@ -17,7 +17,7 @@
  *              Strongest tone (tone read from the token that paints it; a Body/Small/Bold group header may be Base), any
  *              other heading smaller than the body text right under it (Body/Small/Bold group headers are kickers and
  *              exempt), an overlay title below h2, a Heading/* styled line that is not a heading (and not a value), more
- *              than seven text styles in one example (the .pth-outline readout not counted), nested corners that are not
+ *              than seven text styles in one example (eight on a whole screen; the .pth-outline readout not counted), nested corners that are not
  *              concentric (outer = inner + inset, each corner on its own; the Luxury radius mode is skipped), list rows padded twice
  *   density    (error) (densitySnapshot, compared by audit.mjs) Zen elements whose in-flow content outgrows them once
  *              Component Size is Comfortable
@@ -210,7 +210,10 @@ export function qualityChecks({ scopeSel, regionSel }) {
     }
     // The Outline readout (.pth-outline, Typography › Content hierarchy) is platform annotation, not the example.
     const distinct = new Set(content.filter((b) => !b.el.closest(".pth-outline")).map((b) => b.st.name).filter(Boolean));
-    if (distinct.size > 7) push("rhythm", `${label(region)}: ${distinct.size} text styles in one example (${[...distinct].join(", ")}) — a calm hierarchy uses 3–5 (a full page up to ~7)`);
+    // A whole screen (ExampleCard `screen`, the Templates) is a real page: h1, h4, Subheading, body regular / medium /
+    // bold, small and caption make 8.
+    const styleLimit = region.closest?.(".pe-card[data-screen='true']") ? 8 : 7;
+    if (distinct.size > styleLimit) push("rhythm", `${label(region)}: ${distinct.size} text styles in one example (${[...distinct].join(", ")}) — a calm hierarchy uses 3–5 (a full page up to ~${styleLimit})`);
 
     /* ── example markup: spacing, radius, colour on the token scale ──────────────────────────────────────────── */
     for (const el of region.querySelectorAll("*")) {

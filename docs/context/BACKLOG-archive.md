@@ -849,3 +849,9 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
 - [DONE: EmptyState and DescriptionList detach with notes] P3 (2026-10-07, GĐ4 M4) · Detach on a builder page refuses EmptyState and DescriptionList: their recipes write an inline style (EmptyState `width: min(320px, 100%)` + auto margins, DescriptionList `maxWidth: 50%`) that pages do not take (`tools/studio/detach.mjs` pageLayout). A Layout-prop form of those layouts would let them detach there too.
 - [DONE: not a gap (builder pages take no className); comment in detach.mjs] P3 (2026-10-07, GĐ4 M4) · Detach approximations on builder pages leave out the "CSS keyed on the component class" lines: the browser has no repo CSS to read (`componentCss`).
 - [DONE: Metric action and EmptyState icon atoms] P3 (2026-10-07, GĐ4 M2) · Component swap covers registered atom slots (ListItem leading / trailing) and whole layers; a ReactNode prop that is not a registered slot (Metric `action`, EmptyState `icon` as an element) shows its value read-only, with no ⇄.
+
+## Final gate 2026-10-08
+- [fixed 2026-10-08: a whole screen (ExampleCard screen, desktop templates) allows 8 (quality-checks.mjs)] **P3 · rhythm "> 7 text styles in one example"** flags full screens and their overlays (since batch A2 also App Shell "Side panel toggled": the modal aside now renders in the frame): App Shell Banner and HR
+  workspace, the Detail, HR Home and HR Expense overview templates, and the My expenses / My leaves panels. A real page
+  uses 8 styles (h1, h4, Subheading, body regular/medium/bold, small, caption). Exempt `screen: true` examples and
+  templates, or raise their limit.

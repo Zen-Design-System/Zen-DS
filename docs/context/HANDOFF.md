@@ -18,11 +18,9 @@ Last updated: 2026-10-07.
 
 ## State in short
 
-- **Git:** work is on the local branch `claude/zen-ds-0.4.0` on top of `eafb0de`; nothing is pushed and `main` still
-  points at `eafb0de`. New work shows as uncommitted changes. **Commit or push only when the user asks.**
-  Zen Studio (`tools/studio/`, `src/platform/studio/`) has never been committed: by the user's decision (2026-10-03) it
-  goes in later as one batch with every Studio session's work (canvas, drafts, resize, slots, detach, Figma-grade
-  editing, multi-select), not file by file (`detach.mjs` alone would need the untracked `jsx-source.mjs`).
+- **Git:** work is on `claude/zen-ds-0.4.0`, pushed to origin (the user allowed direct pushes to it, 2026-10-08); no
+  pull request yet, `main` still points at `eafb0de`. Zen Studio (`tools/studio/`, `src/platform/studio/`) is committed
+  on the branch since the 2026-10-08 parallel-agent merges. Open a PR only when the user asks.
 - **Source of truth:** the live Figma file `9nZv4uW2LT21yuHabMTCh1`, read-only through `use_figma`. The older key `yhWJ…`
   in some docs has no MCP access.
 - **Library:** every Figma component is built (60 folders in `src/index.ts`, 49 guideline slugs). API vocabulary,
@@ -370,4 +368,6 @@ asks for (new content, at most 12). Process: `docs/qa/build-qa-process.md`, skil
 
 ## Open items and Backlog
 
-Both moved to [`BACKLOG.md`](BACKLOG.md). Items that need a user or designer decision stay under "Open items" there.
+Work items are in [`BACKLOG.md`](BACKLOG.md); questions for the designer and decisions for the user are in
+[`QUESTIONS.md`](QUESTIONS.md) (since 2026-10-08). New rule (user, 2026-10-08): a bug or gate finding met while working
+is fixed in the same change; only those two kinds go to the files above.

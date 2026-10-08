@@ -267,10 +267,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
     - Menu and Chip popovers have no phone (sheet) mode, so templates build their own sheets.
   - **P3 · Docs frames:**
 - **From the example polish pass + its gate (2026-10-01) — RESOLVED 2026-10-01/02 (components, platform.css, data.ts, audit tools by "Add audit check…"). ~~Still open: useChatDemo Delete has a confirm but no Undo toast yet (partly)~~ Undo done (checked 2026-10-07, backlog sweep: chatDemo.tsx:61-73 deleteWithUndo); every line below is closed:**
-  - **P3 · rhythm "> 7 text styles in one example"** flags full screens and their overlays (since batch A2 also App Shell "Side panel toggled": the modal aside now renders in the frame): App Shell Banner and HR
-    workspace, the Detail, HR Home and HR Expense overview templates, and the My expenses / My leaves panels. A real page
-    uses 8 styles (h1, h4, Subheading, body regular/medium/bold, small, caption). Exempt `screen: true` examples and
-    templates, or raise their limit.
 - **From the AI-readiness re-evaluation of 2026-10-02** (session "Đánh giá khả năng AI với library hiện tại"; blind trial on
   the packed tarball + memory-vs-repo audit; session log 2026-10-02, "AI-readiness re-evaluation"). Proposal, nothing fixed:
   - **P2 · Memory-only rules → repo:** token-sync gotchas (skills/zen-token-sync points to private memory), playground empty
