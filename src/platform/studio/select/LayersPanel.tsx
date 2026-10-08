@@ -13,6 +13,8 @@ import { canvasApi } from "../canvas/viewport";
 import { frameLabel } from "../inspector/frames";
 import { focusSlot } from "../slots/actions";
 import { layerSlotsOf } from "../slots/layers";
+import { itemParts, renderedItemTitle } from "../slots/dataItems";
+import { dataSlotsOf } from "../slots/dataSlots";
 import { studioStore, useStudio } from "../store";
 import { elementFiber, hitOf, hostsOf, isHostFiber, isPortalFiber, layerHover, nameOf, onSourceUpdate, panelOf, rectOf, rendersPortal, shortSrc, srcOf, type Fiber, type FiberHit } from "./picker";
 import { classHint, elementAt, isComponentFiber, partChildren, type PartHit } from "./parts";
@@ -77,6 +79,8 @@ type LayerNode = {
   slot?: { prop: string; container: Element | null };
   /** node: the src of the Studio wrap Stack folded into this component's row (it takes the component's size). */
   wrap?: string;
+  /** part: a data-slot item listed under its slot row (the Parts folder gives its own copy another id). */
+  dataItem?: boolean;
 };
 
 /** `aliases`: a folded wrapper's id → the panel row that stands for it (selecting the wrapper highlights the panel). */
@@ -179,8 +183,12 @@ function attachSlots(nodes: LayerNode[], byId: Map<string, LayerNode>) {
   for (const node of nodes) {
     attachSlots(node.children, byId);
     if (node.kind !== "node" || !node.isComponent) continue;
+    const data = dataSlotRows(node, byId);
     const groups = layerSlotsOf(node.name, node.fiber, node.children.map(firstHostOf));
-    if (!groups) continue;
+    if (!groups) {
+      if (data.length) node.children = [...data, ...node.children];
+      continue;
+    }
     const claimed = new Set<LayerNode>();
     const rows = groups.map((group): LayerNode => {
       const members = group.members.map((index) => node.children[index]);
@@ -193,8 +201,51 @@ function attachSlots(nodes: LayerNode[], byId: Map<string, LayerNode>) {
       byId.set(row.id, row);
       return row;
     });
-    node.children = [...rows, ...node.children.filter((child) => !claimed.has(child))];
+    node.children = [...rows, ...data, ...node.children.filter((child) => !claimed.has(child))];
   }
+}
+
+/**
+ * A component's data slots (slots/dataSlots.ts: TopNavigation's Top-Trailing) as slot rows, each listing the items it
+ * draws as part rows ("Favourite", or "Action 2"), as Figma lists the Action instances in Trailing-Slot. A click on an
+ * item selects it as the canvas does (the item part: the inspector's item panel). Items past what the component draws
+ * have no part and no row (the Slots section lists them, with why).
+ */
+function dataSlotRows(node: LayerNode, byId: Map<string, LayerNode>): LayerNode[] {
+  const slots = dataSlotsOf(node.name);
+  if (!slots.length || !node.fiber) return [];
+  const owner = hitOf(node.fiber);
+  if (!owner) return [];
+  return slots.flatMap((slot) => {
+    const parts = itemParts(owner, slot);
+    if (!parts.length && slot.form !== "array") return [];
+    const row: LayerNode = {
+      id: `${node.id}/slot:${slot.prop}`, kind: "slot", name: slot.name, src: node.src, frameId: node.frameId, isComponent: false, instance: node.instance, count: 0,
+      depth: node.depth + 1, children: [], fiber: node.fiber, frame: node.frame, parent: node, owner: node, meta: parts.length ? undefined : "Empty",
+      slot: { prop: slot.prop, container: commonParent(parts.flatMap((part) => (part ? part.hosts : []))) },
+    };
+    row.children = parts.flatMap((part, index): LayerNode[] => {
+      if (!part) return [];
+      const id = `${node.id}/part:${partKey(part.path, part.name)}`;
+      const item: LayerNode = {
+        id, kind: "part", name: renderedItemTitle({ slot, index, part }), src: node.src, frameId: node.frameId, isComponent: true, instance: node.instance, count: 0,
+        depth: node.depth + 2, children: [], fiber: part.fiber, frame: node.frame, parent: row, owner: node, part, meta: slot.itemName, lazy: true, dataItem: true,
+      };
+      byId.set(id, item);
+      return [item];
+    });
+    byId.set(row.id, row);
+    return [row];
+  });
+}
+
+/** The nearest element holding every node (a data slot's row outline), or null for none. */
+function commonParent(hosts: Element[]): Element | null {
+  if (!hosts.length) return null;
+  if (hosts.length === 1) return hosts[0];
+  let parent: Element | null = hosts[0].parentElement;
+  while (parent && !hosts.every((host) => parent!.contains(host))) parent = parent.parentElement;
+  return parent;
 }
 
 /** What a Studio wrap Stack renders with (select/resize.ts studioWrapper reads the same from the source). */
@@ -283,7 +334,7 @@ function childrenOf(node: LayerNode, byId: Map<string, LayerNode>): LayerNode[] 
   const used = new Set<string>();
   node.children = partChildren(ownerHit, fiber).map((hit) => {
     let id = `${owner.id}/part:${partKey(hit.path, hit.name)}`;
-    for (let copy = 2; used.has(id); copy++) id = `${owner.id}/part:${partKey(hit.path, hit.name)}~${copy}`;
+    for (let copy = 2; used.has(id) || (byId.get(id)?.dataItem && byId.get(id)?.parent !== node); copy++) id = `${owner.id}/part:${partKey(hit.path, hit.name)}~${copy}`;
     used.add(id);
     const child: LayerNode = {
       id, kind: "part", name: hit.name, src: owner.src, frameId: owner.frameId, isComponent: hit.isComponent, instance: owner.instance, count: 0,

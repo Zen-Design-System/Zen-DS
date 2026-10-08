@@ -279,4 +279,38 @@ export const rows = [
       return `left-pinned: insetLeft ${pinned.attr("insetLeft") ?? "none"}, width ${pinned.attr("width")} · left-right: insetRight ${stretched.attr("insetRight") ?? "none"}, no width`;
     },
   },
+  {
+    id: "SE-23", feature: "Layers lists a data slot's items (TopNavigation Top-Trailing › its actions); a row selects the action", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-nav-box", { frame: 6, position: { dx: 4, dy: 4 } });
+      await page.keyboard.press("Enter");
+      await until(async () => (await selectedName(page)) === "TopNavigation", { message: "the TopNavigation selected" });
+      await showLeftTab(page, "layers");
+      const tree = page.locator(".studio-layers__tree");
+      const slot = tree.locator('[role="treeitem"]', { hasText: "Top-Trailing" }).first();
+      await until(() => slot.count(), { message: "a Top-Trailing slot row" });
+      const share = tree.locator('[role="treeitem"]', { hasText: "Share" }).first();
+      await until(() => share.count(), { message: "a Share row under Top-Trailing" });
+      await share.scrollIntoViewIfNeeded();
+      await share.click();
+      await until(async () => !["TopNavigation", ""].includes(await selectedName(page)), { message: "the action selected (a part)" });
+      return `Top-Trailing › Favourite, Share · row → ${await selectedName(page)}`;
+    },
+  },
+  {
+    id: "SE-24", feature: "A selected TopNavigation outlines its data slot on the canvas; its + chip adds an action", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-nav-box", { frame: 6, position: { dx: 4, dy: 4 } });
+      await page.keyboard.press("Enter");
+      await until(async () => (await selectedName(page)) === "TopNavigation", { message: "the TopNavigation selected" });
+      const tag = page.locator(".studio-slots__outline .studio-slots__tag", { hasText: "Top-Trailing" });
+      await until(() => tag.count(), { message: "the Top-Trailing outline" });
+      const chip = page.locator(".studio-slots__chip").getByRole("button", { name: "Add Action to Top-Trailing" });
+      await chip.waitFor({ state: "visible", timeout: 4000 });
+      await chip.click();
+      const trailing = (text) => (/trailing=\{\[([\s\S]*?)\]\}/.exec(text)?.[1].match(/icon:/g) ?? []).length;
+      await until(async () => trailing(await ctx.text()) === 3, { message: "three trailing actions in the source" });
+      return "Top-Trailing outlined · + → 3 actions";
+    },
+  },
 ];
