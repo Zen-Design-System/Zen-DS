@@ -23,6 +23,8 @@ removed (four unused colour ramps were, see Removed).
   `@zen-ds/react/styles.css`, `@zen-ds/react/icons/all`, `@zen-ds/react/eslint`, …; the docs, templates, MCP server and
   usage harness follow. It is published to the licensed registry `npm.dizai.studio` (`publishConfig`), by the new
   `Release` workflow on a `v*` tag.
+- **Licence:** Zen DS is commercial software under `LICENSE.md` (Dizai Studio; per-company subscription, apps but not
+  competing kits; draft pending legal review). `package.json` `license` points to it.
 
 ### Fixed
 - `zen-ds-mcp`: a client that sends its requests and then closes stdin now gets every reply (the server used to exit

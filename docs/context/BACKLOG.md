@@ -168,7 +168,7 @@ Read this file only when picking up work or logging a follow-up.
 - **P2 · Private registry Phase 5, customer docs (2026-10-08):** `docs/getting-started.md`, `AGENTS.consumer.md`,
   README and `zen-ds init` say `npm install @zen-ds/react` but not the registry step (`@zen-ds:registry=https://npm.dizai.studio/`
   + one `npm login` with the license key); without it npm installs the old public `@zen-ds/react` 0.1.0.
-- **P2 · No LICENSE file for the commercial package (2026-10-08):** package.json has no `license` field and the repo no
+- **P2 · LICENSE.md is a draft: legal review before selling (2026-10-08):** drafted on PR #5 (Dizai Studio, Vietnam law, subscription, apps-not-kits, per company + member limit); a lawyer must review it and remove its "Draft" note. Was: package.json has no `license` field and the repo no
   LICENSE/EULA; needed before selling (legal text from the user).
 - ~~**P0 · Live license backend: anonymous read of licenses by id**~~ fixed live 2026-10-08 (user-approved, with the registry access change; verified anonymous 404 on all 30). Was: **(2026-10-08, found by the registry e2e test):**
   `licenses.viewRule` `owner.id = @request.auth.id || team_members_via_license.user ?= @request.auth.id` lets a

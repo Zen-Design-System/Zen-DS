@@ -58,3 +58,7 @@ Adding or changing a component: follow the definition of done in [AGENTS.md](AGE
 [Icons](docs/icon-architecture.md) · [Usage rules](docs/component-usage-rules.md) ·
 [Figma → platform workflow](docs/figma-to-platform-workflow.md) · [Platform template lock](docs/platform-template-lock.md) ·
 [QA](docs/qa/platform-audit.md) · [Session logs](docs/context/README.md)
+
+## License
+
+Commercial. Use of Zen DS requires an active licence from Dizai Studio; see [LICENSE.md](LICENSE.md).

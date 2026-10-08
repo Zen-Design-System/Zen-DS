@@ -1,6 +1,7 @@
 {
   "name": "@zen-ds/react",
   "version": "0.3.0",
+  "license": "SEE LICENSE IN LICENSE.md",
   "publishConfig": {
     "registry": "https://npm.dizai.studio/"
   },

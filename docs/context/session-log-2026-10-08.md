@@ -66,3 +66,4 @@
 - Now green: usage:selftest, usage:check, mcp:selftest, verify:package ("Package OK", MCP check included).
 - CI "Package" still failed on PR #5 (and on main, run 37602020509): npm 11 puts the prepack build log into
   `npm pack --json` stdout. verify-package now runs build:lib, then `npm pack --json --ignore-scripts`; passes under npm 11.21.0.
+- Legal: `LICENSE.md` drafted (user: Dizai Studio, Vietnam, subscription, apps-not-kits, EULA only); `license` field; README section; Inter OFL referenced. Draft note stays until a lawyer reviews it.
