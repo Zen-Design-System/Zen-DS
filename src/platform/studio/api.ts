@@ -230,6 +230,33 @@ export const studioApi = {
     }
   },
   /**
+   * An uploaded photo in the pages folder's assets/ (GET /pages/asset, 2026-10-08): its bytes, or null when the folder
+   * has none (or there is no server).
+   */
+  async pageAsset(id: string): Promise<Uint8Array | null> {
+    const reply = await authorized<{ ok?: unknown; data?: unknown }>(`/pages/asset?id=${encodeURIComponent(id)}`);
+    if (!reply || reply.status !== 200 || typeof reply.body?.data !== "string") return null;
+    const text = atob(reply.body.data);
+    const bytes = new Uint8Array(text.length);
+    for (let index = 0; index < text.length; index += 1) bytes[index] = text.charCodeAt(index);
+    return bytes;
+  },
+  /** POST /pages/asset-write { id, data: base64 } or /pages/asset-trash { id }; rejects with a StudioApiError when refused. */
+  async pageAssetWrite(action: "write" | "trash", id: string, bytes?: Uint8Array): Promise<void> {
+    let data: string | undefined;
+    if (action === "write" && bytes) {
+      let text = "";
+      for (let index = 0; index < bytes.length; index += 0x8000) text += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+      data = btoa(text);
+    }
+    const reply = await post<{ ok?: unknown }>(`/pages/asset-${action}`, action === "write" ? { id, data } : { id }, 60_000);
+    if (!reply) throw new StudioApiError("invalid", NO_SERVER);
+    if (reply.status !== 200 || reply.body?.ok === false) {
+      const { code, error } = errorOf(reply.body, `Photo ${action} refused`);
+      throw new StudioApiError(code, error);
+    }
+  },
+  /**
    * POST /promote (Studio builder GĐ5 M5): the page written as src/templates/studio/<Name>Template.tsx with its photos,
    * TypeScript and the harness on it. `conflict`: that template exists and differs (send `overwrite` to replace it).
    */

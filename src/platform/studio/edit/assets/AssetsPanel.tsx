@@ -12,7 +12,7 @@ import { iconTitle, searchIconGlyphs, searchLibraryPhotos } from "../../builder/
 import { PALETTE, PALETTE_GROUPS, type PaletteItem } from "../../slots/palette";
 import { useStudio } from "../../store";
 import { announceEditStatus } from "../../api";
-import { altOf, UPLOAD_ACCEPT, uploadPhotos, useUploads } from "../../builder/assets/uploads";
+import { altOf, removeUpload, UPLOAD_ACCEPT, uploadPhotos, useUploads } from "../../builder/assets/uploads";
 import { iconInsertable, insertAsset, insertItem, paletteInsertable, photoInsertable, pressAsset, uploadInsertable, type Insertable } from "./assets";
 import "./assets.css";
 
@@ -129,6 +129,8 @@ function PhotoGrid({ query, onClear }: { query: string; onClear: () => void }) {
   const admin = useStudio((state) => state.role === "admin");
   const input = useRef<HTMLInputElement>(null);
   const [dropping, setDropping] = useState(false);
+  // Delete on a focused photo asks once, a second Delete removes it (a page naming it then shows "Missing photo").
+  const [removing, setRemoving] = useState<string | null>(null);
   const words = query.trim().toLowerCase();
   const mine = words ? uploads.filter((upload) => `${upload.name} ${altOf(upload.name)}`.toLowerCase().includes(words)) : uploads;
   const add = (files: File[]) => {
@@ -162,7 +164,17 @@ function PhotoGrid({ query, onClear }: { query: string; onClear: () => void }) {
           <ul className="studio-assets__photos" aria-label="Your photos">
             {mine.map((upload) => (
               <li key={upload.id}>
-                <button type="button" className="studio-assets__photo" aria-label={altOf(upload.name)} title={`${upload.name} — drag onto a page you made, or click to add at the selection (on a selected Image: replace its picture)`} data-upload={upload.id} {...pressProps(uploadInsertable(upload))}>
+                <button type="button" className="studio-assets__photo" aria-label={altOf(upload.name)} title={`${upload.name} — drag onto a page you made, or click to add at the selection (on a selected Image: replace its picture); Delete twice removes it`} data-upload={upload.id} aria-keyshortcuts={admin ? "Delete" : undefined} onBlur={() => setRemoving(null)} onKeyDown={(event) => {
+                  if (!admin || (event.key !== "Delete" && event.key !== "Backspace") || event.repeat) return;
+                  event.preventDefault();
+                  if (removing !== upload.id) {
+                    setRemoving(upload.id);
+                    announceEditStatus({ kind: "warning", message: `Press Delete again to remove ${upload.name} (pages that show it then show "Missing photo"; a connected folder keeps it in its trash)`, at: Date.now() });
+                    return;
+                  }
+                  setRemoving(null);
+                  void removeUpload(upload.id).then(() => announceEditStatus({ kind: "saved", message: `Removed ${upload.name}`, at: Date.now() }));
+                }} {...pressProps(uploadInsertable(upload))}>
                   <img src={upload.url} alt="" draggable={false} />
                 </button>
               </li>

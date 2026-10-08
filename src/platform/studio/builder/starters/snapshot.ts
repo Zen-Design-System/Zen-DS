@@ -2,7 +2,7 @@ import { Fragment, isValidElement, type ReactElement } from "react";
 import * as Zen from "../../../../index";
 import { componentSchema, propSpecs } from "../../inspector/propSchema";
 import { currentFiber, elementFiber, hostsOf, isHostFiber, isPortalFiber, type Fiber } from "../../select/picker";
-import { classProps, hostNode, libraryMedia, paddingKeyFor, type HostContext } from "./hostLayout";
+import { classProps, classSizing, hostNode, libraryMedia, paddingKeyFor, svgPicture, type HostContext } from "./hostLayout";
 import { mergeText, type PageDevice, type SnapChild, type SnapNode, type SnapValue } from "./toDialect";
 
 /*
@@ -203,7 +203,66 @@ function zenNode(name: string, props: Record<string, unknown>, ctx: Context): Sn
     const twin = `default${capitalize(key)}`;
     out.push([own.has(twin) && !(twin in props) ? twin : key, value]);
   }
-  return { kind: "element", name, props: [...out, ...fromClass], children: childrenOf(props.children, ctx) };
+  if (name === "Table") cellsAsText(props, out, ctx);
+  const node: SnapNode = { kind: "element", name, props: [...out, ...fromClass], children: childrenOf(props.children, ctx) };
+  // Any other component styled by a className (a Card, a Button: 103 frames): the width its CSS gives it, as a Box of
+  // that size around it (2026-10-08); the rest of that CSS is noted as before.
+  if (typeof props.className === "string" && props.className && !CLASS_READ.has(name)) {
+    const rendered = ctx.byProps.get(props);
+    const element = rendered ? hostsOf(rendered)[0] : undefined;
+    const size = element instanceof Element ? classSizing(element, props.className.split(/\s+/)) : null;
+    if (size) {
+      note(ctx, "A className's width on a library component: kept as a Box around it");
+      const sizing: Array<[string, SnapValue]> = [];
+      if (size.width !== undefined) sizing.push(["width", literal(size.width)]);
+      if (size.minWidth !== undefined) sizing.push(["minWidth", literal(size.minWidth)]);
+      if (size.maxWidth !== undefined) sizing.push(["maxWidth", literal(size.maxWidth)]);
+      return { kind: "element", name: "Box", props: sizing, children: [node] };
+    }
+  }
+  return node;
+}
+
+/** The text an element draws (its children and its title / label / caption props), runs joined by " · ". */
+function drawnText(value: unknown, depth = 0): string[] {
+  if (value === null || value === undefined || typeof value === "boolean" || depth > 12) return [];
+  if (typeof value === "string" || typeof value === "number") return String(value).trim() ? [String(value).trim()] : [];
+  if (Array.isArray(value)) return value.flatMap((item) => drawnText(item, depth + 1));
+  if (!isValidElement(value)) return [];
+  const props = (value.props ?? {}) as Record<string, unknown>;
+  return ["title", "label", "children", "caption", "description"].flatMap((key) => drawnText(props[key], depth + 1));
+}
+
+/**
+ * A Table whose columns draw their cells with `cell` functions (a page cannot hold one): each such column's cells are
+ * drawn here once per row and their text written in the row under the column's id, which the page's column shows
+ * (compile.mjs cellStandIn). A photo or a badge in a cell is not kept, only its words ("Bao Nguyen · bao@phin.co").
+ */
+function cellsAsText(props: Record<string, unknown>, out: Array<[string, SnapValue]>, ctx: Context) {
+  const columns = Array.isArray(props.columns) ? props.columns : null;
+  const rawRows = Array.isArray(props.rows) ? props.rows : Array.isArray(props.data) ? props.data : null;
+  const rowsEntry = out.find(([key]) => key === "rows" || key === "data");
+  if (!columns || !rawRows || rowsEntry?.[1].kind !== "array") return;
+  const rows = rowsEntry[1].items;
+  for (const column of columns) {
+    const cell = column && typeof column === "object" ? (column as { cell?: unknown; id?: unknown }).cell : undefined;
+    const id = column && typeof column === "object" ? (column as { id?: unknown }).id : undefined;
+    if (typeof cell !== "function" || typeof id !== "string") continue;
+    let written = 0;
+    rawRows.forEach((raw, index) => {
+      const item = rows[index];
+      if (!item || item.kind !== "object" || !raw || typeof raw !== "object") return;
+      const own = item.fields.find(([key]) => key === id);
+      if (own && own[1].kind === "literal" && typeof own[1].value === "string") return;
+      let drawn: unknown;
+      try { drawn = (cell as (row: unknown, at: number) => unknown)(raw, index); } catch { return; }
+      const text = drawnText(drawn).join(" · ");
+      if (!text) return;
+      item.fields = [...item.fields.filter(([key]) => key !== id), [id, literal(text)]];
+      written += 1;
+    });
+    if (written) note(ctx, `Table column "${id}": what its cells draw is kept as their text (photos and badges left out)`);
+  }
 }
 
 /** Props an Overlay frame sets itself (it draws the overlay open). */
@@ -214,7 +273,9 @@ const OVERLAY_STATE = new Set(["open", "defaultOpen"]);
  * onClick: primaryAction, secondaryAction…) closing it, as a new Overlay frame's Dialog does.
  */
 function overlayNode(name: string, props: Record<string, unknown>, ctx: Context): SnapNode {
-  const node = zenNode(name, props, ctx);
+  // An Overlay frame holds the overlay itself, never a sizing Box around it (zenNode for a className).
+  const sized = zenNode(name, props, ctx);
+  const node = sized.name === name ? sized : (sized.children[0] as SnapNode);
   node.props = node.props.filter(([key]) => !OVERLAY_STATE.has(key)).map(([key, value]): [string, SnapValue] => {
     const raw = props[key];
     if (value.kind !== "object" || !raw || typeof raw !== "object" || typeof (raw as { onClick?: unknown }).onClick !== "function") return [key, value];
@@ -298,6 +359,8 @@ function fromFiber(fiber: Fiber, ctx: Context): SnapChild[] {
   if (isHostFiber(fiber)) {
     const tag = typeof fiber.type === "string" ? fiber.type : "div";
     const element = fiber.stateNode;
+    // An inline drawing (a brand mark, a custom glyph): a picture of itself, its parts not walked.
+    if (tag === "svg" && element instanceof SVGSVGElement) return svgPicture(element, ctx.host);
     // React writes a lone text child into the element itself (no text fiber): <h3>Team</h3>.
     const own = fiber.memoizedProps?.children;
     const children = !fiber.child && (typeof own === "string" || typeof own === "number") ? [{ kind: "text" as const, value: String(own) }] : fibersIn(fiber, ctx);

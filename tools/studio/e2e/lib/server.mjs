@@ -23,8 +23,12 @@ async function freePort(from, to) {
 }
 
 const draftsFileOf = (root, port) => path.join(root, DRAFTS_DIR, `drafts-${port}.json`);
-/** The builder pages folder of this server (never the repo's .zen-studio/pages/), emptied before and after a run. */
-export const pagesDirOf = (port) => `${DRAFTS_DIR}/e2e-pages-${port}/pages`;
+/**
+ * The builder pages folder of this server (never the repo's .zen-studio/pages/), emptied before and after a run. Under
+ * .qa/ (ignored by git and the watcher), not node_modules/: a worktree's node_modules is a link, which pages-folder.mjs
+ * refuses on the way to a page, so the B rows and the photos of HO-05 failed there. Dot-named: the report pruning skips it.
+ */
+export const pagesDirOf = (port) => `.qa/studio-e2e/.pages-${port}/pages`;
 /** Where this server's Promote writes templates (never the repo's src/templates/studio), emptied before a run. */
 export const promoteDirOf = (port) => `${DRAFTS_DIR}/e2e-promote-${port}/src/templates/studio`;
 

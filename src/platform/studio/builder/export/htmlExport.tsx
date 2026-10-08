@@ -7,7 +7,7 @@ import packageJson from "../../../../../package.json";
 import { componentSlug } from "../../inspector/propSchema";
 import { loadCompile, loadEngine, zenComponents } from "../engine";
 import { assetBlob, assetOfUrl, loadUploads } from "../assets/uploads";
-import { LIBRARY_PHOTOS } from "../library/media";
+import { MEDIA_FILES, mediaSrc } from "../library/media";
 import { ProtoContext, type PageDevice, type ProtoActions } from "../proto/runtime";
 import { frameOf, literalOf, type PageFrame } from "../render/frames";
 import { renderFrame, type PageNode, type PageTree } from "../render/renderPage";
@@ -61,7 +61,10 @@ const RENAMED_CLASS: Record<string, string> = { "studio-builder-screen": "screen
 type Assets = Map<string, HtmlAsset>;
 
 const absolute = (url: string, base = document.baseURI) => { try { return new URL(url, base).href; } catch { return url; } };
-const photoKeys = new Map(LIBRARY_PHOTOS.map((entry) => [absolute(entry.photo.src), entry.key]));
+// Every picture a page may name (library photos, avatars, the templates' own: library/media.ts MEDIA_FILES).
+const photoKeys = new Map([...MEDIA_FILES].map(([key, src]) => [absolute(src), key]));
+/** The zip file of a `zen-media:` key: `<key>.webp` for the media folder's, the key itself when it names its file. */
+const mediaFileName = (key: string) => (/\.[a-z0-9]+$/i.test(key) ? key : `${key}.webp`);
 
 /**
  * A URL in the markup as the export writes it: a library photo → `../assets/<key>.webp`, an uploaded photo (its object
@@ -79,7 +82,7 @@ function exportUrl(url: string, assets: Assets): string {
   const href = absolute(url);
   const key = photoKeys.get(href);
   if (!key) return href;
-  const path = `assets/${key}.webp`;
+  const path = `assets/${mediaFileName(key)}`;
   assets.set(path, { path, url: href });
   return `../${path}`;
 }
@@ -502,8 +505,8 @@ export async function prepareHandoff({ id, title, text }: { id: string; title: s
     // The photos the React code imports (./assets/<file>).
     const reactAssets: ZipInput[] = [];
     for (const media of compiled.media) {
-      const photo = media.kind === "media" ? LIBRARY_PHOTOS.find((entry) => entry.key === media.key) : undefined;
-      const bytes = photo ? (await fetchFile(absolute(photo.photo.src)))?.bytes : media.kind === "asset" ? await assetBlob(media.key).then((blob) => (blob ? blob.arrayBuffer() : null)).then((buffer) => (buffer ? new Uint8Array(buffer) : null)) : null;
+      const photo = media.kind === "media" ? mediaSrc(media.key) : null;
+      const bytes = photo ? (await fetchFile(absolute(photo)))?.bytes : media.kind === "asset" ? await assetBlob(media.key).then((blob) => (blob ? blob.arrayBuffer() : null)).then((buffer) => (buffer ? new Uint8Array(buffer) : null)) : null;
       if (bytes) reactAssets.push({ path: `assets/${media.file}`, data: bytes });
       else missing.push(`assets/${media.file}`);
     }
