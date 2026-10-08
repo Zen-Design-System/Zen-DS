@@ -532,6 +532,7 @@ function OverPhotosExample() {
     { id: "send", label: `Send to ${people.gia.name}`, icon: "icon-send-01-line" },
     { id: "save", label: "Save to device", icon: "icon-download-01-line" },
   ];
+  const share = (item: BottomSheetItem) => toast({ title: item.id === "link" ? "Link copied" : item.id === "send" ? `Photo sent to ${firstName("gia")}` : "Photo saved" });
   return (
     // Overlay type only on imagery: its gradient keeps the white title and actions readable on the photo. The viewer
     // does not scroll, so it has no scrollRef.
@@ -545,8 +546,7 @@ function OverPhotosExample() {
     }>
       {screen.anchor}
       <PlatformPhoneMedia photo={photo} />
-      <BottomSheet inline type="action" open={sharing} onOpenChange={setSharing} title={shareTitle} items={shareItems}
-        onSelect={(item) => toast({ title: item.id === "link" ? "Link copied" : item.id === "send" ? `Photo sent to ${firstName("gia")}` : "Photo saved" })} />
+      <BottomSheet inline type="action" open={sharing} onOpenChange={setSharing} title={shareTitle} items={shareItems} onSelect={share} />
     </PlatformPhone>
   );
 }

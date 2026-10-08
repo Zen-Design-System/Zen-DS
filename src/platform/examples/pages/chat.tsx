@@ -910,7 +910,7 @@ const handle = (action, id) => {
   },
   {
     title: "First message",
-    description: "A new chat says who it is with instead of showing an empty thread, and offers one first step: Say hello sends a 👋. That first message opens the thread, and its Sent turns to Seen when Em answers.",
+    description: "A new chat says who it is with instead of showing an empty thread, and offers one first step: Say hello sends a wave emoji. That first message opens the thread, and its Sent turns to Seen when Em answers.",
     render: () => <FirstMessage />,
     code: `<PlatformPhone screenRef={screenRef} header={<PlatformChatHeader title="Em Pham" subtitle="Active today" person={em} scrollRef={screenRef} onAction={onAction} />}
   footer={<ChatComposer onSend={send} actions={actions} onEmoji={toggleEmoji} />}>

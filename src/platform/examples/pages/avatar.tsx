@@ -227,7 +227,7 @@ function ProfilePhoto() {
         <Stack gap="md" align="center" direction="column">
           {avatar("3xl")}
           <Stack gap="2xs" align="center" width="fill">
-            <Heading level={2} textStyle="Heading/1">{me.name}</Heading>
+            <Heading level={1}>{me.name}</Heading>
             <Text tone="base">{me.role}</Text>
           </Stack>
           <Button level="tertiary" startIcon="icon-camera-line" onClick={() => setSheet(true)}>{photo ? "Change photo" : "Add photo"}</Button>
@@ -235,7 +235,7 @@ function ProfilePhoto() {
         {/* Each group is a ListBox (Card-padding-medium, 20px on a phone): the row has no side padding of its own, so its text
             sits 20px from every edge and the kicker lines up with it (lg). Details is not a list of rows: a flat Card. */}
         <Stack as="section" gap="xs" align="stretch" aria-labelledby={previewId}>
-          <Box paddingX="lg"><Heading level={3} id={previewId} textStyle="Body/Small/Bold" tone="light">How others see you</Heading></Box>
+          <Box paddingX="lg"><Heading level={2} id={previewId} textStyle="Body/Small/Bold" tone="light">How others see you</Heading></Box>
           <ListBox>
             <List aria-labelledby={previewId}>
               <ListItem leading={avatar("md", true)} title={me.name} caption="Online" />
@@ -243,7 +243,7 @@ function ProfilePhoto() {
           </ListBox>
         </Stack>
         <Stack as="section" gap="xs" align="stretch" aria-labelledby={detailsId}>
-          <Box paddingX="lg"><Heading level={3} id={detailsId} textStyle="Body/Small/Bold" tone="light">Details</Heading></Box>
+          <Box paddingX="lg"><Heading level={2} id={detailsId} textStyle="Body/Small/Bold" tone="light">Details</Heading></Box>
           <Card theme="flat">
             <DescriptionList divider items={[
               { term: "Email", description: me.email },
@@ -341,7 +341,7 @@ const avatar = (size) => photo
     <Button level="tertiary" startIcon="icon-camera-line" onClick={() => setSheet(true)}>Change photo</Button>
     <Stack as="section" gap="xs" aria-labelledby="preview">
       {/* The kicker lines up with the row text inside the group */}
-      <Box paddingX="lg"><Heading level={3} id="preview" textStyle="Body/Small/Bold" tone="light">How others see you</Heading></Box>
+      <Box paddingX="lg"><Heading level={2} id="preview" textStyle="Body/Small/Bold" tone="light">How others see you</Heading></Box>
       {/* One ListBox per group on the Surface-Alt screen; the row has no padding, the ListBox pads it */}
       <ListBox>
         <List aria-labelledby="preview">

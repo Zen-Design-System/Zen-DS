@@ -448,7 +448,19 @@ const send = () => {
 
 // Orders root: large title that folds as the 15 orders scroll
 <PlatformPhone key="root" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="alt" title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>…</PlatformPhone>
+  header={<TopNavigation type="alt" title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
+  <Stack padding="lg">
+    <List aria-label="Orders">
+      {orders.map((item) => (
+        <ListItem key={item.id} title={item.store} onClick={() => open(item.id)}
+          leading={<DockIcon icon="icon-coffee-cup-line" theme="orange" background="subtle" />}
+          caption={\`\${item.id} · \${formatRelative(item.picked)}\`}
+          trailing={sent[item.id] ? <RatingDisplay value={sent[item.id].stars} size="sm" label={\`You rated \${sent[item.id].stars} stars\`} />
+            : <Text as="span" textStyle="Body/Small/Regular" tone="base">Not rated</Text>} />
+      ))}
+    </List>
+  </Stack>
+</PlatformPhone>
 
 // The order's rating screen: a child, compact with Back
 <PlatformPhone key={order.id} headerOverlay screenRef={screenRef}
@@ -457,6 +469,10 @@ const send = () => {
   footer={<ActionBar position="static" primaryAction={{ label: "Send rating", type: "submit", form: formId }} />}>
   <Stack padding="lg">
     <Form id={formId} onSubmit={send}>
+      <List aria-label="Order">
+        <ListItem leading={<DockIcon icon="icon-coffee-cup-line" theme="orange" background="subtle" />}
+          title={\`\${order.id} · \${order.store}\`} caption={\`\${order.items} items · \${formatRelative(order.picked)}\`} />
+      </List>
       <Stack ref={starsRef} gap="xs" align="center">
         <Heading level={2} textStyle="Heading/Subheading" align="center">How was your order?</Heading>
         <Rating aria-label="How was your order?" size="xl" value={review.stars} onValueChange={(stars) => edit({ stars })} />

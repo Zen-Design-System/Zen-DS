@@ -402,8 +402,8 @@ function FeedPost({ post }: { post: Post }) {
       )}
       {failed ? <Button level="tertiary" startIcon="icon-refresh-cw-01-line" className="px-image-start" onClick={reload}>Reload photo</Button> : null}
       <Stack direction="row" gap="2xs" align="center">
-        {/* Pulled back by its own inset, so the heart lines up with the avatar, the text and the photos. */}
-        <IconButton appearance="flat" level="primary" size="md" icon={liked ? "icon-heart-solid" : "icon-heart-line"} className="px-image-like"
+        {/* The whole 40px target stays inside the post (nothing overhangs the screen margin), so the heart sits its own inset in. */}
+        <IconButton appearance="flat" level="primary" size="md" icon={liked ? "icon-heart-solid" : "icon-heart-line"}
           aria-label={`Like ${author.name.split(" ")[0]}’s post`} aria-pressed={liked} onClick={() => setLiked(!liked)} />
         <Text as="span" textStyle="Body/Small/Medium" tone="base">{plural(post.likes + (liked ? 1 : 0), "like")}</Text>
       </Stack>

@@ -410,7 +410,7 @@ function PeopleDirectoryApp() {
             header={<Stack direction="row" fillChildren width={240}><Search placeholder="Search people" aria-label="Search people" value={query}
               onValueChange={(value) => { setQuery(value); if (value.trim()) go("people"); }} /></Stack>}
             headerActions={<>
-              <AppShellAction icon="icon-bell-01-line" aria-label="Activity" dot={news} onClick={() => go("activity")} />
+              <AppShellAction icon="icon-bell-01-line" aria-label="Activity" dot={news} aria-current={page === "activity" ? "page" : undefined} onClick={() => go("activity")} />
               {account.menu}
             </>}
           >
@@ -829,7 +829,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   header={<Stack direction="row" fillChildren width={240}><Search placeholder="Search people" aria-label="Search people" value={query}
     onValueChange={(value) => { setQuery(value); if (value.trim()) go("people"); }} /></Stack>}
   headerActions={<>
-    <AppShellAction icon="icon-bell-01-line" aria-label="Activity" dot={hasNews} onClick={() => go("activity")} />
+    <AppShellAction icon="icon-bell-01-line" aria-label="Activity" dot={hasNews} aria-current={page === "activity" ? "page" : undefined} onClick={() => go("activity")} />
     <Menu align="end" trigger={<AppShellAccount name="Alex Duong" src={alex.photo} />} items={accountItems} />
   </>}
 >

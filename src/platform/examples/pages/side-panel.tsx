@@ -621,7 +621,7 @@ const requestClose = () => (form.isDirty ? setConfirming(true) : setOpen(false))
   },
   {
     title: "Long title and history",
-    description: "A brief with a long working title opens in a Modal panel: the title wraps onto a second line instead of truncating, so the whole name reads. Its 24 changes make the body long, and only the body scrolls: the title, Close and Export history stay in reach.",
+    description: "A brief with a long working title opens in a Modal panel: the title wraps instead of truncating, so the whole name reads. Its 24 changes make the body long, and only the body scrolls: the title, Close and Export history stay in reach.",
     wide: true,
     screen: true,
     render: () => <LongContentExample />,

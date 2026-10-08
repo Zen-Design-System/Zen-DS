@@ -663,8 +663,13 @@ toast({ title: "Invoice approved", children: "INV-2026-0143",
 <Card theme="flat" as="section" aria-label="Onboarding for Tam Dang">
   {/* Two columns while the card is at least 640px wide, stacked below that */}
   <Grid ref={ref} columns={width >= 640 ? "minmax(0, 16rem) minmax(0, 40rem)" : 1} gap="lg" align="start">
-    <Stepper aria-label="Onboarding" orientation="vertical" steps={steps} current={current}
-      onStepClick={(step, index) => setCurrent(index)} />
+    <Stack gap="md">
+      <List aria-label="New hire">
+        <ListItem leading={<Avatar theme="crimson" alt="">TD</Avatar>} title="Tam Dang" caption="Product Designer · Starts Oct 5" />
+      </List>
+      <Stepper aria-label="Onboarding" orientation="vertical" steps={steps} current={current}
+        onStepClick={(step, index) => setCurrent(index)} />
+    </Stack>
     <Form onSubmit={next}>
       <Heading ref={headingRef} tabIndex={-1} level={4} textStyle="Heading/Subheading">{steps[current].title}</Heading>
       <FormFieldset legend="Accounts" hideLegend kind="checkbox" error={error}>
@@ -703,6 +708,15 @@ toast({ title: "Invoice approved", children: "INV-2026-0143",
       { id: "ready", title: "Ready for pickup", caption: "Counter 2", icon: "icon-shopping-bag-01-line" },
       { id: "picked", title: "Picked up", icon: "icon-package-check-line" },
     ]} />
+    <Stack as="section" gap="xs" aria-labelledby="lines">
+      <Heading level={2} id="lines" textStyle="Body/Small/Bold" tone="light">Your order</Heading>
+      <List aria-labelledby="lines">
+        {order.lines.map(([id, qty]) => (
+          <ListItem key={id} title={\`\${menu[id].name} × \${qty}\`}
+            trailing={<Text as="span" textStyle="Body/Base/Medium">{formatMoney(menu[id].price * qty, true)}</Text>} />
+        ))}
+      </List>
+    </Stack>
   </Stack>
 </PlatformPhone>`,
   },
