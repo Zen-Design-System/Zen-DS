@@ -18,6 +18,7 @@ import { pressLayer } from "../edit/drag";
 import { pressDataItem } from "../edit/itemDrag";
 import { startMarquee } from "../edit/marquee";
 import { sameAreas, sameOwner, spacingAreas, type Box, type SpacingArea, type SpacingOwner } from "./spacing";
+import { clipBox, clipInside, clipRectOf, type ClipCache } from "./clip";
 import "./select.css";
 
 /*
@@ -133,9 +134,11 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     if (!root) return;
     const origin = root.getBoundingClientRect();
     const toBox = (rect: DOMRect): Box => ({ x: rect.left - origin.left, y: rect.top - origin.top, w: rect.width, h: rect.height });
+    // Outlines and tints stop where a clipping ancestor (a scroll box, the frame) hides the layer (select/clip.ts).
+    const clips: ClipCache = new Map();
     const boxOf = (hit: FiberHit | null) => {
       const rect = hit ? rectOf(hit.hosts) : null;
-      return rect ? toBox(rect) : null;
+      return rect && hit ? clipBox(toBox(rect), clipRectOf(hit.hosts[0], clips), origin) : null;
     };
     const tagged = (hit: FiberHit | null): Tagged | null => {
       const box = boxOf(hit);
@@ -147,7 +150,10 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     const selected = part ?? selectedRef.current;
     const hover = layerHover.get() ?? (toolRef.current === "select" ? hoverRef.current : null);
     // Padding and gaps: a layout component's edit its props; a part's or a host element's are shown read-only.
-    const layout = selected ? spacingAreas(selected, Boolean(part), toBox) : { owner: null, areas: [] };
+    // Several layers selected: no spacing areas (they would edit the primary alone, and take the press a drag of all needs).
+    const layout = selected && !extrasRef.current.length ? spacingAreas(selected, Boolean(part), toBox) : { owner: null, areas: [] };
+    const inside = layout.areas.length ? clipInside(selected?.hosts[0], clips) : null;
+    if (inside) layout.areas = layout.areas.flatMap((area) => clipBox(area, inside, origin) ?? []);
     const next: Overlay = {
       hover: hover && (!selected || hover.fiber !== selected.fiber) ? tagged(hover) : null,
       selected: tagged(selected),

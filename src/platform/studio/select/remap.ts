@@ -68,7 +68,39 @@ export function mapSrc(src: string, write: StudioWrite): string | null {
   if (!parsed || parsed.file !== write.file) return src;
   if (write.kind === "edit" && editing.has(src)) return src;
   const line = mapLine(write.before, write.after, parsed.line);
-  return line === null ? null : `${parsed.file}:${line}:${parsed.column}`;
+  if (line !== null) return `${parsed.file}:${line}:${parsed.column}`;
+  const moved = mapOnChangedLine(write.before, write.after, parsed.line, parsed.column);
+  return moved ? `${parsed.file}:${moved.line}:${moved.column}` : null;
+}
+
+/** The offset of 1-based `line`, 0-based `column` in `text`, or -1. */
+function offsetOf(text: string, line: number, column: number): number {
+  let offset = 0;
+  for (let index = 1; index < line; index++) {
+    offset = text.indexOf("\n", offset) + 1;
+    if (offset === 0) return -1;
+  }
+  return offset + column;
+}
+
+/**
+ * An element whose own line changed around it (a wrapper's attribute edited on the line it shares with its child,
+ * `<Stack width={200}><Button>`): where its "<" is after a write of one changed stretch (the text before and after it
+ * kept), its column shifted by what changed before it on that line. Null when the change touches the element's start,
+ * or the write changed several places around it.
+ */
+function mapOnChangedLine(before: string, after: string, line: number, column: number): { line: number; column: number } | null {
+  const at = offsetOf(before, line, column);
+  if (at < 0 || before[at] !== "<") return null;
+  let prefix = 0;
+  const limit = Math.min(before.length, after.length);
+  while (prefix < limit && before[prefix] === after[prefix]) prefix++;
+  let suffix = 0;
+  while (suffix < limit - prefix && before[before.length - 1 - suffix] === after[after.length - 1 - suffix]) suffix++;
+  const next = at < prefix ? at : at >= before.length - suffix ? at + after.length - before.length : -1;
+  if (next < 0 || after[next] !== "<") return null;
+  const lineStart = after.lastIndexOf("\n", next - 1) + 1;
+  return { line: after.slice(0, lineStart).split("\n").length, column: next - lineStart };
 }
 
 /* Waiting for the re-render that follows a write: until then the canvas still shows the old annotations, so a

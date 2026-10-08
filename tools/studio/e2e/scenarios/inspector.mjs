@@ -280,4 +280,17 @@ export const rows = [
       return "both buttons → primary";
     },
   },
+  {
+    id: "I-30", feature: "Mixed properties: a number prop (Heading level) shows Mixed and one pick goes to both layers", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "h-a", { frame: 9 });
+      await clickLoc(page, ctx.file, await at(ctx, "h-b"), { modifiers: ["Shift"] });
+      const row = inspectorRow(page, "level");
+      await until(async () => /Mixed/.test(await row.innerText().catch(() => "")), { message: "a Mixed level row for the two Headings" });
+      await pickOption(page, "level", "2");
+      await expectSource(ctx, "h-a", (el) => el.attr("level") === "{2}", "h-a level={2}");
+      await expectSource(ctx, "h-b", (el) => el.attr("level") === "{2}", "h-b level={2}");
+      return "level Mixed (3, 4) → 2 on both Headings";
+    },
+  },
 ];

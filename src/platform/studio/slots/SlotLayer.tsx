@@ -8,8 +8,10 @@ import { onSourceUpdate, rectOf, type FiberHit } from "../select/picker";
 import { ChromePortalContext, ChromeScope } from "../shell/ChromeScope";
 import { canEdit, studioStore, useStudio } from "../store";
 import type { SourceElement, StudioSelection } from "../types";
-import { canStructurallyEdit, inPlayground, slotPickerRequests, useSlotRunning, useSlotServer } from "./actions";
+import { canStructurallyEdit, editDataItem, inPlayground, slotPickerRequests, useSlotRunning, useSlotServer } from "./actions";
 import { slotContentOf } from "./content";
+import { itemParts, sourceItems } from "./dataItems";
+import { dataSlotOf, dataSlotsOf } from "./dataSlots";
 import { containerOf, hostRootOf, isConcealed, selectedHit } from "./dom";
 import { InsertPicker } from "./InsertPicker";
 import { activeSlotsOf, isLayoutPrimitive, slotContentElements, slotFlowOf, slotGhostAnchor, slotOf, type ContentSlot, type HostProps } from "./registry";
@@ -28,13 +30,17 @@ import "./slots.css";
  * rects again. Overlays rendered in the page portal (a modal Dialog, ModalForm, SidePanel) sit above
  * the canvas: their slots are edited from the inspector's Slots section. The chips are pointer-only (the inspector's
  * "Add to {Slot}" is the keyboard path), like the resize handles.
+ * A data slot (dataSlots.ts: TopNavigation's Top-Trailing, whose items the code writes as objects) is outlined around the
+ * items it draws, with its name, and its + chip adds an item (editDataItem "add", as the Slots section's +); an empty
+ * list slot shows a ghost at the component's end edge. A slot at its most items (`max`) offers no chip.
  */
 
 type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
 type Box = { x: number; y: number; w: number; h: number };
 /** One slot of the selected instance: its outline (none for a layout primitive: the selection outline is it) and chip point. */
 /** `tagBelow`: a ghost just below its anchor names itself under the strip, not over the anchor (TopNavigation's title). */
-type SlotMark = Box & { prop: string; tag: string; ghost: boolean; outline: boolean; chip: { x: number; y: number } | null; tagBelow?: boolean };
+/** `data`: a data slot's mark (its chip adds an item instead of opening the insert picker); `count`: items it holds. */
+type SlotMark = Box & { prop: string; tag: string; ghost: boolean; outline: boolean; chip: { x: number; y: number } | null; tagBelow?: boolean; data?: boolean; count?: number };
 type Marks = { src: string; slots: SlotMark[]; playground: Array<Box & { tag: string }> };
 
 const EMPTY: Marks = { src: "", slots: [], playground: [] };
@@ -76,11 +82,29 @@ function marksFor(selection: NodeSelection, { hit, root: hostRoot }: Resolved, w
   }
   const props = hit.props as HostProps;
   const slots = activeSlotsOf(hit.name, props);
-  const root = slots.length ? hostRoot : null;
+  const dataSlots = dataSlotsOf(hit.name);
+  const root = slots.length || dataSlots.length ? hostRoot : null;
   // Not on the canvas (closed), or in the page portal above it (a modal overlay): edited from the inspector.
   if (!root || !world.contains(root)) return EMPTY;
   const layout = isLayoutPrimitive(hit.name);
   const marks: SlotMark[] = [];
+  for (const slot of dataSlots) {
+    const parts = itemParts(hit, slot);
+    const drawn = parts.flatMap((part) => (part ? part.hosts : []));
+    const rect = drawn.length ? rectOf(drawn) : null;
+    let box: Box | null = rect ? toBox(rect) : null;
+    // An empty list slot: a ghost at the component's end edge (where TopNavigation draws its trailing actions).
+    if (!box && slot.form === "array" && !parts.length) {
+      const base = rectOf([root]);
+      box = base ? ghostAt(toBox(base), "last-child", true) : null;
+    }
+    if (!box) continue;
+    const count = parts.length;
+    const past = CHIP / 2 + 2;
+    const chip = !count ? { x: box.x + box.w / 2, y: box.y + box.h / 2 } : { x: box.x + box.w / 2, y: box.y + box.h + past };
+    const full = slot.form === "object" ? count > 0 : count >= slot.max;
+    marks.push({ ...box, prop: slot.prop, tag: count ? slot.name : `${slot.name} · Empty`, ghost: !count, outline: true, chip: full ? null : chip, data: true, count });
+  }
   for (const slot of slots) {
     const row = slotFlowOf(slot, props) === "row";
     const container = containerOf(root, slot);
@@ -177,7 +201,7 @@ export function SlotLayer({ viewport, world }: { viewport: HTMLElement | null; w
   const writable = canEdit() && role === "admin" && server.writable;
   const check = node ? canStructurallyEdit(node) : null;
   const editable = writable && Boolean(check?.ok);
-  const hasSlots = Boolean(node && (activeSlotsOf(node.name).length || inPlayground(node)));
+  const hasSlots = Boolean(node && (activeSlotsOf(node.name).length || dataSlotsOf(node.name).length || inPlayground(node)));
   const element = useHostSource(node, shown && editable && hasSlots);
 
   // Read through a ref: a frame requested before the world mounted must still measure with it (like SelectionLayer).
@@ -282,6 +306,8 @@ export function SlotLayer({ viewport, world }: { viewport: HTMLElement | null; w
     const out = new Set<string>();
     if (!element || !node || element.name !== node.name) return out;
     for (const slot of activeSlotsOf(element.name)) if (!slotContentOf(element, slot).insertBlock) out.add(slot.prop);
+    // A data slot whose items the source writes as a literal (or not at all): the add writes one more.
+    for (const slot of dataSlotsOf(element.name)) if (sourceItems(element, slot).state !== "computed") out.add(slot.prop);
     return out;
   }, [element, node]);
 
@@ -309,6 +335,16 @@ export function SlotLayer({ viewport, world }: { viewport: HTMLElement | null; w
           </div>
         ))}
         {chips.map((mark) => {
+          const data = mark.data ? dataSlotOf(node.name, mark.prop) : null;
+          if (data) {
+            return (
+              <div key={`c${mark.prop}`} className="studio-slots__chip" style={{ transform: `translate(${mark.chip.x}px, ${mark.chip.y}px)` }} onPointerDown={(event) => event.stopPropagation()}>
+                {/* zen-allow-filter-button: the data slot's "Add item" chip on the canvas (it adds an item), not a filter or sort control */}
+                {/* zen-allow-accent: the add-to-slot chip is promoted so it stands out on any canvas content (user, 2026-10-04) */}
+                <IconButton level="accent" size="xs" icon="icon-plus-line" aria-label={`Add ${data.itemName} to ${data.name}`} tabIndex={-1} onClick={() => { void editDataItem(node, data, "add"); }} />
+              </div>
+            );
+          }
           const slot = slotOf(node.name, mark.prop);
           return (
             <div key={`c${mark.prop}`} className="studio-slots__chip" style={{ transform: `translate(${mark.chip.x}px, ${mark.chip.y}px)` }} onPointerDown={(event) => event.stopPropagation()}>
