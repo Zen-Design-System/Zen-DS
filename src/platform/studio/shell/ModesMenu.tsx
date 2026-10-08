@@ -1,101 +1,14 @@
-import { useEffect, useId, useRef, useState } from "react";
-import { Button, IconButton } from "../../../components/Button";
-import { Icon } from "../../../components/Icon";
 import { SelectField } from "../../../components/Input";
 import { Text } from "../../../components/Text";
 import { studioStore, useStudio } from "../store";
 import type { StudioPreviewSettings } from "../types";
-import { previewModeDefinitions, previewSummary, setStudioTheme, type ModeKey } from "./modes";
+import { previewModeDefinitions, setStudioTheme, type ModeKey } from "./modes";
 import "./shell.css";
 
-/** The mounted toolbar Modes popover's opener (one toolbar per Studio). */
-let opener: (() => void) | null = null;
-
-/** Opens the toolbar Modes popover and moves focus to its first field (the Inspector's "Change modes" link uses it). */
-export function openModesMenu(): void {
-  opener?.();
-}
-
-/**
- * Preview modes of the canvas (Mode, Component theme, Component size, Typography, Corner radius, Emphasis): THE control
- * surface for them, a small non-modal panel under the toolbar button, one Select per mode. It closes on Escape (focus
- * back on the button) and on a press outside.
+/*
+ * Preview modes (Mode, Component theme, Component size, Typography, Corner radius, Emphasis, Contrast) change in Play
+ * and Present only, in their bar's Modes panel (board/PresentBar); the toolbar keeps light/dark (user, 2026-10-09).
  */
-/** `compact`: an icon button (the phone toolbar), same popover. */
-export function ModesMenu({ compact = false }: { compact?: boolean } = {}) {
-  const preview = useStudio((state) => state.preview);
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const id = useId();
-
-  useEffect(() => {
-    const open = () => setOpen(true);
-    opener = open;
-    return () => { if (opener === open) opener = null; };
-  }, []);
-
-  useEffect(() => {
-    if (!open) return undefined;
-    panelRef.current?.querySelector<HTMLElement>("select, button, input")?.focus();
-    const onPointerDown = (event: PointerEvent) => {
-      if (event.target instanceof Node && !rootRef.current?.contains(event.target)) setOpen(false);
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || event.defaultPrevented) return;
-      event.preventDefault();
-      setOpen(false);
-      triggerRef.current?.focus();
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => { document.removeEventListener("pointerdown", onPointerDown); document.removeEventListener("keydown", onKeyDown); };
-  }, [open]);
-
-  return (
-    <div ref={rootRef} className="studio-modes">
-      {compact ? (
-        <IconButton
-          ref={triggerRef}
-          appearance="flat"
-          level="primary"
-          size="sm"
-          aria-label="Preview modes"
-          aria-haspopup="dialog"
-          aria-expanded={open}
-          aria-controls={open ? `${id}-panel` : undefined}
-          icon={<Icon name="icon-sliders-02-line" />}
-          onClick={() => setOpen((value) => !value)}
-        />
-      ) : (
-        <Button
-          ref={triggerRef}
-          appearance="flat"
-          level="primary"
-          size="sm"
-          aria-haspopup="dialog"
-          aria-expanded={open}
-          aria-controls={open ? `${id}-panel` : undefined}
-          startIcon={<Icon name="icon-sliders-02-line" decorative />}
-          endIcon={<Icon name="icon-chevron-down-line" decorative />}
-          onClick={() => setOpen((value) => !value)}
-        >
-          Modes
-        </Button>
-      )}
-      {open ? (
-        <div ref={panelRef} id={`${id}-panel`} className="studio-modes__panel" role="dialog" aria-labelledby={`${id}-title`}>
-          <div className="studio-modes__head">
-            <Text as="p" id={`${id}-title`} textStyle="Body/Small/Bold">Preview modes</Text>
-            <Text as="p" textStyle="Caption/Regular" tone="light">{previewSummary(preview)} · applies to the canvas</Text>
-          </div>
-          <PreviewModeFields idPrefix={id} />
-        </div>
-      ) : null}
-    </div>
-  );
-}
 
 /** Sets one preview mode; Mode (light/dark) is the whole Studio's, so the chrome changes with it. */
 function setPreviewMode(key: ModeKey, value: string) {

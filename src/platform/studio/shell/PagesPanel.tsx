@@ -5,8 +5,10 @@ import { Search } from "../../../components/Search";
 import { plural, Text } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { useStudio } from "../store";
-import { MyPageRow, MyPagesHeader } from "../builder/MyPages";
+import { MyPagesHeader } from "../builder/MyPages";
 import { NewPageDialog } from "../builder/NewPageDialog";
+import { FolderDialog, StudioFolderTree } from "../builder/StudioFolders";
+import { useFolders } from "../builder/store/folderStore";
 import { usePages } from "../builder/store/pageStore";
 import { filterSections, navigate, openLocalPage, pageSections, type PageNavItem } from "./navigation";
 import "./shell.css";
@@ -16,19 +18,25 @@ export const PAGE_SEARCH_ID = "studio-page-search";
 const ROW = ".studio-pages__row";
 
 /**
- * The Pages tab of the left panel: search (⌘/Ctrl+K), My pages (builder pages: New page, options, each page's actions; MyPages.tsx), Get started, Foundation (token collections nested under Design
- * Tokens), Components A–Z. Compact rows like the Layers tab; ↑/↓, Home and End move between pages (one Tab stop).
+ * The Pages tab of the left panel, by the toolbar's space (user, 2026-10-09). Document: search (⌘/Ctrl+K), Get started,
+ * Foundation (token collections nested under Design Tokens), Components A–Z. Studio: search, the folders and the pages
+ * people made (New page, New folder, options; builder/StudioFolders, MyPages). Compact rows like the Layers tab; ↑/↓,
+ * Home and End move between rows (one Tab stop).
  */
 export function PagesPanel() {
   const page = useStudio((state) => state.page);
   const collection = useStudio((state) => state.collection);
   const localPage = useStudio((state) => state.localPage);
+  const studio = useStudio((state) => state.space === "studio") || Boolean(localPage);
   const myPages = usePages();
-  const [creating, setCreating] = useState(false);
+  const folders = useFolders();
+  // New page: open, and the folder it lands in (null: none).
+  const [creating, setCreating] = useState<{ folder: string | null } | null>(null);
+  const [newFolder, setNewFolder] = useState(false);
   const [query, setQuery] = useState("");
   const sections = useMemo(() => pageSections(), []);
-  const visible = useMemo(() => filterSections(sections, query), [sections, query]);
-  const mine = myPages.filter((item) => item.title.toLowerCase().includes(query.trim().toLowerCase()));
+  const visible = useMemo(() => (studio ? [] : filterSections(sections, query)), [sections, query, studio]);
+  const mine = studio ? myPages.filter((item) => item.title.toLowerCase().includes(query.trim().toLowerCase())) : [];
   const results = visible.reduce((total, section) => total + section.items.length, 0) + mine.length;
   const searching = query.trim().length > 0;
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -42,8 +50,7 @@ export function PagesPanel() {
   const isCurrent = (item: PageNavItem) => !localPage && item.page === page && (item.collection ?? null) === (item.page === "design-tokens" ? collection : null);
   // The current page is the list's one Tab stop (the first row while searching or when it is filtered out).
   const rows = visible.flatMap((section) => section.items.flatMap((item) => [item, ...(!searching && item.children && page === item.page ? item.children : [])]));
-  const tabStop = localPage ? null : rows.find(isCurrent) ?? (mine.length ? null : rows[0]);
-  const mineStop = mine.find((item) => item.id === localPage) ?? (tabStop ? null : mine[0]);
+  const tabStop = localPage ? null : rows.find(isCurrent) ?? rows[0];
 
   const moveFocus = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
@@ -82,8 +89,8 @@ export function PagesPanel() {
         <Search
           id={PAGE_SEARCH_ID}
           size="sm"
-          placeholder="Search pages"
-          aria-label="Search pages"
+          placeholder={studio ? "Search your pages" : "Search pages"}
+          aria-label={studio ? "Search your pages" : "Search pages"}
           shortcut="k"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -93,6 +100,7 @@ export function PagesPanel() {
             if (event.key === "Enter") {
               const first = visible[0]?.items[0];
               if (first) { open(first); setQuery(""); }
+              else if (mine[0]) { openLocalPage(mine[0].id); setQuery(""); }
             }
             if (event.key === "ArrowDown") { event.preventDefault(); scrollRef.current?.querySelector<HTMLElement>(ROW)?.focus(); }
             if (event.key === "Escape" && query) { event.preventDefault(); event.stopPropagation(); setQuery(""); }
@@ -103,20 +111,16 @@ export function PagesPanel() {
         {searching && results ? plural(results, "result") : ""}
       </Text>
       <div ref={scrollRef} className="studio-pages__scroll" onKeyDown={moveFocus}>
-        {/* Builder pages kept in this browser (Studio builder GĐ2), first: the pages people make. */}
-        {!searching || mine.length ? (
+        {/* Studio space: the folders and the pages people made (builder pages kept in this browser). */}
+        {studio ? (
           <div className="studio-pages__section" data-section="mine">
-            <MyPagesHeader onNew={() => setCreating(true)} />
-            {mine.length ? (
-              <ul className="studio-pages__list" aria-labelledby="studio-pages-mine">
-                {mine.map((item) => <MyPageRow key={item.id} item={item} current={item.id === localPage} tabIndex={item === mineStop ? 0 : -1} />)}
-              </ul>
-            ) : null}
+            <MyPagesHeader onNew={() => setCreating({ folder: null })} onNewFolder={() => setNewFolder(true)} />
+            <StudioFolderTree folders={folders} pages={mine} searching={searching} onNewPage={(folder) => setCreating({ folder })} />
           </div>
         ) : null}
         {searching && !results ? (
           <EmptyState className="studio-pages__empty" title="No pages found" headingLevel={2} compactTitle icon="icon-search-line" secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>
-            Nothing matches “{query.trim()}”. Try a component name like “Button”.
+            {studio ? `None of your pages matches “${query.trim()}”.` : <>Nothing matches “{query.trim()}”. Try a component name like “Button”.</>}
           </EmptyState>
         ) : visible.map((section) => (
           <div key={section.id} className="studio-pages__section" data-section={section.id}>
@@ -131,7 +135,8 @@ export function PagesPanel() {
           </div>
         ))}
       </div>
-      <NewPageDialog open={creating} onOpenChange={setCreating} />
+      <NewPageDialog open={creating !== null} folder={creating?.folder ?? null} onOpenChange={(next) => { if (!next) setCreating(null); }} />
+      {newFolder ? <FolderDialog onClose={() => setNewFolder(false)} /> : null}
     </nav>
   );
 }

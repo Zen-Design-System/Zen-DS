@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IconButton } from "../../../../components/Button";
 import { Icon } from "../../../../components/Icon";
 import { ToastProvider, useToast, type ToastOptions } from "../../../../components/Toast";
-import { fullScreenEscapeOwners, FullScreenBar } from "../../../PlatformFullScreen";
+import { fullScreenEscapeOwners } from "../../../PlatformFullScreen";
+import { PresentBar } from "../../board/PresentBar";
 import { canvasApi } from "../../canvas/viewport";
-import { ChromeScope } from "../../shell/ChromeScope";
+import { previewAttributes, type ModeKey } from "../../shell/modes";
 import { studioStore, useStudio } from "../../store";
+import type { StudioPreviewSettings } from "../../types";
 import { renderNode, type PageNode, type PageTree } from "../render/renderPage";
 import { pageFile, usePage } from "../store/pageStore";
 import { usePageTree } from "../usePageTree";
@@ -60,6 +62,12 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   const current = history.at(-1) ?? first;
   const layerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  // Preview modes change here and in Present only (the toolbar has none): Play's own, light/dark included, over the
+  // canvas modes. They change the page being played, never the Studio's UI (its bar keeps the chrome modes).
+  const canvasModes = useStudio((state) => state.preview);
+  const [own, setOwn] = useState<Partial<StudioPreviewSettings>>({});
+  const modes: StudioPreviewSettings = { ...canvasModes, ...own };
+  const setMode = useCallback((key: ModeKey, value: string) => setOwn((current) => ({ ...current, [key]: value })), []);
 
   const restart = useCallback(() => { setHistory([]); setOverlay(null); }, []);
   const exit = useCallback(() => stopPlay(), []);
@@ -127,7 +135,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   const screenTitle = screen ? String(literal(screen, "title") ?? current) : "";
 
   return (
-    <div ref={layerRef} className="studio-present studio-player" role="dialog" aria-label={`${title}, playing`} tabIndex={-1} data-device={device}>
+    <div ref={layerRef} className="studio-present studio-player" role="dialog" aria-label={`${title}, playing`} tabIndex={-1} data-device={device} {...previewAttributes(modes)}>
       <ProtoContext value={actions}>
         <div className="studio-player__stage">
           <div className="studio-player__device" style={{ width: `min(${DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop}px, 100%)` }} data-zen-overlay-root="" data-screen-id={current}>
@@ -140,12 +148,11 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
           </div>
         </div>
       </ProtoContext>
-      <ChromeScope>
-        <FullScreenBar title={screenTitle ? `${title} · ${screenTitle}` : title} onExit={exit}>
+      <PresentBar title={screenTitle ? `${title} · ${screenTitle}` : title} theme={modes.theme} onToggleTheme={() => setMode("theme", modes.theme === "dark" ? "light" : "dark")} modes={modes} onModeChange={setMode} onExit={exit} modesScope="while playing"
+        leading={<>
           <IconButton appearance="flat" level="primary" size="sm" aria-label="Back" icon={<Icon name="icon-chevron-left-line-medium" />} disabled={!history.length && !overlay} onClick={() => actions.back()} />
           <IconButton appearance="flat" level="primary" size="sm" aria-label="Restart" aria-keyshortcuts="R" tooltip="Restart (R)" icon={<Icon name="icon-refresh-ccw-01-line" />} onClick={restart} />
-        </FullScreenBar>
-      </ChromeScope>
+        </>} />
     </div>
   );
 }

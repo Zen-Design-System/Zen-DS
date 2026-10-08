@@ -31,6 +31,7 @@ import { selectedPartStore } from "./select/parts";
 import { SlotConfirm } from "./slots/SlotConfirm";
 import { SharedConfirm } from "./shell/SharedConfirm";
 import { BuilderBoard } from "./builder/BuilderBoard";
+import { StudioHome } from "./builder/StudioHome";
 import { openQuickInsert, QuickInsert } from "./builder/library/QuickInsert";
 import { isPlaying, Player, startPlay } from "./builder/proto/Player";
 import { startPageMirror } from "./builder/store/mirrors";
@@ -97,12 +98,13 @@ function useRouting() {
   useState(() => {
     const location = readLocation();
     const state = studioStore.getState();
-    if (state.page !== location.page || state.collection !== location.collection || state.localPage !== location.localPage) studioStore.setState({ ...location, selection: null });
+    if (state.page !== location.page || state.collection !== location.collection || state.localPage !== location.localPage || state.space !== location.space) studioStore.setState({ ...location, selection: null });
     return null;
   });
   const page = useStudio((state) => state.page);
   const collection = useStudio((state) => state.collection);
   const localPage = useStudio((state) => state.localPage);
+  const space = useStudio((state) => state.space);
   const first = useRef(true);
   // Builder pages: connect the folder that keeps their copy (the dev server's .zen-studio/pages/, or a linked folder).
   // ?play=<screen> on a builder page opens it in Play.
@@ -117,6 +119,9 @@ function useRouting() {
     url.searchParams.set("page", localPage ? `local:${localPage}` : page);
     if (!localPage && page === "design-tokens" && collection) url.searchParams.set("collection", collection);
     else url.searchParams.delete("collection");
+    // The Studio space with no page open keeps its own address (a builder page is Studio already).
+    if (!localPage && space === "studio") url.searchParams.set("space", "studio");
+    else url.searchParams.delete("space");
     const next = `${url.pathname}?${url.searchParams.toString()}${url.hash}`;
     if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
       // The first sync only normalises the address (no extra Back step).
@@ -124,8 +129,8 @@ function useRouting() {
       else window.history.pushState(null, "", next);
     }
     first.current = false;
-    document.title = `${localPage ? cachedPage(localPage)?.title ?? localPage : pageTitle(page, collection)} · Zen Studio`;
-  }, [page, collection, localPage]);
+    document.title = `${localPage ? cachedPage(localPage)?.title ?? localPage : space === "studio" ? "Studio" : pageTitle(page, collection)} · Zen Studio`;
+  }, [page, collection, localPage, space]);
   useEffect(() => {
     const onPopState = () => {
       const location = readLocation();
@@ -175,7 +180,10 @@ export function StudioApp() {
   const key = pageKey(page, collection, localPage);
   // Overviews, Installation and the Foundation pages are documents: a normal page, no canvas and no inspector. A
   // builder page (kept in this browser) is a canvas.
-  const docPage = !localPage && !isComponentPage(page);
+  // The Studio space with no page open shows its folders (builder/StudioHome): no canvas and no inspector either.
+  const space = useStudio((state) => state.space);
+  const studioHome = !localPage && space === "studio";
+  const docPage = studioHome || (!localPage && !isComponentPage(page));
 
   // The active playground panel: the selected layer's panel, or (playground frame selected) the last one used, else the
   // first panel of the playground.
@@ -309,7 +317,7 @@ export function StudioApp() {
       }
       if (keysOwnedByFocus(event)) return;
       // Document pages (doc/DocumentPage.tsx) have no canvas: the zoom, tool and frame keys do nothing there.
-      const doc = !state.localPage && !isComponentPage(state.page);
+      const doc = !state.localPage && (state.space === "studio" || !isComponentPage(state.page));
       // An example in use (Interact) keeps its own keys; only the zoom chords still reach the canvas.
       const inExample = state.tool === "interact" && document.activeElement?.closest(".studio-world");
       // ⌥⌘G / Ctrl+Alt+G wraps the selected layers in a Box (Figma's Frame selection), in the Select tool.
@@ -477,7 +485,7 @@ export function StudioApp() {
                 <StudioCanvas label={`${cachedPage(localPage)?.title ?? localPage} canvas`} viewKey={key}>
                   <BuilderBoard id={localPage} />
                 </StudioCanvas>
-              ) : docPage ? <DocumentPage page={page} collection={collection} /> : (
+              ) : studioHome ? <StudioHome /> : docPage ? <DocumentPage page={page} collection={collection} /> : (
                 <StudioCanvas label={`${pageTitle(page, collection)} canvas`} viewKey={key}>
                   <WorldContent page={page} collection={collection} />
                 </StudioCanvas>

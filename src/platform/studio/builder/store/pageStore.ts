@@ -24,6 +24,8 @@ export type PageRecord = {
   updatedAt: number;
   /** In the Trash since then. */
   trashedAt?: number;
+  /** The Studio folder the page sits in (folderStore); none: "Not in a folder". Kept in this browser only. */
+  folder?: string;
   /** The mirror this copy last matched, and the hash of the text both held. */
   sync?: { mirror: string; hash: string };
 };
@@ -186,7 +188,7 @@ export async function restoreRevision(page: string, key: number): Promise<void> 
  * Writes a page's text (its title comes from the header line). `reason` decides whether the previous text is kept as a
  * revision (pageModel.keepsRevision); a connected mirror gets the new text.
  */
-export async function putPage(id: string, text: string, { title, reason = "edit" }: { title?: string; reason?: RevisionReason } = {}): Promise<PageRecord> {
+export async function putPage(id: string, text: string, { title, reason = "edit", folder }: { title?: string; reason?: RevisionReason; folder?: string | null } = {}): Promise<PageRecord> {
   if (!isPageId(id)) throw new Error(`Bad page id ${JSON.stringify(id)}`);
   const now = Date.now();
   const previous = cache.get(id) ?? (await readRecord(id));
@@ -198,6 +200,9 @@ export async function putPage(id: string, text: string, { title, reason = "edit"
     updatedAt: now,
     ...(previous?.sync ? { sync: previous.sync } : {}),
   };
+  // A write keeps the page in its folder unless `folder` moves it (null: out of every folder).
+  const nextFolder = folder === undefined ? previous?.folder : folder ?? undefined;
+  if (nextFolder) record.folder = nextFolder;
   cache.set(id, record);
   notify();
   if (previous && previous.text !== text && keepsRevision(reason, lastRevisionAt.get(id) ?? null, now)) await addRevision(id, previous.text, reason, now);
@@ -205,6 +210,18 @@ export async function putPage(id: string, text: string, { title, reason = "edit"
   channel?.postMessage({ id });
   pushToMirror(id);
   return record;
+}
+
+/** Moves a page into a Studio folder (null: out of every folder). The text and its revisions stay as they are. */
+export async function movePage(id: string, folder: string | null): Promise<void> {
+  const record = cache.get(id) ?? (await readRecord(id));
+  if (!record || (record.folder ?? null) === folder) return;
+  const next: PageRecord = { ...record };
+  if (folder) next.folder = folder; else delete next.folder;
+  cache.set(id, next);
+  notify();
+  await writeRecord(next);
+  channel?.postMessage({ id });
 }
 
 /** Renames a page: its header title and the list's name (one revision). */
@@ -220,7 +237,7 @@ export async function duplicatePage(id: string): Promise<string> {
   if (!page) throw new Error("The page is gone");
   const title = `${page.title} copy`;
   const copy = await freeId(title);
-  await putPage(copy, withHeaderTitle(page.text, title), { title, reason: "import" });
+  await putPage(copy, withHeaderTitle(page.text, title), { title, reason: "import", folder: page.folder ?? null });
   return copy;
 }
 

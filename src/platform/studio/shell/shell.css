@@ -29,9 +29,8 @@
 .studio-toolbar__end { display: flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .studio-toolbar__start { justify-self: start; }
 .studio-toolbar__end { justify-self: end; }
-.studio-toolbar__crumbs { display: flex; min-width: 0; justify-content: center; overflow: hidden; }
-.studio-toolbar__crumbs .zen-breadcrumbs__list { flex-wrap: nowrap; min-width: 0; }
-.studio-toolbar__crumbs .zen-breadcrumb__label { white-space: nowrap; }
+/* The Document | Studio switch sits where the breadcrumb was, centred on the window. */
+.studio-toolbar__space { display: flex; min-width: 0; justify-content: center; }
 /* Toolbar groups are told apart by space, not rules: 4px inside a group, 8px (Gap/XSmall) between groups. */
 .studio-toolbar__group-start,
 .studio-toolbar__end > .studio-drafts { margin-inline-start: var(--zen-spacing-gap-2-xsmall, 4px); }

@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pagesDirOf } from "../lib/server.mjs";
-import { inspectorRow, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { inspectorRow, openStudioSpace, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { pickOption } from "./inspector.mjs";
 
 /** The page's text as the browser keeps it (IndexedDB "zen-studio-builder"). */
@@ -25,11 +25,12 @@ export async function newPage(ctx, { title, device = "phone" } = {}) {
   const name = title ?? `Builder ${made} ${Date.now().toString(36)}`;
   const from = page.url();
   await showLeftTab(page, "pages");
-  await page.getByRole("button", { name: "New page", exact: true }).click();
+  await openStudioSpace(page);
+    await page.locator("#studio-left").getByRole("button", { name: "New page", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "New page" });
   await dialog.waitFor({ state: "visible", timeout: 5000 });
   await dialog.getByLabel("Title").fill(name);
-  await dialog.getByRole("button", { name: device === "phone" ? "Phone" : device === "tablet" ? "Tablet" : "Desktop" }).click();
+  await dialog.getByRole("radio", { name: new RegExp(`^${device === "phone" ? "Phone" : device === "tablet" ? "Tablet" : "Desktop"} `) }).check({ force: true });
   await dialog.getByRole("button", { name: "Create page" }).click();
   await until(async () => page.url() !== from && /page=local%3A/.test(page.url()) && (await page.locator('[data-studio-frame^="screen:"]').count()) > 0, { message: "the new page on the canvas" });
   const id = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
@@ -95,20 +96,22 @@ const mineRow = (page, name) => page.locator('[data-section="mine"] .studio-page
 /** Chooses one of a page's actions (its row's menu). */
 async function pageAction(page, name, action) {
   await showLeftTab(page, "pages");
+  await openStudioSpace(page);
   const row = mineRow(page, name);
   await row.hover();
   await row.getByRole("button", { name: `${name} actions` }).click();
   await page.getByRole("menuitem", { name: action }).click();
 }
 
-/** Chooses one of the My pages options. */
+/** Chooses one of the Studio options (the folders' ⋯). */
 async function mineOption(page, action) {
   await showLeftTab(page, "pages");
-  await page.getByRole("button", { name: "My pages options" }).click();
+  await openStudioSpace(page);
+    await page.getByRole("button", { name: "Studio options" }).click();
   await page.getByRole("menuitem", { name: action }).click();
 }
 
-const listed = async (page, name) => (await mineRow(page, name).count()) > 0;
+const listed = async (page, name) => { await openStudioSpace(page); return (await mineRow(page, name).count()) > 0; };
 
 /* ── M3: Prototype tab, Play ── */
 

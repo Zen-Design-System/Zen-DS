@@ -837,6 +837,14 @@ removed (four unused colour ramps were, see Removed).
     which still bleeds outside the trail).
 
 ### Changed
+- **Zen Studio: Document | Studio spaces, folders, visual New page, modes only in Play/Present (2026-10-09):** the
+  toolbar's breadcrumb is a Document | Studio switch. Document lists the docs pages; Studio holds the pages you make in
+  folders (New folder, New page in a folder, Rename, Delete → Trash, Move to on each page; pages with no folder under "Not
+  in a folder"), and with no page open the canvas shows the Studio home. New page shows the templates as a grid of
+  scaled-down thumbnails with Blank page as a placeholder card, and the device as three cards drawn in their proportions.
+  The toolbar keeps only light/dark: preview modes change in Present and now in Play, each in its bar's Modes panel,
+  which opens with the Popover motion (zen-motion-pop-in; a fade with reduced motion). Play and Present change the
+  example only — light/dark included — while the Studio's own UI (the bar, the panel) keeps the chrome modes.
 - **DockIcon re-synced from Figma (2026-10-09):** sizes follow the live Dock-Icon set — `large` is now 48 (was 56) with
   a 24px icon (Element-Size/Popular/Medium),
   `xlarge` 56 (was 80) and the new `2xlarge` (`2xl`) is 80; Accent Solid draws its icon in Content/On-Colors (was

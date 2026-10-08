@@ -84,6 +84,9 @@ export type StudioState = {
   page: PlatformPage;
   /** A builder page kept in this browser (Studio builder GĐ2: "?page=local:<id>"), shown instead of `page`; else null. */
   localPage: string | null;
+  /** The toolbar's Document | Studio switch: the docs pages, or the user's folders and pages (a builder page is always
+   *  Studio). */
+  space: "document" | "studio";
   collection: string | null;
   tool: StudioTool;
   role: StudioRole;

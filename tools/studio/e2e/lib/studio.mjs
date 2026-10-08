@@ -95,7 +95,18 @@ export async function until(fn, { timeout = 6000, interval = 100, message = "con
   throw new Error(`Timed out waiting for ${message}${last instanceof Error ? ` (${last.message})` : ""}`);
 }
 
+/** The toolbar's Document | Studio switch on Studio: the folders and the pages people made (user, 2026-10-09). */
+export async function openStudioSpace(page) {
+  const studio = page.locator(".studio-toolbar").getByRole("button", { name: "Studio", exact: true });
+  if ((await studio.getAttribute("aria-pressed")) !== "true") { await studio.click(); await sleep(200); }
+}
+
 export async function showLeftTab(page, tab) {
+  // A doc page and the Studio home show the Pages panel alone, without tabs.
+  if (tab === "pages" && !(await page.locator(`#studio-left-tab-${tab}`).count())) {
+    await page.waitForSelector(`#studio-left-panel-${tab}`, { state: "visible" });
+    return;
+  }
   await page.click(`#studio-left-tab-${tab}`);
   await page.waitForSelector(`#studio-left-panel-${tab}`, { state: "visible" });
 }

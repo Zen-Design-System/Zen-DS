@@ -508,14 +508,25 @@
 /* The one docs control left on a full-screen page (FullScreenBar; also the Zen Studio's Present): a pill at the bottom
    centre on the popover surface, above the screen (25) and under its overlays (30). It fades out after a pause of the
    pointer and comes back on movement or keyboard focus; hidden, it takes no presses. */
-.platform-fullscreen-bar {
+/* The dock places the pill and its panel (a sibling, so each blurs the screen behind it); it paints nothing and only its
+   children take presses. */
+.platform-fullscreen-dock {
   position: fixed;
   z-index: 26;
   bottom: var(--zen-spacing-padding-medium, 16px);
   left: 50%;
   display: flex;
   max-width: calc(100% - 2 * var(--zen-spacing-padding-medium, 16px));
+  translate: -50% 0;
+  pointer-events: none;
+}
+.platform-fullscreen-bar {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
   box-sizing: border-box;
+  pointer-events: auto;
   align-items: center;
   gap: var(--zen-spacing-gap-3-xsmall, 2px);
   padding: var(--zen-spacing-padding-2-xsmall, 4px);
@@ -524,10 +535,9 @@
   background: var(--zen-popover-background, #fff);
   box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
   backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
-  translate: -50% 0;
   transition: opacity var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease), translate var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease);
 }
-.platform-fullscreen-bar[data-shown="false"]:not(:has(:focus-visible)) { opacity: 0; translate: -50% calc(var(--zen-spacing-gap-xsmall, 8px) * var(--zen-motion-movement, 1)); pointer-events: none; }
+.platform-fullscreen-bar[data-shown="false"]:not(:has(:focus-visible)) { opacity: 0; translate: 0 calc(var(--zen-spacing-gap-xsmall, 8px) * var(--zen-motion-movement, 1)); pointer-events: none; }
 /* zen-allow-slot-size: the screen's name truncates before the controls do. */
 .platform-fullscreen-bar__title { min-width: 0; max-width: 280px; overflow: hidden; padding-inline: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-2-xsmall, 4px); text-overflow: ellipsis; white-space: nowrap; }
 .platform-fullscreen-bar__divider { align-self: stretch; margin-block: var(--zen-spacing-padding-2-xsmall, 4px); margin-inline: var(--zen-spacing-gap-2-xsmall, 4px); }
@@ -549,6 +559,7 @@
   left: 50%;
   display: grid;
   width: min(320px, calc(100vw - 2 * var(--zen-spacing-padding-medium, 16px)));
+  pointer-events: auto;
   box-sizing: border-box;
   gap: var(--zen-spacing-gap-xsmall, 8px);
   padding: var(--zen-spacing-padding-small, 12px);
@@ -558,6 +569,10 @@
   box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
   backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
   translate: -50% 0;
+  /* It opens as a Zen Popover does (zen-motion-pop-in: fade, a 4px slide from the pill, 2% scale), above its anchor. */
+  --zen-motion-from-y: 1;
+  transform-origin: bottom center;
+  animation: zen-motion-pop-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-emphasized, ease-out) both;
 }
 /* The App Shell playground opens full screen from its title row. */
 .platform-playground-screen { display: flex; grid-area: title; align-self: start; justify-self: end; padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
@@ -1260,3 +1275,5 @@
 .pth-outline__tag { min-width: 28px; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-accent-subtle-default, rgb(255 2 152 / 9%)); color: var(--zen-color-content-accent-base, #95197b); text-align: center; }
 .pth-outline__text { overflow: hidden; font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 900px) { .pth-demo { grid-template-columns: minmax(0, 1fr); } }
+/* Reduced motion: the Modes panel above the full-screen pill only fades in. */
+@media (prefers-reduced-motion: reduce) { .platform-fullscreen-bar__panel { animation-name: zen-motion-fade-in; } }

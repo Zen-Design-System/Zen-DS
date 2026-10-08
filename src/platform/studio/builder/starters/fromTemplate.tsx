@@ -20,6 +20,12 @@ export async function templateChoices(): Promise<TemplateChoice[]> {
   return templates.map((template, index) => ({ index, id: template.id, title: template.title, description: template.description, mobile: Boolean(template.mobile) }));
 }
 
+/** The template's screen component (New page's thumbnails render it, scaled down); null when it is gone. */
+export async function templateComponent(id: string) {
+  const { templates } = await loadTemplates();
+  return templates.find((template) => template.id === id)?.Component ?? null;
+}
+
 /** Width a desktop template renders at off screen (the Templates page's screen frames). */
 const DESKTOP_WIDTH = 1440;
 

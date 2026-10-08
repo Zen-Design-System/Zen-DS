@@ -16,7 +16,7 @@ import zlib from "node:zlib";
 import { fileURLToPath } from "node:url";
 import { build, preview } from "vite";
 import { unzipFiles } from "../zip.mjs";
-import { launchBrowser, openStudio, showLeftTab, sleep, until } from "./lib/studio.mjs";
+import { launchBrowser, openStudio, openStudioSpace, showLeftTab, sleep, until } from "./lib/studio.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../../..");
@@ -212,10 +212,11 @@ try {
   });
 
   await step("New page opens a phone page (the engine loads now)", async () => {
-    await page.getByRole("button", { name: "New page", exact: true }).click();
+    await openStudioSpace(page);
+    await page.locator("#studio-left").getByRole("button", { name: "New page", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "New page" });
     await dialog.getByLabel("Title").fill(title);
-    await dialog.getByRole("button", { name: "Phone" }).click();
+    await dialog.getByRole("radio", { name: /^Phone 390/ }).check({ force: true });
     await dialog.getByRole("button", { name: "Create page" }).click();
     await until(async () => /page=local%3A|page=local:/.test(page.url()) && (await page.locator('[data-studio-frame^="screen:"]').count()) > 0, { timeout: 20_000, message: "the page on the canvas" });
     id = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
@@ -353,7 +354,8 @@ try {
 
   await step("Link folder… keeps the page in the folder", async () => {
     await showLeftTab(page, "pages");
-    await page.getByRole("button", { name: "My pages options" }).click();
+    await openStudioSpace(page);
+    await page.getByRole("button", { name: "Studio options" }).click();
     await page.getByRole("menuitem", { name: /^Link folder/ }).click();
     await until(async () => new RegExp(FOLDER).test(await storageLine(page)), { timeout: 10_000, message: "the storage line names the folder" });
     await until(async () => (await folderFile(page, `${id}.zen.tsx`)) === (await storedText(page, id)), { timeout: 10_000, message: "the folder's file equals the stored page" });
@@ -397,7 +399,8 @@ try {
     await until(async () => (await folderFile(page, `${id}.zen.tsx`)) === null, { message: "gone from the folder" });
     const trash = await folderTrash(page);
     if (!trash.some((name) => name.startsWith(`${id}-`))) throw new Error(`not in the folder's trash (${trash.join(", ")})`);
-    await page.getByRole("button", { name: "My pages options" }).click();
+    await openStudioSpace(page);
+    await page.getByRole("button", { name: "Studio options" }).click();
     await page.getByRole("menuitem", { name: /^Trash/ }).click();
     const dialog = page.getByRole("dialog", { name: "Trash" });
     await dialog.locator(".studio-page-list__row", { hasText: title }).getByRole("button", { name: "Restore" }).click();
@@ -446,11 +449,11 @@ try {
   await step("New page › Start from a phone template (Mobile list, rendered off screen in this build)", async () => {
     await showLeftTab(page, "pages");
     const from = page.url();
-    await page.getByRole("button", { name: "New page", exact: true }).click();
+    await openStudioSpace(page);
+    await page.locator("#studio-left").getByRole("button", { name: "New page", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "New page" });
     await dialog.waitFor({ state: "visible", timeout: 10_000 });
-    await dialog.getByLabel("Start from").first().click();
-    await page.getByRole("option", { name: /^Mobile list/ }).click();
+    await dialog.getByRole("radio", { name: /^Mobile list/ }).check({ force: true });
     await dialog.getByRole("button", { name: "Create page" }).click();
     await until(async () => page.url() !== from && /page=local(%3A|:)/.test(page.url()), { timeout: 20_000, message: "the new page opened" });
     const starter = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");

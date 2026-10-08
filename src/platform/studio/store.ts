@@ -14,6 +14,7 @@ const PREFS_KEY = "zen-studio:prefs";
 const defaults: StudioState = {
   page: "overviews",
   localPage: null,
+  space: "document",
   collection: null,
   tool: "select",
   role: "admin",
@@ -31,7 +32,7 @@ const defaults: StudioState = {
   panels: { left: 272, right: 320, ui: true },
 };
 
-type SessionPart = Pick<StudioState, "page" | "localPage" | "collection" | "tool" | "viewports" | "selection" | "leftTab" | "inspectorTab" | "frameOverrides" | "undo" | "redo">;
+type SessionPart = Pick<StudioState, "page" | "localPage" | "space" | "collection" | "tool" | "viewports" | "selection" | "leftTab" | "inspectorTab" | "frameOverrides" | "undo" | "redo">;
 type PrefsPart = Pick<StudioState, "role" | "chromeTheme" | "preview" | "panels">;
 
 function read<T>(storage: () => Storage, key: string): Partial<T> {
@@ -76,8 +77,8 @@ let persistTimer: number | undefined;
 /** Write the persisted parts now. */
 export function flushStudioStore() {
   window.clearTimeout(persistTimer);
-  const { page, localPage, collection, tool, viewports, selection, leftTab, inspectorTab, frameOverrides, undo, redo, role, chromeTheme, preview, panels } = state;
-  write(() => window.sessionStorage, SESSION_KEY, { page, localPage, collection, tool, viewports, selection, leftTab, inspectorTab, frameOverrides, undo, redo } satisfies SessionPart);
+  const { page, localPage, space, collection, tool, viewports, selection, leftTab, inspectorTab, frameOverrides, undo, redo, role, chromeTheme, preview, panels } = state;
+  write(() => window.sessionStorage, SESSION_KEY, { page, localPage, space, collection, tool, viewports, selection, leftTab, inspectorTab, frameOverrides, undo, redo } satisfies SessionPart);
   write(() => window.localStorage, PREFS_KEY, { role, chromeTheme, preview, panels } satisfies PrefsPart);
 }
 
