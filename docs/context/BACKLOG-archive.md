@@ -21,7 +21,7 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   open page A then page B (both new pages, Screen id `screen-1`): the Page panel's Frames shows A's title. Likely the
   frame registry keys `screen:screen-1` without the page. Pointer: `builder/BuilderBoard.tsx` frame ids,
   `inspector/PagePanel.tsx` Frames.
-- **Closed (2026-10-07, backlog batch 5b: 3/3 alone again; the gate retries a failed row once and the E2E host-page reset between rows removed the inspector cascade):** ~~**P3 · Studio E2E I-11 is flaky too (2026-10-07, seen during GĐ3 M3):** "timed out after 20 s" once with
+- **Harness causes found 2026-10-08 (Studio backlog agent):** a row past its 20 s limit was not stopped (`Promise.race` leaves it running): it went on driving the shared page and the API under the next rows (a late reseed puts a newer fixture up while the next row waits for its own seed, which then times out too), and a Playwright step stuck on its 30 s default outlived the limit as a bare "timed out after 20 s", so no failure said which step hung. `run.mjs` now refuses a timed-out row's API, reseed, studio and text calls and gives the next row a fresh page; steps time out at 10 s with their own message (`lib/studio.mjs`). In the same runs LB-13 / LB-14 timed out 3/3 because LB-12 leaves Assets on Photos ("Search components" absent); they open the Components library first. I-11 itself did not fail in ~20 runs (library + inspector and wider, `--no-retry`; 5–8 s each). **Closed (2026-10-07, backlog batch 5b: 3/3 alone again; the gate retries a failed row once and the E2E host-page reset between rows removed the inspector cascade):** ~~**P3 · Studio E2E I-11 is flaky too (2026-10-07, seen during GĐ3 M3):** "timed out after 20 s" once with
   `--no-retry` right after the library group; 2/2 alone. Pointer: `tools/studio/e2e/scenarios/inspector.mjs` I-11.~~
 - ~~**P3 · Studio E2E I-15 is flaky**~~ done 2026-10-07 (GĐ4 M4, the user chose to fix the row: it waits for the field to
   read "sm · …" before ⌫; 5/5 alone, full matrix). Was: **(2026-10-06, session "Studio builder tool planning", seen during GĐ2 M2):** "Timed out
@@ -818,6 +818,14 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
 - [DONE: Layers rows and canvas outline/+ for data slots (SE-23, SE-24)] P3 (2026-10-04, session "Mở lại port preview", Studio data slots): the Layers panel lists no data-slot items (Figma shows
   the Action instances inside Trailing-Slot) and the canvas draws no outline or + chip for a data slot (SlotLayer knows
   content slots only); the Slots section and the item panel are the way in for now.
+
+## Done 2026-10-08 (Studio backlog agent: client fixes)
+- [DONE: canvas drag of several (ST-21), ⌘D selects every copy (K-22), Mixed numbers / spacing steps / text styles (I-30), ⌘C from several files (58d2a30, 5a25c71); 2026-10-08: the Layers panel drags several selected rows (ST-25), Quick actions and the canvas menu move several layers up / down] P3 (2026-10-03, session "Figma-like editing functionality"): multi-selection follow-ups — arrow keys and dragging move
+  one layer only (several: one at a time); Mixed properties cover variants and booleans (not text, number, spacing or
+  text style); ⌘D on several selects the first copy only (op many answers one loc); copying layers from two files is
+  refused ("one example at a time"). **2026-10-07 (backlog batch 5c):** done: the arrow keys on several layers of one
+  parent (K-13) and Mixed text props (I-16). Still open: dragging several, Mixed number / spacing / text style, ⌘D's
+  first copy only, two files.
 
 ## Done 2026-10-08 (parallel agents: Studio server and builder)
 - [DONE: canvas + server (many moveTo, duplicate locs; K-22, ST-21, I-30)] P3 · Delete / ⌘D / Move on a multi-selection (now one layer only, with a status line) and mixed-value property editing. **Sweep 2026-10-07:** Delete, ⌘D and mixed-value editing are done (`edit/multi.ts:55-75`, `MixedProperties.tsx`); Move on a multi-selection is still open (arrange.ts:131). **2026-10-07 (backlog batch 5c):** the arrow keys move several layers of one parent (op many move, `edit/multi.ts` stepLayers; E2E K-13); dragging several layers is still open.

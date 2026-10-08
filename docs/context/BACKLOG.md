@@ -106,7 +106,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
     without changing the grid track); "ResizeObserver loop completed" still fires at zoom ≤ 0.5 when frame labels crowd
     (pre-existing: defer FrameChrome's RO-path style writes to the next frame); at 1024px a toolbar inside the frame
     top opens its width menu upward off the window; after Clear contents → Reset slot → Undo ×2 on card example:5 the
-    selection layer drops the selection; GET /element 404s for removed children after a slot Clear. **Batch 5b 2026-10-07:** the frame chrome lays out on the next frame after a size change (no observer loop; not reproduced before). Zoom-to-fit was done earlier (see the sweep). Still open: the section size with a width override; unsure: the width menu at 1024, Undo×2, GET /element 404.
+    selection layer drops the selection; GET /element 404s for removed children after a slot Clear. **Batch 5b 2026-10-07:** the frame chrome lays out on the next frame after a size change (no observer loop; not reproduced before). Zoom-to-fit was done earlier (see the sweep). Still open: the section size with a width override; unsure: the width menu at 1024, Undo×2, GET /element 404. **Done 2026-10-08 (Studio backlog agent):** the section surface reaches a frame widened past the section edge (StudioBoard `--studio-section-overflow`; the grid track and the Docs frame stay put); GET /element 404 reproduced on card example:5 (Clear → Reset → Undo ×2: the spacing and resize layers read the host at its place before the write) and fixed (`select/remap.ts` liveSrc and mapInChangedBlock); not reproduced: the width menu at 1024 (768 / 600 / 1366 tall, toolbar in the frame top: opens below, inside the window) and Undo ×2 (the selection stays on the Card).
   - **P3 · Resize follow-ups (2026-10-03):** a fillChildren column with `height="fill"` whose own parent gives it no
     height collapses its children to 0 (needs a parent-aware rule); a column/row with only a minHeight keeps content
     heights (decide Figma parity); a px-capped component (number Chip, CSS max-width 40px) still offers width handles
@@ -296,16 +296,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - P3 (same session): Card `theme="shadow"` on an inherited alt surface (page scope `--zen-card-surface`, e.g.
   `.pe-shell[data-canvas="alt"]`) still casts its shadow; only an explicit `surface="alt"` drops it (CSS cannot read the
   inherited var).
-- P3 (same session): Studio slots — duplicate then clear the original makes reset treat the original as new (⌘Z works);
-  remove + insert of a same-named element in one slot is matched as the same element by "Modified"; menu captions over
+- P3 (same session): Studio slots — ~~duplicate then clear the original makes reset treat the original as new (⌘Z works)~~
+  done 2026-10-08 (`tools/studio/slots.mjs` matchElements: a changed element right before its identical copy, same tag
+  without its JSX props, keeps the saved identity; slots selftest); remove + insert of a same-named element in one slot is matched as the same element by "Modified"; menu captions over
   240px ("Required by ChartCard — replace its content instead") need shorter copy; snippet sync for inserts is best
   effort (most hand-written snippets do not contain the inserted element's anchor).
-- P3 (2026-10-03, session "Figma-like editing functionality"): multi-selection follow-ups — arrow keys and dragging move
-  one layer only (several: one at a time); Mixed properties cover variants and booleans (not text, number, spacing or
-  text style); ⌘D on several selects the first copy only (op many answers one loc); copying layers from two files is
-  refused ("one example at a time"). **2026-10-07 (backlog batch 5c):** done: the arrow keys on several layers of one
-  parent (K-13) and Mixed text props (I-16). Still open: dragging several, Mixed number / spacing / text style, ⌘D's
-  first copy only, two files.
+- P3 (2026-10-08, Studio backlog agent) · Studio E2E I-06 timed out once in ~10 library + inspector runs (`--no-retry`): after the reseed the canvas still showed the previous row's seed and edit (Seed 9, I-05's label), also after waitSeed's reload. Not seen again in 10 runs; the next failure now names its step (10 s step timeout). Pointer: `tools/studio/e2e/scenarios/inspector.mjs` waitSeed, `run.mjs` reseed.
 - P3 (2026-10-06, same session): **Card Flat has no hover/pressed** when clickable (`card.css` only styles Border's
   interactive states), so clickable cards stay `theme="border"` under §16; a Flat interactive state would let them
   follow the default mood.

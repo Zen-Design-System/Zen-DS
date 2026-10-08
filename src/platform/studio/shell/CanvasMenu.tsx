@@ -7,7 +7,7 @@ import { useExtraSelection } from "../select/multiSelection";
 import { autoLayoutShortcut, frameSelectionShortcut, wrapCheck, wrapSelection } from "../select/wrapSelection";
 import { useSlotMenuItems } from "../slots/menu";
 import { clipboardActions, clipboardMenuItems, clipboardShortcuts } from "../edit/clipboard";
-import { duplicateLayers, removeLayers } from "../edit/multi";
+import { duplicateLayers, removeLayers, stepLayers } from "../edit/multi";
 import { toggleIgnoreAutoLayout } from "../edit/ignoreAutoLayout";
 import { findFrame } from "../board/frames";
 import { newPageFromFrame } from "../builder/starters/newPageFromFrame";
@@ -25,7 +25,7 @@ import "./shell.css";
  * - a layer: Copy, Cut, Paste, Paste to replace, Copy / Paste properties (edit/clipboard.ts), Add to {Slot}…, Duplicate,
  *   Move up / down (slots/menu.ts), Wrap in Stack ⇧A / Wrap in Box ⌥⌘G (select/wrapSelection.ts), Detach instance, then
  *   Remove (destructive, last);
- * - several selected layers: Copy, Cut, Duplicate, Remove for all of them (edit/multi.ts), then the wrap items;
+ * - several selected layers: Copy, Cut, Duplicate, Move up / down, Remove for all of them (edit/multi.ts), then the wrap items;
  * - a frame: Zoom to frame, Present, Zoom to fit;
  * - the empty canvas: Zoom to fit, Zoom to 100%, Hide / show UI.
  * The selection layer opens it at the pointer; it renders in its own window-sized layer (chrome modes) and anchors to
@@ -111,6 +111,9 @@ export function CanvasMenu() {
     { id: "multi-copy", label: "Copy", icon: "icon-copy-line", shortcut: clipboardShortcuts.copy, onSelect: () => { void clipboardActions.copy(selection); } },
     { id: "multi-cut", label: "Cut", icon: "icon-scissors-line", shortcut: clipboardShortcuts.cut, disabled: Boolean(editOff), caption: editOff, onSelect: () => { void clipboardActions.cut(selection); } },
     { id: "multi-duplicate", label: "Duplicate", icon: "icon-duplicate-line", shortcut: duplicateShortcut, disabled: Boolean(editOff), caption: editOff, onSelect: () => { void duplicateLayers(); } },
+    // Several layers of one parent step together (op many move), as the arrow keys do.
+    { id: "multi-move-up", label: "Move up", icon: "icon-arrow-up-line", disabled: Boolean(editOff), caption: editOff, onSelect: () => { void stepLayers("prev"); } },
+    { id: "multi-move-down", label: "Move down", icon: "icon-arrow-down-line", disabled: Boolean(editOff), caption: editOff, onSelect: () => { void stepLayers("next"); } },
     { type: "separator", id: "multi-separator" },
     ...wrapItems,
     // Floats every selected Stack / Grid / Box at its own offsets (or puts them back in the flow): edit/ignoreAutoLayout.ts.

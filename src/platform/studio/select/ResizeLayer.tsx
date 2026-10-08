@@ -11,7 +11,7 @@ import { canEdit, flushStudioStore, studioStore, useStudio } from "../store";
 import type { EditOp, SourceElement, StudioSelection } from "../types";
 import cloning from "../cloning.json";
 import { childHits, nameOf, onSourceUpdate, selectionInstances, type FiberHit } from "./picker";
-import { expectRender, mapSrc, noteEditTarget, renderedNow, sameSelectedElement } from "./remap";
+import { liveSrc, expectRender, mapSrc, noteEditTarget, renderedNow, sameSelectedElement } from "./remap";
 import { breakpointOf, columnsSource, pxTrack, soleColumn, splitTracks, withTrackPx } from "./gridTracks";
 import { axisText, cloneReason, cloningParent, cloningProp, contentWidth, currentMode, layoutParent, lockBound, MIN_SIZE, noCross, pillReason, planFill, planHug, planHugAxis, planResize, reachesParent, refuseWrap, resizeTarget, snapSize, specimenOnly, stackAxes, stackFill, studioWrapper, withColumn, withoutAxes, withWrapper, wrappedChildLoc, wrapperCandidate, wrapRefusal, type AxisMode, type CloningList, type CrossFits, type ResizeAxis, type ResizePlan, type ResizeTarget } from "./resize";
 import type { Box } from "./spacing";
@@ -257,8 +257,13 @@ function useSourceElement(src: string | null, enabled: boolean): SourceElement |
   useEffect(() => {
     const parsed = enabled && src ? parseSrc(src) : null;
     if (!parsed || !src) return undefined;
+    // Right after a write (an undo, a slot Clear) the canvas still shows the render before it, so a `src` read from it
+    // may name a place the file no longer has (GET /element 404 on a cleared host): it is read where the write put it.
+    const live = liveSrc(src);
+    const at = live ? parseSrc(live) : null;
+    if (!at) return undefined;
     let alive = true;
-    void studioApi.element(parsed.file, parsed.loc).then((element) => { if (alive) setRead({ src, element }); });
+    void studioApi.element(at.file, at.loc).then((element) => { if (alive) setRead({ src, element }); });
     return () => { alive = false; };
   }, [src, enabled, version, undo, redo]);
   return read && read.src === src ? read.element : undefined;

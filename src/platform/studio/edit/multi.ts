@@ -228,16 +228,20 @@ export async function codeOfLayers(layers: ExtraLayer[]): Promise<{ file: string
   for (const [file, locs] of byFile) {
     const source = await studioApi.source(file).catch(() => null);
     if (!source) return "The layers' file could not be read";
-    const ranges: Array<{ start: number; end: number }> = [];
+    const read: Array<{ range: { start: number; end: number }; stateReads?: StateDecl[] }> = [];
     for (const loc of locs) {
       const element = await studioApi.element(file, loc);
       if (!element?.range) return "Restart the dev server to copy layers";
-      ranges.push(element.range);
+      read.push({ range: element.range, stateReads: element.stateReads });
     }
     // One layer inside another selected one is copied with it, once.
-    const outer = ranges.filter((range) => !ranges.some((other) => other !== range && other.start <= range.start && range.end <= other.end)).map((range) => dedented(source.content, range));
-    parts.push(...outer);
-    for (const entry of statesRead(outer.join("\n"), source.content)) if (!state.some((known) => known.name === entry.name) && state.length < 8) state.push(entry);
+    const outer = read.filter(({ range }) => !read.some((other) => other.range !== range && other.range.start <= range.start && range.end <= other.range.end));
+    const code = outer.map(({ range }) => dedented(source.content, range));
+    parts.push(...code);
+    // The dev server reads each layer's state from the AST (GET /element stateReads: scope-aware, DOM refs such as a
+    // Popover's anchor), as one layer's copy does (clipboard.ts); without it, the text scan.
+    const reads = outer.flatMap((entry, i) => entry.stateReads ?? statesRead(code[i], source.content));
+    for (const entry of reads) if (!state.some((known) => known.name === entry.name) && state.length < 8) state.push(entry);
   }
   return { file: byFile.size === 1 ? [...byFile.keys()][0] : null, code: parts.join("\n"), state };
 }

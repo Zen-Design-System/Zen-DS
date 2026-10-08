@@ -615,6 +615,18 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Zen Studio: Reset slot after a duplicate (2026-10-08):** duplicate a slot item, then Clear the original: Reset
+  slot now gives the original its saved content back (it was refused as "new since the last save") and the copy stays
+  the new one.
+- **Zen Studio: section surface and stale reads (2026-10-08):** a frame widened past the Examples section's edge stays
+  on the section's tinted surface (nothing moves, the Docs frame included); right after a slot Clear, Reset or their
+  undo the canvas's spacing and resize layers read the element where the write put it (no more GET /element 404s), and
+  the selection follows an element whose own line changed while other lines changed too.
+- **Zen Studio: copying several layers (2026-10-08):** ⌘C on a multi-selection carries the useState values and DOM
+  refs the dev server reads from the AST (as one layer's copy does), the text scan only as a fallback.
+- **Studio E2E harness (2026-10-08):** a row past its 20 s limit no longer keeps driving the page and the server under
+  the next rows (its calls are refused, the next row gets a fresh page); a stuck step fails at 10 s with its own
+  message; LB-13 / LB-14 open the Components library (LB-12 left Assets on Photos and they timed out every run).
 - **Fill height in a column without a height (2026-10-08):** a column Stack with `height="fill"` whose parent gives it
   no height no longer collapses its Fill or `fillChildren` children to 0; they keep their content height, and a column
   with a height still shares it equally (a 0% flex basis).
@@ -933,6 +945,9 @@ removed (four unused colour ramps were, see Removed).
     which still bleeds outside the trail).
 
 ### Changed
+- **Zen Studio: move several layers (2026-10-08):** dragging a row of a multi-selection in the Layers panel moves every
+  selected layer (one edit, they stay selected; E2E ST-25), and Quick actions › Move earlier / later and the canvas
+  menu's Move up / down act on all selected layers, as the arrow keys and a canvas drag already did.
 - **Docs platform: old app-layer examples removed (2026-10-08):** the examples in `src/platform/appLayer/*` for pages
   that have a rebuilt `examples/pages/<page>.tsx` were never shown; they, `shellScreens.tsx` and their CSS are gone
   (about 4,000 lines). The playgrounds and the Templates page keep theirs.

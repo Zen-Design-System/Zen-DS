@@ -30,6 +30,8 @@ type SectionLayoutState = {
   observed: Set<HTMLElement>;
   /** Measured heights (world px, fractional as the layout's own), per frame id. */
   heights: Map<string, number>;
+  /** Measured rendered widths (a width override renders wider than the rule width the columns use), per frame id. */
+  widths: Map<string, number>;
   /** The heights the opening rows were laid out with (boardLayout.ts `base`), per frame id. */
   base: Map<string, number>;
   /** The last left/top written on each frame element. */
@@ -120,7 +122,7 @@ function useSectionLayout(containerRef: RefObject<HTMLDivElement | null>, frames
   if (!stateRef.current || keyRef.current !== key) {
     const opening = openingFor(key);
     keyRef.current = key;
-    stateRef.current = { observer: stateRef.current?.observer ?? null, observed: stateRef.current?.observed ?? new Set(), heights: new Map(), base: opening.base, placed: new WeakMap(), settled: opening.settled, size: "", sizeFrame: 0 };
+    stateRef.current = { observer: stateRef.current?.observer ?? null, observed: stateRef.current?.observed ?? new Set(), heights: new Map(), widths: new Map(), base: opening.base, placed: new WeakMap(), settled: opening.settled, size: "", sizeFrame: 0 };
   }
 
   /** `fromObserver`: called back by the ResizeObserver, where a new section size would resize the section and the world
@@ -152,8 +154,12 @@ function useSectionLayout(containerRef: RefObject<HTMLDivElement | null>, frames
       element.style.top = `${y}px`;
       moved = true;
     });
+    // A width override renders a frame past the section edge without moving anything (nor the Docs frame beside the
+    // section: the grid track keeps the rule extent); the tinted surface reaches the rendered right edge.
+    const right = list.reduce((most, { id }, index) => Math.max(most, layout.positions[index].x + (state.widths.get(id) ?? elements.get(id)!.offsetWidth)), layout.width);
+    const overflow = Math.max(0, right - layout.width);
     // The section's size, compared as written (the style reads back rounded to 6 digits).
-    const size = `${layout.width}px ${layout.height}px`;
+    const size = `${layout.width}px ${layout.height}px ${overflow}px`;
     cancelAnimationFrame(state.sizeFrame);
     state.sizeFrame = 0;
     if (state.size !== size) {
@@ -162,6 +168,7 @@ function useSectionLayout(containerRef: RefObject<HTMLDivElement | null>, frames
         state.size = size;
         container.style.width = `${layout.width}px`;
         container.style.height = `${layout.height}px`;
+        container.parentElement?.style.setProperty("--studio-section-overflow", `${overflow}px`);
       };
       if (fromObserver) state.sizeFrame = requestAnimationFrame(resize);
       else resize();
@@ -178,6 +185,7 @@ function useSectionLayout(containerRef: RefObject<HTMLDivElement | null>, frames
         if (!id) continue;
         const size = entry.borderBoxSize?.[0];
         state.heights.set(id, size ? size.blockSize : entry.contentRect.height);
+        state.widths.set(id, size ? size.inlineSize : entry.contentRect.width);
       }
       place(true);
     });
