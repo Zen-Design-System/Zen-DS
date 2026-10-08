@@ -5,8 +5,10 @@ import { useStudio } from "../store";
 import "./shell.css";
 
 /*
- * The Studio chrome's token modes: Component Theme Neutral-S7, Compact, Typography Dashboard, Rounded, Emphasis Medium,
- * Standard contrast, the chrome light/dark. Every mode is set, so chrome inside a preview (Play and Present's bar and
+ * The Studio chrome's token modes: Component Theme Neutral-S7, Component Size / Typography Configuration / Corner Radius
+ * "Studio" (repo modes for the chrome, 2026-10-09: Figma UI3-like — controls 24 · 28 · 32, Body/Base 13, Rounded's
+ * corner ladder on a Base of 8, buttons still pills),
+ * Emphasis Medium, Standard contrast, the chrome light/dark. Every mode is set, so chrome inside a preview (Play and Present's bar and
  * Modes panel sit in the presented example's layer) never takes the example's modes (user, 2026-10-09).
  * Each chrome region (toolbar, side panels, canvas overlays) is its own scope instead of one provider around the app:
  * tokens.css re-resolves the component theme for every [data-theme] under a [data-component-theme] ancestor, so an
@@ -15,7 +17,7 @@ import "./shell.css";
 
 export const ChromePortalContext = createContext<HTMLElement | null>(null);
 
-export const chromeModes = { componentTheme: "neutral-s7", density: "compact", typography: "dashboard", radius: "rounded", emphasis: "medium", contrast: "standard" } as const;
+export const chromeModes = { componentTheme: "neutral-s7", density: "studio", typography: "studio", radius: "studio", emphasis: "medium", contrast: "standard" } as const;
 
 type ChromeScopeProps = Omit<HTMLAttributes<HTMLElement>, "style"> & { as?: ElementType; className?: string; children?: ReactNode; inert?: boolean };
 

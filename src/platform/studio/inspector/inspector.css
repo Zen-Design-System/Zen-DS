@@ -13,7 +13,6 @@
   line-height: var(--zen-typography-line-height-body-small);
   letter-spacing: var(--zen-typography-letter-spacing-body-small);
 }
-:is(.studio-inspector__tabs, .studio-left__tabs) .zen-tab__container { border-radius: var(--zen-corner-radius-small, 8px); }
 .studio-inspector__body { flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; }
 .studio-inspector__body:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid); }
 .studio-inspector__panel { display: flex; min-width: 0; flex-direction: column; }
@@ -83,7 +82,9 @@
 .studio-inspector__section--fill > .studio-inspector__section-body > * { min-height: 0; flex: 1 1 0; }
 /* The trailing slot is a fixed column sized like an xs IconButton (density-safe), so a control's width never changes
    with its value state (a reset appearing or not). */
-.studio-inspector__row { display: grid; min-width: 0; min-height: 32px; grid-template-columns: var(--studio-inspector-label) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-inspector__row { display: grid; min-width: 0; min-height: 32px; grid-template-columns: var(--studio-inspector-label) minmax(0, 1fr); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* A row with an action (Remove effect, Restore a binding…) adds its slot; every other control fills to the edge. */
+.studio-inspector__row[data-action="true"] { grid-template-columns: var(--studio-inspector-label) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); }
 /* Header rows: one xs-button height; a value that wraps (Repeats) keeps its label on its first line. */
 .studio-inspector__row[data-compact="true"] { min-height: var(--zen-button-size-xsmall, 24px); align-items: start; }
 .studio-inspector__row[data-compact="true"] > .studio-inspector__row-label,
@@ -121,7 +122,7 @@
 /* A literal shown without an editor (Grid columns={2}). */
 .studio-inspector__value { min-width: 0; overflow: hidden; color: var(--zen-color-content-neutral-strongest); text-overflow: ellipsis; white-space: nowrap; }
 /* A value the inspector shows but cannot edit ({…}, ƒ()). */
-.studio-inspector__chip { display: inline-flex; min-width: 0; max-width: 100%; padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); overflow: hidden; border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-neutral-pale-default); color: var(--zen-color-content-neutral-base); text-overflow: ellipsis; white-space: nowrap; }
+.studio-inspector__chip { display: inline-flex; min-width: 0; max-width: 100%; padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); overflow: hidden; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-pale-default); color: var(--zen-color-content-neutral-base); text-overflow: ellipsis; white-space: nowrap; }
 
 /* A value bound to code (Design panel UI3, user 2026-10-06): a ƒ after the label, never a line of its own; the control
    shows what the element renders. Info tone, the code font at the label's size. */
@@ -173,7 +174,7 @@
 .studio-text-source__action.zen-button { flex: 0 0 auto; margin-inline-end: calc(-1 * var(--zen-button-horizontal-padding, 6px)); }
 /* A row "Edit size" jumped to: a short tint so the eye finds it (a colour change, kept under reduced motion). */
 .studio-inspector__row[data-flash="true"],
-.studio-inspector .platform-property-row[data-flash="true"] { border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-info-subtle-default); box-shadow: 0 0 0 var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-color-background-info-subtle-default); }
+.studio-inspector .platform-property-row[data-flash="true"] { border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-info-subtle-default); box-shadow: 0 0 0 var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-color-background-info-subtle-default); }
 .studio-inspector__row,
 .studio-inspector .platform-property-row { transition: background-color var(--zen-motion-duration-base) var(--zen-motion-ease-standard), box-shadow var(--zen-motion-duration-base) var(--zen-motion-ease-standard); }
 
@@ -183,7 +184,7 @@
    hover fill reaches 4px past the content, which stays aligned with the section heading. */
 .studio-inspector__items { display: grid; margin: 0; padding: 0; list-style: none; }
 .studio-inspector__item-wrap { display: flex; min-width: 0; }
-.studio-inspector__item { display: flex; width: calc(100% + 2 * var(--zen-spacing-padding-2-xsmall, 4px)); min-width: 0; height: 28px; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); margin-inline: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)); padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: transparent; color: var(--zen-color-content-neutral-strongest); cursor: pointer; text-align: start; }
+.studio-inspector__item { display: flex; width: calc(100% + 2 * var(--zen-spacing-padding-2-xsmall, 4px)); min-width: 0; height: 28px; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); margin-inline: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)); padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-base, 12px); background: transparent; color: var(--zen-color-content-neutral-strongest); cursor: pointer; text-align: start; }
 .studio-inspector__item:hover { background: var(--zen-color-background-surface-hover); }
 .studio-inspector__item:active { background: var(--zen-color-background-surface-pressed); }
 .studio-inspector__item:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid); }
@@ -201,7 +202,7 @@
 .studio-part__links { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-part__code.zen-button { min-width: 0; color: var(--zen-color-content-neutral-base); }
 .studio-part__code.zen-button:hover { color: var(--zen-color-content-neutral-strongest); }
-.studio-part__edit { padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-info-subtle-default); color: var(--zen-color-content-info-strongest); }
+.studio-part__edit { padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-info-subtle-default); color: var(--zen-color-content-info-strongest); }
 /* A data-slot item (TopNavigation's trailing action, DataItemPanel): its move / duplicate / remove buttons in one row,
    and, for a part inside an item, the note with its "Select {item}" link under it. */
 .studio-item__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }

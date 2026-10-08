@@ -43,11 +43,11 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "style" | "className" | "childre
 | --- | --- | --- | --- |
 | `theme` | `"light" \| "dark" \| "system"` | — | Colour mode. `system` follows the OS (prefers-color-scheme). Unset: inherit (the page default is light). |
 | `componentTheme` | `"neutral-s1" \| "neutral-s2" \| "neutral-s3" \| "neutral-s4" \| "neutral-s5" \| "neutral-s6" \| "neutral-s7" \| "brand-s1" \| "brand-s2"` | — | Component colour theme (Figma "Component Theme" mode). Default neutral-s1. |
-| `density` | `"compact" \| "comfortable"` | — | Spacing density. Default compact (dashboards); comfortable for touch-first or marketing layouts. |
-| `radius` | `"rounded" \| "smooth" \| "standard" \| "luxury"` | — | Corner-radius scale. Default rounded. |
+| `density` | `"compact" \| "comfortable" \| "studio"` | — | Spacing density. Default compact (dashboards); comfortable for touch-first or marketing layouts. |
+| `radius` | `"rounded" \| "smooth" \| "standard" \| "luxury" \| "studio"` | — | Corner-radius scale. Default rounded. |
 | `emphasis` | `"medium" \| "strong" \| "light"` | — | Font weights and active stroke widths (Figma "Emphasis Level" mode). Default medium; light is lighter, strong heavier. |
 | `breakpoint` | `"auto" \| "desktop" \| "tablet" \| "mobile"` | — | Layout tokens (page margin, gutter, modal/card padding). `auto` follows the viewport: < 744px mobile, < 1024px tablet, else desktop. Default: `auto` on the outermost provider, inherited in nested ones. |
-| `typography` | `"dashboard" \| "popular" \| "mobile"` | — | Text-style scale. dashboard (default) for web apps, mobile for phone apps, popular for marketing pages. |
+| `typography` | `"dashboard" \| "popular" \| "mobile" \| "studio"` | — | Text-style scale. dashboard (default) for web apps, mobile for phone apps, popular for marketing pages. |
 | `brand` | `"zen"` | — |  |
 | `contrast` | `"standard" \| "high" \| "system"` | — | Contrast. `high` raises the borders of Checkbox, Radio and Subtle controls to 3:1 and placeholders, Light text and a colour's Light text to 4.5:1; step 9 of every colour, the backgrounds and the text on Solid fills stay. `system` follows the OS Increase Contrast setting. Unset: inherit (the page default is standard). |
 | `locale` | `string` | — | BCP 47 language of the content: sets `lang`, date formats, and the built-in labels of every Zen component (accessible names, "Close", "Next page", toolbar tooltips…). Built in: en, vi. Unknown languages fall back to en. |

@@ -2,7 +2,7 @@
    Spec docs/research/studio-inspector-redesign-2026-10-03.md (Phases 3, 4, 6). Tokens only. */
 
 /* ── Alignment box: 3×3 targets of 24×20 on Background/Neutral/Pale (Figma's alignment control) ── */
-.studio-align-box { display: grid; flex: 0 0 auto; grid-template-columns: repeat(3, 24px); grid-template-rows: repeat(3, 20px); padding: var(--zen-spacing-padding-3-xsmall, 2px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-neutral-pale-default); }
+.studio-align-box { display: grid; flex: 0 0 auto; grid-template-columns: repeat(3, 24px); grid-template-rows: repeat(3, 20px); padding: var(--zen-spacing-padding-3-xsmall, 2px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-pale-default); }
 .studio-align-box__target { position: relative; display: grid; min-width: 0; min-height: 0; padding: var(--zen-spacing-padding-3-xsmall, 2px); place-items: center; border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: transparent; color: var(--zen-color-content-neutral-light); cursor: pointer; }
 .studio-align-box__target:hover:not(:disabled) { background: var(--zen-color-background-surface-hover); }
 .studio-align-box__target:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--zen-color-focus-neutral-solid); }
@@ -44,8 +44,11 @@
 /* ── Layout groups: a label above, the controls, the fixed trailing slot (as the Size group) ── */
 .studio-layout-group { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-layout-group__label { color: var(--zen-color-content-neutral-base); }
-.studio-layout-group__row { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
-.studio-layout-group__row[data-pair="true"] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); }
+.studio-layout-group__row { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-layout-group__row[data-pair="true"] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+/* A row with an action (Relink the gaps, Same padding on all sides) adds its slot; the others fill to the edge. */
+.studio-layout-group__row:has(> .studio-layout-group__slot) { grid-template-columns: minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); }
+.studio-layout-group__row[data-pair="true"]:has(> .studio-layout-group__slot) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); }
 .studio-layout-group__slot { display: inline-flex; width: var(--zen-button-size-xsmall, 24px); min-width: var(--zen-button-size-xsmall, 24px); align-items: center; justify-content: center; }
 /* Alignment box beside its right column (Gap, Cross axis), Figma UI3's arrangement. */
 .studio-layout-align { display: grid; min-width: 0; grid-template-columns: auto minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: start; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
@@ -61,7 +64,7 @@
 
 /* No-effect warning: the note and its Remove. */
 .studio-layout-warning { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.studio-layout-warning__text { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
+.studio-layout-warning__text { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
 .studio-layout-warning__text > .zen-icon { flex: 0 0 auto; }
 .studio-layout-warning > .zen-button { flex: 0 0 auto; }
 

@@ -837,6 +837,23 @@ removed (four unused colour ramps were, see Removed).
     which still bleeds outside the trail).
 
 ### Changed
+- **Zen Studio inspector: inputs read the same everywhere (2026-10-09):** no per-field "Reset … to default" button
+  (properties, Layout direction and alignment, Align in parent, Position offsets, text alignment, text style); a field
+  goes back to its default from inside it ("None", "Default", "none · 0", Backspace) or with Reset all overrides. A row
+  keeps a trailing slot only when it has a real action (Remove effect, Restore a binding, Relink gaps, Min and max), so
+  every other control fills to the edge. The Studio's list rows (Pages, Layers, Assets, Quick insert, inspector lists)
+  take Corner-Radius/Base, as the Zen Sidebar item does — the same corner as an input. The other Studio corners follow
+  their Zen role: notes as Inline Message (Large), value chips as Tag (pill), control boxes (alignment, constraints) as
+  inputs, the code block Base, New page cards XLarge (concentric around their Base thumbnails), row highlights and drop
+  targets as the row; Pages / Layers tabs use the Zen Tabs corner. The storage line under Folders is an info tooltip
+  (it stays a line only to ask for Reconnect or Retry).
+- **Token modes "Studio" for the Zen Studio chrome (2026-10-09):** Component Size, Typography Configuration and Corner
+  Radius each gain a mode Studio (`data-density` / `data-typography` / `data-radius="studio"`; ZenProvider accepts
+  `density`, `typography` and `radius` "studio"): Figma UI3-like controls (Button / Input / Chip / Tab xs 24 · sm 28 ·
+  md 32), Body/Base 13/20 with Caption 11 · Small 12 · Subheading 15 · Heading/4 18, and Rounded's corner ladder on a
+  Base of 8 (Small 6 · Base 8 · Large 12 · XLarge 16 …, +4 a step so a 4px inset stays concentric; inputs 8 · 8 · 12 ·
+  12; buttons stay pills). Every other value is Compact, Dashboard or Rounded. The Studio chrome uses them (ChromeScope);
+  examples keep their own modes. Repo-only: the Figma file does not have these modes yet.
 - **Zen Studio: Document | Studio spaces, folders, visual New page, modes only in Play/Present (2026-10-09):** the
   toolbar's breadcrumb is a Document | Studio switch. Document lists the docs pages; Studio holds the pages you make in
   folders (New folder, New page in a folder, Rename, Delete → Trash, Move to on each page; pages with no folder under "Not

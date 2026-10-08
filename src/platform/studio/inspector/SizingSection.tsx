@@ -335,8 +335,9 @@ function SizeGroup({ api, specs, component, host, src }: LayoutGroupProps & { sr
             />
           );
         })}
-        <span className="studio-sizing__slot">
-          {menuItems.length ? (
+        {/* Min and max: a slot only when the menu has something to offer, so the fields fill to the edge otherwise. */}
+        {menuItems.length ? (
+          <span className="studio-sizing__slot">
             <Menu
               align="end"
               aria-label="Min and max size"
@@ -344,8 +345,8 @@ function SizeGroup({ api, specs, component, host, src }: LayoutGroupProps & { sr
               items={menuItems}
               onSelect={(item) => onMenu(item.id)}
             />
-          ) : null}
-        </span>
+          </span>
+        ) : null}
       </div>
 
       {axes.filter(pairShown).map((axis) => (
@@ -362,7 +363,7 @@ function SizeGroup({ api, specs, component, host, src }: LayoutGroupProps & { sr
               onWrite={send}
             />
           ) : <span key={prop} />))}
-          <span className="studio-sizing__slot" />
+          {menuItems.length ? <span className="studio-sizing__slot" /> : null}
         </div>
       ))}
 
@@ -737,14 +738,11 @@ function AlignInParent({ value, info, disabled, onWrite }: { value: PropValue; i
   const follows = effective.baseline ? "text baseline" : selectedName.toLowerCase();
   const tip = useIconTooltip(literal ? false : `Follows the parent: ${follows}`);
   const label = <span {...tip.bind({})}>Align in parent{tip.tooltip}</span>;
-  const reset = literal && !disabled
-    ? <IconButton icon="icon-reverse-left-line" aria-label="Reset align in parent" appearance="flat" level="primary" size="xs" onClick={() => onWrite(alignSelfOps(null, value))} />
-    : <span className="studio-sizing__slot" />;
   if (value.state === "bound" || (value.state === "spread" && fed)) {
-    return <InspectorRow name="alignSelf" label={label} action={<span className="studio-sizing__slot" />}><ReadOnlyValue label="Align in parent" text={selectedName} value={value} /></InspectorRow>;
+    return <InspectorRow name="alignSelf" label={label}><ReadOnlyValue label="Align in parent" text={selectedName} value={value} /></InspectorRow>;
   }
   return (
-    <InspectorRow name="alignSelf" label={label} isDefault={!literal} action={reset}>
+    <InspectorRow name="alignSelf" label={label} isDefault={!literal}>
       <div className="studio-sizing__seg" data-default={!literal || undefined}>
         <Segmented
           aria-label={literal ? "Align in parent" : `Align in parent (follows the parent: ${follows})`}
@@ -765,11 +763,11 @@ function Children({ value, disabled, onWrite }: { value: PropValue; disabled: bo
   const tip = useIconTooltip("Fill equally: every child takes an equal share along the direction; a child's own width or height wins");
   const label = <span {...tip.bind({})}>Children{tip.tooltip}</span>;
   if (value.state === "bound" || (value.state === "spread" && typeof value.live === "boolean")) {
-    return <InspectorRow name="fillChildren" label={label} action={<span className="studio-sizing__slot" />}><ReadOnlyValue label="Children" text={on ? "Fill equally" : "Own size"} value={value} /></InspectorRow>;
+    return <InspectorRow name="fillChildren" label={label}><ReadOnlyValue label="Children" text={on ? "Fill equally" : "Own size"} value={value} /></InspectorRow>;
   }
   const unset = value.state === "unset" || value.state === "spread";
   return (
-    <InspectorRow name="fillChildren" label={label} isDefault={unset} action={<span className="studio-sizing__slot" />}>
+    <InspectorRow name="fillChildren" label={label} isDefault={unset}>
       <div className="studio-sizing__seg" data-default={unset || undefined}>
         <Segmented
           aria-label="Children"

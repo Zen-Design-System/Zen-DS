@@ -231,7 +231,8 @@ export const rows = [
       await insertAsset(page, "Badge");
       await until(async () => /<Badge/.test(folderText(ctx, id) ?? ""), { message: "the Badge in the folder's file" });
       if (folderText(ctx, id) !== (await pageText(page, id))) throw new Error("the folder and the browser differ");
-      if (!/Kept in/.test(await page.locator('[data-storage="mirror"]').innerText())) throw new Error("the panel does not say the folder keeps the pages");
+      // Where the pages are kept is the info icon's tooltip by Folders (its accessible name) since 2026-10-09.
+      if (!/Kept in/.test((await page.locator(".studio-pages__info").getAttribute("aria-label")) ?? "")) throw new Error("the panel does not say the folder keeps the pages");
       return `${id}.zen.tsx written, same text as the browser`;
     },
   },

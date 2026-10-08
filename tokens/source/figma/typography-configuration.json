@@ -3,7 +3,8 @@
     "modes": [
       "Dashboard",
       "Popular",
-      "Mobile"
+      "Mobile",
+      "Studio"
     ],
     "tokens": [
       {
@@ -12,7 +13,8 @@
         "valuesByMode": {
           "Dashboard": "Inter",
           "Popular": "Inter",
-          "Mobile": "Inter"
+          "Mobile": "Inter",
+          "Studio": "Inter"
         }
       },
       {
@@ -21,7 +23,8 @@
         "valuesByMode": {
           "Dashboard": "Inter",
           "Popular": "Inter",
-          "Mobile": "Inter"
+          "Mobile": "Inter",
+          "Studio": "Inter"
         }
       },
       {
@@ -30,7 +33,8 @@
         "valuesByMode": {
           "Dashboard": "Inter",
           "Popular": "Inter",
-          "Mobile": "Inter"
+          "Mobile": "Inter",
+          "Studio": "Inter"
         }
       },
       {
@@ -39,7 +43,8 @@
         "valuesByMode": {
           "Dashboard": "Inter",
           "Popular": "Inter",
-          "Mobile": "Inter"
+          "Mobile": "Inter",
+          "Studio": "Inter"
         }
       },
       {
@@ -48,7 +53,8 @@
         "valuesByMode": {
           "Dashboard": "JetBrains Mono",
           "Popular": "JetBrains Mono",
-          "Mobile": "JetBrains Mono"
+          "Mobile": "JetBrains Mono",
+          "Studio": "JetBrains Mono"
         }
       },
       {
@@ -57,7 +63,8 @@
         "valuesByMode": {
           "Dashboard": 45,
           "Popular": 60,
-          "Mobile": 52
+          "Mobile": 52,
+          "Studio": 40
         }
       },
       {
@@ -66,7 +73,8 @@
         "valuesByMode": {
           "Dashboard": 52,
           "Popular": 68,
-          "Mobile": 60
+          "Mobile": 60,
+          "Studio": 48
         }
       },
       {
@@ -75,7 +83,8 @@
         "valuesByMode": {
           "Dashboard": -1.5199999809265137,
           "Popular": -3,
-          "Mobile": -2.0799999237060547
+          "Mobile": -2.0799999237060547,
+          "Studio": -1.36
         }
       },
       {
@@ -84,7 +93,8 @@
         "valuesByMode": {
           "Dashboard": 40,
           "Popular": 52,
-          "Mobile": 46
+          "Mobile": 46,
+          "Studio": 36
         }
       },
       {
@@ -93,7 +103,8 @@
         "valuesByMode": {
           "Dashboard": 44,
           "Popular": 60,
-          "Mobile": 52
+          "Mobile": 52,
+          "Studio": 44
         }
       },
       {
@@ -102,7 +113,8 @@
         "valuesByMode": {
           "Dashboard": -1.2100000381469727,
           "Popular": -2.0799999237060547,
-          "Mobile": -1.840000033378601
+          "Mobile": -1.840000033378601,
+          "Studio": -1.09
         }
       },
       {
@@ -111,7 +123,8 @@
         "valuesByMode": {
           "Dashboard": 36,
           "Popular": 46,
-          "Mobile": 41
+          "Mobile": 41,
+          "Studio": 32
         }
       },
       {
@@ -120,7 +133,8 @@
         "valuesByMode": {
           "Dashboard": 44,
           "Popular": 52,
-          "Mobile": 48
+          "Mobile": 48,
+          "Studio": 40
         }
       },
       {
@@ -129,7 +143,8 @@
         "valuesByMode": {
           "Dashboard": -0.9800000190734863,
           "Popular": -1.840000033378601,
-          "Mobile": -1.6399999856948853
+          "Mobile": -1.6399999856948853,
+          "Studio": -0.86
         }
       },
       {
@@ -138,7 +153,8 @@
         "valuesByMode": {
           "Dashboard": 32,
           "Popular": 40,
-          "Mobile": 36
+          "Mobile": 36,
+          "Studio": 28
         }
       },
       {
@@ -147,7 +163,8 @@
         "valuesByMode": {
           "Dashboard": 40,
           "Popular": 48,
-          "Mobile": 44
+          "Mobile": 44,
+          "Studio": 36
         }
       },
       {
@@ -156,7 +173,8 @@
         "valuesByMode": {
           "Dashboard": -0.7599999904632568,
           "Popular": -1.600000023841858,
-          "Mobile": -1.0800000429153442
+          "Mobile": -1.0800000429153442,
+          "Studio": -0.66
         }
       },
       {
@@ -165,7 +183,8 @@
         "valuesByMode": {
           "Dashboard": 28,
           "Popular": 36,
-          "Mobile": 32
+          "Mobile": 32,
+          "Studio": 24
         }
       },
       {
@@ -174,7 +193,8 @@
         "valuesByMode": {
           "Dashboard": 36,
           "Popular": 44,
-          "Mobile": 40
+          "Mobile": 40,
+          "Studio": 32
         }
       },
       {
@@ -183,7 +203,8 @@
         "valuesByMode": {
           "Dashboard": -0.5600000023841858,
           "Popular": -1.2599999904632568,
-          "Mobile": -0.9599999785423279
+          "Mobile": -0.9599999785423279,
+          "Studio": -0.48
         }
       },
       {
@@ -192,7 +213,8 @@
         "valuesByMode": {
           "Dashboard": 20,
           "Popular": 24,
-          "Mobile": 23
+          "Mobile": 23,
+          "Studio": 18
         }
       },
       {
@@ -201,7 +223,8 @@
         "valuesByMode": {
           "Dashboard": 28,
           "Popular": 32,
-          "Mobile": 32
+          "Mobile": 32,
+          "Studio": 24
         }
       },
       {
@@ -210,7 +233,8 @@
         "valuesByMode": {
           "Dashboard": -0.4000000059604645,
           "Popular": -0.7200000286102295,
-          "Mobile": -0.6899999976158142
+          "Mobile": -0.6899999976158142,
+          "Studio": -0.36
         }
       },
       {
@@ -219,7 +243,8 @@
         "valuesByMode": {
           "Dashboard": 18,
           "Popular": 20,
-          "Mobile": 20
+          "Mobile": 20,
+          "Studio": 15
         }
       },
       {
@@ -228,7 +253,8 @@
         "valuesByMode": {
           "Dashboard": 24,
           "Popular": 28,
-          "Mobile": 28
+          "Mobile": 28,
+          "Studio": 22
         }
       },
       {
@@ -237,7 +263,8 @@
         "valuesByMode": {
           "Dashboard": -0.36000001430511475,
           "Popular": -0.6000000238418579,
-          "Mobile": -0.6000000238418579
+          "Mobile": -0.6000000238418579,
+          "Studio": -0.3
         }
       },
       {
@@ -246,7 +273,8 @@
         "valuesByMode": {
           "Dashboard": 14,
           "Popular": 16,
-          "Mobile": 16
+          "Mobile": 16,
+          "Studio": 13
         }
       },
       {
@@ -255,7 +283,8 @@
         "valuesByMode": {
           "Dashboard": 20,
           "Popular": 24,
-          "Mobile": 24
+          "Mobile": 24,
+          "Studio": 20
         }
       },
       {
@@ -264,7 +293,8 @@
         "valuesByMode": {
           "Dashboard": -0.14000000059604645,
           "Popular": -0.3199999928474426,
-          "Mobile": -0.1599999964237213
+          "Mobile": -0.1599999964237213,
+          "Studio": -0.13
         }
       },
       {
@@ -273,7 +303,8 @@
         "valuesByMode": {
           "Dashboard": 12,
           "Popular": 14,
-          "Mobile": 14
+          "Mobile": 14,
+          "Studio": 12
         }
       },
       {
@@ -282,7 +313,8 @@
         "valuesByMode": {
           "Dashboard": 16,
           "Popular": 20,
-          "Mobile": 20
+          "Mobile": 20,
+          "Studio": 16
         }
       },
       {
@@ -291,7 +323,8 @@
         "valuesByMode": {
           "Dashboard": 0,
           "Popular": -0.2800000011920929,
-          "Mobile": -0.14000000059604645
+          "Mobile": -0.14000000059604645,
+          "Studio": 0
         }
       },
       {
@@ -300,7 +333,8 @@
         "valuesByMode": {
           "Dashboard": 11,
           "Popular": 12,
-          "Mobile": 13
+          "Mobile": 13,
+          "Studio": 11
         }
       },
       {
@@ -309,7 +343,8 @@
         "valuesByMode": {
           "Dashboard": 16,
           "Popular": 16,
-          "Mobile": 16
+          "Mobile": 16,
+          "Studio": 16
         }
       },
       {
@@ -318,7 +353,8 @@
         "valuesByMode": {
           "Dashboard": 0,
           "Popular": 0,
-          "Mobile": 0
+          "Mobile": 0,
+          "Studio": 0
         }
       },
       {
@@ -327,7 +363,8 @@
         "valuesByMode": {
           "Dashboard": 9,
           "Popular": 10,
-          "Mobile": 10
+          "Mobile": 10,
+          "Studio": 9
         }
       },
       {
@@ -336,7 +373,8 @@
         "valuesByMode": {
           "Dashboard": 12,
           "Popular": 12,
-          "Mobile": 12
+          "Mobile": 12,
+          "Studio": 12
         }
       },
       {
@@ -345,7 +383,8 @@
         "valuesByMode": {
           "Dashboard": 0,
           "Popular": 0,
-          "Mobile": 0
+          "Mobile": 0,
+          "Studio": 0
         }
       },
       {
@@ -354,7 +393,8 @@
         "valuesByMode": {
           "Dashboard": 14,
           "Popular": 16,
-          "Mobile": 16
+          "Mobile": 16,
+          "Studio": 13
         }
       },
       {
@@ -363,7 +403,8 @@
         "valuesByMode": {
           "Dashboard": 20,
           "Popular": 24,
-          "Mobile": 24
+          "Mobile": 24,
+          "Studio": 20
         }
       },
       {
@@ -372,7 +413,8 @@
         "valuesByMode": {
           "Dashboard": 0,
           "Popular": -0.3199999928474426,
-          "Mobile": 0
+          "Mobile": 0,
+          "Studio": 0
         }
       },
       {
@@ -381,7 +423,8 @@
         "valuesByMode": {
           "Dashboard": 14,
           "Popular": 16,
-          "Mobile": 16
+          "Mobile": 16,
+          "Studio": 13
         }
       },
       {
@@ -390,7 +433,8 @@
         "valuesByMode": {
           "Dashboard": 20,
           "Popular": 24,
-          "Mobile": 24
+          "Mobile": 24,
+          "Studio": 20
         }
       },
       {
@@ -399,7 +443,8 @@
         "valuesByMode": {
           "Dashboard": 0,
           "Popular": -0.3199999928474426,
-          "Mobile": 0
+          "Mobile": 0,
+          "Studio": 0
         }
       },
       {
@@ -408,7 +453,8 @@
         "valuesByMode": {
           "Dashboard": 14,
           "Popular": 16,
-          "Mobile": 16
+          "Mobile": 16,
+          "Studio": 12
         }
       },
       {
@@ -417,7 +463,8 @@
         "valuesByMode": {
           "Dashboard": 20,
           "Popular": 24,
-          "Mobile": 24
+          "Mobile": 24,
+          "Studio": 16
         }
       },
       {
@@ -426,7 +473,8 @@
         "valuesByMode": {
           "Dashboard": 0,
           "Popular": -0.3199999928474426,
-          "Mobile": 0
+          "Mobile": 0,
+          "Studio": 0
         }
       },
       {
@@ -435,7 +483,8 @@
         "valuesByMode": {
           "Dashboard": 12,
           "Popular": 14,
-          "Mobile": 14
+          "Mobile": 14,
+          "Studio": 11
         }
       },
       {
@@ -444,7 +493,8 @@
         "valuesByMode": {
           "Dashboard": 12,
           "Popular": 16,
-          "Mobile": 14
+          "Mobile": 14,
+          "Studio": 12
         }
       },
       {
@@ -453,7 +503,8 @@
         "valuesByMode": {
           "Dashboard": 0,
           "Popular": -0.2800000011920929,
-          "Mobile": 0
+          "Mobile": 0,
+          "Studio": 0
         }
       },
       {
@@ -462,7 +513,8 @@
         "valuesByMode": {
           "Dashboard": 14,
           "Popular": 16,
-          "Mobile": 16
+          "Mobile": 16,
+          "Studio": 12
         }
       },
       {
@@ -471,7 +523,8 @@
         "valuesByMode": {
           "Dashboard": 16,
           "Popular": 20,
-          "Mobile": 18
+          "Mobile": 18,
+          "Studio": 16
         }
       },
       {
@@ -480,7 +533,8 @@
         "valuesByMode": {
           "Dashboard": 0,
           "Popular": 0,
-          "Mobile": 0
+          "Mobile": 0,
+          "Studio": 0
         }
       },
       {
@@ -489,7 +543,8 @@
         "valuesByMode": {
           "Dashboard": 12,
           "Popular": 14,
-          "Mobile": 14
+          "Mobile": 14,
+          "Studio": 11
         }
       },
       {
@@ -498,7 +553,8 @@
         "valuesByMode": {
           "Dashboard": 16,
           "Popular": 16,
-          "Mobile": 20
+          "Mobile": 20,
+          "Studio": 16
         }
       },
       {
@@ -507,7 +563,8 @@
         "valuesByMode": {
           "Dashboard": 0,
           "Popular": 0,
-          "Mobile": 0
+          "Mobile": 0,
+          "Studio": 0
         }
       },
       {
@@ -516,7 +573,8 @@
         "valuesByMode": {
           "Dashboard": 22,
           "Popular": 28,
-          "Mobile": 26
+          "Mobile": 26,
+          "Studio": 20
         }
       },
       {
@@ -525,7 +583,8 @@
         "valuesByMode": {
           "Dashboard": 28,
           "Popular": 36,
-          "Mobile": 36
+          "Mobile": 36,
+          "Studio": 28
         }
       },
       {
@@ -534,7 +593,8 @@
         "valuesByMode": {
           "Dashboard": -0.4399999976158142,
           "Popular": -0.8399999737739563,
-          "Mobile": -0.7799999713897705
+          "Mobile": -0.7799999713897705,
+          "Studio": -0.4
         }
       },
       {
@@ -543,7 +603,8 @@
         "valuesByMode": {
           "Dashboard": 16,
           "Popular": 20,
-          "Mobile": 18
+          "Mobile": 18,
+          "Studio": 15
         }
       },
       {
@@ -552,7 +613,8 @@
         "valuesByMode": {
           "Dashboard": 24,
           "Popular": 32,
-          "Mobile": 28
+          "Mobile": 28,
+          "Studio": 22
         }
       },
       {
@@ -561,7 +623,8 @@
         "valuesByMode": {
           "Dashboard": 0,
           "Popular": -0.4000000059604645,
-          "Mobile": 0
+          "Mobile": 0,
+          "Studio": 0
         }
       },
       {
@@ -570,7 +633,8 @@
         "valuesByMode": {
           "Dashboard": 25,
           "Popular": 32,
-          "Mobile": 29
+          "Mobile": 29,
+          "Studio": 22
         }
       },
       {
@@ -579,7 +643,8 @@
         "valuesByMode": {
           "Dashboard": 32,
           "Popular": 40,
-          "Mobile": 36
+          "Mobile": 36,
+          "Studio": 28
         }
       },
       {
@@ -588,7 +653,8 @@
         "valuesByMode": {
           "Dashboard": -0.5,
           "Popular": -0.9599999785423279,
-          "Mobile": -0.8700000047683716
+          "Mobile": -0.8700000047683716,
+          "Studio": -0.44
         }
       },
       {
@@ -597,7 +663,8 @@
         "valuesByMode": {
           "Dashboard": 16,
           "Popular": 18,
-          "Mobile": 18
+          "Mobile": 18,
+          "Studio": 15
         }
       },
       {
@@ -606,7 +673,8 @@
         "valuesByMode": {
           "Dashboard": 24,
           "Popular": 24,
-          "Mobile": 24
+          "Mobile": 24,
+          "Studio": 22
         }
       },
       {
@@ -615,7 +683,8 @@
         "valuesByMode": {
           "Dashboard": -0.1599999964237213,
           "Popular": -0.36000001430511475,
-          "Mobile": -0.27000001072883606
+          "Mobile": -0.27000001072883606,
+          "Studio": -0.15
         }
       },
       {
@@ -624,7 +693,8 @@
         "valuesByMode": {
           "Dashboard": 65,
           "Popular": 88,
-          "Mobile": 74
+          "Mobile": 74,
+          "Studio": 56
         }
       },
       {
@@ -633,7 +703,8 @@
         "valuesByMode": {
           "Dashboard": 72,
           "Popular": 100,
-          "Mobile": 84
+          "Mobile": 84,
+          "Studio": 64
         }
       },
       {
@@ -642,7 +713,8 @@
         "valuesByMode": {
           "Dashboard": -2.880000114440918,
           "Popular": -3.5199999809265137,
-          "Mobile": -3.2699999809265137
+          "Mobile": -3.2699999809265137,
+          "Studio": -2.48
         }
       },
       {
@@ -651,7 +723,8 @@
         "valuesByMode": {
           "Dashboard": 58,
           "Popular": 78,
-          "Mobile": 66
+          "Mobile": 66,
+          "Studio": 50
         }
       },
       {
@@ -660,7 +733,8 @@
         "valuesByMode": {
           "Dashboard": 60,
           "Popular": 88,
-          "Mobile": 70
+          "Mobile": 70,
+          "Studio": 56
         }
       },
       {
@@ -669,7 +743,8 @@
         "valuesByMode": {
           "Dashboard": -2.380000114440918,
           "Popular": -3.119999885559082,
-          "Mobile": -2.700000047683716
+          "Mobile": -2.700000047683716,
+          "Studio": -2.05
         }
       },
       {
@@ -678,7 +753,8 @@
         "valuesByMode": {
           "Dashboard": 51,
           "Popular": 68,
-          "Mobile": 58
+          "Mobile": 58,
+          "Studio": 44
         }
       },
       {
@@ -687,7 +763,8 @@
         "valuesByMode": {
           "Dashboard": 58,
           "Popular": 72,
-          "Mobile": 66
+          "Mobile": 66,
+          "Studio": 52
         }
       },
       {
@@ -696,7 +773,8 @@
         "valuesByMode": {
           "Dashboard": -1.899999976158142,
           "Popular": -2.7200000286102295,
-          "Mobile": -2.319999933242798
+          "Mobile": -2.319999933242798,
+          "Studio": -1.64
         }
       },
       {
@@ -705,7 +783,8 @@
         "valuesByMode": {
           "Dashboard": 0,
           "Popular": 0,
-          "Mobile": 0
+          "Mobile": 0,
+          "Studio": 0
         }
       }
     ]

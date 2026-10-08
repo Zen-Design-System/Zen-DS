@@ -23,5 +23,5 @@
 .studio-group__icon { display: inline-flex; flex: 0 0 auto; color: var(--zen-color-content-support-purple-base); }
 .studio-group__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* A prop that does nothing in this state stays editable; its reason sits under it (sizing.css .studio-sizing__note look). */
-.studio-group__warning { display: flex; min-width: 0; align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
+.studio-group__warning { display: flex; min-width: 0; align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
 .studio-group__warning > .zen-icon { flex: 0 0 auto; margin-top: var(--zen-spacing-padding-3-xsmall, 2px); }

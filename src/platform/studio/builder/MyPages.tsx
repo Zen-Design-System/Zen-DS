@@ -5,6 +5,7 @@ import { Icon } from "../../../components/Icon";
 import { InputField } from "../../../components/Input";
 import { Menu, type MenuEntry } from "../../../components/Menu";
 import { Text } from "../../../components/Text";
+import { useIconTooltip } from "../../../components/Tooltip";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { announceEditStatus } from "../api";
 import { openLocalPage } from "../shell/navigation";
@@ -60,6 +61,7 @@ function leaveIfOpen(id: string) {
 export function MyPagesHeader({ onNew, onNewFolder }: { onNew: () => void; onNewFolder?: () => void }) {
   const admin = useStudio((state) => state.role === "admin");
   const storage = useStorage();
+  const storageTip = useIconTooltip(storageText(storage), { placement: "bottom" });
   const trash = useTrash();
   const [trashOpen, setTrashOpen] = useState(false);
   const input = useRef<HTMLInputElement>(null);
@@ -110,7 +112,13 @@ export function MyPagesHeader({ onNew, onNewFolder }: { onNew: () => void; onNew
   return (
     <>
       <div className="studio-pages__kicker-row">
-        <Text as="p" id="studio-pages-mine" textStyle="Caption/Medium" tone="base" className="studio-pages__kicker">Folders</Text>
+        <span className="studio-pages__kicker studio-pages__kicker--info">
+          <Text as="span" id="studio-pages-mine" textStyle="Caption/Medium" tone="base">Folders</Text>
+          {/* Where the pages are kept, in an info tooltip (user, 2026-10-09: not a line of its own). Zen's icon tooltip: a
+              fixed layer in the portal, flipped and kept inside the window, so the scrolling panel never cuts it off. */}
+          <button type="button" className="studio-pages__info" aria-label={storageText(storage)} {...storageTip.bind({})}><Icon name="icon-info-circle-line" size="2xs" decorative /></button>
+          {storageTip.tooltip}
+        </span>
         {onNewFolder ? <IconButton icon="icon-folder-plus-line" aria-label="New folder" appearance="flat" level="primary" size="xs" disabled={!admin} onClick={onNewFolder} /> : null}
         <IconButton icon="icon-plus-line" aria-label="New page" appearance="flat" level="primary" size="xs" disabled={!admin} onClick={onNew} />
         <Menu align="end" aria-label="Studio options" items={items} trigger={<IconButton icon="icon-dots-horizontal-line" aria-label="Studio options" appearance="flat" level="primary" size="xs" />} />
@@ -128,13 +136,18 @@ export function MyPagesHeader({ onNew, onNewFolder }: { onNew: () => void; onNew
 }
 
 /** Where the pages are kept: this browser, the dev server's folder, a linked folder (or one to reconnect). */
+function storageText(storage: ReturnType<typeof useStorage>) {
+  if (storage.kind === "browser") return "In this browser · Export to keep a copy";
+  if (storage.kind === "reconnect") return `Folder “${storage.label}” needs access again`;
+  if (storage.error) return `Not synced: ${storage.error}`;
+  return `${storage.syncing ? "Syncing with" : "Kept in"} ${storage.mirror === "dev" ? storage.label : `“${storage.label}”`}`;
+}
+
+/** The storage line under the kicker, only when it asks for something (Reconnect, Retry); else the info tooltip says it. */
 function StorageLine() {
   const storage = useStorage();
-  let text: string;
-  if (storage.kind === "browser") text = "In this browser · Export to keep a copy";
-  else if (storage.kind === "reconnect") text = `Folder “${storage.label}” needs access again`;
-  else if (storage.error) text = `Not synced: ${storage.error}`;
-  else text = `${storage.syncing ? "Syncing with" : "Kept in"} ${storage.mirror === "dev" ? storage.label : `“${storage.label}”`}`;
+  const text = storageText(storage);
+  if (storage.kind !== "reconnect" && !(storage.kind === "mirror" && storage.error)) return null;
   return (
     <div className="studio-pages__storage" data-storage={storage.kind} data-error={storage.kind === "mirror" && storage.error ? "true" : undefined}>
       <Text as="p" textStyle="Caption/Regular" tone={storage.kind === "mirror" && storage.error ? "negative" : "base"} className="studio-pages__storage-text" role="status">{text}</Text>

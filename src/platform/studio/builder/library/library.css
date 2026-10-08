@@ -24,7 +24,7 @@
 .studio-qi__target { margin: 0; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-xsmall, 8px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio-qi__body { display: flex; min-height: 0; flex: 1 1 auto; border-top: 1px solid var(--zen-color-border-neutral-subtle-default); }
 .studio-qi__list { min-width: 0; flex: 1 1 50%; margin: 0; padding: var(--zen-spacing-padding-2-xsmall, 4px); overflow: auto; list-style: none; }
-.studio-qi__option { display: flex; min-width: 0; height: 32px; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0 var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-small, 8px); color: var(--zen-color-content-neutral-strongest); cursor: pointer; }
+.studio-qi__option { display: flex; min-width: 0; height: 32px; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0 var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-base, 12px); color: var(--zen-color-content-neutral-strongest); cursor: pointer; }
 .studio-qi__option > .zen-icon { flex: 0 0 auto; color: var(--zen-color-content-neutral-base); }
 .studio-qi__option[aria-selected="true"] { background: var(--zen-color-background-active-neutral-subtle); }
 .studio-qi__name { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

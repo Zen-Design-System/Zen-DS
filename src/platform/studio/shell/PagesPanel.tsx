@@ -91,7 +91,7 @@ export function PagesPanel() {
           size="sm"
           placeholder={studio ? "Search your pages" : "Search pages"}
           aria-label={studio ? "Search your pages" : "Search pages"}
-          shortcut="k"
+          // No ⌘K badge on the field (user, 2026-10-09); ⌘K still opens it (StudioApp, listed in Keyboard shortcuts).
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onClear={() => setQuery("")}

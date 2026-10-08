@@ -28,7 +28,7 @@
         },
         {
           "name": "density",
-          "type": "\"compact\" | \"comfortable\"",
+          "type": "\"compact\" | \"comfortable\" | \"studio\"",
           "required": false,
           "default": null,
           "description": "Spacing density. Default compact (dashboards); comfortable for touch-first or marketing layouts.",
@@ -36,7 +36,7 @@
         },
         {
           "name": "radius",
-          "type": "\"rounded\" | \"smooth\" | \"standard\" | \"luxury\"",
+          "type": "\"rounded\" | \"smooth\" | \"standard\" | \"luxury\" | \"studio\"",
           "required": false,
           "default": null,
           "description": "Corner-radius scale. Default rounded.",
@@ -60,7 +60,7 @@
         },
         {
           "name": "typography",
-          "type": "\"dashboard\" | \"popular\" | \"mobile\"",
+          "type": "\"dashboard\" | \"popular\" | \"mobile\" | \"studio\"",
           "required": false,
           "default": null,
           "description": "Text-style scale. dashboard (default) for web apps, mobile for phone apps, popular for marketing pages.",

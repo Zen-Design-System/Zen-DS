@@ -70,7 +70,6 @@ function Seg({ label, value, unset, disabled, options, onPick }: { label: string
   );
 }
 
-const resetButton = (label: string, onClick: () => void) => <IconButton icon="icon-reverse-left-line" aria-label={label} appearance="flat" level="primary" size="xs" onClick={onClick} />;
 
 export function LayoutSection({ specs, api, note, component, sizing, attributes, host }: {
   specs: PropSpec[];
@@ -162,7 +161,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
     ];
     const anyWritten = written.direction !== undefined || written.wrap !== undefined;
     groups.push(
-      <InspectorRow key="flow" name="direction" label="Direction" labelTitle="Direction · direction, wrap" isDefault={!anyWritten} action={anyWritten && !disabled ? resetButton("Reset direction", () => apply(flowOps(written, "vertical"), "reset direction")) : null}>
+      <InspectorRow key="flow" name="direction" label="Direction" labelTitle="Direction · direction, wrap" isDefault={!anyWritten}>
         <Seg label="Direction" value={flow} unset={!anyWritten} disabled={disabled} options={items} onPick={(next) => apply(flowOps(written, next as Flow), `flow → ${next}`)} />
       </InspectorRow>,
     );
@@ -178,7 +177,6 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
     const crossItems: Array<{ id: CrossMode; icon: string; name: string }> = row
       ? [{ id: "position", icon: "icon-align-vertical-center-01-line", name: "Position" }, { id: "stretch", icon: "icon-chevron-selector-vertical-line", name: "Stretch" }, { id: "baseline", icon: "icon-type-01-line", name: "Text baseline" }]
       : [{ id: "position", icon: "icon-align-horizontal-centre-01-line", name: "Position" }, { id: "stretch", icon: "icon-chevron-selector-horizontal-line", name: "Stretch" }];
-    const alignWritten = written.align !== undefined || written.justify !== undefined;
     groups.push(
       <Group key="align" label="Alignment" name="align justify">
         <div className="studio-layout-align">
@@ -198,7 +196,6 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
               onPick={(next) => apply(crossOps(written, next as CrossMode), `cross axis → ${next}`)}
             />
           </div>
-          <span className="studio-layout-group__slot">{alignWritten && !disabled ? resetButton("Reset alignment", () => apply([...(written.align !== undefined ? [{ op: "removeProp", name: "align" } as EditOp] : []), ...(written.justify !== undefined ? [{ op: "removeProp", name: "justify" } as EditOp] : [])], "reset alignment")) : null}</span>
         </div>
       </Group>,
     );
@@ -225,7 +222,6 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
               ]}
               onPick={(next) => apply(next === "stretch" ? [{ op: "removeProp", name: "align" }] : [{ op: "setProp", name: "align", value: { kind: "string", value: next } }], `align → ${next}`)}
             />
-            <span className="studio-layout-group__slot">{written.align !== undefined && !disabled ? resetButton("Reset alignment", () => api.removeProp("align")) : null}</span>
           </div>
         </Group>,
       );
@@ -317,7 +313,6 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
       <Group key="grid-padding" label="Padding">
         <div className="studio-layout-group__row">
           {scale("padding", "Padding", "icon-grid-dots-outer-line", (key) => apply([{ op: "setProp", name: "padding", value: { kind: "string", value: key } }], `padding → ${key}`))}
-          <span className="studio-layout-group__slot" />
         </div>
       </Group>,
     );
@@ -342,7 +337,6 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
             ]}
             onPick={(next) => apply(next === "end" ? [{ op: "removeProp", name: "align" }] : [{ op: "setProp", name: "align", value: { kind: "string", value: next } }], `align → ${next}`)}
           />
-          <span className="studio-layout-group__slot">{written.align !== undefined && !disabled ? resetButton("Reset alignment", () => api.removeProp("align")) : null}</span>
         </div>
       </Group>,
     );

@@ -56,3 +56,62 @@
   Studio theme and frame overrides stay. (2) `ChromeScope` set theme/component theme/density/typography but not
   radius/emphasis/contrast, so the bar and the Modes panel took the example's: `chromeModes` (+ `useChromeAttributes`)
   now set all seven. Measured in Present: example dark + Luxury; the bar light, rounded, S7, compact; Studio light after.
+
+## Studio chrome scale: token modes "Studio" (user request, tier L: token source + Studio chrome)
+
+- Committed + pushed the Studio work first (`e09b535`). User's rules: keep Zen tokens, principles and components; only
+  add modes (Component Size, Typography Configuration — and, after a follow-up, Corner Radius) and adapt them to the
+  request (base 13, Figma UI3 scale, components 24 · 28 · 32, smaller corners as components shrink).
+- Token sources: mode "Studio" appended to `component-size.json` (Compact + Button 20/24/28/32/40/48, icons 12/12/16/16/
+  20/24, Input 28/32/40/48 + headings 36/32/28, Chip 24/28/32, Select-Item 24/28, Segmented 24/28, Tab 28/32, Table
+  40/32, Element-Size Base 16 · Medium 20 · Large 24, vertical paddings to the new heights), `typography-configuration
+  .json` (Dashboard + Caption 11/16, Body-Small 12/16, Body-Base 13/20, Body-Extra 15/22, Subheading 15/22, Heading-4
+  18/24 … Heading-1 24/32, Display scaled, button labels 15/13/13/12/11, caps 12/11) and `corner-radius.json` (Standard +
+  2XSmall 2 · XSmall 4 · Small 6 · Base 8 · Large 12…, Action 6/6/8/8/12 with focus +6, Input 6/8/8/12, Rounded 1000).
+  `figma.collections.json` modes + a repo-only note. `zenDensities` / `zenTypographies` / `zenRadii` + "studio".
+- `ChromeScope.chromeModes`: density / typography / radius "studio". Example mode pickers list their values explicitly,
+  so "studio" never appears there. Measured: inspector select 28px r6, segmented 24px, tabs 28px.
+- Follow-up (user): Studio corners = Rounded, the others scaled with the current scale. `corner-radius.json` Studio is now
+  Rounded ×0.8 (the controls' 40 → 32): 2XSmall 2 · XSmall 4 · Small 6 · Base 10 · Large 12 · XLarge 16 · 2XLarge 20 ·
+  3XLarge 22 · Giant 26 · XGiant 28; Input 10 · 10 · 12 · 12; Action, Focus and Rounded stay 1000 (pills).
+- Static gates on the first build (before the radius follow-up): style / usage guard, Studio selftests, tokens:check,
+  tsc, Vitest 30/30, Figma contracts 23/23 + interactions.
+
+## Inspector: one input pattern, no per-field reset; list rows on Corner-Radius/Base (user, tier S)
+
+- Removed every per-field reset button (PropField "Reset … to default", DesignPanel text style, HostTextAlignment,
+  PositionSection offsets, LayoutSection direction / alignment, SizingSection align in parent) and the empty slots that
+  reserved 24px. Defaults stay reachable inside the controls (TypographyControl "None", Position "none", IconToggle
+  "Default", ScaleField Backspace) or with Reset all overrides; Restore-a-binding stays (it is not a default).
+- `InspectorRow` renders its action column only with an action (`data-action`); `.studio-layout-group__row` and
+  `.studio-sizing__pair` add the slot column with `:has(> slot)`; Min and max shows its slot only with menu items.
+  Measured: every property / content / attribute control ends at the same right edge (1500px at 1512).
+- User: "an input's corner and a sidebar item's should match in Zen" — they do (Input/Medium and Base: 12 Rounded, 10
+  Studio). The Studio's own list rows (Pages, Layers, Assets, Quick insert, inspector items) were on Small / XSmall:
+  now Corner-Radius/Base like the Zen Sidebar item.
+- Gate for the Studio modes (before these edits): PASS, Studio E2E 142/142; warnings pre-existing (inline-message
+  "Copy value" dead click added to BACKLOG).
+- Corner ladder: ×0.8 broke Zen's concentric rule (Rounded climbs +4 a step, so a 4px inset nests; ×0.8 gave Base 10 /
+  Large 12). Then the user: "base 8". Studio radius now 2XS 2 · XS 4 · S 6 · Base 8 · L 12 · XL 16 · 2XL 20 · 3XL 24 ·
+  Giant 28 · XGiant 32; Input 8 · 8 · 12 · 12; actions, focus and Rounded 1000.
+- Studio corner audit by Zen role: code block → Base; value chip → pill (Tag); notes (group / sizing / layout / position
+  warnings, part edit note, builder errors) → Large (Inline Message); alignment box and constraints → Input/Small; row
+  flashes and drop targets (property row, slot, layers into, slots onto) → Base; assets drop zone → Large (was the
+  undefined --zen-corner-radius-medium); New page cards → XLarge (Base thumb + 8 inset); removed the tabs override
+  (Zen Tabs corner) and the dead `.studio-modes` / `.studio-modes__panel` rules. Popovers (Quick insert, Gate, Drafts)
+  were already Large with Base rows; canvas annotations (labels, tags, kbd, counts, swatches) stay XSmall / 2XSmall.
+- User: "Kept in …" goes in a tooltip by an info icon after Folders. MyPagesHeader: Folders + Zen's labelTooltip pattern
+  (Tooltip small, 12px icon-info-circle-line button, 24px hit area, Focus/Neutral/Subtle ring), placement right (the
+  scrolling panel cut it off above/below). `StorageLine` renders only for Reconnect / a sync error with Retry.
+- Gate for the inspector change: PASS, Studio E2E 142/142 (warnings pre-existing: LayoutSection "Remove" not danger,
+  `.studio-part__swatch` Pale border on an actionable box — added to BACKLOG).
+- User: no shortcut on the sidebar search. PagesPanel's Search drops `shortcut="k"` (the ⌘K badge and the field's own
+  handler); ⌘K still opens the page search through StudioApp's handler (and Keyboard shortcuts lists it).
+- User: the tooltip was cut off at the panel's right edge (a narrow panel). The Zen <Tooltip> renders in place, inside
+  the scrolling panel; the info icon now uses Zen's `useIconTooltip` (a fixed layer in the portal, flipped and clamped
+  to the window): measured at a 220px panel, the tooltip sits at x 4–164, in the portal. build-check's `storageLine`
+  reads the info icon's name when the line is hidden.
+- Full gate (token scope, 56 pages): Vitest 30/30, Figma contracts 23/23, audit/dark/behaviour 0 errors (warnings are
+  example debt), Studio E2E 141/142 — B-07 read the hidden storage line: it now reads the info icon's name. Style guard
+  radius/role: the alignment box and constraints are not fields → Corner-Radius/Base. MyPages' raw-button warnings were
+  from the <Tooltip> version (the current file passes).

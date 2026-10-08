@@ -173,7 +173,13 @@ async function pick(page, prop, label) {
   await page.getByRole("option", { name: label, exact: typeof label === "string" }).click();
 }
 const inspectorTab = (page, name) => page.locator("#studio-right").getByRole("tab", { name }).click();
-const storageLine = (page) => page.locator(".studio-pages__storage").innerText();
+/** Where the pages are kept: the line under Folders when it asks for something (Reconnect, Retry), else the info
+ *  icon's tooltip text (its accessible name). Both live in the Studio space. */
+const storageLine = async (page) => {
+  await openStudioSpace(page);
+  const line = page.locator(".studio-pages__storage");
+  return (await line.count()) ? line.innerText() : (await page.locator(".studio-pages__info").getAttribute("aria-label")) ?? "";
+};
 
 const reportDir = path.join(root, ".qa/studio-e2e");
 fs.mkdirSync(reportDir, { recursive: true });

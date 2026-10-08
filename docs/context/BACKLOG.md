@@ -154,6 +154,9 @@ Read this file only when picking up work or logging a follow-up.
     and Tabs only, so there is no slot for a banner under the bar.
 
 ## Backlog (plan before opening sessions)
+- **P3 · Studio chrome lint debt (2026-10-09, seen by the gate, not caused by the changes):** LayoutSection.tsx "Remove"
+  button not level danger (button/destructive-is-danger); `.studio-part__swatch` frames an actionable box with a Pale
+  border (border/pale-actionable-box); AssetsPanel.tsx:153 Button size xs (button/compact-size-special).
 - **P3 · Example lint debt seen in the DockIcon re-sync gate (2026-10-09, not caused by it):** `divider.tsx:358` a
   `<Text textStyle="Heading/2">` used as a title (type/visual-heading); `action-bar.tsx:406, 521` ListItem trailing
   buttons at size xs (list-item/trailing-button-medium).
@@ -162,7 +165,7 @@ Read this file only when picking up work or logging a follow-up.
   (inbox row, Audio call), app-shell (Activity), list-item (Revoke invite), uploader (Retry). Report:
   `.qa/reports/2026-10-08T15-19-57-2f7410ba.md`.
   Also on templates (seen 2026-10-08 16:13): HR pages use 8 text styles each ([rhythm]), HR · Home sibling h2 in
-  Heading/1 vs Heading/4 ([outline-siblings]), and the templates page exceeds the 90s behaviour budget. Report:
+  Heading/1 vs Heading/4 ([outline-siblings]), and the templates page exceeds the 90s behaviour budget. Also (2026-10-09): inline-message "Verify a domain" › Copy value dead click. Report:
   `.qa/reports/2026-10-08T16-13-55-2f7410ba.md`.
 - **P3 · Button example "Hand off when ready": a Stack with gap 2px (2026-10-08, audit [ladder] warning at 1512/390/dark,
   surfaced by the gate for the classic code-view change, not caused by it).** Pointer: `src/platform/examples/pages/button.tsx`.
