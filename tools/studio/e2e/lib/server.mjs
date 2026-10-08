@@ -29,10 +29,30 @@ export const pagesDirOf = (port) => `${DRAFTS_DIR}/e2e-pages-${port}/pages`;
 export const promoteDirOf = (port) => `${DRAFTS_DIR}/e2e-promote-${port}/src/templates/studio`;
 
 /**
+ * The watcher's `ignored` for a run that must not catch peers' edits (2026-10-08): under src/ and tools/ only the files
+ * the harness writes (`watched`, repo-relative) and the folders on their way are watched; a peer's edit to a Studio
+ * module no longer hot-updates (or restarts) the run's server mid-row. Drafts reach the canvas through the plugin's own
+ * reload, not the watcher, so nothing the rows do needs more.
+ */
+export function peerIgnore(root, watched) {
+  const posix = (value) => value.split(path.sep).join("/");
+  const files = new Set(watched.map((rel) => posix(path.join(root, rel))));
+  const dirs = new Set();
+  for (const file of files) for (let dir = path.posix.dirname(file); dir.length > posix(root).length; dir = path.posix.dirname(dir)) dirs.add(dir);
+  const guardedTrees = ["src", "tools"].map((top) => `${posix(root)}/${top}`);
+  return (target) => {
+    const abs = posix(path.resolve(target));
+    if (!guardedTrees.some((tree) => abs === tree || abs.startsWith(`${tree}/`))) return false;
+    return !(files.has(abs) || dirs.has(abs) || guardedTrees.includes(abs));
+  };
+}
+
+/**
  * Starts the harness server. `port` pins one port (fails when busy); otherwise the first free one in 5190–5199.
+ * `watchOnly` (repo-relative files): watch just those under src/ and tools/ (peerIgnore); unset: the whole tree.
  * Returns { url, port, close }.
  */
-export async function startServer(root, { port: wanted } = {}) {
+export async function startServer(root, { port: wanted, watchOnly } = {}) {
   const port = wanted ?? (await freePort(5190, 5199));
   if (!port) throw new Error("No free port in 5190–5199 for the Studio E2E server");
   fs.rmSync(draftsFileOf(root, port), { force: true });
@@ -60,7 +80,7 @@ export async function startServer(root, { port: wanted } = {}) {
       allowedHosts: [E2E_HOST_ALIAS],
       // No HMR overlay: a fixture error must show as a failed row, not cover the canvas.
       hmr: { overlay: false },
-      watch: { ignored: ["**/.qa/**", "**/backups/**", "**/dist*/**"] },
+      watch: { ignored: ["**/.qa/**", "**/backups/**", "**/dist*/**", ...(watchOnly ? [peerIgnore(root, watchOnly)] : [])] },
     },
   });
   await server.listen();

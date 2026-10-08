@@ -5,12 +5,19 @@
 //   npm run studio:e2e                          every group
 //   npm run studio:e2e -- --only=shell,select   some groups
 //   npm run studio:e2e -- --update-baseline     record this run as the baseline (after a fix)
+//   npm run studio:e2e -- --shard=2/4            the 2nd of 4 contiguous slices of the selected rows (CI, or one slice
+//                                                after the other: shards in one tree share the save fixture)
 //   flags: --host=<example page id> (default uploader) · --port=<n> · --rows=<id,id> · --no-retry · --headed · --keep
+//          · --watch-all (the server watches the whole tree; by default it watches only the files the harness writes, so
+//          a peer's edit to a Studio module never hot-updates a run mid-row)
 //
 // Safety: the fixture (fixtures/host-page.tsx) is only ever a DRAFT of the host page on this server; the one file the
 // harness saves (src/platform/examples/e2e/StudioSaveFixture.tsx) is snapshotted first and restored byte for byte
 // after the run. Any other disk change to the host page or examples/data.ts made by the harness is undone; a change
-// made meanwhile by someone else is reported, never overwritten. Exit 0 = no regression, 1 = regression, 2 = safety.
+// made meanwhile by someone else is reported, never overwritten. A run that was killed (its lock file
+// .qa/studio-e2e/.running-<pid>.json left behind, the process gone) is put right at the next start: its snapshot, else
+// git's HEAD, restores what it had written. Exit 0 = no regression, 1 = regression, 2 = safety.
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -39,6 +46,18 @@ const hostFile = `src/platform/examples/pages/${host}.tsx`;
 const saveFile = "src/platform/examples/e2e/StudioSaveFixture.tsx";
 const dataFile = "src/platform/examples/data.ts";
 const ROW_TIMEOUT = 20_000;
+/** --shard=k/n: this run's slice of the selected rows (contiguous, so a shard opens few groups). */
+const shard = (() => {
+  const value = flag("shard");
+  if (value === undefined) return null;
+  const match = /^(\d+)\/(\d+)$/.exec(value);
+  const [k, n] = match ? [Number(match[1]), Number(match[2])] : [0, 0];
+  if (!match || n < 1 || k < 1 || k > n) {
+    console.error(`--shard takes k/n with 1 ≤ k ≤ n (got ${value})`);
+    process.exit(2);
+  }
+  return { k, n };
+})();
 
 const read = (rel) => fs.readFileSync(path.join(root, rel), "utf8");
 const fixtureSource = read("tools/studio/e2e/fixtures/host-page.tsx").replaceAll("__HOST_PAGE__", host);
@@ -52,16 +71,51 @@ if (!fs.existsSync(path.join(root, hostFile))) {
 
 /* ── safety snapshot ─────────────────────────────────────────────────────────────────────────────────────────────── */
 const guarded = [hostFile, saveFile, dataFile];
-const snapshot = new Map(guarded.map((rel) => [rel, read(rel)]));
-const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+const stamp = `${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}${shard ? `-shard${shard.k}of${shard.n}` : ""}`;
 const outDir = path.join(root, ".qa/studio-e2e");
+fs.mkdirSync(outDir, { recursive: true });
+
+/** Whether a process id still runs (a lock of a live run, maybe another shard, is left alone). */
+const alive = (pid) => {
+  try { process.kill(pid, 0); return true; } catch (error) { return error?.code === "EPERM"; }
+};
+/** What git's HEAD holds for `rel` (null: no git, or not tracked). */
+const fromGit = (rel) => {
+  const run = spawnSync("git", ["show", `HEAD:${rel}`], { cwd: root, encoding: "utf8" });
+  return run.status === 0 ? run.stdout : null;
+};
+/**
+ * A killed run never reached its finally: its lock names the snapshot it took. What it wrote (the save fixture always;
+ * the host page or data.ts while they hold fixture text) goes back to that snapshot, else to git's HEAD.
+ */
+function recoverKilledRuns() {
+  for (const name of fs.readdirSync(outDir).filter((entry) => /^\.running-\d+\.json$/.test(entry))) {
+    let lock = null;
+    try { lock = JSON.parse(fs.readFileSync(path.join(outDir, name), "utf8")); } catch { lock = null; }
+    if (lock && Number.isInteger(lock.pid) && alive(lock.pid)) continue;
+    for (const rel of lock?.guarded ?? guarded) {
+      const now = read(rel);
+      if (rel !== saveFile && !now.includes("Zen Studio E2E fixture")) continue;
+      const kept = lock?.snapshot ? path.join(outDir, lock.snapshot, rel.replace(/\//g, "__")) : null;
+      const before = kept && fs.existsSync(kept) ? fs.readFileSync(kept, "utf8") : fromGit(rel);
+      if (before === null || before === now) continue;
+      fs.writeFileSync(path.join(root, rel), before);
+      console.log(`  restored ${rel} (left by a run that was stopped: ${kept && fs.existsSync(kept) ? lock.snapshot : "git HEAD"})`);
+    }
+    fs.rmSync(path.join(outDir, name), { force: true });
+  }
+}
+recoverKilledRuns();
+const snapshot = new Map(guarded.map((rel) => [rel, read(rel)]));
+const lockFile = path.join(outDir, `.running-${process.pid}.json`);
 // Keep the artefacts (report, screenshots, snapshot) of the 10 latest runs.
 if (fs.existsSync(outDir)) {
-  const stamps = [...new Set(fs.readdirSync(outDir).map((name) => name.replace(/^snapshot-/, "").replace(/\.(json|md)$/, "")))].sort().reverse();
+  const stamps = [...new Set(fs.readdirSync(outDir).filter((name) => !name.startsWith(".")).map((name) => name.replace(/^snapshot-/, "").replace(/\.(json|md)$/, "")))].sort().reverse();
   for (const old of stamps.slice(10)) for (const name of [old, `snapshot-${old}`, `${old}.json`, `${old}.md`]) fs.rmSync(path.join(outDir, name), { recursive: true, force: true });
 }
 fs.mkdirSync(path.join(outDir, `snapshot-${stamp}`), { recursive: true });
 for (const [rel, text] of snapshot) fs.writeFileSync(path.join(outDir, `snapshot-${stamp}`, rel.replace(/\//g, "__")), text);
+fs.writeFileSync(lockFile, JSON.stringify({ pid: process.pid, snapshot: `snapshot-${stamp}`, guarded, started: new Date().toISOString() }));
 
 /** Puts back what the harness may have written; returns notes about changes it must not touch. */
 function restoreDisk() {
@@ -91,7 +145,8 @@ let exitCode = 0;
 
 try {
   console.log(`Zen Studio E2E · host page ${host} · groups ${only.join(", ")}`);
-  server = await startServer(root, { port: flag("port") ? Number(flag("port")) : undefined });
+  // Only the files the harness writes are watched (unless --watch-all): the run keeps the code it started with.
+  server = await startServer(root, { port: flag("port") ? Number(flag("port")) : undefined, ...(has("watch-all") ? {} : { watchOnly: guarded }) });
   console.log(`  server ${server.url}`);
   const api = studioApi(server.url);
   await api.ping();
@@ -109,8 +164,16 @@ try {
     return seed;
   }
 
+  const modules = new Map();
+  for (const group of only) modules.set(group, await import(pathToFileURL(path.join(here, "scenarios", `${group}.mjs`)).href));
+  // A shard runs its contiguous slice of the selected rows (sizes differ by one at most); a group without rows in it is
+  // not opened.
+  const selected = only.flatMap((group) => modules.get(group).rows.filter((row) => !onlyRows || onlyRows.includes(row.id)).map((row) => row.id));
+  const inShard = shard ? new Set(selected.slice(Math.floor(((shard.k - 1) * selected.length) / shard.n), Math.floor((shard.k * selected.length) / shard.n))) : null;
+  if (shard) console.log(`  shard ${shard.k}/${shard.n}: ${inShard.size} of ${selected.length} rows`);
   for (const group of only) {
-    const mod = await import(pathToFileURL(path.join(here, "scenarios", `${group}.mjs`)).href);
+    const mod = modules.get(group);
+    if (inShard && !mod.rows.some((row) => inShard.has(row.id))) continue;
     console.log(`\n${group}`);
     await reseed();
     let session = null;
@@ -152,7 +215,7 @@ try {
       }
     }
     for (const row of mod.rows) {
-      if (onlyRows && !onlyRows.includes(row.id)) continue;
+      if ((onlyRows && !onlyRows.includes(row.id)) || (inShard && !inShard.has(row.id))) continue;
       if (openError) {
         matrix.add({ id: row.id, group, feature: row.feature, wp: row.wp, status: "broken", ms: 0, error: openError });
         continue;
@@ -201,6 +264,7 @@ try {
   if (server && !has("keep")) await server.close().catch(() => {});
   const notes = restoreDisk();
   for (const note of notes) console.log(`  ${note}`);
+  fs.rmSync(lockFile, { force: true });
   if (notes.some((note) => note.startsWith("!"))) exitCode = Math.max(exitCode, 0);
 }
 
@@ -208,7 +272,7 @@ const baselineFile = path.join(here, "matrix.baseline.json");
 const baseline = readBaseline(baselineFile);
 const verdict = compare(matrix.rows, baseline, readFlaky(baselineFile));
 const ms = Date.now() - started;
-const report = writeReport(outDir, stamp, matrix.rows, verdict, { host, groups: only, ms, viteErrors: [...new Set(server?.errors ?? [])] });
+const report = writeReport(outDir, stamp, matrix.rows, verdict, { host, groups: only, ms, ...(shard ? { shard: `${shard.k}/${shard.n}` } : {}), viteErrors: [...new Set(server?.errors ?? [])] });
 if (has("update-baseline")) writeBaseline(baselineFile, matrix.rows, baseline);
 
 const count = (status) => matrix.rows.filter((row) => row.status === status).length;

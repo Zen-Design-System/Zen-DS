@@ -82,7 +82,7 @@ export function DataItemSections({ selection, item }: { selection: PartSelection
   const written = shape ? itemTitle(slot, shape.fields, index) : null;
   const name = written && written !== `${slot.itemName} ${index + 1}` ? written : renderedItemTitle(item);
   const block = dataItemBlock(selection);
-  const computed = source?.state === "computed" ? computedCaption(slot, source.code) : null;
+  const computed = source?.state === "computed" ? computedCaption(slot, source.code, source.via) : null;
   const off = api.disabled ? null : block ?? computed;
   const can = !api.disabled && !off && Boolean(shape) && running === null;
   const array = slot.form !== "object";

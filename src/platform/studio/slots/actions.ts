@@ -1169,7 +1169,7 @@ async function runDataItem(selection: NodeSelection, slot: DataSlot, verb: DataI
   if (!host) return false;
   const where = `${host.name} › ${slot.name}`;
   const source = sourceItems(host, slot);
-  if (source.state === "computed") return fail(`${where}: ${computedCaption(slot, source.code)}`);
+  if (source.state === "computed") return fail(`${where}: ${computedCaption(slot, source.code, source.via)}`);
   const items = source.state === "items" ? source.items : [];
   // Groups as the host is drawn now (TopNavigation: the compact types' Flat actions never share a pill).
   const grouping = slotGroupsAt(selectedHit(hostSelection), slot);
