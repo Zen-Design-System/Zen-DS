@@ -13,7 +13,7 @@ import { canEdit, studioStore } from "../../store";
 import type { StudioSelection } from "../../types";
 import { stepLayer, type NodeSelection } from "../arrange";
 import { clipboardActions, clipboardShortcuts } from "../clipboard";
-import { duplicateLayers, removeLayers } from "../multi";
+import { duplicateLayers, removeLayers, stepLayers } from "../multi";
 import { toggleIgnoreAutoLayout } from "../ignoreAutoLayout";
 import { multiSelection } from "../../select/multiSelection";
 import { startTextEditOnSelection } from "../textEdit";
@@ -54,8 +54,8 @@ export function commands(): Command[] {
     { id: "paste-props", group: "Edit", label: "Paste properties", shortcut: clipboardShortcuts.pasteProps, keywords: "style", disabled: editOff ?? (clipboardActions.hasProperties() ? undefined : "Copy properties first"), run: () => { if (node) void clipboardActions.pasteProperties(node); } },
     { id: "duplicate", group: "Edit", label: "Duplicate", shortcut: duplicateShortcut, disabled: editOff, run: () => { if (multiSelection.get().length) void duplicateLayers(); else if (node) void duplicateSelection(node); } },
     { id: "remove", group: "Edit", label: "Remove", shortcut: removeShortcut, keywords: "delete", disabled: editOff, run: () => { if (multiSelection.get().length) void removeLayers(); else if (node) void removeSelection(node); } },
-    { id: "move-up", group: "Edit", label: "Move earlier", shortcut: "↑ ←", keywords: "reorder up left", disabled: editOff, run: () => { if (node) void stepLayer(node, "prev"); } },
-    { id: "move-down", group: "Edit", label: "Move later", shortcut: "↓ →", keywords: "reorder down right", disabled: editOff, run: () => { if (node) void stepLayer(node, "next"); } },
+    { id: "move-up", group: "Edit", label: "Move earlier", shortcut: "↑ ←", keywords: "reorder up left", disabled: editOff, run: () => { if (multiSelection.get().length) void stepLayers("prev"); else if (node) void stepLayer(node, "prev"); } },
+    { id: "move-down", group: "Edit", label: "Move later", shortcut: "↓ →", keywords: "reorder down right", disabled: editOff, run: () => { if (multiSelection.get().length) void stepLayers("next"); else if (node) void stepLayer(node, "next"); } },
     { id: "wrap-stack", group: "Edit", label: "Wrap in Stack (auto layout)", shortcut: autoLayoutShortcut, keywords: "group container", disabled: editOff ?? (wrap && !wrap.ok ? wrap.reason : undefined), run: () => { void wrapSelection("stack"); } },
     { id: "wrap-box", group: "Edit", label: "Wrap in Box (frame)", shortcut: frameSelectionShortcut, keywords: "group container", disabled: editOff ?? (wrap && !wrap.ok ? wrap.reason : undefined), run: () => { void wrapSelection("box"); } },
     // The Design tab's Position toggle, for one layer or several (edit/ignoreAutoLayout.ts): floating on, or back in the flow.

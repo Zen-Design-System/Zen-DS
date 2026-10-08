@@ -263,6 +263,37 @@ export const rows = [
     },
   },
   {
+    id: "ST-25", feature: "Layers panel: dragging a row of two selected layers moves both (one edit), still selected", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "flow-a", { frame: 9, position: { dx: 3, dy: 3 } });
+      await clickLoc(page, ctx.file, await at(ctx, "flow-b"), { modifiers: ["Shift"], position: { dx: 3, dy: 3 } });
+      await until(async () => (await selectedSrc(page)).length === 2, { message: "two layers selected" });
+      await showLeftTab(page, "layers");
+      const row = async (id) => {
+        const locator = page.locator(`.studio-layers__tree [role="treeitem"][data-layer-id^="${ctx.file}:${await at(ctx, id)}"]`).first();
+        await locator.scrollIntoViewIfNeeded();
+        return locator.boundingBox();
+      };
+      const a = await row("flow-a");
+      const c = await row("flow-c");
+      // From A's row to the lower edge of C's row: after C (its middle would put them inside the Box).
+      const from = { x: a.x + a.width / 2, y: a.y + a.height / 2 };
+      const to = { x: c.x + c.width / 2, y: c.y + c.height * 0.9 };
+      await page.mouse.move(from.x, from.y);
+      await page.mouse.down();
+      for (let step = 1; step <= 10; step += 1) await page.mouse.move(from.x + ((to.x - from.x) * step) / 10, from.y + ((to.y - from.y) * step) / 10);
+      await sleep(150);
+      await page.mouse.up();
+      const order = async () => {
+        const text = await ctx.text();
+        return ["flow-a", "flow-b", "flow-c"].map((id) => [id, text.indexOf(`data-e2e="${id}"`)]).sort((x, y) => x[1] - y[1]).map(([id]) => id).join(",");
+      };
+      await until(async () => (await order()) === "flow-c,flow-a,flow-b", { message: `C, A, B in the source (status: ${(await statusText(page)).slice(-160)})` });
+      await until(async () => (await selectedSrc(page)).length === 2, { message: "both still selected" });
+      return "rows A + B dragged after C → C, A, B, both selected";
+    },
+  },
+  {
     id: "ST-22", feature: "Drag the width handle of a px Grid column's only item: the column's track takes the width", wp: "backlog 2026-10-08",
     async run(ctx) {
       const page = await freshSelect(ctx, "grid-px-item", { frame: 5, position: { dx: 4, dy: 4 } });
