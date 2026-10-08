@@ -44,6 +44,15 @@ you already have; `__KEY(vp)` builds the variant key. `filter` receives each var
 
 Save the JSON under `docs/figma-contracts/` and point the suite's `contract` at it.
 
+**Whole contracts through `use_figma` (2026-10-08, `mcp-capture/`):** a call returns at most 20,480 bytes, so a contract
+of ~1 MB needs compressing. `mcp-capture/capture-template.js` is the extractor plus a structural dedupe (`__PACK`: a
+subtree repeated anywhere is stored once) and LZ-string base64 (~13× together). Replace `__FILE__`, `__IDS__` and `__I__`
+and send the whole file as the call's `code`; it returns `ZCAP|file|i|n|hash|chunk`: call `I = 0` to learn `n`, then
+`1 … n-1` (a helper agent can make the calls so the chunks stay out of the main conversation).
+`ZEN_SESSION=<transcript id> node tools/figma-contract/mcp-capture/assemble.cjs out.json` reads the chunks back from the
+session's transcripts (subagents included), checks the hash and writes `{ file: [entries] }`; write each file with the
+serialisation it had (`json.dumps`, with or without `ensure_ascii`) and run `run-all.mjs`.
+
 Local styles (paint/text/effect/grid with bound variables) come from the same console session and
 live in `styles/source/figma/figma-styles.full.json`; `npm run styles:build` generates CSS from it.
 

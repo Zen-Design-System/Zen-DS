@@ -18,6 +18,13 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 - Phone decisions from the Top Navigation research (2026-10-01, `docs/research/top-navigation-mobile-rules-2026-10-01.md`):
 
+- **P3 · Figma contracts without a suite are out of date (2026-10-08):** the contracts every suite reads were
+  re-captured on 2026-10-08 through `use_figma` (button-text, button-icon, checkbox-radio-chip-popover, the Input/Heading
+  entry of input-search; all 23 suites match). `avatar-single`, `chat-bubbles`, `datepicker-sidebar`,
+  `input-search-primitives`, the rest of `input-search`, `segmented-toggle-badge-avatarstack` and `table-cells` still
+  hold the September capture (26 of the checked sets changed in Figma). No test reads them; re-capture each when its
+  suite is written (the same LZ-chunk capture, `tools/figma-contract/README.md`).
+
 ## Backlog (plan before opening sessions)
 - **P3 · usage:selftest fails now and then while another gate runs (2026-10-07):** twice a fixture rule reported 0 hits
   (`alert-banner/small-no-action`…, then `content/lights-no-light-text`) and passed 3/3 right after; both times a

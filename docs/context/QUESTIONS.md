@@ -115,19 +115,6 @@ until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed a
 - **P3 · Figma List-Box master (2026-10-06):** variants have a FIXED height (instances with fewer rows keep empty space
   until set to Hug) and Header-Slot / Footer-Slot centre their content, while code left-aligns header text and footer
   actions; ask the user whether the master should hug and align left.
-- **P2 · Figma contracts out of date — re-capture needs the Figma desktop console (user/designer action, 2026-10-08):**
-  every stored contract hashes differently from the live file. Normalised for the extractor's format changes (bound
-  colours compared by variable, hidden layers and text typography bindings left out), 27 of the 53 sets checked still
-  match and 26 changed for real: Avatar/Single, Button/Icon-Main, Button/Main, Button/Flat, Button/Overlay,
-  Chat/Reaction/Status/No, Chip/Advanced, Popover Item/Content, Item, Default, Bulk-Action, Manual-Add-New, ten
-  DatePicker/Sidebar sets (460:38628, 460:38871, 478:30561, 9923:2323, 9923:2791, 9923:3576, 895:31954, 5974:20590,
-  4218:9166, 4081:15234) and the four Input primitives (374:103464, 1604:27401, 373:102481, 460:38361); the 39 sets of
-  `input-search.json`, `segmented-toggle-badge-avatarstack.json` and `table-cells.json` are not checked (one
-  `use_figma` call times out on them). The resolved colours already match the code (2026-10-03 ramp). Fetching ~8 MB
-  through `use_figma` (≤ 20 kB a call) is not workable: in the desktop console paste
-  `tools/figma-contract/figma-console-extract.js`, run `await __RUN([<set ids of one contract file>])`, then
-  `copy(__C(i))` for each `i < __N()`, save over the file, and run `node tools/figma-contract/run-all.mjs`; fix what the
-  suites then report.
 - **Studio UX/UI audit (2026-10-04, session "Kiểm tra stack hiện và ẩn toast"; read-only; evidence and fixes in
   `docs/research/studio-ux-audit-2026-10-04.md`). Proposed for approval:**
   - P3 · Polish N1–N11 in the report (flat 56-item Pages list with one icon, triple page name, rule notes in the size
