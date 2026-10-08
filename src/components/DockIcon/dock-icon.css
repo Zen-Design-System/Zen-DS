@@ -19,14 +19,15 @@
 .zen-dock-icon__emoji { font-size: var(--zen-dock-icon-glyph); line-height: 1; }
 .zen-dock-icon[data-size="xsmall"] { --zen-dock-icon-size: var(--zen-image-size-xsmall, 24px); --zen-dock-icon-glyph: var(--zen-element-size-popular-xsmall, 12px); }
 .zen-dock-icon[data-size="small"] { --zen-dock-icon-size: var(--zen-image-size-small, 32px); --zen-dock-icon-glyph: var(--zen-element-size-popular-small, 16px); }
-.zen-dock-icon[data-size="large"] { --zen-dock-icon-size: var(--zen-image-size-xlarge, 56px); --zen-dock-icon-glyph: var(--zen-element-size-popular-large, 28px); }
-.zen-dock-icon[data-size="xlarge"] { --zen-dock-icon-size: var(--zen-image-size-2-xlarge, 80px); --zen-dock-icon-glyph: var(--zen-element-size-popular-2-xlarge, 44px); }
-/* Theme=Emoji has its own two sizes: Medium 40 with a Heading/1 (28) glyph, Large 48 with a Display/3 (36) glyph. */
+.zen-dock-icon[data-size="large"] { --zen-dock-icon-size: var(--zen-image-size-large, 48px); --zen-dock-icon-glyph: var(--zen-element-size-popular-large, 28px); }
+.zen-dock-icon[data-size="xlarge"] { --zen-dock-icon-size: var(--zen-image-size-xlarge, 56px); --zen-dock-icon-glyph: var(--zen-element-size-popular-large, 28px); }
+.zen-dock-icon[data-size="2xlarge"] { --zen-dock-icon-size: var(--zen-image-size-2-xlarge, 80px); --zen-dock-icon-glyph: var(--zen-element-size-popular-2-xlarge, 44px); }
+/* Theme=Emoji has two sizes with larger glyphs: Medium 40 with Heading/1 (28), Large 48 with Display/3 (36). */
 .zen-dock-icon[data-tone="emoji"][data-size="medium"] { --zen-dock-icon-glyph: var(--zen-typography-font-size-heading-1, 28px); }
-.zen-dock-icon[data-tone="emoji"][data-size="large"] { --zen-dock-icon-size: var(--zen-image-size-large, 48px); --zen-dock-icon-glyph: var(--zen-typography-font-size-display-3, 36px); }
+.zen-dock-icon[data-tone="emoji"][data-size="large"] { --zen-dock-icon-glyph: var(--zen-typography-font-size-display-3, 36px); }
 
 .zen-dock-icon[data-tone="neutral"][data-background="subtle"] { --zen-dock-icon-fill: var(--zen-color-background-neutral-subtle-default); --zen-dock-icon-content: var(--zen-color-content-neutral-base); }
-.zen-dock-icon[data-tone="accent"] { --zen-dock-icon-fill: var(--zen-color-background-accent-solid-default); --zen-dock-icon-content: var(--zen-color-content-on-accent-default); }
+.zen-dock-icon[data-tone="accent"] { --zen-dock-icon-fill: var(--zen-color-background-accent-solid-default); --zen-dock-icon-content: var(--zen-color-content-on-colors); }
 .zen-dock-icon[data-tone="accent"][data-background="subtle"] { --zen-dock-icon-fill: var(--zen-color-background-accent-subtle-default); --zen-dock-icon-content: var(--zen-color-content-accent-light); }
 .zen-dock-icon[data-tone="blue"] { --zen-dock-icon-fill: var(--zen-color-background-support-blue-solid); --zen-dock-icon-content: var(--zen-color-content-on-colors); }
 .zen-dock-icon[data-tone="blue"][data-background="subtle"] { --zen-dock-icon-fill: var(--zen-color-background-support-blue-subtle); --zen-dock-icon-content: var(--zen-color-content-support-blue-light); }

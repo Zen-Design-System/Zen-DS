@@ -8,7 +8,7 @@ Collect a single value from the user. All fields share Label → Field → Help-
 
 ## Use it for
 - Free text → InputField; long text → TextAreaField.
-- One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField.
+- One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField. On mobile (breakpoint mobile, or inside a phone frame) SelectField opens its options in a Bottom Sheet — a List with the picked row selected and checked; a pick closes it — instead of the Popover.
 - Dates → DateField; quantities → NumberField (steppers).
 - Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).
 - Formatted long text (announcements, descriptions) → RichTextField.
@@ -84,10 +84,10 @@ Also accepts `Omit<SelectHTMLAttributes<HTMLSelectElement>, "size">`.
 | `placeholder` | `string` | — | Shown (Content/Placeholder) while no option is selected, e.g. "Choose a role". With a placeholder and no `value` / `defaultValue`, nothing is preselected; without one the first option is selected, like a native select. |
 | `onFocus` | `FocusEventHandler<HTMLSelectElement>` | — | Focus entered the field (its trigger or option list) from outside. The event targets the native select (name, value). |
 | `onBlur` | `FocusEventHandler<HTMLSelectElement>` | — | Focus left the field — the trigger and its option list — as on a native select. The event targets the native select. |
-| `popoverLabel` | `ReactNode` | — | Popover/Label above the options: it names the option list, not the value (a label, not a heading). |
+| `popoverLabel` | `ReactNode` | — | Popover/Label above the options: it names the option list, not the value (a label, not a heading). On mobile it is the Bottom Sheet's title (default: the field's label). |
 | `popoverSearch` | `boolean` | `false` | Adds the Popover Search row; options are filtered by the query. |
 | `popoverSearchPlaceholder` | `string` | — |  |
-| `popoverOpen` | `boolean` | — | Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself. |
+| `popoverOpen` | `boolean` | — | Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself. On mobile (the nearest `data-breakpoint`, else ZenProvider's breakpoint, is `mobile`) the options open in a Bottom Sheet instead of a Popover: a List of the options, the picked one selected with a check, and a pick closes it. |
 | `onPopoverOpenChange` | `(open: boolean) => void` | — | Called with the next open state: the trigger, Escape, a pick, a click outside or focus leaving the field. |
 | `readOnly` | `boolean` | `false` | Figma State=Read-Only: shows the value, keeps the chevron, never opens. |
 

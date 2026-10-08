@@ -186,7 +186,7 @@
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
       "use": [
         "Free text → InputField; long text → TextAreaField.",
-        "One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField.",
+        "One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField. On mobile (breakpoint mobile, or inside a phone frame) SelectField opens its options in a Bottom Sheet — a List with the picked row selected and checked; a pick closes it — instead of the Popover.",
         "Dates → DateField; quantities → NumberField (steppers).",
         "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
         "Formatted long text (announcements, descriptions) → RichTextField."
@@ -1954,7 +1954,7 @@
         "DockIcon": [
           "icon?: IconName = icon-star-93-solid",
           "emoji?: ReactNode",
-          "size?: xs|sm|md|lg|xl|xsmall|small|medium|large|xlarge = md",
+          "size?: xs|sm|md|lg|xl|2xl|xsmall|small|medium|large|xlarge|2xlarge = md",
           "theme?: DockIconTheme = neutral",
           "background?: solid|subtle = solid",
           "label?: string",
@@ -2101,7 +2101,7 @@
           "selectable?: boolean = false",
           "selectedIds?: string[] = []",
           "onSelectionChange?: (ids: string[]) => void",
-          "bulkActions?: ReactNode|((selectedIds: string[]) => ReactNode)",
+          "bulkActions?: TableBulkAction[]|((selectedIds: string[]) => TableBulkAction[])",
           "sort?: TableSort|null",
           "onSortChange?: (sort: TableSort|null) => void",
           "empty?: ReactNode",
@@ -2115,7 +2115,7 @@
         "Right-align numbers and amounts; keep text left.",
         "Give each row one primary text (bold) and at most one caption.",
         "Put row actions in the last column (TableActions) as Button/Icon-Flat Medium (IconButton appearance=\"flat\" level=\"primary\"; a ⋯ Menu trigger for several) (harness: table/actions-flat).",
-        "Give a selectable table its bulk actions through bulkActions: at most 5 IconButton appearance=\"flat\" level=\"primary\" size=\"md\" actions whose labels say how many rows they touch (\"Archive 3 projects\"); the Table adds Clear selection and the count.",
+        "Give a selectable table its bulk actions through bulkActions: at most 5 actions (icon + label + onClick, grouped by `group`) whose labels say how many rows they touch (\"Archive 3 projects\"); the Table draws the buttons, adds Clear selection and the count, and moves what doesn't fit into a More menu.",
         "Show an Empty State row when filters return nothing.",
         "Make only the fields people routinely correct editable; keep IDs, computed and audit columns read-only.",
         "Wire onCommit to save, and validate numbers and required text; the error stays in the cell until fixed (harness: table/editor-needs-commit, table/editor-number-validate).",

@@ -150,7 +150,7 @@ export function useModal(open: boolean, panelRef: RefObject<HTMLElement | null>,
  * <template> rendered in place while the modal is mounted finds the frame; the modal itself renders once the frame is
  * known (a layout effect, so still before the first paint) and its focus trap starts only then.
  */
-function useOverlayHost(mounted: boolean) {
+export function useOverlayHost(mounted: boolean) {
   const anchorRef = useRef<HTMLTemplateElement>(null);
   const [host, setHost] = useState<HTMLElement | null | undefined>(undefined);
   useLayoutEffect(() => {

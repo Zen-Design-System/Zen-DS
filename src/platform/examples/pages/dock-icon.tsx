@@ -65,7 +65,7 @@ function ChooseProjectType() {
               <Card key={t.id} theme="border" selected={t.id === typeId} aria-pressed={t.id === typeId} onClick={() => pick(t.id)}>
                 <Stack gap="md">
                   {/* Decorative: the name is right under it. */}
-                  <DockIcon icon={t.icon} theme={t.theme} size="lg" />
+                  <DockIcon icon={t.icon} theme={t.theme} size="xl" />
                   <Stack gap="xs">
                     <Text as="span" textStyle="Body/Base/Bold">{t.name}</Text>
                     <Text as="span" textStyle="Body/Small/Regular" tone="base">{t.caption}</Text>
@@ -298,7 +298,7 @@ export const examples: ExampleDef[] = [
       {projectTypes.map((type) => (
         <Card key={type.id} theme="border" selected={type.id === typeId} aria-pressed={type.id === typeId} onClick={() => setTypeId(type.id)}>
           <Stack gap="md">
-            <DockIcon icon={type.icon} theme={type.theme} size="lg" />
+            <DockIcon icon={type.icon} theme={type.theme} size="xl" />
             <Stack gap="xs">
               <Text as="span" textStyle="Body/Base/Bold">{type.name}</Text>
               <Text as="span" textStyle="Body/Small/Regular" tone="base">{type.caption}</Text>

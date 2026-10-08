@@ -1,1 +1,1 @@
-export { Table, TableActions, TableBadges, TableMedia, TableTags, TableText, TableTrend, type TableAlign, type TableCellEditor, type TableColumn, type TableProps, type TableSort, type TableSortDirection, type TableTrendDirection } from "./Table";
+export { Table, TableActions, TableBadges, TableMedia, TableTags, TableText, TableTrend, type TableAlign, type TableBulkAction, type TableCellEditor, type TableColumn, type TableProps, type TableSort, type TableSortDirection, type TableTrendDirection } from "./Table";

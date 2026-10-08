@@ -44,7 +44,7 @@ Figma Primitives/Metric/Metric-Inline/Icon-Highlight (595:55188): Dock-Icon + Co
 | `size` | `"xs" \| "sm" \| "md" \| "lg" \| "xl" \| "xsmall" \| "small" \| "medium" \| "large" \| "xlarge"` | `"xl"` | Figma Size: XLarge/Large stack the icon above the text; Medium–XSmall put it on the left. Short (sm, md…) or Figma (small, medium…) spelling. |
 | `variant` | `"icon-highlight" \| "title-highlight"` | `"icon-highlight"` | Figma Metric-Inline type. Icon-Highlight (default, 595:55188): the Dock-Icon leads, the label sits over the number. Title-Highlight (7523:507049): the title on top (Heading/Subheading at XLarge–Medium, Caption above the number at Small/XSmall), the number and trend under it, the Dock-Icon pinned to the bottom-right corner. |
 | `action` | `ReactNode` | — | Title-Highlight, XLarge–Medium: the title row's action (Figma Button/Icon-Main XSmall Tertiary, e.g. a chevron that opens the breakdown). |
-| `iconSize` | `"md" \| "lg" \| "medium" \| "large"` | — | Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below. |
+| `iconSize` | `"md" \| "lg" \| "medium" \| "large"` | — | Dock-Icon size (Figma instance swap): Medium 40 or Large 48. Default: Large at XLarge/Large, Medium below. |
 | `className` | `string` | — |  |
 
 ### MetricCard
@@ -64,7 +64,7 @@ Also accepts `MetricProps`.
 | `size` | `"xs" \| "sm" \| "md" \| "lg" \| "xl" \| "xsmall" \| "small" \| "medium" \| "large" \| "xlarge"` | — | Figma Size: XLarge/Large stack the icon above the text; Medium–XSmall put it on the left. Short (sm, md…) or Figma (small, medium…) spelling. |
 | `variant` | `"icon-highlight" \| "title-highlight"` | — | Figma Metric-Inline type. Icon-Highlight (default, 595:55188): the Dock-Icon leads, the label sits over the number. Title-Highlight (7523:507049): the title on top (Heading/Subheading at XLarge–Medium, Caption above the number at Small/XSmall), the number and trend under it, the Dock-Icon pinned to the bottom-right corner. |
 | `action` | `ReactNode` | — | Title-Highlight, XLarge–Medium: the title row's action (Figma Button/Icon-Main XSmall Tertiary, e.g. a chevron that opens the breakdown). |
-| `iconSize` | `"md" \| "lg" \| "medium" \| "large"` | — | Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below. |
+| `iconSize` | `"md" \| "lg" \| "medium" \| "large"` | — | Dock-Icon size (Figma instance swap): Medium 40 or Large 48. Default: Large at XLarge/Large, Medium below. |
 | `className` | `string` | — |  |
 | `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "semi-pale"` | `"shadow"` | Card theme (Figma Metric-Card uses Shadow). |
 | `subAction` | `CardSubAction \| ReactNode` | — | Card Sub-Action (Figma: ⋮ Button/Icon-Flat). |

@@ -267,7 +267,7 @@ function PhoneProjectColourExample() {
       {screen.anchor}
       <Stack gap="lg" padding="lg">
         <Stack gap="xs" align="center">
-          <DockIcon size="xl" icon={opened.icon} theme={hue as DockIconTheme} background="subtle" />
+          <DockIcon size="2xl" icon={opened.icon} theme={hue as DockIconTheme} background="subtle" />
           <Text tone="base" align="center">{`${opened.client} · ${plural(opened.members, "member")}`}</Text>
         </Stack>
         {/* A phone setting applies at once, so there is no Save and Back has nothing to lose. */}
@@ -366,7 +366,7 @@ const hueOf = (value) => hues.find((hue) => swatch(hue).value === value);
 <PlatformPhone key={project.id} headerOverlay screenRef={screenRef}
   header={<TopNavigation type="compact" title={project.name} scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}>
-  <DockIcon size="xl" icon={project.icon} theme={hue} background="subtle" />
+  <DockIcon size="2xl" icon={project.icon} theme={hue} background="subtle" />
   <FormFieldset legend="Colour" helpText="Shows on the project's icon, its timeline bar and its calendar events.">
     <ColorSelector aria-label={\`\${project.name} colour\`} colors={hues.map(swatch)} value={swatch(hue).value}
       onValueChange={(value) => setHue(project.id, hueOf(value))} />

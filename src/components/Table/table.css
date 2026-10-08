@@ -156,3 +156,6 @@ textarea.zen-table-editor__input { display: block; width: 100%; height: 20px; mi
 .zen-table__bulk { --zen-motion-from-y: 1; transform-origin: bottom center; pointer-events: auto; animation: zen-motion-pop-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-emphasized, ease-out) both; }
 .zen-table__bulk-count { padding-inline-end: var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-strongest, #111); white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) { .zen-table__bulk { animation-name: zen-motion-fade-in; } }
+/* One line, from the start: actions that don't fit move into the More menu. TableBulkBar measures them on this line, so
+   an overflowing render must not centre (that would shift every action left by half the overflow). */
+.zen-table__bulk .zen-popover__bunk-list { flex-wrap: nowrap; justify-content: flex-start; }

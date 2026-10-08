@@ -95,7 +95,7 @@
           "type": "\"md\" | \"lg\" | \"medium\" | \"large\"",
           "required": false,
           "default": null,
-          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below.",
+          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 48. Default: Large at XLarge/Large, Medium below.",
           "deprecated": null
         },
         {
@@ -200,7 +200,7 @@
           "type": "\"md\" | \"lg\" | \"medium\" | \"large\"",
           "required": false,
           "default": null,
-          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below.",
+          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 48. Default: Large at XLarge/Large, Medium below.",
           "deprecated": null
         },
         {

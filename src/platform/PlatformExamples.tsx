@@ -12,7 +12,7 @@ import { Checkbox, type CheckboxSide } from "../components/Checkbox";
 import { RadioButton, type RadioSide } from "../components/RadioButton";
 import { Badge, BadgeCounter, badgeThemes, type BadgeBackground, type BadgeSize, type BadgeTheme } from "../components/Badge";
 import { Toggle, type ToggleSize, type ToggleTheme } from "../components/Toggle";
-import { PopoverBulkActionDivider, PopoverBulkActionGroup, type PopoverItemData } from "../components/Popover";
+import type { PopoverItemData } from "../components/Popover";
 import { Tag, type TagTheme } from "../components/Tag";
 import { DatePicker, type DatePickerDevice, type DatePickerTime } from "../components/DatePicker";
 import { Tooltip, tooltipColors, type TooltipColor, type TooltipPlacement, type TooltipSize } from "../components/Tooltip";
@@ -2035,16 +2035,11 @@ ${code}`} />
           <Table aria-label="Projects" rows={rows} getRowId={(row) => row.id} selectable={tableSelectable} selectedIds={tableSelected} onSelectionChange={setTableSelected} sort={tableSort} onSortChange={setTableSort}
             bulkActions={tableBulk ? (ids) => {
               const count = `${ids.length} ${ids.length === 1 ? "project" : "projects"}`;
-              return <>
-                <PopoverBulkActionGroup aria-label="Share">
-                  <IconButton appearance="flat" level="primary" size="md" icon="icon-download-01-line" aria-label={`Export ${count}`} onClick={() => logAction(`Export ${count}`)} />
-                  <IconButton appearance="flat" level="primary" size="md" icon="icon-link-01-line" aria-label={`Copy links to ${count}`} onClick={() => logAction(`Copy links to ${count}`)} />
-                </PopoverBulkActionGroup>
-                <PopoverBulkActionDivider />
-                <PopoverBulkActionGroup aria-label="Manage">
-                  <IconButton appearance="flat" level="primary" size="md" icon="icon-archive-line" aria-label={`Archive ${count}`} onClick={() => logAction(`Archive ${count}`)} />
-                </PopoverBulkActionGroup>
-              </>;
+              return [
+                { id: "export", group: "Share", icon: "icon-download-01-line", label: `Export ${count}`, onClick: () => logAction(`Export ${count}`) },
+                { id: "links", group: "Share", icon: "icon-link-01-line", label: `Copy links to ${count}`, onClick: () => logAction(`Copy links to ${count}`) },
+                { id: "archive", group: "Manage", icon: "icon-archive-line", label: `Archive ${count}`, onClick: () => logAction(`Archive ${count}`) },
+              ];
             } : undefined}
             empty={<EmptyState title="No projects yet" illustration={false} primaryAction={{ label: "Create project", onClick: () => logAction("Create project", "primaryAction.onClick") }}>Projects you create show up here.</EmptyState>}
             columns={[
@@ -2056,7 +2051,7 @@ ${code}`} />
             ]} />
         </div>
         {actionNote}
-        <PlatformCode code={`import { Table, TableMedia, TableText, TableTrend, TableActions${tableSelectable && tableBulk ? ", PopoverBulkActionGroup, PopoverBulkActionDivider" : ""} } from "@zen/design-system";
+        <PlatformCode code={`import { Table, TableMedia, TableText, TableTrend, TableActions } from "@zen/design-system";
 
 <Table
   aria-label="Projects"
@@ -2065,18 +2060,11 @@ ${code}`} />
   selectable
   selectedIds={selected}
   onSelectionChange={setSelected}` : ""}${tableSelectable && tableBulk ? `
-  bulkActions={(ids) => (
-    <>
-      <PopoverBulkActionGroup aria-label="Share">
-        <IconButton appearance="flat" level="primary" size="md" icon="icon-download-01-line" aria-label={\`Export \${ids.length} projects\`} onClick={() => exportProjects(ids)} />
-        <IconButton appearance="flat" level="primary" size="md" icon="icon-link-01-line" aria-label={\`Copy links to \${ids.length} projects\`} onClick={() => copyLinks(ids)} />
-      </PopoverBulkActionGroup>
-      <PopoverBulkActionDivider />
-      <PopoverBulkActionGroup aria-label="Manage">
-        <IconButton appearance="flat" level="primary" size="md" icon="icon-archive-line" aria-label={\`Archive \${ids.length} projects\`} onClick={() => archive(ids)} />
-      </PopoverBulkActionGroup>
-    </>
-  )}` : ""}
+  bulkActions={(ids) => [
+    { id: "export", group: "Share", icon: "icon-download-01-line", label: \`Export \${ids.length} projects\`, onClick: () => exportProjects(ids) },
+    { id: "links", group: "Share", icon: "icon-link-01-line", label: \`Copy links to \${ids.length} projects\`, onClick: () => copyLinks(ids) },
+    { id: "archive", group: "Manage", icon: "icon-archive-line", label: \`Archive \${ids.length} projects\`, onClick: () => archive(ids) },
+  ]}` : ""}
   sort={sort}
   onSortChange={setSort}
   empty={<EmptyState title="No projects yet" illustration={false} />}

@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Badge } from "../Badge";
-import { IconButton } from "../Button";
 import { Table, TableText, TableTrend } from "./Table";
 
 type Row = { id: string; name: string; status: string; delta: string; amount: string };
@@ -36,6 +35,9 @@ export const BulkActions: Story = {
   args: {
     selectable: true,
     selectedIds: ["1", "3"],
-    bulkActions: (ids: string[]) => <IconButton appearance="flat" level="primary" size="md" icon="icon-archive-line" aria-label={`Archive ${ids.length} projects`} />,
+    bulkActions: (ids: string[]) => [
+      { id: "export", icon: "icon-download-01-line", label: `Export ${ids.length} projects`, onClick: () => undefined, group: "Share" },
+      { id: "archive", icon: "icon-archive-line", label: `Archive ${ids.length} projects`, onClick: () => undefined, group: "Manage" },
+    ],
   },
 };

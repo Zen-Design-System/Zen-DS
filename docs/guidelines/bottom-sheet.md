@@ -55,7 +55,7 @@ Also accepts `OverlayOpenProps`.
 | `actionsDirection` | `"horizontal" \| "vertical"` | `"horizontal"` | Figma .Primitives/Bottom-Sheet/Actions Direction. |
 | `onSubmit` | `(event: FormEvent<HTMLFormElement>) => void` | — | Modal type: makes the sheet a form (same contract as ModalForm `onSubmit`). The body and the Actions footer are wrapped in a `<form>`: Enter in a field submits it and the primary action becomes `type="submit"`, so it submits instead of closing (its `onClick`, if any, still runs first). The default is prevented; close the sheet from the handler when the submit succeeds. Pass `form.handleSubmit` from useFormState so a failed submit focuses the first invalid field. Don't nest a `<Form>` in the children. The Search slot stays outside the form. The first field (the Search, when there is one) takes focus when the sheet opens; put `data-autofocus` on another control to start there. |
 | `dismissible` | `boolean` | `true` | Scrim tap, Escape and drag-down dismiss (default true). |
-| `inline` | `boolean` | `false` | Render inside the nearest positioned ancestor instead of the viewport (device previews, embedded demos). |
+| `inline` | `boolean` | `false` | Render inside the nearest positioned ancestor instead of the viewport (embedded demos). Not needed in a device frame (`[data-zen-overlay-root]`, e.g. a phone preview): a sheet opened there renders in that frame by itself. |
 | `closeLabel` | `string` | — | Accessible name of the close button. Default: the locale's “Close”. |
 | `className` | `string` | — |  |
 

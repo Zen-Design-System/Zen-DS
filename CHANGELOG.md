@@ -20,8 +20,9 @@ removed (four unused colour ramps were, see Removed).
 
 ### Added
 - **Table `bulkActions` (2026-10-08):** a selectable Table shows a Popover/Bulk-Action bar under the table while rows are
-  selected — Clear selection, "N selected" and your actions (a node, or a function of the selected ids) — held at the
-  bottom of the window on a long table. Escape clears the selection; Select all rows takes the focus when the bar leaves.
+  selected — Clear selection, "N selected" and your actions (`TableBulkAction[]`: id, icon, label, onClick, disabled,
+  group; or a function of the selected ids) — held at the bottom of the window on a long table. Actions that don't fit
+  the width (phones) move into a More menu instead of wrapping. Escape clears the selection; Select all rows takes the focus when the bar leaves.
   New labels `rowsSelected`, `selectedRowActions`, `clearSelection` (en/vi). The Table playground and "Act on selected
   rows" example use it.
 - Docs platform and Zen Studio: required sign-in with Google through PocketBase (`src/platform/auth/`); Log out in the
@@ -836,6 +837,17 @@ removed (four unused colour ramps were, see Removed).
     which still bleeds outside the trail).
 
 ### Changed
+- **DockIcon re-synced from Figma (2026-10-09):** sizes follow the live Dock-Icon set — `large` is now 48 (was 56),
+  `xlarge` 56 (was 80) and the new `2xlarge` (`2xl`) is 80; Accent Solid draws its icon in Content/On-Colors (was
+  On-Accent). Docs examples that relied on 56 / 80 moved to `xl` / `2xl`; MetricWidget's Large Dock-Icon is 48, as in
+  its Figma instance. Apps using `size="lg"` / `"xl"` get the smaller step: use `xl` / `2xl` to keep 56 / 80.
+- **SelectField opens a Bottom Sheet on mobile (2026-10-08):** when the nearest `data-breakpoint` (or ZenProvider's
+  breakpoint) is `mobile`, the options open in a Bottom Sheet (title = `popoverLabel` or the label; `popoverSearch` →
+  the sheet's Search) as a List whose picked row is selected with a check; a pick closes the sheet and the focus goes
+  back to the field. Desktop and tablet keep the Popover. The trigger says `aria-haspopup="dialog"` on mobile.
+- **BottomSheet opens inside a device frame (2026-10-08):** like Dialog and Menu, a sheet opened inside
+  `[data-zen-overlay-root]` (a phone preview) renders in that frame and rises from the bottom of that screen, without
+  `inline`; elsewhere it still goes to the page portal.
 - **Flat hover backgrounds on step 2 (2026-10-08):** `Color/Background/Accent/Flat/Hover` and `…/Neutral/Flat/Hover`
   move from Alpha step 3 to step 2 (Light and Dark), like the other Flat/Hover tokens; Pressed stays on step 3, so hover
   and pressed now differ. Affects flat Buttons/IconButtons, Tabs, Segmented, Date Picker items and other Neutral flat

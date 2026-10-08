@@ -1,6 +1,9 @@
 import { createContext, forwardRef, useCallback, useContext, useEffect, useId, useImperativeHandle, useLayoutEffect, useRef, useState, type ButtonHTMLAttributes, type ChangeEvent, type FocusEvent, type FocusEventHandler, type KeyboardEvent, type MouseEvent, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 import { Icon, type IconName } from "../Icon";
 import { Popover, PopoverManualAddNew, useExclusivePopover } from "../Popover";
+import { BottomSheet } from "../BottomSheet";
+import { List, ListItem } from "../ListItem";
+import { Search } from "../Search";
 import { DatePicker } from "../DatePicker";
 import { Button, IconButton } from "../Button";
 import { Tag } from "../Tag";
@@ -8,7 +11,7 @@ import { Tooltip, useIconTooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
 import type { ZenLabels } from "../_shared/labels";
 import { scaleKey } from "../_shared/scale";
-import { useZenLabels } from "../_shared/zen-context";
+import { useZen, useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./input.css";
 import "../Icon/core";
@@ -447,12 +450,17 @@ export type SelectFieldProps = CommonFieldProps & Omit<SelectHTMLAttributes<HTML
   onFocus?: FocusEventHandler<HTMLSelectElement>;
   /** Focus left the field — the trigger and its option list — as on a native select. The event targets the native select. */
   onBlur?: FocusEventHandler<HTMLSelectElement>;
-  /** Popover/Label above the options: it names the option list, not the value (a label, not a heading). */
+  /** Popover/Label above the options: it names the option list, not the value (a label, not a heading). On mobile it
+   *  is the Bottom Sheet's title (default: the field's label). */
   popoverLabel?: ReactNode;
   /** Adds the Popover Search row; options are filtered by the query. */
   popoverSearch?: boolean;
   popoverSearchPlaceholder?: string;
-  /** Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself. */
+  /**
+   * Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself.
+   * On mobile (the nearest `data-breakpoint`, else ZenProvider's breakpoint, is `mobile`) the options open in a Bottom
+   * Sheet instead of a Popover: a List of the options, the picked one selected with a check, and a pick closes it.
+   */
   popoverOpen?: boolean;
   /** Called with the next open state: the trigger, Escape, a pick, a click outside or focus leaving the field. */
   onPopoverOpenChange?: (open: boolean) => void;
@@ -489,10 +497,21 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
   // (popoverOpen) leaves focus where it is.
   const [openedFromTrigger, setOpenedFromTrigger] = useState(false);
   const closeAndRestore = () => { setOpen(false); triggerRef.current?.focus(); };
+  // Mobile: the options open in a Bottom Sheet. The nearest data-breakpoint decides (ZenProvider's, or a phone frame
+  // that only sets the attribute), else the provider's breakpoint; read again whenever the list opens or closes.
+  const zen = useZen();
+  const [domBreakpoint, setDomBreakpoint] = useState<string | null>(null);
+  useLayoutEffect(() => {
+    setDomBreakpoint(triggerRef.current?.parentElement?.closest("[data-breakpoint]")?.getAttribute("data-breakpoint") ?? null);
+  }, [open, zen?.breakpoint]);
+  const asSheet = (domBreakpoint ?? zen?.breakpoint) === "mobile";
+  const [sheetQuery, setSheetQuery] = useState("");
+  useEffect(() => { if (!open) setSheetQuery(""); }, [open]);
   useExclusivePopover(open, () => setOpen(false), triggerRef);
   useEffect(() => { if (!open) setOpenedFromTrigger(false); }, [open]);
   useEffect(() => {
-    if (!open) return undefined;
+    // The Bottom Sheet dismisses itself (scrim, drag, Escape); its taps are outside the field.
+    if (!open || asSheet) return undefined;
     // Pointer down outside the field closes the option list.
     const handlePointerDown = (event: PointerEvent) => {
       const field = triggerRef.current?.closest(".zen-input-field");
@@ -505,7 +524,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
     };
     document.addEventListener("pointerdown", handlePointerDown);
     return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [open]);
+  }, [open, asSheet]);
   const hasPlaceholder = placeholder !== undefined && placeholder !== "";
   const controlledValue = selectProps.value == null ? undefined : String(selectProps.value);
   // A placeholder keeps the field empty until the user picks; without one the first option is preselected.
@@ -521,6 +540,14 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
   const isReadOnly = readOnly || resolvedState === "read-only";
   const ariaDescribedBy = describedBy(selectProps["aria-describedby"], message ? messageId : undefined);
   useImperativeHandle(ref, () => nativeRef.current as HTMLSelectElement);
+  /** A pick from the Popover or the Bottom Sheet: the value, the native select (onChange) and onValueChange. */
+  const pick = (nextValue: string) => {
+    if (controlledValue == null) setSelectedValue(nextValue);
+    if (nativeRef.current) nativeRef.current.value = nextValue;
+    selectProps.onChange?.({ target: nativeRef.current, currentTarget: nativeRef.current } as ChangeEvent<HTMLSelectElement>);
+    const option = options.find((entry) => entry.value === nextValue);
+    if (option) onValueChange?.(nextValue, option);
+  };
   // onFocus / onBlur belong to the whole field — the trigger and its option list — as on a native select (the hidden
   // <select> never takes focus from the user). Each fires once as focus enters / leaves the field.
   const focusReported = useRef(false);
@@ -533,7 +560,8 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
   const reportBlur = (event: FocusEvent<HTMLElement>) => {
     // Focus moving inside the field, or to nowhere while the list is open (Safari's mouse-down on an option, the
     // list's scrollbar), does not leave it: picking, Escape and a click outside hand focus on from the trigger.
-    if (!focusReported.current || inControl(event.relatedTarget) || (!event.relatedTarget && open)) return;
+    // The open Bottom Sheet takes the focus and gives it back to the trigger: the field is still in use.
+    if (!focusReported.current || inControl(event.relatedTarget) || (!event.relatedTarget && open) || (asSheet && open)) return;
     focusReported.current = false;
     onBlur?.(selectFocusEvent(event, nativeRef.current));
   };
@@ -544,13 +572,13 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
         className={`zen-input__native zen-select__trigger ${fieldTextStyle(size)}`}
         type="button"
         disabled={isDisabled}
-        aria-haspopup="listbox"
+        aria-haspopup={asSheet ? "dialog" : "listbox"}
         // Named by the field's label and its own value ("Project, Online banking redesign"), as a native select is: the
         // <label> points at the hidden <select>, so the button alone read only its value.
         aria-labelledby={label ? `${id}-label ${id}-trigger` : selectProps["aria-labelledby"] ? `${selectProps["aria-labelledby"]} ${id}-trigger` : selectProps["aria-label"] ? `${id}-name ${id}-trigger` : undefined}
         aria-readonly={isReadOnly || undefined}
         aria-expanded={open}
-        aria-controls={`${id}-popover`}
+        aria-controls={asSheet ? undefined : `${id}-popover`}
         aria-invalid={error ? true : undefined}
         aria-describedby={ariaDescribedBy}
         ref={triggerRef}
@@ -558,7 +586,8 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
         onFocus={reportFocus}
         onBlur={(event) => {
           reportBlur(event);
-          // Close when focus leaves both the trigger and its popover.
+          // Close when focus leaves both the trigger and its popover (the Bottom Sheet holds the focus while it is open).
+          if (asSheet) return;
           const next = event.relatedTarget as Node | null;
           if (next && event.currentTarget.parentElement?.closest(".zen-input-field")?.contains(next)) return;
           if (next) setOpen(false);
@@ -605,6 +634,21 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
         {hasPlaceholder && !options.some((option) => option.value === "") ? <option value="">{placeholder}</option> : null}
         {children ?? options.map((option) => <option key={option.value} value={option.value} disabled={option.disabled}>{option.label}</option>)}
       </select>
+      {asSheet ? (
+        <BottomSheet open={open && !isDisabled} onOpenChange={(next) => { if (!next) setOpen(false); }} title={popoverLabel ?? label ?? selectProps["aria-label"] ?? placeholder ?? ""}
+          search={popoverSearch ? <Search value={sheetQuery} onValueChange={setSheetQuery} placeholder={popoverSearchPlaceholder} /> : undefined}>
+          <List aria-label={typeof (popoverLabel ?? label) === "string" ? String(popoverLabel ?? label) : selectProps["aria-label"]}>
+            {options.filter((option) => !sheetQuery.trim() || option.label.toLowerCase().includes(sheetQuery.trim().toLowerCase())).map((option) => {
+              const picked = option.value === (controlledValue ?? selectedValue);
+              return (
+                <ListItem key={option.value} title={option.label} selected={picked} className={option.disabled ? "zen-select__sheet-option--disabled" : undefined} aria-disabled={option.disabled || undefined}
+                  trailing={picked ? <Icon name="icon-check-line" size="base" decorative /> : undefined}
+                  onClick={option.disabled ? undefined : () => { pick(option.value); setOpen(false); }} />
+              );
+            })}
+          </List>
+        </BottomSheet>
+      ) : (
       <Popover
         id={`${id}-popover`}
         open={open && !isDisabled}
@@ -627,16 +671,9 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
           }
         }}
         items={options.map((option) => ({ id: option.value, label: option.label, value: option.value, disabled: option.disabled, selected: option.value === (controlledValue ?? selectedValue) }))}
-        onSelect={(item) => {
-          const nextValue = item.value ?? "";
-          if (controlledValue == null) setSelectedValue(nextValue);
-          if (nativeRef.current) nativeRef.current.value = nextValue;
-          selectProps.onChange?.({ target: nativeRef.current, currentTarget: nativeRef.current } as ChangeEvent<HTMLSelectElement>);
-          const option = options.find((entry) => entry.value === nextValue);
-          if (option) onValueChange?.(nextValue, option);
-          closeAndRestore();
-        }}
+        onSelect={(item) => { pick(item.value ?? ""); closeAndRestore(); }}
       />
+      )}
     </FieldShell>
   );
 });

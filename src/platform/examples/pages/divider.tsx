@@ -353,7 +353,7 @@ function MobileReceiptExample() {
         <List aria-label="Store">
           {/* zen-detached: ListItem · Zen Studio */}
           <Stack as="li" direction="column" align="center" gap="md" paddingY="sm" justify="start">
-            <DockIcon icon="icon-coffee-cup-line" theme="orange" background="subtle" size="xl" />
+            <DockIcon icon="icon-coffee-cup-line" theme="orange" background="subtle" size="2xl" />
             <Stack gap="2xs" style={{ flex: 1 }}>
               <Text as="span" textStyle="Heading/2" truncate align="center">{order.store}</Text>
               <Text as="span" textStyle="Body/Small/Regular" tone="light" align="center">

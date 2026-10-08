@@ -12,16 +12,15 @@ import { DescriptionList } from "../../../components/DescriptionList";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
-import { Icon, type IconName } from "../../../components/Icon";
+import { Icon } from "../../../components/Icon";
 import { InlineMessage } from "../../../components/InlineMessage";
 import { Box, Container, Stack } from "../../../components/Layout";
 import { PageHeader } from "../../../components/PageHeader";
-import { PopoverBulkActionDivider, PopoverBulkActionGroup } from "../../../components/Popover";
 import { ProgressBar } from "../../../components/Progress";
 import { Search } from "../../../components/Search";
 import { SidePanel } from "../../../components/SidePanel";
 import { SkeletonText } from "../../../components/Skeleton";
-import { Table, TableActions, TableBadges, TableMedia, TableTags, TableText, type TableColumn, type TableSort } from "../../../components/Table";
+import { Table, TableActions, TableBadges, TableMedia, TableTags, TableText, type TableBulkAction, type TableColumn, type TableSort } from "../../../components/Table";
 import { Tag } from "../../../components/Tag";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
@@ -128,9 +127,14 @@ function BulkActionsExample() {
     setSelected([]);
     toast({ title: `${plural(ids.length, "invoice")} marked as paid`, action: { label: "Undo", onClick: () => setRows(before) } });
   };
-  // Each action says how many invoices it touches; the bar's tooltips show the same names.
-  const action = (icon: IconName, label: string, onClick: () => void, disabled = false) =>
-    <IconButton appearance="flat" level="primary" size="md" icon={icon} aria-label={label} disabled={disabled} onClick={onClick} />;
+  // Each action says how many invoices it touches: the bar's tooltips and the More menu (phones) show the same names.
+  const actions: TableBulkAction[] = [
+    { id: "remind", group: "Payment", icon: "icon-mail-01-line", label: unpaid.length ? `Send ${plural(unpaid.length, "reminder")}` : "Send reminders",
+      onClick: () => toast({ title: `${plural(unpaid.length, "reminder")} sent` }), disabled: !unpaid.length },
+    { id: "paid", group: "Payment", icon: "icon-check-circle-line", label: unpaid.length ? `Mark ${plural(unpaid.length, "invoice")} as paid` : "Mark as paid", onClick: markPaid, disabled: !unpaid.length },
+    { id: "pdf", group: "Share", icon: "icon-download-01-line", label: `Download ${plural(picked.length, "PDF")}`, onClick: () => toast({ title: `${count} downloaded` }) },
+    { id: "links", group: "Share", icon: "icon-link-01-line", label: `Copy ${plural(picked.length, "payment link")}`, onClick: () => toast({ title: `${plural(picked.length, "payment link")} copied` }) },
+  ];
   return (
     <Stack as="section" gap="md" aria-labelledby={headingId}>
       <Stack direction="row" justify="between" align="center" gap="sm" wrap>
@@ -140,18 +144,7 @@ function BulkActionsExample() {
         </Text>
       </Stack>
       <Table aria-labelledby={headingId} columns={invoiceColumns} rows={rows} selectable selectedIds={selected} onSelectionChange={setSelected}
-        bulkActions={<>
-          <PopoverBulkActionGroup aria-label="Payment">
-            {action("icon-mail-01-line", unpaid.length ? `Send ${plural(unpaid.length, "reminder")}` : "Send reminders",
-              () => toast({ title: `${plural(unpaid.length, "reminder")} sent` }), !unpaid.length)}
-            {action("icon-check-circle-line", unpaid.length ? `Mark ${plural(unpaid.length, "invoice")} as paid` : "Mark as paid", markPaid, !unpaid.length)}
-          </PopoverBulkActionGroup>
-          <PopoverBulkActionDivider />
-          <PopoverBulkActionGroup aria-label="Share">
-            {action("icon-download-01-line", `Download ${count} as PDF`, () => toast({ title: `${count} downloaded` }))}
-            {action("icon-link-01-line", `Copy ${plural(picked.length, "payment link")}`, () => toast({ title: `${plural(picked.length, "payment link")} copied` }))}
-          </PopoverBulkActionGroup>
-        </>} />
+        bulkActions={actions} />
     </Stack>
   );
 }
@@ -522,7 +515,7 @@ export const examples: ExampleDef[] = [
   },
   {
     title: "Act on selected rows",
-    description: "Checking rows brings up the Table's bulk actions: a Popover/Bulk-Action bar under the table with the count and Clear selection, held at the bottom of the window on a long table. Each action names how many invoices it touches; Mark as paid acts at once and the Toast can undo it.",
+    description: "Checking rows brings up the Table's bulk actions: a Popover/Bulk-Action bar under the table with the count and Clear selection, held at the bottom of the window on a long table; on a phone the actions that don't fit move into a More menu. Each action names how many invoices it touches; Mark as paid acts at once and the Toast can undo it.",
     wide: true,
     render: () => <BulkActionsExample />,
     code: `const [selected, setSelected] = useState<string[]>([]);
@@ -537,19 +530,12 @@ const count = plural(picked.length, "invoice");
 </Stack>
 <Table aria-labelledby="invoices-title" rows={rows} columns={columns}
   selectable selectedIds={selected} onSelectionChange={setSelected}
-  bulkActions={
-    <>
-      <PopoverBulkActionGroup aria-label="Payment">
-        <IconButton appearance="flat" level="primary" icon="icon-mail-01-line" aria-label={\`Send \${plural(unpaid.length, "reminder")}\`} onClick={remind} />
-        <IconButton appearance="flat" level="primary" icon="icon-check-circle-line" aria-label={\`Mark \${plural(unpaid.length, "invoice")} as paid\`} onClick={markPaid} />
-      </PopoverBulkActionGroup>
-      <PopoverBulkActionDivider />
-      <PopoverBulkActionGroup aria-label="Share">
-        <IconButton appearance="flat" level="primary" icon="icon-download-01-line" aria-label={\`Download \${count} as PDF\`} onClick={download} />
-        <IconButton appearance="flat" level="primary" icon="icon-link-01-line" aria-label="Copy payment links" onClick={copyLinks} />
-      </PopoverBulkActionGroup>
-    </>
-  } />`,
+  bulkActions={[
+    { id: "remind", group: "Payment", icon: "icon-mail-01-line", label: \`Send \${plural(unpaid.length, "reminder")}\`, onClick: remind },
+    { id: "paid", group: "Payment", icon: "icon-check-circle-line", label: \`Mark \${plural(unpaid.length, "invoice")} as paid\`, onClick: markPaid },
+    { id: "pdf", group: "Share", icon: "icon-download-01-line", label: \`Download \${plural(picked.length, "PDF")}\`, onClick: download },
+    { id: "links", group: "Share", icon: "icon-link-01-line", label: "Copy payment links", onClick: copyLinks },
+  ]} />`,
   },
   {
     title: "Open a row",

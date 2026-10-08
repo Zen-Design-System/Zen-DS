@@ -6,7 +6,7 @@ import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 import { userEvent } from "vitest/browser";
-import { Accordion, Button, Form, FormActions, IconButton, InputField, Menu, Pagination, Table, ZenProvider, useFormState, type TableSort } from "../../src/index";
+import { Accordion, Button, Form, FormActions, InputField, Menu, Pagination, Table, ZenProvider, useFormState, type TableSort } from "../../src/index";
 
 type Member = { id: string; name: string; seats: number };
 const members: Member[] = [
@@ -65,8 +65,7 @@ describe("Table bulkActions", () => {
     return (
       <Table aria-label="Members" rows={members} getRowId={(m) => m.id} selectable selectedIds={selected} onSelectionChange={setSelected}
         columns={[{ id: "name", header: "Name", cell: (m: Member) => m.name }]}
-        bulkActions={(ids) => <IconButton appearance="flat" level="primary" size="md" icon="icon-archive-line" aria-label={`Archive ${ids.length}`}
-          onClick={() => { onArchive(ids); setSelected([]); }} />} />
+        bulkActions={(ids) => [{ id: "archive", icon: "icon-archive-line", label: `Archive ${ids.length}`, onClick: () => { onArchive(ids); setSelected([]); } }]} />
     );
   }
 
@@ -97,6 +96,23 @@ describe("Table bulkActions", () => {
     await screen.getByRole("button", { name: "Clear selection" }).click();
     await expect.element(screen.getByRole("checkbox", { name: "Select row 2" })).not.toBeChecked();
     await expect.element(screen.getByRole("checkbox", { name: "Select all rows" })).toHaveFocus();
+  });
+});
+
+describe("Table bulkActions overflow", () => {
+  it("moves the actions that don't fit into a More menu", async () => {
+    const onLink = vi.fn();
+    const actions = ["One", "Two", "Three", "Four", "Five"].map((name) => ({ id: name, icon: "icon-archive-line" as const, label: `${name} 2 rows`, onClick: name === "Five" ? onLink : () => undefined }));
+    const screen = await render(<ZenProvider><div style={{ width: 280 }}>
+      <Table aria-label="Members" rows={members} getRowId={(m) => m.id} selectable selectedIds={["a", "b"]} onSelectionChange={() => undefined}
+        columns={[{ id: "name", header: "Name", cell: (m: Member) => m.name }]} bulkActions={actions} />
+    </div></ZenProvider>);
+    const bar = screen.getByRole("toolbar", { name: "Actions for 2 selected rows" });
+    await bar.getByRole("button", { name: "More actions" }).click();
+    await screen.getByRole("menuitem", { name: "Five 2 rows" }).click();
+    expect(onLink).toHaveBeenCalledTimes(1);
+    expect(bar.getByRole("button", { name: "One 2 rows" }).elements()).toHaveLength(1);
+    expect(bar.getByRole("button", { name: "Five 2 rows" }).elements()).toHaveLength(0);
   });
 });
 

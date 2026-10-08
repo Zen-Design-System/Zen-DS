@@ -255,7 +255,7 @@ function ProjectJumpExample() {
         </Stack>
         <Stack gap="md" padding="xl">
           <Stack direction="row" gap="md" align="center">
-            <DockIcon size="lg" icon={project.icon} theme={project.theme} background="subtle" />
+            <DockIcon size="xl" icon={project.icon} theme={project.theme} background="subtle" />
             <Stack gap="xs">
               <Heading level={4} textStyle="Heading/Subheading">{project.name}</Heading>
               <Text textStyle="Body/Small/Regular" tone="base">{project.client}</Text>

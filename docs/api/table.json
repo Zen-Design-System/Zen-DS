@@ -92,10 +92,10 @@
         },
         {
           "name": "bulkActions",
-          "type": "ReactNode | ((selectedIds: string[]) => ReactNode)",
+          "type": "TableBulkAction[] | ((selectedIds: string[]) => TableBulkAction[])",
           "required": false,
           "default": null,
-          "description": "Actions for the selected rows (Figma Popover/Bulk-Action). With `selectable`, checking a row brings up the bar under\nthe table — held at the bottom of the window while a long table scrolls past — with Clear selection, the count and\nthese actions: `IconButton appearance=\"flat\" level=\"primary\" size=\"md\"` (at most 5, each label saying how many rows\nit touches), grouped with PopoverBulkActionGroup / PopoverBulkActionDivider. A function receives the selected ids.\nEscape in the bar clears the selection; when the bar leaves with the focus in it, Select all rows takes the focus.\nThe bar sits outside the scroll box, so the table renders inside a `.zen-table-scope` wrapper; `ref`, `className`\nand the HTML attributes stay on the scroll box.",
+          "description": "Actions for the selected rows (Figma Popover/Bulk-Action). With `selectable`, checking a row brings up the bar under\nthe table — held at the bottom of the window while a long table scrolls past — with Clear selection, the count and\nthese actions as icon-only Button/Icon-Flat Medium (at most 5; a divider between groups). Actions that don't fit the\ntable's width (a phone) move, from the end, into a More button whose menu lists them with their labels. A function\nreceives the selected ids. Escape in the bar clears the selection; when the bar leaves with the focus in it, Select\nall rows takes the focus. The bar sits outside the scroll box, so the table renders inside a `.zen-table-scope`\nwrapper; `ref`, `className` and the HTML attributes stay on the scroll box.",
           "deprecated": null
         },
         {
@@ -293,6 +293,7 @@
   ],
   "types": {
     "TableAlign": "type TableAlign = \"left\" | \"right\"",
+    "TableBulkAction": "interface TableBulkAction { id: string; icon: IconName | ReactElement; label: string; onClick: () => void; disabled?: boolean; group?: string; }",
     "TableCellEditor": "type TableCellEditor<T> = | (TableEditorBase<T> & { type?: \"text\" | \"number\"; value: (row: T) => string; onCommit: (row: T, value: string) => void; multiline?: boolean }) | (TableEditorBase<T> & { type: \"select\"; value: (row: T) => string; options: Array<{ value: string; label: ReactNode }>; onCommit: (row: T, value: string) => void }) | (Omit<TableEditorBase<T>, \"validate\"> & { type: \"tags\"; value: (row: T) => string[]; onCommit: (row: T, value: string[]) => void; suggestions?: string[] })",
     "TableColumn": "interface TableColumn<T> { id: string; header: ReactNode; align?: TableAlign; width?: string; sortable?: boolean; icon?: IconName | ReactElement; cell: (row: T, index: number) => ReactNode; edit?: TableCellEditor<T>; onOpen?: (row: T) => void; openLabel?: ReactNode; }",
     "TableSort": "interface TableSort { columnId: string; direction: TableSortDirection }",
