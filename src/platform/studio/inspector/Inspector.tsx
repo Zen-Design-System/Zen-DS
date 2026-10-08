@@ -53,7 +53,10 @@ function StatusLine() {
       : edit.kind === "saved" && edit.file && edit.line ? `Saved · ${where} · ${undoShortcut} to undo`
         : edit.draft ? `${edit.message} · Draft · ${saveShortcut} to save`
           : edit.message;
-    details = edit.details ?? [];
+    // Any edit that missed the example's snippet says so (prop, text and style edits too; detach, wrap and slot ops
+    // word it in their own line), so the Code tab's copy is not trusted silently.
+    const snippet = edit.snippet && !edit.snippet.synced ? `Example code not updated${edit.snippet.reason ? `: ${edit.snippet.reason}` : ""}` : null;
+    details = [...(edit.details ?? []), ...(snippet ? [snippet] : [])];
   } else if (local) {
     tone = local.tone;
     text = local.text;

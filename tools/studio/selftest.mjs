@@ -1374,8 +1374,17 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     const pageBadge = applyOps(onPage, locOf(onPage, "<Badge"), "Badge", [{ op: "detach" }], { file: "local:p1.zen.tsx", typographyKeys });
     ok("badge on a builder page: width=\"hug\", no style", !("error" in pageBadge) && !/style=/.test(pageBadge.code) && /<Box surface="subtle" radius="full" paddingX="xs" paddingY="2xs" width="hug">/.test(pageBadge.code));
     check("badge on a builder page: primitives from the package", importLines(pageBadge).at(-1), 'import { Box, Icon, Stack, Text } from "@zen/design-system";');
+    // EmptyState's centred 320 column and DescriptionList's inline rows take Layout props there (2026-10-08), saying
+    // what they leave out; a style the page cannot express still refuses, saying which.
     const emptyOnPage = builderPage('<EmptyState title="Nothing here" />');
-    ok("empty state on a builder page: refused with the style it needs", /^EmptyState cannot be detached on a builder page yet: its layout needs an inline style/.test(detachPlan(emptyOnPage, locOf(emptyOnPage, "<EmptyState"), "EmptyState", { file: "local:p1.zen.tsx" }).reason ?? ""));
+    const pageEmpty = applyOps(emptyOnPage, locOf(emptyOnPage, "<EmptyState"), "EmptyState", [{ op: "detach" }], { file: "local:p1.zen.tsx", typographyKeys });
+    ok("empty state on a builder page: Fill capped at 320, centred, no style", !("error" in pageEmpty) && !/style=/.test(pageEmpty.code) && /<Stack as="section" gap="xs" width="fill" maxWidth=\{320\} alignSelf="center">/.test(pageEmpty.code));
+    ok("empty state on a builder page: the bottom padding is named as left out", pageEmpty.detached?.approximations.some((line) => /Padding\/4XLarge bottom padding is left out/.test(line)));
+    const listOnPage = builderPage('<DescriptionList aria-label="Summary" items={[{ term: "Subtotal", description: "$311.90" }]} />');
+    const pageList = applyOps(listOnPage, locOf(listOnPage, "<DescriptionList"), "DescriptionList", [{ op: "detach" }], { file: "local:p1.zen.tsx", typographyKeys });
+    ok("description list on a builder page: term hugs, value fills, no style", !("error" in pageList) && !/style=/.test(pageList.code) && /tone="base">\s*Subtotal/.test(pageList.code) && /align="end" width="fill">/.test(pageList.code));
+    const styled = builderPage('<EmptyState title="Nothing here" style={{ opacity: 0.5 }} />');
+    ok("empty state with its own style on a builder page: still refused, saying so", /^EmptyState cannot be detached on a builder page yet: its layout needs an inline style/.test(detachPlan(styled, locOf(styled, "<EmptyState"), "EmptyState", { file: "local:p1.zen.tsx" }).reason ?? ""));
   }
 
   // Interactive instances and non-presentational components are refused with a reason.

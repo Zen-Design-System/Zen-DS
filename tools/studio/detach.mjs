@@ -1439,10 +1439,13 @@ function referenceCount(ast, name) {
 /**
  * Builder pages (GĐ4 M4: a *.zen.tsx page takes no `style`): the inline layouts the recipes write become Layout props
  * that render the same (layout.css): `width: max-content` capped at 100% is width="hug" (fit-content); `flex: 1` (with
- * `minWidth: 0`) in a recipe's Stack is Fill along that Stack (width in a row, height in a column). Any other style
- * refuses the detach on a page, saying which.
+ * `minWidth: 0`) in a recipe's Stack is Fill along that Stack (width in a row, height in a column). EmptyState's
+ * `min(320px, 100%)` centred column is Fill capped at 320 and centred (alignSelf), its bottom padding left out; a
+ * DescriptionList term's 50% cap is left out (it hugs its text, the value fills the rest). Both say so in the
+ * approximations (`r`). Any other style refuses the detach on a page, saying which.
  */
-function pageLayout(node, component, parent = null) {
+const EMPTY_STATE_STYLE = '{ width: "min(320px, 100%)", marginInline: "auto", paddingBottom: "var(--zen-spacing-padding-4-xlarge)" }';
+function pageLayout(node, component, r, parent = null) {
   if (!node || node.type !== "el") return;
   const at = node.props.findIndex((prop) => prop.name === "style");
   if (at >= 0) {
@@ -1450,17 +1453,25 @@ function pageLayout(node, component, parent = null) {
     const style = prop.kind === "code" ? prop.code.replace(/\s+/g, " ").trim() : null;
     const row = parent?.props.some((entry) => entry.kind === "str" && entry.name === "direction" && entry.value === "row");
     const inStack = Boolean(parent && /Stack$/.test(parent.tag));
-    const props = style === '{ width: "max-content", maxWidth: "100%" }' ? [str("width", "hug")]
+    let props = style === '{ width: "max-content", maxWidth: "100%" }' ? [str("width", "hug")]
       : (style === "{ flex: 1 }" || style === "{ flex: 1, minWidth: 0 }") && inStack ? [str(row ? "width" : "height", "fill")]
         : null;
+    if (!props && style === EMPTY_STATE_STYLE) {
+      props = [str("width", "fill"), code("maxWidth", "320"), str("alignSelf", "center")];
+      r.approx("On a builder page the 320px column is Fill with a 320 max width, centred inside a Stack only (alignSelf); its Padding/4XLarge bottom padding is left out.");
+    }
+    if (!props && style === '{ maxWidth: "50%" }' && row) {
+      props = [];
+      r.approx("On a builder page a term is not capped at half the row: it hugs its text and the value fills the rest.");
+    }
     if (!props) refuse(`${component} cannot be detached on a builder page yet: its layout needs an inline style${style ? ` (${style})` : ""}, which pages do not take`);
     node.props.splice(at, 1, ...props);
   }
   for (const child of node.children) {
-    if (child.type === "el") pageLayout(child, component, node);
-    else if (child.type === "guard") pageLayout(child.then, component, node);
-    else if (child.type === "map") pageLayout(child.item, component, node);
-    else if (child.type === "either") for (const side of [child.yes, child.no]) for (const item of side) pageLayout(item, component, node);
+    if (child.type === "el") pageLayout(child, component, r, node);
+    else if (child.type === "guard") pageLayout(child.then, component, r, node);
+    else if (child.type === "map") pageLayout(child.item, component, r, node);
+    else if (child.type === "either") for (const side of [child.yes, child.no]) for (const item of side) pageLayout(item, component, r, node);
   }
 }
 
@@ -1477,7 +1488,7 @@ export function detachEdits(text, element, ast, { measured, instance, file, eol 
   const recipeContext = new Recipe(text, element, ast, nodePath, { measured: validMeasured(measured, keys), eol, file });
   const root = recipe.build(recipeContext);
   // A builder page takes no style (dialect.mjs): the recipes' inline layouts become the Layout props that render them.
-  if (typeof file === "string" && /\.zen\.tsx$/.test(file)) pageLayout(root, name);
+  if (typeof file === "string" && /\.zen\.tsx$/.test(file)) pageLayout(root, name, recipeContext);
   const keyed = cssKeyedOnComponent(recipeContext, componentCss);
   for (const hit of keyed.slice(0, 4)) {
     recipeContext.approx(`CSS keyed on the ${name} class stops applying: ${hit.selector} (${hit.file}${hit.line ? `:${hit.line}` : ""}).`);
