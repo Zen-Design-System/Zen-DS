@@ -287,6 +287,10 @@ export const rows = [
       await until(async () => (await selectedName(page)) === "TopNavigation", { message: "the TopNavigation selected" });
       await showLeftTab(page, "layers");
       const tree = page.locator(".studio-layers__tree");
+      // The TopNavigation's row open (a row deeper than the first levels starts closed).
+      const own = tree.locator('[role="treeitem"][aria-selected="true"]').first();
+      await until(() => own.count(), { message: "the TopNavigation's Layers row" });
+      if ((await own.getAttribute("aria-expanded")) === "false") await own.locator(".studio-layers__chevron").click();
       const slot = tree.locator('[role="treeitem"]', { hasText: "Top-Trailing" }).first();
       await until(() => slot.count(), { message: "a Top-Trailing slot row" });
       const share = tree.locator('[role="treeitem"]', { hasText: "Share" }).first();

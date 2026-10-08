@@ -283,4 +283,48 @@ export const rows = [
       return `⟷ −40 px → columns="${grid.attr("columns")}", the item keeps filling its cell`;
     },
   },
+  {
+    id: "ST-23", feature: "Drag a TopNavigation action past the next one's far edge: they swap (op moveItem)", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await navSelected(ctx);
+      const [favourite, share] = await navActions(page);
+      await dragFrom(page, favourite, { x: share.x + share.width - 2, y: share.y + share.height / 2 });
+      await until(async () => /trailing=\{\[[\s\S]*?"Share"[\s\S]*?"Favourite"/.test(await ctx.text()), { message: "Share before Favourite in the source" });
+      return "Favourite dropped after Share → Share, Favourite";
+    },
+  },
+  {
+    id: "ST-24", feature: "Drop a TopNavigation action on the middle of another: the two share one pill (op groupItem)", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await navSelected(ctx);
+      const [favourite, share] = await navActions(page);
+      await dragFrom(page, favourite, { x: share.x + share.width / 2, y: share.y + share.height / 2 });
+      await until(async () => ((/trailing=\{\[([\s\S]*?)\]\}/.exec(await ctx.text())?.[1] ?? "").match(/group:/g) ?? []).length === 2, { message: "both actions with a group in the source" });
+      return "Favourite on Share → one group";
+    },
+  },
 ];
+
+/** The fixture's TopNavigation selected (frame 6), for the data-item drag rows. */
+async function navSelected(ctx) {
+  const page = await freshSelect(ctx, "inst-nav-box", { frame: 6, position: { dx: 4, dy: 4 } });
+  await page.keyboard.press("Enter");
+  await until(async () => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim() === "TopNavigation", { message: "the TopNavigation selected" });
+  await sleep(300);
+  return page;
+}
+
+/** The rects of the fixture TopNavigation's drawn actions, in order. */
+async function navActions(page) {
+  return page.locator('[data-studio-frame="example:6"] button.zen-top-nav__action').evaluateAll((nodes) => nodes.map((node) => { const r = node.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; }));
+}
+
+/** A real pointer drag from the centre of `box` to `to`, in steps. */
+async function dragFrom(page, box, to) {
+  const from = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  for (let step = 1; step <= 10; step += 1) await page.mouse.move(from.x + ((to.x - from.x) * step) / 10, from.y + ((to.y - from.y) * step) / 10);
+  await sleep(150);
+  await page.mouse.up();
+}

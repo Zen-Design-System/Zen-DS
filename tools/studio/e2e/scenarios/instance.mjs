@@ -247,7 +247,7 @@ export const rows = [
       await until(async () => (await sizeText(page, "width")) === "200", { message: "W reads 200" });
       await typeWidth("240");
       await until(async () => /<Stack direction="row" fillChildren width=\{240\}>\s*<Button data-e2e="inst-button"/.test(await ctx.text()), { message: "the same Stack 240 wide" });
-      if ((await ctx.text()).match(/fillChildren/g)?.length !== 1) throw new Error("a second Stack");
+      if ((await ctx.text()).match(/fillChildren width=\{\d+\}>\s*<Button data-e2e="inst-button"/g)?.length !== 1) throw new Error("a second Stack");
       await sizeChoice(page, "width", "Fill container");
       await until(async () => /<Stack direction="row" fillChildren width="fill">\s*<Button data-e2e="inst-button"/.test(await ctx.text()), { message: "its Stack fills" });
       return "W 200 → <Stack direction=\"row\" fillChildren width={200}> → 240 edits it → Fill → width=\"fill\"";
@@ -276,7 +276,7 @@ export const rows = [
       await sleep(300);
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Backspace");
-      await until(async () => (await wraps()) === 1 && ((await ctx.text()).match(/fillChildren/g) ?? []).length === 1, { message: "⌫: the copy gone with its Stack" });
+      await until(async () => (await wraps()) === 1 && ((await ctx.text()).match(/<Stack (?!data-e2e="wrap-stack")[^>]*fillChildren/g) ?? []).length === 1, { message: "⌫: the copy gone with its Stack" });
       // The Layers rebuild after the canvas re-renders: the copy's row goes a moment after the source.
       await until(async () => (await row.count()) === 1, { message: "one wrapped row left in Layers" });
       await row.click();
