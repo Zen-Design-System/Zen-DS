@@ -385,6 +385,7 @@ function bindingKind(path, end, name, depth = 0) {
  */
 function readsState(path, end, name, depth = 0) {
   const binding = bindingOf(path, end, name);
+  if (binding?.param !== undefined && depth < 4) return renderParamReadsState(path, binding.param, depth);
   if (!binding || binding.declarator === undefined) return false;
   const { declarator } = binding;
   const init = unwrapTs(declarator.init);
@@ -395,6 +396,22 @@ function readsState(path, end, name, depth = 0) {
   if (binding.kind !== "const" || !init || depth >= 4) return false;
   return [...rootsOf(init)].some((root) => readsState(path, binding.at, root, depth + 1));
 }
+
+/**
+ * A parameter of a render function written in a JSX attribute (`columns={[{ cell: (feature) => <Toggle
+ * checked={feature.on} /> }]}`, `renderItem={(row) => …}`): the component calls it with its own data, so the parameter
+ * reads state when another attribute of that element does (`rows={features}`, features a useState value). Then a fixed
+ * value would lock the control (backlog 2026-10-08): it counts as bound-state.
+ */
+function renderParamReadsState(path, at, depth) {
+  let k = at - 1;
+  while (k >= 0 && ["ObjectProperty", "ObjectExpression", "ArrayExpression", "JSXExpressionContainer", ...TS_WRAPPER_TYPES].includes(path[k].type)) k -= 1;
+  if (path[k]?.type !== "JSXAttribute" || path[k - 1]?.type !== "JSXOpeningElement" || path[k - 2]?.type !== "JSXElement") return false;
+  const own = path[k];
+  return path[k - 1].attributes.some((attr) => attr !== own && attr.type === "JSXAttribute" && attr.value?.type === "JSXExpressionContainer"
+    && [...rootsOf(unwrapTs(attr.value.expression))].some((root) => readsState(path, k - 2, root, depth + 1)));
+}
+const TS_WRAPPER_TYPES = ["TSAsExpression", "TSSatisfiesExpression", "TSNonNullExpression", "ParenthesizedExpression"];
 
 /** The kind that decides among several roots' kinds: the innermost loop, else state, else value. */
 const strongest = (kinds) => kinds.reduce((best, kind) => {
