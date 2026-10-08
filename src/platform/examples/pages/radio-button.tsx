@@ -155,7 +155,7 @@ function ProjectVisibilityExample() {
         {/* Radio cards: the whole card selects; the selected card gets the Active stroke. */}
         <Grid minColumnWidth={280} gap="md">
           {visibilityOptions.map((option) => (
-            <Card key={option.id} className="px-radio-button-card" theme="border" spacing="small" selected={visibility === option.id}>
+            <Card key={option.id} className="px-radio-button-card" theme="flat" spacing="small" selected={visibility === option.id}>
               <RadioButton name={name} value={option.id} bold label={option.label} caption={option.caption} disabled={option.disabled}
                 checked={visibility === option.id} onCheckedChange={(checked) => { if (checked) setVisibility(option.id); }} />
             </Card>
@@ -352,7 +352,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   <FormFieldset kind="radio" legend="Who can open Loyalty app">
     <Grid minColumnWidth={280} gap="md">
       {options.map((option) => (
-        <Card key={option.id} theme="border" spacing="small" selected={visibility === option.id}>
+        <Card key={option.id} theme="flat" spacing="small" selected={visibility === option.id}>
           <RadioButton name="visibility" value={option.id} bold label={option.label} caption={option.caption}
             disabled={option.disabled} checked={visibility === option.id}
             onCheckedChange={(checked) => { if (checked) setVisibility(option.id); }} />

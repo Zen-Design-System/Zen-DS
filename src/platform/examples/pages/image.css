@@ -17,10 +17,6 @@
 /* A button in a column keeps its label width. */
 .px-image-start { align-self: flex-start; }
 
-/* A Flat Medium Icon Button at the start of a row, pulled back by its inset ((button − icon) / 2), so its glyph lines up
-   with the text and pictures above it; the hover circle overhangs into the screen's margin. */
-.px-image-like { margin-inline-start: calc((var(--zen-button-icon-size-medium, 20px) - var(--zen-button-size-medium, 40px)) / 2); }
-
 /* The author's name takes focus while a reloaded photo arrives (tabIndex -1): its ring hugs the name (not the wider
    caption line under it) with room around the text, and the feed scrolls it clear of the pinned bar, ring included. */
 .px-image-focus-target { position: relative; scroll-margin-block: var(--zen-spacing-padding-small, 12px); }

@@ -322,6 +322,18 @@ export function EmptyErrorTemplate() {
 
   /* ── The region under the page header: one state at a time ── */
   let content;
+  // Search fills its column; the filter chips (and Clear all, once both are on) share the rest. It shows while the
+  // projects load too, so the rows stay where they are when the skeleton rows give way to the loaded ones.
+  const toolbar = (
+    <Grid columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} gap="sm" align="center">
+      <Search ref={searchRef} aria-label="Search projects" placeholder="Search projects" value={query} onValueChange={setQuery} />
+      <Stack direction="row" gap="xs" align="center" wrap>
+        {filterChip("status")}
+        {filterChip("lead")}
+        {statusFilter.length > 0 && leadFilter.length > 0 ? <Button level="tertiary" onClick={() => { setStatusFilter([]); setLeadFilter([]); }}>Clear all</Button> : null}
+      </Stack>
+    </Grid>
+  );
   if (missing !== null) {
     content = (
       <EmptyState headingLevel={2} icon="icon-link-broken-01-line" title="Project not found" primaryAction={{ label: "View all projects", onClick: backToList }}>
@@ -330,13 +342,16 @@ export function EmptyErrorTemplate() {
     );
   } else if (request.status === "loading") {
     content = (
-      <Stack aria-busy="true">
-        <VisuallyHidden role="status">Loading projects</VisuallyHidden>
-        {phone ? (
-          <List aria-label="Projects">
-            {loadingRows.map((row) => <ListItem key={row} title={<SkeletonText lines={1} />} caption={<SkeletonText lines={1} />} leading={<SkeletonShape shape="round" size="md" />} />)}
-          </List>
-        ) : <Table aria-label="Projects" rows={loadingRows} getRowId={(row) => row} columns={loadingColumns} />}
+      <Stack gap="md">
+        {toolbar}
+        <Stack aria-busy="true">
+          <VisuallyHidden role="status">Loading projects</VisuallyHidden>
+          {phone ? (
+            <List aria-label="Projects">
+              {loadingRows.map((row) => <ListItem key={row} title={<SkeletonText lines={1} />} caption={<SkeletonText lines={1} />} leading={<SkeletonShape shape="round" size="md" />} />)}
+            </List>
+          ) : <Table aria-label="Projects" rows={loadingRows} getRowId={(row) => row} columns={loadingColumns} />}
+        </Stack>
       </Stack>
     );
   } else if (request.status === "failed") {
@@ -360,15 +375,7 @@ export function EmptyErrorTemplate() {
       : <EmptyState headingLevel={2} illustration={false} icon="icon-search-medium-line" title={`No results for “${query.trim()}”`} secondaryAction={{ label: "Clear search", onClick: () => { focusSearch.current = true; setQuery(""); } }}>Search by project or client name.</EmptyState>;
     content = (
       <Stack gap="md">
-        {/* Search fills its column; the filter chips (and Clear all, once both are on) share the rest. */}
-        <Grid columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} gap="sm" align="center">
-          <Search ref={searchRef} aria-label="Search projects" placeholder="Search projects" value={query} onValueChange={setQuery} />
-          <Stack direction="row" gap="xs" align="center" wrap>
-            {filterChip("status")}
-            {filterChip("lead")}
-            {statusFilter.length > 0 && leadFilter.length > 0 ? <Button level="tertiary" onClick={() => { setStatusFilter([]); setLeadFilter([]); }}>Clear all</Button> : null}
-          </Stack>
-        </Grid>
+        {toolbar}
         {/* The open project's row stays selected while its panel shows. */}
         {!phone ? <Table aria-label="Projects" rows={shown} getRowId={(row) => row.id} columns={columns} selectedIds={peek ? [peek.id] : []} onRowClick={(row) => openProject(row.id)} empty={noMatch} />
           : shown.length ? (

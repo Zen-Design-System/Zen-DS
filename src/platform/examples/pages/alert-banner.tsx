@@ -133,7 +133,7 @@ function PaymentFailedExample() {
     );
     content = (
       <Page title="Billing" description={`${plan.name} plan · ${plural(seats, "seat")} · billed ${workspacePlan.billing}`}>
-        <Card theme="border" className="px-alert-banner-billing">
+        <Card theme="shadow" className="px-alert-banner-billing">
           {paid ? (
             <Stack as="section" gap="md" aria-labelledby={paymentId}>
               {summary}

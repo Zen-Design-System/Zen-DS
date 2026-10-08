@@ -2,7 +2,7 @@ import { useId, useRef, useState } from "react";
 import { ActionBar } from "../../../components/ActionBar";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
-import { BottomSheet } from "../../../components/BottomSheet";
+import { BottomSheet, type BottomSheetItem } from "../../../components/BottomSheet";
 import { ChatAvatarGroup, ChatCall, ChatComposer, ChatMessage, ChatThread, type ChatPerson, type ChatReplyTarget } from "../../../components/Chat";
 import { DescriptionList } from "../../../components/DescriptionList";
 import { DockIcon } from "../../../components/DockIcon";
@@ -526,6 +526,13 @@ function OverPhotosExample() {
   const photo = moodboard[index];
   const favourite = favourites.includes(photo.src);
   const toggleFavourite = () => setFavourites((list) => favourite ? list.filter((src) => src !== photo.src) : [...list, photo.src]);
+  const shareTitle = `Share ${photo.name}`;
+  const shareItems: BottomSheetItem[] = [
+    { id: "link", label: "Copy link", icon: "icon-link-01-line" },
+    { id: "send", label: `Send to ${people.gia.name}`, icon: "icon-send-01-line" },
+    { id: "save", label: "Save to device", icon: "icon-download-01-line" },
+  ];
+  const share = (item: BottomSheetItem) => toast({ title: item.id === "link" ? "Link copied" : item.id === "send" ? `Photo sent to ${firstName("gia")}` : "Photo saved" });
   return (
     // Overlay type only on imagery: its gradient keeps the white title and actions readable on the photo. The viewer
     // does not scroll, so it has no scrollRef.
@@ -539,13 +546,7 @@ function OverPhotosExample() {
     }>
       {screen.anchor}
       <PlatformPhoneMedia photo={photo} />
-      <BottomSheet inline type="action" open={sharing} onOpenChange={setSharing} title={`Share ${photo.name}`}
-        items={[
-          { id: "link", label: "Copy link", icon: "icon-link-01-line" },
-          { id: "send", label: `Send to ${people.gia.name}`, icon: "icon-send-01-line" },
-          { id: "save", label: "Save to device", icon: "icon-download-01-line" },
-        ]}
-        onSelect={(item) => toast({ title: item.id === "link" ? "Link copied" : item.id === "send" ? `Photo sent to ${firstName("gia")}` : "Photo saved" })} />
+      <BottomSheet inline type="action" open={sharing} onOpenChange={setSharing} title={shareTitle} items={shareItems} onSelect={share} />
     </PlatformPhone>
   );
 }

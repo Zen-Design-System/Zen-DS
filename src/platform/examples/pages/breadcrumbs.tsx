@@ -199,7 +199,7 @@ function TopBarTrailExample() {
     content = (
       <>
         <PageHeader title={person.name} description={`${person.role} · ${person.location}`} />
-        <Card theme="border">
+        <Card theme="shadow">
           <DescriptionList items={[
             { term: "Team", description: team.team },
             { term: "Email", description: person.email },

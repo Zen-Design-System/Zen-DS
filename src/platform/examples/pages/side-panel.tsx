@@ -1,8 +1,8 @@
 /* Side Panel examples (brief: docs/research/example-rebuild-brief-2026-09-30.md). Đìzai Studio, signed in as Alex Duong,
    Wednesday Sep 30, 2026, 10:30 am. Each example teaches one Side Panel decision: a row opens its record in a Modal
    panel and Close returns to the row; many filters wait in a Small panel that counts the results before you apply them;
-   an edit form asks before it drops changes; a Standard panel docks beside a page that stays live; and a panel keeps
-   its frame while its content loads or fails. A Side Panel has no phone variant: on a phone the same jobs are a pushed
+   an edit form asks before it drops changes; a Standard panel docks beside a page that stays live; a panel keeps
+   its frame while its content loads or fails; and a long title wraps while a long body scrolls on its own. A Side Panel has no phone variant: on a phone the same jobs are a pushed
    screen or a Bottom Sheet (those pages show them). */
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { Avatar } from "../../../components/Avatar";
@@ -458,6 +458,48 @@ function InvoicePanelExample() {
   );
 }
 
+// ——— 6. Long content: a long title wraps, a long history scrolls inside the panel ——————————————————————————————
+/** A brief with a long working title and a history of many changes: the panel's title wraps instead of truncating, and
+ *  only the body scrolls, so the title and the actions stay in reach. */
+const longBrief = { title: "Card controls and spending limits for the Lumen Bank mobile app, phase 2", client: "Lumen Bank", lead: people.alex };
+const briefVerbs = ["edited the scope of", "commented on", "attached a file to", "moved the due date of", "approved", "asked for changes to"];
+const briefPeople: PersonId[] = ["alex", "ava", "finn", "khoa", "hana", "chi"];
+const briefHistory = Array.from({ length: 24 }, (_, index) => {
+  const person = people[briefPeople[index % briefPeople.length]];
+  return { id: `h${index}`, person, verb: briefVerbs[index % briefVerbs.length], at: daysFromToday(-index, 16 - (index % 6), 10 + index) };
+});
+
+function LongContentExample() {
+  const { toast } = useToast();
+  const historyId = useId();
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="px-side-panel-page"><Container maxWidth="full">
+      <Stack paddingY="xl" gap="xl">
+        <PageHeader title="Briefs" description="Client briefs the studio is working from" />
+        <ListBox>
+          <List aria-label="Briefs">
+            <ListItem title={longBrief.title} titleLines={2} caption={`${longBrief.client} · ${plural(briefHistory.length, "change")}`}
+              leading={<DockIcon icon="icon-file-doc-line" theme="blue" background="subtle" />} onClick={() => setOpen(true)} />
+          </List>
+        </ListBox>
+      </Stack>
+      <SidePanel type="modal" open={open} onOpenChange={setOpen} title={longBrief.title} description={`${longBrief.client} · Lead ${longBrief.lead.name}`}
+        primaryAction={{ label: "Export history", onClick: () => toast({ title: "History exported", children: `${plural(briefHistory.length, "change")} as a CSV file` }) }}>
+        <Stack as="section" gap="xs" aria-labelledby={historyId}>
+          <Kicker id={historyId}>History</Kicker>
+          <List aria-labelledby={historyId}>
+            {briefHistory.map((entry) => (
+              <ListItem key={entry.id} title={entry.person.name} caption={`${entry.verb[0].toUpperCase()}${entry.verb.slice(1)} the brief · ${formatRelative(entry.at)}`}
+                leading={<Avatar size="md" {...avatarOf(entry.person)} />} />
+            ))}
+          </List>
+        </Stack>
+      </SidePanel>
+    </Container></div>
+  );
+}
+
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————————
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
@@ -575,6 +617,28 @@ const requestClose = () => (form.isDirty ? setConfirming(true) : setOpen(false))
   ) : (
     <DescriptionList items={details} />
   )}
+</SidePanel>`,
+  },
+  {
+    title: "Long title and history",
+    description: "A brief with a long working title opens in a Modal panel: the title wraps instead of truncating, so the whole name reads. Its 24 changes make the body long, and only the body scrolls: the title, Close and Export history stay in reach.",
+    wide: true,
+    screen: true,
+    render: () => <LongContentExample />,
+    code: `<SidePanel type="modal" open={open} onOpenChange={setOpen}
+  title="Card controls and spending limits for the Lumen Bank mobile app, phase 2" // wraps; never cut
+  description="Lumen Bank · Lead Alex Duong"
+  primaryAction={{ label: "Export history", onClick: exportHistory }}>
+  <Stack as="section" gap="xs" aria-labelledby="history">
+    <Heading level={3} id="history" textStyle="Body/Small/Bold" tone="light">History</Heading>
+    {/* Only the body scrolls: the header and the actions stay put */}
+    <List aria-labelledby="history">
+      {history.map((entry) => (
+        <ListItem key={entry.id} title={entry.person.name} caption={\`\${entry.verb} the brief · \${formatRelative(entry.at)}\`}
+          leading={<Avatar size="md" {...avatarOf(entry.person)} />} />
+      ))}
+    </List>
+  </Stack>
 </SidePanel>`,
   },
 ]);

@@ -602,6 +602,10 @@ const [month, setMonth] = useState(august);
     description: "The start date is Read-only: people can read and copy it, and it never opens a calendar. The end date is Disabled while the contract is permanent, and its help text says why.",
     render: () => <ContractDatesExample />,
     code: `<Form onSubmit={save} gap="md">
+  {/* The person is a List row: no side padding of its own, so its text lines up with the fields */}
+  <List aria-label="Employee">
+    <ListItem title={person.name} caption={\`\${person.role} · \${person.location}\`} leading={<Avatar size="md" {...avatarOf(person)} />} />
+  </List>
   <SelectField label="Contract type" options={types} value={type} onValueChange={setType} />
   <DateField label="Start date" defaultValue="09/01/2026" readOnly today={today}
     helpText="Set when the contract was signed." />
@@ -620,9 +624,28 @@ const [date, setDate] = useState<Date | null>(null);
 const [month, setMonth] = useState(firstFreeMonth); // today is the 30th: open on October
 const [time, setTime] = useState<DatePickerTime>({ from: "14:00", to: "14:30" });
 
-// One key per screen; the Reviews root has a large title that folds over the weeks of reviews. Its weeks are a grouped
-// list: <PlatformPhone key="list" canvas="alt"> with TopNavigation type="alt", each week a white
-// <ListBox> around its List of static rows, under a kicker in <Box paddingX="lg">.
+// One key per screen; the Reviews root has a large title that folds over the weeks of reviews (a grouped list).
+<PlatformPhone key="list" canvas="alt" headerOverlay screenRef={screenRef}
+  header={<TopNavigation type="alt" title="Reviews" largeTitle="Reviews" scrollRef={screenRef}
+    trailing={[{ icon: "icon-plus-line", label: "New review", onClick: openNew }]} />}>
+  <Stack gap="lg" padding="lg">
+    {weeks.map((week) => (
+      <Stack key={week.label} as="section" gap="xs" aria-labelledby={week.id}>
+        <Box paddingX="lg"><Heading level={2} id={week.id} textStyle="Body/Small/Bold" tone="light">{week.label}</Heading></Box>
+        <ListBox>
+          <List aria-labelledby={week.id}>
+            {week.rows.map((review) => (
+              <ListItem key={review.id} title={review.name} caption={when(review.date, review.time)}
+                leading={<DockIcon icon={review.project.icon} theme={review.project.theme} background="subtle" label={review.project.name} />} />
+            ))}
+          </List>
+        </ListBox>
+      </Stack>
+    ))}
+  </Stack>
+</PlatformPhone>
+
+// New review: a child screen, compact with Back
 <PlatformPhone key="new" headerOverlay screenRef={screenRef}
   header={<TopNavigation type="compact-alt" title="New review" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => (dirty ? setDiscarding(true) : toList()) }} />}
@@ -646,8 +669,13 @@ const [time, setTime] = useState<DatePickerTime>({ from: "14:00", to: "14:30" })
 const [draft, setDraft] = useState<DatePickerRange | null>(null); // priced while picking
 const nights = nightsOf(draft);
 
-<ListItem title="Dates" caption={stay ? formatRange(stay.start, stay.end) : "Add your check-in and check-out"}
-  leading="icon-calendar-line" onClick={() => { setDraft(stay); setPicking(true); }} />
+<ListBox>
+  <List aria-label="Your stay">
+    <ListItem title="Dates" caption={stay ? formatRange(stay.start, stay.end) : "Add your check-in and check-out"}
+      leading="icon-calendar-line" trailing={<Icon name="icon-chevron-right-line-small" decorative />}
+      onClick={() => { setDraft(stay); setPicking(true); }} />
+  </List>
+</ListBox>
 {/* A DateField on a phone opens the one-month sheet (Cancel / OK) by itself. */}
 <DateField size="lg" label="Airport pickup" value={pickup} onValueChange={setPickup} />
 

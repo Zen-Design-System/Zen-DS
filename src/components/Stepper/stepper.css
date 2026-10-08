@@ -17,7 +17,9 @@ button.zen-stepper__hit:focus-visible { outline: 3px solid var(--zen-color-focus
 .zen-stepper__step[data-state="error"] .zen-stepper__line { --zen-stepper-line: var(--zen-color-background-negative-solid-default, #d03e19); }
 
 .zen-stepper__contents { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
-.zen-stepper__title { color: var(--zen-color-content-neutral-strongest, #111); }
+/* Steps share the bar equally (flex: 1 1 0), so on a narrow screen a one-word title can be wider than its step: it
+   breaks (hyphenated where the browser can) instead of running into the next step's title. */
+.zen-stepper__title { color: var(--zen-color-content-neutral-strongest, #111); overflow-wrap: break-word; hyphens: auto; }
 .zen-stepper__caption { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-stepper__step[data-state="error"] .zen-stepper__title { color: var(--zen-color-content-negative-base); }
 .zen-stepper__step[data-state="error"] .zen-stepper__caption { color: var(--zen-color-content-negative-strongest); }

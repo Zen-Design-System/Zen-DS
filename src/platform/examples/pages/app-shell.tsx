@@ -23,7 +23,7 @@ import { useFormState } from "../../../components/Form";
 import type { IconName } from "../../../components/Icon";
 import { InputField, SelectField } from "../../../components/Input";
 import { Box, Container, Grid, Stack } from "../../../components/Layout";
-import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { List, ListBox, ListItem, ToggleListItem } from "../../../components/ListItem";
 import { Menu } from "../../../components/Menu";
 import { MetricCard } from "../../../components/MetricWidget";
 import { PageHeader } from "../../../components/PageHeader";
@@ -33,7 +33,6 @@ import { Sidebar, type SidebarSection } from "../../../components/Sidebar";
 import { Table, TableMedia, TableText, type TableColumn } from "../../../components/Table";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
-import { Toggle } from "../../../components/Toggle";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
@@ -64,6 +63,9 @@ const taskWhen = (task: Task) => (task.status === "Done" ? `Done ${formatDay(tas
 const wholeDates = (text: string) => text.split(/([A-Z][a-z]{2} \d{1,2}(?: – [A-Z][a-z]{2} \d{1,2})?, \d{4})/).map((part, index) => (
   index % 2 ? <span key={index} className="px-app-shell-value">{part}</span> : part
 ));
+/** Where a notification leads: the invoice list, the profile (leave), or the projects the task belongs to. */
+const notificationTarget = (item: { verb: string; object: string }): "invoices" | "profile" | "projects" =>
+  /^INV-/.test(item.object) ? "invoices" : /leave/.test(item.verb) ? "profile" : "projects";
 const activityCaption = (item: { verb: string; object: string; at: Date }, leadNew = false) => (
   <>{leadNew ? "New ·\u00a0" : null}{wholeDates(`${item.verb[0].toUpperCase()}${item.verb.slice(1)} ${item.object}`)}{" "}<span className="px-app-shell-value">{`· ${formatRelative(item.at)}`}</span></>
 );
@@ -172,6 +174,8 @@ function StudioApp({ narrowWindow = false, notice = false }: { narrowWindow?: bo
   // Remember it per person in a real app (e.g. localStorage), so the rail stays the way they left it.
   const [collapsed, setCollapsed] = useState(false);
   const [unseen, setUnseen] = useState(3);
+  // Opening a notification marks it read (its New goes) and goes to what it is about.
+  const [read, setRead] = useState<string[]>([]);
   const [list, setList] = useState(projects);
   const [creating, setCreating] = useState(false);
   const [measure, width] = useWidth();
@@ -226,12 +230,16 @@ function StudioApp({ narrowWindow = false, notice = false }: { narrowWindow?: bo
         {/* A list of rows sits in a ListBox. */}
         <ListBox theme="shadow">
           <List aria-label="Notifications">
-            {activity.map((item) => (
-              <ListItem key={item.id} title={people[item.actor].name}
-                caption={activityCaption(item, item.unread && compactRows)}
-                leading={<Avatar size="md" {...avatarOf(people[item.actor])} />}
-                trailing={item.unread && !compactRows ? badge("New", "accent") : undefined} />
-            ))}
+            {activity.map((item) => {
+              const unread = item.unread && !read.includes(item.id);
+              return (
+                <ListItem key={item.id} title={people[item.actor].name}
+                  caption={activityCaption(item, unread && compactRows)}
+                  leading={<Avatar size="md" {...avatarOf(people[item.actor])} />}
+                  trailing={unread && !compactRows ? badge("New", "accent") : undefined}
+                  onClick={() => { setRead((ids) => ids.includes(item.id) ? ids : [...ids, item.id]); go(notificationTarget(item)); }} />
+              );
+            })}
           </List>
         </ListBox>
       </Page>
@@ -242,9 +250,9 @@ function StudioApp({ narrowWindow = false, notice = false }: { narrowWindow?: bo
         <PageHeader title="Home" description={`${plural(dueThisWeek.length, "task")} due this week across ${plural(new Set(dueThisWeek.map((task) => task.project)).size, "project")}`} />
         {/* Three peers share the neutral tile; a phone puts them two across. */}
         <Grid columns={{ mobile: 2, desktop: 3 }} gap="md">
-          <MetricCard label="Active projects" value={String(list.filter((project) => project.status === "Active").length)} icon="icon-folder-line" theme="flat" />
-          <MetricCard label="Due this week" value={String(dueThisWeek.length)} icon="icon-calendar-line" theme="flat" />
-          <MetricCard label="Outstanding" value={formatCompactMoney(outstanding)} icon="icon-coins-line" theme="flat" />
+          <MetricCard label="Active projects" value={String(list.filter((project) => project.status === "Active").length)} icon="icon-folder-line" theme="shadow" />
+          <MetricCard label="Due this week" value={String(dueThisWeek.length)} icon="icon-calendar-line" theme="shadow" />
+          <MetricCard label="Outstanding" value={formatCompactMoney(outstanding)} icon="icon-coins-line" theme="shadow" />
         </Grid>
         <Stack as="section" gap="md" aria-labelledby={dueId}>
           <Heading level={2} id={dueId} textStyle="Heading/4">Due this week</Heading>
@@ -253,7 +261,7 @@ function StudioApp({ narrowWindow = false, notice = false }: { narrowWindow?: bo
             <List aria-labelledby={dueId}>
               {dueThisWeek.map((task) => (
                 <ListItem key={task.id} title={task.title} titleLines={2} caption={`${task.key} · ${taskWhen(task)}`}
-                  leading={<Avatar size="md" {...avatarOf(people[task.assignee])} />} trailing={compactRows ? undefined : taskBadge(task.status)} selected={false} />
+                  leading={<Avatar size="md" {...avatarOf(people[task.assignee])} />} trailing={compactRows ? undefined : taskBadge(task.status)} />
               ))}
             </List>
           </ListBox>
@@ -402,7 +410,7 @@ function PeopleDirectoryApp() {
             header={<Stack direction="row" fillChildren width={240}><Search placeholder="Search people" aria-label="Search people" value={query}
               onValueChange={(value) => { setQuery(value); if (value.trim()) go("people"); }} /></Stack>}
             headerActions={<>
-              <AppShellAction icon="icon-bell-01-line" aria-label="Activity" dot={news} onClick={() => go("activity")} />
+              <AppShellAction icon="icon-bell-01-line" aria-label="Activity" dot={news} aria-current={page === "activity" ? "page" : undefined} onClick={() => go("activity")} />
               {account.menu}
             </>}
           >
@@ -595,6 +603,7 @@ function PhoneApp() {
   // A pushed screen over the current root: Notifications from Home, a project from Projects.
   const [pushed, setPushed] = useState<string | null>(null);
   const [unseen, setUnseen] = useState(true);
+  const [read, setRead] = useState<string[]>([]);
   const [list, setList] = useState(phoneProjects);
   const [creating, setCreating] = useState(false);
   const [push, setPush] = useState(true);
@@ -629,13 +638,22 @@ function PhoneApp() {
         header={<TopNavigation type="compact-alt" title="Notifications" scrollRef={screenRef}
           leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go('.zen-top-nav__action[aria-label^="Notifications"]', () => setPushed(null)) }} />}>
         {screen.anchor}
-        {/* Rows have no side padding of their own: the screen margin (lg, 20px) insets the List. */}
+        {/* Rows have no side padding of their own: the screen margin (lg, 20px) insets the List. A row opens what it
+            is about and marks itself read; an invoice stays a desk task (the web app). */}
         <Box paddingX="lg" paddingY="xs">
           <List aria-label="Notifications">
-            {[...activity, ...moreActivity].map((item) => (
-              <ListItem key={item.id} title={people[item.actor].name} caption={activityCaption(item)}
-                leading={<Avatar size="md" {...avatarOf(people[item.actor])} />} />
-            ))}
+            {[...activity, ...moreActivity].map((item) => {
+              const target = notificationTarget(item);
+              const open = () => {
+                setRead((ids) => ids.includes(item.id) ? ids : [...ids, item.id]);
+                if (target === "invoices") toast({ title: `${item.object} is in the web app`, children: "Invoices stay on the desktop." });
+                else screen.go('.zen-top-nav__action, .zen-list-item__wrapper', () => { setPushed(null); setRoot(target); });
+              };
+              return (
+                <ListItem key={item.id} title={people[item.actor].name} caption={activityCaption(item, Boolean("unread" in item && item.unread) && !read.includes(item.id))}
+                  leading={<Avatar size="md" {...avatarOf(people[item.actor])} />} onClick={open} />
+              );
+            })}
           </List>
         </Box>
       </PlatformPhone>
@@ -707,15 +725,13 @@ function PhoneApp() {
               <ListItem title="Office" caption={me.location} leading={<DockIcon icon="icon-marker-pin-01-line" theme="green" background="subtle" size="md" />} />
             </List>
           </Group>
-          <Stack as="section" gap="xs" aria-labelledby={`${baseId}-notify`}>
-            <Box paddingX="lg"><Heading level={2} id={`${baseId}-notify`} textStyle="Body/Small/Bold" tone="light">Notifications</Heading></Box>
-            <Card theme="flat">
-              <Stack gap="md">
-                <Toggle size="lg" label="Push notifications" caption="Comments, reviews and approvals" checked={push} onCheckedChange={setPush} />
-                <Toggle size="lg" label="Daily email digest" caption="Every morning at 8:00 am" checked={digest} onCheckedChange={setDigest} />
-              </Stack>
-            </Card>
-          </Stack>
+          {/* Settings rows whose whole surface is the switch: the switches line up on the block's right edge. */}
+          <Group id={`${baseId}-notify`} title="Notifications">
+            <List aria-labelledby={`${baseId}-notify`}>
+              <ToggleListItem title="Push notifications" caption="Comments, reviews and approvals" checked={push} onCheckedChange={setPush} />
+              <ToggleListItem title="Daily email digest" caption="Every morning at 8:00 am" checked={digest} onCheckedChange={setDigest} />
+            </List>
+          </Group>
         </Stack>
       </PlatformPhone>
     );
@@ -725,7 +741,7 @@ function PhoneApp() {
     // Home: the top bar's Notifications becomes the root's trailing action, with a dot until it is opened.
     <PlatformPhone key="home" label="Zen app" canvas="alt" headerOverlay screenRef={screenRef} footer={footer}
       header={<TopNavigation type="alt" title="Home" largeTitle="Home" scrollRef={screenRef}
-        trailing={[{ icon: "icon-bell-01-line", label: unseen ? "Notifications, new" : "Notifications", dot: unseen, onClick: () => screen.go('.zen-top-nav__action[aria-label="Back"]', () => { setUnseen(false); setPushed("notifications"); }) }]}
+        trailing={[{ icon: "icon-bell-01-line", label: unseen ? "Notifications, new" : "Notifications", dot: unseen, onClick: () => screen.go('.platform-phone__screen .zen-list-item__wrapper', () => { setUnseen(false); setPushed("notifications"); }) }]}
         topBar={false} />}>
       {screen.anchor}
       <Stack gap="lg" padding="lg">
@@ -733,14 +749,14 @@ function PhoneApp() {
           <List aria-labelledby={`${baseId}-today`}>
             {meetings.map((meeting) => {
               const p = projectById(meeting.project);
-              return <ListItem key={meeting.id} title={meeting.title} caption={`${formatTime(meeting.start)} · ${meeting.where}`} leading={<DockIcon icon={p.icon} theme={p.theme} background="subtle" size="md" />} selected={false} />;
+              return <ListItem key={meeting.id} title={meeting.title} caption={`${formatTime(meeting.start)} · ${meeting.where}`} leading={<DockIcon icon={p.icon} theme={p.theme} background="subtle" size="md" />} />;
             })}
           </List>
         </Group>
         <Group id={`${baseId}-due`} title="Due this week">
           <List aria-labelledby={`${baseId}-due`}>
             {dueThisWeek.map((task) => (
-              <ListItem key={task.id} title={task.title} titleLines={1} caption={`${task.key} · ${formatDue(task.due)}`} leading={<Avatar size="md" {...avatarOf(people[task.assignee])} />} selected={false} />
+              <ListItem key={task.id} title={task.title} titleLines={1} caption={`${task.key} · ${formatDue(task.due)}`} leading={<Avatar size="md" {...avatarOf(people[task.assignee])} />} />
             ))}
           </List>
         </Group>
@@ -813,7 +829,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   header={<Stack direction="row" fillChildren width={240}><Search placeholder="Search people" aria-label="Search people" value={query}
     onValueChange={(value) => { setQuery(value); if (value.trim()) go("people"); }} /></Stack>}
   headerActions={<>
-    <AppShellAction icon="icon-bell-01-line" aria-label="Activity" dot={hasNews} onClick={() => go("activity")} />
+    <AppShellAction icon="icon-bell-01-line" aria-label="Activity" dot={hasNews} aria-current={page === "activity" ? "page" : undefined} onClick={() => go("activity")} />
     <Menu align="end" trigger={<AppShellAccount name="Alex Duong" src={alex.photo} />} items={accountItems} />
   </>}
 >
