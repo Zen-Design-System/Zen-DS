@@ -1489,6 +1489,9 @@ export function detachEdits(text, element, ast, { measured, instance, file, eol 
   const root = recipe.build(recipeContext);
   // A builder page takes no style (dialect.mjs): the recipes' inline layouts become the Layout props that render them.
   if (typeof file === "string" && /\.zen\.tsx$/.test(file)) pageLayout(root, name, recipeContext);
+  // A builder page (the browser engine, no `componentCss`) needs none: the dialect takes no className, so no rule can
+  // key on the instance, and the library's own CSS on these classes styles only the parts the recipe rebuilds
+  // (checked 2026-10-08: src/components/**/*.css pairs them with no other component's class).
   const keyed = cssKeyedOnComponent(recipeContext, componentCss);
   for (const hit of keyed.slice(0, 4)) {
     recipeContext.approx(`CSS keyed on the ${name} class stops applying: ${hit.selector} (${hit.file}${hit.line ? `:${hit.line}` : ""}).`);

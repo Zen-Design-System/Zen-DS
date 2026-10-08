@@ -215,6 +215,11 @@ export type SourceElement = {
   /** Char offsets of the element in the file's text (without a BOM): its exact code for ⌘C (dev server, 2026-10-03). */
   range?: { start: number; end: number };
   /**
+   * The useState values its code reads from its component (literal initial state, `set` + Name setter): a ⌘C carries
+   * them, so a paste into another file declares them there (op pasteCode `state`; 2026-10-08). Absent when none.
+   */
+  stateReads?: StateDecl[];
+  /**
    * The saved file's version of each attribute the draft changed (GET /element on a drafted file, 2026-10-05): the
    * attribute as saved, or null when the saved element does not write it. Lets a reset put a binding back
    * (`status={one.online}` after a fixed value) and a presence toggle restore what it removed.

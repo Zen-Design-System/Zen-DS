@@ -636,8 +636,67 @@ export function describeElement(code, file, loc) {
     wrap: wrapVerdict(text, ast, element),
     // Char offsets of the element in the file text (BOM left out), so the Studio can copy its exact code (⌘C).
     range: { start: element.start, end: element.end },
+    ...((reads) => (reads.length ? { stateReads: reads } : {}))(stateReadsOf(ast, element, text)),
     hash: sha1(code),
   };
+}
+
+/** Type words a copied state's `useState<…>` may carry (slots.mjs stateEntries takes these only). */
+const STATE_TYPE_WORDS = /^(?:string|number|boolean|null|Date|\[\]|[|\s()]|"[^"\\]*"|-?\d+(?:\.\d+)?)+$/;
+/** A useState initializer the paste can write again: literals, arrays and objects of them, `new Date(…literals)`. */
+function literalInit(node) {
+  const value = unwrapTs(node);
+  if (!value) return false;
+  if (["StringLiteral", "NumericLiteral", "BooleanLiteral", "NullLiteral"].includes(value.type)) return true;
+  if (value.type === "UnaryExpression" && value.operator === "-" && value.argument.type === "NumericLiteral") return true;
+  if (value.type === "TemplateLiteral") return !value.expressions.length;
+  if (value.type === "ArrayExpression") return value.elements.every((item) => item && item.type !== "SpreadElement" && literalInit(item));
+  if (value.type === "ObjectExpression") return value.properties.every((item) => item.type === "ObjectProperty" && !item.computed && !item.shorthand && (item.key.type === "Identifier" || item.key.type === "StringLiteral") && literalInit(item.value));
+  if (value.type === "NewExpression") return value.callee.type === "Identifier" && value.callee.name === "Date" && value.arguments.every((item) => literalInit(item));
+  return false;
+}
+
+/**
+ * The useState values the element's code reads from its component (`open`, `setOpen` of `const [open, setOpen] =
+ * useState(false)`), as op pasteCode's `state` takes them ([{ name, initial, type? }], 8 at most): a ⌘C carries them so a
+ * paste into another file declares them there (2026-10-08) instead of refusing the names. Only a pair whose setter is
+ * `set` + Name and whose initial state is a literal; others stay out (the paste then names what is missing).
+ */
+function stateReadsOf(ast, element, text) {
+  const used = new Set();
+  const declared = new Set();
+  const skip = new WeakSet();
+  walk(element, (node) => {
+    if ((node.type === "MemberExpression" || node.type === "OptionalMemberExpression") && !node.computed) skip.add(node.property);
+    if (node.type === "ObjectProperty" && !node.computed && !node.shorthand) skip.add(node.key);
+    if (FUNCTION_TYPES.has(node.type)) node.params.forEach((param) => boundNames(param).forEach((name) => declared.add(name)));
+    if (node.type === "VariableDeclarator") boundNames(node.id).forEach((name) => declared.add(name));
+    if (node.type === "Identifier" && !skip.has(node)) used.add(node.name);
+    return true;
+  });
+  const path = ancestry(ast, element);
+  if (!path) return [];
+  const out = [];
+  const seen = new Set();
+  for (const name of used) {
+    if (declared.has(name)) continue;
+    const binding = bindingOf(path, path.length - 1, name);
+    const declarator = binding?.declarator;
+    const init = unwrapTs(declarator?.init);
+    if (!declarator || declarator.id.type !== "ArrayPattern" || init?.type !== "CallExpression" || !isStateHook(init.callee)) continue;
+    const [value, setter] = declarator.id.elements;
+    if (value?.type !== "Identifier" || seen.has(value.name)) continue;
+    if (setter && (setter.type !== "Identifier" || setter.name !== `set${value.name[0].toUpperCase()}${value.name.slice(1)}`)) continue;
+    const arg = init.arguments[0];
+    if (!arg || !literalInit(arg)) continue;
+    const typeNode = init.typeArguments?.params?.[0] ?? init.typeParameters?.params?.[0];
+    const type = typeNode ? text.slice(typeNode.start, typeNode.end) : null;
+    if (type !== null && !STATE_TYPE_WORDS.test(type)) continue;
+    seen.add(value.name);
+    out.push({ at: declarator.start, entry: { name: value.name, initial: text.slice(arg.start, arg.end), ...(type ? { type } : {}) } });
+  }
+  // In the order the component declares them (its useState lines are written again in that order).
+  return out.sort((a, b) => a.at - b.at).map((item) => item.entry).slice(0, 8);
 }
 
 /* ── formatting values ───────────────────────────────────────────────────────────────────────────────────────────── */

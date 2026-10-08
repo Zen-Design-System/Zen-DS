@@ -418,6 +418,18 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
   check("origin: a catch parameter → bound-value", loopOrigin(3)[0], { kind: "bound-value", reads: ["error"] });
   check("origin: nested loops multiply their rows", loopOrigin(4)[0], { kind: "loop-bound", reads: ["p"], rows: 6 });
   check("origin: Array.from({ length }) and forEach callbacks are loops", [loopOrigin(5)[0], loopOrigin(6)[0]], [{ kind: "loop-bound", reads: ["k"], rows: 4 }, { kind: "loop-bound", reads: ["item"] }]);
+  // stateReads (2026-10-08): the useState pairs a copied layer reads, as pasteCode's `state` takes them.
+  const stateful = lines(
+    "export function S() {",
+    "  const [open, setOpen] = useState(false);",
+    "  const [tab, setTab] = useState<\"a\" | \"b\">(\"a\");",
+    "  const [rows] = useState(load());",
+    "  const [n, bump] = useState(0);",
+    "  return <Stack><Button onClick={() => setOpen(true)}>{tab}</Button><Dialog open={open} rows={rows} n={n} onClose={(open) => open} /></Stack>;",
+    "}",
+  );
+  check("stateReads: literal pairs with a set+Name setter, type kept; computed or oddly named left out", describe(stateful, "6:9").stateReads, [{ name: "open", initial: "false" }, { name: "tab", initial: "\"a\"", type: "\"a\" | \"b\"" }]);
+  check("stateReads: none → absent", "stateReads" in describe(lines("export function P() {", "  const [open] = useState(false);", "  return <Text>Plain</Text>;", "}"), "3:9"), false);
   check("origin: a custom hook's value is state (never given a fixed value)", (() => {
     const attr = describe(lines("function T() {", "  const { picked } = useFormState();", "  return <Checkbox checked={picked.has(1)} />;", "}"), "3:9").attributes[0];
     return attr.origin;
