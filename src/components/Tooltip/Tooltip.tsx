@@ -1,5 +1,6 @@
 import { cloneElement, createContext, isValidElement, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type FocusEvent, type HTMLAttributes, type PointerEvent, type ReactElement, type ReactNode } from "react";
 import { Icon } from "../Icon";
+import "../Icon/core";
 import { ZenPortal } from "../Portal";
 import { useZenLabels } from "../_shared/zen-context";
 import { usePresence } from "../Motion";
