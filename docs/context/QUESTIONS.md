@@ -107,7 +107,7 @@ until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed a
 ## For the user (decisions and actions)
 
 Answered on 2026-10-08: no LAN access (`server.host` stays off); Code view languages in the order HTML/CSS → Vue →
-Swift → Flutter → Svelte (now in BACKLOG); read-only fields already show a focus ring (input.css, since 2026-10-06);
+Swift → Flutter → Svelte, on hold for a later phase (BACKLOG); read-only fields already show a focus ring (input.css, since 2026-10-06);
 List-Box: code stays, the designer updates the master (above); Studio polish N1–N11 later (BACKLOG).
 
 - **Later (user, 2026-10-08):** Platform chrome: "Download Figma" (overview + sidebar footer) and "Feedback" have no destination, so

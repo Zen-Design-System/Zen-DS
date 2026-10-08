@@ -126,7 +126,7 @@ làm hiện tại; khi có câu trả lời, việc cần làm sẽ vào `BACKLO
 
 **Đã trả lời ngày 08/10/2026:**
 - Không mở truy cập qua mạng LAN (`server.host` vẫn tắt).
-- Xem code bằng ngôn ngữ khác: làm theo thứ tự HTML/CSS → Vue → Swift → Flutter → Svelte (đã đưa vào BACKLOG).
+- Xem code bằng ngôn ngữ khác: làm theo thứ tự HTML/CSS → Vue → Swift → Flutter → Svelte — tạm lưu trong BACKLOG, sẽ làm ở giai đoạn sau.
 - Ô chỉ đọc: đã có vòng focus từ 06/10 (`input.css`), không cần làm thêm.
 - List-Box: giữ như code, designer sửa master (xem mục trên).
 - Chỉnh giao diện Studio N1–N11: để sau (đã ghi trong BACKLOG).
