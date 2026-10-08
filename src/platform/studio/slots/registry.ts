@@ -255,12 +255,13 @@ const topNavigationControl: ContentSlot = {
 };
 
 const metricAction: ContentSlot = {
-  // MetricWidget.tsx Title-Highlight at XLarge–Medium: <div className="zen-metric__header"><span className="zen-metric__title">
-  // {label}</span>{action}</div>; metric-widget.css: a flex row, space-between, gap Small. Figma: the title row's
-  // Button/Icon-Main XSmall Tertiary (not a SLOT property). An atom so Swap instance (⇄) reaches it (2026-10-08).
+  // MetricWidget.tsx Title-Highlight at XLarge–Medium: <div className="zen-metric__header"><span
+  // className="zen-metric__title-row">…label…</span>{action}</div>, always while titled (activeWhen); metric-widget.css: a
+  // flex row, space-between, gap Small. Figma: the title row's Button/Icon-Main XSmall Tertiary (not a SLOT property).
+  // An atom so Swap instance (⇄) reaches it (2026-10-08).
   component: "Metric", prop: "action", name: "Action", figma: { native: false },
-  kind: "atom", container: ":scope > .zen-metric__contents > .zen-metric__header", mountsWhenEmpty: false, parts: ":scope > .zen-metric__title",
-  ghostAnchor: { selector: ":scope > .zen-metric__contents > .zen-metric__header > .zen-metric__title", place: "after" }, flow: "row", gap: "own", max: 1,
+  kind: "atom", container: ":scope > .zen-metric__contents > .zen-metric__header", mountsWhenEmpty: true, parts: ":scope > .zen-metric__title-row",
+  flow: "row", gap: "own", max: 1,
   accepts: { only: ["IconButton", "Button"] },
   activeWhen: [{ prop: "variant", is: ["title-highlight"], default: "icon-highlight" }, { prop: "size", is: ["xl", "xlarge", "lg", "large", "md", "medium"], default: "xl" }],
 };

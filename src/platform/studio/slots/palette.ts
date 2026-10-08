@@ -101,7 +101,7 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   Tag: "Tag", DockIcon: "DockIcon", List: "ListItem", ListItem: "ListItem", ListBox: "ListItem", DescriptionList: "DescriptionList",
   Metric: "MetricWidget", MetricCard: "MetricWidget", Card: "Card", ProgressBar: "Progress", InlineMessage: "InlineMessage",
   EmptyState: "EmptyState", InputField: "Input", TextAreaField: "Input", SelectField: "Input", Checkbox: "Checkbox",
-  Toggle: "Toggle", FormFieldset: "Form", RadioButton: "RadioButton", Stack: "Layout", Grid: "Layout", Box: "Layout", Divider: "Divider",
+  Toggle: "Toggle", ChipGroup: "ChipGroup", FormFieldset: "Form", RadioButton: "RadioButton", Stack: "Layout", Grid: "Layout", Box: "Layout", Divider: "Divider",
   Accordion: "Accordion", useToast: "Toast",
   Tabs: "Tabs", TabPanel: "Tabs", Segmented: "Segmented", Breadcrumbs: "Breadcrumbs", Pagination: "Pagination",
   Stepper: "Stepper", Menu: "Menu", Tooltip: "Tooltip", Icon: "Icon", FileIcon: "FileIcon", Flag: "Flag",
@@ -434,12 +434,16 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => `<Search aria-label="Search projects" placeholder="Search projects" />`,
   },
   {
-    id: "chip-row", label: "Chip row", group: "Inputs", caption: "Single choice", root: "Stack", components: ["Stack", "Chip"], state: [state("status", '"all"')], interactive: true, input: true,
+    // One choice is a ChipGroup (radio group, its own state); a row of Normal chips is for several picks at once.
+    id: "chip-group", label: "Chip group", group: "Inputs", caption: "Single choice", root: "ChipGroup", components: ["ChipGroup"], interactive: true, input: true,
+    build: () => `<ChipGroup aria-label="Project status" defaultValue="all" options={[{ value: "all", label: "All" }, { value: "active", label: "Active" }, { value: "done", label: "Done" }]} />`,
+  },
+  {
+    id: "chip-row", label: "Chip row", group: "Inputs", caption: "Several picks", root: "Stack", components: ["Stack", "Chip"], state: [state("tags", '["design"]', "string[]")], interactive: true, input: true,
     build: () => lines(
-      `<Stack direction="row" gap="xs" wrap role="group" aria-label="Project status">`,
-      `  <Chip variant="normal" level="primary" selected={status === "all"} onClick={() => setStatus("all")}>All</Chip>`,
-      `  <Chip variant="normal" level="primary" selected={status === "active"} onClick={() => setStatus("active")}>Active</Chip>`,
-      `  <Chip variant="normal" level="primary" selected={status === "done"} onClick={() => setStatus("done")}>Done</Chip>`,
+      `<Stack direction="row" gap="xs" wrap role="group" aria-label="Project tags">`,
+      `  <Chip variant="normal" level="primary" selected={tags.includes("design")} onClick={() => setTags(tags.includes("design") ? tags.filter((tag) => tag !== "design") : [...tags, "design"])}>Design</Chip>`,
+      `  <Chip variant="normal" level="primary" selected={tags.includes("research")} onClick={() => setTags(tags.includes("research") ? tags.filter((tag) => tag !== "research") : [...tags, "research"])}>Research</Chip>`,
       `</Stack>`,
     ),
   },

@@ -288,7 +288,7 @@ check("clickable Card: warnings", reasons(cardClickable), [
   "Navigation: The card is one click target, so it holds no controls or fields (Tabs, Segmented, Breadcrumbs, Pagination)",
   "Data display: A card never goes inside a card (Card)",
   "Charts: A card never goes inside a card (Chart card)",
-  "Inputs: The card is one click target, so it holds no controls or fields (Text field, Text area, Select, Checkbox, Toggle, Radio group, Search, Chip row, Date field, Calendar, Number field, Autocomplete, Rich text, Slider, Rating input, NPS scale, Colour selector, File upload)",
+  "Inputs: The card is one click target, so it holds no controls or fields (Text field, Text area, Select, Checkbox, Toggle, Radio group, Search, Chip group, Chip row, Date field, Calendar, Number field, Autocomplete, Rich text, Slider, Rating input, NPS scale, Colour selector, File upload)",
   "Overlays: The card is one click target, so it holds no controls or fields (Dialog, Modal form, Side panel, Bottom sheet, Popover, Tooltip)",
   "Layout: The card is one click target, so it holds no controls or fields (Accordion)",
   "Page: The card is one click target, so it holds no controls or fields (Page header, Top navigation, Bottom navigation, Sidebar, App shell, Action bar)",
