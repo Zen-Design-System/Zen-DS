@@ -615,6 +615,9 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Fill height in a column without a height (2026-10-08):** a column Stack with `height="fill"` whose parent gives it
+  no height no longer collapses its Fill or `fillChildren` children to 0; they keep their content height, and a column
+  with a height still shares it equally (a 0% flex basis).
 - **Tooltip around a wrapper (2026-10-08):** a Button inside a Box or Stack that a Tooltip wraps now gets the
   tooltip's aria-describedby when it takes focus, and `tooltip/focusable-trigger` accepts such a wrapper.
 - **AiChatBlock heading level (2026-10-08):** new `headingLevel` (1–3, default 2) for the greeting, so a screen whose
@@ -930,6 +933,9 @@ removed (four unused colour ramps were, see Removed).
     which still bleeds outside the trail).
 
 ### Changed
+- **Docs platform: old app-layer examples removed (2026-10-08):** the examples in `src/platform/appLayer/*` for pages
+  that have a rebuilt `examples/pages/<page>.tsx` were never shown; they, `shellScreens.tsx` and their CSS are gone
+  (about 4,000 lines). The playgrounds and the Templates page keep theirs.
 - **Docs platform examples (2026-10-07, backlog batch 6b):** phone screens and playground stages paint Canvas/Default
   (§16; `PlatformPhone canvas="surface"` keeps a white screen); one-item Sidebar groups lose their title; HR · Home is
   full width like the other HR pages, and side content on full-width pages stops at 1440px; the phone templates sit

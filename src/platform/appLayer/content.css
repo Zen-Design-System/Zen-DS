@@ -1,24 +1,11 @@
 /* App-layer group "content" (platform only): Description List, Action Bar, Image, Visually Hidden pages. Prefix pac-. */
 .pac-preview { justify-content: center; }
-.pac-card-fill { width: min(440px, 100%); }
 .pac-stack-start { align-self: flex-start; justify-self: start; }
 .pac-nowrap { white-space: nowrap; }
 
 /* ── Description List ── */
 .pac-dl-frame { width: min(420px, 100%); }
 .pac-dl-frame[data-width="narrow"] { width: min(300px, 100%); }
-.pac-dl-skeleton { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.pac-dl-skeleton > div { display: flex; min-height: 24px; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-medium, 16px); }
-.pac-dl-skeleton > div > .zen-skeleton-text:first-child { width: 32%; }
-.pac-dl-skeleton > div > .zen-skeleton-text:last-child { width: 44%; }
-.pac-inline-edit { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding-top: var(--zen-spacing-padding-2-xsmall, 4px); }
-.pac-inline-edit__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.pac-edge-grid { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: var(--zen-spacing-gap-medium, 16px); }
-.pac-edge-grid[data-narrow="true"] { grid-template-columns: minmax(0, 280px) minmax(0, 1fr); }
-@media (max-width: 760px) { .pac-edge-grid, .pac-edge-grid[data-narrow="true"] { grid-template-columns: minmax(0, 1fr); } }
-.pac-sheet-body { display: grid; gap: var(--zen-spacing-gap-large, 24px); }
-/* A table whose columns never squeeze: on a narrow card it scrolls sideways inside its own box instead. */
-.zen-table.pac-scroll-table > .zen-table__table { min-width: max-content; }
 
 /* ── Action Bar: a page preview (the frame is the "viewport" a fixed bar pins to) ── */
 /* zen-allow-canvas-layer: the frame stands in for the app page behind the bar */
@@ -46,40 +33,10 @@
 .pac-frame-stack { display: flex; width: 100%; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
 .pac-product { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-large, 24px); }
 .pac-product__head { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
-.pac-form { display: grid; gap: var(--zen-spacing-gap-medium, 16px); }
-.pac-form__row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--zen-spacing-gap-medium, 16px); }
-/* Status line: the icon carries the colour (Light is for icons, §7); the text stays Neutral/Base. */
-.pac-status { --pac-status-icon: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.pac-status[data-tone="positive"] { --pac-status-icon: var(--zen-color-content-positive-light, #2e7d32); }
-.pac-status[data-tone="warning"] { --pac-status-icon: var(--zen-color-content-warning-light, #b26a00); }
-.pac-status > .zen-icon { color: var(--pac-status-icon); }
-/* Cart row: the price line ends in Remove; the quantity stepper sits under it. */
-.pac-cart-line { display: flex; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.zen-input-field.pac-cart-qty { width: 128px; }
-/* Edit page bar: under 480px the component puts the buttons side by side at equal widths, which cuts longer labels
-   ("Undo c…"). Here each button keeps its whole label: when the two do not fit they wrap to full-width rows, Primary on top. */
-.zen-action-bar.pac-bar-whole-labels[data-narrow="true"] > .zen-action-bar__actions > * { flex: 1 1 auto; }
 
 /* ── Image ── */
 .pac-image-stage { width: min(440px, 100%); }
 .pac-image-stage[data-kind="thumbnail"] { display: flex; width: auto; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
-.pac-gallery { display: flex; width: min(480px, 100%); flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); }
-.pac-gallery__stage { position: relative; }
-.pac-gallery__nav { position: absolute; z-index: 2; top: 50%; transform: translateY(-50%); }
-.pac-gallery__nav[data-side="previous"] { left: var(--zen-spacing-padding-small, 12px); }
-.pac-gallery__nav[data-side="next"] { right: var(--zen-spacing-padding-small, 12px); }
-.pac-thumbs { display: flex; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: var(--zen-spacing-padding-2-xsmall, 4px); overflow-x: auto; list-style: none; scrollbar-width: thin; }
-.pac-thumb { display: inline-flex; flex: 0 0 auto; padding: 0; border: 0; border-radius: var(--zen-corner-radius-large, 16px); background: transparent; cursor: pointer; opacity: .72; transition: opacity 120ms ease; }
-.pac-thumb:hover { opacity: 1; }
-.pac-thumb[aria-pressed="true"] { opacity: 1; outline: 2px solid var(--zen-color-border-active-neutral-solid, #111); outline-offset: 2px; }
-.pac-thumb:focus-visible { opacity: 1; outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
-@media (prefers-reduced-motion: reduce) { .pac-thumb { transition: none; } }
-.pac-proofs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: var(--zen-spacing-gap-small, 12px); }
-.pac-ratio-grid { display: grid; width: 100%; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); align-items: start; gap: var(--zen-spacing-gap-medium, 16px); }
-.pac-feed { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px) var(--zen-spacing-padding-xlarge, 24px); }
-.zen-card.pac-feed__card { overflow: hidden; padding: 0; }
-.pac-feed__meta { display: flex; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px); }
-.pac-feed__like { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 
 /* ── Visually Hidden ── */
 /* Playground "Reveal hidden text": show what only assistive technology gets, outlined (a teaching view, never in product). */
@@ -96,11 +53,5 @@
 .pac-site__nav a:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 0; }
 .pac-site__main { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-large, 20px); outline: 0; }
 .pac-site__main:focus-visible { box-shadow: inset 0 0 0 3px var(--zen-color-focus-accent-solid, #ff66d4); }
-/* Three equal-height columns while the preview is wide enough, one below that (a container query: examples keep the desktop breakpoint). */
-.pac-articles { width: 100%; container-type: inline-size; }
-.pac-articles__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
-@container (max-width: 420px) { .pac-articles__grid { grid-template-columns: minmax(0, 1fr); } }
-.pac-articles__body { flex: 1 1 auto; }
 .pac-share { display: flex; align-items: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .pac-share > :first-child { min-width: 0; flex: 1 1 auto; }
-.pac-metrics { display: grid; width: 100%; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--zen-spacing-gap-medium, 16px); }

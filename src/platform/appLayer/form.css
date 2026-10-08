@@ -13,10 +13,3 @@
 .pef-phone .zen-form { min-height: 100%; box-sizing: border-box; }
 /* Wide example cards centre the phone. */
 .pef-phone-stage { display: flex; justify-content: center; }
-
-/* Order summary rows (dt / dd) in the checkout. */
-.pef-summary { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; }
-.pef-summary dd { margin: 0; font-variant-numeric: tabular-nums; }
-
-/* Settings example: panels in a two-column grid keep equal height. */
-.pef-panel { height: 100%; box-sizing: border-box; }

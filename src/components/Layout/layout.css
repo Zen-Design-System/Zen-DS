@@ -78,7 +78,10 @@
 .zen-stack[data-direction="row"] > [data-w="fill"]:not([data-min-w], [data-position="absolute"]) { min-width: 0; }
 /* Column Stack: height is the main axis. */
 .zen-stack[data-direction="column"] > :is([data-h="hug"], [data-h="fixed"]):not([data-position="absolute"]) { flex: none; }
-.zen-stack[data-direction="column"] > [data-h="fill"]:not([data-position="absolute"]) { flex: 1 1 0; height: auto; }
+/* The 0% basis shares the column's height when it has one; when the column's own Fill height finds no height above it
+   (a plain block), a percentage basis resolves to the content (CSS Flexbox §7.2), so the children keep their content
+   height instead of collapsing to 0. */
+.zen-stack[data-direction="column"] > [data-h="fill"]:not([data-position="absolute"]) { flex: 1 1 0%; height: auto; }
 /* In a column without a height of its own (Hug or unset, or only a min or max) it starts from its content height
    (flex-basis auto) and grows into any room left: from 0 it would sit at its content minimum, below a height it sets
    itself, and a column with only a max would collapse to 0. */
@@ -102,7 +105,7 @@
    column the children keep their content height unless the column has a height of its own (as a Fill child above):
    without a Fixed or Fill height they start from it (flex-basis auto), so a Button keeps its 40px in a Hug wrapper. */
 .zen-stack[data-fill-children="true"][data-direction="row"] > :not([data-w], [data-position="absolute"]) { flex: 1 1 0; }
-.zen-stack[data-fill-children="true"][data-direction="column"] > :not([data-h], [data-position="absolute"]) { flex: 1 1 0; }
+.zen-stack[data-fill-children="true"][data-direction="column"] > :not([data-h], [data-position="absolute"]) { flex: 1 1 0%; }
 /* A column with a minHeight of its own sizes its Fill children into that height too (Figma: Fill container in a Min-height frame; user 2026-10-07). */
 .zen-stack[data-fill-children="true"][data-direction="column"]:not([data-h="fixed"], [data-h="fill"], [data-min-h]) > :not([data-h], [data-position="absolute"]) { flex-basis: auto; }
 :where(.zen-stack[data-fill-children="true"][data-direction="row"] > :not([data-w], [data-position="absolute"])) { min-width: 0; }
