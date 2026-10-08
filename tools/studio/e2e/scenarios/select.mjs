@@ -313,4 +313,38 @@ export const rows = [
       return "Top-Trailing outlined · + → 3 actions";
     },
   },
+  {
+    id: "SE-25", feature: "A px-capped component (number-only Chip, max-width 32px) offers no width handles; the pill says why", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "num-chip", { frame: 9 });
+      await sleep(800);
+      const handles = await page.locator(".studio-resize__handle").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-handle")));
+      const pill = (await page.locator(".studio-resize__pill").allInnerTexts()).join(" | ");
+      if (handles.includes("e") || handles.includes("w")) throw new Error(`width handles on a capped Chip: ${handles.join(",")} · pill \"${pill}\"`);
+      return `handles ${handles.join(",") || "none"} · pill \"${pill}\"`;
+    },
+  },
+  {
+    id: "SE-26", feature: "Resizing a component edits its wrap Stack on the same line: the component stays selected at its new column", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "wrapped", { frame: 9 });
+      const handle = page.locator('.studio-resize__handle[data-handle="e"]');
+      await handle.waitFor({ state: "visible", timeout: 5000 });
+      await sleep(400);
+      const box = await handle.boundingBox();
+      const x = box.x + box.width / 2;
+      const y = box.y + box.height / 2;
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      for (let step = 1; step <= 6; step += 1) await page.mouse.move(x + (60 * step) / 6, y);
+      await page.mouse.up();
+      await expectSource(ctx, "wrap-stack", (el) => el.attr("width") !== "{200}", "the wrap Stack's width changed");
+      // Past the canvas's own re-check of the DOM (the old drop came about 2 s after the write).
+      await sleep(2500);
+      const loc = `${ctx.file}:${await at(ctx, "wrapped")}`;
+      const selected = await selectedSrc(page);
+      if (!selected.includes(loc)) throw new Error(`selected ${selected.join(", ") || "nothing"}, the Button is at ${loc}`);
+      return `width written on its Stack; the Button stays selected at ${loc.split(":").slice(-2).join(":")}`;
+    },
+  },
 ];

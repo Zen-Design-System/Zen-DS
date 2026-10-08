@@ -192,6 +192,7 @@ function CanvasFixture() {
       <Stack data-e2e="wrap-row" direction="row" gap="sm">
         <Stack data-e2e="wrap-stack" fillChildren width={200}><Button data-e2e="wrapped" level="secondary">Wide</Button></Stack>
         <Button data-e2e="wrap-next" level="tertiary">Next</Button>
+        <Chip data-e2e="num-chip" variant="number-only">3</Chip>
       </Stack>
     </Stack>
   );

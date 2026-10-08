@@ -590,6 +590,8 @@ function growsVisibly(host: HTMLElement, axis: ResizeAxis, mainAxis: ResizeAxis 
       const hostAfter = host.getBoundingClientRect();
       const grown = axis === "width" ? hostAfter.width - hostBefore.width : hostAfter.height - hostBefore.height;
       const after = visibleRect(host, { nodes: 400 });
+      // Held at a px cap of its own (a number Chip's max-width: 40px): a Stack around it would grow alone.
+      if (grown < 1 && pxCap(host, axis) !== null) return false;
       if (grown < 1 || !before || !after) return null;
       // At least half of it: pieces that only move apart (a field's label and control) do not resize it.
       return extent(after, axis) - extent(before, axis) >= grown / 2;
@@ -633,7 +635,16 @@ function cssSize(element: Element): Record<ResizeAxis, number> {
 }
 
 /** Why the probed axes have no handle: "Height comes from the InputField size" (its size prop sets it), … */
-function fixedReason(name: string, axes: ResizeAxis[]): string {
+/** The px max size the element's own CSS holds it at on `axis` (it renders at it now), else null. */
+function pxCap(host: HTMLElement, axis: ResizeAxis): number | null {
+  const raw = getComputedStyle(host)[axis === "width" ? "maxWidth" : "maxHeight"];
+  const cap = /^(\d+(?:\.\d+)?)px$/.exec(raw) ? parseFloat(raw) : NaN;
+  return Number.isFinite(cap) && Math.abs(sizeOf(host, axis) - cap) <= 1 ? cap : null;
+}
+
+function fixedReason(name: string, axes: ResizeAxis[], host?: HTMLElement | null): string {
+  const capped = host ? axes.flatMap((axis) => { const cap = pxCap(host, axis); return cap === null ? [] : [`${axis} ${Math.round(cap)}px`]; }) : [];
+  if (capped.length) return `The ${name} holds its ${capped.join(" and ")} at most`;
   if (axes.length === 2) return `The ${name} keeps its own size`;
   if (axes[0] === "width") return `Width comes from the ${name}'s content`;
   return hasSize(name) ? `Height comes from the ${name} size` : `Height comes from the ${name} itself`;
@@ -728,7 +739,7 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
   const fixed = probe && probe.host === host && probe.key === probeKey ? probe.fixed : [];
   // A Tooltip's anchor passes no size to the child it clones unless its CSS does (a class that makes the child fill
   // it): the probe tells, cloning.json's words say why.
-  if (target && fixed.length && hit) target = withoutAxes(target, fixed, anchorParents.has(hit.name) ? anchorReason(hit, fixed) : fixedReason(hit.name, fixed));
+  if (target && fixed.length && hit) target = withoutAxes(target, fixed, anchorParents.has(hit.name) ? anchorReason(hit, fixed) : fixedReason(hit.name, fixed, host));
   // Why axes have no handle, whichever step removed them (the pill says it; a refused wrap goes to the status line too).
   const note = target?.why?.length ? target.why.join(" · ") : null;
   const statusKey = refusal && hit && enabled ? `${hit.src}|${refusal}` : "";
