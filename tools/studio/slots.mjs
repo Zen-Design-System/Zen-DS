@@ -785,9 +785,13 @@ function isLiteralValue(node) {
   return false;
 }
 
+/** A ref's element type: one DOM element interface (`HTMLButtonElement`, `HTMLDivElement`…). */
+const REF_TYPE = /^HTML[A-Za-z]*Element$/;
+
 /**
- * op.state checked: [{ name, initial, type? }] (8 at most): `name` lowerCamel, `initial` a literal, `type` built-in
- * type words only. The code reads `name` and `setName`; nothing else of the file.
+ * op.state checked: [{ name, initial, type?, ref? }] (8 at most): `name` lowerCamel, `initial` a literal, `type` built-in
+ * type words only. The code reads `name` and `setName`; nothing else of the file. `ref: true` (2026-10-08: Popover's
+ * anchor) is `const name = useRef<type>(null)`: `initial` null, `type` one HTML…Element, no setter.
  */
 function stateEntries(state) {
   if (state === undefined || state === null) return [];
@@ -797,6 +801,11 @@ function stateEntries(state) {
     if (!entry || typeof entry !== "object" || typeof entry.name !== "string" || !STATE_NAME.test(entry.name)) refuse('Each `state` entry needs a lowerCamel `name` ("open", "selectedTab")');
     if (seen.has(entry.name)) refuse(`The state "${entry.name}" is listed twice`);
     seen.add(entry.name);
+    if (entry.ref !== undefined && entry.ref !== true) refuse(`The state "${entry.name}": \`ref\` is true or left out`);
+    if (entry.ref) {
+      if ((entry.initial ?? "null") !== "null" || typeof entry.type !== "string" || !REF_TYPE.test(entry.type)) refuse(`The ref "${entry.name}" needs \`type\`: an element interface (HTMLButtonElement…), and starts null`);
+      return { name: entry.name, initial: "null", type: entry.type, ref: true };
+    }
     const initial = typeof entry.initial === "string" ? entry.initial.trim() : "";
     let node = null;
     try {
@@ -829,20 +838,27 @@ function spelledNames(ast) {
  */
 function stateFor(ctx, src, state) {
   const entries = stateEntries(state);
-  if (!entries.length) return { src, statements: [], names: new Set() };
+  if (!entries.length) return { src, statements: [], names: new Set(), react: [] };
   const taken = spelledNames(ctx.ast);
   const renames = new Map();
   const names = new Set();
   const statements = [];
+  const free = (name) => !taken.has(name) && !names.has(name);
   for (const entry of entries) {
     let name = entry.name;
-    for (let n = 2; taken.has(name) || taken.has(setterOf(name)) || names.has(name) || names.has(setterOf(name)); n += 1) name = `${entry.name}${n}`;
-    if (name !== entry.name) { renames.set(entry.name, name); renames.set(setterOf(entry.name), setterOf(name)); }
+    for (let n = 2; !free(name) || (!entry.ref && !free(setterOf(name))); n += 1) name = `${entry.name}${n}`;
+    if (name !== entry.name) { renames.set(entry.name, name); if (!entry.ref) renames.set(setterOf(entry.name), setterOf(name)); }
     names.add(name);
+    if (entry.ref) {
+      statements.push(`const ${name} = useRef<${entry.type}>(null)${ctx.semicolons ? ";" : ""}`);
+      continue;
+    }
     names.add(setterOf(name));
     statements.push(`const [${name}, ${setterOf(name)}] = useState${entry.type ? `<${entry.type}>` : ""}(${entry.initial})${ctx.semicolons ? ";" : ""}`);
   }
-  if (!renames.size) return { src, statements, names };
+  // The React hooks the statements call (the file imports them).
+  const react = [...(entries.some((entry) => !entry.ref) ? ["useState"] : []), ...(entries.some((entry) => entry.ref) ? ["useRef"] : [])];
+  if (!renames.size) return { src, statements, names, react };
   let node;
   try {
     node = parseExpression(`<>${src}</>`, { plugins: PLUGINS });
@@ -862,7 +878,7 @@ function stateFor(ctx, src, state) {
   });
   let out = src;
   for (const hit of hits.sort((a, b) => b.start - a.start)) out = `${out.slice(0, hit.start - 2)}${renames.get(hit.name)}${out.slice(hit.end - 2)}`;
-  return { src: out, statements, names };
+  return { src: out, statements, names, react };
 }
 
 /** The module example pages import platformMedia from (src/platform/PlatformMedia.tsx). */
@@ -904,7 +920,7 @@ function mediaImportEdits(ctx) {
  * The hook edits an insert needs: `const { toast } = useToast();` (when the code calls toast) and the state's useState
  * lines, in one statement block at the top of the enclosing component, plus the useState import.
  */
-function hookEdits(ctx, nodePath, { toast, statements }) {
+function hookEdits(ctx, nodePath, { toast, statements, react = statements.length ? ["useState"] : [] }) {
   const toastLine = toast ? toastStatement(ctx, nodePath) : null;
   const lines = [...(toastLine ? [toastLine] : []), ...statements];
   if (!lines.length) return { edits: [], useToast: false };
@@ -912,7 +928,7 @@ function hookEdits(ctx, nodePath, { toast, statements }) {
     ? { who: "The item", does: toastLine ? "calls toast and keeps state" : "keeps state", need: [toastLine ? "`const { toast } = useToast();`" : null, "its `useState` lines"].filter(Boolean).join(" and ") }
     : { who: "The action", does: "calls toast", need: "`const { toast } = useToast();`" };
   const edits = [componentHook(ctx, nodePath, lines, words)];
-  if (statements.length) edits.push(...moduleImportEdits(ctx, "react", ["useState"]));
+  if (react.length) edits.push(...moduleImportEdits(ctx, "react", react));
   return { edits, useToast: Boolean(toastLine) };
 }
 
@@ -1201,6 +1217,39 @@ function slotProp(op) {
   return prop;
 }
 
+/** Whether nodePath's end sits in a .map callback inside its component (a hook there would serve every row at once). */
+function inLoopRow(nodePath) {
+  for (let i = nodePath.length - 1; i >= 0; i -= 1) {
+    if (!FUNCTION_TYPES.has(nodePath[i].type)) continue;
+    if (componentName(nodePath, i)) return false;
+    if (isMapCall(nodePath[i - 1]) && nodePath[i - 1].arguments[0] === nodePath[i]) return true;
+  }
+  return false;
+}
+
+/**
+ * A stateful item inserted into a .map row (Studio "Repeats N×"): its own small component at module level (above the
+ * statement that holds the row, its doc comment included), so each row keeps its own state instead of every row's Dialog opening together; the
+ * row gets `<NameRow />`. { code (what the slot gets), edits (the component), needed (its Zen components) }.
+ */
+function rowComponentPlan(ctx, nodePath, code, state) {
+  const { text, eol, unit, ast } = ctx;
+  const semi = ctx.semicolons ? ";" : "";
+  const taken = spelledNames(ast);
+  const base = `${code.name.replace(/[^\w$]/g, "")}Row`;
+  let name = base;
+  for (let n = 2; taken.has(name) || state.names.has(name); n += 1) name = `${base}${n}`;
+  const holder = ast.program.body.find((statement) => statement.start <= nodePath.at(-1).start && statement.end >= nodePath.at(-1).end);
+  if (!holder) refuse("The row's component could not be placed (no top-level statement holds this slot)");
+  const lines = [...(code.toast ? [`const { toast } = useToast()${semi}`] : []), ...state.statements];
+  const body = [...lines.map((line) => `${unit}${line}`), `${unit}return (`, `${unit}${unit}${reindent(code.part, unit + unit, eol, unit)}`, `${unit})${semi}`].join(eol);
+  const fn = `/** Zen Studio: one row's <${code.name}> with its own state (a hook in the .map row would share it). */${eol}function ${name}() {${eol}${body}${eol}}${eol}${eol}`;
+  const at = lineStartOf(text, holder.leadingComments?.[0]?.start ?? holder.start);
+  const needed = new Set(code.needed);
+  if (code.toast) needed.add("useToast");
+  return { code: prepareCode(`<${name} />`, ctx.folders, new Set([name])), edits: [{ start: at, end: at, text: fn }, ...moduleImportEdits(ctx, "react", state.react)], needed, media: code.media };
+}
+
 /** insertChild: the edits that put `code` into the parent's children or `prop` slot (+ imports and the toast hook). */
 function insertPlan(ctx, nodePath, op) {
   const { text, element, eol } = ctx;
@@ -1208,9 +1257,12 @@ function insertPlan(ctx, nodePath, op) {
   const state = stateFor(ctx, typeof op.code === "string" ? op.code : "", op.state);
   // A builder page (Studio builder GĐ2) has no hooks: its actions are proto.*(…) handlers, which the page imports.
   const builderPage = LOCAL_PAGE.test(ctx.file ?? "");
-  const code = prepareCode(typeof op.code === "string" ? state.src : op.code, ctx.folders, builderPage ? new Set([...state.names, ...BUILDER_RUNTIME]) : state.names);
+  let code = prepareCode(typeof op.code === "string" ? state.src : op.code, ctx.folders, builderPage ? new Set([...state.names, ...BUILDER_RUNTIME]) : state.names);
   if (builderPage && (code.toast || state.statements?.length)) refuse("A builder page has no hooks: an action is proto.toast(…), proto.navigate(…) or proto.open(…), and a control keeps its own state");
   if (CHROME_NAMES.includes(code.name)) refuse(`<${code.name}> is docs chrome; it cannot be inserted.`);
+  // State in a .map row: a row component holds it (2026-10-08), so the rows do not share one.
+  const row = state.statements.length && inLoopRow(nodePath) ? rowComponentPlan(ctx, nodePath, code, state) : null;
+  if (row) code = row.code;
   if (op.requires !== undefined && (!Array.isArray(op.requires) || op.requires.some((item) => item !== "toast" && item !== "media"))) refuse('`requires` lists what the code needs: "toast" or "media"');
   if (op.index !== undefined && op.index !== null && !(Number.isInteger(op.index) && op.index >= 0)) refuse("`index` must be a position in the slot (0 or more)");
   const prop = slotProp(op);
@@ -1279,13 +1331,13 @@ function insertPlan(ctx, nodePath, op) {
       } else refuse(where(value));
     }
   }
-  const needed = new Set(code.needed);
+  const needed = new Set([...code.needed, ...(row?.needed ?? [])]);
   if (usedWrap) needed.add(wrap.tag);
-  const edits = [...plan.edits];
-  const hooks = hookEdits(ctx, nodePath, { toast: code.toast, statements: state.statements });
+  const edits = [...plan.edits, ...(row?.edits ?? [])];
+  const hooks = row ? { edits: [], useToast: false } : hookEdits(ctx, nodePath, { toast: code.toast, statements: state.statements, react: state.react });
   edits.push(...hooks.edits);
   if (hooks.useToast) needed.add("useToast");
-  if (code.media) edits.push(...mediaImportEdits(ctx));
+  if (code.media || row?.media) edits.push(...mediaImportEdits(ctx));
   for (const name of needed) if (!ctx.folders.has(name)) refuse(`<${name}> is not a Zen component (no src/components folder exports it)`);
   edits.push(...importChanges(ctx.ast, text, eol, ctx.file, [...needed], [], ctx.folders));
   // A Screen or an Overlay added to the Board (GĐ2 M3), or proto.*(…) handlers: the builder runtime import gains them.

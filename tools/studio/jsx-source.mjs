@@ -660,7 +660,8 @@ function literalInit(node) {
  * The useState values the element's code reads from its component (`open`, `setOpen` of `const [open, setOpen] =
  * useState(false)`), as op pasteCode's `state` takes them ([{ name, initial, type? }], 8 at most): a ⌘C carries them so a
  * paste into another file declares them there (2026-10-08) instead of refusing the names. Only a pair whose setter is
- * `set` + Name and whose initial state is a literal; others stay out (the paste then names what is missing).
+ * `set` + Name and whose initial state is a literal, and DOM refs (`useRef<HTML…Element>(null)`, as `ref` entries);
+ * others stay out (the paste then names what is missing).
  */
 function stateReadsOf(ast, element, text) {
   const used = new Set();
@@ -683,6 +684,13 @@ function stateReadsOf(ast, element, text) {
     const binding = bindingOf(path, path.length - 1, name);
     const declarator = binding?.declarator;
     const init = unwrapTs(declarator?.init);
+    // A DOM ref (`const anchor = useRef<HTMLDivElement>(null)`, a Popover's anchor) travels as a ref entry.
+    const refType = init?.type === "CallExpression" && init.callee.type === "Identifier" && init.callee.name === "useRef" && init.arguments[0]?.type === "NullLiteral" ? init.typeArguments?.params?.[0] ?? init.typeParameters?.params?.[0] : null;
+    if (declarator?.id.type === "Identifier" && declarator.id.name === name && refType && /^HTML[A-Za-z]*Element$/.test(text.slice(refType.start, refType.end)) && !seen.has(name)) {
+      seen.add(name);
+      out.push({ at: declarator.start, entry: { name, initial: "null", type: text.slice(refType.start, refType.end), ref: true } });
+      continue;
+    }
     if (!declarator || declarator.id.type !== "ArrayPattern" || init?.type !== "CallExpression" || !isStateHook(init.callee)) continue;
     const [value, setter] = declarator.id.elements;
     if (value?.type !== "Identifier" || seen.has(value.name)) continue;

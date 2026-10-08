@@ -24,7 +24,12 @@ export type DataSlot = {
   form: "array" | "object" | "list";
   /** Most items the component renders (more warn; they never block). */
   max: number;
-  /** Why more than `max` are not drawn, for the warning. */
+  /**
+   * Most items the guidelines advise when the component draws them all (`max` Infinity): more warn (the harness's
+   * count rule) but every one shows. Unset: `max` warns.
+   */
+  advised?: number;
+  /** Why more than `max` are not drawn (or more than `advised` are not advised), for the warning. */
   maxNote?: string;
   figma?: { node: string };
   /**
@@ -45,6 +50,19 @@ const navAction = (label: string, icon: string) => ({
   code: `{ icon: "${icon}", label: "${label}", onClick: () => toast({ title: "${label}" }) }`,
   requires: ["toast" as const],
 });
+
+/** An id from the label and the item's place (`activity-4`): readable, and apart from ids the code already wrote. */
+const idFor = (label: string, count: number) => `${label.toLowerCase()}-${count + 1}`;
+/** A new item of an id + label list (Breadcrumbs, Tabs, Segmented, Popover; Stepper's `title`): real copy in turn. */
+const plainItem = (count: number, labels: readonly string[], key = "label") => {
+  const label = labels[Math.min(count, labels.length - 1)];
+  return { code: `{ id: "${idFor(label, count)}", ${key}: "${label}" }` };
+};
+/** A new item that needs an icon (Bottom Navigation, Bottom Sheet actions). */
+const iconItem = (count: number, items: ReadonlyArray<readonly [string, string]>) => {
+  const [label, icon] = items[Math.min(count, items.length - 1)];
+  return { code: `{ id: "${idFor(label, count)}", label: "${label}", icon: "${icon}" }` };
+};
 
 /** New trailing actions in turn: a label that says what its icon does. */
 const NAV_ACTIONS: ReadonlyArray<readonly [string, string]> = [["Favourite", "icon-star-01-line"], ["Share", "icon-share-01-line"], ["More", "icon-dots-horizontal-line"]];
@@ -73,6 +91,44 @@ export const DATA_SLOTS: Readonly<Record<string, readonly DataSlot[]>> = {
       newItem: (count) => (count === 0 ? navAction("New", "icon-plus-line") : navAction(...NAV_ACTIONS[Math.min(count - 1, NAV_ACTIONS.length - 1)])),
     },
   ],
+  /* Figma SLOT properties (docs/figma-contracts/component-properties.json, read 2026-10-05) whose code takes the items as
+   * data (2026-10-08): Breadcrumbs Item-List 4031:20161, Tab-Bar Item-List 1577:5477, Segmented Item-List 1238:892,
+   * Stepper-Bar Items 1625:8328, Bottom-Navigation Nav-Items 4060:26671, Bottom-Sheet Items 4059:14161, Description List
+   * Items 14859:79180 and Popover/Default Item-List 4031:26126. Limits are the usage harness's (tabs/item-count,
+   * segmented/option-count, stepper/step-count, bottom-navigation/destinations); the others draw every item. Their
+   * items carry no handler (the owner's onValueChange / onSelect / onNavigate answers), so no toast is needed. */
+  Breadcrumbs: [{
+    component: "Breadcrumbs", prop: "items", name: "Item-List", itemName: "Item", form: "array", max: Number.POSITIVE_INFINITY, figma: { node: "4031:20161" },
+    newItem: (count) => plainItem(count, ["Reports", "Q3", "Summary"]),
+  }],
+  Tabs: [{
+    component: "Tabs", prop: "items", name: "Item-List", itemName: "Tab", form: "array", max: Number.POSITIVE_INFINITY, advised: 7, maxNote: "Tabs hold 2–7 items (more: a Sidebar or a SelectField)", figma: { node: "1577:5477" },
+    newItem: (count) => plainItem(count, ["Activity", "Members", "Settings"]),
+  }],
+  Segmented: [{
+    component: "Segmented", prop: "options", name: "Item-List", itemName: "Segment", form: "array", max: Number.POSITIVE_INFINITY, advised: 5, maxNote: "Segmented holds 2–5 options (more: Tabs or a SelectField)", figma: { node: "1238:892" },
+    newItem: (count) => plainItem(count, ["Week", "Month", "Year"]),
+  }],
+  Stepper: [{
+    component: "Stepper", prop: "steps", name: "Items", itemName: "Step", form: "array", max: Number.POSITIVE_INFINITY, advised: 7, maxNote: "a Stepper holds 2–7 steps (more needs grouping)", figma: { node: "1625:8328" },
+    newItem: (count) => plainItem(count, ["Review", "Payment", "Confirm"], "title"),
+  }],
+  BottomNavigation: [{
+    component: "BottomNavigation", prop: "items", name: "Nav-Items", itemName: "Nav-Item", form: "array", max: Number.POSITIVE_INFINITY, advised: 5, maxNote: "a Bottom Navigation holds 3–5 root destinations", figma: { node: "4060:26671" },
+    newItem: (count) => iconItem(count, [["Alerts", "icon-bell-01-line"], ["Settings", "icon-settings-01-line"], ["Home", "icon-home-02-line"]]),
+  }],
+  BottomSheet: [{
+    component: "BottomSheet", prop: "items", name: "Items", itemName: "Action", form: "array", max: Number.POSITIVE_INFINITY, figma: { node: "4059:14161" },
+    newItem: (count) => iconItem(count, [["Share", "icon-share-01-line"], ["Archive", "icon-archive-line"], ["Settings", "icon-settings-01-line"]]),
+  }],
+  DescriptionList: [{
+    component: "DescriptionList", prop: "items", name: "Items", itemName: "Item", form: "array", max: Number.POSITIVE_INFINITY, figma: { node: "14859:79180" },
+    newItem: (count) => ({ code: `{ term: "${["Owner", "Due", "Status"][Math.min(count, 2)]}", description: "${["Bao Nguyen", "Oct 14", "In review"][Math.min(count, 2)]}" }` }),
+  }],
+  Popover: [{
+    component: "Popover", prop: "items", name: "Item-List", itemName: "Item", form: "array", max: Number.POSITIVE_INFINITY, figma: { node: "4031:26126" },
+    newItem: (count) => plainItem(count, ["Rename", "Duplicate", "Archive"]),
+  }],
 };
 
 /** Whether the slot's items group for the owner's rendered props (props unknown: the component's default state groups). */

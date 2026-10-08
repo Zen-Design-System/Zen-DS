@@ -238,7 +238,13 @@ export type EditValue =
  * A useState value inserted code reads (`name` and `set` + Name): `initial` is a literal, `type` built-in type words
  * (`string[]`). The server declares it in the enclosing component (tools/studio/slots.mjs stateFor).
  */
-export type StateDecl = { name: string; initial: string; type?: string };
+export type StateDecl = {
+  name: string;
+  initial: string;
+  type?: string;
+  /** A ref instead (`const name = useRef<type>(null)`, `type` an HTML…Element, `initial` "null"): Popover's anchor. */
+  ref?: true;
+};
 
 export type EditOp =
   /**

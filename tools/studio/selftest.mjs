@@ -425,10 +425,11 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     "  const [tab, setTab] = useState<\"a\" | \"b\">(\"a\");",
     "  const [rows] = useState(load());",
     "  const [n, bump] = useState(0);",
-    "  return <Stack><Button onClick={() => setOpen(true)}>{tab}</Button><Dialog open={open} rows={rows} n={n} onClose={(open) => open} /></Stack>;",
+    "  const box = useRef<HTMLDivElement>(null);",
+    "  return <Stack><Button onClick={() => setOpen(true)}>{tab}</Button><Dialog ref={box} open={open} rows={rows} n={n} onClose={(open) => open} /></Stack>;",
     "}",
   );
-  check("stateReads: literal pairs with a set+Name setter, type kept; computed or oddly named left out", describe(stateful, "6:9").stateReads, [{ name: "open", initial: "false" }, { name: "tab", initial: "\"a\"", type: "\"a\" | \"b\"" }]);
+  check("stateReads: literal pairs with a set+Name setter, type kept; computed or oddly named left out", describe(stateful, "7:9").stateReads, [{ name: "open", initial: "false" }, { name: "tab", initial: "\"a\"", type: "\"a\" | \"b\"" }, { name: "box", initial: "null", type: "HTMLDivElement", ref: true }]);
   check("stateReads: none → absent", "stateReads" in describe(lines("export function P() {", "  const [open] = useState(false);", "  return <Text>Plain</Text>;", "}"), "3:9"), false);
   check("origin: a custom hook's value is state (never given a fixed value)", (() => {
     const attr = describe(lines("function T() {", "  const { picked } = useFormState();", "  return <Checkbox checked={picked.has(1)} />;", "}"), "3:9").attributes[0];

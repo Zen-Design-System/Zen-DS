@@ -331,7 +331,7 @@ export function pasteCodePlan(ctx, nodePath, op, h) {
   const { edit, placed, within } = place(ctx, h, parent, entries, at, { part: piece(wrapped, fragment, elements[0].start, elements.at(-1).end), name }, name);
   const edits = [...placed.edits];
   if (replaced) edits.push(...replacing(ctx, h, replaced));
-  const hooks = h.hookEdits(ctx, nodePath, { toast, statements: state.statements });
+  const hooks = h.hookEdits(ctx, nodePath, { toast, statements: state.statements, react: state.react });
   edits.push(...hooks.edits);
   if (hooks.useToast) needed.push("useToast");
   if (media) edits.push(...h.mediaImportEdits(ctx));
@@ -397,7 +397,7 @@ export function replacePlan(ctx, nodePath, op, h) {
   const body = src.split("\n").map((line, index) => (index === 0 || !line ? line : `${indent}${line}`)).join(ctx.eol);
   const edit = { start: element.start, end: element.end, text: body };
   const edits = [edit];
-  const hooks = h.hookEdits(ctx, nodePath, { toast, statements: state.statements });
+  const hooks = h.hookEdits(ctx, nodePath, { toast, statements: state.statements, react: state.react });
   edits.push(...hooks.edits);
   if (hooks.useToast) needed.push("useToast");
   if (media) edits.push(...h.mediaImportEdits(ctx));

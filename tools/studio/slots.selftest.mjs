@@ -62,7 +62,7 @@ const FLAG = { removeElement: "removed", clearSlot: "cleared", resetSlot: "reset
 const samples = [];
 
 /** One op on the nth `needle` element, with the checks every successful op must pass; returns the result (or the error). */
-const run = (label, code, needle, name, op, { nth = 0, sample = false, expect, expectUsage, ...extra } = {}) => {
+const run = (label, code, needle, name, op, { nth = 0, sample = false, expect, expectUsage, insertedName, ...extra } = {}) => {
   const opts = options(extra);
   if (HASHED.has(op.op) && !("hash" in extra)) opts.hash = sha1(code);
   const result = applySlotOp(code, locOf(code, needle, nth), name, op, opts);
@@ -75,7 +75,7 @@ const run = (label, code, needle, name, op, { nth = 0, sample = false, expect, e
   const kind = FLAG[op.op] ?? (op.op === "moveElement" ? "moved" : "inserted");
   if (FLAG[op.op]) check(`${label}: ${kind}`, result[kind], true);
   else {
-    const expected = op.op === "insertChild" ? /^\s*<([\w.]+)/.exec(op.code)?.[1] : name;
+    const expected = insertedName ?? (op.op === "insertChild" ? /^\s*<([\w.]+)/.exec(op.code)?.[1] : name);
     check(`${label}: ${kind}.loc is the element`, describeElement(result.code, opts.file, result[kind]?.loc ?? "")?.name, expected);
   }
   if (history) {
@@ -1274,8 +1274,24 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   // Outside a component (a lowercase helper), there is nowhere to put the hook.
   const helper = page("const row = () => (", "  <Card theme=\"border\">", "    <Text>Basic</Text>", "  </Card>", ");", "export function Plans() {", "  return row();", "}");
   check("state: no component, refused", errorOf(applySlotOp(helper, locOf(helper, "<Card"), "Card", ins("<Text>{tab}</Text>", { state: [{ name: "tab", initial: '"a"' }] }), options()))[1], "The item keeps state, but no component encloses this slot to hold its `useState` lines; insert it inside a component (a capitalised function).");
+  // A .map row (2026-10-08): its own row component holds the state, so every row's Dialog opens on its own.
+  const rows = page("export function Plans() {", "  return (", "    <Stack>", "      {[1, 2].map((n) => (", "        <Card key={n} theme=\"border\">", "          <Text>Basic</Text>", "        </Card>", "      ))}", "    </Stack>", "  );", "}");
+  const perRow = run("state: insert a dialog into a .map row", rows, "<Card", "Card", ins(DIALOG, { requires: ["toast"], state: SHARE }), { insertedName: "StackRow", sample: true });
+  check("state in a .map row: the row gets <StackRow />, the component no hook", [perRow.code.includes("          <StackRow />"), /export function Plans\(\) \{\n {2}return/.test(perRow.code)], [true, true]);
+  check("state in a .map row: the row component holds toast and state", perRow.code.slice(perRow.code.indexOf("function StackRow")).split("\n").slice(0, 5), [
+    "function StackRow() {",
+    "  const { toast } = useToast();",
+    "  const [shareOpen, setShareOpen] = useState(false);",
+    "  return (",
+    '    <Stack direction="row">',
+  ]);
+  check("state in a .map row: useState, Button, Dialog and useToast imported", [importLines(perRow)[0], ...["Button", "Dialog", "useToast"].map((name) => importLines(perRow).some((line) => line.includes(name)))], ['import { useState } from "react";', true, true, true]);
+  // A ref entry (2026-10-08, Popover's anchor): `useRef<type>(null)`, no setter, useRef imported beside useState.
+  const anchored = run("state: a ref", quiet, "<Card", "Card", ins('<Stack><Box ref={findAnchor}><Text>{findOpen ? "Open" : "Closed"}</Text></Box></Stack>', { state: [{ name: "findOpen", initial: "false" }, { name: "findAnchor", initial: "null", type: "HTMLDivElement", ref: true }] }));
+  check("state: a ref is useRef<type>(null), both hooks imported", [anchored.code.includes("  const findAnchor = useRef<HTMLDivElement>(null);"), anchored.code.includes("setFindAnchor"), importLines(anchored)[0]], [true, false, 'import { useRef, useState } from "react";']);
+  check("state: a ref needs an element type", errorOf(applySlotOp(quiet, locOf(quiet, "<Card"), "Card", ins("<Box ref={a} />", { state: [{ name: "a", initial: "null", type: "string", ref: true }] }), options()))[1], 'The ref "a" needs `type`: an element interface (HTMLButtonElement…), and starts null');
   // platformMedia: example pages import it; templates refuse.
-  const IMAGE = "<Image src={platformMedia.site[5].src} alt={platformMedia.site[5].alt} ratio=\"4:3\" />";
+  const IMAGE ="<Image src={platformMedia.site[5].src} alt={platformMedia.site[5].alt} ratio=\"4:3\" />";
   const pictured = run("media: insert an image", quiet, "<Card", "Card", ins(IMAGE, { requires: ["media"] }));
   check("media: platformMedia imported from PlatformMedia", importLines(pictured).filter((line) => /PlatformMedia|Image/.test(line)), [
     'import { Image } from "../../../components/Image";',
