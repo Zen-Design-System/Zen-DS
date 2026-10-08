@@ -1327,5 +1327,6 @@ export const rules = [
 // CLI only when executed directly (build-guidelines.mjs, cli.mjs, eslint.mjs and the MCP server import the registry).
 // No top-level await: cli.mjs imports this module, which must finish evaluating first.
 if (process.argv[1] && import.meta.url === pathToFileURL(fs.realpathSync(process.argv[1])).href) {
-  import("./cli.mjs").then(({ main }) => process.exit(main()));
+  // exitCode, not process.exit(): exiting at once drops piped stdout that is not flushed yet (the --list JSON is ~60 KB).
+  import("./cli.mjs").then(({ main }) => { process.exitCode = main(); });
 }

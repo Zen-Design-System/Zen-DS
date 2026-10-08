@@ -154,11 +154,11 @@ Read this file only when picking up work or logging a follow-up.
     and Tabs only, so there is no slot for a banner under the bar.
 
 ## Backlog (plan before opening sessions)
-- **P1 · verify:package fails "zen-ds-mcp answers over stdio" (2026-10-08, same on clean main):** `mcp/server.mjs`
+- ~~**P1 · verify:package fails "zen-ds-mcp answers over stdio"**~~ fixed 2026-10-08 (PR #5: the server answers what is in flight and flushes stdout before exiting). Was: **(2026-10-08, same on clean main):** `mcp/server.mjs`
   exits when stdin ends, before the async replies to requests 4 (check_usage) and 5 (get_component) are written; the
   check reads ids 1–3 only. Likely the cause of the P2 CI "Package" failures below. Blocks the Release workflow
   (it runs verify:package). Pointer: `mcp/server.mjs` stdin end, `scripts/verify-package.mjs` §7.
-- **P1 · usage:selftest crashes: `--list` JSON cut at 8 KB (2026-10-08, same on clean main):** `check-usage.mjs` ends
+- ~~**P1 · usage:selftest crashes: `--list` JSON cut at 8 KB**~~ fixed 2026-10-08 (PR #5: `process.exitCode` instead of `process.exit()` in check-usage.mjs and cli.mjs). Was: **(2026-10-08, same on clean main):** `check-usage.mjs` ends
   with `process.exit(main())`, which drops unflushed piped stdout (62 KB); the selftest's `JSON.parse` fails. CI runs it.
   Pointer: `tools/usage-guard/check-usage.mjs:1330`, `tools/usage-guard/selftest.mjs:11`.
 - **P2 · Private registry Phase 5, customer docs (2026-10-08):** `docs/getting-started.md`, `AGENTS.consumer.md`,

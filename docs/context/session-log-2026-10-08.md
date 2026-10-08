@@ -56,3 +56,11 @@
   fixtures ✓ (consumer mode finds `@zen-ds/react` imports). Two pre-existing failures, same on a clean `main` (backlog):
   usage:selftest (JSON cut at 8 KB) and verify:package "zen-ds-mcp answers over stdio" (server exits before replies 4–5).
   `npm run qa` not run (memory: ask first).
+
+## Two pre-existing gate failures fixed (same session, user-approved, PR #5)
+
+- `mcp/server.mjs`: stdin close waited for nothing and called `process.exit(0)`, dropping async tools/call replies;
+  now it waits for in-flight requests and flushes stdout. Replay of verify:package's requests: 5/5 runs get all replies.
+- `tools/usage-guard/check-usage.mjs` and `cli.mjs`: `process.exit(main())` → `process.exitCode = main()`, so piped
+  output (62 KB `--list`) is not cut at 8 KB. Exit codes unchanged (bad.tsx 1, good.tsx 0).
+- Now green: usage:selftest, usage:check, mcp:selftest, verify:package ("Package OK", MCP check included).

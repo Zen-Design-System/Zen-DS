@@ -24,6 +24,11 @@ removed (four unused colour ramps were, see Removed).
   usage harness follow. It is published to the licensed registry `npm.dizai.studio` (`publishConfig`), by the new
   `Release` workflow on a `v*` tag.
 
+### Fixed
+- `zen-ds-mcp`: a client that sends its requests and then closes stdin now gets every reply (the server used to exit
+  before the async `tools/call` answers were written).
+- `zen-usage --json` and `check-usage.mjs --list`: large output piped to another program is no longer cut off at 8 KB.
+
 ### Added
 - Docs platform and Zen Studio: required sign-in with Google through PocketBase (`src/platform/auth/`); Log out in the
   platform topbar's account menu and in the Studio brand menu. Automated browsers (QA gate, E2E) skip the sign-in screen.

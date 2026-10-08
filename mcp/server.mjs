@@ -285,12 +285,21 @@ async function handle(request) {
   }
 }
 
+const pending = new Set();
 const lines = readline.createInterface({ input: process.stdin });
 lines.on("line", (line) => {
   if (!line.trim()) return;
   let message;
   try { message = JSON.parse(line); } catch { return send({ id: null, error: { code: -32700, message: "Parse error" } }); }
-  for (const request of Array.isArray(message) ? message : [message]) void handle(request);
+  for (const request of Array.isArray(message) ? message : [message]) {
+    const job = handle(request).finally(() => pending.delete(job));
+    pending.add(job);
+  }
 });
-lines.on("close", () => process.exit(0));
+// When the client closes stdin, answer what is still in flight and flush stdout before exiting: tools/call is async,
+// so exiting at once dropped those replies (a client that writes all requests and then closes got only the first ones).
+lines.on("close", async () => {
+  while (pending.size) await Promise.allSettled([...pending]);
+  process.stdout.write("", () => process.exit(0));
+});
 log(`ready (${root})`);
