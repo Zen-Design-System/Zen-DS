@@ -6,7 +6,7 @@ import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 import { userEvent } from "vitest/browser";
-import { Accordion, Button, Form, FormActions, InputField, Menu, Pagination, Table, ZenProvider, useFormState, type TableSort } from "../../src/index";
+import { Accordion, Button, Form, FormActions, IconButton, InputField, Menu, Pagination, Table, ZenProvider, useFormState, type TableSort } from "../../src/index";
 
 type Member = { id: string; name: string; seats: number };
 const members: Member[] = [
@@ -56,6 +56,47 @@ describe("Table", () => {
     // The native input is visually hidden behind the Zen mark (the label is the hit area), as in every Zen checkbox.
     await userEvent.click(screen.getByRole("checkbox", { name: "Select all rows" }), { force: true });
     expect(onSelection).toHaveBeenLastCalledWith(["a", "b", "c"]);
+  });
+});
+
+describe("Table bulkActions", () => {
+  function BulkTable({ onArchive }: { onArchive: (ids: string[]) => void }) {
+    const [selected, setSelected] = useState<string[]>([]);
+    return (
+      <Table aria-label="Members" rows={members} getRowId={(m) => m.id} selectable selectedIds={selected} onSelectionChange={setSelected}
+        columns={[{ id: "name", header: "Name", cell: (m: Member) => m.name }]}
+        bulkActions={(ids) => <IconButton appearance="flat" level="primary" size="md" icon="icon-archive-line" aria-label={`Archive ${ids.length}`}
+          onClick={() => { onArchive(ids); setSelected([]); }} />} />
+    );
+  }
+
+  it("shows the bar while rows are selected and clears the selection from it", async () => {
+    const onArchive = vi.fn();
+    const screen = await render(<ZenProvider><BulkTable onArchive={onArchive} /></ZenProvider>);
+    expect(screen.getByRole("toolbar").elements()).toHaveLength(0);
+    await userEvent.click(screen.getByRole("checkbox", { name: "Select row 1" }), { force: true });
+    await userEvent.click(screen.getByRole("checkbox", { name: "Select row 3" }), { force: true });
+    const bar = screen.getByRole("toolbar", { name: "Actions for 2 selected rows" });
+    await expect.element(bar).toBeVisible();
+    await expect.element(bar.getByRole("status")).toHaveTextContent("2 selected");
+    await bar.getByRole("button", { name: "Archive 2" }).click();
+    expect(onArchive).toHaveBeenCalledWith(["a", "c"]);
+    // The bar left with the focus in it: Select all rows takes the focus.
+    await expect.poll(() => screen.getByRole("toolbar").elements().length).toBe(0);
+    await expect.element(screen.getByRole("checkbox", { name: "Select all rows" })).toHaveFocus();
+  });
+
+  it("clears the selection with Escape and with Clear selection", async () => {
+    const screen = await render(<ZenProvider><BulkTable onArchive={vi.fn()} /></ZenProvider>);
+    await userEvent.click(screen.getByRole("checkbox", { name: "Select row 2" }), { force: true });
+    (screen.getByRole("button", { name: "Clear selection" }).element() as HTMLElement).focus();
+    await userEvent.keyboard("{Escape}");
+    await expect.poll(() => screen.getByRole("toolbar").elements().length).toBe(0);
+    await expect.element(screen.getByRole("checkbox", { name: "Select row 2" })).not.toBeChecked();
+    await userEvent.click(screen.getByRole("checkbox", { name: "Select row 2" }), { force: true });
+    await screen.getByRole("button", { name: "Clear selection" }).click();
+    await expect.element(screen.getByRole("checkbox", { name: "Select row 2" })).not.toBeChecked();
+    await expect.element(screen.getByRole("checkbox", { name: "Select all rows" })).toHaveFocus();
   });
 });
 

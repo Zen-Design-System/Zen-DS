@@ -24,6 +24,7 @@ Rows of structured records that users scan, compare, sort and act on.
 | Columns | `columns[] {id, header, align, width, sortable, icon, cell}` | header All-Caps/S Light; right-align numbers; a px width is fixed (Figma FIXED: a narrow container scrolls the table sideways, values never wrap); leave the main column without a width so it fills (Figma FILL) |
 | Rows | `rows · getRowId` | fixed Table/Cell/Size, 1px bottom Border/Neutral/Pale; a 32–40px Avatar, Dock Icon or icon button and a label + Subtext cell sit inside it (they spill into the padding, the row stays 52) |
 | Selection | `selectable · selectedIds · onSelectionChange` | checkbox column; select-all is indeterminate when partial |
+| Bulk actions | `bulkActions (ReactNode or (selectedIds) => ReactNode)` | Popover/Bulk-Action under the table while rows are selected (sticks to the window bottom on a long table): Clear selection + "N selected" + your IconButton actions in PopoverBulkActionGroup / PopoverBulkActionDivider |
 | Sort | `sort · onSortChange` | asc → desc → none; aria-sort |
 | Empty | `empty` | full-width row (Empty State) |
 | Editable cells | `column.edit {type: text · number · select · tags, value, onCommit, validate, disabled, options, suggestions, multiline}` | Figma Table/Cell/Default State=Edit · Editabled-Cell; Focused ring Focus/Accent/Subtle |
@@ -50,6 +51,7 @@ Figma Table (page 1595:2631): Primitives/Table/Header (Table/Header/Size) over P
 | `selectable` | `boolean` | `false` | Figma Type=Checkbox header + a checkbox cell per row. |
 | `selectedIds` | `string[]` | `[]` |  |
 | `onSelectionChange` | `(ids: string[]) => void` | — |  |
+| `bulkActions` | `ReactNode \| ((selectedIds: string[]) => ReactNode)` | — | Actions for the selected rows (Figma Popover/Bulk-Action). With `selectable`, checking a row brings up the bar under the table — held at the bottom of the window while a long table scrolls past — with Clear selection, the count and these actions: `IconButton appearance="flat" level="primary" size="md"` (at most 5, each label saying how many rows it touches), grouped with PopoverBulkActionGroup / PopoverBulkActionDivider. A function receives the selected ids. Escape in the bar clears the selection; when the bar leaves with the focus in it, Select all rows takes the focus. The bar sits outside the scroll box, so the table renders inside a `.zen-table-scope` wrapper; `ref`, `className` and the HTML attributes stay on the scroll box. |
 | `sort` | `TableSort \| null` | — |  |
 | `onSortChange` | `(sort: TableSort \| null) => void` | — |  |
 | `empty` | `ReactNode` | — | Rendered in a full-width row when `rows` is empty (e.g. an EmptyState). |
@@ -132,7 +134,8 @@ type TableSortDirection = "asc" | "desc"
 - Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4).
 - Right-align numbers and amounts; keep text left.
 - Give each row one primary text (bold) and at most one caption.
-- Put row actions in the last column (TableActions) as Button/Icon-Flat Medium (IconButton appearance="flat" level="primary"; a ⋯ Menu trigger for several) and bulk actions above the table (harness: table/actions-flat).
+- Put row actions in the last column (TableActions) as Button/Icon-Flat Medium (IconButton appearance="flat" level="primary"; a ⋯ Menu trigger for several) (harness: table/actions-flat).
+- Give a selectable table its bulk actions through bulkActions: at most 5 IconButton appearance="flat" level="primary" size="md" actions whose labels say how many rows they touch ("Archive 3 projects"); the Table adds Clear selection and the count.
 - Show an Empty State row when filters return nothing.
 - Make only the fields people routinely correct editable; keep IDs, computed and audit columns read-only.
 - Wire onCommit to save, and validate numbers and required text; the error stays in the cell until fixed (harness: table/editor-needs-commit, table/editor-number-validate).
@@ -156,6 +159,7 @@ type TableSortDirection = "asc" | "desc"
 
 ## Accessibility
 - Native table semantics: th scope=col, aria-sort on sortable headers, sort buttons, labelled row checkboxes; the wrapper scrolls horizontally on small screens.
+- Bulk actions: a named toolbar ("Actions for 3 selected rows") after the table in the tab order; the count is a status; Escape or Clear selection clears the selection, and when the bar leaves with the focus in it, Select all rows takes the focus.
 - Editable cells (Notion-style): one click or press starts editing; Enter / F2 / typing / arrows work on a focused cell. Enter saves; Tab and Shift+Tab save and move; clicking another cell saves and edits it; Escape leaves and keeps the typed value (reverts if it fails validation). Text grows in an overlay (Shift+Enter adds a line when edit.multiline); select is a searchable list (type to filter, Enter picks the top match); tags: Enter picks the first suggestion or creates the tag, Backspace on an empty input removes the last. Validation errors use role=alert; the layout never shifts.
 - Clickable content inside an editable cell is its own Tab stop; Enter on it runs its action, Enter on the cell edits.
 - After an edit ends (Enter, Escape, or picking an option), focus returns to the cell without a ring so the value reads cleanly; the ring comes back as soon as arrow keys or Tab move to another cell.

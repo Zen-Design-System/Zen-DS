@@ -31,7 +31,9 @@ Last updated: 2026-10-06.
   px, min/max, `alignSelf`, Stack `fillChildren` (`src/components/Layout/sizing.ts`, rules at the end of `layout.css`).
   Since 2026-10-05 Text/Heading/Icon `tone` takes every resting Color/Content token by its path (81 tones, old names are
   aliases; `src/components/_shared/contentTone.ts` + `content-tone.css`, test `tests/content-tone.test.tsx`).
-- **Tokens:** repo-only edit 2026-10-06 (user): Component Size `Sidebar/Default-Width` = Compact 240 / Comfortable 260
+- **Tokens:** 2026-10-08 (user, repo + Figma): Accent and Neutral `Color/Background/*/Flat/Hover` → step 2 (Alpha/2,
+  were 3 = Pressed); every Flat/Hover is now step 2.
+  Repo-only edit 2026-10-06 (user): Component Size `Sidebar/Default-Width` = Compact 240 / Comfortable 260
   (Figma still 260 / 280 — keep 240/260 on the next variables sync unless Figma is updated); the docs no longer pin a
   260px rail. Before it: synced from the user's exports; the latest is the 2026-10-05 evening export "Zen-Variables 2": Global Colors
   carries Figma's Zen-High-Contrast mode (equal to the algorithm) and a re-synced Mint ramp; Mode Colors (Semantic) adds

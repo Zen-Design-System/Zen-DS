@@ -91,6 +91,14 @@
           "deprecated": null
         },
         {
+          "name": "bulkActions",
+          "type": "ReactNode | ((selectedIds: string[]) => ReactNode)",
+          "required": false,
+          "default": null,
+          "description": "Actions for the selected rows (Figma Popover/Bulk-Action). With `selectable`, checking a row brings up the bar under\nthe table — held at the bottom of the window while a long table scrolls past — with Clear selection, the count and\nthese actions: `IconButton appearance=\"flat\" level=\"primary\" size=\"md\"` (at most 5, each label saying how many rows\nit touches), grouped with PopoverBulkActionGroup / PopoverBulkActionDivider. A function receives the selected ids.\nEscape in the bar clears the selection; when the bar leaves with the focus in it, Select all rows takes the focus.\nThe bar sits outside the scroll box, so the table renders inside a `.zen-table-scope` wrapper; `ref`, `className`\nand the HTML attributes stay on the scroll box.",
+          "deprecated": null
+        },
+        {
           "name": "sort",
           "type": "TableSort | null",
           "required": false,

@@ -154,6 +154,16 @@ Read this file only when picking up work or logging a follow-up.
     and Tabs only, so there is no slot for a banner under the bar.
 
 ## Backlog (plan before opening sessions)
+- **P3 · Example debt surfaced by the 2026-10-08 token fast path (not caused by it):** ai-chat "Assistant on a phone" has
+  no h1 (outline starts at h2); card "Spacing=small" nested corners not concentric (16 vs 12 + 16); dead clicks in chat
+  (inbox row, Audio call), app-shell (Activity), list-item (Revoke invite), uploader (Retry). Report:
+  `.qa/reports/2026-10-08T15-19-57-2f7410ba.md`.
+- **P3 · Button example "Hand off when ready": a Stack with gap 2px (2026-10-08, audit [ladder] warning at 1512/390/dark,
+  surfaced by the gate for the classic code-view change, not caused by it).** Pointer: `src/platform/examples/pages/button.tsx`.
+- **P3 · Table bulkActions follow-ups (2026-10-08):** (a) no harness rule caps the actions passed to `bulkActions`
+  (`popover/bulk-action-limit` only reads PopoverBulkAction JSX); (b) `src/templates/AdminListTemplate.tsx` still shows its
+  own sticky ActionBar for selected rows (text actions Change role / Remove) — decide whether it moves to `bulkActions`;
+  (c) at 390px a bar with 4+ actions wraps to two lines. Pointer: `src/components/Table/Table.tsx` (bulkActions).
 - **P2 · CI "Package" step fails on every run of the 0.4.0 branch (2026-10-07, seen when merging PR #1):** 14 of 14
   finished CI runs since 2026-09-29 failed, almost all in "Package (pack, install in a temp app, budgets, zen-usage,
   MCP, zen-ds)" (twice Browser tests, twice Platform audit); `npm run verify:package` passes locally ("Package OK").

@@ -16,7 +16,7 @@ import { Icon, type IconName } from "../../../components/Icon";
 import { InlineMessage } from "../../../components/InlineMessage";
 import { Box, Container, Stack } from "../../../components/Layout";
 import { PageHeader } from "../../../components/PageHeader";
-import { PopoverBulkAction, PopoverBulkActionDivider, PopoverBulkActionGroup } from "../../../components/Popover";
+import { PopoverBulkActionDivider, PopoverBulkActionGroup } from "../../../components/Popover";
 import { ProgressBar } from "../../../components/Progress";
 import { Search } from "../../../components/Search";
 import { SidePanel } from "../../../components/SidePanel";
@@ -114,7 +114,6 @@ const invoiceColumns: TableColumn<QuarterInvoice>[] = [
 function BulkActionsExample() {
   const { toast } = useToast();
   const headingId = useId();
-  const sectionRef = useRef<HTMLElement>(null);
   const [rows, setRows] = useState(quarterInvoices);
   const [selected, setSelected] = useState<string[]>(["inv-139", "inv-137"]);
   const picked = rows.filter((invoice) => selected.includes(invoice.id));
@@ -125,40 +124,34 @@ function BulkActionsExample() {
     const before = rows;
     const ids = unpaid.map((invoice) => invoice.id);
     setRows(rows.map((invoice) => ids.includes(invoice.id) ? { ...invoice, status: "Paid" } : invoice));
+    // The bar leaves with the selection; the Table moves the focus to Select all rows.
     setSelected([]);
     toast({ title: `${plural(ids.length, "invoice")} marked as paid`, action: { label: "Undo", onClick: () => setRows(before) } });
-    // The bar leaves with the selection: focus moves to Select all rows, where the next selection starts.
-    requestAnimationFrame(() => sectionRef.current?.querySelector<HTMLElement>("thead input[type=checkbox]")?.focus());
   };
   // Each action says how many invoices it touches; the bar's tooltips show the same names.
   const action = (icon: IconName, label: string, onClick: () => void, disabled = false) =>
     <IconButton appearance="flat" level="primary" size="md" icon={icon} aria-label={label} disabled={disabled} onClick={onClick} />;
   return (
-    <Stack as="section" ref={sectionRef} gap="md" aria-labelledby={headingId}>
-      <Stack direction="row" justify="between" align="center" gap="sm" wrap className="px-table-bulk-row">
+    <Stack as="section" gap="md" aria-labelledby={headingId}>
+      <Stack direction="row" justify="between" align="center" gap="sm" wrap>
         <Heading level={4} id={headingId} textStyle="Heading/4">Q3 invoices</Heading>
-        {/* The count labels the bar it sits beside: xs, like a toolbar row. */}
-        <Stack direction="row" gap="xs" align="center" wrap>
-          <Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">
-            {picked.length ? `${picked.length} selected · ${total}` : plural(rows.length, "invoice")}
-          </Text>
-          {picked.length ? (
-            <PopoverBulkAction className="px-table-bulk-bar" aria-label={`Actions for ${count}`}>
-              <PopoverBulkActionGroup aria-label="Payment">
-                {action("icon-mail-01-line", unpaid.length ? `Send ${plural(unpaid.length, "reminder")}` : "Send reminders",
-                  () => toast({ title: `${plural(unpaid.length, "reminder")} sent` }), !unpaid.length)}
-                {action("icon-check-circle-line", unpaid.length ? `Mark ${plural(unpaid.length, "invoice")} as paid` : "Mark as paid", markPaid, !unpaid.length)}
-              </PopoverBulkActionGroup>
-              <PopoverBulkActionDivider />
-              <PopoverBulkActionGroup aria-label="Share">
-                {action("icon-download-01-line", `Download ${count} as PDF`, () => toast({ title: `${count} downloaded` }))}
-                {action("icon-link-01-line", `Copy ${plural(picked.length, "payment link")}`, () => toast({ title: `${plural(picked.length, "payment link")} copied` }))}
-              </PopoverBulkActionGroup>
-            </PopoverBulkAction>
-          ) : null}
-        </Stack>
+        <Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">
+          {picked.length ? `${total} selected` : plural(rows.length, "invoice")}
+        </Text>
       </Stack>
-      <Table aria-labelledby={headingId} columns={invoiceColumns} rows={rows} selectable selectedIds={selected} onSelectionChange={setSelected} />
+      <Table aria-labelledby={headingId} columns={invoiceColumns} rows={rows} selectable selectedIds={selected} onSelectionChange={setSelected}
+        bulkActions={<>
+          <PopoverBulkActionGroup aria-label="Payment">
+            {action("icon-mail-01-line", unpaid.length ? `Send ${plural(unpaid.length, "reminder")}` : "Send reminders",
+              () => toast({ title: `${plural(unpaid.length, "reminder")} sent` }), !unpaid.length)}
+            {action("icon-check-circle-line", unpaid.length ? `Mark ${plural(unpaid.length, "invoice")} as paid` : "Mark as paid", markPaid, !unpaid.length)}
+          </PopoverBulkActionGroup>
+          <PopoverBulkActionDivider />
+          <PopoverBulkActionGroup aria-label="Share">
+            {action("icon-download-01-line", `Download ${count} as PDF`, () => toast({ title: `${count} downloaded` }))}
+            {action("icon-link-01-line", `Copy ${plural(picked.length, "payment link")}`, () => toast({ title: `${plural(picked.length, "payment link")} copied` }))}
+          </PopoverBulkActionGroup>
+        </>} />
     </Stack>
   );
 }
@@ -529,7 +522,7 @@ export const examples: ExampleDef[] = [
   },
   {
     title: "Act on selected rows",
-    description: "Checking rows brings up a Popover/Bulk-Action bar above the table, next to the count and total of the selection; each action names how many invoices it touches. Mark as paid acts at once and the Toast can undo it.",
+    description: "Checking rows brings up the Table's bulk actions: a Popover/Bulk-Action bar under the table with the count and Clear selection, held at the bottom of the window on a long table. Each action names how many invoices it touches; Mark as paid acts at once and the Toast can undo it.",
     wide: true,
     render: () => <BulkActionsExample />,
     code: `const [selected, setSelected] = useState<string[]>([]);
@@ -538,27 +531,25 @@ const count = plural(picked.length, "invoice");
 
 <Stack direction="row" justify="between" align="center">
   <Heading level={4} id="invoices-title" textStyle="Heading/4">Q3 invoices</Heading>
-  <Stack direction="row" gap="xs" align="center">
-    <Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">
-      {picked.length ? \`\${picked.length} selected · \${total}\` : plural(rows.length, "invoice")}
-    </Text>
-    {picked.length ? (
-      <PopoverBulkAction aria-label={\`Actions for \${count}\`}>
-        <PopoverBulkActionGroup aria-label="Payment">
-          <IconButton appearance="flat" level="primary" icon="icon-mail-01-line" aria-label={\`Send \${plural(unpaid.length, "reminder")}\`} onClick={remind} />
-          <IconButton appearance="flat" level="primary" icon="icon-check-circle-line" aria-label={\`Mark \${plural(unpaid.length, "invoice")} as paid\`} onClick={markPaid} />
-        </PopoverBulkActionGroup>
-        <PopoverBulkActionDivider />
-        <PopoverBulkActionGroup aria-label="Share">
-          <IconButton appearance="flat" level="primary" icon="icon-download-01-line" aria-label={\`Download \${count} as PDF\`} onClick={download} />
-          <IconButton appearance="flat" level="primary" icon="icon-link-01-line" aria-label="Copy payment links" onClick={copyLinks} />
-        </PopoverBulkActionGroup>
-      </PopoverBulkAction>
-    ) : null}
-  </Stack>
+  <Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">
+    {picked.length ? \`\${total} selected\` : plural(rows.length, "invoice")}
+  </Text>
 </Stack>
 <Table aria-labelledby="invoices-title" rows={rows} columns={columns}
-  selectable selectedIds={selected} onSelectionChange={setSelected} />`,
+  selectable selectedIds={selected} onSelectionChange={setSelected}
+  bulkActions={
+    <>
+      <PopoverBulkActionGroup aria-label="Payment">
+        <IconButton appearance="flat" level="primary" icon="icon-mail-01-line" aria-label={\`Send \${plural(unpaid.length, "reminder")}\`} onClick={remind} />
+        <IconButton appearance="flat" level="primary" icon="icon-check-circle-line" aria-label={\`Mark \${plural(unpaid.length, "invoice")} as paid\`} onClick={markPaid} />
+      </PopoverBulkActionGroup>
+      <PopoverBulkActionDivider />
+      <PopoverBulkActionGroup aria-label="Share">
+        <IconButton appearance="flat" level="primary" icon="icon-download-01-line" aria-label={\`Download \${count} as PDF\`} onClick={download} />
+        <IconButton appearance="flat" level="primary" icon="icon-link-01-line" aria-label="Copy payment links" onClick={copyLinks} />
+      </PopoverBulkActionGroup>
+    </>
+  } />`,
   },
   {
     title: "Open a row",

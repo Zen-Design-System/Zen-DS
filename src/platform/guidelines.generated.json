@@ -3944,6 +3944,11 @@
         "checkbox column; select-all is indeterminate when partial"
       ],
       [
+        "Bulk actions",
+        "bulkActions (ReactNode or (selectedIds) => ReactNode)",
+        "Popover/Bulk-Action under the table while rows are selected (sticks to the window bottom on a long table): Clear selection + \"N selected\" + your IconButton actions in PopoverBulkActionGroup / PopoverBulkActionDivider"
+      ],
+      [
         "Sort",
         "sort · onSortChange",
         "asc → desc → none; aria-sort"
@@ -4018,7 +4023,8 @@
       "Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4).",
       "Right-align numbers and amounts; keep text left.",
       "Give each row one primary text (bold) and at most one caption.",
-      "Put row actions in the last column (TableActions) as Button/Icon-Flat Medium (IconButton appearance=\"flat\" level=\"primary\"; a ⋯ Menu trigger for several) and bulk actions above the table (harness: table/actions-flat).",
+      "Put row actions in the last column (TableActions) as Button/Icon-Flat Medium (IconButton appearance=\"flat\" level=\"primary\"; a ⋯ Menu trigger for several) (harness: table/actions-flat).",
+      "Give a selectable table its bulk actions through bulkActions: at most 5 IconButton appearance=\"flat\" level=\"primary\" size=\"md\" actions whose labels say how many rows they touch (\"Archive 3 projects\"); the Table adds Clear selection and the count.",
       "Show an Empty State row when filters return nothing.",
       "Make only the fields people routinely correct editable; keep IDs, computed and audit columns read-only.",
       "Wire onCommit to save, and validate numbers and required text; the error stays in the cell until fixed (harness: table/editor-needs-commit, table/editor-number-validate).",
@@ -4042,6 +4048,7 @@
     ],
     "a11y": [
       "Native table semantics: th scope=col, aria-sort on sortable headers, sort buttons, labelled row checkboxes; the wrapper scrolls horizontally on small screens.",
+      "Bulk actions: a named toolbar (\"Actions for 3 selected rows\") after the table in the tab order; the count is a status; Escape or Clear selection clears the selection, and when the bar leaves with the focus in it, Select all rows takes the focus.",
       "Editable cells (Notion-style): one click or press starts editing; Enter / F2 / typing / arrows work on a focused cell. Enter saves; Tab and Shift+Tab save and move; clicking another cell saves and edits it; Escape leaves and keeps the typed value (reverts if it fails validation). Text grows in an overlay (Shift+Enter adds a line when edit.multiline); select is a searchable list (type to filter, Enter picks the top match); tags: Enter picks the first suggestion or creates the tag, Backspace on an empty input removes the last. Validation errors use role=alert; the layout never shifts.",
       "Clickable content inside an editable cell is its own Tab stop; Enter on it runs its action, Enter on the cell edits.",
       "After an edit ends (Enter, Escape, or picking an option), focus returns to the cell without a ring so the value reads cleanly; the ring comes back as soon as arrow keys or Tab move to another cell."

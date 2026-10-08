@@ -19,6 +19,11 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- **Table `bulkActions` (2026-10-08):** a selectable Table shows a Popover/Bulk-Action bar under the table while rows are
+  selected — Clear selection, "N selected" and your actions (a node, or a function of the selected ids) — held at the
+  bottom of the window on a long table. Escape clears the selection; Select all rows takes the focus when the bar leaves.
+  New labels `rowsSelected`, `selectedRowActions`, `clearSelection` (en/vi). The Table playground and "Act on selected
+  rows" example use it.
 - Docs platform and Zen Studio: required sign-in with Google through PocketBase (`src/platform/auth/`); Log out in the
   platform topbar's account menu and in the Studio brand menu. Automated browsers (QA gate, E2E) skip the sign-in screen.
 - **Zen-High-Contrast (2026-10-05, prototype):** `<ZenProvider contrast="high">` (or `"system"`, which follows the OS
@@ -831,6 +836,13 @@ removed (four unused colour ramps were, see Removed).
     which still bleeds outside the trail).
 
 ### Changed
+- **Flat hover backgrounds on step 2 (2026-10-08):** `Color/Background/Accent/Flat/Hover` and `…/Neutral/Flat/Hover`
+  move from Alpha step 3 to step 2 (Light and Dark), like the other Flat/Hover tokens; Pressed stays on step 3, so hover
+  and pressed now differ. Affects flat Buttons/IconButtons, Tabs, Segmented, Date Picker items and other Neutral flat
+  hovers. Figma updated to match.
+- **Classic docs code view and playground properties match Zen Studio (2026-10-08):** code samples use the Studio's
+  code view (React · TSX badge, line numbers, Wrap and Copy; the "Coming soon" language select is gone), and the
+  playground's property column reads like the Studio inspector ("Playground properties", Body/Small label + control rows).
 - **Zen Studio toolbar without dividers (2026-10-06):** the vertical rules between the toolbar groups (brand · tools,
   theme · undo/redo, before Drafts) are gone; groups are told apart by space instead (4px inside a group, 8px between).
 - **Zen Studio canvas chrome placed as in Figma (2026-10-06):** the Select · Hand · Interact tools left the top toolbar

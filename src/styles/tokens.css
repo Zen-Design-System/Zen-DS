@@ -1391,7 +1391,7 @@
   --zen-color-background-info-subtle-hover: var(--zen-light-info-alpha-4);
   --zen-color-background-info-subtle-pressed: var(--zen-light-info-alpha-5);
   --zen-color-background-accent-flat-default: #FFFFFF00;
-  --zen-color-background-accent-flat-hover: var(--zen-light-brand-alpha-3);
+  --zen-color-background-accent-flat-hover: var(--zen-light-brand-alpha-2);
   --zen-color-background-accent-flat-pressed: var(--zen-light-brand-alpha-3);
   --zen-color-background-neutral-flat-default: #FFFFFF00;
   --zen-color-background-neutral-flat-pressed: var(--zen-light-neutral-alpha-3);
@@ -1476,7 +1476,7 @@
   --zen-color-border-active-accent-solid: var(--zen-light-brand-9);
   --zen-color-border-active-neutral-subtle: var(--zen-light-neutral-alpha-6);
   --zen-color-border-active-neutral-solid: var(--zen-light-neutral-12);
-  --zen-color-background-neutral-flat-hover: var(--zen-light-neutral-alpha-3);
+  --zen-color-background-neutral-flat-hover: var(--zen-light-neutral-alpha-2);
   --zen-color-background-positive-flat-default: #FFFFFF00;
   --zen-color-background-inverse-solid-default: var(--zen-white);
   --zen-color-background-inverse-solid-hover: var(--zen-light-neutral-2);
@@ -1822,7 +1822,7 @@
   --zen-color-background-info-subtle-hover: var(--zen-dark-info-alpha-4);
   --zen-color-background-info-subtle-pressed: var(--zen-dark-info-alpha-5);
   --zen-color-background-accent-flat-default: #FFFFFF00;
-  --zen-color-background-accent-flat-hover: var(--zen-dark-brand-alpha-3);
+  --zen-color-background-accent-flat-hover: var(--zen-dark-brand-alpha-2);
   --zen-color-background-accent-flat-pressed: var(--zen-dark-brand-alpha-3);
   --zen-color-background-neutral-flat-default: #FFFFFF00;
   --zen-color-background-neutral-flat-pressed: var(--zen-dark-neutral-alpha-3);
@@ -1907,7 +1907,7 @@
   --zen-color-border-active-accent-solid: var(--zen-dark-brand-9);
   --zen-color-border-active-neutral-subtle: var(--zen-dark-neutral-alpha-6);
   --zen-color-border-active-neutral-solid: var(--zen-dark-neutral-12);
-  --zen-color-background-neutral-flat-hover: var(--zen-dark-neutral-alpha-3);
+  --zen-color-background-neutral-flat-hover: var(--zen-dark-neutral-alpha-2);
   --zen-color-background-positive-flat-default: #FFFFFF00;
   --zen-color-background-inverse-solid-default: var(--zen-dark-neutral-1);
   --zen-color-background-inverse-solid-hover: var(--zen-dark-neutral-2);

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Badge } from "../Badge";
+import { IconButton } from "../Button";
 import { Table, TableText, TableTrend } from "./Table";
 
 type Row = { id: string; name: string; status: string; delta: string; amount: string };
@@ -31,3 +32,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 export const Playground: Story = {};
 export const Selectable: Story = { args: { selectable: true, selectedIds: ["2"] } };
+export const BulkActions: Story = {
+  args: {
+    selectable: true,
+    selectedIds: ["1", "3"],
+    bulkActions: (ids: string[]) => <IconButton appearance="flat" level="primary" size="md" icon="icon-archive-line" aria-label={`Archive ${ids.length} projects`} />,
+  },
+};

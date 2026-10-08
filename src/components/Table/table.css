@@ -147,3 +147,12 @@ textarea.zen-table-editor__input { display: block; width: 100%; height: 20px; mi
 /* Shown on row hover or keyboard focus inside the row — not for the quiet focus a cell keeps after an edit ends. */
 .zen-table__row:hover .zen-table__open,
 .zen-table__row:has(:focus-visible:not([data-quiet="true"])) .zen-table__open { opacity: 1; pointer-events: auto; }
+
+/* Bulk actions (bulkActions): the Popover/Bulk-Action bar for the selection, centred under the table. It sits outside
+   the scroll box so it can stick to the bottom of the window while a long table scrolls past; the rows above it never
+   move when it appears. */
+.zen-table-scope { display: flex; width: 100%; min-width: 0; flex-direction: column; }
+.zen-table__bulk-dock { position: sticky; bottom: var(--zen-spacing-padding-medium, 16px); z-index: 2; display: flex; justify-content: center; padding-top: var(--zen-spacing-padding-small, 12px); pointer-events: none; }
+.zen-table__bulk { --zen-motion-from-y: 1; transform-origin: bottom center; pointer-events: auto; animation: zen-motion-pop-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-emphasized, ease-out) both; }
+.zen-table__bulk-count { padding-inline-end: var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-strongest, #111); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .zen-table__bulk { animation-name: zen-motion-fade-in; } }

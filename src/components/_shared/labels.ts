@@ -31,6 +31,11 @@ export type ZenLabels = {
   // Tables
   selectAllRows: string;
   selectRow: (row: number) => string;
+  /** Count on a table's bulk-action bar ("3 selected"). */
+  rowsSelected: (count: number) => string;
+  /** Names a table's bulk-action bar (a toolbar). */
+  selectedRowActions: (count: number) => string;
+  clearSelection: string;
   /** Screen-reader hint on editable cells. */
   editableCellHint: string;
   /** Number editor's validation message. */
@@ -266,6 +271,9 @@ const en: ZenLabels = {
   searchAndSelect: "Search and select",
   selectAllRows: "Select all rows",
   selectRow: (row) => `Select row ${row}`,
+  rowsSelected: (count) => `${enNumber.format(count)} selected`,
+  selectedRowActions: (count) => `Actions for ${enNumber.format(count)} selected ${count === 1 ? "row" : "rows"}`,
+  clearSelection: "Clear selection",
   editableCellHint: "Editable cell. Press Enter or start typing to edit, Escape to cancel, arrow keys to move.",
   enterNumber: "Enter a number",
   addTag: "Add tag",
@@ -450,6 +458,9 @@ const vi: ZenLabels = {
   searchAndSelect: "Tìm và chọn",
   selectAllRows: "Chọn tất cả các hàng",
   selectRow: (row) => `Chọn hàng ${row}`,
+  rowsSelected: (count) => `Đã chọn ${viNumber.format(count)}`,
+  selectedRowActions: (count) => `Thao tác cho ${viNumber.format(count)} hàng đã chọn`,
+  clearSelection: "Bỏ chọn",
   editableCellHint: "Ô có thể chỉnh sửa. Nhấn Enter hoặc bắt đầu gõ để sửa, Escape để huỷ, phím mũi tên để di chuyển.",
   enterNumber: "Nhập một số",
   addTag: "Thêm thẻ",
