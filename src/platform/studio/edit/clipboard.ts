@@ -96,7 +96,9 @@ async function readLayer(selection: NodeSelection): Promise<Read | null> {
   const outer = wrapLoc ? await studioApi.element(at.file, wrapLoc).catch(() => null) : null;
   const code = codeOf(outer ?? element, source.content);
   if (!code) return null;
-  return { element, code, loc: outer && wrapLoc ? wrapLoc : at.loc, tag: outer ? outer.name : element.name, wrapped: Boolean(outer), state: statesRead(code, source.content) };
+  // The dev server reads the state from the AST (GET /element stateReads: scope-aware, DOM refs such as a Popover's
+  // anchor too); an older server leaves it out and the text scan stands in.
+  return { element, code, loc: outer && wrapLoc ? wrapLoc : at.loc, tag: outer ? outer.name : element.name, wrapped: Boolean(outer), state: element.stateReads ?? statesRead(code, source.content) };
 }
 function prefetch() {
   const selection = selectedNode();
