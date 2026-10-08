@@ -1835,9 +1835,7 @@ const wrapTsc = [];
   const wrapAt = (label, code, needle, name, op = {}, { nth = 0, file = PAGE, snippets = true } = {}) => {
     const result = applyOps(code, locOf(code, needle, nth), name, [{ op: "wrap", tag: "Box", props: {}, ...op }], { file, snippets });
     if ("error" in result) return result;
-    // tooltip/focusable-trigger reads the first tag of a Tooltip's children only: a Button the wrap moved one level in
-    // still takes focus (Tooltip listens on its own span), so that finding is not the wrap's.
-    wrapGuards.push({ label, before: code, after: result.code, allow: ["tooltip/focusable-trigger|Tooltip"] });
+    wrapGuards.push({ label, before: code, after: result.code });
     wrapTsc.push({ label, code: result.code, before: code, file });
     const before = parseSource(code.replace(/^﻿/, ""));
     const after = parseSource(result.code.replace(/^﻿/, ""));

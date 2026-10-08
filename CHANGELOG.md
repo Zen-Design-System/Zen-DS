@@ -615,6 +615,8 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Tooltip around a wrapper (2026-10-08):** a Button inside a Box or Stack that a Tooltip wraps now gets the
+  tooltip's aria-describedby when it takes focus, and `tooltip/focusable-trigger` accepts such a wrapper.
 - **AiChatBlock heading level (2026-10-08):** new `headingLevel` (1–3, default 2) for the greeting, so a screen whose
   greeting is its title (HR Home) has one visible h1 instead of a hidden one. The AI chat header on phone screens uses
   the Alt bar like the other phone screens.

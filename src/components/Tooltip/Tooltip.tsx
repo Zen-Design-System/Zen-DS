@@ -54,7 +54,8 @@ export function TooltipSurface({ color = "default", size: sizeProp = "md", class
 export interface TooltipProps {
   /** Tooltip text. Keep it short and non-interactive; use Popover for rich content. */
   content: ReactNode;
-  /** A single focusable element (Button, IconButton, link…). It receives aria-describedby. */
+  /** A single focusable element (Button, IconButton, link…), or a wrapper around one. The focused control receives
+   *  aria-describedby. */
   children: ReactElement;
   color?: TooltipColor;
   /** Short (sm, md…) or Figma (small, medium…) spelling. */
@@ -118,6 +119,22 @@ export function Tooltip({ content, children, color = "default", size: sizeProp =
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
+  // Focus on a control nested in the trigger (a Button inside a Box) opens the tooltip too: that control gets the
+  // aria-describedby while it is open, as the wrapper it sits in has no role to carry it.
+  const [focused, setFocused] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    const target = focused;
+    // The close X of a closable tooltip sits inside the tooltip itself.
+    if (!open || !target || target.closest(".zen-tooltip--floating")) return undefined;
+    const ids = (target.getAttribute("aria-describedby") ?? "").split(" ").filter(Boolean);
+    if (ids.includes(id)) return undefined;
+    target.setAttribute("aria-describedby", [...ids, id].join(" "));
+    return () => {
+      const rest = (target.getAttribute("aria-describedby") ?? "").split(" ").filter((part) => part && part !== id);
+      if (rest.length) target.setAttribute("aria-describedby", rest.join(" "));
+      else target.removeAttribute("aria-describedby");
+    };
+  }, [open, id, focused]);
   const trigger = isValidElement<{ "aria-describedby"?: string }>(children)
     ? cloneElement(children, { "aria-describedby": [children.props["aria-describedby"], open ? id : undefined].filter(Boolean).join(" ") || undefined })
     : children;
@@ -126,8 +143,8 @@ export function Tooltip({ content, children, color = "default", size: sizeProp =
       className={["zen-tooltip-anchor", className].filter(Boolean).join(" ")}
       onPointerEnter={(event) => { if (event.pointerType !== "touch") show(hoverWait(delay)); }}
       onPointerLeave={hideOnLeave}
-      onFocus={(event) => { if ((event.target as HTMLElement).matches(":focus-visible")) show(0); }}
-      onBlur={hideOnLeave}
+      onFocus={(event) => { const target = event.target as HTMLElement; setFocused(target); if (target.matches(":focus-visible")) show(0); }}
+      onBlur={() => { setFocused(null); hideOnLeave?.(); }}
       onPointerDown={closable ? undefined : hide}
     >
       <InsideTooltipContext.Provider value={true}>{trigger}</InsideTooltipContext.Provider>

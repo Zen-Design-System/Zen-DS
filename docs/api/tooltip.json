@@ -23,7 +23,7 @@
           "type": "ReactElement",
           "required": true,
           "default": null,
-          "description": "A single focusable element (Button, IconButton, link…). It receives aria-describedby.",
+          "description": "A single focusable element (Button, IconButton, link…), or a wrapper around one. The focused control receives\n aria-describedby.",
           "deprecated": null
         },
         {

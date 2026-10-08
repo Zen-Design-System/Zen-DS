@@ -152,6 +152,7 @@ export const Good = () => <>
   <ChatMessage side="you" holdActions={[{ id: "copy", label: "Copy", icon: "icon-copy-solid" }, { id: "delete", label: "Delete", icon: "icon-trash-solid", destructive: true }]}>Hi</ChatMessage>
   <IconButton onClick={act} appearance="flat" level="primary" size="md" aria-label="Archive" icon={<Icon name="icon-archive-line" />} />
   <IconButton onClick={act} appearance="flat" level="primary" size="md" aria-label="Archive" tooltip="Archive (E)" icon={<Icon name="icon-archive-line" />} />
+  <Tooltip content="Archive (E)"><Box><Button onClick={act}>Archive</Button></Box></Tooltip>
   <button type="button" className="pe-result" onClick={open}><Icon name="icon-clock-line" size="sm" decorative /><Text>{item}</Text></button>
   <ChatComposer onSend={send} replyTo={replying} onCancelReply={cancelReply} />
   <ChatCall state="in-missed" detail="12:33" onAction={callBack} />

@@ -592,7 +592,16 @@ export const rules = [
     } },
   { id: "tooltip/focusable-trigger", components: ["Tooltip"], severity: "error", allow: "tooltip-trigger", guideline: "docs/guidelines/tooltip.md",
     summary: "Tooltips wrap a focusable element so keyboard users can reach them.",
-    check: ({ children }) => { const open = children.match(/<([A-Za-z]+)\b([^>]*)>/); const first = open?.[1]; const focusable = /tabIndex=(\{0\}|"0")|role="button"/.test(open?.[2] ?? ""); return first && !focusable && !FOCUSABLE_TRIGGERS.includes(first) && `wraps <${first}>, which is not focusable — wrap a Button/IconButton/link (or give it tabIndex={0} and a name).`; } },
+    check: ({ children }) => {
+      const focusableTag = (name, attrs) => FOCUSABLE_TRIGGERS.includes(name) || /tabIndex=(\{0\}|"0")|role="button"/.test(attrs ?? "");
+      const open = children.match(/<([A-Za-z]+)\b([^>]*)>/);
+      const first = open?.[1];
+      if (!first || focusableTag(first, open[2])) return null;
+      // A wrapper (a Box or Stack the trigger sits in) is fine when a focusable control is inside it: focus bubbles to the
+      // Tooltip, which describes the focused control.
+      if ([...children.matchAll(/<([A-Za-z]+)\b([^>]*)>/g)].slice(1).some((tag) => focusableTag(tag[1], tag[2]))) return null;
+      return `wraps <${first}>, which is not focusable — wrap a Button/IconButton/link (or give it tabIndex={0} and a name).`;
+    } },
   { id: "tooltip/short", components: ["Tooltip"], severity: "warn", allow: "tooltip-length", guideline: "docs/guidelines/tooltip.md",
     summary: "Tooltip text stays under ~80 characters and holds no interactive content.",
     check: ({ attrs }) => (literal(attrs, "content")?.length ?? 0) > 80 && "content is longer than 80 characters — use a Popover or inline help." },

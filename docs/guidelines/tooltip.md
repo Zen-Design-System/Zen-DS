@@ -32,7 +32,7 @@ Shows a TooltipSurface next to its trigger on hover (after `delay`) and keyboard
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `content` (required) | `ReactNode` | — | Tooltip text. Keep it short and non-interactive; use Popover for rich content. |
-| `children` (required) | `ReactElement` | — | A single focusable element (Button, IconButton, link…). It receives aria-describedby. |
+| `children` (required) | `ReactElement` | — | A single focusable element (Button, IconButton, link…), or a wrapper around one. The focused control receives aria-describedby. |
 | `color` | `"default" \| "accent" \| "white-overlay" \| "black-overlay"` | `"default"` |  |
 | `size` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
 | `placement` | `"top" \| "bottom" \| "left" \| "right"` | `"top"` |  |
