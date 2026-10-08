@@ -32,6 +32,7 @@ import hrPublicHolidayTemplateSource from "../../templates/hr/HrPublicHolidayTem
 import { HrTasksTemplate } from "../../templates/hr/HrTasksTemplate";
 import hrTasksTemplateSource from "../../templates/hr/HrTasksTemplate.tsx?raw";
 import { ZenProvider } from "../../components/Provider";
+import { ToastProvider } from "../../components/Toast";
 import { PlatformPhone } from "../PlatformPhone";
 import { Panel, keepOnHotUpdate } from "./shared";
 import type { AppLayerPage, AppLayerPageMeta, ExampleMap } from "./types";
@@ -74,8 +75,11 @@ function TemplatesPlayground() {
 
 function TemplateFrame({ template }: { template: TemplateDef }) {
   const { Component } = template;
+  // A phone template: the frame already sets the phone modes (Mobile typography, Comfortable, the mobile tokens), so its
+  // provider only tells the template it is on a phone (useZen().breakpoint) and hosts the overlays and the toasts of
+  // the screen, as an app's root provider does: they open inside the phone, not in the docs page's stack.
   return template.mobile ? (
-    <PlatformPhone className="patpl-phone" label={template.title}><ZenProvider typography="mobile" density="comfortable" paint={false} breakpoint="mobile"><Component /></ZenProvider></PlatformPhone>
+    <PlatformPhone className="patpl-phone" label={template.title}><ZenProvider paint={false} breakpoint="mobile"><ToastProvider><Component /></ToastProvider></ZenProvider></PlatformPhone>
   ) : (
     <div className="patpl-frame"><div className="patpl-frame__scroll"><ZenProvider paint portal={false} syncDocument={false} breakpoint="auto" className="patpl-app"><Component /></ZenProvider></div></div>
   );

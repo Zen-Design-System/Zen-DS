@@ -12,6 +12,7 @@ import { DescriptionList } from "../../../components/DescriptionList";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
+import { InlineMessage } from "../../../components/InlineMessage";
 import { Icon, type IconName } from "../../../components/Icon";
 import { Container, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem, type ListBoxTheme } from "../../../components/ListItem";
@@ -37,9 +38,9 @@ export const page: PlatformPage = "sidebar";
 // ——— Shared page parts: every page in these shells is a PageHeader over one List ——————————————————————————————
 type Row = { id: string; title: string; caption: string; leading: ReactNode; trailing?: ReactNode; onClick?: () => void };
 type Canvas = "default" | "alt" | "flat";
-/** Cards follow the page Canvas: a Surface with a Pale border on Default and Flat (a shadow alone never separates it),
- *  Surface/Alt (flat, no shadow on a tinted fill) on Alt. */
-const cardLook: Record<Canvas, { theme: "flat" | "border"; surface?: "alt" }> = { default: { theme: "border" }, alt: { theme: "flat", surface: "alt" }, flat: { theme: "border" } };
+/** Cards follow the Sidebar's elevation, like the ListBox beside them (listBoxLook): the shadow beside the default
+ *  Sidebar on the grey Default canvas, the Pale border on the white Alt and Flat canvases (usage rules §16). */
+const cardLook: Record<Canvas, { theme: "shadow" | "border" }> = { default: { theme: "shadow" }, alt: { theme: "border" }, flat: { theme: "border" } };
 
 const personAvatar = (p: Person) => p.photo
   ? <Avatar size="medium" theme="photo" src={p.photo} alt="" />
@@ -618,6 +619,60 @@ function SidebarOnPhone() {
   );
 }
 
+/** A member on the Starter plan: destinations the plan doesn't include stay in the Sidebar, disabled, so people learn
+ *  they exist; an empty Inbox shows no counter. Upgrading turns them on. */
+function SidebarStates() {
+  const { toast } = useToast();
+  const [page, setPage] = useState("home");
+  const [business, setBusiness] = useState(false);
+  const sections: SidebarSection[] = [
+    { items: [
+      { id: "home", label: "Home", icon: "icon-home-03-line" },
+      // Nothing waits in the Inbox, so it has no counter and no dot.
+      { id: "inbox", label: "Inbox", icon: "ic-inbox-01-line" },
+      { id: "projects", label: "Projects", icon: "icon-folder-line" },
+    ] },
+    { label: "Business plan", items: [
+      { id: "invoices", label: "Invoices", icon: "icon-receipt-line", disabled: !business },
+      { id: "reports", label: "Reports", icon: "icon-bar-chart-01-line", disabled: !business },
+    ] },
+  ];
+  const upgrade = () => { setBusiness(true); toast({ type: "positive", title: "Switched to Business", children: "Invoices and Reports are on in the Sidebar." }); };
+  let content: ReactNode;
+  if (page === "inbox") {
+    content = (
+      <Page title="Inbox" description="Mentions, approvals and comments">
+        <EmptyState headingLevel={2} illustration={false} icon="ic-inbox-01-line" title="You're all caught up"
+          secondaryAction={{ label: "Open projects", onClick: () => setPage("projects") }}>New mentions and approvals show up here.</EmptyState>
+      </Page>
+    );
+  } else if (page === "projects") {
+    content = <Page title="Projects" description={plural(openProjects.length, "open project")}><RowCard label="Projects" rows={openProjects.map(projectRow)} canvas="default" /></Page>;
+  } else if (page === "invoices") {
+    content = <Page title="Invoices" description="Sent, paid and overdue this quarter"><RowCard label="Invoices" rows={invoices.map(invoiceRow)} canvas="default" /></Page>;
+  } else if (page === "reports") {
+    content = <Page title="Reports" description="Hours and budgets by project"><RowCard label="Reports" rows={openProjects.map(projectRow)} canvas="default" /></Page>;
+  } else {
+    content = (
+      <Page title="Home" description="Due this week across your projects">
+        {business ? null : (
+          <InlineMessage theme="neutral" title="Invoices and Reports are on the Business plan" action={{ label: "Switch to Business", onClick: upgrade }}>
+            They stay in the Sidebar, disabled, until the workspace switches plans.
+          </InlineMessage>
+        )}
+        <RowCard label="Due this week" rows={dueThisWeek.map((t) => taskRow(t, () => setPage("projects")))} canvas="default" />
+      </Page>
+    );
+  }
+  return (
+    <AppFrame>
+      <AppShell sidebar={<Sidebar logo={studioLogo} logoCollapsed={studioMark} sections={sections} selectedId={page} onItemClick={(item) => setPage(item.id)} />}>
+        {content}
+      </AppShell>
+    </AppFrame>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Studio navigation",
@@ -791,6 +846,37 @@ const section = pathname.split("/")[1]; // "/projects/lumen-banking" → "projec
   />
 }>
   <Routes />
+</AppShell>`,
+  },
+  {
+    title: "Disabled and empty items",
+    description: "On the Starter plan, Invoices and Reports stay in the Sidebar but disabled: people see what the Business plan adds, the items skip clicks and keep their place, and Switch to Business turns them on. An empty Inbox shows no counter or dot, and its page says it is empty instead of showing a blank list.",
+    wide: true,
+    screen: true,
+    render: () => <SidebarStates />,
+    code: `const sections: SidebarSection[] = [
+  { items: [
+    { id: "home", label: "Home", icon: "icon-home-03-line" },
+    { id: "inbox", label: "Inbox", icon: "ic-inbox-01-line" }, // nothing waiting: no counter
+    { id: "projects", label: "Projects", icon: "icon-folder-line" },
+  ] },
+  { label: "Business plan", items: [
+    { id: "invoices", label: "Invoices", icon: "icon-receipt-line", disabled: !business },
+    { id: "reports", label: "Reports", icon: "icon-bar-chart-01-line", disabled: !business },
+  ] },
+];
+
+<AppShell sidebar={<Sidebar logo={logo} sections={sections} selectedId={page} onItemClick={(item) => setPage(item.id)} />}>
+  <Container>
+    <PageHeader title="Home" description="Due this week across your projects" />
+    {!business && (
+      <InlineMessage theme="neutral" title="Invoices and Reports are on the Business plan"
+        action={{ label: "Switch to Business", onClick: upgrade }}>
+        They stay in the Sidebar, disabled, until the workspace switches plans.
+      </InlineMessage>
+    )}
+    {/* … */}
+  </Container>
 </AppShell>`,
   },
   {

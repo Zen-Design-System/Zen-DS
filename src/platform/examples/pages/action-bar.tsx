@@ -408,9 +408,9 @@ function PhoneOrderExample() {
                     leading={<DockIcon icon={line.icon} theme={line.theme} background="subtle" />}
                     trailing={(
                       <Stack direction="row" gap="2xs" align="center" role="group" aria-label={`${line.name} quantity`}>
-                        <IconButton level="tertiary" size="xs" icon="icon-minus-line" aria-label={`Remove one ${line.name}`} onClick={() => change(line, -1)} />
+                        <IconButton level="tertiary" size="md" icon="icon-minus-line" aria-label={`Remove one ${line.name}`} onClick={() => change(line, -1)} />
                         <Text as="span" textStyle="Body/Base/Medium" className="px-action-bar-qty" width="hug">{line.qty}</Text>
-                        <IconButton level="tertiary" size="xs" icon="icon-plus-line" aria-label={`Add one ${line.name}`} onClick={() => change(line, 1)} />
+                        <IconButton level="tertiary" size="md" icon="icon-plus-line" aria-label={`Add one ${line.name}`} onClick={() => change(line, 1)} />
                       </Stack>
                     )} />
                 ))}
@@ -423,7 +423,6 @@ function PhoneOrderExample() {
               <List aria-labelledby={pickupId}>
                 <ListItem title="Phin Nguyen Hue" caption="42 Nguyen Hue, District 1 · ready in about 10 minutes"
                   leading={<DockIcon icon="icon-marker-pin-01-line" theme="neutral" background="subtle" />}
-                  selected={false}
                   as="li"
                   titleLines={1} />
               </List>
@@ -522,9 +521,9 @@ const decide = (status) => {
         <ListItem key={line.id} title={line.name} caption={line.detail}
           leading={<DockIcon icon={line.icon} theme={line.theme} background="subtle" />}
           trailing={<>
-            <IconButton level="tertiary" size="xs" icon="icon-minus-line" aria-label={\`Remove one \${line.name}\`} onClick={() => change(line, -1)} />
+            <IconButton level="tertiary" size="md" icon="icon-minus-line" aria-label={\`Remove one \${line.name}\`} onClick={() => change(line, -1)} />
             <Text as="span" textStyle="Body/Base/Medium">{line.qty}</Text>
-            <IconButton level="tertiary" size="xs" icon="icon-plus-line" aria-label={\`Add one \${line.name}\`} onClick={() => change(line, 1)} />
+            <IconButton level="tertiary" size="md" icon="icon-plus-line" aria-label={\`Add one \${line.name}\`} onClick={() => change(line, 1)} />
           </>} />
       ))}
     </List>

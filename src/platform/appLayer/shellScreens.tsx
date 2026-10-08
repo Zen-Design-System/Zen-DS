@@ -978,7 +978,7 @@ export function HrPhoneExample() {
   const trailing = tab === "home" || tab === "time-off" ? [{ icon: "icon-plus-line" as const, label: "Request leave", onClick: () => setRequesting(true) }]
     : tab === "inbox" ? [{ icon: "icon-check-done-line" as const, label: "Mark all read", disabled: !unread, onClick: () => setNotices((list) => list.map((notice) => ({ ...notice, unread: false }))) }] : [];
   return (
-    <ZenProvider typography="mobile" paint={false} portal={false} breakpoint="mobile">
+    <ZenProvider paint={false} portal={false} breakpoint="mobile">
       <Stack ref={phoneRef} align="center">
       <PlatformPhone key={tab} label="HR app on a phone" headerOverlay screenRef={screenRef}
         header={<TopNavigation type="alt" title={label} largeTitle={label} scrollRef={screenRef} trailing={trailing} />}

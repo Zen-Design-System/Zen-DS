@@ -289,7 +289,7 @@ function LoyaltyStampsExample() {
         : { label: "Scan receipt", startIcon: "icon-scan-line", onClick: scan }} />}>
       {/* Body padding lg (20) = the bar's margin; the reward card and the visits are sections of the screen (lg). */}
       <Stack gap="lg" padding="lg">
-        <Card theme="border" as="section" aria-labelledby={cardTitleId}>
+        <Card theme="flat" as="section" aria-labelledby={cardTitleId}>
           <Stack gap="md">
             <Stack gap="xs">
               <Heading level={2} id={cardTitleId} textStyle="Heading/Subheading">Free drink</Heading>

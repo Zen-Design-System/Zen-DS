@@ -470,7 +470,7 @@ function PhoneDrillInExample() {
               <Stack as="ul" gap="md">
                 {group.metrics.map((metric) => (
                   <li key={metric.id}>
-                    <MetricCard theme="border" variant="title-highlight" size="md" label={metric.label} value={metric.value} trend={metric.trend} icon={metric.icon} iconTheme={metric.theme}
+                    <MetricCard theme="flat" variant="title-highlight" size="md" label={metric.label} value={metric.value} trend={metric.trend} icon={metric.icon} iconTheme={metric.theme}
                       action={<IconButton appearance="main" level="tertiary" size="xs" icon="icon-chevron-right-line" aria-label={openLabel(metric)}
                         onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpenId(metric.id))} />} />
                   </li>
@@ -702,7 +702,7 @@ const [openId, setOpenId] = useState<string | null>(null);
       <Heading level={2} id={septemberId} textStyle="Body/Small/Bold" tone="light">September</Heading>
       <Stack as="ul" gap="md">
         <li>
-          <MetricCard theme="border" variant="title-highlight" size="md" label="Hours logged" value="164 h"
+          <MetricCard theme="flat" variant="title-highlight" size="md" label="Hours logged" value="164 h"
             trend={{ direction: "positive", label: "+12 h vs. August" }} icon="icon-clock-line" iconTheme="blue"
             action={<IconButton appearance="main" level="tertiary" size="xs" icon="icon-chevron-right-line" aria-label="Open hours logged"
               onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpenId("hours"))} />} />

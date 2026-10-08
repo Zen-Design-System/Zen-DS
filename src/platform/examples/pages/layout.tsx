@@ -530,14 +530,12 @@ const dueThisWeek = tasks.filter((task) => task.status !== "Done" && task.due <=
 const outstanding = invoices.filter((invoice) => invoice.status === "Sent" || invoice.status === "Overdue").reduce((sum, invoice) => sum + invoice.amount, 0);
 const clientCount = new Set(projects.map((project) => project.client)).size;
 
-/** A Surface panel at the Sidebar's elevation (Shadow/Bottom/Level-1, no border): the desktop block of rows (radius 2xl,
- *  padding xl) around static rows, which pad 0, so their text sits 24px from every edge. Nothing in it is clickable, so
- *  it is a Box, not a Card. */
+/** A block of rows at the Sidebar's elevation: a ListBox with theme="shadow" (Shadow/Bottom/Level-1, no border). */
 function ElevatedList({ children, ...name }: { children: ReactNode; "aria-label"?: string; "aria-labelledby"?: string }) {
   return (
-    <Box surface="surface" radius="2xl" padding="xl" clip={false}>
+    <ListBox theme="shadow">
       <List {...name}>{children}</List>
-    </Box>
+    </ListBox>
   );
 }
 
@@ -581,11 +579,11 @@ function ElevatedPanels() {
     content = (
       <>
         <PageHeader title="Home" description={`${plural(dueThisWeek.length, "task")} due this week`} />
-        {/* MetricCard's default theme is the same elevation: Shadow/Bottom/Level-1 and no border. */}
+        {/* MetricCard theme="shadow" is the same elevation: Shadow/Bottom/Level-1 and no border. */}
         <Grid columns={{ mobile: 1, desktop: 3 }} gap="md">
-          <MetricCard label="Due this week" value={String(dueThisWeek.length)} icon="icon-calendar-line" theme="flat" />
-          <MetricCard label="Active projects" value={String(projects.filter((project) => project.status === "Active").length)} icon="icon-folder-line" theme="flat" />
-          <MetricCard label="Outstanding" value={formatCompactMoney(outstanding)} icon="icon-coins-line" theme="flat" />
+          <MetricCard label="Due this week" value={String(dueThisWeek.length)} icon="icon-calendar-line" theme="shadow" />
+          <MetricCard label="Active projects" value={String(projects.filter((project) => project.status === "Active").length)} icon="icon-folder-line" theme="shadow" />
+          <MetricCard label="Outstanding" value={formatCompactMoney(outstanding)} icon="icon-coins-line" theme="shadow" />
         </Grid>
         <Stack as="section" gap="md" aria-labelledby={dueId}>
           <Heading level={2} id={dueId} textStyle="Heading/4">Due this week</Heading>
@@ -604,8 +602,7 @@ function ElevatedPanels() {
     // screen takes the same elevation.
     <div className="pe-shell" data-canvas="default">
       <Sidebar logo={<Text as="span" textStyle="Body/Base/Bold">{studio.name}</Text>} sections={shellSections} selectedId={page}
-        onItemClick={(item) => setPage(item.id as ShellPage)}
-        background="flat" />
+        onItemClick={(item) => setPage(item.id as ShellPage)} />
       {/* Page body padded xl (Margin-Comfortable); sections xl apart. */}
       <Stack ref={measure} gap="xl" padding="xl" width="fill">{content}</Stack>
     </div>
@@ -901,7 +898,7 @@ function SettingsSection({ id, title, description, children }) {
   },
   {
     title: "Elevated panel",
-    description: "Beside the default Sidebar on a Canvas/Default page, every Surface on the screen takes the Sidebar's elevation: a Box with effectStyle=\"Shadow/Bottom/Level-1\" and no border, like the MetricCards above it. The rows are static, so the panel is the desktop block of rows (radius 2xl, padding xl) as a Box rather than a Card.",
+    description: "Beside the default Sidebar on a Canvas/Default page, every Surface on the screen takes the Sidebar's elevation: a ListBox with theme=\"shadow\" (Shadow/Bottom/Level-1, no border), like the MetricCards above it.",
     wide: true,
     screen: true,
     render: () => <ElevatedPanels />,
@@ -909,15 +906,15 @@ function SettingsSection({ id, title, description, children }) {
 <Sidebar logo={logo} sections={sections} selectedId={page} onItemClick={(item) => setPage(item.id)} />
 <Stack gap="xl" padding="xl" width="fill">
   <PageHeader title="Home" description="7 tasks due this week" />
-  {/* MetricCard's default theme is the same elevation */}
+  {/* MetricCard theme="shadow" is the same elevation */}
   <Grid columns={{ mobile: 1, desktop: 3 }} gap="md">
-    <MetricCard label="Due this week" value="7" icon="icon-calendar-line" />
+    <MetricCard label="Due this week" value="7" icon="icon-calendar-line" theme="shadow" />
     …
   </Grid>
   <Stack as="section" gap="md" aria-labelledby="due">
     <Heading level={2} id="due" textStyle="Heading/4">Due this week</Heading>
-    {/* A Surface panel at the same elevation: shadow, no border; rows pad 0 at the sides, so xl puts their text 24px from every edge */}
-    <Box surface="surface" effectStyle="Shadow/Bottom/Level-1" radius="2xl" padding="xl">
+    {/* The block of rows at the same elevation: shadow, no border */}
+    <ListBox theme="shadow">
       <List aria-labelledby="due">
         {tasks.map((task) => (
           <ListItem key={task.id} title={task.title} titleLines={2} caption={\`\${task.key} · \${formatDue(task.due)}\`}
@@ -925,7 +922,7 @@ function SettingsSection({ id, title, description, children }) {
             trailing={<Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge>} />
         ))}
       </List>
-    </Box>
+    </ListBox>
   </Stack>
 </Stack>`,
   },

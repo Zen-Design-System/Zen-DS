@@ -9,3 +9,6 @@
    below 640px, as `columns={{ mobile: 1, … }}` does on a phone. */
 .px-card-scope { container-type: inline-size; }
 @container (max-width: 640px) { .zen-grid.px-card-stack { grid-template-columns: minmax(0, 1fr); } }
+/* Playground (Spacing=small): the dashed content slot fills the card, so its corners follow the card's (outer radius
+   minus the inset: 16 − 16 = square corners) instead of the slot's own 12px, and the nested corners stay concentric. */
+.zen-card[data-spacing="small"] .platform-slot { border-radius: max(0px, calc(var(--zen-card-radius) - var(--zen-card-padding))); }

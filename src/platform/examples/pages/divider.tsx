@@ -356,7 +356,7 @@ function MobileReceiptExample() {
           <Stack as="li" direction="column" align="center" gap="md" paddingY="sm" justify="start">
             <DockIcon icon="icon-coffee-cup-line" theme="orange" background="subtle" size="xl" />
             <Stack gap="2xs" style={{ flex: 1 }}>
-              <Text as="span" textStyle="Heading/2" truncate align="center">{order.store}</Text>
+              <Heading level={2} textStyle="Heading/2" truncate align="center">{order.store}</Heading>
               <Text as="span" textStyle="Body/Small/Regular" tone="light" align="center">
                 {`${formatRelative(order.at)} · Order ${order.id}`}
               </Text>

@@ -153,8 +153,8 @@ function LayoutPlayground() {
 
 /* ───────────── Examples ───────────── */
 
-/** Example cards pin their ZenProvider to breakpoint="desktop". These page layouts follow the window, as under an app's
- *  root ZenProvider (breakpoint "auto"), so their columns really change at tablet and phone widths. */
+/** These page layouts follow the window, as under an app's root ZenProvider (breakpoint "auto"), so their columns
+ *  really change at tablet and phone widths whatever breakpoint the docs page around them resolves. */
 function FollowWindow({ children }: { children: ReactNode }) {
   return <ZenProvider className="pal-page" breakpoint="auto" paint={false} portal={false}>{children}</ZenProvider>;
 }

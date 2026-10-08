@@ -206,8 +206,7 @@ function DeleteFileExample() {
               <ListItem key={file.id} title={file.name}
                 caption={`${formatBytes(file.bytes)} · ${people[file.owner as PersonId].name} · ${formatRelative(file.updated)}`}
                 leading={<FileIcon format={fileIconFormatOf(file.name)} size="xl" />}
-                trailing={<IconButton appearance="flat" icon="icon-trash-line" aria-label={`Delete ${file.name}`} onClick={() => confirmDelete(file)} />}
-                selected={false} />
+                trailing={<IconButton appearance="flat" icon="icon-trash-line" aria-label={`Delete ${file.name}`} onClick={() => confirmDelete(file)} />} />
             ))}
           </List>
         </ListBox>
@@ -249,7 +248,7 @@ function HandOffExample() {
   return (
     <Card theme="flat" className="px-button-card">
       <Stack gap="md" alignSelf="stretch">
-        <Stack gap="3xs">
+        <Stack gap="2xs">
           <Heading level={4} textStyle="Heading/Subheading">Sprint 14 hand-off</Heading>
           <Text textStyle="Body/Small/Regular" tone="base">Loyalty app · Phin & Co</Text>
         </Stack>
@@ -408,7 +407,7 @@ function PhoneApproveExample() {
           <Stack as="li" direction="column" align="center" gap="md" paddingX="lg" paddingY="sm" justify="center">
             <Avatar size="2xl" {...avatarOf(person)} />
             <Stack gap="2xs" style={{ flex: 1 }}>
-              <Text as="span" textStyle="Heading/2" truncate align="center">{person.name}</Text>
+              <Heading level={2} textStyle="Heading/2" truncate align="center">{person.name}</Heading>
               <Text as="span" textStyle="Body/Small/Regular" tone="light">{`${person.role} · ${person.location}`}</Text>
             </Stack>
             <Stack direction="row" align="center" gap="sm">

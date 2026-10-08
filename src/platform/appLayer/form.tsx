@@ -96,7 +96,7 @@ function FormPlayground() {
   );
   const formNode = <Form form={form} gap={inset ? "none" : "lg"} aria-label="Billing details">{body}{actions}</Form>;
   const preview = mobile ? (
-    <ZenProvider typography="mobile" paint={false} portal={false} breakpoint="mobile" className="pef-stage pef-phone-stage">
+    <ZenProvider paint={false} portal={false} breakpoint="mobile" className="pef-stage pef-phone-stage">
       <PlatformPhone className="pef-phone" label="Billing details form" header={<TopNavigation type="compact-alt" title="Billing details" />}>{formNode}</PlatformPhone>
     </ZenProvider>
   ) : (
@@ -376,7 +376,7 @@ function CheckoutExample() {
   const delivery = checkout.values.delivery === "express" ? 9 : 0;
   const total = money(bagTotal + delivery);
   return (
-    <ZenProvider typography="mobile" paint={false} portal={false} breakpoint="mobile" className="pef-phone-stage">
+    <ZenProvider paint={false} portal={false} breakpoint="mobile" className="pef-phone-stage">
       <PlatformPhone className="pef-phone" label="Checkout" header={<TopNavigation type="compact-alt" title="Checkout" />}>
         {placed ? (
           <Stack gap="md" padding="lg">

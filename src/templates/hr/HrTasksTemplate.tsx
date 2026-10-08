@@ -10,7 +10,7 @@
  * Copy it with ./HrShell, ./data and ./assets into your app and replace the sample data. Render it inside your app's
  * <ZenProvider>. Uses only @zen/design-system components, no custom CSS.
  */
-import { useMemo, useRef, useState, type DragEvent, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent } from "react";
 import {
   AutocompleteField,
   Avatar,
@@ -178,6 +178,17 @@ export function HrTasksTemplate() {
   const searchRef = useRef<HTMLInputElement>(null);
   // Add item with nothing typed moves focus to the checklist field instead of doing nothing.
   const newItemRef = useRef<HTMLInputElement>(null);
+  const newTaskRef = useRef<HTMLButtonElement>(null);
+  // After a delete (or its Undo) focus moves to a task that is still there, never to <body>: the next row in the same
+  // group (else the one before), the restored task, or New task when the group is gone ("" = New task).
+  const [focusTask, setFocusTask] = useState<string | null>(null);
+  useEffect(() => {
+    if (focusTask === null) return;
+    setFocusTask(null);
+    const item = focusTask ? document.querySelector<HTMLElement>(`[data-task="${focusTask}"]`) : null;
+    const control = item?.matches("button, [tabindex]") ? item : item?.querySelector<HTMLElement>(".zen-list-item__wrapper, button");
+    (control ?? (focusTask ? document.querySelector<HTMLElement>(`[aria-label="Actions for ${focusTask}"]`) : null) ?? newTaskRef.current)?.focus();
+  }, [focusTask]);
   const [items, setItems] = useState(initialTasks);
   const [view, setView] = useState<View>("list");
   const [query, setQuery] = useState("");
@@ -242,9 +253,12 @@ export function HrTasksTemplate() {
   };
   const remove = (task: WorkTask) => {
     const index = items.findIndex((item) => item.id === task.id);
+    const group = byStatus(task.status);
+    const at = group.findIndex((item) => item.id === task.id);
     setItems((list) => list.filter((item) => item.id !== task.id));
     if (openId === task.id) setOpenId(null);
-    const toastId = toast({ title: "Task deleted", children: `${task.id} · ${task.title}`, action: { label: "Undo", onClick: () => { setItems((list) => [...list.slice(0, index), task, ...list.slice(index)]); dismiss(toastId); } } });
+    setFocusTask((group[at + 1] ?? group[at - 1])?.id ?? "");
+    const toastId = toast({ title: "Task deleted", children: `${task.id} · ${task.title}`, action: { label: "Undo", onClick: () => { setItems((list) => [...list.slice(0, index), task, ...list.slice(index)]); setFocusTask(task.id); dismiss(toastId); } } });
   };
   const openTask = (id: string) => { setOpenId(id); setDueDraft(null); setDueLeft(false); setNewItem(""); };
   const addChecklistItem = (task: WorkTask) => {
@@ -359,7 +373,7 @@ export function HrTasksTemplate() {
               <List aria-labelledby={headingId}>
                 {rows.map((task) => {
                   const note = dueNote(task);
-                  return <ListItem key={task.id} title={task.title} caption={`${task.id} · ${note?.text ?? formatDate(task.due, { year: false })} · ${task.priority} priority`}
+                  return <ListItem key={task.id} data-task={task.id} title={task.title} caption={`${task.id} · ${note?.text ?? formatDate(task.due, { year: false })} · ${task.priority} priority`}
                     trailing={<Assignees ids={task.assignees} />} selected={task.id === openId} onClick={() => openTask(task.id)} />;
                 })}
               </List>
@@ -388,7 +402,7 @@ export function HrTasksTemplate() {
   const boardCard = (task: WorkTask) => {
     const note = dueNote(task);
     return (
-      <Card key={task.id} as="article" spacing="sm" selected={task.id === openId} onClick={() => openTask(task.id)} draggable
+      <Card key={task.id} data-task={task.id} as="article" spacing="sm" selected={task.id === openId} onClick={() => openTask(task.id)} draggable
         onDragStart={(event: DragEvent<HTMLElement>) => { event.dataTransfer.setData("text/plain", task.id); event.dataTransfer.effectAllowed = "move"; setDragging(task.id); }}
         onDragEnd={() => { setDragging(null); setDropTarget(null); }}>
         <Stack gap="sm">
@@ -449,7 +463,9 @@ export function HrTasksTemplate() {
       ? { label: "Reopen task", level: "tertiary" as const, onClick: () => move(opened, "To do") }
       : { label: "Mark as done", onClick: () => move(opened, "Done") };
     return (
-      <SidePanel type="standard" title={opened.title} description={`${opened.id} · ${space.name} · ${opened.project}`} open onOpenChange={(open) => { if (!open) setOpenId(null); }} primaryAction={action}>
+      <SidePanel type="standard" title={opened.title} description={`${opened.id} · ${space.name} · ${opened.project}`} open onOpenChange={(open) => { if (!open) setOpenId(null); }} primaryAction={action}
+        // Delete is in the panel too, so a phone (whose rows have no ⋯ menu) can reach it; Undo is in the Toast.
+        secondaryAction={{ label: "Delete task", level: "danger-secondary", onClick: () => remove(opened) }}>
         <Stack gap="xl">
           <Stack gap="md">
             <Grid columns={2} gap="md" align="start">
@@ -500,7 +516,7 @@ export function HrTasksTemplate() {
       <Container maxWidth="full">
         <Stack gap="xl" paddingY="sm">
           <PageHeader title="All tasks" description={`Work across ${spaceNames.slice(0, -1).join(", ")} and ${spaceNames[spaceNames.length - 1]}.`}
-            actions={<Button level="primary" startIcon="icon-plus-line" onClick={() => startTask()}>New task</Button>} />
+            actions={<Button ref={newTaskRef} level="primary" startIcon="icon-plus-line" onClick={() => startTask()}>New task</Button>} />
           <Stack gap="lg">
             {toolbar}
             <VisuallyHidden role="status">{plural(shown.length, "task")}</VisuallyHidden>

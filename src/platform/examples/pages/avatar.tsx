@@ -116,8 +116,7 @@ function WhosOnline() {
             <ListItem key={person.id}
               leading={<RowAvatar person={person} status={isOnline} />}
               title={person.id === me.id ? `${person.name} (you)` : person.name}
-              caption={isOnline ? "Online" : `Away · ${formatRelative(lastActive!)}`}
-              selected={false} />
+              caption={isOnline ? "Online" : `Away · ${formatRelative(lastActive!)}`} />
           ))}
         </List>
       </ListBox>
