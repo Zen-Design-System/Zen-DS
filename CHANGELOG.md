@@ -837,7 +837,8 @@ removed (four unused colour ramps were, see Removed).
     which still bleeds outside the trail).
 
 ### Changed
-- **DockIcon re-synced from Figma (2026-10-09):** sizes follow the live Dock-Icon set — `large` is now 48 (was 56),
+- **DockIcon re-synced from Figma (2026-10-09):** sizes follow the live Dock-Icon set — `large` is now 48 (was 56) with
+  a 24px icon (Element-Size/Popular/Medium),
   `xlarge` 56 (was 80) and the new `2xlarge` (`2xl`) is 80; Accent Solid draws its icon in Content/On-Colors (was
   On-Accent). Docs examples that relied on 56 / 80 moved to `xl` / `2xl`; MetricWidget's Large Dock-Icon is 48, as in
   its Figma instance. Apps using `size="lg"` / `"xl"` get the smaller step: use `xl` / `2xl` to keep 56 / 80.

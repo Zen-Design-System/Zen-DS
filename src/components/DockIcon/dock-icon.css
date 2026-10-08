@@ -19,7 +19,7 @@
 .zen-dock-icon__emoji { font-size: var(--zen-dock-icon-glyph); line-height: 1; }
 .zen-dock-icon[data-size="xsmall"] { --zen-dock-icon-size: var(--zen-image-size-xsmall, 24px); --zen-dock-icon-glyph: var(--zen-element-size-popular-xsmall, 12px); }
 .zen-dock-icon[data-size="small"] { --zen-dock-icon-size: var(--zen-image-size-small, 32px); --zen-dock-icon-glyph: var(--zen-element-size-popular-small, 16px); }
-.zen-dock-icon[data-size="large"] { --zen-dock-icon-size: var(--zen-image-size-large, 48px); --zen-dock-icon-glyph: var(--zen-element-size-popular-large, 28px); }
+.zen-dock-icon[data-size="large"] { --zen-dock-icon-size: var(--zen-image-size-large, 48px); --zen-dock-icon-glyph: var(--zen-element-size-popular-medium, 24px); }
 .zen-dock-icon[data-size="xlarge"] { --zen-dock-icon-size: var(--zen-image-size-xlarge, 56px); --zen-dock-icon-glyph: var(--zen-element-size-popular-large, 28px); }
 .zen-dock-icon[data-size="2xlarge"] { --zen-dock-icon-size: var(--zen-image-size-2-xlarge, 80px); --zen-dock-icon-glyph: var(--zen-element-size-popular-2-xlarge, 44px); }
 /* Theme=Emoji has two sizes with larger glyphs: Medium 40 with Heading/1 (28), Large 48 with Display/3 (36). */

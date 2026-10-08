@@ -19,7 +19,7 @@ export interface DockIconProps {
   icon?: IconName;
   /** Theme=Emoji: the emoji (or any glyph) shown instead of an icon. */
   emoji?: ReactNode;
-  /** Figma Size: XSmall 24 · Small 32 · Medium 40 · Large 48 · XLarge 56 · 2XLarge 80 (Image-Size tokens; glyph 12 · 16 · 20 · 28 · 28 · 44, Element-Size/Popular); Theme=Emoji draws Medium 40 with a 28px glyph (Heading/1) and Large 48 with a 36px glyph (Display/3). Short (sm, md, 2xl…) or Figma (small, medium, 2xlarge…) spelling. */
+  /** Figma Size: XSmall 24 · Small 32 · Medium 40 · Large 48 · XLarge 56 · 2XLarge 80 (Image-Size tokens; glyph 12 · 16 · 20 · 24 · 28 · 44, Element-Size/Popular); Theme=Emoji draws Medium 40 with a 28px glyph (Heading/1) and Large 48 with a 36px glyph (Display/3). Short (sm, md, 2xl…) or Figma (small, medium, 2xlarge…) spelling. */
   size?: DockIconSize;
   theme?: DockIconTheme;
   /** Solid (default) or Subtle; Pale is always subtle, Inverse / On-Color / Surface / Emoji always solid. */

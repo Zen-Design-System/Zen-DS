@@ -15,3 +15,5 @@
   variants = 44 per size + Emoji at Medium/Large). Sizes, radius, glyph bindings and all 46 Theme/Background paints match
   the code as re-synced above; nothing to change. Not adopted: Figma's default variant (Size=2XLarge, Icon-Src
   icon-home-03-solid) — the code keeps `size="md"` and `icon-star-93-solid` as API defaults. Backlog Figma item removed.
+- User updated Figma again: Size=Large glyph is now 24 (Element-Size/Popular/Medium, was 28 Popular/Large); the other
+  sizes unchanged (re-read live). dock-icon.css large glyph → popular-medium; JSDoc, guideline and CHANGELOG updated.
