@@ -9,7 +9,7 @@ import { ChromePortalContext, ChromeScope } from "../shell/ChromeScope";
 import { canEdit, studioStore, useStudio } from "../store";
 import type { EditOp, SourceElement } from "../types";
 import { onSourceUpdate } from "./picker";
-import { noteEditTarget } from "./remap";
+import { liveSrc, noteEditTarget } from "./remap";
 import { areaLabel, areaState, fitColumn, freeLabel, kebab, tokenPx, type AreaState, type Box, type SpacingArea, type SpacingOwner } from "./spacing";
 import { useSpacingHover } from "./spacingHover";
 
@@ -58,8 +58,13 @@ function useOwnerSource(src: string | null, enabled: boolean): SourceElement | n
   useEffect(() => {
     const parsed = enabled && src ? parseSrc(src) : null;
     if (!parsed || !src) return undefined;
+    // Right after a write (an undo, a slot Clear) the canvas still shows the render before it, so a `src` read from it
+    // may name a place the file no longer has (GET /element 404 on a cleared host): it is read where the write put it.
+    const live = liveSrc(src);
+    const at = live ? parseSrc(live) : null;
+    if (!at) return undefined;
     let alive = true;
-    void studioApi.element(parsed.file, parsed.loc).then((element) => { if (alive) setRead({ src, element }); });
+    void studioApi.element(at.file, at.loc).then((element) => { if (alive) setRead({ src, element }); });
     return () => { alive = false; };
   }, [src, enabled, version, undo, redo]);
   return read && read.src === src ? read.element : null;

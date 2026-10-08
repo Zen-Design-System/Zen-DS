@@ -1012,6 +1012,15 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     refused(copyEdited.code, "<Card theme=\"border\"", "Card", src, undefined, 1),
   ], [["invalid", "This element is new since the last save: remove it instead."], ["invalid", "This element is new since the last save: remove it instead."]]);
   check("reset: the original of a duplicate still resets", back("reset the original", run("reset: original edited", copy.code, "<Card theme=\"border\"", "Card", ins(BADGE)).code, "<Card theme=\"border\"", "Card", src).code, copy.code);
+  // Duplicate, then Clear the original (BACKLOG 2026-10-03): the cleared original is still the saved element, its copy
+  // the new one, so Reset gives the original its content back and keeps the copy.
+  const clearedOriginal = run("reset: original cleared", copy.code, "<Card theme=\"border\"", "Card", clear());
+  check("reset: a cleared original of a duplicate resets", back("reset the cleared original", clearedOriginal.code, "<Card theme=\"border\"", "Card", src).code, copy.code);
+  check("reset: its untouched copy is the new one", refused(clearedOriginal.code, "<Card theme=\"border\"", "Card", src, undefined, 1), ["invalid", "This element is new since the last save: remove it instead."]);
+  // Two saved twins, one cleared (nothing duplicated): each keeps its own identity, the cleared one resets.
+  const twins = run("reset: twins", src, "<Card theme=\"border\"", "Card", DUPLICATE).code;
+  const twinCleared = run("reset: a twin cleared", twins, "<Card theme=\"border\"", "Card", clear());
+  check("reset: a cleared twin of the saved file resets", back("reset a twin", twinCleared.code, "<Card theme=\"border\"", "Card", twins).code, twins);
 
   // Imports: a Zen component the draft lost comes back (templates: into the package import); anything else is refused.
   const template = ["import {", "  Badge,", "  Card,", "  Stack,", "} from \"@zen/design-system\";", "", "export function Settings() {", "  return (", "    <Stack gap=\"md\">", "      <Card theme=\"border\">", "        <Badge>New</Badge>", "      </Card>", "    </Stack>", "  );", "}", ""].join("\n");
@@ -1601,6 +1610,11 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
       }
     }
     check("mapLine: the same answers as diff.ts (300 random edits)", same, cases);
+    // changedBlockOf (the Studio's selection remap, select/remap.ts mapInChangedBlock): the changed lines around a line
+    // in both texts. A slot Clear (host line changed, an import above removed) and a removed element (empty after).
+    const cleared = [["import A;", "import B;", "", "    <Card theme=\"flat\">", "      <Text>Hi</Text>", "    </Card>", "    <Card theme=\"flat\">", "    </Card>", "end"], ["import A;", "", "    <Card theme=\"flat\" />", "    <Card theme=\"flat\">", "    </Card>", "end"]].map((lines) => lines.join("\n"));
+    const removed = [["x", "    <Card theme=\"flat\">", "      <Text>Hi</Text>", "    </Card>", "    <Card theme=\"pale\">", "    </Card>"], ["x", "    <Card theme=\"pale\">", "    </Card>"]].map((lines) => lines.join("\n"));
+    check("changedBlockOf: a cleared host, a removed element, an unchanged line", [diff.changedBlockOf(...cleared, 4), diff.changedBlockOf(...removed, 2), diff.changedBlockOf(...cleared, 1)], [{ before: [4, 6], after: [3, 3] }, { before: [2, 4], after: [2, 1] }, null]);
   }
   check("mapLine: small cases", [mapLine("a\nb\nc", "a\nx\nb\nc", 2), mapLine("a\nb\nc", "a\nc", 2), mapLine("a\nb", "a\nb", 5), mapLine("a\r\nb", "z\nb", 2), mapLine("a\nb", "a\nc", 0)], [3, null, 5, 2, null]);
 }

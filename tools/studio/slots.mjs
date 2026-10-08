@@ -1795,7 +1795,10 @@ function likeness(a, x, b, y) {
  * siblings that open with the same line apart (a move, a remove or an insert next to them pairs the wrong ones), so:
  * 1. identical elements (normalised source; biggest first, with all they hold) pair up: the line diff's pairing first,
  *    then the nearest to where the diff puts them, skipping a saved element the diff gives to a changed element of the
- *    same name (an edited original keeps it; its untouched duplicate is the new one);
+ *    same name (an edited original keeps it; its untouched duplicate is the new one). A duplicate lands right after its
+ *    original, so a changed element right before an identical one in the same slot, with the same tag (its JSX-valued
+ *    props left out) that the draft has more of than the saved file, is that edited original (a Clear changes its own
+ *    line, so the diff cannot say it): it takes the saved element, its copy stays new;
  * 2. a changed element pairs with the saved element its paired elements sit in (same depth below, Dice ≥ 0.5);
  * 3. under paired parents (and per top-level declaration for roots), the rest of each slot pair by likeness (ties: the
  *    diff's pairing, then the nearest): all of them when both sides have as many, else when alike (≥ 0.5) or on lines
@@ -1861,6 +1864,39 @@ function matchElements(now, then) {
     const ys = b.inside(y);
     if (xs.length === ys.length) xs.forEach((item, i) => { if (free(item) && open(ys[i])) link(item, ys[i]); });
   };
+  // Duplicate, then edit the original (Clear contents, Clear a prop slot): the tag without its JSX-valued props.
+  const holdsJsx = (attr) => {
+    let found = false;
+    walk(attr, (node) => {
+      if (node.type === "JSXElement" || node.type === "JSXFragment") found = true;
+      return !found;
+    });
+    return found;
+  };
+  const tagKey = (tree, text, node) => `${named(tree, node)}\n${node.openingElement.attributes.filter((attr) => !holdsJsx(attr)).map((attr) => normalised(text.slice(attr.start, attr.end))).join("\n")}`;
+  const tagCounts = (tree, text) => {
+    const counts = new Map();
+    for (const node of tree.nodes) counts.set(tagKey(tree, text, node), (counts.get(tagKey(tree, text, node)) ?? 0) + 1);
+    return counts;
+  };
+  let counts = null;
+  const editedOriginal = (x) => {
+    const item = a.info.get(x);
+    if (!item.parent) return null;
+    const siblings = a.info.get(item.parent).kids.filter((kid) => a.info.get(kid).slot === item.slot);
+    const previous = siblings[siblings.indexOf(x) - 1];
+    if (!previous || !free(previous) || identical.has(previous) || named(a, previous) !== item.name) return null;
+    const key = tagKey(a, now.text, x);
+    if (tagKey(a, now.text, previous) !== key) return null;
+    counts ??= { now: tagCounts(a, now.text), then: tagCounts(b, then.text) };
+    return (counts.now.get(key) ?? 0) > (counts.then.get(key) ?? 0) ? previous : null;
+  };
+  /** Pairs `x` with `y`, or its edited original with `y` (`x` is then its untouched copy, new since the save). */
+  const pairIdentical = (x, y) => {
+    const original = editedOriginal(x);
+    if (original) link(original, y);
+    else linkAll(x, y);
+  };
 
   // 1. Identical elements.
   const groups = new Map();
@@ -1876,7 +1912,7 @@ function matchElements(now, then) {
   for (const [, group] of ordered) {
     for (const x of group.now) {
       const y = anchor.get(x);
-      if (free(x) && y && open(y) && group.then.includes(y)) linkAll(x, y);
+      if (free(x) && y && open(y) && group.then.includes(y)) pairIdentical(x, y);
     }
     const scored = [];
     for (const x of group.now.filter(free)) for (const y of group.then.filter(open)) scored.push({ x, y, far: distance(x, y) });
@@ -1885,7 +1921,7 @@ function matchElements(now, then) {
       if (!free(x) || !open(y)) continue;
       const rival = anchoredTo.get(y);
       if (rival && rival !== x && free(rival) && !identical.has(rival)) continue;
-      linkAll(x, y);
+      pairIdentical(x, y);
     }
   }
 
