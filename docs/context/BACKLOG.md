@@ -474,13 +474,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   opacity 0" in S1–S6, which the export writes as `#NANNANNAN`: a plain transparent value would export cleanly. Also
   `.Primitives/Input/Text-Area` Focused has a 2px Focus/Neutral/Subtle outer ring, Field-Only a 3px
   Border/Active/Neutral/Subtle one (code uses the 3px ring on both).
-- P3 (2026-10-03 evening, gate .qa/reports/2026-10-03T15-03-53-5b6b7c50.md, not from its token change): new behaviour ⚠
-  deadclick chat@1512 "Chats inbox" — `button.zen-list-item__wrapper` "Hana Kim …" click had no visible effect. The
-  gate's first run also hit a flaky `tests/scale.test.tsx` Rating xl/xlarge mismatch (star 1 `data-filled`), green alone
-  and on the rerun.
-  Seen again 2026-10-05 (gate .qa/reports/2026-10-04T18-19-01-8298399d.md, TopNavigation dual action); a manual click
-  on Hana Kim opens the thread with its header, so the probe likely races the open (peers' HMR running at the time). Again
-  2026-10-05 (.qa/reports/2026-10-04T18-56-56-1c7e4092.md, Chat composer radius, CSS only). **Sweep 2026-10-07:** done: the flaky scale test renders inside `pointerEvents: "none"` (tests/scale.test.tsx:58). Still open: the probe should skip the already-open "Hana Kim" row. Same class (batch A2 gate): app-shell@1512 "Search in the top bar" — the bell "Activity, new" goes to the Activity page the probe already opened through the Sidebar, so it changes nothing.
 - P2 (2026-10-03, session "Slot Component phân biệt"): Figma file — set `Bubble-Chat-Others-Business/Background/Default`
   to Color/Background/Surface/Default in all nine Component Theme modes (repo changed at the user's request); the next
   Component Theme sync reverts it otherwise.

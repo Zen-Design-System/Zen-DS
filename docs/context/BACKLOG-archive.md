@@ -734,3 +734,10 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   `zen-date-picker__view outgrows its box by 4px at Comfortable` once under a heavy gate; a lone run on HEAD and on the
   change was clean. The viewport's height is a CSS transition from a measured size, so a check right after the density
   switch can catch it mid-way (`DatePicker.tsx` viewport, `quality-checks.mjs` densitySnapshot): wait for transitions.
+- [DONE: the click works (a lone run opens Hana Kim's chat; same for the App Shell bell); the probe now takes a second, longer look (900ms) before a click counts as dead, and templates/bottom-sheet/chat get twice the behaviour budget] P3 (2026-10-03 evening, gate .qa/reports/2026-10-03T15-03-53-5b6b7c50.md, not from its token change): new behaviour ⚠
+  deadclick chat@1512 "Chats inbox" — `button.zen-list-item__wrapper` "Hana Kim …" click had no visible effect. The
+  gate's first run also hit a flaky `tests/scale.test.tsx` Rating xl/xlarge mismatch (star 1 `data-filled`), green alone
+  and on the rerun.
+  Seen again 2026-10-05 (gate .qa/reports/2026-10-04T18-19-01-8298399d.md, TopNavigation dual action); a manual click
+  on Hana Kim opens the thread with its header, so the probe likely races the open (peers' HMR running at the time). Again
+  2026-10-05 (.qa/reports/2026-10-04T18-56-56-1c7e4092.md, Chat composer radius, CSS only). **Sweep 2026-10-07:** done: the flaky scale test renders inside `pointerEvents: "none"` (tests/scale.test.tsx:58). Still open: the probe should skip the already-open "Hana Kim" row. Same class (batch A2 gate): app-shell@1512 "Search in the top bar" — the bell "Activity, new" goes to the Activity page the probe already opened through the Sidebar, so it changes nothing.
