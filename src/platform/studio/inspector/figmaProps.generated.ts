@@ -824,26 +824,27 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       },
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "VARIANT"
+          },
           {
             "prop": "helpText",
             "label": "Text",
             "type": "CODE"
           },
           {
-            "prop": "helpTheme",
-            "label": "Theme",
-            "type": "CODE"
-          },
-          {
-            "prop": "helpIcon",
-            "label": "Icon",
-            "type": "CODE"
-          },
-          {
             "prop": "characterLimit",
-            "label": "Character limit",
+            "label": "Character-Limitation",
             "type": "CODE"
           }
         ]
@@ -923,26 +924,27 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       },
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "VARIANT"
+          },
           {
             "prop": "helpText",
             "label": "Text",
             "type": "CODE"
           },
           {
-            "prop": "helpTheme",
-            "label": "Theme",
-            "type": "CODE"
-          },
-          {
-            "prop": "helpIcon",
-            "label": "Icon",
-            "type": "CODE"
-          },
-          {
             "prop": "characterLimit",
-            "label": "Character limit",
+            "label": "Character-Limitation",
             "type": "CODE"
           }
         ]
@@ -1022,26 +1024,27 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       },
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "VARIANT"
+          },
           {
             "prop": "helpText",
             "label": "Text",
             "type": "CODE"
           },
           {
-            "prop": "helpTheme",
-            "label": "Theme",
-            "type": "CODE"
-          },
-          {
-            "prop": "helpIcon",
-            "label": "Icon",
-            "type": "CODE"
-          },
-          {
             "prop": "characterLimit",
-            "label": "Character limit",
+            "label": "Character-Limitation",
             "type": "CODE"
           }
         ]
@@ -1061,21 +1064,22 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     "nested": [
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
           {
-            "prop": "helpText",
-            "label": "Text",
-            "type": "CODE"
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
           },
           {
             "prop": "helpTheme",
             "label": "Theme",
-            "type": "CODE"
+            "type": "VARIANT"
           },
           {
-            "prop": "helpIcon",
-            "label": "Icon",
+            "prop": "helpText",
+            "label": "Text",
             "type": "CODE"
           }
         ]
@@ -2010,26 +2014,27 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       },
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "VARIANT"
+          },
           {
             "prop": "helpText",
             "label": "Text",
             "type": "CODE"
           },
           {
-            "prop": "helpTheme",
-            "label": "Theme",
-            "type": "CODE"
-          },
-          {
-            "prop": "helpIcon",
-            "label": "Icon",
-            "type": "CODE"
-          },
-          {
             "prop": "characterLimit",
-            "label": "Character limit",
+            "label": "Character-Limitation",
             "type": "CODE"
           }
         ]
@@ -2108,26 +2113,27 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       },
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "VARIANT"
+          },
           {
             "prop": "helpText",
             "label": "Text",
             "type": "CODE"
           },
           {
-            "prop": "helpTheme",
-            "label": "Theme",
-            "type": "CODE"
-          },
-          {
-            "prop": "helpIcon",
-            "label": "Icon",
-            "type": "CODE"
-          },
-          {
             "prop": "characterLimit",
-            "label": "Character limit",
+            "label": "Character-Limitation",
             "type": "CODE"
           }
         ]

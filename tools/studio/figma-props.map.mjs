@@ -27,8 +27,9 @@ const CHILDREN = skip("the label is the element's text (Content section)");
 const HOVER = skip("preview state: hover comes from the pointer");
 const NO_PROP = skip("no code prop");
 
-/** A field's Label and Help-Text layers (Primitives/Input/Label): the text and its options, shown while the field's Label
- *  or Help-Text boolean is on. The Help-Text set is not in the read yet: its rows are the code props, labelled here. */
+/** A field's Label and Help-Text layers (Primitives/Input/Label, .Primitives/Input/Help-Text): the text and its options,
+ *  shown while the field's Label or Help-Text boolean is on. Help-Text's set is private (a "." name, which the page read
+ *  leaves out): read on its own on 2026-10-08 (373:97364) and kept in component-properties.json with the Input page. */
 const LABEL = {
   when: "label",
   set: "Primitives/Input/Label",
@@ -41,7 +42,13 @@ const LABEL = {
     State: skip("the field's State disables it"),
   },
 };
-const HELP_TEXT = { when: "helpText", code: [{ prop: "helpText", label: "Text" }, { prop: "helpTheme", label: "Theme" }, { prop: "helpIcon", label: "Icon" }, { prop: "characterLimit", label: "Character limit" }] };
+const HELP_TEXT_PROPS = {
+  Theme: "helpTheme",
+  Icon: "helpIcon",
+  // characterLimit is `ReactNode | true` (a count or the field's own counter): the code row edits it, not a switch.
+  "Character-Limitation": skip("characterLimit is ReactNode | true: its own row (Character-Limitation) edits it"),
+};
+const HELP_TEXT = { when: "helpText", set: ".Primitives/Input/Help-Text", props: HELP_TEXT_PROPS, code: [{ prop: "helpText", label: "Text" }, { prop: "characterLimit", label: "Character-Limitation" }] };
 const FIELD_NESTED = { Label: LABEL, "Help-Text": HELP_TEXT };
 /** An action written as an object (`action={{ label: "Action" }}`): its label and handler are edited in Object properties. */
 const ACTION = { code: '{ label: "Action" }' };
@@ -164,7 +171,7 @@ export const FIGMA_PROPS = {
   AutocompleteField: {
     sets: { "Input/Autocomplete-Field": null },
     props: { "Help-Text": { toggle: "helpText", on: "Help text" }, State: skip("preview state: the code shows it through interaction") },
-    nested: { "Help-Text": { when: "helpText", code: [{ prop: "helpText", label: "Text" }, { prop: "helpTheme", label: "Theme" }, { prop: "helpIcon", label: "Icon" }] } },
+    nested: { "Help-Text": { when: "helpText", set: ".Primitives/Input/Help-Text", props: { ...HELP_TEXT_PROPS, "Character-Limitation": skip("no characterLimit here") }, code: [{ prop: "helpText", label: "Text" }] } },
   },
   RichTextField: { sets: { "Input/Richtext": null }, props: { "Control-Bar": "editorBar" } },
   HeadingField: { sets: { "Input/Heading": null }, props: { Status: "status", Size: "headingSize" } },
