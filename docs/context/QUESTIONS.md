@@ -1,6 +1,6 @@
 # Zen DS — open questions
 
-Questions only the designer can answer (Figma) and decisions only the user can make. Code keeps its current behaviour
+Vietnamese translation: [`QUESTIONS.vi.md`](QUESTIONS.vi.md) (keep both in step). Questions only the designer can answer (Figma) and decisions only the user can make. Code keeps its current behaviour
 until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed at once). Moved out of `BACKLOG.md` on
 2026-10-08.
 
