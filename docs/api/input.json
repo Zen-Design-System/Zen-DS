@@ -312,7 +312,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Popover/Label above the options: it names the option list, not the value (a label, not a heading).",
+          "description": "Popover/Label above the options: it names the option list, not the value (a label, not a heading). On mobile it\n is the Bottom Sheet's title (default: the field's label).",
           "deprecated": null
         },
         {
@@ -336,7 +336,7 @@
           "type": "boolean",
           "required": false,
           "default": null,
-          "description": "Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself.",
+          "description": "Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself.\nOn mobile (the nearest `data-breakpoint`, else ZenProvider's breakpoint, is `mobile`) the options open in a Bottom\nSheet instead of a Popover: a List of the options, the picked one selected with a check, and a pick closes it.",
           "deprecated": null
         },
         {

@@ -95,19 +95,17 @@ function ProjectOverview() {
   const teamId = useId();
   const detailsId = useId();
   const shown = rows.filter((task) => !status || task.status === status);
-  // A phone-width column keeps the task and its status; the assignee and due date wait for a wider page.
+  // A phone-width card lists the tasks (title and status) instead of a table: two table columns inside the card's
+  // padding left the titles four lines tall. The assignee and due date wait for a wider page.
   const narrow = width > 0 && width < 560;
-  const columns: TableColumn<ProjectTask>[] = narrow ? [
-    { id: "task", header: "Task", cell: (task) => <TableText bold>{task.title}</TableText> },
-    // No fixed widths on a phone: the columns share the room instead of scrolling sideways.
-    { id: "status", header: "Status", cell: (task) => statusBadge(task.status) },
-  ] : [
+  const columns: TableColumn<ProjectTask>[] = [
     // The column that names the row is bold, as TableMedia is by default.
     { id: "task", header: "Task", cell: (task) => <TableText bold>{task.title}</TableText> },
     { id: "assignee", header: "Assignee", width: "176px", cell: (task) => <TableMedia bold={false} media={<Avatar size="xsmall" {...avatarOf(people[task.assignee])} />}>{people[task.assignee].name}</TableMedia> },
     { id: "status", header: "Status", width: "144px", cell: (task) => statusBadge(task.status) },
     { id: "due", header: "Due", width: "136px", cell: (task) => <TableText>{formatDate(task.due)}</TableText> },
   ];
+  const tasksEmpty = <EmptyState headingLevel={3} illustration={false} title="No tasks match" secondaryAction={{ label: "Clear filter", onClick: () => setStatus(null) }}>Try another status.</EmptyState>;
   const addTask = (title: string) => setRows((list) => [{ id: `new-${list.length}`, key: `LUM-${102 + list.length - lumenTasks.length}`, title, assignee: "alex", status: "To do", due: daysFromToday(7) }, ...list]);
   const invite = (email: string) => setTeam((list) => [...list, { id: email, title: email, caption: "Invited just now" }]);
 
@@ -123,9 +121,11 @@ function ProjectOverview() {
           {/* Main two-thirds, aside one-third, lg apart; on phones the aside moves under the main column. */}
           {/* The two columns stop at xl (1440px), so the 1/3 aside does not keep growing on a wide screen (backlog batch 6b). */}
           <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="lg" align="start" maxWidth={1440}>
-            <Stack as="section" gap="md" aria-labelledby={tasksId} ref={measure}>
+            {/* Every widget of the two columns is the same flat card: tops line up, titles share one style. */}
+            <Card as="section" theme="flat" aria-labelledby={tasksId}>
+              <Stack gap="md" ref={measure}>
               <Stack direction="row" gap="xs" align="center" justify="between" wrap>
-                <Heading level={2} id={tasksId} textStyle="Heading/4">Tasks</Heading>
+                <Heading level={2} id={tasksId} textStyle="Heading/Subheading">Tasks</Heading>
                 <Chip variant="advanced" dropdown selected={status !== null} popoverLabel="Status"
                   popoverItems={taskStatuses.map((option) => ({ id: option, label: option, selected: option === status }))}
                   onPopoverSelect={(item) => setStatus(item.id === status ? null : (item.id as TaskStatus))}
@@ -133,10 +133,15 @@ function ProjectOverview() {
                   {status ?? "Status"}
                 </Chip>
               </Stack>
-              {/* The section's table lies on the page: no Card around it. */}
-              <Table aria-labelledby={tasksId} rows={shown} columns={columns}
-                empty={<EmptyState headingLevel={3} illustration={false} title="No tasks match" secondaryAction={{ label: "Clear filter", onClick: () => setStatus(null) }}>Try another status.</EmptyState>} />
-            </Stack>
+              {narrow ? (
+                shown.length ? (
+                  <List aria-labelledby={tasksId}>
+                    {shown.map((task) => <ListItem key={task.id} title={task.title} titleLines={2} trailing={statusBadge(task.status)} />)}
+                  </List>
+                ) : tasksEmpty
+              ) : <Table aria-labelledby={tasksId} rows={shown} columns={columns} empty={tasksEmpty} />}
+              </Stack>
+            </Card>
             <Stack as="aside" gap="md" aria-label="About this project">
               {/* Rows → a ListBox (title and Invite in its header); Details is not rows → a Card. */}
               <ListBox as="section" aria-labelledby={teamId}
@@ -726,7 +731,7 @@ function StudioEvents() {
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Main column and aside",
-    description: "A project page: the PageHeader, then a Grid of a two-thirds main column and a one-third aside, xl apart as page sections. The task table sits on the page under its heading and Status filter; the aside stacks its cards md apart, and on phones it moves under the main column.",
+    description: "A project page: the PageHeader, then a Grid of a two-thirds main column and a one-third aside, xl apart as page sections. Every widget is the same flat card — Tasks (title, Status filter, the table; a List of title + status on phones) in the main column, Team and Details stacked md apart in the aside — so their tops line up and their titles share Heading/Subheading; on phones the aside moves under the main column.",
     wide: true,
     screen: true,
     render: () => <ProjectOverview />,
@@ -738,18 +743,23 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       actions={<><Button level="tertiary" onClick={share}>Share</Button><Button level="primary" onClick={newTask}>New task</Button></>} />
     {/* Layout columns: lg. One column on phones, the aside under the main column. */}
     <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="lg" align="start" maxWidth={1440}>
-      <Stack as="section" gap="md" aria-labelledby="tasks">
+      {/* Every widget is the same flat card: tops line up, titles share one style */}
+      <Card as="section" theme="flat" aria-labelledby="tasks">
+        <Stack gap="md">
         {/* Heading and its filter: one toolbar row, xs */}
         <Stack direction="row" gap="xs" align="center" justify="between" wrap>
-          <Heading level={2} id="tasks" textStyle="Heading/4">Tasks</Heading>
+          <Heading level={2} id="tasks" textStyle="Heading/Subheading">Tasks</Heading>
           <Chip variant="advanced" dropdown selected={status !== null} popoverLabel="Status"
             popoverItems={statuses.map((s) => ({ id: s, label: s, selected: s === status }))}
             onPopoverSelect={(item) => setStatus(item.id === status ? null : item.id)}
             onClearSelection={() => setStatus(null)}>{status ?? "Status"}</Chip>
         </Stack>
-        {/* A section's table sits on the page: no Card */}
-        <Table aria-labelledby="tasks" rows={shown} columns={columns} empty={<EmptyState … />} />
-      </Stack>
+        {/* Phone-width card: a List (title + status Badge); wider: the Table */}
+        {narrow
+          ? <List aria-labelledby="tasks">{shown.map((task) => <ListItem key={task.id} title={task.title} titleLines={2} trailing={statusBadge(task.status)} />)}</List>
+          : <Table aria-labelledby="tasks" rows={shown} columns={columns} empty={<EmptyState … />} />}
+        </Stack>
+      </Card>
       {/* Cards in a stack: md */}
       <Stack as="aside" gap="md" aria-label="About this project">
         {/* Rows → ListBox; the Details DescriptionList → Card */}

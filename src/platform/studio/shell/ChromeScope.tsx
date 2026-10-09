@@ -5,7 +5,11 @@ import { useStudio } from "../store";
 import "./shell.css";
 
 /*
- * The Studio chrome's token modes: Component Theme Neutral-S7, Compact, Typography Dashboard, the chrome light/dark.
+ * The Studio chrome's token modes: Component Theme Neutral-S7, Component Size / Typography Configuration / Corner Radius
+ * "Studio" (repo modes for the chrome, 2026-10-09: Figma UI3-like — controls 24 · 28 · 32, Body/Base 13, Rounded's
+ * corner ladder on a Base of 8, buttons still pills),
+ * Emphasis Medium, Standard contrast, the chrome light/dark. Every mode is set, so chrome inside a preview (Play and Present's bar and
+ * Modes panel sit in the presented example's layer) never takes the example's modes (user, 2026-10-09).
  * Each chrome region (toolbar, side panels, canvas overlays) is its own scope instead of one provider around the app:
  * tokens.css re-resolves the component theme for every [data-theme] under a [data-component-theme] ancestor, so an
  * S7 ancestor would leak into the canvas previews. Overlays of the chrome portal into one shared chrome portal root.
@@ -13,7 +17,7 @@ import "./shell.css";
 
 export const ChromePortalContext = createContext<HTMLElement | null>(null);
 
-export const chromeModes = { componentTheme: "neutral-s7", density: "compact", typography: "dashboard" } as const;
+export const chromeModes = { componentTheme: "neutral-s7", density: "studio", typography: "studio", radius: "studio", emphasis: "medium", contrast: "standard" } as const;
 
 type ChromeScopeProps = Omit<HTMLAttributes<HTMLElement>, "style"> & { as?: ElementType; className?: string; children?: ReactNode; inert?: boolean };
 
@@ -29,6 +33,9 @@ export function ChromeScope({ as = "div", className, children, ...rest }: Chrome
       componentTheme={chromeModes.componentTheme}
       density={chromeModes.density}
       typography={chromeModes.typography}
+      radius={chromeModes.radius}
+      emphasis={chromeModes.emphasis}
+      contrast={chromeModes.contrast}
       brand="zen"
       breakpoint="desktop"
       paint={false}
@@ -43,5 +50,5 @@ export function ChromeScope({ as = "div", className, children, ...rest }: Chrome
 /** The data-* modes of the chrome, for plain elements (the chrome portal root). */
 export function useChromeAttributes() {
   const theme = useStudio((state) => state.chromeTheme);
-  return { "data-brand": "zen", "data-theme": theme, "data-component-theme": chromeModes.componentTheme, "data-density": chromeModes.density, "data-typography": chromeModes.typography, "data-breakpoint": "desktop" } as const;
+  return { "data-brand": "zen", "data-theme": theme, "data-component-theme": chromeModes.componentTheme, "data-density": chromeModes.density, "data-typography": chromeModes.typography, "data-radius": chromeModes.radius, "data-emphasis": chromeModes.emphasis, "data-contrast": chromeModes.contrast, "data-breakpoint": "desktop" } as const;
 }

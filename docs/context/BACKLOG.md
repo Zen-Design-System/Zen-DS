@@ -33,6 +33,45 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P3 · Studio UX polish N1–N11 — deferred by the user 2026-10-08 ("để sau"):** `docs/research/studio-ux-audit-2026-10-04.md`.
 
 ## Backlog (plan before opening sessions)
+- **P2 · Studio E2E SE-12 fails on main (2026-10-09):** "⌘-click on a TopNavigation action lands on the action" times out
+  ("a part selected") on origin/main 315efcd itself (checked in a clean worktree), and after merging it into the feature
+  branch. Pointer: `tools/studio/e2e/scenarios/select.mjs` SE-12, the deep-select of data-slot items.
+- **P3 · Studio chrome lint debt (2026-10-09, seen by the gate, not caused by the changes):** LayoutSection.tsx "Remove"
+  button not level danger (button/destructive-is-danger); `.studio-part__swatch` frames an actionable box with a Pale
+  border (border/pale-actionable-box); AssetsPanel.tsx:153 Button size xs (button/compact-size-special).
+- **P3 · Example lint debt seen in the DockIcon re-sync gate (2026-10-09, not caused by it):** `divider.tsx:358` a
+  `<Text textStyle="Heading/2">` used as a title (type/visual-heading); `action-bar.tsx:406, 521` ListItem trailing
+  buttons at size xs (list-item/trailing-button-medium).
+- **P3 · Example debt surfaced by the 2026-10-08 token fast path (not caused by it):** ai-chat "Assistant on a phone" has
+  no h1 (outline starts at h2); card "Spacing=small" nested corners not concentric (16 vs 12 + 16); dead clicks in chat
+  (inbox row, Audio call), app-shell (Activity), list-item (Revoke invite), uploader (Retry). Report:
+  `.qa/reports/2026-10-08T15-19-57-2f7410ba.md`.
+  Also on templates (seen 2026-10-08 16:13): HR pages use 8 text styles each ([rhythm]), HR · Home sibling h2 in
+  Heading/1 vs Heading/4 ([outline-siblings]), and the templates page exceeds the 90s behaviour budget. Also (2026-10-09): inline-message "Verify a domain" › Copy value dead click. Report:
+  `.qa/reports/2026-10-08T16-13-55-2f7410ba.md`.
+- **P3 · Button example "Hand off when ready": a Stack with gap 2px (2026-10-08, audit [ladder] warning at 1512/390/dark,
+  surfaced by the gate for the classic code-view change, not caused by it).** Pointer: `src/platform/examples/pages/button.tsx`.
+- **P3 · Table bulkActions follow-ups (2026-10-08):** (a) no harness rule caps `bulkActions` at 5 (documented only);
+  (b) `src/templates/AdminListTemplate.tsx` still shows its own sticky ActionBar for selected rows (text actions Change
+  role / Remove) — decide whether it moves to `bulkActions`. Pointer: `src/components/Table/Table.tsx` (TableBulkBar).
+- **P2 · CI "Package" step fails on every run of the 0.4.0 branch (2026-10-07, seen when merging PR #1):** 14 of 14
+  finished CI runs since 2026-09-29 failed, almost all in "Package (pack, install in a temp app, budgets, zen-usage,
+  MCP, zen-ds)" (twice Browser tests, twice Platform audit); `npm run verify:package` passes locally ("Package OK").
+  The job log could not be read from the cloud session (its storage host is blocked). PR #1 was merged with it on the
+  user's call. Pointer: `.github/workflows/ci.yml` step "Package", `scripts/verify-package.mjs`.
+- **P2 · Builder: Inspector Frames list keeps the previous local page's frames (2026-10-06, seen during GĐ2 M2):**
+  open page A then page B (both new pages, Screen id `screen-1`): the Page panel's Frames shows A's title. Likely the
+  frame registry keys `screen:screen-1` without the page. Pointer: `builder/BuilderBoard.tsx` frame ids,
+  `inspector/PagePanel.tsx` Frames.
+- **P3 · Studio E2E I-11 is flaky too (2026-10-07, seen during GĐ3 M3):** "timed out after 20 s" once with
+  `--no-retry` right after the library group; 2/2 alone. Pointer: `tools/studio/e2e/scenarios/inspector.mjs` I-11.
+- ~~**P3 · Studio E2E I-15 is flaky**~~ done 2026-10-07 (GĐ4 M4, the user chose to fix the row: it waits for the field to
+  read "sm · …" before ⌫; 5/5 alone, full matrix). Was: **(2026-10-06, session "Studio builder tool planning", seen during GĐ2 M2):** "Timed out
+  waiting for ⌫ removes gap" on the first try in 2 of 3 full runs (passes on retry and alone, 2/2); the gate counts a
+  failed try as a regression. Pointer: `tools/studio/e2e/scenarios/inspector.mjs` I-15, ScaleField ⌫ reset.
+  2026-10-07 (GĐ4 M1): 3/5 alone, both tries failed once in a gate run. Likely race: ⌫ right after ⌘Z is planned from
+  the element and hash read before the undo's refetch, so the server refuses it as stale; the row could wait for the
+  field to read "sm · …" again before ⌫.
 - **P3 · usage:selftest fails now and then while another gate runs (2026-10-07):** twice a fixture rule reported 0 hits
   (`alert-banner/small-no-action`…, then `content/lights-no-light-text`) and passed 3/3 right after; both times a
   `npm run qa` ran in parallel. Find the shared state (a cache or a file the gate rewrites) before trusting a red run.

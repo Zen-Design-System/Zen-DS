@@ -5,7 +5,6 @@ import { Heading } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { pageLabels } from "../../PlatformApp";
 import type { PlatformPage } from "../../PlatformExamples";
-import { openModesMenu } from "../shell/ModesMenu";
 import { previewModeDefinitions, previewValueLabel } from "../shell/modes";
 import { useStudio } from "../store";
 import { focusFrame, frameIcon, useFrames } from "./frames";
@@ -45,15 +44,8 @@ export function PagePanel() {
           </div>
         ) : null}
       </header>
-      <InspectorSection
-        title="Preview modes"
-        actions={(
-          <>
-            {/* zen-allow-compact-button: a section-heading action in a dense tool panel, sized to the 12px heading it sits beside */}
-            <Button appearance="flat" level="primary" size="xs" aria-haspopup="dialog" aria-label="Change preview modes" onClick={openModesMenu}>Change</Button>
-          </>
-        )}
-      >
+      {/* Preview modes change in Play and Present only (their bar's Modes panel): the canvas shows them here. */}
+      <InspectorSection title="Preview modes">
         <p className={`studio-inspector__summary ${typographyStyles["Body/Small/Regular"]}`}>{summary}</p>
       </InspectorSection>
       <InspectorSection title="Frames">

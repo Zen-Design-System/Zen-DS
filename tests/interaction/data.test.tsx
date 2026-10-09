@@ -59,6 +59,63 @@ describe("Table", () => {
   });
 });
 
+describe("Table bulkActions", () => {
+  function BulkTable({ onArchive }: { onArchive: (ids: string[]) => void }) {
+    const [selected, setSelected] = useState<string[]>([]);
+    return (
+      <Table aria-label="Members" rows={members} getRowId={(m) => m.id} selectable selectedIds={selected} onSelectionChange={setSelected}
+        columns={[{ id: "name", header: "Name", cell: (m: Member) => m.name }]}
+        bulkActions={(ids) => [{ id: "archive", icon: "icon-archive-line", label: `Archive ${ids.length}`, onClick: () => { onArchive(ids); setSelected([]); } }]} />
+    );
+  }
+
+  it("shows the bar while rows are selected and clears the selection from it", async () => {
+    const onArchive = vi.fn();
+    const screen = await render(<ZenProvider><BulkTable onArchive={onArchive} /></ZenProvider>);
+    expect(screen.getByRole("toolbar").elements()).toHaveLength(0);
+    await userEvent.click(screen.getByRole("checkbox", { name: "Select row 1" }), { force: true });
+    await userEvent.click(screen.getByRole("checkbox", { name: "Select row 3" }), { force: true });
+    const bar = screen.getByRole("toolbar", { name: "Actions for 2 selected rows" });
+    await expect.element(bar).toBeVisible();
+    await expect.element(bar.getByRole("status")).toHaveTextContent("2 selected");
+    await bar.getByRole("button", { name: "Archive 2" }).click();
+    expect(onArchive).toHaveBeenCalledWith(["a", "c"]);
+    // The bar left with the focus in it: Select all rows takes the focus.
+    await expect.poll(() => screen.getByRole("toolbar").elements().length).toBe(0);
+    await expect.element(screen.getByRole("checkbox", { name: "Select all rows" })).toHaveFocus();
+  });
+
+  it("clears the selection with Escape and with Clear selection", async () => {
+    const screen = await render(<ZenProvider><BulkTable onArchive={vi.fn()} /></ZenProvider>);
+    await userEvent.click(screen.getByRole("checkbox", { name: "Select row 2" }), { force: true });
+    (screen.getByRole("button", { name: "Clear selection" }).element() as HTMLElement).focus();
+    await userEvent.keyboard("{Escape}");
+    await expect.poll(() => screen.getByRole("toolbar").elements().length).toBe(0);
+    await expect.element(screen.getByRole("checkbox", { name: "Select row 2" })).not.toBeChecked();
+    await userEvent.click(screen.getByRole("checkbox", { name: "Select row 2" }), { force: true });
+    await screen.getByRole("button", { name: "Clear selection" }).click();
+    await expect.element(screen.getByRole("checkbox", { name: "Select row 2" })).not.toBeChecked();
+    await expect.element(screen.getByRole("checkbox", { name: "Select all rows" })).toHaveFocus();
+  });
+});
+
+describe("Table bulkActions overflow", () => {
+  it("moves the actions that don't fit into a More menu", async () => {
+    const onLink = vi.fn();
+    const actions = ["One", "Two", "Three", "Four", "Five"].map((name) => ({ id: name, icon: "icon-archive-line" as const, label: `${name} 2 rows`, onClick: name === "Five" ? onLink : () => undefined }));
+    const screen = await render(<ZenProvider><div style={{ width: 280 }}>
+      <Table aria-label="Members" rows={members} getRowId={(m) => m.id} selectable selectedIds={["a", "b"]} onSelectionChange={() => undefined}
+        columns={[{ id: "name", header: "Name", cell: (m: Member) => m.name }]} bulkActions={actions} />
+    </div></ZenProvider>);
+    const bar = screen.getByRole("toolbar", { name: "Actions for 2 selected rows" });
+    await bar.getByRole("button", { name: "More actions" }).click();
+    await screen.getByRole("menuitem", { name: "Five 2 rows" }).click();
+    expect(onLink).toHaveBeenCalledTimes(1);
+    expect(bar.getByRole("button", { name: "One 2 rows" }).elements()).toHaveLength(1);
+    expect(bar.getByRole("button", { name: "Five 2 rows" }).elements()).toHaveLength(0);
+  });
+});
+
 describe("Table onRowClick", () => {
   it("opens a row on click and with Enter, but not from a control inside it", async () => {
     const onRowClick = vi.fn();

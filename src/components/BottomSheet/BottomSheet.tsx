@@ -64,7 +64,8 @@ export interface BottomSheetProps extends OverlayOpenProps {
   onSubmit?: (event: FormEvent<HTMLFormElement>) => void;
   /** Scrim tap, Escape and drag-down dismiss (default true). */
   dismissible?: boolean;
-  /** Render inside the nearest positioned ancestor instead of the viewport (device previews, embedded demos). */
+  /** Render inside the nearest positioned ancestor instead of the viewport (embedded demos). Not needed in a device frame
+   *  (`[data-zen-overlay-root]`, e.g. a phone preview): a sheet opened there renders in that frame by itself. */
   inline?: boolean;
   /** Accessible name of the close button. Default: the locale's “Close”. */
   closeLabel?: string;
@@ -94,7 +95,8 @@ export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChange
   const startsOnField = (type === "modal" && Boolean(onSubmit)) || Boolean(search);
   const { mounted, phase } = usePresence(open, 200);
   // Inside a device frame (`[data-zen-overlay-root]`: PlatformPhone, an app's device preview) the sheet opens in that
-  // frame, as Dialog and Menu do, so it covers that screen only; elsewhere it goes to the page portal.
+  // frame, as Dialog and Menu do, so it covers that screen only; elsewhere it goes to the page portal. `inline` keeps it
+  // in its nearest positioned ancestor.
   const host = useOverlayHost(mounted && !inline);
   useModal(open && (inline || host.ready), panelRef, dismissible, onOpenChange, startsOnField ? modalFieldSelector : "[data-autofocus]");
   if (!mounted || typeof document === "undefined") return null;

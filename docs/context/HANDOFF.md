@@ -29,7 +29,11 @@ Last updated: 2026-10-07.
   px, min/max, `alignSelf`, Stack `fillChildren` (`src/components/Layout/sizing.ts`, rules at the end of `layout.css`).
   Since 2026-10-05 Text/Heading/Icon `tone` takes every resting Color/Content token by its path (81 tones, old names are
   aliases; `src/components/_shared/contentTone.ts` + `content-tone.css`, test `tests/content-tone.test.tsx`).
-- **Tokens:** repo-only edit 2026-10-06 (user): Component Size `Sidebar/Default-Width` = Compact 240 / Comfortable 260
+- **Tokens:** repo-only modes 2026-10-09 (user): Component Size, Typography Configuration and Corner Radius have a mode
+  "Studio" for the Zen Studio chrome (ChromeScope); not in Figma — keep them on the next sync (or add them in Figma).
+  2026-10-08 (user, repo + Figma): Accent and Neutral `Color/Background/*/Flat/Hover` → step 2 (Alpha/2,
+  were 3 = Pressed); every Flat/Hover is now step 2.
+  Repo-only edit 2026-10-06 (user): Component Size `Sidebar/Default-Width` = Compact 240 / Comfortable 260
   (Figma still 260 / 280 — keep 240/260 on the next variables sync unless Figma is updated); the docs no longer pin a
   260px rail. Before it: synced from the user's exports; the latest is the 2026-10-05 evening export "Zen-Variables 2": Global Colors
   carries Figma's Zen-High-Contrast mode (equal to the algorithm) and a re-synced Mint ramp; Mode Colors (Semantic) adds
@@ -64,6 +68,10 @@ Last updated: 2026-10-07.
 - **Gate is parallel:** `tools/qa/run.mjs` runs tsc, contract suites and Vitest side by side, and audit + dark audit + behaviour side by side (`ZEN_QA_SHARDS`, `--serial` to opt out). Contract suites run 4 at a time (`ZEN_QA_SUITES`), each in its own `.out/<suite>-<pid>` folder; on the Mac (2026-09-30) all 23 passed that way on a token change. A token sync takes the fast path by itself (56 pages ≈ 10 min).
 - **Native tokens:** `npm run tokens:native` (also part of `tokens:build`) writes `platforms/swift` and `platforms/flutter` (tokens + text styles, mode-aware resolver, shared vectors; see `platforms/README.md`). Swift/Dart were never compiled: run `swift test` and `flutter test` first. Not done: shadows, components.
 - **Dev server:** `npm run dev`, port 5173. Since 2026-10-03 it answers on `localhost`, `127.0.0.1` and `[::1]` alike: Node 24 binds "localhost" to `::1` only, so `tools/dev/loopback-both-families.mjs` (in `vite.config.ts`) forwards the other loopback family. Any of the three works for `--url=` in `npm run qa`, audit, behaviour and shoot.
+- **Zen Studio spaces (2026-10-09):** the toolbar centre is a Document | Studio switch (`state.space`, `?space=studio`,
+  `shell/navigation.ts setSpace`); Studio = folders of builder pages (`builder/store/folderStore.ts` in IndexedDB settings,
+  `PageRecord.folder`; `builder/StudioFolders.tsx`, `StudioHome.tsx`). Folders are not in the mirrored page files. Preview
+  modes change only in Present / Play (their bar's Modes panel); the toolbar has light/dark only. E2E: `openStudioSpace`.
 - **Zen Studio (2026-10-02) is the default docs UI:** `src/main.tsx` lazy-loads `src/platform/studio/StudioApp`
   (canvas tool: Pages/Layers, zoomable board of Playground/Examples/Docs frames, Inspector that edits source). The
   classic `PlatformApp` renders for `?ui=classic` and whenever `navigator.webdriver` is true, so `npm run qa`, audit,

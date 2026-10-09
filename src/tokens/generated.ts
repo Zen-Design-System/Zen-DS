@@ -2253,7 +2253,8 @@ export const tokenCollections = {
     "name": "Component Size",
     "modes": [
       "Compact",
-      "Comfortable"
+      "Comfortable",
+      "Studio"
     ],
     "variableCount": 195
   },
@@ -2270,7 +2271,8 @@ export const tokenCollections = {
       "Rounded",
       "Smooth",
       "Standard",
-      "Luxury"
+      "Luxury",
+      "Studio"
     ],
     "variableCount": 25
   },
@@ -2297,7 +2299,8 @@ export const tokenCollections = {
     "modes": [
       "Dashboard",
       "Popular",
-      "Mobile"
+      "Mobile",
+      "Studio"
     ],
     "variableCount": 78
   }

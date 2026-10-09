@@ -441,8 +441,8 @@
         "name": "Color/Background/Accent/Flat/Hover",
         "type": "COLOR",
         "valuesByMode": {
-          "Light": "{Light/Brand-Alpha/3}",
-          "Dark": "{Dark/Brand-Alpha/3}"
+          "Light": "{Light/Brand-Alpha/2}",
+          "Dark": "{Dark/Brand-Alpha/2}"
         }
       },
       {
@@ -1121,8 +1121,8 @@
         "name": "Color/Background/Neutral/Flat/Hover",
         "type": "COLOR",
         "valuesByMode": {
-          "Light": "{Light/Neutral-Alpha/3}",
-          "Dark": "{Dark/Neutral-Alpha/3}"
+          "Light": "{Light/Neutral-Alpha/2}",
+          "Dark": "{Dark/Neutral-Alpha/2}"
         }
       },
       {

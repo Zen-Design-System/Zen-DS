@@ -1,5 +1,5 @@
 // Shell rows: the Studio loads the fixture page, menus open on screen, view commands do what they say.
-import { inViewport, sleep, until } from "../lib/studio.mjs";
+import { focusFrame, inViewport, sleep, until } from "../lib/studio.mjs";
 
 const CANVAS = ".studio-canvas-area";
 
@@ -41,16 +41,24 @@ export const rows = [
     },
   },
   {
-    id: "S-03", feature: "Modes menu opens on screen", wp: "WP-A",
+    // Preview modes change in Play and Present only (user, 2026-10-09): the toolbar has light/dark, no Modes.
+    id: "S-03", feature: "Modes: none in the toolbar; Present's Modes panel opens on screen", wp: "WP-A",
     async run(ctx) {
       const { page } = await ctx.studio();
-      await page.locator("header, .studio-toolbar").first().getByRole("button", { name: "Modes", exact: true }).first().click();
-      const pop = page.locator("[role=dialog], [role=menu]").filter({ hasText: /Theme|Density|Light/ }).last();
+      const toolbar = page.locator("header, .studio-toolbar").first();
+      if (await toolbar.getByRole("button", { name: "Modes", exact: true }).count()) throw new Error("the toolbar still has Modes");
+      await focusFrame(page, 3);
+      await page.keyboard.press("KeyF");
+      const exit = page.getByRole("button", { name: /Exit full screen/i });
+      await exit.waitFor({ state: "visible", timeout: 4000 });
+      await page.locator(".studio-present").getByRole("button", { name: "Modes", exact: true }).first().click();
+      const pop = page.locator(".platform-fullscreen-bar__panel[role=dialog]").last();
       await pop.waitFor({ state: "visible", timeout: 4000 });
       const box = await pop.boundingBox();
       await page.keyboard.press("Escape");
-      if (!inViewport(box)) throw new Error(`Modes popover off screen: ${JSON.stringify(box)}`);
-      return "popover inside the viewport";
+      await page.keyboard.press("Escape");
+      if (!inViewport(box)) throw new Error(`Modes panel off screen: ${JSON.stringify(box)}`);
+      return "no toolbar Modes; Present's panel inside the viewport";
     },
   },
   {

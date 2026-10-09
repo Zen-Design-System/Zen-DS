@@ -31,3 +31,13 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 export const Playground: Story = {};
 export const Selectable: Story = { args: { selectable: true, selectedIds: ["2"] } };
+export const BulkActions: Story = {
+  args: {
+    selectable: true,
+    selectedIds: ["1", "3"],
+    bulkActions: (ids: string[]) => [
+      { id: "export", icon: "icon-download-01-line", label: `Export ${ids.length} projects`, onClick: () => undefined, group: "Share" },
+      { id: "archive", icon: "icon-archive-line", label: `Archive ${ids.length} projects`, onClick: () => undefined, group: "Manage" },
+    ],
+  },
+};

@@ -19,6 +19,12 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- **Table `bulkActions` (2026-10-08):** a selectable Table shows a Popover/Bulk-Action bar under the table while rows are
+  selected — Clear selection, "N selected" and your actions (`TableBulkAction[]`: id, icon, label, onClick, disabled,
+  group; or a function of the selected ids) — held at the bottom of the window on a long table. Actions that don't fit
+  the width (phones) move into a More menu instead of wrapping. Escape clears the selection; Select all rows takes the focus when the bar leaves.
+  New labels `rowsSelected`, `selectedRowActions`, `clearSelection` (en/vi). The Table playground and "Act on selected
+  rows" example use it.
 - **Metric-Inline props from Figma (2026-10-08):** `metricColor` (Metric-Color: a dot before the label, Accent/Solid
   or a chart series colour), `counter` (a Small Neutral Subtle Badge after the label), and on Title-Highlight `labelIcon`
   (24px before the title) and `hint` (an info icon whose Tooltip explains the number).
@@ -945,6 +951,50 @@ removed (four unused colour ramps were, see Removed).
     which still bleeds outside the trail).
 
 ### Changed
+- **Zen Studio inspector: inputs read the same everywhere (2026-10-09):** no per-field "Reset … to default" button
+  (properties, Layout direction and alignment, Align in parent, Position offsets, text alignment, text style); a field
+  goes back to its default from inside it ("None", "Default", "none · 0", Backspace) or with Reset all overrides. A row
+  keeps a trailing slot only when it has a real action (Remove effect, Restore a binding, Relink gaps, Min and max), so
+  every other control fills to the edge. The Studio's list rows (Pages, Layers, Assets, Quick insert, inspector lists)
+  take Corner-Radius/Base, as the Zen Sidebar item does — the same corner as an input. The other Studio corners follow
+  their Zen role: notes as Inline Message (Large), value chips as Tag (pill), control boxes (alignment, constraints) as
+  inputs, the code block Base, New page cards XLarge (concentric around their Base thumbnails), row highlights and drop
+  targets as the row; Pages / Layers tabs use the Zen Tabs corner. The storage line under Folders is an info tooltip
+  (it stays a line only to ask for Reconnect or Retry).
+- **Token modes "Studio" for the Zen Studio chrome (2026-10-09):** Component Size, Typography Configuration and Corner
+  Radius each gain a mode Studio (`data-density` / `data-typography` / `data-radius="studio"`; ZenProvider accepts
+  `density`, `typography` and `radius` "studio"): Figma UI3-like controls (Button / Input / Chip / Tab xs 24 · sm 28 ·
+  md 32), Body/Base 13/20 with Caption 11 · Small 12 · Subheading 15 · Heading/4 18, and Rounded's corner ladder on a
+  Base of 8 (Small 6 · Base 8 · Large 12 · XLarge 16 …, +4 a step so a 4px inset stays concentric; inputs 8 · 8 · 12 ·
+  12; buttons stay pills). Every other value is Compact, Dashboard or Rounded. The Studio chrome uses them (ChromeScope);
+  examples keep their own modes. Repo-only: the Figma file does not have these modes yet.
+- **Zen Studio: Document | Studio spaces, folders, visual New page, modes only in Play/Present (2026-10-09):** the
+  toolbar's breadcrumb is a Document | Studio switch. Document lists the docs pages; Studio holds the pages you make in
+  folders (New folder, New page in a folder, Rename, Delete → Trash, Move to on each page; pages with no folder under "Not
+  in a folder"), and with no page open the canvas shows the Studio home. New page shows the templates as a grid of
+  scaled-down thumbnails with Blank page as a placeholder card, and the device as three cards drawn in their proportions.
+  The toolbar keeps only light/dark: preview modes change in Present and now in Play, each in its bar's Modes panel,
+  which opens with the Popover motion (zen-motion-pop-in; a fade with reduced motion). Play and Present change the
+  example only — light/dark included — while the Studio's own UI (the bar, the panel) keeps the chrome modes.
+- **DockIcon re-synced from Figma (2026-10-09):** sizes follow the live Dock-Icon set — `large` is now 48 (was 56) with
+  a 24px icon (Element-Size/Popular/Medium),
+  `xlarge` 56 (was 80) and the new `2xlarge` (`2xl`) is 80; Accent Solid draws its icon in Content/On-Colors (was
+  On-Accent). Docs examples that relied on 56 / 80 moved to `xl` / `2xl`; MetricWidget's Large Dock-Icon is 48, as in
+  its Figma instance. Apps using `size="lg"` / `"xl"` get the smaller step: use `xl` / `2xl` to keep 56 / 80.
+- **SelectField opens a Bottom Sheet on mobile (2026-10-08):** when the nearest `data-breakpoint` (or ZenProvider's
+  breakpoint) is `mobile`, the options open in a Bottom Sheet (title = `popoverLabel` or the label; `popoverSearch` →
+  the sheet's Search) as a List whose picked row is selected with a check; a pick closes the sheet and the focus goes
+  back to the field. Desktop and tablet keep the Popover. The trigger says `aria-haspopup="dialog"` on mobile.
+- **BottomSheet opens inside a device frame (2026-10-08):** like Dialog and Menu, a sheet opened inside
+  `[data-zen-overlay-root]` (a phone preview) renders in that frame and rises from the bottom of that screen, without
+  `inline`; elsewhere it still goes to the page portal.
+- **Flat hover backgrounds on step 2 (2026-10-08):** `Color/Background/Accent/Flat/Hover` and `…/Neutral/Flat/Hover`
+  move from Alpha step 3 to step 2 (Light and Dark), like the other Flat/Hover tokens; Pressed stays on step 3, so hover
+  and pressed now differ. Affects flat Buttons/IconButtons, Tabs, Segmented, Date Picker items and other Neutral flat
+  hovers. Figma updated to match.
+- **Classic docs code view and playground properties match Zen Studio (2026-10-08):** code samples use the Studio's
+  code view (React · TSX badge, line numbers, Wrap and Copy; the "Coming soon" language select is gone), and the
+  playground's property column reads like the Studio inspector ("Playground properties", Body/Small label + control rows).
 - **Zen Studio: move several layers (2026-10-08):** dragging a row of a multi-selection in the Layers panel moves every
   selected layer (one edit, they stay selected; E2E ST-25), and Quick actions › Move earlier / later and the canvas
   menu's Move up / down act on all selected layers, as the arrow keys and a canvas drag already did.

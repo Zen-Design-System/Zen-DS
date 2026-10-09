@@ -5,9 +5,10 @@ import { Icon } from "../../../components/Icon";
 import { InputField } from "../../../components/Input";
 import { Menu, type MenuEntry } from "../../../components/Menu";
 import { Text } from "../../../components/Text";
+import { useIconTooltip } from "../../../components/Tooltip";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { announceEditStatus } from "../api";
-import { navigate, openLocalPage } from "../shell/navigation";
+import { openLocalPage } from "../shell/navigation";
 import { studioStore, useStudio } from "../store";
 import { unzipFiles } from "../../../../tools/studio/zip.mjs";
 import { assetIdsOf, putAsset } from "./assets/uploads";
@@ -15,7 +16,8 @@ import { loadEngine, zenComponents } from "./engine";
 import { openExport } from "./export/exportState";
 import { canLinkFolder, linkFolder, reconnectFolder, resyncPages, unlinkFolder } from "./store/mirrors";
 import { idFromFileName, trashDaysLeft, type RevisionReason } from "./store/pageModel";
-import { deleteForever, duplicatePage, getPage, importPage, listRevisions, renamePage, restorePage, restoreRevision, trashPage, useStorage, useTrash, type PageMeta, type Revision } from "./store/pageStore";
+import { useFolders } from "./store/folderStore";
+import { deleteForever, duplicatePage, getPage, importPage, listRevisions, movePage, renamePage, restorePage, restoreRevision, trashPage, useStorage, useTrash, type PageMeta, type Revision } from "./store/pageStore";
 
 /*
  * My pages in the Pages panel (Studio builder GĐ2 M2, spec docs/research/studio-builder-pages-spec-2026-10-06.md §3 2c):
@@ -49,16 +51,17 @@ export async function exportPage(id: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/** Leaves the page when it is the one on the canvas (it went to the Trash). */
+/** Leaves the page when it is the one on the canvas (it went to the Trash): back to the Studio space's folders. */
 function leaveIfOpen(id: string) {
-  const state = studioStore.getState();
-  if (state.localPage === id) navigate(state.page, state.collection);
+  if (studioStore.getState().localPage === id) studioStore.setState({ localPage: null, space: "studio", selection: null, presenting: null });
 }
 
-/** "My pages" kicker with New page and the section's options, then where the pages are kept. */
-export function MyPagesHeader({ onNew }: { onNew: () => void }) {
+/** The Studio space's kicker ("Folders") with New page, New folder and the section's options, then where the pages are
+ *  kept. */
+export function MyPagesHeader({ onNew, onNewFolder }: { onNew: () => void; onNewFolder?: () => void }) {
   const admin = useStudio((state) => state.role === "admin");
   const storage = useStorage();
+  const storageTip = useIconTooltip(storageText(storage), { placement: "bottom" });
   const trash = useTrash();
   const [trashOpen, setTrashOpen] = useState(false);
   const input = useRef<HTMLInputElement>(null);
@@ -109,9 +112,16 @@ export function MyPagesHeader({ onNew }: { onNew: () => void }) {
   return (
     <>
       <div className="studio-pages__kicker-row">
-        <Text as="p" id="studio-pages-mine" textStyle="Caption/Medium" tone="base" className="studio-pages__kicker">My pages</Text>
+        <span className="studio-pages__kicker studio-pages__kicker--info">
+          <Text as="span" id="studio-pages-mine" textStyle="Caption/Medium" tone="base">Folders</Text>
+          {/* Where the pages are kept, in an info tooltip (user, 2026-10-09: not a line of its own). Zen's icon tooltip: a
+              fixed layer in the portal, flipped and kept inside the window, so the scrolling panel never cuts it off. */}
+          <button type="button" className="studio-pages__info" aria-label={storageText(storage)} {...storageTip.bind({})}><Icon name="icon-info-circle-line" size="2xs" decorative /></button>
+          {storageTip.tooltip}
+        </span>
+        {onNewFolder ? <IconButton icon="icon-folder-plus-line" aria-label="New folder" appearance="flat" level="primary" size="xs" disabled={!admin} onClick={onNewFolder} /> : null}
         <IconButton icon="icon-plus-line" aria-label="New page" appearance="flat" level="primary" size="xs" disabled={!admin} onClick={onNew} />
-        <Menu align="end" aria-label="My pages options" items={items} trigger={<IconButton icon="icon-dots-horizontal-line" aria-label="My pages options" appearance="flat" level="primary" size="xs" />} />
+        <Menu align="end" aria-label="Studio options" items={items} trigger={<IconButton icon="icon-dots-horizontal-line" aria-label="Studio options" appearance="flat" level="primary" size="xs" />} />
       </div>
       <StorageLine />
       <input ref={input} type="file" accept=".tsx,.zip" multiple hidden data-e2e="import-pages" onChange={(event) => {
@@ -126,13 +136,18 @@ export function MyPagesHeader({ onNew }: { onNew: () => void }) {
 }
 
 /** Where the pages are kept: this browser, the dev server's folder, a linked folder (or one to reconnect). */
+function storageText(storage: ReturnType<typeof useStorage>) {
+  if (storage.kind === "browser") return "In this browser · Export to keep a copy";
+  if (storage.kind === "reconnect") return `Folder “${storage.label}” needs access again`;
+  if (storage.error) return `Not synced: ${storage.error}`;
+  return `${storage.syncing ? "Syncing with" : "Kept in"} ${storage.mirror === "dev" ? storage.label : `“${storage.label}”`}`;
+}
+
+/** The storage line under the kicker, only when it asks for something (Reconnect, Retry); else the info tooltip says it. */
 function StorageLine() {
   const storage = useStorage();
-  let text: string;
-  if (storage.kind === "browser") text = "In this browser · Export to keep a copy";
-  else if (storage.kind === "reconnect") text = `Folder “${storage.label}” needs access again`;
-  else if (storage.error) text = `Not synced: ${storage.error}`;
-  else text = `${storage.syncing ? "Syncing with" : "Kept in"} ${storage.mirror === "dev" ? storage.label : `“${storage.label}”`}`;
+  const text = storageText(storage);
+  if (storage.kind !== "reconnect" && !(storage.kind === "mirror" && storage.error)) return null;
   return (
     <div className="studio-pages__storage" data-storage={storage.kind} data-error={storage.kind === "mirror" && storage.error ? "true" : undefined}>
       <Text as="p" textStyle="Caption/Regular" tone={storage.kind === "mirror" && storage.error ? "negative" : "base"} className="studio-pages__storage-text" role="status">{text}</Text>
@@ -144,9 +159,10 @@ function StorageLine() {
   );
 }
 
-/** One page under My pages: the row (opens it) and its actions. */
-export function MyPageRow({ item, current, tabIndex }: { item: PageMeta; current: boolean; tabIndex: number }) {
+/** One page in the Studio space: the row (opens it) and its actions. `nested`: inside a folder (indented). */
+export function MyPageRow({ item, current, tabIndex, nested = false }: { item: PageMeta; current: boolean; tabIndex: number; nested?: boolean }) {
   const admin = useStudio((state) => state.role === "admin");
+  const folders = useFolders();
   const [dialog, setDialog] = useState<null | "rename" | "history">(null);
   const items: MenuEntry[] = [
     { id: "rename", label: "Rename…", icon: "icon-pencil-line", disabled: !admin, onSelect: () => setDialog("rename") },
@@ -154,12 +170,19 @@ export function MyPageRow({ item, current, tabIndex }: { item: PageMeta; current
     { id: "export-code", label: "Export…", icon: "icon-code-02-line", caption: "React code or the design file", onSelect: () => openExport(item.id) },
     { id: "export", label: "Export file", icon: "icon-download-01-line", caption: `${item.id}.zen.tsx`, onSelect: () => void exportPage(item.id).catch(fail) },
     { id: "history", label: "Version history…", icon: "icon-clock-rewind-line", onSelect: () => setDialog("history") },
+    ...(folders.length ? [
+      { type: "separator" as const, id: "move-separator" },
+      { type: "group" as const, label: "Move to", items: [
+        ...folders.map((folder) => ({ id: `move:${folder.id}`, label: folder.name, icon: "icon-folder-line" as const, disabled: !admin || item.folder === folder.id, onSelect: () => void movePage(item.id, folder.id).catch(fail) })),
+        { id: "move:none", label: "Not in a folder", icon: "icon-file-code-line" as const, disabled: !admin || !item.folder, onSelect: () => void movePage(item.id, null).catch(fail) },
+      ] },
+    ] : []),
     { type: "separator" },
     { id: "trash", label: "Move to Trash", icon: "icon-trash-line", danger: true, disabled: !admin, onSelect: () => { leaveIfOpen(item.id); void trashPage(item.id).catch(fail); } },
   ];
   return (
     <li className="studio-pages__item">
-      <button type="button" className="studio-pages__row" aria-current={current ? "page" : undefined} tabIndex={tabIndex} onClick={() => openLocalPage(item.id)}>
+      <button type="button" className="studio-pages__row" data-child={nested ? "true" : undefined} aria-current={current ? "page" : undefined} tabIndex={tabIndex} onClick={() => openLocalPage(item.id)}>
         <Icon name="icon-file-code-line" size="sm" decorative />
         <span className={`studio-pages__name ${typographyStyles[current ? "Body/Small/Bold" : "Body/Small/Medium"]}`}>{item.title}</span>
       </button>

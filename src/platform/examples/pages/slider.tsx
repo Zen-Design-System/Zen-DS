@@ -48,7 +48,6 @@ function PhotoZoomExample() {
         <Stack direction="row" gap="xs" align="center">
           <Slider aria-label="Zoom" min={100} max={300} step={5} value={zoom} onValueChange={setZoom}
             icon="icon-zoom-in-solid" valueText={(value) => `${value}%`} />
-          <Text as="span" textStyle="Body/Base/Medium" className="px-slider-value">{zoom}%</Text>
         </Stack>
         <FormActions>
           <Button level="tertiary" disabled={zoom === 100} onClick={reset}>Reset zoom</Button>

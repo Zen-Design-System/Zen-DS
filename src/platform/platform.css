@@ -319,20 +319,6 @@
 .platform-page-template__body > .text-styles-page,
 .platform-page-template__body > .icon-gallery { width: 100%; box-sizing: border-box; margin: 0; padding: 0; }
 .platform-code { display: grid; gap: var(--zen-spacing-gap-small, 12px); min-width: 0; }
-.platform-code__header { display: flex; min-height: 32px; box-sizing: border-box; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-small, 12px); color: var(--zen-color-content-neutral-strongest, #111); }
-.platform-code__language-group { display: flex; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
-.platform-code__language { width: 196px; }
-.platform-code__language .zen-input__control { width: 196px; }
-.platform-code pre { min-height: 228px; box-sizing: border-box; margin: 0; padding: var(--zen-spacing-padding-medium, 16px); overflow: auto; border-radius: var(--zen-corner-radius-small, 8px); background: var(--platform-code-background); color: var(--platform-code-foreground); color-scheme: dark; font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); }
-/* zen-allow-raw-colour: syntax hues of the always-dark code view (a code theme, not UI colour roles; the surface itself uses
-   fixed Global primitives, see --platform-code-background). */
-.platform-code__token--keyword { color: #c792ea; }
-.platform-code__token--string { color: #c3e88d; }
-.platform-code__token--tag { color: #82aaff; }
-/* zen-allow-raw-colour: code theme hues, continued. */
-.platform-code__token--comment { color: #697386; font-style: italic; }
-.platform-code__token--number { color: #f78c6c; }
-.platform-code code { white-space: pre; }
 .foundation-shell--embedded .section-heading { margin-top: 0; }
 .platform-example-page { padding: 0 0 0; }
 .platform-component-sections { display: grid; gap: var(--zen-spacing-gap-3-xlarge, 48px); }
@@ -350,24 +336,24 @@
 .platform-component-preview { box-sizing: border-box; }
 .platform-example-panel--stack { display: grid; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); grid-template-rows: 88px auto auto; grid-template-areas: "title controls" "preview controls" "code controls"; gap: 0; padding: 0; overflow: visible; border: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
 .platform-main-component__title { grid-area: title; box-sizing: border-box; width: 100%; margin: 0; padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-heading-3, 24px)/var(--zen-typography-line-height-heading-3, 32px) var(--zen-typography-font-family-heading, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-heading-3, -.72px); }
-.platform-playground-controls { display: flex; grid-area: controls; min-width: 0; flex-direction: column; flex-wrap: nowrap; gap: var(--zen-spacing-gap-medium, 16px); align-items: stretch; align-self: stretch; padding: var(--zen-spacing-padding-xlarge, 24px); border-left: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
-/* Property rows are stacked fields (label + control): Gap/Medium, the spacing ladder's step for them (usage rules §13). */
-.platform-playground-controls::before { display: block; margin-bottom: var(--zen-spacing-gap-medium, 16px); color: var(--zen-color-content-neutral-strongest, #111); content: "Select Property & Variant"; font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-subheading, 18px)/var(--zen-typography-line-height-subheading, 24px) var(--zen-typography-font-family-heading, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-subheading, -.54px); }
-.platform-property-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px); align-items: center; min-width: 0; }
-.platform-property-row[data-kind="boolean"] { padding-block: var(--zen-spacing-padding-xsmall, 8px); }
-.platform-property-row__label { grid-column: span 2; min-width: 0; overflow: hidden; color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; font: var(--zen-emphasis-font-weight-regular, 400) var(--zen-typography-font-size-body-base, 14px)/var(--zen-typography-line-height-body-base, 20px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-base, -.14px); }
-.platform-property-row__control { grid-column: span 3; min-width: 0; width: 100%; }
+.platform-playground-controls { --platform-property-label: clamp(80px, 28%, 120px); display: flex; grid-area: controls; min-width: 0; flex-direction: column; flex-wrap: nowrap; gap: var(--zen-spacing-gap-xsmall, 8px); align-items: stretch; align-self: stretch; padding: var(--zen-spacing-padding-xlarge, 24px); border-left: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+/* Same as Zen Studio's "Playground properties" inspector section: Body/Small/Bold title, then 32px label + control
+   rows (label column, control fills) at Gap/XSmall. */
+.platform-playground-controls::before { display: flex; min-height: 24px; align-items: center; color: var(--zen-color-content-neutral-strongest, #111); content: "Playground properties"; font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-small, 0px); }
+.platform-property-row { display: grid; min-height: 32px; grid-template-columns: var(--platform-property-label) minmax(0, 1fr); gap: var(--zen-spacing-gap-xsmall, 8px); align-items: center; min-width: 0; }
+/* Long property names ("Trailing Clickable") wrap in a narrow column instead of losing their end. */
+.platform-property-row__label { min-width: 0; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); overflow-wrap: anywhere; font: var(--zen-emphasis-font-weight-regular, 400) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-small, 0px); }
+.platform-property-row__control { min-width: 0; width: 100%; }
 .platform-property-row__control .zen-input__control { width: 100%; }
-.platform-property-row__chip { display: inline-flex; grid-column: span 3; min-width: 0; align-items: center; }
-.platform-example-panel--stack > .platform-playground-controls .zen-toggle { width: 100%; }
+.platform-property-row__chip { display: inline-flex; min-width: 0; align-items: center; }
+.platform-property-row > .zen-toggle { justify-self: start; }
 .platform-playground-controls .zen-chip__dropdown { flex: 0 0 auto; }
-.platform-playground-controls > .zen-toggle { width: auto; min-width: 132px; }
+.platform-playground-controls > .zen-toggle { width: auto; min-width: 0; }
 .platform-example-panel--stack > .platform-example-row,
 .platform-example-panel--stack > .platform-input-preview { grid-area: preview; min-width: 0; min-height: 152px; box-sizing: border-box; justify-content: center; margin: 0 var(--zen-spacing-padding-xlarge, 24px); padding: var(--zen-spacing-padding-4-xlarge, 48px) var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-canvas-default, #f7f7f7); }
 .platform-example-panel--stack > .platform-code { grid-area: code; min-width: 0; margin: var(--zen-spacing-gap-xlarge, 32px) var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px); }
 .platform-code { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .platform-code > summary { width: max-content; cursor: pointer; color: var(--official-muted); font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; }
-.platform-code pre { margin-top: 0; }
 /* The preview well fills the column like every other playground; the field inside keeps a readable width. */
 .platform-input-preview > * { width: min(520px, 100%); margin-inline: auto; }
 /* Rich text is a full-width composition (Figma 920px Editor-Bar). */
@@ -522,14 +508,25 @@
 /* The one docs control left on a full-screen page (FullScreenBar; also the Zen Studio's Present): a pill at the bottom
    centre on the popover surface, above the screen (25) and under its overlays (30). It fades out after a pause of the
    pointer and comes back on movement or keyboard focus; hidden, it takes no presses. */
-.platform-fullscreen-bar {
+/* The dock places the pill and its panel (a sibling, so each blurs the screen behind it); it paints nothing and only its
+   children take presses. */
+.platform-fullscreen-dock {
   position: fixed;
   z-index: 26;
   bottom: var(--zen-spacing-padding-medium, 16px);
   left: 50%;
   display: flex;
   max-width: calc(100% - 2 * var(--zen-spacing-padding-medium, 16px));
+  translate: -50% 0;
+  pointer-events: none;
+}
+.platform-fullscreen-bar {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
   box-sizing: border-box;
+  pointer-events: auto;
   align-items: center;
   gap: var(--zen-spacing-gap-3-xsmall, 2px);
   padding: var(--zen-spacing-padding-2-xsmall, 4px);
@@ -538,10 +535,9 @@
   background: var(--zen-popover-background, #fff);
   box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
   backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
-  translate: -50% 0;
   transition: opacity var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease), translate var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease);
 }
-.platform-fullscreen-bar[data-shown="false"]:not(:has(:focus-visible)) { opacity: 0; translate: -50% calc(var(--zen-spacing-gap-xsmall, 8px) * var(--zen-motion-movement, 1)); pointer-events: none; }
+.platform-fullscreen-bar[data-shown="false"]:not(:has(:focus-visible)) { opacity: 0; translate: 0 calc(var(--zen-spacing-gap-xsmall, 8px) * var(--zen-motion-movement, 1)); pointer-events: none; }
 /* zen-allow-slot-size: the screen's name truncates before the controls do. */
 .platform-fullscreen-bar__title { min-width: 0; max-width: 280px; overflow: hidden; padding-inline: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-2-xsmall, 4px); text-overflow: ellipsis; white-space: nowrap; }
 .platform-fullscreen-bar__divider { align-self: stretch; margin-block: var(--zen-spacing-padding-2-xsmall, 4px); margin-inline: var(--zen-spacing-gap-2-xsmall, 4px); }
@@ -563,6 +559,7 @@
   left: 50%;
   display: grid;
   width: min(320px, calc(100vw - 2 * var(--zen-spacing-padding-medium, 16px)));
+  pointer-events: auto;
   box-sizing: border-box;
   gap: var(--zen-spacing-gap-xsmall, 8px);
   padding: var(--zen-spacing-padding-small, 12px);
@@ -572,6 +569,10 @@
   box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
   backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
   translate: -50% 0;
+  /* It opens as a Zen Popover does (zen-motion-pop-in: fade, a 4px slide from the pill, 2% scale), above its anchor. */
+  --zen-motion-from-y: 1;
+  transform-origin: bottom center;
+  animation: zen-motion-pop-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-emphasized, ease-out) both;
 }
 /* The App Shell playground opens full screen from its title row. */
 .platform-playground-screen { display: flex; grid-area: title; align-self: start; justify-self: end; padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
@@ -1196,7 +1197,7 @@
    and the Zen docs keep their own styles. Untouched on purpose: the covers (Figma's raw 120px heroes) and the component
    previews / type specimens, which follow the system mode picked in the topbar. ── */
 /* Code = Body/Code: the Dev family (JetBrains Mono) at Body-Small size with Body-Code tracking. */
-.official-platform :is(.platform-code pre, .platform-code code, .platform-ref__code, .platform-ref__keys kbd, .pg code, .text-style-row__meta code, .icon-card code, .icon-gallery__special-header code) {
+.official-platform :is(.platform-ref__code, .platform-ref__keys kbd, .pg code, .text-style-row__meta code, .icon-card code, .icon-gallery__special-header code) {
   font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace;
   font-size: var(--zen-typography-font-size-body-small);
   line-height: var(--zen-typography-line-height-body-small);
@@ -1277,3 +1278,5 @@
 .pth-outline__tag { min-width: 28px; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-accent-subtle-default, rgb(255 2 152 / 9%)); color: var(--zen-color-content-accent-base, #95197b); text-align: center; }
 .pth-outline__text { overflow: hidden; font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 900px) { .pth-demo { grid-template-columns: minmax(0, 1fr); } }
+/* Reduced motion: the Modes panel above the full-screen pill only fades in. */
+@media (prefers-reduced-motion: reduce) { .platform-fullscreen-bar__panel { animation-name: zen-motion-fade-in; } }

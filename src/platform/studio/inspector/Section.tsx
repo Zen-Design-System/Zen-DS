@@ -19,8 +19,9 @@ export function InspectorSection({ title, actions, children, note, className }: 
 }
 
 /**
- * One label + control row (label column, control fills, a fixed trailing slot sized like an xs IconButton for an
- * optional action such as a reset, so a control's width never changes with its value state). `isDefault` shows the
+ * One label + control row: label column, then the control filling the rest. A row with an action (Remove effect, Restore
+ * a binding, Min and max) adds a trailing slot sized like an xs IconButton; inputs have no per-field reset (user,
+ * 2026-10-09: inputs read the same everywhere; "Reset all overrides" sets a component back). `isDefault` shows the
  * control's value in the lighter default tone. `name` (the prop, or several space-separated) lets other rows point at
  * it (data-prop: "Edit size" focuses the size row). `labelTitle` is the label's tooltip (the prop's own name).
  * `compact`: a 24px row (the Design tab header's label/value rows). `bound`: the value comes from code — a ƒ after the
@@ -28,13 +29,13 @@ export function InspectorSection({ title, actions, children, note, className }: 
  */
 export function InspectorRow({ label, children, action, hint, isDefault, name, labelTitle, compact, bound }: { label: ReactNode; children: ReactNode; action?: ReactNode; hint?: ReactNode; isDefault?: boolean; name?: string; labelTitle?: string; compact?: boolean; bound?: RowBinding }) {
   return (
-    <div className="studio-inspector__row" data-default={isDefault || undefined} data-prop={name} data-compact={compact || undefined} data-bound={bound ? "true" : undefined}>
+    <div className="studio-inspector__row" data-default={isDefault || undefined} data-prop={name} data-compact={compact || undefined} data-bound={bound ? "true" : undefined} data-action={action ? "true" : undefined}>
       <span className={`studio-inspector__row-label ${typographyStyles["Body/Small/Regular"]}`} title={labelTitle}>
         {label}
         {bound ? <BoundMark binding={bound} /> : null}
       </span>
       <div className="studio-inspector__row-control">{children}</div>
-      <div className="studio-inspector__row-action">{action}</div>
+      {action ? <div className="studio-inspector__row-action">{action}</div> : null}
       {hint ? <p className={`studio-inspector__row-hint ${typographyStyles["Body/Small/Regular"]}`}>{hint}</p> : null}
     </div>
   );

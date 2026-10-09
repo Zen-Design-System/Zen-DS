@@ -1,8 +1,5 @@
 /* Table examples (src/platform/examples/pages/table.tsx). Tokens only; class prefix .px-table-. */
 
-/* The title row of the invoices keeps the height of the Bulk-Action bar, so the table doesn't move when rows are checked. */
-.px-table-bulk-row { min-height: calc(var(--zen-button-size-medium, 40px) + 2 * var(--zen-spacing-padding-2-xsmall, 4px)); }
-
 /* The search takes a readable width and lets the filter chips sit beside it or wrap under it. */
 .px-table-search { flex: 1 1 220px; max-width: 320px; }
 
@@ -26,6 +23,3 @@
   inset-inline-start: var(--zen-spacing-padding-medium, 16px);
   width: calc(100cqi - 2 * var(--zen-spacing-padding-medium, 16px));
 }
-
-/* The Bulk-Action bar keeps its icons on one line; on a narrow stage it moves under the count instead of folding. */
-.px-table-bulk-bar { flex: none; }

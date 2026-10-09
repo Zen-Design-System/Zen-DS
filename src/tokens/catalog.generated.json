@@ -49,7 +49,8 @@
       "name": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ],
       "variableCount": 195
     },
@@ -66,7 +67,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ],
       "variableCount": 25
     },
@@ -93,7 +95,8 @@
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ],
       "variableCount": 78
     }
@@ -18643,8 +18646,8 @@
       "name": "Color/Background/Accent/Flat/Hover",
       "type": "COLOR",
       "valuesByMode": {
-        "Light": "{Light/Brand-Alpha/3}",
-        "Dark": "{Dark/Brand-Alpha/3}"
+        "Light": "{Light/Brand-Alpha/2}",
+        "Dark": "{Dark/Brand-Alpha/2}"
       },
       "collectionSlug": "mode-colors-semantic",
       "collectionName": "Mode Colors (Semantic)",
@@ -19833,8 +19836,8 @@
       "name": "Color/Background/Neutral/Flat/Hover",
       "type": "COLOR",
       "valuesByMode": {
-        "Light": "{Light/Neutral-Alpha/3}",
-        "Dark": "{Dark/Neutral-Alpha/3}"
+        "Light": "{Light/Neutral-Alpha/2}",
+        "Dark": "{Dark/Neutral-Alpha/2}"
       },
       "collectionSlug": "mode-colors-semantic",
       "collectionName": "Mode Colors (Semantic)",
@@ -27086,13 +27089,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-20}",
-        "Comfortable": "{dm-24}"
+        "Comfortable": "{dm-24}",
+        "Studio": "{dm-16}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27100,13 +27105,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-28}",
-        "Comfortable": "{dm-32}"
+        "Comfortable": "{dm-32}",
+        "Studio": "{dm-24}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27114,13 +27121,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-52}",
-        "Comfortable": "{dm-56}"
+        "Comfortable": "{dm-56}",
+        "Studio": "{dm-52}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27128,13 +27137,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-36}",
-        "Comfortable": "{dm-40}"
+        "Comfortable": "{dm-40}",
+        "Studio": "{dm-36}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27142,13 +27153,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-12}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27156,13 +27169,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27170,13 +27185,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-48}",
-        "Comfortable": "{dm-56}"
+        "Comfortable": "{dm-56}",
+        "Studio": "{dm-40}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27184,13 +27201,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-40}",
-        "Comfortable": "{dm-48}"
+        "Comfortable": "{dm-48}",
+        "Studio": "{dm-32}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27198,13 +27217,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-32}",
-        "Comfortable": "{dm-40}"
+        "Comfortable": "{dm-40}",
+        "Studio": "{dm-28}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27212,13 +27233,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27226,13 +27249,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-40}",
-        "Comfortable": "{dm-48}"
+        "Comfortable": "{dm-48}",
+        "Studio": "{dm-32}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27240,13 +27265,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-32}",
-        "Comfortable": "{dm-40}"
+        "Comfortable": "{dm-40}",
+        "Studio": "{dm-28}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27254,13 +27281,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27268,13 +27297,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27282,13 +27313,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27296,13 +27329,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27310,13 +27345,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 0,
-        "Comfortable": 0
+        "Comfortable": 0,
+        "Studio": 0
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27324,13 +27361,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-32}",
-        "Comfortable": "{dm-40}"
+        "Comfortable": "{dm-40}",
+        "Studio": "{dm-32}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27338,13 +27377,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-56}",
-        "Comfortable": "{dm-64}"
+        "Comfortable": "{dm-64}",
+        "Studio": "{dm-56}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27352,13 +27393,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-80}",
-        "Comfortable": "{dm-88}"
+        "Comfortable": "{dm-88}",
+        "Studio": "{dm-80}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27366,13 +27409,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-112}",
-        "Comfortable": "{dm-128}"
+        "Comfortable": "{dm-128}",
+        "Studio": "{dm-112}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27380,13 +27425,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-28}",
-        "Comfortable": "{dm-32}"
+        "Comfortable": "{dm-32}",
+        "Studio": "{dm-28}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27394,13 +27441,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 35,
-        "Comfortable": "{dm-40}"
+        "Comfortable": "{dm-40}",
+        "Studio": 35
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27408,13 +27457,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-20}"
+        "Comfortable": "{dm-20}",
+        "Studio": "{dm-16}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27422,13 +27473,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-44}",
-        "Comfortable": "{dm-48}"
+        "Comfortable": "{dm-48}",
+        "Studio": "{dm-44}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27436,13 +27489,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-24}",
-        "Comfortable": "{dm-28}"
+        "Comfortable": "{dm-28}",
+        "Studio": "{dm-20}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27450,13 +27505,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-56}",
-        "Comfortable": "{dm-64}"
+        "Comfortable": "{dm-64}",
+        "Studio": "{dm-48}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27464,13 +27521,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-12}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": 10
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27478,13 +27537,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27492,13 +27553,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 10,
-        "Comfortable": "{dm-12}"
+        "Comfortable": "{dm-12}",
+        "Studio": 6
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27506,13 +27569,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-12}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27520,13 +27585,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 6,
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": 6
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27534,13 +27601,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-12}"
+        "Comfortable": "{dm-12}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27548,13 +27617,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-12}",
-        "Comfortable": "{dm-12}"
+        "Comfortable": "{dm-12}",
+        "Studio": 6
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27562,13 +27633,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-20}"
+        "Comfortable": "{dm-20}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27576,13 +27649,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27590,13 +27665,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-12}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27604,13 +27681,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27618,13 +27697,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27632,13 +27713,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-2}",
-        "Comfortable": "{dm-2}"
+        "Comfortable": "{dm-2}",
+        "Studio": "{dm-2}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27646,13 +27729,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": 5
+        "Comfortable": 5,
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27660,13 +27745,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 10,
-        "Comfortable": "{dm-12}"
+        "Comfortable": "{dm-12}",
+        "Studio": 10
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27674,13 +27761,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": 10
+        "Comfortable": 10,
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27688,13 +27777,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-12}",
-        "Comfortable": "{dm-12}"
+        "Comfortable": "{dm-12}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27702,13 +27793,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 6,
-        "Comfortable": 6
+        "Comfortable": 6,
+        "Studio": 6
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27716,13 +27809,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27730,13 +27825,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-2}",
-        "Comfortable": "{dm-2}"
+        "Comfortable": "{dm-2}",
+        "Studio": "{dm-2}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27744,13 +27841,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-28}",
-        "Comfortable": "{dm-32}"
+        "Comfortable": "{dm-32}",
+        "Studio": "{dm-28}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27758,13 +27857,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-20}",
-        "Comfortable": "{dm-24}"
+        "Comfortable": "{dm-24}",
+        "Studio": "{dm-20}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27772,13 +27873,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-28}",
-        "Comfortable": "{dm-32}"
+        "Comfortable": "{dm-32}",
+        "Studio": "{dm-28}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27786,13 +27889,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-20}",
-        "Comfortable": "{dm-24}"
+        "Comfortable": "{dm-24}",
+        "Studio": "{dm-20}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27800,13 +27905,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-20}"
+        "Comfortable": "{dm-20}",
+        "Studio": "{dm-16}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27814,13 +27921,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27828,13 +27937,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27842,13 +27953,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27856,13 +27969,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-20}"
+        "Comfortable": "{dm-20}",
+        "Studio": "{dm-16}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27870,13 +27985,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27884,13 +28001,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-16}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27898,13 +28017,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27912,13 +28033,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27926,13 +28049,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-16}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27940,13 +28065,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-12}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27954,13 +28081,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27968,13 +28097,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-12}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27982,13 +28113,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-12}",
-        "Comfortable": "{dm-12}"
+        "Comfortable": "{dm-12}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -27996,13 +28129,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28010,13 +28145,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-12}"
+        "Comfortable": "{dm-12}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28024,13 +28161,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 6,
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": 6
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28038,13 +28177,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28052,13 +28193,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-144}",
-        "Comfortable": "{dm-160}"
+        "Comfortable": "{dm-160}",
+        "Studio": "{dm-144}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28066,13 +28209,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-112}",
-        "Comfortable": "{dm-128}"
+        "Comfortable": "{dm-128}",
+        "Studio": "{dm-112}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28080,13 +28225,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-96}",
-        "Comfortable": "{dm-112}"
+        "Comfortable": "{dm-112}",
+        "Studio": "{dm-96}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28094,13 +28241,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28108,13 +28257,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28122,13 +28273,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28136,13 +28289,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28150,13 +28305,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-24}",
-        "Comfortable": "{dm-32}"
+        "Comfortable": "{dm-32}",
+        "Studio": "{dm-24}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28164,13 +28321,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-32}",
-        "Comfortable": "{dm-40}"
+        "Comfortable": "{dm-40}",
+        "Studio": "{dm-28}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28178,13 +28337,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-40}",
-        "Comfortable": "{dm-44}"
+        "Comfortable": "{dm-44}",
+        "Studio": "{dm-36}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28192,13 +28353,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-36}",
-        "Comfortable": "{dm-40}"
+        "Comfortable": "{dm-40}",
+        "Studio": "{dm-32}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28206,13 +28369,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-56}",
-        "Comfortable": "{dm-64}"
+        "Comfortable": "{dm-64}",
+        "Studio": "{dm-48}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28220,13 +28385,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-16}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28234,13 +28401,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28248,13 +28417,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28262,13 +28433,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28276,13 +28449,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-16}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28290,13 +28465,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28304,13 +28481,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-2}",
-        "Comfortable": 0
+        "Comfortable": 0,
+        "Studio": "{dm-2}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28318,13 +28497,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28332,13 +28513,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-12}",
-        "Comfortable": "{dm-12}"
+        "Comfortable": "{dm-12}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28346,13 +28529,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 10,
-        "Comfortable": "{dm-12}"
+        "Comfortable": "{dm-12}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28360,13 +28545,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-2}",
-        "Comfortable": 0
+        "Comfortable": 0,
+        "Studio": "{dm-2}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28374,13 +28561,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28388,13 +28577,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": 10
+        "Comfortable": 10,
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28402,13 +28593,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": 6
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28416,13 +28609,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-2}",
-        "Comfortable": "{dm-2}"
+        "Comfortable": "{dm-2}",
+        "Studio": "{dm-2}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28430,13 +28625,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28444,13 +28641,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 6,
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": 6
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28458,13 +28657,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28472,13 +28673,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 0,
-        "Comfortable": "{dm-2}"
+        "Comfortable": "{dm-2}",
+        "Studio": 0
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28486,13 +28689,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28500,13 +28705,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-48}",
-        "Comfortable": "{dm-56}"
+        "Comfortable": "{dm-56}",
+        "Studio": "{dm-40}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28514,13 +28721,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-40}",
-        "Comfortable": "{dm-48}"
+        "Comfortable": "{dm-48}",
+        "Studio": "{dm-32}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28528,13 +28737,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-32}",
-        "Comfortable": "{dm-40}"
+        "Comfortable": "{dm-40}",
+        "Studio": "{dm-28}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28542,13 +28753,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-24}",
-        "Comfortable": "{dm-32}"
+        "Comfortable": "{dm-32}",
+        "Studio": "{dm-24}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28556,13 +28769,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-24}",
-        "Comfortable": "{dm-24}"
+        "Comfortable": "{dm-24}",
+        "Studio": "{dm-20}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28570,13 +28785,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-12}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28584,13 +28801,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-12}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28598,13 +28817,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-20}"
+        "Comfortable": "{dm-20}",
+        "Studio": "{dm-16}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28612,13 +28833,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-20}",
-        "Comfortable": "{dm-24}"
+        "Comfortable": "{dm-24}",
+        "Studio": "{dm-16}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28626,13 +28849,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-20}",
-        "Comfortable": "{dm-24}"
+        "Comfortable": "{dm-24}",
+        "Studio": "{dm-20}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28640,13 +28865,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-28}",
-        "Comfortable": "{dm-32}"
+        "Comfortable": "{dm-32}",
+        "Studio": "{dm-24}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28654,13 +28881,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28668,13 +28897,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-2}",
-        "Comfortable": "{dm-2}"
+        "Comfortable": "{dm-2}",
+        "Studio": "{dm-2}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28682,13 +28913,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28696,13 +28929,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28710,13 +28945,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28724,13 +28961,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-2}",
-        "Comfortable": "{dm-2}"
+        "Comfortable": "{dm-2}",
+        "Studio": "{dm-2}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28738,13 +28977,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28752,13 +28993,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 6,
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": 6
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28766,13 +29009,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 6,
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": 6
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28780,13 +29025,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28794,13 +29041,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28808,13 +29057,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": 6
+        "Comfortable": 6,
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28822,13 +29073,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28836,13 +29089,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-2}",
-        "Comfortable": "{dm-2}"
+        "Comfortable": "{dm-2}",
+        "Studio": "{dm-2}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28850,13 +29105,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-32}",
-        "Comfortable": "{dm-40}"
+        "Comfortable": "{dm-40}",
+        "Studio": "{dm-28}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28864,13 +29121,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-24}",
-        "Comfortable": "{dm-32}"
+        "Comfortable": "{dm-32}",
+        "Studio": "{dm-24}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28878,13 +29137,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28892,13 +29153,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28906,13 +29169,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-2}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-2}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28920,13 +29185,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 0,
-        "Comfortable": 0
+        "Comfortable": 0,
+        "Studio": 0
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28934,13 +29201,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28948,13 +29217,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-24}"
+        "Comfortable": "{dm-24}",
+        "Studio": "{dm-16}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28962,13 +29233,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{Corner-Radius/Rounded}",
-        "Comfortable": "{Corner-Radius/Rounded}"
+        "Comfortable": "{Corner-Radius/Rounded}",
+        "Studio": "{Corner-Radius/Rounded}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28976,13 +29249,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{Corner-Radius/Rounded}",
-        "Comfortable": "{Corner-Radius/Rounded}"
+        "Comfortable": "{Corner-Radius/Rounded}",
+        "Studio": "{Corner-Radius/Rounded}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -28990,13 +29265,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{Corner-Radius/Rounded}",
-        "Comfortable": "{Corner-Radius/Rounded}"
+        "Comfortable": "{Corner-Radius/Rounded}",
+        "Studio": "{Corner-Radius/Rounded}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29004,13 +29281,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{Corner-Radius/Rounded}",
-        "Comfortable": "{Corner-Radius/Rounded}"
+        "Comfortable": "{Corner-Radius/Rounded}",
+        "Studio": "{Corner-Radius/Rounded}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29018,13 +29297,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-20}"
+        "Comfortable": "{dm-20}",
+        "Studio": "{dm-16}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29032,13 +29313,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-12}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29046,13 +29329,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-20}",
-        "Comfortable": "{dm-24}"
+        "Comfortable": "{dm-24}",
+        "Studio": "{dm-20}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29060,13 +29345,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 240,
-        "Comfortable": 260
+        "Comfortable": 260,
+        "Studio": 240
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29074,13 +29361,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-68}",
-        "Comfortable": "{dm-80}"
+        "Comfortable": "{dm-80}",
+        "Studio": "{dm-68}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29088,13 +29377,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-40}",
-        "Comfortable": "{dm-48}"
+        "Comfortable": "{dm-48}",
+        "Studio": "{dm-32}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29102,13 +29393,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 0,
-        "Comfortable": 0
+        "Comfortable": 0,
+        "Studio": 0
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29116,13 +29409,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": 6
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29130,13 +29425,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29144,13 +29441,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-32}",
-        "Comfortable": "{dm-40}"
+        "Comfortable": "{dm-40}",
+        "Studio": "{dm-28}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29158,13 +29457,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 0,
-        "Comfortable": 0
+        "Comfortable": 0,
+        "Studio": 0
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29172,13 +29473,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": 6
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29186,13 +29489,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29200,13 +29505,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-52}",
-        "Comfortable": "{dm-56}"
+        "Comfortable": "{dm-56}",
+        "Studio": "{dm-40}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29214,13 +29521,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-36}",
-        "Comfortable": "{dm-40}"
+        "Comfortable": "{dm-40}",
+        "Studio": "{dm-32}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29228,13 +29537,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-40}",
-        "Comfortable": "{dm-48}"
+        "Comfortable": "{dm-48}",
+        "Studio": "{dm-40}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29242,13 +29553,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-80}",
-        "Comfortable": "{dm-88}"
+        "Comfortable": "{dm-88}",
+        "Studio": "{dm-80}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29256,13 +29569,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-20}"
+        "Comfortable": "{dm-20}",
+        "Studio": "{dm-16}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29270,13 +29585,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 220,
-        "Comfortable": 240
+        "Comfortable": 240,
+        "Studio": 220
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29284,13 +29601,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-24}",
-        "Comfortable": "{dm-24}"
+        "Comfortable": "{dm-24}",
+        "Studio": "{dm-24}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29298,13 +29617,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-24}",
-        "Comfortable": "{dm-24}"
+        "Comfortable": "{dm-24}",
+        "Studio": "{dm-24}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29312,13 +29633,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 10,
-        "Comfortable": 10
+        "Comfortable": 10,
+        "Studio": 10
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29326,13 +29649,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 10,
-        "Comfortable": 10
+        "Comfortable": 10,
+        "Studio": 10
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29340,13 +29665,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-24}",
-        "Comfortable": "{dm-24}"
+        "Comfortable": "{dm-24}",
+        "Studio": "{dm-24}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29354,13 +29681,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-44}",
-        "Comfortable": "{dm-44}"
+        "Comfortable": "{dm-44}",
+        "Studio": "{dm-44}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29368,13 +29697,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-48}",
-        "Comfortable": "{dm-56}"
+        "Comfortable": "{dm-56}",
+        "Studio": "{dm-48}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29382,13 +29713,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-24}",
-        "Comfortable": "{dm-32}"
+        "Comfortable": "{dm-32}",
+        "Studio": "{dm-24}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29396,13 +29729,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-2}",
-        "Comfortable": "{dm-2}"
+        "Comfortable": "{dm-2}",
+        "Studio": "{dm-2}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29410,13 +29745,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-2}",
-        "Comfortable": "{dm-2}"
+        "Comfortable": "{dm-2}",
+        "Studio": "{dm-2}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29424,13 +29761,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-2}",
-        "Comfortable": "{dm-2}"
+        "Comfortable": "{dm-2}",
+        "Studio": "{dm-2}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29438,13 +29777,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29452,13 +29793,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-20}",
-        "Comfortable": "{dm-24}"
+        "Comfortable": "{dm-24}",
+        "Studio": "{dm-20}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29466,13 +29809,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-20}"
+        "Comfortable": "{dm-20}",
+        "Studio": "{dm-16}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29480,13 +29825,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 10,
-        "Comfortable": 10
+        "Comfortable": 10,
+        "Studio": 10
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29494,13 +29841,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 10,
-        "Comfortable": 10
+        "Comfortable": 10,
+        "Studio": 10
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29508,13 +29857,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 0,
-        "Comfortable": 0
+        "Comfortable": 0,
+        "Studio": 0
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29522,13 +29873,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-32}",
-        "Comfortable": "{dm-40}"
+        "Comfortable": "{dm-40}",
+        "Studio": "{dm-28}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29536,13 +29889,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-40}",
-        "Comfortable": "{dm-48}"
+        "Comfortable": "{dm-48}",
+        "Studio": "{dm-32}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29550,13 +29905,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29564,13 +29921,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29578,13 +29937,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-2}",
-        "Comfortable": "{dm-2}"
+        "Comfortable": "{dm-2}",
+        "Studio": "{dm-2}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29592,13 +29953,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-28}",
-        "Comfortable": "{dm-32}"
+        "Comfortable": "{dm-32}",
+        "Studio": "{dm-24}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29606,13 +29969,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-12}"
+        "Comfortable": "{dm-12}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29620,13 +29985,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29634,13 +30001,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29648,13 +30017,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": 6,
-        "Comfortable": 6
+        "Comfortable": 6,
+        "Studio": 6
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29662,13 +30033,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-4}",
-        "Comfortable": "{dm-4}"
+        "Comfortable": "{dm-4}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29676,13 +30049,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-20}",
-        "Comfortable": "{dm-20}"
+        "Comfortable": "{dm-20}",
+        "Studio": "{dm-20}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29690,13 +30065,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-8}",
-        "Comfortable": "{dm-8}"
+        "Comfortable": "{dm-8}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29704,13 +30081,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-12}",
-        "Comfortable": "{dm-12}"
+        "Comfortable": "{dm-12}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29718,13 +30097,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-12}",
-        "Comfortable": "{dm-12}"
+        "Comfortable": "{dm-12}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29732,13 +30113,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-16}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-16}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29746,13 +30129,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-64}",
-        "Comfortable": "{dm-64}"
+        "Comfortable": "{dm-64}",
+        "Studio": "{dm-64}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29760,13 +30145,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-32}",
-        "Comfortable": "{dm-36}"
+        "Comfortable": "{dm-36}",
+        "Studio": "{dm-28}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29774,13 +30161,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{Margin-Compact}",
-        "Comfortable": "{Margin-Comfortable}"
+        "Comfortable": "{Margin-Comfortable}",
+        "Studio": "{Margin-Compact}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29788,13 +30177,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{dm-12}",
-        "Comfortable": "{dm-16}"
+        "Comfortable": "{dm-16}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -29802,13 +30193,15 @@
       "type": "FLOAT",
       "valuesByMode": {
         "Compact": "{Corner-Radius/Giant}",
-        "Comfortable": "{Corner-Radius/XGiant}"
+        "Comfortable": "{Corner-Radius/XGiant}",
+        "Studio": "{Corner-Radius/Giant}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
       "modes": [
         "Compact",
-        "Comfortable"
+        "Comfortable",
+        "Studio"
       ]
     },
     {
@@ -30082,7 +30475,8 @@
         "Rounded": "{dm-12}",
         "Smooth": "{dm-12}",
         "Standard": "{dm-8}",
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30090,7 +30484,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30100,7 +30495,8 @@
         "Rounded": "{dm-16}",
         "Smooth": "{dm-16}",
         "Standard": "{dm-12}",
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30108,7 +30504,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30118,7 +30515,8 @@
         "Rounded": "{dm-36}",
         "Smooth": "{dm-36}",
         "Standard": "{dm-32}",
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": "{dm-32}"
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30126,7 +30524,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30136,7 +30535,8 @@
         "Rounded": "{dm-20}",
         "Smooth": "{dm-20}",
         "Standard": "{dm-16}",
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": "{dm-16}"
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30144,7 +30544,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30154,7 +30555,8 @@
         "Rounded": "{dm-8}",
         "Smooth": "{dm-8}",
         "Standard": "{dm-4}",
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": 6
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30162,7 +30564,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30172,7 +30575,8 @@
         "Rounded": 1000,
         "Smooth": "{dm-16}",
         "Standard": "{dm-12}",
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": 1000
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30180,7 +30584,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30190,7 +30595,8 @@
         "Rounded": 1000,
         "Smooth": 1000,
         "Standard": 1000,
-        "Luxury": 1000
+        "Luxury": 1000,
+        "Studio": 1000
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30198,7 +30604,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30208,7 +30615,8 @@
         "Rounded": "{dm-4}",
         "Smooth": "{dm-4}",
         "Standard": "{dm-2}",
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": "{dm-4}"
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30216,7 +30624,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30226,7 +30635,8 @@
         "Rounded": 1000,
         "Smooth": "{dm-12}",
         "Standard": "{dm-8}",
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": 1000
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30234,7 +30644,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30244,7 +30655,8 @@
         "Rounded": 1000,
         "Smooth": "{dm-12}",
         "Standard": "{dm-8}",
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": 1000
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30252,7 +30664,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30262,7 +30675,8 @@
         "Rounded": 1000,
         "Smooth": 1000,
         "Standard": 1000,
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": 1000
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30270,7 +30684,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30280,7 +30695,8 @@
         "Rounded": 1000,
         "Smooth": "{dm-16}",
         "Standard": "{dm-12}",
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": 1000
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30288,7 +30704,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30298,7 +30715,8 @@
         "Rounded": "{dm-28}",
         "Smooth": "{dm-28}",
         "Standard": "{dm-24}",
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": "{dm-24}"
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30306,7 +30724,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30316,7 +30735,8 @@
         "Rounded": "{dm-24}",
         "Smooth": "{dm-24}",
         "Standard": "{dm-20}",
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": "{dm-20}"
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30324,7 +30744,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30334,7 +30755,8 @@
         "Rounded": 1000,
         "Smooth": 22,
         "Standard": 18,
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": 1000
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30342,7 +30764,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30352,7 +30775,8 @@
         "Rounded": 1000,
         "Smooth": 22,
         "Standard": 18,
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": 1000
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30360,7 +30784,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30370,7 +30795,8 @@
         "Rounded": 1000,
         "Smooth": 18,
         "Standard": 14,
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": 1000
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30378,7 +30804,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30388,7 +30815,8 @@
         "Rounded": 1000,
         "Smooth": 18,
         "Standard": 14,
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": 1000
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30396,7 +30824,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30406,7 +30835,8 @@
         "Rounded": 1000,
         "Smooth": 1000,
         "Standard": 1000,
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": 1000
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30414,7 +30844,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30424,7 +30855,8 @@
         "Rounded": "{dm-2}",
         "Smooth": "{dm-2}",
         "Standard": 1,
-        "Luxury": 1
+        "Luxury": 1,
+        "Studio": "{dm-2}"
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30432,7 +30864,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30442,7 +30875,8 @@
         "Rounded": "{dm-16}",
         "Smooth": "{dm-16}",
         "Standard": "{dm-12}",
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30450,7 +30884,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30460,7 +30895,8 @@
         "Rounded": "{dm-16}",
         "Smooth": "{dm-16}",
         "Standard": "{dm-12}",
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": "{dm-12}"
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30468,7 +30904,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30478,7 +30915,8 @@
         "Rounded": "{dm-12}",
         "Smooth": "{dm-12}",
         "Standard": "{dm-8}",
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30486,7 +30924,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30496,7 +30935,8 @@
         "Rounded": "{dm-12}",
         "Smooth": "{dm-12}",
         "Standard": "{dm-8}",
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": "{dm-8}"
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30504,7 +30944,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30514,7 +30955,8 @@
         "Rounded": "{dm-32}",
         "Smooth": "{dm-32}",
         "Standard": "{dm-28}",
-        "Luxury": "{dm-2}"
+        "Luxury": "{dm-2}",
+        "Studio": "{dm-28}"
       },
       "collectionSlug": "corner-radius",
       "collectionName": "Corner Radius",
@@ -30522,7 +30964,8 @@
         "Rounded",
         "Smooth",
         "Standard",
-        "Luxury"
+        "Luxury",
+        "Studio"
       ]
     },
     {
@@ -30803,14 +31246,16 @@
       "valuesByMode": {
         "Dashboard": "Inter",
         "Popular": "Inter",
-        "Mobile": "Inter"
+        "Mobile": "Inter",
+        "Studio": "Inter"
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -30819,14 +31264,16 @@
       "valuesByMode": {
         "Dashboard": "Inter",
         "Popular": "Inter",
-        "Mobile": "Inter"
+        "Mobile": "Inter",
+        "Studio": "Inter"
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -30835,14 +31282,16 @@
       "valuesByMode": {
         "Dashboard": "Inter",
         "Popular": "Inter",
-        "Mobile": "Inter"
+        "Mobile": "Inter",
+        "Studio": "Inter"
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -30851,14 +31300,16 @@
       "valuesByMode": {
         "Dashboard": "Inter",
         "Popular": "Inter",
-        "Mobile": "Inter"
+        "Mobile": "Inter",
+        "Studio": "Inter"
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -30867,14 +31318,16 @@
       "valuesByMode": {
         "Dashboard": "JetBrains Mono",
         "Popular": "JetBrains Mono",
-        "Mobile": "JetBrains Mono"
+        "Mobile": "JetBrains Mono",
+        "Studio": "JetBrains Mono"
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -30883,14 +31336,16 @@
       "valuesByMode": {
         "Dashboard": 45,
         "Popular": 60,
-        "Mobile": 52
+        "Mobile": 52,
+        "Studio": 40
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -30899,14 +31354,16 @@
       "valuesByMode": {
         "Dashboard": 52,
         "Popular": 68,
-        "Mobile": 60
+        "Mobile": 60,
+        "Studio": 48
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -30915,14 +31372,16 @@
       "valuesByMode": {
         "Dashboard": -1.5199999809265137,
         "Popular": -3,
-        "Mobile": -2.0799999237060547
+        "Mobile": -2.0799999237060547,
+        "Studio": -1.36
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -30931,14 +31390,16 @@
       "valuesByMode": {
         "Dashboard": 40,
         "Popular": 52,
-        "Mobile": 46
+        "Mobile": 46,
+        "Studio": 36
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -30947,14 +31408,16 @@
       "valuesByMode": {
         "Dashboard": 44,
         "Popular": 60,
-        "Mobile": 52
+        "Mobile": 52,
+        "Studio": 44
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -30963,14 +31426,16 @@
       "valuesByMode": {
         "Dashboard": -1.2100000381469727,
         "Popular": -2.0799999237060547,
-        "Mobile": -1.840000033378601
+        "Mobile": -1.840000033378601,
+        "Studio": -1.09
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -30979,14 +31444,16 @@
       "valuesByMode": {
         "Dashboard": 36,
         "Popular": 46,
-        "Mobile": 41
+        "Mobile": 41,
+        "Studio": 32
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -30995,14 +31462,16 @@
       "valuesByMode": {
         "Dashboard": 44,
         "Popular": 52,
-        "Mobile": 48
+        "Mobile": 48,
+        "Studio": 40
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31011,14 +31480,16 @@
       "valuesByMode": {
         "Dashboard": -0.9800000190734863,
         "Popular": -1.840000033378601,
-        "Mobile": -1.6399999856948853
+        "Mobile": -1.6399999856948853,
+        "Studio": -0.86
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31027,14 +31498,16 @@
       "valuesByMode": {
         "Dashboard": 32,
         "Popular": 40,
-        "Mobile": 36
+        "Mobile": 36,
+        "Studio": 28
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31043,14 +31516,16 @@
       "valuesByMode": {
         "Dashboard": 40,
         "Popular": 48,
-        "Mobile": 44
+        "Mobile": 44,
+        "Studio": 36
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31059,14 +31534,16 @@
       "valuesByMode": {
         "Dashboard": -0.7599999904632568,
         "Popular": -1.600000023841858,
-        "Mobile": -1.0800000429153442
+        "Mobile": -1.0800000429153442,
+        "Studio": -0.66
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31075,14 +31552,16 @@
       "valuesByMode": {
         "Dashboard": 28,
         "Popular": 36,
-        "Mobile": 32
+        "Mobile": 32,
+        "Studio": 24
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31091,14 +31570,16 @@
       "valuesByMode": {
         "Dashboard": 36,
         "Popular": 44,
-        "Mobile": 40
+        "Mobile": 40,
+        "Studio": 32
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31107,14 +31588,16 @@
       "valuesByMode": {
         "Dashboard": -0.5600000023841858,
         "Popular": -1.2599999904632568,
-        "Mobile": -0.9599999785423279
+        "Mobile": -0.9599999785423279,
+        "Studio": -0.48
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31123,14 +31606,16 @@
       "valuesByMode": {
         "Dashboard": 20,
         "Popular": 24,
-        "Mobile": 23
+        "Mobile": 23,
+        "Studio": 18
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31139,14 +31624,16 @@
       "valuesByMode": {
         "Dashboard": 28,
         "Popular": 32,
-        "Mobile": 32
+        "Mobile": 32,
+        "Studio": 24
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31155,14 +31642,16 @@
       "valuesByMode": {
         "Dashboard": -0.4000000059604645,
         "Popular": -0.7200000286102295,
-        "Mobile": -0.6899999976158142
+        "Mobile": -0.6899999976158142,
+        "Studio": -0.36
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31171,14 +31660,16 @@
       "valuesByMode": {
         "Dashboard": 18,
         "Popular": 20,
-        "Mobile": 20
+        "Mobile": 20,
+        "Studio": 15
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31187,14 +31678,16 @@
       "valuesByMode": {
         "Dashboard": 24,
         "Popular": 28,
-        "Mobile": 28
+        "Mobile": 28,
+        "Studio": 22
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31203,14 +31696,16 @@
       "valuesByMode": {
         "Dashboard": -0.36000001430511475,
         "Popular": -0.6000000238418579,
-        "Mobile": -0.6000000238418579
+        "Mobile": -0.6000000238418579,
+        "Studio": -0.3
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31219,14 +31714,16 @@
       "valuesByMode": {
         "Dashboard": 14,
         "Popular": 16,
-        "Mobile": 16
+        "Mobile": 16,
+        "Studio": 13
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31235,14 +31732,16 @@
       "valuesByMode": {
         "Dashboard": 20,
         "Popular": 24,
-        "Mobile": 24
+        "Mobile": 24,
+        "Studio": 20
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31251,14 +31750,16 @@
       "valuesByMode": {
         "Dashboard": -0.14000000059604645,
         "Popular": -0.3199999928474426,
-        "Mobile": -0.1599999964237213
+        "Mobile": -0.1599999964237213,
+        "Studio": -0.13
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31267,14 +31768,16 @@
       "valuesByMode": {
         "Dashboard": 12,
         "Popular": 14,
-        "Mobile": 14
+        "Mobile": 14,
+        "Studio": 12
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31283,14 +31786,16 @@
       "valuesByMode": {
         "Dashboard": 16,
         "Popular": 20,
-        "Mobile": 20
+        "Mobile": 20,
+        "Studio": 16
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31299,14 +31804,16 @@
       "valuesByMode": {
         "Dashboard": 0,
         "Popular": -0.2800000011920929,
-        "Mobile": -0.14000000059604645
+        "Mobile": -0.14000000059604645,
+        "Studio": 0
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31315,14 +31822,16 @@
       "valuesByMode": {
         "Dashboard": 11,
         "Popular": 12,
-        "Mobile": 13
+        "Mobile": 13,
+        "Studio": 11
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31331,14 +31840,16 @@
       "valuesByMode": {
         "Dashboard": 16,
         "Popular": 16,
-        "Mobile": 16
+        "Mobile": 16,
+        "Studio": 16
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31347,14 +31858,16 @@
       "valuesByMode": {
         "Dashboard": 0,
         "Popular": 0,
-        "Mobile": 0
+        "Mobile": 0,
+        "Studio": 0
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31363,14 +31876,16 @@
       "valuesByMode": {
         "Dashboard": 9,
         "Popular": 10,
-        "Mobile": 10
+        "Mobile": 10,
+        "Studio": 9
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31379,14 +31894,16 @@
       "valuesByMode": {
         "Dashboard": 12,
         "Popular": 12,
-        "Mobile": 12
+        "Mobile": 12,
+        "Studio": 12
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31395,14 +31912,16 @@
       "valuesByMode": {
         "Dashboard": 0,
         "Popular": 0,
-        "Mobile": 0
+        "Mobile": 0,
+        "Studio": 0
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31411,14 +31930,16 @@
       "valuesByMode": {
         "Dashboard": 14,
         "Popular": 16,
-        "Mobile": 16
+        "Mobile": 16,
+        "Studio": 13
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31427,14 +31948,16 @@
       "valuesByMode": {
         "Dashboard": 20,
         "Popular": 24,
-        "Mobile": 24
+        "Mobile": 24,
+        "Studio": 20
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31443,14 +31966,16 @@
       "valuesByMode": {
         "Dashboard": 0,
         "Popular": -0.3199999928474426,
-        "Mobile": 0
+        "Mobile": 0,
+        "Studio": 0
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31459,14 +31984,16 @@
       "valuesByMode": {
         "Dashboard": 14,
         "Popular": 16,
-        "Mobile": 16
+        "Mobile": 16,
+        "Studio": 13
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31475,14 +32002,16 @@
       "valuesByMode": {
         "Dashboard": 20,
         "Popular": 24,
-        "Mobile": 24
+        "Mobile": 24,
+        "Studio": 20
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31491,14 +32020,16 @@
       "valuesByMode": {
         "Dashboard": 0,
         "Popular": -0.3199999928474426,
-        "Mobile": 0
+        "Mobile": 0,
+        "Studio": 0
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31507,14 +32038,16 @@
       "valuesByMode": {
         "Dashboard": 14,
         "Popular": 16,
-        "Mobile": 16
+        "Mobile": 16,
+        "Studio": 12
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31523,14 +32056,16 @@
       "valuesByMode": {
         "Dashboard": 20,
         "Popular": 24,
-        "Mobile": 24
+        "Mobile": 24,
+        "Studio": 16
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31539,14 +32074,16 @@
       "valuesByMode": {
         "Dashboard": 0,
         "Popular": -0.3199999928474426,
-        "Mobile": 0
+        "Mobile": 0,
+        "Studio": 0
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31555,14 +32092,16 @@
       "valuesByMode": {
         "Dashboard": 12,
         "Popular": 14,
-        "Mobile": 14
+        "Mobile": 14,
+        "Studio": 11
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31571,14 +32110,16 @@
       "valuesByMode": {
         "Dashboard": 12,
         "Popular": 16,
-        "Mobile": 14
+        "Mobile": 14,
+        "Studio": 12
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31587,14 +32128,16 @@
       "valuesByMode": {
         "Dashboard": 0,
         "Popular": -0.2800000011920929,
-        "Mobile": 0
+        "Mobile": 0,
+        "Studio": 0
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31603,14 +32146,16 @@
       "valuesByMode": {
         "Dashboard": 14,
         "Popular": 16,
-        "Mobile": 16
+        "Mobile": 16,
+        "Studio": 12
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31619,14 +32164,16 @@
       "valuesByMode": {
         "Dashboard": 16,
         "Popular": 20,
-        "Mobile": 18
+        "Mobile": 18,
+        "Studio": 16
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31635,14 +32182,16 @@
       "valuesByMode": {
         "Dashboard": 0,
         "Popular": 0,
-        "Mobile": 0
+        "Mobile": 0,
+        "Studio": 0
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31651,14 +32200,16 @@
       "valuesByMode": {
         "Dashboard": 12,
         "Popular": 14,
-        "Mobile": 14
+        "Mobile": 14,
+        "Studio": 11
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31667,14 +32218,16 @@
       "valuesByMode": {
         "Dashboard": 16,
         "Popular": 16,
-        "Mobile": 20
+        "Mobile": 20,
+        "Studio": 16
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31683,14 +32236,16 @@
       "valuesByMode": {
         "Dashboard": 0,
         "Popular": 0,
-        "Mobile": 0
+        "Mobile": 0,
+        "Studio": 0
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31699,14 +32254,16 @@
       "valuesByMode": {
         "Dashboard": 22,
         "Popular": 28,
-        "Mobile": 26
+        "Mobile": 26,
+        "Studio": 20
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31715,14 +32272,16 @@
       "valuesByMode": {
         "Dashboard": 28,
         "Popular": 36,
-        "Mobile": 36
+        "Mobile": 36,
+        "Studio": 28
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31731,14 +32290,16 @@
       "valuesByMode": {
         "Dashboard": -0.4399999976158142,
         "Popular": -0.8399999737739563,
-        "Mobile": -0.7799999713897705
+        "Mobile": -0.7799999713897705,
+        "Studio": -0.4
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31747,14 +32308,16 @@
       "valuesByMode": {
         "Dashboard": 16,
         "Popular": 20,
-        "Mobile": 18
+        "Mobile": 18,
+        "Studio": 15
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31763,14 +32326,16 @@
       "valuesByMode": {
         "Dashboard": 24,
         "Popular": 32,
-        "Mobile": 28
+        "Mobile": 28,
+        "Studio": 22
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31779,14 +32344,16 @@
       "valuesByMode": {
         "Dashboard": 0,
         "Popular": -0.4000000059604645,
-        "Mobile": 0
+        "Mobile": 0,
+        "Studio": 0
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31795,14 +32362,16 @@
       "valuesByMode": {
         "Dashboard": 25,
         "Popular": 32,
-        "Mobile": 29
+        "Mobile": 29,
+        "Studio": 22
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31811,14 +32380,16 @@
       "valuesByMode": {
         "Dashboard": 32,
         "Popular": 40,
-        "Mobile": 36
+        "Mobile": 36,
+        "Studio": 28
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31827,14 +32398,16 @@
       "valuesByMode": {
         "Dashboard": -0.5,
         "Popular": -0.9599999785423279,
-        "Mobile": -0.8700000047683716
+        "Mobile": -0.8700000047683716,
+        "Studio": -0.44
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31843,14 +32416,16 @@
       "valuesByMode": {
         "Dashboard": 16,
         "Popular": 18,
-        "Mobile": 18
+        "Mobile": 18,
+        "Studio": 15
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31859,14 +32434,16 @@
       "valuesByMode": {
         "Dashboard": 24,
         "Popular": 24,
-        "Mobile": 24
+        "Mobile": 24,
+        "Studio": 22
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31875,14 +32452,16 @@
       "valuesByMode": {
         "Dashboard": -0.1599999964237213,
         "Popular": -0.36000001430511475,
-        "Mobile": -0.27000001072883606
+        "Mobile": -0.27000001072883606,
+        "Studio": -0.15
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31891,14 +32470,16 @@
       "valuesByMode": {
         "Dashboard": 65,
         "Popular": 88,
-        "Mobile": 74
+        "Mobile": 74,
+        "Studio": 56
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31907,14 +32488,16 @@
       "valuesByMode": {
         "Dashboard": 72,
         "Popular": 100,
-        "Mobile": 84
+        "Mobile": 84,
+        "Studio": 64
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31923,14 +32506,16 @@
       "valuesByMode": {
         "Dashboard": -2.880000114440918,
         "Popular": -3.5199999809265137,
-        "Mobile": -3.2699999809265137
+        "Mobile": -3.2699999809265137,
+        "Studio": -2.48
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31939,14 +32524,16 @@
       "valuesByMode": {
         "Dashboard": 58,
         "Popular": 78,
-        "Mobile": 66
+        "Mobile": 66,
+        "Studio": 50
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31955,14 +32542,16 @@
       "valuesByMode": {
         "Dashboard": 60,
         "Popular": 88,
-        "Mobile": 70
+        "Mobile": 70,
+        "Studio": 56
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31971,14 +32560,16 @@
       "valuesByMode": {
         "Dashboard": -2.380000114440918,
         "Popular": -3.119999885559082,
-        "Mobile": -2.700000047683716
+        "Mobile": -2.700000047683716,
+        "Studio": -2.05
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -31987,14 +32578,16 @@
       "valuesByMode": {
         "Dashboard": 51,
         "Popular": 68,
-        "Mobile": 58
+        "Mobile": 58,
+        "Studio": 44
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -32003,14 +32596,16 @@
       "valuesByMode": {
         "Dashboard": 58,
         "Popular": 72,
-        "Mobile": 66
+        "Mobile": 66,
+        "Studio": 52
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -32019,14 +32614,16 @@
       "valuesByMode": {
         "Dashboard": -1.899999976158142,
         "Popular": -2.7200000286102295,
-        "Mobile": -2.319999933242798
+        "Mobile": -2.319999933242798,
+        "Studio": -1.64
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     },
     {
@@ -32035,14 +32632,16 @@
       "valuesByMode": {
         "Dashboard": 0,
         "Popular": 0,
-        "Mobile": 0
+        "Mobile": 0,
+        "Studio": 0
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
       "modes": [
         "Dashboard",
         "Popular",
-        "Mobile"
+        "Mobile",
+        "Studio"
       ]
     }
   ]

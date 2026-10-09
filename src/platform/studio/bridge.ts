@@ -5,6 +5,7 @@ import type { PlatformPage } from "../PlatformExamples";
  * The seam between the docs pages and Zen Studio (the canvas tool). The docs files (PlatformExamples, PlatformCode,
  * PlatformShowcases) import only this module, never the Studio UI, so the import graph stays acyclic and the classic
  * platform renders exactly as before when no StudioBridgeContext is provided (?ui=classic, Playwright, the QA gate).
+ * One exception: PlatformCode renders the Studio's code view (code/CodeView, a leaf) in the classic docs too.
  */
 
 /** A component page as ExamplePage hands it to the Studio: the Studio lays it out as canvas frames. */

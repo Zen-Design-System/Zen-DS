@@ -402,7 +402,6 @@ function InsetRow({ prop, value, ladder, api, name }: { prop: string; value: Pro
       label={label}
       labelTitle={`${label} offset · ${prop}`}
       isDefault={value.state === "unset"}
-      action={written && !api.disabled ? <IconButton icon="icon-reverse-left-line" aria-label={`Reset ${label.toLowerCase()} offset to none`} appearance="flat" level="primary" size="xs" onClick={() => api.removeProp(prop)} /> : null}
       hint={readOnly ? `Set in the code (${value.state === "bound" ? `{${value.expression}}` : value.via})` : undefined}
     >
       <SelectField

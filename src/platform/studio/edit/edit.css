@@ -87,7 +87,7 @@
 .studio-layers__tree[data-dropping] { position: relative; }
 .studio-layers-drop { position: absolute; z-index: 2; top: 0; left: 0; box-sizing: border-box; pointer-events: none; }
 .studio-layers-drop:is([data-mode="before"], [data-mode="after"]) { height: 2px; border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-border-info-solid-default); }
-.studio-layers-drop[data-mode="into"] { border-radius: var(--zen-corner-radius-small, 6px); box-shadow: inset 0 0 0 2px var(--zen-color-border-info-solid-default); }
+.studio-layers-drop[data-mode="into"] { border-radius: var(--zen-corner-radius-base, 12px); box-shadow: inset 0 0 0 2px var(--zen-color-border-info-solid-default); }
 .studio-layers-drop[data-mode="refused"] {
   padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px);
   border-radius: var(--zen-corner-radius-xsmall, 4px);

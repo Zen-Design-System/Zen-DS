@@ -409,6 +409,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [listBoxTheme, setListBoxTheme] = useState<ListBoxTheme>("flat");
   const [tableSelectable, setTableSelectable] = useState(true);
   const [tableSelected, setTableSelected] = useState<string[]>(["zen-web"]);
+  const [tableBulk, setTableBulk] = useState(true);
   const [tableSort, setTableSort] = useState<TableSort | null>({ columnId: "name", direction: "asc" });
   const [tableEmpty, setTableEmpty] = useState(false);
   const [ratingType, setRatingType] = useState<string | undefined>("star");
@@ -2031,10 +2032,19 @@ ${code}`} />
         <PlaygroundControls aria-label="Table playground controls">
           <PlaygroundFilterChip label="Mode" value={tableMode} onChange={(value) => setTableMode(String(value) || undefined)} options={[{ id: "display", label: "display" }, { id: "editable", label: "editable" }]} />
           <PlaygroundToggle label="Selectable" selected={tableSelectable} onChange={setTableSelectable} />
+          {tableSelectable ? <PlaygroundToggle label="Bulk Actions" selected={tableBulk} onChange={setTableBulk} /> : null}
           <PlaygroundToggle label="Empty" selected={tableEmpty} onChange={setTableEmpty} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-table-preview">
           <Table aria-label="Projects" rows={rows} getRowId={(row) => row.id} selectable={tableSelectable} selectedIds={tableSelected} onSelectionChange={setTableSelected} sort={tableSort} onSortChange={setTableSort}
+            bulkActions={tableBulk ? (ids) => {
+              const count = `${ids.length} ${ids.length === 1 ? "project" : "projects"}`;
+              return [
+                { id: "export", group: "Share", icon: "icon-download-01-line", label: `Export ${count}`, onClick: () => logAction(`Export ${count}`) },
+                { id: "links", group: "Share", icon: "icon-link-01-line", label: `Copy links to ${count}`, onClick: () => logAction(`Copy links to ${count}`) },
+                { id: "archive", group: "Manage", icon: "icon-archive-line", label: `Archive ${count}`, onClick: () => logAction(`Archive ${count}`) },
+              ];
+            } : undefined}
             empty={<EmptyState title="No projects yet" illustration={false} primaryAction={{ label: "Create project", onClick: () => logAction("Create project", "primaryAction.onClick") }}>Projects you create show up here.</EmptyState>}
             columns={[
               { id: "name", header: "Project", sortable: true, width: "34%", cell: (row) => <TableMedia bold media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia> },
@@ -2053,7 +2063,12 @@ ${code}`} />
   getRowId={(row) => row.id}${tableSelectable ? `
   selectable
   selectedIds={selected}
-  onSelectionChange={setSelected}` : ""}
+  onSelectionChange={setSelected}` : ""}${tableSelectable && tableBulk ? `
+  bulkActions={(ids) => [
+    { id: "export", group: "Share", icon: "icon-download-01-line", label: \`Export \${ids.length} projects\`, onClick: () => exportProjects(ids) },
+    { id: "links", group: "Share", icon: "icon-link-01-line", label: \`Copy links to \${ids.length} projects\`, onClick: () => copyLinks(ids) },
+    { id: "archive", group: "Manage", icon: "icon-archive-line", label: \`Archive \${ids.length} projects\`, onClick: () => archive(ids) },
+  ]}` : ""}
   sort={sort}
   onSortChange={setSort}
   empty={<EmptyState title="No projects yet" illustration={false} />}

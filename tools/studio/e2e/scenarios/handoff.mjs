@@ -4,7 +4,7 @@ import fs from "node:fs";
 import { unzipFiles } from "../../zip.mjs";
 import path from "node:path";
 import { pagesDirOf, promoteDirOf } from "../lib/server.mjs";
-import { showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { openStudioSpace, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, focusScreen, newPage, pageText, selectStack } from "./builder.mjs";
 
 /** A phone page with every kind of frame the HTML export writes: a screen, its state variant, an overlay; a photo, a form. */
@@ -45,6 +45,7 @@ export default function Page() {
 async function importHtmlPage(page) {
   const id = `html-check-${Date.now().toString(36)}`;
   await showLeftTab(page, "pages");
+  await openStudioSpace(page);
   await page.locator('[data-e2e="import-pages"]').setInputFiles({ name: `${id}.zen.tsx`, mimeType: "text/plain", buffer: Buffer.from(HTML_PAGE, "utf8") });
   await until(async () => decodeURIComponent(page.url()).includes(`page=local:${id}`), { timeout: 10_000, message: "the imported page opened" });
   await page.locator('[data-studio-frame="overlay:invite"]').waitFor({ state: "attached", timeout: 10_000 });
@@ -269,6 +270,7 @@ export const rows = [
       // Another browser (a fresh one): Import the zip, the page comes with its photo.
       const fresh = await ctx.studio({ fresh: true });
       await showLeftTab(fresh.page, "pages");
+      await openStudioSpace(fresh.page);
       await fresh.page.locator('[data-e2e="import-pages"]').setInputFiles(zipPath);
       // The dev server's pages folder already holds the page (it syncs every browser): the copy gets an id of its own.
       const copy = await until(async () => /page=local:([a-z0-9-]+)/.exec(decodeURIComponent(fresh.page.url()))?.[1] ?? null, { timeout: 10_000, message: "the imported page opened" });
@@ -302,6 +304,7 @@ export const rows = [
       const id = `missing-photo-${Date.now().toString(36)}`;
       const text = HTML_PAGE.replace("HTML check", "Missing photo check").replace('src="zen-media:site-cafe"', 'src="zen-asset:gone-0badc0de.png"');
       await showLeftTab(page, "pages");
+      await openStudioSpace(page);
       await page.locator('[data-e2e="import-pages"]').setInputFiles({ name: `${id}.zen.tsx`, mimeType: "text/plain", buffer: Buffer.from(text, "utf8") });
       await until(async () => decodeURIComponent(page.url()).includes(`page=local:${id}`), { timeout: 10_000, message: "the imported page opened" });
       await until(async () => /Missing photo: gone-0badc0de\.png/.test(await statusText(page)), { timeout: 10_000, message: "the missing photo named" });

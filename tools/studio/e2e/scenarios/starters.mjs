@@ -1,6 +1,6 @@
 // Starter rows (Studio builder GĐ3b, spec docs/research/studio-builder-starters-spec-2026-10-07.md): a builder page made
 // from what an example or template frame shows ("New page from this frame"), kept in the browser and editable.
-import { focusFrame, showLeftTab, sleep, until } from "../lib/studio.mjs";
+import { focusFrame, openStudioSpace, showLeftTab, sleep, until } from "../lib/studio.mjs";
 import { clickNamed, pageText } from "./builder.mjs";
 import { pickOption, waitSeed } from "./inspector.mjs";
 
@@ -78,11 +78,11 @@ export const rows = [
       const { page, errors } = await ctx.studio({ fresh: true });
       await showLeftTab(page, "pages");
       const from = page.url();
-      await page.getByRole("button", { name: "New page", exact: true }).click();
+      await openStudioSpace(page);
+    await page.locator("#studio-left").getByRole("button", { name: "New page", exact: true }).click();
       const dialog = page.getByRole("dialog", { name: "New page" });
       await dialog.waitFor({ state: "visible", timeout: 5000 });
-      await dialog.getByLabel("Start from").first().click();
-      await page.getByRole("option", { name: /^Sign in/ }).click();
+      await dialog.getByRole("radio", { name: /^Sign in/ }).check({ force: true });
       const before = errors.length;
       await dialog.getByRole("button", { name: "Create page" }).click();
       await until(async () => page.url() !== from && /page=local%3A/.test(page.url()), { timeout: 20_000, message: "the new page opened" });

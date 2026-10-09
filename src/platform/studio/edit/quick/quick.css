@@ -24,7 +24,8 @@
   align-items: center;
   gap: var(--zen-spacing-gap-small, 12px);
   padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px);
-  border-radius: var(--zen-corner-radius-small, 8px);
+  /* A list row, like the Zen Sidebar item: Corner-Radius/Base (an input's corner too). */
+  border-radius: var(--zen-corner-radius-base, 12px);
   color: var(--zen-color-content-neutral-strongest);
   cursor: pointer;
 }

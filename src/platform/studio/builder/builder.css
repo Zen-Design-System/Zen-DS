@@ -2,7 +2,7 @@
 .studio-builder-board { display: grid; grid-template-areas: none; grid-template-columns: max-content; grid-template-rows: none; }
 /* zen-allow-raw-spacing: canvas coordinates — frames sit 96 apart, room for their labels when zoomed out (as the board's 128). */
 .studio-builder-board__frames { display: flex; align-items: flex-start; gap: 96px; }
-.studio-builder-board__errors { display: flex; max-width: 720px; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
+.studio-builder-board__errors { display: flex; max-width: 720px; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
 
 /* A Screen is a page: the Canvas layer, at least a device's height. */
 .studio-builder-screen { display: flow-root; min-height: 900px; border-radius: inherit; background: var(--zen-color-background-canvas-default); color: var(--zen-color-content-neutral-strongest); }
@@ -60,3 +60,58 @@
 
 /* Export (GĐ5): a side panel wide enough to read the code. */
 .studio-export { --zen-side-panel-width: 760px; }
+
+/* New page (NewPageDialog): Start from and Device are radio groups of cards. */
+/* The size ModalForm calls Big (960): room for a grid of thumbnails. */
+.zen-dialog.studio-new-page { width: min(960px, 100%); }
+.studio-new-page .zen-dialog__custom { display: grid; min-width: 0; gap: var(--zen-spacing-gap-large, 24px); }
+.studio-new-page__group { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; border: 0; }
+.studio-new-page__legend { margin-bottom: var(--zen-spacing-gap-xsmall, 8px); padding: 0; }
+.studio-new-page__templates { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
+.studio-new-page__devices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
+@media (max-width: 600px) { .studio-new-page__devices { grid-template-columns: minmax(0, 1fr); } }
+
+.studio-choice { position: relative; display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-xlarge, 20px); background: var(--zen-color-background-surface-default); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default); cursor: pointer; }
+.studio-choice:hover { background: var(--zen-color-background-neutral-flat-hover); }
+.studio-choice[data-checked="true"] { box-shadow: inset 0 0 0 2px var(--zen-color-border-accent-solid-default); }
+/* The native radio stays in the tab order and the arrow keys; the card shows its focus. */
+.studio-choice__input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; opacity: 0; }
+.studio-choice:has(.studio-choice__input:focus-visible) { outline: 2px solid var(--zen-color-focus-neutral-solid); outline-offset: 2px; }
+.studio-choice__text { display: grid; min-width: 0; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-inline: var(--zen-spacing-padding-2-xsmall, 4px); }
+.studio-choice__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Blank page: a placeholder card in the thumbnails' shape. */
+.studio-choice__blank { display: flex; aspect-ratio: 16 / 10; align-items: center; justify-content: center; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-pale-default); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); color: var(--zen-color-content-neutral-base); }
+
+/* A template thumbnail: the screen at its own width, scaled into the card (TemplateThumb). */
+.studio-thumb { position: relative; aspect-ratio: 16 / 10; overflow: hidden; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-pale-default); pointer-events: none; }
+.studio-thumb__screen { position: absolute; top: 0; left: 0; overflow: hidden; transform-origin: top left; background: var(--zen-color-background-canvas-default); }
+
+/* Device: the device outline in its proportions, inside a fixed-height stage. */
+.studio-choice--device { justify-items: stretch; }
+.studio-choice__device { display: block; height: 72px; justify-self: center; box-sizing: border-box; aspect-ratio: 16 / 10; margin-block: var(--zen-spacing-padding-xsmall, 8px); border: 2px solid var(--zen-color-border-neutral-solid-default); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-neutral-pale-default); }
+.studio-choice__device[data-device="phone"] { aspect-ratio: 9 / 19.5; border-radius: var(--zen-corner-radius-base, 12px); }
+.studio-choice__device[data-device="tablet"] { aspect-ratio: 3 / 4; }
+.studio-choice[data-checked="true"] .studio-choice__device { border-color: var(--zen-color-border-accent-solid-default); }
+
+/* Studio space: folders (StudioFolders) and the home of the space with no page open (StudioHome). */
+.studio-pages__item[data-actions="2"] > .studio-pages__row { padding-inline-end: calc(var(--zen-spacing-padding-xsmall, 8px) + 2 * var(--zen-icon-size-md, 20px) + 2 * var(--zen-spacing-gap-2-xsmall, 4px)); }
+.studio-pages__actions { gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-folders { margin-top: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-folder { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-folder__row > .studio-pages__name { flex: 1 1 auto; }
+.studio-folder__count { flex: none; }
+/* A folder's pages sit under its name: indented past the chevron. */
+.studio-pages__row[data-child="true"] { padding-inline-start: calc(var(--zen-spacing-padding-xsmall, 8px) + var(--zen-icon-size-sm, 16px) + var(--zen-spacing-gap-xsmall, 8px)); }
+.studio-folder__empty { margin: 0; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-2-xsmall, 4px) calc(var(--zen-spacing-padding-xsmall, 8px) + var(--zen-icon-size-sm, 16px) + var(--zen-spacing-gap-xsmall, 8px)); }
+/* It sits on the canvas area's own Canvas background. */
+.studio-home { display: flex; height: 100%; min-height: 0; box-sizing: border-box; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px); }
+.studio-home > .zen-empty-state { max-width: 480px; }
+
+/* "Folders" + the storage info (MyPagesHeader): an info icon with a tooltip, as an Input label's labelTooltip. */
+.studio-pages__kicker--info { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-pages__info { position: relative; display: inline-flex; width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); flex: 0 0 auto; padding: 0; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: none; color: var(--zen-color-content-neutral-light); cursor: help; font: inherit; }
+.studio-pages__info > .zen-icon { width: 100%; height: 100%; }
+.studio-pages__info:focus-visible { outline: 3px solid var(--zen-color-focus-neutral-subtle); outline-offset: 0; }
+/* A 24px hit area around the 12px icon. */
+.studio-pages__info::after { position: absolute; top: 50%; left: 50%; width: 24px; height: 24px; content: ""; transform: translate(-50%, -50%); }

@@ -765,13 +765,12 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
   const editor = spec.editor;
   // A literal shown without an editor (readonly kinds, a number in a text prop) has no reset: it can't be set back.
   const shownOnly = editor.kind === "readonly" || ((editor.kind === "string" || editor.kind === "node") && literal !== undefined && typeof literal !== "string" && !(editor.kind === "string" && editor.numeric));
-  // Unset: the control shows the effective default in the lighter tone; the slot stays empty (fixed width). A fixed value
-  // that replaced a saved binding resets to that binding instead.
-  const action = restoreAction ?? (value.state === "literal" && !disabled && !shownOnly && resettable
-    ? <IconButton icon="icon-reverse-left-line" aria-label={`Reset ${inSentence(label)} to default`} appearance="flat" level="primary" size="xs" onClick={onReset} />
-    : starter && onAddObject
-      ? <IconButton icon="icon-plus-line" aria-label={`Add ${inSentence(label)}`} tooltip={`Add ${inSentence(label)}: ${starter}`} appearance="flat" level="primary" size="xs" onClick={() => onAddObject(starter)} />
-      : null);
+  // Unset: the control shows the effective default in the lighter tone. No per-field reset (user, 2026-10-09): a control
+  // goes back to its default from inside it ("Default" / "None", Backspace) or with Reset all overrides. A fixed value
+  // that replaced a saved binding keeps its Restore; an object prop with a starter keeps its Add (real actions).
+  const action = restoreAction ?? (starter && onAddObject
+    ? <IconButton icon="icon-plus-line" aria-label={`Add ${inSentence(label)}`} tooltip={`Add ${inSentence(label)}: ${starter}`} appearance="flat" level="primary" size="xs" onClick={() => onAddObject(starter)} />
+    : null);
   const common = { label, disabled: locked };
   if (editor.kind === "truncate" && !(viaSpread && value.live !== undefined && !isLiteral(value.live))) {
     // Figma's Truncate text + Max lines: true is one line, a number that many (Text keeps it ≥ 1); off shows it all.

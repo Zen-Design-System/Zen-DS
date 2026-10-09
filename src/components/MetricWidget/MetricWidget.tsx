@@ -54,7 +54,7 @@ export interface MetricProps {
   variant?: "icon-highlight" | "title-highlight";
   /** Title-Highlight, XLarge–Medium: the title row's action (Figma Button/Icon-Main XSmall Tertiary, e.g. a chevron that opens the breakdown). */
   action?: ReactNode;
-  /** Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below. */
+  /** Dock-Icon size (Figma instance swap): Medium 40 or Large 48. Default: Large at XLarge/Large, Medium below. */
   iconSize?: "md" | "lg" | "medium" | "large";
   /**
    * Title-Highlight: Figma Custom-Slot (Custom=Yes, added 2026-10-07): your own content under the contents — a sparkline,

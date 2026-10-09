@@ -481,3 +481,5 @@ textarea.zen-heading-field__native { resize: none; overflow: hidden; }
 /* Hit area ≥ 24×24 (WCAG 2.5.8) around the Figma-sized glyph: an invisible, centred layer; the visual size is unchanged. */
 .zen-input-label__action :is(a, button), button.zen-input-label__tooltip { position: relative; }
 .zen-input-label__action :is(a, button)::after, button.zen-input-label__tooltip::after { position: absolute; top: 50%; left: 50%; width: max(100%, 24px); height: max(100%, 24px); content: ""; transform: translate(-50%, -50%); }
+/* Select on mobile: an option that can't be picked, in the Bottom Sheet's List (not clickable, Content/Disabled). */
+.zen-select__sheet-option--disabled .zen-list-item__title { color: var(--zen-color-content-disabled, #00000045); }

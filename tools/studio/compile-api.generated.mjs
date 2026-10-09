@@ -60,6 +60,9 @@ export const REQUIRED_FUNCTIONS = {
     "fields": {
       "columns": {
         "cell": "(row: T, index: number) => ReactNode"
+      },
+      "bulkActions": {
+        "onClick": "() => void"
       }
     }
   },

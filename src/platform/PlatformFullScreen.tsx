@@ -126,19 +126,23 @@ export function FullScreenBar({ title, onExit, exitRef, hold = false, panel, chi
   }, [hold]);
 
   return (
-    <div ref={barRef} className="platform-fullscreen-bar" role="group" aria-label="Full screen controls" data-shown={shown ? "true" : "false"} onFocus={() => setShown(true)}>
+    // The dock holds the panel beside the pill, not inside it: the pill's backdrop-filter would make it the panel's
+    // backdrop root, and the panel's own blur would then miss the screen behind (its text read through it).
+    <div className="platform-fullscreen-dock">
       {panel}
-      {title && !phone ? (
-        <>
-          <Text as="span" textStyle="Body/Small/Medium" tone="base" className="platform-fullscreen-bar__title" title={title}>{title}</Text>
-          <FullScreenBarDivider />
-        </>
-      ) : null}
-      {children ? <>{children}<FullScreenBarDivider /></> : null}
-      <Button ref={exitRef} appearance="main" level="tertiary" size="sm" aria-label="Exit full screen" aria-keyshortcuts="Escape" startIcon={<Icon name="icon-minimize-01-line" decorative />} onClick={onExit}>
-        Exit
-        {phone ? null : <kbd className="platform-fullscreen-bar__key" aria-hidden="true">Esc</kbd>}
-      </Button>
+      <div ref={barRef} className="platform-fullscreen-bar" role="group" aria-label="Full screen controls" data-shown={shown ? "true" : "false"} onFocus={() => setShown(true)}>
+        {title && !phone ? (
+          <>
+            <Text as="span" textStyle="Body/Small/Medium" tone="base" className="platform-fullscreen-bar__title" title={title}>{title}</Text>
+            <FullScreenBarDivider />
+          </>
+        ) : null}
+        {children ? <>{children}<FullScreenBarDivider /></> : null}
+        <Button ref={exitRef} appearance="main" level="tertiary" size="sm" aria-label="Exit full screen" aria-keyshortcuts="Escape" startIcon={<Icon name="icon-minimize-01-line" decorative />} onClick={onExit}>
+          Exit
+          {phone ? null : <kbd className="platform-fullscreen-bar__key" aria-hidden="true">Esc</kbd>}
+        </Button>
+      </div>
     </div>
   );
 }

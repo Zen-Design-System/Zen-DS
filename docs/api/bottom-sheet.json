@@ -167,7 +167,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Render inside the nearest positioned ancestor instead of the viewport (device previews, embedded demos).",
+          "description": "Render inside the nearest positioned ancestor instead of the viewport (embedded demos). Not needed in a device frame\n (`[data-zen-overlay-root]`, e.g. a phone preview): a sheet opened there renders in that frame by itself.",
           "deprecated": null
         },
         {

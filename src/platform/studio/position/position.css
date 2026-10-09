@@ -23,7 +23,7 @@
 .studio-position__selects { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
 
 /* The diagram (72 × 72, the two sm selects and their gap): the parent's frame, the layer's square, arms and centre ticks. */
-.studio-constraints { position: relative; width: 72px; height: 72px; box-sizing: border-box; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-surface-default); }
+.studio-constraints { position: relative; width: 72px; height: 72px; box-sizing: border-box; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default); }
 .studio-constraints__inner { position: absolute; top: 23px; left: 23px; box-sizing: border-box; width: 24px; height: 24px; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-background-neutral-pale-default); }
 .studio-constraints__hit { position: absolute; display: flex; padding: 0; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--zen-color-content-placeholder); cursor: pointer; }
 .studio-constraints__hit:hover:not(:disabled) { color: var(--zen-color-content-neutral-base); }
@@ -50,5 +50,5 @@
 .studio-position__note-row { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-position__note-row > .zen-button { flex: 0 0 auto; }
 .studio-position__note { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; color: var(--zen-color-content-neutral-base); }
-.studio-position__note[data-tone="warning"] { padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
+.studio-position__note[data-tone="warning"] { padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
 .studio-position__note > .zen-icon { flex: 0 0 auto; }

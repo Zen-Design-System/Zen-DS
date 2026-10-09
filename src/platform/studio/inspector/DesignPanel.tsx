@@ -211,7 +211,6 @@ function TextSection({ kind, name, element, specs, api, rendered, send, relevant
       key={`${key}-${index}`}
       name={index === 0 ? "textStyle" : undefined}
       label={keys.length > 1 ? `Style ${index + 1}` : "Style"}
-      action={index === 0 && !api.disabled ? <IconButton icon="icon-reverse-left-line" aria-label="Remove the text style (inherit it)" appearance="flat" level="primary" size="xs" onClick={remove} /> : null}
     >
       <TypographyControl
         label={keys.length > 1 ? `Text style ${index + 1}` : "Text style"}

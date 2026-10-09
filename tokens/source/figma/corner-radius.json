@@ -4,7 +4,8 @@
       "Rounded",
       "Smooth",
       "Standard",
-      "Luxury"
+      "Luxury",
+      "Studio"
     ],
     "tokens": [
       {
@@ -14,7 +15,8 @@
           "Rounded": "{dm-12}",
           "Smooth": "{dm-12}",
           "Standard": "{dm-8}",
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": "{dm-8}"
         }
       },
       {
@@ -24,7 +26,8 @@
           "Rounded": "{dm-16}",
           "Smooth": "{dm-16}",
           "Standard": "{dm-12}",
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": "{dm-12}"
         }
       },
       {
@@ -34,7 +37,8 @@
           "Rounded": "{dm-36}",
           "Smooth": "{dm-36}",
           "Standard": "{dm-32}",
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": "{dm-32}"
         }
       },
       {
@@ -44,7 +48,8 @@
           "Rounded": "{dm-20}",
           "Smooth": "{dm-20}",
           "Standard": "{dm-16}",
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": "{dm-16}"
         }
       },
       {
@@ -54,7 +59,8 @@
           "Rounded": "{dm-8}",
           "Smooth": "{dm-8}",
           "Standard": "{dm-4}",
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": 6
         }
       },
       {
@@ -64,7 +70,8 @@
           "Rounded": 1000,
           "Smooth": "{dm-16}",
           "Standard": "{dm-12}",
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": 1000
         }
       },
       {
@@ -74,7 +81,8 @@
           "Rounded": 1000,
           "Smooth": 1000,
           "Standard": 1000,
-          "Luxury": 1000
+          "Luxury": 1000,
+          "Studio": 1000
         }
       },
       {
@@ -84,7 +92,8 @@
           "Rounded": "{dm-4}",
           "Smooth": "{dm-4}",
           "Standard": "{dm-2}",
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": "{dm-4}"
         }
       },
       {
@@ -94,7 +103,8 @@
           "Rounded": 1000,
           "Smooth": "{dm-12}",
           "Standard": "{dm-8}",
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": 1000
         }
       },
       {
@@ -104,7 +114,8 @@
           "Rounded": 1000,
           "Smooth": "{dm-12}",
           "Standard": "{dm-8}",
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": 1000
         }
       },
       {
@@ -114,7 +125,8 @@
           "Rounded": 1000,
           "Smooth": 1000,
           "Standard": 1000,
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": 1000
         }
       },
       {
@@ -124,7 +136,8 @@
           "Rounded": 1000,
           "Smooth": "{dm-16}",
           "Standard": "{dm-12}",
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": 1000
         }
       },
       {
@@ -134,7 +147,8 @@
           "Rounded": "{dm-28}",
           "Smooth": "{dm-28}",
           "Standard": "{dm-24}",
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": "{dm-24}"
         }
       },
       {
@@ -144,7 +158,8 @@
           "Rounded": "{dm-24}",
           "Smooth": "{dm-24}",
           "Standard": "{dm-20}",
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": "{dm-20}"
         }
       },
       {
@@ -154,7 +169,8 @@
           "Rounded": 1000,
           "Smooth": 22,
           "Standard": 18,
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": 1000
         }
       },
       {
@@ -164,7 +180,8 @@
           "Rounded": 1000,
           "Smooth": 22,
           "Standard": 18,
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": 1000
         }
       },
       {
@@ -174,7 +191,8 @@
           "Rounded": 1000,
           "Smooth": 18,
           "Standard": 14,
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": 1000
         }
       },
       {
@@ -184,7 +202,8 @@
           "Rounded": 1000,
           "Smooth": 18,
           "Standard": 14,
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": 1000
         }
       },
       {
@@ -194,7 +213,8 @@
           "Rounded": 1000,
           "Smooth": 1000,
           "Standard": 1000,
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": 1000
         }
       },
       {
@@ -204,7 +224,8 @@
           "Rounded": "{dm-2}",
           "Smooth": "{dm-2}",
           "Standard": 1,
-          "Luxury": 1
+          "Luxury": 1,
+          "Studio": "{dm-2}"
         }
       },
       {
@@ -214,7 +235,8 @@
           "Rounded": "{dm-16}",
           "Smooth": "{dm-16}",
           "Standard": "{dm-12}",
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": "{dm-12}"
         }
       },
       {
@@ -224,7 +246,8 @@
           "Rounded": "{dm-16}",
           "Smooth": "{dm-16}",
           "Standard": "{dm-12}",
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": "{dm-12}"
         }
       },
       {
@@ -234,7 +257,8 @@
           "Rounded": "{dm-12}",
           "Smooth": "{dm-12}",
           "Standard": "{dm-8}",
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": "{dm-8}"
         }
       },
       {
@@ -244,7 +268,8 @@
           "Rounded": "{dm-12}",
           "Smooth": "{dm-12}",
           "Standard": "{dm-8}",
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": "{dm-8}"
         }
       },
       {
@@ -254,7 +279,8 @@
           "Rounded": "{dm-32}",
           "Smooth": "{dm-32}",
           "Standard": "{dm-28}",
-          "Luxury": "{dm-2}"
+          "Luxury": "{dm-2}",
+          "Studio": "{dm-28}"
         }
       }
     ]

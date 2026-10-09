@@ -15,7 +15,8 @@
   gap: var(--zen-spacing-gap-xsmall, 8px);
   padding: 0 var(--zen-spacing-padding-xsmall, 8px);
   border: 0;
-  border-radius: var(--zen-corner-radius-small, 8px);
+  /* A list row, like the Zen Sidebar item: Corner-Radius/Base (an input's corner too). */
+  border-radius: var(--zen-corner-radius-base, 12px);
   background: transparent;
   color: var(--zen-color-content-neutral-strongest);
   cursor: grab;
@@ -63,4 +64,4 @@ body[data-studio-asset-drag] * { cursor: grabbing !important; }
 /* Assets › Photos (GĐ5 M4): your uploads above the library; files dragged over the panel show where they go. */
 .studio-assets__label { min-width: 0; flex: 1 1 auto; margin: 0; padding-inline: var(--zen-spacing-padding-2-xsmall, 4px); color: var(--zen-color-content-neutral-base); }
 .studio-assets__hint { margin: 0; padding: 0 var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px); }
-.studio-assets__scroll[data-dropping="true"] { border-radius: var(--zen-corner-radius-medium, 8px); box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid); }
+.studio-assets__scroll[data-dropping="true"] { border-radius: var(--zen-corner-radius-large, 16px); box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid); }

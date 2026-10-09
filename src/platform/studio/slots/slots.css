@@ -4,7 +4,7 @@
 /* ── Inspector: one block per slot (name · Modified · caption · add · more), its layers as compact rows ── */
 .studio-slots__slots { display: grid; min-width: 0; gap: var(--zen-spacing-gap-small, 12px); }
 .studio-slots__slot { display: grid; min-width: 0; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
-.studio-slots__slot[data-flash="true"] { border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-info-subtle-default); box-shadow: 0 0 0 var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-color-background-info-subtle-default); }
+.studio-slots__slot[data-flash="true"] { border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-info-subtle-default); box-shadow: 0 0 0 var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-color-background-info-subtle-default); }
 .studio-slots__slot { transition: background-color var(--zen-motion-duration-base) var(--zen-motion-ease-standard), box-shadow var(--zen-motion-duration-base) var(--zen-motion-ease-standard); }
 /* The head is one xs-button tall, so a slot with and without its add button lines up. */
 .studio-slots__head { display: flex; min-width: 0; min-height: var(--zen-button-size-xsmall, 24px); align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
@@ -37,7 +37,7 @@
 .studio-slots__item-wrap[data-drop]::after { position: absolute; right: 0; left: 0; content: ""; pointer-events: none; }
 .studio-slots__item-wrap[data-drop="before"]::after { top: -1px; height: 2px; border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-border-info-solid-default); }
 .studio-slots__item-wrap[data-drop="after"]::after { bottom: -1px; height: 2px; border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-border-info-solid-default); }
-.studio-slots__item-wrap[data-drop="onto"]::after { top: 0; bottom: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); box-shadow: inset 0 0 0 1px var(--zen-color-border-info-solid-default); }
+.studio-slots__item-wrap[data-drop="onto"]::after { top: 0; bottom: 0; border-radius: var(--zen-corner-radius-base, 12px); box-shadow: inset 0 0 0 1px var(--zen-color-border-info-solid-default); }
 .studio-slots__item-wrap[data-item-index] > .studio-inspector__item { touch-action: none; }
 /* A read-only row (a `.map` row): why, under its name. */
 .studio-slots__item-wrap[data-reason] { flex-wrap: wrap; }

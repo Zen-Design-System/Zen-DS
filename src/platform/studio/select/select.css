@@ -162,7 +162,8 @@
   gap: var(--zen-spacing-gap-2-xsmall, 4px);
   padding-right: var(--zen-spacing-padding-xsmall, 8px);
   padding-left: calc(var(--zen-spacing-padding-2-xsmall, 4px) + var(--studio-depth, 0) * var(--zen-spacing-padding-small, 12px));
-  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  /* A list row, like the Zen Sidebar item: Corner-Radius/Base (an input's corner too). */
+  border-radius: var(--zen-corner-radius-base, 12px);
   color: var(--zen-color-content-neutral-strongest);
   cursor: default;
   user-select: none;

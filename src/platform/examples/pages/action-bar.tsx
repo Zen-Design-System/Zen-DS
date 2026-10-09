@@ -127,7 +127,7 @@ function PhoneRewardsExample() {
       {/* The compact bar names the reward (the screen's h1); the price is a value of the reward, so it is a row below. */}
       <Stack padding="lg" gap="lg">
         <Stack gap="md" align="center" justify="center">
-          <DockIcon icon={reward.icon} theme={reward.theme} background="subtle" size="xl" />
+          <DockIcon icon={reward.icon} theme={reward.theme} background="subtle" size="2xl" />
           <Text tone="base" align="center">{reward.about}</Text>
         </Stack>
         <DescriptionList divider items={[

@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type HTMLAttributes, type KeyboardEvent, type ReactElement, type ReactNode, type Ref, type RefObject } from "react";
+import { Fragment, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type HTMLAttributes, type KeyboardEvent, type ReactElement, type ReactNode, type Ref, type RefObject } from "react";
 import { ZenPortal } from "../Portal";
 import { Badge } from "../Badge";
-import { Button } from "../Button";
+import { Button, IconButton } from "../Button";
 import { Checkbox } from "../Checkbox";
-import { Popover } from "../Popover";
+import { Menu, type MenuEntry } from "../Menu";
+import { Popover, PopoverBulkAction, PopoverBulkActionDivider, PopoverBulkActionGroup } from "../Popover";
 import { Tag } from "../Tag";
 import { Icon, type IconName } from "../Icon";
 import { VisuallyHidden } from "../VisuallyHidden";
@@ -11,6 +12,7 @@ import { renderIcon } from "../_shared/icon";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./table.css";
+import "../Motion/motion.css";
 import "../Icon/core";
 
 export type TableAlign = "left" | "right";
@@ -59,6 +61,20 @@ export type TableCellEditor<T> =
   | (TableEditorBase<T> & { type: "select"; value: (row: T) => string; options: Array<{ value: string; label: ReactNode }>; onCommit: (row: T, value: string) => void })
   | (Omit<TableEditorBase<T>, "validate"> & { type: "tags"; value: (row: T) => string[]; onCommit: (row: T, value: string[]) => void; suggestions?: string[] });
 
+/** One action of a Table's bulk-action bar (`bulkActions`). */
+export interface TableBulkAction {
+  /** Stable id: the React key and the More menu item's id. */
+  id: string;
+  /** Icon name or element: the icon-only button in the bar, the item's icon in the More menu. */
+  icon: IconName | ReactElement;
+  /** The action and how many rows it touches ("Archive 3 projects"): the button's aria-label and tooltip, the menu item's text. */
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  /** Names a group (e.g. "Payment"): consecutive actions of one group sit together, a divider separates groups. */
+  group?: string;
+}
+
 /**
  * Standard HTML attributes (`id`, `data-*`, `style`…) go to the root element; `aria-labelledby` and
  * `aria-describedby` name and describe the `<table>` itself, like `aria-label`.
@@ -82,6 +98,16 @@ export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, "chi
   selectable?: boolean;
   selectedIds?: string[];
   onSelectionChange?: (ids: string[]) => void;
+  /**
+   * Actions for the selected rows (Figma Popover/Bulk-Action). With `selectable`, checking a row brings up the bar under
+   * the table — held at the bottom of the window while a long table scrolls past — with Clear selection, the count and
+   * these actions as icon-only Button/Icon-Flat Medium (at most 5; a divider between groups). Actions that don't fit the
+   * table's width (a phone) move, from the end, into a More button whose menu lists them with their labels. A function
+   * receives the selected ids. Escape in the bar clears the selection; when the bar leaves with the focus in it, Select
+   * all rows takes the focus. The bar sits outside the scroll box, so the table renders inside a `.zen-table-scope`
+   * wrapper; `ref`, `className` and the HTML attributes stay on the scroll box.
+   */
+  bulkActions?: TableBulkAction[] | ((selectedIds: string[]) => TableBulkAction[]);
   sort?: TableSort | null;
   onSortChange?: (sort: TableSort | null) => void;
   /** Rendered in a full-width row when `rows` is empty (e.g. an EmptyState). */
@@ -292,7 +318,7 @@ function TableCellEditorView<T>({ editor, row, initial, align, onDone, onMove }:
  * Table/Cell/Default (Table/Cell/Size; padding Small × Medium; gap XSmall; 1px bottom Border/Neutral/Pale).
  * Cells use Table-Cell/Background Default · Hover (row hover) · Selected (checked rows).
  */
-export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowIdProp, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, "aria-describedby": ariaDescribedBy, caption, selectable = false, selectedIds = [], onSelectionChange, sort, onSortChange, empty, onRowClick, className, ...rest }: TableProps<T>) {
+export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowIdProp, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, "aria-describedby": ariaDescribedBy, caption, selectable = false, selectedIds = [], onSelectionChange, bulkActions, sort, onSortChange, empty, onRowClick, className, ...rest }: TableProps<T>) {
   const t = useZenLabels();
   const rows = rowsProp ?? data ?? [];
   // Without getRowId: each row's `id` field, else its position (one lookup table per render, not a search per row).
@@ -345,11 +371,24 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
   const someChecked = !allChecked && ids.some((id) => selected.has(id));
   const toggleAll = () => onSelectionChange?.(allChecked ? selectedIds.filter((id) => !ids.includes(id)) : [...new Set([...selectedIds, ...ids])]);
   const toggle = (id: string) => onSelectionChange?.(selected.has(id) ? selectedIds.filter((x) => x !== id) : [...selectedIds, id]);
+  /* Bulk actions: the bar shows while rows are selected. It leaves with the selection, so when it held the focus (Clear,
+     Escape, or an action that clears the selection) Select all rows takes it, where the next selection starts. */
+  const hasBulk = selectable && Boolean(bulkActions);
+  const selectedCount = selectedIds.length;
+  const bulkFocus = useRef(false);
+  const focusSelectAll = () => requestAnimationFrame(() => rootRef.current?.querySelector<HTMLInputElement>("thead input[type=checkbox]")?.focus());
+  const clearSelection = () => { bulkFocus.current = false; onSelectionChange?.([]); focusSelectAll(); };
+  useEffect(() => {
+    if (selectedCount > 0 || !bulkFocus.current) return;
+    bulkFocus.current = false;
+    if (!document.activeElement || document.activeElement === document.body) focusSelectAll();
+    // focusSelectAll reads the ref only.
+  }, [selectedCount]);
   const nextSort = (columnId: string): TableSort | null => sort?.columnId !== columnId ? { columnId, direction: "asc" } : sort.direction === "asc" ? { columnId, direction: "desc" } : null;
   const span = columns.length + (selectable ? 1 : 0);
   // Figma FIXED/FILL model: once a column has a fixed width, the others fill and the table scrolls when it runs out of room.
   const fixedColumns = columns.some((column) => fixedWidth(column.width));
-  return (
+  const table = (
     <div {...rest} ref={setRoot} className={["zen-table", className].filter(Boolean).join(" ")} data-fixed-columns={fixedColumns ? "true" : undefined}>
       {editableCols.length ? <VisuallyHidden id={hintId}>{t.editableCellHint}</VisuallyHidden> : null}
       <table className="zen-table__table" aria-label={caption ? undefined : ariaLabel} aria-labelledby={ariaLabelledBy} aria-describedby={ariaDescribedBy}>
@@ -447,6 +486,118 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
           })}
         </tbody>
       </table>
+    </div>
+  );
+  if (!hasBulk) return table;
+  return (
+    <div className="zen-table-scope">
+      {table}
+      {selectedCount > 0 ? (
+        <TableBulkBar count={selectedCount} actions={typeof bulkActions === "function" ? bulkActions(selectedIds) : bulkActions ?? []} onClear={clearSelection}
+          onFocusInside={(inside) => { bulkFocus.current = inside; }} />
+      ) : null}
+    </div>
+  );
+}
+
+/** Consecutive actions that share a group, in order. */
+function groupActions(actions: TableBulkAction[]) {
+  const groups: { key: string; label?: string; actions: TableBulkAction[] }[] = [];
+  actions.forEach((action) => {
+    const last = groups[groups.length - 1];
+    if (last && last.label === action.group) last.actions.push(action);
+    else groups.push({ key: action.id, label: action.group, actions: [action] });
+  });
+  return groups;
+}
+
+/** How many actions fit in the dock's width, from a render that shows every action (one line, see table.css). */
+function fittingActions(dock: HTMLElement, bar: HTMLElement) {
+  const items = Array.from(bar.querySelectorAll<HTMLElement>("[data-bulk-action]"));
+  const lead = bar.querySelector<HTMLElement>("[data-bulk-lead]");
+  if (!items.length || !lead) return items.length;
+  const left = bar.getBoundingClientRect().left;
+  const right = (element: HTMLElement) => element.getBoundingClientRect().right - left;
+  const padding = Number.parseFloat(getComputedStyle(bar).paddingRight) || 0;
+  const gap = Number.parseFloat(getComputedStyle(bar.firstElementChild as HTMLElement).columnGap) || 0;
+  const available = dock.clientWidth;
+  if (right(items[items.length - 1]) + padding <= available) return items.length;
+  const more = items[0].getBoundingClientRect().width;
+  for (let shown = items.length - 1; shown > 0; shown -= 1) {
+    if (right(items[shown - 1]) + gap + more + padding <= available) return shown;
+  }
+  return 0;
+}
+
+/**
+ * The bulk-action bar: Clear selection, the count, then the actions. Actions that don't fit the dock's width move, from
+ * the end, into a More menu. It renders every action, measures (before paint) and keeps what fits; a width change of
+ * the dock measures again.
+ */
+function TableBulkBar({ count, actions, onClear, onFocusInside }: { count: number; actions: TableBulkAction[]; onClear: () => void; onFocusInside: (inside: boolean) => void }) {
+  const t = useZenLabels();
+  const dockRef = useRef<HTMLDivElement>(null);
+  // The count's text width changes with the count, so a new count measures again too.
+  const key = `${actions.length}:${count}`;
+  const [fit, setFit] = useState<{ key: string; shown: number } | null>(null);
+  const measured = fit !== null && fit.key === key;
+  const shown = measured ? fit.shown : actions.length;
+  useLayoutEffect(() => {
+    const bar = dockRef.current?.firstElementChild as HTMLElement | null | undefined;
+    if (measured || !dockRef.current || !bar) return;
+    setFit({ key, shown: fittingActions(dockRef.current, bar) });
+  });
+  // Measure again when the room changes (the dock's width) or the buttons do (density, size tokens): Clear selection is
+  // always there and sized like every action.
+  useEffect(() => {
+    const dock = dockRef.current;
+    const clear = dock?.querySelector<HTMLElement>("[data-bulk-clear]");
+    if (!dock || !clear) return undefined;
+    const sizes = () => `${dock.clientWidth}:${clear.offsetWidth}`;
+    let last = sizes();
+    const observer = new ResizeObserver(() => {
+      const next = sizes();
+      if (next === last) return;
+      last = next;
+      setFit(null);
+    });
+    observer.observe(dock);
+    // border-box: density changes the button's padding, not its content box (the icon).
+    observer.observe(clear, { box: "border-box" });
+    return () => observer.disconnect();
+  }, []);
+  const visible = groupActions(actions.slice(0, shown));
+  const overflow = actions.slice(shown);
+  const menuItems: MenuEntry[] = groupActions(overflow).flatMap((group, index) => [
+    ...(index ? [{ type: "separator" as const, id: `${group.key}-separator` }] : []),
+    ...group.actions.map((action) => ({ id: action.id, label: action.label, icon: action.icon, disabled: action.disabled, onSelect: action.onClick })),
+  ]);
+  return (
+    <div ref={dockRef} className="zen-table__bulk-dock">
+      <PopoverBulkAction className="zen-table__bulk" aria-label={t.selectedRowActions(count)}
+        // React events bubble out of the More menu's portal: the focus there still counts as inside the bar.
+        onFocus={() => onFocusInside(true)}
+        onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onFocusInside(false); }}
+        // Escape in the open More menu closes the menu only.
+        onKeyDown={(event) => { if (event.key === "Escape" && event.currentTarget.contains(event.target as Node)) { event.preventDefault(); onClear(); } }}>
+        <IconButton data-bulk-clear="" appearance="flat" level="primary" size="md" icon={<Icon name="icon-x-medium-line" />} aria-label={t.clearSelection} onClick={onClear} />
+        <span className={`zen-table__bulk-count ${typographyStyles["Body/Base/Medium"]}`} role="status">{t.rowsSelected(count)}</span>
+        <PopoverBulkActionDivider data-bulk-lead="" />
+        {visible.map((group, index) => (
+          <Fragment key={group.key}>
+            {index ? <PopoverBulkActionDivider /> : null}
+            <PopoverBulkActionGroup aria-label={group.label}>
+              {group.actions.map((action) => (
+                <IconButton key={action.id} data-bulk-action="" appearance="flat" level="primary" size="md" icon={action.icon} aria-label={action.label} disabled={action.disabled} onClick={action.onClick} />
+              ))}
+            </PopoverBulkActionGroup>
+          </Fragment>
+        ))}
+        {overflow.length ? (
+          <Menu align="end" items={menuItems}
+            trigger={<IconButton appearance="flat" level="primary" size="md" icon={<Icon name="icon-dots-horizontal-line" />} aria-label={t.moreActions} />} />
+        ) : null}
+      </PopoverBulkAction>
     </div>
   );
 }
