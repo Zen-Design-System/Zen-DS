@@ -41,22 +41,47 @@ export default function Page() {
 }
 `;
 
-/** Imports HTML_PAGE (Pages › Import) and opens it; returns its id. */
-async function importHtmlPage(page) {
+/** A desktop Screen with its app frame (a Sidebar beside, a Page header on top): HO-08. */
+const APP_PAGE = `// @zen-page {"format":1,"title":"App frame check"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { PageHeader, Sidebar, SidebarMenuItem, Stack, Text } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="home" title="Home" device="desktop"
+        sidebar={<Sidebar aria-label="Main" selectedId="home">
+          <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />
+          <SidebarMenuItem id="people" label="People" icon="icon-users-line" />
+        </Sidebar>}
+        header={<PageHeader title="Home" description="Two people on the team" />}>
+        <Stack gap="md" padding="xl">
+          <Text tone="base">Start building here.</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
+/** Imports a page (HTML_PAGE unless given; Pages › Import) and opens it once `frame` is on the canvas; returns its id. */
+async function importHtmlPage(page, text = HTML_PAGE, frame = "overlay:invite") {
   const id = `html-check-${Date.now().toString(36)}`;
   await showLeftTab(page, "pages");
   await openStudioSpace(page);
-  await page.locator('[data-e2e="import-pages"]').setInputFiles({ name: `${id}.zen.tsx`, mimeType: "text/plain", buffer: Buffer.from(HTML_PAGE, "utf8") });
+  await page.locator('[data-e2e="import-pages"]').setInputFiles({ name: `${id}.zen.tsx`, mimeType: "text/plain", buffer: Buffer.from(text, "utf8") });
   await until(async () => decodeURIComponent(page.url()).includes(`page=local:${id}`), { timeout: 10_000, message: "the imported page opened" });
-  await page.locator('[data-studio-frame="overlay:invite"]').waitFor({ state: "attached", timeout: 10_000 });
+  await page.locator(`[data-studio-frame="${frame}"]`).waitFor({ state: "attached", timeout: 10_000 });
   return id;
 }
 
-/** The HTML tab of the Export panel, once its files are listed; then the zip it downloads, unpacked. */
-async function htmlExport(page) {
+/** The HTML tab of the Export panel, once its files (`listed`) are listed; then the zip it downloads, unpacked. */
+async function htmlExport(page, listed = /screens\/people\.html/) {
   const panel = await openExport(page);
   await panel.getByRole("button", { name: "HTML", exact: true }).click();
-  await until(async () => /screens\/people\.html/.test(await panel.innerText()), { timeout: 20_000, message: "the HTML files listed" });
+  await until(async () => listed.test(await panel.innerText()), { timeout: 20_000, message: "the HTML files listed" });
   const shown = await panel.innerText();
   const downloading = page.waitForEvent("download");
   await panel.getByRole("button", { name: /^Download .*-html\.zip$/ }).click();
@@ -389,6 +414,62 @@ export const rows = [
         const off = results.filter((result) => result.ratio > 0.005 || Math.abs(result.width - (result.frame.startsWith("overlay") ? 720 : 390)) > 1);
         if (off.length) throw new Error(`differs from the canvas: ${off.map((result) => `${result.frame} ${result.width}×${result.height}: ${(result.ratio * 100).toFixed(2)}% (${result.differing} px)`).join("; ")} (shots in ${ctx.outDir})`);
         return results.map((result) => `${result.frame} ${result.width}×${result.height}: ${(result.ratio * 100).toFixed(2)}%`).join(" · ");
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "HO-08", feature: "A Screen with its app frame (Sidebar beside, Page header on top) exports HTML laid out as on the canvas (pixel comparison)", wp: "slots 2026-10-10",
+    timeout: 120_000,
+    async run(ctx) {
+      // A desktop frame (1440 px) fits this viewport at 100%.
+      const session = await ctx.studio({ viewport: { width: 1700, height: 1300 } });
+      const { page, context } = session;
+      try {
+        await importHtmlPage(page, APP_PAGE, "screen:home");
+        const { files } = await htmlExport(page, /screens\/home\.html/);
+        await page.keyboard.press("Escape");
+        await sleep(300);
+        const css = new TextDecoder().decode(files.get("styles.css"));
+        if (!/\.screen__main\b/.test(css) || !/\.screen\[data-chrome\]/.test(css)) throw new Error("styles.css lacks the app frame's rules (.screen[data-chrome], .screen__main)");
+        if (/\.studio-/.test(css)) throw new Error("styles.css holds a .studio- rule");
+        const html = new TextDecoder().decode(files.get("screens/home.html"));
+        if (/studio-builder/.test(html)) throw new Error("the markup keeps a studio-builder class");
+        const origin = new URL(page.url()).origin;
+        const view = await context.newPage();
+        await view.route(`${origin}/__html-export/**`, (route) => {
+          const file = decodeURIComponent(new URL(route.request().url()).pathname.replace(/^\/__html-export\//, ""));
+          const body = files.get(file);
+          const type = file.endsWith(".html") ? "text/html" : file.endsWith(".css") ? "text/css" : file.endsWith(".woff2") ? "font/woff2" : "application/octet-stream";
+          return body ? route.fulfill({ status: 200, contentType: type, body: Buffer.from(body) }) : route.fulfill({ status: 404, body: "" });
+        });
+        // A 1440 px frame is wider than the canvas between the side panels: hide them (⌘\) for the shot, so it holds the
+        // frame alone, then bring them back.
+        const panels = () => page.evaluate(() => { const el = document.querySelector("#studio-right"); if (!el) return false; const r = el.getBoundingClientRect(); return getComputedStyle(el).visibility !== "hidden" && r.width > 0 && r.left < innerWidth - 1; });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+Backslash");
+        await until(async () => !(await panels()), { message: "the side panels hidden" });
+        const shot = await canvasShot(page, "screen:home");
+        const inView = await page.locator('[data-studio-frame="screen:home"]').evaluate((frame) => {
+          const box = frame.getBoundingClientRect();
+          const view = document.querySelector(".studio-viewport")?.getBoundingClientRect();
+          return Boolean(view && box.left >= view.left && box.right <= view.right && box.top >= view.top && box.bottom <= view.bottom);
+        });
+        await page.keyboard.press("ControlOrMeta+Backslash");
+        if (!inView) throw new Error("the 1440 px frame is not wholly in view at 100% (the shot would hold Studio chrome)");
+        const { width, height } = shot;
+        await view.setViewportSize({ width, height });
+        await view.goto(`${origin}/__html-export/screens/home.html`);
+        await view.evaluate(() => document.fonts.ready);
+        await sleep(200);
+        const htmlShot = await view.screenshot({ clip: { x: 0, y: 0, width, height } });
+        const diff = await compareShots(view, shot.png, htmlShot, { width, height });
+        fs.writeFileSync(`${ctx.outDir}/HO-08-screen-home-canvas.png`, shot.png);
+        fs.writeFileSync(`${ctx.outDir}/HO-08-screen-home-html.png`, htmlShot);
+        await view.close();
+        if (diff.ratio > 0.005) throw new Error(`differs from the canvas: screen:home ${width}×${height}: ${(diff.ratio * 100).toFixed(2)}% (${diff.differing} px; shots in ${ctx.outDir})`);
+        return `screen:home ${width}×${height}: ${(diff.ratio * 100).toFixed(2)}% · styles.css keeps .screen[data-chrome] / .screen__*`;
       } finally {
         await ctx.studio({ fresh: true });
       }

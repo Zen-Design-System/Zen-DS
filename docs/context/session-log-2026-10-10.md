@@ -16,6 +16,11 @@
   Screen (ScreenProps, the conditional header mount, builder.css). DesignPanel: a node prop that is a content slot is a
   ToggleRow (GroupedProperties' Figma boolean, now exported); a slot that takes one component inserts it at once through
   paletteFor (the builder versions), else the picker opens.
+- Export fix found on the way (peer's note): Export › HTML kept a Screen's app frame wrappers as
+  studio-builder-screen__* with no rules in styles.css (only .zen- rules pass), so a page with a Sidebar or a Page header
+  stacked. htmlExport.tsx renames them (.screen__side/__main/__header/__content/__top/__bottom) and styleRule keeps
+  builder.css's app frame rules renamed (appFrameRule). E2E HO-08 (desktop Screen + Sidebar + PageHeader, 0.00% from the
+  canvas; the canvas shot hides the side panels first: a 1440 px frame is wider than the canvas between them).
 - Tests: palette selftest 1,532 (+ --deep 1,535); E2E B-27 and SP-08 updated (Menu item ids `invoices-…`, five
   PageHeader slots), B-28
   (Breadcrumbs on → real Breadcrumbs, Item-List 2 → 3; Screen › Header + Search; a Menu item outside a Sidebar keeps

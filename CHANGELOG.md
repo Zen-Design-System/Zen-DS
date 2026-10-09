@@ -690,6 +690,10 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Zen Studio: a Screen with its app frame exports laid out (2026-10-10):** Export › HTML kept the sidebar, header,
+  top and bottom navigation wrappers under Studio class names without their layout rules, so a page with a Sidebar or a
+  Page header stacked its parts; the wrappers are now `.screen__side`, `.screen__main`, `.screen__header`… and
+  styles.css carries their rules (E2E HO-08: the exported page matches the canvas, 0.00%).
 - **SidebarMenuItem and SidebarMenuSection outside a Sidebar (2026-10-10):** a row placed on its own (a page's Stack,
   a flyout) lost its padding and the gap between icon and label, because both came from variables only the Sidebar
   defines; they fall back to the Sidebar's own values (Padding/Small, Gap/Small), so the row draws Figma's Menu-Item

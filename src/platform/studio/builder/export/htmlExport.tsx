@@ -56,7 +56,12 @@ async function settle(host: HTMLElement) {
 /** Attributes only the Studio reads (selection, Layers, the board), never part of the page. */
 const STUDIO_ATTRIBUTE = /^data-(zen-src|zen-name|studio-.*|screen|screen-state|overlay|export-frame)$/;
 /** The builder runtime's wrappers (proto/runtime.tsx) under the names the exported page's own CSS gives them. */
-const RENAMED_CLASS: Record<string, string> = { "studio-builder-screen": "screen", "studio-builder-overlay": "overlay", "studio-builder-overlay__portal": "overlay__portal" };
+const RENAMED_CLASS: Record<string, string> = {
+  "studio-builder-screen": "screen", "studio-builder-overlay": "overlay", "studio-builder-overlay__portal": "overlay__portal",
+  // A Screen's app frame (sidebar, header, top and bottom navigation), laid out by builder.css (appFrameRule).
+  "studio-builder-screen__side": "screen__side", "studio-builder-screen__main": "screen__main", "studio-builder-screen__header": "screen__header",
+  "studio-builder-screen__content": "screen__content", "studio-builder-screen__top": "screen__top", "studio-builder-screen__bottom": "screen__bottom",
+};
 
 type Assets = Map<string, HtmlAsset>;
 
@@ -162,8 +167,22 @@ function usedBy(part: string, roots: HTMLElement[]): boolean {
   }
 }
 
+/** builder.css's rules for a Screen's app frame (proto/runtime.tsx: the sidebar and header row, top / bottom navigation). */
+const APP_FRAME = /\.studio-builder-screen(?:__(?:side|main|content|header|top|bottom)(?![\w-])|\[data-chrome\])/;
+
+/**
+ * An app frame rule under the export's class names (.screen[data-chrome], .screen__main, …), so a Screen with a sidebar or
+ * a header lays out in the exported page as on the canvas (2026-10-10: its rows stacked without them). Null when the rule
+ * still names another Studio class (styles.css holds no .studio- rule).
+ */
+function appFrameRule(rule: CSSStyleRule): string | null {
+  const text = rule.cssText.replace(/\.studio-builder-screen(__[\w-]+)?(?![\w-])/g, (_match, part: string | undefined) => `.screen${part ?? ""}`);
+  return text.includes(".studio-") ? null : text;
+}
+
 /** A style rule as styles.css keeps it, or null: a library rule the screens use; a token rule with its Zen tokens only. */
 function styleRule(rule: CSSStyleRule, roots: HTMLElement[]): string | null {
+  if (APP_FRAME.test(rule.selectorText)) return appFrameRule(rule);
   const parts = selectorParts(rule.selectorText);
   if (!parts.length || !parts.every(isLibraryPart)) return null;
   if (parts.every(isTokenPart)) {
