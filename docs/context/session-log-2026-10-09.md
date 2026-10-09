@@ -276,3 +276,16 @@
   Phin & Co); the harness count rules (tabs/item-count, stepper/step-count, bottom-navigation/destinations) still count
   arrays only.
 
+## Studio dialog button gap (user: "khi giao diện studio giảm size thì spacing giữa các button bị rộng") — tier XS
+
+- The Studio sizes (density "studio": 32px buttons) keep the standard spacing, so ModalActions' Gap/Small 12 read wide.
+  shell.css: in .studio-chrome / .studio-chrome-portal, .zen-modal-actions and __main take Gap/XSmall 8 (as the
+  inspector actions and toolbar groups). Measured on the New page dialog through the E2E server: 8px between 32px buttons.
+
+## PageHeader title ↔ description 4px (user: "gap giữa 2 dòng này trên header đang được update trong Figma là 4px") — tier XS
+
+- Figma (read only): ◇ Header/Dashboard 4122:34662 › Header-Text slot, VERTICAL, itemSpacing 4 bound to
+  Spacing/Gap/2XSmall. page-header.css: `.zen-page-header__row + .zen-page-header__description` takes 2XSmall − XSmall
+  as its top margin (the header keeps Gap/XSmall between its other parts; on a phone the row dissolves and the
+  description still follows the title). Test: backlog-fixes-2026-10-05 "sets the description 4px under the title"
+  (desktop, mobile). Studio dialog gap gate: PASS (E2E 188/188).

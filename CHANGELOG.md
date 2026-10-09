@@ -36,6 +36,8 @@ removed (four unused colour ramps were, see Removed).
 - **AiChatField `listening` and `onVoiceMode` (2026-10-09, Figma State=Voice):** dictation — the prompt reads
   Listening… and the microphone becomes Stop (`onStopListening`); `onVoiceMode` gives the empty field's Voice action its
   own handler (voice mode, e.g. an AiVoiceConversation), apart from the microphone's dictation (`onVoice`, its default).
+- **PageHeader: title and description 4px apart (2026-10-09, Figma Header-Text, Spacing/Gap/2XSmall):** was 8px; the
+  header's other parts keep Gap/XSmall.
 - **List slots as children (2026-10-09, Figma Item-List / Nav-Items):** Tabs takes `<TabItem value label />`,
   Breadcrumbs `<BreadcrumbItem item />`, Stepper `<StepperStep id title caption />` and BottomNavigation
   `<BottomNavigationItem id label icon />` children instead of their array (`items` / `steps` stay and win when given);
@@ -1010,7 +1012,8 @@ removed (four unused colour ramps were, see Removed).
   the bars around the page (phone). Screen › Canvas paints it Canvas/Default, Alt (white) or Flat.
 - **Zen Studio fixes (2026-10-09):** a right-click on a selected Stack's gap or padding opens that Stack's menu; ⇧A on
   one layer of a page you made selects the new Stack; Assets › Sidebar and App shell go onto a page you made (their
-  selected item fixed, a page keeps no state), and their thumbnails no longer throw; Assets gains Voice recorder.
+  selected item fixed, a page keeps no state), and their thumbnails no longer throw; Assets gains Voice recorder; a
+  dialog's buttons sit 8px apart (Gap/XSmall) in the Studio sizes, as the chrome's other button groups.
 - **Zen Studio Assets in Figma's way (2026-10-09):** one search over every library at the top ("Search all assets":
   the best components, icons and photos, each with See all); with no search, the libraries — Components (Zen DS),
   Icons, Photos — as rows with their counts. A library opens in place (← back) with its own search; components sit in

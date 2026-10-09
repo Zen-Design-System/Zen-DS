@@ -5,6 +5,10 @@
   font-family: var(--zen-typography-font-family-sans, Inter), ui-sans-serif, system-ui, sans-serif;
 }
 .studio-chrome[data-theme="dark"] { color-scheme: dark; }
+/* A dialog's buttons in the Studio sizes (32px, Body/Base 13) sit Gap/XSmall apart, as every other button group of the
+   chrome (inspector actions, toolbar groups); the standard Gap/Small reads wide next to the smaller buttons (user,
+   2026-10-09). Dialogs portal into .studio-chrome-portal, which carries the chrome's modes. */
+:is(.studio-chrome, .studio-chrome-portal) :is(.zen-modal-actions, .zen-modal-actions__main) { gap: var(--zen-spacing-gap-xsmall, 8px); }
 
 /* ── Toolbar ── */
 .studio-toolbar {
