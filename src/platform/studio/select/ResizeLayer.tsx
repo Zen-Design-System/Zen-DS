@@ -1087,11 +1087,20 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
   const sizingKey = sizingTarget && hit && host
     ? `${hit.src}|${updates}|${settled}|${count}|${sizingTarget.width?.kind ?? ""}/${sizingTarget.height?.kind ?? ""}|${sizingTarget.wrapper?.src ?? ""}|${host.offsetWidth}x${host.offsetHeight}`
     : "";
+  // A choice made while the canvas reads the element again after a write (no hit for a frame or two, the Inspector keeps
+  // its fields meanwhile): it waits for that element and is written once it is read, instead of being dropped (E2E IN-15).
+  const waiting = useRef<{ src: string; axis: ResizeAxis; input: InstanceSizingInput } | null>(null);
   const setSize = useCallback((axis: ResizeAxis, input: InstanceSizingInput) => {
     const { shown: target, element: source, hit: picked, host: node, count: times } = latest.current;
-    if (!target || !source || !picked || !node || dragRef.current) return;
+    if (dragRef.current) return;
     const selection = studioStore.getState().selection;
-    if (selection?.kind !== "node" || selection.part || selection.src !== picked.src) return;
+    if (selection?.kind !== "node" || selection.part) return;
+    if (!target || !source || !picked || !node) {
+      if (instanceSizing.get()?.src === selection.src) waiting.current = { src: selection.src, axis, input };
+      return;
+    }
+    if (selection.src !== picked.src) return;
+    waiting.current = null;
     // What the element (or its Studio wrap Stack) fills: what a Stack keeps on the axis it does not size.
     const filler = target.wrapper && node.parentElement instanceof HTMLElement ? node.parentElement : node;
     const cross = stackAxes(target).length || target.width?.kind === "fullWidth" ? crossFits(filler) : noCross;
@@ -1111,7 +1120,7 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     window.clearTimeout(unpublish.current);
     if (!sizingKey) {
       // A moment later: a re-render that reads the element (or its Stack) again keeps the fields (and what is typed).
-      unpublish.current = window.setTimeout(() => instanceSizing.publish(null), 250);
+      unpublish.current = window.setTimeout(() => { waiting.current = null; instanceSizing.publish(null); }, 250);
       return;
     }
     if (dragRef.current || heldRef.current) return;
@@ -1127,6 +1136,9 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
       return mode ? { mode, written: true, px } : { mode: fits[name] ? "fill" : "hug", written: false, px };
     };
     instanceSizing.publish({ src: picked.src, name: picked.name, width: axis("width"), height: axis("height"), stacked: Boolean(target.wrapper), parent: parentLayout(filler), set: setSize });
+    const wait = waiting.current;
+    waiting.current = null;
+    if (wait && wait.src === picked.src) setSize(wait.axis, wait.input);
   }, [sizingKey, setSize]);
   useEffect(() => () => { window.clearTimeout(unpublish.current); instanceSizing.publish(null); }, []);
 

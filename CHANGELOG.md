@@ -636,6 +636,12 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Zen Studio: the canvas menu stays whole (2026-10-09):** a right-click menu taller than the room above and below the
+  pointer opens downwards from a raised point inside the window; it used to open upwards, its top items cut off by the
+  window's top. Disabled items show their label only (no reason line under them).
+- **Zen Studio: an instance's W / H choice right after a size change (2026-10-09):** picking Fill, Hug or a width in
+  the Inspector while the canvas is still showing the previous change is now written once it has caught up; it was
+  dropped without a word.
 - **Zen Studio: Reset slot after a duplicate (2026-10-08):** duplicate a slot item, then Clear the original: Reset
   slot now gives the original its saved content back (it was refused as "new since the last save") and the copy stays
   the new one.

@@ -201,3 +201,26 @@
   Shell playground side panel: one Body/Base/Regular line instead of a DescriptionList (8 → 7 text styles). Run 4: E2E
   181/181, dark, behaviour clean; final voice run PASS.
 
+## Studio canvas menu cut off at the top; no captions on disabled items (tier S, session e4bf4af9)
+
+- Bug (user screenshot): right-click a layer with a tall menu (~820px, window ~1050) → the menu opened above the pointer,
+  its top items off screen. Cause: CanvasMenu raised its 1px anchor to `room − 8 − height`, without Menu's 4px gap and
+  the anchor's 1px, so Menu's placement found 5px too little below; resolveAnchoredSide then kept the side it took on
+  opening ("top", more room above the pointer) because neither side fit.
+- Fix (`studio/shell/CanvasMenu.tsx`): the fit check and the raised anchor count anchor + gap + margin (13px below,
+  12px above), so the menu fits below the raised anchor and Menu flips to it. Disabled items drop their caption in the
+  final item list (user: "bỏ các dòng subtext của item disabled"); the reasons stay in the source for the Inspector.
+- Checked with a Playwright script on the E2E harness server: windows 700 / 820 tall, pointer mid-window, 582px menu →
+  110→692 / 230→812 (whole, 8px margin); 6 disabled items, 0 captions. Gate: static ✓; ST-03/04/05 green. Studio E2E
+  reds were flakes outside the menu: ST-12 / D-01 / D-02 / D-06 ("save-x rendered after the reseed") green alone; IN-15
+  (Inspector W → Fill container after typing 240) fails without this fix too (A/B on HEAD~1's CanvasMenu: 1/3 red; with
+  it 2/4). The fix was committed in 3ec528d by another session's commit (it swept the working tree).
+- IN-15 fixed (user: "sửa luôn IN-15"): a real dropped click, not a test race. Replayed with a Playwright route that
+  injected logs into the served ResizeLayer module (no source edit): after the 240 write the select layer has no hit
+  for ~115ms (canvas re-render); the Inspector keeps the W field 250ms, so "Fill container" reached `setSize` with an
+  empty `latest` and returned silently (no POST /edit). Fix (`select/ResizeLayer.tsx`): with no target but the same
+  selection still shown in the Inspector, the choice waits (`waiting` ref) and is written by the publish effect once
+  the element is read again; dropped with the fields' 250ms unpublish. Replay: 10/10 work, 3 of them through the wait.
+- Gate (`--files=` ResizeLayer + CanvasMenu, --isolated): static ✓, tsc ✓, Studio self-tests ✓; E2E 184/187, IN-15 ✓.
+  Reds B-02 ("Button not imported"), HO-01 ("unexpected code"), B-25 (new app-frame row) are in builder/compile files
+  another session was editing during the run; all four green alone right after. ⚠ stale sidebar docs: that session's.
