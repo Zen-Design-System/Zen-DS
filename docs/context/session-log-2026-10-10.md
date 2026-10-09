@@ -83,3 +83,31 @@
 - Fixed with them: the Budget alert's code string and description followed the render (wrap + align="center"; "under
   it", not "beside it"). Gate (--files, pages templates · form · slider · visually-hidden): PASS; contact sheets checked.
 
+## Studio: Figma-like operation check, boolean slots, Table rows and cells (user: "1. Các thao tác đã dễ như Figma chưa 2. … bolean … 3. … nested … 4. …", "Tôi vẫn chưa sửa được table cell từ template lẫn example", "phải chọn được loại dữ liệu của cell", "giống Figma 100%") — tier M, session c8528700
+
+- Boolean audit (scratch audit/node-props.mjs, every ReactNode prop × how the Inspector offers it): AppShell's slots,
+  TopNavigation `titleLeading`, Sidebar row trailing / section action got text fields. registry.ts: AppShell (Sidebar,
+  Leading-/Center-/Trailing-Slots, Sections, Side-Panel, Floating-Item, Footer), TopNavigation title leading,
+  SidebarMenuItem Trailing-Slot, SidebarMenuSection Action (palette selftest 1,661). GroupedProperties: a node prop that
+  is a registered slot is a ToggleRow. SpacingLayer: a double-click passes through the padding band (text layers inside
+  padded components were unreachable by double-click in the drill crawl).
+- Table cells, data (data-source.mjs): a column `cell`'s row param → kind "cell": the Table that draws the column (inline,
+  a const, a const made of another, conditional lists, `...(narrow ? [] : [...])`), its rows; the row by key (getRowId,
+  default id/key), else by its written fields (factory ids computed from a default param), else by place in a list read
+  as is; lists followed through sorts/filters/slice/spread/useMemo/useState(list | () => list)/local functions/
+  Object.values/obj[key]/imports. Lookups `X[row.k].f` (also .map rows) and local consts `const team = teams[row.team]`.
+  `{ ...factory(…), extra }` items follow into the call (a shared const spread stays refused). Typed text keeps a number
+  or boolean's kind. A column without `cell`: op setDataField { field } on the Table; GET /element `tableRows`.
+  Templates/examples: 54/57 Tables find their rows (3 start empty, said so); cell values editable 51 → 128 of 302 (the
+  rest are formatters such as money(row.amount), conditions).
+- Table cells, Studio (table/): Data-Row / Cell / Header / Header-Cell part names; double-click Table → Data-Row → Cell →
+  content → text, Escape back, a click with a row/cell selected keeps the level, ⌘-click on a drawn cell selects its
+  content in one click; Layers lists Table › Header, Data-Row › Cell › the column's layers. TableCellPanel: Figma
+  Table/Cell/Default (Content, Align, Open-Button read-only: its click is code), the content's Bold and Subtext
+  (captionField / `caption={row.x}`), media field, the row's values; Data-Row: the row's fields. Content on a `cell`
+  column swaps the element (replaceElement; Badge-Cell, Avatar-Cell…), on a drawn column sets `content`.
+- Found on the way: Table.tsx's Icon cell default `icon-file-06-line` does not exist (cast hid it) → Figma's
+  Basic-Icon-Cell default `icon-face-smile-line`.
+- Tests: data-source selftest 25 (+7 Table cases); E2E DA-08, DA-09, SE-31, SE-32 (fixture TableFixture, frame 10), twice
+  4/4; probes on the table example (sorted Table, lookup into data.ts), HR My leaves (leaveKinds lookup) and Admin list
+  (factory spread, filtered/paged rows).

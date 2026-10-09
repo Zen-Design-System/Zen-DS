@@ -1,6 +1,7 @@
 // Selection rows: canvas picking, keyboard navigation between layers, multi-selection, the Layers panel.
 import { locOf } from "../lib/source.mjs";
-import { expectSource, freshSelect, waitSeed } from "./inspector.mjs";
+import { expectSource, freshSelect, pickOption, waitSeed } from "./inspector.mjs";
+import { TABLE_FRAME, tableText } from "./data.mjs";
 import { selectedName } from "./builder.mjs";
 import { clickLoc, focusFrame, rectOf, selectedSrc, showLeftTab, sleep, until } from "../lib/studio.mjs";
 
@@ -31,7 +32,62 @@ async function selectedRendering(page, file, loc) {
 
 const centre = (rect) => ({ x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 });
 
+/** The Inspector's heading starts with `name` (a Table part: "Cell · row 2 · Task · Table"). */
+async function expectHeading(page, name, message) {
+  await until(async () => (await selectedName(page)).startsWith(name), { message }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
+}
+
 export const rows = [
+  {
+    id: "SE-31", feature: "A Table as Figma lists it: double-click Table → Data-Row → Cell → its content, Escape back out; the Cell's Content swaps a `cell` column's element (Badge)", wp: "table 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
+      await expectHeading(page, "Table", "the Table selected");
+      const steps = ["Table"];
+      const title = await tableText(ctx, page, "Prototype");
+      await page.mouse.dblclick(title.x, title.y);
+      await expectHeading(page, "Data-Row", "a double-click selects the row under the pointer");
+      steps.push("Data-Row");
+      await page.mouse.dblclick(title.x, title.y);
+      await expectHeading(page, "Cell", "a double-click selects the cell");
+      steps.push("Cell");
+      await page.mouse.dblclick(title.x, title.y);
+      await expectHeading(page, "TableText", "a double-click selects the cell's content (the column's cell)");
+      steps.push("TableText");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await expectHeading(page, "Cell", "Escape goes back to the Cell");
+      await page.keyboard.press("Escape");
+      await expectHeading(page, "Data-Row", "Escape goes back to the Data-Row");
+      await page.keyboard.press("Escape");
+      await expectHeading(page, "Table", "Escape goes back to the Table");
+      steps.push("Escape ×3");
+      // Content → Badge on the Task column: its cell's TableText becomes Figma's Badge-Cell.
+      await page.mouse.dblclick(title.x, title.y);
+      await page.mouse.dblclick(title.x, title.y);
+      await expectHeading(page, "Cell", "the Cell again");
+      await pickOption(page, "content", "Badge");
+      await until(async () => (await ctx.text()).includes('cell: (row) => <TableBadges><Badge size="medium" theme="neutral" background="subtle" leadingIcon={false}>{row.title}</Badge></TableBadges> }'), { message: "the Task column's cell as a Badge-Cell" });
+      steps.push("Content → Badge");
+      return steps.join(" → ");
+    },
+  },
+  {
+    id: "SE-32", feature: "A Table column without `cell`: its Cell's Content and Bold are the column's fields (content, bold)", wp: "table 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
+      const status = await tableText(ctx, page, "Done");
+      await page.mouse.dblclick(status.x, status.y);
+      await expectHeading(page, "Data-Row", "the row");
+      await page.mouse.dblclick(status.x, status.y);
+      await expectHeading(page, "Cell", "the cell");
+      await page.locator('#studio-right [data-prop="bold"]').getByRole("switch").first().click().catch(async () => page.locator('#studio-right [data-prop="bold"] button, #studio-right [data-prop="bold"] input').first().click());
+      await until(async () => (await ctx.text()).includes('{ id: "status", header: "Status", field: "status", bold: true }'), { message: "bold: true on the Status column" });
+      await pickOption(page, "content", "Badge");
+      await until(async () => (await ctx.text()).includes('{ id: "status", header: "Status", field: "status", bold: true, content: "badge" }'), { message: 'content: "badge" on the Status column' });
+      return "bold, content written on the column";
+    },
+  },
   {
     id: "SE-30", feature: "Figma's click: a click selects the outermost layer in context and keeps it, a double-click goes one level in, a click beside selects the sibling, ⌘-click the deepest", wp: "click 2026-10-09",
     async run(ctx) {

@@ -86,6 +86,22 @@ removed (four unused colour ramps were, see Removed).
   sign), progress (0–100), checkbox or toggle (a boolean). `cell` is now optional. Zen Studio's Inspector offers Content
   for every column, a page made in the Studio can hold it, and Assets › Table inserts columns of each kind (its
   preview, empty before, now draws).
+- **Zen Studio: Table rows and cells as in Figma (2026-10-10):** a double-click goes Table → Data-Row → Cell → its
+  content → its text, Escape back out, and with a row or a cell selected a click picks the one under the pointer;
+  Layers lists Table › Header, Data-Row › Cell. A Cell's Inspector is Figma's Table/Cell/Default: Content (Text, Avatar,
+  Photo, Icon, Dock Icon, Badge, Tag, Trend, Progress, Checkbox, Toggle), Align, then the content's Bold and Subtext and
+  the row's value — written on the column (a `cell` column's element is swapped; a column without `cell` gets its
+  `content`, `bold`, `captionField`, `mediaField`). A cell's text and a Data-Row's fields edit that row's data in
+  templates and examples too: the row is found by its key (or its fields) in the data the Table reads, through sorts,
+  filters, useMemo, useState and factory calls, and lookups such as `people[row.id].name` write the entry they read.
+- **Zen Studio: App Shell, Top Navigation and Sidebar row slots (2026-10-10):** a selected App Shell shows Figma's
+  Sidebar, Leading-Slots, Center-Slots (Search, Segmented, Tabs), Trailing-Slots, Sections, Side-Panel, Floating-Item
+  and Footer as slots (outlined, "+", the Slots section); a Top Navigation's title leading takes an Avatar, a Sidebar
+  row's Trailing-Slot an Icon, Badge or Text and a section its Action. Any component prop that is a registered slot is
+  a switch that puts the real component in (it was a text field), and a double-click on text inside a padding area
+  reaches the text instead of stopping at the spacing handle.
+- **Table: an Icon cell without `mediaField` draws Figma's default icon (2026-10-10):** `icon-face-smile-line`, where an
+  unknown icon name drew nothing.
 - **Liquid Glass, as Figma draws it (2026-10-10, GLASS effects Liquid-Glass/Normal · Glass-Floating):** AI Chat-Field
   Style=Liquid Glass, the Top Navigation's glass actions (Nav-Action/Liquid-Glass, Liquid Glass and overlay types) and
   the Bottom Navigation Floating-Glass bar, its CTA and its selected item now bend the picture behind them at the rim

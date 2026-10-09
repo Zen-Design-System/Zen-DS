@@ -166,6 +166,11 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
       <>
         {fields.map((spec) => (
           <Fragment key={`${key}:${spec.name}`}>
+            {/* A content slot's prop the Figma booleans do not switch (TopNavigation Title-Leading): a switch that puts a
+                real component in, never a text field (DesignPanel does the same for components without Figma groups). */}
+            {spec.editor.kind === "node" && slotOf(component, spec.name) && !groups.toggles.some((toggle) => toggle.prop === spec.name) ? (
+              <ToggleRow toggle={{ prop: spec.name, label: labels.get(spec.name) ?? propLabel(spec.name, component), on: { kind: "slot" } }} on={api.valueFor(spec.name).state !== "unset"} value={api.valueFor(spec.name)} api={api} selection={selection} element={element} />
+            ) : (
             <PropField
               spec={spec}
               label={labels.get(spec.name) ?? propLabel(spec.name, component)}
@@ -180,6 +185,7 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
               restore={api.restoreFor?.(spec.name)}
               repeats={api.repeats}
             />
+            )}
             {/* The field stays editable; the warning says why it does nothing in this state. */}
             {(warnings.get(spec.name) ?? []).map((text) => (
               <p key={text} className={`studio-group__warning ${typographyStyles["Body/Small/Regular"]}`}>

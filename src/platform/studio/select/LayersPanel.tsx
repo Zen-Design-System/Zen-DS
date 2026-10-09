@@ -17,7 +17,9 @@ import { itemParts, renderedItemTitle } from "../slots/dataItems";
 import { dataSlotsOf } from "../slots/dataSlots";
 import { studioStore, useStudio } from "../store";
 import { elementFiber, hitOf, hostsOf, isHostFiber, isPortalFiber, layerHover, nameOf, onSourceUpdate, panelOf, rectOf, rendersPortal, shortSrc, srcOf, type Fiber, type FiberHit } from "./picker";
-import { classHint, elementAt, isComponentFiber, partChildren, type PartHit } from "./parts";
+import { classHint, elementAt, isComponentFiber, partChildren, partForElement, type PartHit } from "./parts";
+import { bodyRows, rowCells, TABLE_PARTS } from "../table/tableCells";
+import { isTableHit } from "../table/tableSelect";
 import { isLayerSelected, selectLayers, toggleLayer, useExtraSelection, type ExtraLayer } from "./multiSelection";
 import { wrapperCandidate } from "./resize";
 import { mapSrc, onStudioWrite } from "./remap";
@@ -217,6 +219,7 @@ function attachSlots(nodes: LayerNode[], byId: Map<string, LayerNode>) {
   for (const node of nodes) {
     attachSlots(node.children, byId);
     if (node.kind !== "node" || !node.isComponent) continue;
+    if (tableRows(node, byId)) continue;
     const data = dataSlotRows(node, byId);
     const groups = layerSlotsOf(node.name, node.fiber, node.children.map(firstHostOf));
     if (!groups) {
@@ -237,6 +240,70 @@ function attachSlots(nodes: LayerNode[], byId: Map<string, LayerNode>) {
     });
     node.children = [...rows, ...data, ...node.children.filter((child) => !claimed.has(child))];
   }
+}
+
+/**
+ * A Table's rows and cells as Figma lists them (user, 2026-10-10: "giống Figma 100%"): Table › Header (Header-Cell…) and
+ * Data-Row › Cell, each Cell holding the layers its column's `cell` writes for that row (a column the Table draws itself:
+ * the Cell opens on what it draws). Rows and cells are parts (select/parts.ts names them); layers in no cell (the empty
+ * state) stay under the Table, and the DOM in between (div › table › tbody) is not listed. False for any other node.
+ */
+function tableRows(node: LayerNode, byId: Map<string, LayerNode>): boolean {
+  if (node.name !== "Table" || !node.fiber) return false;
+  const owner = hitOf(node.fiber);
+  if (!isTableHit(owner)) return false;
+  const root = owner.hosts.map((host) => (host.matches(".zen-table") ? host : host.querySelector(":scope > .zen-table"))).find(Boolean);
+  const table = root?.querySelector(":scope > table");
+  if (!table) return false;
+  const claimed = new Set<LayerNode>();
+  const partRow = (part: PartHit | null, parent: LayerNode, meta: string | undefined, children: LayerNode[] | null): LayerNode | null => {
+    if (!part) return null;
+    const row: LayerNode = {
+      id: `${node.id}/part:${partKey(part.path, part.name)}`, kind: "part", name: part.name, src: node.src, frameId: node.frameId, isComponent: true, instance: node.instance, count: 0,
+      depth: parent.depth + 1, children: children ?? [], fiber: part.fiber, frame: node.frame, parent, owner: node, part, meta, lazy: children === null, dataItem: true,
+    };
+    byId.set(row.id, row);
+    return row;
+  };
+  // A cell's first text (its label, not an avatar's initials) names a row; a header cell's text names its column.
+  const text = (element: Element) => {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const value = (node.nodeValue ?? "").replace(/\s+/g, " ").trim();
+      if (value && !node.parentElement?.closest(".zen-avatar, svg, .zen-visually-hidden")) return value.slice(0, 28);
+    }
+    return undefined;
+  };
+  const rows: LayerNode[] = [];
+  const headerRow = table.querySelector(":scope > thead > tr");
+  const headers = headerRow ? Array.from(headerRow.children).filter((th) => !th.classList.contains("zen-table__select")) : [];
+  const header = headerRow ? partRow(partForElement(owner, headerRow, TABLE_PARTS.header), node, undefined, []) : null;
+  if (header) {
+    header.children = headers.flatMap((th) => {
+      const cell = partRow(partForElement(owner, th, TABLE_PARTS.headerCell), header, text(th), null);
+      return cell ? [cell] : [];
+    });
+    rows.push(header);
+  }
+  const tbody = table.querySelector(":scope > tbody");
+  for (const tr of tbody ? bodyRows(tbody) : []) {
+    const cells = rowCells(tr);
+    const row = partRow(partForElement(owner, tr, TABLE_PARTS.row), node, cells[0] ? text(cells[0]) : undefined, []);
+    if (!row) continue;
+    row.children = cells.flatMap((td, index) => {
+      const written = node.children.filter((child) => {
+        const host = firstHostOf(child);
+        return Boolean(host && td.contains(host));
+      });
+      written.forEach((child) => claimed.add(child));
+      const cell = partRow(partForElement(owner, td, TABLE_PARTS.cell), row, headers[index] ? text(headers[index]) : undefined, written.length ? written : null);
+      return cell ? [cell] : [];
+    });
+    rows.push(row);
+  }
+  node.children = [...rows, ...node.children.filter((child) => !claimed.has(child))];
+  node.hasParts = false;
+  return true;
 }
 
 /**

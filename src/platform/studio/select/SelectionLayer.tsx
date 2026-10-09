@@ -7,6 +7,7 @@ import type { StudioSelection } from "../types";
 import { annotatedAt, childHits, findBySrc, frameOfFiber, hitForHost, isTypingTarget, layerHover, nestedHitAt, onSourceUpdate, parentHit, publishSelectionInfo, rectOf, selectHit, shortSrc, type FiberHit } from "./picker";
 import { chainHas, deepPartAt, drillPart, partChildren, partForElement, pathOf, resolvePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
 import { clickTarget, layerInside, sameElement } from "./clickTarget";
+import { tableDeep, tableDrill, tablePress, tableUp } from "../table/tableSelect";
 import { dataItemOfPart } from "../slots/dataItems";
 import { openCanvasMenu, openEmptyCanvasMenu, openFrameMenu } from "../shell/CanvasMenu";
 import { awaitedRender, awaitedRenderShown, awaitingWriteRender, remapPart, remapSelection, sameSelectedElement, writeRendered } from "./remap";
@@ -528,7 +529,10 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     const picked = keepSelected(pick(point.x, point.y), point.x, point.y);
     setPassThrough(picked.kind === "chrome");
     // The outline shows what a press would select (Figma): the click's layer, ⌘ the deepest, ⌘ on the selection a part.
-    const hit = picked.kind === "node" ? (deepAt(picked, deepRef.current) ? partAt(picked, point.x, point.y) ?? picked.hit : targetOf(picked, deepRef.current)) : null;
+    // A Table's row or cell selected: the row or cell under the pointer (the level a click keeps, Figma).
+    const under = picked.kind === "node" ? deepestAt(picked.element, point.x, point.y) : null;
+    const level = picked.kind === "node" ? (deepRef.current ? tableDeep(picked.hit, under) : tablePress(partRef.current, under)) : null;
+    const hit = level ?? (picked.kind === "node" ? (deepAt(picked, deepRef.current) ? partAt(picked, point.x, point.y) ?? picked.hit : targetOf(picked, deepRef.current)) : null);
     setHoverFrame(picked.kind === "node" || picked.kind === "frame" || picked.kind === "variant" ? picked.frame : null);
     variantHover.set(picked.kind === "variant" ? pickVariant(picked.element, studioStore.getState().selection, deepRef.current ? "deep" : "click") : null);
     if (hit?.fiber !== hoverRef.current?.fiber || hit?.src !== hoverRef.current?.src) {
@@ -607,6 +611,18 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     if (picked.kind === "node") {
       if (event.detail <= 1) pressSelectionRef.current = studioStore.getState().selection;
       const deep = event.metaKey || event.ctrlKey;
+      // A Table's row or cell selected: a click selects the row or cell under the pointer, the same level (Figma).
+      const level = !event.shiftKey && !deep ? tablePress(partRef.current, deepestAt(picked.element, event.clientX, event.clientY)) : null;
+      if (level) {
+        choosePart(level);
+        return;
+      }
+      // ⌘-click on a cell the Table draws itself: its content, in one click (Figma's deepest layer).
+      const drawn = !event.shiftKey && deep ? tableDeep(picked.hit, deepestAt(picked.element, event.clientX, event.clientY)) : null;
+      if (drawn) {
+        choosePart(drawn);
+        return;
+      }
       // ⌘ / Ctrl+click on the selected element, or a click inside the owner of the selected part: the part under the cursor.
       if (!event.shiftKey && deepAt(picked, deep)) {
         const part = partAt(picked, event.clientX, event.clientY);
@@ -712,6 +728,18 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     // Figma's double-click: one level in, from the selected layer to its child under the pointer. Landing on a text
     // layer (the element under the pointer), its text is edited in place; a component's text waits for the next one.
     const selected = selectedRef.current;
+    // A Table: Table → Data-Row → Cell → its Content (table/tableSelect.ts), then the text as below.
+    if (!(event.metaKey || event.ctrlKey)) {
+      const step = tableDrill(selected, partRef.current, deepestAt(picked.element, event.clientX, event.clientY));
+      if (step && "edit" in step) {
+        if (tryStartTextEdit(event.clientX, event.clientY, picked.hit.src)) return;
+      } else if (step) {
+        if ("part" in step) choosePart(step.part);
+        else choose(step.hit, false);
+        studioStore.setState({ inspectorTab: "design" });
+        return;
+      }
+    }
     if (!partRef.current && selected && !(event.metaKey || event.ctrlKey)) {
       const inner = layerInside(picked.hit, picked.frame, selected);
       if (inner) {
@@ -765,6 +793,14 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       const state = studioStore.getState();
       if (state.presenting || state.selection?.kind !== "node") return;
       const current = state.selection;
+      // A Table's content → its Cell → its Data-Row (then the Table, as any part goes to its owner).
+      const up = event.key === "Escape" ? tableUp(selectedRef.current, partRef.current) : null;
+      if (up) {
+        event.preventDefault();
+        multiSelection.clear();
+        choosePart(up.part);
+        return;
+      }
       if (event.key === "Escape" && current.part) {
         // A part → its owner.
         event.preventDefault();

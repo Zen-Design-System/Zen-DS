@@ -247,5 +247,144 @@ test("not a row's root: the op edits the code as usual", () => {
   assert.deepEqual(rowAt("<Button size={size}", "Button", { op: "removeElement", row: 0 }), { notRow: true });
 });
 
+/* ── Table cells (2026-10-10): a column's cell reads the row the Table draws, named by its key ──────────────────── */
+
+const TABLES = "src/templates/TableDemo.tsx";
+const tables = [
+  "import { useMemo, useState } from \"react\";",
+  "import { people } from \"../platform/examples/data\";",
+  "const members = [",
+  "  { id: \"ava\", hours: 36.5 },",
+  "  { id: \"bao\", hours: 44.5 },",
+  "];",
+  "const teams = { design: { name: \"Design\" }, eng: { name: \"Engineering\" } };",
+  "const memberColumns = [",
+  "  { id: \"name\", header: \"Name\", cell: (member) => <TableMedia caption={people[member.id].role}>{people[member.id].name}</TableMedia> },",
+  "  { id: \"hours\", header: \"Hours\", cell: (member) => <TableText>{member.hours}</TableText> },",
+  "];",
+  "const invoices = [",
+  "  { number: \"INV-1\", client: \"Phin & Co\", team: \"design\", amount: 2100 },",
+  "  { number: \"INV-2\", client: \"Lumen Bank\", team: \"eng\", amount: 4050 },",
+  "];",
+  "export function Demo() {",
+  "  const [sort] = useState(null);",
+  "  const [rows] = useState(invoices);",
+  "  const shown = useMemo(() => rows.filter((row) => row.amount > 0), [rows]);",
+  "  return (",
+  "    <Stack>",
+  "      <Table aria-label=\"Team\" columns={memberColumns} rows={sortMembers(members, sort)} />",
+  "      <Table aria-label=\"Invoices\" getRowId={(row) => row.number} rows={shown} columns={[",
+  "        { id: \"client\", header: \"Client\", cell: (row) => <TableText>{row.client}</TableText> },",
+  "        { id: \"team\", header: \"Team\", cell: (row) => { const team = teams[row.team]; return <TableText>{team.name}</TableText>; } },",
+  "        { id: \"amount\", header: \"Amount\", cell: (row) => <TableText>{money(row.amount)}</TableText> },",
+  "      ]} />",
+  "      <Table aria-label=\"Projects\" columns={[{ id: \"name\", header: \"Name\" }, { id: \"due\", header: \"Due\", field: \"due\" }]} rows={[",
+  "        { id: \"loyalty\", name: \"Loyalty app\", due: \"Oct 14\" },",
+  "        { id: \"banking\", name: \"Online banking\", due: \"Nov 2\" },",
+  "      ]} />",
+  "      <Table aria-label=\"Again\" columns={memberColumns} rows={members.slice(1)} />",
+  "      {members.map((member) => <Text key={member.id}>{people[member.id].name}</Text>)}",
+  "    </Stack>",
+  "  );",
+  "}",
+  "",
+].join("\n");
+const tableFiles = new Map([...files, ["src/platform/examples/data.ts", files.get(DATA)]]);
+const readTables = (rel) => tableFiles.get(rel) ?? null;
+const tableLoc = (needle, name) => locOf(needle, name, tables);
+const cellEdit = (needle, name, op) => dataFieldEdit(tables, TABLES, tableLoc(needle, name), name, op, { read: readTables });
+const TEAM = tableLoc("aria-label=\"Team\"", "Table");
+const AGAIN = tableLoc("aria-label=\"Again\"", "Table");
+const text = (value) => ({ kind: "string", value });
+
+test("cell: a lookup keyed by the row (people[member.id].name) is data the Studio edits", () => {
+  const origin = originOf(tables, TABLES, tableLoc("{people[member.id].name}", "TableMedia"), { child: 0 }, { read: readTables });
+  assert.equal(origin.kind, "cell");
+  assert.equal(origin.editable, true, origin.reason);
+  assert.equal(origin.file, DATA);
+  assert.equal(originOf(tables, TABLES, tableLoc("{member.hours}", "TableText"), { child: 0 }, { read: readTables }).editable, true);
+});
+
+test("cell: a sorted Table finds the row by its key; the factory's argument changes in the data file", () => {
+  const result = cellEdit("{people[member.id].name}", "TableMedia", { child: 0, row: 0, rowKey: "bao", table: TEAM, value: text("Bao Tran") });
+  assert.ok(!result.error, result.error);
+  assert.equal(result.file, DATA);
+  assert.match(result.code, /bao: person\('bao', 'Bao Tran', 'Frontend Engineer'\)/);
+  const caption = cellEdit("{people[member.id].name}", "TableMedia", { prop: "caption", row: 1, rowKey: "ava", table: TEAM, value: text("Lead researcher") });
+  assert.match(caption.code, /ava: person\("ava", "Ava Chen", "Lead researcher"\)/);
+});
+
+test("cell: a column two Tables draw needs the Table; .slice(1) rows by key or by place", () => {
+  assert.match(cellEdit("{member.hours}", "TableText", { child: 0, row: 0, rowKey: "bao", value: text("x") }).error, /2 Tables draw this column/);
+  const byKey = cellEdit("{member.hours}", "TableText", { child: 0, row: 0, rowKey: "bao", table: AGAIN, value: { kind: "number", value: 40 } });
+  assert.match(byKey.code, /\{ id: "bao", hours: 40 \}/);
+  const byPlace = cellEdit("{member.hours}", "TableText", { child: 0, row: 0, table: AGAIN, value: { kind: "number", value: 41 } });
+  assert.match(byPlace.code, /\{ id: "bao", hours: 41 \}/);
+  // Text typed on the canvas keeps the data's kind: a number stays a number.
+  assert.match(cellEdit("{member.hours}", "TableText", { child: 0, row: 0, rowKey: "bao", table: AGAIN, value: text(" 42.5 ") }).code, /\{ id: "bao", hours: 42\.5 \}/);
+  assert.match(cellEdit("{member.hours}", "TableText", { child: 0, row: 0, rowKey: "bao", table: AGAIN, value: text("forty") }).error, /is a number in the data/);
+  assert.match(cellEdit("{member.hours}", "TableText", { child: 0, row: 0, table: TEAM, value: { kind: "number", value: 1 } }).error, /sortMembers\(members, sort\), which does not write this row/);
+});
+
+test("cell: rows through useMemo, a filter and useState(list); getRowId names the key; a local const lookup", () => {
+  const client = cellEdit("{row.client}", "TableText", { child: 0, row: 1, rowKey: "INV-2", value: text("Lumen") });
+  assert.ok(!client.error, client.error);
+  assert.match(client.code, /\{ number: "INV-2", client: "Lumen", team: "eng", amount: 4050 \}/);
+  assert.equal(client.state, true);
+  const team = cellEdit("{team.name}", "TableText", { child: 0, row: 0, rowKey: "INV-1", value: text("Design ops") });
+  assert.ok(!team.error, team.error);
+  assert.match(team.code, /design: \{ name: "Design ops" \}/);
+  const money = originOf(tables, TABLES, tableLoc("{money(row.amount)}", "TableText"), { child: 0 }, { read: readTables });
+  assert.equal(money.editable, false);
+  assert.match(cellEdit("{row.client}", "TableText", { child: 0, row: 1, rowKey: "INV-9", value: text("x") }).error, /does not write this row/);
+});
+
+test("cell: a key the code computes (a factory's default param): the row is the item whose written fields match", () => {
+  const admin = [
+    "const emailOf = (name) => `${name.toLowerCase().replace(\" \", \".\")}@x.studio`;",
+    "const member = (name, role, status, email = emailOf(name)) => ({ id: email, name, email, role, status });",
+    "const seed = [",
+    "  member(\"Khoa Dang\", \"Owner\", \"Active\"),",
+    "  member(\"Linh Hoang\", \"Admin\", \"Active\"),",
+    "  { ...member(\"Alex Duong\", \"Member\", \"Active\"), photo: \"alex.jpg\" },",
+    "];",
+    "export function Admin({ query }) {",
+    "  const [members] = useState(seed);",
+    "  const rows = members.filter((one) => one.name.includes(query));",
+    "  return <Table aria-label=\"Members\" rows={rows} columns={[{ id: \"role\", header: \"Role\", cell: (row) => <TableText>{row.role}</TableText> }]} />;",
+    "}",
+    "",
+  ].join("\n");
+  const FILE = "src/templates/AdminDemo.tsx";
+  const loc = locOf("<TableText>{row.role}", "TableText", admin);
+  const fields = { id: "linh.hoang@x.studio", name: "Linh Hoang", email: "linh.hoang@x.studio", role: "Admin", status: "Active" };
+  const result = dataFieldEdit(admin, FILE, loc, "TableText", { child: 0, row: 1, rowKey: "linh.hoang@x.studio", rowFields: fields, value: text("Member") }, { read: readTables });
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /member\("Linh Hoang", "Member", "Active"\)/);
+  // `{ ...member(…), photo }`: the factory call is the item's own, so its argument is the row's role.
+  const spread = dataFieldEdit(admin, FILE, loc, "TableText", { child: 0, row: 2, rowKey: "alex.duong@x.studio", rowFields: { name: "Alex Duong", role: "Member", photo: "alex.jpg" }, value: text("Admin") }, { read: readTables });
+  assert.ok(!spread.error, spread.error);
+  assert.match(spread.code, /\{ \.\.\.member\("Alex Duong", "Admin", "Active"\), photo: "alex\.jpg" \}/);
+  // Fewer than two written fields that match: no guess.
+  const same = dataFieldEdit(admin, FILE, loc, "TableText", { child: 0, row: 0, rowKey: "x", rowFields: { status: "Active", id: "x" }, value: text("Member") }, { read: readTables });
+  assert.match(same.error, /does not write this row/);
+});
+
+test("cell: a column without `cell` draws its field: op setDataField { field } on the Table", () => {
+  const rows = originOf(tables, TABLES, tableLoc("aria-label=\"Projects\"", "Table"), { tableRows: true }, { read: readTables });
+  assert.equal(rows.kind, "rows");
+  assert.equal(rows.editable, true);
+  const result = cellEdit("aria-label=\"Projects\"", "Table", { field: ["name"], row: 1, rowKey: "banking", value: text("Banking") });
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /\{ id: "banking", name: "Banking", due: "Nov 2" \}/);
+  assert.match(cellEdit("aria-label=\"Projects\"", "Table", { field: ["owner"], row: 0, value: text("x") }).error, /no "owner" field/);
+});
+
+test("row: a .map row's lookup (people[member.id].name) edits the entry its id names", () => {
+  const result = cellEdit("{people[member.id].name}</Text>", "Text", { child: 0, row: 0, value: text("Ava T.") });
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /ava: person\("ava", "Ava T\.", "UX Researcher"\)/);
+});
+
 if (process.exitCode) console.log(`data-source self-test: failures above (${passed} passed)`);
 else console.log(`✓ data-source (originOf · setDataField · row edits) self-test: ${passed} cases`);

@@ -54,6 +54,9 @@ const SOURCES = {
   ListBox: { tsx: ["ListItem/ListItem.tsx"], css: ["ListItem/list-item.css"] },
   TopNavigation: { tsx: ["TopNavigation/TopNavigation.tsx"], css: ["TopNavigation/top-navigation.css"] },
   Sidebar: { tsx: ["Sidebar/Sidebar.tsx"], css: ["Sidebar/sidebar.css"] },
+  AppShell: { tsx: ["AppShell/AppShell.tsx"], css: ["AppShell/app-shell.css"] },
+  SidebarMenuItem: { tsx: ["Sidebar/Sidebar.tsx"], css: ["Sidebar/sidebar.css"] },
+  SidebarMenuSection: { tsx: ["Sidebar/Sidebar.tsx"], css: ["Sidebar/sidebar.css"] },
   PageHeader: { tsx: ["PageHeader/PageHeader.tsx"], css: ["PageHeader/page-header.css"] },
   Metric: { tsx: ["MetricWidget/MetricWidget.tsx"], css: ["MetricWidget/metric-widget.css"] },
   EmptyState: { tsx: ["EmptyState/EmptyState.tsx"], css: ["EmptyState/empty-state.css"] },
@@ -100,7 +103,8 @@ for (const [name, def] of Object.entries(CONTENT_SLOTS)) {
       // Conditional mount: `{x ? <div className="zen-…__body">` in the TSX; also a fragment that opens wrappers first
       // (`{footer ? <><div …divider /><div className="zen-sidebar__footer"><div className="…footer-content"`), and `(` when
       // the test names the slot's prop (`{actions || trailing ? (`; Metric's `{titled ? (` header mounts whatever its action holds).
-      const tail = `<\\w+ className=\\{?["\`]${cls}[\\s"\`$]`;
+      // Other attributes may come first (`<div ref={setSidebarEl} id={sidebarId} className="zen-app-shell__sidebar">`).
+      const tail = `<\\w+(?: [\\w-]+=(?:\\{[^{}<>]*\\}|"[^"]*"))* className=\\{?["\`]${cls}[\\s"\`$]`;
       const conditional = new RegExp(`\\?\\s*${tail}`).test(tsx)
         || new RegExp(`\\?\\s*<>\\s*(?:<\\w+[^<>{}]*>\\s*)*${tail}`).test(tsx)
         || new RegExp(`\\{[^{}?]*\\b${slot.prop}\\b[^{}?]*\\?\\s*\\(\\s*${tail}`).test(tsx);

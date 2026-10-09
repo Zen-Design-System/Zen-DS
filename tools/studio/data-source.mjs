@@ -3,8 +3,10 @@
 // needs to read (`read(rel)`: the draft, else the disk; null when there is no such file).
 //
 //   originOf(code, file, loc, { prop } | { child })      what feeds the prop (or the expression child) of the element at loc
-//   dataFieldEdit(code, file, loc, name, op, { read })   op setDataField { prop? | child?, row, value }: the edit at the
-//                                                        source, { file, code } (possibly another file), or { error, code }
+//                                                        ({ tableRows: true }: whether a Table's rows can be edited)
+//   dataFieldEdit(code, file, loc, name, op, { read })   op setDataField { prop? | child? | field?, row, rowKey?, rowFields?,
+//                                                        table?, value }: the edit at the source, { file, code, state }
+//                                                        (possibly another file), or { error, code }
 //
 // Sources it can follow (a value is edited only where it is written as a literal):
 //   - a .map row: `{crew.map((one) => <ListItem title={one.name} />)}` → crew[row].name, where crew is an array literal
@@ -12,11 +14,18 @@
 //     `.slice(n)` shifts the row; `[people.ava, people.bao].map(…)` resolves each item on its own;
 //   - an object const or import read by path: `title={studio.name}`;
 //   - a factory call `person("ava", "Ava Chen", "UX Researcher", …)` whose function returns `{ id, name, role, … }`:
-//     the field maps to its parameter's argument.
+//     the field maps to its parameter's argument;
+//   - a Table cell (user, 2026-10-10: "Tôi vẫn chưa sửa được table cell từ template lẫn example"): a column's
+//     `cell: (row) => <TableText>{row.role}</TableText>` reads the row the Table draws from its `rows`. The client names
+//     the row by its key (getRowId: `id` by default) and place; the item with that key is found in the lists the rows
+//     expression reads (a sort, filter, slice, spread, local const or useMemo in between), else the row at that place of
+//     a list read as is. A column without `cell` draws its `field` from the row: op setDataField { field } on the Table;
+//   - a lookup keyed by the row: `people[member.id].name` (a .map row or a Table cell) reads the row's `id` where it is
+//     written, then edits people.<id>.name; a const of the row function (`const team = teams[row.team]`) is read through.
 // Refused, with the reason the Inspector shows: .filter / .sort / other calls before the .map, computed keys, spreads,
 // state that the component changes (useState read directly: that is setStateInit's, keep-behaviour rule), values that
 // are not literals at their source.
-import { findElement, jsxName, parseLoc, parseSource } from "./jsx-source.mjs";
+import { findElement, jsxName, parseLoc, parseSource, walk } from "./jsx-source.mjs";
 import { pathTo } from "./source-helpers.mjs";
 
 const FUNCTION_TYPES = new Set(["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression", "ObjectMethod", "ClassMethod"]);
@@ -159,13 +168,21 @@ function follow(mod, expr, path, read, seen = new Set()) {
   if (node.type === "ObjectExpression") {
     const [first, ...rest] = path;
     // Last property wins (a later key overrides a spread or an earlier key).
-    const property = [...node.properties].reverse().find((p) => p.type === "ObjectProperty" && !p.computed && keyName(p.key) === first);
-    if (!property) {
-      if (node.properties.some((p) => p.type === "SpreadElement")) refuse(`"${first}" comes from a spread in the data; edit it where it is written`);
-      refuse(`The data has no "${first}" field`, "not-found");
+    for (const property of [...node.properties].reverse()) {
+      // Shorthand `{ name }` inside a factory's return: the caller resolves the parameter (follow never gets here then).
+      if (property.type === "ObjectProperty" && !property.computed && keyName(property.key) === first) return follow(mod, property.value, rest, read, seen);
+      if (property.type !== "SpreadElement") continue;
+      // `{ ...member("Alex Duong", "Member", …), photo }`: a factory call (or an object written in place) is this item's
+      // own; a const spread into several items is shared, so an edit there would change the others too.
+      const spread = unwrap(property.argument);
+      if (spread?.type !== "CallExpression" && spread?.type !== "ObjectExpression") refuse(`"${first}" comes from a spread in the data; edit it where it is written`);
+      try {
+        return follow(mod, spread, path, read, seen);
+      } catch (error) {
+        if (!(error instanceof Refusal) || error.code !== "not-found") throw error;
+      }
     }
-    // Shorthand `{ name }` inside a factory's return: the caller resolves the parameter (follow never gets here then).
-    return follow(mod, property.value, rest, read, seen);
+    refuse(`The data has no "${first}" field`, "not-found");
   }
   if (node.type === "ArrayExpression") {
     const index = Number(path[0]);
@@ -310,6 +327,465 @@ function memberPath(expr) {
   return node?.type === "Identifier" ? { root: node, path } : null;
 }
 
+/* ── rows: a .map callback's item, a Table cell's row, and lookups keyed by the row ──────────────────────────────── */
+
+const WRAPPERS = new Set(["TSAsExpression", "TSSatisfiesExpression", "TSNonNullExpression", "ParenthesizedExpression", "TSTypeAssertion"]);
+
+/** The index in `path` of the nearest node above path[index] that is not a TS wrapper or parentheses (-1: none). */
+function above(path, index) {
+  let at = index - 1;
+  while (at >= 0 && WRAPPERS.has(path[at].type)) at -= 1;
+  return at;
+}
+
+/** A literal's value as text (a row key compares as text: getRowId returns a string), or null. */
+function literalText(node) {
+  if (node?.type === "StringLiteral" || node?.type === "NumericLiteral") return String(node.value);
+  if (node?.type === "TemplateLiteral" && node.expressions.length === 0) return node.quasis[0]?.value.cooked ?? null;
+  if (node?.type === "UnaryExpression" && node.operator === "-" && node.argument.type === "NumericLiteral") return String(-node.argument.value);
+  return null;
+}
+
+/**
+ * A member chain whose keys may come from data (`people[member.id].name`): { root, segments }, each segment a field
+ * name or { node } (a computed key's expression). Null for anything else.
+ */
+function lookupChain(expr) {
+  const segments = [];
+  let node = unwrap(expr);
+  while (node?.type === "MemberExpression" || node?.type === "OptionalMemberExpression") {
+    const property = unwrap(node.property);
+    if (!node.computed) segments.unshift(keyName(node.property));
+    else segments.unshift(literalText(property) ?? { node: property });
+    node = unwrap(node.object);
+  }
+  return node?.type === "Identifier" ? { root: node, segments } : null;
+}
+
+const isModuleLevel = (mod, declarator) => mod.ast.program.body.some((statement) => {
+  const declaration = statement.type === "ExportNamedDeclaration" ? statement.declaration : statement;
+  return declaration?.type === "VariableDeclaration" && declaration.declarations.includes(declarator);
+});
+
+/**
+ * How a value reads a row (the first parameter of a function): { fn, read } with read { path } (`row.a.b`: the item's
+ * field) or { root, segments, keys } (a lookup `X[row.k].f`: keys[i] is the item's field path for a computed segment).
+ * A const of the row function (`const team = teams[row.team]`) is read through. Null when no row parameter is read.
+ */
+function rowReadOf(mod, chain, depth = 0) {
+  if (!chain || depth > 4) return null;
+  const binding = bindingOf(mod, chain.root.name, chain.root);
+  if (binding?.kind === "param") {
+    if (binding.position !== 0 || chain.segments.some((segment) => typeof segment !== "string")) return null;
+    return { fn: binding.fn, read: { path: [...binding.path, ...chain.segments] } };
+  }
+  if (binding?.kind === "const" && binding.init && !isModuleLevel(mod, binding.declarator)) {
+    const inner = lookupChain(binding.init);
+    const found = inner ? rowReadOf(mod, { root: inner.root, segments: [...inner.segments, ...chain.segments] }, depth + 1) : null;
+    if (found) return found;
+  }
+  if (binding?.kind !== "const" && binding?.kind !== "import") return null;
+  let fn = null;
+  const keys = [];
+  for (const segment of chain.segments) {
+    if (typeof segment === "string") {
+      keys.push(null);
+      continue;
+    }
+    const key = memberPath(segment.node);
+    const keyBinding = key ? bindingOf(mod, key.root.name, key.root) : null;
+    if (keyBinding?.kind !== "param" || keyBinding.position !== 0 || (fn && keyBinding.fn !== fn)) return null;
+    fn = keyBinding.fn;
+    keys.push([...keyBinding.path, ...key.path]);
+  }
+  return fn ? { fn, read: { root: chain.root, segments: chain.segments, keys } } : null;
+}
+
+/** The node a row read reaches from the row's item: the item's field, or the lookup keyed by the item's fields. */
+function readFromItem(itemMod, item, rowRead, mod, read) {
+  if (!rowRead.root) return follow(itemMod, item, rowRead.path, read);
+  const path = rowRead.segments.map((segment, index) => {
+    if (typeof segment === "string") return segment;
+    const text = literalText(follow(itemMod, item, rowRead.keys[index], read).node);
+    if (text === null) refuse(`The row's ${rowRead.keys[index].join(".") || "value"} is computed in the code, so the Studio cannot tell which entry it reads`);
+    return text;
+  });
+  return follow(mod, rowRead.root, path, read);
+}
+
+/** Every JSX element and array literal of a module (read once per module). */
+function nodesOf(mod) {
+  if (!mod.nodes) {
+    mod.nodes = { elements: [], arrays: [] };
+    walk(mod.ast.program, (node) => {
+      if (node.type === "JSXElement") mod.nodes.elements.push(node);
+      else if (node.type === "ArrayExpression") mod.nodes.arrays.push(node);
+      return true;
+    });
+  }
+  return mod.nodes;
+}
+
+const attrOf = (element, name) => element.openingElement.attributes.find((attr) => attr.type === "JSXAttribute" && jsxName(attr.name) === name) ?? null;
+const attrExpression = (attr) => (attr?.value?.type === "JSXExpressionContainer" ? unwrap(attr.value.expression) : null);
+const HOOKS_WITH_RESULT = /^use(Memo|Callback)$/;
+
+/** The const that holds `node` as its value (through TS wrappers, conditions and `useMemo(() => …)`), or null. */
+function declaratorOf(mod, node) {
+  const path = pathTo(mod.ast.program, node) ?? [];
+  let at = above(path, path.length - 1);
+  // `const columns = compact ? [ … ] : [ … ]`: either list is the const's.
+  while (path[at]?.type === "ConditionalExpression" || path[at]?.type === "LogicalExpression") at = above(path, at);
+  // `useMemo(() => { …; return [...]; }, deps)`: the return → its block → the function.
+  if (path[at]?.type === "ReturnStatement") at = above(path, above(path, at));
+  if (path[at] && FUNCTION_TYPES.has(path[at].type)) {
+    const call = path[above(path, at)];
+    const callee = call?.type === "CallExpression" ? (call.callee.type === "MemberExpression" ? keyName(call.callee.property) : keyName(call.callee)) : null;
+    if (!callee || !HOOKS_WITH_RESULT.test(callee)) return null;
+    at = above(path, above(path, at));
+  }
+  const declarator = path[at];
+  return declarator?.type === "VariableDeclarator" && declarator.id.type === "Identifier" ? declarator : null;
+}
+
+/** Whether `expr` holds `target` (the node, or an identifier bound to `declarator`): through conditions, spreads, list items and calls on it. */
+function refersTo(mod, expr, target, declarator, depth = 0) {
+  const node = unwrap(expr);
+  if (!node || depth > 6) return false;
+  if (node === target) return true;
+  switch (node.type) {
+    case "Identifier": {
+      const binding = bindingOf(mod, node.name, node);
+      if (declarator && binding?.declarator === declarator) return true;
+      // `const columns = narrow ? allColumns.filter(…) : allColumns`: the const another one is made of.
+      return binding?.kind === "const" && Boolean(binding.init) && refersTo(mod, binding.init, target, declarator, depth + 1);
+    }
+    case "ConditionalExpression":
+      return refersTo(mod, node.consequent, target, declarator, depth + 1) || refersTo(mod, node.alternate, target, declarator, depth + 1);
+    case "LogicalExpression":
+      return refersTo(mod, node.left, target, declarator, depth + 1) || refersTo(mod, node.right, target, declarator, depth + 1);
+    case "ArrayExpression":
+      return node.elements.some((element) => element && refersTo(mod, element.type === "SpreadElement" ? element.argument : element, target, declarator, depth + 1));
+    case "CallExpression":
+      // `columns.filter(…)`: the same columns.
+      return node.callee.type === "MemberExpression" && refersTo(mod, node.callee.object, target, declarator, depth + 1);
+    default:
+      return false;
+  }
+}
+
+/**
+ * The Table column whose `cell` is `fn`: { column, tables }, `tables` the elements of the file whose `columns` hold it
+ * (written in place, or through the consts that hold the column or its list) and that have `rows` (or `data`). Null
+ * when `fn` is not a column's cell.
+ */
+function cellColumnOf(mod, fn) {
+  const path = pathTo(mod.ast.program, fn) ?? [];
+  const p = above(path, path.length - 1);
+  const property = path[p];
+  if (property?.type !== "ObjectProperty" || property.computed || keyName(property.key) !== "cell") return null;
+  const c = above(path, p);
+  const column = path[c];
+  if (column?.type !== "ObjectExpression") return null;
+  const holder = path[above(path, c)];
+  const lists = [];
+  // The array it is written in, and the arrays that one is spread into (`...(narrow ? [] : [{ … }])`).
+  if (holder?.type === "ArrayExpression") {
+    lists.push(holder);
+    let at = path.indexOf(holder);
+    for (let up = above(path, at); up >= 0; up = above(path, at)) {
+      const node = path[up];
+      if (node.type === "ConditionalExpression" || node.type === "LogicalExpression" || node.type === "SpreadElement") at = up;
+      else if (node.type === "ArrayExpression" && path[at].type === "SpreadElement") { lists.push(node); at = up; }
+      else break;
+    }
+  }
+  const columnConst = declaratorOf(mod, column);
+  if (columnConst) for (const node of nodesOf(mod).arrays) if (node !== holder && refersTo(mod, node, null, columnConst)) lists.push(node);
+  if (!lists.length) return null;
+  const tables = nodesOf(mod).elements.filter((element) => {
+    const columns = attrExpression(attrOf(element, "columns"));
+    return columns && (attrOf(element, "rows") || attrOf(element, "data")) && lists.some((list) => refersTo(mod, columns, list, declaratorOf(mod, list)));
+  });
+  return { column, tables };
+}
+
+/** The Table the client names (`loc`, its opening tag), else the only one; refused when it cannot tell. */
+function pickTable(cell, loc) {
+  const at = parseLoc(loc);
+  const named = at ? cell.tables.find((element) => element.openingElement.loc.start.line === at.line && element.openingElement.loc.start.column === at.column) : null;
+  if (named) return named;
+  if (cell.tables.length === 1) return cell.tables[0];
+  if (!cell.tables.length) refuse("No Table in this file draws this column; edit the data in the code");
+  refuse(`${cell.tables.length} Tables draw this column; name the Table (\`table\`)`, "invalid");
+  return null;
+}
+
+/** The Table's `rows` (or `data`) expression. */
+function rowsExpression(table) {
+  const expr = attrExpression(attrOf(table, "rows")) ?? attrExpression(attrOf(table, "data"));
+  if (!expr) refuse("The Table's rows are not written as data here");
+  return expr;
+}
+
+/** The fields a row's key reads, to try in turn: getRowId's (`(row) => row.person` → ["person"], `String` → the row itself), by default `id` then `key`. */
+function rowKeyPaths(table) {
+  const attr = attrOf(table, "getRowId");
+  if (!attr) return [["id"], ["key"]];
+  const fn = attrExpression(attr);
+  if (fn?.type === "Identifier" && fn.name === "String") return [[]];
+  if (!fn || !FUNCTION_TYPES.has(fn.type) || fn.params[0]?.type !== "Identifier") return [];
+  let body = unwrap(fn.body.type === "BlockStatement" ? fn.body.body.find((statement) => statement.type === "ReturnStatement")?.argument : fn.body);
+  if (body?.type === "CallExpression" && body.callee.type === "Identifier" && body.callee.name === "String") body = unwrap(body.arguments[0]);
+  const key = memberPath(body);
+  return key && key.root.name === fn.params[0].name ? [key.path] : [];
+}
+
+/** The rows as a list written as is (only a `.slice(n)` before it): { list, offset }, or null. */
+function directRows(mod, expr, read) {
+  let node = unwrap(expr);
+  let offset = 0;
+  if (node?.type === "CallExpression" && node.callee.type === "MemberExpression" && keyName(node.callee.property) === "slice") {
+    const start = node.arguments[0];
+    offset = start?.type === "NumericLiteral" ? start.value : start ? NaN : 0;
+    if (!Number.isInteger(offset)) return null;
+    node = unwrap(node.callee.object);
+  }
+  try {
+    return { list: listOf(mod, node, read), offset };
+  } catch (error) {
+    if (error instanceof Refusal) return null;
+    throw error;
+  }
+}
+
+/** The values a function returns (its expression body, or each `return`'s argument). */
+function returnedValues(fn) {
+  if (fn.body.type !== "BlockStatement") return [fn.body];
+  const out = [];
+  walk(fn.body, (node) => {
+    if (node !== fn.body && FUNCTION_TYPES.has(node.type)) return false;
+    if (node.type === "ReturnStatement" && node.argument) out.push(node.argument);
+    return true;
+  });
+  return out;
+}
+
+/** The object literal an expression is (through consts, imports, member paths and a useState initializer): { mod, node, state } or null. */
+function objectOf(mod, expr, read, depth = 0) {
+  const node = unwrap(expr);
+  if (!node || depth > 8) return null;
+  if (node.type === "ObjectExpression") return { mod, node, state: false };
+  if (node.type === "Identifier") {
+    const binding = bindingOf(mod, node.name, node);
+    if (binding?.kind === "const") return objectOf(mod, binding.init, read, depth + 1);
+    if (binding?.kind === "state") {
+      const initial = unwrap(binding.init.arguments[0]);
+      const found = initial && !FUNCTION_TYPES.has(initial.type) ? objectOf(mod, initial, read, depth + 1) : null;
+      return found ? { ...found, state: true } : null;
+    }
+    if (binding?.kind === "import") {
+      const target = importedModule(mod, binding.source, read);
+      const value = target ? exportedValue(target, binding.imported) : null;
+      return value ? objectOf(target, value.node, read, depth + 1) : null;
+    }
+    return null;
+  }
+  if (node.type === "MemberExpression" && !node.computed) {
+    const owner = objectOf(mod, node.object, read, depth + 1);
+    const property = owner ? [...owner.node.properties].reverse().find((candidate) => candidate.type === "ObjectProperty" && !candidate.computed && keyName(candidate.key) === keyName(node.property)) : null;
+    const found = property ? objectOf(owner.mod, property.value, read, depth + 1) : null;
+    return found && owner.state ? { ...found, state: true } : found;
+  }
+  return null;
+}
+
+/** The values of an object literal's own fields (spreads left out). */
+const objectValues = (object) => object.node.properties.filter((property) => property.type === "ObjectProperty").map((property) => property.value);
+
+/**
+ * The array literals rows are read from, in order: the list itself, or the lists a call (a sort, a filter, a page of
+ * it), a spread, a condition, a local const or a useMemo reads. Each is { mod, node, state } (listOf).
+ */
+function listsRead(mod, expr, read, seen = new Set(), depth = 0) {
+  const node = unwrap(expr);
+  if (!node || depth > 10 || seen.has(node) || seen.size > 96) return [];
+  seen.add(node);
+  const out = [];
+  const add = (child, owner = mod, state = false) => {
+    if (child) for (const list of listsRead(owner, child, read, seen, depth + 1)) out.push(state ? { ...list, state } : list);
+  };
+  try {
+    const list = listOf(mod, node, read);
+    out.push(list);
+    // `[...files, { … }]`: the rows of the lists it spreads too.
+    for (const element of list.node.elements) if (element?.type === "SpreadElement") add(element.argument, list.mod, list.state);
+    return out;
+  } catch (error) {
+    if (!(error instanceof Refusal)) throw error;
+  }
+  switch (node.type) {
+    case "CallExpression":
+    case "OptionalCallExpression": {
+      const callee = unwrap(node.callee);
+      const name = callee?.type === "MemberExpression" ? keyName(callee.property) : keyName(callee);
+      // useMemo(() => …, deps): what the function returns (its deps are not rows).
+      if (name && HOOKS_WITH_RESULT.test(name)) {
+        const fn = unwrap(node.arguments[0]);
+        if (fn && FUNCTION_TYPES.has(fn.type)) for (const result of returnedValues(fn)) add(result);
+        break;
+      }
+      if (callee?.type === "MemberExpression" || callee?.type === "OptionalMemberExpression") add(callee.object);
+      // Object.values(people): the object's values are the rows.
+      if (callee?.type === "MemberExpression" && keyName(callee.object) === "Object" && name === "values") {
+        const object = objectOf(mod, node.arguments[0], read);
+        if (object) out.push({ mod: object.mod, node: { type: "ArrayExpression", elements: objectValues(object) }, state: object.state });
+        break;
+      }
+      // A function of the file (`byStatus(status)`): what it returns.
+      if (callee?.type === "Identifier") {
+        const binding = bindingOf(mod, callee.name, callee);
+        const fn = binding?.kind === "function" ? binding.fn : binding?.kind === "const" ? unwrap(binding.init) : null;
+        if (fn && FUNCTION_TYPES.has(fn.type)) for (const result of returnedValues(fn)) add(result);
+      }
+      for (const argument of node.arguments) {
+        const value = unwrap(argument.type === "SpreadElement" ? argument.argument : argument);
+        if (value && !FUNCTION_TYPES.has(value.type)) add(value);
+      }
+      break;
+    }
+    case "ArrayExpression":
+      for (const element of node.elements) if (element?.type === "SpreadElement") add(element.argument);
+      break;
+    case "ConditionalExpression":
+      add(node.consequent);
+      add(node.alternate);
+      break;
+    case "LogicalExpression":
+      add(node.left);
+      add(node.right);
+      break;
+    case "Identifier": {
+      const binding = bindingOf(mod, node.name, node);
+      if (binding?.kind === "const") add(binding.init);
+      // useState(list): the list the frame starts with (the client starts the frame again after an edit).
+      if (binding?.kind === "state") {
+        const initial = unwrap(binding.init.arguments[0]);
+        // useState(() => tasks.filter(…)): what the initializer returns.
+        for (const start of initial && FUNCTION_TYPES.has(initial.type) ? returnedValues(initial) : [initial]) add(start, mod, true);
+      }
+      if (binding?.kind === "import") {
+        const target = importedModule(mod, binding.source, read);
+        const value = target ? exportedValue(target, binding.imported) : null;
+        if (value) add(value.node, target);
+      }
+      break;
+    }
+    case "MemberExpression": {
+      // `projects[workspace]`: any of the object's lists; `data.rows` read from an object of data.
+      const object = node.computed ? objectOf(mod, node.object, read) : null;
+      if (object) for (const value of objectValues(object)) add(value, object.mod, object.state);
+      else if (!node.computed) add(node.object);
+      break;
+    }
+    default:
+  }
+  return out;
+}
+
+/** The text of a row's key where its item is written (null when it is not a literal there). */
+function itemKey(list, item, path, read) {
+  try {
+    return literalText(unwrap(follow(list.mod, item, path, read).node));
+  } catch (error) {
+    if (error instanceof Refusal) return null;
+    throw error;
+  }
+}
+
+/**
+ * The one item whose fields written as literals equal the rendered row's plain fields (`rowFields`, read on the canvas),
+ * at least two of them, none different; null when no item, or more than one, fits.
+ */
+function itemByFields(lists, fields, read) {
+  const entries = Object.entries(fields).filter(([key, value]) => /^[\w$]+$/.test(key) && ["string", "number", "boolean"].includes(typeof value)).slice(0, 16);
+  if (entries.length < 2) return null;
+  let best = null;
+  let tie = false;
+  for (const list of lists) {
+    for (const item of list.node.elements) {
+      if (!item || item.type === "SpreadElement") continue;
+      let same = 0;
+      let differs = false;
+      for (const [key, value] of entries) {
+        let node;
+        try {
+          node = unwrap(follow(list.mod, item, [key], read).node);
+        } catch (error) {
+          if (error instanceof Refusal) continue;
+          throw error;
+        }
+        if (!isLiteralNode(node)) continue;
+        const written = node.type === "BooleanLiteral" ? node.value : node.type === "NullLiteral" ? null : literalText(node);
+        if (written === (typeof value === "boolean" ? value : String(value))) same += 1;
+        else { differs = true; break; }
+      }
+      if (differs || same < 2) continue;
+      if (!best || same > best.same) { best = { list, item, same }; tie = false; } else if (same === best.same) tie = true;
+    }
+  }
+  return best && !tie ? { list: best.list, item: best.item } : null;
+}
+
+/**
+ * The item of the Table's rows that renders row `op.row` with key `op.rowKey` (the client reads both on the canvas):
+ * { list, item }, list being { mod, node, state } (the array literal). The key finds it in the lists the rows read,
+ * whatever sorts or filters them; without a key the place does, in a list the Table reads as is.
+ */
+function tableRowItem(mod, table, op, read) {
+  const expr = rowsExpression(table);
+  const direct = directRows(mod, expr, read);
+  const keyPaths = rowKeyPaths(table);
+  const lists = (typeof op.rowKey === "string" && keyPaths.length) || op.rowFields ? (direct ? [direct.list] : listsRead(mod, expr, read)) : [];
+  if (typeof op.rowKey === "string" && keyPaths.length) {
+    for (const path of keyPaths) {
+      const found = [];
+      for (const list of lists) {
+        for (const item of list.node.elements) if (item && item.type !== "SpreadElement" && itemKey(list, item, path, read) === op.rowKey) found.push({ list, item });
+      }
+      if (found.length === 1) return found[0];
+      if (found.length > 1) refuse(`Several rows of the data have the key "${op.rowKey}"; edit it in the code`);
+    }
+  }
+  // A key the code computes (`member("Linh Hoang", …)` → id: emailOf(name)): the item whose written fields are the row's.
+  const byFields = op.rowFields && typeof op.rowFields === "object" ? itemByFields(lists, op.rowFields, read) : null;
+  if (byFields) return byFields;
+  if (!direct) {
+    const text = mod.code.slice(expr.start, expr.end).replace(/\s+/g, " ");
+    refuse(`The Table's rows come from ${text.length > 40 ? `${text.slice(0, 39)}…` : text}, which does not write this row as data; edit it in the code`);
+  }
+  if (!Number.isInteger(op.row) || op.row < 0) refuse("A Table row needs its place (`row`)", "invalid");
+  const item = direct.list.node.elements[op.row + direct.offset];
+  if (!item) refuse(`The Table's data has no row ${op.row + direct.offset + 1}`, "not-found");
+  if (item.type === "SpreadElement") refuse("The row comes from a spread; edit it where it is written");
+  return { list: direct.list, item };
+}
+
+/** The first row's item a Table reads (to tell whether its rows can be edited): the direct list's, else the first list read. */
+function firstRowItem(mod, table, read) {
+  const expr = rowsExpression(table);
+  const direct = directRows(mod, expr, read);
+  const lists = direct ? [direct.list] : listsRead(mod, expr, read);
+  for (const list of lists) {
+    const item = list.node.elements.slice(direct?.offset ?? 0).find((element) => element && element.type !== "SpreadElement");
+    if (item) return { list, item };
+  }
+  const text = mod.code.slice(expr.start, expr.end).replace(/\s+/g, " ");
+  if (lists.length && lists.every((list) => !list.node.elements.length)) refuse(`The Table's rows (${text.length > 40 ? `${text.slice(0, 39)}…` : text}) start empty: the example adds them while it runs`);
+  refuse(`The Table's rows come from ${text.length > 40 ? `${text.slice(0, 39)}…` : text}, which does not write them as data; edit them in the code`);
+  return null;
+}
+
 /**
  * What feeds the value: a describe-only answer for the Inspector.
  * { kind: "literal" } · { kind: "state", name } · { kind: "row", source, path, offset } · { kind: "data", source, path }
@@ -319,6 +795,20 @@ function classify(mod, element, target) {
   const expr = valueExpression(element, target);
   if (!expr || isLiteralNode(expr)) return { kind: "literal" };
   if (expr.type === "ConditionalExpression" || expr.type === "LogicalExpression") return { kind: "conditional", reason: "The value is chosen by a condition in the code" };
+  // A row's value: a .map callback's item, a Table column cell's row, or a lookup keyed by it (`people[row.id].name`).
+  const rowRead = rowReadOf(mod, lookupChain(expr));
+  if (rowRead) {
+    const row = mapRowOf(mod, expr);
+    if (row && row.fn === rowRead.fn) {
+      const source = mod.code.slice(row.array.start, row.array.end);
+      return { kind: "row", source: source.length > 40 ? `${source.slice(0, 37)}…` : source, path: rowRead.read.path ?? [], read: rowRead.read, offset: row.offset, array: row.array };
+    }
+    const cell = cellColumnOf(mod, rowRead.fn);
+    if (cell) {
+      const text = mod.code.slice(expr.start, expr.end).replace(/\s+/g, " ");
+      return { kind: "cell", source: text.length > 40 ? `${text.slice(0, 37)}…` : text, path: rowRead.read.path ?? [], read: rowRead.read, cell };
+    }
+  }
   const chain = memberPath(expr);
   if (!chain) return { kind: "expression", reason: "The value is computed in the code" };
   const binding = bindingOf(mod, chain.root.name, chain.root);
@@ -346,8 +836,9 @@ export function originOf(code, file, loc, target, { read = () => null } = {}) {
 }
 
 /**
- * originOf for several targets of one element, parsing the file once (GET /element: every expression prop and child).
- * Returns the origins in the order of `targets`; literal values are left out by the caller.
+ * originOf for several targets of one element, parsing the file once (GET /element: every expression prop and child,
+ * and `{ tableRows: true }` on a Table). Returns the origins in the order of `targets`; literal values are left out by
+ * the caller.
  */
 export function originsOf(code, file, loc, targets, { read = () => null } = {}) {
   let mod;
@@ -371,14 +862,34 @@ export function originsOf(code, file, loc, targets, { read = () => null } = {}) 
 
 /** classify, then follow a row or data path to tell whether its source is a literal the Studio can edit. */
 function describeOrigin(mod, element, target, read) {
+  if (target.tableRows) {
+    // The rows a Table draws (its columns without `cell` draw their fields): editable where its first row is written.
+    const { list } = firstRowItem(mod, element, read);
+    const editable = isDataFile(list.mod.file);
+    return { kind: "rows", editable, state: list.state, file: list.mod.file, reason: editable ? undefined : `${list.mod.file} is not a file the Studio edits` };
+  }
   const origin = classify(mod, element, target);
   if (origin.kind === "row") {
     // Editable when row 0's field resolves to a literal (every row is checked when it is edited).
     try {
-      const found = follow(mod, origin.array, [String(origin.offset), ...origin.path], read);
+      const item = follow(mod, origin.array, [String(origin.offset)], read);
+      const found = readFromItem(item.mod, item.node, origin.read, mod, read);
       return { kind: "row", editable: isLiteralNode(found.node), source: origin.source, path: origin.path, file: found.mod.file, reason: isLiteralNode(found.node) ? undefined : "The row's value is computed in the code" };
     } catch (error) {
       if (error instanceof Refusal) return { kind: "row", editable: false, source: origin.source, path: origin.path, reason: error.message };
+      throw error;
+    }
+  }
+  if (origin.kind === "cell") {
+    // A Table cell: editable when the first row the Table reads gives a literal (each row is found again when edited).
+    try {
+      if (!origin.cell.tables.length) refuse("No Table in this file draws this column; edit the data in the code");
+      const { list, item } = firstRowItem(mod, origin.cell.tables[0], read);
+      const found = readFromItem(list.mod, item, origin.read, mod, read);
+      const editable = isLiteralNode(found.node) && isDataFile(found.mod.file);
+      return { kind: "cell", editable, source: origin.source, path: origin.path, file: found.mod.file, reason: editable ? undefined : isLiteralNode(found.node) ? `${found.mod.file} is not a file the Studio edits` : "The row's value is computed in the code" };
+    } catch (error) {
+      if (error instanceof Refusal) return { kind: "cell", editable: false, source: origin.source, path: origin.path, reason: error.message };
       throw error;
     }
   }
@@ -424,6 +935,25 @@ function literalCode(value, previous, text) {
   }
   refuse("setDataField takes a string, number or boolean value", "invalid");
   return "";
+}
+
+/**
+ * Text typed on the canvas for a number or a boolean in the data (a Table cell's hours, a `.map` row's count) keeps the
+ * data's kind, so its type stays what the code declares: "40" → 40, "true" → true; other text is refused.
+ */
+function sameKind(node, value, source) {
+  if (value?.kind !== "string" || typeof value.value !== "string") return value;
+  const typed = value.value.trim();
+  if (node.type === "NumericLiteral" || (node.type === "UnaryExpression" && node.operator === "-")) {
+    const number = typed ? Number(typed.replace(/[\s_]/g, "")) : NaN;
+    if (!Number.isFinite(number)) refuse(`${source} is a number in the data; type a number`, "invalid");
+    return { kind: "number", value: number };
+  }
+  if (node.type === "BooleanLiteral") {
+    if (!/^(true|false)$/i.test(typed)) refuse(`${source} is true or false in the data`, "invalid");
+    return { kind: "boolean", value: typed.toLowerCase() === "true" };
+  }
+  return value;
 }
 
 /**
@@ -615,30 +1145,51 @@ export function dataFieldEdit(code, file, loc, name, op, { read = () => null } =
   try {
     const mod = moduleOf(file, code);
     const element = locate(mod, loc, name);
-    const target = typeof op.prop === "string" ? { prop: op.prop } : { child: op.child };
-    const origin = classify(mod, element, target);
     let found;
     let source;
-    if (origin.kind === "row") {
-      if (!Number.isInteger(op.row) || op.row < 0) refuse("setDataField on a .map row needs the row index (`row`)", "invalid");
-      found = follow(mod, origin.array, [String(op.row + origin.offset), ...origin.path], read);
-      source = `${origin.source}[${op.row + origin.offset}]${origin.path.map((key) => `.${key}`).join("")}`;
-    } else if (origin.kind === "data") {
-      found = follow(mod, origin.root, origin.path, read);
-      source = origin.source;
-    } else if (origin.kind === "state") {
-      refuse(`${origin.name} is state: edit its initial value (the useState initializer) instead`);
-    } else if (origin.kind === "literal") {
-      refuse("The value is written right here; edit the prop itself", "invalid");
+    // A list the frame starts with (useState(list)): the client starts the frame again to show the edit.
+    let state = false;
+    const rowName = () => (typeof op.rowKey === "string" ? `row "${op.rowKey}"` : `row ${op.row + 1}`);
+    if (Array.isArray(op.field)) {
+      // A Table column without `cell` draws the row's `field` itself: the item of the Table's rows, by its key or place.
+      if (!op.field.length || op.field.some((key) => typeof key !== "string" || !key)) refuse("`field` names the row's field", "invalid");
+      if (!Number.isInteger(op.row) || op.row < 0) refuse("setDataField on a Table row needs its place (`row`)", "invalid");
+      const row = tableRowItem(mod, element, op, read);
+      found = follow(row.list.mod, row.item, op.field, read);
+      source = `${rowName()}.${op.field.join(".")}`;
+      state = row.list.state;
     } else {
-      refuse(origin.reason ?? "The value is computed in the code");
+      const target = typeof op.prop === "string" ? { prop: op.prop } : { child: op.child };
+      const origin = classify(mod, element, target);
+      if (origin.kind === "row") {
+        if (!Number.isInteger(op.row) || op.row < 0) refuse("setDataField on a .map row needs the row index (`row`)", "invalid");
+        const item = follow(mod, origin.array, [String(op.row + origin.offset)], read);
+        found = readFromItem(item.mod, item.node, origin.read, mod, read);
+        source = origin.read.root ? `${origin.source}[${op.row + origin.offset}] → ${[origin.read.root.name, ...origin.read.segments.map((segment) => (typeof segment === "string" ? segment : "[…]"))].join(".").replaceAll(".[", "[")}`
+          : `${origin.source}[${op.row + origin.offset}]${origin.path.map((key) => `.${key}`).join("")}`;
+      } else if (origin.kind === "cell") {
+        if (!Number.isInteger(op.row) || op.row < 0) refuse("setDataField on a Table cell needs its row (`row`, and its key `rowKey`)", "invalid");
+        const row = tableRowItem(mod, pickTable(origin.cell, op.table), op, read);
+        found = readFromItem(row.list.mod, row.item, origin.read, mod, read);
+        source = `${origin.source} (${rowName()})`;
+        state = row.list.state;
+      } else if (origin.kind === "data") {
+        found = follow(mod, origin.root, origin.path, read);
+        source = origin.source;
+      } else if (origin.kind === "state") {
+        refuse(`${origin.name} is state: edit its initial value (the useState initializer) instead`);
+      } else if (origin.kind === "literal") {
+        refuse("The value is written right here; edit the prop itself", "invalid");
+      } else {
+        refuse(origin.reason ?? "The value is computed in the code");
+      }
     }
     if (!isLiteralNode(found.node)) refuse(`${source} is computed in the code, not written as data`);
     if (!isDataFile(found.mod.file)) refuse(`${found.mod.file} is not a file the Studio edits`);
     const text = found.mod.code;
-    const replacement = literalCode(op.value, found.node, text);
+    const replacement = literalCode(sameKind(found.node, op.value, source), found.node, text);
     const next = `${text.slice(0, found.node.start)}${replacement}${text.slice(found.node.end)}`;
-    return { file: found.mod.file, code: next, source, changed: next !== text };
+    return { file: found.mod.file, code: next, source, changed: next !== text, state };
   } catch (error) {
     if (error instanceof Refusal) return { error: error.message, code: error.code };
     throw error;

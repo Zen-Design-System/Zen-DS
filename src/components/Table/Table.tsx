@@ -690,7 +690,8 @@ const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 
 /** A media cell's visual (Figma Avatar / Photo / Basic-Icon / Dock-Icon cell): Small over a Subtext, XSmall without. */
 function cellVisual(content: "avatar" | "photo" | "icon" | "dock-icon", captioned: boolean, media: string, label: string): ReactNode {
   if (content === "icon") {
-    const name = (media || "icon-file-06-line") as IconName;
+    // Without a picture field, Figma's Basic-Icon-Cell default (icon-face-smile-line).
+    const name = (media || "icon-face-smile-line") as IconName;
     return captioned ? <Icon name={name} size="lg" decorative /> : <Icon name={name} size="base" decorative />;
   }
   if (content === "dock-icon") {

@@ -171,6 +171,13 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>, index: number) => {
     const area = areas[index];
     if (event.button !== 0 || !area || !owner) return;
+    // The second press of a double-click goes on into the layer under the pointer, as Figma's double-click always does
+    // (a 0 gap's band lies over its neighbours' edges): the picker the first press opened closes.
+    if (event.detail >= 2) {
+      if (open) close();
+      onPassPointerDown(event);
+      return;
+    }
     const fit = area.kind === "free" ? fitColumn(area, owner, attributes) : null;
     const state = areaState(area, owner, attributes, event.altKey);
     const usable = writable && interactive && Boolean(attributes) && (area.kind === "free" ? Boolean(fit) : Boolean(state.prop));
@@ -249,7 +256,7 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
           onPointerLeave={() => setHovered((current) => (current === index ? null : current))}
           onPointerMove={(event) => { if (event.altKey !== alt) setAlt(event.altKey); onPassPointerMove(event); }}
           onPointerDown={(event) => onPointerDown(event, index)}
-          onDoubleClick={(event) => { if (!(writable && owner.editable && (area.props.length || area.kind === "free"))) onPassDoubleClick(event); }}
+          onDoubleClick={onPassDoubleClick}
           onContextMenu={onPassContextMenu}
         />
       )) : null}

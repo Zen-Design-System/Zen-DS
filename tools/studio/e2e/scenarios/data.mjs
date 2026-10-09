@@ -1,6 +1,7 @@
 // Data rows: text and props whose value comes from data (a .map item, examples/data.ts) rather than a literal.
 import { element, locOf } from "../lib/source.mjs";
 import { inspectorRow, sleep, statusText, until } from "../lib/studio.mjs";
+import { selectedName } from "./builder.mjs";
 import { expectSource, freshSelect } from "./inspector.mjs";
 
 /** The box of the deepest element under file:loc whose own text is `text` (to double-click the words themselves). */
@@ -42,7 +43,60 @@ async function editInPlace(page, rect, text) {
   await page.keyboard.press("Enter");
 }
 
+/** The fixture's Table frame (host-page.tsx TableFixture, the 11th example). */
+export const TABLE_FRAME = 10;
+
+/** `text` drawn in the fixture's Table: its box and centre (the Table's root carries its data-zen-src). */
+export async function tableText(ctx, page, text) {
+  const table = locOf(await ctx.text(), "table").loc;
+  const rect = await until(() => textBox(page, ctx.file, table, text), { message: `"${text}" in the Table` });
+  return { rect, x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+}
+
+/** ⌘-click (Figma's deepest layer) at a point. */
+async function deepClick(page, point) {
+  await page.keyboard.down("ControlOrMeta");
+  try {
+    await page.mouse.click(point.x, point.y);
+  } finally {
+    await page.keyboard.up("ControlOrMeta");
+  }
+  await sleep(300);
+}
+
 export const rows = [
+  {
+    id: "DA-08", feature: "A Table cell's text from its row: ⌘-click, double-click edits that row's data (rows sorted in a useMemo over useState; a lookup into data.ts)", wp: "table 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
+      // people[row.owner].name: t-2's owner is bao, so people.bao's name in data.ts.
+      const bao = await tableText(ctx, page, "Bao Nguyen");
+      await deepClick(page, bao);
+      await editInPlace(page, bao.rect, "Bao N.");
+      await until(async () => (await ctx.api.source(ctx.dataFile)).content.includes('bao: person("bao", "Bao N.",'), { message: "people.bao's name in data.ts" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      // The frame starts again with the new data (the edit's remount): the next cell once the canvas shows it.
+      await tableText(ctx, page, "Bao N.");
+      await sleep(600);
+      // row.title: the useState list's item t-2, found by its key although the rows are sorted.
+      const title = await tableText(ctx, page, "Prototype");
+      await deepClick(page, title);
+      await editInPlace(page, title.rect, "Clickable prototype");
+      await until(async () => (await ctx.text()).includes('{ id: "t-2", title: "Clickable prototype", owner: "bao", status: "In progress" }'), { message: "t-2's title in the fixture's list" });
+      return "people.bao.name in data.ts · t-2.title in its list";
+    },
+  },
+  {
+    id: "DA-09", feature: "A Table column without `cell`: ⌘-click selects what the Table draws there, a double-click edits that row's field", wp: "table 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
+      const status = await tableText(ctx, page, "In progress");
+      await deepClick(page, status);
+      await until(async () => /^TableText\b/.test(await selectedName(page)), { message: "the drawn Text-Cell selected (TableText, a part of the Table)" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
+      await editInPlace(page, status.rect, "Blocked");
+      await until(async () => (await ctx.text()).includes('{ id: "t-2", title: "Prototype", owner: "bao", status: "Blocked" }'), { message: "t-2's status in the fixture's list" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      return "t-2.status edited";
+    },
+  },
   {
     id: "DA-01", feature: "Double-click literal text edits it in place", wp: "GĐ0",
     async run(ctx) {

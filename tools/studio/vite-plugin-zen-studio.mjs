@@ -411,10 +411,15 @@ export function zenStudio() {
       if (child.kind === "expression") children.push({ child, index: childIndex });
     }
     const targets = [...attrs.map((attr) => ({ prop: attr.name })), ...children.map((entry) => ({ child: entry.index }))];
+    // A Table (columns and rows): whether its rows can be edited where they are written (a column without `cell` draws
+    // its row's field, which a cell's text edit writes: op setDataField { field }).
+    const table = attrs.some((attr) => attr.name === "columns") && element.attributes.some((attr) => attr.name === "rows" || attr.name === "data");
+    if (table) targets.push({ tableRows: true });
     if (!targets.length) return;
     const origins = originsOf(content, rel, loc, targets, { read: readEffectiveSync });
     attrs.forEach((attr, index) => { attr.dataSource = origins[index]; });
     children.forEach((entry, index) => { entry.child.dataSource = origins[attrs.length + index]; });
+    if (table) element.tableRows = origins[targets.length - 1];
   }
 
   /**
@@ -431,7 +436,7 @@ export function zenStudio() {
     const disk = await readText(dataTarget.abs);
     const before = drafts.get(dataTarget.realRel)?.content ?? disk;
     const draft = result.code !== before ? await setDraft(dataTarget, disk, result.code) : drafts.has(dataTarget.realRel);
-    return { ok: true, file: dataTarget.rel, hash: sha1(result.code), hashBefore: sha1(before), before, after: result.code, changed: result.changed, draft, data: { source: result.source } };
+    return { ok: true, file: dataTarget.rel, hash: sha1(result.code), hashBefore: sha1(before), before, after: result.code, changed: result.changed, draft, data: { source: result.source, state: result.state } };
   }
 
   /**

@@ -172,12 +172,13 @@ export type SourceAttr = {
 
 /**
  * Where an expression's value is written as data (dev server, tools/studio/data-source.mjs, plan WP-C): a `.map` row of a
- * literal list (`row`: the list is `source`, the field `path`), a data const or import read by path (`data`), state,
- * a condition or other code. `editable`: op setDataField can write the value there (`file`: where, maybe data.ts);
- * otherwise `reason` says why it stays read-only.
+ * literal list (`row`: the list is `source`, the field `path`), a Table column cell's row (`cell`: the Table's rows, the
+ * row named by its key), a data const or import read by path (`data`), state, a condition or other code; `rows` is a
+ * Table's own rows (SourceElement.tableRows). `editable`: op setDataField can write the value there (`file`: where, maybe
+ * data.ts); otherwise `reason` says why it stays read-only.
  */
 export type DataSource = {
-  kind: "row" | "data" | "state" | "conditional" | "expression" | "literal" | "unknown";
+  kind: "row" | "cell" | "rows" | "data" | "state" | "conditional" | "expression" | "literal" | "unknown";
   editable: boolean;
   source?: string;
   path?: string[];
@@ -236,6 +237,11 @@ export type SourceElement = {
    * (`status={one.online}` after a fixed value) and a presence toggle restore what it removed.
    */
   savedAttributes?: Record<string, SourceAttr | null>;
+  /**
+   * A Table (`columns` and `rows`): whether the rows can be edited where they are written (a column without `cell` draws
+   * its row's field, which a cell's text edit writes with op setDataField { field }).
+   */
+  tableRows?: DataSource;
   hash: string;
 };
 
@@ -266,8 +272,14 @@ export type EditOp =
   | { op: "removeProp"; name: string }
   /** Attribute `name` reads a useState(<literal>) (SourceAttr.state): `value` becomes that initial state. */
   | { op: "setStateInit"; name: string; value: EditValue }
-  /** Writes a prop's (or an expression child's) value where the data holds it: a `.map` row's item, a data const (WP-C). */
-  | { op: "setDataField"; prop?: string; child?: number; row?: number; value: EditValue }
+  /**
+   * Writes a prop's (or an expression child's) value where the data holds it: a `.map` row's item, a data const (WP-C).
+   * A Table cell (2026-10-10): `row` is the row's place among the Table's rendered rows, `rowKey` its React key
+   * (getRowId), `rowFields` its plain fields as rendered (the row is found by them when the code computes its key),
+   * `table` the Table's loc (the column may be written apart from it); `field` (on the Table itself) names the row field
+   * a column without `cell` draws.
+   */
+  | { op: "setDataField"; prop?: string; child?: number; row?: number; rowKey?: string; rowFields?: Record<string, string | number | boolean>; table?: string; field?: string[]; value: EditValue }
   /**
    * One field of the object literal written in attribute `name` (`leading={{ … }}`), or of its `index`-th item when it is
    * an array literal (`trailing={[{ … }]}`): `value` replaces or appends the field, null removes it (SourceAttr.shape).
