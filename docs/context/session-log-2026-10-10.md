@@ -74,3 +74,12 @@
   lists it). Inspector checked on a page you made: Content / Field / Caption field / Media field / Bold per column.
 - Tests: tests/interaction/table-cell-content.test.tsx (3); compile selftest updated (columns written without cells).
 
+## Studio-saved layout edits on 3 example pages and 3 templates, committed (tier XS, session e4bf4af9)
+
+- Found uncommitted since 2026-10-09 by the session watch (no running session owned them; they read as Studio saves):
+  form (pickup Morning / Afternoon radios in a row, render + code), slider Budget alert (NumberField full width under the
+  slider, centred), visually-hidden (leave name fills its row, Badge sm), Dashboard / Settings templates (Container
+  full width, Settings fillChildren), Sign in (card body max 400, centred). User: keep them, then commit.
+- Fixed with them: the Budget alert's code string and description followed the render (wrap + align="center"; "under
+  it", not "beside it"). Gate (--files, pages templates · form · slider · visually-hidden): PASS; contact sheets checked.
+

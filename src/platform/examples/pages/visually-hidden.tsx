@@ -251,8 +251,8 @@ function LeaveApprovals() {
                 <Stack gap="2xs" className="px-visually-hidden-grow">
                   {/* The status Badge sits beside the name (2xs) and wraps under it on a narrow card instead of being cut. */}
                   <Stack direction="row" gap="2xs" align="center" wrap>
-                    <Heading level={5} textStyle="Body/Base/Bold">{person.name}</Heading>
-                    <Badge theme={leaveStatusTheme[status]} background="subtle">{status}</Badge>
+                    <Heading level={5} textStyle="Body/Base/Bold" width="fill">{person.name}</Heading>
+                    <Badge theme={leaveStatusTheme[status]} background="subtle" size="sm">{status}</Badge>
                   </Stack>
                   <Text as="span" textStyle="Body/Small/Regular" tone="base">{`${request.kind} · ${formatRange(request.from, request.to)} · ${plural(request.days, "day")}`}</Text>
                 </Stack>

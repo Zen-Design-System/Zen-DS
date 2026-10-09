@@ -83,11 +83,13 @@ function BudgetAlertExample() {
         <Stack gap="xs">
           <Text as="span" id={labelId} textStyle="Body/Small/Bold">Share of the budget</Text>
           {/* The slider gets close by feel, the number field types the exact percentage: both edit one value. */}
-          <Stack direction="row" gap="xs" align="center">
+          <Stack gap="xs" align="center">
             <Slider aria-labelledby={labelId} min={50} max={100} value={threshold} onValueChange={setThreshold}
               icon="icon-bell-01-solid" valueText={(value) => `${value}% of the budget`} />
-            <NumberField aria-label="Share of the budget, percent" className="px-slider-number" min={50} max={100}
-              value={threshold} onValueChange={(value) => { if (value !== null) setThreshold(value); }} trailing="%" />
+            <Stack direction="row" fillChildren width="fill">
+              <NumberField aria-label="Share of the budget, percent" className="px-slider-number" min={50} max={100}
+                value={threshold} onValueChange={(value) => { if (value !== null) setThreshold(value); }} trailing="%" align="center" />
+            </Stack>
           </Stack>
         </Stack>
         <DescriptionList items={[
@@ -358,17 +360,19 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Budget alert",
-    description: "A slider alone can't hit an exact number, so a NumberField edits the same value beside it. The summary turns the percentage into money, and Cancel and Save alert wait for a change.",
+    description: "A slider alone can't hit an exact number, so a NumberField edits the same value under it. The summary turns the percentage into money, and Cancel and Save alert wait for a change.",
     render: () => <BudgetAlertExample />,
     code: `const [threshold, setThreshold] = useState(80);
 
 <Form onSubmit={saveAlert} gap="md">
   <Text as="span" id={labelId} textStyle="Body/Small/Bold">Share of the budget</Text>
-  <Stack direction="row" gap="xs" align="center">
+  <Stack gap="xs" align="center">
     <Slider aria-labelledby={labelId} min={50} max={100} value={threshold} onValueChange={setThreshold}
       icon="icon-bell-01-solid" valueText={(value) => \`\${value}% of the budget\`} />
-    <NumberField aria-label="Share of the budget, percent" min={50} max={100} trailing="%"
-      value={threshold} onValueChange={(value) => value !== null && setThreshold(value)} />
+    <Stack direction="row" fillChildren width="fill">
+      <NumberField aria-label="Share of the budget, percent" min={50} max={100} trailing="%" align="center"
+        value={threshold} onValueChange={(value) => value !== null && setThreshold(value)} />
+    </Stack>
   </Stack>
   <DescriptionList items={[{ term: "Alert at", description: formatMoney(budget * threshold / 100) }]} />
   <FormActions>

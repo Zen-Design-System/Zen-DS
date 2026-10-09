@@ -483,8 +483,10 @@ function PhonePickupExample() {
           <SelectField label="Deliver to" helpText="Your last pickup went here" options={stores.map((store) => ({ value: store, label: store }))} {...form.selectField("to")} />
           <DateField label="Pickup day" today={TODAY} minDate={startOfToday} {...form.dateField("day")} />
           <FormFieldset kind="radio" legend="Pickup time" error={form.fieldError("window")}>
-            <RadioButton label="Morning" caption="8:00 am – 12:00 pm" {...form.radioField("window", "morning")} />
-            <RadioButton label="Afternoon" caption="1:00 pm – 5:00 pm" {...form.radioField("window", "afternoon")} />
+            <Stack gap="sm" direction="row">
+              <RadioButton label="Morning" caption="8:00 am – 12:00 pm" {...form.radioField("window", "morning")} />
+              <RadioButton label="Afternoon" caption="1:00 pm – 5:00 pm" {...form.radioField("window", "afternoon")} />
+            </Stack>
           </FormFieldset>
           <NumberField label="Parcels" min={1} max={20} helpText="Up to 25 kg each" align="center" {...form.numberField("parcels")} />
           <TextAreaField label="Note for the driver" labelOptional rows={3} placeholder="Ring the bell at the side gate" {...form.field("note")} />
@@ -609,8 +611,10 @@ const formId = useId();
       <SelectField label="Deliver to" options={stores} {...form.selectField("to")} />
       <DateField label="Pickup day" today={TODAY} minDate={TODAY} {...form.dateField("day")} />
       <FormFieldset kind="radio" legend="Pickup time" error={form.fieldError("window")}>
-        <RadioButton label="Morning" caption="8:00 am – 12:00 pm" {...form.radioField("window", "morning")} />
-        <RadioButton label="Afternoon" caption="1:00 pm – 5:00 pm" {...form.radioField("window", "afternoon")} />
+        <Stack gap="sm" direction="row">
+          <RadioButton label="Morning" caption="8:00 am – 12:00 pm" {...form.radioField("window", "morning")} />
+          <RadioButton label="Afternoon" caption="1:00 pm – 5:00 pm" {...form.radioField("window", "afternoon")} />
+        </Stack>
       </FormFieldset>
       <NumberField label="Parcels" min={1} max={20} {...form.numberField("parcels")} />
     </Stack>
