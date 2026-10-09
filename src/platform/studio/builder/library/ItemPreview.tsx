@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Component, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { ZenPortalProvider } from "../../../../components/Portal";
 import { previewAttributes } from "../../shell/modes";
 import { useStudio } from "../../store";
@@ -25,16 +25,12 @@ function closeOverlays(node: PageNode): PageNode {
 /** The width the item lays out at before it is scaled into the pane. */
 const STAGE_WIDTH = 400;
 
-export function ItemPreview({ item }: { item: PaletteItem }) {
-  const preview = useStudio((state) => state.preview);
+/** The item as a page node, parsed by the engine (undefined while it loads, null when it cannot be drawn); `skip`
+ *  waits (a thumbnail not scrolled into view yet). Shared by this pane and the Assets thumbnails. */
+export function useItemNode(item: PaletteItem, skip = false): PageNode | null | undefined {
   const [node, setNode] = useState<PageNode | null | undefined>(undefined);
-  const paneRef = useRef<HTMLDivElement>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  /** Anything the item portals (a popover, a menu) stays inside the inert pane. */
-  const [portal, setPortal] = useState<HTMLDivElement | null>(null);
-
   useEffect(() => {
+    if (skip) return undefined;
     let alive = true;
     setNode(undefined);
     void loadEngine().then((engine) => {
@@ -44,7 +40,40 @@ export function ItemPreview({ item }: { item: PaletteItem }) {
       if (alive) setNode(first ? closeOverlays(first) : null);
     }).catch(() => { if (alive) setNode(null); });
     return () => { alive = false; };
-  }, [item]);
+  }, [item, skip]);
+  return node;
+}
+
+/** A preview that throws while it renders (a prop the engine could not carry, as a Table's `cell` functions) shows
+ *  `fallback` instead of taking the panel down with it. */
+class PreviewBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
+
+/** Renders a parsed item inert: its links and prototype actions do nothing, its portals stay in `portal`; a render
+ *  error shows `fallback` (nothing by default). */
+export function renderInert(node: PageNode, portal: HTMLElement, fallback: ReactNode = null) {
+  return (
+    <PreviewBoundary fallback={fallback}>
+      <ZenPortalProvider container={portal}>{renderNode(node, { mock: {} }, { file: "preview:item.zen.tsx", mock: {}, proto: inert })}</ZenPortalProvider>
+    </PreviewBoundary>
+  );
+}
+
+export function ItemPreview({ item }: { item: PaletteItem }) {
+  const preview = useStudio((state) => state.preview);
+  const node = useItemNode(item);
+  const paneRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  /** Anything the item portals (a popover, a menu) stays inside the inert pane. */
+  const [portal, setPortal] = useState<HTMLDivElement | null>(null);
 
   useLayoutEffect(() => {
     const pane = paneRef.current;
@@ -62,7 +91,7 @@ export function ItemPreview({ item }: { item: PaletteItem }) {
     <div ref={paneRef} className="studio-qi__preview" data-e2e="quick-insert-preview" data-ready={node ? "true" : undefined} aria-hidden="true" inert {...previewAttributes(preview)}>
       {node ? (
         <div ref={stageRef} className="studio-qi__stage" style={{ width: STAGE_WIDTH, transform: `scale(${scale})` }} data-zen-overlay-root="">
-          {portal ? <ZenPortalProvider container={portal}>{renderNode(node, { mock: {} }, { file: "preview:item.zen.tsx", mock: {}, proto: inert })}</ZenPortalProvider> : null}
+          {portal ? renderInert(node, portal) : null}
         </div>
       ) : <div ref={stageRef} className="studio-qi__stage studio-qi__stage--empty" />}
       <div ref={setPortal} className="studio-qi__portal" />

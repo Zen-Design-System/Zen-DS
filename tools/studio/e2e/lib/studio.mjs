@@ -155,6 +155,19 @@ export async function selectedSrc(page) {
 }
 
 export const inspector = (page) => page.locator("#studio-right");
+/**
+ * Opens an Assets library (Components · Icons · Photos) from wherever the tab was left: Figma's drill-in (2026-10-09) —
+ * back to the libraries first, then the library's row; resolves once its search ("Search components") shows.
+ */
+export async function openAssetLibrary(page, kind) {
+  await showLeftTab(page, "assets");
+  const panel = page.locator("#studio-left-panel-assets");
+  const back = panel.getByRole("button", { name: "All libraries" });
+  if (await back.count()) await back.click();
+  await panel.getByRole("button", { name: kind, exact: true }).click();
+  await panel.getByLabel(`Search ${kind.toLowerCase()}`).waitFor({ state: "visible", timeout: 5000 });
+}
+
 export const inspectorRow = (page, prop) => page.locator(`#studio-right [data-prop="${prop}"]`).first();
 
 /** The canvas status hint text (CanvasStatus), where the Studio reports refusals and results. */

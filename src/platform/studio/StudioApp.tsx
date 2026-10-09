@@ -420,6 +420,9 @@ export function StudioApp() {
       if (key === "v") studioStore.setState({ tool: "select" });
       else if (key === "h") studioStore.setState({ tool: "hand" });
       else if (key === "i") studioStore.setState({ tool: "interact" });
+      // The toolbar's placement tools (Figma's A for a frame, T for text): point, then click to place.
+      else if (key === "a") studioStore.setState({ tool: "stack" });
+      else if (key === "t") studioStore.setState({ tool: "text" });
       else if (key === "p" && state.localPage) {
         // Play the builder page from the selected Screen (else its first).
         event.preventDefault();

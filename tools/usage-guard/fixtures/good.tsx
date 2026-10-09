@@ -82,6 +82,8 @@ export const Good = () => <>
   <ListItem title="Ava Chen" trailing={<IconButton onClick={act} size="md" aria-label="Message" icon={<Icon name="icon-mail-01-line" />} />} />
   <ListItem title="Ava Chen" onClick={open} trailing={<IconButton onClick={act} appearance="flat" size="md" aria-label="Message" icon={<Icon name="icon-mail-01-line" />} />} />
   <DockIcon theme="emoji" emoji="🎉" />
+  <VoiceRecorder state="recording" onRecord={record} onPause={pause} onResume={resume} onFinish={finish} onDiscard={discard} />
+  <AiVoiceConversation state="listening" onStart={listen} onDone={answer} onInterrupt={listen} onEnd={end} />
   <Table aria-label="Files" rows={rows} getRowId={getId} columns={columns} selectable selectedIds={ids} onSelectionChange={setIds} />
   <Table caption="Invoices" rows={rows} getRowId={getId} columns={[{ id: "n", header: "Name", sortable: true, cell: render }]} onSortChange={setSort} />
   <Table aria-label="Stock" rows={rows} getRowId={getId} columns={[{ id: "name", header: "Name", cell: render, edit: { value: getName, onCommit: save } }, { id: "qty", header: "Qty", align: "right", cell: render, edit: { type: "number", value: getQty, onCommit: save, validate: check } }]} />

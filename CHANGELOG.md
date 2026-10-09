@@ -19,6 +19,21 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- **Voice (2026-10-09, Figma ❖ Voice 15081:1294):** `VoiceRecorder` (State Ready · Recording · Paused: the take's time,
+  an 80px waveform and its timeline, Discard · Record / Pause / Resume · Finish, the input and format) and
+  `AiVoiceConversation` (Ready · Listening · Responding: the voice signal, the status, the transcript card, Mute · Start
+  talking / Done speaking / Interrupt · End; its status is a real heading, `headingLevel` 3 by default). A main action
+  without its handler is off (leave out `onResume` once a take reaches its limit). New page Components › Voice; harness
+  `voice/actions-wired`; new labels (en / vi).
+- **ChatVoice (2026-10-09, Figma Chat/Bubble/Voice 15084:80205):** a voice message bubble — play / pause, a waveform
+  whose played share is full strength, a 1× · 1.5× · 2× speed button; Business adds the length, Ready to play / Playing
+  and the time. Held like a file (Reply · Forward · Pin · Delete).
+- **AiChatField `listening` and `onVoiceMode` (2026-10-09, Figma State=Voice):** dictation — the prompt reads
+  Listening… and the microphone becomes Stop (`onStopListening`); `onVoiceMode` gives the empty field's Voice action its
+  own handler (voice mode, e.g. an AiVoiceConversation), apart from the microphone's dictation (`onVoice`, its default).
+- **AppShell `headerCenter` and `sections`; PageHeader `trailing` (2026-10-09, Figma slots):** the top bar's
+  Center-Slots (up to 400px, centred — a Search), Header/Dashboard's Sections (rows under the top bar, each padded as a
+  header row) and the Main row's Trailing-Slots (icon actions after the page's buttons).
 - **Table `bulkActions` (2026-10-08):** a selectable Table shows a Popover/Bulk-Action bar under the table while rows are
   selected — Clear selection, "N selected" and your actions (`TableBulkAction[]`: id, icon, label, onClick, disabled,
   group; or a function of the selected ids) — held at the bottom of the window on a long table. Actions that don't fit
@@ -951,6 +966,45 @@ removed (four unused colour ramps were, see Removed).
     which still bleeds outside the trail).
 
 ### Changed
+- **AppShell top bar spacing from Figma Header/Dashboard (2026-10-09):** Spacing/Padding/Small above and below (was
+  Margin-Comfortable above, Padding/XSmall below), Margin-Comfortable at the sides: a 64px bar on desktop (was 72). The
+  templates start their PageHeader 12px under it (paddingY sm), as Header/Dashboard's Main row.
+- **Zen Studio: Auto layout in Figma's words and grid (2026-10-09, step 1 of the Figma-language inspector):** the Layout
+  section of a Stack, Grid or FormFieldset is titled "Auto layout" and reads like Figma UI3's: labels above the fields, two
+  field columns and an icon column, so every field lines up. Flow (Vertical · Horizontal, the Wrap toggle beside),
+  Resizing (W / H; Auto shows no number; the W / H menu is Figma's — "Fixed width (240)", "Hug contents", "Fill
+  container" one line each with its glyph, then "Add min width…" / "Remove min width" in the same menu instead of a
+  separate min/max button), Alignment beside Gap (the cross axis — Position, Stretch, Text baseline — in the
+  icon beside Gap), Padding as Horizontal | Vertical fields (equal values write one `padding`; the "Same padding on all
+  sides" toggle is gone) and Clip content under Padding (moved from Appearance). Every token select (gap, padding,
+  radius, position offsets, a multi-selection's spacing) reads token + value on one line, as the canvas spacing menu:
+  "md … 16px" in the list, "md 16" in the field; the code keeps the token. A value set in code keeps its own row, with
+  Figma's word, in the same place. The whole Design tab shares one grid — label and control in the two field columns,
+  the icon column always kept — so fields, selects and toggles line up across sections; the alignment box's marks sit
+  on their dots. Spec: `docs/research/studio-inspector-figma-spec-2026-10-09.md`.
+- **Zen Studio toolbar, Figma UI3's tools (2026-10-09):** the canvas toolbar reads Move (V) · Hand (H) | Screen | Stack
+  (A) · Text (T) · Image · Assets (⇧I) | Interact (I). Stack, Text and Image are placed with the pointer: the insertion
+  line of a drag shows where they land (or why nothing there can take them), a click places them (one edit, the new
+  layer selected) and the tool goes back to Move; Escape puts it away. Screen (on a page you made) adds a Screen on the
+  page's device with a click on the canvas. Renaming a page renames its Screen still named after it.
+- **Zen Studio Assets in Figma's way (2026-10-09):** one search over every library at the top ("Search all assets":
+  the best components, icons and photos, each with See all); with no search, the libraries — Components (Zen DS),
+  Icons, Photos — as rows with their counts. A library opens in place (← back) with its own search; components sit in
+  groups that fold, as a grid of real thumbnails (drawn by the engine when they scroll into view; one that cannot draw
+  shows its group icon instead of breaking the panel) or a list (Grid · List, remembered); Icons has Line · Solid in its
+  header. Quick insert's preview no longer takes the Studio down when an item cannot render.
+- **Zen Studio New page (2026-10-09):** pick a start (Blank or a template) and Create — no title or device to fill in: a
+  blank page is "Untitled page" on a desktop Screen. Rename it with nothing selected (Page › Name) and change a Screen's
+  device from its frame panel (Screen › Device: Phone · Tablet · Desktop with the Zen Mobile, Tablet and Monitor icons).
+  The cards are Zen Cards (Border theme: a Pale frame; the picked one takes the Card's Active stroke) and Create /
+  Cancel stay at the bottom of the modal while the templates scroll. The Grid columns' Mobile breakpoint and the
+  Prototype panel's screens use the Mobile icon (was the telephone).
+- **Destructive actions read Content/Negative/Light (2026-10-09):** Menu's danger items and Bottom Sheet's destructive
+  items (text and icon) now use Negative/Light, as Button's danger levels already did: a coloured action reads in its
+  Light step (Base only when a Button is pressed).
+- **SelectField option `meta` (2026-10-09):** `SelectFieldOption` takes an optional `meta`, short text at the end of the
+  option's row on the same line (Body/Small/Regular, Neutral/Base; before the check), e.g. a token's value
+  (`{ label: "md", meta: "16px" }`); in the mobile sheet it sits before the check too. The field shows only the label.
 - **Zen Studio inspector: inputs read the same everywhere (2026-10-09):** no per-field "Reset … to default" button
   (properties, Layout direction and alignment, Align in parent, Position offsets, text alignment, text style); a field
   goes back to its default from inside it ("None", "Default", "none · 0", Backspace) or with Reset all overrides. A row

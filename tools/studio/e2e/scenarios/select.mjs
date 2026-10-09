@@ -159,9 +159,10 @@ export const rows = [
       await until(async () => (await selectedName(page)) === "TopNavigation", { message: "the TopNavigation selected" });
       const action = page.locator('[data-studio-frame="example:6"] button.zen-top-nav__action').first();
       const box = await action.boundingBox();
-      await page.keyboard.down("Control");
+      // ⌘ on macOS (there Ctrl+click is the context menu), Ctrl elsewhere.
+      await page.keyboard.down("ControlOrMeta");
       await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-      await page.keyboard.up("Control");
+      await page.keyboard.up("ControlOrMeta");
       await until(async () => !["TopNavigation", ""].includes(await selectedName(page)), { message: "a part selected" });
       const name = await selectedName(page);
       if (/^(Icon|IconSvg|svg|span)\b/i.test(name)) throw new Error(`landed on ${name}`);

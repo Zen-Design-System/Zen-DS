@@ -3,8 +3,8 @@ import { locOf } from "../lib/source.mjs";
 import { clickLoc, focusFrame, selectedSrc, sleep, until } from "../lib/studio.mjs";
 import { freshSelect } from "./inspector.mjs";
 
-/** The Select tool from the toolbar (V is the example's own key while Interact has focus inside it). */
-const selectTool = (page) => page.getByRole("toolbar", { name: "Tools", exact: true }).getByRole("button", { name: "Select", exact: true }).click();
+/** The Move (select) tool from the toolbar (V is the example's own key while Interact has focus inside it). */
+const selectTool = (page) => page.getByRole("toolbar", { name: "Tools", exact: true }).getByRole("button", { name: "Move", exact: true }).click();
 
 /** Interact (I), click "Open dialog", wait for the Dialog; returns its box. */
 async function openDialog(ctx, page) {

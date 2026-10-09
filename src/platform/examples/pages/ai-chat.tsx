@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AiChatBlock, AiChatBubble, AiChatField, AiChatThread, type AiChatAction, type AiChatFieldStyle } from "../../../components/AiChat";
 import { Button } from "../../../components/Button";
+import { Card } from "../../../components/Card";
 import { Chip } from "../../../components/Chip";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { InlineMessage } from "../../../components/InlineMessage";
@@ -13,6 +14,7 @@ import { Tag } from "../../../components/Tag";
 import { Text } from "../../../components/Text";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
+import { AiVoiceConversation, type AiVoiceState } from "../../../components/Voice";
 import { PlatformPhone } from "../../PlatformPhone";
 import { files, formatBytes, formatDate, formatMoney, formatRange, formatRelative, invoices, leaveRequests, me, people, projectById, studioMonths, type StudioFile } from "../data";
 import type { ExampleDef } from "../types";
@@ -479,7 +481,60 @@ function PhoneAssistantExample() {
 
 /* ───────────── Examples ───────────── */
 
+// ——— Dictate a prompt: the field's Voice state ————————————————————————————————————————————————————————————
+const DICTATED = "Draft a two-line update for Lumen Bank about the transfer flow tests.";
+
+function DictatePrompt() {
+  const [listening, setListening] = useState(false);
+  const [draft, setDraft] = useState({ key: 0, text: "" });
+  const [sent, setSent] = useState<string | null>(null);
+  // Voice mode (the empty field's Primary): the conversation takes the field's place until End.
+  const [voice, setVoice] = useState<AiVoiceState | null>(null);
+  const [muted, setMuted] = useState(false);
+  if (voice) {
+    return (
+      <Card theme="flat" spacing="sm">
+        <AiVoiceConversation state={voice} muted={muted} onMutedChange={setMuted}
+          transcript={voice === "responding" ? "Here is a two-line update for Lumen Bank: the transfer flow tests pass, and the release stays on Friday." : "Draft a two-line update for Lumen Bank…"}
+          onStart={() => setVoice("listening")} onDone={() => setVoice("responding")} onInterrupt={() => setVoice("listening")}
+          onEnd={() => { setVoice(null); setMuted(false); }} />
+      </Card>
+    );
+  }
+  return (
+    <Stack gap="sm">
+      <AiChatField key={draft.key} defaultValue={draft.text} placeholder="Ask Zen AI"
+        listening={listening}
+        onVoice={() => { setSent(null); setListening(true); }}
+        onVoiceMode={() => { setListening(false); setVoice("listening"); }}
+        onStopListening={() => { setListening(false); setDraft((current) => ({ key: current.key + 1, text: DICTATED })); }}
+        onSubmit={(text) => { setSent(text); setDraft((current) => ({ key: current.key + 1, text: "" })); }} />
+      <Text as="p" textStyle="Body/Small/Regular" tone="base" role="status">
+        {listening ? "Listening… press Stop when you are done." : sent ? `Sent: ${sent}` : draft.text ? "Your words are in the field: edit them, then send." : "Press the microphone to dictate, or Voice to talk it through."}
+      </Text>
+    </Stack>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
+  {
+    title: "Dictate a prompt",
+    description: "The field's Voice state: the microphone starts dictation, the prompt reads Listening… and the microphone turns into Stop. Stop puts the words in the field to edit before sending. The Primary Voice action opens voice mode (AI Voice Conversation) until End.",
+    render: () => <DictatePrompt />,
+    code: `{voiceMode ? (
+  <Card theme="flat" spacing="sm">
+    <AiVoiceConversation state={state} transcript={transcript} muted={muted} onMutedChange={setMuted}
+      onStart={listen} onDone={answer} onInterrupt={listen} onEnd={() => setVoiceMode(false)} />
+  </Card>
+) : (
+  <AiChatField key={draft.key} defaultValue={draft.text} placeholder="Ask Zen AI"
+    listening={listening}
+    onVoice={() => setListening(true)}
+    onVoiceMode={() => setVoiceMode(true)}
+    onStopListening={() => { setListening(false); putWordsInTheField(); }}
+    onSubmit={send} />
+)}`,
+  },
   {
     title: "Assistant home",
     screen: true,

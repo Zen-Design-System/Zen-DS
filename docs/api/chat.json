@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "chat",
-  "import": "import { ChatMessage, ChatComposer, ChatThread, ChatConversationItem, ChatComposerReply, ChatReplyQuote, ChatEmojiPicker, ChatReactorsPanel, ChatBubble, ChatFile, ChatCall, ChatPhotos, ChatReactions, ChatReactionPicker, ChatReadList, ChatDateDivider, ChatAvatarGroup } from \"@zen/design-system\";",
+  "import": "import { ChatMessage, ChatComposer, ChatThread, ChatConversationItem, ChatComposerReply, ChatReplyQuote, ChatEmojiPicker, ChatReactorsPanel, ChatBubble, ChatFile, ChatCall, ChatVoice, ChatPhotos, ChatReactions, ChatReactionPicker, ChatReadList, ChatDateDivider, ChatAvatarGroup } from \"@zen/design-system\";",
   "components": [
     {
       "name": "ChatMessage",
@@ -746,6 +746,87 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatVoice",
+      "file": "src/components/Chat/Chat.tsx",
+      "description": "Figma Chat/Bubble/Voice (15084:80205): a 288-wide bubble (Spacing/Padding/Small, Spacing/Gap/XSmall, Corner-Radius/Large)\n— Others on Background/Neutral/Subtle (Business: Bubble-Chat-Others-Business), You on Bubble-Chat-You — with a 32px\nplayback row: the Small play / pause control (Others: Button/Icon-Main Surface, Business Tertiary; You: Button/Icon-Overlay\nInverse), the waveform (3px bars, Spacing/Gap/3XSmall; the played share full strength, the rest 30%) and the speed in\nLabel/Small/Medium. Business adds a Caption/Regular line: the length (or where playback is), Ready to play / Playing\nand the time. Hover and the reaction pill come from ChatMessage, as on every bubble.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "side",
+          "type": "\"you\" | \"others\"",
+          "required": false,
+          "default": "\"others\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "duration",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "The message's length (\"0:32\").",
+          "deprecated": null
+        },
+        {
+          "name": "elapsed",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Where playback is (\"0:12\"): Business shows \"0:12 / 0:32\" while playing.",
+          "deprecated": null
+        },
+        {
+          "name": "progress",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": "The share already played, 0–1: those bars are full strength, the rest 30%.",
+          "deprecated": null
+        },
+        {
+          "name": "playing",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma State: Playing (the control pauses) or Idle (it plays). Your audio element drives it.",
+          "deprecated": null
+        },
+        {
+          "name": "onPlayingChange",
+          "type": "(playing: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "speed",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": "Playback speed (1, 1.5, 2); the \"1×\" button steps to the next one. Without `onSpeedChange` it is shown, not a button.",
+          "deprecated": null
+        },
+        {
+          "name": "onSpeedChange",
+          "type": "(speed: number) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "levels",
+          "type": "unknown",
+          "required": false,
+          "default": null,
+          "description": "The message's sound levels, 0–1 each (Figma draws 34).",
           "deprecated": null
         }
       ]

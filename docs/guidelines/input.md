@@ -349,7 +349,7 @@ type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: R
 type InputSize = "sm" | "md" | "lg" | "xl" | "small" | "medium" | "large" | "xlarge"
 type RichTextBlockType = "p" | "h1" | "h2" | "h3"
 type RichTextCommand = | "undo" | "redo" | "bold" | "underline" | "italic" | "strikethrough" | "align-left" | "align-center" | "align-right" | "align-justify" | "bulleted-list" | "numbered-list" | "outdent" | "indent" | "link" | "image" | "video" | "clear-format"
-type SelectFieldOption = { label: string; value: string; disabled?: boolean }
+type SelectFieldOption = { label: string; value: string; disabled?: boolean; meta?: string; }
 ```
 
 ## Keyboard

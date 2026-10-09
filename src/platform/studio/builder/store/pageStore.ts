@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { headerTitle, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, type RevisionReason } from "./pageModel";
+import { headerTitle, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type RevisionReason } from "./pageModel";
 
 /*
  * Builder pages kept in the browser (Studio builder GĐ2; spec docs/research/studio-builder-pages-spec-2026-10-06.md §3
@@ -226,11 +226,11 @@ export async function movePage(id: string, folder: string | null): Promise<void>
   channel?.postMessage({ id });
 }
 
-/** Renames a page: its header title and the list's name (one revision). */
+/** Renames a page: its header title, the list's name and a Screen still named after the page (one revision). */
 export async function renamePage(id: string, title: string): Promise<void> {
   const page = await getPage(id);
   if (!page) throw new Error("The page is gone");
-  await putPage(id, withHeaderTitle(page.text, title), { title, reason: "rename" });
+  await putPage(id, withScreenTitles(withHeaderTitle(page.text, title), page.title, title), { title, reason: "rename" });
 }
 
 /** A copy of the page under a new id ("<title> copy"); returns the new id. */

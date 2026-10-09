@@ -436,7 +436,14 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
   );
 });
 
-export type SelectFieldOption = { label: string; value: string; disabled?: boolean };
+export type SelectFieldOption = {
+  label: string;
+  value: string;
+  disabled?: boolean;
+  /** Short text at the end of the option's row in the list, on the same line (Body/Small/Regular, Neutral/Base), e.g. the
+   *  value a token stands for: `{ label: "md", meta: "16px" }`. The field itself shows only the label. */
+  meta?: string;
+};
 export type SelectFieldProps = CommonFieldProps & Omit<SelectHTMLAttributes<HTMLSelectElement>, "size"> & {
   options?: SelectFieldOption[];
   /** Called with the picked value and its option, next to the native `onChange(event)` (which still runs). */
@@ -642,7 +649,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
               const picked = option.value === (controlledValue ?? selectedValue);
               return (
                 <ListItem key={option.value} title={option.label} selected={picked} className={option.disabled ? "zen-select__sheet-option--disabled" : undefined} aria-disabled={option.disabled || undefined}
-                  trailing={picked ? <Icon name="icon-check-line" size="base" decorative /> : undefined}
+                  trailing={option.meta || picked ? <>{option.meta ? <span className={`zen-select__option-meta ${typographyStyles["Body/Small/Regular"]}`}>{option.meta}</span> : null}{picked ? <Icon name="icon-check-line" size="base" decorative /> : null}</> : undefined}
                   onClick={option.disabled ? undefined : () => { pick(option.value); setOpen(false); }} />
               );
             })}
@@ -670,7 +677,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
             if (!event.shiftKey) triggerRef.current?.focus({ preventScroll: true });
           }
         }}
-        items={options.map((option) => ({ id: option.value, label: option.label, value: option.value, disabled: option.disabled, selected: option.value === (controlledValue ?? selectedValue) }))}
+        items={options.map((option) => ({ id: option.value, label: option.label, trailing: option.meta ? <span className={`zen-select__option-meta ${typographyStyles["Body/Small/Regular"]}`}>{option.meta}</span> : undefined, value: option.value, disabled: option.disabled, selected: option.value === (controlledValue ?? selectedValue) }))}
         onSelect={(item) => { pick(item.value ?? ""); closeAndRestore(); }}
       />
       )}

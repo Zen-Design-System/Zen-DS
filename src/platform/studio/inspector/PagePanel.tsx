@@ -8,14 +8,41 @@ import type { PlatformPage } from "../../PlatformExamples";
 import { previewModeDefinitions, previewValueLabel } from "../shell/modes";
 import { useStudio } from "../store";
 import { focusFrame, frameIcon, useFrames } from "./frames";
-import { InspectorItem, InspectorSection } from "./Section";
+import { InspectorFields, InspectorItem, InspectorSection } from "./Section";
 
 import { openExport } from "../builder/export/exportState";
-import { pagesPersist, usePage, useStorage } from "../builder/store/pageStore";
+import { pagesPersist, renamePage, usePage, useStorage } from "../builder/store/pageStore";
+import { InputField } from "../../../components/Input";
 /*
  * Inspector with nothing selected (spec §6): the page, a one-line summary of the canvas preview modes (the toolbar
  * Modes popover is the one place to change them) and the frames on the board.
  */
+
+/** The page's name: typed, it renames the page on Enter or when the field is left (Escape puts it back); empty keeps it. */
+function PageName({ id, title }: { id: string; title: string }) {
+  const admin = useStudio((state) => state.role === "admin");
+  const [draft, setDraft] = useState<string | null>(null);
+  const commit = () => {
+    if (draft === null) return;
+    const next = draft.trim();
+    setDraft(null);
+    if (next && next !== title) void renamePage(id, next);
+  };
+  return (
+    <InputField
+      size="sm"
+      aria-label="Page name"
+      value={draft ?? title}
+      disabled={!admin}
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={commit}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" && !event.nativeEvent.isComposing) { event.preventDefault(); commit(); }
+        else if (event.key === "Escape" && draft !== null) { event.preventDefault(); event.stopPropagation(); setDraft(null); }
+      }}
+    />
+  );
+}
 
 /** Design tab with nothing selected. */
 export function PagePanel() {
@@ -44,6 +71,12 @@ export function PagePanel() {
           </div>
         ) : null}
       </header>
+      {/* A page you made is named here as you work (user, 2026-10-09: no title to give when it is made). */}
+      {localPage && builderPage ? (
+        <InspectorSection title="Page" fieldGrid>
+          <InspectorFields name="title" labels={["Name"]} fields={[<PageName key="name" id={localPage} title={builderPage.title} />]} />
+        </InspectorSection>
+      ) : null}
       {/* Preview modes change in Play and Present only (their bar's Modes panel): the canvas shows them here. */}
       <InspectorSection title="Preview modes">
         <p className={`studio-inspector__summary ${typographyStyles["Body/Small/Regular"]}`}>{summary}</p>

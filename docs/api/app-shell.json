@@ -23,7 +23,23 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Top bar content after the toggle (it grows): Breadcrumbs (Figma HR-Platform) or a Search.",
+          "description": "Top bar content after the toggle (Figma Leading-Slots; it grows): Breadcrumbs (Figma HR-Platform) or a Search.",
+          "deprecated": null
+        },
+        {
+          "name": "headerCenter",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Center-Slots (Nav-Center-Block, 4233:3210): the top bar's middle, up to 400px wide and centred between the\nleading content and the actions, e.g. a Search.",
+          "deprecated": null
+        },
+        {
+          "name": "sections",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Header/Dashboard Sections (4122:34662): rows under the top bar, at the top of the page — a PageHeader (Type=Main),\na toolbar of Search + filters (Type=Control-Bar) or your own row (Type=Custom). Each row takes the Header row padding\n(Spacing/Padding/Small above and below, Margin-Comfortable at the sides); they scroll with the page.",
           "deprecated": null
         },
         {

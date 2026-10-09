@@ -900,6 +900,14 @@ export const rules = [
   { id: "chip/radio-is-chip-group", components: ["Chip"], severity: "warn", allow: "chip-radio", guideline: "docs/guidelines/chip.md",
     summary: "Chips where exactly one is picked are a <ChipGroup> (radio group: one Tab stop, arrow keys), not Chips given role=\"radio\" by hand.",
     check: ({ attrs }) => literal(attrs, "role") === "radio" && "is a hand-made radio chip — use <ChipGroup options value onValueChange> (roving focus, arrow keys, aria-checked)." },
+  { id: "voice/actions-wired", components: ["VoiceRecorder", "AiVoiceConversation"], severity: "warn", allow: "voice-actions", guideline: "docs/guidelines/voice.md",
+    summary: "A Voice component shows its main action in every state: wire it (VoiceRecorder onRecord · onPause · onResume; AiVoiceConversation onStart · onDone · onInterrupt), or the big button does nothing.",
+    check: ({ tag, attrs }) => {
+      if (spreadsProps(attrs)) return null;
+      const need = tag === "VoiceRecorder" ? ["onRecord", "onPause", "onResume"] : ["onStart", "onDone", "onInterrupt"];
+      const missing = need.filter((name) => !present(attrs, name));
+      return missing.length ? `has no ${missing.join(" / ")}: its main action does nothing in that state.` : null;
+    } },
   { id: "dock-icon/emoji-needs-glyph", components: ["DockIcon"], severity: "warn", allow: "dock-emoji", guideline: "docs/guidelines/dock-icon.md",
     summary: "Theme=Emoji needs the emoji prop (otherwise a placeholder face renders).",
     check: ({ attrs }) => literal(attrs, "theme") === "emoji" && !present(attrs, "emoji") && "is theme emoji without an emoji." },

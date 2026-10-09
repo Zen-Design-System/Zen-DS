@@ -298,7 +298,7 @@ export function SettingsFormTemplate() {
       )}
     >
       <Container maxWidth="md">
-        <Stack gap="xl" paddingY="lg">
+        <Stack gap="xl" paddingY="sm">
           <PageHeader title="Settings" description={`Your account and the ${workspace.name} workspace.`} />
 
           <SettingsSection title="Profile" description="How you appear to the studio in projects, comments and mentions.">

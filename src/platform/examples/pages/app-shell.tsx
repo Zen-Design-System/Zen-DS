@@ -406,9 +406,10 @@ function PeopleDirectoryApp() {
                 { id: "teams", label: "Teams", icon: "icon-grid-01-line" },
                 { id: "activity", label: "Activity", icon: "icon-clock-line" },
               ] }]} />}
-            // A Search leads the top bar: it finds people from any page and opens the directory with the results.
-            header={<Stack direction="row" fillChildren width={240}><Search placeholder="Search people" aria-label="Search people" value={query}
-              onValueChange={(value) => { setQuery(value); if (value.trim()) go("people"); }} /></Stack>}
+            // The Search sits in the top bar's middle (Figma Center-Slots, up to 400px): it finds people from any page and
+            // opens the directory with the results.
+            headerCenter={<Search placeholder="Search people" aria-label="Search people" value={query}
+              onValueChange={(value) => { setQuery(value); if (value.trim()) go("people"); }} />}
             headerActions={<>
               <AppShellAction icon="icon-bell-01-line" aria-label="Activity" dot={news} aria-current={page === "activity" ? "page" : undefined} onClick={() => go("activity")} />
               {account.menu}
@@ -818,16 +819,16 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 </AppShell>`,
   },
   {
-    title: "Search in the top bar",
-    description: "A people directory leads its top bar with a Search: typing from any page opens People with the matches, and a Team's View people searches for that team. Activity shows a dot until it is opened. On a white Canvas the Sidebar is Surface-alt and every card has a Pale border instead of a shadow.",
+    title: "Search in the middle of the top bar",
+    description: "A people directory puts its Search in the middle of the top bar (Figma Center-Slots, up to 400px): typing from any page opens People with the matches, and a Team's View people searches for that team. Activity shows a dot until it is opened. On a white Canvas the Sidebar is Surface-alt and every card has a Pale border instead of a shadow.",
     wide: true,
     screen: true,
     render: () => <PeopleDirectoryApp />,
     code: `<AppShell
   canvas="alt"
   sidebar={<Sidebar background="alt" logo={logo} sections={sections} selectedId={page} onItemClick={(item) => go(item.id)} />}
-  header={<Stack direction="row" fillChildren width={240}><Search placeholder="Search people" aria-label="Search people" value={query}
-    onValueChange={(value) => { setQuery(value); if (value.trim()) go("people"); }} /></Stack>}
+  headerCenter={<Search placeholder="Search people" aria-label="Search people" value={query}
+    onValueChange={(value) => { setQuery(value); if (value.trim()) go("people"); }} />}
   headerActions={<>
     <AppShellAction icon="icon-bell-01-line" aria-label="Activity" dot={hasNews} aria-current={page === "activity" ? "page" : undefined} onClick={() => go("activity")} />
     <Menu align="end" trigger={<AppShellAccount name="Alex Duong" src={alex.photo} />} items={accountItems} />

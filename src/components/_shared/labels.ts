@@ -246,6 +246,44 @@ export type ZenLabels = {
   addFilesAndTools: string;
   dictate: string;
   assistant: string;
+  listening: string;
+  stopDictation: string;
+  voiceNewRecording: string;
+  voiceReady: string;
+  voiceRecording: string;
+  voicePaused: string;
+  voiceRecord: string;
+  voicePause: string;
+  voiceResume: string;
+  voiceDiscard: string;
+  voiceFinish: string;
+  voiceReadyGuidance: string;
+  voiceRecordingGuidance: string;
+  voicePausedGuidance: string;
+  voiceAssistant: string;
+  voiceListening: string;
+  voiceResponding: string;
+  voiceReadyHeading: string;
+  voiceListeningHeading: string;
+  voiceRespondingHeading: string;
+  voiceReadyConversationGuidance: string;
+  voiceListeningGuidance: string;
+  voiceRespondingGuidance: string;
+  voiceTrySaying: string;
+  voiceYouLive: string;
+  voiceAssistantSpoken: string;
+  voiceStartTalking: string;
+  voiceDoneSpeaking: string;
+  voiceInterrupt: string;
+  voiceMute: string;
+  voiceEnd: string;
+  voiceMicOffNote: string;
+  voiceConnectedNote: string;
+  playVoiceMessage: string;
+  pauseVoiceMessage: string;
+  voiceReadyToPlay: string;
+  voicePlaying: string;
+  playbackSpeed: (speed: string) => string;
 };
 
 /** Range numbers with the language's thousands separator: en 1,284 · vi 1.284. */
@@ -438,6 +476,44 @@ const en: ZenLabels = {
   addFilesAndTools: "Add files and tools",
   dictate: "Dictate",
   assistant: "Assistant",
+  listening: "Listening…",
+  stopDictation: "Stop dictation",
+  voiceNewRecording: "New recording",
+  voiceReady: "Ready",
+  voiceRecording: "Recording",
+  voicePaused: "Paused",
+  voiceRecord: "Record",
+  voicePause: "Pause",
+  voiceResume: "Resume",
+  voiceDiscard: "Discard",
+  voiceFinish: "Finish",
+  voiceReadyGuidance: "Ready when you are. Tap Record to begin.",
+  voiceRecordingGuidance: "Capturing audio from your microphone.",
+  voicePausedGuidance: "Recording paused. Resume or finish your take.",
+  voiceAssistant: "Zen voice",
+  voiceListening: "Listening",
+  voiceResponding: "Responding",
+  voiceReadyHeading: "Let’s talk",
+  voiceListeningHeading: "I’m listening",
+  voiceRespondingHeading: "Here’s what I found",
+  voiceReadyConversationGuidance: "Ask a question. Think out loud. Start anywhere.",
+  voiceListeningGuidance: "Speak naturally. I’ll follow your lead.",
+  voiceRespondingGuidance: "You can interrupt me at any time.",
+  voiceTrySaying: "Try saying",
+  voiceYouLive: "You · Live transcript",
+  voiceAssistantSpoken: "Zen · Spoken response",
+  voiceStartTalking: "Start talking",
+  voiceDoneSpeaking: "Done speaking",
+  voiceInterrupt: "Interrupt",
+  voiceMute: "Mute",
+  voiceEnd: "End",
+  voiceMicOffNote: "Your microphone stays off until you start.",
+  voiceConnectedNote: "Voice conversation · Microphone connected",
+  playVoiceMessage: "Play voice message",
+  pauseVoiceMessage: "Pause voice message",
+  voiceReadyToPlay: "Ready to play",
+  voicePlaying: "Playing",
+  playbackSpeed: (speed) => `Playback speed ${speed}`,
 };
 
 const vi: ZenLabels = {
@@ -626,6 +702,44 @@ const vi: ZenLabels = {
   addFilesAndTools: "Thêm tệp và công cụ",
   dictate: "Đọc chính tả",
   assistant: "Trợ lý",
+  listening: "Đang nghe…",
+  stopDictation: "Dừng đọc chính tả",
+  voiceNewRecording: "Bản ghi mới",
+  voiceReady: "Sẵn sàng",
+  voiceRecording: "Đang ghi",
+  voicePaused: "Tạm dừng",
+  voiceRecord: "Ghi âm",
+  voicePause: "Tạm dừng",
+  voiceResume: "Tiếp tục",
+  voiceDiscard: "Huỷ bản ghi",
+  voiceFinish: "Hoàn tất",
+  voiceReadyGuidance: "Sẵn sàng khi bạn muốn. Nhấn Ghi âm để bắt đầu.",
+  voiceRecordingGuidance: "Đang thu âm từ micro của bạn.",
+  voicePausedGuidance: "Đã tạm dừng. Tiếp tục hoặc hoàn tất bản ghi.",
+  voiceAssistant: "Zen voice",
+  voiceListening: "Đang nghe",
+  voiceResponding: "Đang trả lời",
+  voiceReadyHeading: "Cùng trò chuyện",
+  voiceListeningHeading: "Mình đang nghe",
+  voiceRespondingHeading: "Đây là điều mình tìm được",
+  voiceReadyConversationGuidance: "Hỏi một câu. Nghĩ thành lời. Bắt đầu từ đâu cũng được.",
+  voiceListeningGuidance: "Cứ nói tự nhiên. Mình sẽ theo bạn.",
+  voiceRespondingGuidance: "Bạn có thể ngắt lời mình bất cứ lúc nào.",
+  voiceTrySaying: "Thử nói",
+  voiceYouLive: "Bạn · Bản ghi trực tiếp",
+  voiceAssistantSpoken: "Zen · Câu trả lời bằng giọng nói",
+  voiceStartTalking: "Bắt đầu nói",
+  voiceDoneSpeaking: "Nói xong",
+  voiceInterrupt: "Ngắt lời",
+  voiceMute: "Tắt tiếng",
+  voiceEnd: "Kết thúc",
+  voiceMicOffNote: "Micro của bạn vẫn tắt cho đến khi bạn bắt đầu.",
+  voiceConnectedNote: "Trò chuyện bằng giọng nói · Đã kết nối micro",
+  playVoiceMessage: "Phát tin nhắn thoại",
+  pauseVoiceMessage: "Tạm dừng tin nhắn thoại",
+  voiceReadyToPlay: "Sẵn sàng phát",
+  voicePlaying: "Đang phát",
+  playbackSpeed: (speed) => `Tốc độ phát ${speed}`,
 };
 
 /** Built-in dictionaries by language subtag. */

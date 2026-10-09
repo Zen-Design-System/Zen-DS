@@ -41,6 +41,7 @@
 - [Slider](docs/guidelines/slider.md): Pick a value from a continuous or stepped range by dragging, where the relative position matters more than the exact number. Props: docs/api/slider.json
 - [Card](docs/guidelines/card.md): A surface that groups related content about one subject — a project, a stat, a choice — and can be selected or opened as a whole. Props: docs/api/card.json
 - [Dock Icon](docs/guidelines/dock-icon.md): A round, filled icon tile that identifies an app, category, file type or object. Props: docs/api/dock-icon.json
+- [Voice](docs/guidelines/voice.md): Record a voice take, or talk with the assistant out loud: a waveform or voice signal, what the state means, and three voice actions around one main action. Props: docs/api/voice.json
 - [List Item](docs/guidelines/list-item.md): One row of a vertical list: a leading visual, a title with an optional caption, and a trailing slot for actions or a passive chevron / value. Props: docs/api/list-item.json
 - [Table](docs/guidelines/table.md): Rows of structured records that users scan, compare, sort and act on. Props: docs/api/table.json
 - [Rating](docs/guidelines/rating.md): Collect or show a quick quality judgement: stars, an emoji opinion, or an NPS score. Props: docs/api/rating.json

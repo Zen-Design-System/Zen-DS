@@ -3,8 +3,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pagesDirOf } from "../lib/server.mjs";
-import { inspectorRow, openStudioSpace, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
-import { pickOption } from "./inspector.mjs";
+import { inspectorRow, openAssetLibrary, openStudioSpace, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { pickOption, scaleStep } from "./inspector.mjs";
 
 /** The page's text as the browser keeps it (IndexedDB "zen-studio-builder"). */
 export const pageText = (page, id) => page.evaluate((key) => new Promise((resolve) => {
@@ -29,11 +29,25 @@ export async function newPage(ctx, { title, device = "phone" } = {}) {
     await page.locator("#studio-left").getByRole("button", { name: "New page", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "New page" });
   await dialog.waitFor({ state: "visible", timeout: 5000 });
-  await dialog.getByLabel("Title").fill(name);
-  await dialog.getByRole("radio", { name: new RegExp(`^${device === "phone" ? "Phone" : device === "tablet" ? "Tablet" : "Desktop"} `) }).check({ force: true });
+  // Nothing to fill in (2026-10-09): a blank page is an "Untitled page" on a desktop Screen…
   await dialog.getByRole("button", { name: "Create page" }).click();
   await until(async () => page.url() !== from && /page=local%3A/.test(page.url()) && (await page.locator('[data-studio-frame^="screen:"]').count()) > 0, { message: "the new page on the canvas" });
   const id = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
+  // …named with nothing selected (the Page section's Name)…
+  const field = page.locator("#studio-right").getByLabel("Page name");
+  await field.waitFor({ state: "visible", timeout: 5000 });
+  await field.fill(name);
+  await field.press("Enter");
+  await until(async () => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim() === name, { message: `the page named "${name}"` });
+  // …and on its device from the Screen's frame panel (Screen › Device).
+  if (device !== "desktop") {
+    await showLeftTab(page, "layers");
+    await page.locator('[data-layer-id^="frame:screen:"]').first().click();
+    await page.locator("#studio-right").getByRole("button", { name: new RegExp(`^${device === "phone" ? "Phone" : "Tablet"},`) }).click();
+    await until(async () => new RegExp(`<Screen [^>]*device="${device}"`).test((await pageText(page, id)) ?? ""), { message: `the Screen on ${device}` });
+    await page.locator(".studio-viewport").focus();
+    await page.keyboard.press("Escape");
+  }
   return { page, id, name };
 }
 
@@ -73,9 +87,9 @@ export async function selectStack(page, id) {
 }
 
 async function insertAsset(page, label) {
-  await showLeftTab(page, "assets");
+  await openAssetLibrary(page, "Components");
   await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill(label);
-  await page.locator(".studio-assets__row", { hasText: new RegExp(`^${label}`) }).first().click();
+  await page.locator("#studio-left-panel-assets [data-asset]", { hasText: new RegExp(`^${label}`) }).first().click();
 }
 
 
@@ -192,7 +206,7 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await newPage(ctx);
       await selectStack(page, id);
-      await pickOption(page, "gap", /^xl · /);
+      await pickOption(page, "gap", scaleStep("xl"));
       await until(async () => /<Stack gap="xl"/.test((await pageText(page, id)) ?? ""), { message: 'gap="xl"' });
       return "gap md → xl";
     },
@@ -256,11 +270,12 @@ export const rows = [
     async run(ctx) {
       const { page, id, name } = await newPage(ctx);
       await pageAction(page, name, /^Duplicate/);
-      await until(async () => decodeURIComponent(page.url()).includes(`page=local:${id}-copy`), { message: "the copy opened" });
-      const copy = await pageText(page, `${id}-copy`);
+      // The copy's id comes from its title ("<name> copy"), the page's own id from the name it was made with.
+      const copyId = await until(async () => { const at = /page=local:([a-z0-9-]+)/.exec(decodeURIComponent(page.url()))?.[1]; return at && at !== id && at.endsWith("-copy") ? at : null; }, { message: "the copy opened" });
+      const copy = await pageText(page, copyId);
       if (!copy?.includes(JSON.stringify(`${name} copy`))) throw new Error("the copy's header is not renamed");
       if (!(await listed(page, `${name} copy`))) throw new Error("the copy is not listed");
-      return `${id}-copy opened`;
+      return `${copyId} opened`;
     },
   },
   {
@@ -310,14 +325,14 @@ export const rows = [
     id: "B-12", feature: "Version history: restore the text from before the edits", wp: "GĐ2 M2",
     async run(ctx) {
       const { page, id, name } = await newPage(ctx);
-      const before = await pageText(page, id);
       await selectStack(page, id);
       await insertAsset(page, "Badge");
       await until(async () => /<Badge/.test((await pageText(page, id)) ?? ""), { message: "a Badge" });
       await pageAction(page, name, /^Version history/);
       const dialog = page.getByRole("dialog", { name: "Version history" });
       await dialog.getByRole("button", { name: "Restore" }).first().click();
-      await until(async () => (await pageText(page, id)) === before, { message: "the text from before the Badge" });
+      // The newest kept version is from before the edits (rename and device included): a page with no Badge.
+      await until(async () => { const text = (await pageText(page, id)) ?? ""; return /<Screen\b/.test(text) && !/<Badge/.test(text); }, { message: "the text from before the Badge" });
       await until(async () => (await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Badge"]`).count()) === 0, { message: "the Badge gone from the canvas" });
       return "restored the first version";
     },
@@ -448,6 +463,21 @@ export const rows = [
       await mineRow(second.page, first.name).getByRole("button", { name: first.name, exact: true }).click();
       await listed(second.page, first.name, "Frames lists page A's Screen again");
       return `Frames: "${second.name}" on B, "${first.name}" back on A`;
+    },
+  },
+  {
+    id: "B-20", feature: "Toolbar › Screen on a page you made: a click on the canvas adds a Screen on the page's device", wp: "toolbar 2026-10-09",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      await page.locator(".studio-canvas-tools").getByRole("button", { name: "Screen", exact: true }).click();
+      const box = await page.locator(".studio-viewport").boundingBox();
+      await page.mouse.move(box.x + 40, box.y + box.height - 120);
+      await page.mouse.down();
+      await page.mouse.up();
+      await until(async () => (((await pageText(page, id)) ?? "").match(/<Screen\b/g) ?? []).length === 2, { message: "a second Screen" });
+      const text = (await pageText(page, id)) ?? "";
+      if ((text.match(/<Screen [^>]*device="phone"/g) ?? []).length !== 2) throw new Error("the new Screen is not on the page's device (phone)");
+      return "Screen tool → a second phone Screen";
     },
   },
 ];

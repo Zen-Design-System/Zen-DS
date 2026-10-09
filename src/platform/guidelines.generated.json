@@ -3795,6 +3795,105 @@
       }
     ]
   },
+  "voice": {
+    "title": "Voice",
+    "purpose": "Record a voice take, or talk with the assistant out loud: a waveform or voice signal, what the state means, and three voice actions around one main action.",
+    "use": [
+      "Voice notes on a task, a comment or a ticket (VoiceRecorder).",
+      "Recording a take before attaching or sending it.",
+      "Voice mode with the assistant: listening, answering, interrupting (AiVoiceConversation).",
+      "Full-screen voice on a phone."
+    ],
+    "avoid": [
+      "A voice message already sent in a chat → ChatVoice (Chat/Bubble/Voice).",
+      "Dictating into the prompt → AiChatField listening.",
+      "Audio playback of a file → a media player, not a recorder."
+    ],
+    "api": [
+      [
+        "State",
+        "state",
+        "VoiceRecorder ready · recording · paused; AiVoiceConversation ready · listening · responding — your recorder or assistant drives it"
+      ],
+      [
+        "Recorder actions",
+        "onRecord · onPause · onResume · onFinish · onDiscard",
+        "the main action follows the state; Discard and Finish stay off until there is a take"
+      ],
+      [
+        "Conversation actions",
+        "onStart · onDone · onInterrupt · onEnd · muted + onMutedChange",
+        "Mute and End stay off until the conversation starts"
+      ],
+      [
+        "Waveform",
+        "elapsed · start · end · levels (0–1)",
+        "Heading/Subheading time, an 80px waveform, Caption start / end"
+      ],
+      [
+        "Transcript",
+        "transcript · speaker",
+        "the AI/Chat-Bubble inside the Surface/Alt card"
+      ],
+      [
+        "Footer",
+        "input · format (Recorder) · note (Conversation)",
+        "Caption, Neutral/Light"
+      ]
+    ],
+    "keyboard": [],
+    "do": [
+      "Put them on a Card or a Surface: the frame itself is transparent (Figma).",
+      "Wire every action you show: a main action without its handler does nothing (harness: voice/actions-wired).",
+      "Let your audio code drive state, and give the time and levels from it.",
+      "On a phone, use a white screen (canvas surface) so the Surface/Alt signal and card show."
+    ],
+    "dont": [
+      "Don't start recording or listening without a press: the microphone stays off until Record / Start talking.",
+      "Don't hide the state's meaning in colour alone: the Badge and the guidance line say it in words.",
+      "Don't use AiVoiceConversation for a recording to send: that is VoiceRecorder."
+    ],
+    "a11y": [
+      "Each voice action is a named button (its name is printed under it); Mute is a toggle (aria-pressed).",
+      "The guidance and status lines are polite live regions, so a state change is announced once.",
+      "The waveform and voice signal are decorative (aria-hidden): the time and the Badge carry the meaning."
+    ],
+    "content": [
+      "Guidance says what is happening now and what to do next, in one sentence.",
+      "Times read as Figma's: 00:24.18 for the take, 00:24 for the timeline."
+    ],
+    "refs": [
+      [
+        "Apple HIG — Audio",
+        "https://developer.apple.com/design/human-interface-guidelines/playing-audio"
+      ],
+      [
+        "Material 3 — Speech-to-text",
+        "https://m3.material.io/foundations/interaction/inputs"
+      ]
+    ],
+    "file": "docs/guidelines/voice.md",
+    "rules": [
+      {
+        "id": "voice/actions-wired",
+        "severity": "warn",
+        "summary": "A Voice component shows its main action in every state: wire it (VoiceRecorder onRecord · onPause · onResume; AiVoiceConversation onStart · onDone · onInterrupt), or the big button does nothing.",
+        "allow": "voice-actions"
+      },
+      {
+        "id": "interaction/no-noop-handler",
+        "severity": "warn",
+        "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
+        "allow": "noop-handler"
+      },
+      {
+        "id": "interaction/controlled-needs-handler",
+        "severity": "warn",
+        "summary": "A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass.",
+        "allow": "controlled-handler"
+      }
+    ]
+  },
   "list-item": {
     "title": "List Item",
     "purpose": "One row of a vertical list: a leading visual, a title with an optional caption, and a trailing slot for actions or a passive chevron / value.",

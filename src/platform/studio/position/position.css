@@ -1,8 +1,9 @@
 /* Zen Studio inspector, Position section (PositionSection.tsx; spec docs/research/studio-position-effects-radius-spec-2026-10-03.md
    §4.1). Same geometry as the Size group (sizing.css): fields in a pair, a fixed trailing slot sized like an xs IconButton. */
 
-/* Align: two groups of three xs icon buttons (horizontal, vertical), Figma's alignment row. */
-.studio-position__align { display: flex; min-width: 0; align-items: center; justify-content: space-between; }
+/* Align: two groups of three xs icon buttons (horizontal in the first field column, vertical in the second), Figma's
+   alignment row across the field grid. */
+.studio-position__align { display: grid; width: 100%; min-width: 0; grid-template-columns: repeat(6, minmax(0, 1fr)); align-items: center; justify-items: center; }
 
 /* [X][Y][toggle]: two equal read-only fields and the slot column, as Size's [W][H][menu]. */
 .studio-position__pair { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
@@ -16,10 +17,10 @@
 .studio-position__via { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-position__via > .zen-button { flex: 0 0 auto; }
 
-/* Constraints: the caption, then the diagram beside the two selects. */
+/* Constraints: the caption, then the diagram (first column) beside the two selects (second column), the icon column free. */
 .studio-position__constraints { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-position__label { color: var(--zen-color-content-neutral-base); }
-.studio-position__constraint-body { display: grid; min-width: 0; grid-template-columns: 72px minmax(0, 1fr); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-position__constraint-body { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-position__selects { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
 
 /* The diagram (72 × 72, the two sm selects and their gap): the parent's frame, the layer's square, arms and centre ticks. */

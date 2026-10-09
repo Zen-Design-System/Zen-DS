@@ -2068,6 +2068,77 @@
       ]
     },
     {
+      "slug": "voice",
+      "title": "Voice",
+      "file": "docs/guidelines/voice.md",
+      "apiFile": "docs/api/voice.json",
+      "figma": "Voice Recorder (15084:79711) + AI Voice Conversation (15084:79715) (page 15081:1294)",
+      "import": "import { VoiceRecorder, AiVoiceConversation } from \"@zen/design-system\";",
+      "purpose": "Record a voice take, or talk with the assistant out loud: a waveform or voice signal, what the state means, and three voice actions around one main action.",
+      "use": [
+        "Voice notes on a task, a comment or a ticket (VoiceRecorder).",
+        "Recording a take before attaching or sending it.",
+        "Voice mode with the assistant: listening, answering, interrupting (AiVoiceConversation).",
+        "Full-screen voice on a phone."
+      ],
+      "avoid": [
+        "A voice message already sent in a chat → ChatVoice (Chat/Bubble/Voice).",
+        "Dictating into the prompt → AiChatField listening.",
+        "Audio playback of a file → a media player, not a recorder."
+      ],
+      "props": {
+        "VoiceRecorder": [
+          "state?: ready|recording|paused = ready",
+          "title?: ReactNode",
+          "elapsed?: string = 00:00.00",
+          "start?: string = 00:00",
+          "end?: string = 00:00",
+          "guidance?: ReactNode",
+          "input?: ReactNode",
+          "format?: ReactNode",
+          "onRecord?: () => void",
+          "onPause?: () => void",
+          "onResume?: () => void",
+          "onFinish?: () => void",
+          "onDiscard?: () => void",
+          "className?: string"
+        ],
+        "AiVoiceConversation": [
+          "state?: ready|listening|responding = ready",
+          "name?: ReactNode",
+          "heading?: ReactNode",
+          "headingLevel?: 2|3|4|5|6 = 3",
+          "guidance?: ReactNode",
+          "speaker?: ReactNode",
+          "transcript?: ReactNode",
+          "muted?: boolean = false",
+          "onMutedChange?: (muted: boolean) => void",
+          "onStart?: () => void",
+          "onDone?: () => void",
+          "onInterrupt?: () => void",
+          "onEnd?: () => void",
+          "note?: ReactNode",
+          "className?: string"
+        ]
+      },
+      "do": [
+        "Put them on a Card or a Surface: the frame itself is transparent (Figma).",
+        "Wire every action you show: a main action without its handler does nothing (harness: voice/actions-wired).",
+        "Let your audio code drive state, and give the time and levels from it.",
+        "On a phone, use a white screen (canvas surface) so the Surface/Alt signal and card show."
+      ],
+      "dont": [
+        "Don't start recording or listening without a press: the microphone stays off until Record / Start talking.",
+        "Don't hide the state's meaning in colour alone: the Badge and the guidance line say it in words.",
+        "Don't use AiVoiceConversation for a recording to send: that is VoiceRecorder."
+      ],
+      "rules": [
+        "voice/actions-wired",
+        "interaction/no-noop-handler",
+        "interaction/controlled-needs-handler"
+      ]
+    },
+    {
       "slug": "list-item",
       "title": "List Item",
       "file": "docs/guidelines/list-item.md",
@@ -3048,7 +3119,7 @@
       "file": "docs/guidelines/chat.md",
       "apiFile": "docs/api/chat.json",
       "figma": "❖ Chat (7042:23220)",
-      "import": "import { ChatMessage, ChatComposer, ChatThread, ChatConversationItem, ChatComposerReply, ChatReplyQuote, ChatEmojiPicker, ChatReactorsPanel, ChatBubble, ChatFile, ChatCall, ChatPhotos, ChatReactions, ChatReactionPicker, ChatReadList, ChatDateDivider, ChatAvatarGroup } from \"@zen/design-system\";",
+      "import": "import { ChatMessage, ChatComposer, ChatThread, ChatConversationItem, ChatComposerReply, ChatReplyQuote, ChatEmojiPicker, ChatReactorsPanel, ChatBubble, ChatFile, ChatCall, ChatVoice, ChatPhotos, ChatReactions, ChatReactionPicker, ChatReadList, ChatDateDivider, ChatAvatarGroup } from \"@zen/design-system\";",
       "purpose": "Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list.",
       "use": [
         "Direct and group conversations, support chat (Business domain).",
@@ -3220,6 +3291,9 @@
           "onModelClick?: () => void",
           "onAttach?: () => void",
           "onVoice?: () => void",
+          "onVoiceMode?: () => void",
+          "listening?: boolean = false",
+          "onStopListening?: () => void",
           "busy?: boolean = false",
           "onStop?: () => void",
           "disabled?: boolean = false",
@@ -3587,6 +3661,8 @@
         "AppShell": [
           "sidebar?: ReactNode",
           "header?: ReactNode",
+          "headerCenter?: ReactNode",
+          "sections?: ReactNode",
           "headerActions?: ReactNode",
           "banner?: ReactNode",
           "aside?: ReactNode",
@@ -3672,6 +3748,7 @@
           "eyebrow?: ReactNode",
           "actions?: ReactNode",
           "meta?: ReactNode",
+          "trailing?: ReactNode",
           "tabs?: ReactNode",
           "back?: PageHeaderBack",
           "headingLevel?: 1|2 = 1"

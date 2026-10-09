@@ -61,6 +61,12 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
 /* SelectField `placeholder` while nothing is selected: Content/Placeholder, like a text field's placeholder. */
 .zen-select__placeholder { color: var(--zen-color-content-placeholder, #00000045); }
 .zen-input-field[data-state="disabled"] .zen-select__placeholder { color: var(--zen-color-content-disabled, #00000045); }
+/* An option's `meta` (a token's value: "md … 16px") in the item's trailing slot, hugging its text as Menu's shortcut;
+   the selected check moves after it, to the end of the row. */
+.zen-popover__item-trailing:has(> .zen-select__option-meta) { width: auto; height: auto; flex-basis: auto; }
+.zen-popover__item:has(> .zen-popover__item-trailing > .zen-select__option-meta) > .zen-popover__item-check { order: 1; }
+.zen-select__option-meta { color: var(--zen-color-content-neutral-base); white-space: nowrap; }
+.zen-popover__item:disabled .zen-select__option-meta { color: inherit; }
 
 /* Keep fill and Effect/Input on ONE painted layer. A child backdrop-filter
    above a parent's inset shadow blurs/obscures that shadow. */

@@ -24,6 +24,9 @@ export interface PageHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "titl
   actions?: ReactNode;
   /** Next to the title: a status Badge, Tag or AvatarStack. */
   meta?: ReactNode;
+  /** Figma Trailing-Slots (Primitives/Dashboard/Header Type=Main): icon actions after the page actions, e.g. a More menu or
+   *  Share (Button/Icon-Main), Spacing/Gap/Small after them. */
+  trailing?: ReactNode;
   /** Under the header: <Tabs> that switch the page's sections. */
   tabs?: ReactNode;
   /** A Back control for detail pages (chevron icon, per the navigation rule). */
@@ -41,7 +44,7 @@ export interface PageHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "titl
  *     actions={<><Button level="tertiary">Export</Button><Button level="primary">Invite member</Button></>} />
  */
 export const PageHeader = forwardRef<HTMLElement, PageHeaderProps>(function PageHeader(
-  { title, description, breadcrumbs, eyebrow, actions, meta, tabs, back, headingLevel = 1, className, ...rest },
+  { title, description, breadcrumbs, eyebrow, actions, meta, trailing, tabs, back, headingLevel = 1, className, ...rest },
   ref,
 ) {
   return (
@@ -58,7 +61,12 @@ export const PageHeader = forwardRef<HTMLElement, PageHeaderProps>(function Page
           <Heading level={headingLevel} textStyle={headingLevel === 1 ? "Heading/1" : "Heading/4"}>{title}</Heading>
           {meta ? <div className="zen-page-header__meta">{meta}</div> : null}
         </div>
-        {actions ? <div className="zen-page-header__actions">{actions}</div> : null}
+        {actions || trailing ? (
+          <div className="zen-page-header__actions">
+            {actions}
+            {trailing ? <span className="zen-page-header__trailing">{trailing}</span> : null}
+          </div>
+        ) : null}
       </div>
       {description ? <Text className="zen-page-header__description" tone="base">{description}</Text> : null}
       {tabs ? <div className="zen-page-header__tabs">{tabs}</div> : null}

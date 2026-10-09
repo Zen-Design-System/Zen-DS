@@ -1,17 +1,21 @@
 import { useContext, useEffect, useRef, useState, type FocusEvent, type KeyboardEvent } from "react";
+import { Icon } from "../../../../components/Icon";
 import { SelectField } from "../../../../components/Input";
+import { typographyStyles } from "../../../../tokens/typography.generated";
 import type { IconName } from "../../../../icons/generated/names";
 import { radiusValue, type ZenCornerRadius } from "../../../../components/_shared/scale";
 import { keyForPx, tokenPx } from "../../select/spacing";
 import { spacingHover } from "../../select/spacingHover";
 import { matchOption } from "../propSchema";
 import { InspectorHostContext, InspectorSrcContext } from "./hostContext";
-import { scaleLabel, stepKey, type TokenScale } from "./scale";
+import { pxText, scaleStep, stepKey, type TokenScale } from "./scale";
+import "./controls.css";
 
 /*
- * ScaleField (spec docs/research/studio-inspector-redesign-2026-10-03.md Phase 2; plan WP-D): a token select that names
- * each step with what it measures where the layer renders ("md · 16", the canvas spacing pill's wording). Unset, it
- * shows the effective default in the placeholder tone. ↑/↓ step the ladder while it is closed and write once when the
+ * ScaleField (spec docs/research/studio-inspector-redesign-2026-10-03.md Phase 2; plan WP-D): a token select, read as a
+ * token and its value on one line (user, 2026-10-09; Figma's variable list and the canvas spacing pill's menu): the list
+ * rows read "md … 16px" (the pixels it measures where the layer renders), the field "md" with its 16 beside the chevron.
+ * Only Zen's ladder is offered; the code keeps the token. Unset, it shows the effective default in the placeholder tone. ↑/↓ step the ladder while it is closed and write once when the
  * key is released (or focus leaves), so holding a key is one edit and one undo step; ⌫ / Delete resets a written value.
  * Typeahead and scrub are later phases. Hovered or focused (the field, or a step of its open list under the pointer or
  * the keyboard), it names its layer, prop and step on the spacing hover bus (select/spacingHover.ts), so the canvas
@@ -51,6 +55,16 @@ function renderedKey(host: Element | null, prop: string, scale: TokenScale, ladd
   return px === undefined ? null : keyForPx(ladder.map((key) => ({ key, px: measure(host, scale, key) })), px, preferred);
 }
 
+/** A token select's trailing: the value the shown token measures ("16"), then the chevron — "md … 16 ⌄" on one line. */
+export function ScaleTrail({ px }: { px: number | null }) {
+  return (
+    <span className="studio-scale__trail">
+      {px !== null ? <span className={`studio-scale__px ${typographyStyles["Body/Small/Regular"]}`}>{pxText(px)}</span> : null}
+      <Icon name="icon-chevron-down-line" size="2xs" />
+    </span>
+  );
+}
+
 export function ScaleField({ label, prop, scale, options, value, fallback, disabled, onSet, onReset, extras = [], leading, placeholder }: {
   label: string;
   /** The prop's name: while unset, what it renders with is measured on the element (Horizontal padding from Padding). */
@@ -83,7 +97,11 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
   const extra = extras.find((item) => item.key === value);
   const matched = value === undefined ? undefined : extra ? extra.key : matchOption(value, options);
   const ladder = matched !== undefined && !extra && !options.includes(matched) ? [...options, matched] : options;
-  const text = (key: string) => extras.find((item) => item.key === key)?.label ?? scaleLabel(key, measure(host, scale, key));
+  const step = (key: string): { label: string; meta?: string } => {
+    const extraItem = extras.find((item) => item.key === key);
+    return extraItem ? { label: extraItem.label } : scaleStep(key, measure(host, scale, key));
+  };
+  const text = (key: string) => step(key).label;
   const documented = fallback !== undefined ? matchOption(fallback, ladder) : undefined;
   const effective = (matched === undefined ? renderedKey(host, prop, scale, ladder, documented) : null) ?? documented ?? (ladder.includes("none") ? "none" : undefined);
 
@@ -99,10 +117,10 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
   useEffect(() => () => { if (src) spacingHover.clear({ src, prop }); }, [src, prop]);
   useEffect(() => {
     if (!listOpen || !src) return undefined;
-    // The list renders in a portal: its rows are found by their text (each step's label is its own).
+    // The list renders in a portal: its rows are found by their label (the token, one per step).
     const keyOfRow = (target: EventTarget | null) => {
       const row = target instanceof Element ? target.closest('[role="option"]') : null;
-      const label = row?.textContent?.trim();
+      const label = row?.querySelector(".zen-popover__item-label")?.textContent?.trim();
       return label ? ladder.find((key) => text(key) === label) ?? null : null;
     };
     const onOver = (event: Event) => {
@@ -118,6 +136,9 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
       document.removeEventListener("focusin", onOver, true);
     };
   });
+
+  // The value beside the chevron: what the shown step measures ("16"), the field's own one-line "token + value".
+  const shownPx = shownKey && !extras.some((item) => item.key === shownKey) ? measure(host, scale, shownKey) : null;
 
   const commit = () => {
     if (pending === null) return;
@@ -161,12 +182,13 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
         aria-label={label}
         size="sm"
         leading={leading}
+        trailing={<ScaleTrail px={shownKey === "full" ? null : shownPx} />}
         disabled={disabled}
         value={pending ?? matched ?? ""}
         placeholder={placeholder ?? (effective !== undefined ? text(effective) : "—")}
         onPopoverOpenChange={(next) => { open.current = next; setListOpen(next); if (!next) rowKey.current = null; }}
         onValueChange={(next) => { setPending(null); if (next !== matched) onSet(next); }}
-        options={[...extras.map((item) => ({ value: item.key, label: item.label })), ...ladder.map((key) => ({ value: key, label: text(key) }))]}
+        options={[...extras.map((item) => ({ value: item.key, label: item.label })), ...ladder.map((key) => ({ value: key, ...step(key) }))]}
       />
     </div>
   );

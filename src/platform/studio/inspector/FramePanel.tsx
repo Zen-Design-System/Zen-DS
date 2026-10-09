@@ -4,21 +4,76 @@ import { Icon } from "../../../components/Icon";
 import { SelectField } from "../../../components/Input";
 import { Segmented } from "../../../components/Segmented";
 import { Heading } from "../../../components/Text";
+import type { IconName } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { frameWidthPresets, isCustomFrameWidth } from "../board/frameLayout";
 import { useStudioFrames } from "../board/frames";
 import { presentFrame } from "../board/presentFrame";
 import { pageKey, setFrameOverride, useStudio } from "../store";
+import { applyEdit } from "../api";
+import { DEVICE_WIDTH, type PageDevice } from "../builder/proto/runtime";
+import type { PageNode } from "../builder/render/renderPage";
+import { pageFile, usePage } from "../builder/store/pageStore";
+import { usePageTree } from "../builder/usePageTree";
 import type { StudioFrameWidth } from "../types";
 import { newPageFromFrame } from "../builder/starters/newPageFromFrame";
 import { copyText, exampleOf, frameKind, frameLabel } from "./frames";
-import { InspectorRow, InspectorSection } from "./Section";
+import { InspectorFields, InspectorRow, InspectorSection } from "./Section";
 import { SlotHost, useSlotFilled } from "./SlotHost";
 
 /*
  * Inspector for a selected frame (spec §6): width, theme, Present (examples) or Zoom to frame (page-sized frames), and
  * for examples the description and Copy code. Widths are the frame toolbar's: Auto (the rule width) and the presets.
  */
+
+/** A Screen's device, each with its Zen icon (user, 2026-10-09: Mobile, Tablet, Monitor). */
+const DEVICES: Array<{ id: PageDevice; label: string; icon: IconName }> = [
+  { id: "phone", label: "Phone", icon: "icon-mobile-line" },
+  { id: "tablet", label: "Tablet", icon: "icon-tablet-line" },
+  { id: "desktop", label: "Desktop", icon: "icon-monitor-01-line" },
+];
+
+/**
+ * A builder page's Screen frame (Figma: a frame's device preset): its Device, written on `<Screen device>` as one edit
+ * (one undo step). The page starts on a desktop Screen and changes here as you work (user, 2026-10-09: nothing to pick
+ * when the page is made).
+ */
+function ScreenSection({ frameId }: { frameId: string }) {
+  const localPage = useStudio((state) => state.localPage);
+  const admin = useStudio((state) => state.role === "admin");
+  const page = usePage(localPage);
+  const tree = usePageTree(page?.text);
+  const screenId = frameId.split(":")[1];
+  const literal = (node: PageNode, prop: string) => { const value = node.props[prop]; return value?.kind === "literal" ? value.value : undefined; };
+  const node = tree?.board?.children.find((child): child is PageNode => child.kind === "element" && child.name === "Screen" && literal(child, "id") === screenId);
+  if (!localPage || !node) return null;
+  const device = (literal(node, "device") as PageDevice | undefined) ?? "desktop";
+  const write = (next: PageDevice) => {
+    if (next === device) return;
+    void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [{ op: "setProp", name: "device", value: { kind: "string", value: next } }] }, `Screen device → ${next}`);
+  };
+  return (
+    <InspectorSection title="Screen" fieldGrid>
+      <InspectorFields
+        name="device"
+        labels={["Device"]}
+        code="Screen device"
+        fields={[(
+          <Segmented
+            key="device"
+            aria-label="Device"
+            size="sm"
+            fullWidth
+            disabled={!admin}
+            value={device}
+            onValueChange={(next) => write(next as PageDevice)}
+            options={DEVICES.map((item) => ({ id: item.id, label: "", leading: item.icon, "aria-label": `${item.label}, ${DEVICE_WIDTH[item.id]} px` }))}
+          />
+        )]}
+      />
+    </InspectorSection>
+  );
+}
 
 export function FramePanel({ frameId, controlsSlot }: { frameId: string; controlsSlot: HTMLElement }) {
   const page = useStudio((state) => state.page);
@@ -58,6 +113,7 @@ export function FramePanel({ frameId, controlsSlot }: { frameId: string; control
         {example?.description ? <p className={`studio-inspector__description ${typographyStyles["Body/Small/Regular"]}`}>{example.description}</p> : null}
       </header>
 
+      {frameId.startsWith("screen:") ? <ScreenSection frameId={frameId} /> : null}
       <InspectorSection title="Frame">
         <InspectorRow label="Width">
           <SelectField

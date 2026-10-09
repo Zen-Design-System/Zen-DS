@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Self-test of the ScaleField model (./scale.ts, imported directly: Node strips the types).
 // Run: node src/platform/studio/inspector/controls/scale.selftest.mjs
-import { scaleLabel, scaleOfType, stepKey } from "./scale.ts";
+import { scaleOfType, scaleStep, stepKey } from "./scale.ts";
 
 const failures = [];
 let passed = 0;
@@ -18,7 +18,7 @@ check("padding + insets", scaleOfType('"none" | ZenScaleInput | "4xl"'), "paddin
 check("corner radius", scaleOfType('"none" | Exclude<ZenScaleInput, "3xs" | "3xsmall"> | "full"'), "radius");
 check("not a scale", [scaleOfType('"md" | "sm" | "medium" | "small"'), scaleOfType("ZenScaleInput"), scaleOfType("boolean")], [null, null, null]);
 
-check("labels", [scaleLabel("md", 16), scaleLabel("none", 0), scaleLabel("full", 999), scaleLabel("xs", 7.5), scaleLabel("lg", null)], ["md · 16", "none · 0", "full", "xs · 7.5", "lg"]);
+check("steps read as token + value", [scaleStep("md", 16), scaleStep("none", 0), scaleStep("full", 999), scaleStep("xs", 7.5), scaleStep("lg", null)], [{ label: "md", meta: "16px" }, { label: "none", meta: "0px" }, { label: "full" }, { label: "xs", meta: "7.5px" }, { label: "lg" }]);
 
 const ladder = ["none", "xs", "sm", "md", "lg"];
 check("step up / down", [stepKey(ladder, "md", 1), stepKey(ladder, "md", -2)], ["lg", "xs"]);

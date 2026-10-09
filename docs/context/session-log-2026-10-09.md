@@ -127,3 +127,77 @@
 - After the merge: tsc, tokens:check (Studio modes intact), guidelines in sync, gate on layout / form / input /
   bottom-sheet / date-picker 0 errors, Vitest 44 files / 561 tests pass, Studio E2E 175/176 — SE-12 fails on origin/main
   too (clean worktree), so not a merge regression (BACKLOG P2).
+
+## Figma-language inspector, step 1: Auto layout on Figma's field grid (user: "Phần Design các pros chỉnh nên giống hệt Figma")
+
+- Spec `docs/research/studio-inspector-figma-spec-2026-10-09.md` (user's answers: pixels on Zen's ladder, no Freeform,
+  Grid + Auto layout first). Reference: the user's Figma UI3 screenshots (Flow · Resizing · Alignment | Gap · Padding H|V
+  · Clip content).
+- `InspectorFields` (Section.tsx): [field][field][24px icon], Caption labels above; `InspectorSection fieldGrid` stacks
+  plain rows (PropField) the same way. LayoutSection rebuilt on it; SizingSection "Resizing", Align in parent and Child
+  size label-above; Auto shows no measured number (user, mid-task); Clip content moved from Appearance (isLayoutProp).
+- `axisPaddingOps` (layoutModel): smallest form for the H/V fields (+7 selftest checks). ScaleField: `scaleStep` → "16"
+  with caption "md" (needs the new optional `SelectFieldOption.caption`, docs regenerated). Cross axis → a Popover beside
+  Gap. Bound/spread layout props keep rows in Figma's order with Figma's words.
+- E2E: L-04 rewritten (H/V), new L-10 Clip content and L-11 Cross axis, scale labels via `scaleStep()` in I-06, I-15,
+  B-04, L-03, L-07, AP-01 — all pass.
+- Not in this step (spec §4): Position, Appearance / Fill / Stroke / Effects, Component properties and Typography on
+  the grid; typing a number into a scale field (it is still a list). Popover items with a caption are two lines (Zen's
+  Popover/Item), so the spacing list is taller than Figma's.
+- Follow-ups the same day (user): (1) "thụt ra thụt vào" — every InspectorRow on the shared grid (label | control |
+  icon column always), Position `fieldGrid`, constraints on the grid; (2) token selects one line, token + value:
+  `SelectFieldOption.caption` → `meta` (Popover trailing, check after it), ScaleField / Position insets / mixed
+  selection; field "md 16" (`ScaleTrail`); (3) the alignment box's marks keep their 20 × 16 size, centred on the dot.
+- (4) W / H menu as Figma's (user's screenshot): one-line items with glyphs (Fixed (px) · Hug · Fill), min / max items
+  per axis in the same menu (`limitItems`, `onLimit`), the ruler menu removed. (5) A stray Studio draft on layout.tsx
+  from a screenshot script was discarded (POST /__zen-studio/discard); the file on disk never changed. (6) The
+  `.studio-part__swatch` Pale-border warning: a decorative chip, marked `zen-allow-pale-actionable-box`.
+- (7) User rule: coloured (non-neutral) action text and icons use the Light step. Menu danger and BottomSheet
+  destructive items Negative/Base → Light (Button danger/positive already Light). Accent actions (Button Secondary,
+  flat Accent, the Popover's accent binding) are Accent/Base in Figma: asked the user before changing them.
+- (8) Assets as Figma's (user's answers: drill-in libraries, real thumbnails with Grid · List): AssetsPanel rewritten
+  (Libraries · AllResults · ComponentLibrary with folding groups · IconGrid with Line/Solid in the header · PhotoGrid
+  unchanged); AssetThumb (lazy, scaled engine render; `useItemNode` / `renderInert` shared with ItemPreview, plus a
+  PreviewBoundary — the Table preview threw on its dropped `cell` functions and took the panel down). Back clears the
+  search. E2E: `openAssetLibrary()` helper; `[data-asset]` instead of `.studio-assets__row` (library, builder, instance,
+  structural, handoff, build-check).
+- (9) New page: no Title / Device (Untitled page N, desktop); Page › Name in PagePanel, Screen › Device in FramePanel
+  (applyEdit setProp on <Screen>); Zen Card for the choices; sticky Create / Cancel. E2E newPage() names the page and
+  sets its device through those controls. A screenshot script had made a real "Untitled page" in .zen-studio/pages: moved
+  to .zen-studio/trash. Toolbar (Figma tools): asked, the user dismissed — waiting for their call.
+- (10) Toolbar (user: "Bộ Figma + đặt bằng chuột"): StudioTool + screen/stack/text/image; CanvasTools in groups;
+  edit/place.ts arms the pointer (dropTargetAt + publishDragView as an asset drag; capture on window so the canvas sees
+  no press), back to Move after a place; builder/proto/addFrame.ts shared with the Prototype panel; A / T keys; hints.
+  E2E ST-26 (Text placed), ST-27 (Escape), B-20 (Screen on the page's device). Gate fixes found on the way: Assets "See
+  all" / Upload compact buttons justified, plural count; B-09 / B-12 / B-19 / AP-03 adapted to the new page flow and the
+  narrower control column; renamePage renames a Screen still named after the page (pageModel withScreenTitles).
+- (11) Gate fixes: O-01 / O-02 used the toolbar's "Select" (now "Move"); SE-12 held Control, which macOS Chrome turns
+  into a right-click — now ControlOrMeta (passes; it failed on main for the same reason). BACKLOG: SE-12 and the Studio
+  chrome lint debt entries removed (fixed).
+
+## Figma updates, batch 1 (user: "Update giống Figma hết", "lưu ý có slot", "tất cả component nên có slot như Figma") — tier L
+
+- Read with use_figma (read-only): ❖ Voice 15081:1294 (Voice Recorder 15084:79711, AI Voice Conversation 15084:79715),
+  Chat/Bubble/Voice 15084:80205, AI/Chat-Field State=Voice 15114:219, ◇ Master-Layout Header/Dashboard 4122:34662
+  (rows in its Sections slot: 12 / 24 / 12 / 24) and Primitives/Dashboard/Header 4122:33402 (7 slots); a slot inventory
+  of every ❖ / ◇ page (43 sets with slots).
+- Built: components/Voice (VoiceRecorder, AiVoiceConversation), ChatVoice (+ hold actions as a file), AiChatField
+  `listening`, AppShell `headerCenter` + `sections` + the 12px top bar, PageHeader `trailing`; 38 labels (en / vi);
+  platform page "voice" (playground + 4 examples), examples on Chat (Voice messages), AI Chat (Dictate a prompt),
+  App Shell (Search in the middle), Page Header (Invoice settings); guideline, harness `voice/actions-wired` with
+  fixtures, Do / Don't visuals, smoke fixture; axe baseline: the two Voice components' Neutral/Light captions (the same
+  Figma contrast decision the 21 other entries record).
+- User decisions: list slots get children of their own item component AND keep the arrays (batch 2).
+- Gate run 1 FAIL, fixed: Chat "Voice messages" moved into a phone (PlatformPhone + PlatformChatHeader + composer;
+  Delete hides the bubble); ChatVoice speed corner 4 (concentric with the 16px bubble); Voice actions `flex: 0 1 80px`
+  (Comfortable 390 overflow); AiVoiceConversation status → `h{headingLevel}`; Voice cards `theme="flat"` (§16); AI Chat
+  "Dictate a prompt" without the model button, Voice → voice mode (new `onVoiceMode`); main Voice action off without its
+  handler; Voice example 5 (limit + long title on a narrow card: states/edge cases); PlatformApp Download Figma → the
+  Figma file, Feedback → the repo's new-issue page (new tab); workspace avatar C… purple (3:1). 5 Studio E2E reds re-ran
+  green alone (flaky).
+- Runs 2–8: Voice colour roles (Ready bars Border/Neutral/Subtle as fill; level bars Content/Accent/Light with
+  zen-allow-colour-role), footer inset Padding/Medium; actions 80+8px columns with an XSmall gap (Figma's 96px centres,
+  fits 390 Comfortable; a container query collapsed the playground card, dropped); state badge no longer shrinks; App
+  Shell playground side panel: one Body/Base/Regular line instead of a DescriptionList (8 → 7 text styles). Run 4: E2E
+  181/181, dark, behaviour clean; final voice run PASS.
+

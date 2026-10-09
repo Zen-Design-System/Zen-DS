@@ -108,6 +108,8 @@
     "L-07": "works",
     "L-08": "works",
     "L-09": "works",
+    "L-10": "works",
+    "L-11": "works",
     "LB-01": "works",
     "LB-02": "works",
     "LB-03": "works",
@@ -176,7 +178,10 @@
     "ST-22": "works",
     "ST-23": "works",
     "ST-24": "works",
-    "ST-25": "works"
+    "ST-25": "works",
+    "ST-26": "works",
+    "ST-27": "works",
+    "B-20": "works"
   },
   "flaky": {}
 }

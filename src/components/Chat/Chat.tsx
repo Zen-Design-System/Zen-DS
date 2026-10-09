@@ -153,8 +153,9 @@ export const chatHoldActions = {
  * The Figma hold/hover action set for a message: text & photos by side, files their own, calls by side.
  * `labels` (e.g. `useZenLabels().holdActions`, or a few entries of it) replaces the English action text.
  */
-export function chatHoldActionsFor(kind: "text" | "photo" | "file" | "call", side: ChatSide, labels?: Partial<ZenLabels["holdActions"]>): ChatHoldAction[] {
-  const actions = kind === "file" ? chatHoldActions.file : kind === "call" ? (side === "you" ? chatHoldActions.callYou : chatHoldActions.call) : chatHoldActions[side];
+export function chatHoldActionsFor(kind: "text" | "photo" | "file" | "call" | "voice", side: ChatSide, labels?: Partial<ZenLabels["holdActions"]>): ChatHoldAction[] {
+  // A voice message is held like a file (Reply · Forward · Pin · Delete): there is no text to copy.
+  const actions = kind === "file" || kind === "voice" ? chatHoldActions.file : kind === "call" ? (side === "you" ? chatHoldActions.callYou : chatHoldActions.call) : chatHoldActions[side];
   return labels ? localizeHoldActions(actions, labels) : actions;
 }
 
@@ -533,6 +534,79 @@ export function ChatCall({ side = "others", type = "audio", state = "in-call", d
         <Button appearance={domain === "business" ? "flat" : "overlay"} level={domain === "business" ? "primary" : "inverse"} size="sm" className="zen-chat-call__action" onClick={onAction}>
           {actionLabel ?? action}
         </Button>
+      ) : null}
+    </div>
+  );
+}
+
+/** Playback speeds a voice message steps through (the "1×" button). */
+export const chatVoiceSpeeds = [1, 1.5, 2] as const;
+/** Figma Chat/Bubble/Voice's waveform: 34 levels of a 32px row. */
+const CHAT_VOICE_LEVELS = [8, 12, 18, 10, 24, 30, 16, 22, 12, 26, 32, 20, 14, 24, 18, 10, 16, 28, 22, 12, 30, 24, 16, 10, 20, 28, 18, 12, 24, 16, 10, 18, 12, 6].map((px) => px / 32);
+
+export type ChatVoiceProps = {
+  side?: ChatSide;
+  /** The message's length ("0:32"). */
+  duration: string;
+  /** Where playback is ("0:12"): Business shows "0:12 / 0:32" while playing. */
+  elapsed?: string;
+  /** The share already played, 0–1: those bars are full strength, the rest 30%. */
+  progress?: number;
+  /** Figma State: Playing (the control pauses) or Idle (it plays). Your audio element drives it. */
+  playing?: boolean;
+  onPlayingChange?: (playing: boolean) => void;
+  /** Playback speed (1, 1.5, 2); the "1×" button steps to the next one. Without `onSpeedChange` it is shown, not a button. */
+  speed?: number;
+  onSpeedChange?: (speed: number) => void;
+  /** The message's sound levels, 0–1 each (Figma draws 34). */
+  levels?: readonly number[];
+};
+
+/**
+ * Figma Chat/Bubble/Voice (15084:80205): a 288-wide bubble (Spacing/Padding/Small, Spacing/Gap/XSmall, Corner-Radius/Large)
+ * — Others on Background/Neutral/Subtle (Business: Bubble-Chat-Others-Business), You on Bubble-Chat-You — with a 32px
+ * playback row: the Small play / pause control (Others: Button/Icon-Main Surface, Business Tertiary; You: Button/Icon-Overlay
+ * Inverse), the waveform (3px bars, Spacing/Gap/3XSmall; the played share full strength, the rest 30%) and the speed in
+ * Label/Small/Medium. Business adds a Caption/Regular line: the length (or where playback is), Ready to play / Playing
+ * and the time. Hover and the reaction pill come from ChatMessage, as on every bubble.
+ */
+export function ChatVoice({ side = "others", duration, elapsed, progress = 0, playing = false, onPlayingChange, speed = 1, onSpeedChange, levels }: ChatVoiceProps) {
+  const t = useZenLabels();
+  const { domain, time } = useContext(ChatMessageContext);
+  const bars = levels ?? CHAT_VOICE_LEVELS;
+  const played = Math.round(Math.max(0, Math.min(1, progress)) * bars.length);
+  const business = domain === "business";
+  const control = {
+    icon: (playing ? "icon-pause-solid" : "icon-play-solid") as IconName,
+    "aria-label": playing ? t.pauseVoiceMessage : t.playVoiceMessage,
+    size: "sm" as const,
+    tooltip: false as const,
+    onClick: () => onPlayingChange?.(!playing),
+  };
+  const next = chatVoiceSpeeds[(chatVoiceSpeeds.indexOf(speed as (typeof chatVoiceSpeeds)[number]) + 1) % chatVoiceSpeeds.length];
+  const speedText = `${speed}×`;
+  return (
+    <div className="zen-chat-voice" data-side={side} data-domain={domain} data-playing={playing || undefined}>
+      <div className="zen-chat-voice__playback">
+        {side === "you"
+          ? <IconButton appearance="overlay" level="inverse" {...control} />
+          : <IconButton appearance="main" level={business ? "tertiary" : "surface"} {...control} />}
+        <span className="zen-chat-voice__wave" aria-hidden="true">
+          {bars.map((level, index) => (
+            // zen-allow-inline-style: each bar's height is the message's sound level (a data value, not a token).
+            <span key={index} className="zen-chat-voice__bar" data-played={index < played || undefined} style={{ height: `${Math.max(0, Math.min(1, level)) * 100}%` }} />
+          ))}
+        </span>
+        {onSpeedChange
+          ? <button type="button" className={`zen-chat-voice__speed ${typographyStyles["Label/Small/Medium"]}`} aria-label={t.playbackSpeed(speedText)} onClick={() => onSpeedChange(next)}>{speedText}</button>
+          : <span className={`zen-chat-voice__speed ${typographyStyles["Label/Small/Medium"]}`} aria-label={t.playbackSpeed(speedText)}>{speedText}</span>}
+      </div>
+      {business ? (
+        <div className={`zen-chat-voice__meta ${typographyStyles["Caption/Regular"]}`}>
+          <span className="zen-chat-voice__duration">{playing && elapsed ? `${elapsed} / ${duration}` : duration}</span>
+          <span className="zen-chat-voice__status">{playing ? t.voicePlaying : t.voiceReadyToPlay}</span>
+          {time ? <span className="zen-chat-voice__time">{time}</span> : null}
+        </div>
       ) : null}
     </div>
   );

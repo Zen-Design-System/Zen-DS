@@ -62,5 +62,11 @@
   ],
   "UploaderFileItem": [
     "color-contrast"
+  ],
+  "AiVoiceConversation": [
+    "color-contrast"
+  ],
+  "VoiceRecorder": [
+    "color-contrast"
   ]
 }

@@ -42,8 +42,10 @@ export async function waitSeed(page, seed) {
   }
 }
 
-/** Opens the select in an Inspector row and picks `label`. */
-/** `label`: the option's whole name, or a RegExp (scale options read "md · 16", ScaleField). */
+/** Opens the select in an Inspector row and picks `label`: the option's whole name, or a RegExp (scaleStep). */
+/** A ScaleField step by its token: the row reads the token, then the pixels it measures ("md … 16px"). */
+export const scaleStep = (key) => new RegExp(`^${key}\\s*\\d+(\\.\\d)?px$`);
+
 export async function pickOption(page, prop, label) {
   await inspectorRow(page, prop).locator("button").first().click();
   await page.getByRole("option", { name: label, exact: typeof label === "string" }).click();
@@ -123,7 +125,7 @@ export const rows = [
       const page = await freshSelect(ctx, "btn-a");
       await page.keyboard.press("Escape");
       await until(async () => (await inspectorRow(page, "gap").count()) > 0, { message: "the Stack's gap row" });
-      await pickOption(page, "gap", /^lg · /);
+      await pickOption(page, "gap", scaleStep("lg"));
       await expectSource(ctx, "row", (el) => el.attr("gap") === "lg", "gap=lg on the row Stack");
       return "gap sm → lg";
     },
@@ -139,13 +141,16 @@ export const rows = [
     },
   },
   {
-    id: "I-15", feature: "ScaleField: token + px, held ↑ is one edit, ⌫ resets", wp: "WP-D",
+    id: "I-15", feature: "ScaleField: token + value, held ↑ is one edit, ⌫ resets", wp: "WP-D",
     async run(ctx) {
       const page = await freshSelect(ctx, "btn-a");
       await page.keyboard.press("Escape");
       await until(async () => (await inspectorRow(page, "gap").count()) > 0, { message: "the Stack's gap row" });
       const trigger = inspectorRow(page, "gap").locator("button").first();
-      if (!/^sm · \d+/.test((await trigger.innerText()).trim())) throw new Error(`gap reads "${(await trigger.innerText()).trim()}", not "sm · <px>"`);
+      // The field reads the token, its pixels beside the chevron (user, 2026-10-09: "token name + value", one line).
+      const smText = (await trigger.innerText()).trim();
+      const px = (await inspectorRow(page, "gap").locator(".studio-scale__px").innerText()).trim();
+      if (smText !== "sm" || !/^\d+(\.\d)?$/.test(px)) throw new Error(`gap reads "${smText}" "${px}", not "sm <px>"`);
       // Held: two key-downs (the second repeats), one release → sm → md → lg in one write.
       await trigger.focus();
       await page.keyboard.down("ArrowUp");
@@ -157,12 +162,12 @@ export const rows = [
       await expectSource(ctx, "row", (el) => el.attr("gap") === "sm", "one ⌘Z back to sm (one edit, not two)");
       // The field reads the undone value before ⌫, as a person sees it change first: a ⌫ planned from the element the
       // Inspector read before the undo is refused as stale (BACKLOG I-15, fixed 2026-10-07).
-      await until(async () => /^sm · \d+/.test((await inspectorRow(page, "gap").locator("button").first().innerText()).trim()), { message: 'the gap field back to "sm · …"' });
+      await until(async () => (await inspectorRow(page, "gap").locator("button").first().innerText()).trim() === smText, { message: `the gap field back to sm (${smText})` });
       await trigger.focus();
       await page.keyboard.press("Backspace");
       await expectSource(ctx, "row", (el) => el.attr("gap") === undefined, "⌫ removes gap");
       if (!(await inspectorRow(page, "gap").count())) throw new Error("the layer went away with ⌫");
-      return "sm · px; held ↑ → lg in one undo step; ⌫ reset";
+      return `sm ${px}; held ↑ → lg in one undo step; ⌫ reset`;
     },
   },
   {

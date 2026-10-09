@@ -152,6 +152,10 @@ export const Bad = () => <>
   <Chip variant="normal" role="radio" aria-checked onClick={act}>Daily</Chip>
   {/* expect: list-item/clickable-row-toggle */}
   <ListItem title="Wi-Fi" onClick={open} trailing={<ToggleButton aria-label="Wi-Fi" selected={on} onSelectedChange={setOn} />} />
+  {/* expect: voice/actions-wired */}
+  <VoiceRecorder state="ready" onRecord={record} />
+  {/* expect: voice/actions-wired */}
+  <AiVoiceConversation state="ready" onStart={listen} />
   {/* expect: dock-icon/emoji-needs-glyph */}
   <DockIcon theme="emoji" />
   {/* expect: table/needs-name */}

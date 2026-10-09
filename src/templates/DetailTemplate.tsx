@@ -246,7 +246,7 @@ export function DetailTemplate() {
       ) : undefined}
     >
       <Container>
-        <Stack gap="lg" paddingY="lg">
+        <Stack gap="lg" paddingY="sm">
           <PageHeader
             title={`Invoice ${invoice.number}`}
             meta={<Badge theme={status.theme} background="subtle">{status.label}</Badge>}

@@ -115,7 +115,12 @@ function InvoicesPage() {
         actions={<>
           <Button level="tertiary" startIcon="icon-download-01-line" onClick={() => toast({ title: "Export started", children: "invoices-2026-q3.csv" })}>Export</Button>
           <Button level="primary" onClick={() => setCreating(true)}>New invoice</Button>
-        </>} />
+        </>}
+        // Figma Trailing-Slots: the page's icon actions after its buttons.
+        trailing={<Menu align="end" trigger={<IconButton level="tertiary" icon="icon-settings-01-line" aria-label="Invoice settings" />} items={[
+          { id: "numbering", label: "Numbering: INV-YYYY-NNNN", icon: "icon-hash-02-line", onSelect: () => toast({ title: "Numbering kept", children: "INV-2026-0143 is next" }) },
+          { id: "reminders", label: "Payment reminders", icon: "icon-bell-01-line", onSelect: () => toast({ title: "Reminders on", children: "3 days before each due date" }) },
+        ]} />} />
       {/* The page's table lies on the Canvas: no Card. */}
       <Table aria-label="Invoices" rows={rows} columns={columns} />
       <ModalForm open={creating} onOpenChange={(open) => { setCreating(open); if (!open) form.reset(); }} title="New invoice" description="It stays a draft until you send it."
@@ -522,6 +527,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
         <Button level="tertiary" startIcon="icon-download-01-line" onClick={exportCsv}>Export</Button>
         <Button level="primary" onClick={() => setCreating(true)}>New invoice</Button>
       </>}
+      trailing={<Menu align="end" trigger={<IconButton level="tertiary" icon="icon-settings-01-line" aria-label="Invoice settings" />} items={settingsItems} />}
     />
     {/* The page's table sits on the Canvas: no Card */}
     <Table aria-label="Invoices" rows={rows} columns={columns} />

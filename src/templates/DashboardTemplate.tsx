@@ -517,7 +517,7 @@ export function DashboardTemplate() {
       aside={aside}
     >
       <Container>
-        <Stack gap="lg" paddingY="lg">
+        <Stack gap="lg" paddingY="sm">
           <Stack gap="md">
             <PageHeader title="Studio overview" description={`Money, capacity and delivery across ${workspace.name}'s client work.`}
               actions={<>

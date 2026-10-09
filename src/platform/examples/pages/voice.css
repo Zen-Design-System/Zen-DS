@@ -1,0 +1,5 @@
+/* Voice examples: the components are 400 wide in Figma, plus the Card's own padding. */
+/* zen-allow-slot-size: Figma's Voice frames are 400 wide; the Card adds its Small padding around them. */
+.pe-voice-card { width: 100%; max-width: 448px; }
+/* zen-allow-slot-size: a narrow card (a side column or a phone-width panel), where long titles truncate. */
+.pe-voice-card--narrow { max-width: 320px; }

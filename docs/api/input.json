@@ -1810,6 +1810,6 @@
     "InputSize": "type InputSize = \"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
     "RichTextBlockType": "type RichTextBlockType = \"p\" | \"h1\" | \"h2\" | \"h3\"",
     "RichTextCommand": "type RichTextCommand = | \"undo\" | \"redo\" | \"bold\" | \"underline\" | \"italic\" | \"strikethrough\" | \"align-left\" | \"align-center\" | \"align-right\" | \"align-justify\" | \"bulleted-list\" | \"numbered-list\" | \"outdent\" | \"indent\" | \"link\" | \"image\" | \"video\" | \"clear-format\"",
-    "SelectFieldOption": "type SelectFieldOption = { label: string; value: string; disabled?: boolean }"
+    "SelectFieldOption": "type SelectFieldOption = { label: string; value: string; disabled?: boolean; meta?: string; }"
   }
 }

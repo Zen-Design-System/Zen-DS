@@ -137,13 +137,15 @@ export function swapItem(item: Insertable) {
 }
 
 /** Why nothing can be dropped into `target` (a playground, docs, the role), or null. */
-function refusalFor(target: DropTarget): string | null {
+/** Why the layer at `target` cannot take a new child, or null. */
+export function refusalFor(target: DropTarget): string | null {
   const parent: StudioSelection = { kind: "node", src: target.parentSrc, name: target.parentName, frameId: target.frameId, panelId: target.panelId, instance: 0 };
   const check = canStructurallyEdit(parent);
   return check.ok ? null : check.reason;
 }
 
-async function dropAsset(item: Insertable, target: DropTarget) {
+/** Adds `item` where a drag or the toolbar's placement points (one edit; the new layer selected). */
+export async function dropAsset(item: Insertable, target: DropTarget) {
   const at = parseSrc(target.parentSrc);
   if (!at) return;
   const parent = await studioApi.element(at.file, at.loc);

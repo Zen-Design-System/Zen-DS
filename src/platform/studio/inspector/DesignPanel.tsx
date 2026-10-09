@@ -598,7 +598,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   const positionSpecs = positioned ? specs.filter((spec) => (positionProps as readonly string[]).includes(spec.name)) : [];
   const layoutSpecs = isLayout ? specs.filter((spec) => isLayoutProp(name, spec.name) && !sizingSpecs.includes(spec) && !positionSpecs.includes(spec)) : [];
   const textSpecs = isText ? specs.filter((spec) => textProps.has(spec.name)) : [];
-  // Box fill, border, corners, clip and effect; Image corners: the Appearance and Effects sections (Figma UI3), not Properties.
+  // Box fill, border, corners and effect; Image corners: the Appearance and Effects sections (Figma UI3), not Properties.
   const appearanceSpecs = specs.filter((spec) => (appearancePropNames[name] ?? []).includes(spec.name));
   const propertySpecs = specs.filter((spec) => !layoutSpecs.includes(spec) && !textSpecs.includes(spec) && !sizingSpecs.includes(spec) && !positionSpecs.includes(spec) && !appearanceSpecs.includes(spec));
   // Object and array literals written in place (leading={{ … }}, trailing={[{ … }]}): edited field by field below the rows.

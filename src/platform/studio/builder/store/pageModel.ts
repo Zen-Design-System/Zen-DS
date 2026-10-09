@@ -29,6 +29,17 @@ export function headerTitle(text: string): string | null {
 }
 
 /** The text with the header's title replaced (the rest byte for byte); unchanged when it has no readable header. */
+/**
+ * The page renamed from `from` to `to`: a Screen that still carries the page's name (a blank page's Screen takes it when
+ * the page is made) takes the new one; Screens named otherwise keep their names (user, 2026-10-09: name the page as you
+ * work, its Screen follows).
+ */
+export function withScreenTitles(text: string, from: string, to: string): string {
+  if (from === to) return text;
+  const old = JSON.stringify(from);
+  return text.replace(/<Screen\b[^>]*>/g, (tag) => tag.replace(`title=${old}`, `title=${JSON.stringify(to)}`));
+}
+
 export function withHeaderTitle(text: string, title: string): string {
   const match = HEADER.exec(text);
   if (!match) return text;

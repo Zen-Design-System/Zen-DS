@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
-import { InputField, SelectField } from "../../../components/Input";
+import { InputField, SelectField, type SelectFieldOption } from "../../../components/Input";
+import { ScaleTrail } from "../inspector/controls/ScaleField";
 import type { IconName } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { parseSrc } from "../api";
@@ -284,7 +285,7 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
   }
 
   return (
-    <InspectorSection title="Position">
+    <InspectorSection title="Position" fieldGrid>
       <InspectorRow label="Align" labelTitle="Align to the parent (a floating layer)">
         <div className="studio-position__align" role="group" aria-label="Align in parent">
           {alignButtons.map((button) => (
@@ -330,7 +331,7 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
 
       {floating ? (
         <div className="studio-position__constraints" role="group" aria-label="Constraints">
-          <span className={`studio-position__label ${typographyStyles["Body/Small/Regular"]}`}>Constraints</span>
+          <span className={`studio-position__label ${typographyStyles["Caption/Regular"]}`}>Constraints</span>
           <div className="studio-position__constraint-body">
             <ConstraintsDiagram pins={pins} disabled={constraintLocked} onPick={setPin} />
             <div className="studio-position__selects">
@@ -394,7 +395,8 @@ function InsetRow({ prop, value, ladder, api, name }: { prop: string; value: Pro
   const label = edgeLabels[prop];
   const written = value.state === "literal" ? String(value.value) : null;
   const readOnly = value.state === "bound" || value.state === "spread";
-  const options = ladder.map((step) => ({ value: step.key, label: step.key === "none" ? "none · 0" : `${step.key} · ${Math.round(step.px)}` }));
+  // Token + value on one line, as every token select (ScaleField): "md … 16px" in the list, "md 16" in the field.
+  const options: SelectFieldOption[] = ladder.map((step) => ({ value: step.key, label: step.key, meta: `${Math.round(step.px)}px` }));
   if (written && !options.some((option) => option.value === written)) options.push({ value: written, label: written });
   return (
     <InspectorRow
@@ -409,6 +411,7 @@ function InsetRow({ prop, value, ladder, api, name }: { prop: string; value: Pro
         size="sm"
         disabled={api.disabled || readOnly}
         value={written ?? "none"}
+        trailing={<ScaleTrail px={ladder.find((step) => step.key === (written ?? "none"))?.px ?? null} />}
         onValueChange={(next) => { if (next !== (written ?? "none")) (next === "none" ? api.removeProp(prop) : api.setProp(prop, next)); }}
         options={options}
       />

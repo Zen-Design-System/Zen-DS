@@ -1,15 +1,14 @@
 import { useEffect, useId, useState, type ReactNode } from "react";
+import { Card } from "../../../components/Card";
 import { Dialog } from "../../../components/Dialog";
 import { Icon } from "../../../components/Icon";
-import { InputField } from "../../../components/Input";
 import { Text } from "../../../components/Text";
 import { openLocalPage } from "../shell/navigation";
 import { loadEngine } from "./engine";
-import { DEVICE_WIDTH, type PageDevice } from "./proto/runtime";
 import { snapshotTemplate, templateChoices, type TemplateChoice } from "./starters/fromTemplate";
 import { pageFromSnapshot } from "./starters/newPageFromFrame";
 import { TemplateThumb } from "./starters/TemplateThumb";
-import { freeId, movePage, putPage } from "./store/pageStore";
+import { freeId, listPages, movePage, putPage } from "./store/pageStore";
 
 /*
  * New page (Studio builder GĐ2; spec §5 M1): a blank page on a device, or (GĐ3b M3) one of the platform's page templates
@@ -20,25 +19,31 @@ import { freeId, movePage, putPage } from "./store/pageStore";
  * themselves, and some hold a <form> of their own (a form cannot sit in a form); Enter in Title creates the page.
  */
 
-const DEVICES: Array<{ id: PageDevice; label: string }> = [
-  { id: "phone", label: "Phone" },
-  { id: "tablet", label: "Tablet" },
-  { id: "desktop", label: "Desktop" },
-];
+/**
+ * One radio card: a Zen Card (Border theme: a Pale frame; Selected: the Card's Active stroke) holding a label whose
+ * native radio (hidden) gives the group its keys and its checked state. The Card is not clickable itself (no role=button):
+ * the label is the control, so the group stays a radio group.
+ */
+/** "Untitled page", or "Untitled page 2", 3… while one of that name is kept already. */
+async function untitledName(): Promise<string> {
+  const taken = new Set((await listPages()).map((page) => page.title));
+  let name = "Untitled page";
+  for (let n = 2; taken.has(name); n += 1) name = `Untitled page ${n}`;
+  return name;
+}
 
-/** One radio card: the native radio (hidden) gives the group its keys and its checked state. */
 function ChoiceCard({ name, value, checked, onPick, children, className }: { name: string; value: string; checked: boolean; onPick: (value: string) => void; children: ReactNode; className?: string }) {
   return (
-    <label className={["studio-choice", className].filter(Boolean).join(" ")} data-checked={checked ? "true" : undefined}>
-      <input className="studio-choice__input" type="radio" name={name} value={value} checked={checked} onChange={() => onPick(value)} />
-      {children}
-    </label>
+    <Card theme="border" spacing="sm" selected={checked} className={["studio-choice", className].filter(Boolean).join(" ")}>
+      <label className="studio-choice__label">
+        <input className="studio-choice__input" type="radio" name={name} value={value} checked={checked} onChange={() => onPick(value)} />
+        {children}
+      </label>
+    </Card>
   );
 }
 
 export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boolean; onOpenChange: (open: boolean) => void; folder?: string | null }) {
-  const [title, setTitle] = useState("");
-  const [device, setDevice] = useState<PageDevice>("desktop");
   const [start, setStart] = useState("blank");
   const [choices, setChoices] = useState<TemplateChoice[] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -47,15 +52,16 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
   // The templates load with the dialog (their own chunk), not with the Studio.
   useEffect(() => { if (open && !choices) void templateChoices().then(setChoices, () => setChoices([])); }, [open, choices]);
   const template = choices?.find((choice) => choice.id === start) ?? null;
-  const reset = () => { setTitle(""); setStart("blank"); setError(null); };
+  const reset = () => { setStart("blank"); setError(null); };
   const pickStart = (next: string) => { setStart(next); if (error) setError(null); };
+  // No title or device to fill in first (user, 2026-10-09): a template keeps its own; a blank page is "Untitled page" on a
+  // desktop Screen. Both change as you work: the page's Name with nothing selected, a Screen's Device in its frame panel.
   const create = async () => {
-    const name = title.trim();
     if (template) {
       setBusy(true);
       try {
         const result = await snapshotTemplate(template.id);
-        const page = result ? await pageFromSnapshot(result.shot, { title: name || result.title, from: `the ${result.title} template` }) : null;
+        const page = result ? await pageFromSnapshot(result.shot, { title: result.title, from: `the ${result.title} template` }) : null;
         if (!page) { setError("This template could not be copied: the status line says why"); return; }
         if (folder) await movePage(page, folder);
         reset();
@@ -65,9 +71,9 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
       }
       return;
     }
-    if (!name) { setError("Give the page a title"); return; }
+    const name = await untitledName();
     const [engine, page] = await Promise.all([loadEngine(), freeId(name)]);
-    await putPage(page, engine.newPageText({ title: name, device }), { title: name, folder });
+    await putPage(page, engine.newPageText({ title: name, device: "desktop" }), { title: name, folder });
     reset();
     onOpenChange(false);
     openLocalPage(page);
@@ -79,7 +85,7 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
       className="studio-new-page"
       onOpenChange={(next) => { if (!next) setError(null); onOpenChange(next); }}
       title="New page"
-      description={template ? `${template.description} Copied into a page of your own, saved in this browser.` : "A blank page saved in this browser. Add components from Assets or a slot's +."}
+      description={template ? `${template.description} Copied into a page of your own, saved in this browser.` : "A blank desktop page saved in this browser. Rename it and change its device as you work."}
       primaryAction={{ label: busy ? "Creating…" : "Create page", disabled: busy, onClick: () => void create() }}
       secondaryAction={{ label: "Cancel" }}
     >
@@ -90,7 +96,7 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
             <span className="studio-choice__blank" aria-hidden="true"><Icon name="icon-plus-line" size="base" decorative /></span>
             <span className="studio-choice__text">
               <Text as="span" textStyle="Body/Small/Bold">Blank page</Text>
-              <Text as="span" textStyle="Caption/Regular" tone="base">One Screen on the device you pick</Text>
+              <Text as="span" textStyle="Caption/Regular" tone="base">One desktop Screen; change it as you work</Text>
             </span>
           </ChoiceCard>
           {(choices ?? []).map((choice) => (
@@ -104,33 +110,7 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
           ))}
         </div>
       </fieldset>
-      <InputField
-        label="Title"
-        size="md"
-        value={title}
-        placeholder={template ? template.title : "Checkout"}
-        error={Boolean(error)}
-        errorMessage={error ?? undefined}
-        onChange={(event) => { setTitle(event.target.value); if (error) setError(null); }}
-        onKeyDown={(event) => { if (event.key === "Enter" && !event.nativeEvent.isComposing) { event.preventDefault(); void create(); } }}
-      />
-      {template ? null : (
-        <fieldset className="studio-new-page__group">
-          <legend className="studio-new-page__legend"><Text as="span" textStyle="Body/Base/Bold">Device</Text></legend>
-          <div className="studio-new-page__devices">
-            {DEVICES.map((item) => (
-              <ChoiceCard key={item.id} name={`${id}-device`} value={item.id} checked={device === item.id} onPick={(next) => setDevice(next as PageDevice)} className="studio-choice--device">
-                {/* The device drawn in its proportions (phone 9:19.5, tablet 3:4, desktop 16:10). */}
-                <span className="studio-choice__device" data-device={item.id} aria-hidden="true" />
-                <span className="studio-choice__text">
-                  <Text as="span" textStyle="Body/Small/Bold">{item.label}</Text>
-                  <Text as="span" textStyle="Caption/Regular" tone="base">{DEVICE_WIDTH[item.id]} px wide</Text>
-                </span>
-              </ChoiceCard>
-            ))}
-          </div>
-        </fieldset>
-      )}
+      {error ? <Text as="p" textStyle="Body/Small/Regular" tone="negative-base" role="alert">{error}</Text> : null}
     </Dialog>
   );
 }

@@ -449,7 +449,7 @@ export function AdminListTemplate() {
       ) : undefined}
     >
       <Container maxWidth="full">
-        <Stack gap="lg" paddingY="lg">
+        <Stack gap="lg" paddingY="sm">
           <PageHeader
             title="Team members"
             description={`Everyone with access to the ${workspace.name} workspace. ${seatsUsed} of ${workspace.seats} seats are in use.`}

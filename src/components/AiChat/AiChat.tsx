@@ -22,9 +22,16 @@ export interface AiChatFieldProps {
   onModelClick?: () => void;
   /** Figma Leading-Actions (+): attachments or tools. Without it the + is not drawn (it would do nothing). */
   onAttach?: () => void;
-  /** Figma trailing microphone (Icon-Flat) and the empty field's Voice action. Without it neither is drawn: the empty
-   *  field shows a disabled Send instead. */
+  /** Figma trailing microphone (Icon-Flat): dictation into the prompt. Also the empty field's Voice action unless
+   *  `onVoiceMode` is set. Without either, the empty field shows a disabled Send instead. */
   onVoice?: () => void;
+  /** The empty field's Voice action (Primary, recording icon): start voice mode, e.g. an AiVoiceConversation. Default:
+   *  `onVoice`. */
+  onVoiceMode?: () => void;
+  /** Figma State=Voice: the field is taking dictation. The prompt reads the locale's "Listening…" (Content/Placeholder)
+   *  and the microphone becomes Stop (`onStopListening`); the Primary stays Voice. */
+  listening?: boolean;
+  onStopListening?: () => void;
   /** While the reply streams, the primary button becomes Stop. */
   busy?: boolean;
   onStop?: () => void;
@@ -38,11 +45,14 @@ export interface AiChatFieldProps {
  * 40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and
  * Send (arrow-up) once there is text. Enter sends, Shift+Enter adds a line. The whole field is the prompt's hit area: a
  * click or tap anywhere outside its buttons puts the caret in the prompt. The +, the microphone and Voice appear only with
- * their handler (`onAttach`, `onVoice`), so the field never shows a button that does nothing.
+ * their handler (`onAttach`, `onVoice` / `onVoiceMode`), so the field never shows a button that does nothing. State=Voice (15114:219):
+ * `listening` shows Listening… and turns the microphone into Stop.
  */
-export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle = "default", model, onModelClick, onAttach, onVoice, busy = false, onStop, disabled = false, defaultValue = "", className }: AiChatFieldProps) {
+export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle = "default", model, onModelClick, onAttach, onVoice, onVoiceMode, listening = false, onStopListening, busy = false, onStop, disabled = false, defaultValue = "", className }: AiChatFieldProps) {
   const t = useZenLabels();
-  const placeholder = placeholderProp ?? t.askAnything;
+  // Dictation (State=Voice) shows Listening… in the prompt; the field's accessible name stays the prompt's own.
+  const prompt = placeholderProp ?? t.askAnything;
+  const placeholder = listening ? t.listening : prompt;
   const [text, setText] = useState(defaultValue);
   const typing = text.trim().length > 0;
   const long = text.length > 48 || text.includes("\n");
@@ -60,14 +70,15 @@ export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle
     input.focus();
     input.setSelectionRange(input.value.length, input.value.length);
   };
+  const voiceMode = onVoiceMode ?? onVoice;
   const primary = busy
     ? <IconButton appearance="main" level="primary" size="md" aria-label={t.stopGenerating} onClick={onStop} icon={<Icon name="icon-stop-solid" />} />
-    : typing || !onVoice
+    : typing || !voiceMode
       ? <IconButton appearance="main" level="primary" size="md" type="submit" aria-label={t.send} disabled={disabled || !typing} icon={<Icon name="icon-arrow-up-line" />} />
-      : <IconButton appearance="main" level="primary" size="md" aria-label={t.startVoiceMode} disabled={disabled} onClick={onVoice} icon={<Icon name="icon-recording-02-line" />} />;
+      : <IconButton appearance="main" level="primary" size="md" aria-label={t.startVoiceMode} disabled={disabled} onClick={voiceMode} icon={<Icon name="icon-recording-02-line" />} />;
   return (
     <form className={["zen-ai-field", className].filter(Boolean).join(" ")} data-style={fieldStyle} data-long={long ? "true" : undefined} data-leading={onAttach ? undefined : "none"} onSubmit={submit} onMouseDown={keepCaret} onClick={focusPrompt}>
-      <textarea ref={inputRef} className={`zen-ai-field__input ${typographyStyles["Body/Extra/Medium"]}`} rows={1} value={text} aria-label={placeholder} disabled={disabled} onChange={(event) => setText(event.target.value)} onKeyDown={onKeyDown} />
+      <textarea ref={inputRef} className={`zen-ai-field__input ${typographyStyles["Body/Extra/Medium"]}`} rows={1} value={text} aria-label={prompt} disabled={disabled} onChange={(event) => setText(event.target.value)} onKeyDown={onKeyDown} />
       {/* Figma Text (trunc): one line with an ellipsis — a textarea placeholder can only clip, so it is drawn here. */}
       {text ? null : <span className={`zen-ai-field__placeholder ${typographyStyles["Body/Extra/Medium"]}`} aria-hidden="true">{placeholder}</span>}
       {onAttach ? (
@@ -81,7 +92,9 @@ export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle
             {model}<Icon name="icon-chevron-down-line" decorative />
           </button>
         ) : null}
-        {onVoice ? <IconButton appearance="flat" level="primary" size="md" aria-label={t.dictate} disabled={disabled} onClick={onVoice} icon={<Icon name="icon-microphone-line" />} /> : null}
+        {listening
+          ? <IconButton appearance="flat" level="primary" size="md" aria-label={t.stopDictation} disabled={disabled} onClick={onStopListening} icon={<Icon name="icon-stop-solid" />} />
+          : onVoice ? <IconButton appearance="flat" level="primary" size="md" aria-label={t.dictate} disabled={disabled} onClick={onVoice} icon={<Icon name="icon-microphone-line" />} /> : null}
         {primary}
       </div>
     </form>

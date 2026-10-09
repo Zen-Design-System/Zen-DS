@@ -4,7 +4,7 @@ import fs from "node:fs";
 import { unzipFiles } from "../../zip.mjs";
 import path from "node:path";
 import { pagesDirOf, promoteDirOf } from "../lib/server.mjs";
-import { openStudioSpace, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { openAssetLibrary, openStudioSpace, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, focusScreen, newPage, pageText, selectStack } from "./builder.mjs";
 
 /** A phone page with every kind of frame the HTML export writes: a screen, its state variant, an overlay; a photo, a form. */
@@ -234,9 +234,8 @@ export const rows = [
       const photo = fs.readFileSync(path.join(ctx.root, "src/assets/media/site-bridge.webp"));
       const { page, id } = await newPage(ctx, { title: "Upload check" });
       await selectStack(page, id);
-      await showLeftTab(page, "assets");
+      await openAssetLibrary(page, "Photos");
       const assets = page.locator("#studio-left-panel-assets");
-      await assets.getByRole("button", { name: "Photos", exact: true }).click();
       // A file that is not an image is refused, with the reason.
       await assets.locator('[data-e2e="upload-photos"]').setInputFiles({ name: "notes.txt", mimeType: "text/plain", buffer: Buffer.from("hello") });
       await until(async () => /Not uploaded: notes\.txt \(not a PNG/.test(await statusText(page)), { message: "a text file refused" });
@@ -313,9 +312,8 @@ export const rows = [
       await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
       await focusScreen(page);
       await clickNamed(page, id, "Image");
-      await showLeftTab(page, "assets");
+      await openAssetLibrary(page, "Photos");
       const assets = page.locator("#studio-left-panel-assets");
-      await assets.getByRole("button", { name: "Photos", exact: true }).click();
       await assets.locator('.studio-assets__photo[data-photo="site-bridge"]').click();
       await until(async () => (await pageText(page, id))?.includes('<Image src="zen-media:site-bridge" alt="Office" />'), { message: "the Image's photo replaced" }).catch(async (error) => {
         throw new Error(`${error.message}: selected ${await page.locator("#studio-right h2").first().innerText().catch(() => "?")}; status ${await statusText(page)}; page ${((await pageText(page, id)) ?? "").match(/<Image[^>]*>/g)?.join(" ")}`);

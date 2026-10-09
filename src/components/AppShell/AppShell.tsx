@@ -54,8 +54,19 @@ export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "chi
    * shell's rail and drawer by itself, also when it is wrapped in a component of your own.
    */
   sidebar?: ReactNode;
-  /** Top bar content after the toggle (it grows): Breadcrumbs (Figma HR-Platform) or a Search. */
+  /** Top bar content after the toggle (Figma Leading-Slots; it grows): Breadcrumbs (Figma HR-Platform) or a Search. */
   header?: ReactNode;
+  /**
+   * Figma Center-Slots (Nav-Center-Block, 4233:3210): the top bar's middle, up to 400px wide and centred between the
+   * leading content and the actions, e.g. a Search.
+   */
+  headerCenter?: ReactNode;
+  /**
+   * Figma Header/Dashboard Sections (4122:34662): rows under the top bar, at the top of the page — a PageHeader (Type=Main),
+   * a toolbar of Search + filters (Type=Control-Bar) or your own row (Type=Custom). Each row takes the Header row padding
+   * (Spacing/Padding/Small above and below, Margin-Comfortable at the sides); they scroll with the page.
+   */
+  sections?: ReactNode;
   /**
    * Top bar actions on the right, in this order: a plan Badge, AppShellAction buttons (notifications, settings, help),
    * then the account menu (`<Menu trigger={<AppShellAccount … />}>`). Page actions belong in the PageHeader.
@@ -217,6 +228,8 @@ const NAVIGATION_TARGET = "a[href], button.zen-sidebar__item, .zen-sidebar__foot
 export function AppShell({
   sidebar,
   header,
+  headerCenter,
+  sections,
   headerActions,
   banner,
   aside,
@@ -324,7 +337,7 @@ export function AppShell({
     closeNav: () => setNavOpen(false),
   }), [layout, sidebarCollapsed, setSidebarCollapsed, open, setNavOpen]);
 
-  const hasTopBar = Boolean(header || headerActions);
+  const hasTopBar = Boolean(header || headerCenter || headerActions);
   const stackedHeader = useStackedHeader(headerEl, header ? contentEl : null, toggleEl, headerActions ? actionsEl : null);
   const showCollapseToggle = !compact && hasTopBar && sidebarToggle && canCollapse && !ownCollapse;
   const showMenuButton = compact && Boolean(sidebar);
@@ -365,15 +378,19 @@ export function AppShell({
           {sidebar && !compact ? <div ref={setSidebarEl} id={sidebarId} className="zen-app-shell__sidebar">{inlineSidebar}</div> : null}
           <div className="zen-app-shell__column">
             {hasTopBar || showMenuButton ? (
-              <header ref={setHeaderEl} className="zen-app-shell__header" data-stacked={stackedHeader || undefined}>
+              <header ref={setHeaderEl} className="zen-app-shell__header" data-stacked={stackedHeader || undefined} data-center={headerCenter ? "true" : undefined}>
                 <div className="zen-app-shell__header-leading">
                   {toggle}
                   {header ? <div ref={setContentEl} className="zen-app-shell__header-content">{header}</div> : null}
                 </div>
+                {headerCenter ? <div className="zen-app-shell__header-center">{headerCenter}</div> : null}
                 {headerActions ? <div ref={setActionsEl} className="zen-app-shell__header-actions">{headerActions}</div> : null}
               </header>
             ) : null}
-            <main ref={mainRef} id={mainId} className="zen-app-shell__main" tabIndex={-1}>{children}</main>
+            <main ref={mainRef} id={mainId} className="zen-app-shell__main" tabIndex={-1}>
+              {sections ? <div className="zen-app-shell__sections">{sections}</div> : null}
+              {children}
+            </main>
             {aside && !asideDocked && !asideElement ? <div className="zen-app-shell__aside" data-stacked="true">{aside}</div> : null}
             {floatingAction || footer ? (
               <div className="zen-app-shell__bottom">

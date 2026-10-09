@@ -43,7 +43,9 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `sidebar` | `ReactNode` | — | Left navigation, usually `<Sidebar>`. When the shell is 1024px or wider it sits beside the content, expanded or collapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button. A Zen Sidebar follows the shell's rail and drawer by itself, also when it is wrapped in a component of your own. |
-| `header` | `ReactNode` | — | Top bar content after the toggle (it grows): Breadcrumbs (Figma HR-Platform) or a Search. |
+| `header` | `ReactNode` | — | Top bar content after the toggle (Figma Leading-Slots; it grows): Breadcrumbs (Figma HR-Platform) or a Search. |
+| `headerCenter` | `ReactNode` | — | Figma Center-Slots (Nav-Center-Block, 4233:3210): the top bar's middle, up to 400px wide and centred between the leading content and the actions, e.g. a Search. |
+| `sections` | `ReactNode` | — | Figma Header/Dashboard Sections (4122:34662): rows under the top bar, at the top of the page — a PageHeader (Type=Main), a toolbar of Search + filters (Type=Control-Bar) or your own row (Type=Custom). Each row takes the Header row padding (Spacing/Padding/Small above and below, Margin-Comfortable at the sides); they scroll with the page. |
 | `headerActions` | `ReactNode` | — | Top bar actions on the right, in this order: a plan Badge, AppShellAction buttons (notifications, settings, help), then the account menu (`<Menu trigger={<AppShellAccount … />}>`). Page actions belong in the PageHeader. |
 | `banner` | `ReactNode` | — | A full-width message strip above the whole shell, usually `<AlertBanner>` (trial ending, maintenance, offline). It stays in view while the page scrolls. |
 | `aside` | `ReactNode` | — | A right panel docked beside the content (Figma Side-Panel), usually <SidePanel type="standard">. It docks while the page keeps at least a Tablet width (744px) beside it; otherwise a SidePanel opens as the modal panel and other content stacks under the page. |

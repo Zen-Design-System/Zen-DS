@@ -365,9 +365,11 @@ export const layoutComponents = new Set(["Stack", "Grid", "Box", "Container", "F
 export const layoutProps = new Set(["direction", "gap", "rowGap", "columnGap", "align", "justify", "wrap", "padding", "paddingX", "paddingY", "columns", "minColumnWidth", "maxWidth", "gutter", "inset"]);
 
 /** Whether a component's prop belongs in the Layout block. maxWidth is scoped by component: Container's is the token
- * width (sm…full); Stack/Grid/Box's is px sizing, which stays with the other sizing props. */
+ * width (sm…full); Stack/Grid/Box's is px sizing, which stays with the other sizing props. Box's clip is Figma's Clip content. */
 export function isLayoutProp(component: string, name: string) {
   if (name === "maxWidth") return component === "Container";
+  // Figma's Clip content sits in the Layout section, under Padding (spec 2026-10-09 §3).
+  if (name === "clip") return component === "Box";
   return layoutProps.has(name);
 }
 /** Text and Heading props shown in the Text block. */
