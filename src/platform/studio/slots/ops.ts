@@ -31,12 +31,17 @@ export type InsertChildOp = {
   /** The code's useState values: the server declares them in the enclosing component under fresh names. */
   state?: StateDecl[];
 };
-/** Sent on the element itself (loc/name = the element); the server requires the file hash. */
-export type RemoveElementOp = { op: "removeElement" };
-/** The element's source again right after it; the answer's `inserted.loc` is the copy. */
-export type DuplicateElementOp = { op: "duplicateElement" };
+/**
+ * Sent on the element itself (loc/name = the element); the server requires the file hash. `row`: the element a `.map`
+ * callback returns, the row of its list this instance renders: that row goes from the list's data (answer `row`).
+ */
+export type RemoveElementOp = { op: "removeElement"; row?: number };
+/** The element's source again right after it; the answer's `inserted.loc` is the copy. `row`: the row is copied in its data. */
+export type DuplicateElementOp = { op: "duplicateElement"; row?: number };
 /** Swaps the element with its previous / next element sibling in the same JSX parent; `moved.loc` is where it is now. */
-export type MoveElementOp = { op: "moveElement"; to: "prev" | "next" };
+/** `parent`: the element that lists a const's `{name}` shown in several places (`{summary}` in both branches): that one moves. */
+/** `row`: the element a `.map` callback returns, this row of its list: it swaps with the row before / after it in the data. */
+export type MoveElementOp = { op: "moveElement"; to: "prev" | "next"; parent?: string; row?: number };
 
 /**
  * Figma's "Delete contents", sent on the slot's host: every child goes (the tag closes itself), or the `prop` attribute.
@@ -97,6 +102,11 @@ export type SlotEditApplied = Applied & {
   reset?: true;
   /** Item ops: where the item is now (removeItem: where it was). */
   item?: { prop: string; index: number };
+  /**
+   * removeElement / duplicateElement with `row`: the list's data changed (`file` above is the data's file). `index`: the
+   * list's item, `loc`: the element's opening tag in its own `file` after the edit, `state`: a useState list.
+   */
+  row?: { index: number; state: boolean; loc: string; file: string };
 };
 export type SlotEditResponse = SlotEditApplied | Extract<EditResponse, { ok: false }>;
 

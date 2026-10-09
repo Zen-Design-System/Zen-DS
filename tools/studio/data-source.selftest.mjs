@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-// Self-test of tools/studio/data-source.mjs (WP-C): originOf and dataFieldEdit on in-memory files. No server, no disk.
+// Self-test of tools/studio/data-source.mjs (WP-C): originOf, dataFieldEdit and dataRowEdit on in-memory files. No
+// server, no disk.
 import assert from "node:assert/strict";
-import { dataFieldEdit, isDataFile, originOf } from "./data-source.mjs";
+import { dataFieldEdit, dataRowEdit, isDataFile, originOf } from "./data-source.mjs";
 
 let passed = 0;
 const test = (name, fn) => {
@@ -57,8 +58,8 @@ const page = [
 ].join("\n");
 
 /** loc of the first `<Name` whose line contains `needle`. */
-const locOf = (needle, name) => {
-  const lines = page.split("\n");
+const locOf = (needle, name, text = page) => {
+  const lines = text.split("\n");
   const line = lines.findIndex((text) => text.includes(needle));
   assert.ok(line >= 0, `no line with ${needle}`);
   const column = lines[line].indexOf(`<${name}`);
@@ -152,5 +153,99 @@ test("bad input: row missing, literal prop, wrong value kind, stale name", () =>
   assert.match(editAt("title={one.name}", "ListItem", { prop: "title", row: 9, value: { kind: "string", value: "x" } }).error, /no row 10/);
 });
 
+/* ── rows: removeElement / duplicateElement with `row` edit the list the .map reads (dataRowEdit) ── */
+
+const rowAt = (needle, name, op, text = page) => dataRowEdit(text, PAGE, locOf(needle, name, text), name, op, { read });
+const lists = [
+  "import { useState } from \"react\";",
+  "import { colours } from \"../data\";",
+  "const steps = [{ id: 1, label: \"Plan\" }, { id: 2, label: \"Build\" }];",
+  "const names = ['Ava Chen', 'Bao Le'];",
+  "export function Lists() {",
+  "  const [items] = useState(() => [{ id: \"x\" }]);",
+  "  return (",
+  "    <Stack>",
+  "      {colours.map((colour) => <Tag key={colour} label={colour} />)}",
+  "      {steps.map((step) => <Step key={step.id} label={step.label} />)}",
+  "      {names.map((who, index) => <Avatar key={index} name={who} />)}",
+  "      {names.map((who) => <Chip label={who} />)}",
+  "      {items.map((item) => <Row key={item.id} />)}",
+  "      {steps.map((step) => <Card key={`${step.id}-${step.label}`} />)}",
+  "      {steps.map((step) => <Panel key={step.id}><Text>{step.label}</Text></Panel>)}",
+  "    </Stack>",
+  "  );",
+  "}",
+  "",
+].join("\n");
+
+test("row remove: a const list on lines of its own loses the row's line", () => {
+  const result = rowAt("title={one.name}", "ListItem", { op: "removeElement", row: 0 });
+  assert.equal(result.file, PAGE);
+  assert.match(result.code, /const crew = \[\n {2}\{ id: "bao", name: "Bao Le"/);
+  assert.doesNotMatch(result.code, /Ava Tran/);
+  assert.equal(result.index, 0);
+  assert.equal(result.state, false);
+  // The element sits below its list: its loc moves up one line.
+  const [line, column] = locOf("title={one.name}", "ListItem").split(":").map(Number);
+  assert.equal(result.loc, `${line - 1}:${column}`);
+  // The last row goes with the comma before it; the only row leaves an empty list.
+  const last = rowAt("title={one.name}", "ListItem", { op: "removeElement", row: 1 });
+  assert.match(last.code, /\{ id: "ava", name: "Ava Tran", role: "Design lead" \},\n\];/);
+  const once = dataRowEdit(last.code, PAGE, locOf("title={one.name}", "ListItem", last.code), "ListItem", { op: "removeElement", row: 0 }, { read });
+  assert.match(once.code, /const crew = \[\];/);
+});
+
+test("row duplicate: the copy follows the row, its string key gets a new value", () => {
+  const result = rowAt("title={one.name}", "ListItem", { op: "duplicateElement", row: 0 });
+  assert.match(result.code, /\{ id: "ava", name: "Ava Tran", role: "Design lead" \},\n {2}\{ id: "ava-copy", name: "Ava Tran", role: "Design lead" \},\n {2}\{ id: "bao"/);
+  const again = dataRowEdit(result.code, PAGE, locOf("title={one.name}", "ListItem", result.code), "ListItem", { op: "duplicateElement", row: 0 }, { read });
+  assert.match(again.code, /id: "ava-copy-2"/);
+  // A key in a destructured field, behind .slice(1): row 0 is crew[1].
+  const sliced = rowAt("<Badge key={name}", "Badge", { op: "duplicateElement", row: 0 });
+  assert.equal(sliced.index, 1);
+  assert.match(sliced.code, /name: "Bao Le copy"/);
+});
+
+test("row edits in another file, state, numbers, the index and no key", () => {
+  const imported = rowAt("<Tag key={colour}", "Tag", { op: "duplicateElement", row: 1 }, lists);
+  assert.equal(imported.file, DATA);
+  assert.match(imported.code, /export const colours = \["red", "blue", "blue-copy"\];/);
+  assert.match(rowAt("<Tag key={colour}", "Tag", { op: "removeElement", row: 0 }, lists).code, /export const colours = \["blue"\];/);
+  assert.match(rowAt("<Step key={step.id}", "Step", { op: "duplicateElement", row: 0 }, lists).code, /\[\{ id: 1, label: "Plan" \}, \{ id: 3, label: "Plan" \}, \{ id: 2/);
+  assert.match(rowAt("<Avatar key={index}", "Avatar", { op: "duplicateElement", row: 1 }, lists).code, /\['Ava Chen', 'Bao Le', 'Bao Le'\]/);
+  assert.match(rowAt("<Chip label={who}", "Chip", { op: "duplicateElement", row: 0 }, lists).code, /\['Ava Chen', 'Ava Chen', 'Bao Le'\]/);
+  const state = rowAt("{rows.map", "Text", { op: "duplicateElement", row: 1 });
+  assert.equal(state.state, true);
+  assert.match(state.code, /useState\(\[\{ title: "One" \}, \{ title: "Two" \}, \{ title: "Two copy" \}\]\)/);
+});
+
+test("row edits refused: a key built in code, items that are not data, filters, a lazy initializer", () => {
+  assert.match(rowAt("<Card key=", "Card", { op: "duplicateElement", row: 0 }, lists).error, /key is built in the code/);
+  assert.match(rowAt("[people.ava, people.bao]", "ListItem", { op: "duplicateElement", row: 0 }).error, /not written as text or a number/);
+  assert.match(rowAt("crew.filter", "Tag", { op: "removeElement", row: 0 }).error, /filter/);
+  assert.match(rowAt("<Row key={item.id}", "Row", { op: "removeElement", row: 0 }, lists).error, /starts from code/);
+  assert.match(rowAt("title={one.name}", "ListItem", { op: "removeElement" }).error, /row index/);
+  assert.match(rowAt("title={one.name}", "ListItem", { op: "removeElement", row: 5 }).error, /no row 6/);
+  // A copy without a key change: removing a row of the inline list of members still works (no key involved).
+  assert.match(rowAt("[people.ava, people.bao]", "ListItem", { op: "removeElement", row: 0 }).code, /\{\[people\.bao\]\.map/);
+});
+
+test("row move: the row swaps with the one before or after it in its data", () => {
+  const down = rowAt("title={one.name}", "ListItem", { op: "moveElement", to: "next", row: 0 });
+  assert.match(down.code, /const crew = \[\n {2}\{ id: "bao"[^\n]*\},\n {2}\{ id: "ava"[^\n]*\},\n\];/);
+  // The swap keeps the text's length and lines: the element stays where it is.
+  assert.equal(down.loc, locOf("title={one.name}", "ListItem"));
+  assert.match(rowAt("<Tag key={colour}", "Tag", { op: "moveElement", to: "prev", row: 1 }, lists).code, /export const colours = \["blue", "red"\];/);
+  assert.match(rowAt("title={one.name}", "ListItem", { op: "moveElement", to: "prev", row: 0 }).error, /already the first row/);
+  assert.match(rowAt("title={one.name}", "ListItem", { op: "moveElement", to: "next", row: 1 }).error, /already the last row/);
+  // Behind .slice(1) the first row shown is crew[1]: it cannot pass crew[0], which the canvas does not show.
+  assert.match(rowAt("<Badge key={name}", "Badge", { op: "moveElement", to: "prev", row: 0 }).error, /already the first row/);
+});
+
+test("not a row's root: the op edits the code as usual", () => {
+  assert.deepEqual(rowAt("<Panel key={step.id}><Text>", "Text", { op: "removeElement", row: 0 }, lists), { notRow: true });
+  assert.deepEqual(rowAt("<Button size={size}", "Button", { op: "removeElement", row: 0 }), { notRow: true });
+});
+
 if (process.exitCode) console.log(`data-source self-test: failures above (${passed} passed)`);
-else console.log(`✓ data-source (originOf · setDataField) self-test: ${passed} cases`);
+else console.log(`✓ data-source (originOf · setDataField · row edits) self-test: ${passed} cases`);

@@ -348,6 +348,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   without its JSX props, keeps the saved identity; slots selftest); remove + insert of a same-named element in one slot is matched as the same element by "Modified"; menu captions over
   240px ("Required by ChartCard — replace its content instead") need shorter copy; snippet sync for inserts is best
   effort (most hand-written snippets do not contain the inserted element's anchor).
+- P3 (2026-10-09, session 604bd7) · Studio slots, still "edit it in the code" (`node tools/studio/slot-audit.mjs --ops`
+  lists them): moving an element of a condition held in a const (`{narrow ? … : tasksEmpty}`, 12), an atom slot holding
+  a string (EmptyState `icon="…"`, 41: the icon is a prop, swapped in Properties), and `.map` rows whose list is computed
+  (`Object.entries(…)`, a spread, `.filter` first: 33 per op, refused with the reason). A drag of one row moves the whole
+  `{rows.map(…)}` block; Move up / down reorder the row in its data (a drag between rows could too).
 - P3 (2026-10-08, Studio backlog agent) · Studio E2E I-06 timed out once in ~10 library + inspector runs (`--no-retry`): after the reseed the canvas still showed the previous row's seed and edit (Seed 9, I-05's label), also after waitSeed's reload. Not seen again in 10 runs; the next failure now names its step (10 s step timeout). Pointer: `tools/studio/e2e/scenarios/inspector.mjs` waitSeed, `run.mjs` reseed.
 - P3 (2026-10-06, same session): **Card Flat has no hover/pressed** when clickable (`card.css` only styles Border's
   interactive states), so clickable cards stay `theme="border"` under §16; a Flat interactive state would let them

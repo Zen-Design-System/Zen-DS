@@ -263,7 +263,11 @@ const sidebarHeader: ContentSlot = {
   // Side-Bar/Master/Basic Header-Content (the LOGO; the collapse Wrapper follows it). The workspace variant's
   // Child-Header-Content is the same prop.
   component: "Sidebar", prop: "brand", name: "Header-Content", figma: { property: "Header-Content#4081:58", node: "4081:15234", native: true },
-  kind: "content", container: ".zen-sidebar__header", mountsWhenEmpty: true, parts: ".zen-sidebar__default-brand, .zen-sidebar__workspace-title, .zen-sidebar__collapse", flow: "row", gap: "none",
+  // The default brand is the slot's content once it shows a logo: a collapsed rail draws `logoCollapsed` there instead of
+  // `brand`, which is not Empty. Without any logo it is the component's own (empty) part.
+  kind: "content", container: ".zen-sidebar__header", mountsWhenEmpty: true,
+  parts: ".zen-sidebar__default-brand:not(:has(> .zen-sidebar__default-brand-expanded, > .zen-sidebar__default-brand-collapsed, > .zen-sidebar__default-brand-product)), .zen-sidebar__workspace-title, .zen-sidebar__collapse",
+  flow: "row", gap: "none",
   accepts: { only: ["Avatar", "Image", "Icon", "DockIcon", "Text", "Badge"] },
 };
 

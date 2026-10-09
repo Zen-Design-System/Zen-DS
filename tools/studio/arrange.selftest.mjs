@@ -153,9 +153,41 @@ test("refused: already there", () => {
   assert.match(result.error, /already there/);
 });
 
-test("refused: a .map row's root", () => {
+// A child written in code moves as that block (user, 2026-10-09: "mọi thao tác … tự do như Figma"): dragging a .map row
+// moves the whole {items.map(…)} list, a condition's element the whole {on && …}.
+test("a .map row moves with its whole {items.map(…)} block", () => {
   const result = run(locOf(SOURCE, "<Stack key"), "Stack", { op: "moveTo", parent: outer });
-  assert.match(result.error, /\.map/);
+  assert.ok(!result.error, result.error);
+  const [button, map] = order(result.code, "<Button onClick", "items.map");
+  assert.ok(button > 0 && button < map, "the whole map expression after the last child");
+  assert.equal(result.code.split("items.map").length, 2, "one list, moved (not copied)");
+  assert.ok(parseSource(result.code), "parses");
+});
+
+test("refused: a .map row's block where its list is not in scope", () => {
+  const result = run(locOf(SOURCE, "<Stack key"), "Stack", { op: "moveTo", parent: locOf(SOURCE, '<Stack gap="md">', 1) });
+  assert.match(result.error, /items/);
+});
+
+const CONDITIONAL = SOURCE.replace("      <Box padding=\"md\" />\n", "      <Box padding=\"md\" />\n      {on && <Badge>On</Badge>}\n");
+test("a condition's element moves with its {on && …} block", () => {
+  assert.notEqual(CONDITIONAL, SOURCE);
+  const result = run(locOf(CONDITIONAL, "<Badge>On"), "Badge", { op: "moveTo", parent: outer, before: locOf(CONDITIONAL, "<Text>One") }, CONDITIONAL);
+  assert.ok(!result.error, result.error);
+  const [block, first] = order(result.code, "{on && <Badge>On</Badge>}", "<Text>One");
+  assert.ok(block > 0 && block < first, "the whole condition first");
+  assert.equal(result.code.split("on && <Badge>").length, 2, "moved, not copied");
+});
+
+test("moveElement: a condition's element and a .map row step past a sibling as their blocks", () => {
+  const up = run(locOf(CONDITIONAL, "<Badge>On"), "Badge", { op: "moveElement", to: "prev" }, CONDITIONAL);
+  assert.ok(!up.error, up.error);
+  const [block, box] = order(up.code, "{on && <Badge>On</Badge>}", '<Box padding="md" />');
+  assert.ok(block < box, "before the Box it followed");
+  const down = run(locOf(SOURCE, "<Stack key"), "Stack", { op: "moveElement", to: "next" });
+  assert.ok(!down.error, down.error);
+  const [detached, map] = order(down.code, "<Box padding=\"sm\">Detached", "items.map");
+  assert.ok(detached < map, "the list after the next child");
 });
 
 test("the zen-detached marker moves with its element", () => {

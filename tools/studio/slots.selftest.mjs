@@ -343,10 +343,112 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   const fragmentFirst = run("prop fragment index 0", props, "<ListItem title=\"Team", "ListItem", ins(NEW, { prop: "leading", index: 0 }));
   check("prop fragment index 0", rows(fragmentFirst, 18, 18), ['      <ListItem title="Team" leading={<><Badge>New</Badge><DockIcon icon="icon-user-line" /><Badge>2</Badge></>} />']);
   const at = (needle) => locOf(props, needle);
-  check("prop from a call: refused", applySlotOp(props, at("<ListItem title=\"Lead"), "ListItem", ins(NEW, { prop: "leading" }), options()).error, "Its content comes from avatar(); edit it in the code.");
+  // Code that shows something takes an insert beside it (user, 2026-10-09: add to any slot, as Figma).
+  const beside = run("prop from a call", props, "<ListItem title=\"Lead", "ListItem", ins(NEW, { prop: "leading" }));
+  check("prop from a call: the new element joins it, the call kept", rows(beside, 17, 17), ['      <ListItem title="Lead" leading={<>{avatar()}<Badge>New</Badge></>} trailing="Owner" />']);
+  const iconProp = page("export function I({ name }: { name: string }) {", "  return <ListItem title=\"Icon\" icon={name} />;", "}");
+  check("prop named for an icon: refused (a fragment would print the name)", applySlotOp(iconProp, locOf(iconProp, "<ListItem"), "ListItem", ins(NEW, { prop: "icon" }), options()).error, "Its content comes from name; edit it in the code.");
   check("prop with a string: refused", applySlotOp(props, at("<ListItem title=\"Lead"), "ListItem", ins(NEW, { prop: "trailing" }), options()).error, 'Its content comes from "Owner"; edit it in the code.');
   check("prop true: refused", applySlotOp(props, at("<ListItem title=\"Flag"), "ListItem", ins(NEW, { prop: "selected" }), options()).error, "Its content comes from `selected` (true); edit it in the code.");
   check("prop names that are not slots: refused", ["onClick", "key", "className", "bad name", 3].map((prop) => applySlotOp(props, at("<ListItem title=\"Flag"), "ListItem", ins(NEW, { prop }), options()).code), ["invalid", "invalid", "invalid", "invalid", "invalid"]);
+}
+
+/* ── a slot that holds a same-file `const name = <JSX>` (user, 2026-10-09: HR's Sidebar footer={appsButton}) ──────────── */
+{
+  const shared = page(
+    "export function Shell({ wide }: { wide: boolean }) {",
+    "  // Apps in every footer.",
+    "  const apps = <Badge>Apps</Badge>;",
+    "  const pair = <><Badge>One</Badge><Badge>Two</Badge></>;",
+    "  const loose = <Badge>Loose</Badge>;",
+    "  return wide ? (",
+    "    <Stack gap=\"md\">",
+    "      <ListItem title=\"Wide\" trailing={apps} leading={pair} />",
+    "      <Card theme=\"flat\">{loose}</Card>",
+    "    </Stack>",
+    "  ) : (",
+    "    <ListItem title=\"Narrow\" trailing={apps} />",
+    "  );",
+    "}",
+  );
+  const NEW = "<Badge>New</Badge>";
+  const joined = run("const element: insert", shared, "<ListItem title=\"Wide", "ListItem", ins(NEW, { prop: "trailing" }));
+  check("const element: insert joins it into a fragment where the const is written; both uses unchanged", [rows(joined, 10, 10), joined.code.split("trailing={apps}").length - 1], [["  const apps = <><Badge>Apps</Badge><Badge>New</Badge></>;"], 2]);
+  const intoPair = run("const fragment: insert", shared, "<ListItem title=\"Wide", "ListItem", ins(NEW, { prop: "leading" }));
+  check("const fragment: the new element joins it", rows(intoPair, 11, 11), ["  const pair = <><Badge>One</Badge><Badge>Two</Badge><Badge>New</Badge></>;"]);
+  const copied = run("const element: duplicate", shared, "<Badge>Apps", "Badge", DUPLICATE);
+  check("const element: duplicate makes a fragment of two there", rows(copied, 10, 10), ["  const apps = <><Badge>Apps</Badge><Badge>Apps</Badge></>;"]);
+  const removed = run("const element: remove", shared, "<Badge>Apps", "Badge", REMOVE);
+  check("const element: remove takes the const, its comment and every use", [removed.code.includes("const apps"), removed.code.includes("Apps in every footer"), removed.code.includes("trailing={apps}"), removed.code.includes('<ListItem title="Narrow" />')], [false, false, false, true]);
+  const child = run("const child: remove", shared, "<Badge>Loose", "Badge", REMOVE);
+  check("const child: the const and its {name} child go", [child.code.includes("const loose"), child.code.includes("{loose}")], [false, false]);
+  const read = page(
+    "export function Shell({ wide }: { wide: boolean }) {",
+    "  const apps = <Badge>Apps</Badge>;",
+    "  const label = String(apps);",
+    "  return <ListItem title={label} trailing={apps} />;",
+    "}",
+  );
+  check("const read elsewhere: remove refused", applySlotOp(read, locOf(read, "<Badge>Apps"), "Badge", REMOVE, options({ hash: sha1(read) })).error, "<Badge> is the value of `apps`, which the code also reads elsewhere; remove it in the code.");
+  const moduleConst = page(
+    "const apps = <Badge>Apps</Badge>;",
+    "export function Shell() {",
+    "  return <ListItem title=\"Wide\" trailing={apps} />;",
+    "}",
+  );
+  check("module const: an item with an action refused", applySlotOp(moduleConst, locOf(moduleConst, "<ListItem"), "ListItem", ins('<Badge onClick={() => toast({ title: "Hi" })}>Hi</Badge>', { prop: "trailing" }), options()).error, "Its content is `apps`, written outside any component, so it cannot hold an action or state; add it in the code.");
+  const plain = run("module const: insert", moduleConst, "<ListItem", "ListItem", ins(NEW, { prop: "trailing" }));
+  check("module const: a plain element joins it", rows(plain, 8, 8), ["const apps = <><Badge>Apps</Badge><Badge>New</Badge></>;"]);
+  const letBound = page(
+    "export function Shell() {",
+    "  let apps = <Badge>Apps</Badge>;",
+    "  return <ListItem title=\"Wide\" trailing={apps} />;",
+    "}",
+  );
+  const letJoined = run("let: code beside", letBound, "<ListItem", "ListItem", ins(NEW, { prop: "trailing" }));
+  check("let: not a const, so the new element goes beside {apps}", rows(letJoined, 10, 10), ['  return <ListItem title="Wide" trailing={<>{apps}<Badge>New</Badge></>} />;']);
+  const stacked = page(
+    "export function Panel() {",
+    "  const summary = <Badge>Summary</Badge>;",
+    "  const twice = <Badge>Twice</Badge>;",
+    "  return (",
+    "    <Stack gap=\"md\">",
+    "      <Text>First</Text>",
+    "      {summary}",
+    "      <Text>Last</Text>",
+    "      <Card theme=\"flat\">{twice}{twice}</Card>",
+    "    </Stack>",
+    "  );",
+    "}",
+  );
+  const up = run("const child: move up", stacked, "<Badge>Summary", "Badge", move("prev"));
+  check("const child: its {summary} steps before First; the const stays", [up.code.indexOf("{summary}") < up.code.indexOf("<Text>First"), up.code.includes("const summary = <Badge>Summary</Badge>;"), up.moved?.loc], [true, true, locOf(stacked, "<Badge>Summary")]);
+  check("const shown twice: move refused without the place", applySlotOp(stacked, locOf(stacked, "<Badge>Twice"), "Badge", move("next"), options({ hash: sha1(stacked) })).error, "<Badge> is not one of an element's children (it sits in a variable); only children move.");
+  const twiceBoth = page(
+    "export function Panel({ phone }: { phone: boolean }) {",
+    "  const summary = <Badge>Summary</Badge>;",
+    "  return phone ? (",
+    "    <Stack gap=\"sm\">",
+    "      <Text>Phone</Text>",
+    "      {summary}",
+    "    </Stack>",
+    "  ) : (",
+    "    <Card theme=\"flat\">",
+    "      <Text>Desk</Text>",
+    "      {summary}",
+    "    </Card>",
+    "  );",
+    "}",
+  );
+  const inCard = run("const shown in two branches: move the one in the Card", twiceBoth, "<Badge>Summary", "Badge", { op: "moveElement", to: "prev", parent: locOf(twiceBoth, "<Card") });
+  check("const shown in two branches: only the Card's {summary} moves", [inCard.code.indexOf("{summary}", inCard.code.indexOf("<Card")) < inCard.code.indexOf("<Text>Desk"), inCard.code.indexOf("<Text>Phone") < inCard.code.indexOf("{summary}")], [true, true]);
+  const dragged = applySlotOp(stacked, locOf(stacked, "<Badge>Summary"), "Badge", { op: "moveTo", parent: locOf(stacked, "<Card") }, options({ hash: sha1(stacked) }));
+  check("const child: dragged into the Card as {summary}", [dragged.error ?? null, /<Card theme="flat">\{twice\}\{twice\}\s*\{summary\}/.test(dragged.code ?? "") || /<Card theme="flat">[\s\S]*\{summary\}[\s\S]*<\/Card>/.test(dragged.code ?? ""), (dragged.code ?? "").split("{summary}").length - 1], [null, true, 1]);
+  const described = describeSlots(shared, PAGE, locOf(shared, "<ListItem title=\"Wide"));
+  const at = (attr) => described.attributes[["title", "trailing", "leading"].indexOf(attr)];
+  check("describeSlots: a const's elements, where the const writes them", [at("trailing"), at("leading")?.form, at("leading")?.elements.map((ref) => ref.name)], [{ elements: [{ name: "Badge", loc: locOf(shared, "<Badge>Apps") }], form: "element", const: "apps" }, "fragment", ["Badge", "Badge"]]);
+  const card = describeSlots(shared, PAGE, locOf(shared, "<Card"));
+  check("describeSlots: a {name} child's elements", card.children.find(Boolean), { elements: [{ name: "Badge", loc: locOf(shared, "<Badge>Loose") }], form: "other", const: "loose" });
 }
 
 /* ── insertChild: wrap (gap-less slots) ───────────────────────────────────────────────────────────────────────────── */
@@ -623,7 +725,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("remove the && right side: the whole condition's line", [rows(and, 19, 20), and.code.includes("{open &&")], [["      </List>", "      {open ? <Text>Shown</Text> : <Text>Hidden</Text>}"], false]);
   const branch = run("remove ternary branch", src, "<Text>Shown", "Text", REMOVE);
   check("remove a ternary branch: null", rows(branch, 21, 21), ["      {open ? null : <Text>Hidden</Text>}"]);
-  check("remove a .map row: refused", applySlotOp(src, locOf(src, "<ListItem"), "ListItem", REMOVE, options({ hash: sha1(src) })).error, "<ListItem> is the row of a .map list; remove the row in its data (here it would remove every row).");
+  check("remove a .map row: refused", applySlotOp(src, locOf(src, "<ListItem"), "ListItem", REMOVE, options({ hash: sha1(src) })).error, "<ListItem> is the row of a .map list; select one row on the canvas to remove it from its data (here it would remove every row).");
   check("remove a component's root: refused", applySlotOp(src, locOf(src, "<Stack"), "Stack", REMOVE, options({ hash: sha1(src) })).error, "<Stack> is the root of Plans; there would be nothing left to render.");
   const roots = page(
     "export const C = () => <Card theme=\"flat\" />;",
@@ -1490,7 +1592,8 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     null,
   ]);
   check("describeSlots: children", slots.children, [
-    { elements: [{ name: "Text", loc: "17:27" }], form: "map" },
+    // `row`: the element the .map callback returns (removed and copied in the list's data).
+    { elements: [{ name: "Text", loc: "17:27", row: true }], form: "map" },
     { elements: [{ name: "Text", loc: "18:15" }], form: "and" },
     { elements: [{ name: "Text", loc: "19:14" }, { name: "Text", loc: "19:33" }], form: "ternary" },
     { elements: [], form: "other" },

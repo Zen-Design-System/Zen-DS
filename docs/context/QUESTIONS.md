@@ -112,3 +112,12 @@ List-Box: code stays, the designer updates the master (above); Studio polish N1�
 
 - **Later (user, 2026-10-08):** Platform chrome: "Download Figma" (overview + sidebar footer) and "Feedback" have no destination, so
   `interaction/action-without-handler` keeps them as its 3 warnings. Waiting on the user for the URLs.
+
+- **Selecting a Stack on the canvas (user, 2026-10-09, session 604bd7):** a click selects the deepest layer under the
+  pointer (spec `docs/research/zen-studio-spec-2026-10-02.md`), so a Stack, Grid or List its children fill cannot be
+  clicked at all: on HR · Home 46 of 99 visible layers have no point a click reaches (Esc / ⇧Enter, Layers or the Slots
+  section still select them). Probably the "Rất nhiều chỗ của stack … khó thao tác" report. Figma: a click selects the
+  outermost layer in the current context, a double-click goes one level in, ⌘-click the deepest; right-click › Select
+  layer lists every layer under the pointer. Follow Figma's click, add Select layer, or both? (The click rule changes
+  every E2E row that clicks a nested layer; Select layer needs a submenu in Menu.) Every layer a click can reach
+  selects right (scratch crawl: click each layer at a point it owns, compare the selection).

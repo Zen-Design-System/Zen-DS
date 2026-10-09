@@ -134,16 +134,25 @@ export function moveToPlan(ctx, nodePath, op, h) {
   if (op.copy !== undefined && typeof op.copy !== "boolean") h.refuse("`copy` must be true or false");
   if (typeof op.parent !== "string" || !parseLoc(op.parent)) h.refuse('moveTo needs `parent`: the "<line>:<column>" of the element it goes into');
 
-  // Where the element sits now: among an element's or a fragment's children (`<X />` or `{<X />}`).
+  // Where the element sits now: among an element's or a fragment's children (`<X />`, `{<X />}`, or the `{…}` whose
+  // condition or .map shows it: that block goes with it, as Figma moves a layer with what holds it; user, 2026-10-09).
   let i = nodePath.length - 1;
   while (i > 0 && h.TS_WRAPPERS.has(nodePath[i - 1].type)) i -= 1;
   let unit = nodePath[i];
   let holderAt = i - 1;
-  if (nodePath[holderAt]?.type === "JSXExpressionContainer" && (nodePath[i - 2]?.type === "JSXElement" || nodePath[i - 2]?.type === "JSXFragment")) {
-    unit = nodePath[holderAt];
-    holderAt -= 1;
+  let unitAt = h.childUnitAt(nodePath, nodePath.length - 1);
+  // A const's JSX that one `{name}` child shows: that `{name}` goes (the const stays where it is written).
+  const shown = unitAt < 0 ? h.constChildUse(ctx, nodePath) : null;
+  const path = shown ? shown.path : nodePath;
+  if (shown) unitAt = shown.at;
+  if (unitAt >= 0) {
+    unit = path[unitAt];
+    holderAt = unitAt - 1;
   }
-  const holder = nodePath[holderAt];
+  // A block of code (a condition, a .map, a const's `{name}`) moves as written; `{<X />}` and `<X />` move as the element.
+  const block = Boolean(shown) || (unit.type === "JSXExpressionContainer" && unit.expression !== element && !(h.TS_WRAPPERS.has(unit.expression?.type) && unit.expression.expression === element));
+  const moving = block ? unit : element;
+  const holder = path[holderAt];
   if (holder?.type !== "JSXElement" && holder?.type !== "JSXFragment") {
     const fn = h.FUNCTION_TYPES.has(holder?.type) ? holder : holder?.type === "ReturnStatement" ? nodePath.findLast((node, k) => k < i - 1 && h.FUNCTION_TYPES.has(node.type)) : null;
     const owner = fn ? nodePath[nodePath.indexOf(fn) - 1] : null;
@@ -155,8 +164,8 @@ export function moveToPlan(ctx, nodePath, op, h) {
   // The destination.
   if (op.replace !== undefined && op.replace !== null && !copy) h.refuse("`replace` needs `copy`: the copy takes the replaced layer's place");
   const { parent, parentName, parentPath } = destination(ctx, h, op.parent);
-  if (element.start <= parent.start && parent.end <= element.end) h.refuse(`${what} cannot go inside itself.`);
-  clonedPlace(h, element, nodePath, holderAt, parent, copy);
+  if (moving.start <= parent.start && parent.end <= moving.end) h.refuse(`${what} cannot go inside itself.`);
+  clonedPlace(h, element, path, holderAt, parent, copy);
   landing(h, name, parent, parentName);
   const { entries, at, replaced } = positionIn(ctx, h, parent, parentName, op);
   if (replaced && replaced.start <= element.start && element.end <= replaced.end) h.refuse(`${what} is inside the layer it would replace; paste it elsewhere.`);
@@ -165,12 +174,13 @@ export function moveToPlan(ctx, nodePath, op, h) {
     if (own >= 0 && (at === own || at === own + 1)) h.refuse(`${what} is already there.`);
   } else {
     const key = element.openingElement.attributes.find((attr) => attr.type === "JSXAttribute" && jsxName(attr.name) === "key");
-    if (key) h.refuse(`${what} has a key; a copy would repeat it. Edit it in the code.`);
+    // A copied .map keeps its keys inside its own list; a copied element would repeat its key among its siblings.
+    if (key && !(block && h.isMapCall(unit.expression))) h.refuse(`${what} has a key; a copy would repeat it. Edit it in the code.`);
   }
 
   // Every name it reads means the same thing where it lands.
-  for (const used of freeNames(element, h.patternNames, h.FUNCTION_TYPES)) {
-    const here = h.bindingOf(nodePath, used);
+  for (const used of freeNames(moving, h.patternNames, h.FUNCTION_TYPES)) {
+    const here = h.bindingOf(path, used);
     const there = h.bindingOf(parentPath, used);
     if (!sameBinding(here, there)) {
       h.refuse(`${what} uses \`${used}\` (${here?.what ?? "a global"}), which ${there ? "is something else" : "does not exist"} inside <${parentName}>; ${copy ? "copy" : "move"} it in the code.`);
@@ -179,17 +189,19 @@ export function moveToPlan(ctx, nodePath, op, h) {
 
   // The code that goes (with detach's marker above it), placed like an inserted element.
   const marker = h.detachMarker(holder, unit);
-  const start = marker && /^\s*$/.test(text.slice(marker.end, unit.start)) ? marker.start : element.start;
-  const { edit, placed, within } = place(ctx, h, parent, entries, at, { part: piece(text, element, start, element.end), name }, name);
-  const removed = copy ? [] : h.removal(ctx, nodePath, nodePath.length - 1, what).edits;
+  const start = marker && /^\s*$/.test(text.slice(marker.end, unit.start)) ? marker.start : moving.start;
+  const { edit, placed, within } = place(ctx, h, parent, entries, at, { part: piece(text, moving, start, moving.end), name }, name);
+  const removed = copy ? [] : h.removal(ctx, path, block ? unitAt : nodePath.length - 1, what).edits;
+  // A const's `{name}`: the element stays where the const writes it; an empty edit there gives its loc.
+  const stay = shown ? { start: element.start, end: element.start, text: "" } : null;
   for (const gone of removed) {
     if (gone.start < edit.start && edit.start < gone.end) h.refuse(`${what} cannot be dropped there (inside the code it leaves).`);
   }
   if (replaced) removed.push(...replacing(ctx, h, replaced));
   if (replaced) removed.push(...tidyImports(ctx, h, [...removed, ...placed.edits], []));
   return {
-    edits: [...removed, ...placed.edits],
-    focus: { edit, within, name },
+    edits: stay ? [...removed, ...placed.edits, stay] : [...removed, ...placed.edits],
+    focus: stay ? { edit: stay, within: 0, name } : { edit, within, name },
     answer: copy ? "inserted" : "moved",
     snippet: () => ({ reason: `a ${copy ? (replaced ? "paste" : "copy") : "move"} is not copied into the example snippet; update it by hand (${what})` }),
   };

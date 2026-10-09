@@ -12,7 +12,8 @@ import type { ContentSlot, SlotContentSummary } from "./registry";
  */
 
 /** A JSX element inside a slot that the server located (attribute values and expression children, flattened). */
-export type SlotElementRef = { name: string; loc: string };
+/** `row`: the element a `.map` callback returns (its rows' root): removed and copied in the list's data. */
+export type SlotElementRef = { name: string; loc: string; row?: boolean };
 
 /** How an expression child renders its elements: a `.map`, `cond && <…/>`, `cond ? <…/> : …`, or anything else. */
 export type SlotExpressionForm = "map" | "and" | "ternary" | "other";
@@ -41,7 +42,7 @@ export type SlotLayer =
    * null for a name parsed here (the inspector looks it up on the canvas). `via`: the expression it sits in.
    * `removable`: the server's removeElement takes it (a `.map` callback root is removed in its data instead).
    * `sibling`: its place among the JSX siblings the server's moveElement swaps it with (a direct child, or an element of
-   * a prop's fragment), with how many there are; absent when it cannot move (one element, a `.map`, a condition).
+   * a prop's fragment; a `.map` or a condition among children moves as its whole block), with how many there are; absent when it cannot move (a prop's one element).
    */
   | { kind: "element"; name: string; loc: string | null; via?: SlotExpressionForm; removable: boolean; reason?: string; sibling?: { index: number; count: number } }
   /** Text written directly in the slot (the Content section edits it). */
@@ -57,6 +58,8 @@ export type SlotContent = {
   placeholder: boolean;
   /** Why nothing can be added here from the Studio ("Its content comes from {fields}"); the server refuses the same. */
   insertBlock?: string;
+  /** The slot shows a same-file `const name = <JSX>`: its edits are written there, so every place that shows it changes. */
+  shared?: string;
 };
 
 /* Docs scaffolding the canvas never shows as a layer (picker.ts transparentNames), PlaygroundSlot among them. */
@@ -85,7 +88,7 @@ export function expressionForm(code: string): SlotExpressionForm {
 /** Why an expression's content is read-only here, in a few words. */
 export function expressionReason(form: SlotExpressionForm, code: string): string {
   const body = shortCode(code.trim().replace(/^\{|\}$/g, ""), 28);
-  if (form === "map") return "One per row: add or remove rows in its data";
+  if (form === "map") return "One per row: select a row on the canvas to remove or copy it";
   if (form === "and" || form === "ternary") return `Shown on a condition (${body})`;
   return `Its content comes from ${body}`;
 }
@@ -105,6 +108,12 @@ export function locatedElements(entry: SourceAttr | SourceChild): SlotElementRef
 export function formOf(child: Extract<SourceChild, { kind: "expression" }>): SlotExpressionForm {
   const form = (child as { form?: unknown }).form;
   return form === "map" || form === "and" || form === "ternary" || form === "other" ? form : expressionForm(child.raw);
+}
+
+/** The `const` a prop or child shows (`footer={apps}`, `const apps = <…/>`), when the server names one. */
+export function constOf(entry: SourceAttr | SourceChild): string | undefined {
+  const name = (entry as { const?: unknown }).const;
+  return typeof name === "string" && name ? name : undefined;
 }
 
 /** The server's `form` of an attribute that holds JSX, or null while the server does not send it. */
@@ -207,11 +216,20 @@ function expressionLayers(child: Extract<SourceChild, { kind: "expression" }>): 
 const comesFrom = (code: string) => `Its content comes from ${shortCode(code, 28)}`;
 
 /**
- * A prop slot's layers from its attribute (absent, `null`, `undefined` or `false`: empty). The server's insert takes an
- * empty prop, one element (it becomes a fragment) or a fragment; anything else (a string, `true`, a condition, a `.map`,
- * a variable or a call) is refused with "Its content comes from …", so no "+" is offered there.
+ * Whether the server's insert goes beside a prop's code (slots.mjs CODE_JOINS, 2026-10-09): a condition, a `.map`, a
+ * call, a name or a member, the new element joining it in a fragment. Not a literal, an object, a list of data or a
+ * render function, and not a prop named for an icon (it takes an icon name: a fragment would print it).
  */
-function attributeLayers(attr: SourceAttr | undefined): { layers: SlotLayer[]; insertBlock?: string; placeholder?: boolean } {
+const joinsCode = (name: string, code: string) =>
+  !/^icon$|Icon$/.test(name) && !/^(["'`\d-]|\{|\[|true$|false$)/.test(code) && !/^(async\s*)?(\([^()]*\)|[A-Za-z_$][\w$]*)\s*=>/.test(code);
+
+/**
+ * A prop slot's layers from its attribute (absent, `null`, `undefined` or `false`: empty). The server's insert takes an
+ * empty prop, one element (it becomes a fragment), a fragment, a same-file const's JSX, or code that shows something (the
+ * new element joins it: joinsCode); a string, `true`, data or a render function is refused with "Its content comes from
+ * …", so no "+" is offered there.
+ */
+function attributeLayers(attr: SourceAttr | undefined): { layers: SlotLayer[]; insertBlock?: string; placeholder?: boolean; shared?: string } {
   if (!attr) return { layers: [] };
   if (attr.kind === "true") return { layers: [], insertBlock: comesFrom(`${attr.name} (true)`) };
   if (attr.kind === "string") return { layers: attr.value ? [{ kind: "text", value: attr.value }] : [], insertBlock: comesFrom(JSON.stringify(attr.value ?? "")) };
@@ -224,7 +242,9 @@ function attributeLayers(attr: SourceAttr | undefined): { layers: SlotLayer[]; i
     const form = attributeFormOf(attr) ?? (topLevelJsxNames(code) ? "fragment" : expressionForm(code));
     if (form === "element" || form === "fragment") {
       const elements = located.filter(shown);
+      const shared = constOf(attr);
       return {
+        ...(shared ? { shared } : {}),
         layers: elements.map((ref, index) => ({
           kind: "element", name: ref.name, loc: ref.loc, removable: true,
           // Elements of a fragment swap places (moveElement); a single element has nothing to pass.
@@ -233,15 +253,15 @@ function attributeLayers(attr: SourceAttr | undefined): { layers: SlotLayer[]; i
         placeholder,
       };
     }
-    return { layers: locatedLayers(located, form, code), insertBlock: comesFrom(code), placeholder };
+    return { layers: locatedLayers(located, form, code), ...(joinsCode(attr.name, code) ? {} : { insertBlock: comesFrom(code) }), placeholder };
   }
   const names = topLevelJsxNames(code);
   if (names) return { layers: names.filter((name) => name !== PLACEHOLDER && !SCAFFOLDING.has(name)).map((name) => ({ kind: "element", name, loc: null, removable: true })), placeholder: names.includes(PLACEHOLDER) };
   const form = expressionForm(code);
   return {
     layers: [{ kind: "expression", code, form, reason: expressionReason(form, code) }],
-    // The server refuses an insert into a prop that holds code (spec: "Its content comes from {expr}").
-    insertBlock: comesFrom(code),
+    // The server puts an insert beside code that shows something; other code it refuses ("Its content comes from {expr}").
+    ...(joinsCode(attr.name, code) ? {} : { insertBlock: comesFrom(code) }),
   };
 }
 
@@ -250,6 +270,7 @@ export function slotContentOf(element: SourceElement, slot: ContentSlot): SlotCo
   let layers: SlotLayer[] = [];
   let placeholder = false;
   let insertBlock: string | undefined;
+  let shared: string | undefined;
   if (slot.prop === "children") {
     // The JSX siblings moveElement swaps with: every child but text and comments.
     const siblings = element.children.filter((child) => child.kind === "element" || (child.kind === "expression" && !COMMENT.test(child.raw.trim())));
@@ -264,13 +285,17 @@ export function slotContentOf(element: SourceElement, slot: ContentSlot): SlotCo
         }
       } else {
         if (holdsPlaceholder(locatedElements(child))) placeholder = true;
-        layers.push(...expressionLayers(child));
+        // A `{… && <X />}`, `{a ? <X /> : <Y />}` or `{rows.map(…)}` is one place among the siblings: its elements move it.
+        const index = siblings.indexOf(child);
+        const named = constOf(child);
+        if (named) shared = named;
+        layers.push(...expressionLayers(child).map((layer) => (layer.kind === "element" && layer.loc && index >= 0 && siblings.length > 1 ? { ...layer, sibling: { index, count: siblings.length } } : layer)));
       }
     }
   } else {
     const attr = element.attributes.find((candidate) => candidate.name === slot.prop && candidate.kind !== "spread");
     const read = attributeLayers(attr);
-    ({ layers, insertBlock } = read);
+    ({ layers, insertBlock, shared } = read);
     placeholder = Boolean(read.placeholder);
   }
   const first = layers[0];
@@ -278,7 +303,7 @@ export function slotContentOf(element: SourceElement, slot: ContentSlot): SlotCo
     count: layers.length,
     ...(layers.length === 1 && first.kind === "element" ? { only: { name: first.name } } : {}),
   };
-  return { layers, summary, placeholder, insertBlock };
+  return { layers, summary, placeholder, insertBlock, ...(shared ? { shared } : {}) };
 }
 
 /**

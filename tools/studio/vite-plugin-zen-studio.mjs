@@ -28,7 +28,7 @@ import path from "node:path";
 import { cssRules, detachPlan } from "./detach.mjs";
 import { changedLines, draftInfo, followDisk, nextDraft, parseDrafts, planSave, rebaseDraft, serializeDrafts } from "./drafts.mjs";
 import { frameRangesOf, lineChanges, ownChanges, splitDraft } from "./frame-scope.mjs";
-import { dataFieldEdit, isDataFile, originsOf } from "./data-source.mjs";
+import { dataFieldEdit, dataRowEdit, isDataFile, originsOf } from "./data-source.mjs";
 import { importersOf } from "./shared-code.mjs";
 import { annotate, applyOps, describeElement, isAnnotatedFile, parseSource, sha1 } from "./jsx-source.mjs";
 import { SLOT_OPS, describeSlots, requiredFromApi, withSlots } from "./slots.mjs";
@@ -303,6 +303,11 @@ export function zenStudio() {
     }
     const target = await resolveFile(file, true);
     if (ops.length === 1 && ops[0]?.op === "setDataField") return editData(target, body);
+    // A .map row's root removed, copied or moved with its row index: the list's data changes (null: not a row, edit the code).
+    if (ops.length === 1 && ["removeElement", "duplicateElement", "moveElement"].includes(ops[0]?.op) && Number.isInteger(ops[0].row)) {
+      const answered = await editRow(target, body);
+      if (answered) return answered;
+    }
     // The edit applies to the effective text (the draft, else the disk) and goes into the draft, never to the disk.
     const disk = await readText(target.abs);
     const before = drafts.get(target.realRel)?.content ?? disk;
@@ -405,6 +410,26 @@ export function zenStudio() {
     const before = drafts.get(dataTarget.realRel)?.content ?? disk;
     const draft = result.code !== before ? await setDraft(dataTarget, disk, result.code) : drafts.has(dataTarget.realRel);
     return { ok: true, file: dataTarget.rel, hash: sha1(result.code), hashBefore: sha1(before), before, after: result.code, changed: result.changed, draft, data: { source: result.source } };
+  }
+
+  /**
+   * Ops removeElement / duplicateElement / moveElement with `row` on the element a .map callback returns (data-source.mjs
+   * dataRowEdit): the row goes from, is copied in or moves in its list where it is written, possibly another file
+   * (examples/data.ts), which gets the draft. `row.loc` is the element's loc after the edit in its own file, `row.state`
+   * a useState list (the client starts the frame again). Null when the element is not a row's root.
+   */
+  async function editRow(target, body) {
+    const { loc, name, ops, hash } = body;
+    const host = await effectiveText(target);
+    if (hash && hash !== sha1(host)) throw new HttpError("stale", `${target.rel} changed since it was read`);
+    const result = dataRowEdit(host, target.rel, loc, name, ops[0], { read: readEffectiveSync });
+    if (result.notRow) return null;
+    if (result.error) throw new HttpError(result.code ?? "forbidden", result.error);
+    const dataTarget = await resolveFile(result.file, true);
+    const disk = await readText(dataTarget.abs);
+    const before = drafts.get(dataTarget.realRel)?.content ?? disk;
+    const draft = result.code !== before ? await setDraft(dataTarget, disk, result.code) : drafts.has(dataTarget.realRel);
+    return { ok: true, file: dataTarget.rel, hash: sha1(result.code), hashBefore: sha1(before), before, after: result.code, changed: result.changed, draft, data: { source: result.source }, row: { index: result.index, state: result.state, loc: result.loc, file: target.rel } };
   }
 
   async function write(body) {

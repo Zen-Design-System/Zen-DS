@@ -424,9 +424,12 @@ export function applyEdit(request: EditRequest, label: string): Promise<EditResp
   // A data edit (setDataField) may change what an example only reads into its initial state (a chat's messages): Fast
   // Refresh keeps that state, so the selected element's frame starts again once the update landed, as for an edit of
   // an initial value (board/remount.ts). Other edits keep what the examples show (an opened thread, a selected tab).
-  const frameId = request.ops.some((op) => op.op === "setDataField") ? studioStore.getState().selection?.frameId ?? null : null;
+  // A `.map` row removed or copied in a useState list (answer `row.state`, slots/ops.ts) is the same case.
+  const rowOp = request.ops.some((op) => (op.op === "removeElement" || op.op === "duplicateElement") && typeof (op as { row?: unknown }).row === "number");
+  const frameId = rowOp || request.ops.some((op) => op.op === "setDataField") ? studioStore.getState().selection?.frameId ?? null : null;
   return enqueue(() => sendEdit(request, label)).then((response) => {
-    if (frameId && response.ok && response.before !== response.after) remountFrameAfterUpdate(frameId, response.file);
+    const restart = !rowOp || (response as { row?: { state?: unknown } }).row?.state === true;
+    if (frameId && restart && response.ok && response.before !== response.after) remountFrameAfterUpdate(frameId, response.file);
     return response;
   });
 }

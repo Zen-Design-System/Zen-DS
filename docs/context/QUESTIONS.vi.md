@@ -134,3 +134,10 @@ làm hiện tại; khi có câu trả lời, việc cần làm sẽ vào `BACKLO
 **Còn chờ:**
 - **Nút "Download Figma" và "Feedback"** (bạn chọn để sau): trên trang docs, ở trang tổng quan và chân sidebar, hai nút này
   chưa dẫn đi đâu, nên vẫn còn 3 cảnh báo "nút không có hành động". Khi có link thì gửi mình.
+- **Chọn Stack trên canvas (09/10/2026):** bấm chuột chọn lớp sâu nhất dưới con trỏ (spec
+  `docs/research/zen-studio-spec-2026-10-02.md`), nên một Stack, Grid hay List mà các con lấp kín thì không bấm chọn
+  được: ở HR · Home có 46/99 lớp đang hiện không có điểm nào bấm tới (vẫn chọn được bằng Esc / ⇧Enter, Layers hoặc mục
+  Slots). Có lẽ đây là lỗi "Rất nhiều chỗ của stack … khó thao tác". Figma: bấm chọn lớp ngoài cùng trong ngữ cảnh hiện
+  tại, bấm đúp đi vào một cấp, ⌘-bấm chọn lớp sâu nhất; chuột phải › Select layer liệt kê mọi lớp dưới con trỏ. Làm theo
+  cách bấm của Figma, thêm Select layer, hay cả hai? (Đổi cách bấm thì mọi dòng E2E bấm vào lớp lồng nhau phải đổi theo;
+  Select layer cần menu con trong Menu.) Mọi lớp bấm tới được đều chọn đúng (đã kiểm bằng một script bấm từng lớp).

@@ -353,6 +353,8 @@ function SlotBlock({ selection, element, slot, hostProps, titled, editable, play
       </div>
       {condition ? <p className={`studio-slots__note ${typographyStyles["Body/Small/Regular"]}`}>{conditionText(condition)}</p> : null}
       {editable && active && content.insertBlock ? <p className={`studio-slots__note ${typographyStyles["Body/Small/Regular"]}`}>{content.insertBlock}</p> : null}
+      {/* A slot showing a same-file `const name = <JSX>`: its edits are written there (every place that shows it changes). */}
+      {active && content.shared && !content.insertBlock ? <p className={`studio-slots__note ${typographyStyles["Body/Small/Regular"]}`}>Written in <code>{content.shared}</code>: every place that shows it changes too.</p> : null}
       {content.layers.length && !placeholder ? (
         <ul aria-label={`${slot.name} layers`} className="studio-inspector__items">
           {content.layers.map(row)}

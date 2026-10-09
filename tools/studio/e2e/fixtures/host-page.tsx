@@ -98,7 +98,7 @@ function OverlayFixture() {
   return (
     <Stack data-e2e="overlay" gap="md" padding="lg">
       <Button data-e2e="open" level="secondary" onClick={() => setOpen(true)}>Open dialog</Button>
-      <Dialog data-e2e="dialog" open={open} onClose={() => setOpen(false)} title="Fixture dialog" primaryAction={{ label: "Done", onClick: () => setOpen(false) }} />
+      <Dialog data-e2e="dialog" open={open} onClose={() => setOpen(false)} title="Fixture dialog" primaryAction={{ label: "Done", onClick: () => setOpen(false) }} secondaryAction={{ label: "Cancel" }} />
     </Stack>
   );
 }

@@ -3,11 +3,19 @@ import { Button } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Heading } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
+import { applyEdit, parseSrc, studioApi, useStudioServer } from "../api";
 import { canvasApi } from "../canvas/viewport";
-import { currentFiber, onSourceUpdate, shortSrc } from "../select/picker";
+import { currentFiber, nameOf, onSourceUpdate, shortSrc, type Fiber } from "../select/picker";
 import { selectedPartStore, withoutPart, type PartHit } from "../select/parts";
-import { studioStore } from "../store";
-import type { StudioSelection } from "../types";
+import { canEdit, studioStore, useStudio } from "../store";
+import type { SourceElement, StudioSelection } from "../types";
+import { componentGroupsOf } from "./componentGroups";
+import { forwardedProps } from "./partForwarding";
+import { PART_PROPS } from "./partProps.generated";
+import { entryLabel, entryOptions, entryProp, type PropEntry } from "./propGroups";
+import { PropField } from "./PropField";
+import { propLabel, propSpecs, type Literal, type PropSpec } from "./propSchema";
+import { displayValueOf, planPropReset, planPropWrite } from "./writePlan";
 import { coloursOf, drivingProps, layoutOf, listedProps, matchingTextStyles, sizeOf, summarise, textHost, textStylesOf, type SpacingValue } from "./partInfo";
 import { InspectorRow, InspectorSection } from "./Section";
 import { SlotHost, useSlotFilled } from "./SlotHost";
@@ -23,6 +31,87 @@ import { DataItemBanner, DataItemSections } from "./DataItemPanel";
 type PartSelection = Extract<StudioSelection, { kind: "node" }>;
 
 const MAX_PROPS = 40;
+
+/** Field kinds a part's passed-on prop is edited with here (objects, lists and handlers stay with the owner). */
+const PART_FIELDS = new Set(["enum", "number-enum", "boolean", "string", "number", "node", "icon", "icon-toggle"]);
+
+/** Component names from just under the owner down to the part (wrappers included), along the part's fiber parents. */
+function chainOf(part: PartHit): string[] {
+  const owner = part.owner.fiber;
+  const names: string[] = [];
+  for (let fiber: Fiber | null = currentFiber(part.fiber); fiber; fiber = fiber.return) {
+    if (owner && (fiber === owner || fiber === owner.alternate)) return names.reverse();
+    if (typeof fiber.type === "function" || (typeof fiber.type === "object" && fiber.type !== null)) names.push(nameOf(fiber));
+  }
+  return [];
+}
+
+/** Options as Figma names them when the part's component has no Figma map: "horizontal" → "Horizontal". */
+const titledOptions = (spec: PropSpec): Record<string, string> | undefined => (spec.editor.kind === "enum"
+  ? Object.fromEntries(spec.editor.options.map((option) => [option, `${option.charAt(0).toUpperCase()}${option.slice(1)}`]))
+  : undefined);
+
+/** The part's props its owner passes on unchanged, as the owner's props the Inspector can edit (Figma's exposed nested
+ *  instance properties: ModalActions' Direction is ModalForm's actionsDirection). */
+function partPasses(owner: string, part: PartHit): Array<{ prop: string; ownerProp: string; spec: PropSpec }> {
+  if (!part.isComponent) return [];
+  const specs = propSpecs(owner);
+  return Object.entries(forwardedProps(owner, chainOf(part), PART_PROPS)).flatMap(([prop, ownerProp]) => {
+    const spec = specs.find((candidate) => candidate.name === ownerProp);
+    return spec && PART_FIELDS.has(spec.editor.kind) ? [{ prop, ownerProp, spec }] : [];
+  });
+}
+
+/**
+ * Properties of a part its owner passes on: each row is the part's prop (its Figma name when its component has one) and
+ * writes the owner's prop in the source, one undo step each, as the owner's own Properties would.
+ */
+function PartProperties({ selection, part, passes }: { selection: PartSelection; part: PartHit; passes: ReturnType<typeof partPasses> }) {
+  const parsed = parseSrc(selection.src);
+  const server = useStudioServer();
+  const role = useStudio((state) => state.role);
+  const undoCount = useStudio((state) => state.undo.length);
+  const [element, setElement] = useState<SourceElement | null>(null);
+  const [version, setVersion] = useState(0);
+  useEffect(() => onSourceUpdate(() => setVersion((value) => value + 1)), []);
+  useEffect(() => {
+    if (!parsed) return undefined;
+    let alive = true;
+    void studioApi.element(parsed.file, parsed.loc).then((next) => { if (alive) setElement(next); });
+    return () => { alive = false; };
+  }, [parsed?.file, parsed?.loc, version, undoCount]);
+  const owner = selection.name;
+  const live = part.owner.fiber ? currentFiber(part.owner.fiber).memoizedProps ?? undefined : undefined;
+  const editable = canEdit() && role === "admin" && server.writable && Boolean(element);
+  // The part's own Figma names (Direction · Horizontal / Vertical) when its component has a Figma map.
+  const groups = componentGroupsOf(part.name);
+  const entries: PropEntry[] = groups ? [...groups.own, ...groups.after, ...groups.nested.flatMap((group) => group.props)] : [];
+  const entryOf = (prop: string) => entries.find((entry) => entryProp(entry) === prop);
+  const write = (ownerProp: string, plan: { ops: Parameters<typeof applyEdit>[0]["ops"] }, label: string) => {
+    if (!element || !plan.ops.length) return;
+    void applyEdit({ file: element.file, loc: element.loc, name: owner, ops: plan.ops, hash: element.hash }, label);
+  };
+  return (
+    <InspectorSection title="Properties" note={`Written to ${owner}: ${passes.map((pass) => pass.ownerProp).join(", ")}.`}>
+      {passes.map(({ prop, ownerProp, spec }) => {
+        const entry = entryOf(prop);
+        return (
+          <PropField
+            key={prop}
+            spec={spec}
+            label={entry ? entryLabel(entry) ?? propLabel(prop, part.name) : propLabel(prop, part.name)}
+            optionLabels={(entry ? entryOptions(entry) : undefined) ?? titledOptions(spec)}
+            value={element ? displayValueOf(owner, element.attributes, ownerProp, live) : { state: "unset" }}
+            disabled={!editable}
+            component={owner}
+            onSet={(value: Literal) => element && write(ownerProp, planPropWrite(owner, element.attributes, ownerProp, value, live), `${owner} ${ownerProp} → ${String(value)} (${part.name} ${prop})`)}
+            onReset={() => element && write(ownerProp, planPropReset(owner, element.attributes, ownerProp, live), `${owner} reset ${ownerProp} (${part.name} ${prop})`)}
+          />
+        );
+      })}
+    </InspectorSection>
+  );
+}
 
 /** Re-reads the canvas after it changes (playground properties, HMR, preview modes), at most every 250ms. */
 function useCanvasTick() {
@@ -180,6 +269,8 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
   // one (its icon) says which item it is in.
   const item = dataItemRootOf(resolved);
   const inside = item ? null : dataItemOfPart(resolved);
+  // Props the owner passes on to it: edited here, written to the owner (the rest stays read-only).
+  const passes = resolved && !item ? partPasses(owner, resolved) : [];
 
   return (
     <div className="studio-inspector__panel">
@@ -191,7 +282,7 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
             <span className={`studio-part__owner ${typographyStyles["Body/Small/Regular"]}`}>{item ? ` · in ${item.slot.name} of ${owner}` : ` · part of ${owner}`}</span>
           </Heading>
         </div>
-        {item ? null : <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>Read-only — set by {owner} at {at}</p>}
+        {item ? null : <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{passes.length ? `Set by ${owner} at ${at}; its Properties write ${owner}'s props` : `Read-only — set by ${owner} at ${at}`}</p>}
         <div className="studio-part__links">
           {/* zen-allow-compact-button: quiet links under the part name in a dense tool panel, like the element's file link */}
           <Button appearance="flat" level="primary" size="xs" startIcon="icon-corner-left-up-line" className="studio-inspector__src" onClick={selectOwner}>
@@ -213,6 +304,7 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
       </header>
 
       {item ? <DataItemSections selection={selection} item={item} /> : null}
+      {resolved && passes.length ? <PartProperties selection={selection} part={resolved} passes={passes} /> : null}
       {resolved ? <PartDetails part={resolved} /> : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Finding {name} on the canvas…</p>}
 
       {/* The owner's playground controls, after the part: where its props are edited. */}

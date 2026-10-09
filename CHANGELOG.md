@@ -24,6 +24,21 @@ removed (four unused colour ramps were, see Removed).
   item children), the Footer-Content slot (`footer`) and a `SidebarSubMenu`; slot rows share `selectedId`, the rail and
   `onItemClick`. `sections` / `items` arrays keep working. The Sidebar examples use them (footer Settings / Help,
   Handbook body).
+- **Zen Studio: slots edit content written as code (2026-10-09):** Move up / down and drag move a child written as
+  `{open && <X />}`, `{a ? <X /> : <Y />}` or `{rows.map(…)}` as one block (the canvas, Layers and the Slots section),
+  where it was refused before; a slot that shows a same-file `const name = <JSX>` (HR's `footer={appsButton}`,
+  `brand={workspaceBrand}`) takes inserts, duplicates, removals and moves where the const is written, so every place
+  that shows it changes (the Slots section says so); a prop that holds code (`footer={open ? <A /> : null}`) takes an
+  insert as `<>{code}<New /></>`. One row of a `.map` is its data: Remove, Duplicate (⌘D) and Move up / down on a row
+  edit the list where it is written (inline, a const, examples/data.ts, a `useState` start value), the other rows stay,
+  a copy gets a key no row has (`ava-copy`) and the copy or moved row stays selected. `tools/studio/slot-audit.mjs`
+  (`--ops`) runs every slot op in memory over the examples and templates: 616 refused moves, 58 refused const edits,
+  103 refused row removals and copies and 89 refused inserts are now done.
+- **Zen Studio: a nested part edits what its owner passes on (2026-10-09):** like Figma's exposed nested instances, a
+  deep-selected part (⌘-click: the ModalActions of a Dialog or ModalForm) lists the props its owner passes on unchanged
+  under Properties and writes them to the owner: Direction → `actionsDirection` (Figma Modal › Buttons › Direction).
+  Read from the component sources for every component (`tools/studio/part-props-build.mjs`, 74 owners), through the
+  components in between; the rest of a part stays read-only.
 - **Zen Studio: Sidebar and Page Header slots (2026-10-09):** a selected Sidebar shows Figma's Header-Content
   (`brand`), Body-Content (children) and Footer-Content (`footer`); a Page Header its Action-Slots (`actions`) and
   Trailing-Slots (`trailing`): outlined on the canvas with a "+", listed in the Slots section. The insert picker offers

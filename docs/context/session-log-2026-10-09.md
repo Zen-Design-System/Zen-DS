@@ -323,3 +323,67 @@
   description still follows the title). Test: backlog-fixes-2026-10-05 "sets the description 4px under the title"
   (desktop, mobile). Studio dialog gap gate: PASS (E2E 188/188).
 
+## Studio: nested parts editable like Figma's exposed instances (user: "nested Modal action phải cho phép tôi sửa button direction như trong Figma", "các component/patterns đều bị mất nested") — tier M, session 604bd7
+
+- Figma (read-only): Modal/Forms 841:17182 and Modal/Dialog 841:17177 expose their "Buttons" (.Primitives/Modal/Actions
+  694:9383: Direction Horizontal|Vertical, Button Dual|Single|Triple). Code: Dialog / ModalForm `actionsDirection` →
+  ModalActions `direction`; the button count follows the actions given (data, not a prop).
+- Cause: a deep-selected part (PartPanel) was read-only; `drivingProps` only matched objects and text, never an enum.
+- Built: `tools/studio/part-props-build.mjs` (+ `--check` in studio:selftest) reads src/components/**/*.tsx into
+  `inspector/partProps.generated.ts`: owner → part → part prop → owner prop when the JSX passes a prop on unchanged
+  (destructured name, props.x, behind ?? / ||); DOM plumbing, handlers and polymorphic locals (`const Tag`) left out
+  (74 owners, 113 parts). `inspector/partForwarding.ts` composes it along the part's fiber chain (wrappers such as a
+  Portal skipped). PartPanel: a Properties section of those props (enum, boolean, text, number, icon kinds) with the
+  part's Figma names, writing the owner (planPropWrite / planPropReset, one undo step each).
+- Tests: `tools/studio/part-props.selftest.mjs` (10); E2E O-04 (⌘-click between the fixture Dialog's Cancel and Done →
+  ModalActions → Direction Vertical → `<Dialog actionsDirection="vertical">`; the fixture Dialog got a Cancel action, so
+  SP-06 compares its page with spaces folded: the two-action Dialog is written over several lines). Gate PASS, Studio
+  E2E 189/189; O-04 recorded in the baseline.
+- Also (peer report): a collapsed Sidebar showing `logoCollapsed` no longer reads "Header-Content · Empty" (the default
+  brand with a logo counts as the slot's content).
+
+## Studio: slot audit and code-written slot content (user: "nên kiểm tra lại hết các slot … tự do như Figma", "Rất nhiều chỗ của stack không thể chỉnh sửa", "Kiểm tra test toàn diện và nâng cấp") — tier L, session 604bd7
+
+- Measured: `tools/studio/slot-audit.mjs` (new). 3,326 slots of 2,340 instances in the annotated files: 1,735 all JSX in
+  place, 1,092 empty, 499 with content written as code (Stack.children 225: condition 150, map 57, call 39, const 12).
+  `--ops` runs insert / clear / remove / duplicate / move in memory with slots.mjs on every slot of the example pages,
+  templates and shared code (15.7k ops, ~9 min); the top refusals were moves of a condition's element (616), `.map` rows
+  (remove / duplicate 86 each, move 26) and const-held JSX (remove / duplicate 18, move 22, insert 4).
+- Built (slots.mjs, arrange.mjs, client actions.ts / content.ts / SlotsSection.tsx):
+  - `childUnitAt`: a child written as `{open && <X/>}`, `{a ? <X/> : <Y/>}` or `{rows.map(…)}` moves (Move up/down,
+    drag) as that whole block; a drag checks the names the block reads where it lands; the moved element is re-found by
+    its tag's first line. The Slots section gives those layers Move buttons; readBlock allows the move (props still not).
+  - `constJsx` / `constUses` / `constRemoval`: `prop={name}` and `{name}` with `const name = <JSX>` in the file are slot
+    content edited where the const is written (insert joins it, duplicate makes a fragment, removing its JSX removes the
+    const, its comment and every use); refused when the code reads it elsewhere, exports it, or (insert into a module
+    const) needs an action or state. describeSlots sends `const`; the Slots section notes "Written in name".
+- After: move · condition 281 OK / 26 (14 playground by design, 12 a condition inside a const), move · map 14 / 0,
+  const-jsx insert 19 / 0, duplicate 20 / 0, remove 18 / 2 (read elsewhere). Left (BACKLOG): `.map` rows' removal / copy
+  in their data (86 each), moving a const shown as `{name}` (22), inserting into a prop that holds a condition or a call
+  (95), a string icon slot (41).
+- Tests: slots selftest +41 (1,881), arrange selftest rewritten for blocks (45 cases); E2E SP-08 (HR · Home: Footer-Content
+  of footer={appsButton} → + Menu item inside `const appsButton`).
+
+## Studio: `.map` rows in their data, const moves by holder, props that hold code (same request, continued) — tier L, session 604bd7
+
+- `.map` rows (slot-audit: remove / duplicate 0 of 86 before): Remove, Duplicate (⌘D) and Move up / down on the element a
+  `.map` callback returns edit the list where it is written (`dataRowEdit` in data-source.mjs: inline array, const,
+  import such as examples/data.ts, a `useState` start value — the frame restarts). The copy's key field gets a value no
+  row has (`ava-copy`, the next number, text "… copy"); a key built in code, a filtered / computed list, a spread or a
+  lazy initializer is refused with the reason. describeSlots marks such elements `row: true`; the client sends `row`
+  (rowOf), skips the repeat confirmation, selects the copy (instance + the lists before it) or the moved row (instance
+  ± 1, waiting for the node that shows it: keyed rows move their node, unkeyed ones swap content). Plugin route
+  `editRow` (falls back to the code op when the element is not a row's root); Move availability counts rows.
+- Const shown in several places (`{summary}` in both returns): moveElement takes `parent` (the holder), sent by the
+  canvas, the menu and the keyboard (constHolderOf). Props that hold code (`footer={open ? <A/> : null}`,
+  `actions={render()}`) take an insert as `<>{code}<New/></>`; icon props refuse it.
+- After (`node tools/studio/slot-audit.mjs --ops`, 15.3k ops): remove · map 53 / 33, duplicate · map 50 / 36, move row ·
+  map 52 / 33 (the rest: computed lists 15, spreads 4, computed values 3, `.filter` / `Object.keys` / a helper first 5,
+  rows of a nested list 6), move · const-jsx 12 / 2, insert · call 62 / 0, insert · condition 245 / 6 (playground). The
+  audit now passes `parent` for const moves, measures row moves and prints every reason with `--op=`.
+- Item 4 ("nested … chưa chính xác", "stack … khó thao tác"), measured with a scratch selection crawl (isolated server,
+  click every layer at a point it owns, compare the selection): every reachable layer selects right; 46 of 99 visible
+  layers on HR · Home (Stacks, Grids, Lists their children fill) have no point a click reaches. A decision for the user
+  (Figma's click rule and/or right-click › Select layer), in QUESTIONS.md / QUESTIONS.vi.md.
+- Tests: data-source selftest +6 (18 cases), slots selftest 1,906, E2E DA-05 (⌘D → `ava-copy`, copy selected), DA-06
+  (Delete → crew = [bao, chi], no confirm), DA-07 (menu Move down → [bao, ava, chi], Ava selected).

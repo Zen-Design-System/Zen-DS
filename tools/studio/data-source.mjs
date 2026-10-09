@@ -431,6 +431,186 @@ function literalCode(value, previous, text) {
  * child) is written as data. For a .map row, `row` is the index of the rendered row (the client counts it on the
  * canvas). Returns { file, code, source } — `file` may be another file (examples/data.ts) — or { error, code }.
  */
+/** Whether `fn` (a .map callback) returns `element` itself: the row's root, not something inside it. */
+function returnsElement(fn, element) {
+  const body = unwrap(fn.body);
+  if (body === element) return true;
+  if (body?.type !== "BlockStatement") return false;
+  return body.body.some((statement) => statement.type === "ReturnStatement" && unwrap(statement.argument) === element);
+}
+
+/**
+ * The array literal a .map reads ({ mod, node, state }), followed through consts, imports and member paths (follow
+ * stops at once with no path); a useState initializer is the list the frame starts with (`state`: the client starts
+ * the frame again, Fast Refresh would keep the old rows).
+ */
+function listOf(mod, expr, read, seen = new Set()) {
+  const node = unwrap(expr);
+  if (node?.type === "ArrayExpression") return { mod, node, state: false };
+  if (seen.size > 24) refuse("The data goes through too many steps to follow");
+  if (node?.type === "Identifier") {
+    const key = `${mod.file}:${node.name}:${node.start}`;
+    if (seen.has(key)) refuse("The data refers to itself");
+    seen.add(key);
+    const binding = bindingOf(mod, node.name, node);
+    if (!binding) refuse(`${node.name} is not declared in ${fileName(mod.file)}`, "not-found");
+    if (binding.kind === "const" && binding.constant) return listOf(mod, binding.init, read, seen);
+    if (binding.kind === "state") {
+      const initial = unwrap(binding.init.arguments[0]);
+      if (!initial || FUNCTION_TYPES.has(initial.type)) refuse(`${node.name} starts from code, not a list the Studio can edit`);
+      return { ...listOf(mod, initial, read, seen), state: true };
+    }
+    if (binding.kind === "import") {
+      const target = importedModule(mod, binding.source, read);
+      if (!target) refuse(`${node.name} comes from ${binding.source}, which the Studio cannot read`);
+      const value = exportedValue(target, binding.imported);
+      if (!value) refuse(`${binding.source} does not export ${binding.imported} as data`, "not-found");
+      return listOf(target, value.node, read, seen);
+    }
+    refuse(`${node.name} is computed in the code, not a list the Studio can edit`);
+  }
+  const chain = node?.type === "MemberExpression" ? memberPath(node) : null;
+  if (chain) {
+    const found = follow(mod, chain.root, chain.path, read);
+    return listOf(found.mod, found.node, read, seen);
+  }
+  refuse("The rows are computed in the code, not written as a list; edit them in the code");
+  return null;
+}
+
+/**
+ * What a row's `key` reads: { path } (field names of the item: `key={item.id}` → ["id"], `key={item}` → []), { path:
+ * null } when a copy cannot repeat it (no key, the index), or a refusal (a key built in the code).
+ */
+function keyOf(fn, element) {
+  const key = element.openingElement.attributes.find((attr) => attr.type === "JSXAttribute" && jsxName(attr.name) === "key");
+  if (!key) return { path: null };
+  const [item, index] = fn.params;
+  let node = key.value?.type === "JSXExpressionContainer" ? unwrap(key.value.expression) : null;
+  if (node?.type === "Identifier" && index?.type === "Identifier" && node.name === index.name) return { path: null };
+  const path = [];
+  while (node?.type === "MemberExpression" && !node.computed) { path.unshift(keyName(node.property)); node = unwrap(node.object); }
+  if (node?.type === "Identifier" && item?.type === "Identifier" && node.name === item.name) return { path };
+  // A destructured field: `({ id }) => <Row key={id} />`.
+  if (node?.type === "Identifier" && !path.length && item?.type === "ObjectPattern") {
+    const found = patternBinding(item, node.name);
+    if (found) return { path: found.path };
+  }
+  refuse("The row's key is built in the code, so a copy would repeat it; add the row in its data");
+  return null;
+}
+
+/** The literal at `path` in an item (an object literal's fields, or the item itself), or null. */
+function literalAt(item, path) {
+  let node = unwrap(item);
+  for (const key of path) {
+    if (node?.type !== "ObjectExpression") return null;
+    const property = [...node.properties].reverse().find((p) => p.type === "ObjectProperty" && !p.computed && keyName(p.key) === key);
+    node = property ? unwrap(property.value) : null;
+  }
+  return node?.type === "StringLiteral" || node?.type === "NumericLiteral" ? node : null;
+}
+
+/** The text with the list's item at `index` removed, with its comma (and its lines, when it stands on lines of its own). */
+function withoutItem(text, list, index) {
+  const items = list.elements;
+  const item = items[index];
+  if (items.length === 1) return `${text.slice(0, list.start)}[]${text.slice(list.end)}`;
+  const lineStart = text.lastIndexOf("\n", item.start - 1) + 1;
+  const comma = /^[ \t]*,/.exec(text.slice(item.end));
+  const end = item.end + (comma ? comma[0].length : 0);
+  const lineEnd = text.indexOf("\n", end);
+  if (!text.slice(lineStart, item.start).trim() && lineEnd >= 0 && !text.slice(end, lineEnd).trim()) return `${text.slice(0, lineStart)}${text.slice(lineEnd + 1)}`;
+  if (index < items.length - 1) return `${text.slice(0, item.start)}${text.slice(items[index + 1].start)}`;
+  return `${text.slice(0, items[index - 1].end)}${text.slice(item.end)}`;
+}
+
+/** A key value no other row of the list has: an id "invoices" → "invoices-copy" (…-copy-2), text "Ava Chen" → "Ava Chen copy", 3 → 1 + the largest. */
+function freshKey(node, others) {
+  if (node.type === "NumericLiteral") return Math.max(...others.filter((value) => typeof value === "number"), node.value) + 1;
+  const taken = new Set(others);
+  const suffix = /^[a-z0-9]+(?:[-_.:/][a-z0-9]+)*$/.test(node.value) ? "-copy" : " copy";
+  let value = `${node.value}${suffix}`;
+  for (let n = 2; taken.has(value); n += 1) value = `${node.value}${suffix}-${n}`;
+  return value;
+}
+
+/** The text with a copy of the list's item at `index` right after it; the key it holds gets a value no other row has. */
+function withCopy(text, list, index, path) {
+  const items = list.elements;
+  const item = items[index];
+  let copy = text.slice(item.start, item.end);
+  if (path) {
+    const node = literalAt(item, path);
+    if (!node) refuse(`The row's key (${["item", ...path].join(".")}) is not written as text or a number, so a copy would repeat it; add the row in its data`);
+    const value = freshKey(node, items.map((other) => literalAt(other, path)?.value));
+    const quote = text[node.start] === "'" ? "'" : "\"";
+    const written = typeof value === "number" ? String(value) : `${quote}${value.replaceAll("\\", "\\\\").replaceAll(quote, `\\${quote}`)}${quote}`;
+    copy = `${copy.slice(0, node.start - item.start)}${written}${copy.slice(node.end - item.start)}`;
+  }
+  // The copy follows the item the way the next item does (", " or ",\n  "); the last item takes the previous gap, an
+  // only item a new line when it stands on its own.
+  const indent = text.slice(text.lastIndexOf("\n", item.start - 1) + 1, item.start);
+  const gap = index < items.length - 1 ? text.slice(item.end, items[index + 1].start)
+    : index > 0 ? text.slice(items[index - 1].end, item.start)
+    : !indent.trim() && text.lastIndexOf("\n", item.start - 1) > list.start ? `,\n${indent}` : ", ";
+  return `${text.slice(0, item.end)}${gap}${copy}${text.slice(item.end)}`;
+}
+
+/** The text with two items of a list swapped (each keeps the other's place, the separators stay). */
+function withSwap(text, a, b) {
+  const [first, second] = a.start < b.start ? [a, b] : [b, a];
+  return `${text.slice(0, first.start)}${text.slice(second.start, second.end)}${text.slice(first.end, second.start)}${text.slice(first.start, first.end)}${text.slice(second.end)}`;
+}
+
+/**
+ * Ops removeElement / duplicateElement / moveElement with `row` on the element a .map callback returns (user,
+ * 2026-10-09: "mọi thao tác … tự do như Figma"): the row goes from, is copied in, or swaps with the row before or after
+ * it (`to` "prev" | "next") in the list the .map reads, where that list is written (an array literal inline, a const,
+ * an import such as examples/data.ts; a useState initializer is the starting data). A copy's key (`key={item.x}`) gets a
+ * value no other row has ("…-copy", or the next number). { file, code, source, changed, index, state, loc } (`loc`: the
+ * element's own loc after the edit, in `file` given to it) or { error, code }; { notRow: true } when the element is not
+ * a row's root (the op then edits the code as usual).
+ */
+export function dataRowEdit(code, file, loc, name, op, { read = () => null } = {}) {
+  try {
+    const mod = moduleOf(file, code);
+    const element = locate(mod, loc, name);
+    // Only the element its function returns is a row (mapRowOf's refusals are for those: a filter before the .map).
+    const fn = [...(pathTo(mod.ast.program, element) ?? [])].reverse().find((node) => FUNCTION_TYPES.has(node.type));
+    const row = fn && returnsElement(fn, element) ? mapRowOf(mod, element) : null;
+    if (!row) return { notRow: true };
+    if (!Number.isInteger(op.row) || op.row < 0) refuse("A .map row needs its row index (`row`)", "invalid");
+    const list = listOf(mod, row.array, read);
+    const index = op.row + row.offset;
+    const items = list.node.elements;
+    if (items.some((item) => !item || item.type === "SpreadElement")) refuse("The list has a spread or a hole; edit it in the code");
+    if (!items[index]) refuse(`The list has no row ${index + 1}`, "not-found");
+    if (!isDataFile(list.mod.file)) refuse(`${list.mod.file} is not a file the Studio edits`);
+    const text = list.mod.code;
+    let next;
+    if (op.op === "moveElement") {
+      const step = op.to === "prev" ? -1 : op.to === "next" ? 1 : 0;
+      if (!step) refuse('Move a row "prev" or "next"', "invalid");
+      // Rows before a .slice(n) start are not on the canvas: the first row shown is the first one.
+      if (index + step < row.offset || index + step >= items.length) refuse(`${name ?? "The row"} is already the ${step < 0 ? "first" : "last"} row`, "invalid");
+      next = withSwap(text, items[index], items[index + step]);
+    } else {
+      next = op.op === "removeElement" ? withoutItem(text, list.node, index) : withCopy(text, list.node, index, keyOf(row.fn, element).path);
+    }
+    // The element moves only when its list is written above it in the same file.
+    let at = element.start;
+    if (list.mod.file === mod.file && list.node.start < element.start) at += next.length - text.length;
+    const before = next.slice(0, at);
+    const where = `${before.split("\n").length}:${at - (before.lastIndexOf("\n") + 1)}`;
+    const source = mod.code.slice(row.array.start, row.array.end);
+    return { file: list.mod.file, code: next, source: `${source.length > 40 ? `${source.slice(0, 37)}…` : source}[${index}]`, changed: next !== text, index, state: list.state, loc: where };
+  } catch (error) {
+    if (error instanceof Refusal) return { error: error.message, code: error.code };
+    throw error;
+  }
+}
+
 export function dataFieldEdit(code, file, loc, name, op, { read = () => null } = {}) {
   try {
     const mod = moduleOf(file, code);
