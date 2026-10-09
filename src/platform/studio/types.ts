@@ -20,7 +20,7 @@ export type StudioViewport = { x: number; y: number; zoom: number };
 export type StudioPreviewSettings = PlatformShellSettings;
 
 /** A frame on the board. Ids are stable per page: "playground", "docs", "document", "example:<n>". */
-export type StudioFrameKind = "playground" | "example" | "docs" | "document";
+export type StudioFrameKind = "playground" | "main-component" | "example" | "docs" | "document";
 /** "auto" = the rule width; a number = px, a toolbar preset (390…1440) or a free width dragged on the frame's right edge. */
 export type StudioFrameWidth = "auto" | number;
 export type StudioFrameOverride = { width?: StudioFrameWidth; theme?: "light" | "dark" };
@@ -47,8 +47,15 @@ export type StudioNodeRef = {
  */
 export type StudioPartRef = { path: number[]; name: string };
 
+/**
+ * A layer of a library component in the Main component frame (spec docs/research/studio-main-component-spec-2026-10-09.md):
+ * one variant of a Figma set (`variant`: code prop → value, its set's `fixed` props included) and, with `path`, an
+ * element inside it ([] = the variant's root; then child-element indices). Not JSX of a page: it has no `src`.
+ */
+export type StudioVariantRef = { component: string; set: string; variant: Readonly<Record<string, string>>; path: readonly number[]; name: string };
+
 /** `src` stays the annotated JSX element (the owner) when `part` names one of its internal parts. */
-export type StudioSelection = { kind: "frame"; frameId: string } | ({ kind: "node"; part?: StudioPartRef } & StudioNodeRef);
+export type StudioSelection = { kind: "frame"; frameId: string } | ({ kind: "node"; part?: StudioPartRef } & StudioNodeRef) | ({ kind: "variant"; frameId: string } & StudioVariantRef);
 
 export type StudioLeftTab = "pages" | "layers" | "assets";
 export type StudioInspectorTab = "design" | "code" | "prototype";

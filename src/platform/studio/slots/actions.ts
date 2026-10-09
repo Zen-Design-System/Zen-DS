@@ -284,6 +284,8 @@ export function rememberInsert(file: string, after: string, before: StudioSelect
 function stillSelected(from: StudioSelection, current: StudioSelection | null, write: StudioWrite) {
   if (!current) return false;
   if (from.kind === "frame") return current.kind === "frame" && current.frameId === from.frameId;
+  // A layer of the Main component frame is never the target of a slot write.
+  if (from.kind === "variant") return false;
   return sameSelectedElement(from, current) || (current.kind === "node" && !current.part && current.name === from.name
     && current.instance === from.instance && (current.src === from.src || current.src === mapSrc(from.src, write)));
 }

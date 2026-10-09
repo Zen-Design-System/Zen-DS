@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "re
 import { PlatformTypographyContext } from "../../PlatformTemplate";
 import { FrameChrome } from "../board/FrameChrome";
 import { SelectionLayer } from "../select/SelectionLayer";
+import { VariantOutline } from "../mainComponent/VariantOutline";
 import { SlotLayer } from "../slots/SlotLayer";
 import { ConstraintLayer } from "../position/ConstraintLayer";
 import { EditLayer } from "../edit/EditLayer";
@@ -315,6 +316,7 @@ export function StudioCanvas({ label, viewKey, children }: { label: string; view
         <PlatformTypographyContext value={preview.typography}>{children}</PlatformTypographyContext>
       </div>
       <SelectionLayer viewport={viewport} world={world} />
+      <VariantOutline world={world} />
       <SlotLayer viewport={viewport} world={world} />
       <ConstraintLayer viewport={viewport} world={world} />
       <EditLayer viewport={viewport} world={world} />

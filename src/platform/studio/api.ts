@@ -589,6 +589,40 @@ async function sendEdit(request: EditRequest, label: string): Promise<EditRespon
   return result;
 }
 
+/** A token edit of a library component's stylesheet (Main component frame, spec
+ *  docs/research/studio-main-component-spec-2026-10-09.md §3.5): one declaration of one rule reads another token. */
+export type CssEditRequest = { file: string; selector: string; media?: string; prop: string; value: string };
+
+/** Sends a token edit of a component's CSS: the same draft, undo record and status line as an edit of page code. */
+export function applyCssEdit(request: CssEditRequest, label: string): Promise<EditResponse> {
+  return enqueue(async (): Promise<EditResponse> => {
+    const state = studioStore.getState();
+    if (!canEdit(state)) return { ok: false, code: "forbidden", error: state.role === "admin" ? "Editing needs the dev server" : "View only — switch to Admin to edit" };
+    const reply = await post<EditResponse>("/css-edit", request);
+    let result: EditResponse;
+    if (!reply) result = { ok: false, code: "invalid", error: NO_SERVER };
+    else if (reply.status === 200 && reply.body?.ok) result = reply.body;
+    else {
+      const { code, error } = errorOf(reply.body, "Edit refused");
+      result = { ok: false, code: code === "stale" || code === "not-found" || code === "forbidden" ? code : "invalid", error };
+    }
+    if (!result.ok) {
+      setStatus({ kind: "error", message: result.error, file: request.file, at: Date.now() });
+      return result;
+    }
+    if (result.before === result.after) {
+      setStatus({ kind: "unchanged", message: "No change", file: result.file, line: result.changed.from, at: Date.now() });
+      return result;
+    }
+    setHistory([...studioStore.getState().undo, { file: result.file, label, hashBefore: result.hashBefore, hashAfter: result.hash, patch: makePatch(result.before, result.after), changed: result.changed, at: Date.now() }], []);
+    emitWrite({ file: result.file, before: result.before, after: result.after, kind: "edit" });
+    const where = `${fileName(result.file)}:${result.changed.from}`;
+    if (result.draft) setStatus({ kind: "draft", message: `Draft · ${where}`, file: result.file, line: result.changed.from, at: Date.now() });
+    else setStatus({ kind: server.drafts ? "unchanged" : "saved", message: server.drafts ? `Back to the saved file · ${where}` : `Saved to ${where}`, file: result.file, line: result.changed.from, at: Date.now() });
+    return result;
+  });
+}
+
 /**
  * Reverses (undo) or re-applies (redo) the newest record as a patch on the file as it is now, so edits made elsewhere
  * in the file meanwhile are kept. A record whose patch no longer applies is dropped with a status, never left to block

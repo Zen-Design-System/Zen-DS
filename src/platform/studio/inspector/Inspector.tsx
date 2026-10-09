@@ -19,6 +19,8 @@ import { SelectionActions } from "./SelectionActions";
 import { editGate } from "../gate";
 import { fileName, saveShortcut, undoShortcut, useInspectorStatus } from "./status";
 import "./inspector.css";
+import { VariantPanel } from "../mainComponent/VariantPanel";
+import { variantKey } from "../mainComponent/model";
 
 /*
  * The right panel (spec §6): Design | Code for the page, a frame or a JSX element. The two bridge slots (the active
@@ -122,6 +124,7 @@ export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElemen
           : several && selection?.kind === "node" && !selection.part ? <SelectionActions />
           : selection?.kind === "node" && selection.part ? <PartPanel key={identity} selection={selection} controlsSlot={controlsSlot} />
           : selection?.kind === "node" ? <DesignPanel key={identity} selection={selection} controlsSlot={controlsSlot} />
+          : selection?.kind === "variant" ? <VariantPanel key={variantKey(selection)} selection={selection} />
             : selection?.kind === "frame" ? <FramePanel key={selection.frameId} frameId={selection.frameId} controlsSlot={controlsSlot} />
               : <PagePanel />}
       </TabPanel>

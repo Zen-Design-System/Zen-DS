@@ -19,6 +19,18 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- **Zen Studio: Main component frame, M1 (2026-10-09, spec `docs/research/studio-main-component-spec-2026-10-09.md`):**
+  beside the Playground, every Figma component set of the page's components is drawn as Figma lays it out (Button: Main,
+  Flat, Overlay, Icon-Main, Icon-Flat, Icon-Overlay — 178 variants; overlay sets on a photo). A click selects a variant,
+  a double-click goes one layer in, ⌘-click selects the deepest layer; Layers lists sets, variants and their layers. The
+  Inspector shows the variant's Figma properties (switching Size or Level selects that variant) and, for each style the
+  library's CSS sets, the token it reads, the custom properties in between and the variants its rule covers ("Size = xs
+  · every Level, State").
+- **Zen Studio: Main component, M2 — change a token (2026-10-09):** each style row whose rule reads a token has a token
+  select (its family first — button-size-*, spacing-gap-*, corner-radius-* — then every token of its kind, with the value
+  each stands for; searchable). The pick rewrites that one declaration of the component's CSS (src/components/…/*.css)
+  as a draft: every variant the rule covers updates at once, ⌘Z / ⇧⌘Z work, and the panel saves or discards the
+  stylesheet's draft. Only existing tokens are accepted (a raw value is refused). The Figma check on save comes next (M3).
 - **Sidebar slots like Figma (2026-10-09, ❖ Sidebar 6849:33453):** `<SidebarMenuItem>` (Figma Menu-Item 1536:27473)
   and `<SidebarMenuSection label>` fill the Body-Content slot as `<Sidebar>` children (after `sections`, nested rows as
   item children), the Footer-Content slot (`footer`) and a `SidebarSubMenu`; slot rows share `selectedId`, the rail and

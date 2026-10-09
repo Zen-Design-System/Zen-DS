@@ -19,6 +19,9 @@ import { pressDataItem } from "../edit/itemDrag";
 import { startMarquee } from "../edit/marquee";
 import { sameAreas, sameOwner, spacingAreas, type Box, type SpacingArea, type SpacingOwner } from "./spacing";
 import { clipBox, clipInside, clipRectOf, type ClipCache } from "./clip";
+import { MAIN_FRAME, variantKey } from "../mainComponent/model";
+import { pickVariant } from "../mainComponent/select";
+import { variantHover } from "../mainComponent/hover";
 import "./select.css";
 
 /*
@@ -35,6 +38,8 @@ type Pick =
   /** `element`: the topmost DOM node under the pointer (deep select starts there). */
   | { kind: "node"; hit: FiberHit; frame: Element; element: Element }
   | { kind: "frame"; frame: Element }
+  /** In the Main component frame: a variant or a layer of it (mainComponent/select.ts), not JSX of the page. */
+  | { kind: "variant"; frame: Element; element: Element }
   | { kind: "chrome"; element: Element }
   | { kind: "empty" };
 
@@ -53,6 +58,7 @@ type TrackedPart = { element: WeakRef<Element>; name: string; selection: StudioS
 function selectionKey(selection: StudioSelection | null) {
   if (!selection) return "";
   if (selection.kind === "frame") return `frame:${selection.frameId}`;
+  if (selection.kind === "variant") return `variant:${variantKey(selection)}`;
   return `node:${selection.src}#${selection.instance}${selection.part ? `/${selection.part.path.join(".")}:${selection.part.name}` : ""}`;
 }
 
@@ -458,6 +464,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       if (chrome) return { kind: "chrome", element };
       const frame = element.closest("[data-studio-frame]");
       if (!frame) return { kind: "empty" };
+      if (frame.getAttribute("data-studio-frame") === MAIN_FRAME) return { kind: "variant", frame, element };
       const hit = annotatedAt(element);
       if (hit && hit.hosts.length && frame.contains(hit.hosts[0])) return { kind: "node", hit, frame, element };
       return { kind: "frame", frame };
@@ -505,7 +512,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     const picked = keepSelected(pick(point.x, point.y), point.x, point.y);
     setPassThrough(picked.kind === "chrome");
     const hit = picked.kind === "node" ? (deepAt(picked, deepRef.current) ? partAt(picked, point.x, point.y) ?? picked.hit : picked.hit) : null;
-    setHoverFrame(picked.kind === "node" || picked.kind === "frame" ? picked.frame : null);
+    setHoverFrame(picked.kind === "node" || picked.kind === "frame" || picked.kind === "variant" ? picked.frame : null);
+    variantHover.set(picked.kind === "variant" ? pickVariant(picked.element, studioStore.getState().selection, deepRef.current ? "deep" : "click") : null);
     if (hit?.fiber !== hoverRef.current?.fiber || hit?.src !== hoverRef.current?.src) {
       hoverRef.current = hit;
       schedule(0);
@@ -523,6 +531,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
   const clearHover = useCallback(() => {
     pointerRef.current = null;
     setHoverFrame(null);
+    variantHover.set(null);
     if (hoverRef.current) {
       hoverRef.current = null;
       schedule(0);
@@ -603,6 +612,13 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       return;
     }
     pressSelectionRef.current = null;
+    if (picked.kind === "variant") {
+      // A variant of the Main component frame, or one of its layers (⌘ / Ctrl: the deepest); outside the cells, the frame.
+      multiSelection.clear();
+      const next = pickVariant(picked.element, studioStore.getState().selection, event.metaKey || event.ctrlKey ? "deep" : "click");
+      studioStore.setState({ selection: next ?? { kind: "frame", frameId: MAIN_FRAME } });
+      return;
+    }
     if (picked.kind === "frame") {
       const selectFrame = () => {
         multiSelection.clear();
@@ -646,7 +662,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
   const onContextMenu = (event: ReactMouseEvent<HTMLDivElement>) => {
     event.preventDefault();
     const picked = pick(event.clientX, event.clientY);
-    if (picked.kind === "frame") {
+    if (picked.kind === "frame" || picked.kind === "variant") {
       const frameId = picked.frame.getAttribute("data-studio-frame");
       if (frameId) openFrameMenu(event.clientX, event.clientY, frameId);
       return;
@@ -664,6 +680,12 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
 
   const onDoubleClick = (event: ReactMouseEvent<HTMLDivElement>) => {
     const picked = keepSelected(pick(event.clientX, event.clientY), event.clientX, event.clientY);
+    if (picked.kind === "variant") {
+      // One level into the selected variant, towards the pointer (Figma's double-click).
+      const next = pickVariant(picked.element, studioStore.getState().selection, "drill");
+      if (next) studioStore.setState({ selection: next });
+      return;
+    }
     if (picked.kind !== "node" || event.shiftKey) return;
     // A resize handle's double-click (Hug) is ResizeLayer's.
     if (event.target instanceof Element && event.target.closest(".studio-resize__handle, .studio-resize__cover")) return;

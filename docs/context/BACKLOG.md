@@ -8,6 +8,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **Zen Studio Main component (user, 2026-10-09; spec docs/research/studio-main-component-spec-2026-10-09.md):** M1 done
+  (frame, selection, Layers, read-only Inspector), M2 done (token edits of component CSS as drafts, undo, Save /
+  Discard). Next: M3 Figma parity on save (waits for the user's go). P2 · not drawn yet: overlays (Dialog, ModalForm, SidePanel, BottomSheet, Toast) and 12
+  components no Assets item uses (spec §3.2).
+
 - **Questions for the designer and decisions for the user** are collected in [`QUESTIONS.md`](QUESTIONS.md) (moved
   there 2026-10-08). Code keeps its current behaviour until each is answered.
 - **Zen-High-Contrast, next steps (prototype in code since 2026-10-05; user: keep step 9, no new tokens):**

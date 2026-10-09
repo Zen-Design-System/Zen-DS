@@ -106,6 +106,13 @@
 .studio-board > .studio-board__title { grid-area: title; }
 .studio-board > [data-studio-frame="playground"] { grid-area: playground; }
 .studio-board > [data-studio-frame="docs"] { grid-area: docs; }
+/* A page with a Main component frame (studio-main-component-spec-2026-10-09): it sits beside the Playground and spans
+   both rows, as Docs does. */
+.studio-board:has(> [data-studio-frame="main-component"]) {
+  grid-template-columns: max-content max-content max-content;
+  grid-template-areas: "title title title" "playground main docs" "examples main docs";
+}
+.studio-board > [data-studio-frame="main-component"] { grid-area: main; }
 .studio-board > .studio-section { grid-area: examples; }
 .studio-board--document { display: flex; }
 .studio-board__title { display: grid; max-width: 720px; gap: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-neutral-strongest, #111); }

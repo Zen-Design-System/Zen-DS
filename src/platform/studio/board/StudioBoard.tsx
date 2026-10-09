@@ -14,6 +14,7 @@ import { layoutBoard } from "./boardLayout";
 import { DOCS_WIDTH, exampleWidth, FRAME_GAP, playgroundWidth, SECTION_WIDTH } from "./frameLayout";
 import { registerSection } from "./frames";
 import { StudioFrame } from "./StudioFrame";
+import { MainComponentFrame } from "../mainComponent/MainComponentFrame";
 import "./board.css";
 
 /** Notes written on the canvas itself (board title): the Studio's own colour mode and type scale, not the preview's. */
@@ -285,11 +286,12 @@ export function StudioBoard({ parts }: { parts: StudioPageParts }) {
         <Heading level={1} textStyle="Heading/1">{parts.title}</Heading>
         <Text textStyle="Body/Base/Regular" tone="base">{parts.description}</Text>
       </header>
-      {/* Grid areas (board.css): Playground with the Examples under it, Docs beside both. DOM order stays Playground,
-          Docs, Examples (the frames list and Tab order). */}
+      {/* Grid areas (board.css): Playground with the Examples under it, the Main component (its Figma variant sets) and
+          Docs beside both. DOM order stays Playground, Main component, Docs, Examples (the frames list and Tab order). */}
       <StudioFrame id="playground" kind="playground" label="Playground" width={playgroundWidth(page)}>
         <div className="studio-frame__page">{parts.playground}</div>
       </StudioFrame>
+      <MainComponentFrame page={page} />
       <StudioFrame id="docs" kind="docs" label="Docs" width={DOCS_WIDTH}>
         <div className="studio-frame__page studio-frame__docs">
           <ComponentKeyboard page={page} />

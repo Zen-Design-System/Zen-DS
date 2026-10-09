@@ -1,0 +1,40 @@
+/* Zen Studio Main component frame (spec docs/research/studio-main-component-spec-2026-10-09.md §2): Figma's component
+   set layout — a set name, then a grid whose first column names the rows and whose first row names the columns. */
+.studio-mc {
+  display: grid;
+  gap: var(--zen-spacing-gap-3-xlarge, 48px);
+  width: max-content;
+  min-width: 480px;
+  color: var(--zen-color-content-neutral-strongest, #111);
+}
+.studio-mc__component { display: grid; gap: var(--zen-spacing-gap-xlarge, 24px); }
+.studio-mc__component > * { margin: 0; }
+.studio-mc__set { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-mc__set > p { margin: 0; }
+.studio-mc__grid {
+  display: grid;
+  align-items: center;
+  justify-items: start;
+  gap: var(--zen-spacing-gap-small, 12px) var(--zen-spacing-gap-large, 20px);
+  padding: var(--zen-spacing-padding-large, 20px);
+  border: 1px dashed var(--zen-color-border-neutral-subtle-default, #d4d4d4);
+  border-radius: var(--zen-corner-radius-large, 12px);
+}
+.studio-mc__set[data-backdrop="photo"] .studio-mc__cell {
+  padding: var(--zen-spacing-padding-xsmall, 8px);
+  border-radius: var(--zen-corner-radius-medium, 8px);
+  background: var(--studio-mc-photo) center / cover;
+}
+.studio-mc__head { white-space: nowrap; }
+.studio-mc__head--row { justify-self: end; }
+.studio-mc__cell { position: relative; display: grid; justify-items: start; }
+/* What a variant renders stays its own size; anything it portals (a tooltip) stays in the frame's portal. */
+.studio-mc__stage { display: flex; align-items: center; }
+.studio-mc__portal { position: relative; width: 0; height: 0; overflow: visible; }
+
+/* Inspector: where a style comes from (file · variant scope, then the custom properties it reads), one per line. */
+.studio-mc__hint { color: var(--zen-color-content-neutral-base, #555); white-space: pre-line; overflow-wrap: anywhere; }
+.studio-mc__notes { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-small, 12px); }
+.studio-mc__notes > p { margin: 0; }
+.studio-mc__edit { display: grid; min-width: 0; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-mc__drafts { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); }

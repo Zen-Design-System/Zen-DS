@@ -379,6 +379,25 @@
   `actions={render()}`) take an insert as `<>{code}<New/></>`; icon props refuse it.
 - After (`node tools/studio/slot-audit.mjs --ops`, 15.3k ops): remove · map 53 / 33, duplicate · map 50 / 36, move row ·
   map 52 / 33 (the rest: computed lists 15, spreads 4, computed values 3, `.filter` / `Object.keys` / a helper first 5,
+## Zen Studio Main component frame, M1 (tier L, session e4bf4af9; user: "Playground … như Figma, admin chỉnh trực tiếp")
+
+- User decisions (AskUserQuestion): style per variant only (component CSS, no TSX); Figma drift → warn, still save, backlog
+  line; a new "Main component" frame beside the Playground. Spec: docs/research/studio-main-component-spec-2026-10-09.md.
+- Figma (use_figma, read only): Button's 6 sets are full grids (225/50/100/270/125/120 variants), so per-set options from
+  component-properties.json are the combinations; tools/studio/variant-sets-build.mjs → mainComponent/variantSets.generated.ts
+  (58 components, 71 sets; `--check` added to studio:selftest, coordinated with the Sidebar session that also edits it).
+- Built (src/platform/studio/mainComponent/): MainComponentFrame (cells = Assets item parsed by the builder engine with
+  the variant's props; components found inside another item; overlay sets on a photo), model/select/sets/hover,
+  VariantOutline (screen-space outline + tag), VariantPanel (variant props as selects; token rows from cssResolve.ts:
+  CSSOM rules by property, specificity, var() chain up the ancestors, `[data-*]` scope). Selection kind "variant" in
+  types.ts; branches in SelectionLayer (pick/press/double-click/menu/hover), LayersPanel (DOM tree for the frame),
+  Inspector routing, keepInView, zoomToSelection, slots/actions (1 line, peer told), board grid via :has().
+- E2E group "main" MC-01..05 (frame + 178 cells, click → Variant + Layers row + outline, ⌘-click Label → colour chain,
+  Size select → XSmall cell, Height → "Size = xs" + button-size token): 5/5, merged into the baseline (--rows merge).
+- Gate (--files, 23 files): static ✓, TypeScript ✓, Studio self-tests ✓, E2E 195/195; usage ⚠ dashed border token → fixed.
+  Badge (54), Checkbox (8), Tabs (2), Chip (16) render without errors.
+
+
   rows of a nested list 6), move · const-jsx 12 / 2, insert · call 62 / 0, insert · condition 245 / 6 (playground). The
   audit now passes `parent` for const moves, measures row moves and prints every reason with `--op=`.
 - Item 4 ("nested … chưa chính xác", "stack … khó thao tác"), measured with a scratch selection crawl (isolated server,
@@ -387,3 +406,19 @@
   (Figma's click rule and/or right-click › Select layer), in QUESTIONS.md / QUESTIONS.vi.md.
 - Tests: data-source selftest +6 (18 cases), slots selftest 1,906, E2E DA-05 (⌘D → `ava-copy`, copy selected), DA-06
   (Delete → crew = [bao, chi], no confirm), DA-07 (menu Move down → [bao, ava, chi], Ava selected).
+
+## Zen Studio Main component, M2: token editing (tier L, session e4bf4af9; user "ok")
+
+- Server: tools/studio/css-edit.mjs (postcss: rule by normalised selector + @media, last declaration of the prop, value
+  must be `var(--zen-…)` of a token some src/styles or src/components stylesheet defines, no self reference) +
+  css-edit.selftest.mjs (in studio:selftest); vite-plugin-zen-studio.mjs POST /css-edit → draft (EditResponse shape),
+  resolveFile/draftable accept src/components/<Dir>/<name>.css so undo (/write) and persisted drafts work. Edited after
+  the Sidebar session's commit 5418ee5 (it asked to hold both files during its gate).
+- Client: api.ts applyCssEdit (queue, undo record, emitWrite, status line); mainComponent/tokens.ts (document tokens,
+  family by scale step, kind by value/role), TokenField (searchable SelectField with values as meta); VariantPanel edits
+  the step that reads a document token inside a variant-scoped rule (else the nearest component step), drafts footer
+  (Save → requestSave, Discard → confirm). cssResolve: rule @media; var() shorthands folded back (border-radius,
+  background were longhands with no value, so radius had no row).
+- E2E MC-06 (XSmall height → button-size-small: draft, XSmall Primary + Accent grow, ⌘Z back, no draft), MC-07 (Discard
+  in the panel, button.css unchanged on disk): main group 7/7, baseline updated. Gate (--files, 10 files): static ✓,
+  TypeScript ✓, Studio self-tests ✓, E2E 200/200; usage ⚠ Discard level → danger-subtle, fixed.

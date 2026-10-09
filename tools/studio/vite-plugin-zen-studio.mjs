@@ -27,6 +27,7 @@ import fsp from "node:fs/promises";
 import path from "node:path";
 import { cssRules, detachPlan } from "./detach.mjs";
 import { changedLines, draftInfo, followDisk, nextDraft, parseDrafts, planSave, rebaseDraft, serializeDrafts } from "./drafts.mjs";
+import { isComponentCss } from "./css-edit.mjs";
 import { frameRangesOf, lineChanges, ownChanges, splitDraft } from "./frame-scope.mjs";
 import { dataFieldEdit, dataRowEdit, isDataFile, originsOf } from "./data-source.mjs";
 import { importersOf } from "./shared-code.mjs";
@@ -49,7 +50,7 @@ const HARNESS_TIMEOUT = 60_000;
 /** The drafts of each dev server persist here (relative to the root), as drafts-<port>.json. */
 const DRAFTS_DIR = "node_modules/.cache/zen-studio";
 const STATUS = { forbidden: 403, "not-found": 404, stale: 409, invalid: 400, confirm: 409 };
-const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/drafts", "/frame-drafts", "/save", "/discard", "/pages", "/pages/write", "/pages/trash", "/pages/asset", "/pages/asset-write", "/pages/asset-trash", "/promote"]);
+const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/css-edit", "/drafts", "/frame-drafts", "/save", "/discard", "/pages", "/pages/write", "/pages/trash", "/pages/asset", "/pages/asset-write", "/pages/asset-trash", "/promote"]);
 /** A frame request names at most this many frames and locs (a page renders a few thousand elements). */
 const MAX_FRAMES = 200;
 const MAX_LOCS = 50_000;
@@ -199,12 +200,12 @@ export function zenStudio() {
         };
         return send(res, 200, detachPlan(content, url.searchParams.get("loc") ?? "", name, { file: target.rel, instances: count("instances"), lists: count("lists") }));
       }
-      if (route === "POST /edit" || route === "POST /write") {
+      if (route === "POST /edit" || route === "POST /write" || route === "POST /css-edit") {
         checkWriteHeaders(req);
         // The body is read before the queue: a slow or abandoned upload never holds up other writes.
         const body = await readJson(req);
         const gone = watchClient(req, res);
-        const result = await exclusive(() => (route === "POST /edit" ? edit(body) : write(body)), gone);
+        const result = await exclusive(() => (route === "POST /edit" ? edit(body) : route === "POST /css-edit" ? cssEdit(body) : write(body)), gone);
         return send(res, 200, result);
       }
       if (route === "GET /drafts") {
@@ -441,6 +442,43 @@ export function zenStudio() {
     if (sha1(current) !== expectHash) throw new HttpError("stale", `${target.rel} changed since this edit; not overwritten`);
     const draft = content !== current ? await setDraft(target, disk, content) : drafts.has(target.realRel);
     return { ok: true, hash: sha1(content), draft };
+  }
+
+  /**
+   * A token edit of a library component's stylesheet (Studio Main component M2, tools/studio/css-edit.mjs): one
+   * declaration of one rule reads another existing token. Into the file's draft, answered as /edit answers (before /
+   * after / hashes), so the Studio's undo, history and status line take it as any edit.
+   */
+  async function cssEdit(body) {
+    const { file, selector, media, prop, value, expectHash } = body ?? {};
+    if (!isComponentCss(file)) throw new HttpError("forbidden", `${file} is not a library component's stylesheet`);
+    const target = await resolveFile(file, true);
+    const disk = await readText(target.abs);
+    const before = drafts.get(target.realRel)?.content ?? disk;
+    if (typeof expectHash === "string" && sha1(before) !== expectHash) throw new HttpError("stale", `${target.rel} changed since it was read; not changed`);
+    const { CssEditError, definedTokens, editDeclaration } = await import("./css-edit.mjs");
+    let result;
+    try {
+      result = editDeclaration(before, { selector, media: media ?? "", prop, value }, definedTokens(await tokenStylesheets()));
+    } catch (error) {
+      if (error instanceof CssEditError) throw new HttpError(error.code, error.message);
+      throw error;
+    }
+    const draft = result.css !== before ? await setDraft(target, disk, result.css) : drafts.has(target.realRel);
+    return { ok: true, file: target.rel, hash: sha1(result.css), hashBefore: sha1(before), before, after: result.css, changed: { from: result.line, to: result.line }, draft };
+  }
+
+  /** The stylesheets whose custom properties are the design system's tokens: src/styles and every component's own. */
+  async function tokenStylesheets() {
+    const files = [];
+    const styles = path.join(root, "src/styles");
+    for (const name of await fsp.readdir(styles)) if (name.endsWith(".css")) files.push(path.join(styles, name));
+    const components = path.join(root, "src/components");
+    for (const entry of await fsp.readdir(components, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      for (const name of await fsp.readdir(path.join(components, entry.name))) if (name.endsWith(".css")) files.push(path.join(components, entry.name, name));
+    }
+    return Promise.all(files.map((file) => fsp.readFile(file, "utf8").catch(() => "")));
   }
 
   /* ── admin drafts ───────────────────────────────────────────────────────────────────────────────────────────── */
@@ -758,7 +796,7 @@ export function zenStudio() {
   }
 
   /** A draft key from a persisted file: a normalised repo-relative path of an annotated file. */
-  const draftable = (file) => typeof file === "string" && !file.includes("\\") && !file.includes("\0") && path.posix.normalize(file) === file && !path.posix.isAbsolute(file) && file.startsWith("src/") && (isAnnotatedFile(file) || isDataFile(file));
+  const draftable = (file) => typeof file === "string" && !file.includes("\\") && !file.includes("\0") && path.posix.normalize(file) === file && !path.posix.isAbsolute(file) && file.startsWith("src/") && (isAnnotatedFile(file) || isDataFile(file) || isComponentCss(file));
 
   /** Loads this server's persisted drafts (once). A missing file means no drafts; an unreadable one is moved aside. */
   function ensureRestored() {
@@ -906,7 +944,8 @@ export function zenStudio() {
     if (path.posix.normalize(rel) !== rel || path.posix.isAbsolute(rel)) throw new HttpError("forbidden", `${rel} is not a normalised repo-relative path`);
     if (!rel.startsWith("src/")) throw new HttpError("forbidden", `${rel} is outside src/`);
     // Data files (examples/data.ts, a template's data) take the edits a value's source gets (op setDataField, then undo).
-    if (forEdit && !isAnnotatedFile(rel) && !isDataFile(rel)) throw new HttpError("forbidden", `${rel} is not an editable example source`);
+    // A library component's stylesheet takes token edits only (POST /css-edit, then undo through /write).
+    if (forEdit && !isAnnotatedFile(rel) && !isDataFile(rel) && !isComponentCss(rel)) throw new HttpError("forbidden", `${rel} is not an editable example source`);
     const srcDir = path.join(root, "src");
     const abs = path.resolve(root, rel);
     if (!abs.startsWith(srcDir + path.sep)) throw new HttpError("forbidden", `${rel} is outside src/`);
@@ -922,7 +961,7 @@ export function zenStudio() {
     if (!realRel.startsWith("src/") || realRel.startsWith("../") || path.isAbsolute(realRel)) throw new HttpError("forbidden", `${rel} resolves outside src/`);
     if (forEdit) {
       if (realRel !== rel) throw new HttpError("forbidden", `${rel} is a link or a differently-cased path (the file is ${realRel})`);
-      if (!isAnnotatedFile(realRel) && !isDataFile(realRel)) throw new HttpError("forbidden", `${realRel} is not an editable example source`);
+      if (!isAnnotatedFile(realRel) && !isDataFile(realRel) && !isComponentCss(realRel)) throw new HttpError("forbidden", `${realRel} is not an editable example source`);
     }
     // realRel keys the drafts (a read may name the file by another spelling).
     return { rel, realRel, abs: real };

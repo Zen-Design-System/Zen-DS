@@ -22,6 +22,8 @@ import { isLayerSelected, selectLayers, toggleLayer, useExtraSelection, type Ext
 import { wrapperCandidate } from "./resize";
 import { mapSrc, onStudioWrite } from "./remap";
 import { pressLayersRow } from "../edit/layersDrag";
+import { layerName, MAIN_FRAME, variantKey, variantRoot } from "../mainComponent/model";
+import type { StudioVariantRef } from "../types";
 import "./select.css";
 
 /*
@@ -43,7 +45,7 @@ const SHOW_ALL_KEY = "zen-studio:layers-show-all";
  * frame / panel: groups; node: an annotated JSX element; parts: a component's "Parts" folder; part: one internal part;
  * slot: a content slot of a component (its children in that slot under it).
  */
-type LayerKind = "frame" | "panel" | "node" | "parts" | "part" | "slot";
+type LayerKind = "frame" | "panel" | "node" | "parts" | "part" | "slot" | "variant";
 
 type LayerNode = {
   id: string;
@@ -71,6 +73,8 @@ type LayerNode = {
   part?: PartHit;
   /** Caption beside the name (a DOM part's class). */
   meta?: string;
+  /** variant: a variant of the Main component frame or a layer of it (its DOM node is `element`). */
+  variant?: StudioVariantRef;
   /** panel: the innermost element folded into it (what a click on the panel's own area selects on the canvas). */
   stand?: LayerNode;
   /** parts / part: children not computed yet. */
@@ -112,7 +116,9 @@ function buildTree(world: Element, page: PlatformPage, showAll: boolean): Tree {
         const group: LayerNode = { id: `frame:${frameId}`, kind: "frame", name: frameLabel(frameId, page), src: null, frameId, isComponent: false, instance: 0, count: 1, depth: 0, children: [], fiber: current, frame: element, parent: null };
         groups.push(group);
         byId.set(group.id, group);
-        visit(current.child, group, inherited, { id: frameId, element }, depth + 1);
+        // The Main component frame lists its sets, variants and their layers from the DOM (they are not page JSX).
+        if (frameId === MAIN_FRAME) variantLayers(element, group, byId);
+        else visit(current.child, group, inherited, { id: frameId, element }, depth + 1);
         continue;
       }
       const panelId = element && parent && frame ? element.getAttribute("data-studio-panel") : null;
@@ -159,13 +165,41 @@ function buildTree(world: Element, page: PlatformPage, showAll: boolean): Tree {
     if (node.kind === "node") total += 1;
     node.children.forEach((child) => relink(child, node));
   };
-  if (!showAll) groups.forEach(collapseWrappers);
+  const pageGroups = groups.filter((group) => group.frameId !== MAIN_FRAME);
+  if (!showAll) pageGroups.forEach(collapseWrappers);
   for (const group of groups) {
-    if (!showAll) group.children = simplify(group.children, aliases);
-    attachSlots(group.children, byId);
+    if (group.frameId !== MAIN_FRAME) {
+      if (!showAll) group.children = simplify(group.children, aliases);
+      attachSlots(group.children, byId);
+    }
     group.children.forEach((child) => relink(child, group));
   }
   return { groups, byId, total, aliases };
+}
+
+/** The Main component frame's layers: each component, its Figma sets, their variants and the elements inside them. */
+function variantLayers(frame: Element, group: LayerNode, byId: Map<string, LayerNode>) {
+  const add = (node: LayerNode, parent: LayerNode) => { parent.children.push(node); byId.set(node.id, node); return node; };
+  const layer = (ref: StudioVariantRef, element: Element, parent: LayerNode) => {
+    const part = Array.from(element.classList).find((name) => /^zen-[a-z0-9-]+__[a-z0-9-]+$/.test(name));
+    const node = add({ id: `variant:${variantKey(ref)}`, kind: "variant", name: ref.name, src: null, frameId: MAIN_FRAME, isComponent: !ref.path.length, instance: 0, count: 1, depth: 0, children: [], fiber: null, frame, parent, element, variant: ref, meta: ref.path.length ? part : undefined }, parent);
+    // An icon's drawing is one layer, as Figma's vector.
+    if (element instanceof SVGElement) return;
+    Array.from(element.children).forEach((child, index) => layer({ ...ref, path: [...ref.path, index], name: layerName(child, ref.component) }, child, node));
+  };
+  for (const section of Array.from(frame.querySelectorAll(".studio-mc__component"))) {
+    const component = section.getAttribute("aria-label") ?? "";
+    const componentNode = add({ id: `mc:${component}`, kind: "panel", name: component, src: null, frameId: MAIN_FRAME, isComponent: true, instance: 0, count: 1, depth: 0, children: [], fiber: null, frame, parent: group, element: section }, group);
+    for (const setElement of Array.from(section.querySelectorAll(":scope > .studio-mc__set"))) {
+      const set = setElement.getAttribute("aria-label") ?? "";
+      const setNode = add({ id: `mc:${component}|${set}`, kind: "panel", name: set, src: null, frameId: MAIN_FRAME, isComponent: false, instance: 0, count: 1, depth: 0, children: [], fiber: null, frame, parent: componentNode, element: setElement }, componentNode);
+      for (const cell of Array.from(setElement.querySelectorAll<HTMLElement>("[data-mc-cell]"))) {
+        const root = variantRoot(cell);
+        if (!root) continue;
+        layer({ component, set, variant: JSON.parse(cell.dataset.mcVariant ?? "{}") as Record<string, string>, path: [], name: cell.dataset.mcName ?? component }, root, setNode);
+      }
+    }
+  }
 }
 
 /** The first DOM node of a layer (where it sits on the canvas), for sorting it into a slot. */
@@ -380,7 +414,7 @@ function flatten(tree: Tree, isOpen: (node: LayerNode) => boolean, query: string
 
 function hitForNode(node: LayerNode): FiberHit | null {
   if (node.kind === "frame") return node.frame ? { src: "", name: node.name, hosts: [node.frame], isComponent: false, props: {} } : null;
-  if (node.kind === "panel") return node.element ? { src: "", name: node.name, hosts: [node.element], isComponent: false, props: {} } : null;
+  if (node.kind === "panel" || node.kind === "variant") return node.element?.isConnected ? { src: "", name: node.name, hosts: [node.element], isComponent: false, props: {} } : null;
   if (node.kind === "part") return node.part?.hosts.every((host) => host.isConnected) ? node.part : null;
   if (node.kind === "parts") return node.owner?.fiber ? hitOf(node.owner.fiber) : null;
   // A slot: its container on the canvas (else its component, when the slot renders nothing while empty).
@@ -392,6 +426,7 @@ function hitForNode(node: LayerNode): FiberHit | null {
 function selectNode(node: LayerNode) {
   const hit = hitForNode(node);
   if (node.kind === "frame") studioStore.setState({ selection: { kind: "frame", frameId: node.frameId } });
+  else if (node.kind === "variant" && node.variant) studioStore.setState({ selection: { kind: "variant", frameId: MAIN_FRAME, ...node.variant } });
   else if (node.kind === "part" && node.owner?.src && node.part) {
     const owner = node.owner;
     const ownerHit = owner.fiber ? hitOf(owner.fiber) : null;
@@ -420,7 +455,8 @@ const defaultOpen = (node: LayerNode) => node.kind === "frame" || node.kind === 
 
 function rowIcon(node: LayerNode): IconName {
   if (node.kind === "frame") return "icon-layout-alt-01-line";
-  if (node.kind === "panel") return "icon-sliders-04-line";
+  if (node.kind === "panel") return node.frameId === MAIN_FRAME ? (node.isComponent ? "icon-cube-line" : "icon-grid-01-line") : "icon-sliders-04-line";
+  if (node.kind === "variant") return node.isComponent ? "icon-cube-line" : "icon-layers-three-01-line";
   if (node.kind === "parts") return "icon-layers-three-01-line";
   if (node.kind === "slot") return "icon-grid-dots-blank-line";
   return node.isComponent ? "icon-cube-line" : "icon-code-02-line";
@@ -429,7 +465,8 @@ function rowIcon(node: LayerNode): IconName {
 function rowTitle(node: LayerNode) {
   if (node.kind === "part") return `${node.name}${node.meta ? ` .${node.meta}` : ""}: part of ${node.owner?.name ?? "the element"} (read-only)`;
   if (node.kind === "parts") return `What ${node.owner?.name ?? "this component"} renders inside itself (read-only)`;
-  if (node.kind === "panel") return `Playground panel: ${node.name}`;
+  if (node.kind === "panel") return node.frameId === MAIN_FRAME ? node.name : `Playground panel: ${node.name}`;
+  if (node.kind === "variant") return `${node.variant?.component ?? ""} · ${node.variant?.set ?? ""}${node.meta ? ` · .${node.meta}` : ""}`;
   if (node.kind === "slot") return `${node.name}: a slot of ${node.owner?.name ?? "the component"}${node.children.length ? "" : " (empty)"}`;
   if (node.wrap) return `${shortSrc(node.src ?? "")} · in a Stack that sets its size (${shortSrc(node.wrap)})`;
   return node.src ? shortSrc(node.src) : undefined;
@@ -526,7 +563,7 @@ export function LayersPanel() {
   }, []);
 
   const part = selection?.kind === "node" ? selection.part : undefined;
-  const selectionId = selection ? (selection.kind === "frame" ? `frame:${selection.frameId}` : `${selection.src}#${selection.instance}${part ? `/part:${partKey(part.path, part.name)}` : ""}`) : null;
+  const selectionId = selection ? (selection.kind === "frame" ? `frame:${selection.frameId}` : selection.kind === "variant" ? `variant:${variantKey(selection)}` : `${selection.src}#${selection.instance}${part ? `/part:${partKey(part.path, part.name)}` : ""}`) : null;
   // A folded panel wrapper shows as its panel row.
   const selectedId = selectionId ? tree.aliases.get(selectionId) ?? selectionId : null;
 

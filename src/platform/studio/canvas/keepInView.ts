@@ -4,6 +4,7 @@ import { selectedPartStore } from "../select/parts";
 import { findBySrc, rectOf } from "../select/picker";
 import { studioStore } from "../store";
 import type { StudioSelection } from "../types";
+import { variantElement, variantKey } from "../mainComponent/model";
 import { canvasApi, getViewport, getViewportBox, setViewportNow, toWorldRect } from "./viewport";
 
 /*
@@ -24,6 +25,7 @@ const VISIBLE_MIN = 24;
 function keyOf(selection: StudioSelection | null) {
   if (!selection) return "";
   if (selection.kind === "frame") return `frame:${selection.frameId}`;
+  if (selection.kind === "variant") return `variant:${variantKey(selection)}`;
   return `node:${selection.src}#${selection.instance}${selection.part ? `/${selection.part.path.join(".")}` : ""}`;
 }
 
@@ -37,6 +39,7 @@ function locate(world: HTMLElement, selection: StudioSelection, cache: { key: st
   const frame = frameElement(world, selection.frameId);
   if (!frame) return null;
   if (selection.kind === "frame") return { rect: frame.getBoundingClientRect(), frame };
+  if (selection.kind === "variant") return { rect: (variantElement(frame, selection) ?? frame).getBoundingClientRect(), frame };
   const part = selection.part ? selectedPartStore.get() : null;
   let hosts = part && part.element.isConnected ? part.hosts : null;
   if (!hosts) {
