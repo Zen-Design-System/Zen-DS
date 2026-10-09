@@ -2,7 +2,7 @@
 # Sidebar
 
 **Figma:** Patterns/Sidebar (page 1536:27287)  
-**Import:** `import { Sidebar } from "@zen/design-system";`
+**Import:** `import { Sidebar, SidebarMenuItem, SidebarMenuSection } from "@zen/design-system";`
 
 Primary app navigation with sections, nested items and a collapsible rail.
 
@@ -20,6 +20,7 @@ Primary app navigation with sections, nested items and a collapsible rail.
 | Variant | `variant` | basic · small-density · workspace |
 | Collapse | `collapsed / onCollapsedChange` | control renders only with onCollapsedChange; workspace never collapses |
 | Items | `sections[] items {id,label,icon,selected,counter,notificationDot,children}` |  |
+| Slots (Figma) | `brand · search · children · footer · subMenu · workspaceBrand` | Header-Content · Search · Body-Content: <SidebarMenuItem> rows and <SidebarMenuSection label> groups as children, after sections (nested rows as SidebarMenuItem children) · Footer-Content: <SidebarMenuItem> rows · Sub-Item · Master-Header-Content; slot rows share selectedId, the rail and onItemClick |
 | Background | `background` | the Surface of the page it sits on: default (Canvas/Default page) · alt (Canvas/Alt white page) · flat (Canvas/Flat page, seamless navigation) · inverse |
 | Sub-menu flyout | `subMenu={<SidebarSubMenu search items sections onItemClick />} · subMenuLabel · onSubMenuClose` | 260px Popover-surface panel 8px outside the rail |
 | Workspace rail | `workspaceItems (selected = active) · workspaceAction · headerAction` | active workspace gets the 3px accent Focus-Ring; the header name + chevron switches workspace |
@@ -42,7 +43,8 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | `sections` | `SidebarSection[]` | `[]` |  |
 | `selectedId` | `string` | — | Id of the current page's item: it is marked selected (aria-current="page") and its parent groups open (and stay open until the user collapses them), so the app passes its route id instead of setting `selected` in `sections`. When set, it replaces the items' own `selected` / `active` flags in the navigation (not in the workspace rail). |
 | `linkAs` | `ElementType` | — | Component that renders items with an `href`, e.g. your router's link. It receives `href`, `className`, `onClick`, `aria-current` and the children; adapt a router link that takes `to` (`({ href, ...rest }) => <RouterLink to={href} {...rest} />`). Default `a`. |
-| `footer` | `ReactNode` | — |  |
+| `children` | `ReactNode` | — | Figma Body-Content (Child-Body-Content in the workspace variant), after `sections`: `<SidebarMenuItem>` rows and `<SidebarMenuSection>` groups, or any content. Consecutive rows form one unlabelled section. The rows share the Sidebar's selection, rail and `onItemClick`; other content renders as it is, so it handles the rail itself. |
+| `footer` | `ReactNode` | — | Figma Footer-Content (Child-Footer-Content), under a divider: `<SidebarMenuItem>` rows like the body's, or the app's own buttons of an Icon and a label span (the rail hides the label visually, keeps it as the name and the tooltip). |
 | `search` | `ReactNode` | — | The slot under the header (Figma Search): usually a Search field, or a Back control over a module title. |
 | `searchCollapsed` | `ReactNode` | — | What the collapsed rail shows in place of `search`. Default: a Search button that expands the panel. Pass the slot's own control when it is not a search (a Back chevron for a module's Back + title, backlog batch 6). |
 | `onItemClick` | `(item: SidebarItem) => void` | — |  |
@@ -59,6 +61,36 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | `subMenuLabel` | `string` | — | Accessible name of the flyout panel. Default: the locale's “Sub menu”. |
 | `onSubMenuClose` | `(event: KeyboardEvent \| globalThis.PointerEvent) => void` | — | Called on Escape or a pointer press outside the sidebar and its flyout, so the owner can close it. |
 
+### SidebarMenuItem
+Figma Primitives/Side-Bar/Menu-Item/Master (1536:27473) placed in a slot: Body-Content (`<Sidebar>` children), Footer-Content (`footer`), a `SidebarMenuSection` or a `SidebarSubMenu`. It reads the Sidebar's selection (`selectedId`), rail and `onItemClick`, exactly like a `sections` entry with the same fields.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactNode \| SidebarItem[]` | — | Nested rows (Figma Level=Child): `<SidebarMenuItem>` children, or a `SidebarItem[]`. |
+| `id` (required) | `string` | — |  |
+| `label` (required) | `string` | — |  |
+| `icon` | `IconName \| ReactNode` | — | Leading icon: an icon name (drawn at 20px) or a node (an Avatar in the workspace rail). |
+| `active` | `boolean` | — |  |
+| `selected` | `boolean` | — |  |
+| `disabled` | `boolean` | — |  |
+| `state` | `"default" \| "hover" \| "focus" \| "disabled"` | — |  |
+| `theme` | `"neutral" \| "accent"` | — | Figma Menu-Item Theme: `neutral` (the default at every level, Figma's default; the selected row is Active/Neutral/Subtle) or `accent` (Active/Accent/Subtle with Accent/Strongest text). |
+| `dropdown` | `boolean` | — |  |
+| `indent` | `boolean` | — |  |
+| `counter` | `ReactNode` | — | Figma Counter (a Small Neutral Subtle BadgeCounter). The collapsed rail has no room for it: a non-zero count shows the Notification-Dot instead and joins the row's name ("Approvals, 3"). |
+| `notificationDot` | `boolean` | — | Figma Primitives/Notification-Dot on the icon. |
+| `trailingAction` | `ReactNode` | — | Figma Trailing-Slot (Trailing-Action on): content after the label (an icon, a shortcut). Not a control: the row itself is the button or link. |
+| `href` | `string` | — | Destination of the item: it renders as a link (`<a href>`, or the Sidebar's `linkAs` router link) and still calls `onItemClick`. Disabled items stay buttons. |
+
+### SidebarMenuSection
+A titled group of `<SidebarMenuItem>` rows in a slot, the JSX form of a `sections` entry (Figma section label + Item-List). The collapsed rail hides the title and opens later groups with a divider, as for `sections`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` | `string` | — | Section title: the Menu-Item section label (Body/Small), as `SidebarSection.label`. |
+| `action` | `ReactNode` | — | Section-title action: a Button/Icon-Flat Small, as `SidebarSection.action`. |
+| `children` | `ReactNode` | — | The section's `<SidebarMenuItem>` rows. |
+
 ### SidebarSubMenu
 Figma Side-Bar/Sub → Sub-Item: Search/Popover, then the Item-List of Master menu items (gap Small).
 
@@ -68,7 +100,7 @@ Figma Side-Bar/Sub → Sub-Item: Search/Popover, then the Item-List of Master me
 | `items` | `SidebarItem[]` | `[]` |  |
 | `sections` | `SidebarSection[]` | `[]` | Grouped items with Menu-Item section titles (rendered after `items`). |
 | `onItemClick` | `(item: SidebarItem) => void` | — |  |
-| `children` | `ReactNode` | — | Extra content under the item list. |
+| `children` | `ReactNode` | — | Figma Sub-Item slot content under the item list: `<SidebarMenuItem>` rows (they share `onItemClick`) or anything else. |
 | `className` | `string` | — |  |
 
 ### Types
@@ -91,6 +123,7 @@ type SidebarSection = { label?: string; action?: ReactNode; items: SidebarItem[]
 ## ✅ Do
 - One elevation per screen, set by the Sidebar: Canvas default (grey) + the default Sidebar (Surface + shadow) + Shadow cards with no border; Canvas alt (white) + a Surface-alt or Flat Sidebar (add divider for a full-height line inside the Sidebar) + bordered cards; Canvas flat + a Flat Sidebar + bordered cards. Never a shadowed Sidebar on a white Canvas.
 - Give destinations an href so rows are real links (open in a new tab, copy the address), and pass the current route's id as selectedId instead of remapping selected in sections.
+- Put footer destinations (Settings, Help) in footer as `<SidebarMenuItem>` rows, as Figma's Footer-Content holds Menu-Items: the same row, selection and rail tooltip as the body.
 - Move selection with onItemClick; exactly one selected item.
 - Group items under short section titles.
 - Use counters for actionable counts; notification dots for "something new".

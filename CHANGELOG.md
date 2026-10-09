@@ -19,6 +19,11 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- **Sidebar slots like Figma (2026-10-09, ❖ Sidebar 6849:33453):** `<SidebarMenuItem>` (Figma Menu-Item 1536:27473)
+  and `<SidebarMenuSection label>` fill the Body-Content slot as `<Sidebar>` children (after `sections`, nested rows as
+  item children), the Footer-Content slot (`footer`) and a `SidebarSubMenu`; slot rows share `selectedId`, the rail and
+  `onItemClick`. `sections` / `items` arrays keep working. The Sidebar examples use them (footer Settings / Help,
+  Handbook body).
 - **Voice (2026-10-09, Figma ❖ Voice 15081:1294):** `VoiceRecorder` (State Ready · Recording · Paused: the take's time,
   an 80px waveform and its timeline, Discard · Record / Pause / Resume · Finish, the input and format) and
   `AiVoiceConversation` (Ready · Listening · Responding: the voice signal, the status, the transcript card, Mute · Start
@@ -31,6 +36,11 @@ removed (four unused colour ramps were, see Removed).
 - **AiChatField `listening` and `onVoiceMode` (2026-10-09, Figma State=Voice):** dictation — the prompt reads
   Listening… and the microphone becomes Stop (`onStopListening`); `onVoiceMode` gives the empty field's Voice action its
   own handler (voice mode, e.g. an AiVoiceConversation), apart from the microphone's dictation (`onVoice`, its default).
+- **List slots as children (2026-10-09, Figma Item-List / Nav-Items):** Tabs takes `<TabItem value label />`,
+  Breadcrumbs `<BreadcrumbItem item />`, Stepper `<StepperStep id title caption />` and BottomNavigation
+  `<BottomNavigationItem id label icon />` children instead of their array (`items` / `steps` stay and win when given);
+  the parent keeps selection, keyboard and ids, and renders the same markup either way. StepperStep and
+  BottomNavigationItem render nothing on their own. Shared helper `_shared/slots.ts` (Sidebar's slots use it too).
 - **AppShell `headerCenter` and `sections`; PageHeader `trailing` (2026-10-09, Figma slots):** the top bar's
   Center-Slots (up to 400px, centred — a Search), Header/Dashboard's Sections (rows under the top bar, each padded as a
   header row) and the Main row's Trailing-Slots (icon actions after the page's buttons).
@@ -993,6 +1003,14 @@ removed (four unused colour ramps were, see Removed).
   line of a drag shows where they land (or why nothing there can take them), a click places them (one edit, the new
   layer selected) and the tool goes back to Move; Escape puts it away. Screen (on a page you made) adds a Screen on the
   page's device with a click on the canvas. Renaming a page renames its Screen still named after it.
+- **Zen Studio: a page you make comes with its app frame (2026-10-09):** a blank page's Screen holds a Sidebar and a
+  Page Header (desktop) and a Top and a Bottom Navigation (phone), each a real layer you edit and switch off or on in
+  Screen (checkboxes). A tablet is laid out as mobile or as desktop (Screen › Layout). The Screen keeps both sets, so a
+  device change keeps your edits; renaming the page renames the header's title; Export writes an AppShell (desktop) or
+  the bars around the page (phone). Screen › Canvas paints it Canvas/Default, Alt (white) or Flat.
+- **Zen Studio fixes (2026-10-09):** a right-click on a selected Stack's gap or padding opens that Stack's menu; ⇧A on
+  one layer of a page you made selects the new Stack; Assets › Sidebar and App shell go onto a page you made (their
+  selected item fixed, a page keeps no state), and their thumbnails no longer throw; Assets gains Voice recorder.
 - **Zen Studio Assets in Figma's way (2026-10-09):** one search over every library at the top ("Search all assets":
   the best components, icons and photos, each with See all); with no search, the libraries — Components (Zen DS),
   Icons, Photos — as rows with their counts. A library opens in place (← back) with its own search; components sit in

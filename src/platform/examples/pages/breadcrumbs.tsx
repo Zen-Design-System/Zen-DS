@@ -6,7 +6,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { AppShell } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
-import { Breadcrumbs, type BreadcrumbItemData } from "../../../components/Breadcrumbs";
+import { BreadcrumbItem, Breadcrumbs, type BreadcrumbItemData } from "../../../components/Breadcrumbs";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { DescriptionList } from "../../../components/DescriptionList";
@@ -331,8 +331,10 @@ function LongPathExample() {
     <Card theme="flat" spacing="md" className="px-breadcrumbs-doc" ref={measure}>
       <Stack gap="md">
         {/* Six levels: the first and the last two stay, "…" opens the rest (narrow: the first and the current page). */}
-        <Breadcrumbs key={docId} items={path.map((d) => ({ id: d.id, label: d.title, href: `/handbook/${d.id}`, icon: d.parent === null ? "icon-book-open-line" : undefined }))}
-          maxItems={width && width < 400 ? 2 : 3} onNavigate={(item, event) => { event.preventDefault(); setDocId(item.id); }} />
+        {/* The trail as BreadcrumbItem children (Figma's Item-List slot); an items array works the same. */}
+        <Breadcrumbs key={docId} maxItems={width && width < 400 ? 2 : 3} onNavigate={(item, event) => { event.preventDefault(); setDocId(item.id); }}>
+          {path.map((d) => <BreadcrumbItem key={d.id} item={{ id: d.id, label: d.title, href: `/handbook/${d.id}`, icon: d.parent === null ? "icon-book-open-line" : undefined }} />)}
+        </Breadcrumbs>
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">{doc.title}</Heading>
           <Text textStyle="Body/Small/Regular" tone="base">{`Updated ${lower(formatRelative(doc.updated))} by ${people[doc.owner].name}`}</Text>
@@ -458,14 +460,15 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Long path",
-    description: "A handbook page six levels down keeps its trail on one line: maxItems keeps the root and the last levels, and “…” (named “Show 3 more”) opens the rest. Going up or down resets the collapse.",
+    description: "A handbook page six levels down keeps its trail on one line: maxItems keeps the root and the last levels, and “…” (named “Show 3 more”) opens the rest. Going up or down resets the collapse. The crumbs are BreadcrumbItem children, Figma's Item-List slot.",
     render: () => <LongPathExample />,
     code: `<Breadcrumbs
   key={pageId} // a new page collapses the trail again
-  items={path.map((p) => ({ id: p.id, label: p.title, href: \`/handbook/\${p.id}\` }))}
   maxItems={narrow ? 2 : 3}
   onNavigate={(item, event) => { event.preventDefault(); setPageId(item.id); }}
-/>
+>
+  {path.map((p) => <BreadcrumbItem key={p.id} item={{ id: p.id, label: p.title, href: \`/handbook/\${p.id}\` }} />)}
+</Breadcrumbs>
 <Heading level={4} textStyle="Heading/Subheading">Q3 critique</Heading>
 <Text textStyle="Body/Small/Regular" tone="base">Updated yesterday at 5:20 pm by Alex Duong</Text>`,
   },

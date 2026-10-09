@@ -36,6 +36,8 @@ type Props = {
   onPassPointerMove: (event: ReactPointerEvent<HTMLDivElement>) => void;
   /** A double-click on a read-only area drills in as it would on the canvas. */
   onPassDoubleClick: (event: ReactMouseEvent<HTMLDivElement>) => void;
+  /** A right-click on an area opens the canvas menu as it would on the canvas: the gap and padding are the owner's. */
+  onPassContextMenu: (event: ReactMouseEvent<HTMLDivElement>) => void;
 };
 
 /** The open picker (or read-only note): which area, which prop, and a small anchor box inside the area (at the click). */
@@ -70,7 +72,7 @@ function useOwnerSource(src: string | null, enabled: boolean): SourceElement | n
   return read && read.src === src ? read.element : null;
 }
 
-export function SpacingLayer({ areas: measured, owner, interactive, viewport, onPassPointerDown, onPassPointerMove, onPassDoubleClick }: Props) {
+export function SpacingLayer({ areas: measured, owner, interactive, viewport, onPassPointerDown, onPassPointerMove, onPassDoubleClick, onPassContextMenu }: Props) {
   const role = useStudio((state) => state.role);
   const server = useStudioServer();
   const writable = canEdit() && role === "admin" && server.writable;
@@ -248,7 +250,7 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
           onPointerMove={(event) => { if (event.altKey !== alt) setAlt(event.altKey); onPassPointerMove(event); }}
           onPointerDown={(event) => onPointerDown(event, index)}
           onDoubleClick={(event) => { if (!(writable && owner.editable && (area.props.length || area.kind === "free"))) onPassDoubleClick(event); }}
-          onContextMenu={(event) => event.preventDefault()}
+          onContextMenu={onPassContextMenu}
         />
       )) : null}
       {pillArea && pillText ? (

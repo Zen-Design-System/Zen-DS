@@ -7,6 +7,18 @@
 /* A Screen is a page: the Canvas layer, at least a device's height. */
 .studio-builder-screen { display: flow-root; min-height: 900px; border-radius: inherit; background: var(--zen-color-background-canvas-default); color: var(--zen-color-content-neutral-strongest); }
 .studio-builder-screen[data-device="phone"] { min-height: 844px; }
+/* The app frame (Screen's sidebar · header, or top · bottom navigation): the Screen becomes a row (desktop) or a column
+   (mobile) around its content, which keeps the page's own padding. The bottom bar sits at the screen's foot. */
+.studio-builder-screen[data-chrome] { display: flex; align-items: stretch; }
+.studio-builder-screen__side { display: flex; flex: 0 0 auto; }
+.studio-builder-screen__main { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; }
+.studio-builder-screen__content { min-width: 0; flex: 1 1 auto; }
+.studio-builder-screen__header { padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
+.studio-builder-screen__top { position: sticky; z-index: 1; top: 0; }
+.studio-builder-screen__bottom { position: sticky; z-index: 1; bottom: 0; }
+/* Screen › Canvas (as AppShell's canvas): Canvas/Alt, a white page; Canvas/Flat. */
+.studio-builder-screen[data-canvas="alt"] { background: var(--zen-color-background-canvas-alt); }
+.studio-builder-screen[data-canvas="flat"] { background: var(--zen-color-background-canvas-flat); }
 .studio-builder-screen[data-device="tablet"] { min-height: 1024px; }
 /* An Overlay frame holds its overlay open; its portal node is where the overlay renders, inside the frame. */
 .studio-builder-overlay { position: relative; min-height: 640px; overflow: hidden; border-radius: inherit; }

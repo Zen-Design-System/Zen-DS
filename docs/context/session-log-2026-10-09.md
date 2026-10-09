@@ -201,6 +201,7 @@
   Shell playground side panel: one Body/Base/Regular line instead of a DescriptionList (8 → 7 text styles). Run 4: E2E
   181/181, dark, behaviour clean; final voice run PASS.
 
+
 ## Studio canvas menu cut off at the top; no captions on disabled items (tier S, session e4bf4af9)
 
 - Bug (user screenshot): right-click a layer with a tall menu (~820px, window ~1050) → the menu opened above the pointer,
@@ -224,3 +225,54 @@
 - Gate (`--files=` ResizeLayer + CanvasMenu, --isolated): static ✓, tsc ✓, Studio self-tests ✓; E2E 184/187, IN-15 ✓.
   Reds B-02 ("Button not imported"), HO-01 ("unexpected code"), B-25 (new app-frame row) are in builder/compile files
   another session was editing during the run; all four green alone right after. ⚠ stale sidebar docs: that session's.
+
+## Studio fixes + app frame for pages you make (user: 4 bugs on a new page; "trang trống nên bao gồm sidebar, header page…") — tier M
+
+- Bugs (E2E B-21…B-24, builder group): spacing hit areas passed right-clicks nowhere → `onPassContextMenu` to the
+  canvas menu; a builder-page wrap lost the selection (the page re-renders and drops it) → the start selection is read
+  before the write; Sidebar / App shell declared state → palette `builder` variants (static selectedId), state never
+  sent on a local file, previews use the static code (the App shell thumbnail's Breadcrumbs lost `items` → `.map`
+  error); Screen `canvas` prop (default · alt · flat) + Screen › Canvas.
+- App frame: `tools/studio/screen-chrome.mjs` (SCREEN_CHROME, screenLayout, screenChromeCode; no imports, the client
+  takes it); dialect: `layout` + chrome props validated, `newPageText` / `frameCode` write the four parts (`chrome:
+  false` keeps the old blank for the editing selftests); runtime Screen lays them out (row + header / column + bars);
+  compile: AppShell or the bars around the page; Inspector › Screen: Layout (tablet) + one checkbox per part
+  (insertChild prop / removeProp); rename keeps PageHeader / TopNavigation titles. Rows B-25, B-26.
+- Palette selftest: Voice had no Assets item (batch 1) → "Voice recorder" (Chat group).
+
+
+## Sidebar slots like Figma (user: "Sidebar thiếu slot như figma") — tier M, session 604bd7
+
+- Read with use_figma (read-only), ❖ Sidebar 6849:33453: Basic 4081:15234 / Small-Density 5974:20590 have the slots
+  Header-Content, Body-Content (Menu-Items), Footer-Content (Menu-Items), Sub-Item (+ Sub-Menu boolean); Workspace
+  4218:9166 has Master-Header / Master-Body / Child-Header / Child-Body / Child-Footer-Content (+ Workspace-bar);
+  Menu-Item 1536:27473 has Trailing-Slot.
+- Gap: Body-Content took only the `sections` array; Footer-Content took a node but had no item component (examples
+  hand-built `<button>` FooterButtons). Header (`brand`/`logo`), Sub-Item (`subMenu`), workspace rail and Trailing-Slot
+  (`trailingAction`) were already there.
+- Built (batch-2 rule: slot children of the item component AND the arrays): `SidebarMenuItem` (the fields of a
+  `SidebarItem`, nested rows as children or an array; read with `_shared/slots.ts` `slotItems`) and
+  `SidebarMenuSection`; Sidebar `children` = Body-Content after `sections` (consecutive rows form one section, other
+  content stays in place); `footer` and `SidebarSubMenu` children take the rows. A row context shares rail, open groups
+  and `onItemClick`; `selectedId` opens groups of slot rows too. CSS: footer rows stretch and take the rail width.
+- Examples: Studio navigation footer → SidebarMenuItem; Handbook body → children (sections + nested chapters).
+  Guideline: Slots row, footer do-rule, tags. `trailingAction` documented (Trailing-Slot, not a control).
+- Test `tests/interaction/sidebar-slots.test.tsx` (6): slot body = the same `sections` DOM, clicks/toggle, mixed
+  content order, footer selection/width, rail width + hidden label, sub-menu rows. Sidebar/AppShell suites 50/50.
+- Not done (scope lock): no harness rule for slot rows without `onItemClick`; Studio slot palette untouched (another
+  session owns `src/platform/studio`).
+- Gate (Studio scope): PASS, E2E 187/187 after B-02 / HO-01 / B-25 expectations (a new page imports its frame's
+  components; HO-01 exports a phone page) and keywords regenerated (the Sidebar session's new components); baseline
+  +B-21…B-26.
+
+## Batch 2: list slots as children (user: "Children + giữ mảng") — tier M
+
+- `_shared/slots.ts` slotItems(children, Item) → props + slotKey (the Sidebar session [604bd7] built Sidebar's slots on
+  it; Sidebar left to them). Tabs: TabItem `value`; Breadcrumbs: BreadcrumbItem `item`; Stepper: `StepperStep` (the
+  data type's name, renders null); BottomNavigation: `BottomNavigationItem` (same). Arrays stay and win.
+- tests/interaction/list-slots.test.tsx: children markup = array markup for all four; Tabs keys and onValueChange;
+  StepperStep alone renders nothing. Guidelines: an api row per component; tagsFor gains the item tags. One example per
+  page now uses children (Tabs › Your work, Breadcrumbs › Long path, Stepper › Invoice approval, Bottom Navigation ›
+  Phin & Co); the harness count rules (tabs/item-count, stepper/step-count, bottom-navigation/destinations) still count
+  arrays only.
+

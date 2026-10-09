@@ -56,6 +56,9 @@ export type PaletteItem = {
   input: boolean;
   /** The JSX, one element; lines after the first are indented 2 spaces per level from column 0 (reindent on insert). */
   build(ctx: PaletteContext): string;
+  /** Its code on a builder page, which keeps no state or hooks: a static version of a stateful item (a Sidebar with its
+   *  current item fixed). Without it, a stateful item cannot go on a builder page. */
+  builder?(ctx: PaletteContext): string;
 };
 
 export type PaletteHostContext = PaletteContext & {
@@ -113,7 +116,7 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   BottomSheet: "BottomSheet", Popover: "Popover", PageHeader: "PageHeader", TopNavigation: "TopNavigation",
   BottomNavigation: "BottomNavigation", Sidebar: "Sidebar", AppShell: "AppShell", ActionBar: "ActionBar",
   ChatThread: "Chat", ChatMessage: "Chat", ChatComposer: "Chat", AiChatThread: "AiChat", AiChatBubble: "AiChat",
-  AiChatField: "AiChat",
+  AiChatField: "AiChat", VoiceRecorder: "Voice", AiVoiceConversation: "Voice",
 };
 
 const level = (ctx: PaletteContext) => Math.min(6, Math.max(2, Math.round(ctx.headingLevel) || 3));
@@ -640,6 +643,13 @@ export const PALETTE: readonly PaletteItem[] = [
       `  { id: "people", label: "People", icon: "icon-users-line" },`,
       `] }]} />`,
     ),
+    builder: () => lines(
+      `<Sidebar aria-label="Workspace" selectedId="projects" sections={[{ items: [`,
+      `  { id: "home", label: "Home", icon: "icon-home-03-line" },`,
+      `  { id: "projects", label: "Projects", icon: "icon-folder-line" },`,
+      `  { id: "people", label: "People", icon: "icon-users-line" },`,
+      `] }]} />`,
+    ),
   },
   {
     id: "app-shell", label: "App shell", group: "Page", caption: "Sidebar and page", root: "AppShell", components: ["AppShell", "Sidebar", "Breadcrumbs", "Text"], state: [state("area", '"projects"')], interactive: true, input: false,
@@ -651,6 +661,16 @@ export const PALETTE: readonly PaletteItem[] = [
       `  ] }]} />}`,
       `  header={<Breadcrumbs master={false} items={[{ id: area, label: area === "home" ? "Home" : "Projects" }]} />}>`,
       `  <Text tone="base">{area === "home" ? "3 projects are due this week." : "12 active projects."}</Text>`,
+      `</AppShell>`,
+    ),
+    builder: () => lines(
+      `<AppShell`,
+      `  sidebar={<Sidebar aria-label="Workspace" selectedId="projects" sections={[{ items: [`,
+      `    { id: "home", label: "Home", icon: "icon-home-03-line" },`,
+      `    { id: "projects", label: "Projects", icon: "icon-folder-line" },`,
+      `  ] }]} />}`,
+      `  header={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }]} />}>`,
+      `  <Text tone="base">12 active projects.</Text>`,
       `</AppShell>`,
     ),
   },
@@ -692,6 +712,18 @@ export const PALETTE: readonly PaletteItem[] = [
       `  </AiChatThread>`,
       `  <AiChatField placeholder="Ask about your projects" onSubmit={(text) => toast({ title: "Question sent", children: text })} />`,
       `</Stack>`,
+    ),
+  },
+  {
+    // Figma ❖ Voice (15081:1294): every action wired (harness voice/actions-wired); a page's toasts become proto.toast.
+    id: "voice-recorder", label: "Voice recorder", group: "Chat", caption: "Record a voice note", root: "VoiceRecorder", components: ["VoiceRecorder"], requires: TOAST, interactive: true, input: false,
+    build: () => lines(
+      `<VoiceRecorder title="Voice note" input="Built-in microphone" format="48 kHz · Mono"`,
+      `  onRecord={() => toast({ title: "Recording started" })}`,
+      `  onPause={() => toast({ title: "Recording paused" })}`,
+      `  onResume={() => toast({ title: "Recording resumed" })}`,
+      `  onFinish={() => toast({ title: "Voice note saved" })}`,
+      `  onDiscard={() => toast({ title: "Take discarded" })} />`,
     ),
   },
 ];
@@ -776,7 +808,7 @@ export function paletteFor(ctx: PaletteHostContext): PaletteResult {
   };
   /** The code cannot be written here (the server would refuse it). */
   const blockFor = (item: PaletteItem): string | null => {
-    if (ctx.builder && (item.state?.length || builderCode(item.build(context)) === null)) return "A builder page keeps no state or code: this item comes with prototypes";
+    if (ctx.builder && !item.builder && (item.state?.length || builderCode(item.build(context)) === null)) return "A builder page keeps no state or code: this item comes with prototypes";
     if (ctx.canUseToast === false && (item.requires?.includes("toast") || item.state?.length)) return "Actions and stateful items need a component to hold their hooks; this code sits outside one";
     if (ctx.canUseMedia === false && item.requires?.includes("media")) return "Images read platformMedia, which only the example pages import";
     return null;
@@ -797,7 +829,12 @@ export function paletteFor(ctx: PaletteHostContext): PaletteResult {
       continue;
     }
     // A builder page gets the item with proto handlers (and needs no toast hook).
-    items.push(ctx.builder ? { ...item, requires: item.requires?.filter((need) => need !== "toast"), build: (built) => builderCode(item.build(built)) ?? item.build(built) } : item);
+    items.push(ctx.builder ? {
+      ...item,
+      requires: item.requires?.filter((need) => need !== "toast"),
+      // Its static version (no state), or its code with proto handlers.
+      ...(item.builder ? { state: undefined, build: item.builder } : { build: (built: PaletteContext) => builderCode(item.build(built)) ?? item.build(built) }),
+    } : item);
     const warning = warningFor(item);
     if (warning) warnings[item.id] = warning;
   }

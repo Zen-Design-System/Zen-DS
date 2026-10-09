@@ -35,8 +35,13 @@ export function codeOf(item: PaletteItem, file?: string): string | null {
   const context: PaletteContext = { host: "Stack", slot, headingLevel: 4, mobile: false, uid: Date.now().toString(36) };
   const code = item.build(context);
   if (!file?.startsWith("local:")) return code;
+  // A builder page keeps no state: the item's static version, else its code when it holds no state or logic.
+  if (item.builder) return item.builder(context);
   return item.state?.length ? null : builderCode(code);
 }
+
+/** The state an insert declares: none on a builder page (its code is the static version, codeOf). */
+const stateFor = (item: Insertable, file: string | undefined) => (file?.startsWith("local:") ? undefined : item.state);
 const builderRefusal = (item: PaletteItem) => item.group === "Overlays"
   ? `On a builder page ${item.label} opens from an action: add it with Prototype › Add overlay, then point a button at it`
   : `${item.label} keeps state or code, which a builder page has none of (its screens and overlays do that: Prototype tab)`;
@@ -110,9 +115,10 @@ export function insertItem(item: Insertable) {
   if (image && item.photo) { void swapPhoto(image, item.photo, item.label); return; }
   const target = insertTarget();
   if (typeof target === "string") { fail(target); return; }
-  const code = item.code(parseSrc(target.src)?.file);
+  const file = parseSrc(target.src)?.file;
+  const code = item.code(file);
   if (code === null) { fail(item.refusal); return; }
-  void insertCode(target, code, item.state);
+  void insertCode(target, code, stateFor(item, file));
 }
 
 /** A palette item, as insertItem. */
@@ -131,9 +137,10 @@ export function swapItem(item: Insertable) {
   if (!canEdit()) { fail("View only — switch to Admin to edit"); return; }
   const target = swapTarget();
   if (typeof target === "string") { fail(target); return; }
-  const code = item.code(parseSrc(target.src)?.file);
+  const file = parseSrc(target.src)?.file;
+  const code = item.code(file);
   if (code === null) { fail(item.refusal); return; }
-  void swapSelection(target, code, item.label, item.state);
+  void swapSelection(target, code, item.label, stateFor(item, file));
 }
 
 /** Why nothing can be dropped into `target` (a playground, docs, the role), or null. */
@@ -152,7 +159,8 @@ export async function dropAsset(item: Insertable, target: DropTarget) {
   if (!parent) { fail(`${target.parentName} is no longer there`); return; }
   const code = item.code(at.file);
   if (code === null) { fail(item.refusal); return; }
-  const op: Extract<EditOp, { op: "pasteCode" }> = { op: "pasteCode", code, ...(item.state?.length ? { state: item.state.map((entry) => ({ ...entry })) } : {}) };
+  const state = stateFor(item, at.file);
+  const op: Extract<EditOp, { op: "pasteCode" }> = { op: "pasteCode", code, ...(state?.length ? { state: state.map((entry) => ({ ...entry })) } : {}) };
   if (target.before) op.before = parseSrc(target.before)?.loc;
   else if (target.after) op.after = parseSrc(target.after)?.loc;
   const before = renderedNow(canvasApi.getWorldElement());

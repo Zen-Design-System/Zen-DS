@@ -179,7 +179,8 @@ export const rows = [
       await insertAsset(page, "Button");
       await until(async () => /<Button level="tertiary" onClick=\{proto\.toast\(\{ title: "Report exported" \}\)\}>/.test((await pageText(page, id)) ?? ""), { message: "a Button with proto.toast in the page" });
       const text = await pageText(page, id);
-      if (!/import \{ Button, Stack, Text \} from "@zen\/design-system";/.test(text)) throw new Error("Button not imported from the package");
+      // The package import holds the app frame's components too (a new page comes with them).
+      if (!/import \{[^}]*\bButton\b[^}]*\} from "@zen\/design-system";/.test(text)) throw new Error("Button not imported from the package");
       await until(async () => (await selectedName(page)) === "Button", { message: "the new Button selected" });
       return "inserted, imported, selected";
     },
@@ -478,6 +479,110 @@ export const rows = [
       const text = (await pageText(page, id)) ?? "";
       if ((text.match(/<Screen [^>]*device="phone"/g) ?? []).length !== 2) throw new Error("the new Screen is not on the page's device (phone)");
       return "Screen tool → a second phone Screen";
+    },
+  },
+  {
+    id: "B-21", feature: "Right-click on a selected Stack's spacing (its padding) opens the canvas menu for that Stack", wp: "studio fixes 2026-10-09",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      await selectStack(page, id);
+      const stack = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Stack"]`).first().boundingBox();
+      // The Stack's left padding, level with its Text: a spacing area of the selection overlay.
+      await page.mouse.click(stack.x + 6, stack.y + stack.height / 2, { button: "right" });
+      const menu = page.getByRole("menu").last();
+      await menu.waitFor({ state: "visible", timeout: 2500 }).catch(() => { throw new Error("no menu on the Stack's padding"); });
+      const items = await menu.getByRole("menuitem").allInnerTexts();
+      await page.keyboard.press("Escape");
+      if (!items.some((item) => /Wrap in Stack/.test(item))) throw new Error(`not the layer menu (${items.slice(0, 4).join(", ")})`);
+      if ((await selectedName(page)) !== "Stack") throw new Error(`the selection moved to ${await selectedName(page)}`);
+      return `${items.length} items, the Stack still selected`;
+    },
+  },
+  {
+    id: "B-22", feature: "⇧A wraps one layer (a single Text) in a new Stack on a page you made", wp: "studio fixes 2026-10-09",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+      await focusScreen(page);
+      await clickNamed(page, id, "Text");
+      await until(async () => (await selectedName(page)) === "Text", { message: "the Text selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+KeyA");
+      await until(async () => /<Stack[^>]*>\s*<Stack[^>]*>\s*<Text/.test((await pageText(page, id)) ?? ""), { message: "the Text in a new Stack" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await until(async () => (await selectedName(page)) === "Stack", { message: "the new Stack selected" });
+      return "Text → Stack › Text, the Stack selected";
+    },
+  },
+  {
+    id: "B-23", feature: "Assets › Sidebar goes into a page's Stack (a static selected item: a page keeps no state)", wp: "studio fixes 2026-10-09",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      await selectStack(page, id);
+      await insertAsset(page, "Sidebar");
+      await until(async () => /<Sidebar aria-label="Workspace" selectedId="projects" sections=\{\[/.test((await pageText(page, id)) ?? ""), { message: "a Sidebar in the page" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      const text = (await pageText(page, id)) ?? "";
+      if (/useState|setSection/.test(text)) throw new Error("the page got state");
+      await until(async () => (await page.locator(`[data-studio-frame="screen:screen-1"] .zen-sidebar`).count()) > 0, { message: "the Sidebar on the canvas" });
+      return "Sidebar inserted, selectedId fixed, no state";
+    },
+  },
+  {
+    id: "B-24", feature: "Screen › Canvas: Alt paints the Screen Canvas/Alt (canvas=\"alt\"); Default takes the prop away", wp: "studio fixes 2026-10-09",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      await showLeftTab(page, "layers");
+      await page.locator('[data-layer-id^="frame:screen:"]').first().click();
+      const screen = page.locator('[data-studio-frame="screen:screen-1"] .studio-builder-screen');
+      const paint = () => screen.evaluate((el) => getComputedStyle(el).backgroundColor);
+      const before = await paint();
+      await page.locator("#studio-right").getByRole("button", { name: /^Alt canvas,/ }).click();
+      // The Screen's tag holds its app frame's components (their `/>`), so the prop is matched on its own.
+      await until(async () => /\bcanvas="alt"/.test((await pageText(page, id)) ?? ""), { message: 'canvas="alt" on the Screen' });
+      const alt = await page.evaluate(() => { const probe = document.createElement("div"); probe.style.background = "var(--zen-color-background-canvas-alt)"; document.querySelector(".studio-builder-screen")?.append(probe); const value = getComputedStyle(probe).backgroundColor; probe.remove(); return value; });
+      await until(async () => (await paint()) === alt, { message: `the Screen painted Canvas/Alt (${alt})` });
+      await page.locator("#studio-right").getByRole("button", { name: /^Default canvas,/ }).click();
+      await until(async () => !/canvas=/.test((await pageText(page, id)) ?? ""), { message: "the canvas prop removed" });
+      await until(async () => (await paint()) === before, { message: "the Screen back on Canvas/Default" });
+      return `${before} → ${alt} → ${before}`;
+    },
+  },
+  {
+    id: "B-25", feature: "A blank page comes with its app frame (desktop: Sidebar + Page header); Screen › Sidebar (a checkbox) switches it off and on", wp: "app frame 2026-10-09",
+    async run(ctx) {
+      const { page, id, name } = await newPage(ctx, { device: "desktop" });
+      const frame = page.locator('[data-studio-frame="screen:screen-1"]');
+      await until(async () => (await frame.locator(".zen-sidebar").count()) > 0 && (await frame.locator(".zen-page-header").count()) > 0, { message: "Sidebar and Page header on the Screen" });
+      if ((await frame.locator(".zen-top-nav, .zen-bottom-nav").count()) > 0) throw new Error("the phone bars show on a desktop Screen");
+      const header = (await frame.locator(".zen-page-header h1").first().innerText()).trim();
+      if (header !== name) throw new Error(`the Page header reads "${header}", not the page's name "${name}"`);
+      await showLeftTab(page, "layers");
+      await page.locator('[data-layer-id^="frame:screen:"]').first().click();
+      // The checkbox's label (its input is drawn over by the box), as L-10 presses Clip content.
+      const toggle = inspectorRow(page, "sidebar").getByText("Sidebar", { exact: true });
+      await toggle.click();
+      await until(async () => !/\bsidebar=\{/.test((await pageText(page, id)) ?? ""), { message: "the sidebar prop removed" });
+      await until(async () => (await frame.locator(".zen-sidebar").count()) === 0, { message: "no Sidebar on the Screen" });
+      await toggle.click();
+      await until(async () => /\bsidebar=\{<Sidebar /.test((await pageText(page, id)) ?? ""), { message: "the Sidebar back in the page" });
+      await until(async () => (await frame.locator(".zen-sidebar").count()) > 0, { message: "the Sidebar back on the Screen" });
+      return "Sidebar + Page header; Sidebar off → on";
+    },
+  },
+  {
+    id: "B-26", feature: "A phone Screen shows Top + Bottom navigation; a tablet is laid out as mobile or (Screen › Layout) desktop", wp: "app frame 2026-10-09",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx, { device: "phone" });
+      const frame = page.locator('[data-studio-frame="screen:screen-1"]');
+      await until(async () => (await frame.locator(".zen-top-nav").count()) > 0 && (await frame.locator(".zen-bottom-nav").count()) > 0, { message: "Top and Bottom navigation on the phone" });
+      if ((await frame.locator(".zen-sidebar").count()) > 0) throw new Error("the Sidebar shows on a phone");
+      await showLeftTab(page, "layers");
+      await page.locator('[data-layer-id^="frame:screen:"]').first().click();
+      await page.locator("#studio-right").getByRole("button", { name: /^Tablet,/ }).click();
+      await until(async () => /<Screen [^>]*device="tablet"/.test((await pageText(page, id)) ?? ""), { message: "the Screen on tablet" });
+      await page.locator("#studio-right").getByRole("button", { name: /^Laid out as desktop/ }).click();
+      await until(async () => /\blayout="desktop"/.test((await pageText(page, id)) ?? ""), { message: 'layout="desktop"' });
+      await until(async () => (await frame.locator(".zen-sidebar").count()) > 0 && (await frame.locator(".zen-bottom-nav").count()) === 0, { message: "the desktop frame on the tablet" });
+      return "phone bars; tablet → desktop layout shows the Sidebar";
     },
   },
 ];

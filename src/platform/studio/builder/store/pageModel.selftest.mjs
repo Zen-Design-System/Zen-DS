@@ -23,6 +23,7 @@ check("rename keeps other header keys", withHeaderTitle('// @zen-page {"format":
 check("rename without a header", withHeaderTitle("abc", "B"), "abc");
 check("a Screen named after the page follows its new name", withScreenTitles('<Screen id="screen-1" title="Untitled page" device="desktop">\n<Text>Untitled page</Text>', "Untitled page", "Checkout"), '<Screen id="screen-1" title="Checkout" device="desktop">\n<Text>Untitled page</Text>');
 check("a Screen named otherwise keeps its name", withScreenTitles('<Screen id="s" title="Cart">', "Untitled page", "Checkout"), '<Screen id="s" title="Cart">');
+check("the app frame's titles follow too", withScreenTitles('<Screen id="s" title="Untitled page"\n  header={<PageHeader title="Untitled page" />}\n  topNavigation={<TopNavigation type="compact" title="Untitled page" />}>\n<PageHeader title="Orders" />', "Untitled page", "Checkout"), '<Screen id="s" title="Checkout"\n  header={<PageHeader title="Checkout" />}\n  topNavigation={<TopNavigation type="compact" title="Checkout" />}>\n<PageHeader title="Orders" />');
 
 // Ids
 check("slug", slugOf("Đơn hàng — Checkout!"), "don-hang-checkout");

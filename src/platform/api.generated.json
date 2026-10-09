@@ -3858,11 +3858,19 @@
           "deprecated": null
         },
         {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Body-Content (Child-Body-Content in the workspace variant), after `sections`: `<SidebarMenuItem>` rows and\n `<SidebarMenuSection>` groups, or any content. Consecutive rows form one unlabelled section. The rows share the\n Sidebar's selection, rail and `onItemClick`; other content renders as it is, so it handles the rail itself.",
+          "deprecated": null
+        },
+        {
           "name": "footer",
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Figma Footer-Content (Child-Footer-Content), under a divider: `<SidebarMenuItem>` rows like the body's, or the app's\n own buttons of an Icon and a label span (the rail hides the label visually, keeps it as the name and the tooltip).",
           "deprecated": null
         },
         {
@@ -3988,6 +3996,162 @@
       ]
     },
     {
+      "name": "SidebarMenuItem",
+      "extends": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode | SidebarItem[]",
+          "required": false,
+          "default": null,
+          "description": "Nested rows (Figma Level=Child): `<SidebarMenuItem>` children, or a `SidebarItem[]`.",
+          "deprecated": null
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Leading icon: an icon name (drawn at 20px) or a node (an Avatar in the workspace rail).",
+          "deprecated": null
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focus\" | \"disabled\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"neutral\" | \"accent\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Menu-Item Theme: `neutral` (the default at every level, Figma's default; the selected row is\n Active/Neutral/Subtle) or `accent` (Active/Accent/Subtle with Accent/Strongest text).",
+          "deprecated": null
+        },
+        {
+          "name": "dropdown",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "indent",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "counter",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Counter (a Small Neutral Subtle BadgeCounter). The collapsed rail has no room for it: a non-zero count shows\n the Notification-Dot instead and joins the row's name (\"Approvals, 3\").",
+          "deprecated": null
+        },
+        {
+          "name": "notificationDot",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Primitives/Notification-Dot on the icon.",
+          "deprecated": null
+        },
+        {
+          "name": "trailingAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Trailing-Slot (Trailing-Action on): content after the label (an icon, a shortcut). Not a control: the row\n itself is the button or link.",
+          "deprecated": null
+        },
+        {
+          "name": "href",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Destination of the item: it renders as a link (`<a href>`, or the Sidebar's `linkAs` router link) and still calls\n `onItemClick`. Disabled items stay buttons.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "SidebarMenuSection",
+      "extends": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Section title: the Menu-Item section label (Body/Small), as `SidebarSection.label`.",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Section-title action: a Button/Icon-Flat Small, as `SidebarSection.action`.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The section's `<SidebarMenuItem>` rows.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
       "name": "SidebarSubMenu",
       "extends": null,
       "props": [
@@ -4028,7 +4192,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Extra content under the item list.",
+          "description": "Figma Sub-Item slot content under the item list: `<SidebarMenuItem>` rows (they share `onItemClick`) or anything else.",
           "deprecated": null
         },
         {
@@ -5074,9 +5238,17 @@
         {
           "name": "items",
           "type": "TabOption[]",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "",
+          "description": "The tabs as data. Or give TabItem children (Figma Item-List): `<TabItem value=\"general\" label=\"General\" />`.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The tabs as TabItem elements, in order, when `items` is not given (Figma's Item-List slot). Tabs still owns the\n selection, the roving focus and the ids, so give each one `value`, `label` and optionally `icon`, `badge`,\n `disabled`, `aria-label`.",
           "deprecated": null
         },
         {
@@ -5163,7 +5335,7 @@
     },
     {
       "name": "TabItem",
-      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
+      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\" | \"value\">",
       "props": [
         {
           "name": "ref",
@@ -5171,6 +5343,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "As a child of Tabs (Figma Item-List): the tab's id, what `value` and `onValueChange` use. Default: its key, then\n its position.",
           "deprecated": null
         },
         {
@@ -5294,9 +5474,17 @@
         {
           "name": "items",
           "type": "BreadcrumbItemData[]",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "",
+          "description": "The trail as data, Master first and the current page last. Or give BreadcrumbItem children (Figma Item-List).",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The trail as BreadcrumbItem elements (`<BreadcrumbItem item={{ id, label, href }} />`), in order, when `items` is\n not given. Breadcrumbs still sets each crumb's level, current page, separators and collapsing.",
           "deprecated": null
         },
         {
@@ -6818,9 +7006,17 @@
         {
           "name": "steps",
           "type": "StepperStep[]",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "",
+          "description": "The steps as data. Or give StepperStep children (Figma Stepper-Bar's steps): `<StepperStep id=\"details\" title=\"Details\" />`.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The steps as StepperStep elements, in order, when `steps` is not given. Stepper still draws each one's state\n from `current`, the progress lines and the click behaviour.",
           "deprecated": null
         },
         {
@@ -9278,9 +9474,17 @@
         {
           "name": "items",
           "type": "BottomNavigationItem[]",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "",
+          "description": "The 3–5 destinations as data. Or give BottomNavigationItem children (Figma Nav-Items).",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The destinations as BottomNavigationItem elements, in order, when `items` is not given.",
           "deprecated": null
         },
         {

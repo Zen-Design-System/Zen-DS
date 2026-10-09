@@ -790,6 +790,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         onPassPointerDown={onPointerDown}
         onPassPointerMove={trackPointer}
         onPassDoubleClick={onDoubleClick}
+        onPassContextMenu={onContextMenu}
       />
       <ResizeLayer
         box={overlay.selected}

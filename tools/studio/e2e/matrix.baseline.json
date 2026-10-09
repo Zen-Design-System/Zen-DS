@@ -181,7 +181,13 @@
     "ST-25": "works",
     "ST-26": "works",
     "ST-27": "works",
-    "B-20": "works"
+    "B-20": "works",
+    "B-21": "works",
+    "B-22": "works",
+    "B-23": "works",
+    "B-24": "works",
+    "B-25": "works",
+    "B-26": "works"
   },
   "flaky": {}
 }

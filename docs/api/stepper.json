@@ -21,9 +21,17 @@
         {
           "name": "steps",
           "type": "StepperStep[]",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "",
+          "description": "The steps as data. Or give StepperStep children (Figma Stepper-Bar's steps): `<StepperStep id=\"details\" title=\"Details\" />`.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The steps as StepperStep elements, in order, when `steps` is not given. Stepper still draws each one's state\n from `current`, the progress lines and the click behaviour.",
           "deprecated": null
         },
         {

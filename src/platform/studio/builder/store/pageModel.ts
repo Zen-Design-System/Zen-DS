@@ -37,7 +37,11 @@ export function headerTitle(text: string): string | null {
 export function withScreenTitles(text: string, from: string, to: string): string {
   if (from === to) return text;
   const old = JSON.stringify(from);
-  return text.replace(/<Screen\b[^>]*>/g, (tag) => tag.replace(`title=${old}`, `title=${JSON.stringify(to)}`));
+  const next = JSON.stringify(to);
+  // The Screens' titles, and the app frame's that show the page's name (a Page Header, a Top Navigation).
+  return text
+    .replace(/<Screen\b[^>]*>/g, (tag) => tag.replace(`title=${old}`, `title=${next}`))
+    .replace(/<(PageHeader|TopNavigation)\b[^>]*?\btitle=("(?:[^"\\]|\\.)*")/g, (tag, _name: string, value: string) => (value === old ? `${tag.slice(0, -value.length)}${next}` : tag));
 }
 
 export function withHeaderTitle(text: string, title: string): string {

@@ -15,7 +15,7 @@ import { InlineMessage } from "../../../components/InlineMessage";
 import { InputField, InputLeadingTrailing, SelectField, TextAreaField } from "../../../components/Input";
 import { Box, Container, Grid, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
-import { Stepper, type StepperStep } from "../../../components/Stepper";
+import { Stepper, StepperStep } from "../../../components/Stepper";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
@@ -250,12 +250,6 @@ function InvoiceApprovalExample() {
   const statusRef = useRef<HTMLParagraphElement>(null);
   const approveRef = useRef<HTMLButtonElement>(null);
   const [approved, setApproved] = useState(false);
-  const steps: StepperStep[] = [
-    { id: "draft", title: "Draft", caption: `${people.linh.name} · 9:12 am` },
-    { id: "lead", title: "Design lead", caption: approved ? "You · Approved at 10:30 am" : "You · Waiting since 9:12 am" },
-    { id: "finance", title: "Finance", caption: approved ? `${people.mai.name} · Waiting since 10:30 am` : people.mai.name },
-    { id: "client", title: "Client", caption: `Sent to ${approvalInvoice.client}` },
-  ];
   const undo = () => { setApproved(false); window.requestAnimationFrame(() => approveRef.current?.focus()); };
   const approve = () => {
     setApproved(true);
@@ -273,8 +267,14 @@ function InvoiceApprovalExample() {
           </Stack>
           <Text textStyle="Body/Small/Regular" tone="base">{`${approvalInvoice.client} · ${formatMoney(approvalInvoice.amount, true)} · Due ${formatDate(approvalInvoice.due)}`}</Text>
         </Stack>
-        {/* A read-only tracker: no onStepClick, the captions say who acts and since when. */}
-        <Stepper aria-label="Invoice approval" orientation="vertical" steps={steps} current={approved ? 2 : 1} />
+        {/* A read-only tracker: no onStepClick, the captions say who acts and since when. The steps as StepperStep
+            children (Figma's steps slot) rather than a steps array. */}
+        <Stepper aria-label="Invoice approval" orientation="vertical" current={approved ? 2 : 1}>
+          <StepperStep id="draft" title="Draft" caption={`${people.linh.name} · 9:12 am`} />
+          <StepperStep id="lead" title="Design lead" caption={approved ? "You · Approved at 10:30 am" : "You · Waiting since 9:12 am"} />
+          <StepperStep id="finance" title="Finance" caption={approved ? `${people.mai.name} · Waiting since 10:30 am` : people.mai.name} />
+          <StepperStep id="client" title="Client" caption={`Sent to ${approvalInvoice.client}`} />
+        </Stepper>
         {/* The card's one action sits on the right, like FormActions. */}
         {approved
           ? <Text ref={statusRef} tabIndex={-1} className="px-stepper-focus-target" role="status" textStyle="Body/Base/Regular" tone="base">{`Waiting for ${people.mai.name} in Finance.`}</Text>
@@ -631,14 +631,14 @@ useEffect(() => headingRef.current?.focus(), [current]);
   },
   {
     title: "Invoice approval",
-    description: "A vertical stepper without onStepClick tracks who has to act: no step is a button, and the captions name the person and since when. Approving moves the invoice on to Finance, and the toast can undo it.",
+    description: "A vertical stepper without onStepClick tracks who has to act: no step is a button, and the captions name the person and since when. Approving moves the invoice on to Finance, and the toast can undo it. The steps are StepperStep children, Figma's steps slot (a steps array works the same).",
     render: () => <InvoiceApprovalExample />,
-    code: `<Stepper aria-label="Invoice approval" orientation="vertical" current={approved ? 2 : 1} steps={[
-  { id: "draft", title: "Draft", caption: "Linh Vo · 9:12 am" },
-  { id: "lead", title: "Design lead", caption: approved ? "You · Approved at 10:30 am" : "You · Waiting since 9:12 am" },
-  { id: "finance", title: "Finance", caption: approved ? "Mai Ho · Waiting since 10:30 am" : "Mai Ho" },
-  { id: "client", title: "Client", caption: "Sent to Saola Outdoor" },
-]} />
+    code: `<Stepper aria-label="Invoice approval" orientation="vertical" current={approved ? 2 : 1}>
+  <StepperStep id="draft" title="Draft" caption="Linh Vo · 9:12 am" />
+  <StepperStep id="lead" title="Design lead" caption={approved ? "You · Approved at 10:30 am" : "You · Waiting since 9:12 am"} />
+  <StepperStep id="finance" title="Finance" caption={approved ? "Mai Ho · Waiting since 10:30 am" : "Mai Ho"} />
+  <StepperStep id="client" title="Client" caption="Sent to Saola Outdoor" />
+</Stepper>
 {approved
   ? <Text role="status" textStyle="Body/Base/Regular" tone="base">Waiting for Mai Ho in Finance.</Text>
   : <Stack direction="row" justify="end"><Button level="primary" onClick={approve}>Approve invoice</Button></Stack>}

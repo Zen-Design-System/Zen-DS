@@ -7,6 +7,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import { AiChatBubble } from "../AiChat";
 import { useZenLabels } from "../_shared/zen-context";
 import "./voice.css";
+import "../Icon/core";
 
 /*
  * Figma ❖ Voice (15081:1294): purpose-built voice components made of Zen parts, typography styles and semantic

@@ -1,8 +1,9 @@
-import type { ButtonHTMLAttributes, ReactElement } from "react";
+import type { ButtonHTMLAttributes, ReactElement, ReactNode } from "react";
 import type { IconName } from "../Icon";
 import { useIconTooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
 import { NotificationDot } from "../_shared/notification-dot";
+import { slotItems } from "../_shared/slots";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./bottom-navigation.css";
@@ -27,6 +28,14 @@ export interface BottomNavigationItem {
   dot?: boolean;
 }
 
+/**
+ * One destination as a child of BottomNavigation (Figma Nav-Items slot): `<BottomNavigationItem id="home" label="Home"
+ * icon="icon-home-03-line" />`. It declares the destination and renders nothing on its own; the bar draws it.
+ */
+export function BottomNavigationItem(_item: BottomNavigationItem): null {
+  return null;
+}
+
 export interface BottomNavigationAction {
   /** An icon name (drawn at 24px) or an element. */
   icon: IconName | ReactElement;
@@ -36,7 +45,10 @@ export interface BottomNavigationAction {
 }
 
 export interface BottomNavigationProps {
-  items: BottomNavigationItem[];
+  /** The 3–5 destinations as data. Or give BottomNavigationItem children (Figma Nav-Items). */
+  items?: BottomNavigationItem[];
+  /** The destinations as BottomNavigationItem elements, in order, when `items` is not given. */
+  children?: ReactNode;
   value: string;
   onValueChange: (id: string) => void;
   type?: BottomNavigationType;
@@ -70,9 +82,10 @@ function TipButton({ tip, children, ...props }: ButtonHTMLAttributes<HTMLButtonE
  * edge, strongest at the bottom — the mirror of the Top Navigation blur.
  * The home indicator is the OS's; the bar pads `env(safe-area-inset-bottom)`.
  */
-export function BottomNavigation({ items, value, onValueChange, type = "default", theme = "neutral", selection: selectionProp, showLabels = false, action, fixed = false, backdrop = "surface", "aria-label": ariaLabelProp, className }: BottomNavigationProps) {
+export function BottomNavigation({ items: itemsProp, children, value, onValueChange, type = "default", theme = "neutral", selection: selectionProp, showLabels = false, action, fixed = false, backdrop = "surface", "aria-label": ariaLabelProp, className }: BottomNavigationProps) {
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.mainTabs;
+  const items: BottomNavigationItem[] = itemsProp ?? slotItems(children, BottomNavigationItem).map(({ slotKey, ...item }, index) => ({ ...item, id: item.id ?? slotKey ?? String(index) }));
   // Figma defaults: Floating selects on Surface (Neutral-Surface), Floating-Glass on Active/Subtle (Neutral).
   const selection = selectionProp ?? (type === "floating-glass" ? "subtle" : "surface");
   const floating = type !== "default";

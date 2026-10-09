@@ -1,6 +1,6 @@
 import { useId, useRef, useState, type ReactNode } from "react";
 import { Avatar } from "../../../components/Avatar";
-import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
+import { BottomNavigation, BottomNavigationItem } from "../../../components/BottomNavigation";
 import { BottomSheet } from "../../../components/BottomSheet";
 import { DescriptionList } from "../../../components/DescriptionList";
 import { DockIcon, type DockIconTheme } from "../../../components/DockIcon";
@@ -552,7 +552,12 @@ function BrandLabelsExample() {
   return (
     <PlatformPhone label="Phin & Co" canvas={grouped ? "alt" : "default"} headerOverlay screenRef={screenRef}
       header={<TopNavigation type="alt" title={current.label} largeTitle={current.label} scrollRef={screenRef} />}
-      footer={<BottomNavigation theme="accent" showLabels aria-label="Phin & Co" items={phinTabs} value={tab} onValueChange={open} />}>
+      footer={(
+        // The destinations as BottomNavigationItem children (Figma's Nav-Items slot); an items array works the same.
+        <BottomNavigation theme="accent" showLabels aria-label="Phin & Co" value={tab} onValueChange={open}>
+          {phinTabs.map((item) => <BottomNavigationItem key={item.id} {...item} />)}
+        </BottomNavigation>
+      )}>
       {tab === "home" ? (
         <Stack gap="lg" paddingY="xs">
           <Box paddingX="lg"><Metric size="xl" label="Your points" value={points.toLocaleString("en-US")} icon="icon-gift-01-line" iconTheme="pink" iconBackground="solid" /></Box>
@@ -750,13 +755,13 @@ const grouped = tab === "menu";
 <PlatformPhone canvas={grouped ? "alt" : "default"} headerOverlay screenRef={screenRef}
   header={<TopNavigation type="alt" title={current.label} largeTitle={current.label} scrollRef={screenRef} />}
   footer={
-    <BottomNavigation theme="accent" showLabels aria-label="Phin & Co" value={tab} onValueChange={open} items={[
-      { id: "home", label: "Home", icon: "icon-home-smile-line", selectedIcon: "icon-home-smile-solid" },
-      { id: "menu", label: "Menu", icon: "icon-coffee-cup-line", selectedIcon: "icon-coffee-cup-solid" },
-      { id: "rewards", label: "Rewards", icon: "icon-gift-01-line", selectedIcon: "icon-gift-01-solid" },
-      { id: "stores", label: "Stores", icon: "icon-marker-pin-01-line", selectedIcon: "icon-marker-pin-01-solid" },
-      { id: "account", label: "Account", icon: "icon-user-circle-line", selectedIcon: "icon-user-circle-solid" },
-    ]} />
+    <BottomNavigation theme="accent" showLabels aria-label="Phin & Co" value={tab} onValueChange={open}>
+      <BottomNavigationItem id="home" label="Home" icon="icon-home-smile-line" selectedIcon="icon-home-smile-solid" />
+      <BottomNavigationItem id="menu" label="Menu" icon="icon-coffee-cup-line" selectedIcon="icon-coffee-cup-solid" />
+      <BottomNavigationItem id="rewards" label="Rewards" icon="icon-gift-01-line" selectedIcon="icon-gift-01-solid" />
+      <BottomNavigationItem id="stores" label="Stores" icon="icon-marker-pin-01-line" selectedIcon="icon-marker-pin-01-solid" />
+      <BottomNavigationItem id="account" label="Account" icon="icon-user-circle-line" selectedIcon="icon-user-circle-solid" />
+    </BottomNavigation>
   }>
   {screens[tab]}
 </PlatformPhone>`,

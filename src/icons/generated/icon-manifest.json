@@ -2,7 +2,7 @@
   "count": 1598,
   "monochrome": 1598,
   "multicolor": 0,
-  "core": 97,
+  "core": 101,
   "buckets": 256,
   "aliases": {
     "icon-chevron-left-line": "icon-chevron-left-line-medium",
@@ -7841,7 +7841,7 @@
       "viewBox": "0 0 20 20",
       "colorMode": "monochrome",
       "bucket": 245,
-      "core": false
+      "core": true
     },
     {
       "name": "icon-microphone-solid",
@@ -7849,7 +7849,7 @@
       "viewBox": "0 0 20 20",
       "colorMode": "monochrome",
       "bucket": 145,
-      "core": false
+      "core": true
     },
     {
       "name": "icon-milk-line",
@@ -8505,7 +8505,7 @@
       "viewBox": "0 0 20 20",
       "colorMode": "monochrome",
       "bucket": 113,
-      "core": false
+      "core": true
     },
     {
       "name": "icon-pause-square-line",
@@ -9065,7 +9065,7 @@
       "viewBox": "0 0 20 20",
       "colorMode": "monochrome",
       "bucket": 191,
-      "core": false
+      "core": true
     },
     {
       "name": "icon-play-square-line",

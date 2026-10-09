@@ -85,7 +85,7 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
       className="studio-new-page"
       onOpenChange={(next) => { if (!next) setError(null); onOpenChange(next); }}
       title="New page"
-      description={template ? `${template.description} Copied into a page of your own, saved in this browser.` : "A blank desktop page saved in this browser. Rename it and change its device as you work."}
+      description={template ? `${template.description} Copied into a page of your own, saved in this browser.` : "A desktop page with its app frame (sidebar and page header; on a phone, top and bottom navigation), saved in this browser. Switch each part off, rename the page and change its device as you work."}
       primaryAction={{ label: busy ? "Creating…" : "Create page", disabled: busy, onClick: () => void create() }}
       secondaryAction={{ label: "Cancel" }}
     >

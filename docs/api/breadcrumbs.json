@@ -13,9 +13,17 @@
         {
           "name": "items",
           "type": "BreadcrumbItemData[]",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "",
+          "description": "The trail as data, Master first and the current page last. Or give BreadcrumbItem children (Figma Item-List).",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The trail as BreadcrumbItem elements (`<BreadcrumbItem item={{ id, label, href }} />`), in order, when `items` is\n not given. Breadcrumbs still sets each crumb's level, current page, separators and collapsing.",
           "deprecated": null
         },
         {

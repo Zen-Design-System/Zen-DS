@@ -14,7 +14,7 @@
 //   key)` names each); `media` lists them.
 // - A function the component requires but a page cannot write (standins.mjs) gets a stand-in and a TODO(dev) line; a
 //   Table column shows its row's field named by its id. Fields a component's object type lacks are left out.
-import { parsePage } from "./dialect.mjs";
+import { SCREEN_CHROME, parsePage, screenLayout } from "./dialect.mjs";
 import { isColumnCell, objectFields, requiredFunctions, showsAsText, standInKind } from "./standins.mjs";
 
 const UNIT = "  ";
@@ -251,10 +251,29 @@ function elementCode(node, ctx, indent, extra = []) {
 
 /** A Screen's content as one expression (several children in a fragment). */
 function screenContent(screen, ctx, indent) {
+  const part = (prop) => (screen.props[prop]?.kind === "element" ? screen.props[prop].node : null);
+  const layout = screenLayout(screen.props.device?.value ?? "desktop", screen.props.layout?.value);
+  const shown = SCREEN_CHROME.filter((entry) => entry.layout === layout && part(entry.prop));
   const kids = screen.children.filter((child) => child.kind !== "text" || child.value.trim());
-  if (kids.length === 1 && kids[0].kind === "element") return elementCode(kids[0], ctx, indent);
+  if (!shown.length) {
+    if (kids.length === 1 && kids[0].kind === "element") return elementCode(kids[0], ctx, indent);
+    const inner = indent + UNIT;
+    return `<>\n${kids.map((kid) => `${inner}${childCode(kid, ctx, inner)}`).join("\n")}\n${indent}</>`;
+  }
+  // The app frame (Screen's sidebar · header, or top · bottom navigation): an AppShell around the page on desktop,
+  // the bars above and below it on a phone.
   const inner = indent + UNIT;
-  return `<>\n${kids.map((kid) => `${inner}${childCode(kid, ctx, inner)}`).join("\n")}\n${indent}</>`;
+  const content = kids.map((kid) => `${inner}${childCode(kid, ctx, inner)}`);
+  if (layout === "desktop") {
+    ctx.components.add("AppShell");
+    const sidebar = part("sidebar");
+    const header = part("header");
+    const open = sidebar ? `<AppShell sidebar={${elementCode(sidebar, ctx, inner)}}>` : "<AppShell>";
+    return [open, ...(header ? [`${inner}${elementCode(header, ctx, inner)}`] : []), ...content, `${indent}</AppShell>`].join("\n");
+  }
+  const top = part("topNavigation");
+  const bottom = part("bottomNavigation");
+  return ["<>", ...(top ? [`${inner}${elementCode(top, ctx, inner)}`] : []), ...content, ...(bottom ? [`${inner}${elementCode(bottom, ctx, inner)}`] : []), `${indent}</>`].join("\n");
 }
 
 /**
@@ -282,7 +301,7 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
     const nodes = screens.filter((node) => String(literalOf(node, "id")) === id);
     const variants = nodes.filter((node) => typeof literalOf(node, "state") === "string");
     const plain = nodes.find((node) => literalOf(node, "state") === undefined) ?? nodes[0];
-    return { id, title: String(literalOf(plain, "title") ?? id), device: literalOf(plain, "device") ?? "desktop", variants, plain };
+    return { id, title: String(literalOf(plain, "title") ?? id), device: literalOf(plain, "device") ?? "desktop", canvas: literalOf(plain, "canvas") ?? "default", variants, plain };
   });
   /** A screen's content at `indent`: a chain over its state variants (`state === "empty" ? (…) : (…)`) or the content. */
   const branchCode = (branch, indent) => {
@@ -310,7 +329,8 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   }).filter(Boolean);
 
   const screenLines = branches.flatMap((branch) => {
-    const comment = `${body}{/* Screen "${branch.id}" · ${branch.title} · ${branch.device} */}`;
+    // A Screen on another background layer says so: the app's page (AppShell canvas, or its own) sets it.
+    const comment = `${body}{/* Screen "${branch.id}" · ${branch.title} · ${branch.device}${branch.canvas === "default" ? "" : ` · canvas ${branch.canvas} (Background/Canvas/${branch.canvas === "alt" ? "Alt" : "Flat"})`} */}`;
     const inner = `${body}${UNIT}`;
     if (!many) return [comment, branch.variants.length ? `${body}{${branchCode(branch, body)}}` : `${body}${branchCode(branch, body)}`];
     return [comment, `${body}{screen === ${json(branch.id)} && (\n${inner}${branchCode(branch, inner)}\n${body})}`];

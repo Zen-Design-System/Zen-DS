@@ -127,6 +127,8 @@ export const GUIDELINE_KEYWORDS: Readonly<Record<string, readonly string[]>> = {
   SelectField: ["collect","single","value","user","fields","share","label","field","help","text","anatomy","leading","trailing","slots","free","inputfield","long","textareafield","option","list","selectfield","options","otherwise","autocompletefield","mobile","breakpoint","inside","phone","frame","opens"],
   SidePanel: ["details","filters","edit","form","next","page","leaving","record","list","table","row","modal","many","once","small","persistent","inspector","beside","canvas","standard","sheet","surface","flow","forms","rich","content"],
   Sidebar: ["primary","app","navigation","sections","nested","items","collapsible","rail","shells","destinations","navigating","another","page","desktop","chrome","five","moving","pages"],
+  SidebarMenuItem: ["primary","app","navigation","sections","nested","items","collapsible","rail","shells","destinations"],
+  SidebarMenuSection: ["primary","app","navigation","sections","nested","items","collapsible","rail","shells","destinations"],
   SidebarSubMenu: ["primary","app","navigation","sections","nested","items","collapsible","rail","shells","destinations"],
   SkeletonHeading: ["placeholder","mirrors","layout","content","loads","initial","cards","lists","profiles","whose","known"],
   SkeletonShape: ["placeholder","mirrors","layout","content","loads","initial","cards","lists","profiles","whose","known"],

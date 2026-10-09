@@ -13,12 +13,12 @@ import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { InlineMessage } from "../../../components/InlineMessage";
-import { Icon, type IconName } from "../../../components/Icon";
+import type { IconName } from "../../../components/Icon";
 import { Container, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem, type ListBoxTheme } from "../../../components/ListItem";
 import { PageHeader } from "../../../components/PageHeader";
 import { Search } from "../../../components/Search";
-import { Sidebar, SidebarSubMenu, type SidebarItem, type SidebarSection } from "../../../components/Sidebar";
+import { Sidebar, SidebarMenuItem, SidebarMenuSection, SidebarSubMenu, type SidebarItem, type SidebarSection } from "../../../components/Sidebar";
 import { Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
@@ -122,16 +122,6 @@ const settingsList = (items: { term: string; description: ReactNode }[], canvas:
 const studioPlan = plans.find((plan) => plan.id === workspacePlan.plan)!;
 const studioSeats = workspacePlan.seats;
 
-/** A footer destination: the app's own button, an icon and a label. On the collapsed rail the Sidebar hides the label
- *  visually but keeps it as the button's name, and shows it as a tooltip like the rail's own items. */
-function FooterButton({ icon, label, current, onClick }: { icon: IconName; label: string; current: boolean; onClick: () => void }) {
-  return (
-    <button type="button" aria-current={current ? "page" : undefined} onClick={onClick}>
-      <Icon name={icon} size="base" /><span>{label}</span>
-    </button>
-  );
-}
-
 // ——— 1. Studio navigation ——————————————————————————————————————————————————————————————————————————————
 const myTaskIds = ["t5", "t2", "t8"]; // assigned to Alex, or waiting for his review
 const helpRows: Row[] = [
@@ -187,9 +177,6 @@ function StudioNavigationExample() {
       // A dot for "something new" (a comment Alex hasn't seen), cleared once he opens the project.
       items: list.map((p) => ({ id: p.id, label: p.name, icon: p.icon, notificationDot: p.id === "phin-loyalty" && !seen })) },
   ];
-  const footerButton = (id: string, icon: IconName, label: string) => (
-    <FooterButton icon={icon} label={label} current={page === id} onClick={() => go(id)} />
-  );
 
   const project = list.find((p) => p.id === page);
   const task = [...tasks, ...newTasks].find((t) => t.id === taskId);
@@ -241,7 +228,11 @@ function StudioNavigationExample() {
             sections={sections}
             selectedId={page}
             onItemClick={(item) => go(item.id)}
-            footer={<>{footerButton("settings", "icon-settings-01-line", "Settings")}{footerButton("help", "icon-help-circle-line", "Help")}</>}
+            // Figma Footer-Content: Menu-Items like the body's, selected and handled by the same selectedId / onItemClick.
+            footer={<>
+              <SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />
+              <SidebarMenuItem id="help" label="Help" icon="icon-help-circle-line" />
+            </>}
           />
         )}
       >
@@ -463,13 +454,6 @@ function HandbookNavigationExample() {
 
   const open = (id: string) => { setPage(id); setQuery(""); };
   const docRow = (doc: (typeof allDocs)[number]): Row => ({ id: doc.id, title: doc.title, caption: `${doc.chapter} · Updated ${formatDate(doc.updated)} by ${people[doc.owner].name}`, leading: itemIcon(doc.icon), onClick: () => open(doc.id) });
-  const sections: SidebarSection[] = [
-    { items: [nav("recent", "Recently updated", "icon-clock-line")] },
-    // Chapters open in place (one level deep); the chapter holding the open page opens by itself.
-    { label: "Handbook", items: handbook.map((chapter) => ({ id: chapter.id, label: chapter.label, icon: chapter.icon, children: chapter.docs.map((doc) => ({ id: doc.id, label: doc.title })) })) },
-    { label: "Teams", items: teams.map((t) => nav(t.id, t.label, t.icon)) },
-  ];
-
   const q = query.trim().toLowerCase();
   const doc = allDocs.find((d) => d.id === page);
   const team = teams.find((t) => t.id === page);
@@ -510,11 +494,24 @@ function HandbookNavigationExample() {
           collapsed={collapsed}
           onCollapsedChange={setCollapsed}
           search={<Search size="small" placeholder="Search handbook" aria-label="Search handbook" value={query} onValueChange={setQuery} />}
-          sections={sections}
           selectedId={q ? undefined : page}
           // A chapter opens in place; on the collapsed rail it expands the Sidebar first so its pages show.
           onItemClick={(item) => { if (!handbook.some((chapter) => chapter.id === item.id)) open(item.id); else if (collapsed) setCollapsed(false); }}
-        />
+        >
+          {/* Figma Body-Content as children: Menu-Items and titled groups, the same rows as a sections array. */}
+          <SidebarMenuItem id="recent" label="Recently updated" icon="icon-clock-line" />
+          {/* Chapters open in place (one level deep); the chapter holding the open page opens by itself. */}
+          <SidebarMenuSection label="Handbook">
+            {handbook.map((chapter) => (
+              <SidebarMenuItem key={chapter.id} id={chapter.id} label={chapter.label} icon={chapter.icon}>
+                {chapter.docs.map((doc) => <SidebarMenuItem key={doc.id} id={doc.id} label={doc.title} />)}
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenuSection>
+          <SidebarMenuSection label="Teams">
+            {teams.map((t) => <SidebarMenuItem key={t.id} id={t.id} label={t.label} icon={t.icon} />)}
+          </SidebarMenuSection>
+        </Sidebar>
       )}>
         {content}
       </AppShell>
@@ -683,16 +680,6 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     code: `const [page, setPage] = useState("home");
 const [collapsed, setCollapsed] = useState(false); // remember it per person
 
-// A footer destination: icon + label. On the collapsed rail the Sidebar hides the label visually, keeps it as the
-// button's name and shows it as a tooltip.
-function FooterButton({ icon, label, current, onClick }) {
-  return (
-    <button type="button" aria-current={current ? "page" : undefined} onClick={onClick}>
-      <Icon name={icon} size="base" /><span>{label}</span>
-    </button>
-  );
-}
-
 <AppShell sidebar={
   <Sidebar
     // The logo slot is 24px tall: an image that fills it, never a component that grows with density.
@@ -712,9 +699,10 @@ function FooterButton({ icon, label, current, onClick }) {
         action: <IconButton appearance="flat" level="primary" size="sm" aria-label="New project" icon="icon-plus-line" onClick={openNewProject} />,
         items: projects.map((p) => ({ id: p.id, label: p.name, icon: p.icon, notificationDot: p.hasUnseenComments })) },
     ]}
+    // Footer-Content takes the same Menu-Items: selectedId and onItemClick cover them too.
     footer={<>
-      <FooterButton icon="icon-settings-01-line" label="Settings" current={page === "settings"} onClick={() => setPage("settings")} />
-      <FooterButton icon="icon-help-circle-line" label="Help" current={page === "help"} onClick={() => setPage("help")} />
+      <SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />
+      <SidebarMenuItem id="help" label="Help" icon="icon-help-circle-line" />
     </>}
   />
 }>
@@ -799,17 +787,22 @@ const focusProjects = () => projectsItemRef.current?.focus();
     collapsed={collapsed}
     onCollapsedChange={setCollapsed}
     search={<Search size="small" placeholder="Search handbook" aria-label="Search handbook" value={query} onValueChange={setQuery} />}
-    sections={[
-      { items: [{ id: "recent", label: "Recently updated", icon: "icon-clock-line" }] },
-      { label: "Handbook", items: chapters.map((c) => ({
-        id: c.id, label: c.label, icon: c.icon,
-        children: c.docs.map((doc) => ({ id: doc.id, label: doc.title })),
-      })) },
-      { label: "Teams", items: teams },
-    ]}
     selectedId={page} // opens the chapter that holds the page
     onItemClick={(item) => { if (!isChapter(item.id)) setPage(item.id); }}
-  />
+  >
+    {/* Body-Content as children (or the same rows as a sections array) */}
+    <SidebarMenuItem id="recent" label="Recently updated" icon="icon-clock-line" />
+    <SidebarMenuSection label="Handbook">
+      {chapters.map((c) => (
+        <SidebarMenuItem key={c.id} id={c.id} label={c.label} icon={c.icon}>
+          {c.docs.map((doc) => <SidebarMenuItem key={doc.id} id={doc.id} label={doc.title} />)}
+        </SidebarMenuItem>
+      ))}
+    </SidebarMenuSection>
+    <SidebarMenuSection label="Teams">
+      {teams.map((t) => <SidebarMenuItem key={t.id} id={t.id} label={t.label} icon={t.icon} />)}
+    </SidebarMenuSection>
+  </Sidebar>
 }>
   {query ? <SearchResults query={query} /> : <HandbookPage id={page} />}
 </AppShell>`,

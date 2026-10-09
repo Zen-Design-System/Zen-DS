@@ -3,6 +3,8 @@ import { Button } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { SelectField } from "../../../components/Input";
 import { Segmented } from "../../../components/Segmented";
+import { Checkbox } from "../../../components/Checkbox";
+import { SCREEN_CHROME, screenChromeCode, screenLayout, type ScreenChromeLayout } from "../../../../tools/studio/screen-chrome.mjs";
 import { Heading } from "../../../components/Text";
 import type { IconName } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
@@ -11,7 +13,7 @@ import { useStudioFrames } from "../board/frames";
 import { presentFrame } from "../board/presentFrame";
 import { pageKey, setFrameOverride, useStudio } from "../store";
 import { applyEdit } from "../api";
-import { DEVICE_WIDTH, type PageDevice } from "../builder/proto/runtime";
+import { DEVICE_WIDTH, type PageDevice, type ScreenCanvas } from "../builder/proto/runtime";
 import type { PageNode } from "../builder/render/renderPage";
 import { pageFile, usePage } from "../builder/store/pageStore";
 import { usePageTree } from "../builder/usePageTree";
@@ -33,9 +35,16 @@ const DEVICES: Array<{ id: PageDevice; label: string; icon: IconName }> = [
   { id: "desktop", label: "Desktop", icon: "icon-monitor-01-line" },
 ];
 
+/** A Screen's background layer (Zen's Canvas roles, as AppShell's `canvas`). */
+const CANVASES: Array<{ id: ScreenCanvas; label: string; token: string }> = [
+  { id: "default", label: "Default", token: "Background/Canvas/Default" },
+  { id: "alt", label: "Alt", token: "Background/Canvas/Alt (a white page)" },
+  { id: "flat", label: "Flat", token: "Background/Canvas/Flat" },
+];
+
 /**
- * A builder page's Screen frame (Figma: a frame's device preset): its Device, written on `<Screen device>` as one edit
- * (one undo step). The page starts on a desktop Screen and changes here as you work (user, 2026-10-09: nothing to pick
+ * A builder page's Screen frame (Figma: a frame's device preset and fill): its Device and its Canvas (the background
+ * layer, user 2026-10-09), each written on `<Screen>` as one edit (one undo step). The page starts on a desktop Screen and changes here as you work (user, 2026-10-09: nothing to pick
  * when the page is made).
  */
 function ScreenSection({ frameId }: { frameId: string }) {
@@ -48,9 +57,29 @@ function ScreenSection({ frameId }: { frameId: string }) {
   const node = tree?.board?.children.find((child): child is PageNode => child.kind === "element" && child.name === "Screen" && literal(child, "id") === screenId);
   if (!localPage || !node) return null;
   const device = (literal(node, "device") as PageDevice | undefined) ?? "desktop";
+  const canvas = (literal(node, "canvas") as ScreenCanvas | undefined) ?? "default";
   const write = (next: PageDevice) => {
     if (next === device) return;
     void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [{ op: "setProp", name: "device", value: { kind: "string", value: next } }] }, `Screen device → ${next}`);
+  };
+  // The app frame (user, 2026-10-09): the parts of the layout the Screen shows, each switched on (its component
+  // written into the prop, imported) or off (the prop taken away). A tablet is laid out as a phone (mobile) or a desktop.
+  const layout = screenLayout(device, literal(node, "layout") as string | undefined);
+  const title = String(literal(node, "title") ?? page?.title ?? "Untitled");
+  const writeLayout = (next: ScreenChromeLayout) => {
+    if (next === layout) return;
+    const op = next === "mobile" ? { op: "removeProp" as const, name: "layout" } : { op: "setProp" as const, name: "layout", value: { kind: "string" as const, value: next } };
+    void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [op] }, `Tablet laid out as ${next}`);
+  };
+  const writePart = (part: (typeof SCREEN_CHROME)[number], on: boolean) => {
+    const op = on ? { op: "insertChild" as const, prop: part.prop, code: screenChromeCode(part.prop, title) } : { op: "removeProp" as const, name: part.prop };
+    void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [op] }, `${part.label} ${on ? "on" : "off"}`);
+  };
+  // Default is no prop at all, as the device's desktop default.
+  const writeCanvas = (next: ScreenCanvas) => {
+    if (next === canvas) return;
+    const op = next === "default" ? { op: "removeProp" as const, name: "canvas" } : { op: "setProp" as const, name: "canvas", value: { kind: "string" as const, value: next } };
+    void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [op] }, `Screen canvas → ${next}`);
   };
   return (
     <InspectorSection title="Screen" fieldGrid>
@@ -68,6 +97,54 @@ function ScreenSection({ frameId }: { frameId: string }) {
             value={device}
             onValueChange={(next) => write(next as PageDevice)}
             options={DEVICES.map((item) => ({ id: item.id, label: "", leading: item.icon, "aria-label": `${item.label}, ${DEVICE_WIDTH[item.id]} px` }))}
+          />
+        )]}
+      />
+      {device === "tablet" ? (
+        <InspectorFields
+          name="layout"
+          labels={["Layout"]}
+          code="Screen layout"
+          fields={[(
+            <Segmented
+              key="layout"
+              aria-label="Tablet layout"
+              size="sm"
+              fullWidth
+              disabled={!admin}
+              value={layout}
+              onValueChange={(next) => writeLayout(next as ScreenChromeLayout)}
+              options={[
+                { id: "mobile", label: "Mobile", leading: "icon-mobile-line", "aria-label": "Laid out as mobile: top and bottom navigation" },
+                { id: "desktop", label: "Desktop", leading: "icon-monitor-01-line", "aria-label": "Laid out as desktop: sidebar and page header" },
+              ]}
+            />
+          )]}
+        />
+      ) : null}
+      {/* One checkbox per part, as Figma's Clip content (and the Auto layout section's). */}
+      {SCREEN_CHROME.filter((part) => part.layout === layout).map((part) => (
+        <InspectorFields
+          key={part.prop}
+          name={part.prop}
+          code={`Screen ${part.prop}`}
+          fields={[<Checkbox key={part.prop} label={part.label} checked={node.props[part.prop]?.kind === "element"} disabled={!admin} onCheckedChange={(next) => writePart(part, next)} />]}
+        />
+      ))}
+      <InspectorFields
+        name="canvas"
+        labels={["Canvas"]}
+        code="Screen canvas"
+        fields={[(
+          <Segmented
+            key="canvas"
+            aria-label="Canvas"
+            size="sm"
+            fullWidth
+            disabled={!admin}
+            value={canvas}
+            onValueChange={(next) => writeCanvas(next as ScreenCanvas)}
+            options={CANVASES.map((item) => ({ id: item.id, label: item.label, "aria-label": `${item.label} canvas, ${item.token}` }))}
           />
         )]}
       />

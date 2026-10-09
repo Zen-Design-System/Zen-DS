@@ -280,6 +280,9 @@ async function write(kind: WrapKind, layers: ExtraLayer[], given?: { props: Reco
   const what = count > 1 ? plural(count, "layer") : first.name;
   // Everything on the canvas before the write: the new container is a new element, never one of these.
   const before = renderedNow(world);
+  // The selection the wrap starts from, read before the write: a builder page re-renders as it writes and drops a
+  // selection whose place moved (the wrapped layer), so it is gone by the time the write answers.
+  const startedFrom = studioStore.getState().selection;
   const response = await applyEdit({ file: at.file, loc: at.loc, name: fresh.name, ops: [op], hash: fresh.hash }, given?.label ?? `Wrap ${what} in ${tag}`);
   if (!response.ok) {
     inspectorStatus.set("negative", /Unknown op "wrap"/.test(response.error) ? "Restart the dev server to wrap layers" : response.error);
@@ -298,9 +301,12 @@ async function write(kind: WrapKind, layers: ExtraLayer[], given?: { props: Reco
   const snippet = response.snippet && !response.snippet.synced ? `Example code not updated${response.snippet.reason ? `: ${response.snippet.reason}` : ""}` : null;
   const text = [given?.done ?? `Wrapped ${what} in a ${tag}`, response.draft ? `Draft · ${saveShortcut} to save` : `${undoShortcut} to undo`, snippet].filter(Boolean).join(" · ");
   inspectorStatus.set("positive", text);
-  // Still the selection the wrap started from (or it moved with the write): select the container. Synchronously (no
-  // request in between): Vite may reload the page as soon as it sees the write.
-  if (primary?.kind === "node" && layers.some((layer) => layer.src === primary.src || mapSrc(layer.src, { file: response.file, before: response.before, after: response.after, kind: "edit" }) === primary.src)) {
+  // Still the selection the wrap started from (it moved with the write, or the write dropped it): select the container,
+  // as Figma does; a selection made meanwhile elsewhere stays. Synchronously (no request in between): Vite may reload
+  // the page as soon as it sees the write.
+  const wrapped = (src: string) => layers.some((layer) => layer.src === src || mapSrc(layer.src, { file: response.file, before: response.before, after: response.after, kind: "edit" }) === src);
+  const fromWrapped = startedFrom?.kind === "node" && wrapped(startedFrom.src);
+  if ((primary?.kind === "node" && wrapped(primary.src)) || (fromWrapped && (primary === null || primary === startedFrom))) {
     expectRender(wrapper, before, () => undefined);
     studioStore.setState({ selection: wrapper });
     flushStudioStore();

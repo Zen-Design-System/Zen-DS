@@ -19,6 +19,7 @@ Show where the current page sits in a hierarchy and let users go up.
 | Level | `master` | first item with icon |
 | Collapse | `maxItems` | first + last N, “…” expands |
 | Navigate | `onNavigate` | preventDefault for client routing |
+| Item-List slot | `children: <BreadcrumbItem item={{ id, label, href }} />` | instead of items (Figma Item-List); the level, current page and collapsing stay Breadcrumbs' own |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/breadcrumbs.json`.
@@ -28,7 +29,8 @@ Figma Breadcrumbs (4031:20161): Item-List with chevron separators (icon-chevron-
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `items` (required) | `BreadcrumbItemData[]` | — |  |
+| `items` | `BreadcrumbItemData[]` | — | The trail as data, Master first and the current page last. Or give BreadcrumbItem children (Figma Item-List). |
+| `children` | `ReactNode` | — | The trail as BreadcrumbItem elements (`<BreadcrumbItem item={{ id, label, href }} />`), in order, when `items` is not given. Breadcrumbs still sets each crumb's level, current page, separators and collapsing. |
 | `emphasis` | `"default" \| "medium"` | `"default"` |  |
 | `master` | `boolean` | `true` | Show the first item as the Master level (with icon). Default true. |
 | `maxItems` | `number` | — | Collapse middle items behind an ellipsis button when there are more than this many. Activating the ellipsis shows them all and moves focus to the first crumb it revealed. |

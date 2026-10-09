@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { Icon, type IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
+import { slotItems } from "../_shared/slots";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./breadcrumbs.css";
@@ -40,7 +41,11 @@ export function BreadcrumbItem({ item, level = "sub", emphasis = "default", curr
 }
 
 export interface BreadcrumbsProps {
-  items: BreadcrumbItemData[];
+  /** The trail as data, Master first and the current page last. Or give BreadcrumbItem children (Figma Item-List). */
+  items?: BreadcrumbItemData[];
+  /** The trail as BreadcrumbItem elements (`<BreadcrumbItem item={{ id, label, href }} />`), in order, when `items` is
+   *  not given. Breadcrumbs still sets each crumb's level, current page, separators and collapsing. */
+  children?: ReactNode;
   emphasis?: BreadcrumbEmphasis;
   /** Show the first item as the Master level (with icon). Default true. */
   master?: boolean;
@@ -55,9 +60,10 @@ export interface BreadcrumbsProps {
 }
 
 /** Figma Breadcrumbs (4031:20161): Item-List with chevron separators (icon-chevron-right-line-small, Neutral/Light). */
-export function Breadcrumbs({ items, emphasis = "default", master = true, maxItems, onNavigate, "aria-label": ariaLabelProp, className }: BreadcrumbsProps) {
+export function Breadcrumbs({ items: itemsProp, children, emphasis = "default", master = true, maxItems, onNavigate, "aria-label": ariaLabelProp, className }: BreadcrumbsProps) {
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.breadcrumb;
+  const items = itemsProp ?? slotItems(children, BreadcrumbItem).map((crumb) => crumb.item);
   const [expanded, setExpanded] = useState(false);
   const listRef = useRef<HTMLOListElement>(null);
   // Activating "…" removes it, so focus would drop to <body>: move it to the first crumb it revealed (items[1]), which is

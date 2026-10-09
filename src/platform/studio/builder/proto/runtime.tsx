@@ -10,6 +10,11 @@ import { ZenPortalProvider } from "../../../../components/Portal";
  */
 
 export type PageDevice = "phone" | "tablet" | "desktop";
+/** A Screen's background layer, as AppShell's `canvas`: Canvas/Default, Canvas/Alt (a white page) or Canvas/Flat. */
+export type ScreenCanvas = "default" | "alt" | "flat";
+/** How a Screen is laid out (tools/studio/dialect.mjs screenLayout): a phone's frame or a desktop's. A tablet picks one. */
+export type ScreenLayout = "mobile" | "desktop";
+export const screenLayoutOf = (device: PageDevice, layout?: ScreenLayout): ScreenLayout => (device === "phone" ? "mobile" : device === "tablet" ? (layout === "desktop" ? "desktop" : "mobile") : "desktop");
 /** Width of a device frame (CSS px). */
 export const DEVICE_WIDTH: Readonly<Record<PageDevice, number>> = { phone: 390, tablet: 768, desktop: 1440 };
 
@@ -33,10 +38,28 @@ export function protoHandler(actions: ProtoActions, action: string, args: unknow
 }
 
 /** Builder props that are not DOM attributes (the board reads them; they must not reach the element). */
-type ScreenProps = HTMLAttributes<HTMLDivElement> & { id?: string; title?: string; device?: PageDevice; state?: string; children?: ReactNode };
+type ScreenProps = HTMLAttributes<HTMLDivElement> & {
+  id?: string;
+  title?: string;
+  device?: PageDevice;
+  /** A tablet's layout: a phone's frame (mobile, the default) or a desktop's. */
+  layout?: ScreenLayout;
+  canvas?: ScreenCanvas;
+  state?: string;
+  /** The app frame (dialect SCREEN_CHROME): the desktop layout shows `sidebar` and `header`, the mobile layout
+   *  `topNavigation` and `bottomNavigation`; the other layout's parts are kept for when the device changes. */
+  sidebar?: ReactNode;
+  header?: ReactNode;
+  topNavigation?: ReactNode;
+  bottomNavigation?: ReactNode;
+  children?: ReactNode;
+};
 
-export function Screen({ id, title, device = "desktop", state, children, ...rest }: ScreenProps) {
+export function Screen({ id, title, device = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, ...rest }: ScreenProps) {
   const phone = device === "phone";
+  const active = screenLayoutOf(device, layout);
+  const desktop = active === "desktop";
+  const chrome = desktop ? Boolean(sidebar || header) : Boolean(topNavigation || bottomNavigation);
   return (
     <div
       {...rest}
@@ -44,12 +67,29 @@ export function Screen({ id, title, device = "desktop", state, children, ...rest
       data-screen={id}
       data-screen-state={state}
       data-device={device}
+      data-layout={active}
+      data-chrome={chrome ? "" : undefined}
+      data-canvas={canvas === "default" ? undefined : canvas}
       data-breakpoint={device === "desktop" ? undefined : device === "phone" ? "mobile" : "tablet"}
       data-density={phone ? "comfortable" : undefined}
       data-typography={phone ? "mobile" : undefined}
       aria-label={title}
     >
-      {children}
+      {!chrome ? children : desktop ? (
+        <>
+          {sidebar ? <div className="studio-builder-screen__side">{sidebar}</div> : null}
+          <div className="studio-builder-screen__main">
+            {header ? <div className="studio-builder-screen__header">{header}</div> : null}
+            <div className="studio-builder-screen__content">{children}</div>
+          </div>
+        </>
+      ) : (
+        <div className="studio-builder-screen__main">
+          {topNavigation ? <div className="studio-builder-screen__top">{topNavigation}</div> : null}
+          <div className="studio-builder-screen__content">{children}</div>
+          {bottomNavigation ? <div className="studio-builder-screen__bottom">{bottomNavigation}</div> : null}
+        </div>
+      )}
     </div>
   );
 }

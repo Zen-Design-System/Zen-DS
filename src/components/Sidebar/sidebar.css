@@ -124,6 +124,8 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar__footer { display: flex; width: 100%; flex-direction: column; align-items: flex-start; box-sizing: border-box; padding: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-sidebar__footer-content { display: flex; width: 100%; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .zen-sidebar__footer-content > button { display: flex; width: 100%; min-height: calc(var(--zen-element-size-popular-base, 20px) + 2 * var(--zen-sidebar-item-padding, 12px)); align-items: center; gap: var(--zen-sidebar-item-gap, 12px); box-sizing: border-box; padding: var(--zen-sidebar-item-padding, 12px); border: 0; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-flat-default, transparent); color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-base, 14px)/var(--zen-typography-line-height-body-base, 20px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-base, -.14px); text-align: left; }
+/* Figma Footer-Content holds Menu-Items: a SidebarMenuItem row spans the footer like the body's rows. */
+.zen-sidebar__footer-content > .zen-sidebar__item-group { align-self: stretch; }
 .zen-sidebar__footer-content > button:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
 .zen-sidebar__footer-content > button > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 var(--zen-element-size-popular-base, 20px); }
 
@@ -196,7 +198,7 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__body { align-items: center; }
 /* Collapsed: Figma keeps the collapse wrapper centred and items square (icon 20 + 12px padding = 44). */
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__collapse { margin: var(--zen-sidebar-collapse-bleed); }
-.zen-sidebar[data-variant="basic"][data-collapsed="true"] :is(.zen-sidebar__body .zen-sidebar__item, .zen-sidebar__footer-content > button) { width: calc(var(--zen-element-size-popular-base, 20px) + 2 * var(--zen-sidebar-item-padding, 12px)); align-self: center; margin-inline: auto; }
+.zen-sidebar[data-variant="basic"][data-collapsed="true"] :is(.zen-sidebar__body .zen-sidebar__item, .zen-sidebar__footer-content .zen-sidebar__item, .zen-sidebar__footer-content > button) { width: calc(var(--zen-element-size-popular-base, 20px) + 2 * var(--zen-sidebar-item-padding, 12px)); align-self: center; margin-inline: auto; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__item { justify-content: center; gap: 0; padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__item-label,
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__counter,
