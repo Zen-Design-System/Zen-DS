@@ -55,6 +55,15 @@ slots). v1 entries, from the live Figma scan (native SLOT properties) and the co
 | ListItem | leading | Leading | atom (max 1) | `.zen-list-item__leading` | no | — |
 | ListItem | trailing | Slot-Actions `4060:8` | atom group | `.zen-list-item__trailing` | no | row |
 | Stack, Grid, Box | children | (auto-layout frame) | layout | root | yes | own props |
+| PageHeader | breadcrumbs | (Header Type=Navigation › Leading-Slots `4122:33333`) | content, max 1, Breadcrumbs | `.zen-page-header__breadcrumbs` | no (ghost before the title row) | block, none |
+| PageHeader | meta | — | content, Badge · AvatarStack | `.zen-page-header__meta` | no | row, own |
+| PageHeader | tabs | — | content, max 1, Tabs | `.zen-page-header__tabs` | no (ghost at the end) | block, none |
+| Screen (builder page) | header | (Header Type=Custom `6034:46170`) | content | `.studio-builder-screen__header` | no; not on a phone | block, none → wrap |
+
+(2026-10-10, user: "breadcrumb nên là slot cho phép thêm item vào", "Header page cũng nên là slot để custom được header
+tuỳ use case".) A prop that is a content slot shows in Properties as a switch (Figma's boolean showing the layer), never
+a text field: on puts the slot's one component in at once (Breadcrumbs, a Tab bar) or opens the picker, off removes the
+prop; the content is edited in the Slots section (Breadcrumbs' own Item-List adds items).
 
 Host rules (warn-first, the usage harness enforces at Save): a clickable Card/ListItem hides Actions and Inputs
 (`card/clickable-no-nested-controls`); Dialog hosts deny nested overlays and primary buttons (actions are props);

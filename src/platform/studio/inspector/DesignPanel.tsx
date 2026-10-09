@@ -20,7 +20,7 @@ import { detachShown, rowOf, useDetachPlan } from "./detach";
 import { DetachAction } from "./DetachAction";
 import type { FieldApi } from "./fieldApi";
 import { copyText } from "./frames";
-import { GroupedProperties } from "./GroupedProperties";
+import { GroupedProperties, ToggleRow } from "./GroupedProperties";
 import { HostTextAlignment } from "./HostTextAlignment";
 import { LayoutSection } from "./LayoutSection";
 import { InspectorFileContext, InspectorHostContext, InspectorSrcContext } from "./controls/hostContext";
@@ -859,7 +859,16 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
         <>
           {autoGroups(propertySpecs.filter((spec) => !shapedNames.has(spec.name))).map((group, index) => (
             <InspectorSection key={group.id} title={group.title} note={index === 0 ? propertiesNote : undefined}>
-              {group.specs.map((spec) => <Field key={spec.name} spec={spec} api={api} component={name} label={labelInGroup(propLabel(spec.name, name), group)} />)}
+              {group.specs.map((spec) => {
+                const label = labelInGroup(propLabel(spec.name, name), group);
+                // A content slot's prop is a layer to show or hide (Figma's boolean), never free text: on puts real content
+                // in it (PageHeader Breadcrumbs: a Breadcrumbs, user 2026-10-10), edited in the Slots section below.
+                if (spec.editor.kind === "node" && slotOf(name, spec.name)) {
+                  const value = api.valueFor(spec.name);
+                  return <ToggleRow key={spec.name} toggle={{ prop: spec.name, label, on: { kind: "slot" } }} on={value.state !== "unset"} value={value} api={api} selection={selection} element={element} />;
+                }
+                return <Field key={spec.name} spec={spec} api={api} component={name} label={label} />;
+              })}
             </InspectorSection>
           ))}
           {shapedProps.map((entry) => (

@@ -301,6 +301,47 @@ const pageHeaderActions: ContentSlot = {
   accepts: { only: ["Button", "IconButton", "Menu"], deny: [...overlayDeny] },
 };
 
+const pageHeaderBreadcrumbs: ContentSlot = {
+  // PageHeader.tsx: {breadcrumbs ? <div className="zen-page-header__breadcrumbs">…</div> : eyebrow …} above the title row.
+  // Figma Primitives/Dashboard/Header Type=Navigation › Leading-Slots (4122:33333) holds a Breadcrumbs instance, whose own
+  // Item-List takes the items (dataSlots.ts). User, 2026-10-10: "breadcrumb nên là slot cho phép thêm item vào" — on, a
+  // real Breadcrumbs (not a text label).
+  component: "PageHeader", prop: "breadcrumbs", name: "Breadcrumbs", figma: { node: "4122:33333", native: true },
+  kind: "content", container: ":scope > .zen-page-header__breadcrumbs", mountsWhenEmpty: false,
+  ghostAnchor: { selector: ":scope > .zen-page-header__row", place: "before" }, flow: "block", gap: "none", max: 1,
+  accepts: { only: ["Breadcrumbs"] },
+};
+
+const pageHeaderMeta: ContentSlot = {
+  // {meta ? <div className="zen-page-header__meta">…</div> : null} beside the title (page-header.css: an inline flex row,
+  // Gap/XSmall): a status Badge, Tag or AvatarStack (the prop's doc).
+  component: "PageHeader", prop: "meta", name: "Meta",
+  kind: "content", container: ":scope > .zen-page-header__row > .zen-page-header__titles > .zen-page-header__meta", mountsWhenEmpty: false,
+  ghostAnchor: { selector: ":scope > .zen-page-header__row > .zen-page-header__titles", place: "last-child" }, flow: "row", gap: "own",
+  accepts: { only: ["Badge", "AvatarStack"], deny: [...overlayDeny] },
+};
+
+const pageHeaderTabs: ContentSlot = {
+  // {tabs ? <div className="zen-page-header__tabs">…</div> : null} under the header: <Tabs> that switch the page's sections.
+  component: "PageHeader", prop: "tabs", name: "Tabs",
+  kind: "content", container: ":scope > .zen-page-header__tabs", mountsWhenEmpty: false,
+  ghostAnchor: { selector: ":scope", place: "last-child" }, flow: "block", gap: "none", max: 1,
+  accepts: { only: ["Tabs"] },
+};
+
+const screenHeader: ContentSlot = {
+  // A builder page's Screen (builder/proto/runtime.tsx): {header ? <div className="studio-builder-screen__header">…} at the
+  // top of the desktop layout's main column (builder.css: a block with padding). Figma Primitives/Dashboard/Header
+  // Type=Custom is one free slot (6034:46170): the header holds what the page needs (user, 2026-10-10: "Header page cũng
+  // nên là slot để custom được header tuỳ use case"); the Screen's Page header toggle starts it with a PageHeader.
+  component: "Screen", prop: "header", name: "Header", figma: { node: "6034:46170", native: true },
+  kind: "content", container: ":scope > .studio-builder-screen__main > .studio-builder-screen__header", mountsWhenEmpty: false,
+  ghostAnchor: { selector: ":scope > .studio-builder-screen__main", place: "first-child" }, flow: "block", gap: "none",
+  accepts: { deny: [...overlayDeny] },
+  // A phone shows the mobile layout (top and bottom navigation), which has no header.
+  activeWhen: [{ prop: "device", not: ["phone"], default: "desktop" }],
+};
+
 const pageHeaderTrailing: ContentSlot = {
   // {trailing ? <span className="zen-page-header__trailing">…</span> : null} after the actions; page-header.css: an
   // inline flex row, Gap/Small. Figma Trailing-Slots (Action-Item Button/Icon-Main, Avatar/Single).
@@ -358,7 +399,9 @@ export const CONTENT_SLOTS: Readonly<Record<string, SlotComponent>> = {
   // Its title level is a string prop ("h1"); nothing inserted into the Control-Slot takes a heading level from it.
   TopNavigation: { root: ".zen-top-nav", titleLevel: null, slots: [topNavigationControl] },
   Sidebar: { root: ".zen-sidebar", titleLevel: null, slots: [sidebarHeader, sidebarBody, sidebarFooter] },
-  PageHeader: { root: ".zen-page-header", titleLevel: { prop: "headingLevel", default: 1 }, slots: [pageHeaderActions, pageHeaderTrailing] },
+  PageHeader: { root: ".zen-page-header", titleLevel: { prop: "headingLevel", default: 1 }, slots: [pageHeaderBreadcrumbs, pageHeaderMeta, pageHeaderActions, pageHeaderTrailing, pageHeaderTabs] },
+  // A builder page's Screen (not a library component): its app frame's header is a free slot.
+  Screen: { root: ".studio-builder-screen", titleLevel: null, slots: [screenHeader] },
   Metric: { root: ".zen-metric", titleLevel: null, slots: [metricAction] },
   EmptyState: { root: ".zen-empty-state", titleLevel: null, slots: [emptyStateIcon] },
   // Stack and Grid space their children with their gap prop (default md); Box is a plain block (Layout.tsx, layout.css).

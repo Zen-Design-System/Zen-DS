@@ -612,19 +612,59 @@ export const rows = [
       await until(() => tag.count(), { message: "the Body-Content outline on the canvas" });
       await page.locator('#studio-right [data-slot="footer"]').getByRole("button", { name: "Add to Footer-Content" }).click();
       await page.getByRole("option", { name: /^Menu item/ }).first().click();
-      await until(async () => /footer=\{<SidebarMenuItem id="invoices"/.test((await pageText(page, id)) ?? ""), { message: "footer={<SidebarMenuItem …/>} in the page" });
+      await until(async () => /footer=\{<SidebarMenuItem id="invoices-\w+"/.test((await pageText(page, id)) ?? ""), { message: "footer={<SidebarMenuItem id=\"invoices-…\" …/>} in the page" });
       await until(async () => (await frame.locator(".zen-sidebar__footer-content .zen-sidebar__item").count()) === 1, { message: "the footer row on the Screen" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Escape");
       // The Page header's title picks the header (its heading is the component's own part).
       await clickIn(frame.locator(".zen-page-header h1"), "the Page header title");
       await until(async () => (await selectedName(page)) === "PageHeader", { message: "the Page header selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
-      await until(async () => (await slots.evaluateAll((els) => els.map((el) => el.getAttribute("data-slot")).join(","))) === "actions,trailing", { message: "Slots: Action-Slots, Trailing-Slots" });
+      await until(async () => (await slots.evaluateAll((els) => els.map((el) => el.getAttribute("data-slot")).join(","))) === "breadcrumbs,meta,actions,trailing,tabs", { message: "Slots: Breadcrumbs, Meta, Action-Slots, Trailing-Slots, Tabs" });
       await page.locator('#studio-right [data-slot="actions"]').getByRole("button", { name: "Add to Action-Slots" }).click();
       await page.getByRole("option", { name: /^Primary button/ }).first().click();
       await until(async () => /<PageHeader [^>]*actions=\{<Button level="primary"/.test((await pageText(page, id)) ?? ""), { message: "actions={<Button level=\"primary\" …>} in the page" });
       await until(async () => (await frame.locator(".zen-page-header__actions .zen-button").count()) === 1, { message: "the action on the Screen" });
       return "Sidebar: brand · children (3 rows) · footer (+ Menu item) · PageHeader: actions (+ Primary button) · trailing";
+    },
+  },
+  {
+    id: "B-28", feature: "Page header › Breadcrumbs on puts a real Breadcrumbs (not a text label) whose Item-List + adds an item; the Screen's Header is a slot (+ adds content); a Menu item outside a Sidebar keeps the row's padding", wp: "slots 2026-10-10",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx, { device: "desktop" });
+      const frame = page.locator('[data-studio-frame="screen:screen-1"]');
+      await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+      await focusScreen(page);
+      const text = async () => (await pageText(page, id)) ?? "";
+      // The Page header: its Breadcrumbs row is a switch (a slot), not a text field.
+      await clickNamed(page, id, "PageHeader");
+      await until(async () => (await selectedName(page)) === "PageHeader", { message: "the Page header selected" });
+      const toggle = page.locator('#studio-right [data-prop="breadcrumbs"]').getByRole("switch", { name: "Breadcrumbs" });
+      await toggle.click();
+      await until(async () => /<PageHeader [^]*breadcrumbs=\{<Breadcrumbs /.test(await text()), { message: "breadcrumbs={<Breadcrumbs …/>} in the page" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await until(async () => (await frame.locator(".zen-page-header__breadcrumbs .zen-breadcrumbs").count()) === 1, { message: "a real Breadcrumbs on the Screen" });
+      // Its Item-List takes another item.
+      const items = (await text()).match(/<Breadcrumbs [^]*?items=\{\[([^]*?)\]\}/)?.[1] ?? "";
+      const before = (items.match(/\bid:/g) ?? []).length;
+      // Breadcrumbs keeps the annotation off its DOM: selected by its box (⌘: the element itself).
+      await selectAt(page, await frame.locator(".zen-page-header__breadcrumbs .zen-breadcrumbs").first().boundingBox());
+      await until(async () => (await selectedName(page)) === "Breadcrumbs", { message: "the Breadcrumbs selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
+      await page.locator("#studio-right").getByRole("button", { name: "Add Item to Item-List" }).click();
+      await until(async () => (((await text()).match(/<Breadcrumbs [^]*?items=\{\[([^]*?)\]\}/)?.[1] ?? "").match(/\bid:/g) ?? []).length === before + 1, { message: `${before + 1} breadcrumb items` });
+      // Up to the Screen (Esc: Breadcrumbs → PageHeader → Screen): its Header slot takes any content.
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("Escape");
+      await until(async () => (await selectedName(page)) === "Screen", { message: "the Screen selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
+      await page.locator('#studio-right [data-slot="header"]').getByRole("button", { name: "Add to Header" }).click();
+      await page.getByRole("option", { name: /^Search/ }).first().click();
+      await until(async () => /header=\{<Stack gap="md">[^]*<PageHeader [^]*<Search /.test(await text()), { message: "the Header holds the PageHeader and a Search" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      // A Menu item placed outside a Sidebar still draws Figma's Menu-Item (padding and gap Small).
+      await selectStack(page, id);
+      await insertAsset(page, "Menu item");
+      await until(async () => (await frame.locator(".studio-builder-screen__content .zen-sidebar__item").count()) === 1, { message: "the Menu item in the page's Stack" });
+      const spacing = await frame.locator(".studio-builder-screen__content .zen-sidebar__item").first().evaluate((el) => { const style = getComputedStyle(el); return `${style.paddingLeft} ${style.columnGap}`; });
+      if (spacing !== "12px 12px") throw new Error(`the row outside a Sidebar has padding/gap ${spacing}`);
+      return `Breadcrumbs: ${before} → ${before + 1} items · Header: PageHeader + Search · Menu item outside a Sidebar: ${spacing}`;
     },
   },
 ];

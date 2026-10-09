@@ -680,6 +680,10 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **SidebarMenuItem and SidebarMenuSection outside a Sidebar (2026-10-10):** a row placed on its own (a page's Stack,
+  a flyout) lost its padding and the gap between icon and label, because both came from variables only the Sidebar
+  defines; they fall back to the Sidebar's own values (Padding/Small, Gap/Small), so the row draws Figma's Menu-Item
+  anywhere.
 - **Zen Studio: Discard right after an edit could keep the old canvas (2026-10-09):** the edit's in-flight compile landed
   in Vite's cache after the discard and was served from then on (Vite's HMR invalidation does not stop that); the Studio
   now invalidates the file plainly before its hot reload. The E2E rows that failed only in full runs (ST-12, D-01, D-02,
@@ -1020,6 +1024,13 @@ removed (four unused colour ramps were, see Removed).
     which still bleeds outside the trail).
 
 ### Changed
+- **Zen Studio: slot props are switches, the Page header and the Screen header take real content (2026-10-10):** a
+  component's prop that is a content slot shows in Properties as a switch (Figma's boolean), never as a text field, so
+  PageHeader › Breadcrumbs on puts a real `<Breadcrumbs>` (its Item-List adds items) instead of a text label; a slot that
+  takes one component gets it at once, others open the picker. PageHeader's Breadcrumbs, Meta and Tabs are slots beside
+  Action- and Trailing-Slots, and a builder Screen's Header is a free slot (Figma Header Type=Custom) for any header a
+  page needs. Assets: a Tab bar item (Tabs without panels); every Menu item gets its own id (three "invoices" rows were
+  one row to the Sidebar); Breadcrumbs go on builder pages (a static trail).
 - **Zen Studio: clicks on the canvas work like Figma (2026-10-09):** a click selects the outermost layer under the
   pointer in the current context (a frame's top level, or the selected layer's siblings; a click inside the selected
   layer keeps it), a double-click goes one level in (onto a text layer it edits the text), ⌘ / Ctrl-click selects the

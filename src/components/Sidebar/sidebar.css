@@ -72,15 +72,17 @@
 .zen-sidebar__sub-menu { position: relative; display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-left: calc(var(--zen-spacing-padding-small, 12px) + var(--zen-element-size-popular-small, 16px)); }
 .zen-sidebar__sub-menu::before { position: absolute; top: 0; bottom: 0; left: calc(var(--zen-spacing-padding-small, 12px) + 9px); width: 2px; background: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); content: ""; }
 
+/* The fallbacks are the .zen-sidebar defaults: a SidebarMenuItem placed outside a Sidebar (a page's Stack, a flyout)
+   draws Figma's Menu-Item all the same (Studio, 2026-10-10: it lost its padding and gap there). */
 .zen-sidebar__item {
   position: relative;
   display: flex;
   width: 100%;
   min-height: 44px;
   align-items: center;
-  gap: var(--zen-sidebar-item-gap);
+  gap: var(--zen-sidebar-item-gap, var(--zen-spacing-gap-small, 12px));
   box-sizing: border-box;
-  padding: var(--zen-sidebar-item-padding);
+  padding: var(--zen-sidebar-item-padding, var(--zen-spacing-padding-small, 12px));
   border: 0;
   border-radius: var(--zen-corner-radius-base, 12px);
   background: var(--zen-color-background-neutral-flat-default, transparent);

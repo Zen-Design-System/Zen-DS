@@ -159,7 +159,7 @@ export const rows = [
         await slot.getByRole("button", { name: "Add to Footer-Content" }).click();
         await page.getByRole("option", { name: /^Menu item/ }).first().click();
         const written = async () => (await ctx.api.source(file)).content;
-        await until(async () => /const appsButton = <>[\s\S]*<SidebarMenuItem id="invoices"/.test(await written()), { message: "the Menu item added inside const appsButton" });
+        await until(async () => /const appsButton = <>[\s\S]*<SidebarMenuItem id="invoices-\w+"/.test(await written()), { message: "the Menu item added inside const appsButton" });
         const text = await written();
         if ((text.match(/footer=\{appsButton\}/g) ?? []).length !== 2) throw new Error("both Sidebars should still show appsButton");
         await until(async () => (await frame.locator(".zen-sidebar__footer-content").first().locator(":scope > *").count()) >= 2, { message: "two footer rows on the canvas" });

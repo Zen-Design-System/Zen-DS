@@ -121,6 +121,8 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
 
 const level = (ctx: PaletteContext) => Math.min(6, Math.max(2, Math.round(ctx.headingLevel) || 3));
 const uidOf = (ctx: PaletteContext) => ctx.uid.toLowerCase().replace(/[^a-z0-9]/g, "") || "1";
+/** A short id suffix for rows the owner keys by id (Sidebar rows): the end of the insert's uid, so two inserts differ. */
+const rowId = (ctx: PaletteContext) => uidOf(ctx).slice(-4);
 const lines = (...rows: string[]) => rows.join("\n");
 const TOAST = ["toast"] as const;
 const MEDIA = ["media"] as const;
@@ -202,23 +204,31 @@ export const PALETTE: readonly PaletteItem[] = [
     build: (ctx) => `<Segmented aria-label="Billing period" defaultValue="monthly"${ctx.mobile ? " fullWidth" : ""} options={[{ id: "monthly", label: "Monthly" }, { id: "yearly", label: "Yearly" }]} />`,
   },
   {
+    // The bar alone, switching by itself (no panels, no state): a PageHeader's Tabs slot, a page's section bar.
+    id: "tab-bar", label: "Tab bar", group: "Navigation", caption: "Page sections", root: "Tabs", components: ["Tabs"], interactive: true, input: false,
+    build: (ctx) => `<Tabs idPrefix="sections-${uidOf(ctx)}" aria-label="Page sections" defaultValue="overview" items={[{ id: "overview", label: "Overview" }, { id: "activity", label: "Activity" }]} />`,
+  },
+  {
     id: "breadcrumbs", label: "Breadcrumbs", group: "Navigation", root: "Breadcrumbs", components: ["Breadcrumbs"], requires: TOAST, interactive: true, input: false,
     build: () => lines(
       `<Breadcrumbs items={[{ id: "projects", label: "Projects", href: "#projects" }, { id: "loyalty", label: "Loyalty app" }]}`,
       `  onNavigate={(_, event) => { event.preventDefault(); toast({ title: "Projects opened" }); }} />`,
     ),
+    // A builder page keeps no handlers that need code: the trail as the page shows it, no links to leave the canvas by.
+    builder: () => `<Breadcrumbs items={[{ id: "projects", label: "Projects" }, { id: "loyalty", label: "Loyalty app" }]} />`,
   },
   /* Sidebar rows (Figma Menu-Item): what the Sidebar's Body-Content and Footer-Content slots hold. */
   {
     id: "menu-item", label: "Menu item", group: "Navigation", caption: "Sidebar row", root: "SidebarMenuItem", components: ["SidebarMenuItem"], interactive: true, input: false,
-    build: () => `<SidebarMenuItem id="invoices" label="Invoices" icon="icon-receipt-line" />`,
+    // Each insert its own id (the Sidebar keys and selects rows by id: three "invoices" rows were one row to it).
+    build: (ctx) => `<SidebarMenuItem id="invoices-${rowId(ctx)}" label="Invoices" icon="icon-receipt-line" />`,
   },
   {
     id: "menu-section", label: "Menu section", group: "Navigation", caption: "Titled Sidebar rows", root: "SidebarMenuSection", components: ["SidebarMenuSection", "SidebarMenuItem"], interactive: true, input: false,
-    build: () => lines(
+    build: (ctx) => lines(
       `<SidebarMenuSection label="Projects">`,
-      `  <SidebarMenuItem id="loyalty-app" label="Loyalty app" icon="icon-cube-line" />`,
-      `  <SidebarMenuItem id="online-banking" label="Online banking redesign" icon="icon-cube-line" />`,
+      `  <SidebarMenuItem id="loyalty-app-${rowId(ctx)}" label="Loyalty app" icon="icon-cube-line" />`,
+      `  <SidebarMenuItem id="online-banking-${rowId(ctx)}" label="Online banking redesign" icon="icon-cube-line" />`,
       `</SidebarMenuSection>`,
     ),
   },

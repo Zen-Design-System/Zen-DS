@@ -60,8 +60,10 @@ const SOURCES = {
   Stack: { tsx: ["Layout/Layout.tsx"], css: ["Layout/layout.css"] },
   Grid: { tsx: ["Layout/Layout.tsx"], css: ["Layout/layout.css"] },
   Box: { tsx: ["Layout/Layout.tsx"], css: ["Layout/layout.css"] },
+  // A builder page's Screen (not a library component): its source is the builder runtime, its props its ScreenProps type.
+  Screen: { tsx: ["../platform/studio/builder/proto/runtime.tsx"], css: ["../platform/studio/builder/builder.css"], props: "ScreenProps" },
 };
-const classesIn = (selector) => [...(selector ?? "").matchAll(/\.(zen-[\w-]+)/g)].map((m) => m[1]);
+const classesIn = (selector) => [...(selector ?? "").matchAll(/\.((?:zen|studio-builder)-[\w-]+)/g)].map((m) => m[1]);
 const lastClass = (selector) => classesIn(selector).at(-1);
 /** Declarations of the rules whose selector list holds exactly `.cls` (not compound selectors). */
 function declarations(css, cls) {
@@ -87,7 +89,8 @@ for (const [name, def] of Object.entries(CONTENT_SLOTS)) {
   for (const slot of def.slots) {
     const id = `${name}.${slot.prop}`;
     check(`${id}: owner`, slot.component, name);
-    check(`${id}: the prop is in api.generated.json`, Boolean(apiOf(name)?.props.some((prop) => prop.name === slot.prop)), true);
+    if (source.props) check(`${id}: the prop is in ${source.props}`, new RegExp(`type ${source.props} = [^]*?\\b${slot.prop}\\?: ReactNode`).test(tsx), true);
+    else check(`${id}: the prop is in api.generated.json`, Boolean(apiOf(name)?.props.some((prop) => prop.name === slot.prop)), true);
     for (const selector of [slot.container, ...ghostAnchorsOf(slot).map((anchor) => anchor.selector), slot.parts]) {
       for (const cls of classesIn(selector)) check(`${id}: .${cls} is in the source`, tsx.includes(cls), true);
     }
@@ -302,7 +305,7 @@ check("clickable Card: every item listed", ids(cardClickable), everyIdInCard);
 check("clickable Card: controls and fields warned", cardClickable.items.filter((item) => (item.interactive || item.input) && !cardClickable.warnings[item.id]).map((item) => item.id), []);
 check("clickable Card: warnings", reasons(cardClickable), [
   "Actions: The card is one click target, so it holds no controls or fields (Button, Primary button, Button row, Icon button, Link, Menu)",
-  "Navigation: The card is one click target, so it holds no controls or fields (Tabs, Segmented, Breadcrumbs, Pagination)",
+  "Navigation: The card is one click target, so it holds no controls or fields (Tabs, Segmented, Tab bar, Breadcrumbs, Pagination)",
   "Navigation: Menu items are rows of a Sidebar (Body-Content, Footer-Content) or its flyout (Menu item, Menu section)",
   "Data display: A card never goes inside a card (Card)",
   "Charts: A card never goes inside a card (Chart card)",
