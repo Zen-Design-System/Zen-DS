@@ -30,12 +30,14 @@ export function screenChromeCode(prop, title) {
   if (prop === "header") return `<PageHeader title=${name} />`;
   if (prop === "topNavigation") return `<TopNavigation type="compact" title=${name} />`;
   if (prop === "sidebar") {
+    // The rows are Body-Content children (Figma Menu-Item instances in the slot), so each is a layer to select, swap,
+    // remove or add to in the Slots section.
     return [
-      `<Sidebar aria-label="Main" selectedId="home" sections={[{ items: [`,
-      `  { id: "home", label: "Home", icon: "icon-home-03-line" },`,
-      `  { id: "projects", label: "Projects", icon: "icon-folder-line" },`,
-      `  { id: "people", label: "People", icon: "icon-users-line" },`,
-      `] }]} />`,
+      `<Sidebar aria-label="Main" selectedId="home">`,
+      `  <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />`,
+      `  <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
+      `  <SidebarMenuItem id="people" label="People" icon="icon-users-line" />`,
+      `</Sidebar>`,
     ].join("\n");
   }
   if (prop === "bottomNavigation") {

@@ -45,7 +45,7 @@ const chromeAttrs = (title, indent) => SCREEN_CHROME.map((part) => {
   const code = screenChromeCode(part.prop, title).split("\n").map((line, index) => (index ? `${indent}${line}` : line)).join("\n");
   return `${indent}${part.prop}={${code}}`;
 });
-const CHROME_IMPORTS = SCREEN_CHROME.map((part) => part.component);
+const CHROME_IMPORTS = [...new Set(SCREEN_CHROME.flatMap((part) => [...screenChromeCode(part.prop).matchAll(/<([A-Z]\w*)/g)].map((match) => match[1])))];
 
 /**
  * A blank page: one Screen on `device` holding a padded Stack, ready to take components. With `chrome` (the default) the

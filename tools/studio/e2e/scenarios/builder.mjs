@@ -33,7 +33,9 @@ export async function newPage(ctx, { title, device = "phone" } = {}) {
   await dialog.getByRole("button", { name: "Create page" }).click();
   await until(async () => page.url() !== from && /page=local%3A/.test(page.url()) && (await page.locator('[data-studio-frame^="screen:"]').count()) > 0, { message: "the new page on the canvas" });
   const id = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
-  // …named with nothing selected (the Page section's Name)…
+  // …named with nothing selected (the Page section's Name, on the Design tab: a row before may have left Prototype open)…
+  const design = page.locator("#studio-right").getByRole("tab", { name: "Design" });
+  if (await design.count()) await design.click();
   const field = page.locator("#studio-right").getByLabel("Page name");
   await field.waitFor({ state: "visible", timeout: 5000 });
   await field.fill(name);
@@ -519,9 +521,10 @@ export const rows = [
       const { page, id } = await newPage(ctx);
       await selectStack(page, id);
       await insertAsset(page, "Sidebar");
-      await until(async () => /<Sidebar aria-label="Workspace" selectedId="projects" sections=\{\[/.test((await pageText(page, id)) ?? ""), { message: "a Sidebar in the page" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await until(async () => /<Sidebar aria-label="Workspace" selectedId="projects">\s*<SidebarMenuItem id="home"/.test((await pageText(page, id)) ?? ""), { message: "a Sidebar with its Menu-Item rows in the page" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
       const text = (await pageText(page, id)) ?? "";
       if (/useState|setSection/.test(text)) throw new Error("the page got state");
+      if (!/import \{ [^}]*\bSidebarMenuItem\b[^}]* \} from "@zen\/design-system";/.test(text)) throw new Error("SidebarMenuItem is not imported");
       await until(async () => (await page.locator(`[data-studio-frame="screen:screen-1"] .zen-sidebar`).count()) > 0, { message: "the Sidebar on the canvas" });
       return "Sidebar inserted, selectedId fixed, no state";
     },
@@ -547,7 +550,7 @@ export const rows = [
     },
   },
   {
-    id: "B-25", feature: "A blank page comes with its app frame (desktop: Sidebar + Page header); Screen › Sidebar (a checkbox) switches it off and on", wp: "app frame 2026-10-09",
+    id: "B-25", feature: "A blank page comes with its app frame (desktop: Sidebar + Page header); Screen › Sidebar (a toggle) switches it off and on", wp: "app frame 2026-10-09",
     async run(ctx) {
       const { page, id, name } = await newPage(ctx, { device: "desktop" });
       const frame = page.locator('[data-studio-frame="screen:screen-1"]');
@@ -557,7 +560,7 @@ export const rows = [
       if (header !== name) throw new Error(`the Page header reads "${header}", not the page's name "${name}"`);
       await showLeftTab(page, "layers");
       await page.locator('[data-layer-id^="frame:screen:"]').first().click();
-      // The checkbox's label (its input is drawn over by the box), as L-10 presses Clip content.
+      // The Toggle's label (it switches the part like the switch itself).
       const toggle = inspectorRow(page, "sidebar").getByText("Sidebar", { exact: true });
       await toggle.click();
       await until(async () => !/\bsidebar=\{/.test((await pageText(page, id)) ?? ""), { message: "the sidebar prop removed" });
@@ -583,6 +586,44 @@ export const rows = [
       await until(async () => /\blayout="desktop"/.test((await pageText(page, id)) ?? ""), { message: 'layout="desktop"' });
       await until(async () => (await frame.locator(".zen-sidebar").count()) > 0 && (await frame.locator(".zen-bottom-nav").count()) === 0, { message: "the desktop frame on the tablet" });
       return "phone bars; tablet → desktop layout shows the Sidebar";
+    },
+  },
+  {
+    id: "B-27", feature: "The Screen's Sidebar and Page header have Figma's slots: Header-, Body-, Footer-Content (rows are layers; + adds a Menu item) and Action- / Trailing-Slots (+ adds a button)", wp: "slots 2026-10-09",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx, { device: "desktop" });
+      const frame = page.locator('[data-studio-frame="screen:screen-1"]');
+      await until(async () => (await frame.locator(".zen-sidebar__body .zen-sidebar__item").count()) === 3, { message: "three Menu-Item rows in the Sidebar's Body-Content" });
+      await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+      await focusScreen(page);
+      const clickIn = async (locator, what) => {
+        const box = await locator.first().boundingBox();
+        if (!box) throw new Error(`${what} has no box on the canvas`);
+        await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+        await sleep(500);
+      };
+      // The Sidebar's empty header (no logo yet) picks the Sidebar itself.
+      await clickIn(frame.locator(".zen-sidebar__header"), "the Sidebar header");
+      await until(async () => (await selectedName(page)) === "Sidebar", { message: "the Sidebar selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
+      const slots = page.locator("#studio-right .studio-slots__slot");
+      await until(async () => (await slots.evaluateAll((els) => els.map((el) => el.getAttribute("data-slot")).join(","))) === "brand,children,footer", { message: "Slots: Header-Content, Body-Content, Footer-Content" });
+      const tag = page.locator(".studio-slots__outline .studio-slots__tag", { hasText: "Body-Content" });
+      await until(() => tag.count(), { message: "the Body-Content outline on the canvas" });
+      await page.locator('#studio-right [data-slot="footer"]').getByRole("button", { name: "Add to Footer-Content" }).click();
+      await page.getByRole("option", { name: /^Menu item/ }).first().click();
+      await until(async () => /footer=\{<SidebarMenuItem id="invoices"/.test((await pageText(page, id)) ?? ""), { message: "footer={<SidebarMenuItem …/>} in the page" });
+      await until(async () => (await frame.locator(".zen-sidebar__footer-content .zen-sidebar__item").count()) === 1, { message: "the footer row on the Screen" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      // The Page header's title picks the header (its heading is the component's own part).
+      await clickIn(frame.locator(".zen-page-header h1"), "the Page header title");
+      await until(async () => (await selectedName(page)) === "PageHeader", { message: "the Page header selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
+      await until(async () => (await slots.evaluateAll((els) => els.map((el) => el.getAttribute("data-slot")).join(","))) === "actions,trailing", { message: "Slots: Action-Slots, Trailing-Slots" });
+      await page.locator('#studio-right [data-slot="actions"]').getByRole("button", { name: "Add to Action-Slots" }).click();
+      await page.getByRole("option", { name: /^Primary button/ }).first().click();
+      await until(async () => /<PageHeader [^>]*actions=\{<Button level="primary"/.test((await pageText(page, id)) ?? ""), { message: "actions={<Button level=\"primary\" …>} in the page" });
+      await until(async () => (await frame.locator(".zen-page-header__actions .zen-button").count()) === 1, { message: "the action on the Screen" });
+      return "Sidebar: brand · children (3 rows) · footer (+ Menu item) · PageHeader: actions (+ Primary button) · trailing";
     },
   },
 ];

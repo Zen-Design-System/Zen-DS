@@ -24,6 +24,11 @@ removed (four unused colour ramps were, see Removed).
   item children), the Footer-Content slot (`footer`) and a `SidebarSubMenu`; slot rows share `selectedId`, the rail and
   `onItemClick`. `sections` / `items` arrays keep working. The Sidebar examples use them (footer Settings / Help,
   Handbook body).
+- **Zen Studio: Sidebar and Page Header slots (2026-10-09):** a selected Sidebar shows Figma's Header-Content
+  (`brand`), Body-Content (children) and Footer-Content (`footer`); a Page Header its Action-Slots (`actions`) and
+  Trailing-Slots (`trailing`): outlined on the canvas with a "+", listed in the Slots section. The insert picker offers
+  Menu item / Menu section (not recommended outside a Sidebar). A new page's Sidebar writes its rows as
+  `<SidebarMenuItem>` children, so each row is a layer. Screen › Sidebar / Page header (and the phone bars) are Toggles.
 - **Voice (2026-10-09, Figma ❖ Voice 15081:1294):** `VoiceRecorder` (State Ready · Recording · Paused: the take's time,
   an 80px waveform and its timeline, Discard · Record / Pause / Resume · Finish, the input and format) and
   `AiVoiceConversation` (Ready · Listening · Responding: the voice signal, the status, the transcript card, Mute · Start
@@ -648,6 +653,10 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Zen Studio: Discard right after an edit could keep the old canvas (2026-10-09):** the edit's in-flight compile landed
+  in Vite's cache after the discard and was served from then on (Vite's HMR invalidation does not stop that); the Studio
+  now invalidates the file plainly before its hot reload. The E2E rows that failed only in full runs (ST-12, D-01, D-02,
+  D-06) pass again.
 - **Zen Studio: the canvas menu stays whole (2026-10-09):** a right-click menu taller than the room above and below the
   pointer opens downwards from a raised point inside the window; it used to open upwards, its top items cut off by the
   window's top. Disabled items show their label only (no reason line under them).

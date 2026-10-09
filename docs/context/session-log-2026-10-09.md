@@ -276,6 +276,39 @@
   Phin & Co); the harness count rules (tabs/item-count, stepper/step-count, bottom-navigation/destinations) still count
   arrays only.
 
+
+## Studio: Sidebar / Page Header slots, Screen parts as Toggles (user: "nó là toggle", "Header Page vẫn chưa có slot, Sidebar vẫn chưa có slot") — tier M, session 604bd7
+
+- Cause: `studio/slots/registry.ts` had no Sidebar or PageHeader entry, so selecting them showed no Slots; the Screen's
+  parts were Checkboxes (8d6b085 chose them because a ToggleButton beside a label column wrapped the labels).
+- Registry (Figma 9nZv4uW2LT21yuHabMTCh1): Sidebar `brand` Header-Content#4081:58 (parts: default brand, workspace title,
+  collapse), `children` Body-Content#4081:59 (takes SidebarMenuItem / SidebarMenuSection), `footer` Footer-Content#4081:60;
+  PageHeader `actions` Action-Slots#4122:78 (part: the trailing span), `trailing` Trailing-Slots#4122:82.
+  `ghostAnchor` may be a list (first anchor on the page, optional `flow`): Trailing-Slots goes after the actions, else
+  under the header, clear of Action-Slots' ghost at the row's end; Footer-Content's ghost is the body's last strip (inside
+  the Sidebar). A narrow ghost at a row's end ends its tag at its right edge (`data-align="end"`, slots.css).
+- Palette: "Menu item" / "Menu section" (Navigation), warned outside Sidebar / SidebarSubMenu; preferred items for the five
+  slots; folders. Selftest: the conditional-mount check also reads `? <>…` and `{prop … ? (`; the index check follows
+  `export *`; Sidebar / PageHeader sources and five deep scenarios (1483 items in 31 host slots: tsc, usage, style clean).
+- Builder: the Screen's Sidebar writes three `<SidebarMenuItem>` children instead of `sections` (rows are layers);
+  dialect CHROME_IMPORTS read from the chrome code; builder / dialect / compile selftests updated. FramePanel: one
+  `<Toggle label>` per part across the field (the cell is full width, the switch ends the row).
+- E2E: B-25 wording; B-23 expects the Sidebar's Menu-Item rows (Assets › Sidebar and App shell write them too); new B-27
+  (Sidebar slots brand · children (3 rows) · footer + Menu item; PageHeader actions + Primary button · trailing).
+  Screenshots on the harness server (toggles, both Slots sections, ghosts) checked.
+- Gate finding fixed (on HEAD 8d6b085 too, A/B with my edits stashed): after B-14 the right panel stays on Prototype, so
+  `newPage` never found the Design tab's "Page name" and B-15 … B-27 timed out in a full builder run; `newPage` opens
+  the Design tab first. Builder group 27/27.
+- Gate finding fixed: ST-12, D-01, D-02, D-06 failed in every full Studio E2E run ("save-x rendered after the reseed";
+  green alone). A diagnostic in `freshSelect` showed the canvas serving StudioSaveFixture's K-23 pasted text (locs 13:4 …
+  20:8) while the disk had 11:4 … 17:8. Cause: Vite 8's HMR invalidation (`reloadModule`) leaves
+  `lastInvalidationTimestamp`, the stamp it checks before caching a transform, so the paste's in-flight transform was
+  cached after K-23's discard and served from then on (also a Studio bug: Discard right after an edit could keep the
+  old canvas). `reloadFile` (vite-plugin-zen-studio.mjs) invalidates plainly before the HMR reload. starters + handoff +
+  keyboard + structural + drafts: 53/57 → 57/57.
+- Gate (`npm run qa -- --isolated`, these files): PASS, Studio self-tests and the full Studio E2E 188/188 (411 s); B-27
+  recorded in matrix.baseline.json (the file is sorted now).
+
 ## Studio dialog button gap (user: "khi giao diện studio giảm size thì spacing giữa các button bị rộng") — tier XS
 
 - The Studio sizes (density "studio": 32px buttons) keep the standard spacing, so ModalActions' Gap/Small 12 read wide.
@@ -289,3 +322,4 @@
   as its top margin (the header keeps Gap/XSmall between its other parts; on a phone the row dissolves and the
   description still follows the title). Test: backlog-fixes-2026-10-05 "sets the description 4px under the title"
   (desktop, mobile). Studio dialog gap gate: PASS (E2E 188/188).
+

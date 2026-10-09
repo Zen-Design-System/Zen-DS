@@ -13,7 +13,11 @@ export async function freshSelect(ctx, id, { frame = 0, file = ctx.file, reload 
   if (reload) await page.reload({ waitUntil: "domcontentloaded" });
   await waitSeed(page, seed);
   const loc = async () => locOf((await ctx.api.source(file)).content, id).loc;
-  await until(async () => rectOf(page, file, await loc()), { message: `${id} rendered after the reseed` });
+  await until(async () => rectOf(page, file, await loc()), { message: `${id} rendered after the reseed` }).catch(async (error) => {
+    // What the canvas shows from that file instead (stale locs after a discard, or nothing at all).
+    const shown = await page.evaluate((prefix) => [...document.querySelectorAll(`[data-zen-src^="${prefix}"]`)].map((el) => el.getAttribute("data-zen-src").slice(prefix.length)), `${file}:`).catch(() => []);
+    throw new Error(`${error.message} (want ${await loc()}; the canvas has ${shown.length ? shown.slice(0, 6).join(" ") : "nothing"} from ${file.split("/").pop()})`);
+  });
   await focusFrame(page, frame);
   const target = await loc();
   await clickLoc(page, file, target, { position });

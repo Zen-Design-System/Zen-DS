@@ -47,7 +47,7 @@ ok("blank: the screen's content in place", blank.code.includes('      <Stack gap
 check("blank: component and screens", [blank.component, blank.screens], ["CheckoutPage", [{ id: "screen-1", title: "Checkout", device: "phone", states: [] }]]);
 // The app frame: an AppShell (Sidebar + Page Header) around the page on desktop, the bars above and below it on a phone.
 const framedDesktop = compileReact(newPageText({ title: "Orders" }), { file: "orders.zen.tsx" }).code ?? "";
-ok("frame (desktop): AppShell with the Sidebar, then the Page Header", /<AppShell sidebar=\{<Sidebar[\s\S]*\/>\}>\n\s*<PageHeader title="Orders" \/>\n\s*<Stack/.test(framedDesktop) && framedDesktop.includes('import { AppShell, PageHeader, Sidebar, Stack, Text } from "@zen/design-system";'));
+ok("frame (desktop): AppShell with the Sidebar, then the Page Header", /<AppShell sidebar=\{<Sidebar [^>]*>\n(\s*<SidebarMenuItem [^>]*\/>\n){3}\s*<\/Sidebar>\}>\n\s*<PageHeader title="Orders" \/>\n\s*<Stack/.test(framedDesktop) && framedDesktop.includes('import { AppShell, PageHeader, Sidebar, SidebarMenuItem, Stack, Text } from "@zen/design-system";'));
 const framedPhone = compileReact(newPageText({ title: "Orders", device: "phone" }), { file: "orders.zen.tsx" }).code ?? "";
 ok("frame (phone): Top Navigation, the page, Bottom Navigation; no desktop parts", /<TopNavigation type="compact" title="Orders" \/>\n\s*<Stack[\s\S]*<\/Stack>\n\s*<BottomNavigation/.test(framedPhone) && !/Sidebar|PageHeader|AppShell/.test(framedPhone));
 

@@ -717,6 +717,10 @@ export function zenStudio() {
         return;
       }
       for (const mod of modules) {
+        // A plain invalidation first: it moves lastInvalidationTimestamp, the stamp Vite compares before it caches a
+        // transform (an HMR invalidation does not move it). Without it, a transform of the previous text still in flight
+        // (a discard right after a draft, E2E K-23) landed in the cache after this reload and was served from then on.
+        graph.invalidateModule?.(mod);
         Promise.resolve(reload(mod)).catch((error) => {
           logger.warn?.(`[zen-studio] HMR for ${rel} failed (${error?.message ?? error}); reloading the page`);
           devServer.ws.send({ type: "full-reload" });

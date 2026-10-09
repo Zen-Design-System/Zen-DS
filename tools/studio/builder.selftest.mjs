@@ -14,7 +14,7 @@ const check = (label, actual, expected) => {
   else failures.push(`${label}\n    expected ${e}\n    actual   ${a}`);
 };
 const FILE = "local:checkout.zen.tsx";
-const componentModules = new Map([["Dialog", "Dialog"], ["Button", "Button"], ["Stack", "Layout"], ["Text", "Text"], ["List", "ListItem"], ["ListItem", "ListItem"], ["Badge", "Badge"], ["Sidebar", "Sidebar"], ["PageHeader", "PageHeader"], ["TopNavigation", "TopNavigation"], ["BottomNavigation", "BottomNavigation"]]);
+const componentModules = new Map([["Dialog", "Dialog"], ["Button", "Button"], ["Stack", "Layout"], ["Text", "Text"], ["List", "ListItem"], ["ListItem", "ListItem"], ["Badge", "Badge"], ["Sidebar", "Sidebar"], ["SidebarMenuItem", "Sidebar"], ["PageHeader", "PageHeader"], ["TopNavigation", "TopNavigation"], ["BottomNavigation", "BottomNavigation"]]);
 const options = (code) => ({ file: FILE, componentModules, requiredChildren: new Set(), requiredProps: new Map(), hash: sha1(code) });
 const components = new Set(componentModules.keys());
 
@@ -112,6 +112,8 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
   const on = applyOps(bare, parsePage(bare).board.children[0].loc, "Screen", [{ op: "insertChild", prop: "sidebar", code: screenChromeCode("sidebar", "Orders") }], options(bare));
   check("switch it on again", on.error ?? null, null);
   check("Sidebar back, imported", [parsePage(on.code ?? "").board?.children[0].props.sidebar?.node?.name ?? null, /import \{ [^}]*\bSidebar\b[^}]* \} from "@zen\/design-system";/.test(on.code ?? "")], ["Sidebar", true]);
+  // Its rows are Body-Content children (Figma Menu-Item instances), imported with it.
+  check("the Sidebar's rows are SidebarMenuItem children, imported", [(parsePage(on.code ?? "").board?.children[0].props.sidebar?.node?.children ?? []).filter((child) => child.kind === "element").map((child) => child.name), /import \{ [^}]*\bSidebarMenuItem\b[^}]* \} from "@zen\/design-system";/.test(on.code ?? "")], [["SidebarMenuItem", "SidebarMenuItem", "SidebarMenuItem"], true]);
   check("layouts", [screenLayout("phone"), screenLayout("desktop", "mobile"), screenLayout("tablet"), screenLayout("tablet", "desktop")], ["mobile", "desktop", "mobile", "desktop"]);
   const tablet = applyOps(framed, screen().loc, "Screen", [{ op: "setProp", name: "layout", value: { kind: "string", value: "desktop" } }], options(framed));
   check("a tablet laid out as desktop is valid", validateDialect(tablet.code ?? "", { components }), []);

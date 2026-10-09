@@ -13,7 +13,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseExpression } from "@babel/parser";
 import {
-  CONTENT_SLOTS, activeSlotsOf, contentSummaryOf, headingLevelFor, hostPropsOf, hostTitleLevel, inactiveCondition, insertTargetFor,
+  CONTENT_SLOTS, activeSlotsOf, contentSummaryOf, ghostAnchorsOf, headingLevelFor, hostPropsOf, hostTitleLevel, inactiveCondition, insertTargetFor,
   isClickableHost, isLayoutPrimitive, isSlotActive, slotFlowOf, slotIsClickTarget, slotOf, slotsOf,
 } from "./registry.ts";
 import { DATA_SLOTS, dataSlotOf, itemTitle } from "./dataSlots.ts";
@@ -22,6 +22,12 @@ import { COMPONENT_FOLDERS, NOT_RECOMMENDED, PALETTE, PALETTE_GROUPS, isMobileCh
 const root = fileURLToPath(new URL("../../../../", import.meta.url));
 const components = path.join(root, "src/components");
 const read = (file) => fs.readFileSync(path.join(components, file), "utf8");
+/** A folder's index.ts with the files it re-exports whole (`export * from "./Sidebar"`). */
+const folderExports = (folder) => {
+  const index = read(`${folder}/index.ts`);
+  const whole = [...index.matchAll(/export \* from "\.\/([\w-]+)"/g)].map(([, file]) => [`${folder}/${file}.tsx`, `${folder}/${file}.ts`].find((name) => fs.existsSync(path.join(components, name))));
+  return [index, ...whole.filter(Boolean).map(read)].join("\n");
+};
 
 const failures = [];
 let passed = 0;
@@ -47,6 +53,8 @@ const SOURCES = {
   ListItem: { tsx: ["ListItem/ListItem.tsx"], css: ["ListItem/list-item.css"] },
   ListBox: { tsx: ["ListItem/ListItem.tsx"], css: ["ListItem/list-item.css"] },
   TopNavigation: { tsx: ["TopNavigation/TopNavigation.tsx"], css: ["TopNavigation/top-navigation.css"] },
+  Sidebar: { tsx: ["Sidebar/Sidebar.tsx"], css: ["Sidebar/sidebar.css"] },
+  PageHeader: { tsx: ["PageHeader/PageHeader.tsx"], css: ["PageHeader/page-header.css"] },
   Metric: { tsx: ["MetricWidget/MetricWidget.tsx"], css: ["MetricWidget/metric-widget.css"] },
   EmptyState: { tsx: ["EmptyState/EmptyState.tsx"], css: ["EmptyState/empty-state.css"] },
   Stack: { tsx: ["Layout/Layout.tsx"], css: ["Layout/layout.css"] },
@@ -80,14 +88,19 @@ for (const [name, def] of Object.entries(CONTENT_SLOTS)) {
     const id = `${name}.${slot.prop}`;
     check(`${id}: owner`, slot.component, name);
     check(`${id}: the prop is in api.generated.json`, Boolean(apiOf(name)?.props.some((prop) => prop.name === slot.prop)), true);
-    for (const selector of [slot.container, slot.ghostAnchor?.selector, slot.parts]) {
+    for (const selector of [slot.container, ...ghostAnchorsOf(slot).map((anchor) => anchor.selector), slot.parts]) {
       for (const cls of classesIn(selector)) check(`${id}: .${cls} is in the source`, tsx.includes(cls), true);
     }
     const cls = lastClass(slot.container ?? def.root);
     const decls = declarations(css, cls);
     if (slot.container !== null) {
-      // Conditional mount: `{x ? <div className="zen-…__body">` in the TSX.
-      const conditional = new RegExp(`\\?\\s*<\\w+ className=\\{?["\`]${cls}[\\s"\`$]`).test(tsx);
+      // Conditional mount: `{x ? <div className="zen-…__body">` in the TSX; also a fragment that opens wrappers first
+      // (`{footer ? <><div …divider /><div className="zen-sidebar__footer"><div className="…footer-content"`), and `(` when
+      // the test names the slot's prop (`{actions || trailing ? (`; Metric's `{titled ? (` header mounts whatever its action holds).
+      const tail = `<\\w+ className=\\{?["\`]${cls}[\\s"\`$]`;
+      const conditional = new RegExp(`\\?\\s*${tail}`).test(tsx)
+        || new RegExp(`\\?\\s*<>\\s*(?:<\\w+[^<>{}]*>\\s*)*${tail}`).test(tsx)
+        || new RegExp(`\\{[^{}?]*\\b${slot.prop}\\b[^{}?]*\\?\\s*\\(\\s*${tail}`).test(tsx);
       check(`${id}: mountsWhenEmpty matches the source`, !conditional, slot.mountsWhenEmpty);
     }
     if (slot.gap === "md") check(`${id}: .${cls} has gap Medium`, /(^|;)\s*gap:\s*var\(--zen-spacing-gap-medium\b/.test(decls), true);
@@ -245,7 +258,7 @@ for (const item of PALETTE) {
   for (const name of item.components) {
     const folder = COMPONENT_FOLDERS[name];
     check(`${item.id}: ${name} has a folder`, Boolean(folder), true);
-    if (folder) check(`${item.id}: ${folder}/index.ts exports ${name}`, new RegExp(`\\b${name}\\b`).test(read(`${folder}/index.ts`)), true);
+    if (folder) check(`${item.id}: ${folder}/index.ts exports ${name}`, new RegExp(`\\b${name}\\b`).test(folderExports(folder)), true);
   }
 }
 const packageIndex = fs.readFileSync(path.join(root, "src/index.ts"), "utf8");
@@ -277,7 +290,11 @@ const everyId = PALETTE.filter((item) => item.id !== "metric").map((item) => ite
 const everyIdInCard = PALETTE.filter((item) => item.id !== "metric-card").map((item) => item.id);
 const cardStatic = paletteFor(ctxFor("Card"));
 check("Card: every item listed (Metric, not MetricCard)", ids(cardStatic), everyIdInCard);
-check("Card: cards warned", reasons(cardStatic), ["Data display: A card never goes inside a card (Card)", "Charts: A card never goes inside a card (Chart card)"]);
+check("Card: cards warned", reasons(cardStatic), [
+  "Navigation: Menu items are rows of a Sidebar (Body-Content, Footer-Content) or its flyout (Menu item, Menu section)",
+  "Data display: A card never goes inside a card (Card)",
+  "Charts: A card never goes inside a card (Chart card)",
+]);
 check("Card: nothing hidden", cardStatic.hidden, []);
 check("Card: warnings carry a short caption", cardStatic.warnings.card?.short, "Card inside a card");
 const cardClickable = paletteFor(ctxFor("Card", "children", { hostProps: { onClick: { bound: "open" } } }));
@@ -286,6 +303,7 @@ check("clickable Card: controls and fields warned", cardClickable.items.filter((
 check("clickable Card: warnings", reasons(cardClickable), [
   "Actions: The card is one click target, so it holds no controls or fields (Button, Primary button, Button row, Icon button, Link, Menu)",
   "Navigation: The card is one click target, so it holds no controls or fields (Tabs, Segmented, Breadcrumbs, Pagination)",
+  "Navigation: Menu items are rows of a Sidebar (Body-Content, Footer-Content) or its flyout (Menu item, Menu section)",
   "Data display: A card never goes inside a card (Card)",
   "Charts: A card never goes inside a card (Chart card)",
   "Inputs: The card is one click target, so it holds no controls or fields (Text field, Text area, Select, Checkbox, Toggle, Radio group, Search, Chip group, Chip row, Date field, Calendar, Number field, Autocomplete, Rich text, Slider, Rating input, NPS scale, Colour selector, File upload)",
@@ -327,7 +345,7 @@ for (const def of Object.values(CONTENT_SLOTS)) for (const slot of def.slots) {
 const sections = paletteSections(cardStatic, slotOf("Card", "children"));
 check("paletteSections: preferred first", [sections[0].title, sections[0].items.map((item) => item.id)], ["Preferred for Content", ["heading", "paragraph", "list", "metric", "stack"]]);
 check("paletteSections: no item twice, none missing", sections.flatMap((section) => section.items).length, cardStatic.items.length);
-check("paletteSections: warned items last", [sections.at(-1).title, sections.at(-1).items.map((item) => item.id)], [NOT_RECOMMENDED, ["card", "chart-card"]]);
+check("paletteSections: warned items last", [sections.at(-1).title, sections.at(-1).items.map((item) => item.id)], [NOT_RECOMMENDED, ["menu-item", "menu-section", "card", "chart-card"]]);
 const leadingSections = paletteSections(paletteFor(ctxFor("ListItem", "leading")), slotOf("ListItem", "leading"));
 check("paletteSections: a preferred item with a warning goes last", [leadingSections[0].title, leadingSections[0].items.map((item) => item.id), leadingSections.length], ["Preferred for Leading", ["avatar", "dock-icon"], 2]);
 check("paletteSections: sidePanel's preferred metric is MetricCard", paletteSections(paletteFor(ctxFor("SidePanel")), slotOf("SidePanel", "children"))[0].items.map((item) => item.id), ["input-field", "select-field", "paragraph", "list"]);
@@ -362,6 +380,11 @@ const SCENARIOS = [
   { host: "Stack", name: "StackInSheet", ancestors: ["BottomSheet"], jsx: '<BottomSheet open={open} onOpenChange={setOpen} title="Notifications"><Stack gap="md">%</Stack></BottomSheet>' },
   { host: "Stack", name: "StackInModalForm", ancestors: ["ModalForm"], jsx: '<ModalForm open={open} onOpenChange={setOpen} title="New project"><Stack gap="md">%</Stack></ModalForm>' },
   { host: "Stack", name: "StackInAccordion", ancestors: ["Accordion"], jsx: '<Accordion title="Payment terms"><Stack gap="md">%</Stack></Accordion>' },
+  { host: "Sidebar", prop: "brand", jsx: '<Sidebar aria-label="Workspace" brand={%} />' },
+  { host: "Sidebar", jsx: '<Sidebar aria-label="Workspace" selectedId="home" onItemClick={(item) => toast({ title: `${item.label} opened` })}>%</Sidebar>' },
+  { host: "Sidebar", prop: "footer", jsx: '<Sidebar aria-label="Workspace" onItemClick={(item) => toast({ title: `${item.label} opened` })} footer={%} />' },
+  { host: "PageHeader", prop: "actions", jsx: '<PageHeader title="Projects" headingLevel={2} actions={%} />' },
+  { host: "PageHeader", prop: "trailing", jsx: '<PageHeader title="Projects" headingLevel={2} trailing={%} />' },
   { host: "Grid", jsx: '<Grid columns={{ mobile: 1, desktop: 2 }} gap="md">%</Grid>' },
   { host: "Box", jsx: "<Box>%</Box>" },
 ];

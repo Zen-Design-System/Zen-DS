@@ -95,6 +95,9 @@
 .studio-slots__tag[data-place="above"] { top: auto; bottom: calc(100% + var(--zen-spacing-padding-3-xsmall, 2px)); left: 0; max-width: max(100%, 200px); }
 /* A ghost just below its anchor (TopNavigation's empty Control-Slot): the tag goes under the strip, clear of the anchor. */
 .studio-slots__tag[data-place="below"] { top: calc(100% + var(--zen-spacing-padding-3-xsmall, 2px)); left: 0; max-width: max(100%, 200px); }
+/* A narrow ghost at the end of a row (PageHeader's empty Action-Slots): the tag ends at its right edge and runs back over
+   the row, instead of past the component where the canvas edge cuts it. */
+.studio-slots__tag[data-align="end"] { right: 0; left: auto; }
 .studio-slots__chip { position: absolute; top: 0; left: 0; display: flex; pointer-events: auto; translate: -50% -50%; }
 .studio-slots__anchor { position: absolute; top: 0; left: 0; pointer-events: none; }
 

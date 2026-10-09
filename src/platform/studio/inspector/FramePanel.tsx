@@ -3,7 +3,7 @@ import { Button } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { SelectField } from "../../../components/Input";
 import { Segmented } from "../../../components/Segmented";
-import { Checkbox } from "../../../components/Checkbox";
+import { Toggle } from "../../../components/Toggle";
 import { SCREEN_CHROME, screenChromeCode, screenLayout, type ScreenChromeLayout } from "../../../../tools/studio/screen-chrome.mjs";
 import { Heading } from "../../../components/Text";
 import type { IconName } from "../../../icons/generated/names";
@@ -122,13 +122,14 @@ function ScreenSection({ frameId }: { frameId: string }) {
           )]}
         />
       ) : null}
-      {/* One checkbox per part, as Figma's Clip content (and the Auto layout section's). */}
+      {/* One Toggle per part (user, 2026-10-09: "nó là toggle"): the label takes the field's whole width, the switch
+          ends the row (a label column wrapped "Bottom navigation" onto two lines). */}
       {SCREEN_CHROME.filter((part) => part.layout === layout).map((part) => (
         <InspectorFields
           key={part.prop}
           name={part.prop}
           code={`Screen ${part.prop}`}
-          fields={[<Checkbox key={part.prop} label={part.label} checked={node.props[part.prop]?.kind === "element"} disabled={!admin} onCheckedChange={(next) => writePart(part, next)} />]}
+          fields={[<Toggle key={part.prop} label={part.label} checked={node.props[part.prop]?.kind === "element"} disabled={!admin} onCheckedChange={(next) => writePart(part, next)} />]}
         />
       ))}
       <InspectorFields

@@ -10,7 +10,7 @@ const check = (label, actual, expected) => {
   if (a === e) passed += 1;
   else failures.push(`${label}\n    expected ${e}\n    actual   ${a}`);
 };
-const components = new Set(["Button", "Dialog", "List", "ListItem", "Stack", "Text", "Icon", "Sidebar", "PageHeader", "TopNavigation", "BottomNavigation"]);
+const components = new Set(["Button", "Dialog", "List", "ListItem", "Stack", "Text", "Icon", "Sidebar", "SidebarMenuItem", "PageHeader", "TopNavigation", "BottomNavigation"]);
 const messages = (text) => validateDialect(text, { components }).map((error) => `${error.line}: ${error.message}`);
 
 const blank = newPageText({ title: "Checkout", device: "phone" });

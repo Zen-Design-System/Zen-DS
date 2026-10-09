@@ -38,9 +38,10 @@ import "./slots.css";
 type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
 type Box = { x: number; y: number; w: number; h: number };
 /** One slot of the selected instance: its outline (none for a layout primitive: the selection outline is it) and chip point. */
-/** `tagBelow`: a ghost just below its anchor names itself under the strip, not over the anchor (TopNavigation's title). */
+/** `tagBelow`: a ghost just below its anchor names itself under the strip, not over the anchor (TopNavigation's title).
+ *  `tagEnd`: a narrow ghost at the end of a row ends its tag at its right edge, over the row, not past the component. */
 /** `data`: a data slot's mark (its chip adds an item instead of opening the insert picker); `count`: items it holds. */
-type SlotMark = Box & { prop: string; tag: string; ghost: boolean; outline: boolean; chip: { x: number; y: number } | null; tagBelow?: boolean; data?: boolean; count?: number };
+type SlotMark = Box & { prop: string; tag: string; ghost: boolean; outline: boolean; chip: { x: number; y: number } | null; tagBelow?: boolean; tagEnd?: boolean; data?: boolean; count?: number };
 type Marks = { src: string; slots: SlotMark[]; playground: Array<Box & { tag: string }> };
 
 const EMPTY: Marks = { src: "", slots: [], playground: [] };
@@ -52,7 +53,7 @@ const CHIP = 24;
 const TAG_ROOM = { w: 72, h: 24 };
 
 const round = (value: number) => Math.round(value * 2) / 2;
-const keyOf = (marks: Marks) => JSON.stringify([marks.src, marks.slots.map((m) => [m.prop, m.tag, m.ghost, m.outline, Boolean(m.tagBelow), round(m.x), round(m.y), round(m.w), round(m.h), m.chip ? [round(m.chip.x), round(m.chip.y)] : null]), marks.playground.map((m) => [m.tag, round(m.x), round(m.y), round(m.w), round(m.h)])]);
+const keyOf = (marks: Marks) => JSON.stringify([marks.src, marks.slots.map((m) => [m.prop, m.tag, m.ghost, m.outline, Boolean(m.tagBelow), Boolean(m.tagEnd), round(m.x), round(m.y), round(m.w), round(m.h), m.chip ? [round(m.chip.x), round(m.chip.y)] : null]), marks.playground.map((m) => [m.tag, round(m.x), round(m.y), round(m.w), round(m.h)])]);
 
 /** A ghost beside `base` on the side `place` names: a strip across a column, a bar along a row. */
 function ghostAt(base: Box, place: "before" | "after" | "first-child" | "last-child", row: boolean): Box {
@@ -112,6 +113,7 @@ function marksFor(selection: NodeSelection, { hit, root: hostRoot }: Resolved, w
     let box: Box | null = null;
     let ghost = false;
     let tagBelow = false;
+    let tagEnd = false;
     let empty = true;
     if (container) {
       const content = slotContentElements(container, slot);
@@ -128,9 +130,11 @@ function marksFor(selection: NodeSelection, { hit, root: hostRoot }: Resolved, w
       ghost = true;
       const anchor = slotGhostAnchor(root, slot);
       const base = rectOf([anchor?.element ?? root]);
-      const ghostRow = slot.ghostFlow ? slot.ghostFlow === "row" : row;
+      const ghostFlow = anchor?.flow ?? slot.ghostFlow;
+      const ghostRow = ghostFlow ? ghostFlow === "row" : row;
       box = base ? ghostAt(toBox(base), anchor?.place ?? "last-child", ghostRow) : null;
       tagBelow = anchor?.place === "after" && !ghostRow;
+      tagEnd = ghostRow && (anchor?.place ?? "last-child") !== "before" && anchor?.place !== "first-child";
     }
     if (!box) continue;
     // Empty: the chip sits in the slot (Figma's "+" in an empty slot). Filled: just past its end edge, clear of the content.
@@ -139,7 +143,7 @@ function marksFor(selection: NodeSelection, { hit, root: hostRoot }: Resolved, w
       : row ? { x: box.x + box.w + past, y: box.y + box.h / 2 } : { x: box.x + box.w / 2, y: box.y + box.h + past };
     // A full atom slot (ListItem leading takes one layer) offers no chip on the canvas: the inspector's add still warns.
     const full = slot.max !== undefined && container !== null && slotContentElements(container, slot).length >= slot.max;
-    marks.push({ ...box, prop: slot.prop, tag: empty ? `${slot.name} · Empty` : slot.name, ghost, outline: !layout, chip: full ? null : chip, ...(tagBelow ? { tagBelow } : {}) });
+    marks.push({ ...box, prop: slot.prop, tag: empty ? `${slot.name} · Empty` : slot.name, ghost, outline: !layout, chip: full ? null : chip, ...(tagBelow ? { tagBelow } : {}), ...(tagEnd ? { tagEnd } : {}) });
   }
   return { src: selection.src, slots: marks, playground: [] };
 }
@@ -326,7 +330,7 @@ export function SlotLayer({ viewport, world }: { viewport: HTMLElement | null; w
       <div ref={rootRef} className="studio-slots__frame">
         {slots.filter((mark) => mark.outline).map((mark) => (
           <div key={mark.prop} className="studio-slots__outline" data-ghost={mark.ghost || undefined} style={style(mark)} aria-hidden="true">
-            <span className={`studio-slots__tag ${typographyStyles["Caption/Medium"]}`} data-place={mark.tagBelow ? "below" : mark.w < TAG_ROOM.w || mark.h < TAG_ROOM.h ? "above" : undefined}>{mark.tag}</span>
+            <span className={`studio-slots__tag ${typographyStyles["Caption/Medium"]}`} data-place={mark.tagBelow ? "below" : mark.w < TAG_ROOM.w || mark.h < TAG_ROOM.h ? "above" : undefined} data-align={mark.tagEnd ? "end" : undefined}>{mark.tag}</span>
           </div>
         ))}
         {playground.map((mark, index) => (

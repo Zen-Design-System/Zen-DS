@@ -114,7 +114,7 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   DateField: "Input", NumberField: "Input", AutocompleteField: "Input", RichTextField: "Input",
   DatePicker: "DatePicker", ColorSelector: "ColorSelector", FileUpload: "Uploader", Dialog: "Dialog", ModalForm: "Dialog", SidePanel: "SidePanel",
   BottomSheet: "BottomSheet", Popover: "Popover", PageHeader: "PageHeader", TopNavigation: "TopNavigation",
-  BottomNavigation: "BottomNavigation", Sidebar: "Sidebar", AppShell: "AppShell", ActionBar: "ActionBar",
+  BottomNavigation: "BottomNavigation", Sidebar: "Sidebar", SidebarMenuItem: "Sidebar", SidebarMenuSection: "Sidebar", AppShell: "AppShell", ActionBar: "ActionBar",
   ChatThread: "Chat", ChatMessage: "Chat", ChatComposer: "Chat", AiChatThread: "AiChat", AiChatBubble: "AiChat",
   AiChatField: "AiChat", VoiceRecorder: "Voice", AiVoiceConversation: "Voice",
 };
@@ -206,6 +206,20 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => lines(
       `<Breadcrumbs items={[{ id: "projects", label: "Projects", href: "#projects" }, { id: "loyalty", label: "Loyalty app" }]}`,
       `  onNavigate={(_, event) => { event.preventDefault(); toast({ title: "Projects opened" }); }} />`,
+    ),
+  },
+  /* Sidebar rows (Figma Menu-Item): what the Sidebar's Body-Content and Footer-Content slots hold. */
+  {
+    id: "menu-item", label: "Menu item", group: "Navigation", caption: "Sidebar row", root: "SidebarMenuItem", components: ["SidebarMenuItem"], interactive: true, input: false,
+    build: () => `<SidebarMenuItem id="invoices" label="Invoices" icon="icon-receipt-line" />`,
+  },
+  {
+    id: "menu-section", label: "Menu section", group: "Navigation", caption: "Titled Sidebar rows", root: "SidebarMenuSection", components: ["SidebarMenuSection", "SidebarMenuItem"], interactive: true, input: false,
+    build: () => lines(
+      `<SidebarMenuSection label="Projects">`,
+      `  <SidebarMenuItem id="loyalty-app" label="Loyalty app" icon="icon-cube-line" />`,
+      `  <SidebarMenuItem id="online-banking" label="Online banking redesign" icon="icon-cube-line" />`,
+      `</SidebarMenuSection>`,
     ),
   },
   {
@@ -635,40 +649,41 @@ export const PALETTE: readonly PaletteItem[] = [
     ),
   },
   {
-    id: "sidebar", label: "Sidebar", group: "Page", caption: "Navigation", root: "Sidebar", components: ["Sidebar"], state: [state("section", '"projects"')], interactive: true, input: false,
+    // Its rows are Body-Content children (Figma Menu-Item instances), so each is a layer of the slot.
+    id: "sidebar", label: "Sidebar", group: "Page", caption: "Navigation", root: "Sidebar", components: ["Sidebar", "SidebarMenuItem"], state: [state("section", '"projects"')], interactive: true, input: false,
     build: () => lines(
-      `<Sidebar aria-label="Workspace" selectedId={section} onItemClick={(item) => setSection(item.id)} sections={[{ items: [`,
-      `  { id: "home", label: "Home", icon: "icon-home-03-line" },`,
-      `  { id: "projects", label: "Projects", icon: "icon-folder-line" },`,
-      `  { id: "people", label: "People", icon: "icon-users-line" },`,
-      `] }]} />`,
+      `<Sidebar aria-label="Workspace" selectedId={section} onItemClick={(item) => setSection(item.id)}>`,
+      `  <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />`,
+      `  <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
+      `  <SidebarMenuItem id="people" label="People" icon="icon-users-line" />`,
+      `</Sidebar>`,
     ),
     builder: () => lines(
-      `<Sidebar aria-label="Workspace" selectedId="projects" sections={[{ items: [`,
-      `  { id: "home", label: "Home", icon: "icon-home-03-line" },`,
-      `  { id: "projects", label: "Projects", icon: "icon-folder-line" },`,
-      `  { id: "people", label: "People", icon: "icon-users-line" },`,
-      `] }]} />`,
+      `<Sidebar aria-label="Workspace" selectedId="projects">`,
+      `  <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />`,
+      `  <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
+      `  <SidebarMenuItem id="people" label="People" icon="icon-users-line" />`,
+      `</Sidebar>`,
     ),
   },
   {
-    id: "app-shell", label: "App shell", group: "Page", caption: "Sidebar and page", root: "AppShell", components: ["AppShell", "Sidebar", "Breadcrumbs", "Text"], state: [state("area", '"projects"')], interactive: true, input: false,
+    id: "app-shell", label: "App shell", group: "Page", caption: "Sidebar and page", root: "AppShell", components: ["AppShell", "Sidebar", "SidebarMenuItem", "Breadcrumbs", "Text"], state: [state("area", '"projects"')], interactive: true, input: false,
     build: () => lines(
       `<AppShell`,
-      `  sidebar={<Sidebar aria-label="Workspace" selectedId={area} onItemClick={(item) => setArea(item.id)} sections={[{ items: [`,
-      `    { id: "home", label: "Home", icon: "icon-home-03-line" },`,
-      `    { id: "projects", label: "Projects", icon: "icon-folder-line" },`,
-      `  ] }]} />}`,
+      `  sidebar={<Sidebar aria-label="Workspace" selectedId={area} onItemClick={(item) => setArea(item.id)}>`,
+      `    <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />`,
+      `    <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
+      `  </Sidebar>}`,
       `  header={<Breadcrumbs master={false} items={[{ id: area, label: area === "home" ? "Home" : "Projects" }]} />}>`,
       `  <Text tone="base">{area === "home" ? "3 projects are due this week." : "12 active projects."}</Text>`,
       `</AppShell>`,
     ),
     builder: () => lines(
       `<AppShell`,
-      `  sidebar={<Sidebar aria-label="Workspace" selectedId="projects" sections={[{ items: [`,
-      `    { id: "home", label: "Home", icon: "icon-home-03-line" },`,
-      `    { id: "projects", label: "Projects", icon: "icon-folder-line" },`,
-      `  ] }]} />}`,
+      `  sidebar={<Sidebar aria-label="Workspace" selectedId="projects">`,
+      `    <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />`,
+      `    <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
+      `  </Sidebar>}`,
       `  header={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }]} />}>`,
       `  <Text tone="base">12 active projects.</Text>`,
       `</AppShell>`,
@@ -751,6 +766,11 @@ const PREFERRED: Readonly<Record<string, readonly string[]>> = {
   "ListBox.header": ["heading", "paragraph"],
   "ListBox.children": ["list"],
   "ListBox.footer": ["button"],
+  "Sidebar.brand": ["avatar", "dock-icon"],
+  "Sidebar.children": ["menu-item", "menu-section"],
+  "Sidebar.footer": ["menu-item"],
+  "PageHeader.actions": ["button", "button-primary", "menu"],
+  "PageHeader.trailing": ["icon-button", "menu", "avatar"],
 };
 
 /** The slot's preferred item ids ("metric" stands for Metric or MetricCard, whichever the host offers). */
@@ -761,6 +781,9 @@ const CARD_SURFACES = new Set(["Card", "ChartCard", "MetricCard"]);
 const FORM_HOSTS = new Set(["ModalForm", "Form"]);
 const MOBILE_HOSTS = new Set(["BottomSheet", "PlatformPhone"]);
 const CHOICE_CONTROLS = new Set(["checkbox", "toggle", "radio-group"]);
+/** Sidebar rows go in a Sidebar (Body-Content, Footer-Content) or its flyout, and nowhere else. */
+const SIDEBAR_ROWS = new Set(["SidebarMenuItem", "SidebarMenuSection"]);
+const SIDEBAR_HOSTS = new Set(["Sidebar", "SidebarSubMenu"]);
 
 /** Set to something other than false / null / undefined (a bound handler counts). */
 const isSet = (value: HostProps[string]) => value !== undefined && value !== false && !(typeof value === "object" && /^(null|undefined|false)$/.test(value.bound));
@@ -792,6 +815,7 @@ export function paletteFor(ctx: PaletteHostContext): PaletteResult {
 
   const warningFor = (item: PaletteItem): PaletteWarning | null => {
     if (only && !only.includes(item.root)) return { short: `${ctx.slot.name} prefers others`, reason: `${ctx.slot.name} takes ${sentence(only)}` };
+    if (SIDEBAR_ROWS.has(item.root) && !inChain(SIDEBAR_HOSTS)) return { short: "Sidebar rows only", reason: "Menu items are rows of a Sidebar (Body-Content, Footer-Content) or its flyout" };
     if (item.components.includes("Accordion") && (deny.has("Accordion") || chain.includes("Accordion"))) return { short: "Accordion in an Accordion", reason: "Accordions are one level deep" };
     if (insideCard && item.components.some((name) => CARD_SURFACES.has(name))) return { short: "Card inside a card", reason: "A card never goes inside a card" };
     const denied = item.components.find((name) => deny.has(name));
