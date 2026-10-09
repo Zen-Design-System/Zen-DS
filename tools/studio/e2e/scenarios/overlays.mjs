@@ -52,7 +52,7 @@ export const rows = [
     },
   },
   {
-    id: "O-04", feature: "⌘-click on a Dialog's actions selects its ModalActions part; Direction writes the Dialog's actionsDirection (Figma's exposed Buttons › Direction)", wp: "parts 2026-10-09",
+    id: "O-04", feature: "⌘-click twice on a Dialog's actions selects its ModalActions part; Direction writes the Dialog's actionsDirection (Figma's exposed Buttons › Direction)", wp: "parts 2026-10-09",
     async run(ctx) {
       const page = await freshSelect(ctx, "open", { frame: 3 });
       const dialog = await openDialog(ctx, page);
@@ -70,10 +70,16 @@ export const rows = [
         return null;
       });
       if (!point) throw new Error("every point of the actions row is a button");
-      await page.keyboard.down("ControlOrMeta");
-      await page.mouse.click(point.x, point.y);
-      await page.keyboard.up("ControlOrMeta");
       const heading = async () => (await page.locator("#studio-right h2").first().innerText({ timeout: 1000 }).catch(() => "")).trim();
+      const deepClick = async () => {
+        await page.keyboard.down("ControlOrMeta");
+        await page.mouse.click(point.x, point.y);
+        await page.keyboard.up("ControlOrMeta");
+      };
+      // Figma's deep select: ⌘-click selects the deepest element there (the Dialog), ⌘-click on it its part there.
+      await deepClick();
+      await until(async () => /^Dialog\b/.test(await heading()), { message: "the Dialog selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await heading()})`); });
+      await deepClick();
       await until(async () => /^ModalActions\b/.test(await heading()), { message: "the ModalActions part selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await heading()})`); });
       const row = page.locator('#studio-right [data-prop="actionsDirection"]');
       await row.waitFor({ state: "visible", timeout: 4000 });

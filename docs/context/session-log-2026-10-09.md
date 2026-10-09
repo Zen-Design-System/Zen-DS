@@ -422,3 +422,22 @@
 - E2E MC-06 (XSmall height → button-size-small: draft, XSmall Primary + Accent grow, ⌘Z back, no draft), MC-07 (Discard
   in the panel, button.css unchanged on disk): main group 7/7, baseline updated. Gate (--files, 10 files): static ✓,
   TypeScript ✓, Studio self-tests ✓, E2E 200/200; usage ⚠ Discard level → danger-subtle, fixed.
+
+## Studio: Figma's click on the canvas (user: "Bấm như Figma: bấm chọn layer ngoài cùng, bấm đúp để đi vào một cấp, ⌘-bấm để chọn layer sâu nhất") — tier L, session 604bd7
+
+- Why: the selection crawl found 46 of 99 visible layers on HR · Home (Stacks, Grids, Lists their children fill) that no
+  click could reach, because a click selected the deepest element; the user chose Figma's model (QUESTIONS answered).
+- `select/clickTarget.ts` (new, pure): the layers under the pointer as Layers lists them (collapseWrappers: platform
+  wrappers in another file; simplify: a div / section holding one layer, the Studio's sizing Stack). The frame's one
+  first layer plus the elements of its DOM node (an example component and its root Stack; a builder Screen) is the
+  content root and stands for the frame; an overlay starts at its owner. `clickTarget`: the root's child under the
+  pointer, or with a selection the child of the selected layer's parent (a click inside the selection keeps it).
+  `layerInside`: one level in for the double-click.
+- SelectionLayer: press, hover, ⇧-click and right-click use clickTarget (⌘ / Ctrl: the deepest element; ⌘ on the
+  selected element: its part, as before); the double-click goes one level in and edits a text layer it lands on (a
+  component's text waits for the next double-click). pressLayer gets the resolved layer, so a drag moves what a click
+  selects.
+- E2E: `clickLoc` / builder `clickNamed` deep-select by default (⌘, plain on the selected element; a double-click stays
+  plain), which keeps the rows that meant "select this element"; O-04 ⌘-clicks twice (Dialog, then its part); SE-30
+  (click → List · again → kept · double-click → row 2 · click → row 3 · click outside → the buttons' Stack · ⌘-click →
+  Loud · click → Featured). First full run: 29 builder rows chose the outermost layer in `clickNamed`; fixed there.

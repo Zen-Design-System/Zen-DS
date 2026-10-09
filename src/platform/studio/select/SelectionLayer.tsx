@@ -6,6 +6,7 @@ import { studioStore, useStudio } from "../store";
 import type { StudioSelection } from "../types";
 import { annotatedAt, childHits, findBySrc, frameOfFiber, hitForHost, isTypingTarget, layerHover, nestedHitAt, onSourceUpdate, parentHit, publishSelectionInfo, rectOf, selectHit, shortSrc, type FiberHit } from "./picker";
 import { chainHas, deepPartAt, drillPart, partChildren, partForElement, pathOf, resolvePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
+import { clickTarget, layerInside, sameElement } from "./clickTarget";
 import { dataItemOfPart } from "../slots/dataItems";
 import { openCanvasMenu, openEmptyCanvasMenu, openFrameMenu } from "../shell/CanvasMenu";
 import { awaitedRender, awaitedRenderShown, awaitingWriteRender, remapPart, remapSelection, sameSelectedElement, writeRendered } from "./remap";
@@ -44,6 +45,9 @@ type Pick =
   | { kind: "empty" };
 
 const emptyOverlay: Overlay = { hover: null, selected: null, owner: null, instances: [], extras: [], spacing: [], spacingOwner: null };
+
+/** Layers whose text a double-click that lands on them edits at once (Figma's text layers). */
+const TEXT_LAYER = /^(Text|Heading|Link|p|span|label|a|strong|em|small|h[1-6])$/;
 
 type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
 
@@ -486,13 +490,25 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     return onSelected && coveredBy ? { ...picked, hit: selected } : picked;
   }, []);
 
-  /** Whether a click at `picked` reaches the parts: Cmd/Ctrl held, or inside the owner of the selected part. */
+  /**
+   * Whether a press at `picked` reaches the parts: ⌘ / Ctrl on the selected element (elsewhere ⌘ selects the deepest
+   * element, Figma's deep select), or a click inside the owner of the selected part.
+   */
   const deepAt = useCallback((picked: Pick, modifier: boolean) => {
     if (picked.kind !== "node") return false;
-    if (modifier) return true;
     const owner = selectedRef.current;
-    return Boolean(partRef.current && owner && picked.hit.src === owner.src && picked.hit.hosts[0] === owner.hosts[0]);
+    const onOwner = Boolean(owner && picked.hit.src === owner.src && picked.hit.hosts[0] === owner.hosts[0]);
+    return modifier ? onOwner : Boolean(partRef.current && onOwner);
   }, []);
+
+  /**
+   * The layer a press at `picked` selects (user, 2026-10-09: "Bấm như Figma"): ⌘ / Ctrl the deepest element under the
+   * pointer, else the outermost layer in the current context (clickTarget: the selected layer's siblings, or the frame's
+   * top level).
+   */
+  const targetOf = useCallback((picked: Pick & { kind: "node" }, deep: boolean): FiberHit => (
+    deep ? picked.hit : clickTarget(picked.hit, picked.frame, selectedRef.current)
+  ), []);
 
   /** The part a click at `picked` selects: the selected part when the cursor is on it, else the nearest internal component. */
   const partAt = useCallback((picked: Pick & { kind: "node" }, x: number, y: number) => {
@@ -511,14 +527,15 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     // Over the selected element under an outer layer, the hover stays on the selection (as a press would keep it).
     const picked = keepSelected(pick(point.x, point.y), point.x, point.y);
     setPassThrough(picked.kind === "chrome");
-    const hit = picked.kind === "node" ? (deepAt(picked, deepRef.current) ? partAt(picked, point.x, point.y) ?? picked.hit : picked.hit) : null;
+    // The outline shows what a press would select (Figma): the click's layer, ⌘ the deepest, ⌘ on the selection a part.
+    const hit = picked.kind === "node" ? (deepAt(picked, deepRef.current) ? partAt(picked, point.x, point.y) ?? picked.hit : targetOf(picked, deepRef.current)) : null;
     setHoverFrame(picked.kind === "node" || picked.kind === "frame" || picked.kind === "variant" ? picked.frame : null);
     variantHover.set(picked.kind === "variant" ? pickVariant(picked.element, studioStore.getState().selection, deepRef.current ? "deep" : "click") : null);
     if (hit?.fiber !== hoverRef.current?.fiber || hit?.src !== hoverRef.current?.src) {
       hoverRef.current = hit;
       schedule(0);
     }
-  }, [pick, schedule, setHoverFrame, setPassThrough, deepAt, partAt, keepSelected]);
+  }, [pick, schedule, setHoverFrame, setPassThrough, deepAt, partAt, keepSelected, targetOf]);
 
   const hoverRequest = useRef(0);
   const trackPointer = useCallback((event: PointerEvent | ReactPointerEvent) => {
@@ -589,8 +606,9 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     }
     if (picked.kind === "node") {
       if (event.detail <= 1) pressSelectionRef.current = studioStore.getState().selection;
-      // Cmd/Ctrl+click anywhere, or a click inside the owner of the selected part: the part under the cursor.
-      if (!event.shiftKey && deepAt(picked, event.metaKey || event.ctrlKey)) {
+      const deep = event.metaKey || event.ctrlKey;
+      // ⌘ / Ctrl+click on the selected element, or a click inside the owner of the selected part: the part under the cursor.
+      if (!event.shiftKey && deepAt(picked, deep)) {
         const part = partAt(picked, event.clientX, event.clientY);
         if (part) {
           choosePart(part);
@@ -605,10 +623,12 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         const part = partAt(picked, event.clientX, event.clientY);
         if (part && pressDataItem(event.nativeEvent, part, choosePart, () => choose(picked.hit, false))) return;
       }
+      // Figma's click: the outermost layer in the current context; ⌘ / Ctrl the deepest (⇧ adds either one).
+      const target = targetOf(picked, deep);
       // A press can drag the layer (Figma; edit/drag.ts): inside the selected layer it drags that one, and a click
-      // without moving still selects what is under the pointer.
-      if (pressLayer(event.nativeEvent, picked.hit, () => choose(picked.hit, event.shiftKey))) return;
-      choose(picked.hit, event.shiftKey);
+      // without moving still selects the layer the click picks.
+      if (pressLayer(event.nativeEvent, target, () => choose(target, event.shiftKey))) return;
+      choose(target, event.shiftKey);
       return;
     }
     pressSelectionRef.current = null;
@@ -673,7 +693,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     const selectedHost = selectedRef.current?.hosts;
     const onSelected = current?.kind === "node" && !current.part && Boolean(selectedHost?.some((host) => host.contains(picked.element)));
     const onExtra = extrasRef.current.some((extra) => extra.hosts.some((host) => host.contains(picked.element)));
-    if (!onSelected && !onExtra) choose(picked.hit, false);
+    if (!onSelected && !onExtra) choose(targetOf(picked, event.metaKey || event.ctrlKey), false);
     const selection = studioStore.getState().selection;
     if (selection?.kind === "node") openCanvasMenu(event.clientX, event.clientY, selection);
   };
@@ -689,6 +709,18 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     if (picked.kind !== "node" || event.shiftKey) return;
     // A resize handle's double-click (Hug) is ResizeLayer's.
     if (event.target instanceof Element && event.target.closest(".studio-resize__handle, .studio-resize__cover")) return;
+    // Figma's double-click: one level in, from the selected layer to its child under the pointer. Landing on a text
+    // layer (the element under the pointer), its text is edited in place; a component's text waits for the next one.
+    const selected = selectedRef.current;
+    if (!partRef.current && selected && !(event.metaKey || event.ctrlKey)) {
+      const inner = layerInside(picked.hit, picked.frame, selected);
+      if (inner) {
+        choose(inner, false);
+        studioStore.setState({ inspectorTab: "design" });
+        if (sameElement(inner, picked.hit) && TEXT_LAYER.test(inner.name)) tryStartTextEdit(event.clientX, event.clientY, inner.src);
+        return;
+      }
+    }
     // On a component that was already selected (or one of its parts): one level in, like Figma — the nested instance
     // written in the source under the cursor first (editable), else its read-only parts.
     const before = pressSelectionRef.current;

@@ -106,18 +106,12 @@ until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed a
 
 ## For the user (decisions and actions)
 
+Answered on 2026-10-09: selecting on the canvas follows Figma's click (a click selects the outermost layer in context,
+a double-click goes one level in, ⌘-click the deepest), done the same day (`select/clickTarget.ts`).
+
 Answered on 2026-10-08: no LAN access (`server.host` stays off); Code view languages in the order HTML/CSS → Vue →
 Swift → Flutter → Svelte, on hold for a later phase (BACKLOG); read-only fields already show a focus ring (input.css, since 2026-10-06);
 List-Box: code stays, the designer updates the master (above); Studio polish N1–N11 later (BACKLOG).
 
 - **Later (user, 2026-10-08):** Platform chrome: "Download Figma" (overview + sidebar footer) and "Feedback" have no destination, so
   `interaction/action-without-handler` keeps them as its 3 warnings. Waiting on the user for the URLs.
-
-- **Selecting a Stack on the canvas (user, 2026-10-09, session 604bd7):** a click selects the deepest layer under the
-  pointer (spec `docs/research/zen-studio-spec-2026-10-02.md`), so a Stack, Grid or List its children fill cannot be
-  clicked at all: on HR · Home 46 of 99 visible layers have no point a click reaches (Esc / ⇧Enter, Layers or the Slots
-  section still select them). Probably the "Rất nhiều chỗ của stack … khó thao tác" report. Figma: a click selects the
-  outermost layer in the current context, a double-click goes one level in, ⌘-click the deepest; right-click › Select
-  layer lists every layer under the pointer. Follow Figma's click, add Select layer, or both? (The click rule changes
-  every E2E row that clicks a nested layer; Select layer needs a submenu in Menu.) Every layer a click can reach
-  selects right (scratch crawl: click each layer at a point it owns, compare the selection).

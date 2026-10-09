@@ -1,6 +1,6 @@
 // Selection rows: canvas picking, keyboard navigation between layers, multi-selection, the Layers panel.
 import { locOf } from "../lib/source.mjs";
-import { expectSource, freshSelect } from "./inspector.mjs";
+import { expectSource, freshSelect, waitSeed } from "./inspector.mjs";
 import { selectedName } from "./builder.mjs";
 import { clickLoc, focusFrame, rectOf, selectedSrc, showLeftTab, sleep, until } from "../lib/studio.mjs";
 
@@ -14,7 +14,82 @@ async function expectSelected(page, file, loc, message) {
   }, { message: message ?? `${file}:${loc} to be selected` });
 }
 
+/** Every rendering of file:loc in the frame, in document order (the rows of a .map share one location). */
+async function rectsOf(page, file, loc) {
+  return page.evaluate((src) => [...document.querySelectorAll(`[data-zen-src="${CSS.escape(src)}"]`)].map((el) => el.getBoundingClientRect().toJSON()), `${file}:${loc}`);
+}
+
+/** The outline of the selection: which rendering of file:loc it covers (-1: none). */
+async function selectedRendering(page, file, loc) {
+  return page.evaluate((src) => {
+    const box = document.querySelector('.studio-selection__outline[data-kind="selected"]')?.getBoundingClientRect();
+    if (!box) return -1;
+    return [...document.querySelectorAll(`[data-zen-src="${CSS.escape(src)}"]`)].map((el) => el.getBoundingClientRect())
+      .findIndex((r) => Math.abs(r.x - box.x) < 3 && Math.abs(r.y - box.y) < 3 && Math.abs(r.width - box.width) < 3 && Math.abs(r.height - box.height) < 3);
+  }, `${file}:${loc}`);
+}
+
+const centre = (rect) => ({ x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 });
+
 export const rows = [
+  {
+    id: "SE-30", feature: "Figma's click: a click selects the outermost layer in context and keeps it, a double-click goes one level in, a click beside selects the sibling, ⌘-click the deepest", wp: "click 2026-10-09",
+    async run(ctx) {
+      const seed = await ctx.reseed();
+      const { page } = await ctx.studio();
+      await waitSeed(page, seed);
+      const text = await ctx.text();
+      const crew = locOf(text, "crew").loc;
+      const row = locOf(text, "crew-row").loc;
+      const loud = locOf(text, "cond").loc;
+      const featured = locOf(text, "cond-const").loc;
+      // The data frame's row of buttons: the Stack the three Buttons sit in.
+      const lines = text.split("\n");
+      const stackLine = lines.findIndex((line, index) => index > Number(loud.split(":")[0]) - 4 && /<Stack direction="row" gap="sm">/.test(line));
+      const rowStack = `${stackLine + 1}:${lines[stackLine].indexOf("<Stack")}`;
+      // The frame selected (its Layers row): no layer gives a context yet.
+      await focusFrame(page, 1);
+      const rows = await until(async () => { const all = await rectsOf(page, ctx.file, row); return all.length === 3 ? all : null; }, { message: "three crew rows" });
+      const click = async (point, options = {}) => {
+        for (const key of options.keys ?? []) await page.keyboard.down(key);
+        try { await page.mouse.click(point.x, point.y, { clickCount: options.count ?? 1 }); } finally { for (const key of [...(options.keys ?? [])].reverse()) await page.keyboard.up(key); }
+        await sleep(150);
+      };
+      const steps = [];
+      // 1. A click on a crew row selects the List (the root Stack's child under the pointer), not the row.
+      await click(centre(rows[0]));
+      await expectSelected(page, ctx.file, crew, "a click on a row selects its List (the outermost layer)");
+      steps.push("click → List");
+      // 2. Again inside the List: it stays selected.
+      await click(centre(rows[1]));
+      await expectSelected(page, ctx.file, crew, "a second click inside the List keeps it");
+      steps.push("click inside → List kept");
+      // 3. A double-click on the second row goes one level in: that row.
+      await page.mouse.dblclick(centre(rows[1]).x, centre(rows[1]).y);
+      await expectSelected(page, ctx.file, row, "a double-click selects the row under the pointer");
+      await until(async () => (await selectedRendering(page, ctx.file, row)) === 1, { message: "the second row selected" });
+      if (await page.evaluate(() => Boolean(document.querySelector("[contenteditable='true'], [contenteditable='plaintext-only']")))) throw new Error("the double-click into a ListItem started a text edit");
+      steps.push("double-click → row 2");
+      // 4. A click on the third row: a sibling of the selected row (the List is the context).
+      await click(centre(rows[2]));
+      await until(async () => (await selectedRendering(page, ctx.file, row)) === 2, { message: "a click beside selects the sibling row" });
+      steps.push("click → row 3");
+      // 5. A click on the Loud button, outside the List: the top level again, the buttons' Stack.
+      const loudRect = (await rectsOf(page, ctx.file, loud))[0];
+      await click(centre(loudRect));
+      await expectSelected(page, ctx.file, rowStack, "a click outside the context selects the top-level layer (the buttons' Stack)");
+      steps.push("click elsewhere → Stack");
+      // 6. ⌘-click on Loud: the deepest element there.
+      await click(centre(loudRect), { keys: ["ControlOrMeta"] });
+      await expectSelected(page, ctx.file, loud, "⌘-click selects the deepest layer (the Button)");
+      steps.push("⌘-click → Loud");
+      // 7. A click on Featured: Loud's sibling.
+      await click(centre((await rectsOf(page, ctx.file, featured))[0]));
+      await expectSelected(page, ctx.file, featured, "a click beside a Button selects its sibling");
+      steps.push("click → Featured");
+      return steps.join(" · ");
+    },
+  },
   {
     id: "SE-01", feature: "Click a layer on the canvas selects it (Layers follows)", wp: "GĐ0",
     async run(ctx) {

@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pagesDirOf } from "../lib/server.mjs";
-import { inspectorRow, openAssetLibrary, openStudioSpace, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { inspectorRow, openAssetLibrary, openStudioSpace, selectAt, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { pickOption, scaleStep } from "./inspector.mjs";
 
 /** The page's text as the browser keeps it (IndexedDB "zen-studio-builder"). */
@@ -65,13 +65,14 @@ export async function focusScreen(page) {
   await sleep(300);
 }
 
-/** Clicks the n-th element of the page named `name` (its centre, through the canvas picker). */
+/** Selects the n-th element of the page named `name` (a click at its centre, through the canvas picker; ⌘ held: Figma's
+ *  deep select, so the element itself is selected, not the outermost layer there). */
 export async function clickNamed(page, id, name, index = 0) {
   const target = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="${name}"]`).nth(index);
   await target.waitFor({ state: "attached", timeout: 5000 }).catch(async () => { throw new Error(`no <${name}> of ${id} on the canvas (url ${page.url()})`); });
   const box = await target.boundingBox();
   if (!box) throw new Error(`<${name}> has no box on the canvas`);
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await selectAt(page, box);
   await sleep(500);
 }
 

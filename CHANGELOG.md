@@ -1020,6 +1020,12 @@ removed (four unused colour ramps were, see Removed).
     which still bleeds outside the trail).
 
 ### Changed
+- **Zen Studio: clicks on the canvas work like Figma (2026-10-09):** a click selects the outermost layer under the
+  pointer in the current context (a frame's top level, or the selected layer's siblings; a click inside the selected
+  layer keeps it), a double-click goes one level in (onto a text layer it edits the text), ⌘ / Ctrl-click selects the
+  deepest element (again on it: its parts). So a Stack, Grid or List its children fill is one click away: on HR · Home
+  46 of 99 layers could not be clicked before. Hover outlines what a press would select; ⇧ adds that layer, ⇧⌘ the
+  deepest.
 - **AppShell top bar spacing from Figma Header/Dashboard (2026-10-09):** Spacing/Padding/Small above and below (was
   Margin-Comfortable above, Padding/XSmall below), Margin-Comfortable at the sides: a 64px bar on desktop (was 72). The
   templates start their PageHeader 12px under it (paddingY sm), as Header/Dashboard's Main row.
