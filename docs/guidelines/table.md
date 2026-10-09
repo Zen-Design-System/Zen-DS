@@ -21,6 +21,7 @@ Rows of structured records that users scan, compare, sort and act on.
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
+| Cell content | `columns[] {content, field, captionField, mediaField, bold}` | Figma Table/Cell/Default › Content without a cell function: text · avatar · photo · icon · dock-icon · badge · tag · trend · progress · checkbox · toggle, drawn from the row's field (default the column id); a `cell` function still wins |
 | Columns | `columns[] {id, header, align, width, sortable, icon, cell}` | header All-Caps/S Light; right-align numbers; a px width is fixed (Figma FIXED: a narrow container scrolls the table sideways, values never wrap); leave the main column without a width so it fills (Figma FILL) |
 | Rows | `rows · getRowId` | fixed Table/Cell/Size, 1px bottom Border/Neutral/Pale; a 32–40px Avatar, Dock Icon or icon button and a label + Subtext cell sit inside it (they spill into the padding, the row stays 52) |
 | Selection | `selectable · selectedIds · onSelectionChange` | checkbox column; select-all is indeterminate when partial |
@@ -112,8 +113,9 @@ Object shapes the props above refer to.
 ```ts
 type TableAlign = "left" | "right"
 interface TableBulkAction { id: string; icon: IconName | ReactElement; label: string; onClick: () => void; disabled?: boolean; group?: string; }
+type TableCellContent = "text" | "avatar" | "photo" | "icon" | "dock-icon" | "badge" | "tag" | "trend" | "progress" | "checkbox" | "toggle"
 type TableCellEditor<T> = | (TableEditorBase<T> & { type?: "text" | "number"; value: (row: T) => string; onCommit: (row: T, value: string) => void; multiline?: boolean }) | (TableEditorBase<T> & { type: "select"; value: (row: T) => string; options: Array<{ value: string; label: ReactNode }>; onCommit: (row: T, value: string) => void }) | (Omit<TableEditorBase<T>, "validate"> & { type: "tags"; value: (row: T) => string[]; onCommit: (row: T, value: string[]) => void; suggestions?: string[] })
-interface TableColumn<T> { id: string; header: ReactNode; align?: TableAlign; width?: string; sortable?: boolean; icon?: IconName | ReactElement; cell: (row: T, index: number) => ReactNode; edit?: TableCellEditor<T>; onOpen?: (row: T) => void; openLabel?: ReactNode; }
+interface TableColumn<T> { id: string; header: ReactNode; align?: TableAlign; width?: string; sortable?: boolean; icon?: IconName | ReactElement; cell?: (row: T, index: number) => ReactNode; content?: TableCellContent; field?: string; captionField?: string; mediaField?: string; bold?: boolean; edit?: TableCellEditor<T>; onOpen?: (row: T) => void; openLabel?: ReactNode; }
 interface TableSort { columnId: string; direction: TableSortDirection }
 type TableSortDirection = "asc" | "desc"
 ```

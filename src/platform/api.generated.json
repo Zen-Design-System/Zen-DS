@@ -12510,7 +12510,7 @@
           "type": "boolean",
           "required": false,
           "default": null,
-          "description": "Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded.",
+          "description": "Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded; a later change to the\n Sidebar's `collapsed` moves the rail too.",
           "deprecated": null
         },
         {

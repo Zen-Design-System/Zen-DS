@@ -125,10 +125,24 @@ export const rows = [
       const preview = quick(page).locator('[data-e2e="quick-insert-preview"][data-ready="true"]');
       await preview.waitFor({ state: "visible", timeout: 10_000 });
       await until(async () => (await preview.locator(".zen-button").count()) > 0, { timeout: 10_000, message: "a real Button in the preview" });
+      // Centred in the pane: what it paints (its buttons), not the row they are justified in (user, 2026-10-10).
+      const offset = await until(async () => {
+        const off = await preview.evaluate((pane) => {
+          const box = pane.getBoundingClientRect();
+          const rects = [...pane.querySelectorAll(".zen-button")].map((button) => button.getBoundingClientRect());
+          const left = Math.min(...rects.map((r) => r.left)), right = Math.max(...rects.map((r) => r.right));
+          const top = Math.min(...rects.map((r) => r.top)), bottom = Math.max(...rects.map((r) => r.bottom));
+          return { x: Math.round((left + right) / 2 - (box.left + box.right) / 2), y: Math.round((top + bottom) / 2 - (box.top + box.bottom) / 2) };
+        });
+        return Math.abs(off.x) <= 4 && Math.abs(off.y) <= 4 ? off : null;
+      }, { timeout: 5000, message: "the preview centred in its pane" });
+      void offset;
+      // The line under the search keeps its height (it was squeezed and cut under the search).
+      if (await quick(page).locator('[data-e2e="quick-insert-target"]').evaluate((line) => line.scrollHeight > line.clientHeight + 1)) throw new Error("the target line under the search is cut");
       await page.keyboard.press("Escape");
       await until(async () => (await quick(page).count()) === 0, { message: "Esc closes" });
       if ((await pageText(page, id)) !== before) throw new Error("the page changed");
-      return "Dialog → ↓ Modal form; Button previewed; Esc, no change";
+      return "Dialog → ↓ Modal form; Button previewed, centred; Esc, no change";
     },
   },
   {

@@ -1,6 +1,8 @@
 import { createContext, forwardRef, useCallback, useContext, useEffect, useId, useImperativeHandle, useLayoutEffect, useRef, useState, type ButtonHTMLAttributes, type ChangeEvent, type FocusEvent, type FocusEventHandler, type KeyboardEvent, type MouseEvent, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 import { Icon, type IconName } from "../Icon";
 import { Popover, PopoverManualAddNew, useExclusivePopover } from "../Popover";
+import { Avatar } from "../Avatar";
+import type { BadgeTheme } from "../Badge";
 import { BottomSheet } from "../BottomSheet";
 import { List, ListItem } from "../ListItem";
 import { Search } from "../Search";
@@ -443,6 +445,31 @@ export type SelectFieldOption = {
   /** Short text at the end of the option's row in the list, on the same line (Body/Small/Regular, Neutral/Base), e.g. the
    *  value a token stands for: `{ label: "md", meta: "16px" }`. The field itself shows only the label. */
   meta?: string;
+  /** Figma .Primitives/Popover/Item/Content Theme of the option's row in the list: `icon` (with `leading`), `text-only`,
+   *  `photo-small` / `photo-big` / `avatar-small` / `avatar-big` (with `photoSrc`), `dock-icon`, `badge` (the label on a
+   *  Badge, `badgeTheme`). Default: text only, or icon when `leading` is set. The field itself shows only the label. */
+  theme?: "icon" | "text-only" | "photo-small" | "photo-big" | "avatar-small" | "avatar-big" | "dock-icon" | "badge";
+  /** Before the label in the list (Theme=Icon): an icon name (`"icon-plane-line"`) or a node. */
+  leading?: IconName | ReactNode;
+  /** Figma Subtext: a second line under the label in the list (Caption/Regular). */
+  caption?: string;
+  /** The picture of a Photo / Avatar theme, and its alt text (default: none, the label names the row). */
+  photoSrc?: string;
+  photoAlt?: string;
+  /** Theme=Badge: the Badge's colour. */
+  badgeTheme?: BadgeTheme;
+};
+
+/** An option's Popover Item content (Figma Item/Content: Theme, Icon-Src, Subtext). */
+const optionContent = (option: SelectFieldOption) => ({
+  theme: option.theme, leading: option.leading, caption: option.caption, photoSrc: option.photoSrc, photoAlt: option.photoAlt, badgeTheme: option.badgeTheme,
+});
+/** The same content in a phone's sheet row: the icon or the picture leads, the Subtext is the row's caption. */
+const optionSheetLeading = (option: SelectFieldOption): ReactNode => {
+  if (option.leading) return renderIcon(option.leading);
+  if (!option.photoSrc) return undefined;
+  const avatar = option.theme === "avatar-small" || option.theme === "avatar-big";
+  return <Avatar size={option.theme === "avatar-big" || option.theme === "photo-big" ? "medium" : "small"} shape={avatar ? "circle" : "square"} theme="photo" src={option.photoSrc} alt={option.photoAlt ?? ""} />;
 };
 export type SelectFieldProps = CommonFieldProps & Omit<SelectHTMLAttributes<HTMLSelectElement>, "size"> & {
   options?: SelectFieldOption[];
@@ -648,7 +675,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
             {options.filter((option) => !sheetQuery.trim() || option.label.toLowerCase().includes(sheetQuery.trim().toLowerCase())).map((option) => {
               const picked = option.value === (controlledValue ?? selectedValue);
               return (
-                <ListItem key={option.value} title={option.label} selected={picked} className={option.disabled ? "zen-select__sheet-option--disabled" : undefined} aria-disabled={option.disabled || undefined}
+                <ListItem key={option.value} title={option.label} caption={option.caption} leading={optionSheetLeading(option)} selected={picked} className={option.disabled ? "zen-select__sheet-option--disabled" : undefined} aria-disabled={option.disabled || undefined}
                   trailing={option.meta || picked ? <>{option.meta ? <span className={`zen-select__option-meta ${typographyStyles["Body/Small/Regular"]}`}>{option.meta}</span> : null}{picked ? <Icon name="icon-check-line" size="base" decorative /> : null}</> : undefined}
                   onClick={option.disabled ? undefined : () => { pick(option.value); setOpen(false); }} />
               );
@@ -677,7 +704,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
             if (!event.shiftKey) triggerRef.current?.focus({ preventScroll: true });
           }
         }}
-        items={options.map((option) => ({ id: option.value, label: option.label, trailing: option.meta ? <span className={`zen-select__option-meta ${typographyStyles["Body/Small/Regular"]}`}>{option.meta}</span> : undefined, value: option.value, disabled: option.disabled, selected: option.value === (controlledValue ?? selectedValue) }))}
+        items={options.map((option) => ({ ...optionContent(option), id: option.value, label: option.label, trailing: option.meta ? <span className={`zen-select__option-meta ${typographyStyles["Body/Small/Regular"]}`}>{option.meta}</span> : undefined, value: option.value, disabled: option.disabled, selected: option.value === (controlledValue ?? selectedValue) }))}
         onSelect={(item) => { pick(item.value ?? ""); closeAndRestore(); }}
       />
       )}

@@ -80,6 +80,31 @@ removed (four unused colour ramps were, see Removed).
   own handler (voice mode, e.g. an AiVoiceConversation), apart from the microphone's dictation (`onVoice`, its default).
 - **PageHeader: title and description 4px apart (2026-10-09, Figma Header-Text, Spacing/Gap/2XSmall):** was 8px; the
   header's other parts keep Gap/XSmall.
+- **Table columns pick their cell content, as Figma's Table/Cell/Default › Content (2026-10-10):** a column without a
+  `cell` function draws `content` from the row's `field` (default its id): text, avatar, photo, icon, dock-icon (with
+  `captionField` Subtext, `mediaField` picture or icon, `bold`), badge or tag (one per value), trend (by the value's
+  sign), progress (0–100), checkbox or toggle (a boolean). `cell` is now optional. Zen Studio's Inspector offers Content
+  for every column, a page made in the Studio can hold it, and Assets › Table inserts columns of each kind (its
+  preview, empty before, now draws).
+- **Liquid Glass, as Figma draws it (2026-10-10, GLASS effects Liquid-Glass/Normal · Glass-Floating):** AI Chat-Field
+  Style=Liquid Glass, the Top Navigation's glass actions (Nav-Action/Liquid-Glass, Liquid Glass and overlay types) and
+  the Bottom Navigation Floating-Glass bar, its CTA and its selected item now bend the picture behind them at the rim
+  (refraction over the effect's depth), split its colours there (dispersion), frost it and light the bevel from Figma's
+  light angle, with the effect style's own values (`src/styles/generated/glass-styles.ts`, from the Figma styles).
+  Chromium draws the bend (an SVG backdrop filter); other browsers and `prefers-reduced-transparency` keep the frost.
+- **Zen Studio Quick insert / Swap (2026-10-10):** the preview sits in the middle of its pane, by what the item paints
+  (a row of buttons justified to the end is centred, not pushed right), with Padding/XLarge around it; the line under the
+  search ("Swap … for the chosen component", where an item lands) lines up with the search's icon, Padding/XSmall above,
+  and is no longer cut; a heading is centred by its words, and every item is placed again when the focus moves.
+- **Progressive blur grows linearly (2026-10-10):** the Top Navigation's blurring types and the Floating Bottom
+  Navigation now ramp the blur evenly from 0 to the Figma radius (six stacked blurs whose σ² add up), where the five
+  equal layers reached most of the blur within the first fifth.
+- **SelectField options take Figma's Popover Item content (2026-10-09, .Primitives/Popover/Item/Content):** `theme`
+  (icon · text-only · photo-small · photo-big · avatar-small · avatar-big · dock-icon · badge), `leading`, `caption`
+  (Subtext), `photoSrc` / `photoAlt`, `badgeTheme` — drawn in the open list (and a phone's sheet); the field still shows
+  the label. Zen Studio's Options editor offers them.
+- **AppShell follows its Sidebar's `collapsed` (2026-10-09):** an uncontrolled shell starts from it as before and now
+  also moves the rail when the prop changes (edited code, Zen Studio's Collapsed toggle on a page made from a template).
 - **List slots as children (2026-10-09, Figma Item-List / Nav-Items):** Tabs takes `<TabItem value label />`,
   Breadcrumbs `<BreadcrumbItem item />`, Stepper `<StepperStep id title caption />` and BottomNavigation
   `<BottomNavigationItem id label icon />` children instead of their array (`items` / `steps` stay and win when given);

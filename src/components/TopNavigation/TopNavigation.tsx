@@ -4,6 +4,8 @@ import { usePresence } from "../Motion";
 import { useIconTooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
 import { NotificationDot } from "../_shared/notification-dot";
+import { useLiquidGlass } from "../_shared/liquid-glass";
+import { ProgressiveBlur } from "../_shared/progressive-blur";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./top-navigation.css";
@@ -166,8 +168,10 @@ function trailingItems(lead: TopNavigationAction[], trailing: TopNavigationActio
 export function TopNavigationActionButton({ action, variant, className, state }: { action: TopNavigationAction; variant: string; className?: string; state?: "open" | "closing" }) {
   // Icon-only: the label shows as a tooltip after 1s hover (Zen rule); below the bar so it never covers the status bar.
   const tip = useIconTooltip(state === "closing" ? false : action.label, { placement: "bottom" });
+  // Figma Nav-Action/Liquid-Glass (12015:46174): its Container has Liquid-Glass/Normal's GLASS effect.
+  const glass = useLiquidGlass("liquid-glass-normal", variant === "glass" || variant === "glass-dark");
   return (
-    <button type="button" className={["zen-top-nav__action", className].filter(Boolean).join(" ")} data-style={variant} data-state={state} aria-label={action.label} disabled={action.disabled} {...tip.bind({ onClick: action.onClick })}>
+    <button ref={glass} type="button" className={["zen-top-nav__action", className].filter(Boolean).join(" ")} data-style={variant} data-state={state} aria-label={action.label} disabled={action.disabled} {...tip.bind({ onClick: action.onClick })}>
       {renderIcon(action.icon)}
       {action.dot ? <NotificationDot className="zen-top-nav__dot" /> : null}
       {tip.tooltip}
@@ -270,6 +274,8 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
   const t = useZenLabels();
   const titleId = useId();
   const variant = actionStyleFor(type);
+  // The dual Nav-Action pill of the glass types is Liquid-Glass/Normal glass, as a single action.
+  const groupGlass = useLiquidGlass("liquid-glass-normal", variant === "glass" || variant === "glass-dark");
   const identity = Boolean(subtitle || titleLeading);
   const rootRef = useRef<HTMLElement>(null);
   // The fold is kept as state (a callback ref), so a fold that unmounts and mounts again (root → child → root) is
@@ -303,7 +309,7 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
   const searchButton: TopNavigationAction | null = searchAction ? { icon: searchAction.icon ?? "icon-search-medium-line", label: searchAction.label ?? t.search, onClick: searchAction.onClick } : null;
   return (
     <header ref={rootRef} className={["zen-top-nav", className].filter(Boolean).join(" ")} data-type={type} data-margin={margin} data-collapsed={collapsed ? "true" : undefined} data-sticky={sticky ? "true" : undefined} data-scroll-linked={linked ? "true" : undefined} data-scrolled={linked && scroll.scrolled ? "true" : undefined} data-bar={barOverlay ? "overlay" : undefined} aria-label={ariaLabel}>
-      {progressive ? <span className="zen-top-nav__progressive" aria-hidden="true"><i /><i /><i /><i /><i /></span> : null}
+      {progressive ? <ProgressiveBlur className="zen-top-nav__progressive" strong="top" /> : null}
       <div ref={barRef} className="zen-top-nav__bar">
         <div className="zen-top-nav__leading">
           {isAction(leading) ? <TopNavigationActionButton action={leading} variant={variant} /> : leading}
@@ -338,7 +344,7 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
           {/* Keyed by position: a label that changes (a count clearing, Like → Unlike) must not remount the button and drop its focus. */}
           {trailingItems(lead, trailing, pairs, trailingGroup, search.mounted && searchButton ? MAX_ACTIONS - 1 : MAX_ACTIONS).map((item, index) => item.length > 1
             // The dual Nav-Action: one pill in the bar's action style, two halves that each keep their target and name.
-            ? <span key={index} className="zen-top-nav__group" data-style={variant} role="group">{item.map((action, half) => <TopNavigationActionButton key={half} action={action} variant="flat-group" />)}</span>
+            ? <span key={index} ref={groupGlass} className="zen-top-nav__group" data-style={variant} role="group">{item.map((action, half) => <TopNavigationActionButton key={half} action={action} variant="flat-group" />)}</span>
             : <TopNavigationActionButton key={index} action={item[0]} variant={variant} />)}
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { createElement, isValidElement, type ReactNode } from "react";
-import { isColumnCell, requiredFunctions, showsAsText, standInKind } from "../../../../../tools/studio/standins.mjs";
+import { requiredFunctions, standInKind } from "../../../../../tools/studio/standins.mjs";
 import * as Zen from "../../../../index";
 import { resolveMedia } from "../library/media";
 import { Board, Overlay, protoHandler, Screen, type ProtoActions } from "../proto/runtime";
@@ -76,11 +76,6 @@ function withStandIns(name: string, props: Record<string, unknown>) {
       const added: Record<string, unknown> = {};
       for (const [field, signature] of Object.entries(fields)) {
         if ((object as Record<string, unknown>)[field] !== undefined) continue;
-        if (isColumnCell(name, prop, field)) {
-          const id = String((object as { id?: unknown }).id);
-          added[field] = (row: Record<string, unknown>) => (showsAsText(row?.[id]) ? row[id] : null);
-          continue;
-        }
         const kind = standInKind(signature);
         if (kind) added[field] = STAND_IN[kind];
       }

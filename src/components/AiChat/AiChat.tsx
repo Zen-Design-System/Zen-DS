@@ -5,6 +5,7 @@ import { Icon, type IconName } from "../Icon";
 import { Tooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
 import { useZenLabels } from "../_shared/zen-context";
+import { useLiquidGlass } from "../_shared/liquid-glass";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./ai-chat.css";
 import "../Icon/core";
@@ -62,6 +63,8 @@ export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle
   // controls types into the prompt (caret at the end); the buttons keep their own action. Keyboard users reach the
   // prompt with Tab as before.
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  // Figma Style=Liquid Glass: Liquid-Glass/Normal's GLASS effect (frost, refraction at the rim, dispersion).
+  const glass = useLiquidGlass("liquid-glass-normal", fieldStyle === "liquid-glass");
   const onControl = (target: EventTarget) => target instanceof Element && Boolean(target.closest("button, a, input, select, textarea, [role='button']"));
   const keepCaret = (event: MouseEvent<HTMLFormElement>) => { if (!disabled && !onControl(event.target)) event.preventDefault(); };
   const focusPrompt = (event: MouseEvent<HTMLFormElement>) => {
@@ -77,7 +80,7 @@ export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle
       ? <IconButton appearance="main" level="primary" size="md" type="submit" aria-label={t.send} disabled={disabled || !typing} icon={<Icon name="icon-arrow-up-line" />} />
       : <IconButton appearance="main" level="primary" size="md" aria-label={t.startVoiceMode} disabled={disabled} onClick={voiceMode} icon={<Icon name="icon-recording-02-line" />} />;
   return (
-    <form className={["zen-ai-field", className].filter(Boolean).join(" ")} data-style={fieldStyle} data-long={long ? "true" : undefined} data-leading={onAttach ? undefined : "none"} onSubmit={submit} onMouseDown={keepCaret} onClick={focusPrompt}>
+    <form ref={glass} className={["zen-ai-field", className].filter(Boolean).join(" ")} data-style={fieldStyle} data-long={long ? "true" : undefined} data-leading={onAttach ? undefined : "none"} onSubmit={submit} onMouseDown={keepCaret} onClick={focusPrompt}>
       <textarea ref={inputRef} className={`zen-ai-field__input ${typographyStyles["Body/Extra/Medium"]}`} rows={1} value={text} aria-label={prompt} disabled={disabled} onChange={(event) => setText(event.target.value)} onKeyDown={onKeyDown} />
       {/* Figma Text (trunc): one line with an ellipsis — a textarea placeholder can only clip, so it is drawn here. */}
       {text ? null : <span className={`zen-ai-field__placeholder ${typographyStyles["Body/Extra/Medium"]}`} aria-hidden="true">{placeholder}</span>}

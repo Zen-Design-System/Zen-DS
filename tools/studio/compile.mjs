@@ -15,7 +15,7 @@
 // - A function the component requires but a page cannot write (standins.mjs) gets a stand-in and a TODO(dev) line; a
 //   Table column shows its row's field named by its id. Fields a component's object type lacks are left out.
 import { SCREEN_CHROME, parsePage, screenLayout } from "./dialect.mjs";
-import { isColumnCell, objectFields, requiredFunctions, showsAsText, standInKind } from "./standins.mjs";
+import { objectFields, requiredFunctions, standInKind } from "./standins.mjs";
 
 const UNIT = "  ";
 const WIDTH = 110;
@@ -159,29 +159,6 @@ function childCode(child, ctx, indent) {
 }
 
 const STAND_IN = { void: "() => {}", null: "() => null", string: '() => ""' };
-const NOT_TEXT = Symbol("not text");
-
-/** The rows a Table shows as data (`rows` / `data`, written in place or read from the mock); null when not known here. */
-function rowsOf(node, ctx) {
-  const value = node.props.rows ?? node.props.data;
-  if (value?.kind === "ref" && value.root === "mock") {
-    const rows = value.path.reduce((data, key) => (data && typeof data === "object" ? data[key] : undefined), ctx.mock);
-    return Array.isArray(rows) ? rows.filter((row) => row && typeof row === "object") : null;
-  }
-  if (value?.kind !== "array") return null;
-  return value.items.filter((item) => item.kind === "object").map((item) => Object.fromEntries(Object.entries(item.fields).map(([key, field]) => [key, field.kind === "literal" ? field.value : NOT_TEXT])));
-}
-
-/** A Table column's stand-in cell: its row's field named by its id when every row holds text there, else nothing. */
-function cellStandIn(column, rows, ctx) {
-  const id = column.fields.id?.kind === "literal" ? String(column.fields.id.value) : null;
-  const values = id === null || !rows ? [] : rows.filter((row) => id in row).map((row) => row[id]);
-  if (values.length && values.every((value) => value === null || showsAsText(value)) && values.some(showsAsText)) {
-    return `(row) => row${IDENTIFIER.test(id) ? `.${id}` : `[${json(id)}]`}`;
-  }
-  ctx.handlers.push(`<Table> column ${id === null ? "" : `"${id}" `}draws nothing yet: write its cell`);
-  return STAND_IN.null;
-}
 
 /** The element's props with a stand-in for each function its component requires that the page lacks (standins.mjs). */
 function withStandIns(node, ctx) {
@@ -201,7 +178,6 @@ function withStandIns(node, ctx) {
       const added = {};
       for (const [field, signature] of Object.entries(fields)) {
         if (object.fields[field] !== undefined) continue;
-        if (isColumnCell(node.name, name, field)) { added[field] = { kind: "code", code: cellStandIn(object, rowsOf(node, ctx), ctx) }; continue; }
         const kind = standInKind(signature);
         if (!kind) continue;
         added[field] = { kind: "code", code: STAND_IN[kind] };

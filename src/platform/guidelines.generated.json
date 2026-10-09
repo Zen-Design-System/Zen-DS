@@ -4103,6 +4103,11 @@
     ],
     "api": [
       [
+        "Cell content",
+        "columns[] {content, field, captionField, mediaField, bold}",
+        "Figma Table/Cell/Default › Content without a cell function: text · avatar · photo · icon · dock-icon · badge · tag · trend · progress · checkbox · toggle, drawn from the row's field (default the column id); a `cell` function still wins"
+      ],
+      [
         "Columns",
         "columns[] {id, header, align, width, sortable, icon, cell}",
         "header All-Caps/S Light; right-align numbers; a px width is fixed (Figma FIXED: a narrow container scrolls the table sideways, values never wrap); leave the main column without a width so it fills (Figma FILL)"

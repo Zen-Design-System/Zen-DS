@@ -345,11 +345,12 @@ Object shapes the props above refer to.
 
 ```ts
 type AutocompleteOption = { id: string; label: string; leading?: ReactNode; photoSrc?: string }
+type BadgeTheme = "accent" | "neutral" | "yellow" | "orange" | "red" | "crimson" | "pink" | "plum" | "purple" | "violet" | "indigo" | "blue" | "cyan" | "teal" | "green" | "brown" | "inverse" | "on-color" | "sky" | "mint" | "bronze" | "golden"
 type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: ReactNode; icon?: IconName | ReactNode; flag?: ReactNode; }
 type InputSize = "sm" | "md" | "lg" | "xl" | "small" | "medium" | "large" | "xlarge"
 type RichTextBlockType = "p" | "h1" | "h2" | "h3"
 type RichTextCommand = | "undo" | "redo" | "bold" | "underline" | "italic" | "strikethrough" | "align-left" | "align-center" | "align-right" | "align-justify" | "bulleted-list" | "numbered-list" | "outdent" | "indent" | "link" | "image" | "video" | "clear-format"
-type SelectFieldOption = { label: string; value: string; disabled?: boolean; meta?: string; }
+type SelectFieldOption = { label: string; value: string; disabled?: boolean; meta?: string; theme?: "icon" | "text-only" | "photo-small" | "photo-big" | "avatar-small" | "avatar-big" | "dock-icon" | "badge"; leading?: IconName | ReactNode; caption?: string; photoSrc?: string; photoAlt?: string; badgeTheme?: BadgeTheme; }
 ```
 
 ## Keyboard

@@ -88,7 +88,8 @@ export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "chi
   canvas?: "default" | "alt" | "flat";
   /** Sidebar rail state when controlled; pair it with `onSidebarCollapsedChange`. */
   sidebarCollapsed?: boolean;
-  /** Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded. */
+  /** Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded; a later change to the
+   *  Sidebar's `collapsed` moves the rail too. */
   defaultSidebarCollapsed?: boolean;
   /** Called when the toggle (or `useAppShell().setSidebarCollapsed`) collapses or expands the Sidebar. Store it (e.g. localStorage) to keep the choice between visits. */
   onSidebarCollapsedChange?: (collapsed: boolean) => void;
@@ -287,6 +288,14 @@ export function AppShell({
     ? sidebarElement.props.variant !== "workspace"
     : Boolean(sidebar) && (collapsedProp !== undefined || defaultSidebarCollapsed !== undefined || onSidebarCollapsedChange !== undefined);
   const [innerCollapsed, setInnerCollapsed] = useState(() => defaultSidebarCollapsed ?? Boolean(sidebarElement?.props.collapsed));
+  // The Sidebar's own `collapsed` is where an uncontrolled shell starts, and a change to it (the code edited, Zen
+  // Studio's Collapsed toggle) moves the rail too; the toggle and setSidebarCollapsed still change it in between.
+  const declaredCollapsed = sidebarElement?.props.collapsed;
+  const [seenCollapsed, setSeenCollapsed] = useState(declaredCollapsed);
+  if (declaredCollapsed !== seenCollapsed) {
+    setSeenCollapsed(declaredCollapsed);
+    if (collapsedProp === undefined) setInnerCollapsed(Boolean(declaredCollapsed));
+  }
   const sidebarCollapsed = ownCollapse ? Boolean(sidebarElement?.props.collapsed) : Boolean(collapsedProp ?? innerCollapsed);
   const collapseHandlers = useRef({ ownCollapse, controlled: collapsedProp !== undefined, onSidebarCollapsedChange });
   collapseHandlers.current = { ownCollapse, controlled: collapsedProp !== undefined, onSidebarCollapsedChange };

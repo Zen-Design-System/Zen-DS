@@ -20,8 +20,12 @@
   backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
   transform: translateX(-50%);
 }
-.studio-qi__search { padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px) 0; }
-.studio-qi__target { margin: 0; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-xsmall, 8px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The search and the target line keep their height: the panel is a column with a max height, and only the list and the
+   preview below them give way (the line was squeezed to 21 of its 32px, cut under the search). */
+.studio-qi__search { flex: 0 0 auto; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px) 0; }
+/* What the chosen item lands in (or replaces): a line under the search, Padding/XSmall above and below, lined up with the
+   search's icon (the field's own Padding/Small inside the panel's Padding/XSmall). */
+.studio-qi__target { flex: 0 0 auto; margin: 0; padding: var(--zen-spacing-padding-xsmall, 8px) calc(var(--zen-spacing-padding-xsmall, 8px) + var(--zen-spacing-padding-small, 12px)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio-qi__body { display: flex; min-height: 0; flex: 1 1 auto; border-top: 1px solid var(--zen-color-border-neutral-subtle-default); }
 .studio-qi__list { min-width: 0; flex: 1 1 50%; margin: 0; padding: var(--zen-spacing-padding-2-xsmall, 4px); overflow: auto; list-style: none; }
 .studio-qi__option { display: flex; min-width: 0; height: 32px; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0 var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-base, 12px); color: var(--zen-color-content-neutral-strongest); cursor: pointer; }
@@ -30,9 +34,9 @@
 .studio-qi__name { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio-qi__caption { flex: 0 1 auto; overflow: hidden; color: var(--zen-color-content-neutral-base); text-overflow: ellipsis; white-space: nowrap; }
 .studio-qi__empty { margin: 0; padding: var(--zen-spacing-padding-small, 12px); }
-.studio-qi__preview { position: relative; display: flex; min-width: 0; flex: 1 1 50%; align-items: flex-start; justify-content: center; overflow: hidden; padding: var(--zen-spacing-padding-small, 12px); border-left: 1px solid var(--zen-color-border-neutral-subtle-default); background: var(--zen-color-background-canvas-default); pointer-events: none; }
-.studio-qi__stage { flex: 0 0 auto; transform-origin: top center; }
-.studio-qi__stage { position: relative; }
+.studio-qi__preview { position: relative; display: flex; min-width: 0; flex: 1 1 50%; align-items: center; justify-content: center; overflow: hidden; padding: var(--zen-spacing-padding-small, 12px); border-left: 1px solid var(--zen-color-border-neutral-subtle-default); background: var(--zen-color-background-canvas-default); pointer-events: none; }
+/* The item's stage sits at the pane's corner; ItemPreview moves and scales it so what it paints is centred. */
+.studio-qi__stage { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
 .studio-qi__portal { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .studio-qi__group { margin: 0; padding: 0; list-style: none; }
 .studio-qi__group + .studio-qi__group { margin-top: var(--zen-spacing-gap-xsmall, 8px); }

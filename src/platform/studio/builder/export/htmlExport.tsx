@@ -126,6 +126,12 @@ export function exportCopy(root: HTMLElement, mapUrl: (url: string) => string): 
     }
     const srcset = element.getAttribute("srcset");
     if (srcset) element.setAttribute("srcset", srcset.split(",").map((part) => { const [url, ...size] = part.trim().split(/\s+/); return [mapUrl(url), ...size].join(" "); }).join(", "));
+    // Liquid Glass (components/_shared/liquid-glass.ts) is drawn live with this page's SVG filters: the export keeps the
+    // component's own CSS frost instead of a filter it does not ship.
+    if (element instanceof HTMLElement && element.style.backdropFilter.includes("zen-liquid-glass-")) {
+      for (const property of ["backdrop-filter", "-webkit-backdrop-filter", "background-image", "background-size", "background-repeat"]) element.style.removeProperty(property);
+      if (!element.getAttribute("style")) element.removeAttribute("style");
+    }
     const style = element.getAttribute("style");
     if (style && /url\(/.test(style)) element.setAttribute("style", style.replace(/url\((['"]?)([^'")]+)\1\)/g, (_match, quote: string, url: string) => `url(${quote}${mapUrl(url)}${quote})`));
   }

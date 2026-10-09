@@ -1,11 +1,15 @@
 import { Fragment, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type HTMLAttributes, type KeyboardEvent, type ReactElement, type ReactNode, type Ref, type RefObject } from "react";
 import { ZenPortal } from "../Portal";
+import { Avatar } from "../Avatar";
 import { Badge } from "../Badge";
 import { Button, IconButton } from "../Button";
 import { Checkbox } from "../Checkbox";
+import { DockIcon } from "../DockIcon";
 import { Menu, type MenuEntry } from "../Menu";
 import { Popover, PopoverBulkAction, PopoverBulkActionDivider, PopoverBulkActionGroup } from "../Popover";
+import { ProgressBar } from "../Progress";
 import { Tag } from "../Tag";
+import { ToggleButton } from "../Toggle";
 import { Icon, type IconName } from "../Icon";
 import { VisuallyHidden } from "../VisuallyHidden";
 import { renderIcon } from "../_shared/icon";
@@ -18,6 +22,13 @@ import "../Icon/core";
 export type TableAlign = "left" | "right";
 export type TableSortDirection = "asc" | "desc";
 export interface TableSort { columnId: string; direction: TableSortDirection }
+
+/**
+ * Figma Table/Cell/Default › Content (1603:23604): the primitive cell a column draws from its rows when it has no `cell`
+ * — Text-Cell, Avatar-Cell, Photo-Cell, Basic-Icon-Cell, Dock-Icon-Cell, Badge-Cell, Tag-Cell, Trend-Cell,
+ * Progress-Cell, Control-Cell (Checkbox, Toggle).
+ */
+export type TableCellContent = "text" | "avatar" | "photo" | "icon" | "dock-icon" | "badge" | "tag" | "trend" | "progress" | "checkbox" | "toggle";
 
 export interface TableColumn<T> {
   id: string;
@@ -35,8 +46,22 @@ export interface TableColumn<T> {
   sortable?: boolean;
   /** Figma Icon: a 12px leading icon before the header label — an icon name or an icon element. */
   icon?: IconName | ReactElement;
-  /** Cell content for a row; use the Table* cell primitives or any component. */
-  cell: (row: T, index: number) => ReactNode;
+  /** Cell content for a row; use the Table* cell primitives or any component. Without it the column draws its
+   *  `content` from the row's fields. */
+  cell?: (row: T, index: number) => ReactNode;
+  /** Figma Content of the column's cells when there is no `cell` (default `text`): the row's `field` as a Text cell, an
+   *  Avatar or Photo (picture from `mediaField`, else initials), an Icon or Dock Icon (icon name from `mediaField`), Badges
+   *  or Tags (a string or a list of strings), a Trend (the sign of the value: up, down, flat), a Progress bar (0–100), or
+   *  a Checkbox or Toggle (on when the value is true). */
+  content?: TableCellContent;
+  /** The row field the cell draws (default: the column's id). */
+  field?: string;
+  /** Figma Subtext: a second line under the label, from this row field (text, avatar, photo, icon and dock-icon cells). */
+  captionField?: string;
+  /** The picture (avatar, photo) or the icon name (icon, dock-icon) of each row, from this row field. */
+  mediaField?: string;
+  /** Figma Bold: the label in Body/Base/Bold (text, avatar, photo, icon and dock-icon cells). */
+  bold?: boolean;
   /** Makes the column's cells editable in place (Figma Table/Cell/Default State=Edit · Editabled-Cell). */
   edit?: TableCellEditor<T>;
   /** Figma Open-Button: an XSmall Tertiary "Open" button on the right of the cell while its row is hovered. */
@@ -455,7 +480,7 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
                   const open = column.onOpen ? (
                     <span className="zen-table__open">{/* zen-allow-compact-button: an App Store-style "Open" pill that appears on row hover inside a 52px cell. */}<Button appearance="main" level="tertiary" size="xs" onClick={(event) => { event.stopPropagation(); column.onOpen!(row); }}>{column.openLabel ?? t.open}</Button></span>
                   ) : null;
-                  if (!column.edit) return <td key={column.id} className="zen-table__cell" data-align={column.align ?? "left"} data-open={open ? "true" : undefined}>{column.cell(row, index)}{open}</td>;
+                  if (!column.edit) return <td key={column.id} className="zen-table__cell" data-align={column.align ?? "left"} data-open={open ? "true" : undefined}>{cellOf(column, row, index)}{open}</td>;
                   return (
                     <td key={column.id} className="zen-table__cell" data-align={column.align ?? "left"} data-editable={editable ? "true" : "false"} data-editing={isEditing ? "true" : undefined} data-open={open ? "true" : undefined}
                       data-cell={`${id}::${column.id}`} tabIndex={editable && !isEditing ? 0 : undefined} aria-describedby={editable ? hintId : undefined}
@@ -474,10 +499,10 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
                       {isEditing
                         // The original content stays (hidden) so the column width and row height never change;
                         // the editor overlays the cell.
-                        ? <><span className="zen-table__cell-ghost" aria-hidden="true">{column.cell(row, index)}</span><TableCellEditorView editor={column.edit} row={row} initial={editing?.initial} align={column.align ?? "left"}
+                        ? <><span className="zen-table__cell-ghost" aria-hidden="true">{cellOf(column, row, index)}</span><TableCellEditorView editor={column.edit} row={row} initial={editing?.initial} align={column.align ?? "left"}
                             onDone={({ refocus }) => { setEditing((current) => (current?.row === id && current.col === column.id ? null : current)); if (refocus) focusCell(cell, true); }}
                             onMove={(direction) => { const next = neighbour(cell, 0, direction, true); if (next) focusCell(next); }} /></>
-                        : <>{column.cell(row, index)}{open}</>}
+                        : <>{cellOf(column, row, index)}{open}</>}
                     </td>
                   );
                 })}
@@ -656,6 +681,68 @@ export function TableBadges({ children }: { children: ReactNode }) {
 /** Figma Tag-Cell (1603:23304): an Items slot of Tag (Medium), gap 2XSmall. */
 export function TableTags({ children }: { children: ReactNode }) {
   return <span className="zen-table-items">{children}</span>;
+}
+
+/** A row field as text: a string or a number, else nothing. */
+const textOf = (value: unknown) => (typeof value === "string" || typeof value === "number" ? String(value) : "");
+const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]?.toUpperCase() ?? "").join("");
+
+/** A media cell's visual (Figma Avatar / Photo / Basic-Icon / Dock-Icon cell): Small over a Subtext, XSmall without. */
+function cellVisual(content: "avatar" | "photo" | "icon" | "dock-icon", captioned: boolean, media: string, label: string): ReactNode {
+  if (content === "icon") {
+    const name = (media || "icon-file-06-line") as IconName;
+    return captioned ? <Icon name={name} size="lg" decorative /> : <Icon name={name} size="base" decorative />;
+  }
+  if (content === "dock-icon") {
+    const icon = (media || undefined) as IconName | undefined;
+    return captioned ? <DockIcon icon={icon} size="sm" theme="neutral" background="subtle" /> : <DockIcon icon={icon} size="xs" theme="neutral" background="subtle" />;
+  }
+  const shape = content === "photo" ? "square" : "circle";
+  const picture = { theme: media ? ("photo" as const) : ("neutral" as const), src: media || undefined, children: media ? null : initialsOf(label) };
+  return captioned
+    ? <Avatar size="sm" shape={shape} background="subtle" alt="" {...picture} />
+    : <Avatar size="xs" shape={shape} background="subtle" alt="" {...picture} />;
+}
+
+/** A column's cell from its row: its own `cell`, else its `content` drawn from the row's fields (TableCellContent). */
+function cellOf<T>(column: TableColumn<T>, row: T, index: number): ReactNode {
+  if (column.cell) return column.cell(row, index);
+  const record = (row ?? {}) as Record<string, unknown>;
+  const value = record[column.field ?? column.id];
+  const label = textOf(value);
+  const caption = column.captionField ? textOf(record[column.captionField]) || undefined : undefined;
+  const media = column.mediaField ? textOf(record[column.mediaField]) : "";
+  const bold = column.bold ?? false;
+  const name = `${typeof column.header === "string" ? column.header : column.id}, row ${index + 1}`;
+  // Figma media cells: the visual is XSmall (24, Icon 20) on one line, Small (32, Icon 28) over a Subtext.
+  const content = column.content ?? "text";
+  switch (content) {
+    case "avatar":
+    case "photo":
+    case "icon":
+    case "dock-icon":
+      return <TableMedia caption={caption} bold={bold} media={cellVisual(content, Boolean(caption), media, label)}>{label}</TableMedia>;
+    case "badge":
+    case "tag": {
+      const items = (Array.isArray(value) ? value : [value]).map(textOf).filter(Boolean);
+      return content === "badge"
+        ? <TableBadges>{items.map((item) => <Badge key={item} size="medium" theme="neutral" background="subtle" leadingIcon={false}>{item}</Badge>)}</TableBadges>
+        : <TableTags>{items.map((item) => <Tag key={item}>{item}</Tag>)}</TableTags>;
+    }
+    case "trend": {
+      if (!label) return null;
+      const number = Number.parseFloat(label.replace(/[^\d.+-]/g, ""));
+      return <TableTrend trend={label.trim().startsWith("-") || number < 0 ? "down" : number > 0 ? "up" : "neutral"}>{label}</TableTrend>;
+    }
+    case "progress":
+      return <ProgressBar value={Math.max(0, Math.min(100, Number(value) || 0))} label aria-label={name} />;
+    case "checkbox":
+      return <Checkbox defaultChecked={value === true} aria-label={name} />;
+    case "toggle":
+      return <ToggleButton size="sm" defaultChecked={value === true} aria-label={name} />;
+    default:
+      return label ? <TableText caption={caption} bold={bold}>{label}</TableText> : null;
+  }
 }
 
 /** Figma Actions-Cell: icon buttons (Button/Icon-Flat Medium), gap XSmall, aligned to the cell's end. */

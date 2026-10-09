@@ -294,8 +294,9 @@
   "types": {
     "TableAlign": "type TableAlign = \"left\" | \"right\"",
     "TableBulkAction": "interface TableBulkAction { id: string; icon: IconName | ReactElement; label: string; onClick: () => void; disabled?: boolean; group?: string; }",
+    "TableCellContent": "type TableCellContent = \"text\" | \"avatar\" | \"photo\" | \"icon\" | \"dock-icon\" | \"badge\" | \"tag\" | \"trend\" | \"progress\" | \"checkbox\" | \"toggle\"",
     "TableCellEditor": "type TableCellEditor<T> = | (TableEditorBase<T> & { type?: \"text\" | \"number\"; value: (row: T) => string; onCommit: (row: T, value: string) => void; multiline?: boolean }) | (TableEditorBase<T> & { type: \"select\"; value: (row: T) => string; options: Array<{ value: string; label: ReactNode }>; onCommit: (row: T, value: string) => void }) | (Omit<TableEditorBase<T>, \"validate\"> & { type: \"tags\"; value: (row: T) => string[]; onCommit: (row: T, value: string[]) => void; suggestions?: string[] })",
-    "TableColumn": "interface TableColumn<T> { id: string; header: ReactNode; align?: TableAlign; width?: string; sortable?: boolean; icon?: IconName | ReactElement; cell: (row: T, index: number) => ReactNode; edit?: TableCellEditor<T>; onOpen?: (row: T) => void; openLabel?: ReactNode; }",
+    "TableColumn": "interface TableColumn<T> { id: string; header: ReactNode; align?: TableAlign; width?: string; sortable?: boolean; icon?: IconName | ReactElement; cell?: (row: T, index: number) => ReactNode; content?: TableCellContent; field?: string; captionField?: string; mediaField?: string; bold?: boolean; edit?: TableCellEditor<T>; onOpen?: (row: T) => void; openLabel?: ReactNode; }",
     "TableSort": "interface TableSort { columnId: string; direction: TableSortDirection }",
     "TableSortDirection": "type TableSortDirection = \"asc\" | \"desc\""
   }

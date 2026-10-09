@@ -323,6 +323,20 @@
   description still follows the title). Test: backlog-fixes-2026-10-05 "sets the description 4px under the title"
   (desktop, mobile). Studio dialog gap gate: PASS (E2E 188/188).
 
+## Sidebar collapse on template pages; SelectField option variants (user: "Sidebar … không bật mở được", "option không cho chọn được variant Item popover như trong figma") — tier S
+
+- AppShell kept the rail state it read from the Sidebar's `collapsed` at mount, so Studio's Collapsed toggle (and an
+  edited prop) did nothing on HR · Home (a template page: AppShell + Sidebar). Now a change to the declared prop moves
+  an uncontrolled shell's rail (state adjusted during render). Test: app-shell.test "follows a change to it".
+- Figma (read only): Primitives/Popover/Item 4031:26009 › Content slot = .Primitives/Popover/Item/Content 829:20006
+  (Theme: Icon, Photo Small/Big, Badge, Avatar Small/Big, Dock Icon, Text-Only; Subtext; Function). Popover already
+  drew them; SelectFieldOption now carries theme (inline union so Studio lists it), leading, caption, photoSrc/Alt,
+  badgeTheme → Popover items and the phone sheet's ListItem. Test: select-option-content.test. Studio Options editor
+  checked on a page you made (Theme, Leading, Caption, Photo src/alt, Badge theme).
+- Gate: PASS (Studio E2E 189/189) with one warning, deadclick chat › First message "Audio call". Not this change's: on a
+  freshly started isolated server it showed 2/2, then 0/2 on the same server and 0/2 on the shared one; pressed by a
+  script it adds the call at once ("Calling Em Pham…"). A cold-server timing flake of the probe (300 + 900ms look).
+
 ## Studio: nested parts editable like Figma's exposed instances (user: "nested Modal action phải cho phép tôi sửa button direction như trong Figma", "các component/patterns đều bị mất nested") — tier M, session 604bd7
 
 - Figma (read-only): Modal/Forms 841:17182 and Modal/Dialog 841:17177 expose their "Buttons" (.Primitives/Modal/Actions

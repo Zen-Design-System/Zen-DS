@@ -353,16 +353,20 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => `<RatingDisplay value={4.5} label="Rated 4.5 out of 5" />`,
   },
   {
-    id: "table", label: "Table", group: "Data display", caption: "Two rows", root: "Table", components: ["Table", "TableText"], interactive: false, input: false,
+    // Each column's cell is a Figma Content (Table/Cell/Default) drawn from the row's fields, so the Inspector switches it
+    // (Text, Avatar, Badge, Progress…) and a page you made can hold it (no cell functions).
+    id: "table", label: "Table", group: "Data display", caption: "Two rows", root: "Table", components: ["Table"], interactive: false, input: false,
     build: () => lines(
       `<Table aria-label="Projects"`,
       `  rows={[`,
-      `    { id: "loyalty", name: "Loyalty app", client: "Phin & Co", due: "Oct 14, 2026" },`,
-      `    { id: "banking", name: "Online banking redesign", client: "Lumen Bank", due: "Nov 2, 2026" },`,
+      `    { id: "loyalty", name: "Loyalty app", client: "Phin & Co", lead: "Chi Tran", status: "In progress", due: "Oct 14, 2026" },`,
+      `    { id: "banking", name: "Online banking redesign", client: "Lumen Bank", lead: "Bao Nguyen", status: "Review", due: "Nov 2, 2026" },`,
       `  ]}`,
       `  columns={[`,
-      `    { id: "project", header: "Project", cell: (row) => <TableText bold caption={row.client}>{row.name}</TableText> },`,
-      `    { id: "due", header: "Due", width: "152px", cell: (row) => <TableText>{row.due}</TableText> },`,
+      `    { id: "project", header: "Project", content: "text", field: "name", captionField: "client", bold: true },`,
+      `    { id: "lead", header: "Lead", content: "avatar", field: "lead" },`,
+      `    { id: "status", header: "Status", content: "badge", field: "status" },`,
+      `    { id: "due", header: "Due", width: "152px", field: "due" },`,
       `  ]} />`,
     ),
   },

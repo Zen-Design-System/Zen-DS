@@ -352,7 +352,7 @@ check("paletteSections: warned items last", [sections.at(-1).title, sections.at(
 const leadingSections = paletteSections(paletteFor(ctxFor("ListItem", "leading")), slotOf("ListItem", "leading"));
 check("paletteSections: a preferred item with a warning goes last", [leadingSections[0].title, leadingSections[0].items.map((item) => item.id), leadingSections.length], ["Preferred for Leading", ["avatar", "dock-icon"], 2]);
 check("paletteSections: sidePanel's preferred metric is MetricCard", paletteSections(paletteFor(ctxFor("SidePanel")), slotOf("SidePanel", "children"))[0].items.map((item) => item.id), ["input-field", "select-field", "paragraph", "list"]);
-check("searchPalette", searchPalette(PALETTE, "text").map((item) => item.id), ["heading", "paragraph", "caption", "tabs", "card", "progress", "table", "skeleton", "input-field", "textarea-field", "rich-text-field", "stack", "grid", "app-shell", "action-bar"]);
+check("searchPalette", searchPalette(PALETTE, "text").map((item) => item.id), ["heading", "paragraph", "caption", "tabs", "card", "progress", "skeleton", "input-field", "textarea-field", "rich-text-field", "stack", "grid", "app-shell", "action-bar"]);
 check("searchPalette: every word", searchPalette(PALETTE, "data list").map((item) => item.id), ["list", "list-box", "description-list"]);
 
 /* ───────────── 5. --deep: every item in every host that offers it, through tsc + usage + style guards ───────────── */

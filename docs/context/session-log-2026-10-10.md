@@ -25,3 +25,52 @@
   PageHeader slots), B-28
   (Breadcrumbs on → real Breadcrumbs, Item-List 2 → 3; Screen › Header + Search; a Menu item outside a Sidebar keeps
   12px padding and gap).
+
+## Liquid Glass + progressive blur (user: "chưa mô phỏng được liquid glass…", "Lưu ý cả progressive blur") — tier L
+
+- Figma (read only): GLASS styles Liquid-Glass/Normal (frost 4, refraction 0.8, depth 20, dispersion 0.5, light −45° ·
+  0.8), Liquid-Glass/Large (8 · 0.8 · 30 · 0.6), Glass-Floating (8 · 0.8 · 28 · 0.5). Used by: AI/Chat-Field Style=Liquid
+  Glass, Nav-Action/Liquid-Glass (Top Navigation), Bottom-Navigation/Mobile/Floating-Glass (container + CTA:
+  Glass-Floating, selected item: Normal's values). Progressive blurs: Top-Navigation Default-Bluring 10→0 / Alt-Bluring
+  20→0 (top strong), Bottom-Navigation Floating(-Glass) 0→24 (bottom strong).
+- build-style-manifest.mjs writes src/styles/generated/glass-styles.ts (the GLASS params per effect token).
+  _shared/liquid-glass.ts: useLiquidGlass(style, enabled) → a ref (React 19 cleanup); in Chromium an SVG filter per
+  element (frost feGaussianBlur edgeMode duplicate → 3 feDisplacementMap, blue bends most → channels recombined) as
+  `backdrop-filter: url(#…)`, its displacement map drawn for the element's size and corner (convex bezel over the depth,
+  inward), plus a light map (white rim, Figma's angle and intensity) as an inline background-image above the fill;
+  ResizeObserver redraws; maps cached. Checked first that Chromium draws SVG backdrop filters (stripes bent).
+- Progressive blur measured on stripes: the 5 equal layers stacked to σ·√(k/5) (most of the blur within the first
+  fifth); _shared/progressive-blur has 6 layers σk = max·√(2k−1)/6 → σ(k/6) = max·k/6, Figma's linear ramp. Both navs
+  use it (their 5-layer CSS removed).
+- Studio Export HTML drops the live glass inline styles (the filter is not shipped; the CSS frost stays).
+- Tests: tests/interaction/liquid-glass.test.tsx (5). Visual: a lab page over stripes / gradient (removed) and the docs
+  examples (Bottom Navigation › Glass over photos: bevel rim and frost as in the Figma render of ◆ Logistic 12084:93091).
+
+## Quick insert preview centred (user: "Lỗi UI dưới thanh search. Component preview nên hiện giữa của container") — tier S
+
+- The pane top-aligned a 400px stage (transform-origin top): a right-justified Button row sat at the top right. Now
+  ItemPreview measures what the stage paints (fills, borders, shadows, leaves, images, controls; not layout wrappers),
+  scales that box into the pane (24px inset) and centres it (stage absolute, translate + scale from 0 0). The target
+  line under the search: Padding/XSmall above and below, inset to the search icon. Table still previews empty (its cell
+  functions are dropped by the parser; known). E2E LB-06 now checks the Button row is centred (≤ 4px).
+- Follow-up (user: "Vẫn còn lỗi search"): measured the line at 21 of its 32px — the panel is a flex column with a max
+  height and the line shrank, cut under the search: search and line `flex: 0 0 auto`. And the preview: a heading block
+  is 400px wide, so it was scaled down and off-centre; the painted box now takes text runs' own extents (Range), and a
+  MutationObserver re-places it when the item changes at the same height (Heading → Paragraph kept the old place, which
+  could leave the pane empty). Walked six items: all within 1px of the centre. LB-06 also checks the line is not cut.
+
+## Table cell content type (user: "chưa chọn được loại data cho cell table như trong figma") — tier M
+
+- Figma (read only): Table/Cell/Default 1603:23604 has a Content slot; the primitives are Text, Avatar, Photo,
+  Basic-Icon, Dock-Icon, Badge, Tag, Trend, Progress, Control (Checkbox · Radio · Toggle), Actions, Group-Avatar,
+  Editabled (docs/figma-contracts/table-cells.json). A code column only had `cell` (a function): nothing for the Studio
+  to switch, and a builder page could not hold it (stand-in text).
+- Table: `TableColumn.cell` optional; `content` (text · avatar · photo · icon · dock-icon · badge · tag · trend ·
+  progress · checkbox · toggle), `field`, `captionField`, `mediaField`, `bold`; cellOf() draws the Figma primitive
+  (media XSmall on one line, Small over a Subtext). Actions, Group avatar, Radio and Editable stay `cell` / `edit`.
+- Studio: compile API regenerated (Table no longer requires `cell`); the cell stand-ins are gone (renderPage, compile,
+  standins: isColumnCell / showsAsText / cellStandIn) — the Table draws the field itself, the export writes no cell.
+  Palette Table: columns of text (Bold + Subtext), avatar, badge, plain (no TableText; searchPalette "text" no longer
+  lists it). Inspector checked on a page you made: Content / Field / Caption field / Media field / Bold per column.
+- Tests: tests/interaction/table-cell-content.test.tsx (3); compile selftest updated (columns written without cells).
+

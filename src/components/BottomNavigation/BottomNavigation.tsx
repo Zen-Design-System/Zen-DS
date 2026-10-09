@@ -1,8 +1,10 @@
-import type { ButtonHTMLAttributes, ReactElement, ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactElement, ReactNode, Ref } from "react";
 import type { IconName } from "../Icon";
 import { useIconTooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
 import { NotificationDot } from "../_shared/notification-dot";
+import { useLiquidGlass } from "../_shared/liquid-glass";
+import { ProgressiveBlur } from "../_shared/progressive-blur";
 import { slotItems } from "../_shared/slots";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
@@ -68,7 +70,7 @@ export interface BottomNavigationProps {
 }
 
 /** An icon-only nav button that shows its name as a tooltip after 1s hover (Zen rule); `tip={false}` when a label is visible. */
-function TipButton({ tip, children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { tip: string | false }) {
+function TipButton({ tip, children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { tip: string | false; ref?: Ref<HTMLButtonElement> }) {
   const tooltip = useIconTooltip(tip);
   return <button type="button" {...tooltip.bind(props)}>{children}{tooltip.tooltip}</button>;
 }
@@ -90,8 +92,13 @@ export function BottomNavigation({ items: itemsProp, children, value, onValueCha
   const selection = selectionProp ?? (type === "floating-glass" ? "subtle" : "surface");
   const floating = type !== "default";
   const actionTheme = action?.theme ?? (floating ? "default" : "primary");
+  // Figma Floating-Glass (9017:42257): the container and the CTA are Glass-Floating, the selected item Liquid-Glass/Normal
+  // (GLASS: frost, refraction, dispersion; _shared/liquid-glass.ts).
+  const glassy = type === "floating-glass";
+  const floatingGlass = useLiquidGlass("glass-floating", glassy);
+  const itemGlass = useLiquidGlass("liquid-glass-normal", glassy);
   const actionButton = action ? (
-    <TipButton tip={action.label} className={floating ? "zen-bottom-nav__fab" : "zen-bottom-nav__action"} data-tone={actionTheme} aria-label={action.label} onClick={action.onClick}>
+    <TipButton ref={glassy && actionTheme === "default" ? floatingGlass : undefined} tip={action.label} className={floating ? "zen-bottom-nav__fab" : "zen-bottom-nav__action"} data-tone={actionTheme} aria-label={action.label} onClick={action.onClick}>
       {renderIcon(action.icon)}
     </TipButton>
   ) : null;
@@ -101,7 +108,7 @@ export function BottomNavigation({ items: itemsProp, children, value, onValueCha
         const selected = item.id === value;
         return (
           <li key={item.id} className="zen-bottom-nav__cell">
-            <TipButton tip={showLabels ? false : item.label} className="zen-bottom-nav__item" aria-current={selected ? "page" : undefined} aria-label={showLabels ? undefined : item.label} data-selected={selected ? "true" : "false"} onClick={() => onValueChange(item.id)}>
+            <TipButton ref={selected ? itemGlass : undefined} tip={showLabels ? false : item.label} className="zen-bottom-nav__item" aria-current={selected ? "page" : undefined} aria-label={showLabels ? undefined : item.label} data-selected={selected ? "true" : "false"} onClick={() => onValueChange(item.id)}>
               <span className="zen-bottom-nav__icon">
                 {renderIcon(selected && item.selectedIcon ? item.selectedIcon : item.icon)}
                 {item.dot ? <NotificationDot className="zen-bottom-nav__dot" /> : null}
@@ -117,8 +124,8 @@ export function BottomNavigation({ items: itemsProp, children, value, onValueCha
   return (
     <nav className={["zen-bottom-nav", className].filter(Boolean).join(" ")} aria-label={ariaLabel} data-type={type} data-tone={theme} data-selection={selection} data-labels={showLabels ? "true" : undefined} data-fixed={fixed ? "true" : undefined} data-backdrop={floating && backdrop === "none" ? "none" : undefined}>
       {/* Floating types: Figma progressive background blur, strongest at the bottom edge (see bottom-navigation.css). */}
-      {floating ? <span className="zen-bottom-nav__progressive" aria-hidden="true"><i /><i /><i /><i /><i /></span> : null}
-      {floating ? <div className="zen-bottom-nav__row"><div className="zen-bottom-nav__pill">{list}</div>{actionButton}</div> : list}
+      {floating ? <ProgressiveBlur className="zen-bottom-nav__progressive" strong="bottom" /> : null}
+      {floating ? <div className="zen-bottom-nav__row"><div ref={floatingGlass} className="zen-bottom-nav__pill">{list}</div>{actionButton}</div> : list}
     </nav>
   );
 }
