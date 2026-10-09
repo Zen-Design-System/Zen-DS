@@ -97,10 +97,12 @@ function buildIndex() {
         const entry: IndexedRule = { selectors: splitSelectors(rule.selectorText), style: rule.style, file, order: order++, media };
         const seen = new Set<string>();
         for (let i = 0; i < rule.style.length; i += 1) {
-          // A shorthand that reads var() (`border-radius: var(--zen-button-radius)`) lists its longhands with no value:
-          // the declaration is the shorthand's, as the stylesheet writes it (and as an edit must name it).
+          // A shorthand is listed as its longhands (with no value when it reads var(): `border-radius: var(--zen-button-
+          // radius)`): the declaration is the shorthand's, as the stylesheet writes it and as an edit must name it.
+          // A longhand that reads var() itself (`background-color: var(--zen-…)` after `background: none`) stays its own.
           const longhand = rule.style[i];
-          const prop = rule.style.getPropertyValue(longhand) ? longhand : shorthandsOf(longhand).find((name) => rule.style.getPropertyValue(name)) ?? longhand;
+          const own = rule.style.getPropertyValue(longhand);
+          const prop = own.includes("var(") ? longhand : shorthandsOf(longhand).find((name) => rule.style.getPropertyValue(name)) ?? longhand;
           if (seen.has(prop)) continue;
           seen.add(prop);
           const list = byProp.get(prop);

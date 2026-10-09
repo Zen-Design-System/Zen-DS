@@ -30,7 +30,17 @@ removed (four unused colour ramps were, see Removed).
   select (its family first — button-size-*, spacing-gap-*, corner-radius-* — then every token of its kind, with the value
   each stands for; searchable). The pick rewrites that one declaration of the component's CSS (src/components/…/*.css)
   as a draft: every variant the rule covers updates at once, ⌘Z / ⇧⌘Z work, and the panel saves or discards the
-  stylesheet's draft. Only existing tokens are accepted (a raw value is refused). The Figma check on save comes next (M3).
+  stylesheet's draft. Only existing tokens are accepted (a raw value is refused).
+- **Zen Studio: iOS or Android bars on a page you make (2026-10-10):** Page › Mobile OS picks iOS (default) or Android
+  for the page; its phone and tablet Screens draw that OS's status bar and bottom bar (iOS: island and home indicator as
+  Figma's Status-bar/IOS; Android, Material 3: 24px status bar with a punch-hole and the gesture handle), with dummy
+  status icons, on the canvas, in Play and in the design-file export. Content and a Top / Bottom Navigation pad by the
+  bars (`--zen-safe-area-top/-bottom`, as the docs' phone frames do).
+- **Zen Studio: Main component, M3 — the Figma check on save (2026-10-10):** saving a component's stylesheet runs its
+  Figma contract suites in the background (Button: 7 suites, about 10–90 s); the status line says it is checking, then
+  that it matches. When the code no longer matches Figma, a dialog lists where (suite, variant, layer, property, Figma vs
+  code) with **Keep and log for Figma** (one P2 line under Open items in docs/context/BACKLOG.md) or **Undo the save**
+  (the stylesheet's text before the save comes back, unless the file changed since).
 - **Sidebar slots like Figma (2026-10-09, ❖ Sidebar 6849:33453):** `<SidebarMenuItem>` (Figma Menu-Item 1536:27473)
   and `<SidebarMenuSection label>` fill the Body-Content slot as `<Sidebar>` children (after `sections`, nested rows as
   item children), the Footer-Content slot (`footer`) and a `SidebarSubMenu`; slot rows share `selectedId`, the rail and

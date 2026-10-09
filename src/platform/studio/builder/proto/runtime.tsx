@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, type HTMLAttributes, type ReactNode } from "react";
+import { createContext, useContext, useState, type CSSProperties, type HTMLAttributes, type ReactNode } from "react";
 import { ZenPortalProvider } from "../../../../components/Portal";
+import { DeviceBars, SAFE_AREAS, type DeviceOs } from "./DeviceBars";
 
 /*
  * The builder page runtime (spec docs/research/studio-builder-pages-spec-2026-10-06.md §2, §3 2d): what
@@ -29,6 +30,11 @@ export type ProtoActions = {
 const inert: ProtoActions = { navigate: () => undefined, open: () => undefined, close: () => undefined, back: () => undefined, toast: () => undefined, link: () => undefined };
 export const ProtoContext = createContext<ProtoActions>(inert);
 
+/** The page's mobile OS (its header's `os`; user, 2026-10-10: one choice for the page): the status bar and bottom bar its
+ *  phone and tablet Screens simulate, and the safe areas they publish. iOS by default. */
+export const PageOsContext = createContext<DeviceOs>("ios");
+export const pageOsOf = (header: Record<string, unknown> | null | undefined): DeviceOs => (header?.os === "android" ? "android" : "ios");
+
 /** A page's `proto.<action>(…args)`: the handler a prop receives (it runs the context's action when called). */
 export function protoHandler(actions: ProtoActions, action: string, args: unknown[]): () => void {
   return () => {
@@ -55,9 +61,15 @@ type ScreenProps = HTMLAttributes<HTMLDivElement> & {
   children?: ReactNode;
 };
 
-export function Screen({ id, title, device = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, ...rest }: ScreenProps) {
+export function Screen({ id, title, device = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, style, ...rest }: ScreenProps) {
   const phone = device === "phone";
+  // A phone or tablet shows its OS's bars; the app runs under them and pads by the safe areas (as in PlatformPhone).
+  const os = useContext(PageOsContext);
+  const bars = device === "desktop" ? null : SAFE_AREAS[os][device];
+  const safe = bars ? ({ "--zen-safe-area-top": `${bars.top}px`, "--zen-safe-area-bottom": `${bars.bottom}px` } as CSSProperties) : null;
   const active = screenLayoutOf(device, layout);
+  // The sides the content keeps clear itself: a Top / Bottom Navigation (the mobile layout's) pads by the safe area.
+  const inset = bars ? [!(active === "mobile" && topNavigation) && "top", !(active === "mobile" && bottomNavigation) && "bottom"].filter(Boolean).join(" ") : "";
   const desktop = active === "desktop";
   const chrome = desktop ? Boolean(sidebar || header) : Boolean(topNavigation || bottomNavigation);
   return (
@@ -73,6 +85,9 @@ export function Screen({ id, title, device = "desktop", layout, canvas = "defaul
       data-breakpoint={device === "desktop" ? undefined : device === "phone" ? "mobile" : "tablet"}
       data-density={phone ? "comfortable" : undefined}
       data-typography={phone ? "mobile" : undefined}
+      data-os={bars ? os : undefined}
+      data-inset={inset || undefined}
+      style={safe ? { ...safe, ...style } : style}
       aria-label={title}
     >
       {!chrome ? children : desktop ? (
@@ -90,6 +105,8 @@ export function Screen({ id, title, device = "desktop", layout, canvas = "defaul
           {bottomNavigation ? <div className="studio-builder-screen__bottom">{bottomNavigation}</div> : null}
         </div>
       )}
+      {/* Last, beside the app (never inside __main, where the Screen's slots are found). */}
+      {bars && device !== "desktop" ? <DeviceBars os={os} device={device} /> : null}
     </div>
   );
 }

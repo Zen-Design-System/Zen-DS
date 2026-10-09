@@ -11,7 +11,9 @@ import { focusFrame, frameIcon, useFrames } from "./frames";
 import { InspectorFields, InspectorItem, InspectorSection } from "./Section";
 
 import { openExport } from "../builder/export/exportState";
-import { pagesPersist, renamePage, usePage, useStorage } from "../builder/store/pageStore";
+import { pagesPersist, renamePage, setPageOs, usePage, useStorage } from "../builder/store/pageStore";
+import { headerOs } from "../builder/store/pageModel";
+import { Segmented } from "../../../components/Segmented";
 import { InputField } from "../../../components/Input";
 /*
  * Inspector with nothing selected (spec §6): the page, a one-line summary of the canvas preview modes (the toolbar
@@ -40,6 +42,22 @@ function PageName({ id, title }: { id: string; title: string }) {
         if (event.key === "Enter" && !event.nativeEvent.isComposing) { event.preventDefault(); commit(); }
         else if (event.key === "Escape" && draft !== null) { event.preventDefault(); event.stopPropagation(); setDraft(null); }
       }}
+    />
+  );
+}
+
+/** The page's mobile OS: iOS or Android status bar and bottom bar on its phone and tablet Screens. */
+function PageOs({ id, text }: { id: string; text: string }) {
+  const admin = useStudio((state) => state.role === "admin");
+  return (
+    <Segmented
+      aria-label="Mobile OS"
+      size="sm"
+      fullWidth
+      disabled={!admin}
+      value={headerOs(text)}
+      onValueChange={(value) => { void setPageOs(id, value === "android" ? "android" : "ios"); }}
+      options={[{ id: "ios", label: "iOS" }, { id: "android", label: "Android" }]}
     />
   );
 }
@@ -75,6 +93,8 @@ export function PagePanel() {
       {localPage && builderPage ? (
         <InspectorSection title="Page" fieldGrid>
           <InspectorFields name="title" labels={["Name"]} fields={[<PageName key="name" id={localPage} title={builderPage.title} />]} />
+          {/* One OS for the page (user, 2026-10-10): its phone and tablet Screens draw that OS's status and bottom bars. */}
+          <InspectorFields name="os" labels={["Mobile OS"]} fields={[<PageOs key="os" id={localPage} text={builderPage.text} />]} />
         </InspectorSection>
       ) : null}
       {/* Preview modes change in Play and Present only (their bar's Modes panel): the canvas shows them here. */}

@@ -8,9 +8,13 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
-- **Zen Studio Main component (user, 2026-10-09; spec docs/research/studio-main-component-spec-2026-10-09.md):** M1 done
-  (frame, selection, Layers, read-only Inspector), M2 done (token edits of component CSS as drafts, undo, Save /
-  Discard). Next: M3 Figma parity on save (waits for the user's go). P2 · not drawn yet: overlays (Dialog, ModalForm, SidePanel, BottomSheet, Toast) and 12
+- **P2 · Figma: Android system bars (user, 2026-10-10):** the Studio's Android Screens draw a Material 3 status bar
+  (24) and gesture handle (108 × 4, 10 from the bottom) with dummy icons (builder/proto/DeviceBars.tsx); the Zen file's
+  ⚙️ Operation Components has only Status-bar/IOS/Mobile, /Tablet and System/Bottom-Indicator. Designer: add
+  Status-bar/Android/Mobile (+ Tablet) and an Android navigation bar there; then the code follows those nodes.
+- **Zen Studio Main component (user, 2026-10-09; spec docs/research/studio-main-component-spec-2026-10-09.md):** M1–M3 done
+  (frame, selection, Layers, Inspector; token edits of component CSS as drafts with undo; Figma check on save with keep /
+  undo the save). P2 · not drawn yet: overlays (Dialog, ModalForm, SidePanel, BottomSheet, Toast) and 12
   components no Assets item uses (spec §3.2).
 
 - **Questions for the designer and decisions for the user** are collected in [`QUESTIONS.md`](QUESTIONS.md) (moved

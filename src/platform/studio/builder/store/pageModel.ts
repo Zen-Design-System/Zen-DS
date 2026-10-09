@@ -57,6 +57,31 @@ export function withHeaderTitle(text: string, title: string): string {
   return `${match[1]}${JSON.stringify({ ...value, title })}${match[3]}${text.slice(match[0].length)}`;
 }
 
+/** The page's mobile OS (header `os`; user, 2026-10-10): what its phone and tablet Screens simulate. iOS when unset. */
+export function headerOs(text: string): "ios" | "android" {
+  const match = HEADER.exec(text);
+  try {
+    return match && (JSON.parse(match[2]) as { os?: unknown }).os === "android" ? "android" : "ios";
+  } catch {
+    return "ios";
+  }
+}
+
+/** The text with the header's `os` set (iOS is the default, so it is left out); unchanged without a readable header. */
+export function withHeaderOs(text: string, os: "ios" | "android"): string {
+  const match = HEADER.exec(text);
+  if (!match) return text;
+  let value: Record<string, unknown>;
+  try {
+    value = JSON.parse(match[2]) as Record<string, unknown>;
+  } catch {
+    return text;
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return text;
+  const { os: _old, ...rest } = value;
+  return `${match[1]}${JSON.stringify(os === "android" ? { ...rest, os } : rest)}${match[3]}${text.slice(match[0].length)}`;
+}
+
 /** A page id from a title or file name: "Checkout flow" → "checkout-flow" (Vietnamese marks dropped). */
 export function slugOf(value: string): string {
   return value.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "page";

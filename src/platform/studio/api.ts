@@ -623,6 +623,15 @@ export function applyCssEdit(request: CssEditRequest, label: string): Promise<Ed
   });
 }
 
+/** Settles the Figma check of a saved component stylesheet (Main component M3): keep the save (a line in
+ *  docs/context/BACKLOG.md asks for the Figma update) or undo it (the disk text before the save comes back). */
+export async function settleParity(id: string, action: "keep" | "revert"): Promise<{ ok: true; line?: string } | { ok: false; error: string }> {
+  const reply = await post<{ ok?: boolean; line?: string }>(action === "keep" ? "/parity-keep" : "/parity-revert", { id });
+  if (!reply) return { ok: false, error: NO_SERVER };
+  if (reply.status === 200 && reply.body?.ok) return { ok: true, line: reply.body.line };
+  return { ok: false, error: errorOf(reply.body, action === "keep" ? "The backlog line was not written" : "The save was not undone").error };
+}
+
 /**
  * Reverses (undo) or re-applies (redo) the newest record as a patch on the file as it is now, so edits made elsewhere
  * in the file meanwhile are kept. A record whose patch no longer applies is dropped with a status, never left to block

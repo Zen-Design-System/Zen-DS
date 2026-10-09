@@ -95,6 +95,9 @@ Spec GĐ4 (`studio-builder-instance-spec-2026-10-07.md` §4) để việc sửa 
 
 ## 5. Thứ tự giao (mỗi mốc: `npm run qa`, hàng E2E mới, CHANGELOG, báo user)
 
+Trạng thái 2026-10-10: M1, M2, M3 xong (M1–M2 commit 4d65285). M3 không có hàng E2E: Save ghi file thư viện dùng chung;
+đã thử trọn luồng trong một git worktree riêng.
+
 | Mốc | Nội dung | Cỡ | Người dùng thấy |
 | --- | --- | --- | --- |
 | M1 | Frame Main component, lưới variant (tổ hợp từ Figma), Layers, chọn variant / lớp, Inspector chỉ đọc (token, chuỗi alias, phạm vi rule) | L | Xem component như component set Figma, biết mỗi giá trị đến từ token nào |

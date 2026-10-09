@@ -8,7 +8,7 @@ import { componentSlug } from "../../inspector/propSchema";
 import { loadCompile, loadEngine, zenComponents } from "../engine";
 import { assetBlob, assetOfUrl, loadUploads } from "../assets/uploads";
 import { MEDIA_FILES, mediaSrc } from "../library/media";
-import { ProtoContext, type PageDevice, type ProtoActions } from "../proto/runtime";
+import { PageOsContext, pageOsOf, ProtoContext, type PageDevice, type ProtoActions } from "../proto/runtime";
 import { frameOf, literalOf, type PageFrame } from "../render/frames";
 import { renderFrame, type PageNode, type PageTree } from "../render/renderPage";
 import { pageKey, studioStore } from "../../store";
@@ -113,6 +113,8 @@ export function exportCopy(root: HTMLElement, mapUrl: (url: string) => string): 
   for (const element of [copy, ...copy.querySelectorAll("*")]) {
     for (const name of element.getAttributeNames()) if (STUDIO_ATTRIBUTE.test(name)) element.removeAttribute(name);
     for (const [from, to] of Object.entries(RENAMED_CLASS)) if (element.classList.contains(from)) element.classList.replace(from, to);
+    // A phone or tablet Screen's system bars (builder/proto/DeviceBars.tsx): device-status, device-home, ….
+    for (const name of [...element.classList]) if (name.startsWith("studio-device-")) element.classList.replace(name, name.slice("studio-".length));
     for (const name of ["src", "poster", "href", "xlink:href"]) {
       const value = element.getAttribute(name);
       if (value && (name !== "href" || element.namespaceURI === "http://www.w3.org/2000/svg") && element.tagName.toLowerCase() !== "use") element.setAttribute(name, mapUrl(value));
@@ -177,6 +179,15 @@ function styleRule(rule: CSSStyleRule, roots: HTMLElement[]): string | null {
   return parts.some((part) => usedBy(part, roots)) ? rule.cssText : null;
 }
 
+/** The system bars' own rules (builder/proto/deviceBars.css), with the export's class names (.screen, .device-*): the
+ *  exported phone and tablet frames show their OS's bars as the canvas does. */
+function deviceBarsRule(rule: CSSStyleRule): string | null {
+  if (!/\.studio-device-|\.studio-builder-screen\[data-os\]/.test(rule.selectorText)) return null;
+  const text = rule.cssText.replace(/\.studio-builder-screen(?![\w-])/g, ".screen").replace(/\.studio-device-/g, ".device-");
+  // Only the renamed classes: a rule that still names a Studio class stays out (styles.css holds no .studio- rule).
+  return text.includes(".studio-") ? null : text;
+}
+
 const rulesOf = (sheet: CSSStyleSheet | null) => { try { return sheet ? Array.from(sheet.cssRules) : []; } catch { return []; } };
 const absoluteUrls = (text: string, base: string) => text.replace(/url\((['"]?)([^'")]+)\1\)/g, (match, quote: string, url: string) => (/^(data:|#)/.test(url) ? match : `url(${quote}${absolute(url, base)}${quote})`));
 
@@ -185,7 +196,7 @@ type Collected = { rules: string[]; fonts: Array<{ family: string; text: string;
 function collect(rules: CSSRule[], base: string, roots: HTMLElement[], into: Collected, out: string[]) {
   for (const rule of rules) {
     if (rule instanceof CSSImportRule) { collect(rulesOf(rule.styleSheet), rule.styleSheet?.href ?? base, roots, into, out); continue; }
-    if (rule instanceof CSSStyleRule) { const text = styleRule(rule, roots); if (text) out.push(absoluteUrls(text, base)); continue; }
+    if (rule instanceof CSSStyleRule) { const text = styleRule(rule, roots) ?? deviceBarsRule(rule); if (text) out.push(absoluteUrls(text, base)); continue; }
     if (rule instanceof CSSFontFaceRule) { into.fonts.push({ family: rule.style.getPropertyValue("font-family").replace(/["']/g, "").trim(), text: rule.cssText, base }); continue; }
     if (rule instanceof CSSKeyframesRule) { into.keyframes.push({ name: rule.name, text: rule.cssText }); continue; }
     if (rule instanceof CSSGroupingRule) {
@@ -288,11 +299,13 @@ async function renderFrames(id: string, text: string): Promise<Rendered | { erro
   try {
     root.render(
       <ProtoContext value={INERT}>
+        <PageOsContext value={pageOsOf(tree.header)}>
         {frames.map(({ node, frame }) => (
           <div key={frame.id} data-export-frame={frame.id} style={{ width: frame.width }}>
             <ZenProvider {...canvasModes(id, frame.id)} brand="zen" breakpoint={BREAKPOINT[frame.device]} syncDocument={false}>{renderFrame(node, ctx)}</ZenProvider>
           </div>
         ))}
+        </PageOsContext>
       </ProtoContext>,
     );
     await settle(host);

@@ -1,0 +1,64 @@
+/* The system bars of a builder page's phone and tablet Screens (DeviceBars.tsx): drawn by the "OS" over the app, which
+   runs under them (the Screen publishes --zen-safe-area-top/-bottom). Dummy icons (user, 2026-10-10: circles and
+   squares); exact heights; the time takes a Zen text style (set in DeviceBars.tsx). */
+.studio-device-status {
+  position: absolute;
+  z-index: 20;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  height: var(--zen-safe-area-top);
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--zen-spacing-padding-xlarge, 24px);
+  color: var(--zen-color-content-neutral-strongest, #111);
+  pointer-events: none;
+}
+.studio-device-status[data-os="ios"][data-device="phone"] { padding: 0 var(--zen-spacing-padding-2-xlarge, 32px); }
+.studio-device-status[data-os="android"] { padding: 0 var(--zen-spacing-padding-medium, 16px); }
+.studio-device-status__time { font-variant-numeric: tabular-nums; }
+/* The iPhone's island and the Android punch-hole camera, centred.
+   zen-allow-slot-size zen-allow-raw-spacing: the devices' own hardware sizes and offsets (Figma Status-bar/IOS/Mobile
+   island 126 × 37 at 11; a 12px camera at 6), not app layout. */
+.studio-device-status__island,
+.studio-device-status__camera { position: absolute; left: 50%; background: var(--zen-color-background-neutral-solid-default, #111); transform: translateX(-50%); }
+.studio-device-status__island { top: 11px; width: 126px; height: 37px; border-radius: var(--zen-corner-radius-rounded, 1000px); }
+.studio-device-status__camera { top: 6px; width: 12px; height: 12px; border-radius: var(--zen-corner-radius-rounded, 1000px); }
+.studio-device-status__icons { display: flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-device-status__dot,
+.studio-device-status__square,
+.studio-device-status__battery { display: block; background: var(--zen-color-background-neutral-solid-default, #111); }
+/* zen-allow-slot-size: dummy status icons at the status bar's glyph size (12, battery 24 × 12; Android's upright 8 × 14). */
+.studio-device-status__dot { width: 12px; height: 12px; border-radius: var(--zen-corner-radius-rounded, 1000px); }
+/* zen-allow-slot-size: dummy status icon (see above). */
+.studio-device-status__square { width: 12px; height: 12px; border-radius: var(--zen-corner-radius-2-xsmall, 2px); }
+/* zen-allow-slot-size: dummy battery (see above). */
+.studio-device-status__battery { width: 24px; height: 12px; border-radius: var(--zen-corner-radius-xsmall, 4px); }
+/* zen-allow-slot-size: Android's upright battery (dummy). */
+.studio-device-status[data-os="android"] .studio-device-status__battery { width: 8px; height: 14px; border-radius: var(--zen-corner-radius-2-xsmall, 2px); }
+/* iOS home indicator / Android gesture handle.
+   zen-allow-slot-size zen-allow-raw-spacing: the OS's sizes and offsets (iOS 134 × 5 at 8, iPad 320; Android SystemUI
+   navigation_home_handle_width 108, radius 2, navigation_handle_bottom 10), not app layout. */
+.studio-device-home {
+  position: absolute;
+  z-index: 20;
+  bottom: 8px;
+  left: 50%;
+  width: 134px;
+  height: 5px;
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  background: var(--zen-color-background-neutral-solid-default, #111);
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+/* zen-allow-slot-size: the iPad's home indicator width. */
+.studio-device-home[data-os="ios"][data-device="tablet"] { width: 320px; }
+/* zen-allow-slot-size zen-allow-raw-spacing: Android's gesture handle (see above). */
+.studio-device-home[data-os="android"] { bottom: 10px; width: 108px; height: 4px; border-radius: var(--zen-corner-radius-2-xsmall, 2px); }
+/* The Screen that shows them: the bars sit on it; content with no Top / Bottom Navigation starts below the status bar
+   and ends above the bottom bar (a Top / Bottom Navigation pads by the safe area itself and runs under the bar). */
+.studio-builder-screen[data-os] { position: relative; box-sizing: border-box; }
+.studio-builder-screen[data-os][data-inset~="top"] { padding-top: var(--zen-safe-area-top); }
+.studio-builder-screen[data-os][data-inset~="bottom"] { padding-bottom: var(--zen-safe-area-bottom); }

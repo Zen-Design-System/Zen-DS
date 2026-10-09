@@ -38,3 +38,7 @@
 .studio-mc__notes > p { margin: 0; }
 .studio-mc__edit { display: grid; min-width: 0; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .studio-mc__drafts { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* The Figma check's drift list (ParityDialog): where, then Figma's value against the code's. */
+.studio-mc__drift { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; list-style: none; color: var(--zen-color-content-neutral-base, #555); }
+.studio-mc__drift > li { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); overflow-wrap: anywhere; }
+.studio-mc__drift-where { color: var(--zen-color-content-neutral-strongest, #111); }

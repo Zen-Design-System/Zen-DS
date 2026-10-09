@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { headerTitle, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type RevisionReason } from "./pageModel";
+import { headerTitle, withHeaderOs, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type RevisionReason } from "./pageModel";
 
 /*
  * Builder pages kept in the browser (Studio builder GĐ2; spec docs/research/studio-builder-pages-spec-2026-10-06.md §3
@@ -231,6 +231,14 @@ export async function renamePage(id: string, title: string): Promise<void> {
   const page = await getPage(id);
   if (!page) throw new Error("The page is gone");
   await putPage(id, withScreenTitles(withHeaderTitle(page.text, title), page.title, title), { title, reason: "rename" });
+}
+
+/** The page's mobile OS (header `os`): its phone and tablet Screens draw that OS's status and bottom bars. */
+export async function setPageOs(id: string, os: "ios" | "android"): Promise<void> {
+  const page = await getPage(id);
+  if (!page) throw new Error("The page is gone");
+  const text = withHeaderOs(page.text, os);
+  if (text !== page.text) await putPage(id, text, { title: page.title, reason: "edit" });
 }
 
 /** A copy of the page under a new id ("<title> copy"); returns the new id. */

@@ -441,3 +441,41 @@
   plain), which keeps the rows that meant "select this element"; O-04 ⌘-clicks twice (Dialog, then its part); SE-30
   (click → List · again → kept · double-click → row 2 · click → row 3 · click outside → the buttons' Stack · ⌘-click →
   Loud · click → Featured). First full run: 29 builder rows chose the outermost layer in `clickNamed`; fixed there.
+
+## Zen Studio Main component, M3: Figma check on save (tier M, session e4bf4af9, 2026-10-10; user "ok")
+
+- tools/studio/parity.mjs (+ selftest in studio:selftest): suites of a component stylesheet (tools/qa/lib.mjs
+  contractSuites; Button → 7 incl. popover-bunk), check.mjs per suite with --json into a temp dir (3 at a time), failing
+  checks folded across modes, the backlog line, its insertion under Open items. Plugin: /save reads the component
+  stylesheets' disk text inside the write queue, then starts the check (Vite custom event zen-studio:parity, GET /parity);
+  POST /parity-keep (BACKLOG line, local date) and /parity-revert (only while the disk still holds the saved text and no
+  new draft exists). Client: mainComponent/parity.ts (status line), ParityDialog (mounted with DraftsDialog in StudioApp),
+  api.ts settleParity. cssResolve: shorthands written as plain values fold too (the "Fixed in the CSS" note had 40
+  longhands); a longhand that reads var() itself stays its own.
+- Verified in an isolated git worktree (saves write ITS button.css, never the shared tree): XSmall height → small → Save
+  → dialog in ~10 s "765 checks differ in 75 variants (7 suites, 47446 checks)" → Undo the save (file back byte for
+  byte); → medium → Save → Keep (BACKLOG line written) — both reverted after. No E2E row: a save writes the shared
+  library file that other sessions' servers load.
+- Gate (--files, 9 files): static ✓, TypeScript ✓, Studio self-tests ✓, E2E 201/201.
+
+## Studio: iOS / Android status and bottom bars on builder Screens (tier S, session e4bf4af9, 2026-10-10)
+
+- User: "chọn giao diện mobile nên có giả lập status bar cho chọn Android hay iOS"; decisions (AskUserQuestion): Android
+  from Material 3 now + backlog line for Figma; one OS per page; Android bottom = gesture handle; icons dummy circles /
+  squares (user, mid-task).
+- Figma (read only): ⚙️ Operation Components holds Status-bar/IOS/Mobile 12013:39833 (390×50), /Tablet 12013:39942 (24),
+  System/Bottom-Indicator 308:46297 — no Android. AOSP values used: status_bar_height_portrait 24dp; gestural overlay
+  navigation_bar_height 24dp; SystemUI navigation_home_handle_width 108dp, navigation_handle_radius 2dp,
+  navigation_handle_bottom 10dp.
+- Built: page header `os` (pageModel headerOs / withHeaderOs, iOS never written; pageStore setPageOs), Page › Mobile OS
+  segmented (PagePanel), PageOsContext (runtime.tsx) provided by BuilderBoard, Player and htmlExport; Screen (phone /
+  tablet) renders DeviceBars after __main (the Sidebar session's header slot stays as it is), data-os and the safe-area
+  vars; deviceBars.css pads content without a Top / Bottom Navigation. Style guard: tokens + zen-allow for OS sizes.
+- Tests: pageModel selftest +5; E2E group "device" DV-01 (iOS 50 / 28 · home 134 → Android 24 / 24 · handle 108×4 →
+  iOS, header os written / removed), DV-02 (desktop: no bars). Screenshots of a new phone page in both OSes checked.
+- Gate findings fixed: HO-03/HO-04 (exported HTML of phone frames 33% off the canvas: the export kept only .zen-* rules)
+  → htmlExport renames studio-device-* → device-* and keeps deviceBars.css rules under .screen / .device-*; HO-02
+  (".studio-" in styles.css from `:has(.studio-builder-screen__top)`) → the Screen writes data-inset="top bottom" and
+  the CSS keys on it. A mid-edit slip (runtime.tsx `active` used before its declaration) broke tsc for other sessions for
+  a few minutes; fixed and told them. Told the Sidebar session that app-frame Screens export studio-builder-screen__*
+  classes without their layout CSS (its area). Final gate: static ✓, TypeScript ✓, self-tests ✓, E2E 204/204.

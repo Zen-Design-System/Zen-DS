@@ -2,7 +2,7 @@
 // Self-test of the builder PageStore's pure rules (./pageModel.ts, imported directly: Node strips the types): header
 // title, ids, hash, revisions, Trash, and the sync plan with a folder mirror.
 // Run: node src/platform/studio/builder/store/pageModel.selftest.mjs
-import { headerTitle, idFromFileName, keepsRevision, planSync, REVISION_GAP_MS, slugOf, textHash, trashDaysLeft, trashExpired, TRASH_MS, withHeaderTitle, withScreenTitles } from "./pageModel.ts";
+import { headerOs, headerTitle, idFromFileName, withHeaderOs, keepsRevision, planSync, REVISION_GAP_MS, slugOf, textHash, trashDaysLeft, trashExpired, TRASH_MS, withHeaderTitle, withScreenTitles } from "./pageModel.ts";
 
 const failures = [];
 let passed = 0;
@@ -21,6 +21,12 @@ check("no header", headerTitle("export default 1;\n"), null);
 check("rename keeps the rest byte for byte", withHeaderTitle(page("A"), "Thanh toán"), page("Thanh toán"));
 check("rename keeps other header keys", withHeaderTitle('// @zen-page {"format":1,"title":"A","x":2}\r\nrest', "B"), '// @zen-page {"format":1,"title":"B","x":2}\r\nrest');
 check("rename without a header", withHeaderTitle("abc", "B"), "abc");
+// Mobile OS (header `os`, 2026-10-10): iOS is the default and is never written.
+check("os unset is iOS", headerOs(page("A")), "ios");
+check("os android written", withHeaderOs('// @zen-page {"format":1,"title":"A"}\nrest', "android"), '// @zen-page {"format":1,"title":"A","os":"android"}\nrest');
+check("os read back", headerOs('// @zen-page {"format":1,"title":"A","os":"android"}\nrest'), "android");
+check("os iOS removes the key", withHeaderOs('// @zen-page {"format":1,"title":"A","os":"android","x":2}\r\nrest', "ios"), '// @zen-page {"format":1,"title":"A","x":2}\r\nrest');
+check("os without a header", withHeaderOs("abc", "android"), "abc");
 check("a Screen named after the page follows its new name", withScreenTitles('<Screen id="screen-1" title="Untitled page" device="desktop">\n<Text>Untitled page</Text>', "Untitled page", "Checkout"), '<Screen id="screen-1" title="Checkout" device="desktop">\n<Text>Untitled page</Text>');
 check("a Screen named otherwise keeps its name", withScreenTitles('<Screen id="s" title="Cart">', "Untitled page", "Checkout"), '<Screen id="s" title="Cart">');
 check("the app frame's titles follow too", withScreenTitles('<Screen id="s" title="Untitled page"\n  header={<PageHeader title="Untitled page" />}\n  topNavigation={<TopNavigation type="compact" title="Untitled page" />}>\n<PageHeader title="Orders" />', "Untitled page", "Checkout"), '<Screen id="s" title="Checkout"\n  header={<PageHeader title="Checkout" />}\n  topNavigation={<TopNavigation type="compact" title="Checkout" />}>\n<PageHeader title="Orders" />');
